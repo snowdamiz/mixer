@@ -286,7 +286,9 @@ impl Instance {
                 } => {
                     let address = pop32(&mut frame.stack) as u32;
                     let width = memory_width(*opcode);
-                    let start = address as usize + *imm as usize;
+                    let start = (address as usize).checked_add(*imm as usize).ok_or_else(|| {
+                        trap("memory_out_of_bounds", "load effective address exceeds host address space")
+                    })?;
                     let end = start
                         .checked_add(width)
                         .filter(|n| *n <= self.memory.len())
@@ -321,7 +323,9 @@ impl Instance {
                     let value = frame.stack.pop().unwrap();
                     let address = pop32(&mut frame.stack) as u32;
                     let width = memory_width(*opcode);
-                    let start = address as usize + *imm as usize;
+                    let start = (address as usize).checked_add(*imm as usize).ok_or_else(|| {
+                        trap("memory_out_of_bounds", "store effective address exceeds host address space")
+                    })?;
                     let end = start
                         .checked_add(width)
                         .filter(|n| *n <= self.memory.len())
