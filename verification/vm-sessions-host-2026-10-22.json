@@ -1,0 +1,292 @@
+{
+  "schema": 1,
+  "observed_at_utc": "2026-10-22T23:05:56.240323+00:00",
+  "source_revision": "ac9c855a360b3f7f0317d0a0dfb57c67dba51ed2",
+  "source_archive_sha256": "ea0f045ca7c08a9e972c46f997e78b12a9c6873a233ee36eb3183df56ec957c1",
+  "source_digest": "e4068a84d4e54def23652272026221d4215ad440e58a3fb4e6204e8ec7115fe3",
+  "runner_sha256": "32dbd132cb1a67106f07f2787b988e74f836af0bf2dc6c0f0258d7e2f8e0a027",
+  "platform": "host",
+  "device": null,
+  "results": {
+    "host_unit": {
+      "passed": 86,
+      "explicit_oracle_functions_initially_ignored": 8
+    },
+    "session_and_ffi_release": {
+      "passed": 14,
+      "failed": 0,
+      "ignored": 0
+    },
+    "explicit_development_oracles": {
+      "passed_functions": 8,
+      "failed": 0,
+      "ignored": 0
+    },
+    "ffi_smoke": "C ABI smoke: passed",
+    "ffi_numeric_smoke": "FP flush-to-zero rejection: exercised\nFP hardware invalid-trap rejection: exercised\nNumeric-v2 C ABI smoke: passed",
+    "ffi_table_memory_smoke": "Table-memory-v3 C ABI smoke: passed; legacy struct layouts unchanged",
+    "ffi_session_smoke": "Persistent session C ABI smoke: passed; legacy layouts and one-shot state unchanged"
+  },
+  "installed_artifacts": [],
+  "tool_versions": {
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "host": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "node": "v22.23.3"
+  },
+  "environment_overrides": {
+    "PATH": "/opt/homebrew/opt/rustup/bin:/Applications/ChatGPT.app/Contents/Resources/codex-cli/codex-path:/Users/andreyyurlov/.local/bin:/Users/andreyyurlov/.bun/bin:/Users/andreyyurlov/.local/state/fnm_multishells/6169_1792704565860/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Library/Apple/usr/bin:/opt/homebrew/bin:/Users/andreyyurlov/.codex/tmp/arg0/codex-arg0kP59Az:/Applications/ChatGPT.app/Contents/Resources/codex-cli/codex-path:/Users/andreyyurlov/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/override:/Users/andreyyurlov/.local/bin:/Users/andreyyurlov/.bun/bin:/Users/andreyyurlov/.local/state/fnm_multishells/86666_1792071340250/bin:/opt/homebrew/sbin:/Users/andreyyurlov/.docker/bin:/Users/andreyyurlov/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/fallback:/Applications/ChatGPT.app/Contents/Resources:/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS:/Users/andreyyurlov/.docker/bin",
+    "CARGO_TARGET_DIR": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/target"
+  },
+  "commands": [
+    {
+      "name": "version-rustc",
+      "command": [
+        "rustc",
+        "--version"
+      ],
+      "exit_code": 0,
+      "log": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/version-rustc.log",
+      "log_sha256": "8dc912acd5bfeafc70b01b1d2a2afb0844afa02f5dba2f1ae8d5c212d005afb6"
+    },
+    {
+      "name": "version-cargo",
+      "command": [
+        "cargo",
+        "--version"
+      ],
+      "exit_code": 0,
+      "log": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/version-cargo.log",
+      "log_sha256": "1f88eaf7fe1aaec83184752cf4c944cd22f00184136ff36a3e4c318cc60ef566"
+    },
+    {
+      "name": "version-host",
+      "command": [
+        "sw_vers"
+      ],
+      "exit_code": 0,
+      "log": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/version-host.log",
+      "log_sha256": "4ef10a0fc370704ea84699cf3851e51488598c5f1ab35cb572eb6b96278a8e5c"
+    },
+    {
+      "name": "version-node",
+      "command": [
+        "node",
+        "--version"
+      ],
+      "exit_code": 0,
+      "log": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/version-node.log",
+      "log_sha256": "33e26f35db6e57ce0c486ddc815fe966867e4f649e418eaf323f75f4720eb8e9"
+    },
+    {
+      "name": "format",
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/source/vm/Cargo.toml",
+        "--check"
+      ],
+      "exit_code": 0,
+      "log": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/format.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/source/vm/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "log": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/clippy.log",
+      "log_sha256": "86e1c0682b403186cadfd2dbb74236e37eae9b35c4a2481418c1451d8ddf1317"
+    },
+    {
+      "name": "host-tests",
+      "command": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/source/vm/Cargo.toml"
+      ],
+      "exit_code": 0,
+      "log": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/host-tests.log",
+      "log_sha256": "ab7aaf5754e6681daf3dd16cc0e83f8cc622d147ccd14dd3b4212fa7472597db"
+    },
+    {
+      "name": "session-release",
+      "command": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/source/vm/Cargo.toml",
+        "--release",
+        "--test",
+        "sessions",
+        "--lib"
+      ],
+      "exit_code": 0,
+      "log": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/session-release.log",
+      "log_sha256": "13c85cdcaefddb2e476b57fb954c67933f931cf85795f4418ba329ac3c54feb0"
+    },
+    {
+      "name": "explicit-oracles",
+      "command": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/source/vm/Cargo.toml",
+        "--release",
+        "--test",
+        "differential",
+        "--test",
+        "float_differential",
+        "--test",
+        "table_memory_differential",
+        "--",
+        "--ignored",
+        "--nocapture"
+      ],
+      "exit_code": 0,
+      "log": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/explicit-oracles.log",
+      "log_sha256": "a378e3ebf20e5037d31329883a6e3fe7d5a159320ade53e23b00baf5168bcf67"
+    },
+    {
+      "name": "library",
+      "command": [
+        "cargo",
+        "build",
+        "--release",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/source/vm/Cargo.toml",
+        "--lib"
+      ],
+      "exit_code": 0,
+      "log": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/library.log",
+      "log_sha256": "376a48f02bf305a0c383aa68e8f2d8c5df3ec64cbee6a09491a649aa453baba9"
+    },
+    {
+      "name": "build-ffi_smoke",
+      "command": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/source/vm/include",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/source/vm/tests/ffi_smoke.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/target/release/libmixer_vm.a",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/ffi_smoke"
+      ],
+      "exit_code": 0,
+      "log": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/build-ffi_smoke.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "run-ffi_smoke",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/ffi_smoke"
+      ],
+      "exit_code": 0,
+      "log": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/run-ffi_smoke.log",
+      "log_sha256": "22e011bf9720cb2a6378d3bb582b1f734d18811d8e9622af4545a62ffc67b89d"
+    },
+    {
+      "name": "build-ffi_numeric_smoke",
+      "command": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/source/vm/include",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/source/vm/tests/ffi_numeric_smoke.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/target/release/libmixer_vm.a",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/ffi_numeric_smoke"
+      ],
+      "exit_code": 0,
+      "log": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/build-ffi_numeric_smoke.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "run-ffi_numeric_smoke",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/ffi_numeric_smoke"
+      ],
+      "exit_code": 0,
+      "log": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/run-ffi_numeric_smoke.log",
+      "log_sha256": "a009a7fccb4af9d1c562e9fbb41b66ade3becc0665f2f66869e8216d5a354273"
+    },
+    {
+      "name": "build-ffi_table_memory_smoke",
+      "command": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/source/vm/include",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/source/vm/tests/ffi_table_memory_smoke.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/target/release/libmixer_vm.a",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/ffi_table_memory_smoke"
+      ],
+      "exit_code": 0,
+      "log": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/build-ffi_table_memory_smoke.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "run-ffi_table_memory_smoke",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/ffi_table_memory_smoke"
+      ],
+      "exit_code": 0,
+      "log": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/run-ffi_table_memory_smoke.log",
+      "log_sha256": "90d70aba024698a2839f670630576917d75836dcab17de4a40259bfcef494c6d"
+    },
+    {
+      "name": "build-ffi_session_smoke",
+      "command": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/source/vm/include",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/source/vm/tests/ffi_session_smoke.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/target/release/libmixer_vm.a",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/ffi_session_smoke"
+      ],
+      "exit_code": 0,
+      "log": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/build-ffi_session_smoke.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "run-ffi_session_smoke",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/ffi_session_smoke"
+      ],
+      "exit_code": 0,
+      "log": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/session-host-qualified/run-ffi_session_smoke.log",
+      "log_sha256": "45c0d9a25d44ca97c4dd00a4eeac2d46557f059c590e498db5d91e9bce490aef"
+    }
+  ],
+  "limits": [
+    "Unchanged frozen source and assertions; no guest Wasm runtime replacement",
+    "Development reference runs on the host only",
+    "No full Swift guest execution, FieldLog integration, OTA activation, standards/fuzz/audit or GA approval"
+  ]
+}

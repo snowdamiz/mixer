@@ -1,0 +1,149 @@
+{
+  "schema": 1,
+  "observed_at_utc": "2026-10-22T23:07:50.328121+00:00",
+  "source_revision": "ac9c855a360b3f7f0317d0a0dfb57c67dba51ed2",
+  "prepared": {
+    "source_revision": "ac9c855a360b3f7f0317d0a0dfb57c67dba51ed2",
+    "source_archive_sha256": "c1d9de01d3fd1fb1b4db379c022ae53d8d1f1baca8b5b61d5c009909ea0b55e5",
+    "test": "sessions",
+    "test_functions": [
+      "retained_memory_globals_and_owned_input",
+      "copied_memory_whole_bounds_zero_length_and_no_partial_write",
+      "failed_creates_release_reservations_and_cap_is_enforced",
+      "close_and_slot_reuse_reject_stale_handles",
+      "trap_cancellation_and_signature_errors_are_terminal",
+      "malformed_abi_arguments_leave_session_usable",
+      "opt_in_profiles_and_per_call_budgets_are_retained"
+    ],
+    "original_test_sha256": "10122ece4a6e436e6129cee678d4a6c097bc18ba009edbddeb224105f2bb51c5",
+    "adapted_test_sha256": "e93a51479b9673b7424e53b927775a3a5a96dadbf0f1d4b053227280469b9c77",
+    "adaptation": "Remove #[test] registration only; original assertions unchanged; C catch_unwind wrapper invokes every function",
+    "generator_sha256": "541385d3d26cee7113525a46c3ac35f0f053c42b902715393b15a12aed62e74f"
+  },
+  "device": "physical iPhone12 iOS27.0.1",
+  "device_id": "00008101-0004155214B9003A",
+  "test_functions_passed": 7,
+  "test_assertions_unchanged": true,
+  "commands": [
+    {
+      "command": "python3 verification/tools/prepare-ios-vm-tests.py --revision ac9c855 --test sessions --output verification/local/ios-sessions-qualified",
+      "exit_code": 0
+    },
+    {
+      "command": "cargo build --manifest-path verification/local/ios-sessions-qualified/rust/Cargo.toml --release --target aarch64-apple-ios",
+      "environment": {
+        "CARGO_TARGET_DIR": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/ios-sessions-qualified/target",
+        "IPHONEOS_DEPLOYMENT_TARGET": "17.0"
+      },
+      "exit_code": 0
+    },
+    {
+      "command": "xcodebuild -project verification/local/ios-sessions-qualified/app/NumericVM.xcodeproj -scheme NumericVM -configuration Debug -destination platform=iOS,id=00008101-0004155214B9003A -derivedDataPath verification/local/ios-sessions-qualified/build CODE_SIGN_STYLE=Automatic DEVELOPMENT_TEAM=RZY3NS8FM2 CODE_SIGN_IDENTITY=Apple Development build",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "devicectl",
+        "device",
+        "install",
+        "app",
+        "--device",
+        "00008101-0004155214B9003A",
+        "--json-output",
+        "verification/local/ios-sessions-qualified/install.json",
+        "verification/local/ios-sessions-qualified/build/Build/Products/Debug-iphoneos/NumericVM.app"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "devicectl",
+        "device",
+        "process",
+        "launch",
+        "--device",
+        "00008101-0004155214B9003A",
+        "--console",
+        "--terminate-existing",
+        "--json-output",
+        "verification/local/ios-sessions-qualified/launch.json",
+        "dev.mixer.vmtestqualification"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "evidence": {
+    "verification/local/ios-sessions-qualified/prepared.json": "3e978bf5c7d07dfd820d22a3180b22c8134888166f27b71ff26e94f9aa212fea",
+    "verification/local/ios-sessions-qualified/rust-build.log": "01c6de6444019c6a93b2521ce3fbead918f976a68e90d124e377602add6527cb",
+    "verification/local/ios-sessions-qualified/build.log": "131b72f1a32e3349ec0668ffc05cffffedd850fadc1845db053bdf2246cab922",
+    "verification/local/ios-sessions-qualified/install.log": "888d60374dad58687cf213140fdce8aca997265430ebb013f95bf343a53eedb8",
+    "verification/local/ios-sessions-qualified/install.json": "72e774d21a369bbffeae5e9530ac63ad8b61a65c8354d598a9faaea0fbd7a3b0",
+    "verification/local/ios-sessions-qualified/launch.log": "62646a6823db9219d5b42864a4a12327e8b42197cc5bb2353fa94d961c419d04",
+    "verification/local/ios-sessions-qualified/launch.json": "158a7e63c405aa3f7d06623128972156a2fb746da2c9f8d0d224e00c94f87b02",
+    "verification/local/ios-sessions-qualified/app/lib/libmixer_vm_qualification.a": "f0a40350627297ac436bff90179e49aa5cf12d768c4df744c3ec70759a5d2180",
+    "verification/local/ios-sessions-qualified/build/Build/Products/Debug-iphoneos/NumericVM.app/NumericVM": "946ed301b2f5fb8fd0e686f77be4e3cc332ae4a48bd386c57521f54859b7cdac"
+  },
+  "launch_result": {
+    "info": {
+      "arguments": [
+        "devicectl",
+        "device",
+        "process",
+        "launch",
+        "--device",
+        "00008101-0004155214B9003A",
+        "--console",
+        "--terminate-existing",
+        "--json-output",
+        "verification/local/ios-sessions-qualified/launch.json",
+        "dev.mixer.vmtestqualification"
+      ],
+      "commandType": "devicectl.device.process.launch",
+      "environment": {
+        "TERM": "dumb"
+      },
+      "jsonVersion": 5,
+      "outcome": "success",
+      "version": "651.13.5"
+    },
+    "result": {
+      "deviceIdentifier": "701B1218-6B2E-5D4A-B9D3-B16E612EED59",
+      "launchOptions": {
+        "activatedWhenStarted": true,
+        "arguments": [],
+        "environmentVariables": {
+          "TERM": "dumb"
+        },
+        "platformSpecificOptions": {},
+        "startStopped": false,
+        "terminateExistingInstances": true,
+        "user": {
+          "active": true
+        }
+      },
+      "process": {
+        "auditToken": [
+          4294967295,
+          501,
+          501,
+          501,
+          501,
+          5646,
+          0,
+          14984
+        ],
+        "executable": "file:///private/var/containers/Bundle/Application/F5A6CA4A-11F3-4171-A6F1-0E9ED65570C4/NumericVM.app/NumericVM",
+        "processIdentifier": 5646
+      },
+      "terminationResult": {
+        "exitCode": 0,
+        "wasCoreDumpCreated": false
+      }
+    }
+  },
+  "limitations": [
+    "Only the seven public session test functions ran in this signed iOS app; private registry/panic tests ran on host and Android",
+    "Original assertions invoke public C session interface",
+    "No full Swift guest, FieldLog integration, lifecycle activation, performance/RSS, standards/fuzz/audit or GA qualification"
+  ]
+}
