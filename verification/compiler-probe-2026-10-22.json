@@ -1,0 +1,59 @@
+{
+  "schema": 1,
+  "date": "2026-10-22",
+  "requirement": "W02/W07 early compiler qualification",
+  "status": "passed",
+  "scope": "Independently authored model probe only; not FieldLog, native UI, owned VM or GA acceptance",
+  "source": "compiler/Fixtures/FeatureProbe/Sources/FeatureProbe/main.swift",
+  "sourceSHA256": "96686e6b840701fb54809a0ecac260fa287501ccaabe641252ea7f9e6b0826d5",
+  "toolchain": "official Swift 6.3.3; Xcode Swift 6.4 host oracle",
+  "scenarios": [
+    "Codable round trip",
+    "Unicode preservation",
+    "empty-title error",
+    "50 percent task completion",
+    "empty collection"
+  ],
+  "expected": {
+    "status": "passed",
+    "completionBasisPoints": 5000,
+    "codableRoundTrip": true,
+    "unicodePreserved": true,
+    "emptyTitleRejected": true
+  },
+  "observations": [
+    {
+      "target": "host macOS",
+      "result": "passed"
+    },
+    {
+      "target": "Android arm64 API28 binary",
+      "device": "physical Pixel 8 Pro",
+      "os": "Android17",
+      "result": "passed",
+      "artifactSHA256": "7766e0edfac7b9cfa45fcab069dcf8c627eb97c0b0fdf8a5f0e7b677fc678dc9"
+    },
+    {
+      "target": "WASI full Swift SDK",
+      "engine": "Node22.23.3 development-only WASI oracle",
+      "result": "passed",
+      "argv": [
+        "feature-probe"
+      ],
+      "preopens": {},
+      "artifactSHA256": "a0277972e2f32616cd714cf3d9a7172fd1483d73f787fc5c17e524b3d224e197"
+    }
+  ],
+  "builds": {
+    "android": "swift build --package-path compiler/Fixtures/FeatureProbe --swift-sdks-path ~/.swiftpm/swift-sdks --swift-sdk aarch64-unknown-linux-android28 --static-swift-stdlib -c release",
+    "wasm": "swift build --package-path compiler/Fixtures/FeatureProbe --swift-sdk swift-6.3.3-RELEASE_wasm -c release"
+  },
+  "findings": [
+    "Selecting Android SDK by artifact name plus --triple selected x86_64 resources; selecting exact target triple isolates correct architecture.",
+    "Android executable requires matching NDK libc++_shared.so.",
+    "Full Foundation probe is 60112045 bytes before compression; stripped gzip9 19948977 bytes. This is not representative app corpus qualification.",
+    "Node WASI requires argv0; empty args exited71.",
+    "Owned MixerVM full Swift execution remains unqualified."
+  ],
+  "reviewer": "root integration agent; independent verifier pending"
+}

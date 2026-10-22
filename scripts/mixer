@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+MIXER_REPO=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+swift build --package-path "$MIXER_REPO/cli" --product mixer >&2
+exec "$MIXER_REPO/cli/.build/debug/mixer" "$@"

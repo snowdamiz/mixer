@@ -1,0 +1,212 @@
+{
+  "schema": 1,
+  "scope": "Full product plan; packages only verified after specified acceptance",
+  "updated": "2026-10-22",
+  "packages": [
+    {
+      "id": "W01",
+      "name": "Product and contracts",
+      "owner": "Technical lead + product",
+      "deliverables": "Supported app categories, API contract, policy envelope, architecture decisions, provenance rules",
+      "dependencies": "None",
+      "acceptance": "Approved specification; no competitor code in dependencies/templates; customer interviews recorded.",
+      "state": "in_progress",
+      "evidence": [],
+      "remaining": "Full package acceptance not yet demonstrated."
+    },
+    {
+      "id": "W02",
+      "name": "Toolchain and local build",
+      "owner": "Compiler lead",
+      "deliverables": "Signed version lock, SDK installation, doctor, native project generation, local CI",
+      "dependencies": "W01",
+      "acceptance": "Clean machine builds FieldLog for both targets with reproducible input graph.",
+      "state": "in_progress",
+      "evidence": [],
+      "remaining": "Full package acceptance not yet demonstrated."
+    },
+    {
+      "id": "W03",
+      "name": "Core Swift model",
+      "owner": "Framework lead",
+      "deliverables": "Lifecycle, state, effects, navigation model, resources, errors",
+      "dependencies": "W01\u201302",
+      "acceptance": "Same state/effect tests in native targets; restoration works.",
+      "state": "in_progress",
+      "evidence": [],
+      "remaining": "Full package acceptance not yet demonstrated."
+    },
+    {
+      "id": "W04",
+      "name": "iOS UI adapter",
+      "owner": "iOS lead",
+      "deliverables": "Public MixerUI implementation, SwiftUI/UIKit mapping, input and accessibility",
+      "dependencies": "W03",
+      "acceptance": "D1 and UI matrix pass on physical iOS.",
+      "state": "in_progress",
+      "evidence": [],
+      "remaining": "Full package acceptance not yet demonstrated."
+    },
+    {
+      "id": "W05",
+      "name": "Android UI adapter",
+      "owner": "Android lead",
+      "deliverables": "JNI boundary, Compose/native controls, lifecycle, back behavior, native resources",
+      "dependencies": "W02\u201303",
+      "acceptance": "D2 with native Android interaction and accessibility evidence.",
+      "state": "ready",
+      "evidence": [],
+      "remaining": "Full package acceptance not yet demonstrated."
+    },
+    {
+      "id": "W06",
+      "name": "Capability generator",
+      "owner": "Framework/compiler lead",
+      "deliverables": "Schema, generated adapters, ownership/cancellation, permission metadata",
+      "dependencies": "W03",
+      "acceptance": "Cross-language codec and lifecycle suite; first native plugin consumed by FieldLog.",
+      "state": "ready",
+      "evidence": [],
+      "remaining": "Full package acceptance not yet demonstrated."
+    },
+    {
+      "id": "W07",
+      "name": "Guest compilation",
+      "owner": "Compiler lead",
+      "deliverables": "Guest libraries, module extraction, API diagnostics, source maps, dependency closure",
+      "dependencies": "W02\u201303, W06",
+      "acceptance": "FieldLog feature graph compiles to native and Wasm with no silent behavior loss.",
+      "state": "ready",
+      "evidence": [],
+      "remaining": "Full package acceptance not yet demonstrated."
+    },
+    {
+      "id": "W08",
+      "name": "Owned interpreter",
+      "owner": "Runtime lead",
+      "deliverables": "Validator/interpreter, resource controls, imports, Swift runtime integration, debugger",
+      "dependencies": "W07 profile; early work parallel",
+      "acceptance": "D3, standards-profile tests, fuzzing and differential results.",
+      "state": "in_progress",
+      "evidence": [],
+      "remaining": "Full package acceptance not yet demonstrated."
+    },
+    {
+      "id": "W09",
+      "name": "First-party integrations",
+      "owner": "iOS/Android leads",
+      "deliverables": "All capability families in Section 9, plugin authoring guide",
+      "dependencies": "W04\u201306",
+      "acceptance": "FieldLog flows pass on both devices; native additions correctly require binary changes.",
+      "state": "ready",
+      "evidence": [],
+      "remaining": "Full package acceptance not yet demonstrated."
+    },
+    {
+      "id": "W10",
+      "name": "Device updater",
+      "owner": "Runtime/release leads",
+      "deliverables": "Verifier, cache, activation, health, quarantine, recovery, key rotation",
+      "dependencies": "W07\u201308",
+      "acceptance": "D4\u201305, data-preserving rollback, offline recovery, fault matrix.",
+      "state": "in_progress",
+      "evidence": [],
+      "remaining": "Full package acceptance not yet demonstrated."
+    },
+    {
+      "id": "W11",
+      "name": "Release backend",
+      "owner": "Cloud lead",
+      "deliverables": "Artifacts, compatibility, channels, assignment signing, rollout/rollback, API",
+      "dependencies": "W10 protocol",
+      "acceptance": "Dual-platform release with immutable audit and correct cohort routing.",
+      "state": "in_progress",
+      "evidence": [],
+      "remaining": "Full package acceptance not yet demonstrated."
+    },
+    {
+      "id": "W12",
+      "name": "Build/signing service",
+      "owner": "Infrastructure lead",
+      "deliverables": "Isolated macOS/Linux workers, caches, secrets, signer, provenance, quotas",
+      "dependencies": "W02, W11 identity",
+      "acceptance": "Cross-tenant adversarial tests and signed FieldLog builds from clean workers.",
+      "state": "ready",
+      "evidence": [],
+      "remaining": "Full package acceptance not yet demonstrated."
+    },
+    {
+      "id": "W13",
+      "name": "Store distribution",
+      "owner": "DevEx/build lead",
+      "deliverables": "Store connections, submissions, status reconciliation, test links",
+      "dependencies": "W12",
+      "acceptance": "D6 with actual ready-for-testing states on both stores.",
+      "state": "ready",
+      "evidence": [],
+      "remaining": "Full package acceptance not yet demonstrated."
+    },
+    {
+      "id": "W14",
+      "name": "Console and commercial",
+      "owner": "Product/cloud leads",
+      "deliverables": "Onboarding, permissions, SSO, release console, usage, billing, support",
+      "dependencies": "W11\u201313",
+      "acceptance": "New organization completes full workflow through public UX/API.",
+      "state": "ready",
+      "evidence": [],
+      "remaining": "Full package acceptance not yet demonstrated."
+    },
+    {
+      "id": "W15",
+      "name": "Debug/import/export",
+      "owner": "DevEx lead",
+      "deliverables": "Native/guest debug, migration reports, profiler, export/ejection guide",
+      "dependencies": "W02, W07\u201310",
+      "acceptance": "Original source diagnostics, external app import, independent CI export build.",
+      "state": "ready",
+      "evidence": [],
+      "remaining": "Full package acceptance not yet demonstrated."
+    },
+    {
+      "id": "W16",
+      "name": "Security and reliability",
+      "owner": "Security/QA/SRE",
+      "deliverables": "Threat review, audit remediation, monitoring, backups, recovery drills, load tests",
+      "dependencies": "Starts W01; final W10\u201314",
+      "acceptance": "No unresolved launch-blocking findings; measured service objectives.",
+      "state": "ready",
+      "evidence": [],
+      "remaining": "Full package acceptance not yet demonstrated."
+    },
+    {
+      "id": "W17",
+      "name": "FieldLog delivery",
+      "owner": "Dogfood app lead",
+      "deliverables": "Real product, backend, users, both stores, continuous updates",
+      "dependencies": "Starts W01; consumes all",
+      "acceptance": "D0\u201308 with independently reviewable evidence and no private escape routes.",
+      "state": "ready",
+      "evidence": [],
+      "remaining": "Full package acceptance not yet demonstrated."
+    },
+    {
+      "id": "W18",
+      "name": "External qualification and launch",
+      "owner": "Product + DevEx",
+      "deliverables": "Two external apps minimum, paid pilots, docs, support, migration, release train",
+      "dependencies": "W09\u201317",
+      "acceptance": "Section 29 gates; customers onboard and pay without bespoke engine forks.",
+      "state": "ready",
+      "evidence": [],
+      "remaining": "Full package acceptance not yet demonstrated."
+    }
+  ],
+  "agentConfiguration": {
+    "controller": "user-selected (not independently introspectable)",
+    "delegates": {
+      "model": "gpt-6.1-sol",
+      "reasoningEffort": "xhigh"
+    }
+  }
+}
