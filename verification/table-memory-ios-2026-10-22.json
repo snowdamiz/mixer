@@ -1,0 +1,162 @@
+{
+  "schema": 1,
+  "observed_at_utc": "2026-10-22T22:54:18.644740+00:00",
+  "reviewer": "root integrator",
+  "source_revision": "889d979114c9eed1e586bb7a8ef3cdd8ee5fc5c0",
+  "source_digest": "083f476bcc55b30aa7c01860fb450a9f4e5c2488be777a72a15b336f83e08992",
+  "prepared": {
+    "source_revision": "889d979114c9eed1e586bb7a8ef3cdd8ee5fc5c0",
+    "source_archive_sha256": "0feb571f8def001ac92f29486fc96af3ec8743fc2138030773edc30feaa06eff",
+    "test": "table_memory",
+    "test_functions": [
+      "indirect_calls_null_and_bounds_have_structured_traps",
+      "equivalent_duplicate_function_types_match_structurally",
+      "mismatched_function_signature_traps_without_calling_target",
+      "element_order_overlap_explicit_table_and_zero_length_bounds",
+      "table_type_index_function_index_and_quota_validate_before_instantiation",
+      "measured_table_shape_fits_only_the_new_bounded_resource_class",
+      "old_profiles_reject_table_and_bulk_features",
+      "recursive_indirect_calls_share_depth_and_fuel_limits",
+      "approved_imports_remain_metered_when_called_indirectly",
+      "overlapping_copy_is_memmove_in_both_directions",
+      "bulk_bounds_preflight_preserves_memory_and_zero_lengths_check_addresses",
+      "fill_masks_byte_and_bulk_fuel_is_precharged_before_mutation",
+      "unknown_table_forms_and_bulk_indices_fail_closed",
+      "cancellation_and_bad_element_declarations_do_not_execute",
+      "table_bulk_mutation_smoke_is_bounded_and_never_panics",
+      "indirect_float_values_preserve_bits_through_arguments_and_results",
+      "indirect_and_bulk_operands_are_statically_typed_even_when_unreachable"
+    ],
+    "original_test_sha256": "6e4c2d2f2493714ebc976a3141a2c46dd60413f866724accea4b28f4efdb6946",
+    "adapted_test_sha256": "9b09736a730f314b55961a2cf4dc892d0dfd6d1cb0a29568967b10beae32db7d",
+    "adaptation": "Remove #[test] registration only; original assertions unchanged; C catch_unwind wrapper invokes every function",
+    "generator_sha256": "eefd6a92a7d7f0f3e79b0c7314bff8abdefd4baa74c94553e4b9f8f39812ac4c"
+  },
+  "device": "physical iPhone12 iOS27.0.1",
+  "device_id": "00008101-0004155214B9003A",
+  "test_functions_passed": 17,
+  "test_assertions_unchanged": true,
+  "commands": [
+    {
+      "command": "python3 verification/tools/prepare-ios-vm-tests.py --revision 889d979 --test table_memory --output verification/local/ios-v3-qualified",
+      "exit_code": 0
+    },
+    {
+      "command": "cargo build --manifest-path verification/local/ios-v3-qualified/rust/Cargo.toml --release --target aarch64-apple-ios",
+      "environment": {
+        "CARGO_TARGET_DIR": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/ios-v3-qualified/target",
+        "IPHONEOS_DEPLOYMENT_TARGET": "17.0"
+      },
+      "exit_code": 0
+    },
+    {
+      "command": "xcodebuild -project verification/local/ios-v3-qualified/app/NumericVM.xcodeproj -scheme NumericVM -configuration Debug -destination platform=iOS,id=00008101-0004155214B9003A -derivedDataPath verification/local/ios-v3-qualified/build CODE_SIGN_STYLE=Automatic DEVELOPMENT_TEAM=RZY3NS8FM2 CODE_SIGN_IDENTITY=Apple Development build",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "devicectl",
+        "device",
+        "install",
+        "app",
+        "--device",
+        "00008101-0004155214B9003A",
+        "--json-output",
+        "verification/local/ios-v3-qualified/install.json",
+        "verification/local/ios-v3-qualified/build/Build/Products/Debug-iphoneos/NumericVM.app"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "devicectl",
+        "device",
+        "process",
+        "launch",
+        "--device",
+        "00008101-0004155214B9003A",
+        "--console",
+        "--terminate-existing",
+        "--json-output",
+        "verification/local/ios-v3-qualified/launch.json",
+        "dev.mixer.vmtestqualification"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "evidence": {
+    "verification/local/ios-v3-qualified/prepared.json": "3bdbe796bcfbd0143b9d0dd26be5e87265d9ab87501febc8d14730c0931d0447",
+    "verification/local/ios-v3-qualified/rust-build.log": "c5a027b7277a9a9d463f30aaf3f9a18dcc80788d1df0ee6432e23dbddcbb5731",
+    "verification/local/ios-v3-qualified/build.log": "389ab231c9cb16110656d6554adede93f5eed4414b402c3c48c9a969f4b22275",
+    "verification/local/ios-v3-qualified/install.json": "72480d384c8dc61ee69c25a7c6e42634208ac2fd7cddcb6437a9dcf126cb4015",
+    "verification/local/ios-v3-qualified/launch.log": "2fa8bade57ab89279103b46e801bd174d4b40ed6caf7a66d38930b8200628985",
+    "verification/local/ios-v3-qualified/launch.json": "7f68c4a324fc887f04a9aed2a9ceedbdaf6ce5e750251a858bd164504fc5b62d",
+    "verification/local/ios-v3-qualified/app/lib/libmixer_vm_qualification.a": "2eeac5e8cc7680cb14b46861bf9e95491b9fc9fc98ea7f3b6c150cb269813eb3",
+    "verification/local/ios-v3-qualified/build/Build/Products/Debug-iphoneos/NumericVM.app/NumericVM": "862bc0ccac9b0595d19507ffcede819e6f84bf396c22463f53feef40b9abc531"
+  },
+  "launch_result": {
+    "info": {
+      "arguments": [
+        "devicectl",
+        "device",
+        "process",
+        "launch",
+        "--device",
+        "00008101-0004155214B9003A",
+        "--console",
+        "--terminate-existing",
+        "--json-output",
+        "verification/local/ios-v3-qualified/launch.json",
+        "dev.mixer.vmtestqualification"
+      ],
+      "commandType": "devicectl.device.process.launch",
+      "environment": {
+        "TERM": "dumb"
+      },
+      "jsonVersion": 5,
+      "outcome": "success",
+      "version": "651.13.5"
+    },
+    "result": {
+      "deviceIdentifier": "701B1218-6B2E-5D4A-B9D3-B16E612EED59",
+      "launchOptions": {
+        "activatedWhenStarted": true,
+        "arguments": [],
+        "environmentVariables": {
+          "TERM": "dumb"
+        },
+        "platformSpecificOptions": {},
+        "startStopped": false,
+        "terminateExistingInstances": true,
+        "user": {
+          "active": true
+        }
+      },
+      "process": {
+        "auditToken": [
+          4294967295,
+          501,
+          501,
+          501,
+          501,
+          5636,
+          0,
+          14958
+        ],
+        "executable": "file:///private/var/containers/Bundle/Application/31A76CF8-EFA2-4CBE-A6F6-19CAAA86AA20/NumericVM.app/NumericVM",
+        "processIdentifier": 5636
+      },
+      "terminationResult": {
+        "exitCode": 0,
+        "wasCoreDumpCreated": false
+      }
+    }
+  },
+  "limitations": [
+    "Dedicated signed test app with Rust assertions; not FieldLog",
+    "2996 differential cases exercised on Android, not in this iOS harness",
+    "No Swift guest runtime, WASI imports, source debugger or OTA activation",
+    "No full performance/device/OS/standards/audit acceptance",
+    "No D0-D8 or GA gate passed"
+  ]
+}

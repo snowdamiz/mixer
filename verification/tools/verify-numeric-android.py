@@ -29,6 +29,7 @@ def sha(path):
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--revision', required=True)
+    p.add_argument('--profile', choices=['numeric-v2', 'table-memory-v3'], default='numeric-v2')
     p.add_argument('--serial', required=True)
     p.add_argument('--adb', required=True, type=Path)
     p.add_argument('--ndk', required=True, type=Path)
@@ -64,7 +65,13 @@ def main():
         tar.extractall(source, filter='data')
     original_files = {str(f.relative_to(source)): sha(f) for f in sorted(source.rglob('*'))
                       if f.is_file() and 'verification' not in f.relative_to(source).parts}
-    baseline = source / 'vm/tests/float_differential.rs'
+    table = args.profile == 'table-memory-v3'
+    baseline_name = 'table_memory_differential' if table else 'float_differential'
+    mobile_name = 'mobile_table_memory_oracle' if table else 'mobile_float_oracle'
+    unit_name = 'table_memory' if table else 'float'
+    marker = 'table-memory-v3' if table else 'numeric-v2'
+    expected_count = 2996 if table else 29794
+    baseline = source / f'vm/tests/{baseline_name}.rs'
     original = baseline.read_text()
     start = original.index('    let mut child = Command::new(')
     end = original.index('    let lines = text.lines()', start)
@@ -91,18 +98,18 @@ def main():
         std::fs::read_to_string(format!("{stem}.expected")).unwrap()
     };
 '''
-    generated = source / 'vm/tests/mobile_float_oracle.rs'
+    generated = source / f'vm/tests/{mobile_name}.rs'
     generated.write_text(original[:start] + replacement + original[end:])
     (out / 'oracle-transport.patch').write_text(''.join(difflib.unified_diff(
         original.splitlines(keepends=True), generated.read_text().splitlines(keepends=True),
-        fromfile='float_differential.rs', tofile='mobile_float_oracle.rs')))
+        fromfile=baseline.name, tofile=generated.name)))
     base = ['cargo', 'test', '--manifest-path', source / 'vm/Cargo.toml']
-    host = run('host-reference', base + ['--release', '--test', 'mobile_float_oracle', '--',
+    host = run('host-reference', base + ['--release', '--test', mobile_name, '--',
                '--ignored', '--nocapture', '--test-threads=1'], {'MIXER_ORACLE_DIRECTORY': str(reference)})
-    expected_cases = sum(map(int, re.findall(r'numeric-v2 differential cases matched: (\d+)', host)))
-    assert expected_cases == 29794, expected_cases
+    expected_cases = sum(map(int, re.findall(marker + r' differential cases matched: (\d+)', host)))
+    assert expected_cases == expected_count, expected_cases
     build = run('android-build', base + ['--release', '--target', 'aarch64-linux-android',
-                '--test', 'mobile_float_oracle', '--test', 'float', '--test', 'interpreter',
+                '--test', mobile_name, '--test', unit_name, '--test', 'interpreter',
                 '--test', 'review_boundaries', '--no-run', '--message-format=json'])
     binaries = {}
     for line in build.splitlines():
@@ -111,14 +118,17 @@ def main():
         item = json.loads(line)
         if item.get('reason') == 'compiler-artifact' and item.get('executable') and item['profile']['test']:
             binaries[item['target']['name']] = Path(item['executable'])
-    assert set(binaries) == {'mobile_float_oracle', 'float', 'interpreter', 'review_boundaries'}, binaries
+    assert set(binaries) == {mobile_name, unit_name, 'interpreter', 'review_boundaries'}, binaries
     run('android-library', ['cargo', 'build', '--manifest-path', source / 'vm/Cargo.toml',
                            '--release', '--target', 'aarch64-linux-android', '--lib'])
     c_binaries = {}
-    for name, c_source in {
+    c_sources = {
         'numeric-c-abi': source / 'vm/tests/ffi_numeric_smoke.c',
         'numeric-fp-control': ROOT / 'verification/tools/numeric-fp-android.c',
-    }.items():
+    }
+    if table:
+        c_sources['table-memory-c-abi'] = source / 'vm/tests/ffi_table_memory_smoke.c'
+    for name, c_source in c_sources.items():
         binary = out / name
         run('build-' + name, [clang, '-std=c11', '-Wall', '-Wextra', '-Werror',
             '-I', source / 'vm/include', c_source,
@@ -147,14 +157,14 @@ def main():
             path = remote + '/' + binary.name
             run('chmod-' + name, adb + ['shell', 'chmod', '700', path])
             command = adb + ['shell', 'env', 'MIXER_ORACLE_DIRECTORY=' + remote, path]
-            if name == 'mobile_float_oracle':
+            if name == mobile_name:
                 command += ['--ignored']
             result = run('device-' + name, command + ['--nocapture', '--test-threads=1'])
             counts = re.findall(r'test result: ok\. (\d+) passed; (\d+) failed; (\d+) ignored', result)
             assert len(counts) == 1 and counts[0][1:] == ('0', '0'), result
             results[name] = {'passed': int(counts[0][0]), 'failed': 0, 'ignored': 0}
-            if name == 'mobile_float_oracle':
-                actual_cases = sum(map(int, re.findall(r'numeric-v2 differential cases matched: (\d+)', result)))
+            if name == mobile_name:
+                actual_cases = sum(map(int, re.findall(marker + r' differential cases matched: (\d+)', result)))
                 assert actual_cases == expected_cases
                 results[name]['matched_cases'] = actual_cases
         for name, binary in c_binaries.items():
@@ -170,6 +180,7 @@ def main():
     manifest = ''.join(f'{digest}  {path}\n' for path, digest in original_files.items())
     (out / 'source-manifest.sha256').write_text(manifest)
     receipt = {'schema': 1, 'observed_at_utc': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+               'profile': args.profile,
                'source_revision': revision, 'source_digest': hashlib.sha256(manifest.encode()).hexdigest(),
                'reviewer': 'root integrator', 'source_archive_sha256': hashlib.sha256(archive).hexdigest(),
                'original_harness_sha256': sha(baseline), 'mobile_harness_sha256': sha(generated),

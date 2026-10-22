@@ -23,7 +23,9 @@ Observed implementation and evidence:
   profile. The opt-in numeric-v2 extension matches 29,794 floating-point reference
   cases on the physical Pixel and through the public C ABI in a signed iPhone
   app, plus 52 Android interpreter/numeric boundary tests and C ABI control checks. Integer-v1 acceptance is unchanged. Full Swift artifacts remain
-  rejected; tables/bulk memory are the next measured runtime dependency.
+  rejected. Opt-in table-memory-v3 now passes 2,996 Android reference cases and
+  17 table/memory assertions on physical iPhone, with unchanged older profiles.
+  Persistent sessions, bounded Swift/WASI imports and corpus budgets remain open.
 - The Go development service verifies canonical signed artifacts and separately
   signed rollout assignments, with scoped authorization, durable local state and
   retry/replay tests. It refuses production mode. Local HTTP → Swift verification

@@ -14,6 +14,9 @@ the captured inputs byte-for-byte before comparing device results. Node is never
 installed on the device or linked into the product. The transport patch is saved.
 The independent C harness checks rounding and flush control rejection; unavailable
 hardware exception controls are reported as unqualified.
+Pass `--profile table-memory-v3` with the corresponding frozen revision to run
+the 2,996 table/memory references and v3 boundary/C ABI tests using the same
+transport. Its reference records also compare resulting linear-memory spans.
 
 `verify-numeric-ios.py` uses that captured reference directory, checks its hashes
 and frozen VM archive, then builds a signed development application with the
@@ -40,6 +43,13 @@ resource lookup. Run the generated project with the recorded `xcodebuild test`
 command in `updater-ios-2026-10-22.json`. The physical run covers 28 test functions
 and 40 parameter executions in an iPhone app sandbox. Check resolved dependency
 pins against the frozen package before treating the result as qualified.
+
+`prepare-ios-vm-tests.py` prepares an app that runs a selected frozen Rust
+integration test source on iOS. It removes test registration attributes, retains
+all assertions, and adds a panic-containing C entry point that invokes every
+selected function. Build its static library and Xcode app using the commands in
+`table-memory-ios-2026-10-22.json`. Device console output lists individual passed
+functions and an exact count; a caught panic produces failure and a nonzero exit.
 
 Use each script's `--help` for required paths and identifiers. Recorded commands,
 versions, hashes, outputs and limitations are in the dated runtime receipts in
