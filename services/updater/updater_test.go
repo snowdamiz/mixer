@@ -151,8 +151,31 @@ func TestInterruptedLaunchClassificationAndOfflineHealthy(t *testing.T) {
 	}
 	defer s.Close()
 	boot, e = s.Start(300)
-	if e != nil || boot.Digest != first || s.Snapshot().Quarantine[second] != "artifact_authority_denied" {
+	if e != nil || boot.Digest != first || s.Snapshot().Quarantine[second] != "signing_authority_denied" {
 		t.Fatal("revoked candidate activated or healthy cache blocked", e)
+	}
+}
+
+func TestStagedAssignmentRevocationRetainsHealthy(t *testing.T) {
+	f := testutil.New(t)
+	cfg := config(t, f)
+	s, e := updater.Open(cfg)
+	if e != nil {
+		t.Fatal(e)
+	}
+	first := stage(t, s, f, "healthy", 1)
+	healthy(t, s, 100)
+	candidate := stage(t, s, f, "candidate", 2)
+	s.Close()
+	cfg.Roots[1].Revoked = true
+	s, e = updater.Open(cfg)
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer s.Close()
+	sel, e := s.Start(200)
+	if e != nil || sel.Digest != first || s.Snapshot().Quarantine[candidate] != "signing_authority_denied" {
+		t.Fatal("revoked assignment activated", e)
 	}
 }
 

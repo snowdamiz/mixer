@@ -403,8 +403,8 @@ func (s *Store) Start(now uint64) (Selection, error) {
 		return s.fallback(), nil
 	}
 	candidate := s.state.Candidates[d]
-	if protocol.VerifyManifestHeader(candidate.Manifest, s.cfg.Roots, s.cfg.Host, now) != nil {
-		s.state.Quarantine[d] = "artifact_authority_denied"
+	if protocol.VerifyManifestHeader(candidate.Manifest, s.cfg.Roots, s.cfg.Host, now) != nil || protocol.VerifyAssignmentHeader(candidate.Assignment, candidate.Manifest.Manifest, s.cfg.Roots, s.cfg.Host, s.cfg.Channel, 0, now) != nil {
+		s.state.Quarantine[d] = "signing_authority_denied"
 		s.state.Staged = ""
 		if e := s.commit(); e != nil {
 			return Selection{}, e
