@@ -3,6 +3,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Clone, Debug, Default)]
 pub struct Inventory {
+    pub profile: Profile,
     pub imports: Vec<(String, String, u32)>,
     pub exports: Vec<(String, u8, u32)>,
     pub opcodes: BTreeMap<u8, usize>,
@@ -43,12 +44,13 @@ impl Inventory {
             .map(|(o, c)| format!("{{\"opcode\":{},\"count\":{c}}}", json_string(o)))
             .collect::<Vec<_>>()
             .join(",");
-        format!("{{\"profile\":\"mixer-integer-v1\",\"valid\":{},\"inventory_complete\":{},\"imports\":[{imports}],\"exports\":[{exports}],\"opcodes\":[{ops}],\"extended_opcodes\":[{extended}],\"error\":{},\"inventory_error\":{}}}",self.error.is_none(),self.complete,self.error.as_ref().map(Error::json).unwrap_or_else(||"null".into()),self.inventory_error.as_ref().map(Error::json).unwrap_or_else(||"null".into()))
+        format!("{{\"profile\":{},\"valid\":{},\"inventory_complete\":{},\"imports\":[{imports}],\"exports\":[{exports}],\"opcodes\":[{ops}],\"extended_opcodes\":[{extended}],\"error\":{},\"inventory_error\":{}}}",json_string(self.profile.name()),self.error.is_none(),self.complete,self.error.as_ref().map(Error::json).unwrap_or_else(||"null".into()),self.inventory_error.as_ref().map(Error::json).unwrap_or_else(||"null".into()))
     }
 }
 #[derive(Clone, Debug)]
 pub struct Module {
     pub(crate) source_bytes: usize,
+    pub(crate) profile: Profile,
     pub(crate) types: Vec<Signature>,
     pub(crate) imports: Vec<Import>,
     pub(crate) functions: Vec<Function>,
@@ -60,7 +62,10 @@ pub struct Module {
 }
 impl Module {
     pub fn decode(bytes: &[u8], limits: &Limits) -> Result<Self, Error> {
-        let mut inv = Inventory::default();
+        let mut inv = Inventory {
+            profile: limits.profile,
+            ..Inventory::default()
+        };
         parse(bytes, limits, &mut inv)
     }
     pub fn function_count(&self) -> usize {
@@ -81,7 +86,10 @@ impl Module {
     }
 }
 pub fn validation_inventory(bytes: &[u8], limits: &Limits) -> Inventory {
-    let mut inv = Inventory::default();
+    let mut inv = Inventory {
+        profile: limits.profile,
+        ..Inventory::default()
+    };
     if let Err(e) = parse(bytes, limits, &mut inv) {
         inv.error = Some(e);
     }
@@ -184,11 +192,13 @@ impl<'a> Reader<'a> {
             .map(str::to_owned)
             .map_err(|_| self.err("malformed", "name is not UTF-8"))
     }
-    fn ty(&mut self) -> Result<Type, Error> {
+    fn ty(&mut self, profile: Profile) -> Result<Type, Error> {
         match self.byte()? {
             0x7f => Ok(Type::I32),
             0x7e => Ok(Type::I64),
-            _ => Err(self.err("unsupported", "only i32 and i64 value types are supported")),
+            0x7d if profile.floats() => Ok(Type::F32),
+            0x7c if profile.floats() => Ok(Type::F64),
+            _ => Err(self.err("unsupported", "value type is outside the selected profile")),
         }
     }
     pub(crate) fn end(&self) -> Result<(), Error> {
@@ -198,14 +208,20 @@ impl<'a> Reader<'a> {
             Ok(())
         }
     }
-    fn constant(&mut self) -> Result<Value, Error> {
+    fn constant(&mut self, profile: Profile) -> Result<Value, Error> {
         let v = match self.byte()? {
             0x41 => Value::I32(self.signed(32)? as i32),
             0x42 => Value::I64(self.signed(64)?),
+            0x43 if profile.floats() => {
+                Value::F32(u32::from_le_bytes(self.take(4)?.try_into().unwrap()))
+            }
+            0x44 if profile.floats() => {
+                Value::F64(u64::from_le_bytes(self.take(8)?.try_into().unwrap()))
+            }
             _ => {
                 return Err(self.err(
                     "unsupported",
-                    "constant expressions require one integer constant",
+                    "constant expressions require one supported numeric constant",
                 ))
             }
         };
@@ -226,6 +242,7 @@ fn parse(bytes: &[u8], limits: &Limits, inv: &mut Inventory) -> Result<Module, E
     }
     let mut m = Module {
         source_bytes: bytes.len(),
+        profile: limits.profile,
         types: vec![],
         imports: vec![],
         functions: vec![],
@@ -268,10 +285,14 @@ fn parse(bytes: &[u8], limits: &Limits, inv: &mut Inventory) -> Result<Module, E
                     }
                     let mut params = vec![];
                     for _ in 0..s.count(limits.locals)? {
-                        params.push(s.ty()?);
+                        params.push(s.ty(limits.profile)?);
                     }
                     let results = s.count(1)?;
-                    let result = if results == 1 { Some(s.ty()?) } else { None };
+                    let result = if results == 1 {
+                        Some(s.ty(limits.profile)?)
+                    } else {
+                        None
+                    };
                     m.types.push(Signature { params, result });
                 }
             }
@@ -327,13 +348,13 @@ fn parse(bytes: &[u8], limits: &Limits, inv: &mut Inventory) -> Result<Module, E
             }
             6 => {
                 for _ in 0..s.count(1024)? {
-                    let t = s.ty()?;
+                    let t = s.ty(limits.profile)?;
                     let mutable = match s.byte()? {
                         0 => false,
                         1 => true,
                         _ => return Err(s.err("malformed", "invalid global mutability")),
                     };
-                    let value = s.constant()?;
+                    let value = s.constant(limits.profile)?;
                     if value.ty() != t {
                         return Err(s.err("validation", "global initializer type mismatch"));
                     }
@@ -366,7 +387,7 @@ fn parse(bytes: &[u8], limits: &Limits, inv: &mut Inventory) -> Result<Module, E
                     let mut locals = vec![];
                     for _ in 0..b.count(limits.locals)? {
                         let n = b.count(limits.locals.saturating_sub(locals.len()))?;
-                        let t = b.ty()?;
+                        let t = b.ty(limits.profile)?;
                         locals.extend(std::iter::repeat_n(t, n));
                     }
                     let code = decode_code(&mut b, limits, inv, &mut instructions)?;
@@ -388,7 +409,7 @@ fn parse(bytes: &[u8], limits: &Limits, inv: &mut Inventory) -> Result<Module, E
                     if flags == 2 && s.u32()? != 0 {
                         return Err(s.err("validation", "memory index must be zero"));
                     }
-                    let offset = match s.constant()? {
+                    let offset = match s.constant(limits.profile)? {
                         Value::I32(v) => v as u32,
                         _ => return Err(s.err("validation", "data offset must be i32")),
                     };
@@ -436,6 +457,8 @@ fn decode_code(
                     0x40 => None,
                     0x7f => Some(Type::I32),
                     0x7e => Some(Type::I64),
+                    0x7d if limits.profile.floats() => Some(Type::F32),
+                    0x7c if limits.profile.floats() => Some(Type::F64),
                     _ => {
                         return Err(
                             r.err("unsupported", "indexed/multivalue block types unsupported")
@@ -515,11 +538,19 @@ fn decode_code(
             0x22 => Op::LocalTee(r.u32()?),
             0x23 => Op::GlobalGet(r.u32()?),
             0x24 => Op::GlobalSet(r.u32()?),
-            0x28 | 0x29 | 0x2c..=0x35 => {
+            0x28..=0x35 => {
+                if matches!(o, 0x2a | 0x2b) && !limits.profile.floats() {
+                    return Err(Error::new(
+                        "unsupported",
+                        "float load outside integer profile",
+                        r.function,
+                        offset,
+                    ));
+                }
                 let align = r.u32()?;
                 let natural = match o {
-                    0x28 | 0x34 | 0x35 => 2,
-                    0x29 => 3,
+                    0x28 | 0x2a | 0x34 | 0x35 => 2,
+                    0x29 | 0x2b => 3,
                     0x2e | 0x2f | 0x32 | 0x33 => 1,
                     _ => 0,
                 };
@@ -531,11 +562,19 @@ fn decode_code(
                     offset: r.u32()?,
                 }
             }
-            0x36 | 0x37 | 0x3a..=0x3e => {
+            0x36..=0x3e => {
+                if matches!(o, 0x38 | 0x39) && !limits.profile.floats() {
+                    return Err(Error::new(
+                        "unsupported",
+                        "float store outside integer profile",
+                        r.function,
+                        offset,
+                    ));
+                }
                 let align = r.u32()?;
                 let natural = match o {
-                    0x36 | 0x3e => 2,
-                    0x37 => 3,
+                    0x36 | 0x38 | 0x3e => 2,
+                    0x37 | 0x39 => 3,
                     0x3b | 0x3d => 1,
                     _ => 0,
                 };
@@ -559,6 +598,30 @@ fn decode_code(
             }
             0x41 => Op::Const(Value::I32(r.signed(32)? as i32)),
             0x42 => Op::Const(Value::I64(r.signed(64)?)),
+            0x43 if limits.profile.floats() => Op::Const(Value::F32(u32::from_le_bytes(
+                r.take(4)?.try_into().unwrap(),
+            ))),
+            0x44 if limits.profile.floats() => Op::Const(Value::F64(u64::from_le_bytes(
+                r.take(8)?.try_into().unwrap(),
+            ))),
+            0x5b..=0x66 | 0x8b..=0xa6 | 0xa8..=0xab | 0xae..=0xbf if limits.profile.floats() => {
+                Op::Numeric(o)
+            }
+            0xfc if limits.profile.floats() => {
+                let sub = r.u32()?;
+                if sub > 7 {
+                    return Err(Error::new(
+                        "unsupported",
+                        format!("unsupported 0xfc subopcode {sub}"),
+                        r.function,
+                        offset,
+                    ));
+                }
+                *inv.extended_opcodes
+                    .entry(format!("0xfc:{sub}"))
+                    .or_default() += 1;
+                Op::Saturating(sub as u8)
+            }
             0x45..=0x5a | 0x67..=0x8a | 0xa7 | 0xac | 0xad | 0xc0..=0xc4 => Op::Numeric(o),
             _ => {
                 return Err(Error::new(

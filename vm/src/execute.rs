@@ -116,6 +116,9 @@ impl Instance {
     pub fn invoke(&mut self, name: &str, args: &[Value]) -> Result<Option<Value>, Error> {
         self.fuel_remaining = self.limits.fuel;
         self.host_calls_used = 0;
+        if self.limits.profile.floats() {
+            crate::float::environment()?;
+        }
         let (kind, index) = *self.module.exports.get(name).ok_or_else(|| {
             Error::new("unknown_export", format!("unknown export {name}"), None, 0)
         })?;
@@ -137,8 +140,6 @@ impl Instance {
                 0,
             ));
         }
-        self.fuel_remaining = self.limits.fuel;
-        self.host_calls_used = 0;
         if (index as usize) < self.module.imports.len() {
             self.charge(index, 0)?;
             self.import(index, args, index, 0)?;
@@ -286,9 +287,14 @@ impl Instance {
                 } => {
                     let address = pop32(&mut frame.stack) as u32;
                     let width = memory_width(*opcode);
-                    let start = (address as usize).checked_add(*imm as usize).ok_or_else(|| {
-                        trap("memory_out_of_bounds", "load effective address exceeds host address space")
-                    })?;
+                    let start = (address as usize)
+                        .checked_add(*imm as usize)
+                        .ok_or_else(|| {
+                            trap(
+                                "memory_out_of_bounds",
+                                "load effective address exceeds host address space",
+                            )
+                        })?;
                     let end = start
                         .checked_add(width)
                         .filter(|n| *n <= self.memory.len())
@@ -302,6 +308,8 @@ impl Instance {
                     let value = match opcode {
                         0x28 => Value::I32(x as i32),
                         0x29 => Value::I64(x as i64),
+                        0x2a => Value::F32(x as u32),
+                        0x2b => Value::F64(x),
                         0x2c => Value::I32(x as i8 as i32),
                         0x2d => Value::I32(x as u8 as i32),
                         0x2e => Value::I32(x as i16 as i32),
@@ -323,9 +331,14 @@ impl Instance {
                     let value = frame.stack.pop().unwrap();
                     let address = pop32(&mut frame.stack) as u32;
                     let width = memory_width(*opcode);
-                    let start = (address as usize).checked_add(*imm as usize).ok_or_else(|| {
-                        trap("memory_out_of_bounds", "store effective address exceeds host address space")
-                    })?;
+                    let start = (address as usize)
+                        .checked_add(*imm as usize)
+                        .ok_or_else(|| {
+                            trap(
+                                "memory_out_of_bounds",
+                                "store effective address exceeds host address space",
+                            )
+                        })?;
                     let end = start
                         .checked_add(width)
                         .filter(|n| *n <= self.memory.len())
@@ -335,8 +348,16 @@ impl Instance {
                     let x = match value {
                         Value::I32(v) => v as u32 as u64,
                         Value::I64(v) => v as u64,
+                        Value::F32(v) => v as u64,
+                        Value::F64(v) => v,
                     };
                     self.memory[start..end].copy_from_slice(&x.to_le_bytes()[..width]);
+                }
+                Op::Saturating(sub) => crate::float::saturating(*sub, &mut frame.stack),
+                Op::Numeric(o) if crate::float::shape(*o).is_some() => {
+                    crate::float::numeric(*o, &mut frame.stack).map_err(|code| {
+                        trap(code, "floating-point to integer conversion trapped")
+                    })?
                 }
                 Op::Numeric(o) => numeric(*o, &mut frame.stack).map_err(|code| {
                     trap(
@@ -486,8 +507,8 @@ fn pop64(s: &mut Vec<Value>) -> i64 {
 }
 fn memory_width(o: u8) -> usize {
     match o {
-        0x28 | 0x34 | 0x35 | 0x36 | 0x3e => 4,
-        0x29 | 0x37 => 8,
+        0x28 | 0x2a | 0x34 | 0x35 | 0x36 | 0x38 | 0x3e => 4,
+        0x29 | 0x2b | 0x37 | 0x39 => 8,
         0x2e | 0x2f | 0x32 | 0x33 | 0x3b | 0x3d => 2,
         _ => 1,
     }

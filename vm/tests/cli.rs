@@ -51,3 +51,34 @@ fn machine_readable_cli_contract() {
     assert!(text.contains("0x43"));
     std::fs::remove_dir_all(dir).unwrap();
 }
+
+#[test]
+fn numeric_profile_is_explicit_and_float_json_preserves_bits() {
+    let dir = std::env::temp_dir().join(format!("mixer-vm-numeric-cli-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+    let path = dir.join("float.wasm");
+    let bytes = Spec::one(vec![Type::F64], Some(Type::F64), vec![0x20, 0, 0x0b]).bytes();
+    std::fs::write(&path, bytes).unwrap();
+    let cli = env!("CARGO_BIN_EXE_mixer-vm");
+    let out = Command::new(cli)
+        .arg("validate")
+        .arg(&path)
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(2));
+    let out = Command::new(cli)
+        .args(["--profile", "mixer-numeric-v2", "invoke"])
+        .arg(&path)
+        .args(["run", "f64:-0"])
+        .output()
+        .unwrap();
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+    let text = String::from_utf8(out.stdout).unwrap();
+    assert!(text.contains("\"profile\":\"mixer-numeric-v2\""));
+    assert!(text.contains("0x8000000000000000"));
+    std::fs::remove_dir_all(dir).unwrap();
+}

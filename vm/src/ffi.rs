@@ -131,8 +131,8 @@ unsafe fn boundary<F: FnOnce() -> Result<MixerVmReport, (Error, u32)>>(
 ///
 /// # Safety
 /// All non-null pointers must reference valid readable/writable buffers of the documented size.
-#[no_mangle]
-pub unsafe extern "C" fn mixer_vm_validate(
+unsafe fn validate_profile(
+    profile: Profile,
     data: *const u8,
     len: usize,
     limits: *const MixerVmLimits,
@@ -140,7 +140,8 @@ pub unsafe extern "C" fn mixer_vm_validate(
 ) -> u32 {
     unsafe {
         boundary(out, || {
-            let l = limits_from(limits).map_err(|e| (e, 3))?;
+            let mut l = limits_from(limits).map_err(|e| (e, 3))?;
+            l.profile = profile;
             let b = bytes(data, len, l.module_bytes).map_err(|e| (e, 3))?;
             Module::decode(b, &l).map_err(|e| (e, 1))?;
             Ok(MixerVmReport::default())
@@ -151,8 +152,10 @@ pub unsafe extern "C" fn mixer_vm_validate(
 ///
 /// # Safety
 /// All non-null pointers must reference valid readable/writable buffers of the documented size.
-#[no_mangle]
-pub unsafe extern "C" fn mixer_vm_invoke(
+// Mirrors the stable C buffer ABI so pointer ownership remains centralized.
+#[allow(clippy::too_many_arguments)]
+unsafe fn invoke_profile(
+    profile: Profile,
     data: *const u8,
     len: usize,
     export: *const u8,
@@ -164,7 +167,8 @@ pub unsafe extern "C" fn mixer_vm_invoke(
 ) -> u32 {
     unsafe {
         boundary(out, || {
-            let l = limits_from(limits).map_err(|e| (e, 3))?;
+            let mut l = limits_from(limits).map_err(|e| (e, 3))?;
+            l.profile = profile;
             let b = bytes(data, len, l.module_bytes).map_err(|e| (e, 3))?;
             let n = bytes(export, export_len, 4096).map_err(|e| (e, 3))?;
             let name = std::str::from_utf8(n).map_err(|_| (arg("export name is not UTF-8"), 3))?;
@@ -181,6 +185,10 @@ pub unsafe extern "C" fn mixer_vm_invoke(
                 values.push(match a.value_type {
                     1 if i32::try_from(a.value).is_ok() => Value::I32(a.value as i32),
                     2 => Value::I64(a.value),
+                    3 if profile.floats() && u32::try_from(a.value).is_ok() => {
+                        Value::F32(a.value as u32)
+                    }
+                    4 if profile.floats() => Value::F64(a.value as u64),
                     _ => return Err((arg("invalid argument type or i32 range"), 3)),
                 });
             }
@@ -203,6 +211,14 @@ pub unsafe extern "C" fn mixer_vm_invoke(
                                 r.value_type = 2;
                                 r.value = v;
                             }
+                            Value::F32(v) => {
+                                r.value_type = 3;
+                                r.value = v as i64;
+                            }
+                            Value::F64(v) => {
+                                r.value_type = 4;
+                                r.value = v as i64;
+                            }
                         }
                     }
                     Ok(r)
@@ -215,6 +231,86 @@ pub unsafe extern "C" fn mixer_vm_invoke(
                 }
             }
         })
+    }
+}
+/// Validate the stable integer-v1 profile.
+/// # Safety
+/// All pointers obey the buffer contract in mixer_vm.h.
+#[no_mangle]
+pub unsafe extern "C" fn mixer_vm_validate(
+    data: *const u8,
+    len: usize,
+    limits: *const MixerVmLimits,
+    out: *mut MixerVmReport,
+) -> u32 {
+    unsafe { validate_profile(Profile::IntegerV1, data, len, limits, out) }
+}
+/// Validate the opt-in numeric-v2 profile.
+/// # Safety
+/// All pointers obey the buffer contract in mixer_vm.h.
+#[no_mangle]
+pub unsafe extern "C" fn mixer_vm_validate_numeric_v2(
+    data: *const u8,
+    len: usize,
+    limits: *const MixerVmLimits,
+    out: *mut MixerVmReport,
+) -> u32 {
+    unsafe { validate_profile(Profile::NumericV2, data, len, limits, out) }
+}
+/// Invoke with the stable integer-v1 profile.
+/// # Safety
+/// All pointers obey the buffer contract in mixer_vm.h.
+#[no_mangle]
+pub unsafe extern "C" fn mixer_vm_invoke(
+    data: *const u8,
+    len: usize,
+    export: *const u8,
+    export_len: usize,
+    args: *const MixerVmValue,
+    args_len: usize,
+    limits: *const MixerVmLimits,
+    out: *mut MixerVmReport,
+) -> u32 {
+    unsafe {
+        invoke_profile(
+            Profile::IntegerV1,
+            data,
+            len,
+            export,
+            export_len,
+            args,
+            args_len,
+            limits,
+            out,
+        )
+    }
+}
+/// Invoke with the opt-in numeric-v2 profile; type3/4 values carry IEEE bits.
+/// # Safety
+/// All pointers obey the buffer contract in mixer_vm.h.
+#[no_mangle]
+pub unsafe extern "C" fn mixer_vm_invoke_numeric_v2(
+    data: *const u8,
+    len: usize,
+    export: *const u8,
+    export_len: usize,
+    args: *const MixerVmValue,
+    args_len: usize,
+    limits: *const MixerVmLimits,
+    out: *mut MixerVmReport,
+) -> u32 {
+    unsafe {
+        invoke_profile(
+            Profile::NumericV2,
+            data,
+            len,
+            export,
+            export_len,
+            args,
+            args_len,
+            limits,
+            out,
+        )
     }
 }
 #[cfg(test)]

@@ -1,5 +1,5 @@
 use mixer_vm::{
-    inventory, json_string, validation_inventory, Error, Instance, Limits, Module, Value,
+    inventory, json_string, validation_inventory, Error, Instance, Limits, Module, Profile, Value,
 };
 use std::{fs::File, io::Read, process::ExitCode};
 fn failure(e: Error) -> String {
@@ -14,6 +14,15 @@ fn run() -> Result<(String, bool), Error> {
             let flag = args.remove(i);
             if i >= args.len() {
                 return Err(Error::new("usage", "missing limit value", None, 0));
+            }
+            if flag == "--profile" {
+                let value = args.remove(i);
+                limits.profile = match value.as_str() {
+                    "mixer-integer-v1" => Profile::IntegerV1,
+                    "mixer-numeric-v2" => Profile::NumericV2,
+                    _ => return Err(Error::new("usage", "unknown profile", None, 0)),
+                };
+                continue;
             }
             let v = args
                 .remove(i)
@@ -49,7 +58,7 @@ fn run() -> Result<(String, bool), Error> {
     }
     limits.check()?;
     if args.len() < 2 {
-        return Err(Error::new("usage","mixer-vm validate|inventory FILE; mixer-vm invoke FILE EXPORT [i32:N|i64:N ...]; options --fuel N --memory-pages N --call-depth N --stack N --host-calls N",None,0));
+        return Err(Error::new("usage","mixer-vm validate|inventory FILE; mixer-vm invoke FILE EXPORT [i32:N|i64:N|f32:N|f64:N ...]; options --profile mixer-integer-v1|mixer-numeric-v2 --fuel N --memory-pages N --call-depth N --stack N --host-calls N",None,0));
     }
     let read_limit = if args[0] == "inventory" {
         128 * 1024 * 1024
@@ -98,6 +107,16 @@ fn run() -> Result<(String, bool), Error> {
                         v.parse()
                             .map_err(|_| Error::new("usage", "invalid i64 argument", None, 0))?,
                     ),
+                    "f32" => Value::F32(
+                        v.parse::<f32>()
+                            .map_err(|_| Error::new("usage", "invalid f32 argument", None, 0))?
+                            .to_bits(),
+                    ),
+                    "f64" => Value::F64(
+                        v.parse::<f64>()
+                            .map_err(|_| Error::new("usage", "invalid f64 argument", None, 0))?
+                            .to_bits(),
+                    ),
                     _ => return Err(Error::new("usage", "unknown argument type", None, 0)),
                 };
                 values.push(value);
@@ -105,7 +124,7 @@ fn run() -> Result<(String, bool), Error> {
             let module = Module::decode(&bytes, &limits)?;
             let mut instance = Instance::new(module, limits.clone())?;
             let result = instance.invoke(&args[2], &values)?;
-            Ok((format!("{{\"ok\":true,\"profile\":\"mixer-integer-v1\",\"export\":{},\"result\":{},\"fuel_used\":{},\"host_calls_used\":{}}}",json_string(&args[2]),result.map(Value::json).unwrap_or_else(||"null".into()),limits.fuel-instance.fuel_remaining,instance.host_calls_used),true))
+            Ok((format!("{{\"ok\":true,\"profile\":{},\"export\":{},\"result\":{},\"fuel_used\":{},\"host_calls_used\":{}}}",json_string(limits.profile.name()),json_string(&args[2]),result.map(Value::json).unwrap_or_else(||"null".into()),limits.fuel-instance.fuel_remaining,instance.host_calls_used),true))
         }
         _ => Err(Error::new("usage", "unknown command", None, 0)),
     }

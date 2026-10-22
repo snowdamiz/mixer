@@ -5,6 +5,7 @@ pub const INVENTORY_BYTES: usize = 128 * 1024 * 1024;
 pub fn inventory(bytes: &[u8], limits: &Limits) -> Inventory {
     let validation = validation_inventory(bytes, limits);
     let mut inv = Inventory {
+        profile: limits.profile,
         error: validation.error,
         ..Default::default()
     };

@@ -77,6 +77,14 @@ impl Validator {
     }
 }
 pub(crate) fn module(m: &Module, limits: &Limits) -> Result<(), Error> {
+    if m.profile != limits.profile {
+        return Err(Error::new(
+            "invalid_limits",
+            "module and instance profiles differ",
+            None,
+            0,
+        ));
+    }
     if m.types.iter().any(|s| s.params.len() > limits.locals) {
         return Err(Error::new(
             "limit",
@@ -305,20 +313,22 @@ pub(crate) fn module(m: &Module, limits: &Limits) -> Result<(), Error> {
                         return Err(v.error("load has no memory"));
                     }
                     v.pop(Type::I32)?;
-                    v.push(Some(if *opcode == 0x29 || *opcode >= 0x30 {
-                        Type::I64
-                    } else {
-                        Type::I32
+                    v.push(Some(match opcode {
+                        0x2a => Type::F32,
+                        0x2b => Type::F64,
+                        0x29 | 0x30..=0x35 => Type::I64,
+                        _ => Type::I32,
                     }))?;
                 }
                 Op::Store { opcode, .. } => {
                     if m.memory.is_none() {
                         return Err(v.error("store has no memory"));
                     }
-                    v.pop(if *opcode == 0x37 || *opcode >= 0x3c {
-                        Type::I64
-                    } else {
-                        Type::I32
+                    v.pop(match opcode {
+                        0x38 => Type::F32,
+                        0x39 => Type::F64,
+                        0x37 | 0x3c..=0x3e => Type::I64,
+                        _ => Type::I32,
                     })?;
                     v.pop(Type::I32)?;
                 }
@@ -330,6 +340,11 @@ pub(crate) fn module(m: &Module, limits: &Limits) -> Result<(), Error> {
                         v.pop(Type::I32)?;
                     }
                     v.push(Some(Type::I32))?;
+                }
+                Op::Saturating(sub) => {
+                    let (input, output) = crate::float::saturating_shape(*sub);
+                    v.pop(input)?;
+                    v.push(Some(output))?;
                 }
                 Op::Numeric(o) => {
                     let (input, count, output) = numeric_type(*o);
@@ -359,6 +374,6 @@ pub(crate) fn numeric_type(o: u8) -> (Type, usize, Type) {
         0x7c..=0x8a => (I64, 2, I64),
         0xa7 => (I64, 1, I32),
         0xac | 0xad => (I32, 1, I64),
-        _ => unreachable!("decoder admitted unknown numeric opcode"),
+        _ => crate::float::shape(o).expect("decoder admitted known numeric opcode"),
     }
 }

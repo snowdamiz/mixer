@@ -37,6 +37,7 @@ fn expected(case: &Case) -> String {
         Ok(Some(Value::I64(v))) => v.to_string(),
         Ok(None) => "void".into(),
         Err(_) => "trap".into(),
+        Ok(Some(Value::F32(_) | Value::F64(_))) => unreachable!("integer oracle cases"),
     }
 }
 fn assert_node(cases: Vec<Case>) {
@@ -56,6 +57,7 @@ fn assert_node(cases: Vec<Case>) {
             .map(|v| match v {
                 Value::I32(x) => format!("[32,\"{x}\"]"),
                 Value::I64(x) => format!("[64,\"{x}\"]"),
+                Value::F32(_) | Value::F64(_) => unreachable!("integer oracle cases"),
             })
             .collect::<Vec<_>>()
             .join(",");

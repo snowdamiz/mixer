@@ -2,6 +2,7 @@
 mod decode;
 mod execute;
 mod ffi;
+mod float;
 mod inspect;
 mod validate;
 
@@ -14,12 +15,16 @@ pub use inspect::inventory;
 pub enum Type {
     I32,
     I64,
+    F32,
+    F64,
 }
 impl Type {
     pub fn name(self) -> &'static str {
         match self {
             Self::I32 => "i32",
             Self::I64 => "i64",
+            Self::F32 => "f32",
+            Self::F64 => "f64",
         }
     }
 }
@@ -27,30 +32,64 @@ impl Type {
 pub enum Value {
     I32(i32),
     I64(i64),
+    /// Raw IEEE-754 bits preserve signed zero and NaN payloads.
+    F32(u32),
+    F64(u64),
 }
 impl Value {
     pub fn ty(self) -> Type {
         match self {
             Self::I32(_) => Type::I32,
             Self::I64(_) => Type::I64,
+            Self::F32(_) => Type::F32,
+            Self::F64(_) => Type::F64,
         }
     }
     pub fn zero(t: Type) -> Self {
         match t {
             Type::I32 => Self::I32(0),
             Type::I64 => Self::I64(0),
+            Type::F32 => Self::F32(0),
+            Type::F64 => Self::F64(0),
         }
     }
     pub fn json(self) -> String {
         match self {
             Self::I32(v) => format!("{{\"type\":\"i32\",\"value\":{v}}}"),
             Self::I64(v) => format!("{{\"type\":\"i64\",\"value\":\"{v}\"}}"),
+            Self::F32(bits) => format!(
+                "{{\"type\":\"f32\",\"bits\":\"0x{bits:08x}\",\"value\":{}}}",
+                json_string(&f32::from_bits(bits).to_string())
+            ),
+            Self::F64(bits) => format!(
+                "{{\"type\":\"f64\",\"bits\":\"0x{bits:016x}\",\"value\":{}}}",
+                json_string(&f64::from_bits(bits).to_string())
+            ),
         }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum Profile {
+    #[default]
+    IntegerV1,
+    NumericV2,
+}
+impl Profile {
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::IntegerV1 => "mixer-integer-v1",
+            Self::NumericV2 => "mixer-numeric-v2",
+        }
+    }
+    pub(crate) fn floats(self) -> bool {
+        self == Self::NumericV2
     }
 }
 
 #[derive(Clone, Debug)]
 pub struct Limits {
+    pub profile: Profile,
     pub module_bytes: usize,
     pub functions: usize,
     pub types: usize,
@@ -66,6 +105,7 @@ pub struct Limits {
 impl Default for Limits {
     fn default() -> Self {
         Self {
+            profile: Profile::IntegerV1,
             module_bytes: 4 * 1024 * 1024,
             functions: 2048,
             types: 512,
@@ -226,6 +266,7 @@ pub(crate) enum Op {
     MemoryGrow,
     Const(Value),
     Numeric(u8),
+    Saturating(u8),
 }
 #[derive(Clone, Debug)]
 pub(crate) struct Instruction {

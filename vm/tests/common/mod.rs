@@ -37,6 +37,8 @@ fn typebyte(t: Type) -> u8 {
     match t {
         Type::I32 => 0x7f,
         Type::I64 => 0x7e,
+        Type::F32 => 0x7d,
+        Type::F64 => 0x7c,
     }
 }
 fn signature(p: &[Type], r: Option<Type>) -> Vec<u8> {
@@ -57,6 +59,14 @@ pub fn constant(v: Value) -> Vec<u8> {
         Value::I64(x) => {
             b.push(0x42);
             b.extend(signed(x));
+        }
+        Value::F32(x) => {
+            b.push(0x43);
+            b.extend(x.to_le_bytes());
+        }
+        Value::F64(x) => {
+            b.push(0x44);
+            b.extend(x.to_le_bytes());
         }
     }
     b

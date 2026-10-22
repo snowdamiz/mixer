@@ -51,6 +51,18 @@ uint32_t mixer_vm_invoke(const uint8_t *data, size_t len,
                         const uint8_t *export_name, size_t export_len,
                         const MixerVmValue *args, size_t args_len,
                         const MixerVmLimits *limits, MixerVmReport *out);
+/* Explicit opt-in numeric-v2 entry points. Existing symbols stay integer-v1.
+ * value_type3 stores f32 IEEE bits in low32 bits of value (upper bits zero).
+ * value_type4 stores all f64 IEEE bits in value, interpreted as uint64_t.
+ * Return report uses those same bit encodings; no layout/ABI-version change.
+ * Numeric-v2 rejects changed rounding, enabled hardware traps and flush modes.
+ * Host FP control settings are untouched; arithmetic can set sticky flags. */
+uint32_t mixer_vm_validate_numeric_v2(const uint8_t *data, size_t len,
+                          const MixerVmLimits *limits, MixerVmReport *out);
+uint32_t mixer_vm_invoke_numeric_v2(const uint8_t *data, size_t len,
+                        const uint8_t *export_name, size_t export_len,
+                        const MixerVmValue *args, size_t args_len,
+                        const MixerVmLimits *limits, MixerVmReport *out);
 #ifdef __cplusplus
 }
 #endif
