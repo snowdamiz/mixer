@@ -18,11 +18,7 @@ func emit<T: Encodable>(_ value: T) throws {
     FileHandle.standardOutput.write(try encoder.encode(value) + Data([10]))
 }
 func read(_ path: String, maximum: Int = 1_048_576) throws -> Data {
-    let url = URL(fileURLWithPath: path)
-    guard let size = try url.resourceValues(forKeys: [.fileSizeKey]).fileSize, size <= maximum else { throw UpdateError("file.size", "Input file exceeds configured limit") }
-    let data = try Data(contentsOf: url)
-    guard data.count <= maximum else { throw UpdateError("file.size", "Input file changed beyond limit") }
-    return data
+    try UpdateInputFile.read(URL(fileURLWithPath: path), maximumBytes: maximum)
 }
 do {
     let args = Array(CommandLine.arguments.dropFirst())

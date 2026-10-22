@@ -10,6 +10,16 @@ public struct UpdateScope: Codable, Equatable, Sendable {
     public init(organization: String, project: String, app: String, environment: String, platform: String) {
         self.organization = organization; self.project = project; self.app = app; self.environment = environment; self.platform = platform
     }
+    enum CodingKeys: String, CodingKey, CaseIterable { case organization, project, app, environment, platform }
+    public init(from decoder: any Decoder) throws {
+        try requireConfigurationFields(decoder, Set(CodingKeys.allCases.map(\.stringValue)))
+        let fields = try decoder.container(keyedBy: CodingKeys.self)
+        organization = try fields.decode(String.self, forKey: .organization)
+        project = try fields.decode(String.self, forKey: .project)
+        app = try fields.decode(String.self, forKey: .app)
+        environment = try fields.decode(String.self, forKey: .environment)
+        platform = try fields.decode(String.self, forKey: .platform)
+    }
     var canonical: CanonicalValue { .object(["organization": .text(organization), "project": .text(project), "app": .text(app), "environment": .text(environment), "platform": .text(platform)]) }
     func validate() throws {
         guard [organization, project, app, environment].allSatisfy(validID), ["ios", "android"].contains(platform) else { throw UpdateError("scope.invalid", "Invalid application scope") }
@@ -20,7 +30,14 @@ public struct ResourceLimits: Codable, Equatable, Sendable {
     public let fuel: UInt64
     public let startupMilliseconds: UInt64
     public init(memoryBytes: UInt64, fuel: UInt64, startupMilliseconds: UInt64) { self.memoryBytes = memoryBytes; self.fuel = fuel; self.startupMilliseconds = startupMilliseconds }
-    enum CodingKeys: String, CodingKey { case memoryBytes = "memory_bytes", fuel, startupMilliseconds = "startup_milliseconds" }
+    enum CodingKeys: String, CodingKey, CaseIterable { case memoryBytes = "memory_bytes", fuel, startupMilliseconds = "startup_milliseconds" }
+    public init(from decoder: any Decoder) throws {
+        try requireConfigurationFields(decoder, Set(CodingKeys.allCases.map(\.stringValue)))
+        let fields = try decoder.container(keyedBy: CodingKeys.self)
+        memoryBytes = try fields.decode(UInt64.self, forKey: .memoryBytes)
+        fuel = try fields.decode(UInt64.self, forKey: .fuel)
+        startupMilliseconds = try fields.decode(UInt64.self, forKey: .startupMilliseconds)
+    }
 }
 public struct InstalledRuntime: Codable, Sendable {
     public let scope: UpdateScope
@@ -37,7 +54,20 @@ public struct InstalledRuntime: Codable, Sendable {
         self.scope = scope; self.runtime = runtime; self.protocolVersion = protocolVersion; self.guestABI = guestABI; self.uiSchema = uiSchema
         self.capabilityHashes = capabilityHashes; self.stateVersion = stateVersion; self.maxPayloadBytes = maxPayloadBytes; self.limits = limits
     }
-    enum CodingKeys: String, CodingKey { case scope, runtime, limits; case protocolVersion = "protocol", guestABI = "guest_abi", uiSchema = "ui_schema", capabilityHashes = "capability_hashes", stateVersion = "state_version", maxPayloadBytes = "max_payload_bytes" }
+    enum CodingKeys: String, CodingKey, CaseIterable { case scope, runtime, limits; case protocolVersion = "protocol", guestABI = "guest_abi", uiSchema = "ui_schema", capabilityHashes = "capability_hashes", stateVersion = "state_version", maxPayloadBytes = "max_payload_bytes" }
+    public init(from decoder: any Decoder) throws {
+        try requireConfigurationFields(decoder, Set(CodingKeys.allCases.map(\.stringValue)))
+        let fields = try decoder.container(keyedBy: CodingKeys.self)
+        scope = try fields.decode(UpdateScope.self, forKey: .scope)
+        runtime = try fields.decode(String.self, forKey: .runtime)
+        protocolVersion = try fields.decode(UInt64.self, forKey: .protocolVersion)
+        guestABI = try fields.decode(UInt64.self, forKey: .guestABI)
+        uiSchema = try fields.decode(UInt64.self, forKey: .uiSchema)
+        capabilityHashes = try fields.decode([String: String].self, forKey: .capabilityHashes)
+        stateVersion = try fields.decode(UInt64.self, forKey: .stateVersion)
+        maxPayloadBytes = try fields.decode(UInt64.self, forKey: .maxPayloadBytes)
+        limits = try fields.decode(ResourceLimits.self, forKey: .limits)
+    }
 }
 public struct TrustRoot: Codable, Sendable {
     public let keyID: String
@@ -51,7 +81,19 @@ public struct TrustRoot: Codable, Sendable {
     public init(keyID: String, publicKey: Data, scope: UpdateScope, artifact: Bool, assignment: Bool, revoked: Bool = false, notBeforeUnix: UInt64 = 0, notAfterUnix: UInt64 = 0) {
         self.keyID = keyID; self.publicKey = publicKey; self.scope = scope; self.artifact = artifact; self.assignment = assignment; self.revoked = revoked; self.notBeforeUnix = notBeforeUnix; self.notAfterUnix = notAfterUnix
     }
-    enum CodingKeys: String, CodingKey { case scope, artifact, assignment, revoked; case keyID = "key_id", publicKey = "public_key", notBeforeUnix = "not_before_unix", notAfterUnix = "not_after_unix" }
+    enum CodingKeys: String, CodingKey, CaseIterable { case scope, artifact, assignment, revoked; case keyID = "key_id", publicKey = "public_key", notBeforeUnix = "not_before_unix", notAfterUnix = "not_after_unix" }
+    public init(from decoder: any Decoder) throws {
+        try requireConfigurationFields(decoder, Set(CodingKeys.allCases.map(\.stringValue)))
+        let fields = try decoder.container(keyedBy: CodingKeys.self)
+        keyID = try fields.decode(String.self, forKey: .keyID)
+        publicKey = try fields.decode(Data.self, forKey: .publicKey)
+        scope = try fields.decode(UpdateScope.self, forKey: .scope)
+        artifact = try fields.decode(Bool.self, forKey: .artifact)
+        assignment = try fields.decode(Bool.self, forKey: .assignment)
+        revoked = try fields.decode(Bool.self, forKey: .revoked)
+        notBeforeUnix = try fields.decode(UInt64.self, forKey: .notBeforeUnix)
+        notAfterUnix = try fields.decode(UInt64.self, forKey: .notAfterUnix)
+    }
 }
 
 public struct VerifiedArtifact: Sendable {
@@ -60,6 +102,9 @@ public struct VerifiedArtifact: Sendable {
     public let payloadSHA256: String
     public let releaseID: String
     public let payloadBytes: UInt64
+    // Signing evidence is retained privately; a token is not transferable authority
+    // under another pinned configuration or after a signing-key validity change.
+    fileprivate let artifactSignature: Data
 }
 public struct VerifiedAssignment: Sendable {
     public let assignment: CanonicalValue
@@ -94,7 +139,7 @@ public struct ReleaseVerifier: Sendable {
         let count = (try fields.uint("compressed_bytes"))
         let digest = (try fields.text("payload_sha256"))
         guard UInt64(payload.count) == count, Self.sha256(payload) == digest else { throw UpdateError("payload.integrity", "Payload length or SHA-256 mismatch") }
-        return VerifiedArtifact(manifest: manifest, artifactSHA256: Self.sha256(try manifest.canonicalCBOR()), payloadSHA256: digest, releaseID: (try fields.text("release_id")), payloadBytes: count)
+        return VerifiedArtifact(manifest: manifest, artifactSHA256: Self.sha256(try manifest.canonicalCBOR()), payloadSHA256: digest, releaseID: (try fields.text("release_id")), payloadBytes: count, artifactSignature: signature)
     }
 
     /// `lastSequence` must come from durable app/runtime/channel state. A rollback
@@ -109,6 +154,9 @@ public struct ReleaseVerifier: Sendable {
               (try fields.uint("rollout_basis_points")) <= 10_000, validID((try fields.text("key_id"))), validID((try fields.text("release_id"))),
               validDigest((try fields.text("runtime"))), validDigest((try fields.text("artifact_sha256"))) else { throw UpdateError("assignment.profile", "Unsupported assignment profile") }
         let manifest = try manifestObject(artifact.manifest)
+        // A caller may hold an older token or pass one from another verifier.
+        // Recheck build authority under this verifier's current roots and time.
+        try authorize(fields: manifest, value: artifact.manifest, signature: artifact.artifactSignature, artifact: true, now: now)
         guard (try fields.required("scope")) == host.scope.canonical, (try fields.text("runtime")) == host.runtime,
               (try fields.text("release_id")) == artifact.releaseID, (try fields.text("artifact_sha256")) == artifact.artifactSHA256,
               (try fields.text("channel")) == channel, (try fields.required("scope")) == (try manifest.required("scope")) else { throw UpdateError("assignment.binding", "Assignment does not bind this artifact, host, and channel") }

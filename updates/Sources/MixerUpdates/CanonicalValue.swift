@@ -92,3 +92,15 @@ extension Dictionary where Key == String, Value == CanonicalValue {
         guard Set(self.keys) == keys else { throw UpdateError("manifest.fields", "Missing or unknown fields: \(Set(self.keys).symmetricDifference(keys).sorted().joined(separator: ", "))") }
     }
 }
+
+private struct ConfigurationField: CodingKey {
+    let stringValue: String
+    var intValue: Int? { nil }
+    init(stringValue: String) { self.stringValue = stringValue }
+    init?(intValue: Int) { return nil }
+}
+
+func requireConfigurationFields(_ decoder: any Decoder, _ fields: Set<String>) throws {
+    let keys = Set(try decoder.container(keyedBy: ConfigurationField.self).allKeys.map(\.stringValue))
+    guard keys == fields else { throw UpdateError("manifest.fields", "Missing or unknown installed configuration fields") }
+}
