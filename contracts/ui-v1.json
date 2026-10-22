@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mixer.invalid/contracts/ui-v1.json",
+  "title": "Mixer UI document version 1",
+  "description": "Owned native UI instruction values. Wire messages are UTF-8 JSON, at most 1048576 bytes by default. IDs and strings have additional UTF-8 byte limits enforced by UIValidator. No capability invocation or executable callback is represented here.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "revision", "root"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "revision": { "type": "integer", "minimum": 0, "maximum": 18446744073709551615 },
+    "root": { "$ref": "#/$defs/node" }
+  },
+  "x-mixer-semantics": {
+    "revision": "Strictly increasing per reconciler instance. Old revisions cannot dispatch events.",
+    "identity": "Node IDs are unique across the entire document. IDs persist across reorder; changing kind or remove/reinsert creates a new generation.",
+    "actions": "At most one binding for each event on a node. Bindings resolve from the current owned node. Action IDs may be shared by multiple nodes; routed actions include nodeID.",
+    "limits": {
+      "messageBytes": 1048576,
+      "nodes": 4096,
+      "depthIncludingRoot": 64,
+      "childrenPerNode": 1000,
+      "identifierUTF8Bytes": 128,
+      "stringUTF8Bytes": 16384,
+      "propertiesPerNode": 16,
+      "actionsPerNode": 4
+    },
+    "identifiers": "Nonempty UTF-8 strings; ASCII control characters and DEL are prohibited.",
+    "unsupported": "Unknown schema versions, nodes, properties, fields, event kinds and unsupported host profiles reject the candidate tree. No optional degradation is defined in version 1.",
+    "navigation": "Root container with exactly one child. Route destinations, sheets, tabs and back event behavior are not part of this initial version-1 surface. Versioned NavigationState values are separately owned by MixerCore.",
+    "eventValues": {
+      "activate": "null",
+      "submit": "null",
+      "textChange": "string bounded by the host string UTF-8 limit",
+      "valueChange": "boolean"
+    }
+  },
+  "$defs": {
+    "identifier": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[^\\u0000-\\u001f\\u007f]+$" },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "event"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "event": { "enum": ["activate", "textChange", "valueChange", "submit"] }
+      }
+    },
+    "properties": {
+      "type": "object",
+      "maxProperties": 16,
+      "additionalProperties": false,
+      "properties": {
+        "accessibilityLabel": { "type": "string", "maxLength": 16384 },
+        "accessibilityHint": { "type": "string", "maxLength": 16384 },
+        "accessibilityValue": { "type": "string", "maxLength": 16384 },
+        "accessibilityIdentifier": { "type": "string", "maxLength": 16384 },
+        "disabled": { "type": "boolean" },
+        "text": { "type": "string", "maxLength": 16384 },
+        "label": { "type": "string", "maxLength": 16384 },
+        "value": { "type": ["string", "boolean"], "maxLength": 16384 },
+        "title": { "type": "string", "maxLength": 16384 },
+        "style": { "enum": ["body", "headline", "title", "caption"] },
+        "role": { "enum": ["normal", "destructive", "cancel"] },
+        "selectable": { "type": "boolean" },
+        "maxLines": { "type": "integer", "minimum": 1, "maximum": 100 },
+        "spacing": { "type": "number", "minimum": 0, "maximum": 256 },
+        "alignment": { "enum": ["leading", "center", "trailing", "top", "bottom", "firstTextBaseline", "lastTextBaseline", "topLeading", "topTrailing", "bottomLeading", "bottomTrailing"] }
+      }
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "properties", "children", "actions"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "kind": { "enum": ["text", "button", "textField", "toggle", "vStack", "hStack", "zStack", "list", "section", "navigation"] },
+        "properties": { "$ref": "#/$defs/properties" },
+        "children": { "type": "array", "maxItems": 1000, "items": { "$ref": "#/$defs/node" } },
+        "actions": { "type": "array", "maxItems": 4, "items": { "$ref": "#/$defs/action" } }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "kind": { "enum": ["text", "button", "textField", "toggle"] } } },
+          "then": { "properties": { "children": { "maxItems": 0 } } }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "navigation" } } },
+          "then": { "properties": { "children": { "minItems": 1, "maxItems": 1 } } }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "text" } } },
+          "then": { "properties": {
+            "properties": { "required": ["text"], "propertyNames": { "enum": ["text", "style", "selectable", "maxLines", "disabled", "accessibilityLabel", "accessibilityHint", "accessibilityValue", "accessibilityIdentifier"] } },
+            "actions": { "maxItems": 0 }
+          } }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "button" } } },
+          "then": { "properties": {
+            "properties": { "required": ["label"], "propertyNames": { "enum": ["label", "role", "disabled", "accessibilityLabel", "accessibilityHint", "accessibilityValue", "accessibilityIdentifier"] } },
+            "actions": { "minItems": 1, "maxItems": 1, "items": { "properties": { "event": { "const": "activate" } } } }
+          } }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "textField" } } },
+          "then": { "properties": {
+            "properties": { "required": ["label", "value"], "properties": { "value": { "type": "string" } }, "propertyNames": { "enum": ["label", "value", "disabled", "accessibilityLabel", "accessibilityHint", "accessibilityValue", "accessibilityIdentifier"] } },
+            "actions": { "minItems": 1, "maxItems": 2, "items": { "properties": { "event": { "enum": ["textChange", "submit"] } } }, "contains": { "properties": { "event": { "const": "textChange" } } } }
+          } }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "toggle" } } },
+          "then": { "properties": {
+            "properties": { "required": ["label", "value"], "properties": { "value": { "type": "boolean" } }, "propertyNames": { "enum": ["label", "value", "disabled", "accessibilityLabel", "accessibilityHint", "accessibilityValue", "accessibilityIdentifier"] } },
+            "actions": { "minItems": 1, "maxItems": 1, "items": { "properties": { "event": { "const": "valueChange" } } } }
+          } }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "vStack" } } },
+          "then": { "properties": { "properties": { "propertyNames": { "enum": ["spacing", "alignment", "disabled", "accessibilityLabel", "accessibilityHint", "accessibilityValue", "accessibilityIdentifier"] }, "properties": { "alignment": { "enum": ["leading", "center", "trailing"] } } } } }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "hStack" } } },
+          "then": { "properties": { "properties": { "propertyNames": { "enum": ["spacing", "alignment", "disabled", "accessibilityLabel", "accessibilityHint", "accessibilityValue", "accessibilityIdentifier"] }, "properties": { "alignment": { "enum": ["top", "center", "bottom", "firstTextBaseline", "lastTextBaseline"] } } } } }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "zStack" } } },
+          "then": { "properties": { "properties": { "propertyNames": { "enum": ["alignment", "disabled", "accessibilityLabel", "accessibilityHint", "accessibilityValue", "accessibilityIdentifier"] }, "properties": { "alignment": { "enum": ["center", "leading", "trailing", "top", "bottom", "topLeading", "topTrailing", "bottomLeading", "bottomTrailing"] } } } } }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "list" } } },
+          "then": { "properties": { "properties": { "propertyNames": { "enum": ["disabled", "accessibilityLabel", "accessibilityHint", "accessibilityValue", "accessibilityIdentifier"] } } } }
+        },
+        {
+          "if": { "properties": { "kind": { "enum": ["section", "navigation"] } } },
+          "then": { "properties": { "properties": { "propertyNames": { "enum": ["title", "disabled", "accessibilityLabel", "accessibilityHint", "accessibilityValue", "accessibilityIdentifier"] } } } }
+        },
+        {
+          "if": { "properties": { "kind": { "enum": ["vStack", "hStack", "zStack", "list", "section", "navigation"] } } },
+          "then": { "properties": { "actions": { "maxItems": 0 } } }
+        }
+      ]
+    }
+  }
+}
