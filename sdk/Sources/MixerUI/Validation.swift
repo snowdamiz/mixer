@@ -24,6 +24,7 @@ public struct UIValidationLimits: Equatable, Sendable {
 }
 
 public enum UIValidationError: Error, Equatable, Sendable {
+    case unguardedDecoder
     case invalidLimits
     case unsupportedSchema(Int)
     case limitExceeded(String)

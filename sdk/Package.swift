@@ -16,7 +16,7 @@ let package = Package(
         .target(name: "MixerApple", dependencies: ["MixerCore", "MixerUI"]),
         .target(name: "MixerGuest", dependencies: ["MixerCore", "MixerUI"]),
         .testTarget(name: "MixerCoreTests", dependencies: ["MixerCore"]),
-        .testTarget(name: "MixerUITests", dependencies: ["MixerUI", "MixerGuest"]),
+        .testTarget(name: "MixerUITests", dependencies: ["MixerCore", "MixerUI", "MixerGuest"]),
         .testTarget(name: "MixerAppleTests", dependencies: ["MixerApple", "MixerUI"]),
     ],
     swiftLanguageModes: [.v6]

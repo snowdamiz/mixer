@@ -1,4 +1,5 @@
 import Foundation
+import MixerCore
 
 public enum NodeKind: String, Codable, CaseIterable, Hashable, Sendable {
     case text, button, textField, toggle, vStack, hStack, zStack, list, section, navigation
@@ -43,6 +44,7 @@ public struct UIActionBinding: Codable, Equatable, Sendable {
     public init(id: String, event: UIEventKind) { self.id = id; self.event = event }
 
     public init(from decoder: any Decoder) throws {
+        try requireUIPreflight(decoder)
         try rejectUnknownKeys(decoder, allowed: ["id", "event"])
         let values = try decoder.container(keyedBy: CodingKeys.self)
         id = try values.decode(String.self, forKey: .id)
@@ -64,6 +66,7 @@ public struct UINode: Codable, Equatable, Sendable, Identifiable {
     }
 
     public init(from decoder: any Decoder) throws {
+        try requireUIPreflight(decoder)
         var count = 0
         self = try Self.decode(from: decoder, limits: .standard, depth: 1, count: &count)
     }
@@ -114,6 +117,7 @@ public struct UIDocument: Codable, Equatable, Sendable {
     }
 
     public init(from decoder: any Decoder) throws {
+        try requireUIPreflight(decoder)
         try rejectUnknownKeys(decoder, allowed: ["schemaVersion", "revision", "root"])
         let values = try decoder.container(keyedBy: CodingKeys.self)
         schemaVersion = try values.decode(Int.self, forKey: .schemaVersion)
@@ -126,6 +130,18 @@ public struct UIDocument: Codable, Equatable, Sendable {
         var count = 0
         root = try UINode.decode(from: values.superDecoder(forKey: .root), limits: limits, depth: 1, count: &count)
     }
+
+    /// The sanctioned raw JSON entry point. Arbitrary external Decoders lack the
+    /// internal marker proving raw duplicate-key/Unicode/resource preflight.
+    public static func decode(_ data: Data, validator: UIValidator = UIValidator()) throws -> UIDocument {
+        try validator.decode(data).document
+    }
+}
+
+private enum UIPreflightMarker: Sendable { case validated }
+
+private func requireUIPreflight(_ decoder: any Decoder) throws {
+    guard decoder.userInfo[.mixerUIPreflight] is UIPreflightMarker else { throw UIValidationError.unguardedDecoder }
 }
 
 private struct WireKey: CodingKey {
@@ -144,6 +160,7 @@ private func rejectUnknownKeys(_ decoder: any Decoder, allowed: Set<String>) thr
 
 extension CodingUserInfoKey {
     fileprivate static let mixerUILimits = CodingUserInfoKey(rawValue: "mixer.ui.validationLimits")!
+    fileprivate static let mixerUIPreflight = CodingUserInfoKey(rawValue: "mixer.ui.rawPreflight")!
 }
 
 extension UIValidator {
@@ -152,8 +169,21 @@ extension UIValidator {
     public func decode(_ data: Data) throws -> ValidatedUIDocument {
         guard limits.isValid else { throw UIValidationError.invalidLimits }
         guard data.count <= limits.maximumMessageBytes else { throw UIValidationError.limitExceeded("messageBytes") }
+        do {
+            try JSONInputGuard.validate(data, limits: JSONInputLimits(
+                maximumBytes: limits.maximumMessageBytes, maximumDepth: limits.maximumDepth * 2 + 2,
+                maximumValues: limits.maximumNodes * 40 + 16,
+                maximumStringBytes: max(128, limits.maximumStringBytes), maximumKeyBytes: 128))
+        } catch let error as JSONInputError {
+            switch error.reason {
+            case .depthLimit: throw UIValidationError.limitExceeded("depth")
+            case .stringLimit: throw UIValidationError.limitExceeded("stringBytes")
+            default: throw error
+            }
+        }
         let decoder = JSONDecoder()
         decoder.userInfo[.mixerUILimits] = limits
+        decoder.userInfo[.mixerUIPreflight] = UIPreflightMarker.validated
         return try validate(decoder.decode(UIDocument.self, from: data))
     }
 

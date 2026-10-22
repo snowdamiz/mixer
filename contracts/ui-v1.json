@@ -12,6 +12,7 @@
     "root": { "$ref": "#/$defs/node" }
   },
   "x-mixer-semantics": {
+    "rawJSON": "Duplicate object keys are rejected before Codable decoding, comparing decoded UTF-8 bytes including escapes and surrogate pairs without Unicode normalization. Invalid UTF-8, unpaired surrogate escapes, malformed syntax, trailing data and excessive resources reject. Numeric tokens are limited to 256 bytes. Use UIValidator.decode, UIDocument.decode, or GuestUICodec.decode; direct external Codable decoding of UIDocument/UINode/UIActionBinding is unguarded and rejects.",
     "revision": "Strictly increasing per reconciler instance. Old revisions cannot dispatch events.",
     "identity": "Node IDs are unique across the entire document. IDs persist across reorder; changing kind or remove/reinsert creates a new generation.",
     "actions": "At most one binding for each event on a node. Bindings resolve from the current owned node. Action IDs may be shared by multiple nodes; routed actions include nodeID.",

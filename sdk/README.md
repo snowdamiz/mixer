@@ -13,7 +13,7 @@ does not qualify every OS release or device in that range.
 
 | Product | Current public behavior |
 | --- | --- |
-| `MixerCore` | Main-actor `FeatureStore<State, Action>` reducers, named async effects, cancellation/replacement ownership, lifecycle state machine, host `ResourceRegistry` generation handles, schema-1 `NavigationState` restoration. |
+| `MixerCore` | Main-actor `FeatureStore<State, Action>` reducers, named async effects, cancellation/replacement ownership, lifecycle state machine, host `ResourceRegistry` generation handles, schema-1 `NavigationState` restoration, bounded `JSONInputGuard`. |
 | `MixerUI` | Explicit-ID result builder, scalar Codable UI document, bounded strict decoder/validator, transactional reconciliation, stable node generations, current-owner event routing. |
 | `MixerApple` | `MixerUIHost` and `MixerNativeView` rendering validated nodes with native SwiftUI layout, text, button, toggle, text field, list, section and navigation-root controls. |
 | `MixerGuest` | The same owned UI document codec. It does not compile or execute a Swift Wasm guest. |
@@ -85,6 +85,28 @@ Properties are scalar `UIValue`s. There are no serialized callbacks or native
 selectors. Unknown fields, node kinds, property names, event types and schema
 versions fail closed. A validator can further restrict the supported node kinds.
 
+Raw JSON must enter through `UIValidator.decode`, `UIDocument.decode`, or
+`GuestUICodec.decode`. They preflight the original bytes before Foundation decoding:
+duplicate object keys reject even when Unicode escapes or surrogate pairs encode
+the same decoded key. Malformed UTF-8, unpaired UTF-16 escapes, JSON syntax errors,
+trailing data and excessive resources reject without repairing or rewriting input.
+Key equality uses decoded UTF-8 byte sequences with no Unicode normalization.
+The JSON guard does not canonicalize or authorize a release.
+
+Codable encoding remains available. Direct external `JSONDecoder` decoding of
+`UIDocument`, standalone `UINode` or `UIActionBinding` throws `unguardedDecoder`:
+a `Decoder` has already discarded duplicate raw-key information, so only the
+sanctioned path receives the internal preflight marker. A Boolean user-info flag
+cannot bypass that marker. Construct values in memory with their public
+initializers and validate them before rendering.
+
+`MixerCore.JSONInputGuard.validate(_:limits:)` is a reusable additive guard for
+other wire consumers. It bounds total bytes, container depth, total JSON values,
+decoded key/string bytes, and 256 bytes per numeric token. The UI raw decoder derives
+its JSON container-depth bound as twice its UI-node depth plus two and its value
+bound as forty times its UI-node count plus sixteen. The normal UI validator then
+enforces schema-specific node, property, identifier, action and child bounds.
+
 Default limits are 1 MiB per encoded message, 4,096 total nodes, 64 levels including
 the root, 1,000 children per node, 128 UTF-8 bytes per identifier, 16 KiB per property
 string, 16 properties per node and four actions per node. IDs are unique across
@@ -134,7 +156,10 @@ The current tests exercise reducer behavior, lifecycle rejection, effect
 replacement/cancellation (including operations ignoring cancellation), resource
 ownership, versioned restoration, malformed wire input, limits, 1,000-row logical
 identity/reorder, typed event ownership, atomic host updates and a macOS SwiftUI
-rendering smoke test. These are implementer-run host tests. They do not qualify
+rendering smoke test. Strict-JSON regressions additionally exercise escaped-key
+collisions, surrogate pairs, malformed Unicode/UTF-8, raw Codable bypass attempts,
+syntax/resource bounds and the maximum supported 128-node nesting depth. These are
+implementer-run host tests. They do not qualify
 physical iOS/Android interaction, VoiceOver/TalkBack, IME composition, keyboard,
 retained scroll, frame performance, crash recovery, signing, store distribution
 or an independently published FieldLog package consumption run.
