@@ -1,0 +1,18 @@
+[package]
+name = "mixer-vm"
+version = "0.1.0"
+edition = "2021"
+license = "LicenseRef-Mixer"
+description = "Independently authored bounded integer WebAssembly interpreter"
+
+[lib]
+name = "mixer_vm"
+crate-type = ["rlib", "staticlib", "cdylib"]
+
+[[bin]]
+name = "mixer-vm"
+path = "src/main.rs"
+
+[profile.release]
+overflow-checks = true
+panic = "unwind"

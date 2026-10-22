@@ -1,0 +1,172 @@
+#![allow(dead_code)]
+use mixer_vm::{Type, Value};
+pub fn u32leb(mut n: u32) -> Vec<u8> {
+    let mut b = vec![];
+    loop {
+        let x = (n & 127) as u8;
+        n >>= 7;
+        b.push(x | if n != 0 { 128 } else { 0 });
+        if n == 0 {
+            return b;
+        }
+    }
+}
+pub fn signed(mut n: i64) -> Vec<u8> {
+    let mut b = vec![];
+    loop {
+        let x = (n & 127) as u8;
+        n >>= 7;
+        let done = (n == 0 && x & 64 == 0) || (n == -1 && x & 64 != 0);
+        b.push(x | if done { 0 } else { 128 });
+        if done {
+            return b;
+        }
+    }
+}
+pub fn section(m: &mut Vec<u8>, id: u8, b: Vec<u8>) {
+    m.push(id);
+    m.extend(u32leb(b.len() as u32));
+    m.extend(b);
+}
+fn name(s: &str) -> Vec<u8> {
+    let mut b = u32leb(s.len() as u32);
+    b.extend_from_slice(s.as_bytes());
+    b
+}
+fn typebyte(t: Type) -> u8 {
+    match t {
+        Type::I32 => 0x7f,
+        Type::I64 => 0x7e,
+    }
+}
+fn signature(p: &[Type], r: Option<Type>) -> Vec<u8> {
+    let mut b = vec![0x60];
+    b.extend(u32leb(p.len() as u32));
+    b.extend(p.iter().map(|t| typebyte(*t)));
+    b.push(r.is_some() as u8);
+    b.extend(r.map(typebyte));
+    b
+}
+pub fn constant(v: Value) -> Vec<u8> {
+    let mut b = vec![];
+    match v {
+        Value::I32(x) => {
+            b.push(0x41);
+            b.extend(signed(x as i64));
+        }
+        Value::I64(x) => {
+            b.push(0x42);
+            b.extend(signed(x));
+        }
+    }
+    b
+}
+#[derive(Clone)]
+pub struct Function {
+    pub params: Vec<Type>,
+    pub result: Option<Type>,
+    pub locals: Vec<Type>,
+    pub code: Vec<u8>,
+}
+impl Function {
+    pub fn new(params: Vec<Type>, result: Option<Type>, code: Vec<u8>) -> Self {
+        Self {
+            params,
+            result,
+            locals: vec![],
+            code,
+        }
+    }
+}
+#[derive(Default)]
+pub struct Spec {
+    pub functions: Vec<Function>,
+    pub imports: Vec<(String, Vec<Type>, Option<Type>)>,
+    pub memory: Option<(u32, u32)>,
+    pub globals: Vec<(Value, bool)>,
+    pub data: Vec<(u32, Vec<u8>)>,
+}
+impl Spec {
+    pub fn one(params: Vec<Type>, result: Option<Type>, code: Vec<u8>) -> Self {
+        Self {
+            functions: vec![Function::new(params, result, code)],
+            ..Default::default()
+        }
+    }
+    pub fn bytes(&self) -> Vec<u8> {
+        let mut m = b"\0asm\x01\0\0\0".to_vec();
+        let mut types = u32leb((self.imports.len() + self.functions.len()) as u32);
+        for (_, p, r) in &self.imports {
+            types.extend(signature(p, *r));
+        }
+        for f in &self.functions {
+            types.extend(signature(&f.params, f.result));
+        }
+        section(&mut m, 1, types);
+        if !self.imports.is_empty() {
+            let mut b = u32leb(self.imports.len() as u32);
+            for (i, (n, _, _)) in self.imports.iter().enumerate() {
+                b.extend(name("mixer"));
+                b.extend(name(n));
+                b.push(0);
+                b.extend(u32leb(i as u32));
+            }
+            section(&mut m, 2, b);
+        }
+        let mut f = u32leb(self.functions.len() as u32);
+        for i in 0..self.functions.len() {
+            f.extend(u32leb((self.imports.len() + i) as u32));
+        }
+        section(&mut m, 3, f);
+        if let Some((min, max)) = self.memory {
+            let mut b = vec![1, 1];
+            b.extend(u32leb(min));
+            b.extend(u32leb(max));
+            section(&mut m, 5, b);
+        }
+        if !self.globals.is_empty() {
+            let mut b = u32leb(self.globals.len() as u32);
+            for (v, mutable) in &self.globals {
+                b.push(typebyte(v.ty()));
+                b.push(*mutable as u8);
+                b.extend(constant(*v));
+                b.push(0x0b);
+            }
+            section(&mut m, 6, b);
+        }
+        let mut e = u32leb(self.functions.len() as u32);
+        for i in 0..self.functions.len() {
+            e.extend(name(if i == 0 { "run" } else { "other" }));
+            e.push(0);
+            e.extend(u32leb((self.imports.len() + i) as u32));
+        }
+        section(&mut m, 7, e);
+        let mut c = u32leb(self.functions.len() as u32);
+        for f in &self.functions {
+            let mut b = u32leb(f.locals.len() as u32);
+            for t in &f.locals {
+                b.push(1);
+                b.push(typebyte(*t));
+            }
+            b.extend_from_slice(&f.code);
+            c.extend(u32leb(b.len() as u32));
+            c.extend(b);
+        }
+        section(&mut m, 10, c);
+        if !self.data.is_empty() {
+            let mut b = u32leb(self.data.len() as u32);
+            for (off, data) in &self.data {
+                b.push(0);
+                b.extend(constant(Value::I32(*off as i32)));
+                b.push(0x0b);
+                b.extend(u32leb(data.len() as u32));
+                b.extend(data);
+            }
+            section(&mut m, 11, b);
+        }
+        m
+    }
+}
+pub fn single(code: Vec<u8>, result: Option<Type>) -> Vec<u8> {
+    Spec::one(vec![], result, code).bytes()
+}

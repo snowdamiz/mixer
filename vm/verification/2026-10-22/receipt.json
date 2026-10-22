@@ -1,0 +1,156 @@
+{
+  "schema_version": 1,
+  "observed_at_utc": "2026-10-22T21:46:45.546925+00:00",
+  "agent": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "xhigh",
+    "context": "fresh bounded VM implementation lane"
+  },
+  "source_revision": "new repository with no HEAD at verification time; exact owned source manifest attached",
+  "source_tree_digest": {
+    "algorithm": "SHA-256 of source-manifest.sha256 bytes",
+    "value": "345523995eaf0cd5cc9f13aa97a3e6f4c2fce753a4ddb649cc44eb1455a7b0b4",
+    "manifest": "vm/verification/2026-10-22/source-manifest.sha256",
+    "excludes": [
+      "vm/target/**",
+      "vm/verification/**"
+    ]
+  },
+  "platform": "macOS arm64 host only",
+  "environment": {
+    "PATH_prefix": "/opt/homebrew/opt/rustup/bin"
+  },
+  "tool_versions": {
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "node": "v22.23.3",
+    "clang": "Apple clang version 21.0.0 (clang-2100.3.34.2)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "os": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434"
+  },
+  "commands": [
+    {
+      "name": "unit-tests",
+      "command": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/2026-10-22/unit-tests.log"
+    },
+    {
+      "name": "node-differential",
+      "command": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--test",
+        "differential",
+        "--",
+        "--ignored",
+        "--nocapture"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/2026-10-22/node-differential.log"
+    },
+    {
+      "name": "clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/2026-10-22/clippy.log"
+    },
+    {
+      "name": "release-build",
+      "command": [
+        "cargo",
+        "build",
+        "--release",
+        "--manifest-path",
+        "vm/Cargo.toml"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/2026-10-22/release-build.log"
+    },
+    {
+      "name": "c-abi-build",
+      "command": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "vm/include",
+        "vm/tests/ffi_smoke.c",
+        "vm/target/release/libmixer_vm.a",
+        "-o",
+        "vm/target/ffi-smoke"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/2026-10-22/c-abi-build.log"
+    },
+    {
+      "name": "c-abi-run",
+      "command": [
+        "vm/target/ffi-smoke"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/2026-10-22/c-abi-run.log"
+    }
+  ],
+  "results": {
+    "host_tests_passed": 38,
+    "development_oracle_tests_passed": 3,
+    "numeric_differential_cases": 13056,
+    "control_memory_differential_cases": 233,
+    "validation_differential_candidates": 2693,
+    "validation_candidates_accepted_by_owned_profile_and_Node": 98,
+    "c_abi_smoke": "passed (static layout, validate,invoke42,fuel trap,null checks)",
+    "clippy": "all-targets -D warnings passed"
+  },
+  "swift_probe": {
+    "path": "compiler/Fixtures/FeatureProbe/.build/wasm/wasm32-unknown-wasip1/release/feature-probe.wasm",
+    "bytes": 60112045,
+    "sha256": "a0277972e2f32616cd714cf3d9a7172fd1483d73f787fc5c17e524b3d224e197",
+    "command": [
+      "vm/target/release/mixer-vm",
+      "inventory",
+      "compiler/Fixtures/FeatureProbe/.build/wasm/wasm32-unknown-wasip1/release/feature-probe.wasm"
+    ],
+    "exit_code": 2,
+    "inventory": "vm/swift-probe-inventory.json",
+    "valid": false,
+    "inventory_complete": true,
+    "function_imports": 34,
+    "primary_opcodes": 166,
+    "instruction_occurrences": 6465732,
+    "scope": "compiler lane Foundation/Codable/Unicode/model probe, not FieldLog corpus",
+    "rejection": {
+      "code": "limit",
+      "message": "module byte limit exceeded",
+      "function": null,
+      "offset": 0
+    }
+  },
+  "open_gates": [
+    "full Swift Wasm SDK execution/import profile",
+    "standards conformance suites",
+    "continuous coverage-guided fuzzing",
+    "independent VM/security review",
+    "original Swift source locations/debugger",
+    "physical iOS and Android VM embedding/QA",
+    "performance/memory-pressure qualification",
+    "W08/D3 and GA acceptance"
+  ]
+}

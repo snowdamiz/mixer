@@ -1,0 +1,568 @@
+{
+  "schema_version": 1,
+  "profile_id": "mixer-integer-v1",
+  "implementation": "owned Rust interpreter",
+  "status": "executable development slice; W08/D3 and GA qualification remain open",
+  "wasm_binary_version": 1,
+  "normative_sources": [
+    "https://webassembly.github.io/spec/core/binary/",
+    "https://webassembly.github.io/spec/core/valid/",
+    "https://webassembly.github.io/spec/core/exec/"
+  ],
+  "production_runtime_dependencies": [],
+  "authoring_agent": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "xhigh",
+    "context": "fresh bounded VM lane"
+  },
+  "full_swift_runtime_qualified": false,
+  "authorizes_ota": false,
+  "value_types": [
+    "i32",
+    "i64"
+  ],
+  "function_results_max": 1,
+  "block_types": [
+    "empty",
+    "i32",
+    "i64"
+  ],
+  "memory": {
+    "count_max": 1,
+    "address_bits": 32,
+    "page_bytes": 65536,
+    "shared": false,
+    "growth_capped": true,
+    "data_segments": [
+      "active constant i32 offset, memory index 0"
+    ]
+  },
+  "imports": [
+    {
+      "module": "mixer",
+      "name": "checkpoint",
+      "params": [],
+      "results": [],
+      "behavior": "metered non-blocking cancellation point"
+    },
+    {
+      "module": "mixer",
+      "name": "abort",
+      "params": [
+        "i32"
+      ],
+      "results": [],
+      "behavior": "structured host_abort trap"
+    }
+  ],
+  "opcodes": [
+    {
+      "opcode": "0x00",
+      "name": "unreachable"
+    },
+    {
+      "opcode": "0x01",
+      "name": "nop"
+    },
+    {
+      "opcode": "0x02",
+      "name": "block"
+    },
+    {
+      "opcode": "0x03",
+      "name": "loop"
+    },
+    {
+      "opcode": "0x04",
+      "name": "if"
+    },
+    {
+      "opcode": "0x05",
+      "name": "else"
+    },
+    {
+      "opcode": "0x0b",
+      "name": "end"
+    },
+    {
+      "opcode": "0x0c",
+      "name": "br"
+    },
+    {
+      "opcode": "0x0d",
+      "name": "br_if"
+    },
+    {
+      "opcode": "0x0e",
+      "name": "br_table"
+    },
+    {
+      "opcode": "0x0f",
+      "name": "return"
+    },
+    {
+      "opcode": "0x10",
+      "name": "call"
+    },
+    {
+      "opcode": "0x1a",
+      "name": "drop"
+    },
+    {
+      "opcode": "0x1b",
+      "name": "select"
+    },
+    {
+      "opcode": "0x20",
+      "name": "local.get"
+    },
+    {
+      "opcode": "0x21",
+      "name": "local.set"
+    },
+    {
+      "opcode": "0x22",
+      "name": "local.tee"
+    },
+    {
+      "opcode": "0x23",
+      "name": "global.get"
+    },
+    {
+      "opcode": "0x24",
+      "name": "global.set"
+    },
+    {
+      "opcode": "0x28",
+      "name": "i32.load"
+    },
+    {
+      "opcode": "0x29",
+      "name": "i64.load"
+    },
+    {
+      "opcode": "0x2c",
+      "name": "i32.load8_s"
+    },
+    {
+      "opcode": "0x2d",
+      "name": "i32.load8_u"
+    },
+    {
+      "opcode": "0x2e",
+      "name": "i32.load16_s"
+    },
+    {
+      "opcode": "0x2f",
+      "name": "i32.load16_u"
+    },
+    {
+      "opcode": "0x30",
+      "name": "i64.load8_s"
+    },
+    {
+      "opcode": "0x31",
+      "name": "i64.load8_u"
+    },
+    {
+      "opcode": "0x32",
+      "name": "i64.load16_s"
+    },
+    {
+      "opcode": "0x33",
+      "name": "i64.load16_u"
+    },
+    {
+      "opcode": "0x34",
+      "name": "i64.load32_s"
+    },
+    {
+      "opcode": "0x35",
+      "name": "i64.load32_u"
+    },
+    {
+      "opcode": "0x36",
+      "name": "i32.store"
+    },
+    {
+      "opcode": "0x37",
+      "name": "i64.store"
+    },
+    {
+      "opcode": "0x3a",
+      "name": "i32.store8"
+    },
+    {
+      "opcode": "0x3b",
+      "name": "i32.store16"
+    },
+    {
+      "opcode": "0x3c",
+      "name": "i64.store8"
+    },
+    {
+      "opcode": "0x3d",
+      "name": "i64.store16"
+    },
+    {
+      "opcode": "0x3e",
+      "name": "i64.store32"
+    },
+    {
+      "opcode": "0x3f",
+      "name": "memory.size"
+    },
+    {
+      "opcode": "0x40",
+      "name": "memory.grow"
+    },
+    {
+      "opcode": "0x41",
+      "name": "i32.const"
+    },
+    {
+      "opcode": "0x42",
+      "name": "i64.const"
+    },
+    {
+      "opcode": "0x45",
+      "name": "i32.eqz"
+    },
+    {
+      "opcode": "0x46",
+      "name": "i32.eq"
+    },
+    {
+      "opcode": "0x47",
+      "name": "i32.ne"
+    },
+    {
+      "opcode": "0x48",
+      "name": "i32.lt_s"
+    },
+    {
+      "opcode": "0x49",
+      "name": "i32.lt_u"
+    },
+    {
+      "opcode": "0x4a",
+      "name": "i32.gt_s"
+    },
+    {
+      "opcode": "0x4b",
+      "name": "i32.gt_u"
+    },
+    {
+      "opcode": "0x4c",
+      "name": "i32.le_s"
+    },
+    {
+      "opcode": "0x4d",
+      "name": "i32.le_u"
+    },
+    {
+      "opcode": "0x4e",
+      "name": "i32.ge_s"
+    },
+    {
+      "opcode": "0x4f",
+      "name": "i32.ge_u"
+    },
+    {
+      "opcode": "0x50",
+      "name": "i64.eqz"
+    },
+    {
+      "opcode": "0x51",
+      "name": "i64.eq"
+    },
+    {
+      "opcode": "0x52",
+      "name": "i64.ne"
+    },
+    {
+      "opcode": "0x53",
+      "name": "i64.lt_s"
+    },
+    {
+      "opcode": "0x54",
+      "name": "i64.lt_u"
+    },
+    {
+      "opcode": "0x55",
+      "name": "i64.gt_s"
+    },
+    {
+      "opcode": "0x56",
+      "name": "i64.gt_u"
+    },
+    {
+      "opcode": "0x57",
+      "name": "i64.le_s"
+    },
+    {
+      "opcode": "0x58",
+      "name": "i64.le_u"
+    },
+    {
+      "opcode": "0x59",
+      "name": "i64.ge_s"
+    },
+    {
+      "opcode": "0x5a",
+      "name": "i64.ge_u"
+    },
+    {
+      "opcode": "0x67",
+      "name": "i32.clz"
+    },
+    {
+      "opcode": "0x68",
+      "name": "i32.ctz"
+    },
+    {
+      "opcode": "0x69",
+      "name": "i32.popcnt"
+    },
+    {
+      "opcode": "0x6a",
+      "name": "i32.add"
+    },
+    {
+      "opcode": "0x6b",
+      "name": "i32.sub"
+    },
+    {
+      "opcode": "0x6c",
+      "name": "i32.mul"
+    },
+    {
+      "opcode": "0x6d",
+      "name": "i32.div_s"
+    },
+    {
+      "opcode": "0x6e",
+      "name": "i32.div_u"
+    },
+    {
+      "opcode": "0x6f",
+      "name": "i32.rem_s"
+    },
+    {
+      "opcode": "0x70",
+      "name": "i32.rem_u"
+    },
+    {
+      "opcode": "0x71",
+      "name": "i32.and"
+    },
+    {
+      "opcode": "0x72",
+      "name": "i32.or"
+    },
+    {
+      "opcode": "0x73",
+      "name": "i32.xor"
+    },
+    {
+      "opcode": "0x74",
+      "name": "i32.shl"
+    },
+    {
+      "opcode": "0x75",
+      "name": "i32.shr_s"
+    },
+    {
+      "opcode": "0x76",
+      "name": "i32.shr_u"
+    },
+    {
+      "opcode": "0x77",
+      "name": "i32.rotl"
+    },
+    {
+      "opcode": "0x78",
+      "name": "i32.rotr"
+    },
+    {
+      "opcode": "0x79",
+      "name": "i64.clz"
+    },
+    {
+      "opcode": "0x7a",
+      "name": "i64.ctz"
+    },
+    {
+      "opcode": "0x7b",
+      "name": "i64.popcnt"
+    },
+    {
+      "opcode": "0x7c",
+      "name": "i64.add"
+    },
+    {
+      "opcode": "0x7d",
+      "name": "i64.sub"
+    },
+    {
+      "opcode": "0x7e",
+      "name": "i64.mul"
+    },
+    {
+      "opcode": "0x7f",
+      "name": "i64.div_s"
+    },
+    {
+      "opcode": "0x80",
+      "name": "i64.div_u"
+    },
+    {
+      "opcode": "0x81",
+      "name": "i64.rem_s"
+    },
+    {
+      "opcode": "0x82",
+      "name": "i64.rem_u"
+    },
+    {
+      "opcode": "0x83",
+      "name": "i64.and"
+    },
+    {
+      "opcode": "0x84",
+      "name": "i64.or"
+    },
+    {
+      "opcode": "0x85",
+      "name": "i64.xor"
+    },
+    {
+      "opcode": "0x86",
+      "name": "i64.shl"
+    },
+    {
+      "opcode": "0x87",
+      "name": "i64.shr_s"
+    },
+    {
+      "opcode": "0x88",
+      "name": "i64.shr_u"
+    },
+    {
+      "opcode": "0x89",
+      "name": "i64.rotl"
+    },
+    {
+      "opcode": "0x8a",
+      "name": "i64.rotr"
+    },
+    {
+      "opcode": "0xa7",
+      "name": "i32.wrap_i64"
+    },
+    {
+      "opcode": "0xac",
+      "name": "i64.extend_i32_s"
+    },
+    {
+      "opcode": "0xad",
+      "name": "i64.extend_i32_u"
+    },
+    {
+      "opcode": "0xc0",
+      "name": "i32.extend8_s"
+    },
+    {
+      "opcode": "0xc1",
+      "name": "i32.extend16_s"
+    },
+    {
+      "opcode": "0xc2",
+      "name": "i64.extend8_s"
+    },
+    {
+      "opcode": "0xc3",
+      "name": "i64.extend16_s"
+    },
+    {
+      "opcode": "0xc4",
+      "name": "i64.extend32_s"
+    }
+  ],
+  "ceilings": {
+    "module_bytes": 4194304,
+    "types": 512,
+    "functions_including_imports": 2048,
+    "instructions": 200000,
+    "parameters_plus_locals_per_function": 4096,
+    "globals": 1024,
+    "exports": 4096,
+    "operand_values_per_frame": 4096,
+    "call_depth": 64,
+    "control_depth_including_function": 128,
+    "memory_pages": 64,
+    "fuel_per_invocation": 1000000,
+    "host_calls_per_invocation": 1024,
+    "name_utf8_bytes": 4096
+  },
+  "metering": {
+    "fuel": "one unit per dispatched instruction; imported exports charge one fuel unit",
+    "cancellation": "cooperative atomic flag checked before each dispatched instruction/import",
+    "limits": "callers may narrow, never raise ceilings"
+  },
+  "inventory": {
+    "authorizing": false,
+    "module_bytes_ceiling": 134217728,
+    "instruction_occurrences_ceiling": 16000000,
+    "additional_immediate_shapes": [
+      "float numeric/constants",
+      "indirect/tail/reference call shapes",
+      "selected reference instructions",
+      "0xfc saturating conversions and bulk memory/table operations"
+    ],
+    "unknown_immediate_shape": "stop with inventory_complete=false and inventory_error",
+    "count_scope": "function bodies only, excluding global/data constant expressions",
+    "strict_validation": "valid/error always reflect executable profile, independent of inventory completion"
+  },
+  "unsupported": [
+    "f32/f64 execution",
+    "tables/elements/indirect calls",
+    "start functions",
+    "multi-value functions/indexed block types",
+    "typed select",
+    "bulk-memory execution/passive data/data-count sections",
+    "reference/GC/exception/SIMD/atomic execution",
+    "memory64/shared memory/threads",
+    "arbitrary imports/WASI",
+    "extended constant expressions",
+    "Swift runtime/executor/source maps/debugger"
+  ],
+  "c_abi": {
+    "version": 1,
+    "header": "vm/include/mixer_vm.h",
+    "symbols": [
+      "mixer_vm_validate",
+      "mixer_vm_invoke"
+    ],
+    "panic_unwind": "caught at exported boundaries",
+    "instance_lifetime": "fresh instance per C invocation",
+    "status": {
+      "0": "success",
+      "1": "validation rejection",
+      "2": "execution/instantiation failure",
+      "3": "invalid API arguments/limits",
+      "4": "contained internal panic"
+    }
+  },
+  "cli": {
+    "commands": [
+      "validate FILE",
+      "inventory FILE",
+      "invoke FILE EXPORT [i32:N|i64:N ...]"
+    ],
+    "stdout": "single JSON object",
+    "success_exit": 0,
+    "failure_exit": 2,
+    "i64_json": "decimal string"
+  }
+}
