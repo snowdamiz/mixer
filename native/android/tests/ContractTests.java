@@ -10,6 +10,10 @@ public final class ContractTests {
     public static void main(String[]args){
         String identities="[{\"id\":\"root\",\"generation\":1}]";String text=node("root","text","{\"text\":\"Hello 東京 🧪\"}","[]","[]");UiPacket first=UiPacket.decode(packet(text,identities,"1"));check(first.root.text("text","").equals("Hello 東京 🧪"));
         reject(()->Json.parse(bytes("{\"x\":1,\"x\":2}")));reject(()->Json.parse(bytes("{\"x\":1,\"\\u0078\":2}")));reject(()->Json.parse(new byte[]{(byte)0xff}));reject(()->Json.parse(bytes("\"\\ud800\"")));reject(()->Json.parse(bytes("01")));reject(()->Json.parse(bytes("1e999")));reject(()->Json.parse(new byte[1048577]));reject(()->Json.parse(bytes("[".repeat(197)+"0"+"]".repeat(197))));
+        reject(()->Json.parse(bytes("\"\\u００６１\"")));
+        reject(()->Json.parse(bytes("{\"a\":1,\"\\u٠٠٦١\":2}")));
+        reject(()->Json.parse(bytes("\"\\u00ＦＦ\"")));
+        check(Json.string(Json.parse(bytes("\"\\u0061\\u00fF\""))).equals("aÿ"));
         check(Json.uint(Json.parse(bytes("18446744073709551615"))).equals("18446744073709551615"));reject(()->Json.uint(Json.parse(bytes("18446744073709551616"))));
         reject(()->UiPacket.decode(packet(text,"[]","1")));reject(()->UiPacket.decode(packet(text,identities,"-1")));reject(()->UiPacket.decode(packet(node("root","unknown","{}","[]","[]"),identities,"1")));reject(()->UiPacket.decode(packet(node("root","text","{\"text\":\"ok\",\"surprise\":true}","[]","[]"),identities,"1")));reject(()->UiPacket.decode(packet(node("root","text","{\"text\":\"ok\",\"disabled\":\"no\"}","[]","[]"),identities,"1")));
         reject(()->UiPacket.decode(packet(node("root","text","{\"text\":\"x\"}","["+text+"]","[]"),identities,"1")));reject(()->UiPacket.decode(packet(node("root","text","{\"text\":\""+"é".repeat(8193)+"\"}","[]","[]"),identities,"1")));

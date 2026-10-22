@@ -1,13 +1,12 @@
 {
   "schema_version": 1,
-  "observed_at_utc": "2026-10-22T22:04:46.282517+00:00",
-  "agent": {
-    "model": "gpt-6.1-sol",
-    "reasoning_effort": "xhigh"
-  },
-  "source_tree_digest": "916851e83465ff37b778c4bd184111e9624983899d895bdd4b213440ce909b96",
+  "observed_at_utc": "2026-10-22T22:21:22.418107+00:00",
+  "reviewer": "root independent bridge and wire review",
+  "executor": "local verification script",
+  "source_tree_digest": "037bb587218eb8665e5efa5444e14060ce4052ff3d07628d14a211e9c973a997",
   "source_manifest": "native/android/verification/source-manifest.sha256",
   "sdk_revision": "bbf39cd12586849e1609060688f74c3a39d3f0fd",
+  "sdk_has_uncommitted_changes": false,
   "environment": {
     "DEVELOPER_DIR": "/Applications/Xcode_26.6.app/Contents/Developer",
     "JAVA_HOME": "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home"
@@ -120,6 +119,32 @@
       "output": "native/android/verification/property-ro-build-fingerprint.log"
     },
     {
+      "name": "property-ro-kernel-qemu",
+      "command": [
+        "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+        "-s",
+        "38031FDJG00JEF",
+        "shell",
+        "getprop",
+        "ro.kernel.qemu"
+      ],
+      "exit_code": 0,
+      "output": "native/android/verification/property-ro-kernel-qemu.log"
+    },
+    {
+      "name": "property-ro-boot-qemu",
+      "command": [
+        "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+        "-s",
+        "38031FDJG00JEF",
+        "shell",
+        "getprop",
+        "ro.boot.qemu"
+      ],
+      "exit_code": 0,
+      "output": "native/android/verification/property-ro-boot-qemu.log"
+    },
+    {
       "name": "page-size",
       "command": [
         "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
@@ -168,7 +193,7 @@
         "38031FDJG00JEF",
         "shell",
         "sha256sum",
-        "/data/app/~~D1cMnKqUuqp7MTCOSUYwBQ==/dev.mixer.android--9EdKBpskqzKhJ8OqG1l0g==/base.apk"
+        "/data/app/~~_W-IV6_UX6aJlg0kIbjdHg==/dev.mixer.android-Hwe2h7tFGFQBHajzEnvxCg==/base.apk"
       ],
       "exit_code": 0,
       "output": "native/android/verification/device-apk-hash.log"
@@ -463,23 +488,26 @@
   ],
   "host_results": {
     "swift_tests_passed": 5,
-    "java_contract_checks_passed": 30,
+    "java_contract_checks_passed": 34,
     "jni_c_compile": "NDK -Wall -Wextra -Werror passed",
     "java_compile": "-Xlint:all -Werror passed"
   },
   "apk": {
     "apk": "native/android/build/mixer-android-debug.apk",
     "apk_bytes": 27252558,
-    "apk_sha256": "6153f7606c280954324ba6a94be5bf52be4db2789afd34665e986e689198537b"
+    "apk_sha256": "e22f75107ad558d10dd302493aad790c5c5163d60640d4de352e4e283d308b08"
   },
   "device": {
     "serial": "38031FDJG00JEF",
-    "installed_apk_sha256": "6153f7606c280954324ba6a94be5bf52be4db2789afd34665e986e689198537b",
+    "target_kind": "physical-device",
+    "installed_apk_sha256": "e22f75107ad558d10dd302493aad790c5c5163d60640d4de352e4e283d308b08",
     "properties": {
       "ro.product.model": "Pixel 8 Pro",
       "ro.build.version.release": "17",
       "ro.build.version.sdk": "37",
       "ro.build.fingerprint": "google/husky/husky:17/CP3A.261005.005/16271449:user/release-keys",
+      "ro.kernel.qemu": "",
+      "ro.boot.qemu": "",
       "page_size": "4096"
     },
     "instrumentation": "passed; native views with actual Android Swift shared library",
@@ -492,7 +520,7 @@
       "device-added.png",
       "device-toggled.png"
     ],
-    "qualifier": "physical Pixel8Pro API37 only; no emulator substitute counted"
+    "qualifier": "physical-device Pixel 8 Pro API37 only; no other device coverage implied"
   },
   "resolved_initial_failure": "Initial native launch used a framework tag-key for a watcher; Android rejected it. Watcher ownership moved into the adapter Record; all final checks rerun.",
   "scope": "development SDK source integration and native Android adapter/checklist slice only",
