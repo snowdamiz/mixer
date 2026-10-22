@@ -11,8 +11,12 @@
       "dependencies": "None",
       "acceptance": "Approved specification; no competitor code in dependencies/templates; customer interviews recorded.",
       "state": "in_progress",
-      "evidence": [],
-      "remaining": "Full package acceptance not yet demonstrated."
+      "evidence": [
+        "AGENTS.md",
+        "docs/adrs/0001-owned-platform.md",
+        "THIRD_PARTY.yml"
+      ],
+      "remaining": "Original contracts and provenance guardrails exist; customer interviews, approved product/legal/policy envelope and independent provenance review remain open."
     },
     {
       "id": "W02",
@@ -22,8 +26,12 @@
       "dependencies": "W01",
       "acceptance": "Clean machine builds FieldLog for both targets with reproducible input graph.",
       "state": "in_progress",
-      "evidence": [],
-      "remaining": "Full package acceptance not yet demonstrated."
+      "evidence": [
+        "verification/compiler-probe-2026-10-22.json",
+        "verification/ios-consumer-smoke-2026-10-22.json",
+        "verification/independent-sdk-cli-2026-10-22.json"
+      ],
+      "remaining": "CLI creation/locked source export and generated iOS consumer work locally. Signed toolchain distributions, Android project generation, clean-machine immutable package builds and full FieldLog graph remain open."
     },
     {
       "id": "W03",
@@ -33,8 +41,11 @@
       "dependencies": "W01\u201302",
       "acceptance": "Same state/effect tests in native targets; restoration works.",
       "state": "in_progress",
-      "evidence": [],
-      "remaining": "Full package acceptance not yet demonstrated."
+      "evidence": [
+        "sdk/verification/current/receipt.json",
+        "sdk/README.md"
+      ],
+      "remaining": "Bounded core/state/effects/resource/navigation values and strict UI codecs are tested; full lifecycle/restoration, platform parity and public adoption remain open."
     },
     {
       "id": "W04",
@@ -44,8 +55,10 @@
       "dependencies": "W03",
       "acceptance": "D1 and UI matrix pass on physical iOS.",
       "state": "in_progress",
-      "evidence": [],
-      "remaining": "Full package acceptance not yet demonstrated."
+      "evidence": [
+        "verification/ios-consumer-smoke-2026-10-22.json"
+      ],
+      "remaining": "Generated iOS native renderer runs in a simulator. Physical engine-based FieldLog D1, full UI/navigation matrix and accessibility remain open."
     },
     {
       "id": "W05",
@@ -54,9 +67,11 @@
       "deliverables": "JNI boundary, Compose/native controls, lifecycle, back behavior, native resources",
       "dependencies": "W02\u201303",
       "acceptance": "D2 with native Android interaction and accessibility evidence.",
-      "state": "ready",
-      "evidence": [],
-      "remaining": "Full package acceptance not yet demonstrated."
+      "state": "in_progress",
+      "evidence": [
+        "native/android/verification/receipt.json"
+      ],
+      "remaining": "Physical Pixel Swift/JNI/native widget interactions pass for a checklist slice. FieldLog D2, published SDK use, process restoration, full UI/IME/TalkBack/device/performance matrices remain open."
     },
     {
       "id": "W06",
@@ -76,9 +91,13 @@
       "deliverables": "Guest libraries, module extraction, API diagnostics, source maps, dependency closure",
       "dependencies": "W02\u201303, W06",
       "acceptance": "FieldLog feature graph compiles to native and Wasm with no silent behavior loss.",
-      "state": "ready",
-      "evidence": [],
-      "remaining": "Full package acceptance not yet demonstrated."
+      "state": "in_progress",
+      "evidence": [
+        "verification/compiler-probe-2026-10-22.json",
+        "compiler/Fixtures/FieldLogCorpus/main.swift",
+        "verification/fieldlog-model-corpus-2026-10-22.json"
+      ],
+      "remaining": "Actual FieldLog model behavior matches host, physical Android and full Swift WASI development oracle; owned VM rejects 60.5 MB module. Full feature/UI/effect dependency closure, typed host ABI, source maps, owned Swift execution and download/performance budgets remain open."
     },
     {
       "id": "W08",
@@ -88,8 +107,11 @@
       "dependencies": "W07 profile; early work parallel",
       "acceptance": "D3, standards-profile tests, fuzzing and differential results.",
       "state": "in_progress",
-      "evidence": [],
-      "remaining": "Full package acceptance not yet demonstrated."
+      "evidence": [
+        "vm/verification/independent-review.json",
+        "contracts/vm-profile-v1.json"
+      ],
+      "remaining": "Owned integer profile validated with tests/development-only differential oracles. Numeric-v2 extension is in progress; full compiler-emitted Swift profile, imports, tables, concurrency, source debugging and sustained fuzz/audit remain open."
     },
     {
       "id": "W09",
@@ -110,8 +132,13 @@
       "dependencies": "W07\u201308",
       "acceptance": "D4\u201305, data-preserving rollback, offline recovery, fault matrix.",
       "state": "in_progress",
-      "evidence": [],
-      "remaining": "Full package acceptance not yet demonstrated."
+      "evidence": [
+        "updates/README.md",
+        "services/updater",
+        "updates/verification/independent-review.json",
+        "verification/android-update-verifier-2026-10-22.json"
+      ],
+      "remaining": "Go recovery reference and cross-language native Swift signatures exist. Swift durable mobile activation, integrated VM/native fallback, device fault matrix, state migration, delegated key rotation and D4-D5 remain open."
     },
     {
       "id": "W11",
@@ -121,8 +148,12 @@
       "dependencies": "W10 protocol",
       "acceptance": "Dual-platform release with immutable audit and correct cohort routing.",
       "state": "in_progress",
-      "evidence": [],
-      "remaining": "Full package acceptance not yet demonstrated."
+      "evidence": [
+        "services/README.md",
+        "tests/integration/release-workflow.py",
+        "verification/local-release-integration-2026-10-22.json"
+      ],
+      "remaining": "Authenticated loopback-only release service and scoped signed HTTP delivery work locally. PostgreSQL hosted durability, identity/tenant policy, distributed operations, production deployment and release approval remain open."
     },
     {
       "id": "W12",
@@ -164,9 +195,12 @@
       "deliverables": "Native/guest debug, migration reports, profiler, export/ejection guide",
       "dependencies": "W02, W07\u201310",
       "acceptance": "Original source diagnostics, external app import, independent CI export build.",
-      "state": "ready",
-      "evidence": [],
-      "remaining": "Full package acceptance not yet demonstrated."
+      "state": "in_progress",
+      "evidence": [
+        "verification/independent-sdk-cli-2026-10-22.json",
+        "README.md"
+      ],
+      "remaining": "Read-only migration hints, source export, local build and validation commands exist. Semantic import/source debug, profilers, external app migration and independent CI/export acceptance remain open."
     },
     {
       "id": "W16",
@@ -175,9 +209,12 @@
       "deliverables": "Threat review, audit remediation, monitoring, backups, recovery drills, load tests",
       "dependencies": "Starts W01; final W10\u201314",
       "acceptance": "No unresolved launch-blocking findings; measured service objectives.",
-      "state": "ready",
-      "evidence": [],
-      "remaining": "Full package acceptance not yet demonstrated."
+      "state": "in_progress",
+      "evidence": [
+        "vm/verification/independent-review.json",
+        "verification/independent-sdk-cli-2026-10-22.json"
+      ],
+      "remaining": "Scoped cross-agent security reviews and local fault/race/differential tests run. Independent security audit, production threat/tenant/isolation review, SLO/load/backups/recovery drills remain open."
     },
     {
       "id": "W17",
@@ -186,9 +223,12 @@
       "deliverables": "Real product, backend, users, both stores, continuous updates",
       "dependencies": "Starts W01; consumes all",
       "acceptance": "D0\u201308 with independently reviewable evidence and no private escape routes.",
-      "state": "ready",
-      "evidence": [],
-      "remaining": "Full package acceptance not yet demonstrated."
+      "state": "in_progress",
+      "evidence": [
+        "../fieldlog/verification/native-baseline-2026-10-22.json",
+        "verification/fieldlog-ios-baseline-2026-10-22.json"
+      ],
+      "remaining": "Separate native FieldLog repository has offline models/storage and iOS UI; exact baseline installed/launched on physical iPhone. Isolated UI workflow verification is in progress. Auth/backend/real users, published Mixer adoption, Android app, store readiness and D0-D8 remain open."
     },
     {
       "id": "W18",
@@ -208,5 +248,10 @@
       "model": "gpt-6.1-sol",
       "reasoningEffort": "xhigh"
     }
+  },
+  "fieldlogRepository": {
+    "path": "../fieldlog",
+    "baselineRevision": "1587d2d4f02ab2dad9914df97f878727dd622296",
+    "qualification": "ordinary native offline groundwork; no D milestone passed"
   }
 }

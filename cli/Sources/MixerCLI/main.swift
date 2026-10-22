@@ -9,7 +9,8 @@ struct Arguments {
         var index = 0
         while index < values.count {
             let value = values[index]
-            if value == "--json" { json = true }
+            if value == "--help" { positional.append("help") }
+            else if value == "--json" { json = true }
             else if value.hasPrefix("--") {
                 guard ["--directory", "--application", "--sdk-path", "--platform", "--output", "--device"].contains(value), index + 1 < values.count, !values[index + 1].hasPrefix("--"), options[value] == nil else { throw MixerFailure("arguments.option", "Unknown, missing, or duplicate option: \(value)") }
                 index += 1; options[value] = values[index]
@@ -40,6 +41,8 @@ mixer 0.1.0-dev — owned Swift mobile platform (development preview)
   mixer release inspect [--directory PATH]
   mixer export PATH [--directory SOURCE]
   mixer vm validate|inventory|invoke FILE [EXPORT [i32:N|i64:N ...]]
+  mixer update verify --manifest FILE --payload FILE --host FILE --roots FILE
+    --assignment FILE --channel NAME --installation ID --last-sequence N --now UNIX
   mixer gates
 
 All commands emit structured JSON. Build/test errors preserve compiler diagnostics.
@@ -48,8 +51,24 @@ guest, hosted distribution and GA qualification remain explicit open gates.
 """
 
 do {
+    let raw = Array(CommandLine.arguments.dropFirst())
+    if raw.starts(with: ["update", "verify"]) {
+        let verifier = ProcessInfo.processInfo.environment["MIXER_UPDATE_TOOL"] ?? repository.appendingPathComponent("updates/.build/debug/mixer-update").path
+        let vm = ProcessInfo.processInfo.environment["MIXER_VM"] ?? repository.appendingPathComponent("vm/target/release/mixer-vm").path
+        guard FileManager.default.isExecutableFile(atPath: verifier), FileManager.default.isExecutableFile(atPath: vm) else { throw MixerFailure("update.tools", "Build updates/ (Swift) and vm/ (cargo build --release), or set MIXER_UPDATE_TOOL and MIXER_VM.") }
+        let report = try LocalUpdateValidation.verify(arguments: Array(raw.dropFirst(2)), verifier: verifier, vm: vm)
+        try output(report)
+        exit(report.status == "local-candidate-verified" ? 0 : report.status == "executable-rejected" ? 2 : 1)
+    }
     let arguments = try Arguments(Array(CommandLine.arguments.dropFirst()))
     let words = arguments.positional
+    let allowedOptions: [String: Set<String>] = [
+        "create": ["--directory", "--application", "--sdk-path"], "config": ["--directory"],
+        "build": ["--directory", "--platform"], "test": ["--directory", "--platform"],
+        "run": ["--directory", "--device"], "import": ["--output"],
+        "release": ["--directory"], "export": ["--directory"]
+    ]
+    guard Set(arguments.options.keys).isSubset(of: allowedOptions[words.first ?? "help"] ?? []) else { throw MixerFailure("arguments.unused-option", "An option does not apply to this command.") }
     let root = path(arguments.options["--directory"] ?? ".")
     switch words.first ?? "help" {
     case "help", "-h", "--help": print(help)

@@ -1,5 +1,6 @@
 import Foundation
 import CryptoKit
+import MixerCore
 
 public struct MixerFailure: Error, CustomStringConvertible, Sendable {
     public let code: String
@@ -34,6 +35,11 @@ public struct ApplicationConfiguration: Codable, Equatable, Sendable {
         let url = root.appendingPathComponent("mixer.yml")
         let data = try Data(contentsOf: url)
         guard data.count <= 1_048_576 else { throw MixerFailure("config.size", "mixer.yml exceeds 1 MiB.") }
+        do {
+            try JSONInputGuard.validate(data, limits: JSONInputLimits(maximumDepth: 32, maximumValues: 4096))
+        } catch let error as JSONInputError {
+            throw MixerFailure("config.encoding", "Invalid or ambiguous configuration JSON (\(error.reason.rawValue) at byte \(error.offset)). The current format is the JSON subset of YAML 1.2.")
+        }
         let raw: Any
         do { raw = try JSONSerialization.jsonObject(with: data) }
         catch { throw MixerFailure("config.encoding", "This preview reads the JSON subset of YAML 1.2 in mixer.yml. Use the generated configuration; block-style YAML support is not yet implemented.") }

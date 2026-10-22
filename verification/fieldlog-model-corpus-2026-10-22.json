@@ -1,0 +1,372 @@
+{
+  "schema": 1,
+  "status": "compiler-model-checks-passed",
+  "scope": "actual FieldLog model compiler/oracle qualification only",
+  "ownedSwiftExecutionQualified": false,
+  "deviceOTAQualified": false,
+  "commands": [
+    {
+      "name": "source-revision",
+      "command": [
+        "git",
+        "-C",
+        "/Users/andreyyurlov/Documents/dev/fieldlog",
+        "rev-parse",
+        "--verify",
+        "--end-of-options",
+        "1587d2d4f02ab2dad9914df97f878727dd622296^{commit}"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.01
+    },
+    {
+      "name": "source-export",
+      "command": [
+        "git",
+        "-C",
+        "/Users/andreyyurlov/Documents/dev/fieldlog",
+        "archive",
+        "--format=tar",
+        "--output=/Users/andreyyurlov/Documents/dev/mixer/verification/local/fieldlog-corpus-qualified/fieldlog-source.tar",
+        "1587d2d4f02ab2dad9914df97f878727dd622296"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.012
+    },
+    {
+      "name": "native-version",
+      "command": [
+        "swift",
+        "--version"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.116
+    },
+    {
+      "name": "cross-version",
+      "command": [
+        "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift",
+        "--version"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.076
+    },
+    {
+      "name": "node-version",
+      "command": [
+        "node",
+        "--version"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.015
+    },
+    {
+      "name": "native-build",
+      "command": [
+        "swift",
+        "build",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/fieldlog-corpus-qualified",
+        "-c",
+        "release",
+        "-j",
+        "4"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 7.045
+    },
+    {
+      "name": "native-run",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/fieldlog-corpus-qualified/.build/release/fieldlog-corpus"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.12
+    },
+    {
+      "name": "wasm-build",
+      "command": [
+        "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift",
+        "build",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/fieldlog-corpus-qualified",
+        "--scratch-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/fieldlog-corpus-qualified/.build/wasm",
+        "--swift-sdks-path",
+        "/Users/andreyyurlov/.swiftpm/swift-sdks",
+        "--swift-sdk",
+        "swift-6.3.3-RELEASE_wasm",
+        "-c",
+        "release",
+        "-j",
+        "4"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 4.006
+    },
+    {
+      "name": "wasm-oracle",
+      "command": [
+        "node",
+        "--input-type=module",
+        "-e",
+        "import {WASI} from 'node:wasi'; import {readFile} from 'node:fs/promises';\nconst wasi=new WASI({version:'preview1',args:['fieldlog-corpus'],env:{},preopens:{},returnOnExit:true});\nconst module=await WebAssembly.compile(await readFile(process.argv[1]));\nconst instance=await WebAssembly.instantiate(module,wasi.getImportObject());\nprocess.exitCode=wasi.start(instance);",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/fieldlog-corpus-qualified/.build/wasm/wasm32-unknown-wasip1/release/fieldlog-corpus.wasm"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.187
+    },
+    {
+      "name": "android-build",
+      "command": [
+        "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift",
+        "build",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/fieldlog-corpus-qualified",
+        "--scratch-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/fieldlog-corpus-qualified/.build/android",
+        "--swift-sdks-path",
+        "/Users/andreyyurlov/.swiftpm/swift-sdks",
+        "--swift-sdk",
+        "aarch64-unknown-linux-android28",
+        "--static-swift-stdlib",
+        "-c",
+        "release",
+        "-j",
+        "4"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 3.732
+    },
+    {
+      "name": "device-mkdir",
+      "command": [
+        "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+        "-s",
+        "38031FDJG00JEF",
+        "shell",
+        "mkdir",
+        "-p",
+        "/data/local/tmp/mixer-fieldlog-corpus-1587d2d4f02a"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.113
+    },
+    {
+      "name": "device-push",
+      "command": [
+        "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+        "-s",
+        "38031FDJG00JEF",
+        "push",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/fieldlog-corpus-qualified/.build/android/aarch64-unknown-linux-android28/release/fieldlog-corpus",
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/lib/aarch64-linux-android/libc++_shared.so",
+        "/data/local/tmp/mixer-fieldlog-corpus-1587d2d4f02a/"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.867
+    },
+    {
+      "name": "device-chmod",
+      "command": [
+        "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+        "-s",
+        "38031FDJG00JEF",
+        "shell",
+        "chmod",
+        "700",
+        "/data/local/tmp/mixer-fieldlog-corpus-1587d2d4f02a/fieldlog-corpus"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.058
+    },
+    {
+      "name": "android-run",
+      "command": [
+        "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+        "-s",
+        "38031FDJG00JEF",
+        "shell",
+        "env",
+        "LD_LIBRARY_PATH=/data/local/tmp/mixer-fieldlog-corpus-1587d2d4f02a",
+        "/data/local/tmp/mixer-fieldlog-corpus-1587d2d4f02a/fieldlog-corpus"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.322
+    },
+    {
+      "name": "device-ro.product.model",
+      "command": [
+        "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+        "-s",
+        "38031FDJG00JEF",
+        "shell",
+        "getprop",
+        "ro.product.model"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.09
+    },
+    {
+      "name": "device-ro.build.version.release",
+      "command": [
+        "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+        "-s",
+        "38031FDJG00JEF",
+        "shell",
+        "getprop",
+        "ro.build.version.release"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.117
+    },
+    {
+      "name": "device-ro.build.fingerprint",
+      "command": [
+        "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+        "-s",
+        "38031FDJG00JEF",
+        "shell",
+        "getprop",
+        "ro.build.fingerprint"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.086
+    },
+    {
+      "name": "owned-vm-inventory",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/release/mixer-vm",
+        "inventory",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/fieldlog-corpus-qualified/.build/wasm/wasm32-unknown-wasip1/release/fieldlog-corpus.wasm"
+      ],
+      "exitCode": 2,
+      "elapsedSeconds": 0.084
+    },
+    {
+      "name": "owned-vm-validation",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/release/mixer-vm",
+        "validate",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/fieldlog-corpus-qualified/.build/wasm/wasm32-unknown-wasip1/release/fieldlog-corpus.wasm"
+      ],
+      "exitCode": 2,
+      "elapsedSeconds": 0.005
+    }
+  ],
+  "fieldlogRevision": "1587d2d4f02ab2dad9914df97f878727dd622296",
+  "sourceArchiveSHA256": "3f64fd8ff770a5f5e3a233d7170cccdc54c27ea0abb6a273948b260399e291eb",
+  "harnessSHA256": "344168377051c105e60eb84388c54d48c2259224157ac68a1f877ac36a8e7c59",
+  "toolVersions": {
+    "nativeSwift": "Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.0.0",
+    "crossSwift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "node": "v22.23.3"
+  },
+  "artifacts": {
+    "wasm": {
+      "path": ".build/wasm/wasm32-unknown-wasip1/release/fieldlog-corpus.wasm",
+      "bytes": 60505739,
+      "sha256": "3308fc08ae16bd7247be67b14bd7ea8af754c2610641d517936aa5570f325964",
+      "gzip9Bytes": 20066881
+    },
+    "android": {
+      "path": ".build/android/aarch64-unknown-linux-android28/release/fieldlog-corpus",
+      "bytes": 68220504,
+      "sha256": "467e7907506057e843b3170f6042f1862ec7e2e02f674847988edc4367628051"
+    }
+  },
+  "modelObservations": {
+    "codableRoundTrip": true,
+    "committedEntries": 1,
+    "completionBasisPoints": 5000,
+    "emptyTitleRejected": true,
+    "pendingChanges": 1503,
+    "reordered": true,
+    "repeatedCommitRejected": true,
+    "reportIncludesEntry": true,
+    "status": "passed",
+    "taskCount": 1000,
+    "unicodePreserved": true
+  },
+  "nativeVersusWasmOracle": "passed",
+  "androidExecution": "passed",
+  "androidDevice": {
+    "ro.product.model": "Pixel 8 Pro",
+    "ro.build.version.release": "17",
+    "ro.build.fingerprint": "google/husky/husky:17/CP3A.261005.005/16271449:user/release-keys"
+  },
+  "ownedVMValidation": {
+    "profile": "mixer-integer-v1",
+    "valid": false,
+    "inventory_complete": false,
+    "imports": [],
+    "exports": [],
+    "opcodes": [],
+    "extended_opcodes": [],
+    "error": {
+      "code": "limit",
+      "message": "module byte limit exceeded",
+      "function": null,
+      "offset": 0
+    },
+    "inventory_error": null
+  },
+  "opcodeInventoryFile": "owned-vm-inventory.stdout",
+  "limitations": [
+    "No owned full Swift execution receipt",
+    "No UI, effect, storage or OTA qualification",
+    "Source snapshot is for diagnostics, not immutable published SDK adoption",
+    "Timing is command wall time, not an app performance measurement"
+  ],
+  "observedAt": "2026-10-22T22:13:57.622941+00:00",
+  "reviewer": "root integration agent; independent full compiler qualification pending",
+  "localEvidenceDirectory": "verification/local/fieldlog-corpus-qualified",
+  "inventorySummary": {
+    "complete": true,
+    "imports": 34,
+    "primaryOpcodes": 166,
+    "extendedOpcodes": [
+      {
+        "opcode": "0xfc:0",
+        "count": 37
+      },
+      {
+        "opcode": "0xfc:1",
+        "count": 28
+      },
+      {
+        "opcode": "0xfc:10",
+        "count": 4237
+      },
+      {
+        "opcode": "0xfc:11",
+        "count": 761
+      },
+      {
+        "opcode": "0xfc:2",
+        "count": 219
+      },
+      {
+        "opcode": "0xfc:3",
+        "count": 11
+      },
+      {
+        "opcode": "0xfc:4",
+        "count": 9
+      },
+      {
+        "opcode": "0xfc:5",
+        "count": 6
+      },
+      {
+        "opcode": "0xfc:6",
+        "count": 48
+      },
+      {
+        "opcode": "0xfc:7",
+        "count": 5
+      }
+    ]
+  },
+  "inventorySHA256": "8d2967e8e7afc08a28cdb008011590cbde9a0f7d62f5929b1431c992559d8195"
+}

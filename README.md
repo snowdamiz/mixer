@@ -10,13 +10,14 @@ artifacts and rollout assignments. No Patch/Skip implementation is used.
 
 ## Local development
 
-Requirements: Xcode/Swift 6, Rust, Go 1.26, Python 3. Node is used only as a
+Requirements: Xcode/Swift 6.2+, Rust, Go 1.26, Python 3. Node is used only as a
 development test oracle. See `release/toolchain-candidate.json` for cross-target
 compiler candidates; the default Xcode compiler does not match Android/Wasm SDKs.
 
 ```sh
 swift test --package-path sdk
 swift test --package-path cli
+swift test --package-path updates
 cargo test --manifest-path vm/Cargo.toml
 cd services && go test -race ./...
 ```
@@ -53,12 +54,20 @@ caches, dotenv secrets, signing certificates/keys and provisioning profiles.
 | `sdk/` | Swift state/effects, bounded UI protocol, reconciliation, native Apple controls, guest codecs | Broad UI/navigation/plugins, physical behavior/accessibility, full guest parity |
 | `cli/` | Creation, doctor, locked source snapshots, host tests, iOS Simulator build/run, read-only inventory, export | Android workflow, compiler semantic inventory, signing/distribution/debug tooling |
 | `vm/` | Owned bounded integer Wasm profile, validation, execution, traps, C ABI, inventory | Full emitted Swift profile/imports/concurrency, fuzz campaigns, independent audit |
+| `native/android/` | Swift/JNI/native widgets with physical Pixel input and identity tests | FieldLog adoption, lifecycle/accessibility/performance/device matrix |
+| `updates/` | Swift Ed25519/canonical CBOR artifact and assignment verifier; Go interoperability | Durable Swift mobile activation, recovery, delegated key rotation |
 | `services/` | Signed CBOR contracts, local durable updater reference, authenticated development release API | Mobile updater, PostgreSQL hosted durability, isolated workers/signers, stores/billing/SSO |
 | `compiler/Fixtures/FeatureProbe/` | Real Swift model probe built for host/Android/Wasm | Actual FieldLog dependency graph and production package budgets |
 
 Each component documents its exact limitations. A local backend reference is not
 a hosted product. A Wasm run in a development oracle is not a MixerVM pass. Host
 unit tests and simulator builds are not physical-device qualification.
+
+`tests/integration/release-workflow.py` exercises actual local HTTP delivery,
+the Swift verifier and integer VM together. `mixer update verify` uses private
+bounded snapshots of all input files; it does not publish or activate an update.
+See the integration README for build prerequisites. FieldLog lives separately at
+`../fieldlog`; its native offline baseline is not a completed dogfood milestone.
 
 ## Evidence and delivery
 

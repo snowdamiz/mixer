@@ -1,0 +1,70 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "scope": "local HTTP release -> Swift verifier -> owned integer VM; no full Swift, device OTA or hosted qualification",
+  "executables": {
+    "cli/.build/debug/mixer": "5cd263cf684afef732d7131e568d6b3cd6575c1c93593af59f5ae6e9e9f9a91e",
+    "updates/.build/debug/mixer-update": "ae0cb664aab82031db63e128216eaa66a2fde88b4d5b441fde8f97d378936913",
+    "vm/target/release/mixer-vm": "4a5d1f17bf052f7edede197085d6ff04e47a4e12f2d13c38fbc876e4d15bc66c"
+  },
+  "platforms": [
+    {
+      "platform": "ios",
+      "artifactSHA256": "001cf42b827d73742a2d7ee031e7c86e8e0556684c57b1c8fb48c12436c16ab0",
+      "httpUploadRetry": "same-result",
+      "serverPolicyApproved": false,
+      "swiftAndOwnedVMValidation": "passed",
+      "replay": "rejected",
+      "modelExecution": {
+        "ok": true,
+        "profile": "mixer-integer-v1",
+        "export": "completion",
+        "result": {
+          "type": "i32",
+          "value": 5000
+        },
+        "fuel_used": 10,
+        "host_calls_used": 0
+      }
+    },
+    {
+      "platform": "android",
+      "artifactSHA256": "819bd5f31eead622fa3c8ea7e6cc8efd0a76808559ee6e4933a2fd301ea284d6",
+      "httpUploadRetry": "same-result",
+      "serverPolicyApproved": false,
+      "swiftAndOwnedVMValidation": "passed",
+      "replay": "rejected",
+      "modelExecution": {
+        "ok": true,
+        "profile": "mixer-integer-v1",
+        "export": "completion",
+        "result": {
+          "type": "i32",
+          "value": 5000
+        },
+        "fuel_used": 10,
+        "host_calls_used": 0
+      }
+    }
+  ],
+  "observedAt": "2026-10-22T22:14:46.646816+00:00",
+  "command": "python3 tests/integration/release-workflow.py",
+  "reviewer": "root integration agent; scoped local integration only",
+  "integrationSources": {
+    "tests/integration/release-workflow.py": "108f1f1fd67366d62d1a06566128ebd91687e6230ed1dca3d84de4692328f404",
+    "tests/integration/release_fixture.go": "6656c8c430121f0a18af905ddcdf7f15f209aa80b7d095e042f0528ee089f571",
+    "cli/Sources/MixerBuild/AppleProject.swift": "c2a9fcb89c9449424a780cd77ec67b7cac320013b9d91b4b8abe5341aa20165c",
+    "cli/Sources/MixerBuild/Configuration.swift": "3938be64e8ff5dc2dafef1e9132bbe2fbdd349398dafb443ac54fe76dca733f3",
+    "cli/Sources/MixerBuild/LocalUpdateValidation.swift": "616d186263b499ffbec15d5c0476d98357ed03071011c810d3b802484e5c48d7",
+    "cli/Sources/MixerBuild/MigrationInspector.swift": "7d3dec247291de3bfb9396c36b51c4bd24c2ab4c405c785a2725f35143f62da3",
+    "cli/Sources/MixerBuild/ProcessRunner.swift": "f9e50a9670bec9e1e18a1bf362a749f5f64170d01b7e9705d3d6fe99b00ab476",
+    "cli/Sources/MixerBuild/ProjectGenerator.swift": "c9d13a0f3bc67783bc52df914d6c9c15a34a0355825b223f4abf12e0a2404d42",
+    "cli/Sources/MixerCLI/main.swift": "b7faecedd76352b8c169c15812fad1bfceb94e0fd3db78f7dc76759ee5c416a9",
+    "cli/Package.swift": "0f5cf0d8104f3d71a6167c03c4d3599c0a23b742e6d571ee35230f4b4d56b4ba"
+  },
+  "cliTests": {
+    "passed": 9,
+    "log": "verification/local/cli-tests.log",
+    "scope": "host build/config/import/export/process and verification snapshot invariants"
+  }
+}

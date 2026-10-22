@@ -26,6 +26,21 @@ private func temporary(_ body: (URL) throws -> Void) throws {
     }
 }
 
+@Test func configurationRejectsDuplicateKeysBeforeFoundationDecoding() throws {
+    try temporary { root in
+        let source = String(decoding: try JSONFile.data(ApplicationConfiguration(name: "FieldLog", application: "com.example.fieldlog")), as: UTF8.self)
+        for pair in [
+            ("\"schema\" : 1", "\"schema\" : 1, \"schem\\u0061\" : 1"),
+            ("\"requireArtifactSignature\" : true", "\"requireArtifactSignature\" : false, \"requireArtifactSignature\" : true")
+        ] {
+            let duplicate = source.replacingOccurrences(of: pair.0, with: pair.1)
+            #expect(duplicate != source)
+            try duplicate.write(to: root.appendingPathComponent("mixer.yml"), atomically: true, encoding: .utf8)
+            #expect(throws: MixerFailure.self) { try ApplicationConfiguration.load(root) }
+        }
+    }
+}
+
 @Test func sourceDigestIsStableAndContentSensitive() throws {
     try temporary { root in
         try "a".write(to: root.appendingPathComponent("a.swift"), atomically: true, encoding: .utf8)

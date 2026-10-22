@@ -37,5 +37,11 @@ for gate in gates:
 packages = json.loads((root / 'work-graph.json').read_text())['packages']
 if [p['id'] for p in packages] != [f'W{i:02}' for i in range(1, 19)]:
     failures.append('W01–W18 must remain intact and ordered')
+milestones = json.loads((root / 'dogfood/receipts/milestones.json').read_text())['milestones']
+if [m['id'] for m in milestones] != [f'D{i}' for i in range(9)]:
+    failures.append('D0–D8 must remain intact and ordered')
+for milestone in milestones:
+    if milestone['status'] == 'passed' and (not milestone.get('evidence') or not milestone.get('reviewer')):
+        failures.append(f"{milestone['id']}: passed milestone lacks evidence/reviewer")
 print(json.dumps({'status': 'failed' if failures else 'passed', 'scope': 'manifest-and-gate-guardrail-only', 'manifests': sorted(inspected), 'failures': failures}, indent=2))
 sys.exit(bool(failures))
