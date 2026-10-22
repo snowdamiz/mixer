@@ -39,7 +39,7 @@ public struct ResourceLimits: Codable, Equatable, Sendable {
         startupMilliseconds = try fields.decode(UInt64.self, forKey: .startupMilliseconds)
     }
 }
-public struct InstalledRuntime: Codable, Sendable {
+public struct InstalledRuntime: Codable, Equatable, Sendable {
     public let scope: UpdateScope
     public let runtime: String
     public let protocolVersion: UInt64
@@ -145,6 +145,14 @@ public struct ReleaseVerifier: Sendable {
     /// `lastSequence` must come from durable app/runtime/channel state. A rollback
     /// points at old content with a fresh greater sequence.
     public func verifyAssignment(signedAssignment: Data, artifact: VerifiedArtifact, channel: String, installation: String, lastSequence: UInt64, now: UInt64) throws -> VerifiedAssignment {
+        try verifyAssignmentMetadata(signedAssignment: signedAssignment, artifactManifest: artifact.manifest,
+            artifactSignature: artifact.artifactSignature, artifactDigest: artifact.artifactSHA256, releaseID: artifact.releaseID,
+            channel: channel, installation: installation, lastSequence: lastSequence, now: now)
+    }
+
+    private func verifyAssignmentMetadata(signedAssignment: Data, artifactManifest: CanonicalValue, artifactSignature: Data,
+                                         artifactDigest: String, releaseID: String, channel: String, installation: String,
+                                         lastSequence: UInt64, now: UInt64) throws -> VerifiedAssignment {
         guard validID(channel), validID(installation) else { throw UpdateError("assignment.identity", "Invalid channel or app-private installation ID") }
         let (assignment, signature) = try signed(signedAssignment, field: "assignment")
         guard let fields = assignment.object else { throw UpdateError("assignment.shape", "Assignment must be an object") }
@@ -153,19 +161,47 @@ public struct ReleaseVerifier: Sendable {
         guard (try fields.uint("schema")) == 1, (try fields.text("cohort")) == "sha256-v1", (try fields.uint("created_at_unix")) > 0,
               (try fields.uint("rollout_basis_points")) <= 10_000, validID((try fields.text("key_id"))), validID((try fields.text("release_id"))),
               validDigest((try fields.text("runtime"))), validDigest((try fields.text("artifact_sha256"))) else { throw UpdateError("assignment.profile", "Unsupported assignment profile") }
-        let manifest = try manifestObject(artifact.manifest)
+        let manifest = try manifestObject(artifactManifest)
         // A caller may hold an older token or pass one from another verifier.
         // Recheck build authority under this verifier's current roots and time.
-        try authorize(fields: manifest, value: artifact.manifest, signature: artifact.artifactSignature, artifact: true, now: now)
+        try authorize(fields: manifest, value: artifactManifest, signature: artifactSignature, artifact: true, now: now)
         guard (try fields.required("scope")) == host.scope.canonical, (try fields.text("runtime")) == host.runtime,
-              (try fields.text("release_id")) == artifact.releaseID, (try fields.text("artifact_sha256")) == artifact.artifactSHA256,
+              (try fields.text("release_id")) == releaseID, (try fields.text("artifact_sha256")) == artifactDigest,
               (try fields.text("channel")) == channel, (try fields.required("scope")) == (try manifest.required("scope")) else { throw UpdateError("assignment.binding", "Assignment does not bind this artifact, host, and channel") }
         let sequence = (try fields.uint("sequence"))
         guard sequence > lastSequence else { throw UpdateError("assignment.replay", "Assignment sequence must increase") }
         try authorize(fields: fields, value: assignment, signature: signature, artifact: false, now: now)
         let bucket = try Self.cohort(scope: host.scope, channel: channel, installation: installation)
         guard bucket < ((try fields.uint("rollout_basis_points"))) else { throw UpdateError("assignment.cohort", "Installation is outside the signed rollout") }
-        return VerifiedAssignment(assignment: assignment, artifactSHA256: artifact.artifactSHA256, sequence: sequence, cohortBucket: bucket)
+        return VerifiedAssignment(assignment: assignment, artifactSHA256: artifactDigest, sequence: sequence, cohortBucket: bucket)
+    }
+
+    // Header authorization deliberately returns an offer, never a payload-verified
+    // artifact token. The durable store may reserve a sequence before downloading.
+    func authorizeOffer(manifest data: Data, assignment: Data, channel: String, installation: String,
+                        lastSequence: UInt64, now: UInt64) throws -> UpdateOffer {
+        let (manifest, signature) = try signed(data, field: "manifest")
+        let fields = try manifestObject(manifest)
+        try authorize(fields: fields, value: manifest, signature: signature, artifact: true, now: now)
+        let digest = Self.sha256(try manifest.canonicalCBOR())
+        let verified = try verifyAssignmentMetadata(signedAssignment: assignment, artifactManifest: manifest,
+            artifactSignature: signature, artifactDigest: digest, releaseID: fields.text("release_id"),
+            channel: channel, installation: installation, lastSequence: lastSequence, now: now)
+        let (_, assignmentSignature) = try signed(assignment, field: "assignment")
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
+        let compactManifest = try encoder.encode(CanonicalValue.object(["manifest": manifest, "signature": .text(signature.base64EncodedString())]))
+        let compactAssignment = try encoder.encode(CanonicalValue.object(["assignment": verified.assignment, "signature": .text(assignmentSignature.base64EncodedString())]))
+        return UpdateOffer(candidate: StoredUpdateCandidate(digest: digest, sequence: verified.sequence,
+            signedManifest: compactManifest, signedAssignment: compactAssignment),
+            payloadBytes: try fields.uint("compressed_bytes"), payloadSHA256: try fields.text("payload_sha256"))
+    }
+
+    func retainedHealthyAuthorityVerifier() throws -> ReleaseVerifier {
+        let retained = roots.values.map { root in
+            TrustRoot(keyID: root.keyID, publicKey: root.publicKey, scope: root.scope, artifact: root.artifact,
+                assignment: root.assignment, revoked: false, notBeforeUnix: 0, notAfterUnix: 0)
+        }
+        return try ReleaseVerifier(host: host, roots: retained)
     }
 
     public static func cohort(scope: UpdateScope, channel: String, installation: String) throws -> UInt64 {
