@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "date": "2026-10-22",
+  "agent": {"model":"gpt-6.1-sol","reasoning_effort":"xhigh","context":"fresh bounded delegate"},
+  "reviewed_commits": ["9ca836f57cd485ed1a7585e1d658ff40d765d304", "2825001fa2c5e0020aa23df3331be7036492e58d"],
+  "scope": "Independent critical fail-open, input, state ownership, source-integrity and overwrite review of sdk and cli, including current root UIKit UIDocument qualification fix",
+  "commands": [
+    {"command":"swift test --package-path sdk","exit_code":0,"result":"14 Swift Testing tests passed: UI7,Core5,Apple2; macOS native rendering only"},
+    {"command":"swift test --package-path cli","exit_code":0,"result":"5 Swift Testing tests passed"},
+    {"command":"swift run --package-path cli mixer create IndependentReview --directory /tmp/mixer-independent-review-20261022 --application dev.mixer.review --sdk-path /Users/andreyyurlov/Documents/dev/mixer/sdk","exit_code":0,"result":"Separate generated consumer source snapshot created; sdkDigest494f54b948d91a408897f21853c1a4907e6ee943e788461e93c9d88ec6fea10a"},
+    {"command":"swift run --package-path cli mixer test --directory /tmp/mixer-independent-review-20261022","exit_code":0,"result":"3 generated consumer tests passed"},
+    {"command":"swift run --package-path cli mixer build --platform ios --directory /tmp/mixer-independent-review-20261022","exit_code":0,"result":"Actual xcodebuild unsigned iOS Simulator consumer build succeeded, both arm64 and x86_64 simulator compilation; UIKit UIDocument collision regression absent"}
+  ],
+  "review_result":"No critical fail-open, overwrite or state-ownership defect demonstrated in the bounded review. This is not a general security approval.",
+  "open_findings":[{"id":"SDK-CLI-DUPLICATE-JSON","priority":"hardening","status":"open","finding":"UI/config decoders reject unknown fields but Foundation JSONDecoder/JSONSerialization accept repeated object keys. Ambiguous duplicate representations should reject before semantic decoding. No forbidden operation or signature bypass demonstrated.","reproduction":"Provide duplicate kind/properties keys in UI JSON or repeated updates configuration keys; Foundation decoding selects an effective value rather than rejecting duplicates.","owner":"root/integrator"}],
+  "limitations":["No physical iOS or Android result", "No signed installation, app lifecycle performance baseline, published SDK consumption or dogfood gate", "Generated consumer uses explicitly labeled local source snapshot, not a published SDK package", "Review was bounded to critical input/state/overwrite/integrity issues; not exhaustive security audit"],
+  "status":"passed_scoped_local_tests_only"
+}

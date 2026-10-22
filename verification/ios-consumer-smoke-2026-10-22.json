@@ -1,0 +1,68 @@
+{
+  "schema": 1,
+  "date": "2026-10-22",
+  "requirement": "W02/W04 generated-consumer simulator smoke",
+  "status": "passed",
+  "scope": "Local bundled SDK preview, unsigned iOS Simulator; not physical-device or FieldLog acceptance",
+  "sdkCommit": "9ca836f57cd485ed1a7585e1d658ff40d765d304",
+  "sdkSnapshotDigest": "f13dd737797171583761ee5246b8055aaad2459c633804bf6c0e6923cf7573ed",
+  "cliCommit": "2825001",
+  "device": "dedicated iPhone17Pro simulator",
+  "os": "iOS26.5",
+  "xcode": "27.1",
+  "expected": "Owned native UI displays Your project and 0 of 0 completed",
+  "actual": "Visually inspected screenshot contains both text nodes; build/install/launch all exit0",
+  "commands": [
+    {
+      "command": [
+        "xcodebuild",
+        "-project",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/SmokeAppV2/Platforms/iOS/SmokeAppV2.xcodeproj",
+        "-scheme",
+        "SmokeAppV2",
+        "-configuration",
+        "Debug",
+        "-sdk",
+        "iphonesimulator",
+        "-destination",
+        "generic/platform=iOS Simulator",
+        "-derivedDataPath",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/SmokeAppV2/.mixer/ios-build",
+        "CODE_SIGNING_ALLOWED=NO",
+        "build"
+      ],
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "xcrun",
+        "simctl",
+        "install",
+        "463F0C3C-63BC-42C4-A17C-0908C07D341D",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/SmokeAppV2/.mixer/ios-build/Build/Products/Debug-iphonesimulator/SmokeAppV2.app"
+      ],
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "xcrun",
+        "simctl",
+        "launch",
+        "463F0C3C-63BC-42C4-A17C-0908C07D341D",
+        "com.example.smokeappv2"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "image": {
+    "path": "verification/local/ios-smoke-v2.png",
+    "sha256": "bb6d0de341219f67611b4074116b4d37c5ac79ac672a97a2128647dd6f872b4a"
+  },
+  "reviewer": "root integration agent",
+  "limitations": [
+    "No keyboard/interaction scenarios in this smoke",
+    "No latency/frame-rate claim",
+    "No physical iOS signing or launch yet",
+    "No published SDK consumer qualification"
+  ]
+}
