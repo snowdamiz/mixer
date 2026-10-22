@@ -1,0 +1,146 @@
+{
+  "schema": 1,
+  "observed_at_utc": "2026-10-22T22:36:55.109596+00:00",
+  "source_revision": "71485a2e3c4f3d55bba883072a90bf85ea987880",
+  "source_manifest_sha256": "83832ce2f7fc58690d833f1289a8da6d3d6834d24f2be68d76b31a10583849ed",
+  "reviewer": "root integrator",
+  "interface": "public mixer_vm_invoke_numeric_v2 C ABI through independent Swift harness",
+  "matched_cases": 29794,
+  "case_groups": [
+    27944,
+    1290,
+    560
+  ],
+  "reference_receipt": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/vm-numeric-android-reviewed/receipt.json",
+  "reference_receipt_sha256": "e9438e6aab50da2baeac841c8b79c13ca6b892921d5ea8761be6f4a56d2ae691",
+  "library_sha256": "8b72c9134227dd87a9a1754bc6da8ed62860afca2af6828eaea7828b3a7640c1",
+  "app_executable_sha256": "23a0969af2e6230d6f35f336ae1c8deaa1e2c50afa9e2b136b0f2b456c103720",
+  "harness_files": {
+    "Host-Bridging.h": "dfcbda5f7cc7e4a95c175b22952f50e9a2a722aa27773ec9d21402312a14c1a3",
+    "Host.swift": "6f2f230ddafff4e4457cb3bb07bb3619c614a81e9a1623864f845d4b4b538212",
+    "NumericVM.xcodeproj/project.pbxproj": "9960bd0093fe49055d26c182318120ac301b75859f70c9f767834cb5653a4b4f"
+  },
+  "device": "physical iPhone12 iOS27.0.1",
+  "device_id": "00008101-0004155214B9003A",
+  "reproduce": "python3 verification/tools/verify-numeric-ios.py --reference verification/local/vm-numeric-android-reviewed --device 00008101-0004155214B9003A --team RZY3NS8FM2 --rust-bin /opt/homebrew/opt/rustup/bin --output verification/local/ios-numeric-repeated",
+  "original_execution": "Equivalent explicit cargo build, copy resource/library, xcodebuild, devicectl install and launch commands; reproduction wrapper added after this observed run. No source changes between build and receipt.",
+  "commands": [
+    {
+      "command": "cargo build --manifest-path verification/local/vm-numeric-review/vm/Cargo.toml --release --target aarch64-apple-ios --lib",
+      "environment": {
+        "CARGO_TARGET_DIR": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/vm-ios-build",
+        "IPHONEOS_DEPLOYMENT_TARGET": "17.0"
+      },
+      "exit_code": 0,
+      "log": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/vm-ios-rust-build.log"
+    },
+    {
+      "command": "xcodebuild -project verification/local/ios-numeric-qualified/app/NumericVM.xcodeproj -scheme NumericVM -configuration Debug -destination platform=iOS,id=00008101-0004155214B9003A -derivedDataPath verification/local/ios-numeric-qualified/build CODE_SIGN_STYLE=Automatic DEVELOPMENT_TEAM=RZY3NS8FM2 CODE_SIGN_IDENTITY=Apple Development build",
+      "exit_code": 0,
+      "log": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/ios-numeric-qualified/build.log"
+    },
+    {
+      "command": [
+        "devicectl",
+        "device",
+        "install",
+        "app",
+        "--device",
+        "00008101-0004155214B9003A",
+        "--json-output",
+        "verification/local/ios-numeric-qualified/install.json",
+        "verification/local/ios-numeric-qualified/build/Build/Products/Debug-iphoneos/NumericVM.app"
+      ],
+      "exit_code": 0,
+      "log": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/ios-numeric-qualified/install.log"
+    },
+    {
+      "command": [
+        "devicectl",
+        "device",
+        "process",
+        "launch",
+        "--device",
+        "00008101-0004155214B9003A",
+        "--console",
+        "--terminate-existing",
+        "--json-output",
+        "verification/local/ios-numeric-qualified/launch.json",
+        "dev.mixer.numericqualification"
+      ],
+      "exit_code": 0,
+      "log": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/ios-numeric-qualified/launch.log"
+    }
+  ],
+  "evidence": {
+    "verification/local/ios-numeric-qualified/device.json": "817e78c39218b07867f062afe45f5b52d403d852d05d42c09631612db7721c2e",
+    "verification/local/ios-numeric-qualified/install.json": "1ccce9e4bf7f9a4ea77accfda82ab936a3c93f2f83681db2fd9e53be83bfd4f8",
+    "verification/local/ios-numeric-qualified/launch.json": "ba5576ae70c6da99c7c9500f5ba4ffb2fdb6fb4e692e37fd296721b38ee97287",
+    "verification/local/ios-numeric-qualified/launch.log": "465a848fd9be1ff136d88fd89b3904011929954d707abf698ea850154538b0b7",
+    "verification/local/ios-numeric-qualified/build.log": "d99f0601be6237b027cb901df0fd23e76b9c2a5ce7e03834a30052d2dc3ff94c"
+  },
+  "launch_result": {
+    "info": {
+      "arguments": [
+        "devicectl",
+        "device",
+        "process",
+        "launch",
+        "--device",
+        "00008101-0004155214B9003A",
+        "--console",
+        "--terminate-existing",
+        "--json-output",
+        "verification/local/ios-numeric-qualified/launch.json",
+        "dev.mixer.numericqualification"
+      ],
+      "commandType": "devicectl.device.process.launch",
+      "environment": {
+        "TERM": "dumb"
+      },
+      "jsonVersion": 5,
+      "outcome": "success",
+      "version": "651.13.5"
+    },
+    "result": {
+      "deviceIdentifier": "701B1218-6B2E-5D4A-B9D3-B16E612EED59",
+      "launchOptions": {
+        "activatedWhenStarted": true,
+        "arguments": [],
+        "environmentVariables": {
+          "TERM": "dumb"
+        },
+        "platformSpecificOptions": {},
+        "startStopped": false,
+        "terminateExistingInstances": true,
+        "user": {
+          "active": true
+        }
+      },
+      "process": {
+        "auditToken": [
+          4294967295,
+          501,
+          501,
+          501,
+          501,
+          5623,
+          0,
+          14926
+        ],
+        "executable": "file:///private/var/containers/Bundle/Application/6FF47C21-0437-46E9-8769-0DD731C532E3/NumericVM.app/NumericVM",
+        "processIdentifier": 5623
+      },
+      "terminationResult": {
+        "exitCode": 0,
+        "wasCoreDumpCreated": false
+      }
+    }
+  },
+  "limitations": [
+    "Dedicated development harness, not FieldLog or published SDK adoption",
+    "No full Swift guest, OTA activation or UI behavior claim",
+    "No full device matrix, standards conformance, performance or security audit claim",
+    "No D0-D8 or GA gate passed"
+  ]
+}

@@ -17,11 +17,13 @@ Observed implementation and evidence:
   simulator; this is not physical FieldLog D1 acceptance.
 - The Android Swift/JNI/native widget adapter runs on a physical Pixel 8 Pro.
   Instrumentation and real input/touch paths verify text, task creation, toggles,
-  stable IDs and stale-event rejection. See `native/android/verification/receipt.json`.
+  stable IDs and stale-event rejection. Independent review fixed non-ASCII JSON
+  escape acceptance and reran device tests. See `native/android/verification/receipt.json`.
 - The dependency-free owned Wasm interpreter executes the bounded integer-v1
-  profile. Independent review includes differential numerical/control/memory and
-  malformed-input checks. Full Swift artifacts are rejected. Numeric-v2 support
-  is being implemented without expanding integer-v1 acceptance silently.
+  profile. The opt-in numeric-v2 extension matches 29,794 floating-point reference
+  cases on the physical Pixel and through the public C ABI in a signed iPhone
+  app, plus 52 Android interpreter/numeric boundary tests and C ABI control checks. Integer-v1 acceptance is unchanged. Full Swift artifacts remain
+  rejected; tables/bulk memory are the next measured runtime dependency.
 - The Go development service verifies canonical signed artifacts and separately
   signed rollout assignments, with scoped authorization, durable local state and
   retry/replay tests. It refuses production mode. Local HTTP → Swift verification
@@ -30,15 +32,23 @@ Observed implementation and evidence:
   canonical-CBOR and cohort vectors. The verifier executable runs on the physical
   Pixel and rejects replay. This is protocol evidence, not mobile OTA activation.
   Independent review fixed cross-verifier authority, strict pinned configuration
-  decoding and bounded reads. The reviewed binary passed the physical retest.
+  decoding and bounded reads. The durable Swift updater now passes 28 test functions
+  (40 parameter executions) on the Pixel and in a physical iPhone app sandbox:
+  replay, resumed downloads, journal fault
+  injection, monotonic health, quarantine and fallback. App lifecycle, physical
+  power-loss and actual guest activation qualification remain open.
 - The CLI creates source-locked projects, builds/tests host packages, generates and
   runs iOS simulator apps, inventories migration concerns and exports source.
   Local update verification snapshots bounded inputs so signatures and executable
-  validation examine identical bytes. Publication remains unavailable.
+  validation examine identical bytes. Independent review made linked cryptography
+  authoritative, enforced signed VM limits and fixed bounded reads/tool receipts.
+  Publication remains unavailable.
 - `../fieldlog` is a separate repository with native SwiftUI screens, durable
   offline drafts/outbox, projects/checklists, photos and report sharing. Baseline
   commit `1587d2d4f02ab2dad9914df97f878727dd622296` builds, installs and launches on
-  the physical iPhone 12. Isolated UI workflow tests are in progress. Authentication,
+  the physical iPhone 12. At `a81e085`, isolated physical UI tests pass project/task
+  editing, reorder, exact draft restoration, entry commit, report sharing and local
+  pending changes; dark-mode controls were visually reviewed and corrected. Authentication,
   backend synchronization and real user adoption are not implemented or simulated.
 - Actual FieldLog models at that immutable revision produce matching observations
   on macOS, the physical Pixel and the full Swift Wasm SDK in a development oracle:

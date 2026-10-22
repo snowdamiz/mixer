@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "observed_at_utc": "2026-10-22T22:46:20.678543+00:00",
+  "source_revision": "579059290eaca9be80e364509f106863cfa06c38",
+  "source_digest": "cb7c91a8ed59bbce118c55433eed211671cde75374821fbf402c8eaae5c58f43",
+  "reviewer": "root integrator",
+  "summary": {
+    "devicesAndConfigurations": [
+      {
+        "device": {
+          "architecture": "arm64",
+          "deviceId": "00008101-0004155214B9003A",
+          "deviceName": "Andrey\u2019s iPhone",
+          "modelName": "iPhone 12",
+          "osBuildNumber": "24A446",
+          "osVersion": "27.0.1",
+          "platform": "iOS"
+        },
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "passedTests": 40,
+        "skippedTests": 0,
+        "testPlanConfiguration": {
+          "configurationId": "1",
+          "configurationName": "Test Scheme Action"
+        }
+      }
+    ],
+    "environmentDescription": "UpdaterHost \u00b7 Built with macOS 27.0.1",
+    "expectedFailures": 0,
+    "failedTests": 0,
+    "finishTime": 1792709073.631,
+    "passedTests": 28,
+    "result": "Passed",
+    "runtimeWarnings": [],
+    "skippedTests": 0,
+    "startTime": 1792709061.73,
+    "statistics": [
+      {
+        "subtitle": "15 test runs",
+        "title": "3 tests ran with dynamic parameters"
+      }
+    ],
+    "testFailures": [],
+    "title": "Test - UpdaterHost",
+    "topInsights": [
+      {
+        "category": "Longest Test Runs",
+        "impact": "10% of duration",
+        "text": "1 longest test run with outlier durations exceeding 0.12s (three standard deviations)"
+      }
+    ],
+    "totalTestCount": 28
+  },
+  "test_functions_passed": 28,
+  "test_executions_including_parameters": 40,
+  "source_test_assertions_unchanged": true,
+  "harness_adaptation": "App-hosted Xcode unit test target; additional Bundle.module adapter loads identical fixture bytes from test bundle. No assertion or updater source changes.",
+  "generator": "verification/tools/prepare-ios-updater.py",
+  "generator_sha256": "d5db0016da548d1f4377c4633981afa4c188fcada840d1eabb4589a29929aedb",
+  "prepare_command": "python3 verification/tools/prepare-ios-updater.py --revision 5790592 --output verification/local/ios-updater-qualified",
+  "test_command": [
+    "xcodebuild",
+    "-project",
+    "verification/local/ios-updater-qualified/app/UpdaterHost.xcodeproj",
+    "-scheme",
+    "UpdaterHost",
+    "-configuration",
+    "Debug",
+    "-destination",
+    "platform=iOS,id=00008101-0004155214B9003A",
+    "-derivedDataPath",
+    "verification/local/ios-updater-qualified/build",
+    "-resultBundlePath",
+    "verification/local/ios-updater-qualified/result.xcresult",
+    "CODE_SIGN_STYLE=Automatic",
+    "DEVELOPMENT_TEAM=RZY3NS8FM2",
+    "CODE_SIGN_IDENTITY=Apple Development",
+    "test"
+  ],
+  "exit_code": 0,
+  "dependency_pins_match_package": true,
+  "dependency_pins": [
+    {
+      "identity": "swift-asn1",
+      "kind": "remoteSourceControl",
+      "location": "https://github.com/apple/swift-asn1.git",
+      "state": {
+        "revision": "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2",
+        "version": "1.7.3"
+      }
+    },
+    {
+      "identity": "swift-crypto",
+      "kind": "remoteSourceControl",
+      "location": "https://github.com/apple/swift-crypto.git",
+      "state": {
+        "revision": "c2cbadd7263439d8015189668f96ff5b5be565ce",
+        "version": "5.0.3"
+      }
+    }
+  ],
+  "signing": "Existing development identity and cached wildcard profile; no portal updates",
+  "scope": "Real physical iPhone app-sandbox filesystem; injected durability faults and close/reopen, actual pinned SwiftCrypto verification",
+  "evidence": {
+    "verification/local/ios-updater-qualified/test.log": "bc2fc7ce873a5e73153abb9f393882d4522f6f9fc852185e5ece8486cdb7a2f1",
+    "verification/local/ios-updater-qualified/summary.json": "31b815914fdf88642442ac14fc4aa134613ca323b4dae9b10422c2b3dbd50cae",
+    "verification/local/ios-updater-qualified/prepared.json": "1bb3ff6297f203bcdbff86ede43411bd11d0d1befe2033cbbd91941439878905",
+    "verification/local/ios-updater-qualified/build/Build/Products/Debug-iphoneos/UpdaterHost.app/UpdaterHost": "e5cda97f922c314936a8c8fc31d13c4de6e48ea905e20447cf15adf19d559949",
+    "verification/local/ios-updater-qualified/build/Build/Products/Debug-iphoneos/UpdaterHost.app/PlugIns/UpdaterTests.xctest/UpdaterTests": "4842a936af46ac92aa52653439845cc67522d08b766b0b6d782a92a14ef029b2"
+  },
+  "result_bundle": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/ios-updater-qualified/result.xcresult",
+  "limitations": [
+    "Fixture payload validator, not real guest activation",
+    "Injected faults and reopen, not physical power loss or OS termination evidence",
+    "No app data migration, FieldLog OTA adoption or external security audit",
+    "No performance or full device/OS matrix claim",
+    "No D0-D8 or GA gate passed"
+  ]
+}

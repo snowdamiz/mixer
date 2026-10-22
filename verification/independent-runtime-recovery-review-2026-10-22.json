@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "observed_at_utc": "2026-10-22T22:41:41.815620+00:00",
+  "reviewer": "root integrator; independent from implementation agents",
+  "reviews": [
+    {
+      "component": "owned numeric-v2",
+      "source_revision": "71485a2e3c4f3d55bba883072a90bf85ea987880",
+      "scope": [
+        "Float opcode decoding/type validation and integer profile preservation",
+        "Raw IEEE bit handling, conversion bounds, signed zero and NaN behavior",
+        "Checked little-endian memory loads/stores",
+        "C ABI argument/buffer/status handling and panic containment",
+        "Host floating control rejection without changing host mode"
+      ],
+      "results": [
+        "No confirmed blocking defect found in reviewed numeric changes",
+        "29,794 reference comparisons through release interpreter on physical Pixel",
+        "29,794 reference comparisons through public C ABI in signed physical iPhone app",
+        "Physical Android52 non-oracle tests and C ABI smoke/control checks passed"
+      ],
+      "evidence": [
+        "verification/numeric-android-2026-10-22.json",
+        "verification/numeric-ios-2026-10-22.json"
+      ]
+    },
+    {
+      "component": "durable Swift cold-start updater",
+      "source_revision": "579059290eaca9be80e364509f106863cfa06c38",
+      "scope": [
+        "Sequence reservation before payload mutation; replay/cancellation/reopen behavior",
+        "Descriptor-relative file I/O, exclusive lock, bounds, symlink/hardlink checks",
+        "Atomic journal/payload fsync and rename ordering; poison after uncertain metadata commits",
+        "Mandatory installed executable validator and immutable Data selection",
+        "Process-local monotonic health, current staged authority vs retained healthy authority",
+        "Two healthy generations, quarantine and bounded recovery history"
+      ],
+      "results": [
+        "No confirmed blocking defect found in reviewed store changes",
+        "28 Swift test functions/40 parameter executions passed on physical Pixel",
+        "Initial evidence collector rejected successful output due optional in0suites wording; parser corrected and entire same suite rerun successfully",
+        "28 Swift test functions/40 parameter executions passed in physical iPhone app sandbox with unchanged assertions"
+      ],
+      "evidence": [
+        "verification/updater-android-2026-10-22.json",
+        "updates/verification/cold-start-store.json",
+        "verification/updater-ios-2026-10-22.json"
+      ]
+    }
+  ],
+  "limitations": [
+    "Scoped code review by integrator, not external security audit",
+    "No claim that test fixtures are full Swift guest code",
+    "Updater Android tests use shell-owned private storage; iOS tests use an app sandbox. Both use injected faults, not actual power loss",
+    "Real VM/updater/FieldLog integration and OS lifecycle qualification remain open",
+    "No standards conformance or GA/D0-D8 acceptance"
+  ]
+}
