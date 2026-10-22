@@ -4,6 +4,7 @@ public struct CommandResult: Codable, Sendable {
     public var command: [String]
     public var exitCode: Int32
     public var output: String
+    public var outputTruncated = false
     public var succeeded: Bool { exitCode == 0 }
 }
 
@@ -26,8 +27,12 @@ public enum ProcessRunner {
         process.standardOutput = handle; process.standardError = handle
         try process.run(); process.waitUntilExit()
         try handle.synchronize()
-        let bytes = try Data(contentsOf: log)
-        return CommandResult(command: command, exitCode: process.terminationStatus, output: String(decoding: bytes.suffix(8 * 1_048_576), as: UTF8.self))
+        let reader = try FileHandle(forReadingFrom: log)
+        defer { try? reader.close() }
+        let length = try reader.seekToEnd(), maximum: UInt64 = 8 * 1_048_576
+        try reader.seek(toOffset: length > maximum ? length - maximum : 0)
+        let bytes = try reader.read(upToCount: Int(maximum)) ?? Data()
+        return CommandResult(command: command, exitCode: process.terminationStatus, output: String(decoding: bytes, as: UTF8.self), outputTruncated: length > maximum)
     }
 }
 

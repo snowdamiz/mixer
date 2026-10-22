@@ -14,9 +14,26 @@ the storage implementation or native UI, and it does not represent all app code.
 `qualify-fieldlog.py` exports a specified Git commit to a new output directory,
 builds native/Android/full-Swift Wasm executables, compares native behavior with a
 development-only Node WASI oracle, and optionally runs the same model corpus on an
-explicitly selected physical Android device. The script also captures inventory
+explicitly selected Android ADB target. The script also captures inventory
 and rejection from the owned VM. It records failures rather than rewriting them
 as qualification. Run `python3 compiler/qualify-fieldlog.py --help` for parameters.
+
+Receipts bind the exported source archive, harness sources, generated package,
+artifact bytes and observed executable SHA256 values. Commands stream stdout and
+stderr to per-command files, retain partial logs on timeout, reject excessive
+output, and parse duplicate-free JSON with exact corpus expectations. Ambient
+compiler and Node injection variables are removed. Android runs use a fresh
+directory, verify uploaded executable/libc++ hashes, and remove that directory.
+An ADB target can be an emulator; recorded properties do not independently attest
+physical hardware. Installed compilers, SDK contents, Node, adb and the owned VM
+remain trusted local tools. Their hashes do not attest the complete toolchain,
+prove source-build correspondence, or sandbox a deliberately malicious tool.
+
+Run the harness regression checks with:
+
+```sh
+python3 -m unittest discover -s compiler/tests -v
+```
 
 Select the official cross Swift compiler and its matching SDK installation.
 On this development Mac Swift 6.3.3 uses Xcode 26.6's macOS SDK through per-command

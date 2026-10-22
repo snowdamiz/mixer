@@ -62,6 +62,33 @@ func main() {
 		write(directory, platform+"-digest", []byte(digest))
 		cfg.Roots = append(cfg.Roots, root)
 		cfg.Hosts = append(cfg.Hosts, host)
+		// A correctly signed negative fixture: 32 memory pages exceed the signed
+		// 16-page (1 MiB) artifact budget, despite fitting the VM's default ceiling.
+		budgetPayload := completionModuleWithMemory(32)
+		budgetManifest := manifest
+		budgetManifest.ReleaseID = "signed-memory-budget-negative"
+		budgetManifest.PayloadSHA256 = protocol.Hash(budgetPayload)
+		budgetManifest.CompressedBytes = uint64(len(budgetPayload))
+		budgetManifest.ExpandedBytes = uint64(len(budgetPayload))
+		budgetSigned, err := protocol.SignManifest(budgetManifest, key)
+		if err != nil {
+			panic(err)
+		}
+		budgetDigest, err := protocol.ManifestDigest(budgetManifest)
+		if err != nil {
+			panic(err)
+		}
+		budgetAssignment := assignment
+		budgetAssignment.Sequence = 2
+		budgetAssignment.ReleaseID = budgetManifest.ReleaseID
+		budgetAssignment.ArtifactSHA256 = budgetDigest
+		budgetAssigned, err := protocol.SignAssignment(budgetAssignment, key)
+		if err != nil {
+			panic(err)
+		}
+		jsonFile(directory, platform+"-budget-manifest.json", budgetSigned)
+		jsonFile(directory, platform+"-budget-assignment.json", budgetAssigned)
+		write(directory, platform+"-budget.wasm", budgetPayload)
 	}
 	jsonFile(directory, "service.json", cfg)
 	fmt.Println("Prepared ephemeral integration fixtures; private keys discarded; not Swift or device qualification.")
@@ -98,9 +125,15 @@ func section(module []byte, id byte, body []byte) []byte {
 	return append(module, body...)
 }
 func completionModule() []byte {
+	return completionModuleWithMemory(0)
+}
+func completionModuleWithMemory(pages byte) []byte {
 	m := []byte{0, 97, 115, 109, 1, 0, 0, 0}
 	m = section(m, 1, []byte{1, 0x60, 2, 0x7f, 0x7f, 1, 0x7f})
 	m = section(m, 3, []byte{1, 0})
+	if pages != 0 {
+		m = section(m, 5, []byte{1, 0, pages})
+	}
 	export := append([]byte{1, 10}, []byte("completion")...)
 	export = append(export, 0, 0)
 	m = section(m, 7, export)
