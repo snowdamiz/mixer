@@ -313,6 +313,46 @@ pub unsafe extern "C" fn mixer_vm_invoke_numeric_v2(
         )
     }
 }
+/// Validate the explicit table-memory-v3 profile with its fixed table ceiling.
+/// # Safety
+/// All pointers obey the unchanged buffer/layout contract in mixer_vm.h.
+#[no_mangle]
+pub unsafe extern "C" fn mixer_vm_validate_table_memory_v3(
+    data: *const u8,
+    len: usize,
+    limits: *const MixerVmLimits,
+    out: *mut MixerVmReport,
+) -> u32 {
+    unsafe { validate_profile(Profile::TableMemoryV3, data, len, limits, out) }
+}
+/// Invoke table-memory-v3. The legacy limits struct/layout remains unchanged.
+/// # Safety
+/// All pointers obey the unchanged buffer/layout contract in mixer_vm.h.
+#[no_mangle]
+pub unsafe extern "C" fn mixer_vm_invoke_table_memory_v3(
+    data: *const u8,
+    len: usize,
+    export: *const u8,
+    export_len: usize,
+    args: *const MixerVmValue,
+    args_len: usize,
+    limits: *const MixerVmLimits,
+    out: *mut MixerVmReport,
+) -> u32 {
+    unsafe {
+        invoke_profile(
+            Profile::TableMemoryV3,
+            data,
+            len,
+            export,
+            export_len,
+            args,
+            args_len,
+            limits,
+            out,
+        )
+    }
+}
 #[cfg(test)]
 mod tests {
     use super::*;

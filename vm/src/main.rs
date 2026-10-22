@@ -20,6 +20,7 @@ fn run() -> Result<(String, bool), Error> {
                 limits.profile = match value.as_str() {
                     "mixer-integer-v1" => Profile::IntegerV1,
                     "mixer-numeric-v2" => Profile::NumericV2,
+                    "mixer-table-memory-v3" => Profile::TableMemoryV3,
                     _ => return Err(Error::new("usage", "unknown profile", None, 0)),
                 };
                 continue;
@@ -58,7 +59,7 @@ fn run() -> Result<(String, bool), Error> {
     }
     limits.check()?;
     if args.len() < 2 {
-        return Err(Error::new("usage","mixer-vm validate|inventory FILE; mixer-vm invoke FILE EXPORT [i32:N|i64:N|f32:N|f64:N ...]; options --profile mixer-integer-v1|mixer-numeric-v2 --fuel N --memory-pages N --call-depth N --stack N --host-calls N",None,0));
+        return Err(Error::new("usage","mixer-vm validate|inventory FILE; mixer-vm invoke FILE EXPORT [i32:N|i64:N|f32:N|f64:N ...]; options --profile mixer-integer-v1|mixer-numeric-v2|mixer-table-memory-v3 --fuel N --memory-pages N --call-depth N --stack N --host-calls N",None,0));
     }
     let read_limit = if args[0] == "inventory" {
         128 * 1024 * 1024

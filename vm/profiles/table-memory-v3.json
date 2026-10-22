@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "profile_id": "mixer-table-memory-v3",
+  "status": "opt-in executable development profile; full Swift/W08/D3/GA unqualified",
+  "inherits_numeric_profile": "vm/profiles/numeric-v2.json",
+  "frozen_profiles": {
+    "contracts/vm-profile-v1.json": "813a54a4e198a73d49afffe7c8d9cf54f6e76bfca80dd6556a439a4bdf1bdf4c",
+    "vm/profiles/numeric-v2.json": "4eb10d61ddc0092bec5f40b40cc3473ae3443491e7bdfe49b9cae80b58e09d57",
+    "acceptance": "original/default and numeric-v2 entry points still reject tables, indirect calls and memory.copy/fill"
+  },
+  "authoring_agent": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "xhigh"
+  },
+  "normative_sources": [
+    "https://webassembly.github.io/spec/core/binary/modules.html#element-section",
+    "https://webassembly.github.io/spec/core/valid/instructions.html",
+    "https://webassembly.github.io/spec/core/exec/instructions.html"
+  ],
+  "added_opcodes": [
+    {"opcode": "0x11", "name": "call_indirect", "immediates": ["typeidx u32", "tableidx u32; must be zero"]},
+    {"opcode": "0xfc:10", "name": "memory.copy", "immediates": ["destination memidx u32; must be zero", "source memidx u32; must be zero"]},
+    {"opcode": "0xfc:11", "name": "memory.fill", "immediates": ["memidx u32; must be zero"]}
+  ],
+  "tables": {
+    "count": "zero or one defined table; imported tables reject",
+    "element_type": "nullable funcref encoded as 0x70; references are not guest value types",
+    "limits": "i32-addressed min, optional max; explicit max must fit cap; absent max uses instance cap",
+    "maximum_elements": 65536,
+    "total_element_initializer_entries": 65536,
+    "maximum_element_segments": 4096,
+    "rust_narrowing": "Limits.table_elements may only narrow; narrowing revalidates at instantiation",
+    "initializer": "active function-index element segments flags 0 or 2 only; table zero; constant i32 offset; flags 2 elemkind byte zero",
+    "initialization": "null entries first; segments applied in declaration order, later overlapping entries win; complete unsigned offset/length bounds checked at instantiation, including empty segments",
+    "indirect_type_check": "structural numeric parameter/result signature equality; equivalent duplicate type indices match",
+    "indirect_traps": ["table_out_of_bounds", "indirect_call_null", "indirect_call_type_mismatch"],
+    "calls": "same explicit frames, operand stack, depth, fuel, cancellation and approved-import host-call ceilings as direct calls"
+  },
+  "bulk_memory": {
+    "memory": "existing single bounded i32-addressed memory, existing maximum 64 pages unchanged",
+    "operands": "destination, source/value, length: i32; addresses and length interpreted unsigned",
+    "bounds": "complete non-wrapping source/destination bounds checked before mutation, even for zero length; addresses equal to byte length are allowed only for zero length",
+    "copy": "memmove semantics for overlapping source and destination",
+    "fill": "low eight bits of i32 value",
+    "fuel": "one dispatch unit plus ceil(length/64) additional units charged before mutation; insufficient byte fuel traps and drains remaining fuel without partial operation",
+    "cancellation": "checked at dispatch and immediately before bulk mutation; the native operation spans at most existing 4MiB memory and is not interrupted mid-operation",
+    "deadline": "fuel and bounded native byte work are not a hard wall-clock deadline"
+  },
+  "unchanged_ceilings": {
+    "module_bytes": 4194304,
+    "types": 512,
+    "functions_including_imports": 2048,
+    "instructions": 200000,
+    "parameters_plus_locals_per_function": 4096,
+    "globals": 1024,
+    "exports": 4096,
+    "operand_values_per_frame": 4096,
+    "call_depth": 64,
+    "control_depth_including_function": 128,
+    "memory_pages": 64,
+    "fuel_per_invocation": 1000000,
+    "host_calls_per_invocation": 1024,
+    "name_utf8_bytes": 4096
+  },
+  "new_resource_rationale": "actual FieldLog artifact has one 46,700-entry funcref table and 42,604 active function-index initializers; 65,536 is a bounded new table resource ceiling, not a relaxation of source/function/global/instruction/memory quotas",
+  "imports": "unchanged: mixer.checkpoint ()->() and mixer.abort (i32)->(); all WASI and other imports reject",
+  "c_abi": {
+    "version": 1,
+    "new_opt_in_symbols": ["mixer_vm_validate_table_memory_v3", "mixer_vm_invoke_table_memory_v3"],
+    "layouts": "unchanged: MixerVmLimits 32 bytes, MixerVmValue 16 bytes, MixerVmReport 352 bytes on qualified ABI",
+    "table_quota": "fixed 65,536; no field added to legacy MixerVmLimits",
+    "old_symbols": "continue selecting frozen integer-v1 or numeric-v2 acceptance"
+  },
+  "cli": {"opt_in": "--profile mixer-table-memory-v3", "default": "mixer-integer-v1"},
+  "unsupported": [
+    "imported or multiple tables, reference-valued operands/locals/globals, typed/non-null reference tables, table64 and shared tables",
+    "passive/declarative/expression element segments, table.get/set/grow/size/fill/copy/init, elem.drop, ref.func/ref.null guest instructions",
+    "passive data, data-count section, memory.init/data.drop, multiple memories, memory64, shared memory",
+    "WASI and arbitrary host imports",
+    "start functions, multivalue/indexed block types, GC/exceptions/SIMD/atomics/threads",
+    "full Swift SDK runtime and corpus-scale resource qualification",
+    "source maps/debugger and production OTA authorization"
+  ],
+  "qualification": {
+    "execution_scope": "macOS arm64 development host; this receipt does not qualify v3 physical-device embedding",
+    "full_swift_runtime": false,
+    "fieldlog_corpus_owned_vm_execution": false,
+    "standards_suites": false,
+    "continuous_fuzzing": false,
+    "independent_v3_review": false,
+    "ga": false
+  },
+  "unprefixed_opcode_count": 177,
+  "prefixed_instruction_count": 10,
+  "primary_opcode_bytes_including_prefix_count": 178
+}

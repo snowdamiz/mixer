@@ -63,6 +63,15 @@ uint32_t mixer_vm_invoke_numeric_v2(const uint8_t *data, size_t len,
                         const uint8_t *export_name, size_t export_len,
                         const MixerVmValue *args, size_t args_len,
                         const MixerVmLimits *limits, MixerVmReport *out);
+/* Explicit table-memory-v3 entry points. Same v1 struct sizes/layouts; its
+ * fixed table ceiling is 65,536 elements. No table quota field is added to the
+ * legacy limits struct. Rust Limits may narrow the v3 table ceiling. */
+uint32_t mixer_vm_validate_table_memory_v3(const uint8_t *data, size_t len,
+                          const MixerVmLimits *limits, MixerVmReport *out);
+uint32_t mixer_vm_invoke_table_memory_v3(const uint8_t *data, size_t len,
+                        const uint8_t *export_name, size_t export_len,
+                        const MixerVmValue *args, size_t args_len,
+                        const MixerVmLimits *limits, MixerVmReport *out);
 #ifdef __cplusplus
 }
 #endif

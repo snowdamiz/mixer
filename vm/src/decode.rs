@@ -57,6 +57,8 @@ pub struct Module {
     pub(crate) globals: Vec<Global>,
     pub(crate) exports: BTreeMap<String, (u8, u32)>,
     pub(crate) memory: Option<(u32, u32)>,
+    pub(crate) table: Option<(u32, u32)>,
+    pub(crate) elements: Vec<(u32, Vec<u32>)>,
     pub(crate) data: Vec<(u32, Vec<u8>)>,
     pub inventory: Inventory,
 }
@@ -249,6 +251,8 @@ fn parse(bytes: &[u8], limits: &Limits, inv: &mut Inventory) -> Result<Module, E
         globals: vec![],
         exports: BTreeMap::new(),
         memory: None,
+        table: None,
+        elements: vec![],
         data: vec![],
         inventory: Inventory::default(),
     };
@@ -321,10 +325,64 @@ fn parse(bytes: &[u8], limits: &Limits, inv: &mut Inventory) -> Result<Module, E
                     defined.push(s.u32()?);
                 }
             }
+            4 if limits.profile == Profile::TableMemoryV3 => {
+                let count = s.count(1)?;
+                if count == 1 {
+                    if s.byte()? != 0x70 {
+                        return Err(s.err("unsupported", "only funcref tables are supported"));
+                    }
+                    let flags = s.byte()?;
+                    if flags > 1 {
+                        return Err(s.err(
+                            "unsupported",
+                            "table64/shared/initialized table form unsupported",
+                        ));
+                    }
+                    let min = s.u32()?;
+                    let max = if flags == 1 {
+                        s.u32()?
+                    } else {
+                        limits.table_elements as u32
+                    };
+                    if min > max || max as usize > limits.table_elements {
+                        return Err(s.err("limit", "table bounds exceed profile"));
+                    }
+                    m.table = Some((min, max));
+                }
+            }
+            9 if limits.profile == Profile::TableMemoryV3 => {
+                let mut entries = 0;
+                for _ in 0..s.count(4096)? {
+                    let flags = s.u32()?;
+                    if !matches!(flags, 0 | 2) {
+                        return Err(s.err(
+                            "unsupported",
+                            "only active function-index element segments are supported",
+                        ));
+                    }
+                    if flags == 2 && s.u32()? != 0 {
+                        return Err(s.err("validation", "element table index must be zero"));
+                    }
+                    let offset = match s.constant(limits.profile)? {
+                        Value::I32(x) => x as u32,
+                        _ => return Err(s.err("validation", "element offset must be i32")),
+                    };
+                    if flags == 2 && s.byte()? != 0 {
+                        return Err(s.err("unsupported", "element kind must be funcref"));
+                    }
+                    let count = s.count(limits.table_elements.saturating_sub(entries))?;
+                    entries += count;
+                    let mut functions = Vec::with_capacity(count);
+                    for _ in 0..count {
+                        functions.push(s.u32()?);
+                    }
+                    m.elements.push((offset, functions));
+                }
+            }
             4 | 8 | 9 => {
                 return Err(s.err(
                     "unsupported",
-                    format!("section {id} (tables/start/elements) is outside this profile"),
+                    format!("section {id} is outside selected profile"),
                 ))
             }
             5 => {
@@ -531,6 +589,13 @@ fn decode_code(
             }
             0x0f => Op::Return,
             0x10 => Op::Call(r.u32()?),
+            0x11 if limits.profile == Profile::TableMemoryV3 => {
+                let ty = r.u32()?;
+                if r.u32()? != 0 {
+                    return Err(r.err("validation", "call_indirect table index must be zero"));
+                }
+                Op::CallIndirect(ty)
+            }
             0x1a => Op::Drop,
             0x1b => Op::Select,
             0x20 => Op::LocalGet(r.u32()?),
@@ -609,18 +674,32 @@ fn decode_code(
             }
             0xfc if limits.profile.floats() => {
                 let sub = r.u32()?;
-                if sub > 7 {
-                    return Err(Error::new(
-                        "unsupported",
-                        format!("unsupported 0xfc subopcode {sub}"),
-                        r.function,
-                        offset,
-                    ));
-                }
                 *inv.extended_opcodes
                     .entry(format!("0xfc:{sub}"))
                     .or_default() += 1;
-                Op::Saturating(sub as u8)
+                match sub {
+                    0..=7 => Op::Saturating(sub as u8),
+                    10 if limits.profile == Profile::TableMemoryV3 => {
+                        if r.u32()? != 0 || r.u32()? != 0 {
+                            return Err(r.err("validation", "memory.copy indices must be zero"));
+                        }
+                        Op::MemoryCopy
+                    }
+                    11 if limits.profile == Profile::TableMemoryV3 => {
+                        if r.u32()? != 0 {
+                            return Err(r.err("validation", "memory.fill index must be zero"));
+                        }
+                        Op::MemoryFill
+                    }
+                    _ => {
+                        return Err(Error::new(
+                            "unsupported",
+                            format!("unsupported 0xfc subopcode {sub}"),
+                            r.function,
+                            offset,
+                        ))
+                    }
+                }
             }
             0x45..=0x5a | 0x67..=0x8a | 0xa7 | 0xac | 0xad | 0xc0..=0xc4 => Op::Numeric(o),
             _ => {

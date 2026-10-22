@@ -116,6 +116,7 @@ pub(crate) fn module(m: &Module, limits: &Limits) -> Result<(), Error> {
     for (name, (kind, index)) in &m.exports {
         let valid = match kind {
             0 => (*index as usize) < m.function_count(),
+            1 => *index == 0 && m.table.is_some(),
             2 => *index == 0 && m.memory.is_some(),
             3 => (*index as usize) < m.globals.len(),
             _ => false,
@@ -136,6 +137,39 @@ pub(crate) fn module(m: &Module, limits: &Limits) -> Result<(), Error> {
             None,
             0,
         ));
+    }
+    if let Some((min, max)) = m.table {
+        if min > max || max as usize > limits.table_elements {
+            return Err(Error::new(
+                "limit",
+                "instance table limit exceeded",
+                None,
+                0,
+            ));
+        }
+    }
+    if !m.elements.is_empty() && m.table.is_none() {
+        return Err(Error::new(
+            "validation",
+            "element segment has no table",
+            None,
+            0,
+        ));
+    }
+    if m.elements.iter().map(|(_, v)| v.len()).sum::<usize>() > limits.table_elements {
+        return Err(Error::new("limit", "element entry limit exceeded", None, 0));
+    }
+    for (_, functions) in &m.elements {
+        for function in functions {
+            if *function as usize >= m.function_count() {
+                return Err(Error::new(
+                    "validation",
+                    "element function index out of bounds",
+                    None,
+                    0,
+                ));
+            }
+        }
     }
     for (i, f) in m.functions.iter().enumerate() {
         let function = (m.imports.len() + i) as u32;
@@ -269,6 +303,30 @@ pub(crate) fn module(m: &Module, limits: &Limits) -> Result<(), Error> {
                     if let Some(t) = called.result {
                         v.push(Some(t))?;
                     }
+                }
+                Op::CallIndirect(index) => {
+                    if m.table.is_none() {
+                        return Err(v.error("call_indirect has no table"));
+                    }
+                    let called = m
+                        .types
+                        .get(*index as usize)
+                        .ok_or_else(|| v.error("call_indirect type index out of bounds"))?;
+                    v.pop(Type::I32)?;
+                    for ty in called.params.iter().rev() {
+                        v.pop(*ty)?;
+                    }
+                    if let Some(ty) = called.result {
+                        v.push(Some(ty))?;
+                    }
+                }
+                Op::MemoryCopy | Op::MemoryFill => {
+                    if m.memory.is_none() {
+                        return Err(v.error("bulk operation has no memory"));
+                    }
+                    v.pop(Type::I32)?;
+                    v.pop(Type::I32)?;
+                    v.pop(Type::I32)?;
                 }
                 Op::Drop => {
                     v.pop_any()?;

@@ -93,6 +93,11 @@ pub struct Spec {
     pub functions: Vec<Function>,
     pub imports: Vec<(String, Vec<Type>, Option<Type>)>,
     pub memory: Option<(u32, u32)>,
+    pub table: Option<(u32, u32)>,
+    pub elements: Vec<(u32, Vec<u32>)>,
+    pub explicit_elements: bool,
+    pub export_memory: bool,
+    pub export_table: bool,
     pub globals: Vec<(Value, bool)>,
     pub data: Vec<(u32, Vec<u8>)>,
 }
@@ -128,6 +133,12 @@ impl Spec {
             f.extend(u32leb((self.imports.len() + i) as u32));
         }
         section(&mut m, 3, f);
+        if let Some((min, max)) = self.table {
+            let mut b = vec![1, 0x70, 1];
+            b.extend(u32leb(min));
+            b.extend(u32leb(max));
+            section(&mut m, 4, b);
+        }
         if let Some((min, max)) = self.memory {
             let mut b = vec![1, 1];
             b.extend(u32leb(min));
@@ -144,13 +155,49 @@ impl Spec {
             }
             section(&mut m, 6, b);
         }
-        let mut e = u32leb(self.functions.len() as u32);
+        let mut e = u32leb(
+            (self.functions.len()
+                + usize::from(self.export_memory)
+                + usize::from(self.export_table)) as u32,
+        );
         for i in 0..self.functions.len() {
-            e.extend(name(if i == 0 { "run" } else { "other" }));
+            let export = if i == 0 {
+                "run".to_owned()
+            } else {
+                format!("other{i}")
+            };
+            e.extend(name(&export));
             e.push(0);
             e.extend(u32leb((self.imports.len() + i) as u32));
         }
+        if self.export_memory {
+            e.extend(name("memory"));
+            e.extend([2, 0]);
+        }
+        if self.export_table {
+            e.extend(name("table"));
+            e.extend([1, 0]);
+        }
         section(&mut m, 7, e);
+        if !self.elements.is_empty() {
+            let mut b = u32leb(self.elements.len() as u32);
+            for (offset, functions) in &self.elements {
+                b.push(if self.explicit_elements { 2 } else { 0 });
+                if self.explicit_elements {
+                    b.push(0);
+                }
+                b.extend(constant(Value::I32(*offset as i32)));
+                b.push(0x0b);
+                if self.explicit_elements {
+                    b.push(0);
+                }
+                b.extend(u32leb(functions.len() as u32));
+                for function in functions {
+                    b.extend(u32leb(*function));
+                }
+            }
+            section(&mut m, 9, b);
+        }
         let mut c = u32leb(self.functions.len() as u32);
         for f in &self.functions {
             let mut b = u32leb(f.locals.len() as u32);

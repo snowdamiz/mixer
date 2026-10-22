@@ -82,3 +82,30 @@ fn numeric_profile_is_explicit_and_float_json_preserves_bits() {
     assert!(text.contains("0x8000000000000000"));
     std::fs::remove_dir_all(dir).unwrap();
 }
+
+#[test]
+fn table_memory_profile_requires_explicit_cli_selection() {
+    let dir = std::env::temp_dir().join(format!("mixer-vm-table-cli-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+    let path = dir.join("table.wasm");
+    let mut s = Spec::one(vec![], Some(Type::I32), vec![0x41, 0, 0x11, 0, 0, 0x0b]);
+    s.table = Some((1, 1));
+    s.elements = vec![(0, vec![0])];
+    std::fs::write(&path, s.bytes()).unwrap();
+    let cli = env!("CARGO_BIN_EXE_mixer-vm");
+    let out = Command::new(cli)
+        .args(["--profile", "mixer-numeric-v2", "validate"])
+        .arg(&path)
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(2));
+    let out = Command::new(cli)
+        .args(["--profile", "mixer-table-memory-v3", "validate"])
+        .arg(&path)
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    let text = String::from_utf8(out.stdout).unwrap();
+    assert!(text.contains("\"profile\":\"mixer-table-memory-v3\""));
+    std::fs::remove_dir_all(dir).unwrap();
+}

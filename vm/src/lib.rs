@@ -1,4 +1,4 @@
-//! Owned integer WebAssembly profile. No production runtime dependencies.
+//! Owned bounded WebAssembly profiles. No production runtime dependencies.
 mod decode;
 mod execute;
 mod ffi;
@@ -74,22 +74,25 @@ pub enum Profile {
     #[default]
     IntegerV1,
     NumericV2,
+    TableMemoryV3,
 }
 impl Profile {
     pub fn name(self) -> &'static str {
         match self {
             Self::IntegerV1 => "mixer-integer-v1",
             Self::NumericV2 => "mixer-numeric-v2",
+            Self::TableMemoryV3 => "mixer-table-memory-v3",
         }
     }
     pub(crate) fn floats(self) -> bool {
-        self == Self::NumericV2
+        self != Self::IntegerV1
     }
 }
 
 #[derive(Clone, Debug)]
 pub struct Limits {
     pub profile: Profile,
+    pub table_elements: usize,
     pub module_bytes: usize,
     pub functions: usize,
     pub types: usize,
@@ -106,6 +109,7 @@ impl Default for Limits {
     fn default() -> Self {
         Self {
             profile: Profile::IntegerV1,
+            table_elements: 65_536,
             module_bytes: 4 * 1024 * 1024,
             functions: 2048,
             types: 512,
@@ -123,7 +127,8 @@ impl Default for Limits {
 impl Limits {
     pub fn check(&self) -> Result<(), Error> {
         let d = Self::default();
-        if self.module_bytes == 0
+        if self.table_elements > d.table_elements
+            || self.module_bytes == 0
             || self.module_bytes > d.module_bytes
             || self.functions == 0
             || self.functions > d.functions
@@ -209,7 +214,7 @@ pub fn json_string(s: &str) -> String {
     out
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub(crate) struct Signature {
     pub params: Vec<Type>,
     pub result: Option<Type>,
@@ -247,6 +252,9 @@ pub(crate) enum Op {
     BrTable(Vec<u32>, u32),
     Return,
     Call(u32),
+    CallIndirect(u32),
+    MemoryCopy,
+    MemoryFill,
     Drop,
     Select,
     LocalGet(u32),

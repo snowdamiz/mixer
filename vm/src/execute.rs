@@ -19,6 +19,7 @@ pub struct Instance {
     module: Module,
     limits: Limits,
     memory: Vec<u8>,
+    table: Vec<Option<u32>>,
     globals: Vec<Value>,
     cancellation: Cancellation,
     pub fuel_remaining: u64,
@@ -95,12 +96,36 @@ impl Instance {
                 })?;
             memory[start..end].copy_from_slice(data);
         }
+        let count = module.table.map(|(min, _)| min as usize).unwrap_or(0);
+        let mut table = Vec::new();
+        table
+            .try_reserve_exact(count)
+            .map_err(|_| Error::new("allocation", "cannot allocate table", None, 0))?;
+        table.resize(count, None);
+        for (offset, functions) in &module.elements {
+            let start = *offset as usize;
+            let end = start
+                .checked_add(functions.len())
+                .filter(|n| *n <= table.len())
+                .ok_or_else(|| {
+                    Error::new(
+                        "table_out_of_bounds",
+                        "active element segment exceeds initial table",
+                        None,
+                        0,
+                    )
+                })?;
+            for (slot, function) in table[start..end].iter_mut().zip(functions) {
+                *slot = Some(*function);
+            }
+        }
         let globals = module.globals.iter().map(|g| g.value).collect();
         let fuel = limits.fuel;
         Ok(Self {
             module,
             globals,
             memory,
+            table,
             limits,
             cancellation: Cancellation::default(),
             fuel_remaining: fuel,
@@ -254,6 +279,75 @@ impl Instance {
                     }
                     continue;
                 }
+                Op::CallIndirect(type_index) => {
+                    let selector = pop32(&mut frame.stack) as u32 as usize;
+                    let target = self
+                        .table
+                        .get(selector)
+                        .ok_or_else(|| {
+                            trap("table_out_of_bounds", "indirect call index exceeds table")
+                        })?
+                        .ok_or_else(|| {
+                            trap("indirect_call_null", "indirect call selected a null entry")
+                        })?;
+                    let expected = &self.module.types[*type_index as usize];
+                    let actual = self.module.signature(target).unwrap();
+                    if actual != expected {
+                        return Err(trap(
+                            "indirect_call_type_mismatch",
+                            "indirect call signature mismatch",
+                        ));
+                    }
+                    let args = frame
+                        .stack
+                        .split_off(frame.stack.len() - expected.params.len());
+                    if (target as usize) < self.module.imports.len() {
+                        self.import(target, &args, function, offset)?;
+                    } else {
+                        if frames.len() >= self.limits.call_depth {
+                            return Err(trap("call_depth_exceeded", "call depth limit exceeded"));
+                        }
+                        frames.push(self.frame(target, args)?);
+                    }
+                    continue;
+                }
+                Op::MemoryCopy => {
+                    let len = pop32(&mut frame.stack) as u32 as usize;
+                    let src = pop32(&mut frame.stack) as u32 as usize;
+                    let dst = pop32(&mut frame.stack) as u32 as usize;
+                    let src_end = src
+                        .checked_add(len)
+                        .filter(|end| *end <= self.memory.len())
+                        .ok_or_else(|| {
+                            trap("memory_out_of_bounds", "memory.copy source exceeds memory")
+                        })?;
+                    dst.checked_add(len)
+                        .filter(|end| *end <= self.memory.len())
+                        .ok_or_else(|| {
+                            trap(
+                                "memory_out_of_bounds",
+                                "memory.copy destination exceeds memory",
+                            )
+                        })?;
+                    self.bulk_fuel(len, function, offset)?;
+                    self.memory.copy_within(src..src_end, dst);
+                }
+                Op::MemoryFill => {
+                    let len = pop32(&mut frame.stack) as u32 as usize;
+                    let value = pop32(&mut frame.stack) as u8;
+                    let dst = pop32(&mut frame.stack) as u32 as usize;
+                    let end = dst
+                        .checked_add(len)
+                        .filter(|end| *end <= self.memory.len())
+                        .ok_or_else(|| {
+                            trap(
+                                "memory_out_of_bounds",
+                                "memory.fill destination exceeds memory",
+                            )
+                        })?;
+                    self.bulk_fuel(len, function, offset)?;
+                    self.memory[dst..end].fill(value);
+                }
                 Op::MemorySize => frame
                     .stack
                     .push(Value::I32((self.memory.len() / 65536) as i32)),
@@ -386,6 +480,28 @@ impl Instance {
                 }
             }
         }
+    }
+    fn bulk_fuel(&mut self, len: usize, function: u32, offset: usize) -> Result<(), Error> {
+        if self.cancellation.is_cancelled() {
+            return Err(Error::new(
+                "cancelled",
+                "bulk operation cancelled before mutation",
+                Some(function),
+                offset,
+            ));
+        }
+        let extra = len.div_ceil(64) as u64;
+        if self.fuel_remaining < extra {
+            self.fuel_remaining = 0;
+            return Err(Error::new(
+                "fuel_exhausted",
+                "bulk byte fuel exhausted before mutation",
+                Some(function),
+                offset,
+            ));
+        }
+        self.fuel_remaining -= extra;
+        Ok(())
     }
     fn charge(&mut self, function: u32, offset: usize) -> Result<(), Error> {
         if self.cancellation.is_cancelled() {
