@@ -72,6 +72,38 @@ uint32_t mixer_vm_invoke_table_memory_v3(const uint8_t *data, size_t len,
                         const uint8_t *export_name, size_t export_len,
                         const MixerVmValue *args, size_t args_len,
                         const MixerVmLimits *limits, MixerVmReport *out);
+/* Additive persistent-session ABI v1. Profile IDs: 1 integer-v1, 2 numeric-v2,
+ * 3 table-memory-v3. Existing structs and one-shot entry points are unchanged.
+ * Process-local opaque handles are not pointers or cross-process capabilities.
+ * At most 16 sessions, including creation and closed in-flight instances.
+ * All buffer/aliasing rules above apply; out_handle must not alias any input/out.
+ * create writes zero to out_handle on failure when out/out_handle are non-null.
+ * On success all module data is owned; caller buffers may be released immediately.
+ * Success retains memory/globals. Every invocation gets the original fuel and
+ * host-call budgets. Any interpreter error (including wrong export/signature)
+ * makes the session terminal; only close remains useful. API buffer errors and
+ * busy/bounds rejection leave it usable. Concurrent invoke/read/write returns
+ * status3 session_busy. A panic poisons that session (status4); close still works.
+ * cancel permanently terminates, checks at interpreter boundaries, and never
+ * waits. close invalidates immediately and cancels; in-flight calls keep storage
+ * alive. An already admitted operation may finish/mutate before observing cancel;
+ * cancellation is not rollback. Closed/stale handles reject; no generation wrap.
+ * This is a bounded native host interface, not a new guest instruction profile.
+ * No native pointers, callbacks, WASI or arbitrary host services are exposed. */
+uint32_t mixer_vm_session_create_v1(uint32_t profile, const uint8_t *data, size_t len,
+                        const MixerVmLimits *limits, uint64_t *out_handle, MixerVmReport *out);
+uint32_t mixer_vm_session_invoke_v1(uint64_t handle,
+                        const uint8_t *export_name, size_t export_len,
+                        const MixerVmValue *args, size_t args_len, MixerVmReport *out);
+/* Copies at most 1MiB per call, unsigned offset/range fully checked before copying.
+ * Zero-length transfer still checks offset <= current memory length. Transfers do
+ * not execute guest code or consume guest fuel. No guest pointer escapes. */
+uint32_t mixer_vm_session_read_v1(uint64_t handle, uint32_t offset,
+                        uint8_t *destination, size_t len, MixerVmReport *out);
+uint32_t mixer_vm_session_write_v1(uint64_t handle, uint32_t offset,
+                        const uint8_t *source, size_t len, MixerVmReport *out);
+uint32_t mixer_vm_session_cancel_v1(uint64_t handle, MixerVmReport *out);
+uint32_t mixer_vm_session_close_v1(uint64_t handle, MixerVmReport *out);
 #ifdef __cplusplus
 }
 #endif

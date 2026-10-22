@@ -26,7 +26,7 @@ Decode and type validation finish before instantiation/execution. Structured con
 
 Integer addition/subtraction/multiplication wrap to the operand width. Division by zero and signed minimum/-1 division produce distinct traps; minimum%-1 returns zero. Effective addresses add the unsigned i32 address and memory immediate without wrapping at 32 bits. Failed memory growth returns -1 without changing memory. Branches preserve the label result and discard intermediate stack values.
 
-Each dispatched instruction consumes one fuel unit, including control delimiters. Branches that bypass instructions do not consume fuel for those instructions. Fuel and host-call counts reset per public invocation. Cancellation is checked before every instruction and import; `Instance::cancellation()` exposes a thread-safe cooperative flag. Cancellation remains set for that instance. Static limits bound module bytes, type/function/local/instruction counts, operand stack, and structured nesting. Runtime limits bound call depth, memory pages, host calls, and fuel. Limits may only narrow published ceilings. Re-instantiating an already validated module with narrower limits revalidates it. `memory.grow` cannot exceed the declared and instance maxima. The instance's memory and globals persist across Rust invocations; C invocations instantiate fresh state.
+Each dispatched instruction consumes one fuel unit, including control delimiters. Branches that bypass instructions do not consume fuel for those instructions. Fuel and host-call counts reset per public invocation. Cancellation is checked before every instruction and import; `Instance::cancellation()` exposes a thread-safe cooperative flag. Cancellation remains set for that instance. Static limits bound module bytes, type/function/local/instruction counts, operand stack, and structured nesting. Runtime limits bound call depth, memory pages, host calls, and fuel. Limits may only narrow published ceilings. Re-instantiating an already validated module with narrower limits revalidates it. `memory.grow` cannot exceed the declared and instance maxima. The instance's memory and globals persist across Rust invocations; the original C invocation entry points instantiate fresh state. The additive persistent-session C API retains it across calls.
 
 The only accepted imports are `mixer.checkpoint: () -> ()` and `mixer.abort: (i32) -> ()`. Checkpoint is a metered, non-blocking cancellation point; abort returns a structured `host_abort` trap. There are no arbitrary host callbacks, filesystem, sockets, process APIs, clocks, randomness, or WASI adapters. These two imports do not implement the full product capability bridge. Future blocking host functions require their own deadlines/cancellation and capability checks.
 
@@ -97,3 +97,30 @@ python3 vm/verify-table-memory.py
 The owned table/bulk fixtures cover static operand types, element bounds and ordering, null/mismatched callees, equivalent signatures, integer/float argument transfer, recursion, host-call metering, memory overlap, zero/negative/oversized ranges, unchanged bytes on bounds/fuel failure, cancellation, unsupported forms, and bounded binary mutations. Development Node comparisons observe memory after traps as well as results. The C smoke test proves explicit profile selection and unchanged v1 layout sizes. These are host tests and development differential evidence, not an independent v3 review or physical device qualification.
 
 The actual FieldLog binary has one table with min=max 46,700 and one active element segment containing 42,604 function indices starting at 4096; measured body counts include 4,237 memory.copy and 761 memory.fill operations. This motivated the bounded new table resource class. V3 covers these selected forms, but still rejects the full artifact at 4MiB. Its 79,823 defined functions, 5,271 globals and 6,510,037 instructions exceed unchanged ceilings; its 584 initial memory pages and 37,712,880 active data bytes also exceed the existing memory budget. All 34 WASI imports remain unsupported. No FieldLog/full Swift execution is claimed. [The v3 receipt](verification/table-memory-v3/receipt.json) records the artifact hash, structural measurements, complete inventory, exact commands/tool versions and source digest. Historical receipts remain tied to their original source manifests.
+
+## Persistent native sessions
+
+The additive `mixer_vm_session_*_v1` symbols expose retained state to native hosts.
+[The session contract](../contracts/vm-session-v1.json) fixes profile IDs, handle
+ownership, concurrency and failure behavior. Create validates and instantiates
+before publishing a process-local generation-checked handle. Module buffers can
+then be freed. Invoke retains globals/memory and resets the original narrowed
+fuel/host-call budgets for each call. Read/write copy at most 1MiB with complete
+unsigned bounds checks; no guest pointer escapes.
+
+The 16-session ceiling includes reserved creations and closed instances still
+held by in-flight operations. Generation overflow permanently retires a slot.
+Invoke/read/write serialize with a nonblocking try-lock; overlapping operations
+return `session_busy`. Cancel is permanent and cooperative. Close invalidates
+immediately and keeps storage alive until admitted calls finish; it does not
+wait for guest execution. Already admitted work can mutate before observing
+cancellation, so cancellation does not roll back state. Every interpreter error,
+including unknown exports or signature mismatch, makes the session terminal.
+Malformed API buffers and transfer-bound errors leave it usable. Contained panics
+poison the instance and prevent reuse. Hosts must close handles explicitly.
+
+No old struct, instruction profile, quota, symbol behavior or import allowlist
+changes. This interface does not yet connect the typed capabilities, Swift async
+runtime, updater lifecycle or published mobile SDK. Full Swift execution and W08
+remain open. Host session tests cover retention, transfer bounds, stale handles,
+capacity, generation retirement, panic cleanup, concurrency and terminal state.

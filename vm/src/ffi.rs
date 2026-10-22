@@ -60,7 +60,7 @@ fn copy_text<const N: usize>(out: &mut [u8; N], text: &str) {
     let n = text.len().min(N - 1);
     out[..n].copy_from_slice(&text.as_bytes()[..n]);
 }
-fn report_error(e: Error, status: u32) -> MixerVmReport {
+pub(crate) fn report_error(e: Error, status: u32) -> MixerVmReport {
     let mut r = MixerVmReport {
         status,
         function: e.function.unwrap_or(u32::MAX),
@@ -71,10 +71,10 @@ fn report_error(e: Error, status: u32) -> MixerVmReport {
     copy_text(&mut r.message, &e.message);
     r
 }
-fn arg(m: &str) -> Error {
+pub(crate) fn arg(m: &str) -> Error {
     Error::new("invalid_arguments", m, None, 0)
 }
-unsafe fn limits_from(p: *const MixerVmLimits) -> Result<Limits, Error> {
+pub(crate) unsafe fn limits_from(p: *const MixerVmLimits) -> Result<Limits, Error> {
     let mut l = Limits::default();
     if !p.is_null() {
         // SAFETY: API requires readable sizeof(MixerVmLimits) bytes; unaligned pointers are accepted.
@@ -91,7 +91,7 @@ unsafe fn limits_from(p: *const MixerVmLimits) -> Result<Limits, Error> {
     l.check()?;
     Ok(l)
 }
-unsafe fn bytes<'a>(p: *const u8, n: usize, max: usize) -> Result<&'a [u8], Error> {
+pub(crate) unsafe fn bytes<'a>(p: *const u8, n: usize, max: usize) -> Result<&'a [u8], Error> {
     if n > max || n > isize::MAX as usize {
         return Err(arg("input length exceeds profile"));
     }
@@ -103,7 +103,7 @@ unsafe fn bytes<'a>(p: *const u8, n: usize, max: usize) -> Result<&'a [u8], Erro
     } // SAFETY: caller guarantees readable n-byte buffer; length and null checked above.
     Ok(unsafe { slice::from_raw_parts(p, n) })
 }
-unsafe fn boundary<F: FnOnce() -> Result<MixerVmReport, (Error, u32)>>(
+pub(crate) unsafe fn boundary<F: FnOnce() -> Result<MixerVmReport, (Error, u32)>>(
     out: *mut MixerVmReport,
     body: F,
 ) -> u32 {
@@ -127,6 +127,34 @@ unsafe fn boundary<F: FnOnce() -> Result<MixerVmReport, (Error, u32)>>(
     unsafe { out.write_unaligned(report) };
     status
 }
+// Same encoding and bounds for one-shot and persistent entry points.
+pub(crate) unsafe fn arguments(
+    profile: Profile,
+    max: usize,
+    args: *const MixerVmValue,
+    args_len: usize,
+) -> Result<Vec<Value>, Error> {
+    if args_len > max || args_len > 0 && args.is_null() {
+        return Err(arg("invalid argument buffer"));
+    }
+    let mut values = vec![];
+    for i in 0..args_len {
+        // SAFETY: caller guarantees readable args_len consecutive argument structs. The limit bounds offset arithmetic.
+        let a = unsafe { args.add(i).read_unaligned() };
+        if a.reserved != 0 {
+            return Err(arg("argument reserved field must be zero"));
+        }
+        values.push(match a.value_type {
+            1 if i32::try_from(a.value).is_ok() => Value::I32(a.value as i32),
+            2 => Value::I64(a.value),
+            3 if profile.floats() && u32::try_from(a.value).is_ok() => Value::F32(a.value as u32),
+            4 if profile.floats() => Value::F64(a.value as u64),
+            _ => return Err(arg("invalid argument type or i32 range")),
+        });
+    }
+    Ok(values)
+}
+
 /// Validate without instantiating or executing. See include/mixer_vm.h for pointer contract.
 ///
 /// # Safety
@@ -172,26 +200,7 @@ unsafe fn invoke_profile(
             let b = bytes(data, len, l.module_bytes).map_err(|e| (e, 3))?;
             let n = bytes(export, export_len, 4096).map_err(|e| (e, 3))?;
             let name = std::str::from_utf8(n).map_err(|_| (arg("export name is not UTF-8"), 3))?;
-            if args_len > l.locals || args_len > 0 && args.is_null() {
-                return Err((arg("invalid argument buffer"), 3));
-            }
-            let mut values = vec![];
-            for i in 0..args_len {
-                // SAFETY: caller guarantees readable args_len consecutive argument structs. The limit bounds offset arithmetic.
-                let a = args.add(i).read_unaligned();
-                if a.reserved != 0 {
-                    return Err((arg("argument reserved field must be zero"), 3));
-                }
-                values.push(match a.value_type {
-                    1 if i32::try_from(a.value).is_ok() => Value::I32(a.value as i32),
-                    2 => Value::I64(a.value),
-                    3 if profile.floats() && u32::try_from(a.value).is_ok() => {
-                        Value::F32(a.value as u32)
-                    }
-                    4 if profile.floats() => Value::F64(a.value as u64),
-                    _ => return Err((arg("invalid argument type or i32 range"), 3)),
-                });
-            }
+            let values = arguments(profile, l.locals, args, args_len).map_err(|e| (e, 3))?;
             let module = Module::decode(b, &l).map_err(|e| (e, 1))?;
             let mut instance = Instance::new(module, l.clone()).map_err(|e| (e, 2))?;
             match instance.invoke(name, &values) {

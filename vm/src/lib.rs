@@ -4,12 +4,14 @@ mod execute;
 mod ffi;
 mod float;
 mod inspect;
+mod session;
 mod validate;
 
 pub use decode::{validation_inventory, Inventory, Module};
 pub use execute::{Cancellation, Instance};
 pub use ffi::*;
 pub use inspect::inventory;
+pub use session::*;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Type {

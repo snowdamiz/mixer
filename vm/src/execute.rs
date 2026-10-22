@@ -138,6 +138,23 @@ impl Instance {
     pub fn memory(&self) -> &[u8] {
         &self.memory
     }
+    /// Host transfer only; callers must serialize access and bound transfer size.
+    pub(crate) fn write_memory(&mut self, offset: u32, bytes: &[u8]) -> Result<(), Error> {
+        let start = offset as usize;
+        let end = start
+            .checked_add(bytes.len())
+            .filter(|n| *n <= self.memory.len())
+            .ok_or_else(|| {
+                Error::new(
+                    "memory_out_of_bounds",
+                    "host transfer exceeds memory",
+                    None,
+                    0,
+                )
+            })?;
+        self.memory[start..end].copy_from_slice(bytes);
+        Ok(())
+    }
     pub fn invoke(&mut self, name: &str, args: &[Value]) -> Result<Option<Value>, Error> {
         self.fuel_remaining = self.limits.fuel;
         self.host_calls_used = 0;

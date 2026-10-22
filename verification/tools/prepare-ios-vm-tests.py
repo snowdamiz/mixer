@@ -20,7 +20,7 @@ ROOT = Path(__file__).resolve().parents[2]
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--revision', required=True)
-    p.add_argument('--test', choices=['table_memory', 'float', 'interpreter', 'review_boundaries'], required=True)
+    p.add_argument('--test', choices=['table_memory', 'float', 'interpreter', 'review_boundaries', 'sessions'], required=True)
     p.add_argument('--output', type=Path, required=True)
     a = p.parse_args()
     revision = subprocess.check_output(['git', 'rev-parse', a.revision + '^{commit}'], cwd=ROOT, text=True).strip()
