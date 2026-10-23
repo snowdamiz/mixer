@@ -1,5 +1,6 @@
 (() => {
   'use strict';
+  document.documentElement.classList.add('js-enhanced');
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const header = document.querySelector('.site-header');
   const menuButton = document.querySelector('.menu-toggle');
@@ -28,17 +29,63 @@
   window.addEventListener('scroll', updateHeader, { passive: true });
   updateHeader();
 
+  const reveals = [...document.querySelectorAll('.reveal')];
+  let revealObserver;
+  function showReveals() {
+    revealObserver?.disconnect();
+    reveals.forEach(el => el.classList.add('is-visible'));
+    document.documentElement.classList.remove('js-ready');
+  }
   if ('IntersectionObserver' in window && !reducedMotion.matches) {
     document.documentElement.classList.add('js-ready');
-    const observer = new IntersectionObserver(entries => {
+    revealObserver = new IntersectionObserver(entries => {
       entries.forEach(entry => {
         if (!entry.isIntersecting) return;
         entry.target.classList.add('is-visible');
-        observer.unobserve(entry.target);
+        revealObserver.unobserve(entry.target);
       });
     }, { threshold: 0.08, rootMargin: '0px 0px 20px 0px' });
-    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    reveals.forEach(el => revealObserver.observe(el));
   }
+
+  const heroArt = document.querySelector('.hero-art');
+  const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+  let heroFrame = null;
+  let heroPointer = null;
+  function resetHeroMotion() {
+    if (heroFrame !== null) window.cancelAnimationFrame(heroFrame);
+    heroFrame = null;
+    heroPointer = null;
+    if (!heroArt) return;
+    heroArt.style.setProperty('--hero-x', '0px');
+    heroArt.style.setProperty('--hero-y', '0px');
+    heroArt.style.setProperty('--spotlight-x', '50%');
+    heroArt.style.setProperty('--spotlight-y', '50%');
+  }
+  function renderHeroMotion() {
+    heroFrame = null;
+    if (!heroArt || !heroPointer || reducedMotion.matches || !finePointer.matches) return;
+    const bounds = heroArt.getBoundingClientRect();
+    if (!bounds.width || !bounds.height) return;
+    const x = Math.max(0, Math.min(1, (heroPointer.x - bounds.left) / bounds.width));
+    const y = Math.max(0, Math.min(1, (heroPointer.y - bounds.top) / bounds.height));
+    heroArt.style.setProperty('--hero-x', `${((x - 0.5) * 16).toFixed(2)}px`);
+    heroArt.style.setProperty('--hero-y', `${((y - 0.5) * 12).toFixed(2)}px`);
+    heroArt.style.setProperty('--spotlight-x', `${(x * 100).toFixed(2)}%`);
+    heroArt.style.setProperty('--spotlight-y', `${(y * 100).toFixed(2)}%`);
+  }
+  heroArt?.addEventListener('pointermove', event => {
+    if (reducedMotion.matches || !finePointer.matches || event.pointerType === 'touch') return;
+    heroPointer = { x: event.clientX, y: event.clientY };
+    if (heroFrame === null) heroFrame = window.requestAnimationFrame(renderHeroMotion);
+  }, { passive: true });
+  heroArt?.addEventListener('pointerleave', resetHeroMotion);
+  heroArt?.addEventListener('pointercancel', resetHeroMotion);
+  finePointer.addEventListener('change', resetHeroMotion);
+  reducedMotion.addEventListener('change', () => {
+    resetHeroMotion();
+    if (reducedMotion.matches) showReveals();
+  });
 
   let toastTimer;
   const toast = document.getElementById('toast');

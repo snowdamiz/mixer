@@ -55,6 +55,8 @@ Alternatively point `SHARP_MODULE_PATH` to an existing compatible sharp installa
 
 ## Interaction and publication scope
 
+The light editorial design uses larger supporting type, soft card and device depth, and restrained pointer response in the hero. Pointer updates are coalesced through animation frames, run only for fine pointers, and stop when reduced motion is enabled. Reduced-motion changes also reveal any content waiting for a scroll transition. Mobile navigation remains available without JavaScript.
+
 The release playground is a browser-local simulation labeled as an example. It sends no updates or account data. Tabs support arrow/Home/End keys; the mobile menu supports Escape; reduced-motion preference removes movement. CTA links default to the included source-install guide until a real console/signup destination is configured.
 
 No domain was provided, so the delivered preview remains private-by-default and non-indexable. No production deployment, native app release, customer proof, or GA gate is claimed. Future-product copy follows the requested completed-product positioning; the repository's engineering status remains separately tracked in STATUS.md and gates/.

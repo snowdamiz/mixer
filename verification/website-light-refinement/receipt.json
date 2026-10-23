@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "recorded_at": "2026-10-23T18:36:32.391577+00:00",
+  "scope": "Refinement of the original light Mixer marketing website. No engine, release, legal, physical-device or GA qualification.",
+  "status": "passed-scoped-website-validation",
+  "source_revision_base": "3a1bb5a455973bde841a4b57993277fa2c054569",
+  "source_tree_sha256": "6cd9c432cdbe7a113a59ee2c8cdfb33fc879873f90eade8b3086cf0297c6c2b0",
+  "source_manifest": "source-manifest.json",
+  "tools": {
+    "node": "v22.23.3",
+    "npm": "10.9.9",
+    "browser": "Codex in-app browser / cua_repl, version not exposed"
+  },
+  "changes": [
+    "Keep original page structure, content, artwork, light palette and italic headline.",
+    "Refine type sizes, spacing, borders, shadows, cards, device labels and responsive navigation.",
+    "Add bounded event-driven pointer motion with reduced-motion and coarse-pointer handling.",
+    "Improve supporting docs text contrast, readability and 44px touch targets."
+  ],
+  "commands": [
+    {
+      "command": "npm --prefix website test",
+      "exit": 0,
+      "tests": 32,
+      "passed": 32,
+      "failed": 0,
+      "skipped": 0,
+      "output": "node-tests.log"
+    },
+    {
+      "command": "npm --prefix website run build",
+      "exit": 0,
+      "files": 27,
+      "output": "build.log"
+    },
+    {
+      "command": "node --check website/src/app.js",
+      "exit": 0,
+      "output": "No diagnostics"
+    },
+    {
+      "command": "git diff --check -- website",
+      "exit": 0,
+      "output": "No whitespace diagnostics"
+    }
+  ],
+  "automated_scope": [
+    "Existing build, SEO, assets, HTTP and route checks",
+    "Six executable app.js motion tests: frame coalescing and bounds, no idle loop, reset/cancel, reduced-motion/coarse/touch exclusion, preference changes and reveal cleanup"
+  ],
+  "browser_evidence": "browser-checks.json",
+  "unchanged_assets": "Home HTML, approved fox, OG and brand exports, SEO generation and ASO collateral remain unchanged from bd8a896.",
+  "limitations": [
+    "No public domain or production deployment; preview remains noindex.",
+    "Browser checks are desktop responsive emulation; physical phones remain disconnected.",
+    "No GA gate or accountable reviewer acceptance changed."
+  ]
+}
