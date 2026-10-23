@@ -890,3 +890,19 @@ Common lifetime integration, C facade/entry fences, Swift Android/JNI binding an
 real display/health remain subsequent implementation and qualification work.
 These prerequisites enable no Android signed UI mode or GA acceptance. Physical
 phones remain disconnected; the next hosted checkpoint is pending.
+
+
+Hosted f19cf9f passes VM/services but fails an existing HTTP cleanup assertion
+under pinned Swift Thread Sanitizer; the exact failing ordering is unknown.
+A deterministic probe proves the original assertion rejects legal expiry before
+protocol start. The test-only repair observes start before advancing its deadline
+and separately checks native invalidation before resume. Debug/Release52, TSan32,
+20 repeated cleanup pairs and alternate Swift6.3.3 TSan32 pass; root audited267
+bindings in `verification/http-cleanup-ci-repair/root-review.json`. Product HTTP
+transport is unchanged and pinned Swift6.2.4 revalidation remains pending CI.
+Hosted401e16c also passes VM/services but Swift stops at the dependency guard:
+its `wasm3` substring wrongly matches `wasm32` architecture names in the concurrent
+website lockfile. The narrow guard correction reproduces all11 false positives,
+passes seven regression tests and keeps prohibited runtime names rejected; see
+`verification/dependency-architecture-ci-repair/receipt.json`. Original failed
+runs and skipped later checks stay explicit. No physical/GA gate changed.

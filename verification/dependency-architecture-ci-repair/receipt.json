@@ -1,0 +1,80 @@
+{
+  "observed_utc": "2026-10-23T16:46:23.705234+00:00",
+  "python": "3.14.8",
+  "revision": "76a3254f1e974fbce144e6887b6d73c243f68243",
+  "source_files": {
+    "scripts/check-policy.py": "6cfc865f231c37e782baaf1828c52d79ee13defc0db19e8fbb88070cc79718ce",
+    "scripts/ci/verify-apple-toolchain.py": "74a3e0261a8dcd9faa075333a09d33f635e5a96351560c4a4d94d1a90b11c442",
+    "scripts/ci/tests/test_apple_toolchain.py": "9a6c01e69cb5f74cbd89cf292c6c4144928ed88211017ee1badec71d9e54c29a",
+    "scripts/ci/tests/test_dependency_policy.py": "c3322f83add13834e8cd9b8ad5dc4922d5854de95e4267d08e4c8f06e0ff83e0",
+    "gates/ga.json": "bd3c63eb38f4beae83706c4f897a9012327c87ee0f86aa5a663b2a61dd54e899",
+    "work-graph.json": "e4b9e06775b777f9241328a8737611c713e0fa9831fd3f9c38da83855650be7e",
+    "dogfood/receipts/milestones.json": "601c374474a13ef3e86be44ad0af1becbb8409abd3dea740a6ea904399a8112d",
+    "website/package.json": "d5f66ddfbd176dab7ce7cc3eb65e990913748c09e2a699c06ac849313459501e",
+    "website/package-lock.json": "282ddaf9a6831aab433144512fe848c614050016dd782e56150674e1b5887964"
+  },
+  "commands": [
+    {
+      "name": "original-tests",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "scripts/ci/tests",
+        "-v"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/dependency-architecture-ci-repair/.build/source",
+      "exit": 1,
+      "expected_exit": 1,
+      "log": "verification/dependency-architecture-ci-repair/original-tests.log",
+      "sha256": "fe66b195f1761ab350fc649c477c04172c546863719d53b80e3bf19837db6d08"
+    },
+    {
+      "name": "original-guard",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "scripts/check-policy.py"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/dependency-architecture-ci-repair/.build/source",
+      "exit": 1,
+      "expected_exit": 1,
+      "log": "verification/dependency-architecture-ci-repair/original-guard.log",
+      "sha256": "4b070979732cf6a0440ad06a5d814eb18f40e9e137ec4aa110496e0cd2346bfa"
+    },
+    {
+      "name": "repaired-tests",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "scripts/ci/tests",
+        "-v"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/dependency-architecture-ci-repair/.build/source",
+      "exit": 0,
+      "expected_exit": 0,
+      "log": "verification/dependency-architecture-ci-repair/repaired-tests.log",
+      "sha256": "13d6a75b58f2940ba2f44f6f32c604574be4e9a19e17422f0ca9004c86b0160b"
+    },
+    {
+      "name": "repaired-guard",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "scripts/check-policy.py"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/dependency-architecture-ci-repair/.build/source",
+      "exit": 0,
+      "expected_exit": 0,
+      "log": "verification/dependency-architecture-ci-repair/repaired-guard.log",
+      "sha256": "9df40f098dac81380071c84052647f276acb20e989a6d9b094ec7f5f4e7abe1f"
+    }
+  ],
+  "collector_sha256": "4eb55b90fbe74b1c23019792176e5f13a434d862fc5417eddde753f14d708715",
+  "scope": "Manifest guardrail only. wasm32 architecture names remain allowed; prohibited engines including wasm3 suffixes/URLs remain rejected. No release authorization, provenance/legal audit or website change.",
+  "original_sha256": "9bccbef9425527c76d0633e4e4ae8d26b9f1d4bea4378e6b85c956497bf679e9",
+  "result": "Original reproduces 11 false positives and fails architecture regression; repaired seven-test suite and guard pass."
+}

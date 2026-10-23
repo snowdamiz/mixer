@@ -9,7 +9,9 @@ import sys
 root = Path(__file__).resolve().parents[1]
 excluded = {'.git', '.build', 'target', 'node_modules', '.gradle', '.mixer', 'local'}
 manifests = {'Package.swift', 'Package.resolved', 'Cargo.toml', 'Cargo.lock', 'package.json', 'package-lock.json', 'go.mod', 'go.sum', 'build.gradle', 'build.gradle.kts', 'settings.gradle.kts'}
-prohibited = re.compile(r'(skiptools[/.:]|patch-release[/.:]|skipstone|skip-fuse|skip-ui|patch-swift|wasmkit|wasmtime|wasmer|wasm3)', re.I)
+# wasm32 is a target architecture, not the wasm3 interpreter dependency. Keep
+# matching wasm3 package suffixes such as -sys and _sys and URL separators.
+prohibited = re.compile(r'(skiptools[/.:]|patch-release[/.:]|skipstone|skip-fuse|skip-ui|patch-swift|wasmkit|wasmtime|wasmer|wasm3(?![a-z0-9]))', re.I)
 failures = []
 inspected = []
 paths = []

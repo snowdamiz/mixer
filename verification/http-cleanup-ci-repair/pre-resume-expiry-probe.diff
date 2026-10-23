@@ -1,0 +1,43 @@
+--- /Users/andreyyurlov/Documents/dev/mixer/verification/http-cleanup-ci-repair/original-HTTPTransportTests.swift.txt	2026-10-23 12:45:14
++++ /var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-http-cleanup-ci-ddjwztpj/capabilities/Tests/MixerCapabilitiesTests/HTTPTransportTests.swift	2026-10-23 12:45:41
+@@ -102,6 +102,25 @@
+     }
+ }
+ 
++
++// Investigation-only scheduler analogue. On the fourth monotonic read the
++// session/task exists, but task.resume has not happened. Expiry is legal here.
++private final class PreResumeExpiryProbeClock: @unchecked Sendable {
++    private let lock = NSLock()
++    private let initial = ContinuousClock.now
++    private var reads = 0
++    func now() -> ContinuousClock.Instant {
++        lock.lock(); defer { lock.unlock() }
++        reads += 1
++        return reads < 4 ? initial : initial.advanced(by: .seconds(60))
++    }
++    var clock: HTTPTransportClock {
++        HTTPTransportClock(now: { self.now() }, sleepUntil: { _ in
++            try await Task.sleep(nanoseconds: 60_000_000_000)
++        })
++    }
++}
++
+ @Suite(.serialized)
+ struct NativeHTTPTransportTests {
+     @Test func privateConfigurationHasNoAmbientAuthority() throws {
+@@ -237,8 +256,12 @@
+         try await eventuallyHTTP { transport.activeRequests == 0 && HTTPFixtureProtocol.registry.stopCount(url) == 1 }
+         #expect(HTTPFixtureProtocol.registry.observed(url).count == 1)
+         let deadline = HTTPFixtureProtocol.registry.install(HTTPFixture(stall: true))
+-        await requireHTTPFailure(.deadlineExceeded, transport: transport, arguments: httpArguments(deadline, timeout: 30))
+-        try await eventuallyHTTP { transport.activeRequests == 0 && HTTPFixtureProtocol.registry.stopCount(deadline) == 1 }
++        let probeClock = PreResumeExpiryProbeClock()
++        let deadlineTransport = try nativeTransport(capacity: 1, clock: probeClock.clock)
++        await requireHTTPFailure(.deadlineExceeded, transport: deadlineTransport, arguments: httpArguments(deadline, timeout: 30))
++        try await eventuallyHTTP { deadlineTransport.activeRequests == 0 }
++        print("pre-resume-expiry: active=\(deadlineTransport.activeRequests), starts=\(HTTPFixtureProtocol.registry.observed(deadline).count), stops=\(HTTPFixtureProtocol.registry.stopCount(deadline))")
++        try await eventuallyHTTP { deadlineTransport.activeRequests == 0 && HTTPFixtureProtocol.registry.stopCount(deadline) == 1 }
+         let success = HTTPFixtureProtocol.registry.install(HTTPFixture())
+         #expect(try await transport.request(httpArguments(success)).status == 200)
+         try await eventuallyHTTP { transport.activeRequests == 0 }

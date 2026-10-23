@@ -65,12 +65,12 @@ private func nativeTransport(capacity: Int = 64, clock: HTTPTransportClock = .co
 private func httpArguments(_ url: String, method: String = "GET", headers: [Header] = [], body: Data = Data(), timeout: UInt32 = 1000) -> HTTPRequestArguments {
     HTTPRequestArguments(url: url, method: method, headers: headers, bodyBase64: body.base64EncodedString(), timeoutMilliseconds: timeout)
 }
-private func eventuallyHTTP(_ predicate: () -> Bool) async throws {
+private func eventuallyHTTP(_ failureDescription: @autoclosure () -> String = "native transport did not acknowledge bounded cleanup", _ predicate: () -> Bool) async throws {
     for _ in 0..<400 {
         if predicate() { return }
         try await Task.sleep(nanoseconds: 5_000_000)
     }
-    try #require(predicate(), "native transport did not acknowledge bounded cleanup")
+    try #require(predicate(), "\(failureDescription())")
 }
 private func requireHTTPFailure(_ expected: CapabilityFailure, transport: URLSessionHTTPTransport, arguments: HTTPRequestArguments) async {
     do { _ = try await transport.request(arguments); Issue.record("expected native HTTP failure \(expected)") }
@@ -97,6 +97,37 @@ private final class HeldWatchdogClock: @unchecked Sendable {
     var clock: HTTPTransportClock {
         HTTPTransportClock(now: { self.now() }, sleepUntil: { _ in
             // A scheduler-delayed watchdog cannot authorize a late success.
+            try await Task.sleep(nanoseconds: 60_000_000_000)
+        })
+    }
+}
+
+private final class AdvancingHTTPDeadlineClock: @unchecked Sendable {
+    private let lock = NSLock()
+    private var instant = ContinuousClock.now
+    func now() -> ContinuousClock.Instant { lock.lock(); defer { lock.unlock() }; return instant }
+    func advance(by duration: Duration) { lock.lock(); instant = instant.advanced(by: duration); lock.unlock() }
+    var clock: HTTPTransportClock {
+        HTTPTransportClock(now: { self.now() }, sleepUntil: { deadline in
+            while self.now() < deadline { try await Task.sleep(nanoseconds: 1_000_000) }
+            try Task.checkCancellation()
+        })
+    }
+}
+
+private final class PreResumeExpiryClock: @unchecked Sendable {
+    private let lock = NSLock()
+    private let initial = ContinuousClock.now
+    private var reads = 0
+    func now() -> ContinuousClock.Instant {
+        lock.lock(); defer { lock.unlock() }
+        reads += 1
+        // The fourth admission read follows native task creation and precedes
+        // resume. The watchdog is held so it cannot change this ordering.
+        return reads < 4 ? initial : initial.advanced(by: .seconds(60))
+    }
+    var clock: HTTPTransportClock {
+        HTTPTransportClock(now: { self.now() }, sleepUntil: { _ in
             try await Task.sleep(nanoseconds: 60_000_000_000)
         })
     }
@@ -225,7 +256,8 @@ struct NativeHTTPTransportTests {
     }
 
     @Test func cancellationDeadlineAndQuotaReleaseTheirNativeTasks() async throws {
-        let transport = try nativeTransport(capacity: 1)
+        let clock = AdvancingHTTPDeadlineClock()
+        let transport = try nativeTransport(capacity: 1, clock: clock.clock)
         let url = HTTPFixtureProtocol.registry.install(HTTPFixture(stall: true))
         let pending = Task { try await transport.request(httpArguments(url)) }
         try await eventuallyHTTP { !HTTPFixtureProtocol.registry.observed(url).isEmpty }
@@ -234,14 +266,42 @@ struct NativeHTTPTransportTests {
         pending.cancel()
         do { _ = try await pending.value; Issue.record("cancelled HTTP task succeeded") }
         catch let failure as CapabilityFailure { #expect(failure == .cancelled) }
-        try await eventuallyHTTP { transport.activeRequests == 0 && HTTPFixtureProtocol.registry.stopCount(url) == 1 }
+        try await eventuallyHTTP("cancel cleanup: active=\(transport.activeRequests), starts=\(HTTPFixtureProtocol.registry.observed(url).count), stops=\(HTTPFixtureProtocol.registry.stopCount(url))") {
+            transport.activeRequests == 0 && HTTPFixtureProtocol.registry.stopCount(url) == 1
+        }
         #expect(HTTPFixtureProtocol.registry.observed(url).count == 1)
         let deadline = HTTPFixtureProtocol.registry.install(HTTPFixture(stall: true))
-        await requireHTTPFailure(.deadlineExceeded, transport: transport, arguments: httpArguments(deadline, timeout: 30))
-        try await eventuallyHTTP { transport.activeRequests == 0 && HTTPFixtureProtocol.registry.stopCount(deadline) == 1 }
+        let expiring = Task { try await transport.request(httpArguments(deadline)) }
+        try await eventuallyHTTP("deadline fixture did not start: active=\(transport.activeRequests), starts=\(HTTPFixtureProtocol.registry.observed(deadline).count), stops=\(HTTPFixtureProtocol.registry.stopCount(deadline))") {
+            HTTPFixtureProtocol.registry.observed(deadline).count == 1
+        }
+        #expect(transport.activeRequests == 1)
+        // Expire the monotonic budget only after startLoading is observed. A
+        // short wall-clock budget can legitimately expire before native start,
+        // in which case URLProtocol has no load to stop.
+        clock.advance(by: .milliseconds(1000))
+        do { _ = try await expiring.value; Issue.record("expired HTTP task succeeded") }
+        catch let failure as CapabilityFailure { #expect(failure == .deadlineExceeded) }
+        try await eventuallyHTTP("deadline cleanup: active=\(transport.activeRequests), starts=\(HTTPFixtureProtocol.registry.observed(deadline).count), stops=\(HTTPFixtureProtocol.registry.stopCount(deadline))") {
+            transport.activeRequests == 0 && HTTPFixtureProtocol.registry.stopCount(deadline) == 1
+        }
         let success = HTTPFixtureProtocol.registry.install(HTTPFixture())
         #expect(try await transport.request(httpArguments(success)).status == 200)
         try await eventuallyHTTP { transport.activeRequests == 0 }
+    }
+
+    @Test func deadlineBeforeNativeResumeReleasesLeaseWithoutProtocolStop() async throws {
+        let clock = PreResumeExpiryClock()
+        let invalidations = NativeHTTPInbox()
+        let transport = try URLSessionHTTPTransport(maximumConcurrentRequests: 1, protocolClasses: [HTTPFixtureProtocol.self], clock: clock.clock,
+                                                   beforeInvalidation: { invalidations.receive(Data()) })
+        let url = HTTPFixtureProtocol.registry.install(HTTPFixture(stall: true))
+        await requireHTTPFailure(.deadlineExceeded, transport: transport, arguments: httpArguments(url, timeout: 30))
+        try await eventuallyHTTP("pre-resume deadline cleanup: active=\(transport.activeRequests), starts=\(HTTPFixtureProtocol.registry.observed(url).count), stops=\(HTTPFixtureProtocol.registry.stopCount(url))") {
+            transport.activeRequests == 0 && invalidations.snapshot().count == 1
+        }
+        #expect(HTTPFixtureProtocol.registry.observed(url).isEmpty)
+        #expect(HTTPFixtureProtocol.registry.stopCount(url) == 0)
     }
 
     @Test func cancellationSuccessRaceCannotLeakOrDoubleResume() async throws {
