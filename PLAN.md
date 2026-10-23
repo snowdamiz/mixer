@@ -101,7 +101,15 @@ public semantic font tables agree between Debug and Release, and all 18 candidat
 and nonperturbation PNGs are byte-identical to the existing reference. Root checks
 571 bindings in `verification/apple-appearance-font-profile-root-review/acceptance.json`.
 The proposed Android preference mapping is not accepted; unsupported accessibility
-requests must not silently clamp. Shape and spacing refinement, actual renderer
+requests must not silently clamp. Shape and spacing measurements now have scoped root acceptance: 260 bindings,
+12 parent PNGs identical byte for byte and independent curve-residual calculations.
+See `verification/apple-appearance-shape-root-review/acceptance.json`. Authored
+curve candidates remain distinct from native-exact shapes. The SDK now implements
+the twelve coordinated text profiles and a nearest-anchor policy that rejects
+unsupported sizes. All 89 SDK tests pass per Debug/Release; 72 public role metrics
+match retained measurements, 3,502 selection outcomes pass per mode, and public
+iOS/Android modules compile. See `verification/ui-shared-text-profiles/acceptance.json`.
+A new versioned measured recipe contract is in preparation; actual renderer
 consumption, interaction and physical design parity remain pending.
 
 Eight unchanged iOS simulator screenshots are retained in

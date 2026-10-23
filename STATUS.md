@@ -68,6 +68,18 @@ algorithm is implemented by this prerequisite. Full target execution remains pen
 
 Observed implementation and evidence:
 
+- Shared text profiles now expose twelve coordinated role-size sets and a bounded
+  nearest-anchor selector that rejects unsupported sizes. All 89 SDK host tests
+  pass per Debug/Release; 72 public metrics match raw native reference values,
+  3,502 selection outcomes pass per mode, and iOS/official Android modules compile.
+  Existing appearance-v1 wire/default behavior is unchanged. See
+  `verification/ui-shared-text-profiles/acceptance.json` (65 bindings).
+- Shape-reference integrity has root acceptance with 260 bindings and twelve
+  byte-identical parent PNGs. Shared authored group/switch curves still differ
+  from native rasters and are not accepted as exact native paths. RTL switch
+  thumb direction, per-state paints and contextual spacing are retained as
+  bounded observations; the next measured recipe contract is being prepared.
+
 - Java shared appearance resolution now has independent and root acceptance as
   immutable data. Root checks 183 bindings across both corpora and all four
   Swift Debug/Release × Java default/interpreted runs. Independent review checks
