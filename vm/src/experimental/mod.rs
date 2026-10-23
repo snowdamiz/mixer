@@ -4,6 +4,9 @@ mod metadata;
 mod reader;
 mod validate;
 
+#[cfg(feature = "experimental-function-cache")]
+pub mod cache;
+
 use crate::{Cancellation, Limits, Profile};
 use account::{Buffer, Cursor, Meter};
 use metadata::Metadata;

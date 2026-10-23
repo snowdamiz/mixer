@@ -120,7 +120,14 @@ The actual unchanged FieldLog model now also passes complete native/command/reac
 parity across two calls after one initialization. Root audited 99 retained path
 bindings across 21 commands; see `verification/fieldlog-reactor-root-review.json`.
 Its complete 18,976,211-byte gzip artifact exceeds the delivery budget and is
-still rejected by the owned VM. The separate nondefault function-cache component
-has an accepted bounded design, with implementation under way; it does not yet
-execute a guest or widen the existing VM limits.
+still rejected by the owned VM. The nondefault decoded-function cache now passes
+its bounded allocation/pin/LRU/work matrix, independent debug/release probes, and
+199 combined cache/native tests in each host mode. Root audited the exact
+evidence in `verification/span-function-cache-root-review/receipt.json`. It has
+no execution bridge and does not widen the existing VM limits.
+The additive guest UI/event contract and separate native header are now frozen
+after 55 independent static checks and C/C++ declaration/layout checks; see
+`verification/guest-ui-contract-freeze-2026-10-23.json`. Implement its fixed
+validator, bounded SDK exchange, bridge composites and signed native presentation
+in that order. Contract review alone qualifies no UI execution or health.
 Keep the full product plan and physical/published-consumer/GA gates in scope.

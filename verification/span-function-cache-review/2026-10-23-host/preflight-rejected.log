@@ -1,0 +1,16 @@
+Command: python3 verification/span-function-cache-review/run.py --name 2026-10-23-host
+Exit: 1; no cargo/rustc build or runtime probe ran.
+
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/span-function-cache-review/run.py", line 145, in <module>
+    main()
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/span-function-cache-review/run.py", line 63, in main
+    assert source == owner['source_files_sha256'], 'implementation receipt source is stale'
+AssertionError: implementation receipt source is stale
+
+Observed cause: root added vm/include/mixer_vm_guest_ui.h after the implementation
+candidate seal. Root confirmed it is a separate, uncompiled public contract with
+no references from this cache candidate. Runner was tightened to verify every
+original implementation-candidate file hash and allow exactly that disclosed
+additive header. The successful rerun also binds all current VM files, including
+the header, before/after. No original candidate byte mismatch is allowed.

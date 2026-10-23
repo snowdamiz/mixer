@@ -698,6 +698,29 @@ matched 99 retained path bindings across 21 commands and sealed 131 evidence
 files; see `verification/fieldlog-reactor-root-review.json`. The full reactor is
 53,777,114 raw / 18,976,211 gzip bytes and still fails the unchanged owned VM
 module limit. Nesting, persistent feature state and peak/RSS are unmeasured.
-The separate bounded function-cache component is being developed.
+The separate decoded-function cache now has exact fallible entry allocations,
+flat branch targets, checked opaque pins, bounded LRU eviction, cancellation and
+lifetime work accounting behind a nondefault feature. Default tests pass 91
+functions per debug/release; cache-feature tests pass 122 per mode and all nine
+explicit development oracles pass. Independent probes pass 133 work boundaries,
+three replacement allocation failures with a pinned neighbor, allocation-free
+cleanup and concurrent owner identities. Review tightened drop-before-reservation
+release on an unpublished cancellation path. Root combined cache/native checks
+pass 199 tests per mode and audit 87 owner inputs, 88 review inputs and 76
+unchanged baseline files; see `verification/span-function-cache-root-review/receipt.json`.
+The largest observed cache requested heap peak is 8,001,136 bytes against an
+8,011,216-byte reservation. This is not RSS or aggregate session admission; the
+executor bridge, actual full Swift, native archive and physical qualification
+remain open. CI now includes the cache in its combined experimental matrix.
 Complete compressed artifact size, including required runtime code, remains the
 3 MiB metric; delta/base reuse grants no size-budget or launch-gate credit.
+
+The first signed guest UI integration now has a reviewed, frozen additive
+contract/header and exact SDK/bridge ownership design. Fifty-five independent
+static checks and C11/C++17 declaration/layout checks pass; see
+`verification/guest-ui-contract-freeze-2026-10-23.json`. It reserves an explicit
+installed identity mode, fixed startup/event exports, one accepted event and
+bounded document delivery. One joined presentation consumer and private visible
+native display receipt govern UI retirement and health. Existing contract and
+header bytes remain unchanged. The validator, exchange, bridge and signed native
+screen implementations are next; no UI execution or health gate is passed.

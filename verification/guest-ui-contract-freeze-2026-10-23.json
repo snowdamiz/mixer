@@ -1,0 +1,59 @@
+{
+  "schema": 1,
+  "date": "2026-10-23",
+  "decision": "frozen_for_additive_implementation_not_execution_authority",
+  "normative_contracts": {
+    "contracts/guest-ui-event-v1.json": "34180d46e20e403c9cd3f3aa1584a7b6d0e67e94900267c7aa51c87116566024",
+    "vm/include/mixer_vm_guest_ui.h": "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5"
+  },
+  "accepted_design": {
+    "path": "docs/guest-ui-event-integration-design.md",
+    "sha256": "7b7b3a8a70757349330b1f7d898be4db297b888b9cf606464e210494905a44f4",
+    "acceptance_receipt_sha256": "6ce13a92b966f9d945af638e7ae6ba271010ecf33a7b0ff5c11d7770b669b99c"
+  },
+  "independent_review": {
+    "path": "verification/guest-ui-contract-review/final-candidate-3b/receipt.json",
+    "sha256": "1e0eeb5610b8defb637691bebcb527815a7e9656708bb4c257f15fb91865bf03",
+    "checks": 55,
+    "captured_inputs": 29,
+    "scope": "Original static consistency review plus host C/C++ syntax/type/layout assertions only. No guest module execution, runtime ABI implementation validation, native UI/device run, signing/publication, or GA gate pass."
+  },
+  "root_header_check": {
+    "path": "verification/guest-ui-contract-root/header-check.json",
+    "sha256": "a1b7808c707bb121c8d8bf1d46790e6c359da75dca041d8de222e01925430f0b"
+  },
+  "preserved_old_contracts": {
+    "contracts/activation-v1.json": "a0816bddd38afdfedb4fc2d50e522b0c808e64b640fb91d7991f895dc405989c",
+    "contracts/activation-v2.json": "e72c75d69e089cc3a23e09cc2f65e1902d9fc8f0bee401555507ec36d5e224d4",
+    "contracts/capability-execution-v1.json": "898ea22b93a5b0dcd94c3b54f7cc97c41a259cd2285cbacd54bf0bd52ba48c97",
+    "contracts/guest-capability-transport-v1.json": "052ebe9fbdc20a41307332086767e7903680bc83ba273c696edf9187be6b6439",
+    "contracts/release-v1.json": "ff899af876c1bb28b0c65c913702b22af9e7031537f5d37ff36f41bf88e12769",
+    "contracts/release-v2.json": "ab4f5d881b1fd0cb91d01bd1da25a0b864690d29936063e0144304bfd275ba4b",
+    "contracts/release-v3.json": "935c2311fb32a72d4b1e49ce55fd1c63f9f8448386a7076db48550767f6212f0",
+    "contracts/runtime-identity-v1.json": "454daf6fdc16955b32a725fd5fa230a4f7cc0c1f3327223bf73d8e6331fcf30c",
+    "contracts/runtime-identity-v2.json": "d66c44d49f79325a643516f33bd19ba882ef711a5139afb54499b39931ba48b8",
+    "contracts/ui-v1.json": "e9983da1c8f5b79dcead9fc7c99172be374ddeba319308615108651cb3931ac5",
+    "contracts/vm-profile-v1.json": "813a54a4e198a73d49afffe7c8d9cf54f6e76bfca80dd6556a439a4bdf1bdf4c",
+    "contracts/vm-session-v1.json": "6921f707b943ab76cdc3dae996ac7448d3c720676f290e259c892afcab1bf41a"
+  },
+  "preserved_old_headers": {
+    "vm/include/mixer_vm.h": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+    "vm/include/mixer_vm_capability.h": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6"
+  },
+  "clarifications": [
+    "Accepted design source prohibition means DispatchSource or external execution source; the two concrete data-only wake queues are explicitly required.",
+    "Fresh private host and captured issuer on rebinding, single native attachment, and final retirement hint before wake completion are normative in the new contract."
+  ],
+  "implementation_order": [
+    "Additive full native UI export validator; preserve old native status/report/header domains and one archive/registry.",
+    "Strict value-only SDK UI/event/exchange/wake primitives under fixed SPI; no callbacks or owner references in shared exchange.",
+    "Fixed bridge startup/event/every-ready-turn composites and validation-before-I/O admission on the existing worker.",
+    "Private signed UI facade, installed-mode reservation, typed durable failure paths, joined presentation and actual native receipt.",
+    "Independent signed bytecode/KV/native-window integration and subsequent platform/published-package qualification."
+  ],
+  "limitations": [
+    "Static review and syntax/layout checks do not validate an implemented C ABI or run any guest/native UI.",
+    "No implementation, effects, health, signing/release, physical-device, fullSwift/FieldLog or GA gate is passed by this freeze.",
+    "Old contracts, profiles, signature domains and default paths stay unchanged; actual linked input graph capture remains required."
+  ]
+}
