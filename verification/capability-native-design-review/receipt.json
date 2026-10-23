@@ -1,0 +1,84 @@
+{
+  "schema": 1,
+  "created_at": "2026-10-23T04:22:54.436003+00:00",
+  "scope": "Read-only design/source review; no implementation or runtime qualification",
+  "proposal_commit": "3b1903ad209a8292219009851b839647d48499f7",
+  "committed_guest_design": "e8012c5a923397729974dab6b297eab2f6e7cf0b",
+  "sources": [
+    {
+      "revision": "3b1903ad209a8292219009851b839647d48499f7",
+      "path": "docs/capability-native-abi-proposal.md",
+      "bytes": 11887,
+      "sha256": "c0bc9aaa2c767c825fdfb65299dc46e6b2aca8b62606a700978cce9999fa0ff9"
+    },
+    {
+      "revision": "3b1903ad209a8292219009851b839647d48499f7",
+      "path": "vm/src/ffi.rs",
+      "bytes": 12316,
+      "sha256": "fc6fcd076ff4e42c60e04f19b0b94bd3b630dfabad03fb73193dedfafe5593e6"
+    },
+    {
+      "revision": "3b1903ad209a8292219009851b839647d48499f7",
+      "path": "vm/src/session.rs",
+      "bytes": 18507,
+      "sha256": "75fccc10f123b3761c5814018045df3efc7a74889f1f581b81f410b49fc33af3"
+    },
+    {
+      "revision": "3b1903ad209a8292219009851b839647d48499f7",
+      "path": "vm/include/mixer_vm.h",
+      "bytes": 6436,
+      "sha256": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd"
+    },
+    {
+      "revision": "3b1903ad209a8292219009851b839647d48499f7",
+      "path": "contracts/vm-session-v1.json",
+      "bytes": 3750,
+      "sha256": "6921f707b943ab76cdc3dae996ac7448d3c720676f290e259c892afcab1bf41a"
+    },
+    {
+      "revision": "e8012c5a923397729974dab6b297eab2f6e7cf0b",
+      "path": "docs/experimental-capability-guest-implementation.md",
+      "bytes": 14915,
+      "sha256": "d55b52f44126ddcc8d736a9231adbdcec92fbabb0a0f647d55cfc41238a5384c"
+    },
+    {
+      "revision": "e8012c5a923397729974dab6b297eab2f6e7cf0b",
+      "path": "vm/src/experimental_capability/mod.rs",
+      "bytes": 25693,
+      "sha256": "e37aba23bc20c450fbe0eacac7dac9894eb13ff23162ba1577e3efbaaeb823b5"
+    }
+  ],
+  "legacy_ffi_session_header_unchanged_since_guest_design": true,
+  "tools": {
+    "git": "git version 2.56.0",
+    "python": "Python 3.14.8"
+  },
+  "commands": [
+    "git show REV:PATH",
+    "cat / sed / nl source inspection",
+    "rg bounded interface lookup",
+    "git diff --exit-code e8012c5 -- vm/src/session.rs vm/src/ffi.rs vm/include/mixer_vm.h",
+    "shasum -a 256 inspected source"
+  ],
+  "findings": [
+    "D1 coherent reclamation publication and monotonic quarantine",
+    "D2 retained bounded ticket ledger and unwind-safe take commit",
+    "D3 duplicate ack must consult retained mailbox identity",
+    "D4 non-instance owner close/cancel plus late registration race",
+    "D5 report-inclusive checked-range/alias preflight before every write",
+    "D6 exact C prototypes/error/default/limit details and Rust layout parity",
+    "D7 all-entry-point old ABI separation and truthful raw-token foreign scope"
+  ],
+  "root_followup_design_reviewed": {
+    "ledger": "fixed eight entries owning actual DispatchLease plus acknowledged flag",
+    "order": "ledger then mailbox; no registry-to-ledger/mailbox edge",
+    "corrections": "monotonic quarantine/local armed guard; serialize transient Arc release with registry or prove equivalent protocol; mailbox authority for repeated ack"
+  },
+  "wip_observation": "Current uncommitted CapabilityPort::close(&self) exists and uses shared closed/cancellation/mailbox path; observation only, not qualification or a frozen implementation review",
+  "executable_tests_run": false,
+  "builds_run": false,
+  "production_or_proposal_edits": false,
+  "device_commands_or_push": false,
+  "review_readme_sha256": "2c28ff8bdd56898ad1d9d55d232ff924597e14a9b6e259ec3b1649187676f87b",
+  "qualification_passed": false
+}
