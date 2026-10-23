@@ -1,0 +1,13 @@
+Diff in /Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-root-review/.build/combined-1/source/vm/src/experimental_wasi/mod.rs:4:
+ //! explicit native grants, cumulative lifetime budgets, and private OS services.
+ //! Deadline/cancellation are cooperative: an individual platform call or bounded
+ //! copy cannot be preempted. Failed commits restore outputs before returning.
+-mod descriptor;
+-mod platform;
+ #[cfg(feature = "experimental-swift-reactor")]
+ pub(crate) mod accounted;
++mod descriptor;
++mod platform;
+ use crate::{Cancellation, Value};
+ pub use descriptor::{ResolveError, WasiFunction};
+ use std::time::{Duration, Instant};

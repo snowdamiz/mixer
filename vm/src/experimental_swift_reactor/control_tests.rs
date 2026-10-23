@@ -1188,3 +1188,76 @@ fn measured_named_layouts_are_recorded_without_allocator_or_rss_claims() {
             >= size_of::<ValidatedSwiftReactor>() + 2 * size_of::<ReservationTicket>()
     );
 }
+
+#[test]
+fn shared_boundaries_capture_wasi_observation_in_the_immutable_first_failure() {
+    let observation = WasiUsage {
+        calls: 11,
+        work: 19,
+        transfer_bytes: 23,
+        ..WasiUsage::default()
+    };
+    for kind in [
+        SwiftRunFailureKind::Cancelled,
+        SwiftRunFailureKind::Deadline,
+        SwiftRunFailureKind::HostCallLimit,
+    ] {
+        let (mut control, adopted) = adopt(SwiftRunBudget::default());
+        match kind {
+            SwiftRunFailureKind::Cancelled => control.cancellation.cancel(),
+            SwiftRunFailureKind::Deadline => control.deadline = Instant::now(),
+            SwiftRunFailureKind::HostCallLimit => control.host_calls = control.budget.host_calls,
+            _ => unreachable!(),
+        }
+        let before = control.host_calls;
+        let at = cursor(SwiftRunStage::Invocation);
+        let failure = control
+            .enter_host_with_wasi(at, Some(observation))
+            .unwrap_err();
+        assert_eq!(failure.kind, kind);
+        assert_eq!(failure.function, at.function);
+        assert_eq!(failure.offset, at.offset);
+        assert_eq!(failure.at_failure.wasi, Some(observation));
+        assert_eq!(control.host_calls, before);
+        assert_eq!(control.check(at).unwrap_err(), failure);
+        assert_eq!(
+            control
+                .check_with_wasi(at, Some(WasiUsage::default()))
+                .unwrap_err(),
+            failure
+        );
+        assert_empty(clean(control, adopted));
+    }
+}
+
+#[test]
+fn component_owner_check_neither_transfers_nor_refunds_foreign_storage() {
+    let (mut control, adopted) = adopt(SwiftRunBudget::default());
+    let (mut other, other_proof) = adopt(SwiftRunBudget::default());
+    let at = cursor(SwiftRunStage::Invocation);
+    let ticket = control
+        .admit(SwiftReservationCategory::Wasi, 31, at)
+        .unwrap();
+    let before = control.reservations;
+    let other_before = other.reservations;
+    control.check_reservation_owner(&ticket, at, None).unwrap();
+    let observation = WasiUsage {
+        calls: 7,
+        ..WasiUsage::default()
+    };
+    let failure = other
+        .check_reservation_owner(&ticket, at, Some(observation))
+        .unwrap_err();
+    assert_eq!(failure.kind, SwiftRunFailureKind::Invariant);
+    assert_eq!(failure.at_failure.wasi, Some(observation));
+    assert_eq!(
+        failure.at_failure.cleanup_invariant,
+        Some(SwiftCleanupInvariant::ReservationOwner)
+    );
+    assert_eq!(control.reservations, before);
+    assert_eq!(other.reservations, other_before);
+    assert_eq!(other.check(at).unwrap_err(), failure);
+    control.drop_reserved([0u8; 31], ticket).unwrap();
+    assert_empty(clean(control, adopted));
+    assert_empty(clean(other, other_proof));
+}

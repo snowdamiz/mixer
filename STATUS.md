@@ -990,3 +990,19 @@ The retained production module matches this committed checkpoint; concurrent
 Android implementation is outside that qualification. Pinned Swift6.2.4 rerun
 is pending. Both failed hosted receipts remain preserved; no skipped gate,
 physical device or GA check is relabeled as passed.
+
+
+The private accounted WASI owner now charges its context, four buffers and
+construction/cleanup scratch to the shared runtime ceiling. Actual WASI context
+counters remain authoritative; cancellation, host admission and cleanup preserve
+the first failure and its actual counters. Independent review reproduced a
+cleanup-first diagnostic omission; the repaired Debug/Release probes now retain
+that observation without refunding a foreign owner. Root combined Debug/Release
+each pass 308 tests plus nine reference checks, scoped Clippy and full formatting.
+Root audited 1,555 bindings in
+`verification/swift-accounted-wasi-root-review/receipt.json`; the independent
+review seals 953 checks, descriptor parity, allocation/cancellation ordinals,
+privacy negatives and byte-identical old-route behavior. Earlier owner receipts
+are historical and do not qualify the final cleanup repair. This private slice
+creates no Swift execution route. Cache/executor composition, bounded full-target
+execution, delivery size, physical devices, published consumers and GA remain open.

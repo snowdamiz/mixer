@@ -1,0 +1,536 @@
+[
+  {
+    "label": "rustc-version",
+    "argv": [
+      "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+      "--version",
+      "--verbose"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/.build/original-probed",
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "expected_stderr": null,
+    "expectation_met": true,
+    "elapsed_seconds": 0.026008500019088387,
+    "stdout": {
+      "path": "verification/swift-accounted-wasi-review/original/rustc-version.stdout",
+      "bytes": 192,
+      "sha256": "352d6857968e80a6357a926ac685b9b07f77c479aaafde33e73a53945e802909"
+    },
+    "stderr": {
+      "path": "verification/swift-accounted-wasi-review/original/rustc-version.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  {
+    "label": "cargo-version",
+    "argv": [
+      "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+      "--version"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/.build/original-probed",
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "expected_stderr": null,
+    "expectation_met": true,
+    "elapsed_seconds": 0.01135816692840308,
+    "stdout": {
+      "path": "verification/swift-accounted-wasi-review/original/cargo-version.stdout",
+      "bytes": 36,
+      "sha256": "1f88eaf7fe1aaec83184752cf4c944cd22f00184136ff36a3e4c318cc60ef566"
+    },
+    "stderr": {
+      "path": "verification/swift-accounted-wasi-review/original/cargo-version.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  {
+    "label": "python-version",
+    "argv": [
+      "/opt/homebrew/opt/python@3.14/bin/python3.14",
+      "--version"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/.build/original-probed",
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "expected_stderr": null,
+    "expectation_met": true,
+    "elapsed_seconds": 0.012176290969364345,
+    "stdout": {
+      "path": "verification/swift-accounted-wasi-review/original/python-version.stdout",
+      "bytes": 14,
+      "sha256": "f615dc9512de8b165e2b595e5cdc608a3ba7927ae92f959c5b42ec3d58e2ffa8"
+    },
+    "stderr": {
+      "path": "verification/swift-accounted-wasi-review/original/python-version.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  {
+    "label": "debug-independent-positive",
+    "argv": [
+      "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+      "test",
+      "--offline",
+      "--manifest-path",
+      "vm/Cargo.toml",
+      "--features",
+      "experimental-swift-reactor",
+      "--lib",
+      "independent_review::review_",
+      "--",
+      "--nocapture",
+      "--skip",
+      "review_cleanup_first_foreign_control_captures_actual_wasi_observation"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/.build/original-probed",
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "expected_stderr": null,
+    "expectation_met": true,
+    "elapsed_seconds": 2.8253178750164807,
+    "stdout": {
+      "path": "verification/swift-accounted-wasi-review/original/debug-independent-positive.stdout",
+      "bytes": 1478,
+      "sha256": "8f6274f023ce45d735a26f61cfe6d53e9d7c16eee365f263a23cacc12a1900e4"
+    },
+    "stderr": {
+      "path": "verification/swift-accounted-wasi-review/original/debug-independent-positive.stderr",
+      "bytes": 388,
+      "sha256": "2527d49a450172bd93b339d6f1d50941bc127e5f75d2377cde61480c3e149923"
+    }
+  },
+  {
+    "label": "debug-cleanup-first-regression",
+    "argv": [
+      "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+      "test",
+      "--offline",
+      "--manifest-path",
+      "vm/Cargo.toml",
+      "--features",
+      "experimental-swift-reactor",
+      "--lib",
+      "independent_review::review_cleanup_first_foreign_control_captures_actual_wasi_observation",
+      "--",
+      "--nocapture"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/.build/original-probed",
+    "exit_code": 101,
+    "expected_exit_code": 101,
+    "expected_stderr": null,
+    "expectation_met": true,
+    "elapsed_seconds": 0.03188033401966095,
+    "stdout": {
+      "path": "verification/swift-accounted-wasi-review/original/debug-cleanup-first-regression.stdout",
+      "bytes": 399,
+      "sha256": "c235db2bb125d30295d1c5df53864a273f5c14405817e6ae247d3142be897cf3"
+    },
+    "stderr": {
+      "path": "verification/swift-accounted-wasi-review/original/debug-cleanup-first-regression.stderr",
+      "bytes": 899,
+      "sha256": "ea8812d1cc8ef09b6721710f918377353d672043e3c86f54113f7843ce2b05fc"
+    }
+  },
+  {
+    "label": "release-independent-positive",
+    "argv": [
+      "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+      "test",
+      "--offline",
+      "--manifest-path",
+      "vm/Cargo.toml",
+      "--features",
+      "experimental-swift-reactor",
+      "--lib",
+      "--release",
+      "independent_review::review_",
+      "--",
+      "--nocapture",
+      "--skip",
+      "review_cleanup_first_foreign_control_captures_actual_wasi_observation"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/.build/original-probed",
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "expected_stderr": null,
+    "expectation_met": true,
+    "elapsed_seconds": 2.888598582940176,
+    "stdout": {
+      "path": "verification/swift-accounted-wasi-review/original/release-independent-positive.stdout",
+      "bytes": 1478,
+      "sha256": "6407bdce5296b780fce92eb6f14ac141367edfed1fd51b7d991d7884d0694f16"
+    },
+    "stderr": {
+      "path": "verification/swift-accounted-wasi-review/original/release-independent-positive.stderr",
+      "bytes": 379,
+      "sha256": "3cca7c5c28258e125579c04bd1c2634fd9db8d29fb973713e7b75c0f857f9078"
+    }
+  },
+  {
+    "label": "release-cleanup-first-regression",
+    "argv": [
+      "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+      "test",
+      "--offline",
+      "--manifest-path",
+      "vm/Cargo.toml",
+      "--features",
+      "experimental-swift-reactor",
+      "--lib",
+      "--release",
+      "independent_review::review_cleanup_first_foreign_control_captures_actual_wasi_observation",
+      "--",
+      "--nocapture"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/.build/original-probed",
+    "exit_code": 101,
+    "expected_exit_code": 101,
+    "expected_stderr": null,
+    "expectation_met": true,
+    "elapsed_seconds": 0.023304165923036635,
+    "stdout": {
+      "path": "verification/swift-accounted-wasi-review/original/release-cleanup-first-regression.stdout",
+      "bytes": 399,
+      "sha256": "c235db2bb125d30295d1c5df53864a273f5c14405817e6ae247d3142be897cf3"
+    },
+    "stderr": {
+      "path": "verification/swift-accounted-wasi-review/original/release-cleanup-first-regression.stderr",
+      "bytes": 890,
+      "sha256": "684f2737b573718a084a18b79b01d455f78ada6f8d08b68ddf557e1797e84576"
+    }
+  },
+  {
+    "label": "review_borrow_use",
+    "argv": [
+      "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+      "--edition",
+      "2021",
+      "--crate-name",
+      "mixer_vm",
+      "--test",
+      "--cfg",
+      "feature=\"experimental-swift-reactor\"",
+      "--cfg",
+      "feature=\"experimental-stream-validation\"",
+      "--cfg",
+      "feature=\"experimental-swift-wasi\"",
+      "--cfg",
+      "review_borrow_use",
+      "--check-cfg",
+      "cfg(review_borrow_use)",
+      "--check-cfg",
+      "cfg(review_borrow_drop)",
+      "vm/src/lib.rs",
+      "-o",
+      "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/original/review_borrow_use"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/.build/original-probed",
+    "exit_code": 1,
+    "expected_exit_code": null,
+    "expected_stderr": "E0502",
+    "expectation_met": true,
+    "elapsed_seconds": 0.7678161669755355,
+    "stdout": {
+      "path": "verification/swift-accounted-wasi-review/original/review_borrow_use.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+      "path": "verification/swift-accounted-wasi-review/original/review_borrow_use.stderr",
+      "bytes": 82886,
+      "sha256": "a6bf91b1b5fe787a2a1203f04ee0ffc74d1f05e3f01ad82199fc4c07b5d8395f"
+    }
+  },
+  {
+    "label": "review_borrow_drop",
+    "argv": [
+      "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+      "--edition",
+      "2021",
+      "--crate-name",
+      "mixer_vm",
+      "--test",
+      "--cfg",
+      "feature=\"experimental-swift-reactor\"",
+      "--cfg",
+      "feature=\"experimental-stream-validation\"",
+      "--cfg",
+      "feature=\"experimental-swift-wasi\"",
+      "--cfg",
+      "review_borrow_drop",
+      "--check-cfg",
+      "cfg(review_borrow_use)",
+      "--check-cfg",
+      "cfg(review_borrow_drop)",
+      "vm/src/lib.rs",
+      "-o",
+      "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/original/review_borrow_drop"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/.build/original-probed",
+    "exit_code": 1,
+    "expected_exit_code": null,
+    "expected_stderr": "E0505",
+    "expectation_met": true,
+    "elapsed_seconds": 0.7768137500388548,
+    "stdout": {
+      "path": "verification/swift-accounted-wasi-review/original/review_borrow_drop.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+      "path": "verification/swift-accounted-wasi-review/original/review_borrow_drop.stderr",
+      "bytes": 83555,
+      "sha256": "34bc97b7a651de61a8a8521831bd14c4c0e1af0dd9505d51be683a9f010a3b48"
+    }
+  },
+  {
+    "label": "public-library",
+    "argv": [
+      "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+      "build",
+      "--offline",
+      "--manifest-path",
+      "vm/Cargo.toml",
+      "--features",
+      "experimental-swift-reactor",
+      "--lib"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/.build/original-probed",
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "expected_stderr": null,
+    "expectation_met": true,
+    "elapsed_seconds": 1.420459666987881,
+    "stdout": {
+      "path": "verification/swift-accounted-wasi-review/original/public-library.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+      "path": "verification/swift-accounted-wasi-review/original/public-library.stderr",
+      "bytes": 210,
+      "sha256": "15c79aab9ad8bb5d8b65f4e29f7d913b2b9850303a3498a76d970566affd825a"
+    }
+  },
+  {
+    "label": "external-private-owner",
+    "argv": [
+      "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+      "--edition",
+      "2021",
+      "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/original/external/private-owner.rs",
+      "--extern",
+      "mixer_vm=/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/.build/original-target/debug/libmixer_vm.rlib",
+      "-L",
+      "dependency=/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/.build/original-target/debug/deps",
+      "-o",
+      "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/original/external/private-owner"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/.build/original-probed",
+    "exit_code": 1,
+    "expected_exit_code": null,
+    "expected_stderr": "E0603",
+    "expectation_met": true,
+    "elapsed_seconds": 0.059859958011657,
+    "stdout": {
+      "path": "verification/swift-accounted-wasi-review/original/external-private-owner.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+      "path": "verification/swift-accounted-wasi-review/original/external-private-owner.stderr",
+      "bytes": 510,
+      "sha256": "5996136c6f2f8beceb782ee639d162c112765a3864bcc9ff96b2cbd4bb9158a0"
+    }
+  },
+  {
+    "label": "external-private-phase",
+    "argv": [
+      "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+      "--edition",
+      "2021",
+      "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/original/external/private-phase.rs",
+      "--extern",
+      "mixer_vm=/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/.build/original-target/debug/libmixer_vm.rlib",
+      "-L",
+      "dependency=/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/.build/original-target/debug/deps",
+      "-o",
+      "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/original/external/private-phase"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/.build/original-probed",
+    "exit_code": 1,
+    "expected_exit_code": null,
+    "expected_stderr": "E0603",
+    "expectation_met": true,
+    "elapsed_seconds": 0.06680558295920491,
+    "stdout": {
+      "path": "verification/swift-accounted-wasi-review/original/external-private-phase.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+      "path": "verification/swift-accounted-wasi-review/original/external-private-phase.stderr",
+      "bytes": 518,
+      "sha256": "5401c098fc3f39c4e06cb705e73de2b6f6abc4bc072d7eeee9e939884c22afc9"
+    }
+  },
+  {
+    "label": "external-private-control",
+    "argv": [
+      "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+      "--edition",
+      "2021",
+      "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/original/external/private-control.rs",
+      "--extern",
+      "mixer_vm=/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/.build/original-target/debug/libmixer_vm.rlib",
+      "-L",
+      "dependency=/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/.build/original-target/debug/deps",
+      "-o",
+      "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/original/external/private-control"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/.build/original-probed",
+    "exit_code": 1,
+    "expected_exit_code": null,
+    "expected_stderr": "E0603",
+    "expectation_met": true,
+    "elapsed_seconds": 0.04406750004272908,
+    "stdout": {
+      "path": "verification/swift-accounted-wasi-review/original/external-private-control.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+      "path": "verification/swift-accounted-wasi-review/original/external-private-control.stderr",
+      "bytes": 531,
+      "sha256": "e9f79b4cf2c8470f8db0f54cb6d3596003db88b80cae25222b921104c7b808ec"
+    }
+  },
+  {
+    "label": "external-private-reservation",
+    "argv": [
+      "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+      "--edition",
+      "2021",
+      "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/original/external/private-reservation.rs",
+      "--extern",
+      "mixer_vm=/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/.build/original-target/debug/libmixer_vm.rlib",
+      "-L",
+      "dependency=/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/.build/original-target/debug/deps",
+      "-o",
+      "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/original/external/private-reservation"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/.build/original-probed",
+    "exit_code": 1,
+    "expected_exit_code": null,
+    "expected_stderr": "E0603",
+    "expectation_met": true,
+    "elapsed_seconds": 0.04134187498129904,
+    "stdout": {
+      "path": "verification/swift-accounted-wasi-review/original/external-private-reservation.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+      "path": "verification/swift-accounted-wasi-review/original/external-private-reservation.stderr",
+      "bytes": 538,
+      "sha256": "711992bceef85f7fc86174776c83fb3f6d2157db63a0575438015ee510d6ce9a"
+    }
+  },
+  {
+    "label": "external-private-header-helper",
+    "argv": [
+      "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+      "--edition",
+      "2021",
+      "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/original/external/private-header-helper.rs",
+      "--extern",
+      "mixer_vm=/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/.build/original-target/debug/libmixer_vm.rlib",
+      "-L",
+      "dependency=/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/.build/original-target/debug/deps",
+      "-o",
+      "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/original/external/private-header-helper"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/.build/original-probed",
+    "exit_code": 1,
+    "expected_exit_code": null,
+    "expected_stderr": "E0603",
+    "expectation_met": true,
+    "elapsed_seconds": 0.04835566598922014,
+    "stdout": {
+      "path": "verification/swift-accounted-wasi-review/original/external-private-header-helper.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+      "path": "verification/swift-accounted-wasi-review/original/external-private-header-helper.stderr",
+      "bytes": 744,
+      "sha256": "596a8f30b67df34c573bd422ba56d93b96522bc2b0fcfbb7964bafbff012b37a"
+    }
+  },
+  {
+    "label": "external-standalone-no-accounted-constructor",
+    "argv": [
+      "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+      "--edition",
+      "2021",
+      "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/original/external/standalone-no-accounted-constructor.rs",
+      "--extern",
+      "mixer_vm=/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/.build/original-target/debug/libmixer_vm.rlib",
+      "-L",
+      "dependency=/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/.build/original-target/debug/deps",
+      "-o",
+      "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/original/external/standalone-no-accounted-constructor"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/.build/original-probed",
+    "exit_code": 1,
+    "expected_exit_code": null,
+    "expected_stderr": "E0599",
+    "expectation_met": true,
+    "elapsed_seconds": 0.052736374898813665,
+    "stdout": {
+      "path": "verification/swift-accounted-wasi-review/original/external-standalone-no-accounted-constructor.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+      "path": "verification/swift-accounted-wasi-review/original/external-standalone-no-accounted-constructor.stderr",
+      "bytes": 607,
+      "sha256": "3909a5696f3432943712d4fdc3e86af5b3df7e5eddcdee6fb5a2481d4caf24d3"
+    }
+  },
+  {
+    "label": "external-standalone-no-deadline-escape",
+    "argv": [
+      "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+      "--edition",
+      "2021",
+      "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/original/external/standalone-no-deadline-escape.rs",
+      "--extern",
+      "mixer_vm=/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/.build/original-target/debug/libmixer_vm.rlib",
+      "-L",
+      "dependency=/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/.build/original-target/debug/deps",
+      "-o",
+      "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/original/external/standalone-no-deadline-escape"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-accounted-wasi-review/.build/original-probed",
+    "exit_code": 1,
+    "expected_exit_code": null,
+    "expected_stderr": "E0616",
+    "expectation_met": true,
+    "elapsed_seconds": 0.04201716696843505,
+    "stdout": {
+      "path": "verification/swift-accounted-wasi-review/original/external-standalone-no-deadline-escape.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+      "path": "verification/swift-accounted-wasi-review/original/external-standalone-no-deadline-escape.stderr",
+      "bytes": 480,
+      "sha256": "9202360d0c39f81a4e3a2c691330f55915c52d3e8c5bac4966a05b2e58274947"
+    }
+  }
+]

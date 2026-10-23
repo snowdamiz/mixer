@@ -1,0 +1,73 @@
+{
+  "observed_utc": "2026-10-23T17:46:35.030182+00:00",
+  "decision": "Approve only the private accounted WASI prerequisite at the final source manifest; no remaining actionable source defect found in this scope.",
+  "accepted": true,
+  "final_source_manifest": {
+    "path": "verification/swift-accounted-wasi-review/final-source-manifest.json",
+    "sha256": "7565c38d4c6f2322f248d9d71b04a35dcdf3338312c2c89a4cb129fddd7e3337"
+  },
+  "final_tree_sha256": "1fe8e41644eb914168b242a26251a2e0dc5dd4f8a48689886c95da3305149f38",
+  "binding_audit": {
+    "path": "verification/swift-accounted-wasi-review/binding-audit.json",
+    "sha256": "8c550ea38aa91e7c1baa8e729ca06278211502cfed2365864129bae0fa4cce14"
+  },
+  "baseline_revision": "020f909f2a32553b79ba7068a1798c85d97426b4",
+  "current_revision": "b79ca532904cf7e9d0a958ed8acfbc361186185a",
+  "independent_receipts": {
+    "original": {
+      "path": "verification/swift-accounted-wasi-review/original/receipt.json",
+      "sha256": "becad6c2ec2e7af03bf38aba05deee95cb21658ab42137f8bfe6077ab9e7a1d8"
+    },
+    "repaired": {
+      "path": "verification/swift-accounted-wasi-review/repaired/receipt.json",
+      "sha256": "33fdec417f7693a49e91b984b82675db0342195e7b6f69d99dcfa6e320a2c075"
+    },
+    "final": {
+      "path": "verification/swift-accounted-wasi-review/final/receipt.json",
+      "sha256": "9f007a208290309c873f806e45950d442dc52a7eff9e253dcadeec5b0bbcb0ff"
+    }
+  },
+  "standalone_parity": {
+    "path": "verification/swift-accounted-wasi-review/standalone-parity/receipt.json",
+    "sha256": "5c4a8b8d6d9c398b893a0bb871a6bcfe5399ace36621b9ac277351c41266f33a"
+  },
+  "support_receipts": [
+    {
+      "path": "verification/swift-wasi-control-boundary/isolated-2/receipt.json",
+      "sha256": "24404f6bc7916dcf9d49a563c2d91ac0376ae7db476fd3a23c150c09a37e0f2f",
+      "passed": true
+    },
+    {
+      "path": "verification/swift-accounted-wasi-root-review/combined-3/receipt.json",
+      "sha256": "4104bf49a1a36ba9812d1bab9b57f30ed44318cc67a3a30db5d46c62aead768c",
+      "passed": true
+    }
+  ],
+  "resolved_findings": [
+    {
+      "priority": "P2",
+      "title": "First cleanup invariant lost the actual WASI observation",
+      "original": "A successful ArgsSizesGet enters the context once, consuming work=69 and transfer=8. Cleanup first against a foreign control returned an immutable failure with wasi=None.",
+      "reproduction": "The identical independent cleanup-first probe fails in original Debug/Release and passes in repaired/final Debug/Release.",
+      "fix": "Root captures the actual context usage before cleanup and carries it through observed drop/refund/fault helpers; old helpers delegate None. All actual storage is still dropped before any refund.",
+      "accounting": "The final persistent cleanup reservation explicitly includes six Option<WasiUsage> copies for local and observed call transfers; the frozen standalone context layout and constructor remain exact."
+    }
+  ],
+  "verified_scope": [
+    "One borrowed construction phase enlarges the existing control ticket before named wrappers; Rust rejects access/drop of the control while the phase remains active. Completion restores exactly the earlier bound; omission remains conservatively charged.",
+    "Header and four buffers have inline non-Clone reservation tickets; nonuniform 13/13/17/17-byte admission and real allocator-null ordinals release all partial storage without allocation. Empty capacities retain tickets without allocating.",
+    "Cleanup destroys each actual Vec and then the actual owner/header before refund; foreign cleanup destroys storage but cannot create room in either ledger. Terminal cleanup spends no work, allocates nothing, and retains the first failure.",
+    "Only unchanged context counters meter actual WASI work/calls/transfer; the sealed owner pairing rejects foreign controls and the independent shared host counter refuses before adapter entry. No reconstructed/summed meter is authoritative.",
+    "All 34 descriptors and four argument variants preserve exact standalone outcomes/memory/usage/captures. Seven actual in-adapter cancellation check ordinals preserve output rollback and immutable terminal causes. Guest exit including zero and u32::MAX remains terminal.",
+    "Seven external privacy negatives reject access to private owner/phase/control/tickets/header helper, accounted standalone construction and deadline escape. Old-route external layout and all 136 observations match the frozen foundation in all eight configurations.",
+    "Root combined final source matches every one of the 58 independently pinned VM files and passes its Debug/Release all-feature/oracle/lint/format commands; original owner and isolated-helper evidence is retained and audited as historical scope."
+  ],
+  "explicit_limits": [
+    "Private prerequisite only. No Swift executable owner, cache/executor composition, actual 53,777,114-byte reactor allocation/initialize/invoke, or corpus qualification.",
+    "Cancellation/deadline is cooperative. Original owner tests exercise actual OS random/clocks and earliest deadline inside the unchanged context; independent probes add deterministic cancellation and expired carried-deadline coverage, not hard preemption.",
+    "Requested logical capacities and conservative named Rust object reservations exclude allocator overhead, RSS, compiler stack measurement and unowned caller allocations.",
+    "The historical canonical owner receipt predates the cleanup diagnostics and reservation repair; final acceptance binds the independent final manifest and root combined-3, rather than relabeling that earlier receipt.",
+    "No physical phones were discovered or used. Mobile/signing/store/publication/separate-repository FieldLog consumption/operational/GA evidence remains pending and is not implied.",
+    "Review-only sources and evidence were written solely under verification/swift-accounted-wasi-review; no product edits, commits or pushes were performed by this reviewer."
+  ]
+}

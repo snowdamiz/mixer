@@ -653,6 +653,16 @@ impl RuntimeControl {
     /// No caller clock hook. A single native call is cooperative, so callers
     /// must check both sides and inside all bounded loops before publication.
     pub(crate) fn check(&mut self, cursor: Cursor) -> Result<(), SwiftRunFailure> {
+        self.check_with_wasi(cursor, None)
+    }
+
+    /// Preserve the actual WASI observation when the first terminal condition
+    /// originates at the shared control boundary. No duplicate counters live here.
+    pub(crate) fn check_with_wasi(
+        &mut self,
+        cursor: Cursor,
+        wasi: Option<WasiUsage>,
+    ) -> Result<(), SwiftRunFailure> {
         if let Some(failure) = self.first_failure {
             return Err(failure);
         }
@@ -660,14 +670,14 @@ impl RuntimeControl {
             return Err(self.fail(
                 cursor,
                 Fault::new(SwiftRunFailureKind::Cancelled, "swift_run_cancelled"),
-                None,
+                wasi,
             ));
         }
         if Instant::now() >= self.deadline {
             return Err(self.fail(
                 cursor,
                 Fault::new(SwiftRunFailureKind::Deadline, "swift_run_deadline"),
-                None,
+                wasi,
             ));
         }
         Ok(())
@@ -934,8 +944,19 @@ impl RuntimeControl {
         storage: T,
         ticket: ReservationTicket,
     ) -> Result<(), SwiftRunFailure> {
+        self.drop_reserved_with_wasi(storage, ticket, None)
+    }
+
+    /// The caller captures the actual context observation before destroying
+    /// its owned storage. Cleanup may itself originate the first invariant fault.
+    pub(crate) fn drop_reserved_with_wasi<T>(
+        &mut self,
+        storage: T,
+        ticket: ReservationTicket,
+        wasi: Option<WasiUsage>,
+    ) -> Result<(), SwiftRunFailure> {
         drop(storage);
-        self.refund(ticket)
+        self.refund_with_wasi(ticket, wasi)
     }
     pub(crate) fn drop_proof(&mut self, adopted: AdoptedProof) -> Result<(), SwiftRunFailure> {
         let AdoptedProof {
@@ -948,13 +969,57 @@ impl RuntimeControl {
         let metadata_result = self.refund(metadata);
         source_result.and(metadata_result)
     }
+    /// Check an internal component/control pairing before it can perform work.
+    /// This borrows its sealed ticket and neither admits nor refunds storage.
+    pub(crate) fn check_reservation_owner(
+        &mut self,
+        ticket: &ReservationTicket,
+        cursor: Cursor,
+        wasi: Option<WasiUsage>,
+    ) -> Result<(), SwiftRunFailure> {
+        let violation = if ticket.owner != self.owner || ticket.owner == 0 {
+            Some((
+                SwiftCleanupInvariant::ReservationOwner,
+                "swift_run_reservation_owner",
+            ))
+        } else if self.reservations.live_tickets == 0
+            || self.reservations.category(ticket.category).current < ticket.bytes
+            || self.reservations.combined.current < ticket.bytes
+        {
+            Some((
+                SwiftCleanupInvariant::ReservationUnderflow,
+                "swift_run_reservation_underflow",
+            ))
+        } else {
+            None
+        };
+        if let Some((invariant, code)) = violation {
+            self.cleanup_invariant.get_or_insert(invariant);
+            return Err(self.fail(
+                cursor,
+                Fault::new(SwiftRunFailureKind::Invariant, code),
+                wasi,
+            ));
+        }
+        Ok(())
+    }
+
     // Only after actual storage drop. A mismatch consumes the unusable token but
     // conservatively retains the complete charge; it cannot create new room.
     fn refund(&mut self, ticket: ReservationTicket) -> Result<(), SwiftRunFailure> {
+        self.refund_with_wasi(ticket, None)
+    }
+
+    fn refund_with_wasi(
+        &mut self,
+        ticket: ReservationTicket,
+        wasi: Option<WasiUsage>,
+    ) -> Result<(), SwiftRunFailure> {
         if ticket.owner != self.owner || ticket.owner == 0 {
-            return Err(self.cleanup_fault(
+            return Err(self.cleanup_fault_with_wasi(
                 SwiftCleanupInvariant::ReservationOwner,
                 "swift_run_release_owner",
+                wasi,
             ));
         }
         let category = self
@@ -965,9 +1030,10 @@ impl RuntimeControl {
         let combined = self.reservations.combined.current.checked_sub(ticket.bytes);
         let count = self.reservations.live_tickets.checked_sub(1);
         let (Some(category), Some(combined), Some(count)) = (category, combined, count) else {
-            return Err(self.cleanup_fault(
+            return Err(self.cleanup_fault_with_wasi(
                 SwiftCleanupInvariant::ReservationUnderflow,
                 "swift_run_release_underflow",
+                wasi,
             ));
         };
         self.reservations.category_mut(ticket.category).current = category;
@@ -1072,7 +1138,15 @@ impl RuntimeControl {
         Ok(())
     }
     pub(crate) fn enter_host(&mut self, cursor: Cursor) -> Result<(), SwiftRunFailure> {
-        self.check(cursor)?;
+        self.enter_host_with_wasi(cursor, None)
+    }
+
+    pub(crate) fn enter_host_with_wasi(
+        &mut self,
+        cursor: Cursor,
+        wasi: Option<WasiUsage>,
+    ) -> Result<(), SwiftRunFailure> {
+        self.check_with_wasi(cursor, wasi)?;
         let next = self.host_calls.checked_add(1);
         let Some(next) = next.filter(|next| *next <= self.budget.host_calls) else {
             return Err(self.fail(
@@ -1082,7 +1156,7 @@ impl RuntimeControl {
                     next.unwrap_or(u64::MAX),
                     self.budget.host_calls,
                 ),
-                None,
+                wasi,
             ));
         };
         self.host_calls = next;
@@ -1193,6 +1267,15 @@ impl RuntimeControl {
         invariant: SwiftCleanupInvariant,
         code: &'static str,
     ) -> SwiftRunFailure {
+        self.cleanup_fault_with_wasi(invariant, code, None)
+    }
+
+    fn cleanup_fault_with_wasi(
+        &mut self,
+        invariant: SwiftCleanupInvariant,
+        code: &'static str,
+        wasi: Option<WasiUsage>,
+    ) -> SwiftRunFailure {
         self.cleanup_invariant.get_or_insert(invariant);
         self.fail(
             Cursor {
@@ -1201,7 +1284,7 @@ impl RuntimeControl {
                 offset: None,
             },
             Fault::new(SwiftRunFailureKind::Invariant, code),
-            None,
+            wasi,
         )
     }
 

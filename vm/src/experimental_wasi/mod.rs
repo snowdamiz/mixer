@@ -4,6 +4,8 @@
 //! explicit native grants, cumulative lifetime budgets, and private OS services.
 //! Deadline/cancellation are cooperative: an individual platform call or bounded
 //! copy cannot be preempted. Failed commits restore outputs before returning.
+#[cfg(feature = "experimental-swift-reactor")]
+pub(crate) mod accounted;
 mod descriptor;
 mod platform;
 use crate::{Cancellation, Value};
