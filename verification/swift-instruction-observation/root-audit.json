@@ -1,0 +1,26 @@
+{
+  "observed_utc": "2026-10-23T18:32:31.083956+00:00",
+  "command": "python3 verification/swift-instruction-observation/audit.py",
+  "python": "3.14.8",
+  "auditor_sha256": "d70cd8907fb12a06b04db681d10651fc5f9b263789f6b15cacb5c191bd6a334b",
+  "passed": true,
+  "independent_acceptance": "pending",
+  "verified_bindings": 853,
+  "receipt_sha256": "22e487135fcad7d66e935106c2aa513219f89aa203b071d4e9a929b1c8fedcc3",
+  "base_revision": "45852204fbcced037d8e530876b619d9ed1c2ce1",
+  "source_tree_sha256": "5dcaaf357620f5d5a41ad2c218614b7d1cd9ba52eff453a09f5687b8ca586744",
+  "source_overlays": {
+    "vm/src/experimental_swift_reactor/control.rs": "b31e6fa7c90a0568bc854033fa959967d04371bba08bcf80650d292eff69cc43",
+    "vm/src/experimental_swift_reactor/control_tests.rs": "29df50f34772ee1b133ac61f595204478903e985dda4464864f7a73331885ba5"
+  },
+  "test_counts": {
+    "debug": 319,
+    "debug-oracles": 9,
+    "debug-minimal-swift": 72,
+    "release": 319,
+    "release-oracles": 9,
+    "release-minimal-swift": 72
+  },
+  "root_source_review": "Exactly two private observed method variants, old signatures delegating None, same checked arithmetic and mutation order. Instruction still charges one fuel before its checked instruction increment. No stored type, policy, allocation, ticket, host dispatch or public route changed. Eleven cases use one actual WASI dispatch before each operation; repeated failures retain original context counters and produce no further effects. Internal overflow cases corrupt only test scalars.",
+  "scope": "Root isolated evidence audit; private control prerequisite only. Independent review remains pending; no executor/cache implementation acceptance, target execution, devices or GA gate."
+}

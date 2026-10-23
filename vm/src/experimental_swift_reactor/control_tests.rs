@@ -1338,3 +1338,134 @@ fn checked_actual_wasi_pairing_preserves_same_owner_ledger_fault_observation() {
     assert_eq!(control.check(at).unwrap_err(), failure);
     assert_empty(control.finish_owned_cleanup(Some(observation)));
 }
+
+#[test]
+fn instruction_and_bulk_fuel_failures_retain_actual_wasi_counters() {
+    use crate::experimental_wasi::accounted::AccountedWasi;
+    use crate::experimental_wasi::{WasiBudget, WasiGrants};
+    for instruction in [false, true] {
+        for case in 0..=5 {
+            if !instruction && case == 5 {
+                continue;
+            }
+            let (mut control, adopted) = adopt(SwiftRunBudget::default());
+            let at = cursor(SwiftRunStage::Invocation);
+            let mut phase = AccountedWasi::prepare(&mut control, at).unwrap();
+            let mut owner = phase
+                .construct(
+                    WasiGrants::default(),
+                    WasiBudget::default(),
+                    Instant::now(),
+                    at,
+                )
+                .unwrap();
+            phase.complete().unwrap();
+            owner
+                .dispatch(
+                    &mut control,
+                    WasiFunction::ArgsSizesGet,
+                    &[crate::Value::I32(0), crate::Value::I32(4)],
+                    &mut [0u8; 8],
+                    at,
+                )
+                .unwrap();
+            let observation = owner.usage();
+            assert_eq!(observation.calls, 1);
+            assert_eq!(observation.transfer_bytes, 8);
+            assert!(observation.work > 0);
+            match case {
+                0 => (),
+                1 => control.cancellation.cancel(),
+                2 => control.deadline = Instant::now(),
+                3 => control.instruction_fuel = control.budget.instruction_fuel,
+                // Test-only damaged counter states exercise checked overflow;
+                // no fabricated proof, replacement context or guest execution.
+                4 => control.instruction_fuel = u64::MAX,
+                5 => control.instructions = u64::MAX,
+                _ => unreachable!(),
+            }
+            let before = control.usage(Some(observation));
+            let credits = if instruction { 1 } else { 7 };
+            let (result, stats) = super::super::allocation_tests::measure(|| {
+                let actual = owner.checked_usage(&mut control, at).unwrap();
+                if instruction {
+                    control.instruction_with_wasi(at, Some(actual))
+                } else {
+                    control.charge_fuel_with_wasi(credits, at, Some(actual))
+                }
+            });
+            no_allocations(stats);
+            assert_eq!(stats.deallocations, 0);
+            assert_eq!(owner.usage(), observation);
+            assert_eq!(control.host_calls, 1);
+            assert_eq!(control.reservations, before.reservations);
+            if case == 0 {
+                result.unwrap();
+                assert_eq!(control.instruction_fuel, credits);
+                assert_eq!(control.instructions, u64::from(instruction));
+            } else {
+                let failure = result.unwrap_err();
+                assert_eq!(
+                    failure.kind,
+                    match case {
+                        1 => SwiftRunFailureKind::Cancelled,
+                        2 => SwiftRunFailureKind::Deadline,
+                        3 | 4 => SwiftRunFailureKind::FuelExhausted,
+                        5 => SwiftRunFailureKind::Invariant,
+                        _ => unreachable!(),
+                    }
+                );
+                assert_eq!(failure.at_failure.wasi, Some(observation));
+                assert_eq!(failure.function, at.function);
+                assert_eq!(failure.offset, at.offset);
+                assert_eq!(failure.at_failure.host_calls, 1);
+                assert_eq!(control.instructions, before.instructions);
+                // Existing order charges one fuel before checking instruction
+                // count overflow; all other rejected boundaries commit neither.
+                let charged = before.instruction_fuel + u64::from(case == 5);
+                assert_eq!(control.instruction_fuel, charged);
+                assert_eq!(failure.at_failure.instruction_fuel, charged);
+                if case == 3 || case == 4 {
+                    assert_eq!(failure.code, "swift_run_fuel");
+                    assert_eq!(failure.resource, Some(SwiftRunResource::InstructionFuel));
+                    assert_eq!(
+                        failure.attempted,
+                        before.instruction_fuel.saturating_add(credits)
+                    );
+                    assert_eq!(failure.limit, control.budget.instruction_fuel);
+                }
+                if case == 5 {
+                    assert_eq!(failure.code, "swift_run_instruction_overflow");
+                }
+                let ((), stats) = super::super::allocation_tests::measure(|| {
+                    assert_eq!(control.instruction(at).unwrap_err(), failure);
+                    assert_eq!(control.charge_fuel(0, at).unwrap_err(), failure);
+                    assert_eq!(
+                        control
+                            .instruction_with_wasi(at, Some(WasiUsage::default()))
+                            .unwrap_err(),
+                        failure
+                    );
+                    assert_eq!(
+                        control
+                            .charge_fuel_with_wasi(credits, at, None)
+                            .unwrap_err(),
+                        failure
+                    );
+                });
+                no_allocations(stats);
+                assert_eq!(stats.deallocations, 0);
+                assert_eq!(control.instruction_fuel, charged);
+                assert_eq!(control.instructions, before.instructions);
+                assert_eq!(owner.usage(), observation);
+            }
+            owner.cleanup(&mut control).unwrap();
+            control
+                .drop_proof_with_wasi(adopted, Some(observation))
+                .unwrap();
+            let after = control.finish_owned_cleanup(Some(observation));
+            assert_eq!(after.wasi, Some(observation));
+            assert_empty(after);
+        }
+    }
+}

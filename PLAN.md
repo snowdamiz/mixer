@@ -430,3 +430,16 @@ the pinned Swift6.2.4 actor-helper repair and the accounted WASI checkpoint.
 Historical failed runs remain retained. Android binding implementation/review is
 ongoing; physical phones, immutable separately published FieldLog packages,
 full-target performance/delivery-size and all specified external gates remain open.
+
+
+The next executor prerequisite adds private instruction/fuel observation methods,
+with original entry points delegating None. Actual paired WASI counters now remain
+in the first failure at cancellation/deadline, fuel exhaustion and checked
+instruction overflow. Eleven actual-context cases also verify unchanged charging
+order and no-effect reentry. Isolated checkpoint4585220 plus these two source
+files passes 319 tests and nine reference checks per Debug/Release, 72 minimal-
+Swift library tests per mode, Clippy and formatting. Root binds 853 checks in
+`verification/swift-instruction-observation/root-audit.json`; independent review
+and executor acceptance remain pending. Active cache and Android edits are outside
+this qualification. The preceding4585220 CI currently passes VM/services while
+its Swift job is still running. No physical, target-execution or GA claim changes.

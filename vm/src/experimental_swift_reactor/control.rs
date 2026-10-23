@@ -1193,7 +1193,15 @@ impl RuntimeControl {
     }
     /// Charge once before dispatch; bulk extra fuel uses charge_fuel separately.
     pub(crate) fn instruction(&mut self, cursor: Cursor) -> Result<(), SwiftRunFailure> {
-        self.charge_fuel(1, cursor)?;
+        self.instruction_with_wasi(cursor, None)
+    }
+
+    pub(crate) fn instruction_with_wasi(
+        &mut self,
+        cursor: Cursor,
+        wasi: Option<WasiUsage>,
+    ) -> Result<(), SwiftRunFailure> {
+        self.charge_fuel_with_wasi(1, cursor, wasi)?;
         self.instructions = self.instructions.checked_add(1).ok_or_else(|| {
             self.fail(
                 cursor,
@@ -1201,7 +1209,7 @@ impl RuntimeControl {
                     SwiftRunFailureKind::Invariant,
                     "swift_run_instruction_overflow",
                 ),
-                None,
+                wasi,
             )
         })?;
         Ok(())
@@ -1211,7 +1219,16 @@ impl RuntimeControl {
         credits: u64,
         cursor: Cursor,
     ) -> Result<(), SwiftRunFailure> {
-        self.check(cursor)?;
+        self.charge_fuel_with_wasi(credits, cursor, None)
+    }
+
+    pub(crate) fn charge_fuel_with_wasi(
+        &mut self,
+        credits: u64,
+        cursor: Cursor,
+        wasi: Option<WasiUsage>,
+    ) -> Result<(), SwiftRunFailure> {
+        self.check_with_wasi(cursor, wasi)?;
         let next = self.instruction_fuel.checked_add(credits);
         let Some(next) = next.filter(|next| *next <= self.budget.instruction_fuel) else {
             return Err(self.fail(
@@ -1221,7 +1238,7 @@ impl RuntimeControl {
                     next.unwrap_or(u64::MAX),
                     self.budget.instruction_fuel,
                 ),
-                None,
+                wasi,
             ));
         };
         self.instruction_fuel = next;
