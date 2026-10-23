@@ -1287,6 +1287,10 @@ Research checked on October 22, 2026. Dynamic product status, prices, SDK requir
 
 Convert W01–W18 into tracked epics, preserve G01–G38 as the release checklist, and attach D0–D8 receipts to both. Keep requirements, implementation work, and verification evidence distinct. A merged implementation is progress; a passed acceptance gate requires the specified behavior and evidence.
 
+Commit coherent, validated implementation and evidence slices as work progresses, and periodically push meaningful checkpoints to the user-owned [snowdamiz/mixer repository](https://github.com/snowdamiz/mixer). The root integrator coordinates pushes to `main`, preserves unfinished agent work, avoids force-pushing, and inspects hosted CI after each push. This source-delivery authorization does not authorize production deployments, store submissions, or customer messages. `PLAN.md` records the delivery workflow and current execution constraints.
+
+While the user's phones are disconnected, continue host tests, simulator checks and cross-compilation. Keep new physical-device checks pending and preserve earlier receipts against their exact revisions; do not treat substitute checks as device qualification or ask for reconnection until the user changes this constraint.
+
 Verify each integrated FieldLog release on both platforms. Update the work graph, critical dependencies, customer evidence, and gate status after each integration. Record decision changes with reasons and evidence; do not silently remove requirements when they become difficult.
 
 The immediate deliverable is this detailed implementation plan. The platform and FieldLog application remain to be built, operated, and qualified against it. The completion target is the full independently owned commercial product described above.
