@@ -1,0 +1,60 @@
+{
+  "schema": 1,
+  "recorded_at": "2026-10-23T19:12:50.874182+00:00",
+  "scope": "Design elevation of the light Mixer marketing website. No engine, release, legal, physical-device or GA qualification.",
+  "status": "passed-scoped-website-validation",
+  "source_revision_base": "d7a7598b691f9ea05b124b071145e1c83449dd1a",
+  "source_tree_sha256": "001f6cfde216f6a14aa6f5d68bddab7e93e7f988a15ac1beb8b7eb902332d4f1",
+  "source_manifest": "source-manifest.json",
+  "tools": {
+    "node": "v22.23.3",
+    "npm": "10.9.9",
+    "browser": "Google Chrome 155.0.8059.82 headless via DevTools protocol; Claude desktop in-app browser, version not exposed"
+  },
+  "changes": [
+    "Rebuild hero artwork: one illustrative screen drawn with iOS idioms and Material 3 idioms, em-based so it scales from one font size.",
+    "Add a platform comparison pairing real MixerUI Toggle, TextField and Button declarations with iOS and Android control renderings.",
+    "Replace glyph pseudo-logos with a line-icon tools strip; restyle workflow tabs, delivery illustrations, pricing, FAQ and closing call to action.",
+    "Rewrite styles.css as one organized stylesheet with a minimum 11-12px label size, replacing stacked override layers.",
+    "Fix mobile copy where hidden line breaks joined words, a 5px horizontal overflow at 390px, and demo reset dropping the button icon."
+  ],
+  "commands": [
+    {
+      "command": "npm --prefix website test",
+      "exit": 0,
+      "tests": 32,
+      "passed": 32,
+      "failed": 0,
+      "skipped": 0,
+      "output": "node-tests.log"
+    },
+    {
+      "command": "npm --prefix website run build",
+      "exit": 0,
+      "files": 27,
+      "output": "build.log"
+    },
+    {
+      "command": "node --check website/src/app.js",
+      "exit": 0,
+      "output": "No diagnostics"
+    },
+    {
+      "command": "git diff --check -- website",
+      "exit": 0,
+      "output": "No whitespace diagnostics"
+    }
+  ],
+  "automated_scope": [
+    "Existing build, SEO, assets, HTTP, route and anchor checks",
+    "Six executable app.js motion tests, unchanged and passing"
+  ],
+  "browser_evidence": "browser-checks.json",
+  "unchanged_assets": "Docs, privacy and 404 HTML, docs.css, approved fox, OG and brand exports, SEO generation and ASO collateral remain unchanged from d7a7598.",
+  "limitations": [
+    "No public domain or production deployment; preview remains noindex.",
+    "Device renderings are illustrations, not screenshots of Mixer-rendered native apps.",
+    "Browser checks are desktop responsive emulation; physical phones remain disconnected.",
+    "No GA gate or accountable reviewer acceptance changed."
+  ]
+}

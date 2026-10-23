@@ -14,12 +14,15 @@ Observed implementation and evidence:
   layout, a browser-local release demonstration, docs, private-by-default SEO,
   social/icon exports, and separate FieldLog app-store collateral. The original
   light design now has refined typography, depth, responsive spacing, and bounded
-  pointer motion with reduced-motion support. Thirty-two website tests and
+  pointer motion with reduced-motion support. The hero and platform section draw
+  illustrative iOS and Material 3 control renderings next to real MixerUI
+  declarations; they are not device screenshots. Thirty-two website tests and
   responsive browser checks pass. Copy intentionally presents
   the completed product at the user's request; it does not change engineering
   readiness. No public domain, deployment, store listing, or GA acceptance is
-  claimed. See `verification/website-launch/receipt.json` and
-  `verification/website-light-refinement/receipt.json`.
+  claimed. See `verification/website-launch/receipt.json`,
+  `verification/website-light-refinement/receipt.json`, and
+  `verification/website-design-elevation/receipt.json`.
 - Swift state/effects, generation-checked resources, bounded UI documents,
   reconciliation and native Apple controls pass host tests and iOS compilation.
   Raw UI decoding requires strict duplicate-key/Unicode/resource validation.

@@ -145,6 +145,7 @@
   const reset = document.getElementById('reset-demo');
   const app = document.getElementById('demo-app');
   const status = document.getElementById('preview-status');
+  const shipLabel = ship ? [...ship.childNodes].map(node => node.cloneNode(true)) : [];
   let updateTimers = [];
   function setStatus(message) { if (status) status.replaceChildren(Object.assign(document.createElement('span'), { className: 'status-dot' }), document.createTextNode(message)); }
   function finishUpdate() {
@@ -176,7 +177,7 @@
     document.getElementById('preview-version').textContent = 'v1.0';
     document.getElementById('new-note').hidden = true;
     setStatus('One screen. Two native experiences.');
-    ship.textContent = 'Try an update →'; ship.disabled = false; reset.hidden = true;
+    ship.replaceChildren(...shipLabel.map(node => node.cloneNode(true))); ship.disabled = false; reset.hidden = true;
     ship.focus();
   });
 })();
