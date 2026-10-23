@@ -1,0 +1,12 @@
+/Users/andreyyurlov/Documents/dev/mixer/updates/.build/durable-spi-2026-10-23-candidate-1/source/verification/release-v3-durable-spi/CompileNegative/retained-decoder.swift:3:32: error: instance method 'decode(_:from:)' requires that 'RetainedHealthyEvidenceV3' conform to 'Decodable'
+1 | import Foundation
+2 | @_spi(CapabilityDurableV3) import MixerUpdates
+3 | let forged = try JSONDecoder().decode(RetainedHealthyEvidenceV3.self, from: Data())
+  |                                `- error: instance method 'decode(_:from:)' requires that 'RetainedHealthyEvidenceV3' conform to 'Decodable'
+4 | 
+
+Foundation.JSONDecoder.decode:2:11: note: where 'T' = 'RetainedHealthyEvidenceV3'
+1 | class JSONDecoder {
+2 | open func decode<T>(_ type: T.Type, from data: Data) throws -> T where T : Decodable}
+  |           `- note: where 'T' = 'RetainedHealthyEvidenceV3'
+3 | 

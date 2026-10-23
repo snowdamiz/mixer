@@ -12,7 +12,9 @@ let package = Package(
         .package(path: "../sdk"),
     ],
     targets: [
+        .target(name: "MixerCapabilityDurableIO"),
         .target(name: "MixerCapabilityActivation", dependencies: [
+            "MixerCapabilityDurableIO",
             .product(name: "MixerExperimentalCapabilityRuntime", package: "experimental-capability-runtime"),
             .product(name: "MixerRuntimeIdentity", package: "runtime-identity"),
             .product(name: "MixerUpdates", package: "updates"),

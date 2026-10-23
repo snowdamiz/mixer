@@ -57,8 +57,14 @@ Explicit v3 development routes and schema3 storage now pass full local races,
 PostgreSQL faults and independent public review; actual TCP delivery also verifies
 with the public Swift v3 API before/after reopen. See
 `verification/release-v3-service-root-review/receipt.json`. Production deployment
-and immutable distribution remain separate. Hosted CI at61f34bf passes all three
-jobs, including the installed-material package. Durable updater ownership is
-approved in `docs/capability-durable-updater-api-design.md`; metadata SPI, concrete
-adapter lifecycle and private recovery storage are the current implementation lanes.
+and immutable distribution remain separate. Hosted CI ata81f54c passes all three
+jobs, including the v3 service. Durable updater ownership is approved in
+`docs/capability-durable-updater-api-design.md`. The metadata-only recovery SPI now
+passes its frozen matrix and204 independent external checks; private durable I/O
+passes23 host tests per mode,29 independent checks and iOS/Android compilation.
+See `verification/release-v3-durable-spi-root-review/receipt.json` and
+`verification/capability-durable-io/final-receipt.json`. Actual committed-health
+provenance and signed execution remain the private updater's responsibility.
+Concrete adapter lifecycle, counted recovery storage and the coordinator are the
+current implementation lanes.
 Keep the full product plan and physical/published-consumer/GA gates in scope.

@@ -1,0 +1,240 @@
+import Foundation
+import Crypto
+import Testing
+@_spi(CapabilityDurableV3) import MixerUpdates
+
+private func durableV3Error(_ expected: String, _ body: () throws -> Void) {
+    do { try body(); Issue.record("Expected rejection: \(expected)") }
+    catch let error as UpdateError { #expect(error.code == expected) }
+    catch { Issue.record("Wrong error for \(expected): \(error)") }
+}
+private func durableV3Assignment(_ f: V3LocalFixture, manifest: CanonicalValue,
+                                 update: (inout [String: CanonicalValue]) throws -> Void = { _ in }) throws -> CanonicalValue {
+    try v3Changed(f.assignment) { fields in
+        fields["artifact_sha256"] = .text(try ReleaseVerifier.sha256(manifest.canonicalCBOR()))
+        try update(&fields)
+    }
+}
+private func durableV3Retained(_ f: V3LocalFixture, _ v: ReleaseVerifierV3,
+                               manifest: Data? = nil, assignment: Data? = nil,
+                               payload: Data? = nil, stored: UInt64 = 9,
+                               accepted: UInt64 = 9) throws -> RetainedHealthyEvidenceV3 {
+    try v._verifyRetainedHealthySnapshotV3(exactManifest: manifest ?? f.signed(f.manifest),
+        exactAssignment: assignment ?? f.signed(f.assignment, assignment: true),
+        payload: payload ?? f.payload, channel: "beta", installation: "install-a",
+        storedSequence: stored, acceptedSequence: accepted)
+}
+
+@Test func durableV3OfferChecksHeadersWithoutClaimingPayloadOrReservation() throws {
+    let f = try V3LocalFixture(), v = try f.verifier()
+    let manifest = try f.signed(f.manifest) + Data(" \n".utf8)
+    let assignment = try f.signed(f.assignment, assignment: true) + Data("\t ".utf8)
+    let o = try v._authorizeOfferV3(exactManifest: manifest, exactAssignment: assignment,
+        channel: "beta", installation: "install-a", lastSequence: 8, now: f.now)
+    let a = try f.artifact(v)
+    #expect(o.artifactSHA256 == a.artifactSHA256 && o.payloadSHA256 == a.payloadSHA256)
+    #expect(o.payloadBytes == UInt64(f.payload.count) && o.sequence == 9)
+    #expect(o.signedManifest == manifest && o.signedAssignment == assignment)
+    #expect(o.cohortBucket == ReleaseVerifier.cohort(scope: f.host.scope, channel: "beta", installation: "install-a"))
+    // Offers intentionally have no payload argument. Corrupted payload is still
+    // rejected by full retained/current verification, regardless of this value.
+    durableV3Error("v3.payload.integrity") { _ = try durableV3Retained(f, v, payload: Data(repeating: 0, count: f.payload.count)) }
+}
+
+@Test func durableV3OfferReplayAndRetainedSequenceAreDifferentClosedRules() throws {
+    let f = try V3LocalFixture(), v = try f.verifier()
+    for last in [UInt64(9), 10, UInt64.max] {
+        durableV3Error("v3.assignment.replay") {
+            _ = try v._authorizeOfferV3(exactManifest: f.signed(f.manifest), exactAssignment: f.signed(f.assignment, assignment: true),
+                channel: "beta", installation: "install-a", lastSequence: last, now: f.now)
+        }
+    }
+    for (stored, accepted) in [(0, 9), (8, 9), (10, 10), (9, 8), (9, 0)] as [(UInt64, UInt64)] {
+        durableV3Error("v3.retained.sequence") { _ = try durableV3Retained(f, v, stored: stored, accepted: accepted) }
+    }
+    #expect(try durableV3Retained(f, v, accepted: UInt64.max).sequence == 9)
+    let changed = try v3Changed(f.assignment) { $0["sequence"] = .uint(UInt64.max) }
+    #expect(try durableV3Retained(f, v, assignment: f.signed(changed, assignment: true), stored: UInt64.max, accepted: UInt64.max).sequence == UInt64.max)
+}
+
+@Test func durableV3RetainedSkipsOnlyRootTimeWindowsAndOrdinaryMethodsStayStrict() throws {
+    let f = try V3LocalFixture(), root = f.roots[0]
+    for (before, after, time) in [(20_000, 30_000, 10_000), (1, 10_000, 10_000)] as [(UInt64, UInt64, UInt64)] {
+        let v = try f.verifier(roots: [.init(keyID: root.keyID, publicKey: root.publicKey, scope: root.scope,
+            artifact: true, assignment: true, notBeforeUnix: before, notAfterUnix: after)])
+        let r = try durableV3Retained(f, v)
+        #expect(r.sequence == 9 && r.resourceLimits.fuel == 1000)
+        _ = try v._revalidateRetainedHealthyV3(r, payload: f.payload)
+        durableV3Error("v3.signature.authority") { _ = try v.verifyArtifact(signedManifest: f.signed(f.manifest), payload: f.payload, now: time) }
+        durableV3Error("v3.signature.authority") {
+            _ = try v._authorizeOfferV3(exactManifest: f.signed(f.manifest), exactAssignment: f.signed(f.assignment, assignment: true),
+                channel: "beta", installation: "install-a", lastSequence: 8, now: time)
+        }
+    }
+    let v = try f.verifier(), a = try f.artifact(v)
+    durableV3Error("v3.signature.authority") { _ = try v.revalidateArtifact(a, payload: f.payload, now: 20_000) }
+    durableV3Error("v3.signature.authority") {
+        _ = try v.verifyAssignment(signedAssignment: f.signed(f.assignment, assignment: true), artifact: a,
+            channel: "beta", installation: "install-a", lastSequence: 8, now: 20_000)
+    }
+    _ = try v.verifyArtifact(signedManifest: f.signed(f.manifest), payload: f.payload, now: 19_999)
+}
+
+@Test func durableV3RetainedNeverWaivesRevocationRoleScopeKeyOrSignatures() throws {
+    let f = try V3LocalFixture(), root = f.roots[0]
+    let otherScope = UpdateScope(organization: "other", project: root.scope.project, app: root.scope.app,
+        environment: root.scope.environment, platform: root.scope.platform)
+    let roots: [[TrustRoot]] = [
+        [.init(keyID: root.keyID, publicKey: root.publicKey, scope: root.scope, artifact: true, assignment: true, revoked: true)],
+        [.init(keyID: root.keyID, publicKey: root.publicKey, scope: root.scope, artifact: false, assignment: true)],
+        [.init(keyID: root.keyID, publicKey: root.publicKey, scope: root.scope, artifact: true, assignment: false)],
+        [.init(keyID: root.keyID, publicKey: root.publicKey, scope: otherScope, artifact: true, assignment: true)],
+        [.init(keyID: "unknown", publicKey: root.publicKey, scope: root.scope, artifact: true, assignment: true)]
+    ]
+    for roots in roots {
+        let v = try f.verifier(roots: roots)
+        durableV3Error("v3.signature.authority") { _ = try durableV3Retained(f, v) }
+    }
+    let v = try f.verifier()
+    for domain in ["mixer.artifact.v2\0", "mixer.assignment.v3\0", "mixer.artifact.v3\\0"] {
+        durableV3Error("v3.signature.invalid") { _ = try durableV3Retained(f, v, manifest: f.signed(f.manifest, domain: domain)) }
+    }
+    durableV3Error("v3.signature.invalid") {
+        _ = try durableV3Retained(f, v, assignment: f.signed(f.assignment, assignment: true, domain: "mixer.assignment.v2\0"))
+    }
+    let foreignKey = try Curve25519.Signing.PrivateKey(rawRepresentation: Data(repeating: 0x62, count: 32))
+    durableV3Error("v3.signature.invalid") { _ = try durableV3Retained(f, v, manifest: f.signed(f.manifest, signingKey: foreignKey)) }
+}
+
+@Test func durableV3RetainedContextCopiesWorkButIdenticalNewVerifierIsForeign() throws {
+    let f = try V3LocalFixture(), v = try f.verifier(), copy = v
+    let r = try durableV3Retained(f, v)
+    let refreshed = try copy._revalidateRetainedHealthyV3(r, payload: f.payload)
+    #expect(refreshed.artifactSHA256 == r.artifactSHA256 && refreshed.signedAssignment == r.signedAssignment)
+    let foreign = try f.verifier()
+    durableV3Error("v3.proof.context") { _ = try foreign._revalidateRetainedHealthyV3(r, payload: f.payload) }
+    // Foreign signed bytes can be independently verified, never the old token.
+    _ = try durableV3Retained(f, foreign, manifest: r.signedManifest, assignment: r.signedAssignment)
+}
+
+@Test func durableV3SnapshotsOwnExternallyBackedDocumentsAndReturnedDataUsesValueSemantics() throws {
+    let f = try V3LocalFixture(), v = try f.verifier()
+    let m = try f.signed(f.manifest) + Data(" \n".utf8), a = try f.signed(f.assignment, assignment: true)
+    let mp = UnsafeMutableRawPointer.allocate(byteCount: m.count, alignment: 1)
+    let ap = UnsafeMutableRawPointer.allocate(byteCount: a.count, alignment: 1)
+    defer { mp.deallocate(); ap.deallocate() }
+    m.copyBytes(to: mp.assumingMemoryBound(to: UInt8.self), count: m.count)
+    a.copyBytes(to: ap.assumingMemoryBound(to: UInt8.self), count: a.count)
+    let md = Data(bytesNoCopy: mp, count: m.count, deallocator: .none)
+    let ad = Data(bytesNoCopy: ap, count: a.count, deallocator: .none)
+    let o = try v._authorizeOfferV3(exactManifest: md, exactAssignment: ad, channel: "beta", installation: "install-a", lastSequence: 8, now: f.now)
+    let r = try durableV3Retained(f, v, manifest: md, assignment: ad)
+    mp.initializeMemory(as: UInt8.self, repeating: 0x21, count: m.count)
+    ap.initializeMemory(as: UInt8.self, repeating: 0x21, count: a.count)
+    #expect(o.signedManifest == m && o.signedAssignment == a && r.signedManifest == m && r.signedAssignment == a)
+    var returned = r.signedManifest; returned[returned.startIndex] ^= 1
+    #expect(r.signedManifest == m)
+    _ = try v._revalidateRetainedHealthyV3(r, payload: f.payload)
+}
+
+@Test func durableV3ExactDocumentAndPayloadCapsAndPreflightOrder() throws {
+    let f = try V3LocalFixture(payload: Data(repeating: 0x5a, count: 4_194_304),
+        host: V3LocalFixture.installed(payload: 4_194_304, limits: .init(memoryBytes: 4_194_304, fuel: 1_000_000, startupMilliseconds: 60_000)))
+    let v = try f.verifier(), m = try f.signed(f.manifest), a = try f.signed(f.assignment, assignment: true)
+    let exactM = m + Data(repeating: 32, count: 65_536-m.count), exactA = a + Data(repeating: 32, count: 65_536-a.count)
+    let r = try durableV3Retained(f, v, manifest: exactM, assignment: exactA)
+    #expect(r.signedManifest.count == 65_536 && r.payloadBytes == 4_194_304)
+    _ = try v._authorizeOfferV3(exactManifest: exactM, exactAssignment: exactA, channel: "beta", installation: "install-a", lastSequence: 8, now: f.now)
+    for (manifest, assignment) in [(exactM + Data([32]), exactA), (exactM, exactA + Data([32]))] {
+        durableV3Error("v3.document.size") { _ = try durableV3Retained(f, v, manifest: manifest, assignment: assignment) }
+        durableV3Error("v3.document.size") {
+            _ = try v._authorizeOfferV3(exactManifest: manifest, exactAssignment: assignment, channel: "beta", installation: "install-a", lastSequence: 8, now: f.now)
+        }
+    }
+    durableV3Error("v3.payload.size") { _ = try durableV3Retained(f, v, payload: f.payload + Data([0])) }
+    let small = try V3LocalFixture(), sv = try small.verifier()
+    durableV3Error("v3.payload.size") { _ = try durableV3Retained(small, sv, payload: Data(repeating: 0, count: 4097)) }
+    // Malformed small manifest must not be parsed before oversized later input.
+    durableV3Error("v3.document.size") { _ = try durableV3Retained(small, sv, manifest: Data([0xff]), assignment: exactA + Data([32])) }
+    durableV3Error("v3.payload.size") { _ = try durableV3Retained(small, sv, manifest: Data([0xff]), payload: Data(repeating: 0, count: 4097)) }
+}
+
+@Test func durableV3IdentifiersAreBoundedAndBoundToAssignmentAndCohort() throws {
+    let f = try V3LocalFixture(), v = try f.verifier(), m = try f.signed(f.manifest), a = try f.signed(f.assignment, assignment: true)
+    for (channel, installation) in [("", "install-a"), ("beta", ""), (String(repeating: "x", count: 129), "install-a"), ("beta", String(repeating: "x", count: 129)), ("beta", "bad/name")] {
+        durableV3Error("v3.assignment.identity") { _ = try v._authorizeOfferV3(exactManifest: m, exactAssignment: a, channel: channel, installation: installation, lastSequence: 8, now: f.now) }
+        durableV3Error("v3.assignment.identity") { _ = try v._verifyRetainedHealthySnapshotV3(exactManifest: m, exactAssignment: a, payload: f.payload, channel: channel, installation: installation, storedSequence: 9, acceptedSequence: 9) }
+    }
+    durableV3Error("v3.assignment.binding") { _ = try v._verifyRetainedHealthySnapshotV3(exactManifest: m, exactAssignment: a, payload: f.payload, channel: "other", installation: "install-a", storedSequence: 9, acceptedSequence: 9) }
+    let denied = try v3Changed(f.assignment) { $0["rollout_basis_points"] = .uint(0) }
+    durableV3Error("v3.assignment.cohort") { _ = try durableV3Retained(f, v, assignment: f.signed(denied, assignment: true)) }
+    let longChannel = String(repeating: "c", count: 128), longInstall = String(repeating: "i", count: 128)
+    let long = try v3Changed(f.assignment) { $0["channel"] = .text(longChannel) }
+    _ = try v._verifyRetainedHealthySnapshotV3(exactManifest: m, exactAssignment: f.signed(long, assignment: true), payload: f.payload,
+        channel: longChannel, installation: longInstall, storedSequence: 9, acceptedSequence: 9)
+}
+
+@Test func durableV3RetainedStillChecksAllMetadataResourceAndGrantFamilies() throws {
+    let f = try V3LocalFixture(), v = try f.verifier()
+    var bad: [CanonicalValue] = []
+    for (key, value) in ["schema": CanonicalValue.uint(2), "protocol": .uint(2), "guest_abi": .uint(1), "ui_schema": .uint(2),
+        "state_min": .uint(5), "state_max": .uint(3), "capability_hashes": .object([:]), "runtime": .text(String(repeating: "0", count: 64)),
+        "compression": .text("gzip"), "compressed_bytes": .uint(0), "expanded_bytes": .uint(1), "unknown": .uint(1)] {
+        bad.append(try v3Changed(f.manifest) { $0[key] = value })
+    }
+    for (key, value) in ["memory_bytes": UInt64(131_073), "fuel": 10_001, "startup_milliseconds": 1001] {
+        bad.append(try v3Changed(f.manifest) { root in root["limits"] = try v3Changed(try #require(root["limits"])) { $0[key] = .uint(value) } })
+    }
+    bad.append(try v3Changed(f.manifest) { root in root["capability_grants"] = try v3Changed(try #require(root["capability_grants"])) { $0["schema_sha256"] = .text(String(repeating: "0", count: 64)) } })
+    for manifest in bad {
+        let assignment = try durableV3Assignment(f, manifest: manifest)
+        #expect(throws: (any Error).self) { _ = try durableV3Retained(f, v, manifest: f.signed(manifest), assignment: f.signed(assignment, assignment: true)) }
+        #expect(throws: (any Error).self) { _ = try v._authorizeOfferV3(exactManifest: f.signed(manifest), exactAssignment: f.signed(assignment, assignment: true), channel: "beta", installation: "install-a", lastSequence: 8, now: f.now) }
+    }
+    let r = try durableV3Retained(f, v)
+    #expect(r.capabilityGrants.entries.map(\.capabilityID) == ["network.http.v1", "storage.keyValue.v1"])
+    #expect(r.resourceLimits.memoryBytes == 65_536 && r.manifest == f.manifest)
+}
+
+@Test func durableV3AssignmentShapeBindingSignatureAndPayloadMutationsFailClosed() throws {
+    let f = try V3LocalFixture(), v = try f.verifier()
+    for (key, value) in ["schema": CanonicalValue.uint(2), "cohort": .text("other"), "created_at_unix": .uint(0),
+        "rollout_basis_points": .uint(10_001), "release_id": .text("other"), "artifact_sha256": .text(String(repeating: "0", count: 64)),
+        "runtime": .text(String(repeating: "0", count: 64)), "channel": .text("other"), "unknown": .uint(0)] {
+        let a = try v3Changed(f.assignment) { $0[key] = value }
+        #expect(throws: (any Error).self) { _ = try durableV3Retained(f, v, assignment: f.signed(a, assignment: true)) }
+    }
+    for payload in [Data(), Data(repeating: 0, count: f.payload.count), f.payload + Data([0])] {
+        durableV3Error("v3.payload.integrity") { _ = try durableV3Retained(f, v, payload: payload) }
+    }
+    let r = try durableV3Retained(f, v)
+    durableV3Error("v3.payload.integrity") { _ = try v._revalidateRetainedHealthyV3(r, payload: Data(repeating: 0, count: f.payload.count)) }
+}
+
+@Test func durableV3AmbiguousRawJsonAndNoncanonicalSignaturesAreNeverRetained() throws {
+    let f = try V3LocalFixture(), v = try f.verifier(), good = try f.signed(f.manifest)
+    let text = String(decoding: good, as: UTF8.self)
+    for raw in ["\u{feff}" + text, text + "{}", text.replacingOccurrences(of: "\"schema\":3", with: "\"schema\":3,\"\\u0073chema\":3"),
+        text.replacingOccurrences(of: "\"schema\":3", with: "\"schema\":3.0"), text.replacingOccurrences(of: "\"manifest\":", with: "\"manifest\":null,\"other\":"),
+        text.replacingOccurrences(of: "\"signature\":\"", with: "\"signature\":\" ")] {
+        #expect(throws: (any Error).self) { _ = try durableV3Retained(f, v, manifest: Data(raw.utf8)) }
+    }
+    let assignment = String(decoding: try f.signed(f.assignment, assignment: true), as: UTF8.self)
+    let duplicate = assignment.replacingOccurrences(of: "\"sequence\":9", with: "\"sequence\":9,\"\\u0073equence\":9")
+    #expect(throws: (any Error).self) { _ = try durableV3Retained(f, v, assignment: Data(duplicate.utf8)) }
+}
+
+@Test func durableV3ValueCopiesAndImmutableEvidenceVerifyConcurrently() async throws {
+    let f = try V3LocalFixture(), v = try f.verifier(), r = try durableV3Retained(f, v)
+    try await withThrowingTaskGroup(of: UInt64.self) { group in
+        for _ in 0..<32 {
+            group.addTask {
+                let copy = v
+                return try copy._revalidateRetainedHealthyV3(r, payload: f.payload).sequence
+            }
+        }
+        var count = 0
+        for try await sequence in group { #expect(sequence == 9); count += 1 }
+        #expect(count == 32)
+    }
+}

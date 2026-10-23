@@ -529,7 +529,25 @@ payloads are metadata fixtures; production mode remains disabled.
 The reviewed durable-updater design now requires a separate immediate terminal
 failure latch because exact cleanup drain may never arrive. It also reserves a
 process-wide owner before any adapters and retains it through actual cleanup.
-Metadata SPI, adapter lifecycle and private durable I/O are under implementation.
+The metadata-only recovery SPI now passes69 debug/release tests,14 TSan tests,
+public opacity checks and official iOS/simulator/Android module builds. Root
+matched71 inputs,31 command logs,87 evidence files and12 retained artifacts, then
+passed204 independent external checks including the shared malformed-input corpus.
+Current-time verification stays strict. Retained metadata skips only signing-root
+time windows; it cannot establish committed-health provenance or execution authority.
+See `verification/release-v3-durable-spi-root-review/receipt.json`.
+
+Private durable I/O now bounds reads, chunks, state and prune inventory, pins its
+directory fd and preserves legacy I/O bytes. All23 tests pass in debug/release/TSan,
+29 independent checks pass, and iOS/Android modules and objects compile. Root
+matched139 frozen inputs,5 live new source files, both matrices and independent
+review; see `verification/capability-durable-io/final-receipt.json`. This synchronous
+primitive is not yet product actor/lifecycle integration. Hosted run39923420515 at
+a81f54c passes all three jobs before these additions; see
+`verification/github-ci-a81f54c/receipt.json`.
+
+Concrete adapter lifecycle, counted recovery storage and coordinator integration
+are under implementation.
 Concrete signed execution, health/recovery and full FieldLog remain in progress.
 Physical checks remain pending while the phones are disconnected; no product or
 GA gate is closed by this checkpoint.

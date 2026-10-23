@@ -1,0 +1,15 @@
+/Users/andreyyurlov/Documents/dev/mixer/updates/.build/durable-spi-2026-10-23-candidate-1/source/verification/release-v3-durable-spi/CompileNegative/public-method.swift:4:15: error: '_authorizeOfferV3' is inaccessible due to '@_spi' protection level
+2 | import MixerUpdates
+3 | func attempt(_ v: ReleaseVerifierV3) throws {
+4 |     _ = try v._authorizeOfferV3(exactManifest: Data(), exactAssignment: Data(), channel: "beta", installation: "a", lastSequence: 0, now: 1)
+  |               `- error: '_authorizeOfferV3' is inaccessible due to '@_spi' protection level
+5 | }
+6 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/updates/.build/durable-spi-2026-10-23-candidate-1/source/updates/Sources/MixerUpdates/VerifierV3.swift:215:44: note: '_authorizeOfferV3(exactManifest:exactAssignment:channel:installation:lastSequence:now:)' declared here
+213 |     /// Verifies exact offered headers against a caller-supplied high-water. The
+214 |     /// caller must reserve the greater sequence durably before accepting payload.
+215 |     @_spi(CapabilityDurableV3) public func _authorizeOfferV3(
+    |                                            `- note: '_authorizeOfferV3(exactManifest:exactAssignment:channel:installation:lastSequence:now:)' declared here
+216 |         exactManifest: Data, exactAssignment: Data, channel: String,
+217 |         installation: String, lastSequence: UInt64, now: UInt64

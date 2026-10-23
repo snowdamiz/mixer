@@ -66,6 +66,62 @@ public struct VerifiedAssignmentV3: Sendable {
     }
 }
 
+// BEGIN additive CapabilityDurableV3 metadata SPI.
+/// Signature-checked header eligibility, not payload verification, a durable
+/// reservation, executable admission or proof that a download was committed.
+@_spi(CapabilityDurableV3) public struct OfferEvidenceV3: Sendable {
+    public let artifactSHA256: String
+    public let payloadSHA256: String
+    public let payloadBytes: UInt64
+    public let sequence: UInt64
+    public let cohortBucket: UInt64
+    public let signedManifest: Data
+    public let signedAssignment: Data
+    fileprivate let context: V3VerificationContext
+    fileprivate init(metadata: V3DurableMetadata, context: V3VerificationContext,
+                     signedManifest: Data, signedAssignment: Data) {
+        artifactSHA256 = metadata.digest; payloadSHA256 = metadata.parsed.payloadHash
+        payloadBytes = metadata.parsed.payloadBytes; sequence = metadata.sequence
+        cohortBucket = metadata.bucket; self.context = context
+        self.signedManifest = signedManifest; self.signedAssignment = signedAssignment
+    }
+}
+
+/// Exact signed metadata and payload verified with the retained-only root-time
+/// exception. The trusted private updater must establish actual committed health.
+/// This type is not a current-time VerifiedArtifactV3 or execution authority.
+@_spi(CapabilityDurableV3) public struct RetainedHealthyEvidenceV3: Sendable {
+    public let manifest: CanonicalValue
+    public let artifactSHA256: String
+    public let payloadSHA256: String
+    public let releaseID: String
+    public let payloadBytes: UInt64
+    public let resourceLimits: ResourceLimits
+    public let capabilityGrants: VerifiedCapabilityGrantsV3
+    public let sequence: UInt64
+    public let cohortBucket: UInt64
+    public let channel: String
+    public let installation: String
+    public let signedManifest: Data
+    public let signedAssignment: Data
+    fileprivate let context: V3VerificationContext
+    fileprivate let acceptedSequence: UInt64
+    fileprivate init(metadata: V3DurableMetadata, context: V3VerificationContext,
+                     signedManifest: Data, signedAssignment: Data, channel: String,
+                     installation: String, acceptedSequence: UInt64) {
+        manifest = metadata.manifest; artifactSHA256 = metadata.digest
+        payloadSHA256 = metadata.parsed.payloadHash; releaseID = metadata.parsed.releaseID
+        payloadBytes = metadata.parsed.payloadBytes; resourceLimits = metadata.parsed.limits
+        capabilityGrants = VerifiedCapabilityGrantsV3(entries: metadata.parsed.grants,
+            context: context, artifactSHA256: metadata.digest)
+        sequence = metadata.sequence; cohortBucket = metadata.bucket
+        self.channel = channel; self.installation = installation; self.context = context
+        self.signedManifest = signedManifest; self.signedAssignment = signedAssignment
+        self.acceptedSequence = acceptedSequence
+    }
+}
+// END additive CapabilityDurableV3 metadata SPI.
+
 /// Explicit protocol3 / guestABI2 entrypoint. Legacy ReleaseVerifier is unchanged.
 /// Methods do bounded synchronous verification and schedule no background work.
 public struct ReleaseVerifierV3: Sendable {
@@ -152,6 +208,142 @@ public struct ReleaseVerifierV3: Sendable {
         return VerifiedAssignmentV3(assignment: assignment, artifact: artifact, sequence: sequence,
             bucket: bucket, channel: channel, installation: installation, signature: signature)
     }
+
+    // BEGIN additive CapabilityDurableV3 metadata SPI.
+    /// Verifies exact offered headers against a caller-supplied high-water. The
+    /// caller must reserve the greater sequence durably before accepting payload.
+    @_spi(CapabilityDurableV3) public func _authorizeOfferV3(
+        exactManifest: Data, exactAssignment: Data, channel: String,
+        installation: String, lastSequence: UInt64, now: UInt64
+    ) throws -> OfferEvidenceV3 {
+        try durablePreflight(manifest: exactManifest, assignment: exactAssignment,
+            channel: channel, installation: installation)
+        let manifest = V3Rules.snapshot(exactManifest), assignment = V3Rules.snapshot(exactAssignment)
+        let checked = try durableMetadata(manifest: manifest, assignment: assignment,
+            channel: channel, installation: installation, sequence: .offer(lastSequence), authority: .current(now))
+        return OfferEvidenceV3(metadata: checked, context: context,
+            signedManifest: manifest, signedAssignment: assignment)
+    }
+
+    /// The retained exception skips only root validity windows. This API cannot
+    /// establish that bytes came from a durable healthy record; the private OTA
+    /// updater must check that provenance before calling it on its own verifier.
+    @_spi(CapabilityDurableV3) public func _verifyRetainedHealthySnapshotV3(
+        exactManifest: Data, exactAssignment: Data, payload: Data, channel: String,
+        installation: String, storedSequence: UInt64, acceptedSequence: UInt64
+    ) throws -> RetainedHealthyEvidenceV3 {
+        try durablePreflight(manifest: exactManifest, assignment: exactAssignment,
+            channel: channel, installation: installation, payload: payload)
+        guard storedSequence > 0, storedSequence <= acceptedSequence else {
+            throw V3Rules.error("retained.sequence", "Stored sequence must bind the accepted high-water")
+        }
+        let manifest = V3Rules.snapshot(exactManifest), assignment = V3Rules.snapshot(exactAssignment)
+        let bytes = V3Rules.snapshot(payload)
+        let checked = try durableMetadata(manifest: manifest, assignment: assignment,
+            channel: channel, installation: installation,
+            sequence: .retained(stored: storedSequence, accepted: acceptedSequence), authority: .retained)
+        guard UInt64(bytes.count) == checked.parsed.payloadBytes,
+              V3Rules.hash(bytes) == checked.parsed.payloadHash else {
+            throw V3Rules.error("payload.integrity", "Payload differs from signed length or hash")
+        }
+        return RetainedHealthyEvidenceV3(metadata: checked, context: context,
+            signedManifest: manifest, signedAssignment: assignment, channel: channel,
+            installation: installation, acceptedSequence: acceptedSequence)
+    }
+
+    /// Rechecks the same immutable signed snapshot/context and supplied payload;
+    /// never converts retained authority into a current-time public artifact.
+    @_spi(CapabilityDurableV3) public func _revalidateRetainedHealthyV3(
+        _ evidence: RetainedHealthyEvidenceV3, payload: Data
+    ) throws -> RetainedHealthyEvidenceV3 {
+        try durablePreflight(manifest: evidence.signedManifest, assignment: evidence.signedAssignment,
+            channel: evidence.channel, installation: evidence.installation, payload: payload)
+        guard evidence.context === context, evidence.capabilityGrants.context === context,
+              evidence.capabilityGrants.artifactSHA256 == evidence.artifactSHA256 else {
+            throw V3Rules.error("proof.context", "Reverify exact signed snapshots with this verifier")
+        }
+        return try _verifyRetainedHealthySnapshotV3(exactManifest: evidence.signedManifest,
+            exactAssignment: evidence.signedAssignment, payload: payload, channel: evidence.channel,
+            installation: evidence.installation, storedSequence: evidence.sequence,
+            acceptedSequence: evidence.acceptedSequence)
+    }
+
+    private func durablePreflight(manifest: Data, assignment: Data, channel: String,
+                                  installation: String, payload: Data? = nil) throws {
+        // Check every variable-size argument before any owned snapshot. These
+        // entrypoints do not bound caller concurrency or claim allocation recovery.
+        guard manifest.count <= 65_536, assignment.count <= 65_536 else {
+            throw V3Rules.error("document.size", "Signed document exceeds 64 KiB")
+        }
+        if let payload, UInt64(payload.count) > host.maxPayloadBytes {
+            throw V3Rules.error("payload.size", "Payload exceeds installed limit")
+        }
+        guard channel.utf8.prefix(129).count <= 128,
+              installation.utf8.prefix(129).count <= 128,
+              V3Rules.identifier(channel), V3Rules.identifier(installation) else {
+            throw V3Rules.error("assignment.identity", "Invalid channel or installation")
+        }
+    }
+
+    private func durableMetadata(manifest signedManifest: Data, assignment signedAssignment: Data,
+                                 channel: String, installation: String, sequence policy: V3DurableSequence,
+                                 authority: V3DurableAuthority) throws -> V3DurableMetadata {
+        let (manifest, artifactSignature) = try envelope(signedManifest, field: "manifest")
+        let parsed = try manifestObject(manifest), canonical = try manifest.canonicalCBOR()
+        let digest = V3Rules.hash(canonical)
+        try durableAuthorize(parsed.fields, canonical: canonical, signature: artifactSignature,
+            artifact: true, authority: authority)
+        let (assignment, signature) = try envelope(signedAssignment, field: "assignment")
+        let fields = try V3Rules.object(assignment, keys: V3Rules.assignmentKeys)
+        try scopeObject(fields.required("scope"))
+        guard try fields.uint("schema") == 3, try fields.text("cohort") == "sha256-v1",
+              try fields.uint("created_at_unix") > 0, try fields.uint("rollout_basis_points") <= 10_000,
+              try V3Rules.identifier(fields.text("key_id")), try V3Rules.identifier(fields.text("release_id")),
+              try V3Rules.digest(fields.text("runtime")), try V3Rules.digest(fields.text("artifact_sha256")) else {
+            throw V3Rules.error("assignment.profile", "Invalid v3 assignment shape")
+        }
+        guard try fields.required("scope") == host.scope.canonical, try fields.text("runtime") == host.runtime,
+              try fields.text("release_id") == parsed.releaseID, try fields.text("artifact_sha256") == digest,
+              try fields.text("channel") == channel else {
+            throw V3Rules.error("assignment.binding", "Assignment does not bind artifact, host and channel")
+        }
+        let sequence = try fields.uint("sequence")
+        switch policy {
+        case .offer(let last):
+            guard sequence > last else { throw V3Rules.error("assignment.replay", "Assignment sequence must increase") }
+        case .retained(let stored, let accepted):
+            guard stored > 0, sequence == stored, stored <= accepted else {
+                throw V3Rules.error("retained.sequence", "Signed sequence differs from stored accepted record")
+            }
+        }
+        try durableAuthorize(fields, canonical: assignment.canonicalCBOR(), signature: signature,
+            artifact: false, authority: authority)
+        let bucket = try ReleaseVerifier.cohort(scope: host.scope, channel: channel, installation: installation)
+        guard try bucket < fields.uint("rollout_basis_points") else {
+            throw V3Rules.error("assignment.cohort", "Installation is outside rollout")
+        }
+        return V3DurableMetadata(manifest: manifest, parsed: parsed, digest: digest, sequence: sequence, bucket: bucket)
+    }
+
+    private func durableAuthorize(_ fields: [String: CanonicalValue], canonical: Data,
+                                  signature: Data, artifact: Bool, authority: V3DurableAuthority) throws {
+        switch authority {
+        case .current(let now):
+            try authorize(fields, canonical: canonical, signature: signature, artifact: artifact, now: now)
+        case .retained:
+            let id = try fields.text("key_id")
+            guard let root = context.roots[id], !root.revoked, root.scope == host.scope,
+                  artifact ? root.artifact : root.assignment else {
+                throw V3Rules.error("signature.authority", "Pinned signing authority denied")
+            }
+            let domain = artifact ? "mixer.artifact.v3\0" : "mixer.assignment.v3\0"
+            let key = try Curve25519.Signing.PublicKey(rawRepresentation: root.publicKey)
+            guard key.isValidSignature(signature, for: Data(domain.utf8) + canonical) else {
+                throw V3Rules.error("signature.invalid", "Ed25519 signature verification failed")
+            }
+        }
+    }
+    // END additive CapabilityDurableV3 metadata SPI.
 
     private func sameContext(_ artifact: VerifiedArtifactV3) throws {
         guard artifact.evidence.context === context, artifact.capabilityGrants.context === context,
@@ -278,6 +470,18 @@ public struct ReleaseVerifierV3: Sendable {
         return result
     }
 }
+
+// BEGIN additive CapabilityDurableV3 metadata SPI.
+fileprivate enum V3DurableAuthority { case current(UInt64), retained }
+fileprivate enum V3DurableSequence { case offer(UInt64), retained(stored: UInt64, accepted: UInt64) }
+fileprivate struct V3DurableMetadata {
+    let manifest: CanonicalValue
+    let parsed: V3Manifest
+    let digest: String
+    let sequence: UInt64
+    let bucket: UInt64
+}
+// END additive CapabilityDurableV3 metadata SPI.
 
 fileprivate final class V3VerificationContext: Sendable {
     let host: InstalledRuntime
