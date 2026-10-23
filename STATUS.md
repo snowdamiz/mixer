@@ -266,7 +266,8 @@ and coordinated cache use remain trusted. See
 `verification/capability-builder-review/receipt.json` and
 `experimental-capability-runtime/build-verification/RESULTS.md`.
 Swift guest-to-I/O composition, signed activation, distribution and physical-device
-qualification remain open. The new hosted builder CI step awaits its first run.
+qualification remain open. The first hosted builder step stopped in a timing-sensitive
+negative-test fixture before building its archive; that failure is retained below.
 
 Official Swift 6.3.3 Android/Wasm SDKs are installed and compiler probes have run
 on a physical Pixel and in a development-only Node WASI oracle. Xcode 27.1 / Swift
@@ -364,3 +365,18 @@ remain pending.
 GitHub run39905251612 at 3dd90c2 passed all three existing jobs after the native
 C documentation/evidence checkpoint. See `verification/github-ci-3dd90c2/receipt.json`.
 This revision predates the separate archive builder and Swift bridge implementation.
+
+
+GitHub run39907419542 at eb5dd05 passed the Linux VM and service jobs. The macOS
+job passed its earlier SDK/runtime/activation steps, then failed one builder
+boundary test: a 250 ms fixture deadline expired before the expected output flood.
+The optimized suite, actual archive stage, C consumers and generated consumer were
+not reached in that run. The builder itself is unchanged while the fixture gains
+a bounded child-readiness barrier. See `verification/github-ci-eb5dd05/receipt.json`.
+
+The fixture-only repair now passes all 22 boundary functions in both normal and
+optimized Python, including a deliberately delayed child startup. It preserves
+exact timeout/overflow/exit assertions and checks that descendant writes stop.
+Root reviewed the new fixture and matched both logs and source snapshots; the
+production builder remains byte-identical. See
+`verification/capability-builder-review/ci-fixture-fix.json`. Hosted rerun pending.

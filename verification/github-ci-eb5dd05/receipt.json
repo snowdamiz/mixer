@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "sourceRevision": "eb5dd05e43fe3b6d77e3799cd317d7b64d4c58ea",
+  "runId": 39907419542,
+  "url": "https://github.com/snowdamiz/mixer/actions/runs/39907419542",
+  "observedAt": "2026-10-23T05:49:46.615771+00:00",
+  "conclusion": "failure",
+  "jobs": [
+    {
+      "id": 120262451809,
+      "name": "vm",
+      "conclusion": "success"
+    },
+    {
+      "id": 120262452013,
+      "name": "services",
+      "conclusion": "success"
+    },
+    {
+      "id": 120262452136,
+      "name": "swift",
+      "conclusion": "failure"
+    }
+  ],
+  "failure": {
+    "job": "swift",
+    "step": "Isolated experimental capability archive and shared registry",
+    "test": "test_failed_command_kills_descendant_writer",
+    "expected": "command output limit",
+    "observed": "command timeout",
+    "fixture_timeout_seconds": 0.25,
+    "scope": "21 boundary functions passed; the descendant test failed before optimized tests, actual archive staging and C consumers. Existing earlier Swift/runtime/activation checks passed; generated consumer step was skipped."
+  },
+  "outputs": {
+    "jobs.json": "e5303642903d2f9b27c4d94e6aea790b8585327b60d1295b5c4bfb405774f6ec",
+    "run.json": "b014463f3d9acf58ac40fc8b6976502176d026008bfedd87cb19eba20450b2fa",
+    "swift-job.log": "fb99ee0fa0d3dc6629c06ad9d5222e33a9e4891ef37173dcc58806383230572f"
+  },
+  "followup": "Make output-limit/exit fixtures wait for child readiness and use a separate generous harness ceiling, preserving specific failure-reason assertions and descendant writer-stop checks. Production builder remains unchanged unless investigation proves a defect."
+}

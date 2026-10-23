@@ -13,6 +13,7 @@ import sys
 import tarfile
 import tempfile
 import time
+import types
 import unittest
 
 BUILDER=Path(__file__).resolve().parents[1]/'build-vm.py'
@@ -205,17 +206,59 @@ if not (Path(sys.argv[2])/'.mixer-capability-builder-quarantine').is_file():sys.
         with self.assertRaisesRegex(b.BuildError,'quarantined'):
             with b.cache_owner(cache):self.fail('interrupted cache reused')
     def test_failed_command_kills_descendant_writer(self):
-        for reason in ('timeout','output','nonzero','orphan'):
-            marker=self.base/('writer-'+reason)
-            writer='import time\nf=open('+repr(str(marker))+',"ab",buffering=0)\nwhile True:\n f.write(b"x");time.sleep(0.005)\n'
-            parent='import subprocess,sys,time\nsubprocess.Popen([sys.executable,"-c",'+repr(writer)+'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)\ntime.sleep(0.08)\n'
-            parent+= {'timeout':'time.sleep(10)','output':'print("x"*10000,flush=True);time.sleep(10)','nonzero':'sys.exit(7)','orphan':'sys.exit(0)'}[reason]
-            code,raw,problem=b.capture([sys.executable,'-c',parent],cwd='/',maximum=1000,timeout=0.25)
+        for reason in ('timeout','output','nonzero','orphan','startup-failure'):
+            marker=self.base/('writer-'+reason);ready=self.base/('ready-'+reason)
+            writer='import time\nf=open('+repr(str(marker))+',"ab",buffering=0)\nend=time.monotonic()+30\nwhile time.monotonic()<end:\n f.write(b"x");time.sleep(0.005)\n'
+            # Parent and descendant startup are fixture orchestration, not the
+            # deadline or output behavior being tested. The parent waits at a
+            # stdin barrier after the descendant has actually written a byte.
+            parent='import subprocess,sys,time\nfrom pathlib import Path\n'+('time.sleep(.4)\n' if reason=='output' else '')+'subprocess.Popen([sys.executable,"-c",'+repr(writer)+'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)\n'
+            parent+='while not Path('+repr(str(marker))+').exists() or not Path('+repr(str(marker))+').stat().st_size:time.sleep(.005)\n'
+            parent+='Path('+repr(str(ready))+').write_bytes(b"ready")\nif sys.stdin.buffer.read(1)!=b"G":sys.exit(8)\n'
+            parent+= {'timeout':'time.sleep(30)','output':'print("x"*10000,flush=True);time.sleep(30)','nonzero':'sys.exit(7)','orphan':'sys.exit(0)','startup-failure':'time.sleep(30)'}[reason]
+            startup_durations=[]
+            def prearmed_popen(*argv,**kwargs):
+                startup_began=time.monotonic()
+                child=subprocess.Popen(*argv,**kwargs,stdin=subprocess.PIPE)
+                try:
+                    startup_deadline=time.monotonic()+10
+                    while not ready.exists():
+                        if child.poll() is not None:raise RuntimeError('fixture parent exited during startup')
+                        if time.monotonic()>=startup_deadline:raise RuntimeError('fixture startup guard expired before ready')
+                        time.sleep(.005)
+                    startup_durations.append(time.monotonic()-startup_began)
+                    if reason=='startup-failure':raise RuntimeError('controlled fixture startup failure')
+                    child.stdin.write(b'G');child.stdin.flush();child.stdin.close()
+                    # capture starts its own real deadline only after Popen
+                    # returns. It still owns the actual private-session process.
+                    return child
+                except BaseException:
+                    try:
+                        if not b.stop_group(child):raise b.ProcessGroupError('fixture startup cleanup could not establish group exit')
+                    finally:child.stdin.close();child.stdout.close()
+                    raise
+            original=b.subprocess
+            b.subprocess=types.SimpleNamespace(Popen=prearmed_popen,TimeoutExpired=subprocess.TimeoutExpired,PIPE=subprocess.PIPE,STDOUT=subprocess.STDOUT)
+            try:
+                if reason=='startup-failure':
+                    with self.assertRaisesRegex((RuntimeError,b.ProcessGroupError),'controlled fixture startup failure|fixture startup cleanup'):
+                        b.capture([sys.executable,'-c',parent],cwd='/',maximum=1000,timeout=.25)
+                else:
+                    # Only the timeout case measures the short bound. Other
+                    # cases prove their exact reason, with scheduling headroom.
+                    code,raw,problem=b.capture([sys.executable,'-c',parent],cwd='/',maximum=1000,timeout=.25 if reason=='timeout' else 5)
+            finally:b.subprocess=original
+            self.assertTrue(marker.exists());self.assertTrue(ready.exists())
+            if reason=='output':self.assertGreaterEqual(startup_durations[0],.4)
+            if reason=='startup-failure':
+                length=marker.stat().st_size;time.sleep(.08);self.assertEqual(marker.stat().st_size,length,reason);continue
             if reason=='orphan':self.assertEqual(code,0);self.assertIn('left running descendants',problem)
+            elif reason=='nonzero':self.assertEqual(code,7)
             else:self.assertNotEqual(code,0)
-            self.assertTrue(marker.exists())
-            if reason in ('timeout','output'):self.assertIn('command '+('timeout' if reason=='timeout' else 'output limit'),problem)
-            length=marker.stat().st_size;time.sleep(0.08);self.assertEqual(marker.stat().st_size,length,reason)
+            if reason in ('timeout','output'):
+                self.assertEqual((problem or '').split(';',1)[0],'command '+('timeout' if reason=='timeout' else 'output limit'))
+            if reason=='output':self.assertEqual(raw,b'x'*1000) # overflow must actually occur; timeout never proves it
+            length=marker.stat().st_size;time.sleep(.08);self.assertEqual(marker.stat().st_size,length,reason)
             # An OS denial probing an adopted process group cannot establish
             # disappearance; conservative quarantine is allowed, never reuse.
             if 'still present' in (problem or ''):self.assertIn('command',problem)

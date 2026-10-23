@@ -71,4 +71,9 @@ LLVM bitcode. The step logs the complete build receipt and runs both the C smoke
 client and a mixed legacy/capability registry client against the single distinctly
 named archive. The legacy runtime/activation executables keep their separate
 default archive. This step does not yet compile or execute the Swift capability
-bridge, and its first hosted result is pending publication.
+bridge. Its first hosted run39907419542 at eb5dd05 stopped in the normal boundary
+suite: the output-overflow fixture exhausted its 250 ms timeout during child
+startup, before producing the expected flood. This run did not reach archive
+staging or C clients. The failure is retained in
+`verification/github-ci-eb5dd05/receipt.json`; a test-only readiness barrier
+separates process startup from the tested cleanup deadline.
