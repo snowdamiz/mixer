@@ -1,0 +1,1010 @@
+{
+  "phase": "after",
+  "observed_at_utc": "2026-10-23T13:21:16.875890+00:00",
+  "base": {
+    "base_revision": "5a0367d6c56bb288ddd45dccc44ddfe20f533781",
+    "base_tree": "bfe09e94da2a295dc0b3687d8c4a75be6aec3388",
+    "sources": [
+      {
+        "path": "experimental-capability-runtime/build-tests/guest_ui.c",
+        "sha256": "141c22438c39619fd25d3222c4d60a09ad82126e459fb16dafdc9bb66901e17f",
+        "snapshot": "verification/guest-ui-ci-repair/before/guest_ui.c"
+      },
+      {
+        "path": "experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/GuestUIProgram.swift",
+        "sha256": "979e2e1cda95a20638730477cb1cec52d9b0eda67f6c1230f91f3f7c596315c8",
+        "snapshot": "verification/guest-ui-ci-repair/before/GuestUIProgram.swift"
+      },
+      {
+        "path": "capability-activation/Tests/MixerCapabilityActivationTests/GuestUISignedProgram.swift",
+        "sha256": "b561a9574d3b01e57e9e819c7f20c72de047210c756094e4623bec23a77d6e85",
+        "snapshot": "verification/guest-ui-ci-repair/before/GuestUISignedProgram.swift"
+      },
+      {
+        "path": "experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/GuestProgram.swift",
+        "sha256": "a0805e2b39d3b5efbd4b5fe4065de143f4838cde00513b0cb15a923119025884",
+        "snapshot": "verification/guest-ui-ci-repair/before/GuestProgram.swift"
+      }
+    ]
+  },
+  "archive": {
+    "path": "experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/lib/libmixer_vm_capability_experimental.a",
+    "sha256": "4d3b6dc36ea034d5604299752d560cbbc0615002b6b5ef4e5c25bbb3cb7c6120"
+  },
+  "sources": [
+    {
+      "path": "experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/GuestProgram.swift",
+      "sha256": "a0805e2b39d3b5efbd4b5fe4065de143f4838cde00513b0cb15a923119025884"
+    },
+    {
+      "path": "experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/GuestUIProgram.swift",
+      "sha256": "d97a324206d861f16335857669ed3a82db9ae53b217d44b8c7239c9a73bc07c5"
+    },
+    {
+      "path": "capability-activation/Tests/MixerCapabilityActivationTests/GuestUISignedProgram.swift",
+      "sha256": "1370e00adc774d2fb5a8fbc25ceb37854ec69eed4ab55fc109fb215e893d94fd"
+    },
+    {
+      "path": "experimental-capability-runtime/build-tests/guest_ui.c",
+      "sha256": "f3f6ac7b75a11e9a918f764aecc59a94a380c43a928f76a0250dadeed25cd6c1"
+    }
+  ],
+  "commands": [
+    {
+      "name": "after-swift-version",
+      "command": [
+        "swiftc",
+        "--version"
+      ],
+      "exit_code": 0,
+      "log": "verification/guest-ui-ci-repair/after-swift-version.log",
+      "log_sha256": "30bb0d72a580e8e936ab32e24cab2876f82fa6b06d66fef876fe21a47e828acc"
+    },
+    {
+      "name": "after-clang-version",
+      "command": [
+        "clang",
+        "--version"
+      ],
+      "exit_code": 0,
+      "log": "verification/guest-ui-ci-repair/after-clang-version.log",
+      "log_sha256": "4e8a77bcb032deb6591b0db384ff9808d01d9030f00e2d877394df88a12a2536"
+    },
+    {
+      "name": "after-swift-compile",
+      "command": [
+        "swiftc",
+        "-parse-as-library",
+        "-swift-version",
+        "6",
+        "-warnings-as-errors",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/GuestProgram.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/GuestUIProgram.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/capability-activation/Tests/MixerCapabilityActivationTests/GuestUISignedProgram.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-ci-repair/FixtureParity.swift",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-ci-repair/.build/after/swift-parity"
+      ],
+      "exit_code": 0,
+      "log": "verification/guest-ui-ci-repair/after-swift-compile.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "after-swift-fixtures",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-ci-repair/.build/after/swift-parity",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-ci-repair/.build/after/output"
+      ],
+      "exit_code": 0,
+      "log": "verification/guest-ui-ci-repair/after-swift-fixtures.log",
+      "log_sha256": "3ed8597fb11d88ef2262f934c80b0a5ec24a0db2e9807a00e52fb895e967b506"
+    },
+    {
+      "name": "after-c-compile",
+      "command": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Wmisleading-indentation",
+        "-Werror",
+        "-mmacosx-version-min=14.0",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/include",
+        "-DFIXTURE_SOURCE=\"/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-tests/guest_ui.c\"",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-ci-repair/c_fixture_parity.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/lib/libmixer_vm_capability_experimental.a",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-ci-repair/.build/after/c-parity"
+      ],
+      "exit_code": 0,
+      "log": "verification/guest-ui-ci-repair/after-c-compile.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "after-c-fixtures",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-ci-repair/.build/after/c-parity",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-ci-repair/.build/after/output"
+      ],
+      "exit_code": 0,
+      "log": "verification/guest-ui-ci-repair/after-c-fixtures.log",
+      "log_sha256": "2c2cfc741e8ec8516793145020af6dba48d186e29d73c382ee455f5852bae4bf"
+    },
+    {
+      "name": "after-c-smoke-compile",
+      "command": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Wmisleading-indentation",
+        "-Werror",
+        "-mmacosx-version-min=14.0",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/include",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-tests/guest_ui.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/lib/libmixer_vm_capability_experimental.a",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-ci-repair/.build/after/c-smoke"
+      ],
+      "exit_code": 0,
+      "log": "verification/guest-ui-ci-repair/after-c-smoke-compile.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "after-c-smoke",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-ci-repair/.build/after/c-smoke"
+      ],
+      "exit_code": 0,
+      "log": "verification/guest-ui-ci-repair/after-c-smoke.log",
+      "log_sha256": "fb4c661b86c9e400df5d703b4b5d73885975ea6c4c156baf453d481b8c328d3e"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "c-0.wasm",
+      "size": 140,
+      "sha256": "78eee657157188f65fabf7d25a09acf11c4713e4206d831b641ddc8f5508eef2"
+    },
+    {
+      "name": "c-1.wasm",
+      "size": 140,
+      "sha256": "93e5d42b81852a44fe797d5ed1e99408c5b2260eba49757242c1c0d8dc818937"
+    },
+    {
+      "name": "runtime-changedWakeBuffer-0.wasm",
+      "size": 5609,
+      "sha256": "c6added2ed18231f51f6dd4b55b5509dedede16fa81652db4113612358193989"
+    },
+    {
+      "name": "runtime-changedWakeBuffer-1.wasm",
+      "size": 5609,
+      "sha256": "93ff015a1cc2ee600164f4294c432194c9dd46795ce2715e4fd6fa6ef4e48697"
+    },
+    {
+      "name": "runtime-changedWakeBuffer-127.wasm",
+      "size": 5639,
+      "sha256": "113b05653edb056fcf46e3fb5e9c7f1844641ecb652cf78911cbac1ac971ebfd"
+    },
+    {
+      "name": "runtime-changedWakeBuffer-128.wasm",
+      "size": 5639,
+      "sha256": "3c730a85f79605d79ca4c5588c1b94c6f31818def4a2a073798e05448be9ba1f"
+    },
+    {
+      "name": "runtime-changedWakeBuffer-16383.wasm",
+      "size": 5669,
+      "sha256": "9566e71ccc9d2e0bc71db44fa619353ea24dd4c26864bcc70875b41aa6bfc372"
+    },
+    {
+      "name": "runtime-changedWakeBuffer-16384.wasm",
+      "size": 5669,
+      "sha256": "0500b73e567add199426f71ec6e82599705eb65f7ff074910fe8185f007e0aad"
+    },
+    {
+      "name": "runtime-changedWakeBuffer-18446744073709551614.wasm",
+      "size": 5894,
+      "sha256": "1470b1a66366ba9f500cb2b80ad1c8290e9448010991f7306c48236caaf39f5d"
+    },
+    {
+      "name": "runtime-changedWakeBuffer-2.wasm",
+      "size": 5609,
+      "sha256": "a1c9c391ed3b1c275a274b99911723eece48db2ef63fe8a055e2db9224585380"
+    },
+    {
+      "name": "runtime-changedWakeBuffer-4294967295.wasm",
+      "size": 5744,
+      "sha256": "33a9cf8a68e5a384162c51b828062aa7da6da598d003600577d6baae0f297d3b"
+    },
+    {
+      "name": "runtime-changedWakeBuffer-4294967296.wasm",
+      "size": 5744,
+      "sha256": "2e0ff1f825ee8e6630a4c138fef020829225f50c492d33ddfb5607fdb217453c"
+    },
+    {
+      "name": "runtime-changedWakeBuffer-63.wasm",
+      "size": 5624,
+      "sha256": "7345bb30cf779dff94432e80f45cde430c2e4d0dba15adfd311562b19d34b348"
+    },
+    {
+      "name": "runtime-changedWakeBuffer-64.wasm",
+      "size": 5624,
+      "sha256": "b78b754b8d36c5eedf51900c87a1aa99596a1c0f8b03b24bbce33e1a6b058587"
+    },
+    {
+      "name": "runtime-changedWakeBuffer-9223372036854775807.wasm",
+      "size": 5879,
+      "sha256": "bf22207bdeb0babdc2e36a65a9808190ad44166fba4f81752b4c3b178511b1b3"
+    },
+    {
+      "name": "runtime-confirmationWindow-0.wasm",
+      "size": 2706,
+      "sha256": "8fc5e2bc1965719c14e18444194312cfb154888bb388715c2dafbbbe590a99ef"
+    },
+    {
+      "name": "runtime-confirmationWindow-1.wasm",
+      "size": 2706,
+      "sha256": "7669bd3ef176d4ed691a1752bd1b05d3e0db4782b59c9269c100dc53591f3493"
+    },
+    {
+      "name": "runtime-confirmationWindow-127.wasm",
+      "size": 2736,
+      "sha256": "423e3bade960d507c42ec6ddac25c28457c19f7684c8b55af8d439554d012456"
+    },
+    {
+      "name": "runtime-confirmationWindow-128.wasm",
+      "size": 2736,
+      "sha256": "f6a84487e1374ed2679d16b8d4ab567122eedc52d4cc5bf2578183f6c9a2bb30"
+    },
+    {
+      "name": "runtime-confirmationWindow-16383.wasm",
+      "size": 2766,
+      "sha256": "ae55936612dc9fa64216684e9c5a711018a5cd88ca8e5db3e18e0da209b47d3a"
+    },
+    {
+      "name": "runtime-confirmationWindow-16384.wasm",
+      "size": 2766,
+      "sha256": "df2542565539e25ffe9cc3b3f5f753544ee7ba1bf0b7ad38bf4a0e48b91c9d98"
+    },
+    {
+      "name": "runtime-confirmationWindow-18446744073709551614.wasm",
+      "size": 2991,
+      "sha256": "dd6a07bb743f7753e4c19a33de2e99f7c3f25482761204c605b6175cc083c294"
+    },
+    {
+      "name": "runtime-confirmationWindow-2.wasm",
+      "size": 2706,
+      "sha256": "374a79a109f46be9daf149eb9f1ab2964c06f47e5c2902329024c33be1aa7b72"
+    },
+    {
+      "name": "runtime-confirmationWindow-4294967295.wasm",
+      "size": 2841,
+      "sha256": "117a88d4a221d3a45713cb05b84da51698dd86d31b5ef08d7ac39a3907565015"
+    },
+    {
+      "name": "runtime-confirmationWindow-4294967296.wasm",
+      "size": 2841,
+      "sha256": "55a23cba52148399150ab4cd784d816efc2948564aa75e9a46b71e24d1a3ca53"
+    },
+    {
+      "name": "runtime-confirmationWindow-63.wasm",
+      "size": 2721,
+      "sha256": "02ff12bcfd3d1f51fdebf9f8c3aac9561b2b3094b3876f6844c6e48aab19c403"
+    },
+    {
+      "name": "runtime-confirmationWindow-64.wasm",
+      "size": 2721,
+      "sha256": "da89e2c5d8fba45dfd668ac4668baa13ec0098ccda79cc45c29bc5180dd8605e"
+    },
+    {
+      "name": "runtime-confirmationWindow-9223372036854775807.wasm",
+      "size": 2976,
+      "sha256": "af5d4f18d14c2314430b607762c683f5d44ddd20c9db005adcc5ddea88c723bc"
+    },
+    {
+      "name": "runtime-default.wasm",
+      "size": 5616,
+      "sha256": "0cf4d762364169e36f190205fff708ddc5e872dec061466166182fe1dfa5494d"
+    },
+    {
+      "name": "runtime-invalidEventDocument-0.wasm",
+      "size": 5631,
+      "sha256": "d5d67e4f785b9503ac0c4d8d1c65f65a6b33eecffadb1d5d6cc6d6286b0ae82e"
+    },
+    {
+      "name": "runtime-invalidEventDocument-1.wasm",
+      "size": 5631,
+      "sha256": "aa15cd6c823104cce938c5b573f86255ef0cf69ef4e0075472486ec0aab39bc8"
+    },
+    {
+      "name": "runtime-invalidEventDocument-127.wasm",
+      "size": 5661,
+      "sha256": "258d99052d932a0fe647c58ab79e1c584786fc807e0c8ecc0a17d7e3225e30d7"
+    },
+    {
+      "name": "runtime-invalidEventDocument-128.wasm",
+      "size": 5661,
+      "sha256": "aee877a14237cc7fbfea2995992f4f191afcd165f2af4b5136871b7c1ef835da"
+    },
+    {
+      "name": "runtime-invalidEventDocument-16383.wasm",
+      "size": 5691,
+      "sha256": "02b46b24f8463a624d416a10238c9120d846e31c5a1c7a396d18aea96ac6e19d"
+    },
+    {
+      "name": "runtime-invalidEventDocument-16384.wasm",
+      "size": 5691,
+      "sha256": "ceec279e92c1635075312d64c6d0f1ee969af0415efb2ce8472fef22ff6f3209"
+    },
+    {
+      "name": "runtime-invalidEventDocument-18446744073709551614.wasm",
+      "size": 5916,
+      "sha256": "c4d6c4f9c518f4553efcf25fb5db85f14d6a9dcdbb0e3ca67abc2d09ff311a51"
+    },
+    {
+      "name": "runtime-invalidEventDocument-2.wasm",
+      "size": 5631,
+      "sha256": "2b07d2fe2707dbd3df76db9ec2f336cd095f7f5a9faff08fadbb4ba107d19695"
+    },
+    {
+      "name": "runtime-invalidEventDocument-4294967295.wasm",
+      "size": 5766,
+      "sha256": "7e5455f962e36ccaf220b570a1433dffcdca8962bde89404f62e7f964ed7da34"
+    },
+    {
+      "name": "runtime-invalidEventDocument-4294967296.wasm",
+      "size": 5766,
+      "sha256": "2a00cbef82c549c6c95fd221542de6efcfc93c0b2c08bd3114db114196817db0"
+    },
+    {
+      "name": "runtime-invalidEventDocument-63.wasm",
+      "size": 5646,
+      "sha256": "868c53bf37b640f23ea50eabae75cc6f1721c051774cb54151de853379d82e72"
+    },
+    {
+      "name": "runtime-invalidEventDocument-64.wasm",
+      "size": 5646,
+      "sha256": "d5e204b137c81a8599d1d1284e14c93394e7003665c7196dc1e9df6aa52c6e15"
+    },
+    {
+      "name": "runtime-invalidEventDocument-9223372036854775807.wasm",
+      "size": 5901,
+      "sha256": "c242c275d3285ed5d86c2656de8529df28fa430bc3913346ba81c6d2e4abfd95"
+    },
+    {
+      "name": "runtime-invalidStartupHeader-0.wasm",
+      "size": 5616,
+      "sha256": "ab96cfeee8837f9300a9677d63f46799526f583eb33ec62393079d82962ad372"
+    },
+    {
+      "name": "runtime-invalidStartupHeader-1.wasm",
+      "size": 5616,
+      "sha256": "4df7e62572af6ff1fba93a3396708f03c0bebf92ab9b057d81bc60e1c33a5bff"
+    },
+    {
+      "name": "runtime-invalidStartupHeader-127.wasm",
+      "size": 5646,
+      "sha256": "91ae4dcea73f9cf016188b24469fdcf4edca67802611363c0d61c95402442191"
+    },
+    {
+      "name": "runtime-invalidStartupHeader-128.wasm",
+      "size": 5646,
+      "sha256": "91b60f77bb5b382b386a0567b6fbda657de65ab3bc81e3d91b8e9281811052f1"
+    },
+    {
+      "name": "runtime-invalidStartupHeader-16383.wasm",
+      "size": 5676,
+      "sha256": "e496a89f072b1e6fb87667642b927b41a3ce4fc6d2bee87c670bdb58b3f0e820"
+    },
+    {
+      "name": "runtime-invalidStartupHeader-16384.wasm",
+      "size": 5676,
+      "sha256": "dff0cb2f093acbb8b20f52a73e0fc242016387db18d58452edbb57f9c9c3bb70"
+    },
+    {
+      "name": "runtime-invalidStartupHeader-18446744073709551614.wasm",
+      "size": 5901,
+      "sha256": "642b3d107507d0df64b6a03c2c3c5b76dcaf2739c1647b7be07581aba713450a"
+    },
+    {
+      "name": "runtime-invalidStartupHeader-2.wasm",
+      "size": 5616,
+      "sha256": "4381c0e85f7d8d0f1bfeb36e30e0d75c99958280d78e6d390d887cb55988f299"
+    },
+    {
+      "name": "runtime-invalidStartupHeader-4294967295.wasm",
+      "size": 5751,
+      "sha256": "6b9e87c8768ddf61732ade983a85f6822a1c4df75f7d566d8a4a977618333060"
+    },
+    {
+      "name": "runtime-invalidStartupHeader-4294967296.wasm",
+      "size": 5751,
+      "sha256": "4b2655fdfc2575076ac0fc75f29814f8e2900bc743a9d6da8c20c1f958d25806"
+    },
+    {
+      "name": "runtime-invalidStartupHeader-63.wasm",
+      "size": 5631,
+      "sha256": "42323681635249628b8088325325f4499dcb9f46ed2e5d46b981d3156fc5d300"
+    },
+    {
+      "name": "runtime-invalidStartupHeader-64.wasm",
+      "size": 5631,
+      "sha256": "7b114d6ff1825037b20da8901fb93ede3bada12721af6a66ef043118da72b27a"
+    },
+    {
+      "name": "runtime-invalidStartupHeader-9223372036854775807.wasm",
+      "size": 5886,
+      "sha256": "9b8b64e1d72f638b5c7b997e35f435549192dd21a81d3cb532ef65fab5531223"
+    },
+    {
+      "name": "runtime-invalidWakeDocument-0.wasm",
+      "size": 5627,
+      "sha256": "a2becb0a6868e834b67772f8331092ab92385ecdd999fb5cd9d587cb44f5dbf6"
+    },
+    {
+      "name": "runtime-invalidWakeDocument-1.wasm",
+      "size": 5627,
+      "sha256": "b76d2ec005f9a3ef589f833e391ed22b9e90ea95f767d0d979ddb041f1c0ca9b"
+    },
+    {
+      "name": "runtime-invalidWakeDocument-127.wasm",
+      "size": 5657,
+      "sha256": "e5e21423f9a06e95bb696128c07c9d4fc8a127887dc8f9bed11d8e160ed4c69d"
+    },
+    {
+      "name": "runtime-invalidWakeDocument-128.wasm",
+      "size": 5657,
+      "sha256": "fb9b6bae2c71951a43f12d8c30ccf3dfcfa966deec5cd53c422166dacef03032"
+    },
+    {
+      "name": "runtime-invalidWakeDocument-16383.wasm",
+      "size": 5687,
+      "sha256": "982d4373b841606b505363285d926f9257aff5dfb72bf8be5e85761d042fae6a"
+    },
+    {
+      "name": "runtime-invalidWakeDocument-16384.wasm",
+      "size": 5687,
+      "sha256": "cf354bffd38efd152099da9446a7efdb54fe8817f59219facdb2dd44d54bb219"
+    },
+    {
+      "name": "runtime-invalidWakeDocument-18446744073709551614.wasm",
+      "size": 5912,
+      "sha256": "cd9a55084e2ac7ad64d3518477ff517e09df2e0642d9b404749d5c738efe1e0b"
+    },
+    {
+      "name": "runtime-invalidWakeDocument-2.wasm",
+      "size": 5627,
+      "sha256": "09e2f1b77193f89349beea3e2b9d1ecbc5d893ebd28fd4ba311c2ffc01f1803d"
+    },
+    {
+      "name": "runtime-invalidWakeDocument-4294967295.wasm",
+      "size": 5762,
+      "sha256": "38b5d0d21d1ddd22a0b031f7a49bae90de239f46154bd5135567d47717f40afe"
+    },
+    {
+      "name": "runtime-invalidWakeDocument-4294967296.wasm",
+      "size": 5762,
+      "sha256": "11bd4a1b1b2e57010f93a124f7c605750c1fd1729642954dcef9a3c941a7eb03"
+    },
+    {
+      "name": "runtime-invalidWakeDocument-63.wasm",
+      "size": 5642,
+      "sha256": "176e816e8450320e914e64d74b512503a8161b9c0a8d58969d71e74011805287"
+    },
+    {
+      "name": "runtime-invalidWakeDocument-64.wasm",
+      "size": 5642,
+      "sha256": "ca0b230c4bb82e2e007c11e7fff29c0e6501fc20c10009ddbeef10bcb8d2cd7c"
+    },
+    {
+      "name": "runtime-invalidWakeDocument-9223372036854775807.wasm",
+      "size": 5897,
+      "sha256": "f256611958e45d55d8f9ecc045e7bb7b67c7bd51a0ed728742ad47d2ede14822"
+    },
+    {
+      "name": "runtime-nonzeroEvent-0.wasm",
+      "size": 5616,
+      "sha256": "0fbcd375cd7a0d4785e69a481919504d911cd3ee9fc17def5de53dd1225b061d"
+    },
+    {
+      "name": "runtime-nonzeroEvent-1.wasm",
+      "size": 5616,
+      "sha256": "6697032e118727cbac62dc6e3fa9d481ee889d99c54c5249e600861a64c03b35"
+    },
+    {
+      "name": "runtime-nonzeroEvent-127.wasm",
+      "size": 5646,
+      "sha256": "beec514d98e811bc13b3ff0fbde784c972276a5e51a9af08120a03d6a2f471ae"
+    },
+    {
+      "name": "runtime-nonzeroEvent-128.wasm",
+      "size": 5646,
+      "sha256": "1daf1ebcefa569d2650fdb00b71e8eeabd2ebd8dd044413270e63f9bb9c91ddf"
+    },
+    {
+      "name": "runtime-nonzeroEvent-16383.wasm",
+      "size": 5676,
+      "sha256": "a9a48f93e195c7141df4da347f370cd3fecc69beb0e30f616760f7cf23386ddf"
+    },
+    {
+      "name": "runtime-nonzeroEvent-16384.wasm",
+      "size": 5676,
+      "sha256": "becf9cb8fa0c5e7e6bb0d2b6d7119aab7b6c323434230746a004565cada85413"
+    },
+    {
+      "name": "runtime-nonzeroEvent-18446744073709551614.wasm",
+      "size": 5901,
+      "sha256": "f7b1a940702e9598c83f69f5210f2b340d957b453fb8cf01cfcd79d65b477b45"
+    },
+    {
+      "name": "runtime-nonzeroEvent-2.wasm",
+      "size": 5616,
+      "sha256": "5147b17d5ffb355dc76f129186a152a708e9049ee2146f7331098549cda1b814"
+    },
+    {
+      "name": "runtime-nonzeroEvent-4294967295.wasm",
+      "size": 5751,
+      "sha256": "cc0c12f9f5387f1f0710c9ef0e07252fceab2f58c3fa192a27442a16f6810a59"
+    },
+    {
+      "name": "runtime-nonzeroEvent-4294967296.wasm",
+      "size": 5751,
+      "sha256": "633f87b88bd7564e62f2d4b34564df4acd2b183c0548c79da217e37e3e8162db"
+    },
+    {
+      "name": "runtime-nonzeroEvent-63.wasm",
+      "size": 5631,
+      "sha256": "278a6f4a7b87e93c7601069d95187a34d40e59c273183e70acbe7e2de348a373"
+    },
+    {
+      "name": "runtime-nonzeroEvent-64.wasm",
+      "size": 5631,
+      "sha256": "0de7ed3c4fd804c4890fdadbe6e7f5b008e5325b77552bce0e29408dc6268335"
+    },
+    {
+      "name": "runtime-nonzeroEvent-9223372036854775807.wasm",
+      "size": 5886,
+      "sha256": "e12b6d1cda4a71dfad9524520af6a04a98cd542538ba3a9292c30ed725979843"
+    },
+    {
+      "name": "runtime-normal-0.wasm",
+      "size": 5616,
+      "sha256": "20e231ddb794c79f4821a9299f27d425b33c9482c786e2dd1ac91d2092b3cc81"
+    },
+    {
+      "name": "runtime-normal-1.wasm",
+      "size": 5616,
+      "sha256": "0cf4d762364169e36f190205fff708ddc5e872dec061466166182fe1dfa5494d"
+    },
+    {
+      "name": "runtime-normal-127.wasm",
+      "size": 5646,
+      "sha256": "6ce16eace0a7059851f53ed98f65d51bccda3e5bdd30b0f80a003386d66f2222"
+    },
+    {
+      "name": "runtime-normal-128.wasm",
+      "size": 5646,
+      "sha256": "e589ae21834d42097cda239953565c331cbe844a3a5b4cbd43f25c9415eb7538"
+    },
+    {
+      "name": "runtime-normal-16383.wasm",
+      "size": 5676,
+      "sha256": "0d1422529da83e8fba4710ee0e50f3216ebf73779af9c1b66a9746653ac2bf91"
+    },
+    {
+      "name": "runtime-normal-16384.wasm",
+      "size": 5676,
+      "sha256": "7a45a4497894b2a11fbccf6e778766f672f4386e79d02ae5dcd1c3175c3537c3"
+    },
+    {
+      "name": "runtime-normal-18446744073709551614.wasm",
+      "size": 5901,
+      "sha256": "6d9073ba193b6ddd9e5d6a30c7b86fba33518090aa92870236798b971358ca53"
+    },
+    {
+      "name": "runtime-normal-2.wasm",
+      "size": 5616,
+      "sha256": "8b756ec8c3a6c43ec6ae13c7243fdae5b7b86382d83548dc0d621bcac914f7bc"
+    },
+    {
+      "name": "runtime-normal-4294967295.wasm",
+      "size": 5751,
+      "sha256": "bbf8a287b208b7396f02be032c21594e185abb7a2a5fbbab75fb333bdc76e22d"
+    },
+    {
+      "name": "runtime-normal-4294967296.wasm",
+      "size": 5751,
+      "sha256": "77471b5c5495e45a878b1b8e6af5995dc5e3f35697d7bdb4b033bd6ce0a53ef1"
+    },
+    {
+      "name": "runtime-normal-63.wasm",
+      "size": 5631,
+      "sha256": "9163712faeb49ace672908ef19462d876599b67e78b551bf90a02f5169c45f18"
+    },
+    {
+      "name": "runtime-normal-64.wasm",
+      "size": 5631,
+      "sha256": "4aabf76680a909c5b651bc4af5d859c09809a68812ba4cffa938c4de82c53043"
+    },
+    {
+      "name": "runtime-normal-9223372036854775807.wasm",
+      "size": 5886,
+      "sha256": "3b59a4b3887f8acf4e36afa68f70be20d52a70287d3ea5781b22883c158dd269"
+    },
+    {
+      "name": "runtime-outsideMemory-0.wasm",
+      "size": 5616,
+      "sha256": "4934b420fd7d761db8c4d06382b08a75199675c4c35e6e53dfb5a45ea889fa9a"
+    },
+    {
+      "name": "runtime-outsideMemory-1.wasm",
+      "size": 5616,
+      "sha256": "822506adeccd23ae2199a3accae404b73181274cc7822850ae38e3f8fe1453d4"
+    },
+    {
+      "name": "runtime-outsideMemory-127.wasm",
+      "size": 5646,
+      "sha256": "cb088f3661dfe90f9f54e4a173dfd48bf81e90d6e54c9cb139949fb27b9ed489"
+    },
+    {
+      "name": "runtime-outsideMemory-128.wasm",
+      "size": 5646,
+      "sha256": "66e3112525d46b134d5e1d312e9b65aa202e1ad6d679ad9c3c4db7462e55285a"
+    },
+    {
+      "name": "runtime-outsideMemory-16383.wasm",
+      "size": 5676,
+      "sha256": "87e8e612597051986f6b359b2edf6fcfbbb00cb214766f66a9f3cac182c65d89"
+    },
+    {
+      "name": "runtime-outsideMemory-16384.wasm",
+      "size": 5676,
+      "sha256": "275e07a80a11d8ce90dc7809f73257ccadad3b036e5658ccea48105750480e2a"
+    },
+    {
+      "name": "runtime-outsideMemory-18446744073709551614.wasm",
+      "size": 5901,
+      "sha256": "27f7877aeb6c3c3874d47c3ed69e545282c394a16cb33bbaf3e530c5175d8e12"
+    },
+    {
+      "name": "runtime-outsideMemory-2.wasm",
+      "size": 5616,
+      "sha256": "b07067b7149280056d349777e578aa5f2d94ec64b2a741c13b3543c578d608ae"
+    },
+    {
+      "name": "runtime-outsideMemory-4294967295.wasm",
+      "size": 5751,
+      "sha256": "c74fbcabcbbf04d829475c8ab1dd495421858c0b4df5d069420bb7ee574cfa27"
+    },
+    {
+      "name": "runtime-outsideMemory-4294967296.wasm",
+      "size": 5751,
+      "sha256": "ad549bd251d9a3d25e076e237b215db7d68985a8f734b3f09dd2d254e19857fe"
+    },
+    {
+      "name": "runtime-outsideMemory-63.wasm",
+      "size": 5631,
+      "sha256": "aab95410079e0473f863d9e7ffb718c5306f5f4d2fde3f945254f3a107951908"
+    },
+    {
+      "name": "runtime-outsideMemory-64.wasm",
+      "size": 5631,
+      "sha256": "fc88e08612113fbcba80c5235d5f94accf6945f508dcc8a06837ad0b4b067718"
+    },
+    {
+      "name": "runtime-outsideMemory-9223372036854775807.wasm",
+      "size": 5886,
+      "sha256": "3092df8d179a56f25a1ac504439cd0e04f91f641dd22ec7e591e2c595483b65c"
+    },
+    {
+      "name": "runtime-overlappingRanges-0.wasm",
+      "size": 5616,
+      "sha256": "1c3af08d22955bde64e2ea437281c5170ffbd36a57767451f705b121fa998479"
+    },
+    {
+      "name": "runtime-overlappingRanges-1.wasm",
+      "size": 5616,
+      "sha256": "34b6a6a3c25039e2334185092fedb667dc4a29223fa6d41415f37c316f96a817"
+    },
+    {
+      "name": "runtime-overlappingRanges-127.wasm",
+      "size": 5646,
+      "sha256": "0205cbf6c20008b7f46c7fcba5eb790997d6bb6abd91883502b85daa868fa3f1"
+    },
+    {
+      "name": "runtime-overlappingRanges-128.wasm",
+      "size": 5646,
+      "sha256": "9ac243ff098736788683e9629cde3bb8512e1d171c64ec550bf80cb9ac25a389"
+    },
+    {
+      "name": "runtime-overlappingRanges-16383.wasm",
+      "size": 5676,
+      "sha256": "14c3428fb8f4a550cb42e31c64213ac47e951b28ffdc0f64753e7db685820c2a"
+    },
+    {
+      "name": "runtime-overlappingRanges-16384.wasm",
+      "size": 5676,
+      "sha256": "8e7d5df4a0e2a8fc3de7ba01d7358f82eb205020dbdf2aeef64175ca602c6e55"
+    },
+    {
+      "name": "runtime-overlappingRanges-18446744073709551614.wasm",
+      "size": 5901,
+      "sha256": "d8643a8f7f5541638d29fe0090868d2f7414b3b5d34a9dfc1cc8a554d2107641"
+    },
+    {
+      "name": "runtime-overlappingRanges-2.wasm",
+      "size": 5616,
+      "sha256": "02f61060c3efb8af802663b51278823922aa4e64b8ac62ad33de078ceece8db0"
+    },
+    {
+      "name": "runtime-overlappingRanges-4294967295.wasm",
+      "size": 5751,
+      "sha256": "fd0f1fde017c03e9af989a13723ba970fd2576b146c407abc087fb76707ae8da"
+    },
+    {
+      "name": "runtime-overlappingRanges-4294967296.wasm",
+      "size": 5751,
+      "sha256": "be967b3140367aef970711e893814de927cbb2d28be0d2a541e4bab904b5c79a"
+    },
+    {
+      "name": "runtime-overlappingRanges-63.wasm",
+      "size": 5631,
+      "sha256": "20b31333eecd8c50af8ac6d964c3e17b426cf4820607ba87777d9c3fa4f79b08"
+    },
+    {
+      "name": "runtime-overlappingRanges-64.wasm",
+      "size": 5631,
+      "sha256": "eeea93efe84449f6879c34c13bbed7e0b268614e9036e3b356ce9b33fec63df8"
+    },
+    {
+      "name": "runtime-overlappingRanges-9223372036854775807.wasm",
+      "size": 5886,
+      "sha256": "0d4b405efe59af063e946ac13409259316e5ddd180d3c5bdc6ef45686c31fbcc"
+    },
+    {
+      "name": "runtime-regressedWake-0.wasm",
+      "size": 5616,
+      "sha256": "20e231ddb794c79f4821a9299f27d425b33c9482c786e2dd1ac91d2092b3cc81"
+    },
+    {
+      "name": "runtime-regressedWake-1.wasm",
+      "size": 5616,
+      "sha256": "2c6ccd12d8865a7a083e33655b90f33e2dcacd28cad5b93aef1e72293ee6102e"
+    },
+    {
+      "name": "runtime-regressedWake-127.wasm",
+      "size": 5644,
+      "sha256": "a2669e1a523100acb4916c93f2c6b61523b4c0728f09a3af0633858f53247eaa"
+    },
+    {
+      "name": "runtime-regressedWake-128.wasm",
+      "size": 5644,
+      "sha256": "f055d61c8a6f68e648e4d74a503db724be6fb4c15b81ddbbda2f3d94d90299d8"
+    },
+    {
+      "name": "runtime-regressedWake-16383.wasm",
+      "size": 5672,
+      "sha256": "505f1cd785799dac8a3ab6f504a132f26bd27210a95cf689f1a4087029772b69"
+    },
+    {
+      "name": "runtime-regressedWake-16384.wasm",
+      "size": 5672,
+      "sha256": "1d02c96b2e33e99baa3382d9e7305db0818238efce2390d1336b2e714def01ca"
+    },
+    {
+      "name": "runtime-regressedWake-18446744073709551614.wasm",
+      "size": 5882,
+      "sha256": "f4d270dae1ba31d61b34d896091feae18d70419314395e91da913cce048cd482"
+    },
+    {
+      "name": "runtime-regressedWake-18446744073709551615.wasm",
+      "size": 5882,
+      "sha256": "238ae7451e1ec65f0ca711ea65047a23168f4f7c6f0e2df1a96ec8509b51aa92"
+    },
+    {
+      "name": "runtime-regressedWake-2.wasm",
+      "size": 5616,
+      "sha256": "87ba0a55a8fe3954f953a897521f63213d817f39d442dd9a4f6db77eb8547c09"
+    },
+    {
+      "name": "runtime-regressedWake-4294967295.wasm",
+      "size": 5742,
+      "sha256": "78e40f424926d63a6891e10eed784df024b621e0621e32120178f5fb89209ce8"
+    },
+    {
+      "name": "runtime-regressedWake-4294967296.wasm",
+      "size": 5742,
+      "sha256": "074f8092ecd7b4a8348b0c409474c90763be8d7b482bbb2e9c194f2b85e8f887"
+    },
+    {
+      "name": "runtime-regressedWake-63.wasm",
+      "size": 5630,
+      "sha256": "1f7fe778acecc42c1ec95bad1947cff8967521128cbc77ea7737be37f379df3c"
+    },
+    {
+      "name": "runtime-regressedWake-64.wasm",
+      "size": 5630,
+      "sha256": "d7325855bb67e8b8319cb601b5efaf5a2d085f168d7d335e5d2aae15f1afbce1"
+    },
+    {
+      "name": "runtime-regressedWake-9223372036854775807.wasm",
+      "size": 5868,
+      "sha256": "7038f4b869216de00b5d45cb19d016d4e61ae37a94035dc43a835a47085635c0"
+    },
+    {
+      "name": "runtime-sameRevisionWake-0.wasm",
+      "size": 5616,
+      "sha256": "e85ba02c5c2538cb5abda69cb027495b3cb0cd4be6f1a89bb73fadf2defd5182"
+    },
+    {
+      "name": "runtime-sameRevisionWake-1.wasm",
+      "size": 5616,
+      "sha256": "2c6ccd12d8865a7a083e33655b90f33e2dcacd28cad5b93aef1e72293ee6102e"
+    },
+    {
+      "name": "runtime-sameRevisionWake-127.wasm",
+      "size": 5646,
+      "sha256": "ee9bdb55540854b0a0cf4da2f043e9fd5b8e86f54b98669907e059fcd4986777"
+    },
+    {
+      "name": "runtime-sameRevisionWake-128.wasm",
+      "size": 5646,
+      "sha256": "1fe98555eb0e703afd4b67bf33ed443175a52d39991c5b4cba16043911fa2901"
+    },
+    {
+      "name": "runtime-sameRevisionWake-16383.wasm",
+      "size": 5676,
+      "sha256": "e84e922ba668cd9277bb5f5f045c9007ecbce2a2a479cd901f5ceabc850c5723"
+    },
+    {
+      "name": "runtime-sameRevisionWake-16384.wasm",
+      "size": 5676,
+      "sha256": "58cac5471ee4dc3cc60e04a78d9ef42ecb9e9c9176fa8971441d55d28dc62d62"
+    },
+    {
+      "name": "runtime-sameRevisionWake-18446744073709551614.wasm",
+      "size": 5901,
+      "sha256": "e0c5cbd999350164d013561fde91369572b55af127000a07b3f1eaaa99712833"
+    },
+    {
+      "name": "runtime-sameRevisionWake-18446744073709551615.wasm",
+      "size": 5901,
+      "sha256": "5bb25bcbd650d55a58cb2dd16b43ed05fa0a2cd6cf75ce1df09dc2b2b1a16755"
+    },
+    {
+      "name": "runtime-sameRevisionWake-2.wasm",
+      "size": 5616,
+      "sha256": "7bee9f30d8b1866e1b812a36c93f18152c09b61747fb60d1b526401bd4c376a7"
+    },
+    {
+      "name": "runtime-sameRevisionWake-4294967295.wasm",
+      "size": 5751,
+      "sha256": "a15b3a13e786774b8f2f39f01a8046abf3c8a9805fd7fa05d5b057222269b7d4"
+    },
+    {
+      "name": "runtime-sameRevisionWake-4294967296.wasm",
+      "size": 5751,
+      "sha256": "1eda8a7be8665c046cc39854858582553e4ccd6e37a7b385ebfe060e1b84228b"
+    },
+    {
+      "name": "runtime-sameRevisionWake-63.wasm",
+      "size": 5631,
+      "sha256": "f0dc1ddb95903bfc39eba9b26c2e9306bfda4868f61a6050342004d0a24f3c09"
+    },
+    {
+      "name": "runtime-sameRevisionWake-64.wasm",
+      "size": 5631,
+      "sha256": "2e8de4cc8f4800725e53821f47ce73eadbf64ffc453cef9f4d2b8d9cdae7845c"
+    },
+    {
+      "name": "runtime-sameRevisionWake-9223372036854775807.wasm",
+      "size": 5886,
+      "sha256": "83a133a44ba65d985f9cf01955dd5bfe2031ac5d20160eed403002bcc33df8e1"
+    },
+    {
+      "name": "runtime-unconsumed-0.wasm",
+      "size": 2660,
+      "sha256": "fe5cba3c0096f95ad52383e958690a6ae124e195a0b0596b3f9aa492bf3144fb"
+    },
+    {
+      "name": "runtime-unconsumed-1.wasm",
+      "size": 2660,
+      "sha256": "98b3efece8b1bcaaeb306ea3bde5e3b36eacdbd8de3d30ffc25ee17c1784d752"
+    },
+    {
+      "name": "runtime-unconsumed-127.wasm",
+      "size": 2690,
+      "sha256": "9bce7aad14a853bb9a5ad6963a090a0509c1ba0929080076879fcb8bafbabdbe"
+    },
+    {
+      "name": "runtime-unconsumed-128.wasm",
+      "size": 2690,
+      "sha256": "1af261a7878006073191a4580d58323f8519094075f461bd6adb42104a611131"
+    },
+    {
+      "name": "runtime-unconsumed-16383.wasm",
+      "size": 2720,
+      "sha256": "6135eef0a60f87a82066e66d0a05d85596eed29519df258cd576b03a97214578"
+    },
+    {
+      "name": "runtime-unconsumed-16384.wasm",
+      "size": 2720,
+      "sha256": "2e063d117b8aa6de60e0d60bfa24f4f9e021cc370b0b944efbebfa1268b5517b"
+    },
+    {
+      "name": "runtime-unconsumed-18446744073709551614.wasm",
+      "size": 2945,
+      "sha256": "e19feb8cdd778d422bf1b9039433be31dc75513db982b7d1e8835924e0a4b5d8"
+    },
+    {
+      "name": "runtime-unconsumed-2.wasm",
+      "size": 2660,
+      "sha256": "57ab5ec4bb5698335dc17b2c50792861dedaaf3d16de663ffe0d4e8a29a2380a"
+    },
+    {
+      "name": "runtime-unconsumed-4294967295.wasm",
+      "size": 2795,
+      "sha256": "574ee2aa578b426b1e14a524551b320478d3ada3346a3e579381d41d864097fd"
+    },
+    {
+      "name": "runtime-unconsumed-4294967296.wasm",
+      "size": 2795,
+      "sha256": "41cdb10c3370bbde56e38ba505296d0e59b1d66cb4604ba3133ad2c08a160b40"
+    },
+    {
+      "name": "runtime-unconsumed-63.wasm",
+      "size": 2675,
+      "sha256": "6fd8e1aed171d80a92e865262f2367a6b16fdda751de921d87dd692e99b1039a"
+    },
+    {
+      "name": "runtime-unconsumed-64.wasm",
+      "size": 2675,
+      "sha256": "066f5f29a072404f52619d2a95a1f1f0bae387becb01fdae4d42704102eab2b9"
+    },
+    {
+      "name": "runtime-unconsumed-9223372036854775807.wasm",
+      "size": 2930,
+      "sha256": "b04f3da53ef66124e4d3769d2335a202c016779a7772783e1d7e39c42f3cc0b4"
+    },
+    {
+      "name": "signed-default.wasm",
+      "size": 6343,
+      "sha256": "fde0492be3e21c77c902586c4bbd75fb4e35a8a4d170cc0039ea3c1185e8eecf"
+    },
+    {
+      "name": "signed-invalidEventDocument.wasm",
+      "size": 6343,
+      "sha256": "59b6c7b2f02775b55020ee127b8d2161a25de8b7ba1a3972b9943413f66488a6"
+    },
+    {
+      "name": "signed-invalidHeader.wasm",
+      "size": 6343,
+      "sha256": "0e28def57518d5ed012e11c5774906cc6cde53875708758f87b76a88a9e294e4"
+    },
+    {
+      "name": "signed-invalidWakeDocument.wasm",
+      "size": 6343,
+      "sha256": "2e80a977c2b790116bc0385a365dfdf387247025a42786433572ac25a54ddc2f"
+    },
+    {
+      "name": "signed-missingEvent.wasm",
+      "size": 6317,
+      "sha256": "58784fd8c40dd34faa3b60635f48e5abc57ab3c8bef613fd17b6f12f8bfbf36b"
+    },
+    {
+      "name": "signed-valid.wasm",
+      "size": 6343,
+      "sha256": "fde0492be3e21c77c902586c4bbd75fb4e35a8a4d170cc0039ea3c1185e8eecf"
+    }
+  ],
+  "byte_parity": {
+    "status": "passed",
+    "modules": 167,
+    "comparison": "full byte arrays and SHA-256",
+    "scope": "all 12 runtime modes across 13 initialRevision values, max for two non-overflowing modes, both defaults, all 5 signed modes, both C variants",
+    "limitation": "representative UInt64 boundaries and every existing test parameter; not exhaustive over 2^64 values"
+  },
+  "status": "passed"
+}

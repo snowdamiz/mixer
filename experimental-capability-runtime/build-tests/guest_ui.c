@@ -9,12 +9,21 @@ typedef struct { uint8_t data[1024];size_t size; } Wasm;
 static void byte(Wasm *w,uint8_t b) { assert(w->size<sizeof(w->data));w->data[w->size++]=b; }
 static void count(Wasm *w,unsigned n) { do {byte(w,(uint8_t)((n&127)|(n>127?128:0)));n>>=7;}while(n); }
 static void text(Wasm *w,const char *s) { count(w,(unsigned)strlen(s));while(*s)byte(w,(uint8_t)*s++); }
-static void section(Wasm *w,uint8_t id,const Wasm *s) { byte(w,id);count(w,(unsigned)s->size);for(size_t i=0;i<s->size;i++)byte(w,s->data[i]); }
+static void section(Wasm *w,uint8_t id,const Wasm *s) {
+    byte(w,id);
+    count(w,(unsigned)s->size);
+    for(size_t i=0;i<s->size;i++) {
+        byte(w,s->data[i]);
+    }
+}
 static Wasm program(unsigned wrong_event) {
     Wasm w={{0,97,115,109,1,0,0,0},8},s={{0},0};
     /* () -> i32; (i32) -> i32; () -> (). No imports or start section. */
     const uint8_t types[]={3,0x60,0,1,0x7f,0x60,1,0x7f,1,0x7f,0x60,0,0};
-    for(size_t i=0;i<sizeof(types);i++)byte(&s,types[i]);section(&w,1,&s);
+    for(size_t i=0;i<sizeof(types);i++) {
+        byte(&s,types[i]);
+    }
+    section(&w,1,&s);
     s.size=0;byte(&s,3);byte(&s,0);byte(&s,1);byte(&s,2);section(&w,3,&s);
     s.size=0;byte(&s,1);byte(&s,1);byte(&s,1);byte(&s,1);section(&w,5,&s);
     s.size=0;byte(&s,3);
@@ -23,7 +32,11 @@ static Wasm program(unsigned wrong_event) {
     text(&s,"mixer_guest_capability_ready_v1");byte(&s,0);byte(&s,2);section(&w,7,&s);
     /* Start returns zero, event returns its argument, ready does nothing. */
     const uint8_t bodies[]={3,4,0,0x41,0,0x0b,4,0,0x20,0,0x0b,2,0,0x0b};
-    s.size=0;for(size_t i=0;i<sizeof(bodies);i++)byte(&s,bodies[i]);section(&w,10,&s);
+    s.size=0;
+    for(size_t i=0;i<sizeof(bodies);i++) {
+        byte(&s,bodies[i]);
+    }
+    section(&w,10,&s);
     return w;
 }
 static unsigned checks;

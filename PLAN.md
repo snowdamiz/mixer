@@ -175,3 +175,18 @@ delivery-size budget remain open. The first Mac display probes were occluded and
 correctly produced no health receipt. This checkpoint grants no FieldLog or GA
 acceptance. Phones remain disconnected. Hosted CI for this newer UI checkpoint
 will be inspected after its push.
+
+The signed Mac window flow now passes against the exact candidate4 runtime
+binary. Root used native controls to start the signed guest, click Save sample,
+inspect Saved sample, and close/verify storage. Revisions1->2->3, committed
+health through the public recovery snapshot, exact stored bytes and joined
+cleanup are recorded in verification/guest-ui-activation-window/receipt.json.
+This supersedes the earlier occluded Mac probe limitation for this specific
+flow; full Swift/FieldLog and mobile lifecycle qualification remain open.
+Hosted run39952552065 at5a0367d passed services but exposed test-fixture
+portability errors in GCC indentation and pinned Swift expression typechecking.
+Its complete logs are retained in verification/github-ci-5a0367d; later Swift
+steps were skipped, not passed. Byte-preserving fixture repairs now pass locally:167 exact outputs,42 C
+checks,13 runtime UI tests and113 activation tests. The repair receipt is
+verification/guest-ui-ci-repair/receipt.json. Pinned GCC/Swift confirmation
+remains pending the next hosted run.

@@ -1,0 +1,74 @@
+{
+  "status": "local-fixture-repair-verified-pinned-ci-pending",
+  "observed_at_utc": "2026-10-23T13:24:42.389194+00:00",
+  "base_revision": "5a0367d6c56bb288ddd45dccc44ddfe20f533781",
+  "base_git_tree": "bfe09e94da2a295dc0b3687d8c4a75be6aec3388",
+  "source_scope": "three edited test fixture files; production sources unchanged by this lane",
+  "source_manifest": {
+    "path": "verification/guest-ui-ci-repair/source-manifest.sha256",
+    "sha256": "0659c656702ca664000ac7f7c4689cb97f4ed6447ae75eca014ae780932dbc09"
+  },
+  "runtime_source_manifest": {
+    "path": "verification/guest-ui-ci-repair/runtime-source-manifest.json",
+    "sha256": "65fdb6670a361382e1928637a191969f1b5e9d9e828c2fb907d16b07deadde6b"
+  },
+  "changed_sources": [
+    {
+      "path": "experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/GuestUIProgram.swift",
+      "sha256": "d97a324206d861f16335857669ed3a82db9ae53b217d44b8c7239c9a73bc07c5"
+    },
+    {
+      "path": "capability-activation/Tests/MixerCapabilityActivationTests/GuestUISignedProgram.swift",
+      "sha256": "1370e00adc774d2fb5a8fbc25ceb37854ec69eed4ab55fc109fb215e893d94fd"
+    },
+    {
+      "path": "experimental-capability-runtime/build-tests/guest_ui.c",
+      "sha256": "f3f6ac7b75a11e9a918f764aecc59a94a380c43a928f76a0250dadeed25cd6c1"
+    }
+  ],
+  "byte_parity": {
+    "status": "passed",
+    "modules": 167,
+    "comparison": "full byte arrays and SHA-256",
+    "scope": "all 12 runtime modes across 13 initialRevision values, max for two non-overflowing modes, both defaults, all 5 signed modes, both C variants",
+    "limitation": "representative UInt64 boundaries and every existing test parameter; not exhaustive over 2^64 values"
+  },
+  "results": {
+    "native_C_smoke_checks": 42,
+    "runtime_guest_UI_tests": 13,
+    "activation_debug_tests": 113,
+    "activation_debug_failures": 0
+  },
+  "tools": {
+    "Swift": "swift-driver version: 1.168.6 Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.0.0",
+    "C": "Apple clang version 21.0.0 (clang-2100.3.34.2)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin"
+  },
+  "archive": {
+    "path": "experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/lib/libmixer_vm_capability_experimental.a",
+    "sha256": "4d3b6dc36ea034d5604299752d560cbbc0615002b6b5ef4e5c25bbb3cb7c6120"
+  },
+  "evidence": [
+    {
+      "path": "verification/guest-ui-ci-repair/before-source.json",
+      "sha256": "be5349022e9ca0f60f79db1ed2f1274cf3419b223277fe224b9c3aaed6a5277c"
+    },
+    {
+      "path": "verification/guest-ui-ci-repair/before.json",
+      "sha256": "1d8c51522f17d70892d77e8cfc9ee6e3c890bace563829cfcca5c9a87016b7e9"
+    },
+    {
+      "path": "verification/guest-ui-ci-repair/after.json",
+      "sha256": "f390e9b2950e3acbf8212b9c2ba50bf866ce6d37633a7fe97d7f473e0649545f"
+    },
+    {
+      "path": "verification/guest-ui-ci-repair/tests.json",
+      "sha256": "9b9c3e6768240fc087581a02fdba0038fc44561f8cdea151147c9a41242b6f32"
+    }
+  ],
+  "pending": [
+    "Ubuntu GCC CI warning-as-error execution",
+    "Pinned Xcode 26.3 / Swift 6.2.4 CI typecheck and test execution",
+    "Physical iOS/Android, immutable published-package dogfood, signing, store, customer, operational and GA gates are outside this fixture-only receipt"
+  ],
+  "source_and_artifact_policy": "No new dependencies, external implementation or fixtures; no existing dependency/product archive rewritten; no commit or push by this lane."
+}

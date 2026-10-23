@@ -1,0 +1,87 @@
+{
+  "status": "signed native Mac window flow passed",
+  "checkpoint": "5a0367d6c56bb288ddd45dccc44ddfe20f533781",
+  "build_receipt_sha256": "495507e26594a50918a9227f5edc516ede76ab018adb993a11086bed8adaea94",
+  "progress_sha256": "c1ed875c523c20a004b3086faf00924d23c832c6d1626aa82f29dbaf3f54825a",
+  "app": "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation-window/.build/candidate-2/MixerSignedGuestUI.app",
+  "executable_sha256": "9038e151802d3f89b3c90a7780454e58692ff752d6ff96751807340724d1eb60",
+  "runtime_dylib_sha256": "500891f340d46e25216e32a59b2c91e25db7e50de17c1643e427446201138820",
+  "ui_control": "mcp__cua_repl native app accessibility actions and screenshots",
+  "observations": [
+    {
+      "action": "Open candidate2 app",
+      "observed": "Signed payload staged. Press Start signed guest."
+    },
+    {
+      "action": "Click Start signed guest",
+      "observed": "Ready; guest revisions 1; Save sample button available"
+    },
+    {
+      "action": "Click native guest Save sample",
+      "observed": "Saved sample; guest revisions 1 -> 2 -> 3; native display health committed through public recovery snapshot"
+    },
+    {
+      "action": "Inspect screenshot",
+      "observed": "Saved sample rendered in native window and Save sample disabled; native health observed"
+    },
+    {
+      "action": "Click Close and verify storage",
+      "observed": "PASS: signed guest event, committed bytes, native display health, and joined close."
+    },
+    {
+      "action": "Click Quit and inspect app inventory",
+      "observed": "Verification process absent from running app inventory"
+    }
+  ],
+  "verification": {
+    "revisions": [
+      1,
+      2,
+      3
+    ],
+    "health_before_close": {
+      "busy": false,
+      "candidateID": "4e3f6d444a92b27f04fae962b6e340be41460202bdb2b4428db7ad82c3d476b1",
+      "cleanupPending": false,
+      "closed": false,
+      "effectsMayHaveOpened": true,
+      "firstBridgeFailure": null,
+      "firstUIProtocolFailure": null,
+      "healthy": "4e3f6d444a92b27f04fae962b6e340be41460202bdb2b4428db7ad82c3d476b1",
+      "incompleteAttempt": true,
+      "launchID": "D353172F-4AEA-47FC-8C69-ABC708CC76CC",
+      "phase": "healthyGuest",
+      "requiresReopen": false,
+      "terminalCause": null
+    },
+    "closed": {
+      "busy": false,
+      "candidateID": "4e3f6d444a92b27f04fae962b6e340be41460202bdb2b4428db7ad82c3d476b1",
+      "cleanupPending": false,
+      "closed": true,
+      "effectsMayHaveOpened": true,
+      "firstBridgeFailure": null,
+      "firstUIProtocolFailure": null,
+      "healthy": "4e3f6d444a92b27f04fae962b6e340be41460202bdb2b4428db7ad82c3d476b1",
+      "incompleteAttempt": false,
+      "launchID": "D353172F-4AEA-47FC-8C69-ABC708CC76CC",
+      "phase": "closed",
+      "requiresReopen": true,
+      "terminalCause": "closed"
+    },
+    "stored": {
+      "expectedValueBase64": "AAH+/w==",
+      "found": true,
+      "matchesExpectedBytes": true,
+      "valueBase64": "AAH+/w=="
+    }
+  },
+  "scope": "Real local NSWindow + native SwiftUI guest button -> public signed runtime -> original Wasm bytecode -> concrete app-private KV -> guest Saved document; actual private native layout/display probe earns health, public close joins cleanup, public KV reader verifies exact persisted bytes. Actual CUA screenshots inspected in chat; pixels are not stored as a separate local artifact.",
+  "limits": [
+    "Original bytecode fixture, not compiled full Swift/FieldLog guest",
+    "Test-only signer and installed metadata, not linked release build provenance",
+    "Mac display observation is AppKit displayIfNeeded, not compositor timing proof",
+    "No physical iOS/Android, mobile lifecycle/accessibility/performance, published package, store, FieldLog or GA acceptance"
+  ],
+  "prior_attempt": "Candidate1 required foreground/key-window status not supplied by this app-control surface; closed without qualification. Candidate2 adds a native Start button calling only public runtime.start; production display/health checks and runtime binary unchanged."
+}
