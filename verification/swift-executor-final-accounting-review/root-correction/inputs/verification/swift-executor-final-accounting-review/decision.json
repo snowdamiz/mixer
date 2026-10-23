@@ -1,0 +1,1241 @@
+{
+  "schema": "mixer.swift-executor-final-accounting-independent-review.v1",
+  "decision": "blocking_missing_explicit_disjoint_final_boundary_inventory",
+  "root_acceptance": false,
+  "base_revision": "0f177adf10af78a8442e2dd4c66679fe54b20113",
+  "source_tree_digest": "44081606beaae9380427732b139c0a295067e5811c842876f1b61f6b3ade9e2d",
+  "source_sha256": {
+    "vm/src/experimental_swift_reactor/control.rs": "55e0e89c5da57347f02fd13dfb97296c19c3ace7d94fc11109dd224c9046b79f",
+    "vm/src/experimental_swift_reactor/execution.rs": "33f4ae0f00f20c24656a3456e5203a980e456acbb22a72214b74e82eb423f81e",
+    "docs/swift-executor-stage-contract.md": "0343f52877628c0aa8fb6a2408ac40ff4360788210c0fcd39e0ce4815c37ec1b",
+    "docs/swift-cache-foundation-phase-addendum.md": "8a8909b4dde0e7c05157da64a43b27b499cd17ef633459db7f9e356e97d93088",
+    "docs/swift-cache-candidate3-acceptance.md": "5d11b7ed715f6cdf580a324acaa9c81bfaa7966b950fc5644b0fd3cd123d4b7e"
+  },
+  "measurement_toolchain": "rustc 1.99.0 (b940084d7 2026-09-28), aarch64-apple-darwin",
+  "profile_test_counts": {
+    "debug": 1,
+    "release": 1
+  },
+  "candidate_const_formula_test_counts": {
+    "debug": 1,
+    "release": 1
+  },
+  "proposal_sha256": "340676f1e7fa4aee71bba469c1bc226c4ed432da805c55d885cf766a615d248d",
+  "debug_release_metadata_identical": true,
+  "layouts": {
+    "FinalOutputBorrows": {
+      "size": 16,
+      "align": 8
+    },
+    "ClockLeaf": {
+      "size": 224,
+      "align": 16
+    },
+    "FaultLeaf": {
+      "size": 264,
+      "align": 8
+    },
+    "CategoryLeaves": {
+      "size": 40,
+      "align": 8
+    },
+    "RefundParent": {
+      "size": 688,
+      "align": 16
+    },
+    "RecordParent": {
+      "size": 272,
+      "align": 16
+    },
+    "FoundationFormulaRuntime": {
+      "size": 344,
+      "align": 8
+    },
+    "FinishParent": {
+      "size": 1216,
+      "align": 16
+    },
+    "FinishConstFormulaParent": {
+      "size": 864,
+      "align": 16
+    }
+  },
+  "source_roles": {
+    "FinalOutputBorrows": [
+      {
+        "field": "outcome",
+        "type": "&'static mut Option<SwiftRunFailure>",
+        "source": "execution.rs:166; caller output reference retained through all final phases",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 0
+      },
+      {
+        "field": "usage",
+        "type": "&'static mut Option<SwiftRunUsage>",
+        "source": "execution.rs:167; caller output reference retained through all final phases",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 8
+      }
+    ],
+    "ClockLeaf": [
+      {
+        "field": "usage_receiver",
+        "type": "&'static RuntimeControl",
+        "source": "control.rs:636; usage receiver; absent in post-drop micros subphase",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 96
+      },
+      {
+        "field": "usage_now",
+        "type": "Instant",
+        "source": "control.rs:637; named now",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 128
+      },
+      {
+        "field": "elapsed_receiver",
+        "type": "&'static Instant",
+        "source": "control.rs:647,1491; direct saturating_duration_since receiver",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 104
+      },
+      {
+        "field": "elapsed_earlier",
+        "type": "Instant",
+        "source": "control.rs:647,1491; copied argument",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 144
+      },
+      {
+        "field": "elapsed_duration",
+        "type": "Duration",
+        "source": "control.rs:647,1491; direct return",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 160
+      },
+      {
+        "field": "overshoot_receiver",
+        "type": "&'static Instant",
+        "source": "control.rs:650,1492; direct saturating_duration_since receiver",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 112
+      },
+      {
+        "field": "overshoot_earlier",
+        "type": "Instant",
+        "source": "control.rs:650,1492; copied argument",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 176
+      },
+      {
+        "field": "overshoot_duration",
+        "type": "Duration",
+        "source": "control.rs:650,1492; direct return",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 192
+      },
+      {
+        "field": "micros_duration",
+        "type": "Duration",
+        "source": "control.rs:1496; parameter; two calls sequential, counted once",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 208
+      },
+      {
+        "field": "as_micros_receiver",
+        "type": "&'static Duration",
+        "source": "control.rs:1497; direct authored receiver",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 120
+      },
+      {
+        "field": "micros_u128",
+        "type": "u128",
+        "source": "control.rs:1497; direct as_micros return",
+        "count": 1,
+        "size": 16,
+        "align": 16,
+        "offset": 0
+      },
+      {
+        "field": "try_from_input",
+        "type": "u128",
+        "source": "control.rs:1497; direct by-value try_from input",
+        "count": 1,
+        "size": 16,
+        "align": 16,
+        "offset": 16
+      },
+      {
+        "field": "try_from_output",
+        "type": "Result<u64, std::num::TryFromIntError>",
+        "source": "control.rs:1497; direct conversion Result",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 32
+      },
+      {
+        "field": "unwrap_input",
+        "type": "Result<u64, std::num::TryFromIntError>",
+        "source": "control.rs:1497; direct by-value unwrap_or operand",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 48
+      },
+      {
+        "field": "unwrap_default",
+        "type": "u64",
+        "source": "control.rs:1497; explicit u64::MAX input",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 64
+      },
+      {
+        "field": "micros_return",
+        "type": "u64",
+        "source": "control.rs:1497; unwrap return/function result transfer",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 72
+      },
+      {
+        "field": "elapsed_return",
+        "type": "u64",
+        "source": "control.rs:647,1491; assignment operand",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 80
+      },
+      {
+        "field": "overshoot_return",
+        "type": "u64",
+        "source": "control.rs:650,1492; assignment operand",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 88
+      }
+    ],
+    "FaultLeaf": [
+      {
+        "field": "cleanup_receiver",
+        "type": "&'static mut RuntimeControl",
+        "source": "control.rs:1404; cleanup fault receiver",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 192
+      },
+      {
+        "field": "invariant",
+        "type": "SwiftCleanupInvariant",
+        "source": "control.rs:1405; parameter",
+        "count": 1,
+        "size": 1,
+        "align": 1,
+        "offset": 256
+      },
+      {
+        "field": "code",
+        "type": "&'static str",
+        "source": "control.rs:1406; parameter",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 200
+      },
+      {
+        "field": "insert_receiver",
+        "type": "&'static mut Option<SwiftCleanupInvariant>",
+        "source": "control.rs:1409; direct get_or_insert receiver",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 216
+      },
+      {
+        "field": "insert_argument",
+        "type": "SwiftCleanupInvariant",
+        "source": "control.rs:1409; copied direct operand",
+        "count": 1,
+        "size": 1,
+        "align": 1,
+        "offset": 257
+      },
+      {
+        "field": "insert_result",
+        "type": "&'static mut SwiftCleanupInvariant",
+        "source": "control.rs:1409; direct returned borrow",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 224
+      },
+      {
+        "field": "cursor_source",
+        "type": "Cursor",
+        "source": "control.rs:1411; source literal",
+        "count": 1,
+        "size": 32,
+        "align": 8,
+        "offset": 0
+      },
+      {
+        "field": "fault_kind",
+        "type": "SwiftRunFailureKind",
+        "source": "control.rs:1416,265; Fault::new argument",
+        "count": 1,
+        "size": 1,
+        "align": 1,
+        "offset": 258
+      },
+      {
+        "field": "fault_code",
+        "type": "&'static str",
+        "source": "control.rs:1416,265; Fault::new argument",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 232
+      },
+      {
+        "field": "fault_source",
+        "type": "Fault",
+        "source": "control.rs:1416,266; Fault::new return",
+        "count": 1,
+        "size": 64,
+        "align": 8,
+        "offset": 32
+      },
+      {
+        "field": "fail_receiver",
+        "type": "&'static mut RuntimeControl",
+        "source": "control.rs:690; receiver",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 248
+      },
+      {
+        "field": "cursor_transfer",
+        "type": "Cursor",
+        "source": "control.rs:691; by-value parameter",
+        "count": 1,
+        "size": 32,
+        "align": 8,
+        "offset": 96
+      },
+      {
+        "field": "fault_transfer",
+        "type": "Fault",
+        "source": "control.rs:692; by-value parameter",
+        "count": 1,
+        "size": 64,
+        "align": 8,
+        "offset": 128
+      }
+    ],
+    "CategoryLeaves": [
+      {
+        "field": "category_receiver",
+        "type": "&'static SwiftReservations",
+        "source": "control.rs:95; direct shared receiver",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 0
+      },
+      {
+        "field": "category_argument",
+        "type": "SwiftReservationCategory",
+        "source": "control.rs:95; by-value enum parameter",
+        "count": 1,
+        "size": 1,
+        "align": 1,
+        "offset": 32
+      },
+      {
+        "field": "category_return",
+        "type": "&'static SwiftReservationUsage",
+        "source": "control.rs:95; direct returned borrow",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 8
+      },
+      {
+        "field": "category_mut_receiver",
+        "type": "&'static mut SwiftReservations",
+        "source": "control.rs:106; direct mutable receiver",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 16
+      },
+      {
+        "field": "category_mut_argument",
+        "type": "SwiftReservationCategory",
+        "source": "control.rs:106; by-value enum parameter",
+        "count": 1,
+        "size": 1,
+        "align": 1,
+        "offset": 33
+      },
+      {
+        "field": "category_mut_return",
+        "type": "&'static mut SwiftReservationUsage",
+        "source": "control.rs:106; direct returned borrow",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 24
+      }
+    ],
+    "RefundParent": [
+      {
+        "field": "outputs",
+        "type": "FinalOutputBorrows",
+        "source": "execution.rs:166-179; containing caller refs",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 320
+      },
+      {
+        "field": "header_take_receiver",
+        "type": "&'static mut Option<ReservationTicket>",
+        "source": "execution.rs:174; explicit .take receiver; ticket values separate",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 640
+      },
+      {
+        "field": "drop_receiver",
+        "type": "&'static mut RuntimeControl",
+        "source": "control.rs:1002; drop helper receiver",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 648
+      },
+      {
+        "field": "refund_receiver",
+        "type": "&'static mut RuntimeControl",
+        "source": "control.rs:1087; refund receiver",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 656
+      },
+      {
+        "field": "category",
+        "type": "Option<usize>",
+        "source": "control.rs:1098; checked named result",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 0
+      },
+      {
+        "field": "combined",
+        "type": "Option<usize>",
+        "source": "control.rs:1103; checked named result",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 16
+      },
+      {
+        "field": "count",
+        "type": "Option<usize>",
+        "source": "control.rs:1104; checked named result",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 32
+      },
+      {
+        "field": "option_match",
+        "type": "(Option<usize>, Option<usize>, Option<usize>)",
+        "source": "control.rs:1105; direct match tuple; not the three separate named locals",
+        "count": 1,
+        "size": 48,
+        "align": 8,
+        "offset": 48
+      },
+      {
+        "field": "category_pattern",
+        "type": "usize",
+        "source": "control.rs:1105; successful binding",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 664
+      },
+      {
+        "field": "combined_pattern",
+        "type": "usize",
+        "source": "control.rs:1105; successful binding",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 672
+      },
+      {
+        "field": "count_pattern",
+        "type": "usize",
+        "source": "control.rs:1105; successful binding",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 680
+      },
+      {
+        "field": "categories",
+        "type": "CategoryLeaves",
+        "source": "control.rs:1098,1112; direct helper boundaries",
+        "count": 1,
+        "size": 40,
+        "align": 8,
+        "offset": 600
+      },
+      {
+        "field": "fault",
+        "type": "FaultLeaf",
+        "source": "control.rs:1092,1106; fault branch",
+        "count": 1,
+        "size": 264,
+        "align": 8,
+        "offset": 336
+      },
+      {
+        "field": "clock",
+        "type": "ClockLeaf",
+        "source": "control.rs:711; nested usage",
+        "count": 1,
+        "size": 224,
+        "align": 16,
+        "offset": 96
+      }
+    ],
+    "RecordParent": [
+      {
+        "field": "outputs",
+        "type": "FinalOutputBorrows",
+        "source": "execution.rs:166-179; containing caller refs",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 0
+      },
+      {
+        "field": "record_receiver",
+        "type": "&'static mut RuntimeControl",
+        "source": "control.rs:1421; receiver",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 240
+      },
+      {
+        "field": "failure_option_receiver",
+        "type": "&'static mut Option<SwiftRunFailure>",
+        "source": "control.rs:1423; actual &mut Option expression, no manufactured Option<&mut F>",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 248
+      },
+      {
+        "field": "failure_pattern",
+        "type": "&'static mut SwiftRunFailure",
+        "source": "control.rs:1423; Some pattern borrow",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 256
+      },
+      {
+        "field": "clock",
+        "type": "ClockLeaf",
+        "source": "control.rs:1422; nested usage",
+        "count": 1,
+        "size": 224,
+        "align": 16,
+        "offset": 16
+      }
+    ],
+    "FoundationFormulaRuntime": [
+      {
+        "field": "items",
+        "type": "[(usize,usize);7]",
+        "source": "control.rs:350-361; authored array",
+        "count": 1,
+        "size": 112,
+        "align": 8,
+        "offset": 56
+      },
+      {
+        "field": "iterator",
+        "type": "std::array::IntoIter<(usize,usize),7>",
+        "source": "control.rs:362; explicit into_iter result",
+        "count": 1,
+        "size": 128,
+        "align": 8,
+        "offset": 168
+      },
+      {
+        "field": "try_fold_receiver",
+        "type": "&'static mut std::array::IntoIter<(usize,usize),7>",
+        "source": "control.rs:363; direct receiver",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 48
+      },
+      {
+        "field": "sum",
+        "type": "usize",
+        "source": "control.rs:363; closure parameter",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 296
+      },
+      {
+        "field": "pair",
+        "type": "(usize,usize)",
+        "source": "control.rs:363; closure pattern input",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 304
+      },
+      {
+        "field": "count",
+        "type": "usize",
+        "source": "control.rs:363; closure binding",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 320
+      },
+      {
+        "field": "bytes",
+        "type": "usize",
+        "source": "control.rs:363; closure binding",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 328
+      },
+      {
+        "field": "product",
+        "type": "Option<usize>",
+        "source": "control.rs:364; checked_mul result",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 0
+      },
+      {
+        "field": "product_value",
+        "type": "usize",
+        "source": "control.rs:364; successful ? operand for checked_add",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 336
+      },
+      {
+        "field": "next",
+        "type": "Option<usize>",
+        "source": "control.rs:364; checked_add result",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 16
+      },
+      {
+        "field": "returned",
+        "type": "Option<usize>",
+        "source": "control.rs:349,363; formula function return",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 32
+      }
+    ],
+    "FinishParent": [
+      {
+        "field": "outputs",
+        "type": "FinalOutputBorrows",
+        "source": "execution.rs:166-179; caller references",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 544
+      },
+      {
+        "field": "started",
+        "type": "Instant",
+        "source": "control.rs:1436; named copy",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 272
+      },
+      {
+        "field": "deadline",
+        "type": "Instant",
+        "source": "control.rs:1437; named copy",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 288
+      },
+      {
+        "field": "control_take_receiver",
+        "type": "&'static mut Option<ReservationTicket>",
+        "source": "control.rs:1440; .take receiver",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 1040
+      },
+      {
+        "field": "cancel_take_receiver",
+        "type": "&'static mut Option<ReservationTicket>",
+        "source": "control.rs:1441; .take receiver",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 1048
+      },
+      {
+        "field": "construction_take_receiver",
+        "type": "&'static mut Option<ReservationTicket>",
+        "source": "control.rs:1442; .take receiver",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 1056
+      },
+      {
+        "field": "array",
+        "type": "[Option<ReservationTicket>;3]",
+        "source": "control.rs:1439-1443; whole authored array; fields not charged again as standalone tickets",
+        "count": 1,
+        "size": 72,
+        "align": 8,
+        "offset": 944
+      },
+      {
+        "field": "into_tickets",
+        "type": "std::array::IntoIter<Option<ReservationTicket>,3>",
+        "source": "control.rs:1444; whole explicit IntoIter return; fields not charged again",
+        "count": 1,
+        "size": 88,
+        "align": 8,
+        "offset": 1088
+      },
+      {
+        "field": "flatten_tickets",
+        "type": "std::iter::Flatten<std::array::IntoIter<Option<ReservationTicket>,3>>",
+        "source": "control.rs:1445; whole Flatten; opaque internal objects are not recursively enumerated",
+        "count": 1,
+        "size": 144,
+        "align": 8,
+        "offset": 0
+      },
+      {
+        "field": "flatten_receiver",
+        "type": "&'static mut std::iter::Flatten<std::array::IntoIter<Option<ReservationTicket>,3>>",
+        "source": "control.rs:1439-1446; authored for-loop iterator borrow",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 1064
+      },
+      {
+        "field": "iterator_next",
+        "type": "Option<ReservationTicket>",
+        "source": "control.rs:1439-1446; whole next output preceding ticket pattern; separately admitted here, not a plain-ticket payload credit",
+        "count": 1,
+        "size": 24,
+        "align": 8,
+        "offset": 1016
+      },
+      {
+        "field": "category",
+        "type": "Option<usize>",
+        "source": "control.rs:1465; checked local",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 144
+      },
+      {
+        "field": "combined",
+        "type": "Option<usize>",
+        "source": "control.rs:1470; checked local",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 160
+      },
+      {
+        "field": "count",
+        "type": "Option<usize>",
+        "source": "control.rs:1475; checked local",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 176
+      },
+      {
+        "field": "option_match",
+        "type": "(Option<usize>,Option<usize>,Option<usize>)",
+        "source": "control.rs:1476; direct match tuple",
+        "count": 1,
+        "size": 48,
+        "align": 8,
+        "offset": 192
+      },
+      {
+        "field": "category_pattern",
+        "type": "usize",
+        "source": "control.rs:1476; matched binding",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 1176
+      },
+      {
+        "field": "combined_pattern",
+        "type": "usize",
+        "source": "control.rs:1476; matched binding",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 1184
+      },
+      {
+        "field": "count_pattern",
+        "type": "usize",
+        "source": "control.rs:1476; matched binding",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 1192
+      },
+      {
+        "field": "categories",
+        "type": "CategoryLeaves",
+        "source": "control.rs:1467,1479; direct helper boundaries",
+        "count": 1,
+        "size": 40,
+        "align": 8,
+        "offset": 904
+      },
+      {
+        "field": "ticket_bytes_some",
+        "type": "Option<usize>",
+        "source": "control.rs:1458; explicit Some(ticket.bytes)",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 240
+      },
+      {
+        "field": "formula_return",
+        "type": "Option<usize>",
+        "source": "control.rs:1458; formula invocation result",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 256
+      },
+      {
+        "field": "insert_receiver",
+        "type": "&'static mut Option<SwiftCleanupInvariant>",
+        "source": "control.rs:1448-1450,1460-1462,1484-1486; sequential alternatives",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 1072
+      },
+      {
+        "field": "insert_argument",
+        "type": "SwiftCleanupInvariant",
+        "source": "control.rs:1450,1462,1486; sequential alternatives",
+        "count": 1,
+        "size": 1,
+        "align": 1,
+        "offset": 1200
+      },
+      {
+        "field": "insert_return",
+        "type": "&'static mut SwiftCleanupInvariant",
+        "source": "control.rs:1450,1462,1486; sequential alternatives",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 1080
+      },
+      {
+        "field": "clock",
+        "type": "ClockLeaf",
+        "source": "control.rs:1438 and1491-1492; complete conservative parent inventory, no shrinking inside parent",
+        "count": 1,
+        "size": 224,
+        "align": 16,
+        "offset": 320
+      },
+      {
+        "field": "now",
+        "type": "Instant",
+        "source": "control.rs:1490; named post-drop copy",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 304
+      },
+      {
+        "field": "formula",
+        "type": "FoundationFormulaRuntime",
+        "source": "control.rs:1458; formula call while finish parent persists",
+        "count": 1,
+        "size": 344,
+        "align": 8,
+        "offset": 560
+      }
+    ],
+    "FinishConstFormulaParent": [
+      {
+        "field": "outputs",
+        "type": "FinalOutputBorrows",
+        "source": "execution.rs:166-179; caller references",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 544
+      },
+      {
+        "field": "started",
+        "type": "Instant",
+        "source": "control.rs:1436; named copy",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 272
+      },
+      {
+        "field": "deadline",
+        "type": "Instant",
+        "source": "control.rs:1437; named copy",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 288
+      },
+      {
+        "field": "control_take_receiver",
+        "type": "&'static mut Option<ReservationTicket>",
+        "source": "control.rs:1440; .take receiver",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 696
+      },
+      {
+        "field": "cancel_take_receiver",
+        "type": "&'static mut Option<ReservationTicket>",
+        "source": "control.rs:1441; .take receiver",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 704
+      },
+      {
+        "field": "construction_take_receiver",
+        "type": "&'static mut Option<ReservationTicket>",
+        "source": "control.rs:1442; .take receiver",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 712
+      },
+      {
+        "field": "array",
+        "type": "[Option<ReservationTicket>;3]",
+        "source": "control.rs:1439-1443; whole authored array; fields not charged again as standalone tickets",
+        "count": 1,
+        "size": 72,
+        "align": 8,
+        "offset": 600
+      },
+      {
+        "field": "into_tickets",
+        "type": "std::array::IntoIter<Option<ReservationTicket>,3>",
+        "source": "control.rs:1444; whole explicit IntoIter return; fields not charged again",
+        "count": 1,
+        "size": 88,
+        "align": 8,
+        "offset": 744
+      },
+      {
+        "field": "flatten_tickets",
+        "type": "std::iter::Flatten<std::array::IntoIter<Option<ReservationTicket>,3>>",
+        "source": "control.rs:1445; whole Flatten; opaque internal objects are not recursively enumerated",
+        "count": 1,
+        "size": 144,
+        "align": 8,
+        "offset": 0
+      },
+      {
+        "field": "flatten_receiver",
+        "type": "&'static mut std::iter::Flatten<std::array::IntoIter<Option<ReservationTicket>,3>>",
+        "source": "control.rs:1439-1446; authored for-loop iterator borrow",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 720
+      },
+      {
+        "field": "iterator_next",
+        "type": "Option<ReservationTicket>",
+        "source": "control.rs:1439-1446; whole next output preceding ticket pattern; separately admitted here, not a plain-ticket payload credit",
+        "count": 1,
+        "size": 24,
+        "align": 8,
+        "offset": 672
+      },
+      {
+        "field": "category",
+        "type": "Option<usize>",
+        "source": "control.rs:1465; checked local",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 144
+      },
+      {
+        "field": "combined",
+        "type": "Option<usize>",
+        "source": "control.rs:1470; checked local",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 160
+      },
+      {
+        "field": "count",
+        "type": "Option<usize>",
+        "source": "control.rs:1475; checked local",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 176
+      },
+      {
+        "field": "option_match",
+        "type": "(Option<usize>,Option<usize>,Option<usize>)",
+        "source": "control.rs:1476; direct match tuple",
+        "count": 1,
+        "size": 48,
+        "align": 8,
+        "offset": 192
+      },
+      {
+        "field": "category_pattern",
+        "type": "usize",
+        "source": "control.rs:1476; matched binding",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 832
+      },
+      {
+        "field": "combined_pattern",
+        "type": "usize",
+        "source": "control.rs:1476; matched binding",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 840
+      },
+      {
+        "field": "count_pattern",
+        "type": "usize",
+        "source": "control.rs:1476; matched binding",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 848
+      },
+      {
+        "field": "categories",
+        "type": "CategoryLeaves",
+        "source": "control.rs:1467,1479; direct helper boundaries",
+        "count": 1,
+        "size": 40,
+        "align": 8,
+        "offset": 560
+      },
+      {
+        "field": "ticket_bytes_some",
+        "type": "Option<usize>",
+        "source": "control.rs:1458; explicit Some(ticket.bytes)",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 240
+      },
+      {
+        "field": "formula_return",
+        "type": "Option<usize>",
+        "source": "control.rs:1458; formula invocation result",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 256
+      },
+      {
+        "field": "insert_receiver",
+        "type": "&'static mut Option<SwiftCleanupInvariant>",
+        "source": "control.rs:1448-1450,1460-1462,1484-1486; sequential alternatives",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 728
+      },
+      {
+        "field": "insert_argument",
+        "type": "SwiftCleanupInvariant",
+        "source": "control.rs:1450,1462,1486; sequential alternatives",
+        "count": 1,
+        "size": 1,
+        "align": 1,
+        "offset": 856
+      },
+      {
+        "field": "insert_return",
+        "type": "&'static mut SwiftCleanupInvariant",
+        "source": "control.rs:1450,1462,1486; sequential alternatives",
+        "count": 1,
+        "size": 8,
+        "align": 8,
+        "offset": 736
+      },
+      {
+        "field": "clock",
+        "type": "ClockLeaf",
+        "source": "control.rs:1438 and1491-1492; complete conservative parent inventory, no shrinking inside parent",
+        "count": 1,
+        "size": 224,
+        "align": 16,
+        "offset": 320
+      },
+      {
+        "field": "now",
+        "type": "Instant",
+        "source": "control.rs:1490; named post-drop copy",
+        "count": 1,
+        "size": 16,
+        "align": 8,
+        "offset": 304
+      }
+    ]
+  },
+  "plain_shapes": {
+    "SwiftRunFailure": {
+      "size": 1096,
+      "align": 8
+    },
+    "Option<SwiftRunFailure>": {
+      "size": 1096,
+      "align": 8
+    },
+    "Result<(),SwiftRunFailure>": {
+      "size": 1096,
+      "align": 8
+    },
+    "SwiftRunUsage": {
+      "size": 504,
+      "align": 8
+    },
+    "Option<SwiftRunUsage>": {
+      "size": 504,
+      "align": 8
+    },
+    "ReservationTicket": {
+      "size": 24,
+      "align": 8
+    },
+    "Option<ReservationTicket>": {
+      "size": 24,
+      "align": 8
+    },
+    "Option<Option<ReservationTicket>>": {
+      "size": 24,
+      "align": 8
+    },
+    "Option<WasiUsage>": {
+      "size": 112,
+      "align": 8
+    },
+    "RuntimeControl": {
+      "size": 1720,
+      "align": 8
+    }
+  },
+  "existing_foundation_bytes": 16504,
+  "candidate_only": {
+    "constant_evaluated_formula_required": true,
+    "new_disjoint_whole_phase_allowance": 864,
+    "candidate_foundation_bytes": 17368,
+    "minimum_or_root_accepted_claimed": false,
+    "formula": "existing foundation classes plus max(size_of<RefundParent>, size_of<RecordParent>, size_of<FinishConstFormulaParent>)",
+    "switch_rule": "The refund call and its Result end before record_cleanup; record_cleanup call/result and outcome assignment end before finish_owned_cleanup. Outer output refs persist and are included in every complete group. No group changes within a surviving helper parent.",
+    "new_whole_wrappers": "Finish classes include complete array, IntoIter, Flatten, loop next output; their fields are never also attributed to plain-ticket classes."
+  },
+  "observations": {
+    "success_refund": 3,
+    "fault_refund": 6,
+    "record_cleanup": 3,
+    "finish_initial_usage": 3,
+    "post_drop_micros": 1
+  },
+  "scope": "Authored named Rust objects and explicit source operation/return shapes; conservative complete parent unions, not exact physical simultaneous stack occupancy. No compiler stack, opaque std-library internals, allocator overhead, RSS, executor algorithm, target run, device, GA or implementation acceptance. Metadata probes instantiate no runtime owner."
+}

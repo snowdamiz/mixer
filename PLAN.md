@@ -110,9 +110,14 @@ constructor owner-exhaustion failures with isolated counters and partial cleanup
 These synthetic latch tests do not establish natural executor failure origins.
 Measured authored-value construction accounting rises by 96 to 57,224 bytes;
 other phase bounds remain unchanged. Physical stack/RSS is outside that model.
-A separately owned compiling executor type/lifetime/layout prerequisite is now
-assigned under the frozen contract. Actual executor implementation and the exact
-full-target runner still require separate acceptance. No full target is executed.
+The private compiling executor type/lifetime/layout prerequisite now has root
+acceptance after a separately reviewed final foundation correction. Root checks
+2,102 bindings in `verification/swift-executor-layout-root-review/acceptance.json`.
+The additional 864-byte final allowance raises foundation admission to 17,368;
+stored owner layouts and existing cache additional envelopes remain unchanged.
+Six feature combinations pass in Debug/Release; all-features runs pass 350 tests
+per mode with nine preexisting ignored tests. Actual executor algorithms and the
+exact full-target runner still need separate acceptance. No full target is run.
 All three hosted jobs at `01d8491` pass; see
 `verification/github-ci-01d8491/receipt.json`. The packet checkpoint
 `09dac10` and ordinary Android checkpoint `958998d` also pass all three jobs.
@@ -121,9 +126,11 @@ but its Swift bridge test failed to observe a timer tick after a fixed 35ms slee
 A test-only bounded observed-tick wait now passes all48 bridge tests per Debug,
 Release and SwiftTSan, plus old/fixed controlled real-queue probes in both modes.
 See `verification/guest-ui-polling-ci-repair/acceptance.json` and `verification/github-ci-d814055/receipt.json`. The exact
-hosted scheduling cause is not established. Executor final-cleanup layout work
-also exposed additional final borrows/locals requiring a separately reviewed named
-foundation allowance before layout acceptance; no allowance is silently reused.
+hosted scheduling cause is not established. Hosted checkpoint `0f177ad` now
+passes all three jobs, including the repaired bridge test; see
+`verification/github-ci-0f177ad/receipt.json`. The separately accepted final
+foundation allowance accounts those borrows and locals explicitly; historical
+cache receipts remain bound to their original source.
 
 The next hosted checkpoint `61c5c8b` exposed a minimal-feature Clippy failure in
 unused private descriptor fields after its tests passed. The descriptor-only
@@ -572,7 +579,7 @@ authority, API intent and named accounting rules, after92 artifact/source
 bindings and37 rejected contract mutations. Exact revision1 remains archived;
 see `verification/swift-executor-stage-acceptance.json`. Actual cache acceptance
 must precede a separately assigned compiling type/lifetime/layout prerequisite.
-All20 executor functions,75 assertions and eight concrete layout maps remain
+The full20 executor functions and75 assertions remain
 pending, with no implementation assignment or full-target execution enabled.
 
 

@@ -1,0 +1,11 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm)
+error[E0502]: cannot borrow `*c` as mutable because it is also borrowed as immutable
+   --> src/experimental_swift_reactor/execution_tests.rs:545:171
+    |
+545 | ...et v=c.view(p,o.control,Some(&*o.wasi)).unwrap(); let r=c.release(q,o.control,Some(&*o.wasi)); std::hint::black_box((v,r)); }
+    |         -                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                        - immutable borrow later used here
+    |         |                                                  |
+    |         immutable borrow occurs here                       mutable borrow occurs here
+
+For more information about this error, try `rustc --explain E0502`.
+error: could not compile `mixer-vm` (lib test) due to 1 previous error

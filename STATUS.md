@@ -36,8 +36,9 @@ has root acceptance after 11 declaration/audit commands and 81 input/artifact
 bindings; all 50 implementation cases remain pending. See
 `verification/android-jni-stage5-root-review/acceptance.json`. The private Swift
 cache candidate3 now has scoped independent and root acceptance after its two
-mandatory assertion gaps were closed; a compiling executor layout prerequisite
-is assigned. Actual executor and full-target execution remain pending.
+mandatory assertion gaps were closed. The compiling executor layout prerequisite
+and disjoint final foundation correction now have root acceptance. Actual executor
+algorithms and full-target execution remain pending.
 The preceding `3d93137` checkpoint passed all VM/Swift/services CI jobs.
 Hosted `61c5c8b` passed services but its new minimal-feature Clippy check rejected
 unused private descriptor fields after tests passed. A descriptor-only repair
@@ -47,15 +48,17 @@ fresh private Android host runner under Swift 6.2.4. See
 `verification/swift-minimal-descriptor-ci-repair/receipt.json` and
 `verification/github-ci-d6c41a0/receipt.json`.
 
-Latest hosted evidence: `09dac10` and `958998d` pass VM/Swift/services.
-See `verification/github-ci-958998d/receipt.json`. The `0f177ad` checkpoint has
-passed VM/services; Swift remains in progress. At cache checkpoint
-`d814055`, VM/services pass, but the bridge Debug test expected a timer tick after
-35ms and observed none. The test-only bounded observed-condition repair passes48 bridge tests in Debug,
-Release and SwiftTSan, with old/fixed delayed-queue probes in both build modes.
-Hosted recheck remains pending; no overall CI pass is claimed. Executor layout qualification also
-requires an explicit final-cleanup foundation inventory for surviving output
-borrows and locals; the new executor remains unaccepted.
+Latest hosted evidence: `09dac10`, `958998d` and `0f177ad` pass all three
+VM/Swift/services jobs. The earlier `d814055` fixed-35ms polling failure remains
+recorded; the repaired observed-tick test now passes hosted Swift 6.2.4 as well as
+local Debug/Release/TSan. See `verification/github-ci-0f177ad/receipt.json`.
+
+The private executor layout prerequisite and final foundation correction are
+accepted within their host scope. Root checks 2,102 bindings; all six feature
+combinations pass per Debug/Release. All-feature suites report 350 passed and
+nine preexisting ignored tests per mode. The foundation is 17,368 bytes, including
+a new explicit 864-byte final-cleanup allowance. No constructor or interpreter
+algorithm is implemented by this prerequisite. Full target execution remains pending.
 
 Observed implementation and evidence:
 
@@ -69,7 +72,7 @@ Observed implementation and evidence:
   values and requested payloads, not physical stack/RSS. Historical candidate2
   receipts remain historical. See
   `verification/swift-function-cache-root-review/acceptance.json`. Executor
-  type/lifetime/layout work is assigned; execution, physical devices, immutable
+  type/lifetime/layout now has separate scoped acceptance; execution, physical devices, immutable
   FieldLog release and every GA gate remain open. Hosted `01d8491` passes all three
   configured jobs; later implementation checkpoints are being checked separately.
 - The additive SDK native packet encoder preserves existing identities and full
@@ -1187,7 +1190,7 @@ authority, API intent and named accounting rules, after92 artifact/source
 bindings and37 rejected contract mutations. Exact revision1 remains archived;
 see `verification/swift-executor-stage-acceptance.json`. Actual cache acceptance
 must precede a separately assigned compiling type/lifetime/layout prerequisite.
-All20 executor functions,75 assertions and eight concrete layout maps remain
+The full20 executor functions and75 assertions remain
 pending, with no implementation assignment or full-target execution enabled.
 
 

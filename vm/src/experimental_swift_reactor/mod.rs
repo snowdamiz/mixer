@@ -14,3 +14,7 @@ pub use crate::experimental::swift::{
     SwiftValidationFailure, SwiftValidationFailureKind, SwiftValidationResource,
     SwiftValidationUsage, ValidatedSwiftReactor,
 };
+
+mod execution;
+#[cfg(test)]
+mod execution_tests;

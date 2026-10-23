@@ -1,0 +1,283 @@
+{
+  "schema_version": 1,
+  "observed_at_utc": "2026-10-22T22:23:57.266981+00:00",
+  "implementation_agent_selection": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "xhigh"
+  },
+  "independent_review": false,
+  "base_revision_at_start": "56aa6cc85695348ae8c42ae17cbd1909c84e4c43",
+  "source_tree_digest": "83832ce2f7fc58690d833f1289a8da6d3d6834d24f2be68d76b31a10583849ed",
+  "source_manifest": "vm/verification/numeric-v2/source-manifest.sha256",
+  "source_scope": "vm/** excluding target/verification plus frozen contracts/vm-profile-v1.json",
+  "integer_profile_contract_sha256": "813a54a4e198a73d49afffe7c8d9cf54f6e76bfca80dd6556a439a4bdf1bdf4c",
+  "tool_versions": {
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "node": "v22.23.3",
+    "clang": "Apple clang version 21.0.0 (clang-2100.3.34.2)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "macos": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434"
+  },
+  "commands": [
+    {
+      "name": "base-revision",
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/numeric-v2/base-revision.log"
+    },
+    {
+      "name": "host-tests",
+      "command": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/numeric-v2/host-tests.log"
+    },
+    {
+      "name": "integer-oracle",
+      "command": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--test",
+        "differential",
+        "--",
+        "--ignored",
+        "--nocapture"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/numeric-v2/integer-oracle.log"
+    },
+    {
+      "name": "float-oracle-debug",
+      "command": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--test",
+        "float_differential",
+        "--",
+        "--ignored",
+        "--nocapture"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/numeric-v2/float-oracle-debug.log"
+    },
+    {
+      "name": "float-oracle-release",
+      "command": [
+        "cargo",
+        "test",
+        "--release",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--test",
+        "float_differential",
+        "--",
+        "--ignored",
+        "--nocapture"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/numeric-v2/float-oracle-release.log"
+    },
+    {
+      "name": "clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/numeric-v2/clippy.log"
+    },
+    {
+      "name": "release-build",
+      "command": [
+        "cargo",
+        "build",
+        "--release",
+        "--manifest-path",
+        "vm/Cargo.toml"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/numeric-v2/release-build.log"
+    },
+    {
+      "name": "c-integer-build",
+      "command": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "vm/include",
+        "vm/tests/ffi_smoke.c",
+        "vm/target/release/libmixer_vm.a",
+        "-o",
+        "vm/target/ffi-integer-smoke"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/numeric-v2/c-integer-build.log"
+    },
+    {
+      "name": "c-integer-run",
+      "command": [
+        "vm/target/ffi-integer-smoke"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/numeric-v2/c-integer-run.log"
+    },
+    {
+      "name": "c-numeric-build",
+      "command": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "vm/include",
+        "vm/tests/ffi_numeric_smoke.c",
+        "vm/target/release/libmixer_vm.a",
+        "-o",
+        "vm/target/ffi-numeric-smoke"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/numeric-v2/c-numeric-build.log"
+    },
+    {
+      "name": "c-numeric-run",
+      "command": [
+        "vm/target/ffi-numeric-smoke"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/numeric-v2/c-numeric-run.log"
+    },
+    {
+      "name": "fieldlog-inventory",
+      "command": [
+        "vm/target/release/mixer-vm",
+        "--profile",
+        "mixer-numeric-v2",
+        "inventory",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/fieldlog-corpus-qualified/.build/wasm/wasm32-unknown-wasip1/release/fieldlog-corpus.wasm"
+      ],
+      "exit_code": 2,
+      "output": "vm/verification/numeric-v2/fieldlog-inventory.log"
+    },
+    {
+      "name": "version-cargo",
+      "command": [
+        "cargo",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/numeric-v2/version-cargo.log"
+    },
+    {
+      "name": "version-rustc",
+      "command": [
+        "rustc",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/numeric-v2/version-rustc.log"
+    },
+    {
+      "name": "version-node",
+      "command": [
+        "node",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/numeric-v2/version-node.log"
+    },
+    {
+      "name": "version-clang",
+      "command": [
+        "clang",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/numeric-v2/version-clang.log"
+    },
+    {
+      "name": "version-macos",
+      "command": [
+        "sw_vers"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/numeric-v2/version-macos.log"
+    }
+  ],
+  "results": {
+    "host_tests_passed": 56,
+    "integer_differential_execution_cases": 13289,
+    "float_differential_cases_per_build": 29794,
+    "float_oracle_builds": [
+      "debug",
+      "release"
+    ],
+    "float_case_groups": {
+      "arithmetic_comparison_rounding_bitwise": 27944,
+      "conversion_reinterpret_saturation": 1290,
+      "memory_calls_globals": 560
+    },
+    "validation_mutation_candidates": 2693,
+    "c_abi": [
+      "original integer-v1 stable layout/invoke/limits passed",
+      "numeric-v2 raw IEEE bits, old-symbol rejection, host rounding/flush/trap-control checks passed"
+    ],
+    "clippy": "all targets -D warnings passed",
+    "native_fp_controls": "FP flush-to-zero rejection: exercised\nFP hardware invalid-trap rejection: exercised\nNumeric-v2 C ABI smoke: passed"
+  },
+  "fieldlog_corpus": {
+    "path": "verification/local/fieldlog-corpus-qualified/.build/wasm/wasm32-unknown-wasip1/release/fieldlog-corpus.wasm",
+    "bytes": 60505739,
+    "sha256": "3308fc08ae16bd7247be67b14bd7ea8af754c2610641d517936aa5570f325964",
+    "source_revision": "1587d2d4f02ab2dad9914df97f878727dd622296",
+    "profile": "mixer-numeric-v2",
+    "valid": false,
+    "inventory_complete": true,
+    "imports": 34,
+    "primary_opcodes": 166,
+    "instruction_occurrences": 6510037,
+    "rejection": {
+      "code": "limit",
+      "message": "module byte limit exceeded",
+      "function": null,
+      "offset": 0
+    },
+    "scope": "actual FieldLog model corpus compiled by integrator; no owned-VM execution qualification"
+  },
+  "qualified_execution_target": "macOS27 arm64 host only",
+  "open_gates": [
+    "independent numeric profile review",
+    "standards suites",
+    "continuous coverage-guided fuzzing",
+    "physical iOS/Android VM execution",
+    "non-default CPU/platform qualification",
+    "tables/indirect calls",
+    "bulk-memory copy/fill",
+    "bounded WASI/Swift runtime adapters",
+    "actual corpus resource budgets and owned-VM execution",
+    "Swift sources/debugger",
+    "FieldLog OTA coverage",
+    "W08/D3/GA"
+  ]
+}

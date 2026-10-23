@@ -1,0 +1,18 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm)
+error: lifetime may not live long enough
+   --> src/experimental_swift_reactor/execution_tests.rs:545:109
+    |
+545 | fn probe(p: &mut ExecutionOperationPhase<'_>) -> &'static mut RuntimeControl { with_cache_operation(p,|_,o| o.control) }
+    |                                                                                                        -  - ^^^^^^^^^ returning this value requires that `'1` must outlive `'2`
+    |                                                                                                        |  |
+    |                                                                                                        |  return type of closure is &'2 mut control::RuntimeControl
+    |                                                                                                        has type `&mut experimental::execution::borrowed::ExecutionParts<'1, _>`
+
+error[E0507]: cannot move out of `o.control` which is behind a mutable reference
+   --> src/experimental_swift_reactor/execution_tests.rs:545:109
+    |
+545 | fn probe(p: &mut ExecutionOperationPhase<'_>) -> &'static mut RuntimeControl { with_cache_operation(p,|_,o| o.control) }
+    |                                                                                                             ^^^^^^^^^ move occurs because `o.control` has type `&mut control::RuntimeControl`, which does not implement the `Copy` trait
+
+For more information about this error, try `rustc --explain E0507`.
+error: could not compile `mixer-vm` (lib test) due to 2 previous errors

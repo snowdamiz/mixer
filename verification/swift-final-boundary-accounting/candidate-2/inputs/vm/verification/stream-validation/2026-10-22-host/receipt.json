@@ -1,0 +1,816 @@
+{
+  "schema_version": 1,
+  "observed_at_utc": "2026-10-23T01:58:47.751745+00:00",
+  "implementation_agent_selection": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "xhigh"
+  },
+  "independent_review": false,
+  "host_revision_at_start": "fb4691a6fee4e3591f5d45adbcd1d6b93862b437",
+  "source_tree_digest": "11e74f195e051317d8097953d8dd9193e29d3a0d66011fe00f29a36f34d5b8fe",
+  "source_manifest": "vm/verification/stream-validation/2026-10-22-host/source-manifest.sha256",
+  "frozen_production_reference": "64123c509e861ddd522631b293eadebdaca11341",
+  "frozen_production_identity": "vm/verification/stream-validation/2026-10-22-host/unchanged-production.json",
+  "scope": "macOS arm64 host only; nondefault complete selected-profile validation experiment; no executable route",
+  "environment": {
+    "PATH_prefix": "/opt/homebrew/opt/rustup/bin",
+    "CARGO_TARGET_DIR": "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification"
+  },
+  "versions": {
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1",
+    "node": "v22.23.3",
+    "clang": "Apple clang version 21.0.0 (clang-2100.3.34.2)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "python": "Python 3.14.8",
+    "macos": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "architecture": "arm64"
+  },
+  "commands": [
+    {
+      "name": "version-cargo",
+      "argv": [
+        "cargo",
+        "--version"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.071087,
+      "output": "vm/verification/stream-validation/2026-10-22-host/version-cargo.log",
+      "output_sha256": "1f88eaf7fe1aaec83184752cf4c944cd22f00184136ff36a3e4c318cc60ef566"
+    },
+    {
+      "name": "version-rustc",
+      "argv": [
+        "rustc",
+        "--version",
+        "--verbose"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.167131,
+      "output": "vm/verification/stream-validation/2026-10-22-host/version-rustc.log",
+      "output_sha256": "352d6857968e80a6357a926ac685b9b07f77c479aaafde33e73a53945e802909"
+    },
+    {
+      "name": "version-node",
+      "argv": [
+        "node",
+        "--version"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.051965,
+      "output": "vm/verification/stream-validation/2026-10-22-host/version-node.log",
+      "output_sha256": "33e26f35db6e57ce0c486ddc815fe966867e4f649e418eaf323f75f4720eb8e9"
+    },
+    {
+      "name": "version-clang",
+      "argv": [
+        "clang",
+        "--version"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.031849,
+      "output": "vm/verification/stream-validation/2026-10-22-host/version-clang.log",
+      "output_sha256": "4e8a77bcb032deb6591b0db384ff9808d01d9030f00e2d877394df88a12a2536"
+    },
+    {
+      "name": "version-python",
+      "argv": [
+        "python3",
+        "--version"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.01676,
+      "output": "vm/verification/stream-validation/2026-10-22-host/version-python.log",
+      "output_sha256": "f615dc9512de8b165e2b595e5cdc608a3ba7927ae92f959c5b42ec3d58e2ffa8"
+    },
+    {
+      "name": "version-macos",
+      "argv": [
+        "sw_vers"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.017784,
+      "output": "vm/verification/stream-validation/2026-10-22-host/version-macos.log",
+      "output_sha256": "4ef10a0fc370704ea84699cf3851e51488598c5f1ab35cb572eb6b96278a8e5c"
+    },
+    {
+      "name": "version-architecture",
+      "argv": [
+        "uname",
+        "-m"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.011613,
+      "output": "vm/verification/stream-validation/2026-10-22-host/version-architecture.log",
+      "output_sha256": "c1669e1d8edca98769c37d494b76442a1d6e5ffffd7b4da1fb63aef8ebaf6f01"
+    },
+    {
+      "name": "format",
+      "argv": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.250048,
+      "output": "vm/verification/stream-validation/2026-10-22-host/format.log",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "default-debug-tests",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--",
+        "--nocapture"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 5.198546,
+      "output": "vm/verification/stream-validation/2026-10-22-host/default-debug-tests.log",
+      "output_sha256": "4391c39110eca3d4e51d76e71c1a3e1545f0d93a257788d978a7de01c5906d13"
+    },
+    {
+      "name": "feature-debug-tests",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-stream-validation",
+        "--",
+        "--nocapture"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 7.82082,
+      "output": "vm/verification/stream-validation/2026-10-22-host/feature-debug-tests.log",
+      "output_sha256": "7614d96767bd7eee6e3a30552951004a54b6f35f2bf7a6fea9d00ac5eebe662c"
+    },
+    {
+      "name": "feature-release-tests",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--release",
+        "--features",
+        "experimental-stream-validation",
+        "--",
+        "--nocapture"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 5.010506,
+      "output": "vm/verification/stream-validation/2026-10-22-host/feature-release-tests.log",
+      "output_sha256": "eb6d5e6e58bdb6fb96678b0a0f8fc27b55e889e231d3045721d225a7f92854e1"
+    },
+    {
+      "name": "feature-debug-explicit-oracles",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-stream-validation",
+        "--",
+        "--ignored",
+        "--nocapture"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 11.609348,
+      "output": "vm/verification/stream-validation/2026-10-22-host/feature-debug-explicit-oracles.log",
+      "output_sha256": "cb932eb20b2d4d58b26199339968de327a74e4f7372abc1dde5c630fe2a578d4"
+    },
+    {
+      "name": "feature-release-explicit-oracles",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--release",
+        "--features",
+        "experimental-stream-validation",
+        "--",
+        "--ignored",
+        "--nocapture"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 14.181816,
+      "output": "vm/verification/stream-validation/2026-10-22-host/feature-release-explicit-oracles.log",
+      "output_sha256": "c9cc214ff3b3c497d0d187dbc0c08d6d650ddc8a71060d8ffcf9fc61d7c11b9f"
+    },
+    {
+      "name": "clippy-default",
+      "argv": [
+        "cargo",
+        "clippy",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 1.191884,
+      "output": "vm/verification/stream-validation/2026-10-22-host/clippy-default.log",
+      "output_sha256": "ff53048911f20166a37104de7290e7c552f514a16bdc4b23e492404a1cc66e20"
+    },
+    {
+      "name": "clippy-feature",
+      "argv": [
+        "cargo",
+        "clippy",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-stream-validation",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 1.246554,
+      "output": "vm/verification/stream-validation/2026-10-22-host/clippy-feature.log",
+      "output_sha256": "7b6859c74e868194b92a0cd91bb19a234fce8c7024d244e5fee9fe75d9706241"
+    },
+    {
+      "name": "default-release-build",
+      "argv": [
+        "cargo",
+        "build",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--release"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 2.718404,
+      "output": "vm/verification/stream-validation/2026-10-22-host/default-release-build.log",
+      "output_sha256": "bec81b19b5770ea0b2bdabc063f5773c134f77c775af8e553f8606e80b604be7"
+    },
+    {
+      "name": "default-symbols",
+      "argv": [
+        "nm",
+        "-gU",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/release/libmixer_vm.dylib"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.050558,
+      "output": "vm/verification/stream-validation/2026-10-22-host/default-symbols.log",
+      "output_sha256": "2e6ec7e07176c16dd1901e5fb418d50f671f000d8c6e9e7124acefef843421f2"
+    },
+    {
+      "name": "default-ffi_smoke-build",
+      "argv": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "vm/include",
+        "vm/tests/ffi_smoke.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/release/libmixer_vm.a",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/default-ffi_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.145383,
+      "output": "vm/verification/stream-validation/2026-10-22-host/default-ffi_smoke-build.log",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "default-ffi_smoke-run",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/default-ffi_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.060248,
+      "output": "vm/verification/stream-validation/2026-10-22-host/default-ffi_smoke-run.log",
+      "output_sha256": "22e011bf9720cb2a6378d3bb582b1f734d18811d8e9622af4545a62ffc67b89d"
+    },
+    {
+      "name": "default-ffi_numeric_smoke-build",
+      "argv": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "vm/include",
+        "vm/tests/ffi_numeric_smoke.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/release/libmixer_vm.a",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/default-ffi_numeric_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.10736,
+      "output": "vm/verification/stream-validation/2026-10-22-host/default-ffi_numeric_smoke-build.log",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "default-ffi_numeric_smoke-run",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/default-ffi_numeric_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.058356,
+      "output": "vm/verification/stream-validation/2026-10-22-host/default-ffi_numeric_smoke-run.log",
+      "output_sha256": "a009a7fccb4af9d1c562e9fbb41b66ade3becc0665f2f66869e8216d5a354273"
+    },
+    {
+      "name": "default-ffi_table_memory_smoke-build",
+      "argv": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "vm/include",
+        "vm/tests/ffi_table_memory_smoke.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/release/libmixer_vm.a",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/default-ffi_table_memory_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.107546,
+      "output": "vm/verification/stream-validation/2026-10-22-host/default-ffi_table_memory_smoke-build.log",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "default-ffi_table_memory_smoke-run",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/default-ffi_table_memory_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.054449,
+      "output": "vm/verification/stream-validation/2026-10-22-host/default-ffi_table_memory_smoke-run.log",
+      "output_sha256": "90d70aba024698a2839f670630576917d75836dcab17de4a40259bfcef494c6d"
+    },
+    {
+      "name": "default-ffi_session_smoke-build",
+      "argv": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "vm/include",
+        "vm/tests/ffi_session_smoke.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/release/libmixer_vm.a",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/default-ffi_session_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.105857,
+      "output": "vm/verification/stream-validation/2026-10-22-host/default-ffi_session_smoke-build.log",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "default-ffi_session_smoke-run",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/default-ffi_session_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.057735,
+      "output": "vm/verification/stream-validation/2026-10-22-host/default-ffi_session_smoke-run.log",
+      "output_sha256": "45c0d9a25d44ca97c4dd00a4eeac2d46557f059c590e498db5d91e9bce490aef"
+    },
+    {
+      "name": "feature-release-build",
+      "argv": [
+        "cargo",
+        "build",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--release",
+        "--features",
+        "experimental-stream-validation"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 1.918342,
+      "output": "vm/verification/stream-validation/2026-10-22-host/feature-release-build.log",
+      "output_sha256": "0925a76d5d1db174663bf45fb635a0a4d93dec1d4873ff486233b990e2f6ddc8"
+    },
+    {
+      "name": "feature-symbols",
+      "argv": [
+        "nm",
+        "-gU",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/release/libmixer_vm.dylib"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.018666,
+      "output": "vm/verification/stream-validation/2026-10-22-host/feature-symbols.log",
+      "output_sha256": "3cd0e2920cd3e3567e43a0deb31ed8794daa73fdf40bab3b1d0c559630cc0d03"
+    },
+    {
+      "name": "feature-ffi_smoke-build",
+      "argv": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "vm/include",
+        "vm/tests/ffi_smoke.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/release/libmixer_vm.a",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/feature-ffi_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.079638,
+      "output": "vm/verification/stream-validation/2026-10-22-host/feature-ffi_smoke-build.log",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "feature-ffi_smoke-run",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/feature-ffi_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.053931,
+      "output": "vm/verification/stream-validation/2026-10-22-host/feature-ffi_smoke-run.log",
+      "output_sha256": "22e011bf9720cb2a6378d3bb582b1f734d18811d8e9622af4545a62ffc67b89d"
+    },
+    {
+      "name": "feature-ffi_numeric_smoke-build",
+      "argv": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "vm/include",
+        "vm/tests/ffi_numeric_smoke.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/release/libmixer_vm.a",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/feature-ffi_numeric_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.090399,
+      "output": "vm/verification/stream-validation/2026-10-22-host/feature-ffi_numeric_smoke-build.log",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "feature-ffi_numeric_smoke-run",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/feature-ffi_numeric_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.060428,
+      "output": "vm/verification/stream-validation/2026-10-22-host/feature-ffi_numeric_smoke-run.log",
+      "output_sha256": "a009a7fccb4af9d1c562e9fbb41b66ade3becc0665f2f66869e8216d5a354273"
+    },
+    {
+      "name": "feature-ffi_table_memory_smoke-build",
+      "argv": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "vm/include",
+        "vm/tests/ffi_table_memory_smoke.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/release/libmixer_vm.a",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/feature-ffi_table_memory_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.126273,
+      "output": "vm/verification/stream-validation/2026-10-22-host/feature-ffi_table_memory_smoke-build.log",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "feature-ffi_table_memory_smoke-run",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/feature-ffi_table_memory_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.059464,
+      "output": "vm/verification/stream-validation/2026-10-22-host/feature-ffi_table_memory_smoke-run.log",
+      "output_sha256": "90d70aba024698a2839f670630576917d75836dcab17de4a40259bfcef494c6d"
+    },
+    {
+      "name": "feature-ffi_session_smoke-build",
+      "argv": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "vm/include",
+        "vm/tests/ffi_session_smoke.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/release/libmixer_vm.a",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/feature-ffi_session_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.12393,
+      "output": "vm/verification/stream-validation/2026-10-22-host/feature-ffi_session_smoke-build.log",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "feature-ffi_session_smoke-run",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/feature-ffi_session_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.059157,
+      "output": "vm/verification/stream-validation/2026-10-22-host/feature-ffi_session_smoke-run.log",
+      "output_sha256": "45c0d9a25d44ca97c4dd00a4eeac2d46557f059c590e498db5d91e9bce490aef"
+    }
+  ],
+  "test_counts": {
+    "default_debug": {
+      "passed": 87,
+      "ignored": 8
+    },
+    "feature_debug": {
+      "passed": 104,
+      "ignored": 9
+    },
+    "feature_release": {
+      "passed": 104,
+      "ignored": 9
+    },
+    "explicit_oracles": {
+      "debug": {
+        "passed": 9,
+        "ignored": 0
+      },
+      "release": {
+        "passed": 9,
+        "ignored": 0
+      }
+    }
+  },
+  "bounded_mutation_truncation_parity_cases": 2040,
+  "new_independent_node_validation_cases_per_build": 178,
+  "parity_reference_is_independent_standards_oracle": false,
+  "intentional_additional_work_budget_rejection": {
+    "frozen_decoder_accepts": true,
+    "experimental_result": "ResourceExhausted/Work; no proof",
+    "limit": 64000000,
+    "used": 64000000,
+    "attempted": 64000001,
+    "function": 0,
+    "absolute_offset": 35306,
+    "fixture": "original two-function module;16384 unreachable calls to4096-parameter signature"
+  },
+  "allocation_observations": {
+    "debug": {
+      "branch-labels-10": {
+        "source_bytes": 51,
+        "measured_requested_peak": 163,
+        "measured_retained": 91,
+        "allocation_calls": 7,
+        "total_peak_reserved": 1427,
+        "metadata_peak_reserved": 560,
+        "scratch_peak_reserved": 816,
+        "work_credits": 182
+      },
+      "branch-labels-200000": {
+        "source_bytes": 200047,
+        "measured_requested_peak": 200159,
+        "measured_retained": 200087,
+        "allocation_calls": 7,
+        "total_peak_reserved": 201423,
+        "metadata_peak_reserved": 560,
+        "scratch_peak_reserved": 816,
+        "work_credits": 1000150
+      },
+      "512-types-each-4096-parameters": {
+        "source_bytes": 2099225,
+        "measured_requested_peak": 5251097,
+        "measured_retained": 4202533,
+        "allocation_calls": 33,
+        "total_peak_reserved": 5252361,
+        "metadata_peak_reserved": 3152392,
+        "scratch_peak_reserved": 6888,
+        "work_credits": 10500655
+      },
+      "200000-instructions": {
+        "source_bytes": 200036,
+        "measured_requested_peak": 200140,
+        "measured_retained": 200076,
+        "allocation_calls": 6,
+        "total_peak_reserved": 201404,
+        "metadata_peak_reserved": 560,
+        "scratch_peak_reserved": 808,
+        "work_credits": 800101
+      },
+      "exact-4MiB-source": {
+        "source_bytes": 4194304,
+        "measured_requested_peak": 4194304,
+        "measured_retained": 4194304,
+        "allocation_calls": 1,
+        "total_peak_reserved": 4195568,
+        "metadata_peak_reserved": 520,
+        "scratch_peak_reserved": 744,
+        "work_credits": 8388609
+      },
+      "128-controls": {
+        "source_bytes": 416,
+        "measured_requested_peak": 3528,
+        "measured_retained": 456,
+        "allocation_calls": 11,
+        "total_peak_reserved": 4792,
+        "metadata_peak_reserved": 560,
+        "scratch_peak_reserved": 3816,
+        "work_credits": 1875
+      },
+      "4096-operands": {
+        "source_bytes": 12323,
+        "measured_requested_peak": 18571,
+        "measured_retained": 12363,
+        "allocation_calls": 16,
+        "total_peak_reserved": 19835,
+        "metadata_peak_reserved": 560,
+        "scratch_peak_reserved": 6952,
+        "work_credits": 61532
+      },
+      "v3-65536-elements": {
+        "source_bytes": 65592,
+        "measured_requested_peak": 65712,
+        "measured_retained": 65648,
+        "allocation_calls": 7,
+        "total_peak_reserved": 66976,
+        "metadata_peak_reserved": 576,
+        "scratch_peak_reserved": 808,
+        "work_credits": 196767
+      }
+    },
+    "release": {
+      "branch-labels-10": {
+        "source_bytes": 51,
+        "measured_requested_peak": 163,
+        "measured_retained": 91,
+        "allocation_calls": 7,
+        "total_peak_reserved": 1427,
+        "metadata_peak_reserved": 560,
+        "scratch_peak_reserved": 816,
+        "work_credits": 182
+      },
+      "branch-labels-200000": {
+        "source_bytes": 200047,
+        "measured_requested_peak": 200159,
+        "measured_retained": 200087,
+        "allocation_calls": 7,
+        "total_peak_reserved": 201423,
+        "metadata_peak_reserved": 560,
+        "scratch_peak_reserved": 816,
+        "work_credits": 1000150
+      },
+      "512-types-each-4096-parameters": {
+        "source_bytes": 2099225,
+        "measured_requested_peak": 5251097,
+        "measured_retained": 4202533,
+        "allocation_calls": 33,
+        "total_peak_reserved": 5252361,
+        "metadata_peak_reserved": 3152392,
+        "scratch_peak_reserved": 6888,
+        "work_credits": 10500655
+      },
+      "200000-instructions": {
+        "source_bytes": 200036,
+        "measured_requested_peak": 200140,
+        "measured_retained": 200076,
+        "allocation_calls": 6,
+        "total_peak_reserved": 201404,
+        "metadata_peak_reserved": 560,
+        "scratch_peak_reserved": 808,
+        "work_credits": 800101
+      },
+      "exact-4MiB-source": {
+        "source_bytes": 4194304,
+        "measured_requested_peak": 4194304,
+        "measured_retained": 4194304,
+        "allocation_calls": 1,
+        "total_peak_reserved": 4195568,
+        "metadata_peak_reserved": 520,
+        "scratch_peak_reserved": 744,
+        "work_credits": 8388609
+      },
+      "128-controls": {
+        "source_bytes": 416,
+        "measured_requested_peak": 3528,
+        "measured_retained": 456,
+        "allocation_calls": 11,
+        "total_peak_reserved": 4792,
+        "metadata_peak_reserved": 560,
+        "scratch_peak_reserved": 3816,
+        "work_credits": 1875
+      },
+      "4096-operands": {
+        "source_bytes": 12323,
+        "measured_requested_peak": 18571,
+        "measured_retained": 12363,
+        "allocation_calls": 16,
+        "total_peak_reserved": 19835,
+        "metadata_peak_reserved": 560,
+        "scratch_peak_reserved": 6952,
+        "work_credits": 61532
+      },
+      "v3-65536-elements": {
+        "source_bytes": 65592,
+        "measured_requested_peak": 65712,
+        "measured_retained": 65648,
+        "allocation_calls": 7,
+        "total_peak_reserved": 66976,
+        "metadata_peak_reserved": 576,
+        "scratch_peak_reserved": 808,
+        "work_credits": 196767
+      }
+    }
+  },
+  "allocation_method": "separate single-test integration process; System GlobalAlloc requested Layout bytes and live incremental peak; caller source/cancellation/harness baseline excluded; all observed proof drops and 12 injected allocation failures restore baseline",
+  "allocation_failure_checks": {
+    "each_of_12_allocation_ordinals": "AllocationFailure with no leak",
+    "oversized_source_and_invalid_limits": "zero allocation even with first allocation forced to fail",
+    "source_vec_to_box": "one exact-source-length allocation; zero realloc across conversion and fallible vector growth",
+    "cancellation": "four deterministic allocation gates across source/metadata/body traversal; no proof"
+  },
+  "accounting_is_measured_rss_or_native_allocator_usable_size": false,
+  "public_c_symbols": {
+    "default": [
+      "_mixer_vm_invoke",
+      "_mixer_vm_invoke_numeric_v2",
+      "_mixer_vm_invoke_table_memory_v3",
+      "_mixer_vm_session_cancel_v1",
+      "_mixer_vm_session_close_v1",
+      "_mixer_vm_session_create_v1",
+      "_mixer_vm_session_invoke_v1",
+      "_mixer_vm_session_read_v1",
+      "_mixer_vm_session_write_v1",
+      "_mixer_vm_validate",
+      "_mixer_vm_validate_numeric_v2",
+      "_mixer_vm_validate_table_memory_v3"
+    ],
+    "feature": [
+      "_mixer_vm_invoke",
+      "_mixer_vm_invoke_numeric_v2",
+      "_mixer_vm_invoke_table_memory_v3",
+      "_mixer_vm_session_cancel_v1",
+      "_mixer_vm_session_close_v1",
+      "_mixer_vm_session_create_v1",
+      "_mixer_vm_session_invoke_v1",
+      "_mixer_vm_session_read_v1",
+      "_mixer_vm_session_write_v1",
+      "_mixer_vm_validate",
+      "_mixer_vm_validate_numeric_v2",
+      "_mixer_vm_validate_table_memory_v3"
+    ]
+  },
+  "c_abi_outputs": {
+    "default-ffi_smoke": "C ABI smoke: passed",
+    "default-ffi_numeric_smoke": "FP flush-to-zero rejection: exercised\nFP hardware invalid-trap rejection: exercised\nNumeric-v2 C ABI smoke: passed",
+    "default-ffi_table_memory_smoke": "Table-memory-v3 C ABI smoke: passed; legacy struct layouts unchanged",
+    "default-ffi_session_smoke": "Persistent session C ABI smoke: passed; legacy layouts and one-shot state unchanged",
+    "feature-ffi_smoke": "C ABI smoke: passed",
+    "feature-ffi_numeric_smoke": "FP flush-to-zero rejection: exercised\nFP hardware invalid-trap rejection: exercised\nNumeric-v2 C ABI smoke: passed",
+    "feature-ffi_table_memory_smoke": "Table-memory-v3 C ABI smoke: passed; legacy struct layouts unchanged",
+    "feature-ffi_session_smoke": "Persistent session C ABI smoke: passed; legacy layouts and one-shot state unchanged"
+  },
+  "built_artifacts": {
+    "default": {
+      "archive_sha256": "3ea5debd52de3b0bf08f7e20591adf8ae14ba2a784c629000d52ba24ab56f642",
+      "dynamic_sha256": "e026e6c0f71fd01804290388ce27f64940d554293049acc2297ede2e5d7bc69b"
+    },
+    "feature": {
+      "archive_sha256": "83a83d97cc146a3979e68dc5c7beb757ada1e98ee7daf85fb4e2f72ff24f91db",
+      "dynamic_sha256": "300409c7ac7d1a2e9f4a377d7ddfa65a3fa8aa5430930dae32f9077274ab4db1"
+    }
+  },
+  "full_fieldlog_passed_to_experimental_validator": false,
+  "unchanged_full_fieldlog_candidate": {
+    "bytes": 52008982,
+    "sha256": "19ac88f26f0daf34b64acb3c5b895fc79b52701368fc4c532ac8ede5844fee75",
+    "validation_or_execution_claim": false
+  },
+  "open_gates": [
+    "independent experimental review",
+    "complete standards suite and coverage-guided fuzzing",
+    "physical iOS/Android experimental validator qualification (phones disconnected)",
+    "allocator-internal/RSS/stack-frame observations on deployment targets",
+    "all cache/execution/ABI/public routing design and implementation",
+    "full Swift source/function/global/control/instruction/memory admission contract",
+    "all34WASI imports and full Swift/FieldLog owned-VM execution",
+    "OTA/D3/GA"
+  ]
+}

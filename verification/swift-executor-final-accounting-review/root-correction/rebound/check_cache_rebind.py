@@ -1,0 +1,6 @@
+from pathlib import Path
+import subprocess,json,hashlib,time,os
+O=Path(__file__).resolve().parent;T=O/'tree/vm';B=Path('/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin');E=dict(os.environ,PATH=str(B)+':'+os.environ['PATH']);R=json.loads((O/'commands.json').read_text())
+for suffix,flags in [('debug',[]),('release',['--release'])]:
+ args=[str(B/'cargo'),'test','--locked','--manifest-path',str(T/'Cargo.toml'),*flags,'--lib','--features','experimental-swift-reactor','experimental_swift_reactor::cache_tests::frozen_layout_allocation_work_error_snapshots','--','--exact','--nocapture','--test-threads=1'];st=time.monotonic();p=subprocess.run(args,cwd=T,env=E,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT);q=O/'logs'/('cache-rebound-'+suffix+'.log');q.write_text(p.stdout);R.append({'name':'cache-rebound-'+suffix,'argv':args,'cwd':str(T),'exit_code':p.returncode,'duration_seconds':round(time.monotonic()-st,3),'output':str(q.relative_to(O)),'sha256':hashlib.sha256(q.read_bytes()).hexdigest()});assert p.returncode==0 and '1 passed; 0 failed' in p.stdout,p.stdout;print('cache-rebound',suffix,p.returncode)
+(O/'commands.json').write_text(json.dumps(R,indent=2)+'\n')

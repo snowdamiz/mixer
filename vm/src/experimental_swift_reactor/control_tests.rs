@@ -1186,7 +1186,10 @@ fn optional_observation_chain_is_reserved_before_runtime_work() {
         + 3 * size_of::<AdoptedProof>()
         + 4 * size_of::<SwiftRunFailure>()
         + 4 * size_of::<SwiftRunUsage>()
-        + 6 * size_of::<ReservationTicket>();
+        + 6 * size_of::<ReservationTicket>()
+        // Isolate observation admission while keeping the separate final-boundary
+        // inventory unchanged in both the historical and current formulas.
+        + FOUNDATION_FINAL_BOUNDARY_BYTES;
     let historical_floor = non_observation_shapes + historical_observations;
     let required_floor = non_observation_shapes + observed_chain;
     assert_eq!(foundation_construction_bytes(), Some(required_floor));
@@ -1255,6 +1258,177 @@ fn measured_named_layouts_are_recorded_without_allocator_or_rss_claims() {
         size_of::<AdoptedProof>()
             >= size_of::<ValidatedSwiftReactor>() + 2 * size_of::<ReservationTicket>()
     );
+}
+
+#[test]
+fn final_boundary_inventory_is_admitted_before_runtime_work() {
+    let required = foundation_construction_bytes().unwrap();
+    let added = FOUNDATION_FINAL_BOUNDARY_BYTES;
+    let previous = required.checked_sub(added).unwrap();
+    assert!(added > 2 * size_of::<usize>());
+    for headroom in [0, added - 1, added] {
+        let sealed = proof();
+        let validation = sealed.usage();
+        let before = validation.source_bytes
+            + validation.metadata_reserved
+            + size_of::<RuntimeControl>()
+            + Cancellation::requested_backing_layout().size();
+        let budget = SwiftRunBudget {
+            combined_bytes: before + previous + headroom,
+            ..SwiftRunBudget::default()
+        };
+        let cancellation = Cancellation::default();
+        let (result, stats) = super::super::allocation_tests::measure(|| {
+            RuntimeControl::adopt(sealed, budget, Instant::now(), cancellation)
+        });
+        no_allocations(stats);
+        if headroom < added {
+            let failure = result.err().unwrap();
+            assert_eq!(failure.kind, SwiftRunFailureKind::CombinedExhausted);
+            assert_eq!(failure.attempted as usize, before + required);
+            assert_eq!(failure.limit as usize, budget.combined_bytes);
+            assert_eq!(failure.at_failure.reservations.combined.current, before);
+            assert_eq!(failure.at_failure.reservations.construction.current, 0);
+            assert_eq!(failure.at_failure.instructions, 0);
+            assert_eq!(failure.at_failure.host_calls, 0);
+            assert_empty(failure.after_cleanup.unwrap());
+        } else {
+            let (control, adopted) = result.ok().unwrap();
+            let usage = control.usage(None);
+            assert_eq!(usage.reservations.construction.current, required);
+            assert_eq!(usage.reservations.combined.current, budget.combined_bytes);
+            assert_eq!(usage.reservations.live_tickets, 5);
+            let (after, stats) =
+                super::super::allocation_tests::measure(|| clean(control, adopted));
+            no_allocations(stats);
+            assert_empty(after);
+        }
+    }
+    println!(
+        "final-boundary admission previous={previous} additional={added} foundation={required}"
+    );
+}
+
+#[test]
+fn final_boundary_cleanup_preserves_real_observation_and_rejected_charges() {
+    use super::super::execution::{execution_header_bytes, ExecutionCleanupTail};
+    use crate::experimental_wasi::accounted::AccountedWasi;
+    use crate::experimental_wasi::WasiGrants;
+    for case in 0..7 {
+        let (mut control, proof) = adopt(SwiftRunBudget::default());
+        let at = cursor(SwiftRunStage::Invocation);
+        let mut phase = AccountedWasi::prepare(&mut control, at).unwrap();
+        let mut wasi = phase
+            .construct(
+                WasiGrants::default(),
+                WasiBudget::default(),
+                Instant::now(),
+                at,
+            )
+            .unwrap();
+        phase.complete().unwrap();
+        wasi.dispatch(
+            &mut control,
+            WasiFunction::ArgsSizesGet,
+            &[crate::Value::I32(0), crate::Value::I32(4)],
+            &mut [0; 8],
+            at,
+        )
+        .unwrap();
+        let observation = wasi.checked_usage(&mut control, at).unwrap();
+        assert_eq!(observation.calls, 1);
+        wasi.cleanup(&mut control).unwrap();
+        control
+            .drop_proof_with_wasi(proof, Some(observation))
+            .unwrap();
+        let bytes = execution_header_bytes().unwrap();
+        let mut header = if case == 1 {
+            None
+        } else {
+            Some(
+                control
+                    .admit(SwiftReservationCategory::State, bytes, at)
+                    .unwrap(),
+            )
+        };
+        let mut first = None;
+        let (invariant, retained) = match case {
+            0 | 1 => (None, 0),
+            2 => {
+                // Fault injection changes only a ledger observation. It must
+                // never refund the still-charged combined bytes or ticket.
+                control.reservations.state.current = 0;
+                (Some(SwiftCleanupInvariant::ReservationUnderflow), bytes)
+            }
+            3 => {
+                first = Some(control.fail(
+                    at,
+                    Fault::new(SwiftRunFailureKind::GuestTrap, "test_first_cause"),
+                    Some(observation),
+                ));
+                // Test-only bad owner, after the real first failure was latched.
+                header.as_mut().unwrap().owner = 0;
+                (Some(SwiftCleanupInvariant::ReservationOwner), bytes)
+            }
+            4 => {
+                control.construction.as_mut().unwrap().bytes += 1;
+                (
+                    Some(SwiftCleanupInvariant::ConstructionBound),
+                    foundation_construction_bytes().unwrap(),
+                )
+            }
+            5 => {
+                control.control_header.as_mut().unwrap().owner = 0;
+                (
+                    Some(SwiftCleanupInvariant::ReservationOwner),
+                    size_of::<RuntimeControl>(),
+                )
+            }
+            6 => {
+                control.reservations.construction.current -= 1;
+                (
+                    Some(SwiftCleanupInvariant::ReservationUnderflow),
+                    foundation_construction_bytes().unwrap(),
+                )
+            }
+            _ => unreachable!(),
+        };
+        let tail = ExecutionCleanupTail {
+            control,
+            header,
+            final_wasi: Some(observation),
+            failure: first,
+        };
+        let mut outcome = None;
+        let mut usage = None;
+        let ((), stats) =
+            super::super::allocation_tests::measure(|| tail.complete((), &mut outcome, &mut usage));
+        no_allocations(stats);
+        let usage = usage.unwrap();
+        assert_eq!(usage.wasi, Some(observation));
+        assert_eq!(usage.cleanup_invariant, invariant);
+        assert_eq!(usage.reservations.combined.current, retained);
+        assert_eq!(usage.reservations.live_tickets, usize::from(retained != 0));
+        if let Some(first) = first {
+            let reported = outcome.unwrap();
+            assert_eq!(reported.kind, first.kind);
+            assert_eq!(reported.code, first.code);
+            assert_eq!(reported.function, first.function);
+            assert_eq!(reported.offset, first.offset);
+            assert_eq!(reported.at_failure, first.at_failure);
+            assert_eq!(reported.after_cleanup.unwrap().cleanup_invariant, invariant);
+        } else if case == 2 {
+            let reported = outcome.unwrap();
+            assert_eq!(reported.code, "swift_run_release_underflow");
+            assert_eq!(reported.at_failure.wasi, Some(observation));
+            assert_eq!(reported.after_cleanup.unwrap().cleanup_invariant, invariant);
+        } else {
+            // Finish's invariant is an independent cleanup observation; it
+            // does not fabricate a terminal failure after record_cleanup ended.
+            assert!(outcome.is_none());
+        }
+        println!("final-boundary cleanup case={case} retained={retained} invariant={invariant:?} allocations={}", stats.allocations);
+    }
 }
 
 #[test]

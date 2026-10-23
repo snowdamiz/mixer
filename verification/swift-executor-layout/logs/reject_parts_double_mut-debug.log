@@ -1,0 +1,12 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm)
+error[E0499]: cannot borrow `*p.cache` as mutable more than once at a time
+   --> src/experimental_swift_reactor/execution_tests.rs:545:78
+    |
+545 | fn probe(p: &mut ExecutionParts<'_, SwiftMode>) { let a=&mut *p.cache; let b=&mut *p.cache; std::hint::black_box((a,b)); }
+    |                                                         -------------        ^^^^^^^^^^^^^                        - first borrow later used here
+    |                                                         |                    |
+    |                                                         |                    second mutable borrow occurs here
+    |                                                         first mutable borrow occurs here
+
+For more information about this error, try `rustc --explain E0499`.
+error: could not compile `mixer-vm` (lib test) due to 1 previous error

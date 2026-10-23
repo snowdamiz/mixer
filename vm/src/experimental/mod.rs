@@ -23,6 +23,11 @@ pub(crate) mod cache;
 pub(crate) mod descriptors;
 #[cfg(feature = "experimental-span-execution")]
 pub mod execution;
+#[cfg(all(
+    feature = "experimental-swift-reactor",
+    not(feature = "experimental-span-execution")
+))]
+pub(crate) mod execution;
 #[cfg(all(test, feature = "experimental-swift-reactor"))]
 mod swift_descriptor_tests;
 

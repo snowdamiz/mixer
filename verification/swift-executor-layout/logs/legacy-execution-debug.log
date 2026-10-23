@@ -1,0 +1,82 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm)
+warning: unused import: `statistics`
+   --> src/experimental/cache/borrowed.rs:298:16
+    |
+298 | pub(crate) use statistics;
+    |                ^^^^^^^^^^
+    |
+    = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: methods `source`, `defined_function_count`, and `signature` are never used
+  --> src/experimental/cache/borrowed.rs:16:8
+   |
+13 | pub(crate) trait SnapshotView: sealed::Snapshot {
+   |                  ------------ methods in this trait
+...
+16 |     fn source(&self) -> &[u8];
+   |        ^^^^^^
+17 |     fn defined_function_count(&self) -> usize;
+   |        ^^^^^^^^^^^^^^^^^^^^^^
+...
+20 |     fn signature(&self, absolute: u32) -> Option<SignatureView<'_>>;
+   |        ^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: variants `Constructor`, `ScanReset`, `Scan`, `BuildReset`, and `Build` are never constructed
+   --> src/experimental/cache/borrowed.rs:174:5
+    |
+173 | pub(crate) enum CacheStep {
+    |                 --------- variants in this enum
+174 |     Constructor,
+    |     ^^^^^^^^^^^
+175 |     Lookup,
+176 |     ScanReset,
+    |     ^^^^^^^^^
+177 |     Scan,
+    |     ^^^^
+178 |     BuildReset,
+    |     ^^^^^^^^^^
+179 |     Build,
+    |     ^^^^^
+    |
+    = note: `CacheStep` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: `mixer-vm` (lib) generated 3 warnings (run `cargo fix --lib -p mixer-vm` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.65s
+     Running tests/span_execution.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/build/debug/deps/span_execution-af24dbd7c74fc72d)
+
+running 16 tests
+test rejected_pre_pinned_cache_reports_no_live_owner_resources ... ok
+test cache_callee_lifetime_work_exhaustion_releases_every_frame ... ok
+test callee_cache_failure_preserves_callsite_and_cleans_caller_pin ... ok
+test exact_import_accounting_sticky_abort_and_host_budget ... ok
+test direct_recursive_calls_arguments_locals_if_and_return ... ok
+test numeric_nan_signed_zero_overflow_and_conversion_traps_preserve_source ... ok
+test loop_br_if_br_table_blocks_select_and_unreachable_cleanup ... ok
+test fuel_work_values_controls_call_depth_and_pin_failures_cleanup ... ok
+test profiles_aggregate_arena_boundaries_and_narrowing_budgets ... ok
+test state_survives_success_and_prior_guest_writes_survive_trap ... ok
+test table_order_structural_signature_null_bounds_and_mismatch ... ok
+test invocation_admission_is_terminal_and_cancellation_before_construct_or_dispatch ... ok
+test exact_state_reservations_growth_overlap_and_terminal_resource_denial ... ok
+test complete_scalar_numeric_and_saturating_dispatch_matches_frozen_semantics ... ok
+test ordered_data_and_bulk_memmove_fill_growth_and_size ... ok
+test every_load_and_store_width_signedness_and_float_bits ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/span_execution_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/build/debug/deps/span_execution_allocations-0c559c1f3b403ad3)
+
+running 1 test
+test every_allocator_failure_and_cancel_ordinal_is_fallible_and_cleans_owned_pins ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/span_execution_oracle.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/build/debug/deps/span_execution_oracle-2379c3736f4e563f)
+
+running 1 test
+test original_probes_match_development_node_values_traps_and_memory ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+

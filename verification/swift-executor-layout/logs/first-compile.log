@@ -1,0 +1,349 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm)
+error[E0659]: `SwiftMode` is ambiguous
+  --> src/experimental_swift_reactor/execution_tests.rs:25:33
+   |
+25 |     row!(ExecutionParts<'static,SwiftMode>); row!(SwiftExecutionOperation<'static>);
+   |                                 ^^^^^^^^^ ambiguous name
+   |
+   = note: ambiguous because of multiple glob imports of a name in the same module
+note: `SwiftMode` could refer to the struct imported here
+  --> src/experimental_swift_reactor/execution_tests.rs:2:5
+   |
+ 2 | use super::execution::*;
+   |     ^^^^^^^^^^^^^^^^^^^
+   = help: consider adding an explicit import of `SwiftMode` to disambiguate
+note: `SwiftMode` could also refer to the struct imported here
+  --> src/experimental_swift_reactor/execution_tests.rs:3:5
+   |
+ 3 | use super::cache::*;
+   |     ^^^^^^^^^^^^^^^
+   = help: consider adding an explicit import of `SwiftMode` to disambiguate
+
+error[E0659]: `SwiftMode` is ambiguous
+  --> src/experimental_swift_reactor/execution_tests.rs:52:36
+   |
+52 |     fields!(ExecutionParts<'static,SwiftMode>; cache,memory,table,globals,values,controls,frames);
+   |                                    ^^^^^^^^^ ambiguous name
+   |
+   = note: ambiguous because of multiple glob imports of a name in the same module
+note: `SwiftMode` could refer to the struct imported here
+  --> src/experimental_swift_reactor/execution_tests.rs:2:5
+   |
+ 2 | use super::execution::*;
+   |     ^^^^^^^^^^^^^^^^^^^
+   = help: consider adding an explicit import of `SwiftMode` to disambiguate
+note: `SwiftMode` could also refer to the struct imported here
+  --> src/experimental_swift_reactor/execution_tests.rs:3:5
+   |
+ 3 | use super::cache::*;
+   |     ^^^^^^^^^^^^^^^
+   = help: consider adding an explicit import of `SwiftMode` to disambiguate
+
+error[E0659]: `SwiftMode` is ambiguous
+  --> src/experimental_swift_reactor/execution_tests.rs:90:49
+   |
+90 |     assert_eq!(size_of::<ExecutionParts<'static,SwiftMode>>(),7*size_of::<usize>());
+   |                                                 ^^^^^^^^^ ambiguous name
+   |
+   = note: ambiguous because of multiple glob imports of a name in the same module
+note: `SwiftMode` could refer to the struct imported here
+  --> src/experimental_swift_reactor/execution_tests.rs:2:5
+   |
+ 2 | use super::execution::*;
+   |     ^^^^^^^^^^^^^^^^^^^
+   = help: consider adding an explicit import of `SwiftMode` to disambiguate
+note: `SwiftMode` could also refer to the struct imported here
+  --> src/experimental_swift_reactor/execution_tests.rs:3:5
+   |
+ 3 | use super::cache::*;
+   |     ^^^^^^^^^^^^^^^
+   = help: consider adding an explicit import of `SwiftMode` to disambiguate
+
+error[E0659]: `SwiftMode` is ambiguous
+   --> src/experimental_swift_reactor/execution_tests.rs:114:55
+    |
+114 |     fn parts_association<'a>(parts: ExecutionParts<'a,SwiftMode>,op:SwiftExecutionOperation<'a>)
+    |                                                       ^^^^^^^^^ ambiguous name
+    |
+    = note: ambiguous because of multiple glob imports of a name in the same module
+note: `SwiftMode` could refer to the struct imported here
+   --> src/experimental_swift_reactor/execution_tests.rs:2:5
+    |
+  2 | use super::execution::*;
+    |     ^^^^^^^^^^^^^^^^^^^
+    = help: consider adding an explicit import of `SwiftMode` to disambiguate
+note: `SwiftMode` could also refer to the struct imported here
+   --> src/experimental_swift_reactor/execution_tests.rs:3:5
+    |
+  3 | use super::cache::*;
+    |     ^^^^^^^^^^^^^^^
+    = help: consider adding an explicit import of `SwiftMode` to disambiguate
+
+error[E0659]: `SwiftMode` is ambiguous
+   --> src/experimental_swift_reactor/execution_tests.rs:115:31
+    |
+115 |         -> (ExecutionParts<'a,SwiftMode>,<SwiftMode as ExecutionMode>::Operation<'a>) { (parts,op) }
+    |                               ^^^^^^^^^ ambiguous name
+    |
+    = note: ambiguous because of multiple glob imports of a name in the same module
+note: `SwiftMode` could refer to the struct imported here
+   --> src/experimental_swift_reactor/execution_tests.rs:2:5
+    |
+  2 | use super::execution::*;
+    |     ^^^^^^^^^^^^^^^^^^^
+    = help: consider adding an explicit import of `SwiftMode` to disambiguate
+note: `SwiftMode` could also refer to the struct imported here
+   --> src/experimental_swift_reactor/execution_tests.rs:3:5
+    |
+  3 | use super::cache::*;
+    |     ^^^^^^^^^^^^^^^
+    = help: consider adding an explicit import of `SwiftMode` to disambiguate
+
+error[E0659]: `SwiftMode` is ambiguous
+   --> src/experimental_swift_reactor/execution_tests.rs:115:43
+    |
+115 |         -> (ExecutionParts<'a,SwiftMode>,<SwiftMode as ExecutionMode>::Operation<'a>) { (parts,op) }
+    |                                           ^^^^^^^^^ ambiguous name
+    |
+    = note: ambiguous because of multiple glob imports of a name in the same module
+note: `SwiftMode` could refer to the struct imported here
+   --> src/experimental_swift_reactor/execution_tests.rs:2:5
+    |
+  2 | use super::execution::*;
+    |     ^^^^^^^^^^^^^^^^^^^
+    = help: consider adding an explicit import of `SwiftMode` to disambiguate
+note: `SwiftMode` could also refer to the struct imported here
+   --> src/experimental_swift_reactor/execution_tests.rs:3:5
+    |
+  3 | use super::cache::*;
+    |     ^^^^^^^^^^^^^^^
+    = help: consider adding an explicit import of `SwiftMode` to disambiguate
+
+error[E0599]: no method named `execution_memory` found for reference `&experimental::ValidatedSpans` in the current scope
+   --> src/experimental/execution/mod.rs:349:14
+    |
+346 |           let bytes = self
+    |  _____________________-
+347 | |             .cache
+348 | |             .spans()
+349 | |             .execution_memory()
+    | |             -^^^^^^^^^^^^^^^^ method not found in `&experimental::ValidatedSpans`
+    | |_____________|
+    |
+
+error[E0599]: no method named `execution_table` found for reference `&experimental::ValidatedSpans` in the current scope
+   --> src/experimental/execution/mod.rs:354:14
+    |
+351 |           let table = self
+    |  _____________________-
+352 | |             .cache
+353 | |             .spans()
+354 | |             .execution_table()
+    | |             -^^^^^^^^^^^^^^^ method not found in `&experimental::ValidatedSpans`
+    | |_____________|
+    |
+
+error[E0599]: no method named `execution_global_count` found for reference `&experimental::ValidatedSpans` in the current scope
+   --> src/experimental/execution/mod.rs:356:42
+    |
+356 |         let globals = self.cache.spans().execution_global_count();
+    |                                          ^^^^^^^^^^^^^^^^^^^^^^
+    |
+help: there is a method `function_count` with a similar name
+    |
+356 -         let globals = self.cache.spans().execution_global_count();
+356 +         let globals = self.cache.spans().function_count();
+    |
+
+error[E0599]: no method named `execution_global` found for reference `&experimental::ValidatedSpans` in the current scope
+   --> src/experimental/execution/mod.rs:379:18
+    |
+376 |               let global = self
+    |  __________________________-
+377 | |                 .cache
+378 | |                 .spans()
+379 | |                 .execution_global(index)
+    | |                 -^^^^^^^^^^^^^^^^ method not found in `&experimental::ValidatedSpans`
+    | |_________________|
+    |
+
+error[E0599]: no method named `execution_data_count` found for reference `&experimental::ValidatedSpans` in the current scope
+   --> src/experimental/execution/mod.rs:387:44
+    |
+387 |         for index in 0..self.cache.spans().execution_data_count() {
+    |                                            ^^^^^^^^^^^^^^^^^^^^
+    |
+help: there is a method `function_count` with a similar name
+    |
+387 -         for index in 0..self.cache.spans().execution_data_count() {
+387 +         for index in 0..self.cache.spans().function_count() {
+    |
+
+error[E0599]: no method named `execution_element_count` found for reference `&experimental::ValidatedSpans` in the current scope
+   --> src/experimental/execution/mod.rs:401:44
+    |
+401 |         for index in 0..self.cache.spans().execution_element_count() {
+    |                                            ^^^^^^^^^^^^^^^^^^^^^^^ method not found in `&experimental::ValidatedSpans`
+
+error[E0599]: no method named `execution_data_count` found for reference `&experimental::ValidatedSpans` in the current scope
+   --> src/experimental/execution/mod.rs:415:44
+    |
+415 |         for index in 0..self.cache.spans().execution_data_count() {
+    |                                            ^^^^^^^^^^^^^^^^^^^^
+    |
+help: there is a method `function_count` with a similar name
+    |
+415 -         for index in 0..self.cache.spans().execution_data_count() {
+415 +         for index in 0..self.cache.spans().function_count() {
+    |
+
+error[E0599]: no method named `execution_element_count` found for reference `&experimental::ValidatedSpans` in the current scope
+   --> src/experimental/execution/mod.rs:436:44
+    |
+436 |         for index in 0..self.cache.spans().execution_element_count() {
+    |                                            ^^^^^^^^^^^^^^^^^^^^^^^ method not found in `&experimental::ValidatedSpans`
+
+error[E0599]: no method named `execution_export_count` found for reference `&experimental::ValidatedSpans` in the current scope
+   --> src/experimental/execution/mod.rs:611:42
+    |
+611 |         let exports = self.cache.spans().execution_export_count();
+    |                                          ^^^^^^^^^^^^^^^^^^^^^^
+    |
+help: there is a method `function_count` with a similar name
+    |
+611 -         let exports = self.cache.spans().execution_export_count();
+611 +         let exports = self.cache.spans().function_count();
+    |
+
+error[E0599]: no method named `execution_export` found for reference `&experimental::ValidatedSpans` in the current scope
+   --> src/experimental/execution/mod.rs:628:51
+    |
+628 |         let (kind, function) = self.cache.spans().execution_export(name).ok_or_else(|| {
+    |                                                   ^^^^^^^^^^^^^^^^ method not found in `&experimental::ValidatedSpans`
+
+error[E0599]: no method named `execution_signature` found for reference `&experimental::ValidatedSpans` in the current scope
+   --> src/experimental/execution/mod.rs:644:14
+    |
+641 |           let sig = self
+    |  ___________________-
+642 | |             .cache
+643 | |             .spans()
+644 | |             .execution_signature(function)
+    | |             -^^^^^^^^^^^^^^^^^^^ method not found in `&experimental::ValidatedSpans`
+    | |_____________|
+    |
+
+error[E0599]: no method named `execution_import` found for reference `&experimental::ValidatedSpans` in the current scope
+   --> src/experimental/execution/mod.rs:655:31
+    |
+655 |         if self.cache.spans().execution_import(function).is_some() {
+    |                               ^^^^^^^^^^^^^^^^ method not found in `&experimental::ValidatedSpans`
+
+error[E0599]: no method named `execution_signature` found for reference `&experimental::ValidatedSpans` in the current scope
+   --> src/experimental/execution/mod.rs:678:14
+    |
+675 |           let sig = self
+    |  ___________________-
+676 | |             .cache
+677 | |             .spans()
+678 | |             .execution_signature(function)
+    | |             -^^^^^^^^^^^^^^^^^^^ method not found in `&experimental::ValidatedSpans`
+    | |_____________|
+    |
+
+error[E0599]: no method named `execution_import` found for reference `&experimental::ValidatedSpans` in the current scope
+   --> src/experimental/execution/mod.rs:759:14
+    |
+756 |           let import = self
+    |  ______________________-
+757 | |             .cache
+758 | |             .spans()
+759 | |             .execution_import(function)
+    | |             -^^^^^^^^^^^^^^^^ method not found in `&experimental::ValidatedSpans`
+    | |_____________|
+    |
+
+error[E0599]: no method named `execution_signature` found for reference `&experimental::ValidatedSpans` in the current scope
+   --> src/experimental/execution/mod.rs:774:14
+    |
+771 |           let params = self
+    |  ______________________-
+772 | |             .cache
+773 | |             .spans()
+774 | |             .execution_signature(function)
+    | |             -^^^^^^^^^^^^^^^^^^^ method not found in `&experimental::ValidatedSpans`
+    | |_____________|
+    |
+
+error[E0599]: no method named `execution_import` found for reference `&experimental::ValidatedSpans` in the current scope
+   --> src/experimental/execution/mod.rs:788:31
+    |
+788 |         if self.cache.spans().execution_import(function).is_some() {
+    |                               ^^^^^^^^^^^^^^^^ method not found in `&experimental::ValidatedSpans`
+
+error[E0599]: no method named `execution_global` found for reference `&experimental::ValidatedSpans` in the current scope
+   --> src/experimental/execution/mod.rs:953:26
+    |
+950 |                       let desc = self
+    |  ________________________________-
+951 | |                         .cache
+952 | |                         .spans()
+953 | |                         .execution_global(index as usize)
+    | |                         -^^^^^^^^^^^^^^^^ method not found in `&experimental::ValidatedSpans`
+    | |_________________________|
+    |
+
+error[E0599]: no method named `execution_type` found for reference `&experimental::ValidatedSpans` in the current scope
+    --> src/experimental/execution/mod.rs:1033:26
+     |
+1030 |                       let expected = self
+     |  ____________________________________-
+1031 | |                         .cache
+1032 | |                         .spans()
+1033 | |                         .execution_type(index)
+     | |                         -^^^^^^^^^^^^^^ method not found in `&experimental::ValidatedSpans`
+     | |_________________________|
+     |
+
+error[E0599]: no method named `execution_signature` found for reference `&experimental::ValidatedSpans` in the current scope
+    --> src/experimental/execution/mod.rs:1038:26
+     |
+1035 |                       let actual = self
+     |  __________________________________-
+1036 | |                         .cache
+1037 | |                         .spans()
+1038 | |                         .execution_signature(function)
+     | |                         -^^^^^^^^^^^^^^^^^^^ method not found in `&experimental::ValidatedSpans`
+     | |_________________________|
+     |
+
+error[E0599]: no method named `execution_type` found for reference `&experimental::ValidatedSpans` in the current scope
+    --> src/experimental/execution/mod.rs:1046:43
+     |
+1046 |                     if self.cache.spans().execution_type(index)
+     |                                           ^^^^^^^^^^^^^^ method not found in `&experimental::ValidatedSpans`
+
+error[E0599]: no method named `execution_signature` found for reference `&experimental::ValidatedSpans` in the current scope
+    --> src/experimental/execution/mod.rs:1047:47
+     |
+1047 |                         != self.cache.spans().execution_signature(function)
+     |                                               ^^^^^^^^^^^^^^^^^^^ method not found in `&experimental::ValidatedSpans`
+
+error[E0599]: no method named `execution_memory` found for reference `&experimental::ValidatedSpans` in the current scope
+    --> src/experimental/execution/mod.rs:1158:14
+     |
+1155 |           let maximum = self
+     |  _______________________-
+1156 | |             .cache
+1157 | |             .spans()
+1158 | |             .execution_memory()
+     | |             -^^^^^^^^^^^^^^^^ method not found in `&experimental::ValidatedSpans`
+     | |_____________|
+     |
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `mixer-vm` (lib) due to 22 previous errors
+warning: build failed, waiting for other jobs to finish...
+Some errors have detailed explanations: E0599, E0659.
+For more information about an error, try `rustc --explain E0599`.
+error: could not compile `mixer-vm` (lib test) due to 28 previous errors

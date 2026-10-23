@@ -1,0 +1,193 @@
+{
+  "schema": "mixer.swift-executor-final-boundary.v1",
+  "scope": "Exact chosen final helper and frozen control chain; review input, not an accepted allowance.",
+  "source_sha256": {
+    "vm/src/experimental_swift_reactor/execution.rs": "33f4ae0f00f20c24656a3456e5203a980e456acbb22a72214b74e82eb423f81e",
+    "vm/src/experimental_swift_reactor/control.rs": "55e0e89c5da57347f02fd13dfb97296c19c3ace7d94fc11109dd224c9046b79f"
+  },
+  "status": "pending independent root-owned foundation review",
+  "before_refund": {
+    "helper": "drop_cleanup_return_storage",
+    "ends_by_explicit_scope": [
+      "caller returned storage T consumed/dropped",
+      "tail.failure consumed/dropped",
+      "tail owning wrapper helper frame",
+      "HeaderCompletionParts return temporary destructured; full expression ends before if/refund"
+    ],
+    "surviving_values": [
+      "original RuntimeControl",
+      "same execution-header Option<ReservationTicket>",
+      "one Option<WasiUsage> final_wasi",
+      "outcome output borrow",
+      "usage output borrow"
+    ],
+    "HeaderCompletionParts": {
+      "size": 1856,
+      "align": 8
+    }
+  },
+  "foundation_classes": {
+    "SwiftRunFailure": {
+      "slots": 4,
+      "size": 1096,
+      "assignment": "caller outcome; local/new first-failure transfer; forwarded error result/return slots, sequential alternatives; control-owned first failure stays in control header"
+    },
+    "SwiftRunUsage": {
+      "slots": 4,
+      "size": 504,
+      "assignment": "caller usage; usage local/return; cleanup/final assignment transfer positions, sequential alternatives"
+    },
+    "ReservationTicket": {
+      "slots": 6,
+      "size": 24,
+      "assignment": "header optional/extraction and owned drop/refund argument transfers; no free payload or reference class implied"
+    },
+    "Option<WasiUsage>": {
+      "slots": 6,
+      "size": 112,
+      "success_refund": [
+        "complete.final_wasi",
+        "drop_reserved_with_wasi.wasi",
+        "refund_with_wasi.wasi"
+      ],
+      "rejected_refund": [
+        "complete.final_wasi",
+        "drop_reserved_with_wasi.wasi",
+        "refund_with_wasi.wasi",
+        "cleanup_fault_with_wasi.wasi",
+        "fail.wasi",
+        "usage.wasi"
+      ],
+      "record_cleanup": [
+        "complete.final_wasi",
+        "record_cleanup.wasi",
+        "usage.wasi"
+      ],
+      "finish": [
+        "complete.final_wasi",
+        "finish_owned_cleanup.wasi",
+        "usage.wasi"
+      ]
+    }
+  },
+  "additional_output_reference_lower_bound_bytes": 16,
+  "minimal_complete_new_allowance_claimed": false,
+  "independent_review_note": "Starter RefundSupplement and FinishSupplement are incomplete. Independent review must also name match tuple/pattern locals, category receiver/enum/return, get_or_insert receiver/argument/return, record_cleanup pattern/reference, primitive usage/micros u128 and Result transfers, Fault::new return/parameter, and foundation_construction_bytes runtime iterator/try_fold chain.",
+  "reason": "Named output refs, control receiver refs, Cursor/Fault, checked arithmetic, clock scalars and whole iterator wrappers have no explicit disjoint final allowance in the frozen foundation. Smaller references are not relabeled as Failure/Usage/Ticket slots.",
+  "supplement_shapes": {
+    "RefundSupplement": {
+      "size": 256,
+      "align": 8
+    },
+    "FinishSupplement": {
+      "size": 288,
+      "align": 8
+    },
+    "Tickets": {
+      "size": 72,
+      "align": 8
+    },
+    "IntoTickets": {
+      "size": 88,
+      "align": 8
+    },
+    "FlatTickets": {
+      "size": 144,
+      "align": 8
+    }
+  },
+  "supplement_field_offsets": {
+    "RefundSupplement": {
+      "outcome": 176,
+      "usage": 184,
+      "drop_receiver": 192,
+      "refund_receiver": 200,
+      "cleanup_fault_receiver": 208,
+      "fail_receiver": 216,
+      "usage_receiver": 224,
+      "invariant": 248,
+      "code": 232,
+      "cursor": 0,
+      "fault": 32,
+      "usage_now": 144,
+      "micros_duration": 160,
+      "checked_category": 96,
+      "checked_combined": 112,
+      "checked_count": 128
+    },
+    "FinishSupplement": {
+      "outcome": 224,
+      "usage": 232,
+      "started": 192,
+      "deadline": 208,
+      "tickets": 0,
+      "checked_category": 144,
+      "checked_combined": 160,
+      "checked_count": 176,
+      "category": 256,
+      "combined": 264,
+      "count": 272,
+      "reservation_receiver": 240,
+      "reservation_return": 248,
+      "category_parameter": 280
+    }
+  },
+  "windows": [
+    {
+      "name": "successful final execution-header refund",
+      "observations": 3,
+      "additional_named_fields": [
+        "outcome borrow",
+        "usage borrow",
+        "drop self borrow",
+        "refund self borrow",
+        "refund category/combined/count Option<usize>",
+        "successful category/combined/count usize bindings",
+        "reservation category/category_mut receiver/parameter/result borrow"
+      ]
+    },
+    {
+      "name": "rejected final header refund/fault",
+      "observations": 6,
+      "additional_named_fields": [
+        "outcome/usage borrows",
+        "five control receiver borrows",
+        "cleanup code and invariant parameters",
+        "fail Cursor and Fault arguments",
+        "usage now Instant",
+        "micros duration",
+        "underflow category/combined/count Option<usize> retained until refund returns"
+      ]
+    },
+    {
+      "name": "later record_cleanup",
+      "observations": 3,
+      "sequential": "previous refund Result temporary ended at the if-body semicolon before record_cleanup",
+      "additional_named_fields": [
+        "outcome/usage borrows",
+        "record_cleanup and usage receiver borrows",
+        "record_cleanup mutable failure borrow",
+        "usage clock/micros scalars"
+      ]
+    },
+    {
+      "name": "control consumption",
+      "observations": 3,
+      "sequential": "record_cleanup call/result ended and outcome assignment completed before finish_owned_cleanup",
+      "additional_named_fields": [
+        "outcome/usage borrows",
+        "finish started/deadline",
+        "actual [Option<Ticket>;3]/IntoIter/Flatten wrappers",
+        "checked category/combined/count Option<usize>",
+        "successful category/combined/count usize bindings",
+        "reservation category/category_mut receiver/parameter/result",
+        "post-loop now/micros scalars"
+      ]
+    }
+  ],
+  "behavioral_tests": {
+    "success": "actual AccountedWasi ArgsSizesGet observation survives cleanup; no allocation; combined/tickets0 after helper",
+    "rejected": "foreign ticket cannot refund original State charge; first release-owner fault; actual WASI observation survives; no allocation; State/combined retain entire header/1ticket",
+    "scope": "behavior tests do not close missing disjoint named accounting"
+  }
+}

@@ -1,0 +1,822 @@
+{
+  "schema": "mixer.swift-executor-layout-prerequisite.v1",
+  "commands": [
+    {
+      "name": "rustc-version",
+      "argv": [
+        "rustc",
+        "-Vv"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 0.024,
+      "exit_code": 0,
+      "expected": 0,
+      "log": "verification/swift-executor-layout/logs/rustc-version.log",
+      "sha256": "352d6857968e80a6357a926ac685b9b07f77c479aaafde33e73a53945e802909"
+    },
+    {
+      "name": "cargo-version",
+      "argv": [
+        "cargo",
+        "-V"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 0.011,
+      "exit_code": 0,
+      "expected": 0,
+      "log": "verification/swift-executor-layout/logs/cargo-version.log",
+      "sha256": "1f88eaf7fe1aaec83184752cf4c944cd22f00184136ff36a3e4c318cc60ef566"
+    },
+    {
+      "name": "host",
+      "argv": [
+        "uname",
+        "-a"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 0.003,
+      "exit_code": 0,
+      "expected": 0,
+      "log": "verification/swift-executor-layout/logs/host.log",
+      "sha256": "abe9ccb86c55e0593f387b3138e08c1d0bed9a04ba0080d7badcbf093fabd539"
+    },
+    {
+      "name": "python-version",
+      "argv": [
+        "python3",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 0.011,
+      "exit_code": 0,
+      "expected": 0,
+      "log": "verification/swift-executor-layout/logs/python-version.log",
+      "sha256": "f615dc9512de8b165e2b595e5cdc608a3ba7927ae92f959c5b42ec3d58e2ffa8"
+    },
+    {
+      "name": "layout-unit-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--lib",
+        "--features",
+        "experimental-swift-reactor",
+        "swift_executor_layout",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 0.979,
+      "exit_code": 0,
+      "expected": 0,
+      "log": "verification/swift-executor-layout/logs/layout-unit-debug.log",
+      "sha256": "3a8ea5da2a9963b325983e0099a7e756dd1e2900b826f412ec9f9dc8d37ff1d6"
+    },
+    {
+      "name": "layout-frozen-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--lib",
+        "--features",
+        "experimental-swift-reactor",
+        "frozen_executor_layout_prerequisite",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 0.016,
+      "exit_code": 0,
+      "expected": 0,
+      "log": "verification/swift-executor-layout/logs/layout-frozen-debug.log",
+      "sha256": "bba70ef4c6764b462c51e0ec67b023e0a6d3f480e39928cc166561ea6ca43d61"
+    },
+    {
+      "name": "layout-production-debug",
+      "argv": [
+        "cargo",
+        "run",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--features",
+        "experimental-swift-reactor",
+        "--example",
+        "executor_layout_probe"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 0.692,
+      "exit_code": 0,
+      "expected": 0,
+      "log": "verification/swift-executor-layout/logs/layout-production-debug.log",
+      "sha256": "eefc0cadbc88820b1183ebbfa5f31e6ab1e58a92f75df4573b56ec5a35b9b8cd"
+    },
+    {
+      "name": "layout-unit-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--release",
+        "--lib",
+        "--features",
+        "experimental-swift-reactor",
+        "swift_executor_layout",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 3.412,
+      "exit_code": 0,
+      "expected": 0,
+      "log": "verification/swift-executor-layout/logs/layout-unit-release.log",
+      "sha256": "3b15b8ab9ed533fcfdac672b94df0f10a1330b8f5b197c4faa8e6ed58c98ba92"
+    },
+    {
+      "name": "layout-frozen-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--release",
+        "--lib",
+        "--features",
+        "experimental-swift-reactor",
+        "frozen_executor_layout_prerequisite",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 0.016,
+      "exit_code": 0,
+      "expected": 0,
+      "log": "verification/swift-executor-layout/logs/layout-frozen-release.log",
+      "sha256": "9ca0f058441c67691c203478dc78f8b4ffa8c5ba83d8a03c430afbc879d41ed3"
+    },
+    {
+      "name": "layout-production-release",
+      "argv": [
+        "cargo",
+        "run",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--release",
+        "--features",
+        "experimental-swift-reactor",
+        "--example",
+        "executor_layout_probe"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 1.475,
+      "exit_code": 0,
+      "expected": 0,
+      "log": "verification/swift-executor-layout/logs/layout-production-release.log",
+      "sha256": "87c2a6cce246d9992793dfe797d0f78a7946ab4b2813b6499a4ac6ba1a4efe70"
+    },
+    {
+      "name": "features-neither-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--lib"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 0.019,
+      "exit_code": 0,
+      "expected": 0,
+      "log": "verification/swift-executor-layout/logs/features-neither-debug.log",
+      "sha256": "5925287d9a862d33d745902b8b1d8007a9afb5578680ae862ce4a866865c9487"
+    },
+    {
+      "name": "features-span-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--lib",
+        "--features",
+        "experimental-span-execution"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 0.589,
+      "exit_code": 0,
+      "expected": 0,
+      "log": "verification/swift-executor-layout/logs/features-span-debug.log",
+      "sha256": "11b386b170a8f05d7ac2e54592bdc50e5a7d2d8ba3345d7a8bc5d0c16c89141d"
+    },
+    {
+      "name": "features-swift-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--lib",
+        "--features",
+        "experimental-swift-reactor"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 1.314,
+      "exit_code": 0,
+      "expected": 0,
+      "log": "verification/swift-executor-layout/logs/features-swift-debug.log",
+      "sha256": "8f78e51198797af902433b454acc2e05b2c9f91d054db3f94674462068ead4d0"
+    },
+    {
+      "name": "features-swift-cache-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--lib",
+        "--features",
+        "experimental-swift-reactor,experimental-function-cache"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 1.982,
+      "exit_code": 0,
+      "expected": 0,
+      "log": "verification/swift-executor-layout/logs/features-swift-cache-debug.log",
+      "sha256": "4a67c6366039995c0af31862e31c1efba717382497eb3d6f173d7f9081131813"
+    },
+    {
+      "name": "features-swift-span-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--lib",
+        "--features",
+        "experimental-swift-reactor,experimental-span-execution"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 2.179,
+      "exit_code": 0,
+      "expected": 0,
+      "log": "verification/swift-executor-layout/logs/features-swift-span-debug.log",
+      "sha256": "31cd1236edeaf6c9659661a60d738bcb4692cbfab961cadc3ebecb9913a64a74"
+    },
+    {
+      "name": "features-all-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--lib",
+        "--all-features"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 2.465,
+      "exit_code": 0,
+      "expected": 0,
+      "log": "verification/swift-executor-layout/logs/features-all-debug.log",
+      "sha256": "214249b97574b47bf88d077779b8d28b265e4db45d12631a84ca320a40da260b"
+    },
+    {
+      "name": "legacy-execution-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--features",
+        "experimental-span-execution",
+        "--test",
+        "span_execution",
+        "--test",
+        "span_execution_allocations",
+        "--test",
+        "span_execution_oracle"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 1.113,
+      "exit_code": 0,
+      "expected": 0,
+      "log": "verification/swift-executor-layout/logs/legacy-execution-debug.log",
+      "sha256": "2d870396b254cc4c3e5a2b454594ea127046005edfaad7b3169786801317fffb"
+    },
+    {
+      "name": "features-neither-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--release",
+        "--lib"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 0.025,
+      "exit_code": 0,
+      "expected": 0,
+      "log": "verification/swift-executor-layout/logs/features-neither-release.log",
+      "sha256": "744ef39ad867a3d8523ff262c13621ff4aa20fe9fa25f440f0246ffbc64ff79d"
+    },
+    {
+      "name": "features-span-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--release",
+        "--lib",
+        "--features",
+        "experimental-span-execution"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 1.144,
+      "exit_code": 0,
+      "expected": 0,
+      "log": "verification/swift-executor-layout/logs/features-span-release.log",
+      "sha256": "9b24ee5ec2405f1c1a5f165eaf15eb592759337f0517a6954435b9d94583c671"
+    },
+    {
+      "name": "features-swift-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--release",
+        "--lib",
+        "--features",
+        "experimental-swift-reactor"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 2.18,
+      "exit_code": 0,
+      "expected": 0,
+      "log": "verification/swift-executor-layout/logs/features-swift-release.log",
+      "sha256": "690e1ee76b082f7043e5ce0b14dcdfda011b7c3ad95c797ad96e53ae7d521599"
+    },
+    {
+      "name": "features-swift-cache-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--release",
+        "--lib",
+        "--features",
+        "experimental-swift-reactor,experimental-function-cache"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 4.362,
+      "exit_code": 0,
+      "expected": 0,
+      "log": "verification/swift-executor-layout/logs/features-swift-cache-release.log",
+      "sha256": "8a88ffd73b8e2c0c6585a02def235cdd884b35b45b0fa3ced8bf016e9ae729c7"
+    },
+    {
+      "name": "features-swift-span-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--release",
+        "--lib",
+        "--features",
+        "experimental-swift-reactor,experimental-span-execution"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 4.331,
+      "exit_code": 0,
+      "expected": 0,
+      "log": "verification/swift-executor-layout/logs/features-swift-span-release.log",
+      "sha256": "370253b961f876339e70163a53744644e11f7a9b12b2ed71ee8a6ff6ad294f42"
+    },
+    {
+      "name": "features-all-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--release",
+        "--lib",
+        "--all-features"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 4.617,
+      "exit_code": 0,
+      "expected": 0,
+      "log": "verification/swift-executor-layout/logs/features-all-release.log",
+      "sha256": "8f5c4a471a206c1840408e31314f85cc84018d14c42d686bf587ef2c172cc3ba"
+    },
+    {
+      "name": "legacy-execution-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--release",
+        "--features",
+        "experimental-span-execution",
+        "--test",
+        "span_execution",
+        "--test",
+        "span_execution_allocations",
+        "--test",
+        "span_execution_oracle"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 2.514,
+      "exit_code": 0,
+      "expected": 0,
+      "log": "verification/swift-executor-layout/logs/legacy-execution-release.log",
+      "sha256": "9b89098861792b5cc960bce1f075f62731bbc4727e625f2432bab9413a99fa1b"
+    },
+    {
+      "name": "reject_pin_clone-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--lib",
+        "--no-run",
+        "--features",
+        "experimental-swift-reactor"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 0.699,
+      "exit_code": 101,
+      "expected": 1,
+      "log": "verification/swift-executor-layout/logs/reject_pin_clone-debug.log",
+      "sha256": "a1aa246638c5f67a8bd05948091aeb55200c9a18a64bda180718a13182084371"
+    },
+    {
+      "name": "reject_parts_double_mut-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--lib",
+        "--no-run",
+        "--features",
+        "experimental-swift-reactor"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 0.373,
+      "exit_code": 101,
+      "expected": 1,
+      "log": "verification/swift-executor-layout/logs/reject_parts_double_mut-debug.log",
+      "sha256": "38fe29c9731f6aca37f221be0a5a55f767ca3e901a48bbdf6c730f4b8dd7da99"
+    },
+    {
+      "name": "reject_wasi_shared_during_mut-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--lib",
+        "--no-run",
+        "--features",
+        "experimental-swift-reactor"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 0.368,
+      "exit_code": 101,
+      "expected": 1,
+      "log": "verification/swift-executor-layout/logs/reject_wasi_shared_during_mut-debug.log",
+      "sha256": "6ac6a3613e3511c3d5dc9ebfd5ab975afbbc87dfd9d9d425f30b6e6b628da0c5"
+    },
+    {
+      "name": "reject_view_across_cache_mut-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--lib",
+        "--no-run",
+        "--features",
+        "experimental-swift-reactor"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 0.349,
+      "exit_code": 101,
+      "expected": 1,
+      "log": "verification/swift-executor-layout/logs/reject_view_across_cache_mut-debug.log",
+      "sha256": "1ad896c8ccc8836bf3eedbcfb249505723e465ffe471ecef3c91203db131e146"
+    },
+    {
+      "name": "reject_borrow_escape-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--lib",
+        "--no-run",
+        "--features",
+        "experimental-swift-reactor"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 0.354,
+      "exit_code": 101,
+      "expected": 1,
+      "log": "verification/swift-executor-layout/logs/reject_borrow_escape-debug.log",
+      "sha256": "07759db04edbde61191c65aadd00a2a1b6d875b2962c39802d0598b4fe00ac29"
+    },
+    {
+      "name": "reject_public_swift_owner-debug",
+      "argv": [
+        "cargo",
+        "check",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--features",
+        "experimental-swift-reactor",
+        "--example",
+        "privacy_probe"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 0.247,
+      "exit_code": 101,
+      "expected": 1,
+      "log": "verification/swift-executor-layout/logs/reject_public_swift_owner-debug.log",
+      "sha256": "51e8552bd9e56fd01dbb4052ad5a3560e0d9b95231b8a633baab3916f51563a7"
+    },
+    {
+      "name": "reject_public_swift_only_legacy-debug",
+      "argv": [
+        "cargo",
+        "check",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--features",
+        "experimental-swift-reactor",
+        "--example",
+        "privacy_probe"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 0.053,
+      "exit_code": 101,
+      "expected": 1,
+      "log": "verification/swift-executor-layout/logs/reject_public_swift_only_legacy-debug.log",
+      "sha256": "0b58f7ae9dbe6c26e5917f4252591397aabb0bc0ba10ab0503a20f50aeb7bcb8"
+    },
+    {
+      "name": "reject_pin_clone-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--release",
+        "--lib",
+        "--no-run",
+        "--features",
+        "experimental-swift-reactor"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 1.137,
+      "exit_code": 101,
+      "expected": 1,
+      "log": "verification/swift-executor-layout/logs/reject_pin_clone-release.log",
+      "sha256": "a1aa246638c5f67a8bd05948091aeb55200c9a18a64bda180718a13182084371"
+    },
+    {
+      "name": "reject_parts_double_mut-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--release",
+        "--lib",
+        "--no-run",
+        "--features",
+        "experimental-swift-reactor"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 1.373,
+      "exit_code": 101,
+      "expected": 1,
+      "log": "verification/swift-executor-layout/logs/reject_parts_double_mut-release.log",
+      "sha256": "38fe29c9731f6aca37f221be0a5a55f767ca3e901a48bbdf6c730f4b8dd7da99"
+    },
+    {
+      "name": "reject_wasi_shared_during_mut-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--release",
+        "--lib",
+        "--no-run",
+        "--features",
+        "experimental-swift-reactor"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 1.465,
+      "exit_code": 101,
+      "expected": 1,
+      "log": "verification/swift-executor-layout/logs/reject_wasi_shared_during_mut-release.log",
+      "sha256": "6ac6a3613e3511c3d5dc9ebfd5ab975afbbc87dfd9d9d425f30b6e6b628da0c5"
+    },
+    {
+      "name": "reject_view_across_cache_mut-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--release",
+        "--lib",
+        "--no-run",
+        "--features",
+        "experimental-swift-reactor"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 1.326,
+      "exit_code": 101,
+      "expected": 1,
+      "log": "verification/swift-executor-layout/logs/reject_view_across_cache_mut-release.log",
+      "sha256": "1ad896c8ccc8836bf3eedbcfb249505723e465ffe471ecef3c91203db131e146"
+    },
+    {
+      "name": "reject_borrow_escape-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--release",
+        "--lib",
+        "--no-run",
+        "--features",
+        "experimental-swift-reactor"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 1.418,
+      "exit_code": 101,
+      "expected": 1,
+      "log": "verification/swift-executor-layout/logs/reject_borrow_escape-release.log",
+      "sha256": "07759db04edbde61191c65aadd00a2a1b6d875b2962c39802d0598b4fe00ac29"
+    },
+    {
+      "name": "reject_public_swift_owner-release",
+      "argv": [
+        "cargo",
+        "check",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--release",
+        "--features",
+        "experimental-swift-reactor",
+        "--example",
+        "privacy_probe"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 0.75,
+      "exit_code": 101,
+      "expected": 1,
+      "log": "verification/swift-executor-layout/logs/reject_public_swift_owner-release.log",
+      "sha256": "51e8552bd9e56fd01dbb4052ad5a3560e0d9b95231b8a633baab3916f51563a7"
+    },
+    {
+      "name": "reject_public_swift_only_legacy-release",
+      "argv": [
+        "cargo",
+        "check",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--release",
+        "--features",
+        "experimental-swift-reactor",
+        "--example",
+        "privacy_probe"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 0.055,
+      "exit_code": 101,
+      "expected": 1,
+      "log": "verification/swift-executor-layout/logs/reject_public_swift_only_legacy-release.log",
+      "sha256": "0b58f7ae9dbe6c26e5917f4252591397aabb0bc0ba10ab0503a20f50aeb7bcb8"
+    },
+    {
+      "name": "clippy-minimal",
+      "argv": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--lib",
+        "--features",
+        "experimental-swift-reactor",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 0.652,
+      "exit_code": 0,
+      "expected": 0,
+      "log": "verification/swift-executor-layout/logs/clippy-minimal.log",
+      "sha256": "dd86ab3a58fde4fd8162c73454971330c790d7b4b31caf6a35b3ca5a33469f7d"
+    },
+    {
+      "name": "clippy-combined",
+      "argv": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm/Cargo.toml",
+        "--lib",
+        "--features",
+        "experimental-swift-reactor,experimental-span-execution",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 0.45,
+      "exit_code": 0,
+      "expected": 0,
+      "log": "verification/swift-executor-layout/logs/clippy-combined.log",
+      "sha256": "14a0d399660b16217c538d9f69f56ea3503f003abd3ee0e0f3632ddf0873293f"
+    },
+    {
+      "name": "owned-rustfmt-check",
+      "argv": [
+        "rustfmt",
+        "--check",
+        "--edition",
+        "2021",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/src/experimental/execution/borrowed.rs",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/src/experimental/execution/tests.rs",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/src/experimental_swift_reactor/execution.rs",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/src/experimental_swift_reactor/execution_tests.rs"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm",
+      "seconds": 0.041,
+      "exit_code": 0,
+      "expected": 0,
+      "log": "verification/swift-executor-layout/logs/owned-rustfmt-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "scope": "Private chosen types/layouts and borrowed boundaries only; no interpreter, target instance/initialize/invoke, device, release or GA acceptance.",
+  "revision": "0f177adf10af78a8442e2dd4c66679fe54b20113",
+  "input_manifest_sha256": "c97828501261362cdf9f632154939fa5be5b4dc3781489b225046949657e82a5"
+}

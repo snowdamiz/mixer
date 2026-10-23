@@ -1,0 +1,411 @@
+--- a/vm/examples/executor_layout_probe.rs
++++ b/vm/examples/executor_layout_probe.rs
+@@ -0,0 +1 @@
++fn main() { mixer_vm::experimental_swift_reactor::executor_layout_probe_only(); }
+--- a/vm/src/experimental/execution/mod.rs
++++ b/vm/src/experimental/execution/mod.rs
+@@ -17,11 +17,15 @@
+ //! fn take(instance: &mut SpanInstance) { let _ = instance.cache_usage().pin(0); }
+ //! ```
+ #![allow(clippy::result_large_err)]
++#[cfg_attr(not(feature = "experimental-span-execution"), allow(unused_imports))]
+ use super::cache::{CacheFailure, CacheUsage, ControlKind, FunctionCache, FunctionPin, Operation};
+ use crate::{Cancellation, Value};
++#[cfg(feature = "experimental-span-execution")]
+ use std::mem::size_of;
+ 
++#[cfg_attr(not(feature = "experimental-span-execution"), allow(dead_code))]
+ const PAGE: usize = 65536;
++#[cfg_attr(not(feature = "experimental-span-execution"), allow(dead_code))]
+ const CHUNK: usize = 4096;
+ 
+ #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+@@ -64,6 +68,7 @@
+     pub active_pins: usize,
+ }
+ #[derive(Clone, Copy, Debug, PartialEq, Eq)]
++#[cfg_attr(not(feature = "experimental-span-execution"), allow(dead_code))]
+ pub enum ExecutionFailureKind {
+     InvalidBudget,
+     UnknownExport,
+@@ -101,6 +106,7 @@
+ impl std::error::Error for ExecutionFailure {}
+ 
+ #[derive(Clone, Copy, PartialEq, Eq)]
++#[cfg_attr(not(feature = "experimental-span-execution"), allow(dead_code))]
+ enum Kind {
+     Function,
+     Block,
+@@ -108,14 +114,16 @@
+     If,
+ }
+ #[derive(Clone, Copy)]
+-struct Control {
++#[cfg_attr(not(feature = "experimental-span-execution"), allow(dead_code))]
++pub(crate) struct Control {
+     kind: Kind,
+     start: usize,
+     end: usize,
+     height: usize,
+     result: bool,
+ }
+-struct Frame {
++#[cfg_attr(not(feature = "experimental-span-execution"), allow(dead_code))]
++pub(crate) struct Frame {
+     function: u32,
+     pc: usize,
+     base: usize,
+@@ -126,6 +134,7 @@
+ }
+ /// Owns the cache; neither cache pins nor mutable guest storage escape this owner.
+ /// Fuel, host calls and work accumulate for the lifetime. Every error is terminal.
++#[cfg_attr(not(feature = "experimental-span-execution"), allow(dead_code))]
+ pub struct SpanInstance {
+     cache: FunctionCache,
+     budget: ExecutionBudget,
+@@ -141,6 +150,7 @@
+     function: Option<u32>,
+     offset: usize,
+ }
++#[cfg(feature = "experimental-span-execution")]
+ impl SpanInstance {
+     pub fn new(
+         cache: FunctionCache,
+@@ -1246,11 +1256,13 @@
+         Ok(())
+     }
+ }
++#[cfg(feature = "experimental-span-execution")]
+ impl Drop for SpanInstance {
+     fn drop(&mut self) {
+         self.cleanup();
+     }
+ }
++#[cfg_attr(not(feature = "experimental-span-execution"), allow(dead_code))]
+ fn width(op: u8) -> usize {
+     match op {
+         0x28 | 0x2a | 0x34 | 0x35 | 0x36 | 0x38 | 0x3e => 4,
+@@ -1260,6 +1272,7 @@
+     }
+ }
+ // Unreachable mutable-borrow guards retain allocation-free diagnostics too.
++#[cfg_attr(not(feature = "experimental-span-execution"), allow(dead_code))]
+ fn unreachable_failure() -> ExecutionFailure {
+     ExecutionFailure {
+         kind: ExecutionFailureKind::Invariant,
+@@ -1272,10 +1285,12 @@
+         cache_failure: None,
+     }
+ }
++#[cfg_attr(not(feature = "experimental-span-execution"), allow(dead_code))]
+ struct ScalarReader<'a> {
+     bytes: &'a [u8],
+     at: usize,
+ }
++#[cfg_attr(not(feature = "experimental-span-execution"), allow(dead_code))]
+ impl ScalarReader<'_> {
+     fn byte(&mut self) -> Option<u8> {
+         let b = *self.bytes.get(self.at)?;
+@@ -1309,6 +1324,7 @@
+         None
+     }
+ }
++#[cfg_attr(not(feature = "experimental-span-execution"), allow(dead_code))]
+ fn initializer(bytes: &[u8]) -> Option<Value> {
+     let mut reader = ScalarReader { bytes, at: 0 };
+     let value = match reader.byte()? {
+@@ -1320,3 +1336,6 @@
+     };
+     Some(value)
+ }
++
++#[cfg(feature = "experimental-swift-reactor")]
++pub(crate) mod borrowed;
+--- a/vm/src/experimental/mod.rs
++++ b/vm/src/experimental/mod.rs
+@@ -23,6 +23,8 @@
+ pub(crate) mod descriptors;
+ #[cfg(feature = "experimental-span-execution")]
+ pub mod execution;
++#[cfg(all(feature = "experimental-swift-reactor", not(feature = "experimental-span-execution")))]
++pub(crate) mod execution;
+ #[cfg(all(test, feature = "experimental-swift-reactor"))]
+ mod swift_descriptor_tests;
+ 
+--- a/vm/src/experimental_swift_reactor/mod.rs
++++ b/vm/src/experimental_swift_reactor/mod.rs
+@@ -14,3 +14,11 @@
+     SwiftValidationFailure, SwiftValidationFailureKind, SwiftValidationResource,
+     SwiftValidationUsage, ValidatedSwiftReactor,
+ };
++
++mod execution;
++#[cfg(test)]
++mod execution_tests;
++
++mod production_layout;
++#[doc(hidden)]
++pub fn executor_layout_probe_only() { production_layout::production_layout(); production_layout::boundary_shapes(); }
+--- a/vm/src/experimental_swift_reactor/production_layout.rs
++++ b/vm/src/experimental_swift_reactor/production_layout.rs
+@@ -0,0 +1,260 @@
++#![allow(unused_imports)] // Derived metadata probe only.
++//! Layout and ownership prerequisites, deliberately not executor acceptance tests.
++
++use super::cache::{
++    CacheCleanupTail, CacheConstructionFailure, CacheConstructionPhase, CacheOperationPhase,
++    SwiftFunctionCache, SwiftFunctionPin, SwiftReleaseFailure,
++};
++use super::control::*;
++use super::execution::*;
++use super::{validate_swift_reactor, SwiftValidationBudget};
++use crate::experimental::cache::{DecodedInstruction, FunctionView, Operation};
++use crate::experimental::descriptors::{FunctionSpanView, SignatureView};
++use crate::experimental::execution::{borrowed::*, Control};
++use crate::experimental_wasi::{
++    accounted::{AccountedWasi, WasiConstructionPhase},
++    WasiBudget, WasiFunction, WasiGrants, WasiUsage,
++};
++use crate::{Cancellation, Type, Value};
++use std::mem::{align_of, offset_of, size_of};
++use std::time::Instant;
++
++pub fn production_layout() {
++    macro_rules! row {
++        ($t:ty) => {
++            println!(
++                "layout {} {} {}",
++                stringify!($t),
++                size_of::<$t>(),
++                align_of::<$t>()
++            );
++        };
++    }
++    macro_rules! fields { ($t:ty; $($f:ident),+) => {$({ println!("offset {} {} {}", stringify!($t), stringify!($f), offset_of!($t,$f)); })+}; }
++    row!(SwiftExecutionState);
++    row!(SwiftReactorInstance);
++    row!(Lifecycle);
++    row!(SwiftFrame);
++    row!(Control);
++    row!(Value);
++    row!(Vec<Value>);
++    row!(Vec<Control>);
++    row!(Vec<SwiftFrame>);
++    row!(Vec<u8>);
++    row!(Vec<Option<u32>>);
++    row!(Option<u32>);
++    row!([Option<ReservationTicket>; 6]);
++    row!(ReservationTicket);
++    row!(Option<ReservationTicket>);
++    row!(RuntimeControl);
++    row!(SwiftFunctionCache);
++    row!(AccountedWasi);
++    row!(Option<SwiftExecutionState>);
++    row!(Option<RuntimeControl>);
++    row!(Option<SwiftFunctionCache>);
++    row!(Option<AccountedWasi>);
++    row!(ExecutionParts<'static, SwiftMode>);
++    row!(SwiftExecutionOperation<'static>);
++    row!(ExecutionConstructionPhase<'static>);
++    row!(ExecutionOperationPhase<'static>);
++    row!(PartialState);
++    row!(PartialInstance);
++    row!(EntryGuard);
++    row!(ScalarReader<'static>);
++    row!(SelectedInstruction);
++    row!(GrowthTransfer);
++    row!(ExecutionCleanupTail);
++    row!(HeaderCompletionParts);
++    row!(ScalarBorrowInventory);
++    row!(CallerDiagnostics);
++    row!(SwiftFunctionPin);
++    row!(SwiftReleaseFailure);
++    row!(CacheCleanupTail<'static>);
++    row!(CacheConstructionPhase<'static>);
++    row!(CacheOperationPhase<'static>);
++    row!(WasiConstructionPhase<'static>);
++    row!(CacheConstructionFailure);
++    row!(SwiftRunFailure);
++    row!(Option<SwiftRunFailure>);
++    row!(Result<(),SwiftRunFailure>);
++    row!(SwiftRunUsage);
++    row!(Option<SwiftRunUsage>);
++    row!(WasiUsage);
++    row!(Option<WasiUsage>);
++    row!(Fault);
++    row!(Cursor);
++    row!(Cancellation);
++    row!(FunctionView<'static>);
++    row!(FunctionSpanView<'static>);
++    row!(SignatureView<'static>);
++    row!(DecodedInstruction);
++    row!(Operation);
++    row!(Option<Result<SwiftExecutionState, SwiftRunFailure>>);
++    row!(Option<Result<SwiftReactorInstance, SwiftRunFailure>>);
++    row!(Option<Result<SwiftFunctionCache, CacheConstructionFailure>>);
++    row!(Option<Result<AccountedWasi, SwiftRunFailure>>);
++    row!(Result<ExecutionConstructionPhase<'static>, SwiftRunFailure>);
++    row!(Result<ExecutionOperationPhase<'static>, SwiftRunFailure>);
++    row!(Result<FunctionView<'static>, SwiftRunFailure>);
++    row!(Option<Result<SwiftFunctionPin, SwiftRunFailure>>);
++    row!(Result<(),SwiftReleaseFailure>);
++    row!(Result<Option<Value>, SwiftRunFailure>);
++    row!(Result<Vec<u8>, SwiftRunFailure>);
++    row!(Result<ReservationTicket,SwiftRunFailure>);
++    row!(Option<Result<ExecutionCleanupTail, SwiftRunFailure>>);
++    row!(Option<Result<CacheCleanupTail<'static>, SwiftRunFailure>>);
++    row!(std::ops::Range<usize>);
++    row!(std::collections::TryReserveError);
++    row!(Result<HeaderCompletionParts,SwiftRunFailure>);
++    fields!(SwiftExecutionState; memory,table,globals,values,controls,frames,buffers,execution_header);
++    fields!(SwiftReactorInstance; control,cache,wasi,state,lifecycle);
++    fields!(SwiftFrame; function,pc,base,operands,controls,result,pin);
++    fields!(ExecutionParts<'static,SwiftMode>; cache,memory,table,globals,values,controls,frames);
++    fields!(SwiftExecutionOperation<'static>; control,wasi,cursor);
++    fields!(ExecutionConstructionPhase<'static>; control,cache,wasi,cursor,previous_bound,constructed);
++    fields!(ExecutionOperationPhase<'static>; parts,operation,previous_bound);
++    fields!(PartialState; state,next_arena);
++    fields!(PartialInstance; control,cache,wasi,state);
++    fields!(EntryGuard; pin,values_debited,controls_debited,frame_debited);
++    fields!(ScalarReader<'static>; bytes,at,absolute_offset);
++    fields!(SelectedInstruction; instruction,branch_target,cursor);
++    fields!(GrowthTransfer; replacement,ticket,old,old_ticket,old_pages,next_pages,copied);
++    fields!(ExecutionCleanupTail; control,header,final_wasi,failure);
++    fields!(HeaderCompletionParts; control,header,final_wasi);
++    fields!(CallerDiagnostics; failure,usage,observation);
++    fields!(ScalarBorrowInventory; control,cache,wasi,state,phase,pin,view,initializer,signature,
++        values,memory,indices,cursor,fault,capacity,requested,observed,index,length,base,operands,
++        controls,frame_count,value_count,control_count,destination,source,end,chunk_end,copied,
++        absolute_function,type_index,table_index,branch_depth,old_pages,next_pages,delta_pages,
++        opcode,value,selected,reserve_error);
++    fields!(Fault; kind,code,resource,attempted,limit,observed_capacity,wasi_failure,guest_exit);
++    fields!(Cursor; stage,function,offset);
++    fields!(DecodedInstruction; operation,offset);
++    fields!(FunctionView<'static>; function,type_index,body_offset,locals,instructions,branch_targets);
++    fields!(FunctionSpanView<'static>; absolute_index,type_index,body_offset,body);
++    fields!(SignatureView<'static>; params,result);
++    for r in terms() {
++        println!(
++            "term {}|{}|{}|{}|{}",
++            r.phase, r.binding, r.shape, r.count, r.bytes
++        );
++        assert!(r.count.checked_mul(r.bytes).is_some());
++    }
++    for phase in ["construction", "operation", "growth", "cleanup"] {
++        println!("bound {} {}", phase, phase_bytes(phase).unwrap());
++    }
++    println!(
++        "bound execution_header {}",
++        execution_header_bytes().unwrap()
++    );
++    println!(
++        "bound foundation {}",
++        foundation_construction_bytes().unwrap()
++    );
++    // Each present payload is disjoint; all Option tags and owner alignment
++    // remain charged in the positive exclusive residual, never free capacity.
++    let nested = size_of::<RuntimeControl>()
++        + size_of::<SwiftFunctionCache>()
++        + size_of::<AccountedWasi>()
++        + size_of::<SwiftExecutionState>();
++    assert!(size_of::<SwiftReactorInstance>() >= nested);
++    println!(
++        "bound exclusive_owner_residual {}",
++        size_of::<SwiftReactorInstance>() - nested
++    );
++    assert_eq!(
++        size_of::<Option<SwiftRunFailure>>(),
++        size_of::<SwiftRunFailure>()
++    );
++    assert_eq!(
++        size_of::<Result<(), SwiftRunFailure>>(),
++        size_of::<SwiftRunFailure>()
++    );
++    assert_eq!(
++        size_of::<Option<SwiftRunUsage>>(),
++        size_of::<SwiftRunUsage>()
++    );
++    assert_eq!(
++        size_of::<Option<ReservationTicket>>(),
++        size_of::<ReservationTicket>()
++    );
++    assert_eq!(
++        size_of::<ExecutionParts<'static, SwiftMode>>(),
++        7 * size_of::<usize>()
++    );
++}
++// Derived-only metadata probe for the root-owned pending foundation correction.
++// These are actual std/toolchain shapes, not a new product boundary allowance.
++pub fn boundary_shapes() {
++    type Tickets = [Option<ReservationTicket>; 3];
++    type IntoTickets = std::array::IntoIter<Option<ReservationTicket>, 3>;
++    type FlatTickets = std::iter::Flatten<IntoTickets>;
++    macro_rules! row { ($t:ty) => { println!("layout {} {} {}",stringify!($t),size_of::<$t>(),align_of::<$t>()); }; }
++    row!(&'static mut Option<SwiftRunFailure>);
++    row!(&'static mut Option<SwiftRunUsage>);
++    row!(&'static mut RuntimeControl);
++    row!(&'static RuntimeControl);
++    row!(&'static mut SwiftReservations);
++    row!(&'static SwiftReservations);
++    row!(&'static mut SwiftReservationUsage);
++    row!(Option<&'static mut SwiftRunFailure>);
++    row!(SwiftCleanupInvariant);
++    row!(SwiftReservationCategory);
++    row!(&'static str);
++    row!(usize); row!(u64); row!(u128);
++    row!(Option<usize>);
++    row!(std::time::Instant);
++    row!(std::time::Duration);
++    row!(Result<u64, std::num::TryFromIntError>);
++    row!(Tickets); row!(IntoTickets); row!(FlatTickets);
++    row!(Option<Option<ReservationTicket>>);
++    row!(Result<usize,SwiftRunFailure>);
++    row!(SwiftMode); row!(FrozenMode); row!(FrozenOperation<'static>);
++    row!(ExecutionParts<'static,FrozenMode>); row!(LayoutTerm);
++    // Selected disjoint proposal: every field below is additional to the
++    // foundation's four diagnostic/six ticket/six observation classes. This
++    // probe measures the proposal; it does not admit it in RuntimeControl.
++    #[allow(dead_code)]
++    struct RefundSupplement {
++        outcome: &'static mut Option<SwiftRunFailure>,
++        usage: &'static mut Option<SwiftRunUsage>,
++        drop_receiver: &'static mut RuntimeControl,
++        refund_receiver: &'static mut RuntimeControl,
++        cleanup_fault_receiver: &'static mut RuntimeControl,
++        fail_receiver: &'static mut RuntimeControl,
++        usage_receiver: &'static RuntimeControl,
++        invariant: SwiftCleanupInvariant,
++        code: &'static str,
++        cursor: Cursor,
++        fault: Fault,
++        usage_now: std::time::Instant,
++        micros_duration: std::time::Duration,
++        checked_category: Option<usize>,
++        checked_combined: Option<usize>,
++        checked_count: Option<usize>,
++    }
++    #[allow(dead_code)]
++    struct FinishSupplement {
++        outcome: &'static mut Option<SwiftRunFailure>,
++        usage: &'static mut Option<SwiftRunUsage>,
++        started: std::time::Instant,
++        deadline: std::time::Instant,
++        tickets: FlatTickets,
++        checked_category: Option<usize>,
++        checked_combined: Option<usize>,
++        checked_count: Option<usize>,
++        category: usize,
++        combined: usize,
++        count: usize,
++        reservation_receiver: &'static mut SwiftReservations,
++        reservation_return: &'static mut SwiftReservationUsage,
++        category_parameter: SwiftReservationCategory,
++    }
++    row!(RefundSupplement); row!(FinishSupplement);
++    macro_rules! fields { ($t:ty; $($f:ident),+) => {$({ println!("offset {} {} {}",stringify!($t),stringify!($f),offset_of!($t,$f)); })+}; }
++    fields!(RefundSupplement;outcome,usage,drop_receiver,refund_receiver,cleanup_fault_receiver,fail_receiver,usage_receiver,invariant,code,cursor,fault,usage_now,micros_duration,checked_category,checked_combined,checked_count);
++    fields!(FinishSupplement;outcome,usage,started,deadline,tickets,checked_category,checked_combined,checked_count,category,combined,count,reservation_receiver,reservation_return,category_parameter);
++    fields!(FrozenOperation<'static>;budget,cancellation,usage,failure,function,offset);
++    fields!(ExecutionParts<'static,FrozenMode>;cache,memory,table,globals,values,controls,frames);
++    fields!(LayoutTerm;phase,binding,shape,count,bytes);
++}

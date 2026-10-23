@@ -1,0 +1,181 @@
+--- frozen-old/control.rs
++++ frozen-corrected/control.rs
+@@ -341,28 +341,162 @@
+     construction: Option<ReservationTicket>,
+ }
+ 
+-/// Conservative explicit object-transfer/scratch envelope for THIS foundation:
+-/// old/new proof, control and adopted wrappers plus copied failure/usage/ticket
+-/// temporaries. Payloads are never copied. This is a reservation model for named
+-/// Rust objects, not compiler-stack instrumentation. Composition must enlarge
+-/// this SAME ticket before constructing any additional wrappers or scratch.
+-pub(crate) fn foundation_construction_bytes() -> Option<usize> {
+-    [
+-        (3usize, size_of::<ValidatedSwiftReactor>()),
++// Final cleanup has no cache/WASI/execution owner envelope after its header is
++// refunded. These never-instantiated inventories name its surviving output borrows
++// and directly authored refund/record/finish operation and return roles. Existing
++// diagnostic, control, ticket and optional-WASI classes remain disjoint below.
++// See docs/swift-final-boundary-accounting.md for the source-role map and whole
++// phase switch: refund ends, then record ends, then finish consumes control.
++// Opaque standard-library frames and compiler-generated spills are not modelled.
++#[allow(dead_code)]
++struct FinalOutputBorrows {
++    outcome: &'static mut Option<SwiftRunFailure>,
++    usage: &'static mut Option<SwiftRunUsage>,
++}
++#[allow(dead_code)]
++struct FinalClockInventory {
++    usage_receiver: &'static RuntimeControl,
++    usage_now: Instant,
++    elapsed_receiver: &'static Instant,
++    elapsed_earlier: Instant,
++    elapsed_duration: Duration,
++    overshoot_receiver: &'static Instant,
++    overshoot_earlier: Instant,
++    overshoot_duration: Duration,
++    micros_duration: Duration,
++    as_micros_receiver: &'static Duration,
++    micros_u128: u128,
++    try_from_input: u128,
++    try_from_output: Result<u64, std::num::TryFromIntError>,
++    unwrap_input: Result<u64, std::num::TryFromIntError>,
++    unwrap_default: u64,
++    micros_return: u64,
++    elapsed_return: u64,
++    overshoot_return: u64,
++}
++#[allow(dead_code)]
++struct FinalFaultInventory {
++    cleanup_receiver: &'static mut RuntimeControl,
++    invariant: SwiftCleanupInvariant,
++    code: &'static str,
++    insert_receiver: &'static mut Option<SwiftCleanupInvariant>,
++    insert_argument: SwiftCleanupInvariant,
++    insert_result: &'static mut SwiftCleanupInvariant,
++    cursor_source: Cursor,
++    fault_kind: SwiftRunFailureKind,
++    fault_code: &'static str,
++    fault_source: Fault,
++    fail_receiver: &'static mut RuntimeControl,
++    cursor_transfer: Cursor,
++    fault_transfer: Fault,
++}
++#[allow(dead_code)]
++struct FinalCategoryInventory {
++    category_receiver: &'static SwiftReservations,
++    category_argument: SwiftReservationCategory,
++    category_return: &'static SwiftReservationUsage,
++    category_mut_receiver: &'static mut SwiftReservations,
++    category_mut_argument: SwiftReservationCategory,
++    category_mut_return: &'static mut SwiftReservationUsage,
++}
++#[allow(dead_code)]
++struct FinalRefundInventory {
++    outputs: FinalOutputBorrows,
++    header_take_receiver: &'static mut Option<ReservationTicket>,
++    drop_receiver: &'static mut RuntimeControl,
++    refund_receiver: &'static mut RuntimeControl,
++    category: Option<usize>,
++    combined: Option<usize>,
++    count: Option<usize>,
++    option_match: (Option<usize>, Option<usize>, Option<usize>),
++    category_pattern: usize,
++    combined_pattern: usize,
++    count_pattern: usize,
++    categories: FinalCategoryInventory,
++    fault: FinalFaultInventory,
++    clock: FinalClockInventory,
++}
++#[allow(dead_code)]
++struct FinalRecordInventory {
++    outputs: FinalOutputBorrows,
++    record_receiver: &'static mut RuntimeControl,
++    failure_option_receiver: &'static mut Option<SwiftRunFailure>,
++    failure_pattern: &'static mut SwiftRunFailure,
++    clock: FinalClockInventory,
++}
++#[allow(dead_code)]
++struct FinalFinishInventory {
++    outputs: FinalOutputBorrows,
++    started: Instant,
++    deadline: Instant,
++    control_take_receiver: &'static mut Option<ReservationTicket>,
++    cancel_take_receiver: &'static mut Option<ReservationTicket>,
++    construction_take_receiver: &'static mut Option<ReservationTicket>,
++    array: [Option<ReservationTicket>; 3],
++    into_tickets: std::array::IntoIter<Option<ReservationTicket>, 3>,
++    flatten_tickets: std::iter::Flatten<std::array::IntoIter<Option<ReservationTicket>, 3>>,
++    flatten_receiver:
++        &'static mut std::iter::Flatten<std::array::IntoIter<Option<ReservationTicket>, 3>>,
++    iterator_next: Option<ReservationTicket>,
++    category: Option<usize>,
++    combined: Option<usize>,
++    count: Option<usize>,
++    option_match: (Option<usize>, Option<usize>, Option<usize>),
++    category_pattern: usize,
++    combined_pattern: usize,
++    count_pattern: usize,
++    categories: FinalCategoryInventory,
++    ticket_bytes_some: Option<usize>,
++    formula_return: Option<usize>,
++    insert_receiver: &'static mut Option<SwiftCleanupInvariant>,
++    insert_argument: SwiftCleanupInvariant,
++    insert_return: &'static mut SwiftCleanupInvariant,
++    clock: FinalClockInventory,
++    now: Instant,
++}
++
++pub(super) const FOUNDATION_FINAL_BOUNDARY_BYTES: usize = {
++    let refund = size_of::<FinalRefundInventory>();
++    let record = size_of::<FinalRecordInventory>();
++    let finish = size_of::<FinalFinishInventory>();
++    let first = if refund > record { refund } else { record };
++    if first > finish {
++        first
++    } else {
++        finish
++    }
++};
++
++// All array/loop/closure metadata computation occurs in this const initializer.
++// The public spelling remains a function that copies the precomputed Option.
++// No runtime temporary array, IntoIter or try_fold is created by this formula.
++const FOUNDATION_CONSTRUCTION_BYTES: Option<usize> = {
++    let terms: [(usize, usize); 8] = [
++        (3, size_of::<ValidatedSwiftReactor>()),
+         (3, size_of::<RuntimeControl>()),
+         (3, size_of::<AdoptedProof>()),
+         (4, size_of::<SwiftRunFailure>()),
+         (4, size_of::<SwiftRunUsage>()),
+         (6, size_of::<ReservationTicket>()),
+-        // Five nested observed-control arguments plus one retained caller
+-        // observation. Count each Copy binding, including Option's tag; do not
+-        // rely on last-use elision or another component's cleanup envelope.
+         (6, size_of::<Option<WasiUsage>>()),
+-    ]
+-    .into_iter()
+-    .try_fold(0usize, |sum, (count, bytes)| {
+-        sum.checked_add(count.checked_mul(bytes)?)
+-    })
++        (1, FOUNDATION_FINAL_BOUNDARY_BYTES),
++    ];
++    let mut sum = Some(0usize);
++    let mut index = 0usize;
++    while index < terms.len() {
++        sum = match (sum, terms[index].0.checked_mul(terms[index].1)) {
++            (Some(accumulated), Some(term)) => accumulated.checked_add(term),
++            _ => None,
++        };
++        index += 1;
++    }
++    sum
++};
++
++/// Conservative named-object foundation envelope. Composition enlarges this
++/// same ticket before creating additional wrappers. This is not physical stack/RSS.
++pub(crate) fn foundation_construction_bytes() -> Option<usize> {
++    FOUNDATION_CONSTRUCTION_BYTES
+ }
+ 
+ impl RuntimeControl {

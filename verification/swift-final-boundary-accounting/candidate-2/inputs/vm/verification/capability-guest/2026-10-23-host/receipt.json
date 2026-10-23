@@ -1,0 +1,844 @@
+{
+  "schema_version": 1,
+  "started_utc": "2026-10-23T04:21:42.526814+00:00",
+  "implementation_agent": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "xhigh"
+  },
+  "independent_review": false,
+  "base_revision": "4e37b357ae029d9cdf5e5c6b4281d82f61b65f3a",
+  "head_at_start": "3b1903ad209a8292219009851b839647d48499f7",
+  "scope": "macOS arm64 host; opt-in Rust-only actual Wasm/mailbox composition; no device/native I/O/release route",
+  "concurrent_lane_excluded": "root-owned vm/src/capability_ffi/** is not wired or included; no C/native follow-on claim",
+  "environment": {
+    "PATH_prefix": "/opt/homebrew/opt/rustup/bin",
+    "CARGO_TARGET_DIR": "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-guest-verification"
+  },
+  "commands": [
+    {
+      "name": "version-rustc",
+      "argv": [
+        "rustc",
+        "-Vv"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.035976,
+      "log": "vm/verification/capability-guest/2026-10-23-host/version-rustc.log",
+      "sha256": "352d6857968e80a6357a926ac685b9b07f77c479aaafde33e73a53945e802909"
+    },
+    {
+      "name": "version-cargo",
+      "argv": [
+        "cargo",
+        "-V"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.024957,
+      "log": "vm/verification/capability-guest/2026-10-23-host/version-cargo.log",
+      "sha256": "1f88eaf7fe1aaec83184752cf4c944cd22f00184136ff36a3e4c318cc60ef566"
+    },
+    {
+      "name": "version-clippy",
+      "argv": [
+        "cargo",
+        "clippy",
+        "--version"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.060165,
+      "log": "vm/verification/capability-guest/2026-10-23-host/version-clippy.log",
+      "sha256": "fb4b6b48a93c028fda3c6f3959ace838c41c06f217a51ac3fc9392a8bed631e5"
+    },
+    {
+      "name": "version-node",
+      "argv": [
+        "node",
+        "--version"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.016169,
+      "log": "vm/verification/capability-guest/2026-10-23-host/version-node.log",
+      "sha256": "33e26f35db6e57ce0c486ddc815fe966867e4f649e418eaf323f75f4720eb8e9"
+    },
+    {
+      "name": "version-clang",
+      "argv": [
+        "clang",
+        "--version"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.016284,
+      "log": "vm/verification/capability-guest/2026-10-23-host/version-clang.log",
+      "sha256": "4e8a77bcb032deb6591b0db384ff9808d01d9030f00e2d877394df88a12a2536"
+    },
+    {
+      "name": "version-python",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "--version"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.010427,
+      "log": "vm/verification/capability-guest/2026-10-23-host/version-python.log",
+      "sha256": "f615dc9512de8b165e2b595e5cdc608a3ba7927ae92f959c5b42ec3d58e2ffa8"
+    },
+    {
+      "name": "version-macos",
+      "argv": [
+        "sw_vers"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.010551,
+      "log": "vm/verification/capability-guest/2026-10-23-host/version-macos.log",
+      "sha256": "4ef10a0fc370704ea84699cf3851e51488598c5f1ab35cb572eb6b96278a8e5c"
+    },
+    {
+      "name": "version-architecture",
+      "argv": [
+        "uname",
+        "-m"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.003979,
+      "log": "vm/verification/capability-guest/2026-10-23-host/version-architecture.log",
+      "sha256": "c1669e1d8edca98769c37d494b76442a1d6e5ffffd7b4da1fb63aef8ebaf6f01"
+    },
+    {
+      "name": "generator-parity",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "vm/tools/generate-capability-terminals.py"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.044009,
+      "log": "vm/verification/capability-guest/2026-10-23-host/generator-parity.log",
+      "sha256": "e8ce580658ad917e71e831df93dfe32438828391046ee65586c786b5be807399"
+    },
+    {
+      "name": "format",
+      "argv": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.155332,
+      "log": "vm/verification/capability-guest/2026-10-23-host/format.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "clippy-default",
+      "argv": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.545589,
+      "log": "vm/verification/capability-guest/2026-10-23-host/clippy-default.log",
+      "sha256": "e62ae5b1742082c796c739b0d9f6b83394a6938213dce074ad8405be74d584f2"
+    },
+    {
+      "name": "clippy-all",
+      "argv": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--all-targets",
+        "--all-features",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.763854,
+      "log": "vm/verification/capability-guest/2026-10-23-host/clippy-all.log",
+      "sha256": "a3f6b483796737fe4ccd8506fced59fc8929f8766ff1dc81cb5a0b1b7d59cabc"
+    },
+    {
+      "name": "default-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--",
+        "--nocapture"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 3.303337,
+      "log": "vm/verification/capability-guest/2026-10-23-host/default-debug.log",
+      "sha256": "c89530097bf9be1463a2c206c5b653c36d4e8ebefeaa2a282109ea997e90e17c"
+    },
+    {
+      "name": "default-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--release",
+        "--",
+        "--nocapture"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 3.651167,
+      "log": "vm/verification/capability-guest/2026-10-23-host/default-release.log",
+      "sha256": "27b817130418977155540ef5fa9ed5a72420bd51a8c4eaa95201e03ccb1ebc25"
+    },
+    {
+      "name": "all-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--all-features",
+        "--",
+        "--nocapture"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 7.492502,
+      "log": "vm/verification/capability-guest/2026-10-23-host/all-debug.log",
+      "sha256": "aaac055ed58c33a3d3aa6721ba04ee4ce93e4a18d287fd08f49b70e57e57a9f8"
+    },
+    {
+      "name": "all-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--release",
+        "--all-features",
+        "--",
+        "--nocapture"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 5.924019,
+      "log": "vm/verification/capability-guest/2026-10-23-host/all-release.log",
+      "sha256": "0f7b89042577ea672fb460a63d3f4deb1c18f9754c847c37ae215e0addfdc156"
+    },
+    {
+      "name": "explicit-oracles-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--all-features",
+        "--",
+        "--ignored",
+        "--nocapture"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 4.617019,
+      "log": "vm/verification/capability-guest/2026-10-23-host/explicit-oracles-debug.log",
+      "sha256": "8635e5a4e6a807693e39e9462476f79f05e63a09b44f8cd292bda4a08601f630"
+    },
+    {
+      "name": "guest-allocation-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-capability-guest",
+        "--test",
+        "experimental_capability_guest_allocations",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 1.165171,
+      "log": "vm/verification/capability-guest/2026-10-23-host/guest-allocation-debug.log",
+      "sha256": "0afa20eb17627bc66a997a576c840b8b9a42735d44b100958ef62a7c615768c0"
+    },
+    {
+      "name": "private-guest-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-capability-guest",
+        "--lib",
+        "experimental_capability_guest",
+        "--",
+        "--nocapture"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.94922,
+      "log": "vm/verification/capability-guest/2026-10-23-host/private-guest-debug.log",
+      "sha256": "06376813dea302b9cc0191fabff79c63634b9f00bc37cac0919fc738aec04911"
+    },
+    {
+      "name": "explicit-oracles-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--release",
+        "--all-features",
+        "--",
+        "--ignored",
+        "--nocapture"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 4.170713,
+      "log": "vm/verification/capability-guest/2026-10-23-host/explicit-oracles-release.log",
+      "sha256": "84fdfbbe4310ae89c390d10a2fe53cbbb6c686744dc8cb56b32a718edf57e500"
+    },
+    {
+      "name": "guest-allocation-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--release",
+        "--features",
+        "experimental-capability-guest",
+        "--test",
+        "experimental_capability_guest_allocations",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 1.688836,
+      "log": "vm/verification/capability-guest/2026-10-23-host/guest-allocation-release.log",
+      "sha256": "1f557ab1e8d0f5cf7741e70a13ec45a2edb1abd2d58eb03d3c20825b4a510f67"
+    },
+    {
+      "name": "private-guest-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--release",
+        "--features",
+        "experimental-capability-guest",
+        "--lib",
+        "experimental_capability_guest",
+        "--",
+        "--nocapture"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 1.357676,
+      "log": "vm/verification/capability-guest/2026-10-23-host/private-guest-release.log",
+      "sha256": "0c1a345b090c9900af72c24a95181f5be1019ac5c4b359499ed38ec74d6fe134"
+    },
+    {
+      "name": "default-release-build",
+      "argv": [
+        "cargo",
+        "build",
+        "--locked",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--release"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 1.260656,
+      "log": "vm/verification/capability-guest/2026-10-23-host/default-release-build.log",
+      "sha256": "f9af99e6707abcf35d469302bfe7e55d9786feb4664f4633fb904f3673cccd7b"
+    },
+    {
+      "name": "default-symbols",
+      "argv": [
+        "nm",
+        "-gU",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-guest-verification/release/libmixer_vm.dylib"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.028033,
+      "log": "vm/verification/capability-guest/2026-10-23-host/default-symbols.log",
+      "sha256": "147decde3e8d729cabd230c2f35556fc877d429cf89024a3c547fb75e74c2ae0"
+    },
+    {
+      "name": "default-ffi_smoke-build",
+      "argv": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "vm/include",
+        "vm/tests/ffi_smoke.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-guest-verification/release/libmixer_vm.a",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-guest-verification/default-ffi_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.0751,
+      "log": "vm/verification/capability-guest/2026-10-23-host/default-ffi_smoke-build.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "default-ffi_smoke-run",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-guest-verification/default-ffi_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.0727,
+      "log": "vm/verification/capability-guest/2026-10-23-host/default-ffi_smoke-run.log",
+      "sha256": "22e011bf9720cb2a6378d3bb582b1f734d18811d8e9622af4545a62ffc67b89d"
+    },
+    {
+      "name": "default-ffi_numeric_smoke-build",
+      "argv": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "vm/include",
+        "vm/tests/ffi_numeric_smoke.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-guest-verification/release/libmixer_vm.a",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-guest-verification/default-ffi_numeric_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.063185,
+      "log": "vm/verification/capability-guest/2026-10-23-host/default-ffi_numeric_smoke-build.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "default-ffi_numeric_smoke-run",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-guest-verification/default-ffi_numeric_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.062476,
+      "log": "vm/verification/capability-guest/2026-10-23-host/default-ffi_numeric_smoke-run.log",
+      "sha256": "a009a7fccb4af9d1c562e9fbb41b66ade3becc0665f2f66869e8216d5a354273"
+    },
+    {
+      "name": "default-ffi_table_memory_smoke-build",
+      "argv": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "vm/include",
+        "vm/tests/ffi_table_memory_smoke.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-guest-verification/release/libmixer_vm.a",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-guest-verification/default-ffi_table_memory_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.060682,
+      "log": "vm/verification/capability-guest/2026-10-23-host/default-ffi_table_memory_smoke-build.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "default-ffi_table_memory_smoke-run",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-guest-verification/default-ffi_table_memory_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.055968,
+      "log": "vm/verification/capability-guest/2026-10-23-host/default-ffi_table_memory_smoke-run.log",
+      "sha256": "90d70aba024698a2839f670630576917d75836dcab17de4a40259bfcef494c6d"
+    },
+    {
+      "name": "default-ffi_session_smoke-build",
+      "argv": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "vm/include",
+        "vm/tests/ffi_session_smoke.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-guest-verification/release/libmixer_vm.a",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-guest-verification/default-ffi_session_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.061123,
+      "log": "vm/verification/capability-guest/2026-10-23-host/default-ffi_session_smoke-build.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "default-ffi_session_smoke-run",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-guest-verification/default-ffi_session_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.063204,
+      "log": "vm/verification/capability-guest/2026-10-23-host/default-ffi_session_smoke-run.log",
+      "sha256": "45c0d9a25d44ca97c4dd00a4eeac2d46557f059c590e498db5d91e9bce490aef"
+    },
+    {
+      "name": "all-release-build",
+      "argv": [
+        "cargo",
+        "build",
+        "--locked",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--release",
+        "--all-features"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 1.496634,
+      "log": "vm/verification/capability-guest/2026-10-23-host/all-release-build.log",
+      "sha256": "f89a82ce95daba4342da34e03e7684769ec1c9eb140083f819797274348452e0"
+    },
+    {
+      "name": "all-symbols",
+      "argv": [
+        "nm",
+        "-gU",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-guest-verification/release/libmixer_vm.dylib"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.014641,
+      "log": "vm/verification/capability-guest/2026-10-23-host/all-symbols.log",
+      "sha256": "490eba1a0600779f9af92f0d6b264dc610c4a9548f6bacc0ea74a4484d40bb8b"
+    },
+    {
+      "name": "all-ffi_smoke-build",
+      "argv": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "vm/include",
+        "vm/tests/ffi_smoke.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-guest-verification/release/libmixer_vm.a",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-guest-verification/all-ffi_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.107187,
+      "log": "vm/verification/capability-guest/2026-10-23-host/all-ffi_smoke-build.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "all-ffi_smoke-run",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-guest-verification/all-ffi_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.065736,
+      "log": "vm/verification/capability-guest/2026-10-23-host/all-ffi_smoke-run.log",
+      "sha256": "22e011bf9720cb2a6378d3bb582b1f734d18811d8e9622af4545a62ffc67b89d"
+    },
+    {
+      "name": "all-ffi_numeric_smoke-build",
+      "argv": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "vm/include",
+        "vm/tests/ffi_numeric_smoke.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-guest-verification/release/libmixer_vm.a",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-guest-verification/all-ffi_numeric_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.073173,
+      "log": "vm/verification/capability-guest/2026-10-23-host/all-ffi_numeric_smoke-build.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "all-ffi_numeric_smoke-run",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-guest-verification/all-ffi_numeric_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.062932,
+      "log": "vm/verification/capability-guest/2026-10-23-host/all-ffi_numeric_smoke-run.log",
+      "sha256": "a009a7fccb4af9d1c562e9fbb41b66ade3becc0665f2f66869e8216d5a354273"
+    },
+    {
+      "name": "all-ffi_table_memory_smoke-build",
+      "argv": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "vm/include",
+        "vm/tests/ffi_table_memory_smoke.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-guest-verification/release/libmixer_vm.a",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-guest-verification/all-ffi_table_memory_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.069949,
+      "log": "vm/verification/capability-guest/2026-10-23-host/all-ffi_table_memory_smoke-build.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "all-ffi_table_memory_smoke-run",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-guest-verification/all-ffi_table_memory_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.067767,
+      "log": "vm/verification/capability-guest/2026-10-23-host/all-ffi_table_memory_smoke-run.log",
+      "sha256": "90d70aba024698a2839f670630576917d75836dcab17de4a40259bfcef494c6d"
+    },
+    {
+      "name": "all-ffi_session_smoke-build",
+      "argv": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "vm/include",
+        "vm/tests/ffi_session_smoke.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-guest-verification/release/libmixer_vm.a",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-guest-verification/all-ffi_session_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.069314,
+      "log": "vm/verification/capability-guest/2026-10-23-host/all-ffi_session_smoke-build.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "all-ffi_session_smoke-run",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-guest-verification/all-ffi_session_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.059857,
+      "log": "vm/verification/capability-guest/2026-10-23-host/all-ffi_session_smoke-run.log",
+      "sha256": "45c0d9a25d44ca97c4dd00a4eeac2d46557f059c590e498db5d91e9bce490aef"
+    }
+  ],
+  "source_tree_sha256": "1697111c4821879673950c143d8474667286e8632c6d769239ff402f999274ba",
+  "source_manifest": "vm/verification/capability-guest/2026-10-23-host/source-manifest.sha256",
+  "frozen_files": [
+    {
+      "path": "vm/include/mixer_vm.h",
+      "sha256": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+      "equals_base": true
+    },
+    {
+      "path": "runtime/Sources/CMixerVM/include/mixer_vm.h",
+      "sha256": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+      "equals_base": true
+    },
+    {
+      "path": "contracts/vm-profile-v1.json",
+      "sha256": "813a54a4e198a73d49afffe7c8d9cf54f6e76bfca80dd6556a439a4bdf1bdf4c",
+      "equals_base": true
+    },
+    {
+      "path": "contracts/vm-session-v1.json",
+      "sha256": "6921f707b943ab76cdc3dae996ac7448d3c720676f290e259c892afcab1bf41a",
+      "equals_base": true
+    },
+    {
+      "path": "vm/profiles/numeric-v2.json",
+      "sha256": "4eb10d61ddc0092bec5f40b40cc3473ae3443491e7bdfe49b9cae80b58e09d57",
+      "equals_base": true
+    },
+    {
+      "path": "vm/profiles/table-memory-v3.json",
+      "sha256": "c46d5527aa1d4ed1e4b282269546a132d75f8f1895640978165db68ec9ed028d",
+      "equals_base": true
+    },
+    {
+      "path": "vm/src/ffi.rs",
+      "sha256": "fc6fcd076ff4e42c60e04f19b0b94bd3b630dfabad03fb73193dedfafe5593e6",
+      "equals_base": true
+    },
+    {
+      "path": "vm/src/session.rs",
+      "sha256": "75fccc10f123b3761c5814018045df3efc7a74889f1f581b81f410b49fc33af3",
+      "equals_base": true
+    },
+    {
+      "path": "vm/src/float.rs",
+      "sha256": "db8057f709115016eae689efbd1fdd47b2b1ddee371d45159a0160c8ccc4b711",
+      "equals_base": true
+    },
+    {
+      "path": "vm/src/experimental/mod.rs",
+      "sha256": "ec40c7e104b367d41eb504d87197caca3550e77a12d1351ef724103d99574531",
+      "equals_base": true
+    }
+  ],
+  "unchanged_rust_field_definitions": [
+    {
+      "path": "vm/src/lib.rs",
+      "marker": "pub enum Profile {",
+      "sha256": "57d8f15f9a2f9cf95f8a5d4d5c58ceff6bf9cb51f1888ee2aa710567b94bafcf"
+    },
+    {
+      "path": "vm/src/lib.rs",
+      "marker": "pub struct Limits {",
+      "sha256": "995b254f8e2d6daca92c52fbfd7114263d33fa8d223b2ad27a630a7403b62840"
+    },
+    {
+      "path": "vm/src/decode.rs",
+      "marker": "pub struct Module {",
+      "sha256": "e044c42ad8ccb25cbbfdcfb1deff8bad75c50a35f394b57d0db4b8b3cab87773"
+    },
+    {
+      "path": "vm/src/execute.rs",
+      "marker": "pub struct Instance {",
+      "sha256": "5b0af5c4f90789bff695c87eebd837ddd2032102efda8dee183bbb80a6546e5d"
+    }
+  ],
+  "transport_contract_sha256": "052ebe9fbdc20a41307332086767e7903680bc83ba273c696edf9187be6b6439",
+  "versions": {
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "clippy": "clippy 0.1.99 (b940084d7e 2026-09-28)",
+    "node": "v22.23.3",
+    "clang": "Apple clang version 21.0.0 (clang-2100.3.34.2)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "python": "Python 3.14.8",
+    "macos": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "architecture": "arm64"
+  },
+  "test_counts": {
+    "default-debug": {
+      "passed": 91,
+      "ignored": 8
+    },
+    "default-release": {
+      "passed": 91,
+      "ignored": 8
+    },
+    "all-debug": {
+      "passed": 162,
+      "ignored": 9
+    },
+    "all-release": {
+      "passed": 162,
+      "ignored": 9
+    },
+    "explicit-oracles-debug": {
+      "passed": 9,
+      "ignored": 0
+    },
+    "explicit-oracles-release": {
+      "passed": 9,
+      "ignored": 0
+    }
+  },
+  "public_symbols": {
+    "default": [
+      "_mixer_vm_invoke",
+      "_mixer_vm_invoke_numeric_v2",
+      "_mixer_vm_invoke_table_memory_v3",
+      "_mixer_vm_session_cancel_v1",
+      "_mixer_vm_session_close_v1",
+      "_mixer_vm_session_create_v1",
+      "_mixer_vm_session_invoke_v1",
+      "_mixer_vm_session_read_v1",
+      "_mixer_vm_session_write_v1",
+      "_mixer_vm_validate",
+      "_mixer_vm_validate_numeric_v2",
+      "_mixer_vm_validate_table_memory_v3"
+    ],
+    "all": [
+      "_mixer_vm_invoke",
+      "_mixer_vm_invoke_numeric_v2",
+      "_mixer_vm_invoke_table_memory_v3",
+      "_mixer_vm_session_cancel_v1",
+      "_mixer_vm_session_close_v1",
+      "_mixer_vm_session_create_v1",
+      "_mixer_vm_session_invoke_v1",
+      "_mixer_vm_session_read_v1",
+      "_mixer_vm_session_write_v1",
+      "_mixer_vm_validate",
+      "_mixer_vm_validate_numeric_v2",
+      "_mixer_vm_validate_table_memory_v3"
+    ]
+  },
+  "artifacts": {
+    "default": {
+      "archive_sha256": "3179abb03c80a95b2092954ba8d338568f920cebc0306ffacf98822a40f01af4",
+      "dynamic_sha256": "683c8184c125b1cce988f7e5eb49af67a879d5a5b63c25447b6f0ec7f73d244a"
+    },
+    "all": {
+      "archive_sha256": "b0c47a0dbaf927d5dba915d9eea5b12e1fe6ab3219ee96e71efbdfbe7f51f9df",
+      "dynamic_sha256": "fbdd4846203fc5ad39be12fee195b247e3a0aa7f3fd6ec0eee746fcee76c90e0"
+    }
+  },
+  "c_smokes": {
+    "default-ffi_smoke": "C ABI smoke: passed",
+    "default-ffi_numeric_smoke": "FP flush-to-zero rejection: exercised\nFP hardware invalid-trap rejection: exercised\nNumeric-v2 C ABI smoke: passed",
+    "default-ffi_table_memory_smoke": "Table-memory-v3 C ABI smoke: passed; legacy struct layouts unchanged",
+    "default-ffi_session_smoke": "Persistent session C ABI smoke: passed; legacy layouts and one-shot state unchanged",
+    "all-ffi_smoke": "C ABI smoke: passed",
+    "all-ffi_numeric_smoke": "FP flush-to-zero rejection: exercised\nFP hardware invalid-trap rejection: exercised\nNumeric-v2 C ABI smoke: passed",
+    "all-ffi_table_memory_smoke": "Table-memory-v3 C ABI smoke: passed; legacy struct layouts unchanged",
+    "all-ffi_session_smoke": "Persistent session C ABI smoke: passed; legacy layouts and one-shot state unchanged"
+  },
+  "source_unchanged_during_checks": true,
+  "allocation_scope": {
+    "method": "single-test processes, System GlobalAlloc requested Layout sizes; source/caller buffers/preexisting owner and VM excluded from payload intervals; realloc updates account logical live requests after realloc returns and do not measure allocator-internal overlap or RSS",
+    "known_negative_boundaries": [
+      "shared Arc allocation refusal SIGABRT",
+      "existing standard mutex first-lock allocation refusal SIGABRT",
+      "legacy core/error Strings and cancellation/owner Arcs are not end-to-end fallible"
+    ],
+    "full_occupancy": {
+      "allocations": 16,
+      "requested_live_bytes": 8388608,
+      "requested_peak_bytes": 8388608
+    },
+    "invalid_memory_full_quota_ready_poll_ack_close_drop": "zero new allocations in measured intervals",
+    "failed_argument_allocation": "no token/request published, wrapper closed; bounded36B existing Error String allocated after refusal"
+  },
+  "limits": [
+    "default profiles1-3/CLI/C/session/stream routes remain Legacy and reject capability imports",
+    "Rust-only explicit constructor, inherited v3 grammar/limits; no new Profile or shared process registry",
+    "dynamic completion bytes remain trusted opaque data; no strict dynamic codec/grant/native I/O enforcement",
+    "no automatic scheduler/Swift continuation integration; cooperative checks do not preempt a native allocation/copy",
+    "native caller must retain tickets/owners through actual cleanup; poison ack fails without recovery",
+    "independent review, deployment-device, compiler/fullSwift/FieldLog, immutable package, release/store/operations/GA gates remain open"
+  ],
+  "full_fieldlog_admitted_or_executed": false,
+  "completed_utc": "2026-10-23T04:22:24.366778+00:00",
+  "result": "scoped host checks passed; independent review and all integration gates pending"
+}

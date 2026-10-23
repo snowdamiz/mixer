@@ -1,0 +1,34 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running tests/review_boundaries.rs (vm/target/debug/deps/review_boundaries-5b74708daa8375d6)
+
+running 6 tests
+test c_boundary_rejects_bad_value_contracts_before_execution ... ok
+test unreachable_code_still_rejects_illegal_indices_and_branch_label_types ... ok
+test c_boundary_accepts_documented_unaligned_structs_and_rejects_huge_lengths ... ok
+test reference_branch_inventory_consumes_label_index_and_preserves_next_opcode ... FAILED
+test reference_inventory_does_not_consume_the_instruction_after_ref_as_non_null ... FAILED
+test maximal_effective_addresses_trap_without_wrap_or_partial_store ... ok
+
+failures:
+
+---- reference_branch_inventory_consumes_label_index_and_preserves_next_opcode stdout ----
+
+thread 'reference_branch_inventory_consumes_label_index_and_preserves_next_opcode' (48663681) panicked at tests/review_boundaries.rs:29:9:
+known label immediate must be inspected: 0xd6
+
+---- reference_inventory_does_not_consume_the_instruction_after_ref_as_non_null stdout ----
+
+thread 'reference_inventory_does_not_consume_the_instruction_after_ref_as_non_null' (48663682) panicked at tests/review_boundaries.rs:18:5:
+assertion `left == right` failed: drop must not be consumed as an immediate
+  left: None
+ right: Some(1)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    reference_branch_inventory_consumes_label_index_and_preserves_next_opcode
+    reference_inventory_does_not_consume_the_instruction_after_ref_as_non_null
+
+test result: FAILED. 4 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `--test review_boundaries`

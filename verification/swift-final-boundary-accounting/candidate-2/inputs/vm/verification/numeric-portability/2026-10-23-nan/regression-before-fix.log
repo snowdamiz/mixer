@@ -1,0 +1,45 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/vm)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.56s
+     Running tests/float.rs (vm/target/debug/deps/float-c1e68ff6ed21d082)
+
+running 14 tests
+test arithmetic_without_nan_inputs_produces_canonical_nan_on_invalid_operations ... ok
+test malformed_float_immediates_and_type_mismatch_reject ... ok
+test float_to_integer_traps_are_distinct_and_boundaries_truncate ... ok
+test numeric_profile_cannot_be_reinstantiated_as_integer ... ok
+test f64_arithmetic_and_demotion_canonicalize_all_nan_inputs ... FAILED
+test integer_profile_remains_closed_to_floats ... ok
+test saturating_conversions_clamp_and_meter_one_instruction ... ok
+test signed_zero_min_max_and_copysign ... ok
+test float_memory_locals_globals_and_control_are_typed ... ok
+test rounding_is_ties_even_and_retains_negative_zero ... ok
+test division_and_nan_comparison_follow_ieee ... ok
+test prefix_metering_and_float_mutation_execution_are_bounded ... ok
+test f32_arithmetic_and_promotion_canonicalize_all_nan_inputs ... FAILED
+test constants_reinterpret_and_bitwise_preserve_nan_payloads ... ok
+
+failures:
+
+---- f64_arithmetic_and_demotion_canonicalize_all_nan_inputs stdout ----
+
+thread 'f64_arithmetic_and_demotion_canonicalize_all_nan_inputs' (50248057) panicked at tests/float.rs:154:17:
+assertion `left == right` failed: opcode 0x9b, input 0x7ff0000000000001
+  left: F64(9221120237041090561)
+ right: F64(9221120237041090560)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- f32_arithmetic_and_promotion_canonicalize_all_nan_inputs stdout ----
+
+thread 'f32_arithmetic_and_promotion_canonicalize_all_nan_inputs' (50248056) panicked at tests/float.rs:115:17:
+assertion `left == right` failed: opcode 0x8d, input 0x7f800001
+  left: F32(2143289345)
+ right: F32(2143289344)
+
+
+failures:
+    f32_arithmetic_and_promotion_canonicalize_all_nan_inputs
+    f64_arithmetic_and_demotion_canonicalize_all_nan_inputs
+
+test result: FAILED. 12 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `--test float`

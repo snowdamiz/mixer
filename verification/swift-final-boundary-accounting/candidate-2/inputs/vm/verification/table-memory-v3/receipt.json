@@ -1,0 +1,434 @@
+{
+  "schema_version": 1,
+  "observed_at_utc": "2026-10-22T22:46:14.853089+00:00",
+  "implementation_agent_selection": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "xhigh"
+  },
+  "independent_review": false,
+  "base_revision_at_start": "82c77d98d80dcce72de69fb5c44aabd205eeba0d",
+  "source_tree_digest": "083f476bcc55b30aa7c01860fb450a9f4e5c2488be777a72a15b336f83e08992",
+  "source_manifest": "vm/verification/table-memory-v3/source-manifest.sha256",
+  "source_scope": "vm/** excluding target/verification/__pycache__ plus frozen contracts/vm-profile-v1.json",
+  "frozen_profile_sha256": {
+    "contracts/vm-profile-v1.json": "813a54a4e198a73d49afffe7c8d9cf54f6e76bfca80dd6556a439a4bdf1bdf4c",
+    "vm/profiles/numeric-v2.json": "4eb10d61ddc0092bec5f40b40cc3473ae3443491e7bdfe49b9cae80b58e09d57"
+  },
+  "command_environment": {
+    "PATH_prefix": "/opt/homebrew/opt/rustup/bin"
+  },
+  "tool_versions": {
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "node": "v22.23.3",
+    "clang": "Apple clang version 21.0.0 (clang-2100.3.34.2)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "python": "Python 3.14.8",
+    "macos": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "architecture": "arm64"
+  },
+  "commands": [
+    {
+      "name": "base-revision",
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/table-memory-v3/base-revision.log"
+    },
+    {
+      "name": "format",
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/table-memory-v3/format.log"
+    },
+    {
+      "name": "host-tests",
+      "command": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/table-memory-v3/host-tests.log"
+    },
+    {
+      "name": "integer-oracle",
+      "command": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--test",
+        "differential",
+        "--",
+        "--ignored",
+        "--nocapture"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/table-memory-v3/integer-oracle.log"
+    },
+    {
+      "name": "float-oracle-debug",
+      "command": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--test",
+        "float_differential",
+        "--",
+        "--ignored",
+        "--nocapture"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/table-memory-v3/float-oracle-debug.log"
+    },
+    {
+      "name": "float-oracle-release",
+      "command": [
+        "cargo",
+        "test",
+        "--release",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--test",
+        "float_differential",
+        "--",
+        "--ignored",
+        "--nocapture"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/table-memory-v3/float-oracle-release.log"
+    },
+    {
+      "name": "table-memory-oracle-debug",
+      "command": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--test",
+        "table_memory_differential",
+        "--",
+        "--ignored",
+        "--nocapture"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/table-memory-v3/table-memory-oracle-debug.log"
+    },
+    {
+      "name": "table-memory-oracle-release",
+      "command": [
+        "cargo",
+        "test",
+        "--release",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--test",
+        "table_memory_differential",
+        "--",
+        "--ignored",
+        "--nocapture"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/table-memory-v3/table-memory-oracle-release.log"
+    },
+    {
+      "name": "clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/table-memory-v3/clippy.log"
+    },
+    {
+      "name": "release-build",
+      "command": [
+        "cargo",
+        "build",
+        "--release",
+        "--manifest-path",
+        "vm/Cargo.toml"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/table-memory-v3/release-build.log"
+    },
+    {
+      "name": "c-integer-build",
+      "command": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "vm/include",
+        "vm/tests/ffi_smoke.c",
+        "vm/target/release/libmixer_vm.a",
+        "-o",
+        "vm/target/ffi-integer-smoke"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/table-memory-v3/c-integer-build.log"
+    },
+    {
+      "name": "c-integer-run",
+      "command": [
+        "vm/target/ffi-integer-smoke"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/table-memory-v3/c-integer-run.log"
+    },
+    {
+      "name": "c-numeric-build",
+      "command": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "vm/include",
+        "vm/tests/ffi_numeric_smoke.c",
+        "vm/target/release/libmixer_vm.a",
+        "-o",
+        "vm/target/ffi-numeric-smoke"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/table-memory-v3/c-numeric-build.log"
+    },
+    {
+      "name": "c-numeric-run",
+      "command": [
+        "vm/target/ffi-numeric-smoke"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/table-memory-v3/c-numeric-run.log"
+    },
+    {
+      "name": "c-table-memory-build",
+      "command": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "vm/include",
+        "vm/tests/ffi_table_memory_smoke.c",
+        "vm/target/release/libmixer_vm.a",
+        "-o",
+        "vm/target/ffi-table-memory-smoke"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/table-memory-v3/c-table-memory-build.log"
+    },
+    {
+      "name": "c-table-memory-run",
+      "command": [
+        "vm/target/ffi-table-memory-smoke"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/table-memory-v3/c-table-memory-run.log"
+    },
+    {
+      "name": "fieldlog-inventory",
+      "command": [
+        "vm/target/release/mixer-vm",
+        "--profile",
+        "mixer-table-memory-v3",
+        "inventory",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/fieldlog-corpus-qualified/.build/wasm/wasm32-unknown-wasip1/release/fieldlog-corpus.wasm"
+      ],
+      "exit_code": 2,
+      "output": "vm/verification/table-memory-v3/fieldlog-inventory.log"
+    },
+    {
+      "name": "version-cargo",
+      "command": [
+        "cargo",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/table-memory-v3/version-cargo.log"
+    },
+    {
+      "name": "version-rustc",
+      "command": [
+        "rustc",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/table-memory-v3/version-rustc.log"
+    },
+    {
+      "name": "version-node",
+      "command": [
+        "node",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/table-memory-v3/version-node.log"
+    },
+    {
+      "name": "version-clang",
+      "command": [
+        "clang",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/table-memory-v3/version-clang.log"
+    },
+    {
+      "name": "version-python",
+      "command": [
+        "python3",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/table-memory-v3/version-python.log"
+    },
+    {
+      "name": "version-macos",
+      "command": [
+        "sw_vers"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/table-memory-v3/version-macos.log"
+    },
+    {
+      "name": "version-architecture",
+      "command": [
+        "uname",
+        "-m"
+      ],
+      "exit_code": 0,
+      "output": "vm/verification/table-memory-v3/version-architecture.log"
+    }
+  ],
+  "structural_measurement": {
+    "command": [
+      "python3",
+      "vm/verify-table-memory.py",
+      "--corpus",
+      "/Users/andreyyurlov/Documents/dev/mixer/verification/local/fieldlog-corpus-qualified/.build/wasm/wasm32-unknown-wasip1/release/fieldlog-corpus.wasm"
+    ],
+    "output": "vm/verification/table-memory-v3/fieldlog-structure.json",
+    "authorization": false
+  },
+  "results": {
+    "host_tests_passed": 74,
+    "integer_differential_execution_cases": 13289,
+    "oracle_case_counts": {
+      "float-debug": 29794,
+      "float-release": 29794,
+      "table-memory-debug": 2996,
+      "table-memory-release": 2996
+    },
+    "c_abi_outputs": {
+      "integer": "C ABI smoke: passed",
+      "numeric": "FP flush-to-zero rejection: exercised\nFP hardware invalid-trap rejection: exercised\nNumeric-v2 C ABI smoke: passed",
+      "table-memory": "Table-memory-v3 C ABI smoke: passed; legacy struct layouts unchanged"
+    },
+    "format_and_clippy": "passed",
+    "old_profiles": "frozen contracts unchanged; old-profile rejection unit/CLI/C tests pass",
+    "v3": "tables/active elements/indirect calls/copy/fill with bounds/type/control/fuel/depth/host-call/cancellation tests passed"
+  },
+  "fieldlog_corpus": {
+    "path": "verification/local/fieldlog-corpus-qualified/.build/wasm/wasm32-unknown-wasip1/release/fieldlog-corpus.wasm",
+    "bytes": 60505739,
+    "sha256": "3308fc08ae16bd7247be67b14bd7ea8af754c2610641d517936aa5570f325964",
+    "source_revision": "1587d2d4f02ab2dad9914df97f878727dd622296",
+    "profile": "mixer-table-memory-v3",
+    "valid": false,
+    "inventory_complete": true,
+    "imports": 34,
+    "primary_opcodes": 166,
+    "instruction_occurrences": 6510037,
+    "extended_opcodes": [
+      {
+        "opcode": "0xfc:0",
+        "count": 37
+      },
+      {
+        "opcode": "0xfc:1",
+        "count": 28
+      },
+      {
+        "opcode": "0xfc:10",
+        "count": 4237
+      },
+      {
+        "opcode": "0xfc:11",
+        "count": 761
+      },
+      {
+        "opcode": "0xfc:2",
+        "count": 219
+      },
+      {
+        "opcode": "0xfc:3",
+        "count": 11
+      },
+      {
+        "opcode": "0xfc:4",
+        "count": 9
+      },
+      {
+        "opcode": "0xfc:5",
+        "count": 6
+      },
+      {
+        "opcode": "0xfc:6",
+        "count": 48
+      },
+      {
+        "opcode": "0xfc:7",
+        "count": 5
+      }
+    ],
+    "rejection": {
+      "code": "limit",
+      "message": "module byte limit exceeded",
+      "function": null,
+      "offset": 0
+    },
+    "owned_vm_execution_qualified": false,
+    "remaining": [
+      "source/function/global/instruction/memory budgets exceeded",
+      "all 34 WASI imports remain unsupported",
+      "bounded Swift runtime/SDK integration unqualified"
+    ]
+  },
+  "qualified_execution_target": "macOS arm64 development host only; no v3 physical-device claim",
+  "open_gates": [
+    "independent v3 review",
+    "standards suites",
+    "continuous coverage-guided fuzzing",
+    "v3 physical iOS/Android embedding",
+    "non-default CPU/platform qualification",
+    "remaining table/reference/bulk-memory forms as actually required",
+    "bounded WASI/Swift runtime adapters",
+    "actual corpus resource budgets and owned-VM execution",
+    "Swift source maps/debugger",
+    "FieldLog OTA coverage",
+    "W08/D3/GA"
+  ]
+}

@@ -1,0 +1,140 @@
+--- a/vm/src/experimental/mod.rs
++++ b/vm/src/experimental/mod.rs
+@@ -23,6 +23,8 @@
+ pub(crate) mod descriptors;
+ #[cfg(feature = "experimental-span-execution")]
+ pub mod execution;
++#[cfg(all(feature = "experimental-swift-reactor", not(feature = "experimental-span-execution")))]
++pub(crate) mod execution;
+ #[cfg(all(test, feature = "experimental-swift-reactor"))]
+ mod swift_descriptor_tests;
+ 
+--- a/vm/src/experimental/execution/mod.rs
++++ b/vm/src/experimental/execution/mod.rs
+@@ -17,11 +17,15 @@
+ //! fn take(instance: &mut SpanInstance) { let _ = instance.cache_usage().pin(0); }
+ //! ```
+ #![allow(clippy::result_large_err)]
++#[cfg_attr(not(feature = "experimental-span-execution"), allow(unused_imports))]
+ use super::cache::{CacheFailure, CacheUsage, ControlKind, FunctionCache, FunctionPin, Operation};
+ use crate::{Cancellation, Value};
++#[cfg(feature = "experimental-span-execution")]
+ use std::mem::size_of;
+ 
++#[cfg_attr(not(feature = "experimental-span-execution"), allow(dead_code))]
+ const PAGE: usize = 65536;
++#[cfg_attr(not(feature = "experimental-span-execution"), allow(dead_code))]
+ const CHUNK: usize = 4096;
+ 
+ #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+@@ -64,6 +68,7 @@
+     pub active_pins: usize,
+ }
+ #[derive(Clone, Copy, Debug, PartialEq, Eq)]
++#[cfg_attr(not(feature = "experimental-span-execution"), allow(dead_code))]
+ pub enum ExecutionFailureKind {
+     InvalidBudget,
+     UnknownExport,
+@@ -101,6 +106,7 @@
+ impl std::error::Error for ExecutionFailure {}
+ 
+ #[derive(Clone, Copy, PartialEq, Eq)]
++#[cfg_attr(not(feature = "experimental-span-execution"), allow(dead_code))]
+ enum Kind {
+     Function,
+     Block,
+@@ -108,14 +114,16 @@
+     If,
+ }
+ #[derive(Clone, Copy)]
+-struct Control {
++#[cfg_attr(not(feature = "experimental-span-execution"), allow(dead_code))]
++pub(crate) struct Control {
+     kind: Kind,
+     start: usize,
+     end: usize,
+     height: usize,
+     result: bool,
+ }
+-struct Frame {
++#[cfg_attr(not(feature = "experimental-span-execution"), allow(dead_code))]
++pub(crate) struct Frame {
+     function: u32,
+     pc: usize,
+     base: usize,
+@@ -126,6 +134,7 @@
+ }
+ /// Owns the cache; neither cache pins nor mutable guest storage escape this owner.
+ /// Fuel, host calls and work accumulate for the lifetime. Every error is terminal.
++#[cfg_attr(not(feature = "experimental-span-execution"), allow(dead_code))]
+ pub struct SpanInstance {
+     cache: FunctionCache,
+     budget: ExecutionBudget,
+@@ -141,6 +150,7 @@
+     function: Option<u32>,
+     offset: usize,
+ }
++#[cfg(feature = "experimental-span-execution")]
+ impl SpanInstance {
+     pub fn new(
+         cache: FunctionCache,
+@@ -1246,11 +1256,13 @@
+         Ok(())
+     }
+ }
++#[cfg(feature = "experimental-span-execution")]
+ impl Drop for SpanInstance {
+     fn drop(&mut self) {
+         self.cleanup();
+     }
+ }
++#[cfg_attr(not(feature = "experimental-span-execution"), allow(dead_code))]
+ fn width(op: u8) -> usize {
+     match op {
+         0x28 | 0x2a | 0x34 | 0x35 | 0x36 | 0x38 | 0x3e => 4,
+@@ -1260,6 +1272,7 @@
+     }
+ }
+ // Unreachable mutable-borrow guards retain allocation-free diagnostics too.
++#[cfg_attr(not(feature = "experimental-span-execution"), allow(dead_code))]
+ fn unreachable_failure() -> ExecutionFailure {
+     ExecutionFailure {
+         kind: ExecutionFailureKind::Invariant,
+@@ -1272,10 +1285,12 @@
+         cache_failure: None,
+     }
+ }
++#[cfg_attr(not(feature = "experimental-span-execution"), allow(dead_code))]
+ struct ScalarReader<'a> {
+     bytes: &'a [u8],
+     at: usize,
+ }
++#[cfg_attr(not(feature = "experimental-span-execution"), allow(dead_code))]
+ impl ScalarReader<'_> {
+     fn byte(&mut self) -> Option<u8> {
+         let b = *self.bytes.get(self.at)?;
+@@ -1309,6 +1324,7 @@
+         None
+     }
+ }
++#[cfg_attr(not(feature = "experimental-span-execution"), allow(dead_code))]
+ fn initializer(bytes: &[u8]) -> Option<Value> {
+     let mut reader = ScalarReader { bytes, at: 0 };
+     let value = match reader.byte()? {
+@@ -1320,3 +1336,6 @@
+     };
+     Some(value)
+ }
++
++#[cfg(feature = "experimental-swift-reactor")]
++pub(crate) mod borrowed;
+--- a/vm/src/experimental_swift_reactor/mod.rs
++++ b/vm/src/experimental_swift_reactor/mod.rs
+@@ -14,3 +14,7 @@
+     SwiftValidationFailure, SwiftValidationFailureKind, SwiftValidationResource,
+     SwiftValidationUsage, ValidatedSwiftReactor,
+ };
++
++mod execution;
++#[cfg(test)]
++mod execution_tests;

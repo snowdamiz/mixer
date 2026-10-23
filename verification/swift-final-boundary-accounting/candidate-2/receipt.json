@@ -1,0 +1,621 @@
+{
+  "schema": "mixer.swift-final-boundary-accounting.v1",
+  "status": "passed",
+  "started_at": "2026-10-23T21:39:37.816642+00:00",
+  "commands": [
+    {
+      "name": "rustc-version",
+      "argv": [
+        "rustc",
+        "-Vv"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-final-boundary-accounting/candidate-2/inputs/vm",
+      "exit_code": 0,
+      "expected_rejection": null,
+      "seconds": 0.165,
+      "log": "verification/swift-final-boundary-accounting/candidate-2/logs/rustc-version.log",
+      "log_sha256": "352d6857968e80a6357a926ac685b9b07f77c479aaafde33e73a53945e802909"
+    },
+    {
+      "name": "cargo-version",
+      "argv": [
+        "cargo",
+        "-V"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-final-boundary-accounting/candidate-2/inputs/vm",
+      "exit_code": 0,
+      "expected_rejection": null,
+      "seconds": 0.036,
+      "log": "verification/swift-final-boundary-accounting/candidate-2/logs/cargo-version.log",
+      "log_sha256": "1f88eaf7fe1aaec83184752cf4c944cd22f00184136ff36a3e4c318cc60ef566"
+    },
+    {
+      "name": "host",
+      "argv": [
+        "uname",
+        "-a"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-final-boundary-accounting/candidate-2/inputs/vm",
+      "exit_code": 0,
+      "expected_rejection": null,
+      "seconds": 0.004,
+      "log": "verification/swift-final-boundary-accounting/candidate-2/logs/host.log",
+      "log_sha256": "abe9ccb86c55e0593f387b3138e08c1d0bed9a04ba0080d7badcbf093fabd539"
+    },
+    {
+      "name": "neither-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--lib"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-final-boundary-accounting/candidate-2/inputs/vm",
+      "exit_code": 0,
+      "expected_rejection": null,
+      "seconds": 1.177,
+      "log": "verification/swift-final-boundary-accounting/candidate-2/logs/neither-debug.log",
+      "log_sha256": "c2c3ecbe41d3e905d84217935ebca90a1f7c84715c78393c35da87d70bfaef53"
+    },
+    {
+      "name": "span-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--lib",
+        "--features",
+        "experimental-span-execution"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-final-boundary-accounting/candidate-2/inputs/vm",
+      "exit_code": 0,
+      "expected_rejection": null,
+      "seconds": 1.263,
+      "log": "verification/swift-final-boundary-accounting/candidate-2/logs/span-debug.log",
+      "log_sha256": "6505d0434da1043b7476a03e9375feea6d437d2de18268af0bff9c982facaa35"
+    },
+    {
+      "name": "swift-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--lib",
+        "--features",
+        "experimental-swift-reactor"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-final-boundary-accounting/candidate-2/inputs/vm",
+      "exit_code": 0,
+      "expected_rejection": null,
+      "seconds": 4.002,
+      "log": "verification/swift-final-boundary-accounting/candidate-2/logs/swift-debug.log",
+      "log_sha256": "a5ba46be4e19ce1ebe587ab12a26be4ff1ead2bbe7369098578bfb59e1e1758b"
+    },
+    {
+      "name": "swift-cache-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--lib",
+        "--features",
+        "experimental-swift-reactor,experimental-function-cache"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-final-boundary-accounting/candidate-2/inputs/vm",
+      "exit_code": 0,
+      "expected_rejection": null,
+      "seconds": 3.663,
+      "log": "verification/swift-final-boundary-accounting/candidate-2/logs/swift-cache-debug.log",
+      "log_sha256": "1ca545965540530b0965e6df7b524f4448a1288617668d479e3a00a71cbaf1e3"
+    },
+    {
+      "name": "swift-span-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--lib",
+        "--features",
+        "experimental-swift-reactor,experimental-span-execution"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-final-boundary-accounting/candidate-2/inputs/vm",
+      "exit_code": 0,
+      "expected_rejection": null,
+      "seconds": 3.57,
+      "log": "verification/swift-final-boundary-accounting/candidate-2/logs/swift-span-debug.log",
+      "log_sha256": "3bbc0ca00eea1231b2057ebc087b0d17b11624ae09be9c76e49af9149a932501"
+    },
+    {
+      "name": "all-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--all-features"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-final-boundary-accounting/candidate-2/inputs/vm",
+      "exit_code": 0,
+      "expected_rejection": null,
+      "seconds": 15.294,
+      "log": "verification/swift-final-boundary-accounting/candidate-2/logs/all-debug.log",
+      "log_sha256": "d63694d97c5b82891b26ac12e312122c6699df25315d2d0a14712196de2f0ad3"
+    },
+    {
+      "name": "final-boundary-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--lib",
+        "--features",
+        "experimental-swift-reactor",
+        "final_boundary_",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-final-boundary-accounting/candidate-2/inputs/vm",
+      "exit_code": 0,
+      "expected_rejection": null,
+      "seconds": 0.036,
+      "log": "verification/swift-final-boundary-accounting/candidate-2/logs/final-boundary-debug.log",
+      "log_sha256": "669bb4ef15b07b75692353d2d2266e04e9d58de51271cdb045b12c8dcac5e0f7"
+    },
+    {
+      "name": "executor-layout-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--lib",
+        "--features",
+        "experimental-swift-reactor",
+        "swift_executor_layout",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-final-boundary-accounting/candidate-2/inputs/vm",
+      "exit_code": 0,
+      "expected_rejection": null,
+      "seconds": 0.031,
+      "log": "verification/swift-final-boundary-accounting/candidate-2/logs/executor-layout-debug.log",
+      "log_sha256": "ba15ee7b6092a99025b5488c95922cfcf88f6960d0bf89b10f4fcc8f8fa53ace"
+    },
+    {
+      "name": "neither-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--release",
+        "--lib"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-final-boundary-accounting/candidate-2/inputs/vm",
+      "exit_code": 0,
+      "expected_rejection": null,
+      "seconds": 0.907,
+      "log": "verification/swift-final-boundary-accounting/candidate-2/logs/neither-release.log",
+      "log_sha256": "415c96e50a7900eba2286f886cd6ec62636461f694a212e975898459bca988c0"
+    },
+    {
+      "name": "span-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--release",
+        "--lib",
+        "--features",
+        "experimental-span-execution"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-final-boundary-accounting/candidate-2/inputs/vm",
+      "exit_code": 0,
+      "expected_rejection": null,
+      "seconds": 1.259,
+      "log": "verification/swift-final-boundary-accounting/candidate-2/logs/span-release.log",
+      "log_sha256": "7fcfa7540ce9122be48228e7411b1d808647aad39acc5f4b87b764c6e31ba6ff"
+    },
+    {
+      "name": "swift-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--release",
+        "--lib",
+        "--features",
+        "experimental-swift-reactor"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-final-boundary-accounting/candidate-2/inputs/vm",
+      "exit_code": 0,
+      "expected_rejection": null,
+      "seconds": 6.706,
+      "log": "verification/swift-final-boundary-accounting/candidate-2/logs/swift-release.log",
+      "log_sha256": "04d3d88f0d3567f8dbc231de1bfee12e3c6bec612b458e9861180702b29d6cac"
+    },
+    {
+      "name": "swift-cache-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--release",
+        "--lib",
+        "--features",
+        "experimental-swift-reactor,experimental-function-cache"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-final-boundary-accounting/candidate-2/inputs/vm",
+      "exit_code": 0,
+      "expected_rejection": null,
+      "seconds": 4.579,
+      "log": "verification/swift-final-boundary-accounting/candidate-2/logs/swift-cache-release.log",
+      "log_sha256": "d37e1798be2442675e3169337030d84703412fae321110d9de215fd479cf86e0"
+    },
+    {
+      "name": "swift-span-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--release",
+        "--lib",
+        "--features",
+        "experimental-swift-reactor,experimental-span-execution"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-final-boundary-accounting/candidate-2/inputs/vm",
+      "exit_code": 0,
+      "expected_rejection": null,
+      "seconds": 4.569,
+      "log": "verification/swift-final-boundary-accounting/candidate-2/logs/swift-span-release.log",
+      "log_sha256": "52b73039fa9006904db7bb9e7b49bb62a97afaae380dcbaf6a369861aeef63b5"
+    },
+    {
+      "name": "all-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--release",
+        "--all-features"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-final-boundary-accounting/candidate-2/inputs/vm",
+      "exit_code": 0,
+      "expected_rejection": null,
+      "seconds": 14.98,
+      "log": "verification/swift-final-boundary-accounting/candidate-2/logs/all-release.log",
+      "log_sha256": "46f5a5f997b6b9d2419bedd75c9c7e8219f6c2166e6abb9a208435574ea55e2b"
+    },
+    {
+      "name": "final-boundary-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--release",
+        "--lib",
+        "--features",
+        "experimental-swift-reactor",
+        "final_boundary_",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-final-boundary-accounting/candidate-2/inputs/vm",
+      "exit_code": 0,
+      "expected_rejection": null,
+      "seconds": 0.032,
+      "log": "verification/swift-final-boundary-accounting/candidate-2/logs/final-boundary-release.log",
+      "log_sha256": "35253c09d07818f52d6712d00bb6606a58f173fef5681d9f42bf81f6e288aa11"
+    },
+    {
+      "name": "executor-layout-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--release",
+        "--lib",
+        "--features",
+        "experimental-swift-reactor",
+        "swift_executor_layout",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-final-boundary-accounting/candidate-2/inputs/vm",
+      "exit_code": 0,
+      "expected_rejection": null,
+      "seconds": 0.027,
+      "log": "verification/swift-final-boundary-accounting/candidate-2/logs/executor-layout-release.log",
+      "log_sha256": "f581553a238c09474355ed8f499c054ed3a49cf57e5de02bc8f38df12f988147"
+    },
+    {
+      "name": "clippy-minimal",
+      "argv": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--lib",
+        "--features",
+        "experimental-swift-reactor",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-final-boundary-accounting/candidate-2/inputs/vm",
+      "exit_code": 0,
+      "expected_rejection": null,
+      "seconds": 0.781,
+      "log": "verification/swift-final-boundary-accounting/candidate-2/logs/clippy-minimal.log",
+      "log_sha256": "e67b4a2fff6c3e32ec09f4ea5ec3df4fad06d1316b4c53427e1a691c643581f3"
+    },
+    {
+      "name": "clippy-combined",
+      "argv": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--lib",
+        "--features",
+        "experimental-swift-reactor,experimental-span-execution",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-final-boundary-accounting/candidate-2/inputs/vm",
+      "exit_code": 0,
+      "expected_rejection": null,
+      "seconds": 0.698,
+      "log": "verification/swift-final-boundary-accounting/candidate-2/logs/clippy-combined.log",
+      "log_sha256": "d8cfdb32aad87cf7a125d1792f334f02b3e4c66ca2c71e6c1479f391bf4eccec"
+    },
+    {
+      "name": "format",
+      "argv": [
+        "rustfmt",
+        "--check",
+        "--edition",
+        "2021",
+        "--config",
+        "skip_children=true",
+        "src/experimental/mod.rs",
+        "src/experimental/execution/mod.rs",
+        "src/experimental/execution/borrowed.rs",
+        "src/experimental/execution/tests.rs",
+        "src/experimental_swift_reactor/mod.rs",
+        "src/experimental_swift_reactor/control.rs",
+        "src/experimental_swift_reactor/control_tests.rs",
+        "src/experimental_swift_reactor/cache_tests.rs",
+        "src/experimental_swift_reactor/execution.rs",
+        "src/experimental_swift_reactor/execution_tests.rs"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-final-boundary-accounting/candidate-2/inputs/vm",
+      "exit_code": 0,
+      "expected_rejection": null,
+      "seconds": 0.08,
+      "log": "verification/swift-final-boundary-accounting/candidate-2/logs/format.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "production-metadata-debug",
+      "argv": [
+        "cargo",
+        "run",
+        "--locked",
+        "--features",
+        "experimental-swift-reactor",
+        "--example",
+        "root_final_metadata"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-final-boundary-accounting/build/candidate-2/metadata-vm",
+      "exit_code": 0,
+      "expected_rejection": null,
+      "seconds": 1.344,
+      "log": "verification/swift-final-boundary-accounting/candidate-2/logs/production-metadata-debug.log",
+      "log_sha256": "614ca7729e00c671fa116864533d7059a9d2c276519622faad92e1e134c2418b"
+    },
+    {
+      "name": "production-metadata-release",
+      "argv": [
+        "cargo",
+        "run",
+        "--locked",
+        "--release",
+        "--features",
+        "experimental-swift-reactor",
+        "--example",
+        "root_final_metadata"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-final-boundary-accounting/build/candidate-2/metadata-vm",
+      "exit_code": 0,
+      "expected_rejection": null,
+      "seconds": 1.543,
+      "log": "verification/swift-final-boundary-accounting/candidate-2/logs/production-metadata-release.log",
+      "log_sha256": "80199a4fdf2ae7def3c6d0dc729d42c91c457e3e4d399d6ff3068b1a1f0a2077"
+    },
+    {
+      "name": "private-swift-owner-debug",
+      "argv": [
+        "cargo",
+        "check",
+        "--locked",
+        "--features",
+        "experimental-swift-reactor",
+        "--example",
+        "root_final_metadata"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-final-boundary-accounting/build/candidate-2/metadata-vm",
+      "exit_code": 101,
+      "expected_rejection": "E0603",
+      "seconds": 0.593,
+      "log": "verification/swift-final-boundary-accounting/candidate-2/logs/private-swift-owner-debug.log",
+      "log_sha256": "89f18ea16bb635e4a0aa2c925f6a0d4c6446953a0a601884a34774ac03c68955"
+    },
+    {
+      "name": "private-swift-owner-release",
+      "argv": [
+        "cargo",
+        "check",
+        "--locked",
+        "--release",
+        "--features",
+        "experimental-swift-reactor",
+        "--example",
+        "root_final_metadata"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-final-boundary-accounting/build/candidate-2/metadata-vm",
+      "exit_code": 101,
+      "expected_rejection": "E0603",
+      "seconds": 0.628,
+      "log": "verification/swift-final-boundary-accounting/candidate-2/logs/private-swift-owner-release.log",
+      "log_sha256": "89f18ea16bb635e4a0aa2c925f6a0d4c6446953a0a601884a34774ac03c68955"
+    },
+    {
+      "name": "private-legacy-in-swift-only-debug",
+      "argv": [
+        "cargo",
+        "check",
+        "--locked",
+        "--features",
+        "experimental-swift-reactor",
+        "--example",
+        "root_final_metadata"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-final-boundary-accounting/build/candidate-2/metadata-vm",
+      "exit_code": 101,
+      "expected_rejection": "E0603",
+      "seconds": 0.073,
+      "log": "verification/swift-final-boundary-accounting/candidate-2/logs/private-legacy-in-swift-only-debug.log",
+      "log_sha256": "f856407fa064b7ba170a45b75057e8e64e000a8813771eca2a4a881556d5e61b"
+    },
+    {
+      "name": "private-legacy-in-swift-only-release",
+      "argv": [
+        "cargo",
+        "check",
+        "--locked",
+        "--release",
+        "--features",
+        "experimental-swift-reactor",
+        "--example",
+        "root_final_metadata"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-final-boundary-accounting/build/candidate-2/metadata-vm",
+      "exit_code": 101,
+      "expected_rejection": "E0603",
+      "seconds": 0.068,
+      "log": "verification/swift-final-boundary-accounting/candidate-2/logs/private-legacy-in-swift-only-release.log",
+      "log_sha256": "f856407fa064b7ba170a45b75057e8e64e000a8813771eca2a4a881556d5e61b"
+    }
+  ],
+  "scope": "Corrected foundation and compiling private executor layout only; no runnable executor or target initialization/invocation.",
+  "base_revision": "5988e4ab70f53fc270ce4df000f0ce3e6ed0de99",
+  "source_tree_sha256": "d9911310dad4cdb00f2cd207257395d1b26f8c58e2cde81631b3cedfa1360b3d",
+  "environment": {
+    "PATH_prefix": "/opt/homebrew/opt/rustup/bin",
+    "CARGO_TARGET_DIR": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-final-boundary-accounting/build/candidate-2/target"
+  },
+  "metadata_overlays": {
+    "src/experimental_swift_reactor/control.rs": "f2d21af53522ab9cfd7247e16037d61774c1027c261d943b4583791b3e375a63",
+    "src/experimental_swift_reactor/mod.rs": "d5146ef6857c0f54e4e77f8dde33c0ed974a803f76055c823c8ce2768625b029",
+    "examples/root_final_metadata.rs": "c8d5f3eb562cd0ed0c902e7c7a670eedf37402370aa5b800cbb3e459cdb97b42"
+  },
+  "production_metadata": [
+    "foundation 17368 additional 864 control 1720",
+    "layout FinalOutputBorrows 16 8",
+    "offset FinalOutputBorrows outcome 0",
+    "offset FinalOutputBorrows usage 8",
+    "layout ClockLeaf 224 16",
+    "offset ClockLeaf usage_receiver 96",
+    "offset ClockLeaf usage_now 128",
+    "offset ClockLeaf elapsed_receiver 104",
+    "offset ClockLeaf elapsed_earlier 144",
+    "offset ClockLeaf elapsed_duration 160",
+    "offset ClockLeaf overshoot_receiver 112",
+    "offset ClockLeaf overshoot_earlier 176",
+    "offset ClockLeaf overshoot_duration 192",
+    "offset ClockLeaf micros_duration 208",
+    "offset ClockLeaf as_micros_receiver 120",
+    "offset ClockLeaf micros_u128 0",
+    "offset ClockLeaf try_from_input 16",
+    "offset ClockLeaf try_from_output 32",
+    "offset ClockLeaf unwrap_input 48",
+    "offset ClockLeaf unwrap_default 64",
+    "offset ClockLeaf micros_return 72",
+    "offset ClockLeaf elapsed_return 80",
+    "offset ClockLeaf overshoot_return 88",
+    "layout FaultLeaf 264 8",
+    "offset FaultLeaf cleanup_receiver 192",
+    "offset FaultLeaf invariant 256",
+    "offset FaultLeaf code 200",
+    "offset FaultLeaf insert_receiver 216",
+    "offset FaultLeaf insert_argument 257",
+    "offset FaultLeaf insert_result 224",
+    "offset FaultLeaf cursor_source 0",
+    "offset FaultLeaf fault_kind 258",
+    "offset FaultLeaf fault_code 232",
+    "offset FaultLeaf fault_source 32",
+    "offset FaultLeaf fail_receiver 248",
+    "offset FaultLeaf cursor_transfer 96",
+    "offset FaultLeaf fault_transfer 128",
+    "layout CategoryLeaves 40 8",
+    "offset CategoryLeaves category_receiver 0",
+    "offset CategoryLeaves category_argument 32",
+    "offset CategoryLeaves category_return 8",
+    "offset CategoryLeaves category_mut_receiver 16",
+    "offset CategoryLeaves category_mut_argument 33",
+    "offset CategoryLeaves category_mut_return 24",
+    "layout RefundParent 688 16",
+    "offset RefundParent outputs 320",
+    "offset RefundParent header_take_receiver 640",
+    "offset RefundParent drop_receiver 648",
+    "offset RefundParent refund_receiver 656",
+    "offset RefundParent category 0",
+    "offset RefundParent combined 16",
+    "offset RefundParent count 32",
+    "offset RefundParent option_match 48",
+    "offset RefundParent category_pattern 664",
+    "offset RefundParent combined_pattern 672",
+    "offset RefundParent count_pattern 680",
+    "offset RefundParent categories 600",
+    "offset RefundParent fault 336",
+    "offset RefundParent clock 96",
+    "layout RecordParent 272 16",
+    "offset RecordParent outputs 0",
+    "offset RecordParent record_receiver 240",
+    "offset RecordParent failure_option_receiver 248",
+    "offset RecordParent failure_pattern 256",
+    "offset RecordParent clock 16",
+    "layout FinishConstFormulaParent 864 16",
+    "offset FinishConstFormulaParent outputs 544",
+    "offset FinishConstFormulaParent started 272",
+    "offset FinishConstFormulaParent deadline 288",
+    "offset FinishConstFormulaParent control_take_receiver 696",
+    "offset FinishConstFormulaParent cancel_take_receiver 704",
+    "offset FinishConstFormulaParent construction_take_receiver 712",
+    "offset FinishConstFormulaParent array 600",
+    "offset FinishConstFormulaParent into_tickets 744",
+    "offset FinishConstFormulaParent flatten_tickets 0",
+    "offset FinishConstFormulaParent flatten_receiver 720",
+    "offset FinishConstFormulaParent iterator_next 672",
+    "offset FinishConstFormulaParent category 144",
+    "offset FinishConstFormulaParent combined 160",
+    "offset FinishConstFormulaParent count 176",
+    "offset FinishConstFormulaParent option_match 192",
+    "offset FinishConstFormulaParent category_pattern 832",
+    "offset FinishConstFormulaParent combined_pattern 840",
+    "offset FinishConstFormulaParent count_pattern 848",
+    "offset FinishConstFormulaParent categories 560",
+    "offset FinishConstFormulaParent ticket_bytes_some 240",
+    "offset FinishConstFormulaParent formula_return 256",
+    "offset FinishConstFormulaParent insert_receiver 728",
+    "offset FinishConstFormulaParent insert_argument 856",
+    "offset FinishConstFormulaParent insert_return 736",
+    "offset FinishConstFormulaParent clock 320",
+    "offset FinishConstFormulaParent now 304"
+  ],
+  "completed_at": "2026-10-23T21:40:46.239387+00:00",
+  "source_checks": 852,
+  "limitations": "Private compiling shapes and corrected named-object accounting. Not physical stack, RSS, interpreter execution, target run, native device, release or GA qualification."
+}

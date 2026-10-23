@@ -1,0 +1,76 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/tree/vm)
+warning: unreachable expression
+   --> src/experimental_swift_reactor/execution_tests.rs:545:171
+    |
+545 | ...o.wasi)).unwrap(); let r=c.release(panic!(),o.control,Some(&*o.wasi)); std::hint::black_box((v,r)); }
+    |                                       -------- ^^^^^^^^^ unreachable expression
+    |                                       |
+    |                                       any code following this expression is unreachable
+    |
+    = note: `#[warn(unreachable_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `v`
+   --> src/experimental_swift_reactor/execution_tests.rs:545:99
+    |
+545 | ...tExecutionOperation<'_>) { let v=c.view(p,o.control,Some(&*o.wasi)).unwrap(); let r=c.release(panic!(),o.control,Some(&*o.wasi))...
+    |                                   ^ help: if this is intentional, prefix it with an underscore: `_v`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: multiple variants are never constructed
+  --> src/experimental/execution/mod.rs:72:5
+   |
+71 | pub enum ExecutionFailureKind {
+   |          -------------------- variants in this enum
+72 |     InvalidBudget,
+   |     ^^^^^^^^^^^^^
+73 |     UnknownExport,
+   |     ^^^^^^^^^^^^^
+74 |     InvalidArguments,
+   |     ^^^^^^^^^^^^^^^^
+75 |     Cancelled,
+   |     ^^^^^^^^^
+76 |     StateExhausted,
+   |     ^^^^^^^^^^^^^^
+77 |     ValueExhausted,
+   |     ^^^^^^^^^^^^^^
+78 |     ControlExhausted,
+   |     ^^^^^^^^^^^^^^^^
+79 |     WorkExhausted,
+   |     ^^^^^^^^^^^^^
+80 |     FuelExhausted,
+   |     ^^^^^^^^^^^^^
+81 |     HostCallLimit,
+   |     ^^^^^^^^^^^^^
+82 |     CallDepthExceeded,
+   |     ^^^^^^^^^^^^^^^^^
+83 |     AllocationFailure,
+   |     ^^^^^^^^^^^^^^^^^
+84 |     Cache,
+   |     ^^^^^
+85 |     GuestTrap,
+   |     ^^^^^^^^^
+86 |     UnsupportedEnvironment,
+   |     ^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `ExecutionFailureKind` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `probe` is never used
+   --> src/experimental_swift_reactor/execution_tests.rs:545:4
+    |
+545 | fn probe(c: &mut SwiftFunctionCache,p:&SwiftFunctionPin,o:&mut SwiftExecutionOperation<'_>) { let v=c.view(p,o.control,Some(&*o.was...
+    |    ^^^^^
+
+warning: unused `Result` in tuple element 1 that must be used
+   --> src/experimental_swift_reactor/execution_tests.rs:545:198
+    |
+545 | ...t r=c.release(panic!(),o.control,Some(&*o.wasi)); std::hint::black_box((v,r)); }
+    |                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+    = note: `#[warn(unused_must_use)]` (part of `#[warn(unused)]`) on by default
+
+warning: `mixer-vm` (lib test) generated 5 warnings (run `cargo fix --lib -p mixer-vm --tests` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.56s
+  Executable unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-layout/build/debug/deps/mixer_vm-31ac86bb7e3dcf7f)

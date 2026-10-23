@@ -1,0 +1,26 @@
+--- first-correction/src/experimental_swift_reactor/cache_tests.rs
++++ final-correction/src/experimental_swift_reactor/cache_tests.rs
+@@ -1597,9 +1597,10 @@
+         + 4 * size_of::<SwiftRunFailure>()
+         + 4 * size_of::<SwiftRunUsage>()
+         + 6 * size_of::<ReservationTicket>()
+-        + 6 * size_of::<Option<WasiUsage>>();
++        + 6 * size_of::<Option<WasiUsage>>()
++        + FOUNDATION_FINAL_BOUNDARY_BYTES;
+     assert_eq!(foundation_construction_bytes(), Some(named));
+-    println!("foundation-tail map failure_count=4 usage_count=4 ticket_count=6 optional_wasi_count=6 optional_wasi_bytes={} total={named}",size_of::<Option<WasiUsage>>());
++    println!("foundation-tail map failure_count=4 usage_count=4 ticket_count=6 optional_wasi_count=6 optional_wasi_bytes={} final_boundary={} total={named}",size_of::<Option<WasiUsage>>(), FOUNDATION_FINAL_BOUNDARY_BYTES);
+     assert_eq!(
+         size_of::<Option<ReservationTicket>>(),
+         size_of::<ReservationTicket>()
+--- first-correction/src/experimental_swift_reactor/control.rs
++++ final-correction/src/experimental_swift_reactor/control.rs
+@@ -455,7 +455,7 @@
+     now: Instant,
+ }
+ 
+-const FOUNDATION_FINAL_BOUNDARY_BYTES: usize = {
++pub(super) const FOUNDATION_FINAL_BOUNDARY_BYTES: usize = {
+     let refund = size_of::<FinalRefundInventory>();
+     let record = size_of::<FinalRecordInventory>();
+     let finish = size_of::<FinalFinishInventory>();

@@ -1597,9 +1597,10 @@ fn frozen_layout_allocation_work_error_snapshots() {
         + 4 * size_of::<SwiftRunFailure>()
         + 4 * size_of::<SwiftRunUsage>()
         + 6 * size_of::<ReservationTicket>()
-        + 6 * size_of::<Option<WasiUsage>>();
+        + 6 * size_of::<Option<WasiUsage>>()
+        + FOUNDATION_FINAL_BOUNDARY_BYTES;
     assert_eq!(foundation_construction_bytes(), Some(named));
-    println!("foundation-tail map failure_count=4 usage_count=4 ticket_count=6 optional_wasi_count=6 optional_wasi_bytes={} total={named}",size_of::<Option<WasiUsage>>());
+    println!("foundation-tail map failure_count=4 usage_count=4 ticket_count=6 optional_wasi_count=6 optional_wasi_bytes={} final_boundary={} total={named}",size_of::<Option<WasiUsage>>(), FOUNDATION_FINAL_BOUNDARY_BYTES);
     assert_eq!(
         size_of::<Option<ReservationTicket>>(),
         size_of::<ReservationTicket>()

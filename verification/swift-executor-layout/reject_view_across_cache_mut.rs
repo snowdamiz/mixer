@@ -1,0 +1,1 @@
+fn probe(c: &mut SwiftFunctionCache,p:&SwiftFunctionPin,q:SwiftFunctionPin,o:&mut SwiftExecutionOperation<'_>) { let v=c.view(p,o.control,Some(&*o.wasi)).unwrap(); let r=c.release(q,o.control,Some(&*o.wasi)); std::hint::black_box((v,r)); }
