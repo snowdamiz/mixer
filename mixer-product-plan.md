@@ -317,7 +317,7 @@ Implement familiar Swift concepts: `View`, result builders, modifiers, state, bi
 | Controls | Button, toggle, slider, stepper, picker, text/secure field, progress | Focus, IME composition, validation, disabled state, accessibility actions. |
 | Collections | Lazy lists/grids, sections, stable IDs, pagination, refresh, swipe actions | 1,000-row reference dataset, insert/remove/reorder, retained scroll position. |
 | Navigation | Stack, tabs, modal/sheet, deep links, restoration | iOS back gesture, Android back/predictive back where supported, process recreation. |
-| Visuals | Images, bundled/remote assets, colors, fonts, shapes, common transitions | Cache behavior, dark mode, asset compatibility, rendering and memory budgets. |
+| Visuals | Images, bundled/remote assets, colors, fonts, shapes, common transitions | Cache behavior, dark mode, asset compatibility, rendering and memory budgets, side-by-side design parity on reference screens. |
 | Interaction | Tap, long press, drag, keyboard shortcuts where relevant | Gesture arbitration, cancellation, native scroll interoperation. |
 | Native surfaces | Camera/photo picker, maps, web content, media, share sheet | Stable native-view identity and explicit native-only behavior. |
 | Accessibility | Labels, roles, values, actions, focus order, announcements | VoiceOver and TalkBack workflows on physical devices. |
@@ -328,7 +328,11 @@ Use versioned, bounded messages describing node type, stable identity, propertie
 
 The host validates node counts, nesting, lengths, resource references, and supported operations before reconciliation. Unsupported required nodes reject the candidate update; no blank placeholders in production. Optional decorative behavior can degrade only when the manifest explicitly permits it and the preview shows the degradation.
 
-Maintain native accessibility semantics and platform idioms. Pixel-identical rendering across operating systems is not the correctness criterion; equivalent intended behavior and independently reviewed platform quality are.
+One codebase produces the same app design on both platforms. A MixerUI screen renders with the same layout, hierarchy, content, colors, typography scale, iconography, spacing, and component appearance on iOS and Android. Adapters still render through native toolkits (SwiftUI/UIKit and Compose/native views), but they style controls from the app's shared theme rather than each platform's default look. An app that wants a platform-specific appearance must declare it explicitly; it is never the default.
+
+Accessibility and navigation behavior stay native. That covers VoiceOver and TalkBack roles, labels, values, actions, and focus order; the iOS back gesture; Android system and predictive back; and native text input and keyboard handling. System-owned surfaces outside the app's screens keep their platform appearance, including status bars, permission prompts, share sheets, and the keyboard.
+
+The correctness criterion is design parity on reference screens, reviewed side by side on physical iOS and Android devices. Pixel-identical output is not required where native text shaping, font rasterization, display density, or safe-area geometry legitimately differ.
 
 ### 8.4 Performance design
 

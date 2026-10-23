@@ -50,6 +50,11 @@ Observed implementation and evidence:
   does not qualify the new generator. Signing/installability, native resources and
   capabilities, published packages, FieldLog D2 and device/lifecycle/accessibility
   evidence remain open. See `verification/android-generator-integration-2026-10-22.json`.
+- Product plan section 8.3 was revised on October 23, 2026 to require the same
+  app design on iOS and Android, with native accessibility and navigation
+  behavior. The adapters do not meet it yet: `MixerNativeView.swift` uses default
+  SwiftUI controls, and `NativeRenderer.java` uses stock Android widgets under
+  `Theme.Material.Light`. No shared theme or design-parity evidence exists.
 - The dependency-free owned Wasm interpreter executes the bounded integer-v1
   profile. The opt-in numeric-v2 extension matches 29,794 floating-point reference
   cases on the physical Pixel and through the public C ABI in a signed iPhone
