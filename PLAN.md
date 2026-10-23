@@ -88,13 +88,21 @@ with 350,077 assertions pass per Debug/Release. Root verifies 224 bindings in
 `verification/ui-appearance-resolution-root-review/acceptance.json`. The plan
 resolves all ten current kinds, inherited disabled state, explicit canvas paint,
 logical RTL metrics and bounded text-scale floors. Native consumption remains
-pending. Java resolution has passed its producer corpus and is under independent
-review. The unchanged Apple reference now has 24 measured captures and scoped root
+pending. Java resolution now has independent and root acceptance: 183 exact
+bindings cover the producer and independent Swift/Java corpora, immutable graph
+checks and direct environment bounds. See
+`verification/android-appearance-resolution-root-review/acceptance.json`.
+This is pure data; the provisional recipe still differs from the iOS reference. The unchanged Apple reference now has 24 measured captures and scoped root
 acceptance in `verification/apple-appearance-measurement-root-review/acceptance.json`.
 Root verifies 385 bindings and independently decodes every PNG using Apple ImageIO: all
 16 historical and 12 Debug/Release comparisons match exactly. Per-role accessibility
-profiles and contextual font probes are the next reference refinement; actual
-renderer consumption, interaction and physical design parity remain pending.
+profiles and contextual font probes now have separate scoped acceptance: 12
+public semantic font tables agree between Debug and Release, and all 18 candidate
+and nonperturbation PNGs are byte-identical to the existing reference. Root checks
+571 bindings in `verification/apple-appearance-font-profile-root-review/acceptance.json`.
+The proposed Android preference mapping is not accepted; unsupported accessibility
+requests must not silently clamp. Shape and spacing refinement, actual renderer
+consumption, interaction and physical design parity remain pending.
 
 Eight unchanged iOS simulator screenshots are retained in
 `verification/apple-appearance-reference/gallery.html`; root accepts the baseline
@@ -602,3 +610,13 @@ immutable published consumers and every specified GA acceptance remain pending.
 
 Hosted `5988e4a` now passes all VM/Swift/services jobs, including the pure shared
 appearance resolver. See `verification/github-ci-5988e4a/receipt.json`.
+
+Hosted `7c2baeb` passes VM/Swift/services, including all ordinary host scenarios.
+The earlier `c687e69` run failed the TSan `fault-leave` test with an observation
+deadline; its sparse log does not identify which wait timed out. A deterministic
+C schedule reproduces a test precondition gap: admitting the next owner during
+the earlier completion can coalesce its leave wake, leaving the injected write
+unattempted. The test-only repair is under fresh-build verification; that earlier
+failed run remains recorded. Constructor preflight remains under independent
+review after missing whole-value accounting wrappers were found; no constructor
+or full-target acceptance is claimed.

@@ -1,0 +1,164 @@
+{
+  "format": "mixer.proposed-type-normalization.1",
+  "status": "proposed shared policy; root review and Android native implementation/observation pending",
+  "defaultProfileID": "l",
+  "profiles": [
+    {
+      "normalizedProfileID": "xs",
+      "bodySizePoints": 14,
+      "bodyScaleNumerator": 14,
+      "bodyScaleDenominator": 17,
+      "nearestAnchorScale1024": 843
+    },
+    {
+      "normalizedProfileID": "s",
+      "bodySizePoints": 15,
+      "bodyScaleNumerator": 15,
+      "bodyScaleDenominator": 17,
+      "nearestAnchorScale1024": 904
+    },
+    {
+      "normalizedProfileID": "m",
+      "bodySizePoints": 16,
+      "bodyScaleNumerator": 16,
+      "bodyScaleDenominator": 17,
+      "nearestAnchorScale1024": 964
+    },
+    {
+      "normalizedProfileID": "l",
+      "bodySizePoints": 17,
+      "bodyScaleNumerator": 17,
+      "bodyScaleDenominator": 17,
+      "nearestAnchorScale1024": 1024
+    },
+    {
+      "normalizedProfileID": "xl",
+      "bodySizePoints": 19,
+      "bodyScaleNumerator": 19,
+      "bodyScaleDenominator": 17,
+      "nearestAnchorScale1024": 1144
+    },
+    {
+      "normalizedProfileID": "xxl",
+      "bodySizePoints": 21,
+      "bodyScaleNumerator": 21,
+      "bodyScaleDenominator": 17,
+      "nearestAnchorScale1024": 1265
+    },
+    {
+      "normalizedProfileID": "xxxl",
+      "bodySizePoints": 23,
+      "bodyScaleNumerator": 23,
+      "bodyScaleDenominator": 17,
+      "nearestAnchorScale1024": 1385
+    },
+    {
+      "normalizedProfileID": "a1",
+      "bodySizePoints": 28,
+      "bodyScaleNumerator": 28,
+      "bodyScaleDenominator": 17,
+      "nearestAnchorScale1024": 1687
+    },
+    {
+      "normalizedProfileID": "a2",
+      "bodySizePoints": 33,
+      "bodyScaleNumerator": 33,
+      "bodyScaleDenominator": 17,
+      "nearestAnchorScale1024": 1988
+    },
+    {
+      "normalizedProfileID": "a3",
+      "bodySizePoints": 40,
+      "bodyScaleNumerator": 40,
+      "bodyScaleDenominator": 17,
+      "nearestAnchorScale1024": 2409
+    },
+    {
+      "normalizedProfileID": "a4",
+      "bodySizePoints": 47,
+      "bodyScaleNumerator": 47,
+      "bodyScaleDenominator": 17,
+      "nearestAnchorScale1024": 2831
+    },
+    {
+      "normalizedProfileID": "a5",
+      "bodySizePoints": 53,
+      "bodyScaleNumerator": 53,
+      "bodyScaleDenominator": 17,
+      "nearestAnchorScale1024": 3192
+    }
+  ],
+  "appleMapping": [
+    {
+      "nativePreferredContentSizeCategory": "UICTContentSizeCategoryXS",
+      "swiftUIDynamicTypeSize": "xSmall",
+      "normalizedProfileID": "xs"
+    },
+    {
+      "nativePreferredContentSizeCategory": "UICTContentSizeCategoryS",
+      "swiftUIDynamicTypeSize": "small",
+      "normalizedProfileID": "s"
+    },
+    {
+      "nativePreferredContentSizeCategory": "UICTContentSizeCategoryM",
+      "swiftUIDynamicTypeSize": "medium",
+      "normalizedProfileID": "m"
+    },
+    {
+      "nativePreferredContentSizeCategory": "UICTContentSizeCategoryL",
+      "swiftUIDynamicTypeSize": "large",
+      "normalizedProfileID": "l"
+    },
+    {
+      "nativePreferredContentSizeCategory": "UICTContentSizeCategoryXL",
+      "swiftUIDynamicTypeSize": "xLarge",
+      "normalizedProfileID": "xl"
+    },
+    {
+      "nativePreferredContentSizeCategory": "UICTContentSizeCategoryXXL",
+      "swiftUIDynamicTypeSize": "xxLarge",
+      "normalizedProfileID": "xxl"
+    },
+    {
+      "nativePreferredContentSizeCategory": "UICTContentSizeCategoryXXXL",
+      "swiftUIDynamicTypeSize": "xxxLarge",
+      "normalizedProfileID": "xxxl"
+    },
+    {
+      "nativePreferredContentSizeCategory": "UICTContentSizeCategoryAccessibilityM",
+      "swiftUIDynamicTypeSize": "accessibility1",
+      "normalizedProfileID": "a1"
+    },
+    {
+      "nativePreferredContentSizeCategory": "UICTContentSizeCategoryAccessibilityL",
+      "swiftUIDynamicTypeSize": "accessibility2",
+      "normalizedProfileID": "a2"
+    },
+    {
+      "nativePreferredContentSizeCategory": "UICTContentSizeCategoryAccessibilityXL",
+      "swiftUIDynamicTypeSize": "accessibility3",
+      "normalizedProfileID": "a3"
+    },
+    {
+      "nativePreferredContentSizeCategory": "UICTContentSizeCategoryAccessibilityXXL",
+      "swiftUIDynamicTypeSize": "accessibility4",
+      "normalizedProfileID": "a4"
+    },
+    {
+      "nativePreferredContentSizeCategory": "UICTContentSizeCategoryAccessibilityXXXL",
+      "swiftUIDynamicTypeSize": "accessibility5",
+      "normalizedProfileID": "a5"
+    }
+  ],
+  "scalarMapping": {
+    "input": "positive UInt32 app preferredBodyScale1024, not an instruction to multiply every role size",
+    "algorithm": "choose nearest rational body size /17 anchor; exact midpoint chooses the larger profile; values outside anchors clamp naturally to first/last; invalid/nonfinite host preferences reject before normalization",
+    "androidAdapterBoundary": "PROPOSED: using current window metrics, obtain platformPreferredBodyDp = TypedValue.applyDimension(COMPLEX_UNIT_SP,17,metrics) / TypedValue.applyDimension(COMPLEX_UNIT_DIP,1,metrics); validate finite positive results, normalize round(platformPreferredBodyDp/17*1024) to positive UInt32, then select nearest profile. This measures the platform preference at the shared body anchor instead of multiplying fonts by Configuration.fontScale. Android native execution and accessibility/rounding equivalence remain pending.",
+    "output": "one of12 immutable shared profile IDs; all role sizes/weights/metrics come from that selected profile together"
+  },
+  "caveats": [
+    "Section/control candidate support is limited to actual candidate matrix results",
+    "Actual expanded title UIFont differs from Font.largeTitle.bold at high accessibility preferences if data shows a cap",
+    "Font metrics do not establish common Android font family, glyph coverage or shaped line boxes"
+  ]
+}

@@ -1,0 +1,37 @@
+--- sealed-measurement/MixerNativeView.swift
++++ font-profile/MixerNativeView.swift
+@@ -91,12 +91,18 @@
+             if node.properties["selectable"]?.bool == true { return AnyView(text.textSelection(.enabled)) }
+             return AnyView(text.textSelection(.disabled))
+         case .button:
++            if FontProfileEvidence.candidateEnabled {
++                return AnyView(SwiftUI.Button(node.properties["label"]!.string!, role: buttonRole) { emit(.activate) }.font(.body))
++            }
+             return AnyView(SwiftUI.Button(node.properties["label"]!.string!, role: buttonRole) { emit(.activate) })
+         case .textField:
+             let binding = Binding<String>(get: { node.properties["value"]!.string! }, set: { emit(.textChange, value: .string($0)) })
+             return AnyView(SwiftUI.TextField(node.properties["label"]!.string!, text: binding).onSubmit { emit(.submit) })
+         case .toggle:
+             let binding = Binding<Bool>(get: { node.properties["value"]!.bool! }, set: { emit(.valueChange, value: .bool($0)) })
++            if FontProfileEvidence.candidateEnabled {
++                return AnyView(SwiftUI.Toggle(node.properties["label"]!.string!, isOn: binding).font(.body))
++            }
+             return AnyView(SwiftUI.Toggle(node.properties["label"]!.string!, isOn: binding))
+         case .vStack:
+             return AnyView(SwiftUI.VStack(alignment: horizontalAlignment, spacing: number("spacing").map { CGFloat($0) }) { children })
+@@ -109,8 +115,13 @@
+         case .section:
+             if let title = node.properties["title"]?.string {
+                 return AnyView(SwiftUI.Section { children } header: {
+-                    SwiftUI.Text(title).background(MeasurementProbe(nodeID: node.id + ".header",
+-                        kind: "sectionHeader", explicitFont: nil))
++                    if FontProfileEvidence.candidateEnabled {
++                        SwiftUI.Text(title).font(.headline).background(MeasurementProbe(nodeID: node.id + ".header",
++                            kind: "sectionHeader", explicitFont: .headline))
++                    } else {
++                        SwiftUI.Text(title).background(MeasurementProbe(nodeID: node.id + ".header",
++                            kind: "sectionHeader", explicitFont: nil))
++                    }
+                 })
+             }
+             return AnyView(SwiftUI.Section { children })

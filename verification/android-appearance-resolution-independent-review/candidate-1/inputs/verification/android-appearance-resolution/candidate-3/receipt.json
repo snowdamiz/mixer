@@ -1,0 +1,441 @@
+{
+  "status": "passed",
+  "started_utc": "2026-10-23T21:41:12.025088+00:00",
+  "scope": "Private immutable Android appearance data only; complete Swift public API differential on actual reconciler packets, excluding named existing packet-admission boundaries. No native widgets, resources/fonts, signed installation, display, geometry/raster, devices, release, FieldLog or GA authority.",
+  "source_revision": "5988e4ab70f53fc270ce4df000f0ce3e6ed0de99",
+  "source_manifest": {
+    "AGENTS.md": "258d0dfea89e2da9afea3715c3e086f2bc62c8350b841a575803e57e57f5378d",
+    "docs/ui-appearance-resolution-v1.md": "b9bc365a75823a2ef0e16b90654700402f6c2027d0160d9a59aa663f4da16a0a",
+    "docs/ui-shared-appearance-contract.md": "acb22e1f587139423c46e455c3170f21314cbb763cae33a6edb6ec37560ee952",
+    "docs/android-appearance-resolution-v1.md": "d81a4a347d6bee0d030d75644f5b5354c8e595242abf661be262efc332048bc7",
+    "native/android/app/src/dev/mixer/android/AppearanceDescriptorV1.java": "0b3afc54df5a8943d873c5ea3941d3843f233bf48ac9354b0ff1250d6017d009",
+    "native/android/app/src/dev/mixer/android/AppearanceResolutionV1.java": "c3737cbd05d71fb13cd4e105a212b67c946c4ebc9fbf020ba2e9bf5ceccf2934",
+    "native/android/app/src/dev/mixer/android/UiPacket.java": "251577a7ce42c6931b694510cb5af0f418521ba9b0ef15c163da4b4bb0416c02",
+    "native/android/app/src/dev/mixer/android/Json.java": "9e3194dd187fecfad82e5f2162d5d0bcd40bf89fc4b82978be21940d0d2466d4",
+    "native/android/tests/AppearanceResolutionTests.java": "ff844d19e8f91b04bc362ef25700c41900d1486337b697020666e26baa604013",
+    "verification/android-appearance-resolution/SwiftOracle.swift": "422e6e3d758a8976d4ebb8b2196a7598696a1e787decbfab91c2542b3fd9733b",
+    "verification/android-appearance-resolution/make_cases.py": "9eaeb02cf4cdfd8270fb6bb0b052620e3762285568c5ad9a435f8bd7d1ef2e4b",
+    "verification/android-appearance-resolution/verify.py": "a65b46e21792103e1bb7a6e85c25c9b34adcc8ce381a6dfd54d41026ed0aaa42",
+    "verification/ui-shared-appearance-contract/v2/mixer-default-appearance-v1.json": "e94f6988744bde16b83001db8e5047aeac4f15f6b045f99a4660445e7e2062d2",
+    "verification/ui-appearance-resolution-root-review/acceptance.json": "4f8546d92a844fc5ea4f922b84ff6130280f9daaedc53de8937b8a9f13e960b4",
+    "sdk/Sources/MixerCore/FeatureStore.swift": "3fb26a1b1ce6a8863ea53d0c5751b3229ddad1113b486cb2c430d1d0dbcb385f",
+    "sdk/Sources/MixerCore/JSONInputGuard.swift": "c01ae7ad973dcfc40d2b4ecef3fb8091d1c94484410621f28e77096e952de07c",
+    "sdk/Sources/MixerCore/Lifecycle.swift": "67d6dc636bb36ce765e5a0c4ee9db93d61ce7b17938e3d9a1a0ff84020927a91",
+    "sdk/Sources/MixerCore/Navigation.swift": "6197c48eeb03aa6eeb94c3ca9a674c451deb83df9f662177014f70b866ef94d2",
+    "sdk/Sources/MixerCore/Resources.swift": "2e9cd272144237f9fc76c3c7e46add88f43395a60ed83db24f5cd454ae7b7dca",
+    "sdk/Sources/MixerUI/AppearanceDefaultV1.swift": "4ec1af1f904f427a17ae55e5937e017afbf3d8a4e6040749caee199e09bac1c9",
+    "sdk/Sources/MixerUI/AppearanceDescriptorV1.swift": "ad7f2b7c51041496197894829265bee7cfa8b8cb18d09abe5d816d9bf5259295",
+    "sdk/Sources/MixerUI/AppearanceMetricMathV1.swift": "fad0acfce796ae667bb01f6a29418298fe8197c7d79b2778d4fb3de79b348578",
+    "sdk/Sources/MixerUI/AppearanceResolutionV1.swift": "cbaaeebad2ef3c4015ab4f917df3a35ed68541e52b8b12c8a27a3be07211fcf0",
+    "sdk/Sources/MixerUI/AppearanceValuesV1.swift": "bb33ff6eb92603caf12e0cbd3166f291debc30ca8440696870ec523345fd6ccc",
+    "sdk/Sources/MixerUI/Authoring.swift": "9af3f4621930c92e9a5947132e1ed1c232ea81a3c9168bc57d9aa540dd96f954",
+    "sdk/Sources/MixerUI/NativePacketV1.swift": "ff099c2a1a57bd48c1cb7ed4fc6991dda7571d69457b0a3c7feb1cacb2cec18f",
+    "sdk/Sources/MixerUI/Protocol.swift": "542c5076b4146f0229c89cec70848b42c0434637724f3ca9c42e1d45e2d55d42",
+    "sdk/Sources/MixerUI/Reconciliation.swift": "c00a6e70b7550d0e5247b1b0bb5683f97b7fc93dbf42fe0363b4c4ceb7498403",
+    "sdk/Sources/MixerUI/Validation.swift": "1f4cd95e43143c5ce4a3c4970707292efdba7d11051d357e5e0a509a7a0441ae"
+  },
+  "source_manifest_sha256": "214392044fcedc2f49b0efd78e822d8c4f9794be1343fe5c78878e9e0dfc507d",
+  "commands": [
+    {
+      "name": "python-version",
+      "argv": [
+        "python3",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs",
+      "exit_code": 0,
+      "seconds": 0.013195417006500065,
+      "output": "verification/android-appearance-resolution/candidate-3/python-version.log",
+      "output_sha256": "f615dc9512de8b165e2b595e5cdc608a3ba7927ae92f959c5b42ec3d58e2ffa8"
+    },
+    {
+      "name": "java-version",
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "-version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs",
+      "exit_code": 0,
+      "seconds": 0.02751066698692739,
+      "output": "verification/android-appearance-resolution/candidate-3/java-version.log",
+      "output_sha256": "d41a01cb7c63cedd122f365a9431b058d35344e07c1fb9e5747b69889faad3d6"
+    },
+    {
+      "name": "javac-version",
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/javac",
+        "-version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs",
+      "exit_code": 0,
+      "seconds": 0.08074654208030552,
+      "output": "verification/android-appearance-resolution/candidate-3/javac-version.log",
+      "output_sha256": "e363f8e03b49957921f029b1c2561410f555887c871907e627980343b70e1e28"
+    },
+    {
+      "name": "swift-version",
+      "argv": [
+        "swiftc",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs",
+      "exit_code": 0,
+      "seconds": 0.11890495801344514,
+      "output": "verification/android-appearance-resolution/candidate-3/swift-version.log",
+      "output_sha256": "30bb0d72a580e8e936ab32e24cab2876f82fa6b06d66fef876fe21a47e828acc"
+    },
+    {
+      "name": "xcode-version",
+      "argv": [
+        "xcodebuild",
+        "-version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs",
+      "exit_code": 0,
+      "seconds": 0.06047350005246699,
+      "output": "verification/android-appearance-resolution/candidate-3/xcode-version.log",
+      "output_sha256": "ee3fe26035862d2b9653c1a570be3eca4ee5be2815f0ce99ff2d8ffa3399e4c8"
+    },
+    {
+      "name": "generate-cases",
+      "argv": [
+        "python3",
+        "-B",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/verification/android-appearance-resolution/make_cases.py",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/cases.jsonl"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs",
+      "exit_code": 0,
+      "seconds": 0.2954017920419574,
+      "output": "verification/android-appearance-resolution/candidate-3/generate-cases.log",
+      "output_sha256": "0025b40a37ef53a6b97b44c1023273edfa88cfc82b793a9a9e6d0671af1e6e82"
+    },
+    {
+      "name": "javac",
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/javac",
+        "--release",
+        "17",
+        "-Xlint:all",
+        "-Werror",
+        "-d",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/classes",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/native/android/app/src/dev/mixer/android/AppearanceDescriptorV1.java",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/native/android/app/src/dev/mixer/android/AppearanceResolutionV1.java",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/native/android/app/src/dev/mixer/android/UiPacket.java",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/native/android/app/src/dev/mixer/android/Json.java",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/native/android/tests/AppearanceResolutionTests.java"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs",
+      "exit_code": 0,
+      "seconds": 0.6020028330385685,
+      "output": "verification/android-appearance-resolution/candidate-3/javac.log",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "swift-debug-MixerCore",
+      "argv": [
+        "swiftc",
+        "-swift-version",
+        "6",
+        "-warnings-as-errors",
+        "-parse-as-library",
+        "-Onone",
+        "-g",
+        "-emit-module",
+        "-emit-library",
+        "-module-name",
+        "MixerCore",
+        "-emit-module-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/debug/MixerCore.swiftmodule",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/sdk/Sources/MixerCore/FeatureStore.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/sdk/Sources/MixerCore/JSONInputGuard.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/sdk/Sources/MixerCore/Lifecycle.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/sdk/Sources/MixerCore/Navigation.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/sdk/Sources/MixerCore/Resources.swift",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/debug/libMixerCore.dylib"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs",
+      "exit_code": 0,
+      "seconds": 1.1846714579733089,
+      "output": "verification/android-appearance-resolution/candidate-3/swift-debug-MixerCore.log",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "swift-debug-MixerUI",
+      "argv": [
+        "swiftc",
+        "-swift-version",
+        "6",
+        "-warnings-as-errors",
+        "-parse-as-library",
+        "-Onone",
+        "-g",
+        "-emit-module",
+        "-emit-library",
+        "-module-name",
+        "MixerUI",
+        "-emit-module-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/debug/MixerUI.swiftmodule",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/debug",
+        "-L",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/debug",
+        "-lMixerCore",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/sdk/Sources/MixerUI/AppearanceDefaultV1.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/sdk/Sources/MixerUI/AppearanceDescriptorV1.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/sdk/Sources/MixerUI/AppearanceMetricMathV1.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/sdk/Sources/MixerUI/AppearanceResolutionV1.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/sdk/Sources/MixerUI/AppearanceValuesV1.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/sdk/Sources/MixerUI/Authoring.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/sdk/Sources/MixerUI/NativePacketV1.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/sdk/Sources/MixerUI/Protocol.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/sdk/Sources/MixerUI/Reconciliation.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/sdk/Sources/MixerUI/Validation.swift",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/debug/libMixerUI.dylib"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs",
+      "exit_code": 0,
+      "seconds": 2.525669749942608,
+      "output": "verification/android-appearance-resolution/candidate-3/swift-debug-MixerUI.log",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "swift-debug-oracle-compile",
+      "argv": [
+        "swiftc",
+        "-swift-version",
+        "6",
+        "-warnings-as-errors",
+        "-parse-as-library",
+        "-Onone",
+        "-g",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/debug",
+        "-L",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/debug",
+        "-lMixerCore",
+        "-lMixerUI",
+        "-Xlinker",
+        "-rpath",
+        "-Xlinker",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/debug",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/verification/android-appearance-resolution/SwiftOracle.swift",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/debug/oracle"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs",
+      "exit_code": 0,
+      "seconds": 0.5681820419849828,
+      "output": "verification/android-appearance-resolution/candidate-3/swift-debug-oracle-compile.log",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "swift-debug-oracle",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/debug/oracle",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/cases.jsonl",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/debug-oracle.tsv"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs",
+      "exit_code": 0,
+      "seconds": 15.085038791992702,
+      "output": "verification/android-appearance-resolution/candidate-3/swift-debug-oracle.log",
+      "output_sha256": "d825b73bd0d034093a63dc4850c2049aa5412cb767bb6d78fa3086c4c5561d35"
+    },
+    {
+      "name": "java-debug-default",
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "-cp",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/classes",
+        "dev.mixer.android.AppearanceResolutionTests",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/debug-oracle.tsv"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs",
+      "exit_code": 0,
+      "seconds": 4.837990375002846,
+      "output": "verification/android-appearance-resolution/candidate-3/java-debug-default.log",
+      "output_sha256": "0e1e62bf1a381925974bc244e1e090fb8d6dc1614a187a88f7b30cefbbf556f5"
+    },
+    {
+      "name": "java-debug-interpreted",
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "-Xint",
+        "-cp",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/classes",
+        "dev.mixer.android.AppearanceResolutionTests",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/debug-oracle.tsv"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs",
+      "exit_code": 0,
+      "seconds": 166.73481279192492,
+      "output": "verification/android-appearance-resolution/candidate-3/java-debug-interpreted.log",
+      "output_sha256": "0e1e62bf1a381925974bc244e1e090fb8d6dc1614a187a88f7b30cefbbf556f5"
+    },
+    {
+      "name": "swift-release-MixerCore",
+      "argv": [
+        "swiftc",
+        "-swift-version",
+        "6",
+        "-warnings-as-errors",
+        "-parse-as-library",
+        "-O",
+        "-emit-module",
+        "-emit-library",
+        "-module-name",
+        "MixerCore",
+        "-emit-module-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/release/MixerCore.swiftmodule",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/sdk/Sources/MixerCore/FeatureStore.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/sdk/Sources/MixerCore/JSONInputGuard.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/sdk/Sources/MixerCore/Lifecycle.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/sdk/Sources/MixerCore/Navigation.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/sdk/Sources/MixerCore/Resources.swift",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/release/libMixerCore.dylib"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs",
+      "exit_code": 0,
+      "seconds": 2.2695348750567064,
+      "output": "verification/android-appearance-resolution/candidate-3/swift-release-MixerCore.log",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "swift-release-MixerUI",
+      "argv": [
+        "swiftc",
+        "-swift-version",
+        "6",
+        "-warnings-as-errors",
+        "-parse-as-library",
+        "-O",
+        "-emit-module",
+        "-emit-library",
+        "-module-name",
+        "MixerUI",
+        "-emit-module-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/release/MixerUI.swiftmodule",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/release",
+        "-L",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/release",
+        "-lMixerCore",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/sdk/Sources/MixerUI/AppearanceDefaultV1.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/sdk/Sources/MixerUI/AppearanceDescriptorV1.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/sdk/Sources/MixerUI/AppearanceMetricMathV1.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/sdk/Sources/MixerUI/AppearanceResolutionV1.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/sdk/Sources/MixerUI/AppearanceValuesV1.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/sdk/Sources/MixerUI/Authoring.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/sdk/Sources/MixerUI/NativePacketV1.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/sdk/Sources/MixerUI/Protocol.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/sdk/Sources/MixerUI/Reconciliation.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/sdk/Sources/MixerUI/Validation.swift",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/release/libMixerUI.dylib"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs",
+      "exit_code": 0,
+      "seconds": 6.698360542068258,
+      "output": "verification/android-appearance-resolution/candidate-3/swift-release-MixerUI.log",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "swift-release-oracle-compile",
+      "argv": [
+        "swiftc",
+        "-swift-version",
+        "6",
+        "-warnings-as-errors",
+        "-parse-as-library",
+        "-O",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/release",
+        "-L",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/release",
+        "-lMixerCore",
+        "-lMixerUI",
+        "-Xlinker",
+        "-rpath",
+        "-Xlinker",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/release",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs/verification/android-appearance-resolution/SwiftOracle.swift",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/release/oracle"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs",
+      "exit_code": 0,
+      "seconds": 1.3655543330824003,
+      "output": "verification/android-appearance-resolution/candidate-3/swift-release-oracle-compile.log",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "swift-release-oracle",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/release/oracle",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/cases.jsonl",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/release-oracle.tsv"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs",
+      "exit_code": 0,
+      "seconds": 8.299765750067309,
+      "output": "verification/android-appearance-resolution/candidate-3/swift-release-oracle.log",
+      "output_sha256": "d825b73bd0d034093a63dc4850c2049aa5412cb767bb6d78fa3086c4c5561d35"
+    },
+    {
+      "name": "java-release-default",
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "-cp",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/classes",
+        "dev.mixer.android.AppearanceResolutionTests",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/release-oracle.tsv"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs",
+      "exit_code": 0,
+      "seconds": 4.545445917057805,
+      "output": "verification/android-appearance-resolution/candidate-3/java-release-default.log",
+      "output_sha256": "0e1e62bf1a381925974bc244e1e090fb8d6dc1614a187a88f7b30cefbbf556f5"
+    },
+    {
+      "name": "java-release-interpreted",
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "-Xint",
+        "-cp",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/classes",
+        "dev.mixer.android.AppearanceResolutionTests",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/.build/release-oracle.tsv"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-resolution/candidate-3/inputs",
+      "exit_code": 0,
+      "seconds": 165.58148512500338,
+      "output": "verification/android-appearance-resolution/candidate-3/java-release-interpreted.log",
+      "output_sha256": "0e1e62bf1a381925974bc244e1e090fb8d6dc1614a187a88f7b30cefbbf556f5"
+    }
+  ],
+  "corpus": {
+    "cases": 3907,
+    "sha256": "41a4b3c8c5c74ec49fdcfe6431c75a36f4c9b7a441b2706ad81cdcaf781ceb80",
+    "archive_sha256": "601e03db1fe49c207e141b45f970910ad2b177dc78344941e1d257077e035f51"
+  },
+  "debug_oracle": {
+    "values_sha256": "3b9eb09917d0754db18e29c1e2194e9ce927a60c9e21b6f7772218800de53ee9",
+    "values_archive_sha256": "612cda1019348b7669382f6f0e9abf78d4dec202194c256076a9699f387e0a52",
+    "sha256": "305a8f9b9c891287bfda74c587724aac3ef4e82fb15e171525210e3ebe937d3a",
+    "archive_sha256": "855aec0fdb11eac0c474a6b0d7e06d33ba39214bc544b3e01c160b03845ce6a1"
+  },
+  "release_oracle": {
+    "values_sha256": "3b9eb09917d0754db18e29c1e2194e9ce927a60c9e21b6f7772218800de53ee9",
+    "values_archive_sha256": "612cda1019348b7669382f6f0e9abf78d4dec202194c256076a9699f387e0a52",
+    "sha256": "305a8f9b9c891287bfda74c587724aac3ef4e82fb15e171525210e3ebe937d3a",
+    "archive_sha256": "855aec0fdb11eac0c474a6b0d7e06d33ba39214bc544b3e01c160b03845ce6a1"
+  },
+  "unchanged_source_checks": 58,
+  "swift_debug_release_equal": true,
+  "finished_utc": "2026-10-23T21:47:33.695173+00:00"
+}

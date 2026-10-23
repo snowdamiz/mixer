@@ -49,7 +49,10 @@ fresh private Android host runner under Swift 6.2.4. See
 `verification/github-ci-d6c41a0/receipt.json`.
 
 Latest hosted evidence: `09dac10`, `958998d`, `0f177ad` and `5988e4a` pass all three
-VM/Swift/services jobs. The earlier `d814055` fixed-35ms polling failure remains
+VM/Swift/services jobs. `7c2baeb` also passes all three jobs. The earlier
+`c687e69` run failed TSan `fault-leave` with an observation deadline; a test-only
+precondition repair is being verified, and the failed receipt is retained.
+The earlier `d814055` fixed-35ms polling failure remains
 recorded; the repaired observed-tick test now passes hosted Swift 6.2.4 as well as
 local Debug/Release/TSan. See `verification/github-ci-0f177ad/receipt.json`.
 
@@ -61,6 +64,22 @@ a new explicit 864-byte final-cleanup allowance. No constructor or interpreter
 algorithm is implemented by this prerequisite. Full target execution remains pending.
 
 Observed implementation and evidence:
+
+- Java shared appearance resolution now has independent and root acceptance as
+  immutable data. Root checks 183 bindings across both corpora and all four
+  Swift Debug/Release × Java default/interpreted runs. Independent review checks
+  187 cases, 595,286 Java assertions and 40,756 contract assertions per run, plus
+  214 direct environment checks per Java mode. Three known packet restrictions
+  remain explicit; no native renderer/style match follows.
+- Twelve native type profiles and contextual font candidates have scoped root
+  acceptance with 571 bindings. Debug/Release tables agree, and all 18 candidate
+  and control PNGs are byte-identical to the existing reference. Android
+  preference normalization and final geometry remain unapproved; both native
+  renderers still need the measured shared recipe.
+- Private constructor behavior passes bounded host probes, but its preflight
+  accounting remains unaccepted: independent review found missing Option/Result
+  whole values and closure receiver terms. Additive correction is in progress.
+  No full Swift target is instantiated or invoked.
 
 - The unchanged Apple design is measured in 24 simulator captures across 12
   Debug/Release profiles. Root verifies 385 bindings and independently decodes all
