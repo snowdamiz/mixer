@@ -2,7 +2,8 @@
 
 Release-v1's declared fields, canonical bytes, signature domains, and original
 fixtures remain unchanged. V1 capability hashes describe compatibility and confer no permission.
-The existing local service and CLI publication API continue to accept only v1.
+The local service has explicit `/v1` and `/v2` route families; the existing CLI
+publication commands remain v1. See [service composition](../README.md).
 
 [release-v2](../../contracts/release-v2.json) adds mandatory signed capability
 grants and explicitly requires an installed protocol-2 host, schema-2 manifest,

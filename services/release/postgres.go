@@ -378,16 +378,18 @@ func queryArtifact(ctx context.Context, tx pgx.Tx, scope tenant, digest string, 
 	if !protocol.ValidDigest(digest) {
 		return Record{}, false, nil
 	}
-	var record Record
-	var manifest []byte
-	e := tx.QueryRow(ctx, `SELECT a.signed_manifest,a.payload,s.validated,s.published FROM mixer_release.artifacts a JOIN mixer_release.artifact_state s USING(organization,project,digest) WHERE a.organization=$1 AND a.project=$2 AND a.digest=$3 AND (NOT $4::boolean OR s.published)`, scope.Organization, scope.Project, digest, published).Scan(&manifest, &record.Artifact.Payload, &record.Validated, &record.Published)
+	var manifest, payload []byte
+	var validated, visible bool
+	e := tx.QueryRow(ctx, `SELECT a.signed_manifest,a.payload,s.validated,s.published FROM mixer_release.artifacts a JOIN mixer_release.artifact_state s USING(organization,project,digest) WHERE a.organization=$1 AND a.project=$2 AND a.digest=$3 AND (NOT $4::boolean OR s.published)`, scope.Organization, scope.Project, digest, published).Scan(&manifest, &payload, &validated, &visible)
 	if errors.Is(e, pgx.ErrNoRows) {
 		return Record{}, false, nil
 	}
 	if e != nil {
 		return Record{}, false, storageError()
 	}
-	if protocol.DecodeJSON(manifest, &record.Artifact.SignedManifest) != nil || checkArtifact(scope, digest, record) != nil {
+	record, e := decodeStoredArtifact(manifest, payload)
+	record.Validated, record.Published = validated, visible
+	if e != nil || checkArtifact(scope, digest, record) != nil {
 		return Record{}, false, storageError()
 	}
 	return record, true, nil
@@ -405,7 +407,7 @@ func (t *postgresTransaction) saveArtifact(digest string, record Record) error {
 	}
 	before := ""
 	if exists {
-		if !immutableEqual(old.Artifact, record.Artifact) {
+		if !immutableEqual(old, record) {
 			return apiError{409, "immutable_conflict", "artifact content is immutable"}
 		}
 		if old.Published && !record.Published || old.Validated && !record.Validated {
@@ -430,8 +432,8 @@ func (t *postgresTransaction) saveArtifact(digest string, record Record) error {
 		if count >= 64 {
 			return apiError{409, "local_capacity", "development tenant artifact limit reached"}
 		}
-		manifest, _ := json.Marshal(record.Artifact.SignedManifest)
-		if _, e = t.tx.Exec(t.ctx, "INSERT INTO mixer_release.artifacts(organization,project,digest,signed_manifest,payload) VALUES($1,$2,$3,$4,$5)", t.who.Organization, t.who.Project, digest, manifest, record.Artifact.Payload); e != nil {
+		manifest, _ := json.Marshal(record.signedManifest())
+		if _, e = t.tx.Exec(t.ctx, "INSERT INTO mixer_release.artifacts(organization,project,digest,signed_manifest,payload) VALUES($1,$2,$3,$4,$5)", t.who.Organization, t.who.Project, digest, manifest, record.payload()); e != nil {
 			return storageError()
 		}
 	}
@@ -456,11 +458,10 @@ func queryChannel(ctx context.Context, tx pgx.Tx, scope tenant, key string) (Cha
 	if e != nil {
 		return Channel{}, false, storageError()
 	}
-	var signed protocol.SignedAssignment
-	if protocol.DecodeJSON(raw, &signed) != nil {
+	channel, decodeError := decodeStoredChannel(raw)
+	if decodeError != nil {
 		return Channel{}, false, storageError()
 	}
-	channel := Channel{signed}
 	if checkChannel(scope, key, channel) != nil {
 		return Channel{}, false, storageError()
 	}
@@ -476,19 +477,26 @@ func (t *postgresTransaction) saveChannel(key string, channel Channel) error {
 	if e := checkChannel(t.who.tenant, key, channel); e != nil {
 		return e
 	}
+	artifact, found, e := t.artifact(channel.assignment().ArtifactSHA256)
+	if e != nil {
+		return e
+	}
+	if !found || checkChannelArtifact(artifact, channel) != nil {
+		return apiError{422, "assignment_invalid", "assignment artifact binding rejected"}
+	}
 	old, exists, e := t.channel(key)
 	if e != nil {
 		return e
 	}
 	before := ""
-	a := channel.SignedAssignment.Assignment
+	a := channel.assignment()
 	if exists {
-		if a.Sequence <= old.SignedAssignment.Assignment.Sequence {
+		if channel.version() != old.version() || a.Sequence <= old.assignment().Sequence {
 			return apiError{409, "assignment_rejected", "assignment sequence must increase"}
 		}
 		before = valueHash(old)
 	}
-	raw, _ := json.Marshal(channel.SignedAssignment)
+	raw, _ := json.Marshal(channel.wire())
 	sequence := strconv.FormatUint(a.Sequence, 10)
 	if _, e = t.tx.Exec(t.ctx, "INSERT INTO mixer_release.assignments(organization,project,channel_key,sequence,artifact_digest,signed_assignment) VALUES($1,$2,$3,$4,$5,$6)", t.who.Organization, t.who.Project, key, sequence, a.ArtifactSHA256, raw); e != nil {
 		return storageError()

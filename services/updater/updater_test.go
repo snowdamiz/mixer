@@ -19,6 +19,18 @@ import (
 func config(t *testing.T, f testutil.Fixture) updater.Config {
 	return updater.Config{Directory: t.TempDir(), Host: f.Host, Roots: f.Roots, Channel: "beta", Installation: "installation-1", FailureThreshold: 2, ObservationSeconds: 10}
 }
+func TestGoReferenceUpdaterRejectsProtocol2BeforeCreatingState(t *testing.T) {
+	f := testutil.New(t).Protocol2()
+	cfg := config(t, f)
+	cfg.Directory = filepath.Join(cfg.Directory, "must-not-be-created")
+	if store, e := updater.Open(cfg); e == nil {
+		store.Close()
+		t.Fatal("v1 Go reference updater accepted protocol2 host")
+	}
+	if _, e := os.Stat(cfg.Directory); !errors.Is(e, os.ErrNotExist) {
+		t.Fatal("unsupported protocol created updater state")
+	}
+}
 func stage(t *testing.T, s *updater.Store, f testutil.Fixture, id string, seq uint64) string {
 	t.Helper()
 	payload := []byte("guest " + id)

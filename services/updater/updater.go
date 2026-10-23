@@ -79,6 +79,9 @@ type Selection struct {
 }
 
 func Open(cfg Config) (*Store, error) {
+	if cfg.Host.Protocol != 1 || cfg.Host.GuestABI != 1 || cfg.Host.UISchema != 1 {
+		return nil, fmt.Errorf("Go reference updater supports only explicit protocol1/guestABI1/UI1; use the separately qualified Swift verifier/recovery path for protocol2")
+	}
 	if cfg.ReserveDiskBytes == 0 {
 		cfg.ReserveDiskBytes = 16 * 1024 * 1024
 	}

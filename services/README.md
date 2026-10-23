@@ -4,7 +4,9 @@ This independently authored Go slice implements signed update authorization,
 a durable local recovery model and an authenticated loopback HTTP release
 workflow. It does **not** qualify a mobile updater, compile a guest, authorize
 an OTA release from syntax, operate a hosted service or establish a GA gate.
-The protocol registry is [`../contracts/release-v1.json`](../contracts/release-v1.json).
+The protocol registries are [`release-v1`](../contracts/release-v1.json) and
+[`release-v2`](../contracts/release-v2.json). The service supports both explicitly;
+the existing CLI publication commands and Go recovery reference remain v1.
 
 ## Run and configuration
 
@@ -101,12 +103,25 @@ does not mutate an artifact or manifest environment. Rollback cannot lower the
 assignment high-water. Rollout percentage is signed; it cannot be changed by
 editing an HTTP request outside the signed assignment.
 
+Every existing control/delivery route has an explicit `/v2` counterpart with
+the same body envelope names. `/v1` accepts only signed schema/protocol1;
+`/v2` accepts only signed schema/protocol2, including mandatory signed capability
+grants. The route, typed signed values and registered host protocol must agree.
+There is no version probing, retry downgrade or unsigned grants sidecar. A host
+scope/runtime fingerprint has exactly one registered protocol. Channel identity
+continues to include app/environment/platform/runtime/channel, so publishing a
+new fingerprint retains each older runtime's assignments. Wrong-version public
+updates return204 and artifact reads return404; cross-version mutation rejects.
+
 Admin operations require `Authorization: Bearer <operator-token>`. All mutations
 require `Content-Type: application/json` and `Idempotency-Key: <identifier>`.
 `X-Mixer-Reason` optionally records an operator reason of at most 512 bytes.
 Idempotency is organization/project scoped and binds the exact method, path and
 request bytes. A successful retry returns the original response; a changed
 request with the same key returns 409. Failed requests do not reserve keys.
+The versioned route participates in that same tenant-wide idempotency binding;
+reusing a v1 key for a v2 operation conflicts. Audit/outbox history is shared
+across both route families, and its action includes the exact versioned route.
 
 `GET /v1/updates` and `GET /v1/artifacts/{digest}` expose only published signed
 delivery data without administrator credentials. Private upload and audit
@@ -115,6 +130,9 @@ app-private random pseudonyms. They are retained across account switches;
 reinstalling creates a new cohort. No installation identifiers are persisted by
 this reference server. Cohorts expand deterministically without shifting the
 prior eligible set.
+The `/v2` endpoints expose only v2 signed data. A v2 offer contains a `/v2`
+artifact URL; a consumer must preserve its explicitly selected version and
+verify the exact pinned scope/runtime, content digest and assignment sequence.
 
 Validation returns `protocol_valid: true`, `compiler_eligibility_verified: false`,
 `policy_approved: false`, `mobile_qualified: false`. Publish returns
@@ -143,14 +161,29 @@ detects accidental modification; it is not an external tamper-proof audit log.
 Outbox records are durable pending records only; no dispatcher/delivery success
 is claimed. Local storage is capped at 64 artifacts and has no retention service.
 
+Legacy snapshots retain schema1 and the existing v1 record/HTTP encodings.
+The first successful durable v2 write upgrades the snapshot to schema2 in that
+same atomic transaction. Failed authentication, malformed/incompatible content
+and idempotency conflicts cannot upgrade it. V2 stored artifacts and assignments
+use closed discriminated variants; missing, mixed or unknown variants fail on
+decode and reopen. Existing v1 records, idempotent response bytes and prior audit
+hashes are preserved. A v1-only binary refuses the upgraded snapshot; there is no
+automatic downgrade or destructive conversion.
+
 An explicitly selected local PostgreSQL backend supplies normalized durable
 transactions, tenant FORCE RLS, immutable artifact/assignment history and atomic
 idempotency/audit/outbox commits. Its migration owner and runtime credentials are
 separate. Production startup remains disabled. See
 [`release/POSTGRES.md`](release/POSTGRES.md) for configuration, schema/transaction
 contracts, limits and the real isolated PostgreSQL test runner.
+The existing PostgreSQL bytea records store signed v1/v2 bytes without a DDL
+migration. Exact schema dispatch precedes complete typed interpretation and
+scope/content checks. Migration001/checksum, FORCE RLS, role guards, append-only
+rows and shared tenant transaction locks remain in place. Both versions count
+toward the existing development capacity limit.
 
-The `updater` package uses a separate private locked store. Its installed host,
+The Go `updater` package explicitly supports protocol1/guestABI1/UI1 and rejects
+other versions before creating state. It uses a separate private locked store. Its installed host,
 channel and installation identity cannot change on reopening. It verifies the
 signed manifest and assignment, persists the assignment high-water, downloads
 resumably to a private partial file, verifies complete payload size/digest,
@@ -178,6 +211,14 @@ crash attribution, monotonic platform health timers, actual app-state migration
 compatibility and physical-device recovery receipts remain unimplemented.
 Keeping a code fallback does not prove that saved data or external effects can
 be rolled back. An unknown interruption is not evidence of a guest crash.
+
+`tests/integration/release-v2-workflow.py` builds the service and a separate
+public Swift consumer, exercises real loopback HTTP for both versions, checks
+typed verified v2 grants/limits, replay/version rejection, restart and an actual
+older binary's refusal of schema2. Its small TEST payloads are not executable;
+the Swift test consumer is not a production large-payload downloader. See
+[`tests/integration/README.md`](../tests/integration/README.md). This does not
+add CLI v2 publication, guest imports, activation or device OTA qualification.
 
 ## Provenance
 

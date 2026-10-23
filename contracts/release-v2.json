@@ -157,5 +157,17 @@
     "maximum_payload_bytes": 16777216,
     "maximum_capability_hashes": 128
   },
-  "http": "Existing /v1 service and CLI publication remain release-v1 only. This contract adds no HTTP v2 route or acceptance; a separately coordinated service/CLI integration is required."
+  "http": {
+    "status": "explicit local-development service composition; production startup remains refused",
+    "base": "/v2/orgs/{organization}/projects/{project}",
+    "control_routes": "Same upload/validate/publish/promote/rollback/audit/outbox route suffixes, envelope names, scoped bearer RBAC, response fields, bounds and error codes as release-v1.http; signed_manifest and signed_assignment are strictly v2 types",
+    "updates": "GET /v2/updates with the same complete scope/runtime/channel/installation query; 200 {signed_assignment,artifact_url}, 204 if no eligible v2 assignment. artifact_url always names /v2/artifacts/{digest}?organization=&project=",
+    "artifact": "GET /v2/artifacts/{digest}?organization=&project= returns only published immutable v2 {signed_manifest,payload}; no admin credentials in public delivery",
+    "selection": "Route version, signed schema/protocol, registered host protocol and exact scope/runtime authority must agree; never probe or fall back. Wrong-version public offers return204 and artifacts404; mutations reject",
+    "channels": "Channel identity retains organization/project/app/environment/platform/runtime/channel. Publishing a new fingerprint does not replace older runtime heads. Same content rollback requires a fresh greater signed assignment sequence",
+    "idempotency_audit": "Both versions share tenant-scoped idempotency, audit/outbox and transaction locking. Method plus versioned path plus exact body bind the request hash; cross-version reuse of the same key conflicts. Earlier successful response bytes and audit-chain hashes remain intact",
+    "local_storage": "Existing schema1 snapshots remain readable. First successful durable v2 domain write atomically upgrades to schema2 with strict mutually exclusive typed record variants. Failed requests cannot upgrade. Older binaries refuse schema2; no downgrade conversion",
+    "postgres_storage": "Existing opaque bytea signed records support both versions after strict schema dispatch and complete typed validation. No migration001 SQL, checksum or schema-version change; FORCE RLS, immutability and transaction semantics preserved",
+    "clients": "Existing CLI publication and Go reference recovery remain v1. The bounded public Swift HTTP integration consumer verifies small TEST payloads and typed grants/limits; no production payload downloader, activation, guest capability execution, device OTA or hosted qualification is claimed"
+  }
 }

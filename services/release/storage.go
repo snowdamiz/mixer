@@ -48,18 +48,17 @@ type releaseStorage interface {
 	history(context.Context, access, uint64, int) ([]Event, []Work, uint64, error)
 }
 
-func immutableEqual(a, b Artifact) bool {
-	left, _ := json.Marshal(a.SignedManifest)
-	right, _ := json.Marshal(b.SignedManifest)
-	return bytes.Equal(left, right) && bytes.Equal(a.Payload, b.Payload)
+func immutableEqual(a, b Record) bool {
+	left, le := json.Marshal(a.signedManifest())
+	right, re := json.Marshal(b.signedManifest())
+	return a.version() != 0 && a.version() == b.version() && le == nil && re == nil && bytes.Equal(left, right) && bytes.Equal(a.payload(), b.payload())
 }
 func checkArtifact(t tenant, digest string, record Record) error {
-	m := record.Artifact.SignedManifest.Manifest
-	if !t.valid() || !t.matches(m.Scope) {
+	if !t.valid() || !t.matches(record.scope()) {
 		return apiError{403, "scope_denied", "artifact differs from authenticated storage scope"}
 	}
-	got, e := protocol.ManifestDigest(m)
-	if e != nil || m.Validate() != nil || got != digest || !protocol.ValidDigest(digest) || uint64(len(record.Artifact.Payload)) != m.ExpandedBytes || protocol.Hash(record.Artifact.Payload) != m.PayloadSHA256 {
+	got, e := record.digest()
+	if e != nil || record.validate() != nil || got != digest || !protocol.ValidDigest(digest) {
 		return apiError{422, "artifact_invalid", "invalid immutable artifact identity"}
 	}
 	if record.Published && !record.Validated {
@@ -68,11 +67,11 @@ func checkArtifact(t tenant, digest string, record Record) error {
 	return nil
 }
 func checkChannel(t tenant, key string, c Channel) error {
-	a := c.SignedAssignment.Assignment
+	a := c.assignment()
 	if !t.valid() || !t.matches(a.Scope) || !strings.HasPrefix(key, t.prefix()) {
 		return apiError{403, "scope_denied", "assignment differs from authenticated storage scope"}
 	}
-	if a.Validate() != nil || key != channelKey(a) {
+	if c.validate() != nil || key != channelKey(a) {
 		return apiError{422, "assignment_invalid", "invalid assignment identity"}
 	}
 	return nil
@@ -96,7 +95,7 @@ func (t *memoryTransaction) saveArtifact(digest string, rec Record) error {
 	}
 	key := t.who.prefix() + digest
 	if old, ok := t.db.Artifacts[key]; ok {
-		if !immutableEqual(old.Artifact, rec.Artifact) {
+		if !immutableEqual(old, rec) {
 			return apiError{409, "immutable_conflict", "artifact content is immutable"}
 		}
 		if old.Published && !rec.Published || old.Validated && !rec.Validated {
@@ -117,6 +116,9 @@ func (t *memoryTransaction) saveArtifact(digest string, rec Record) error {
 			return apiError{409, "local_capacity", "local development artifact limit reached"}
 		}
 	}
+	if rec.version() == 2 {
+		t.db.Schema = 2
+	}
 	t.db.Artifacts[key] = rec
 	return nil
 }
@@ -134,8 +136,18 @@ func (t *memoryTransaction) saveChannel(key string, c Channel) error {
 	if e := checkChannel(t.who.tenant, key, c); e != nil {
 		return e
 	}
-	if old, ok := t.db.Channels[key]; ok && c.SignedAssignment.Assignment.Sequence <= old.SignedAssignment.Assignment.Sequence {
+	artifact, exists, e := t.artifact(c.assignment().ArtifactSHA256)
+	if e != nil {
+		return e
+	}
+	if !exists || checkChannelArtifact(artifact, c) != nil {
+		return apiError{422, "assignment_invalid", "assignment artifact binding rejected"}
+	}
+	if old, ok := t.db.Channels[key]; ok && (c.version() != old.version() || c.assignment().Sequence <= old.assignment().Sequence) {
 		return apiError{409, "assignment_rejected", "assignment sequence must increase"}
+	}
+	if c.version() == 2 {
+		t.db.Schema = 2
 	}
 	t.db.Channels[key] = c
 	return nil

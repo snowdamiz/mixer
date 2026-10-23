@@ -171,6 +171,10 @@ uploads, competing assignment publication, cross-tenant/RBAC/RLS adversaries,
 immutable rows, pagination, full uint64 sequence, maximum/oversize payloads,
 query cancellation, owner/unsafe-role/schema refusal, corrupt ledger head,
 before/after publication commit faults, and an actual immediate PostgreSQL crash/restart
-inside an uncommitted publication. Unit tests and controlled faults are recorded
+inside an uncommitted publication. V2 tests additionally cover coexisting v1/v2
+signed bytes without changing migration001, shared idempotency conflicts,
+independent runtime channel heads, concurrent sequence publication, rollback,
+cross-tenant delivery/storage rejection and immediate database restart before
+and after a v2 publication commit. Unit tests and controlled faults are recorded
 separately from real database crash evidence. Multi-zone failover, backup restore,
 operational RPO/RTO, hosted authentication and launch review remain open.

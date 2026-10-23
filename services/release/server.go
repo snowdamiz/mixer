@@ -107,7 +107,7 @@ func ValidateConfig(c Config) error {
 		}
 		a := protocol.Assignment{Scope: h.Scope, Runtime: h.Runtime}
 		key := channelKey(a)
-		if h.Protocol != 1 || h.GuestABI != 1 || h.UISchema != 1 || !protocol.ValidDigest(h.Runtime) || h.MaxPayloadBytes == 0 || h.MaxPayloadBytes > protocol.MaxPayloadBytes || h.Limits.MemoryBytes == 0 || h.Limits.Fuel == 0 || h.Limits.StartupMilliseconds == 0 || seen[key] {
+		if (h.Protocol != 1 && h.Protocol != 2) || h.GuestABI != 1 || h.UISchema != 1 || !protocol.ValidDigest(h.Runtime) || h.MaxPayloadBytes == 0 || h.MaxPayloadBytes > protocol.MaxPayloadBytes || h.Limits.MemoryBytes == 0 || h.Limits.Fuel == 0 || h.Limits.StartupMilliseconds == 0 || seen[key] {
 			return fmt.Errorf("invalid/duplicate registered host")
 		}
 		seen[key] = true
@@ -268,14 +268,23 @@ func (s *Server) route(r *http.Request, id, ip string) (Response, error) {
 	if r.Method == "GET" && r.URL.Path == "/healthz" {
 		return response(200, map[string]any{"mode": "developer", "production_ready": false}), nil
 	}
-	if r.Method == "GET" && r.URL.Path == "/v1/updates" {
-		return s.update(r)
-	}
 	p := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
-	if r.Method == "GET" && len(p) == 3 && p[0] == "v1" && p[1] == "artifacts" {
-		return s.publicArtifact(r, p[2])
+	version := uint64(0)
+	if len(p) > 0 && p[0] == "v1" {
+		version = 1
+	} else if len(p) > 0 && p[0] == "v2" {
+		version = 2
 	}
-	if len(p) < 6 || p[0] != "v1" || p[1] != "orgs" || p[3] != "projects" || !protocol.ValidID(p[2]) || !protocol.ValidID(p[4]) {
+	if version == 0 {
+		return Response{}, apiError{404, "not_found", "endpoint not found"}
+	}
+	if r.Method == "GET" && r.URL.Path == "/"+p[0]+"/updates" {
+		return s.update(r, version)
+	}
+	if r.Method == "GET" && len(p) == 3 && p[1] == "artifacts" {
+		return s.publicArtifact(r, p[2], version)
+	}
+	if len(p) < 6 || p[1] != "orgs" || p[3] != "projects" || !protocol.ValidID(p[2]) || !protocol.ValidID(p[4]) {
 		return Response{}, apiError{404, "not_found", "endpoint not found"}
 	}
 	org, project := p[2], p[4]
@@ -291,7 +300,7 @@ func (s *Server) route(r *http.Request, id, ip string) (Response, error) {
 		return Response{}, e
 	}
 	if r.Method == "GET" {
-		return s.read(r, p, access{tenant{org, project}, actor.Actor, actor.Role})
+		return s.read(r, p, access{tenant{org, project}, actor.Actor, actor.Role}, version)
 	}
 	key := r.Header.Get("Idempotency-Key")
 	if !protocol.ValidID(key) {
@@ -304,18 +313,18 @@ func (s *Server) route(r *http.Request, id, ip string) (Response, error) {
 	if event.Reason == "" {
 		event.Reason = "local development operation"
 	}
-	return s.mutate(r, p, access{tenant{org, project}, actor.Actor, actor.Role}, role, key, event)
+	return s.mutate(r, p, access{tenant{org, project}, actor.Actor, actor.Role}, role, key, event, version)
 }
-func (s *Server) read(r *http.Request, p []string, who access) (Response, error) {
+func (s *Server) read(r *http.Request, p []string, who access, version uint64) (Response, error) {
 	if len(p) == 7 && p[5] == "artifacts" && protocol.ValidDigest(p[6]) {
 		rec, ok, e := s.db.artifact(r.Context(), who, p[6])
 		if e != nil {
 			return Response{}, e
 		}
-		if !ok {
+		if !ok || rec.version() != version {
 			return Response{}, apiError{404, "not_found", "artifact not found"}
 		}
-		return response(200, rec.Artifact), nil
+		return response(200, rec.wire()), nil
 	}
 	if len(p) == 6 && (p[5] == "audit" || p[5] == "outbox") {
 		after, e := strconv.ParseUint(defaulted(r.URL.Query().Get("after"), "0"), 10, 64)
@@ -344,31 +353,32 @@ func defaulted(v, fallback string) string {
 	}
 	return v
 }
-func (s *Server) mutate(r *http.Request, p []string, who access, role, key string, event Event) (Response, error) {
+func (s *Server) mutate(r *http.Request, p []string, who access, role, key string, event Event, version uint64) (Response, error) {
 	org, project := who.Organization, who.Project
 	commit := func(raw []byte, fn func(releaseTransaction) (Response, error)) (Response, error) {
 		hash := protocol.Hash(append([]byte(r.Method+" "+r.URL.Path+"\x00"), raw...))
 		return s.db.transaction(r.Context(), who, role, key, hash, event, fn)
 	}
 	if r.Method == "PUT" && len(p) == 7 && p[5] == "artifacts" && protocol.ValidDigest(p[6]) {
-		var a Artifact
-		raw, e := body(r, &a)
+		record, raw, e := uploadBody(r, version)
 		if e != nil {
 			return Response{}, e
 		}
 		return commit(raw, func(db releaseTransaction) (Response, error) {
-			m := a.SignedManifest.Manifest
-			if m.Scope.Organization != org || m.Scope.Project != project {
+			if record.scope().Organization != org || record.scope().Project != project {
 				return Response{}, apiError{403, "scope_denied", "signed artifact tenant differs from route"}
 			}
-			h, e := s.host(m.Scope, m.Runtime)
+			h, e := s.host(record.scope(), record.runtime())
 			if e != nil {
 				return Response{}, e
 			}
-			if e = protocol.VerifyManifest(a.SignedManifest, a.Payload, s.cfg.Roots, h, uint64(s.now().Unix())); e != nil {
+			if h.Protocol != version {
+				return Response{}, apiError{422, "protocol_mismatch", "route and registered host protocol differ"}
+			}
+			if e = record.verify(s.cfg.Roots, h, uint64(s.now().Unix())); e != nil {
 				return Response{}, apiError{422, "artifact_invalid", e.Error()}
 			}
-			digest, _ := protocol.ManifestDigest(m)
+			digest, _ := record.digest()
 			if digest != p[6] {
 				return Response{}, apiError{422, "digest_mismatch", "artifact identity differs from route"}
 			}
@@ -377,12 +387,12 @@ func (s *Server) mutate(r *http.Request, p []string, who access, role, key strin
 				return Response{}, e
 			}
 			if ok {
-				if !immutableEqual(old.Artifact, a) {
+				if !immutableEqual(old, record) {
 					return Response{}, apiError{409, "immutable_conflict", "artifact is immutable"}
 				}
 				return response(200, map[string]any{"artifact_sha256": digest, "immutable": true}), nil
 			}
-			if e := db.saveArtifact(digest, Record{Artifact: a}); e != nil {
+			if e := db.saveArtifact(digest, record); e != nil {
 				return Response{}, e
 			}
 			return response(201, map[string]any{"artifact_sha256": digest, "immutable": true}), nil
@@ -404,11 +414,17 @@ func (s *Server) mutate(r *http.Request, p []string, who access, role, key strin
 			if !ok {
 				return Response{}, apiError{404, "not_found", "artifact not found"}
 			}
-			h, e := s.host(rec.Artifact.SignedManifest.Manifest.Scope, rec.Artifact.SignedManifest.Manifest.Runtime)
+			if rec.version() != version {
+				return Response{}, apiError{422, "protocol_mismatch", "route and artifact protocol differ"}
+			}
+			h, e := s.host(rec.scope(), rec.runtime())
 			if e != nil {
 				return Response{}, e
 			}
-			if e = protocol.VerifyManifest(rec.Artifact.SignedManifest, rec.Artifact.Payload, s.cfg.Roots, h, uint64(s.now().Unix())); e != nil {
+			if h.Protocol != version {
+				return Response{}, apiError{422, "protocol_mismatch", "route and registered host protocol differ"}
+			}
+			if e = rec.verify(s.cfg.Roots, h, uint64(s.now().Unix())); e != nil {
 				return Response{}, apiError{422, "artifact_invalid", e.Error()}
 			}
 			rec.Validated = true
@@ -419,15 +435,12 @@ func (s *Server) mutate(r *http.Request, p []string, who access, role, key strin
 		})
 	}
 	if r.Method == "POST" && len(p) == 8 && p[5] == "channels" && protocol.ValidID(p[6]) && (p[7] == "publish" || p[7] == "promote" || p[7] == "rollback") {
-		var req struct {
-			SignedAssignment protocol.SignedAssignment `json:"signed_assignment"`
-		}
-		raw, e := body(r, &req)
+		assigned, raw, e := assignmentBody(r, version)
 		if e != nil {
 			return Response{}, e
 		}
 		return commit(raw, func(db releaseTransaction) (Response, error) {
-			a := req.SignedAssignment.Assignment
+			a := assigned.assignment()
 			if a.Scope.Organization != org || a.Scope.Project != project {
 				return Response{}, apiError{403, "scope_denied", "signed assignment tenant differs from route"}
 			}
@@ -438,11 +451,17 @@ func (s *Server) mutate(r *http.Request, p []string, who access, role, key strin
 			if !ok || !rec.Validated {
 				return Response{}, apiError{422, "not_validated", "artifact must be uploaded and validated"}
 			}
+			if rec.version() != version || assigned.version() != version {
+				return Response{}, apiError{422, "protocol_mismatch", "route, artifact and assignment protocol differ"}
+			}
 			h, e := s.host(a.Scope, a.Runtime)
 			if e != nil {
 				return Response{}, e
 			}
-			if e = protocol.VerifyManifest(rec.Artifact.SignedManifest, rec.Artifact.Payload, s.cfg.Roots, h, uint64(s.now().Unix())); e != nil {
+			if h.Protocol != version {
+				return Response{}, apiError{422, "protocol_mismatch", "route and registered host protocol differ"}
+			}
+			if e = rec.verify(s.cfg.Roots, h, uint64(s.now().Unix())); e != nil {
 				return Response{}, apiError{422, "artifact_invalid", e.Error()}
 			}
 			ck := channelKey(a)
@@ -450,17 +469,17 @@ func (s *Server) mutate(r *http.Request, p []string, who access, role, key strin
 			if e != nil {
 				return Response{}, e
 			}
-			last := old.SignedAssignment.Assignment.Sequence
-			if e = protocol.VerifyAssignmentHeader(req.SignedAssignment, rec.Artifact.SignedManifest.Manifest, s.cfg.Roots, h, p[6], last, uint64(s.now().Unix())); e != nil {
+			last := old.assignment().Sequence
+			if e = assigned.verify(rec, s.cfg.Roots, h, p[6], last, uint64(s.now().Unix())); e != nil {
 				return Response{}, apiError{409, "assignment_rejected", e.Error()}
 			}
-			if p[7] == "promote" && (!exists || old.SignedAssignment.Assignment.ArtifactSHA256 != a.ArtifactSHA256 || old.SignedAssignment.Assignment.RolloutBasisPoints > a.RolloutBasisPoints) {
+			if p[7] == "promote" && (!exists || old.assignment().ArtifactSHA256 != a.ArtifactSHA256 || old.assignment().RolloutBasisPoints > a.RolloutBasisPoints) {
 				return Response{}, apiError{409, "invalid_promotion", "promotion must expand current artifact rollout"}
 			}
 			if p[7] == "rollback" && (!exists || !rec.Published) {
 				return Response{}, apiError{409, "invalid_rollback", "rollback target must have been previously published"}
 			}
-			if e := db.saveChannel(ck, Channel{req.SignedAssignment}); e != nil {
+			if e := db.saveChannel(ck, assigned); e != nil {
 				return Response{}, e
 			}
 			rec.Published = true
@@ -472,7 +491,7 @@ func (s *Server) mutate(r *http.Request, p []string, who access, role, key strin
 	}
 	return Response{}, apiError{404, "not_found", "endpoint not found"}
 }
-func (s *Server) update(r *http.Request) (Response, error) {
+func (s *Server) update(r *http.Request, version uint64) (Response, error) {
 	q := r.URL.Query()
 	scope := protocol.Scope{Organization: q.Get("organization"), Project: q.Get("project"), App: q.Get("app"), Environment: q.Get("environment"), Platform: q.Get("platform")}
 	if scope.Validate() != nil || !protocol.ValidDigest(q.Get("runtime")) || !protocol.ValidID(q.Get("channel")) || !protocol.ValidID(q.Get("installation")) {
@@ -483,12 +502,12 @@ func (s *Server) update(r *http.Request) (Response, error) {
 	if e != nil {
 		return Response{}, e
 	}
-	if !ok || !protocol.Eligible(rec.SignedAssignment.Assignment, q.Get("installation")) {
+	if !ok || rec.version() != version || !protocol.Eligible(rec.assignment(), q.Get("installation")) {
 		return Response{Status: 204}, nil
 	}
-	return response(200, map[string]any{"signed_assignment": rec.SignedAssignment, "artifact_url": "/v1/artifacts/" + rec.SignedAssignment.Assignment.ArtifactSHA256 + "?organization=" + scope.Organization + "&project=" + scope.Project}), nil
+	return response(200, map[string]any{"signed_assignment": rec.wire(), "artifact_url": "/v" + strconv.FormatUint(version, 10) + "/artifacts/" + rec.assignment().ArtifactSHA256 + "?organization=" + scope.Organization + "&project=" + scope.Project}), nil
 }
-func (s *Server) publicArtifact(r *http.Request, digest string) (Response, error) {
+func (s *Server) publicArtifact(r *http.Request, digest string, version uint64) (Response, error) {
 	org, project := r.URL.Query().Get("organization"), r.URL.Query().Get("project")
 	if !protocol.ValidID(org) || !protocol.ValidID(project) || !protocol.ValidDigest(digest) {
 		return Response{}, apiError{400, "invalid_query", "valid artifact identity and tenant scope required"}
@@ -497,8 +516,33 @@ func (s *Server) publicArtifact(r *http.Request, digest string) (Response, error
 	if e != nil {
 		return Response{}, e
 	}
-	if !ok || !rec.Published {
+	if !ok || !rec.Published || rec.version() != version {
 		return Response{}, apiError{404, "not_found", "published artifact not found"}
 	}
-	return response(200, rec.Artifact), nil
+	return response(200, rec.wire()), nil
+}
+
+func uploadBody(r *http.Request, version uint64) (Record, []byte, error) {
+	if version == 2 {
+		var a ArtifactV2
+		raw, e := body(r, &a)
+		return Record{Version2: &a}, raw, e
+	}
+	var a Artifact
+	raw, e := body(r, &a)
+	return Record{Artifact: a}, raw, e
+}
+func assignmentBody(r *http.Request, version uint64) (Channel, []byte, error) {
+	if version == 2 {
+		var req struct {
+			Signed protocol.SignedAssignmentV2 `json:"signed_assignment"`
+		}
+		raw, e := body(r, &req)
+		return Channel{Version2: &req.Signed}, raw, e
+	}
+	var req struct {
+		Signed protocol.SignedAssignment `json:"signed_assignment"`
+	}
+	raw, e := body(r, &req)
+	return Channel{SignedAssignment: req.Signed}, raw, e
 }

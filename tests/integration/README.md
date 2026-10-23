@@ -37,3 +37,38 @@ executables are trusted local code: a malicious script could forge a valid-looki
 VM receipt. Tool hashes identify observed bytes and detect ordinary replacement;
 they do not sandbox local code or attest that an existing binary was built from
 the current source tree. This developer path does not authorize device updates.
+
+`release-v2-workflow.py` builds the current service and a separate Swift package
+using public `MixerUpdates` APIs. It exercises actual loopback HTTP for v1 and
+v2, verifies signed payload/assignment bytes, reads v2's typed verified grants
+and resource limits, and rejects replay and mismatched explicit versions. It
+checks tenant authorization, route/key conflicts, failed-request preservation
+of schema1, atomic upgrade to schema2, v1 byte preservation after restart and an
+actual service binary built from commit6cb2759 refusing the upgraded snapshot.
+
+```sh
+DEVELOPER_DIR=/Applications/Xcode_26.6.app/Contents/Developer \
+python3 -O tests/integration/release-v2-workflow.py \
+  --swift /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift \
+  --output-dir /absolute/new/evidence-directory
+```
+
+The output directory must be new. Commands use the bounded shared recorder and
+a cleaned environment, record source/tool/binary hashes and preserve stdout,
+stderr, request hashes and server lifecycle results. Checks remain active with
+Python optimization. The explicit route version is never retried as another
+version, and redirects/external artifact URLs are rejected. Fixture keys are
+public TEST ONLY; bearer credentials are ephemeral and never written to logs.
+Payloads are non-executable small strings. The Swift HTTP test consumer is
+limited to small fixture payloads (96KiB) by metadata string bounds; it is not a
+production large-payload downloader. Go service/PG payload limits have their
+separate tests. No guest/native import, activation, physical device, OTA policy,
+immutable published consumer adoption or hosted result is claimed.
+
+Real PostgreSQL coexistence, RLS and commit/crash coverage is separate:
+
+```sh
+cd services
+PATH=/opt/homebrew/opt/postgresql@17/bin:$PATH GOTOOLCHAIN=go1.26.4 \
+python3 verification/postgres.py --output /absolute/new/postgres-evidence
+```
