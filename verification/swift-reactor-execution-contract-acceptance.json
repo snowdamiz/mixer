@@ -1,0 +1,19 @@
+{
+  "observed_utc": "2026-10-23T16:50:08.385485+00:00",
+  "decision": "Root accepts revised design for staged bounded implementation only.",
+  "design": "docs/swift-reactor-execution-stage-design.md",
+  "design_sha256": "59708209438de44811f0ba7efa941ca9c9778067159e94728031f5a44a9af07b",
+  "review": "verification/swift-reactor-execution-design-review/receipt.json",
+  "review_sha256": "a9a2bc360328b61954f3bc225e9fcc270ab9b194345f879c79b97903080562f4",
+  "resolved_refinements": [
+    "One shared reservation/deadline authority; unchanged WASI context remains sole WASI meter under private checked dispatch.",
+    "At most86 inline tickets with aggregate decoded-entry reservations and no growing registry."
+  ],
+  "next_stage": "Freeze and implement only private runtime control, tickets, budgets and copied diagnostics before dependent cache/WASI/executor changes. Private proof descriptor seams require root coordination.",
+  "limits": [
+    "No full reactor instantiation/initialize/invoke is authorized by this receipt; synthetic same-ABI tests permitted.",
+    "No legacy literal owner layout/API/error/budget/policy changes.",
+    "No raised runtime ceilings to make the target finish.",
+    "No production/signing/publication/physical-device/published-consumer/GA acceptance."
+  ]
+}

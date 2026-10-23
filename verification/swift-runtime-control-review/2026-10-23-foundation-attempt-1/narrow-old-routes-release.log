@@ -1,0 +1,96 @@
+$ cargo test --target-dir /var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-runtime-control-review-bonhqlbv/target --all-features --release --test interpreter --test span_function_cache --test span_execution --test swift_wasi
+   Compiling mixer-vm v0.1.0 (/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-runtime-control-review-bonhqlbv/vm)
+    Finished `release` profile [optimized] target(s) in 2.55s
+     Running tests/interpreter.rs (/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-runtime-control-review-bonhqlbv/target/release/deps/interpreter-44e38d4c832ccc3c)
+
+running 35 tests
+test branch_preserves_block_result_and_discards_intermediates ... ok
+test cancellation_before_execution ... ok
+test duplicate_ordered_sections_bad_utf8_and_length_are_rejected ... ok
+test br_if_preserves_false_label_value ... ok
+test arithmetic_wrap_and_arguments ... ok
+test effective_address_does_not_wrap32 ... ok
+test branch_to_function_and_return ... ok
+test direct_call_and_locals ... ok
+test host_abort_is_a_structured_failure ... ok
+test br_table_default_and_index ... ok
+test infinite_loop_is_metered ... ok
+test division_traps_and_remainder_overflow_semantics ... ok
+test if_result_both_arms ... ok
+test host_imports_are_metered_and_capability_closed ... ok
+test integer64_signed_leb_roundtrips ... ok
+test invalid_import_signatures_memory_alignment_and_immutable_globals_reject ... ok
+test invalid_stack_types_and_indices_fail_validation ... ok
+test loop_countdown_and_branch ... ok
+test malformed_leb_width_and_unused_bits ... ok
+test malformed_control_is_rejected ... ok
+test memory_limit_flags_are_bytes_and_cannot_use_leb_aliases ... ok
+test memory_growth_is_capped_and_zero_filled ... ok
+test memory_load_store_and_data ... ok
+test mutable_globals_persist_per_instance ... ok
+test narrow_load_sign_extends ... ok
+test narrowed_instance_limits_revalidate_control_and_source_size ... ok
+test non_authorizing_inventory_records_unsupported_float_and_bulk_memory ... ok
+test oob_store_and_segment_trap ... ok
+test recursion_uses_explicit_bounded_frames ... ok
+test resource_limits_fail_closed ... ok
+test unreachable_stack_polymorphism_is_valid ... ok
+test unsupported_opcodes_fail_before_execution_and_partial_inventory_is_honest ... ok
+test wrong_arguments_and_unknown_exports_fail ... ok
+test decoder_mutation_smoke_has_no_panics ... ok
+test mutated_executable_modules_never_panic_with_tight_execution_budgets ... ok
+
+test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/span_execution.rs (/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-runtime-control-review-bonhqlbv/target/release/deps/span_execution-330ecd0421077a11)
+
+running 16 tests
+test cache_callee_lifetime_work_exhaustion_releases_every_frame ... ok
+test rejected_pre_pinned_cache_reports_no_live_owner_resources ... ok
+test fuel_work_values_controls_call_depth_and_pin_failures_cleanup ... ok
+test exact_state_reservations_growth_overlap_and_terminal_resource_denial ... ok
+test callee_cache_failure_preserves_callsite_and_cleans_caller_pin ... ok
+test profiles_aggregate_arena_boundaries_and_narrowing_budgets ... ok
+test state_survives_success_and_prior_guest_writes_survive_trap ... ok
+test exact_import_accounting_sticky_abort_and_host_budget ... ok
+test direct_recursive_calls_arguments_locals_if_and_return ... ok
+test loop_br_if_br_table_blocks_select_and_unreachable_cleanup ... ok
+test numeric_nan_signed_zero_overflow_and_conversion_traps_preserve_source ... ok
+test table_order_structural_signature_null_bounds_and_mismatch ... ok
+test every_load_and_store_width_signedness_and_float_bits ... ok
+test ordered_data_and_bulk_memmove_fill_growth_and_size ... ok
+test complete_scalar_numeric_and_saturating_dispatch_matches_frozen_semantics ... ok
+test invocation_admission_is_terminal_and_cancellation_before_construct_or_dispatch ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/span_function_cache.rs (/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-runtime-control-review-bonhqlbv/target/release/deps/span_function_cache-bedfafa913eec58a)
+
+running 9 tests
+test invalid_uncalled_code_never_produces_cache_authority ... ok
+test cache_pins_support_nested_frames_and_lru_pressure ... ok
+test imports_remain_metadata_and_absolute_defined_index_is_preserved ... ok
+test construction_overlap_counts_pinned_payload_and_oversize_keeps_resident ... ok
+test zero_count_groups_limits_and_import_indexes_fail_closed ... ok
+test source_owner_wrong_owner_move_release_and_forgotten_pins ... ok
+test oversize_cancel_work_and_capacity_boundaries ... ok
+test numeric_table_indirect_and_variable_payloads_are_decoded ... ok
+test every_work_credit_boundary_and_repeated_eviction_is_charged ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/swift_wasi.rs (/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-runtime-control-review-bonhqlbv/target/release/deps/swift_wasi-f3e10c6e227500cb)
+
+running 9 tests
+test budget_widening_and_exit_unsigned_terminal_state ... ok
+test exact_multivector_log_combined_capacity_zero_progress_and_zero_length ... ok
+test fixed_argv_and_empty_environment_are_little_endian_and_atomic ... ok
+test granted_sink_metadata_denials_close_and_captures_are_context_local ... ok
+test exact_all_34_names_and_complete_signatures ... ok
+test real_os_random_and_clock_services_and_independent_grants ... ok
+test every_declared_operation_has_an_explicit_denied_or_layout_outcome ... ok
+test iovec_fault_alias_unsigned_and_boundaries_fail_without_progress ... ok
+test dispatch_types_and_denied_paths_cannot_bypass_the_boundary ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

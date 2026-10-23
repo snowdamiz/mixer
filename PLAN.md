@@ -320,3 +320,26 @@ The same host driver is now wired into Linux CI, whose first run is pending.
 These checks use host Looper simulations. Actual Swift/JNI binding, consumer joins,
 view cleanup, Android display/health and device qualification remain open. No
 Android signed UI mode or GA gate is enabled by this private C prerequisite.
+
+
+The private Swift runtime-control foundation now consumes the exact validated
+proof, admits seven categories under one combined ceiling, and keeps cumulative
+fuel/work/host limits, earliest deadlines and immutable failure diagnostics.
+Storage drops precede refunds; an unclosed enlarged construction phase stays
+charged. Independent adversarial probes cover 4,000 ledger operations, destructor
+unwind and foreign proof cleanup. Root combined Debug/Release each pass 287 tests
+plus nine explicit reference checks; 563 evidence bindings match in
+`verification/swift-runtime-control-root-review/receipt.json`. Scoped lint passes;
+the preserved broader lint attempt still has unrelated existing test warnings.
+This foundation selects no execution route. Swift cache/executor/WASI composition
+and the bounded target attempt remain subsequent work. No full reactor execution,
+physical qualification, published consumer or GA acceptance is claimed.
+
+Hosted22d048c now confirms the HTTP and dependency-guard repairs but fails a later
+cold-start test whose directory-created signal precedes native queue admission.
+A test-only ordering repair is under deterministic review. Hosted d6505ac then
+fails a separate process-wide VM allocation observer by four calls and 900 bytes;
+its exact source is unknown. Remaining observers of that form are being repaired.
+The new Android host CI step was skipped by that earlier failure, not passed.
+Original logs remain in `verification/github-ci-22d048c/` and
+`verification/github-ci-d6505ac/`. No failed CI run or skipped gate is relabeled.

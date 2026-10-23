@@ -14,6 +14,23 @@ impl Cancellation {
     pub fn is_cancelled(&self) -> bool {
         self.0.load(Ordering::Relaxed)
     }
+
+    /// Requested layout of the one shared backing allocation attributed by the
+    /// experimental Swift runtime. This is a qualified-toolchain reservation
+    /// model, not an allocator-overhead/RSS claim or a stable std ABI promise.
+    /// The feature's allocator observation must match this layout on each target.
+    #[cfg(feature = "experimental-swift-reactor")]
+    pub(crate) fn requested_backing_layout() -> std::alloc::Layout {
+        // Current platform Arc storage has two atomic reference counts followed
+        // by its value, with C layout and minimum alignment two. No backing
+        // pointer is inspected, dereferenced or reconstructed here.
+        #[repr(C, align(2))]
+        struct BackingReservation {
+            counts: [std::sync::atomic::AtomicUsize; 2],
+            flag: AtomicBool,
+        }
+        std::alloc::Layout::new::<BackingReservation>()
+    }
 }
 pub struct Instance {
     module: Module,

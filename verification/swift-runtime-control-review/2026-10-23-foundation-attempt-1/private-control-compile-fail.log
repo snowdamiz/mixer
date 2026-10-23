@@ -1,0 +1,18 @@
+$ cargo check --target-dir /var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-runtime-control-review-bonhqlbv/target
+     Locking 1 package to highest compatible version
+    Checking mixer-vm v0.1.0 (/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-runtime-control-review-bonhqlbv/vm)
+    Checking runtime-control-private-probe v0.0.0 (/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-runtime-control-review-bonhqlbv/external)
+error[E0603]: module `control` is private
+ --> src/main.rs:1:43
+  |
+1 | use mixer_vm::experimental_swift_reactor::control::RuntimeControl;
+  |                                           ^^^^^^^ private module
+  |
+note: the module `control` is defined here
+ --> /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-runtime-control-review-bonhqlbv/vm/src/experimental_swift_reactor/mod.rs:7:1
+  |
+7 | pub(crate) mod control;
+  | ^^^^^^^^^^^^^^^^^^^^^^
+
+For more information about this error, try `rustc --explain E0603`.
+error: could not compile `runtime-control-private-probe` (bin "runtime-control-private-probe") due to 1 previous error

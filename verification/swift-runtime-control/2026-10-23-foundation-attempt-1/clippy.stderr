@@ -1,0 +1,83 @@
+    Checking mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/vm)
+error: field assignment outside of initializer for an instance created with Default::default()
+  --> tests/experimental_guest_ui_allocations.rs:80:5
+   |
+80 |     p.memory = Some(vec![1, 1, 32, 32]);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: consider initializing the variable with `fixture::Program { memory: Some(vec![1, 1, 32, 32]), ..Default::default() }` and removing relevant reassignments
+  --> tests/experimental_guest_ui_allocations.rs:79:5
+   |
+79 |     let mut p = fixture::Program::default();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#field_reassign_with_default
+   = note: `-D clippy::field-reassign-with-default` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::field_reassign_with_default)]`
+
+error: could not compile `mixer-vm` (test "experimental_guest_ui_allocations") due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: field assignment outside of initializer for an instance created with Default::default()
+   --> tests/experimental_guest_ui_validation.rs:123:5
+    |
+123 |     p.unknown_import = true;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+note: consider initializing the variable with `fixture::Program { unknown_import: true, ..Default::default() }` and removing relevant reassignments
+   --> tests/experimental_guest_ui_validation.rs:122:5
+    |
+122 |     let mut p = Program::default();
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#field_reassign_with_default
+    = note: `-D clippy::field-reassign-with-default` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::field_reassign_with_default)]`
+
+error: field assignment outside of initializer for an instance created with Default::default()
+   --> tests/experimental_guest_ui_validation.rs:128:5
+    |
+128 |     p.start_section = true;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^
+    |
+note: consider initializing the variable with `fixture::Program { start_section: true, ..Default::default() }` and removing relevant reassignments
+   --> tests/experimental_guest_ui_validation.rs:127:5
+    |
+127 |     let mut p = Program::default();
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#field_reassign_with_default
+
+error: field assignment outside of initializer for an instance created with Default::default()
+   --> tests/experimental_guest_ui_validation.rs:145:5
+    |
+145 |     p.memory = Some(vec![1, 1, 0, 0]);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+note: consider initializing the variable with `fixture::Program { memory: Some(vec![1, 1, 0, 0]), ..Default::default() }` and removing relevant reassignments
+   --> tests/experimental_guest_ui_validation.rs:144:5
+    |
+144 |     let mut p = Program::default();
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#field_reassign_with_default
+
+error: field assignment outside of initializer for an instance created with Default::default()
+   --> tests/experimental_guest_ui_validation.rs:161:9
+    |
+161 |         p.memory = Some(memory);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+note: consider initializing the variable with `fixture::Program { memory: Some(memory), ..Default::default() }` and removing relevant reassignments
+   --> tests/experimental_guest_ui_validation.rs:160:9
+    |
+160 |         let mut p = Program::default();
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#field_reassign_with_default
+
+error: manual creation of a dangling pointer
+   --> tests/experimental_guest_ui_validation.rs:225:17
+    |
+225 |                 1usize as *const u8,
+    |                 ^^^^^^^^^^^^^^^^^^^ help: use: `std::ptr::dangling::<u8>()`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#manual_dangling_ptr
+    = note: `-D clippy::manual-dangling-ptr` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::manual_dangling_ptr)]`
+
+error: could not compile `mixer-vm` (test "experimental_guest_ui_validation") due to 5 previous errors
