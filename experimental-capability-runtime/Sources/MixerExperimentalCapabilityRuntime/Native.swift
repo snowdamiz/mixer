@@ -1,6 +1,7 @@
 import Foundation
 import CMixerVMCapability
 import MixerCapabilities
+@_spi(GuestUIV1) import MixerGuest
 
 enum NativeMessage {
     case none
@@ -18,6 +19,25 @@ struct NativeConstructionFailure: Error {
 /// Immutable retained handle. Only the pump uses scratch or ordinary operations;
 /// the separate close path may race, using the C registry's reviewed contract.
 final class NativeCapabilitySession: @unchecked Sendable {
+    static func validateGuestUI(module: Data, configuration: ExperimentalCapabilityConfiguration) throws {
+        var vm = configuration.vm, capability = configuration.capability, report = MixerVmReport()
+        let status = module.withUnsafeBytes { bytes in
+            mixer_vm_capability_guest_ui_validate_v1(bytes.bindMemory(to: UInt8.self).baseAddress, bytes.count,
+                &vm, &capability, &report)
+        }
+        do {
+            try NativeDiagnostics.check(status, report, operation: .validation, moduleLength: module.count, configuration: configuration)
+        } catch let error as ExperimentalCapabilityError {
+            // Consume only the checked typed tuple from this fixed validator.
+            // Never infer a UI protocol reason from a diagnostic string.
+            if error.nativeStatus == 1, error.failure.operation == .validation,
+               error.failure.kind == .validation(.requiredDefinedExport),
+               let location = error.failure.location, location.functionIndex == nil, location.byteOffset == 0 {
+                throw GuestUIProtocolFailureV1(phase: .validation, code: .requiredExport)
+            }
+            throw error
+        }
+    }
     let handle: UInt64
     private let moduleLength: Int
     private let configuration: ExperimentalCapabilityConfiguration

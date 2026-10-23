@@ -92,16 +92,18 @@ public final class CapabilityColdStartRuntime: Sendable {
 final class CapabilityColdStartCloseCore: @unchecked Sendable {
     let control: CapabilityColdStartControl
     let worker: CapabilityColdStartWorker
+    let guestUIBinding: CapabilityGuestUIPresentationBinding?
     private let lock = NSLock()
     private var closeStarted = false
     private var closeJob: Task<Void, Never>?
     init(configuration: CapabilityRecoveryConfiguration, installed: InstalledMaterial,
-         environment: CapabilityRecoveryEnvironment, reservation: CapabilityAttemptReservation) throws {
+         environment: CapabilityRecoveryEnvironment, reservation: CapabilityAttemptReservation,
+         guestUIBinding: CapabilityGuestUIPresentationBinding? = nil) throws {
         let admission = try reservation.issueStoreAdmission()
         let control = CapabilityColdStartControl(reservation: reservation)
-        self.control = control
+        self.control = control; self.guestUIBinding = guestUIBinding
         worker = CapabilityColdStartWorker(configuration: configuration, installed: installed,
-            environment: environment, admission: admission, control: control)
+            environment: environment, admission: admission, control: control, guestUIBinding: guestUIBinding)
     }
     func requestClose(_ cause: CapabilityAttemptLocalStop) {
         control.requestClose(cause)

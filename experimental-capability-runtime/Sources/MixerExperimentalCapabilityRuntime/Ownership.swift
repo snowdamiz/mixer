@@ -1,6 +1,7 @@
 import Foundation
 import Dispatch
 import MixerCapabilities
+@_spi(GuestUIV1) import MixerGuest
 
 final class Locked<Value>: @unchecked Sendable {
     private let lock = NSLock()
@@ -91,6 +92,7 @@ final class NativeExitOwner: @unchecked Sendable {
     let configuration: ExperimentalCapabilityConfiguration
     private let permit: ConstructionPermit
     private let lifecycle: AdapterCloseCore?
+    private let guestUI: GuestUITurns?
     let control = Locked(Control())
     private var source: DispatchSourceUserDataAdd?
     private var timer: DispatchSourceTimer?
@@ -104,9 +106,10 @@ final class NativeExitOwner: @unchecked Sendable {
     private var rateTime = ContinuousClock.now
 
     init(native: NativeCapabilitySession, host: CapabilityHost, configuration: ExperimentalCapabilityConfiguration,
-         permit: ConstructionPermit, lifecycle: AdapterCloseCore? = nil) {
+         permit: ConstructionPermit, lifecycle: AdapterCloseCore? = nil, exchange: GuestUIExchangeV1? = nil) {
         self.native = native; self.host = host; self.configuration = configuration
         self.permit = permit; self.lifecycle = lifecycle; rateTokens = Double(configuration.dispatchBurst)
+        guestUI = exchange.map(GuestUITurns.init)
     }
     func start() {
         let source = DispatchSource.makeUserDataAddSource(queue: ExperimentalQueues.guest)
@@ -129,6 +132,13 @@ final class NativeExitOwner: @unchecked Sendable {
         if needsSignal { source?.add(data: 1) }
     }
     func stop(_ failure: String? = nil, quarantined: Bool = false, detail: ExperimentalCapabilityFailure? = nil) {
+        if let guestUI {
+            let cause: GuestUIExternalStopV1
+            if detail?.kind == .deadlineExceeded { cause = .deadline }
+            else if detail?.kind == .cancelled { cause = .cancelled }
+            else { cause = failure == nil ? .closed : .bridge }
+            guestUI.exchange.stop(cause)
+        }
         let transition = control.withLock { state -> (Bool, ExperimentalCapabilityFailure?) in
             var published: ExperimentalCapabilityFailure?
             if state.status.failure == nil, let failure {
@@ -161,6 +171,8 @@ final class NativeExitOwner: @unchecked Sendable {
         control.withLock { $0.hostCloseFinished = true }; signal()
     }
     private func recordFailure(_ error: any Error) {
+        let failure = ExperimentalCapabilityError.detail(error)
+        guestUI?.exchange.stop(failure.kind == .deadlineExceeded ? .deadline : failure.kind == .cancelled ? .cancelled : .bridge)
         let code = (error as? ExperimentalCapabilityError)?.code ?? "bridge_failure"
         let detail = ExperimentalCapabilityError.detail(error)
         let published = control.withLock { state -> Bool in
@@ -175,6 +187,14 @@ final class NativeExitOwner: @unchecked Sendable {
         if status == nil || status == 4 { lifecycle?.quarantine() }
     }
     private func fail(_ error: any Error) {
+        if let failure = error as? GuestUIProtocolFailureV1 {
+            guestUI?.exchange.recordProtocolFailure(failure)
+            stop(); return
+        }
+        if error is GuestUIControlRejectionV1 {
+            if guestUI?.stopped == true { stop() }
+            return
+        }
         let e = error as? ExperimentalCapabilityError
         stop(e?.code ?? "bridge_failure", quarantined: e?.nativeStatus == nil || e?.nativeStatus == 4,
              detail: ExperimentalCapabilityError.detail(error))
@@ -185,7 +205,7 @@ final class NativeExitOwner: @unchecked Sendable {
         // only that checked status, never malformed metadata or retained ack.
         closed && (error as? ExperimentalCapabilityError)?.nativeStatus == 3
     }
-    func command<Value: Sendable>(turn: Bool = false, enableCutoff: UInt64? = nil,
+    func command<Value: Sendable>(turn: Bool = false, enableCutoff: UInt64? = nil, uiComposite: Bool = false,
                                   _ body: @escaping @Sendable () throws -> Value) async throws -> Value {
         try await withCheckedThrowingContinuation { continuation in
             let accepted = control.withLock { state in
@@ -215,7 +235,9 @@ final class NativeExitOwner: @unchecked Sendable {
                         // This closure contains only checked native operations.
                         // Ordinary API/busy rejection3 leaves the owner usable;
                         // malformed reports/values have no status and fail shut.
-                        if (error as? ExperimentalCapabilityError)?.nativeStatus != 3 { fail(error) }
+                        if uiComposite {
+                            if !closedRejection(error) { fail(error) }
+                        } else if (error as? ExperimentalCapabilityError)?.nativeStatus != 3 { fail(error) }
                         control.withLock { $0.commandBusy = false }
                         continuation.resume(throwing: error)
                     }
@@ -227,9 +249,33 @@ final class NativeExitOwner: @unchecked Sendable {
         }
     }
     func startup() async throws -> ExperimentalCapabilityInvocation {
-        try await command(turn: true) { [self] in
+        try requireGeneric()
+        return try await command(turn: true) { [self] in
             let result = try native.startup(); started = true; return result
         }
+    }
+    func requireGeneric() throws {
+        guard guestUI == nil else {
+            throw ExperimentalCapabilityError("guest_ui_fixed_operations_required", kind: .callerAPI(.invalidLifecycleState))
+        }
+    }
+    func startupGuestUI() async throws {
+        guard let guestUI else {
+            throw ExperimentalCapabilityError("guest_ui_session_required", kind: .callerAPI(.invalidLifecycleState))
+        }
+        try await command(uiComposite: true) { [self] in
+            let before = guestUI.nativeTurns
+            defer { _ = recordGuestUITurns(since: before) }
+            try GuestUITurns.requireLive(guestUI.exchange)
+            try guestUI.startup(native)
+            started = true; readyHint = true; drainHint = true
+        }
+    }
+    private func recordGuestUITurns(since before: UInt64) -> Int {
+        guard let guestUI else { return 0 }
+        let count = guestUI.nativeTurns - before
+        control.withLock { $0.status.turns &+= count }
+        return Int(count)
     }
     func enableOwned(noLaterThanUptimeNanoseconds cutoff: UInt64) async throws {
         guard lifecycle != nil else {
@@ -239,6 +285,7 @@ final class NativeExitOwner: @unchecked Sendable {
     }
     func enable(cutoff: UInt64? = nil) async throws {
         try await command(enableCutoff: cutoff) { [self] in
+            if let guestUI { try GuestUITurns.requireLive(guestUI.exchange) }
             try native.enable()
             if !closed { effectsOpen = true }
         }
@@ -295,6 +342,7 @@ final class NativeExitOwner: @unchecked Sendable {
         }
         let cutoff = beginning.advanced(by: .milliseconds(Int64(configuration.batchMilliseconds)))
         var turns = 0
+        if guestUI?.stopped == true { stop() }
         let command = control.withLock { state in let c = state.command; state.command = nil; return c }
         if let command {
             let before = status.turns; command()
@@ -307,6 +355,7 @@ final class NativeExitOwner: @unchecked Sendable {
                 // Cancellation controls have priority inside C. A full payload
                 // scratch makes too-small impossible for valid metadata.
                 for _ in 0..<16 where ContinuousClock.now < cutoff {
+                    if guestUI?.stopped == true { stop() }
                     if closed { break }
                     switch try native.take() {
                     case .none: drainHint = false; break
@@ -338,15 +387,25 @@ final class NativeExitOwner: @unchecked Sendable {
             let index = cursor; cursor = (cursor + 1) % 8
             if let ticket = control.withLock({ $0.tickets[index] }) { process(ticket, cutoff: cutoff) }
         }
-        if !closed && started && readyHint {
+        if !closed && started && (readyHint || guestUI != nil) {
             while turns < Int(configuration.batchTurns) && ContinuousClock.now < cutoff {
+                let before = guestUI?.nativeTurns
+                defer { if let before { turns += recordGuestUITurns(since: before) } }
                 do {
-                    if !(try native.wake()) { readyHint = false; break }
+                    if let guestUI {
+                        guard let didInvoke = try guestUI.next(native, ready: readyHint) else { break }
+                        if !didInvoke { readyHint = false; break }
+                    } else if !(try native.wake()) { readyHint = false; break }
+                    readyHint = true
                     drainHint = true // A successful wake can publish new calls.
-                    turns += 1; control.withLock { $0.status.turns &+= 1 }
+                    if guestUI == nil { turns += 1; control.withLock { $0.status.turns &+= 1 } }
                 } catch {
                     if closedRejection(error) { break }
-                    if let e = error as? ExperimentalCapabilityError, e.code == "session_busy" { break }
+                    if guestUI != nil, let rejection = error as? GuestUIControlRejectionV1 {
+                        if rejection == .closed { stop() }
+                        break
+                    }
+                    if guestUI == nil, let e = error as? ExperimentalCapabilityError, e.code == "session_busy" { break }
                     fail(error); break
                 }
             }
@@ -399,7 +458,7 @@ final class NativeExitOwner: @unchecked Sendable {
                 control.withLock { $0.tickets = Array(repeating: nil, count: 8); $0.status.drained = true }
                 if let lifecycle { lifecycle.nativeDidDrain() } else { permit.release() }
             }
-        } else { armTimer(active || readyHint || drainHint) }
+        } else { armTimer(guestUI != nil || active || readyHint || drainHint) }
     }
     private static func nanoseconds(_ elapsed: Duration) -> UInt64 {
         let value = elapsed.components
@@ -420,6 +479,7 @@ final class NativeExitOwner: @unchecked Sendable {
         readyHint = true; signal()
     }
     private func admissionPhase(_ ticket: NativeTicket, cutoff: ContinuousClock.Instant) {
+        if guestUI?.stopped == true { stop(); return }
         guard ticket.state.withLock({ !$0.admissionStarted && $0.accepted == nil }) else { return }
         if ticket.state.withLock({ $0.cancelRequested && !$0.admissionStarted }) {
             local(ticket, outcome: nil); return
@@ -437,6 +497,7 @@ final class NativeExitOwner: @unchecked Sendable {
         if case .http(let args) = operation { timeout = args.timeoutMilliseconds }
         else { timeout = configuration.timeoutMilliseconds }
         do {
+            try guestUI?.requireEffectAdmission()
             let sample = ContinuousClock.now
             let remaining = try native.remaining(token: ticket.token, operation: ticket.operation, timeout: timeout)
             guard remaining > 0 else { local(ticket, outcome: nil); return }
@@ -453,6 +514,10 @@ final class NativeExitOwner: @unchecked Sendable {
                 await performSubmit(ticket)
                 finishWorker(ticket)
             }
+        } catch let rejection as GuestUIControlRejectionV1 {
+            if rejection == .busy { return } // Wait for effects confirmation.
+            fail(rejection)
+            local(ticket, outcome: nil)
         } catch {
             if !closedRejection(error) { fail(error) }
             local(ticket, outcome: nil) // No host reservation/worker began.
@@ -579,6 +644,9 @@ final class NativeExitOwner: @unchecked Sendable {
             localFromWorker(ticket, outcome: ContinuousClock.now >= deadline ? .failure(.deadlineExceeded) : nil); return
         }
         do {
+            // This shared-guard checkpoint is the UI effect admission point.
+            // A later stop cannot promise rollback of this admitted request.
+            try guestUI?.requireEffectAdmission()
             try await host.submitObserved(bytes, noLaterThan: deadline,
                 deliver: { [self] in delivery($0, ticket: ticket) }, didExit: { [self] in exited(ticket) })
             ticket.state.withLock { $0.accepted = true }

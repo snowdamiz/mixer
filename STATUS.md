@@ -731,8 +731,8 @@ An independent retained-Release public C probe passes 135 checks; root source
 and evidence review is recorded in `verification/guest-ui-native-root-review.json`.
 The installed-mode gate passes 12 scoped functions in Debug, Release and TSan,
 including capability-only rejection before a full reservation pool or filesystem
-access. Its receipt uses frozen pre-UI dependencies. The bounded exchange,
-fixed bridge composites, signed facade and native presentation remain in progress.
+access. Its receipt uses frozen pre-UI dependencies. The subsequent bounded
+exchange, fixed bridge and signed Apple presentation checkpoint is described below.
 All three hosted jobs passed for b02b76f and 51aafe8; receipts are retained.
 No physical-device or UI health qualification is inferred from these checks.
 
@@ -740,4 +740,31 @@ Hosted run39948346991 at1adb25c passed VM/services but Swift stopped at the
 old27-symbol archive inventory. The additive UI packager repair checks exactly
 28 reviewed symbols and all three pinned headers; 24 policy tests pass in
 normal and optimized Python. See verification/guest-ui-builder-ci-repair/receipt.json.
-Updated immutable native package and hosted CI qualification remain pending.
+Hosted run39949617183 at32725fa now passes all three jobs; see
+verification/github-ci-32725fa/receipt.json. The immutable native-only package
+passes host C tests and iOS, simulator and Android C links with exactly28 symbols.
+
+The bounded guest UI exchange, fixed native bridge, explicit signed Apple facade
+and native presentation model now have a reviewed implementation checkpoint.
+SDK Debug/Release42 and scoped TSan19 tests pass; independent review repaired
+Unicode byte-identity substitution and unseen terminal-event consumption.
+The packaged native-only archive passes the full48 bridge tests in each host
+mode, including ordinary-trust local TLS rejection. The combined signed runtime
+passes113 tests per Debug/Release/TSan mode. Actual signed event handling writes
+app-private storage only after UI validation, distinguishes committed success
+from permission denial, and retains uncertainty when a later wake frame fails.
+Independent activation probes verify post-intent reopen diagnostics and a close
+race while MainActor binding is delayed. Presentation tests cover final event
+retirement and duplicate attachments;12 tests pass per Debug/Release and11 under
+TSan, with the positive visible-window check explicitly pending.
+Ordinary public imports cannot access the render host, inject events, construct
+the presentation model, mutate its state or report a health milestone. The full
+composed activation module builds for official iOS and Android targets; the
+signed native screen facade is Apple-only. Root matched693 source/evidence/log/
+dependency bindings in verification/guest-ui-integration-root-review.json.
+Visible native display, an actual native button click, mobile app/lifecycle
+qualification, Android signed UI integration, full Swift guest execution and the
+delivery-size budget remain open. The first Mac display probes were occluded and
+correctly produced no health receipt. This checkpoint grants no FieldLog or GA
+acceptance. Phones remain disconnected. Hosted CI for this newer UI checkpoint
+will be inspected after its push.

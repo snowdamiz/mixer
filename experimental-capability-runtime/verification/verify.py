@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[2]
 PACKAGE = ROOT / "experimental-capability-runtime"
 parser = argparse.ArgumentParser()
 parser.add_argument("--name", required=True)
-parser.add_argument("--stage-root", type=Path, default=PACKAGE / "build-verification/local/qualified-final-v3")
+parser.add_argument("--stage-root", type=Path, default=PACKAGE / "build-verification/local/guest-ui-1adb25c-v2")
 args = parser.parse_args()
 if not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,63}", args.name):
     raise SystemExit("name must be a short lowercase fresh directory component")
@@ -30,7 +30,7 @@ XENV = {"DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"}
 AENV = {"DEVELOPER_DIR": "/Applications/Xcode_26.6.app/Contents/Developer"}
 SWIFT = "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift"
 SDKS = "/Users/andreyyurlov/.swiftpm/swift-sdks"
-PIN = "b25e3b7de2391a80d12e7fd75e60903495bec120"
+PIN = "1adb25c48a8723f56ed2649712fe5e357920c53e"
 
 def sha(data): return hashlib.sha256(data).hexdigest()
 def digest(path): return sha(path.read_bytes())
@@ -51,16 +51,22 @@ manifest = "".join(value + "  " + name + "\n" for name, value in baseline.items(
 artifacts = {}
 for target in ["host", "ios", "ios-simulator", "android"]:
     stage = STAGE / target
-    artifacts[target] = {str(p.relative_to(STAGE)): digest(p) for p in [stage / "include/mixer_vm.h", stage / "include/mixer_vm_capability.h", stage / "lib/libmixer_vm_capability_experimental.a", stage / "receipt.json"]}
+    native = json.loads((stage / "receipt.json").read_bytes())
+    if native["source_revision"] != PIN or native["features"] != ["experimental-capability-mailbox", "experimental-capability-guest", "experimental-capability-native"]:
+        raise SystemExit("native package does not match the immutable native-only pin")
+    if len(native["public_C_symbols"]) != 28 or native["public_C_symbols"].count("mixer_vm_capability_guest_ui_validate_v1") != 1:
+        raise SystemExit("native package guest UI public symbol inventory mismatch")
+    artifacts[target] = {str(p.relative_to(STAGE)): digest(p) for p in [stage / "include/mixer_vm.h", stage / "include/mixer_vm_capability.h", stage / "include/mixer_vm_guest_ui.h", stage / "lib/libmixer_vm_capability_experimental.a", stage / "receipt.json"]}
     assert artifacts[target][target + "/include/mixer_vm_capability.h"] == "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6"
     assert artifacts[target][target + "/include/mixer_vm.h"] == "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd"
-assert artifacts["host"]["host/lib/libmixer_vm_capability_experimental.a"] == "a015ff65980422dd0b9c5cad2e28741d1e5ba478e0f657dcaedf75477d553b72"
+    assert artifacts[target][target + "/include/mixer_vm_guest_ui.h"] == "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5"
+assert artifacts["host"]["host/lib/libmixer_vm_capability_experimental.a"] == "4d3b6dc36ea034d5604299752d560cbbc0615002b6b5ef4e5c25bbb3cb7c6120"
 receipt = {"status": "running", "startedAt": datetime.datetime.now(datetime.timezone.utc).isoformat(),
     "repositoryHeadAtRun": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
     "source": baseline, "sourceManifestSHA256": sha(manifest.encode()), "frozenSourceExport": str(SOURCE),
     "nativeRevision": PIN, "nativeArtifacts": artifacts, "stageRoot": str(STAGE), "commands": [],
     "scope": "Implementer lifecycle SPI, additive validation and existing Swift bridge qualification; real native admission, concrete storage and normal-trust TLS failure; separate package/single experimental archive",
-    "limitations": ["No devices or platform execution; cross compile/link only", "Rust archive/system frameworks are not Swift TSan instrumented", "Logical byte/worker counters exclude allocator backing, DTOs and Task/runtime/framework lifetime", "Process allocator/RSS/CPU observations are not hard bounds, no-OOM/no-abort or reclamation proof", "Cooperative batch/VM cutoff can overrun within one admitted operation", "No verified activation, release, identity, publication or GA claim", "Validation cancellation has no C interrupt or latency guarantee; queued cancellation test controls the private serial queue, not native execution", "Local Xcode27.1/Swift6.3.3 only; pinnedCI Xcode26.3 is not installed", "Independent review is separately owned; this receipt is implementer evidence"]}
+    "limitations": ["No devices or platform execution; cross compile/link only", "Rust archive/system frameworks are not Swift TSan instrumented", "Logical byte/worker counters exclude allocator backing, DTOs and Task/runtime/framework lifetime", "Process allocator/RSS/CPU observations are not hard bounds, no-OOM/no-abort or reclamation proof", "Cooperative batch/VM cutoff can overrun within one admitted operation", "No verified activation, release, identity, publication or GA claim", "Validation cancellation has no C interrupt or latency guarantee; queued cancellation test controls the private serial queue, not native execution", "Apple Swift/Xcode and official Swift6.3.3 Android tool versions are captured separately per run; pinnedCI Xcode26.3 is not installed", "Independent review is separately owned; this receipt is implementer evidence"]}
 
 def save(): (OUT / "receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
 def run(name, command, env=None, scope=""):
@@ -87,8 +93,8 @@ package = SOURCE / "experimental-capability-runtime"
 loopback = ["python3", "-B", str(package / "verification/with-loopback.py")]
 for mode, extra in [("debug", []), ("release", ["-c", "release"]), ("tsan", ["--sanitize", "thread"])]:
     command = loopback + ["--output", str(OUT / (mode + "-loopback")), "--", "swift", "test", "--package-path", str(package), "--scratch-path", str(SCRATCH / mode)] + extra + flags("host") + ["-Xswiftc", "-DMIXER_EXPERIMENTAL_LOCAL_TLS_TEST"]
-    record = run("bridge-" + mode, command, scope="Full original real-Wasm/concrete-adapter suite with actual normal-trust loopbackTLS failure")
-    record["expectedTests"] = 35; record["testCountsMatch"] = record.get("passedTests") == [35]
+    record = run("bridge-" + mode, command, scope="Full existing and fixed guest UI real-Wasm/concrete-adapter suite with actual normal-trust loopbackTLS failure")
+    record["expectedTests"] = 48; record["testCountsMatch"] = record.get("passedTests") == [48]
     receipt["commands"].append(record); save()
 record = run("measurement-filtered", ["swift", "test", "--package-path", str(package), "--scratch-path", str(SCRATCH / "debug"), "--filter", "observationsSeparateLogicalPayloadFromAllocatorAndIdleCPU"] + flags("host") + ["-Xswiftc", "-DMIXER_EXPERIMENTAL_LOCAL_TLS_TEST"], scope="Separate filtered process: observational16-idle-owner allocator/RSS/CPU and timer ticks")
 record["expectedTests"] = 1; record["testCountsMatch"] = record.get("passedTests") == [1]

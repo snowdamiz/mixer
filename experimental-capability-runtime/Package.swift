@@ -12,7 +12,12 @@ let package = Package(
             .linkedLibrary("m", .when(platforms: [.linux, .android])),
             .linkedLibrary("dl", .when(platforms: [.linux, .android])),
         ]),
-        .target(name: "MixerExperimentalCapabilityRuntime", dependencies: ["CMixerVMCapability", .product(name: "MixerCapabilities", package: "sdk")]),
+        .target(name: "MixerExperimentalCapabilityRuntime", dependencies: [
+            "CMixerVMCapability",
+            .product(name: "MixerCapabilities", package: "sdk"),
+            .product(name: "MixerGuest", package: "sdk"),
+            .product(name: "MixerUI", package: "sdk"),
+        ]),
         .testTarget(name: "MixerExperimentalCapabilityRuntimeTests", dependencies: ["MixerExperimentalCapabilityRuntime", .product(name: "MixerCapabilities", package: "sdk")]),
     ],
     swiftLanguageModes: [.v6]

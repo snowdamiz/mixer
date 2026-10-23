@@ -11,7 +11,7 @@ installed official NDK. The builder does not install or download any tools.
 
 ```sh
 python3 experimental-capability-runtime/build-vm.py \
-  --revision b25e3b7de2391a80d12e7fd75e60903495bec120 \
+  --revision 1adb25c48a8723f56ed2649712fe5e357920c53e \
   --target host \
   --output /absolute/fresh/output \
   --rustc /absolute/path/to/rustc
@@ -41,8 +41,14 @@ Successful staging contains exactly:
 - `lib/libmixer_vm_capability_experimental.a`
 - `include/mixer_vm_capability.h`
 - `include/mixer_vm.h`
+- `include/mixer_vm_guest_ui.h`
 
-The archive contains both C families and one shared registry. Compile Swift using
+The archive contains the unchanged legacy and capability C APIs plus the additive
+validate-only `mixer_vm_capability_guest_ui_validate_v1` API, with exactly one
+definition of each of the 28 public symbols and one shared registry. The first two
+headers retain their previously qualified bytes. This builder selects only the
+native-to-guest-to-mailbox feature chain; stream/cache features are not enabled.
+Compile Swift using
 `-Xcc -I<output>/include` and link only `-L<output>/lib` plus the distinct library
 name `mixer_vm_capability_experimental`. Never add a Cargo directory to Swift's
 library search path, co-link the default Rust archive, or compose this experimental
@@ -51,7 +57,8 @@ package with the normal `MixerRuntime` product in this slice.
 Only a complete lowercase forty-hex commit object is accepted. Dirty working-tree
 files and moving refs are not build inputs. Required headers and transport bytes
 must match the reviewed constants; the legacy header copies must agree. The
-explicit native-to-guest-to-mailbox feature chain, empty defaults, static target,
+explicit native-to-guest-to-mailbox feature chain with an empty mailbox leaf,
+empty defaults, static target,
 absence of dependencies/build scripts and standard library source path are checked
 before creating output. Cargo then runs `build --locked --offline --release --lib
 --no-default-features --features experimental-capability-native`. These checks are
@@ -97,6 +104,9 @@ python3 -O experimental-capability-runtime/build-tests/test_builder.py
 
 Those temporary Git fixtures probe input and filesystem policy, not native VM
 semantics. Actual pinned host/C and cross-link evidence is recorded separately by
-`run.py`. `local/` contains retained large source exports, static archives, binaries
+`run.py`. Guest UI qualification also links the original public C UI consumer for
+all four targets and runs it on the host, including full-registry validation and
+unchanged capability validation of a guest with an invalid UI signature.
+`local/` contains retained large source exports, static archives, binaries
 and incomplete experiments and is ignored by Git. Checked-in logs/receipts retain
 hashes and scope, without embedding large generated binaries.

@@ -1,0 +1,66 @@
+Building for debugging...
+[4 / 37]
+[5 / 28] MixerCapabilityActivation
+[8 / 31] MixerCapabilityActivation
+[11 / 26] MixerCapabilityActivation
+[16 / 27] MixerCapabilityActivationTests-product
+[17 / 36]
+[21 / 36]
+[25 / 36] MixerCapabilityActivationTests-product
+[30 / 36] MixerCapabilityActivationTests-product
+/Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/Tests/MixerCapabilityActivationTests/GuestUIPresentationModelTests.swift:155:18: warning: weak variable 'weakModel' was never mutated; consider changing to 'let' constant [#VariableNeverMutated::WeakMutability]
+153 |         var binding: CapabilityGuestUIPresentationBinding? = CapabilityGuestUIPresentationBinding()
+154 |         var exchange: GuestUIExchangeV1? = try GuestUIExchangeV1(generation: 1)
+155 |         weak var weakModel = binding?.presentation
+    |                  `- warning: weak variable 'weakModel' was never mutated; consider changing to 'let' constant [#VariableNeverMutated::WeakMutability]
+156 |         weak var weakExchange = exchange
+157 |         let wake = try #require(exchange?.deliveryWake)
+
+/Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/Tests/MixerCapabilityActivationTests/GuestUIPresentationModelTests.swift:156:18: warning: weak variable 'weakExchange' was never mutated; consider changing to 'let' constant [#VariableNeverMutated::WeakMutability]
+154 |         var exchange: GuestUIExchangeV1? = try GuestUIExchangeV1(generation: 1)
+155 |         weak var weakModel = binding?.presentation
+156 |         weak var weakExchange = exchange
+    |                  `- warning: weak variable 'weakExchange' was never mutated; consider changing to 'let' constant [#VariableNeverMutated::WeakMutability]
+157 |         let wake = try #require(exchange?.deliveryWake)
+158 |         let consumer = try await #require(binding).bind(try #require(exchange))
+
+[#VariableNeverMutated]: <https://docs.swift.org/compiler/documentation/diagnostics/variable-never-mutated>
+[#WeakMutability]: <https://docs.swift.org/compiler/documentation/diagnostics/weak-mutability>
+[32 / 36] MixerCapabilityActivationTests-product
+Build complete! (2.41 sec)
+Test Suite 'All tests' started at 2026-10-23 07:51:22.256.
+Test Suite 'All tests' passed at 2026-10-23 07:51:22.256.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite GuestUIPresentationModelTests started.
+◇ Suite GuestUIPresentationWindowTests started.
+◇ Test confirmationControlsPresentationAndNoHostUpdateEarnsReceipt() started.
+◇ Test detachedAndHiddenNativeViewsCannotEarnDisplayObservation() started.
+✔ Test confirmationControlsPresentationAndNoHostUpdateEarnsReceipt() passed after 0.056 seconds.
+◇ Test synchronousActionUsesSoleSlotAndResultWithoutNewFrameReenablesInput() started.
+✔ Test synchronousActionUsesSoleSlotAndResultWithoutNewFrameReenablesInput() passed after 0.005 seconds.
+◇ Test freshBindingResetsHostAndRejectsCallbacksWithIdenticalNumericIdentity() started.
+✔ Test freshBindingResetsHostAndRejectsCallbacksWithIdenticalNumericIdentity() passed after 0.005 seconds.
+◇ Test closeBeforeApplyAndCloseDuringPublishedApplyRetireBeforeConsumerReturns() started.
+✔ Test closeBeforeApplyAndCloseDuringPublishedApplyRetireBeforeConsumerReturns() passed after 0.001 seconds.
+◇ Test rebindingRequiresPreviousRetirementWithoutStealingNextReader() started.
+✔ Test rebindingRequiresPreviousRetirementWithoutStealingNextReader() passed after 0.001 seconds.
+◇ Test parkedConsumerRetainsNeitherModelNorExchange() started.
+✔ Test parkedConsumerRetainsNeitherModelNorExchange() passed after 0.001 seconds.
+◇ Test duplicateAttachmentFailsTypedAndStopInvalidatesCapturedTicket() started.
+✔ Test duplicateAttachmentFailsTypedAndStopInvalidatesCapturedTicket() passed after 0.003 seconds.
+◇ Test revisionChangeInvalidatesUnobservedNativeTicket() started.
+✔ Test revisionChangeInvalidatesUnobservedNativeTicket() passed after 0.006 seconds.
+✔ Suite GuestUIPresentationModelTests passed after 0.078 seconds.
+✔ Test detachedAndHiddenNativeViewsCannotEarnDisplayObservation() passed after 0.145 seconds.
+◇ Test visibleNativeWindowCompletesDisplayAndStopPreventsLaterObservation() started.
+✘ Test visibleNativeWindowCompletesDisplayAndStopPreventsLaterObservation() recorded an issue at GuestUIPresentationModelTests.swift:27:9: Expectation failed: condition()
+↳ presentation state failed to settle within five seconds
+↳ condition() → false
+✘ Test visibleNativeWindowCompletesDisplayAndStopPreventsLaterObservation() failed after 5.019 seconds with 1 issue.
+✘ Suite GuestUIPresentationWindowTests failed after 5.165 seconds with 1 issue.
+✘ Test run with 10 tests in 2 suites failed after 5.165 seconds with 1 issue.
+Note: Some test targets reported failures:
+  - MixerCapabilityActivationTests (Swift Testing)

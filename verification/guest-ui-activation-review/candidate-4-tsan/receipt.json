@@ -1,0 +1,107 @@
+{
+  "base_receipt": "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation/candidate-4/receipt.json",
+  "base_receipt_sha256": "14531af2ee4d0b9b9d47f129d963e6df797be772da5b735122c36db4666c0970",
+  "candidate": {
+    "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation/.build/candidate-4/tsan/products/libMixerCapabilityActivationGuestUI.dylib",
+    "sha256": "64dad69863a006a65393c50f741b0f52162a9ca795f79e9b0183bb19e9403523"
+  },
+  "mode": "tsan",
+  "input_sha256": {
+    "verification/guest-ui-activation-review/RecoveryDiagnosticsProbe.swift": "aadf83f883441906064914abb76dacfa92ca97e30933dd9a3e0dec5368d1e9a3",
+    "verification/guest-ui-activation-review/CloseBindingProbe.swift": "1e9746aa91d9fdc6bb7ed93a6b68fd616d0987e917c3f6e3fb09e143d043b6d2",
+    "verification/guest-ui-activation-review/probe-inputs/Bundle.swift": "ed98bd543434fcb0a3cc07cd6e40376e3b79964bddaf6008e223000fa804c51d",
+    "verification/guest-ui-activation-review/probe-inputs/GuestUISignedFixture.swift": "53270b40dc6f0cea19fc7d3a7d27424b0d5ef6227f68ae9da175a9d9208c6d76",
+    "verification/guest-ui-activation-review/probe-inputs/GuestUISignedProgram.swift": "b561a9574d3b01e57e9e819c7f20c72de047210c756094e4623bec23a77d6e85"
+  },
+  "runner_sha256": "674a02389395edc76804fb6e1f88284a7e081828d7b49f99976556c0437b62f4",
+  "commands": [
+    {
+      "name": "swift-version",
+      "command": [
+        "swift",
+        "--version"
+      ],
+      "extra_environment": {},
+      "exit_code": 0,
+      "log_sha256": "1b207d5b85484205225f907ee34c5c63fcf5ba15260fad7ceb129191841e9908"
+    },
+    {
+      "name": "link",
+      "command": [
+        "swiftc",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation/.build/candidate-4/tsan/products",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-parse-as-library",
+        "-swift-version",
+        "6",
+        "-warnings-as-errors",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/transitions-qualified-2026-10-23-candidate-3/retained-tsan/products",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-fmodule-map-file=/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation/.build/candidate-4/tsan/modulemaps/CMixerVMCapability.modulemap",
+        "-Xcc",
+        "-fmodule-map-file=/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation/.build/candidate-4/tsan/modulemaps/MixerCapabilityDurableIO.modulemap",
+        "-Xcc",
+        "-fmodule-map-file=/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation/.build/candidate-4/tsan/modulemaps/MixerCapabilityIO.modulemap",
+        "-Xcc",
+        "-fmodule-map-file=/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation/.build/candidate-4/tsan/modulemaps/MixerDurableIO.modulemap",
+        "-Xcc",
+        "-I/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/include",
+        "-sanitize=thread",
+        "-emit-library",
+        "-module-name",
+        "MixerColdStartTests",
+        "-L",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation/.build/candidate-4/tsan/products",
+        "-lMixerCapabilityActivationGuestUI",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-Xlinker",
+        "-rpath",
+        "-Xlinker",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation/.build/candidate-4/tsan/products",
+        "-Xlinker",
+        "-rpath",
+        "-Xlinker",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xlinker",
+        "-rpath",
+        "-Xlinker",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation-review/.build/candidate-4-tsan/ActivationReview.xctest/Contents/MacOS/ActivationReview",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation-review/RecoveryDiagnosticsProbe.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation-review/CloseBindingProbe.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation-review/probe-inputs/Bundle.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation-review/probe-inputs/GuestUISignedFixture.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation-review/probe-inputs/GuestUISignedProgram.swift"
+      ],
+      "extra_environment": {},
+      "exit_code": 0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "tests",
+      "command": [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/xctest",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation-review/.build/candidate-4-tsan/ActivationReview.xctest"
+      ],
+      "extra_environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer",
+        "MIXER_COLD_START_TEST_BUNDLE": "/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/transitions-qualified-2026-10-23-candidate-3/retained-tsan/products/MixerCapabilityActivation_MixerCapabilityActivationTests.bundle",
+        "DYLD_INSERT_LIBRARIES": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/lib/darwin/libclang_rt.tsan_osx_dynamic.dylib"
+      },
+      "exit_code": 0,
+      "log_sha256": "02ba76f8feca6776648c5170e4f186730041cb85f086c251df9811f88c10c4ac"
+    }
+  ],
+  "scope": "Independent private-store pre/post-intent UI failure and delayed MainActor binding/close probes. Real signed ingress and native-only validation; no VM effects enable, native-window health, physical device or GA qualification.",
+  "binary": {
+    "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation-review/.build/candidate-4-tsan/ActivationReview.xctest/Contents/MacOS/ActivationReview",
+    "sha256": "28437b5a0803a28888750ca0944cf872d3ccfacf007e1f61029cd2013afdedc2"
+  }
+}

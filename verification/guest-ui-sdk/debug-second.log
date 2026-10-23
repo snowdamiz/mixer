@@ -1,0 +1,158 @@
+Building for debugging...
+[Using on-disk description]
+[2 / 13] MixerUITests-product
+[8 / 19] MixerUITests-product
+[12 / 18] MixerUITests-product
+error: SwiftCompile normal arm64 /Users/andreyyurlov/Documents/dev/mixer/sdk/Tests/MixerUITests/GuestUIExchangeTests.swift failed with a nonzero exit code. Command line:     cd /Users/andreyyurlov/Documents/dev/mixer
+    builtin-SwiftPerFileCompile GuestUIExchangeTests.swift
+macro expansion #require:2:3: error: call can throw, but it is not marked with 'try' and the error is not handled
+`- /Users/andreyyurlov/Documents/dev/mixer/sdk/Tests/MixerUITests/GuestUIExchangeTests.swift:65:61: note: expanded code originates here
+ 63 |     }
+ 64 |     let same = try startedGuestExchange()
+ 65 |     let wake = try #require(same.claimNextTurn(ready: true))
+    |                    `- note: in expansion of macro 'require' here
+    +--- macro expansion #require --------------------------------------
+    |1 | Testing.__checkFunctionCall(same.self,calling: {
+    |2 |   $0.claimNextTurn(ready: $1)
+    |  |   `- error: call can throw, but it is not marked with 'try' and the error is not handled
+    |3 | },true,expression: .__fromFunctionCall(.__fromSyntaxNode("same"),"claimNextTurn",("ready",.__fromSyntaxNode("true"))),comments: [],isRequired: true,sourceLocation: Testing.SourceLocation.__here()).__required()
+    +-------------------------------------------------------------------
+ 66 |     try same.finishTurn(wake, documentBytes: guestDocument())
+ 67 |     #expect(same.snapshot().counters.producedFrames == 1)
+
+macro expansion #require:2:3: error: call can throw, but it is not marked with 'try' and the error is not handled
+`- /Users/andreyyurlov/Documents/dev/mixer/sdk/Tests/MixerUITests/GuestUIExchangeTests.swift:69:64: note: expanded code originates here
+ 67 |     #expect(same.snapshot().counters.producedFrames == 1)
+ 68 |     #expect(same.snapshot().counters.successfulTurns == 2)
+ 69 |     let changed = try #require(same.claimNextTurn(ready: true))
+    |                       `- note: in expansion of macro 'require' here
+    +--- macro expansion #require --------------------------------------
+    |1 | Testing.__checkFunctionCall(same.self,calling: {
+    |2 |   $0.claimNextTurn(ready: $1)
+    |  |   `- error: call can throw, but it is not marked with 'try' and the error is not handled
+    |3 | },true,expression: .__fromFunctionCall(.__fromSyntaxNode("same"),"claimNextTurn",("ready",.__fromSyntaxNode("true"))),comments: [],isRequired: true,sourceLocation: Testing.SourceLocation.__here()).__required()
+    +-------------------------------------------------------------------
+ 70 |     #expect(throws: GuestUIProtocolFailureV1(phase: .wake, code: .sameRevisionMutation)) {
+ 71 |         try same.finishTurn(changed, documentBytes: Data(" ".utf8) + guestDocument())
+
+macro expansion #require:2:3: error: call can throw, but it is not marked with 'try' and the error is not handled
+`- /Users/andreyyurlov/Documents/dev/mixer/sdk/Tests/MixerUITests/GuestUIExchangeTests.swift:75:64: note: expanded code originates here
+ 73 |     #expect(same.snapshot().firstUIProtocolFailure?.effectStage == .intentEntered)
+ 74 |     let lower = try startedGuestExchange()
+ 75 |     let second = try #require(lower.claimNextTurn(ready: true)); try lower.finishTurn(second, documentBytes: guestDocument(2))
+    |                      `- note: in expansion of macro 'require' here
+    +--- macro expansion #require --------------------------------------
+    |1 | Testing.__checkFunctionCall(lower.self,calling: {
+    |2 |   $0.claimNextTurn(ready: $1)
+    |  |   `- error: call can throw, but it is not marked with 'try' and the error is not handled
+    |3 | },true,expression: .__fromFunctionCall(.__fromSyntaxNode("lower"),"claimNextTurn",("ready",.__fromSyntaxNode("true"))),comments: [],isRequired: true,sourceLocation: Testing.SourceLocation.__here()).__required()
+    +-------------------------------------------------------------------
+ 76 |     let third = try #require(lower.claimNextTurn(ready: true))
+ 77 |     #expect(throws: GuestUIProtocolFailureV1(phase: .wake, code: .revisionRegressed)) {
+
+macro expansion #require:2:3: error: call can throw, but it is not marked with 'try' and the error is not handled
+`- /Users/andreyyurlov/Documents/dev/mixer/sdk/Tests/MixerUITests/GuestUIExchangeTests.swift:76:63: note: expanded code originates here
+ 74 |     let lower = try startedGuestExchange()
+ 75 |     let second = try #require(lower.claimNextTurn(ready: true)); try lower.finishTurn(second, documentBytes: guestDocument(2))
+ 76 |     let third = try #require(lower.claimNextTurn(ready: true))
+    |                     `- note: in expansion of macro 'require' here
+    +--- macro expansion #require --------------------------------------
+    |1 | Testing.__checkFunctionCall(lower.self,calling: {
+    |2 |   $0.claimNextTurn(ready: $1)
+    |  |   `- error: call can throw, but it is not marked with 'try' and the error is not handled
+    |3 | },true,expression: .__fromFunctionCall(.__fromSyntaxNode("lower"),"claimNextTurn",("ready",.__fromSyntaxNode("true"))),comments: [],isRequired: true,sourceLocation: Testing.SourceLocation.__here()).__required()
+    +-------------------------------------------------------------------
+ 77 |     #expect(throws: GuestUIProtocolFailureV1(phase: .wake, code: .revisionRegressed)) {
+ 78 |         try lower.finishTurn(third, documentBytes: guestDocument(1))
+
+macro expansion #require:2:3: error: call can throw, but it is not marked with 'try' and the error is not handled
+`- /Users/andreyyurlov/Documents/dev/mixer/sdk/Tests/MixerUITests/GuestUIExchangeTests.swift:85:69: note: expanded code originates here
+ 83 |     let exchange = try startedGuestExchange()
+ 84 |     for revision in 2...100 {
+ 85 |         let turn = try #require(exchange.claimNextTurn(ready: true))
+    |                        `- note: in expansion of macro 'require' here
+    +--- macro expansion #require --------------------------------------
+    |1 | Testing.__checkFunctionCall(exchange.self,calling: {
+    |2 |   $0.claimNextTurn(ready: $1)
+    |  |   `- error: call can throw, but it is not marked with 'try' and the error is not handled
+    |3 | },true,expression: .__fromFunctionCall(.__fromSyntaxNode("exchange"),"claimNextTurn",("ready",.__fromSyntaxNode("true"))),comments: [],isRequired: true,sourceLocation: Testing.SourceLocation.__here()).__required()
+    +-------------------------------------------------------------------
+ 86 |         try exchange.finishTurn(turn, documentBytes: guestDocument(UInt64(revision)))
+ 87 |     }
+
+macro expansion #require:2:3: error: call can throw, but it is not marked with 'try' and the error is not handled
+`- /Users/andreyyurlov/Documents/dev/mixer/sdk/Tests/MixerUITests/GuestUIExchangeTests.swift:91:65: note: expanded code originates here
+ 89 |     #expect(claim.frame?.document.document.revision == 100)
+ 90 |     #expect(exchange.claimPresentation(generation: 7) == nil)
+ 91 |     let turn = try #require(exchange.claimNextTurn(ready: true)); try exchange.finishTurn(turn, documentBytes: guestDocument(101))
+    |                    `- note: in expansion of macro 'require' here
+    +--- macro expansion #require --------------------------------------
+    |1 | Testing.__checkFunctionCall(exchange.self,calling: {
+    |2 |   $0.claimNextTurn(ready: $1)
+    |  |   `- error: call can throw, but it is not marked with 'try' and the error is not handled
+    |3 | },true,expression: .__fromFunctionCall(.__fromSyntaxNode("exchange"),"claimNextTurn",("ready",.__fromSyntaxNode("true"))),comments: [],isRequired: true,sourceLocation: Testing.SourceLocation.__here()).__required()
+    +-------------------------------------------------------------------
+ 92 |     var reconciler = UIReconciler(); try reconciler.apply(try #require(claim.frame).document.document)
+ 93 |     let ticket100 = try #require(exchange.completePresentation(claim, snapshot: reconciler.currentSnapshot()))
+
+macro expansion #require:2:3: error: call can throw, but it is not marked with 'try' and the error is not handled
+`- /Users/andreyyurlov/Documents/dev/mixer/sdk/Tests/MixerUITests/GuestUIExchangeTests.swift:111:66: note: expanded code originates here
+109 |     #expect(exchange.offer(envelope, generation: 7) == .accepted(sequence: 1))
+110 |     #expect(exchange.offer(envelope, generation: 7) == .busy)
+111 |     let event = try #require(exchange.claimNextTurn(ready: true))
+    |                     `- note: in expansion of macro 'require' here
+    +--- macro expansion #require --------------------------------------
+    |1 | Testing.__checkFunctionCall(exchange.self,calling: {
+    |2 |   $0.claimNextTurn(ready: $1)
+    |  |   `- error: call can throw, but it is not marked with 'try' and the error is not handled
+    |3 | },true,expression: .__fromFunctionCall(.__fromSyntaxNode("exchange"),"claimNextTurn",("ready",.__fromSyntaxNode("true"))),comments: [],isRequired: true,sourceLocation: Testing.SourceLocation.__here()).__required()
+    +-------------------------------------------------------------------
+112 |     guard case let .event(sequence, bytes) = event.kind else { Issue.record("accepted event was overtaken by wake"); return }
+113 |     #expect(sequence == 1)
+
+macro expansion #require:2:3: error: call can throw, but it is not marked with 'try' and the error is not handled
+`- /Users/andreyyurlov/Documents/dev/mixer/sdk/Tests/MixerUITests/GuestUIExchangeTests.swift:131:65: note: expanded code originates here
+129 |     let exchange = try startedGuestExchange(); var reconciler = UIReconciler()
+130 |     let ticket = try presentGuestFrame(exchange, &reconciler)
+131 |     let wake = try #require(exchange.claimNextTurn(ready: true))
+    |                    `- note: in expansion of macro 'require' here
+    +--- macro expansion #require --------------------------------------
+    |1 | Testing.__checkFunctionCall(exchange.self,calling: {
+    |2 |   $0.claimNextTurn(ready: $1)
+    |  |   `- error: call can throw, but it is not marked with 'try' and the error is not handled
+    |3 | },true,expression: .__fromFunctionCall(.__fromSyntaxNode("exchange"),"claimNextTurn",("ready",.__fromSyntaxNode("true"))),comments: [],isRequired: true,sourceLocation: Testing.SourceLocation.__here()).__required()
+    +-------------------------------------------------------------------
+132 |     #expect(exchange.offer(try saveEnvelope(reconciler), generation: 7) == .busy)
+133 |     try exchange.finishReadyWithoutInvocation(wake)
+
+macro expansion #require:2:3: error: call can throw, but it is not marked with 'try' and the error is not handled
+`- /Users/andreyyurlov/Documents/dev/mixer/sdk/Tests/MixerUITests/GuestUIExchangeTests.swift:136:105: note: expanded code originates here
+134 |     #expect(exchange.snapshot().counters.successfulTurns == 1)
+135 |     #expect(throws: GuestUIControlRejectionV1.staleClaim) { try exchange.finishReadyWithoutInvocation(wake) }
+136 |     let other = try startedGuestExchange(); let foreign = try #require(other.claimNextTurn(ready: true))
+    |                                                               `- note: in expansion of macro 'require' here
+    +--- macro expansion #require --------------------------------------
+    |1 | Testing.__checkFunctionCall(other.self,calling: {
+    |2 |   $0.claimNextTurn(ready: $1)
+    |  |   `- error: call can throw, but it is not marked with 'try' and the error is not handled
+    |3 | },true,expression: .__fromFunctionCall(.__fromSyntaxNode("other"),"claimNextTurn",("ready",.__fromSyntaxNode("true"))),comments: [],isRequired: true,sourceLocation: Testing.SourceLocation.__here()).__required()
+    +-------------------------------------------------------------------
+137 |     #expect(throws: GuestUIControlRejectionV1.staleClaim) { try exchange.finishTurn(foreign, documentBytes: guestDocument(2)) }
+138 |     #expect(!other.observePresentation(ticket))
+
+macro expansion #require:1:61: error: call can throw, but it is executed in a non-throwing autoclosure
+`- /Users/andreyyurlov/Documents/dev/mixer/sdk/Tests/MixerUITests/GuestUIExchangeTests.swift:195:91: note: expanded code originates here
+193 |         }
+194 |         if case .accepted? = results.admission {
+195 |             let claim = try #require(results.claim ?? exchange.claimNextTurn(ready: true))
+    |                             `- note: in expansion of macro 'require' here
+    +--- macro expansion #require --------------------------------------
+    |1 | Testing.__checkBinaryOperation(results.claim,{ $0 ?? $1() },exchange.claimNextTurn(ready: true),expression: .__fromBinaryOperation(.__fromSyntaxNode("results.claim"),"??",.__fromSyntaxNode("exchange.claimNextTurn(ready: true)")),comments: [],isRequired: true,sourceLocation: Testing.SourceLocation.__here()).__required()
+    |  |                                                             `- error: call can throw, but it is executed in a non-throwing autoclosure
+    +-------------------------------------------------------------------
+196 |             guard case .event = claim.kind else { Issue.record("wake overtook an accepted event"); return }
+197 |         } else {
+Failed frontend command:
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift-frontend -frontend -c /Users/andreyyurlov/Documents/dev/mixer/sdk/.build/out/Intermediates.noindex/Mixer.build/Debug/MixerUITests-p.build/DerivedSources/test_entry_point.swift /Users/andreyyurlov/Documents/dev/mixer/sdk/Tests/MixerUITests/GuestUIEventCodecTests.swift -primary-file /Users/andreyyurlov/Documents/dev/mixer/sdk/Tests/MixerUITests/GuestUIExchangeTests.swift /Users/andreyyurlov/Documents/dev/mixer/sdk/Tests/MixerUITests/GuestUIWakeTests.swift /Users/andreyyurlov/Documents/dev/mixer/sdk/Tests/MixerUITests/RawJSONTests.swift /Users/andreyyurlov/Documents/dev/mixer/sdk/Tests/MixerUITests/UITests.swift -emit-dependencies-path /Users/andreyyurlov/Documents/dev/mixer/sdk/.build/out/Intermediates.noindex/Mixer.build/Debug/MixerUITests-p.build/Objects-normal/arm64/GuestUIExchangeTests.d -emit-const-values-path /Users/andreyyurlov/Documents/dev/mixer/sdk/.build/out/Intermediates.noindex/Mixer.build/Debug/MixerUITests-p.build/Objects-normal/arm64/GuestUIExchangeTests.swiftconstvalues -emit-reference-dependencies-path /Users/andreyyurlov/Documents/dev/mixer/sdk/.build/out/Intermediates.noindex/Mixer.build/Debug/MixerUITests-p.build/Objects-normal/arm64/GuestUIExchangeTests.swiftdeps -serialize-diagnostics-path /Users/andreyyurlov/Documents/dev/mixer/sdk/.build/out/Intermediates.noindex/Mixer.build/Debug/MixerUITests-p.build/Objects-normal/arm64/GuestUIExchangeTests.dia -target arm64-apple-macos14.0 -module-can-import-version Testing 2084 0 -module-can-import-version XCTest 25229 0 -disable-cross-import-overlay-search -swift-module-cross-import Testing /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/Testing.framework/Modules/Testing.swiftcrossimport/AppKit.swiftoverlay -swift-module-cross-import Testing /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/Testing.framework/Modules/Testing.swiftcrossimport/CoreGraphics.swiftoverlay -swift-module-cross-import Testing /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/Testing.framework/Modules/Testing.swiftcrossimport/CoreImage.swiftoverlay -swift-module-cross-import Testing /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/Testing.framework/Modules/Testing.swiftcrossimport/CoreTransferable.swiftoverlay -swift-module-cross-import Testing /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/Testing.framework/Modules/Testing.swiftcrossimport/Foundation.swiftoverlay -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libFoundationMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#FoundationMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libObservationMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#ObservationMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libSwiftMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#SwiftMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing/libTestingMacros.dylib\#\#TestingMacros -disable-implicit-swift-modules -Xcc -fno-implicit-modules -Xcc -fno-implicit-module-maps -explicit-swift-module-map-file /Users/andreyyurlov/Documents/dev/mixer/sdk/.build/out/Intermediates.noindex/Mixer.build/Debug/MixerUITests-p.build/Objects-normal/arm64/MixerUITests-dependencies-1.json -Xllvm -aarch64-use-tbi -enable-objc-interop -stack-check -sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk -I /Users/andreyyurlov/Documents/dev/mixer/sdk/.build/out/Products/Debug -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib -F /Users/andreyyurlov/Documents/dev/mixer/sdk/.build/out/Products/Debug/PackageFrameworks -F /Users/andreyyurlov/Documents/dev/mixer/sdk/.build/out/Products/Debug -F /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks -module-cache-path /Users/andreyyurlov/Documents/dev/mixer/sdk/.build/out/Intermediates.noindex/SwiftExplicitPrecompiledModules -no-color-diagnostics -Xcc -fno-color-diagnostics -enable-testing -g -debug-info-format\=dwarf -dwarf-version\=4 -swift-version 6 -Onone -D SWIFT_PACKAGE -D DEBUG -D Xcode -serialize-debugging-options -enable-experimental-feature DebugDescriptionMacro -empty-abi-descriptor -validate-clang-modules-once -clang-build-session-file /Users/andreyyurlov/Documents/dev/mixer/sdk/.build/out/ModuleCache.noindex/Session.modulevalidation -Xcc -working-directory -Xcc /Users/andreyyurlov/Documents/dev/mixer -enable-anonymous-context-mangled-names -file-compilation-dir /Users/andreyyurlov/Documents/dev/mixer -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -Xcc -ivfsstatcache -Xcc /Users/andreyyurlov/Documents/dev/mixer/sdk/.build/out/SDKStatCaches.noindex/macosx27.0-26A425-80c5bbf1d171475443272936d42f90a37231f6df4def33e022ae2eb8f782df1a.sdkstatcache -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -Xcc -I/Users/andreyyurlov/Documents/dev/mixer/sdk/.build/out/Products/Debug/include -Xcc -I/Users/andreyyurlov/Documents/dev/mixer/sdk/.build/out/Intermediates.noindex/Mixer.build/Debug/MixerUITests-p.build/DerivedSources-normal/arm64 -Xcc -I/Users/andreyyurlov/Documents/dev/mixer/sdk/.build/out/Intermediates.noindex/Mixer.build/Debug/MixerUITests-p.build/DerivedSources/arm64 -Xcc -I/Users/andreyyurlov/Documents/dev/mixer/sdk/.build/out/Intermediates.noindex/Mixer.build/Debug/MixerUITests-p.build/DerivedSources -Xcc -DSWIFT_PACKAGE -Xcc -DDEBUG\=1 -no-auto-bridging-header-chaining -module-name MixerUITests -package-name sdk -const-gather-protocols-file /Users/andreyyurlov/Documents/dev/mixer/sdk/.build/out/Intermediates.noindex/Mixer.build/Debug/MixerUITests-p.build/Objects-normal/arm64/MixerUITests_const_extract_protocols.json -disable-clang-spi -clang-target arm64-apple-macos27.0 -target-sdk-version 27.0 -target-sdk-name macosx27.0 -in-process-plugin-server-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/libSwiftInProcPluginServer.dylib -parse-as-library -o /Users/andreyyurlov/Documents/dev/mixer/sdk/.build/out/Intermediates.noindex/Mixer.build/Debug/MixerUITests-p.build/Objects-normal/arm64/GuestUIExchangeTests.o -debug-module-path /Users/andreyyurlov/Documents/dev/mixer/sdk/.build/out/Intermediates.noindex/Mixer.build/Debug/MixerUITests-p.build/Objects-normal/arm64/MixerUITests.swiftmodule -index-unit-output-path /Mixer.build/Debug/MixerUITests-p.build/Objects-normal/arm64/GuestUIExchangeTests.o -index-store-path /Users/andreyyurlov/Documents/dev/mixer/sdk/.build/out -index-system-modules
+error: Build failed
+error: fatalError

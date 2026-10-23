@@ -1,0 +1,112 @@
+{
+  "status": "implementer-passed",
+  "scope": "Fixed experimental guest UI validation/construction/startup/event/ready composites on the existing one guest worker and cleanup lifecycle.",
+  "selectedReceipts": {
+    "debug-handoff": {
+      "path": "verification/guest-ui-bridge/debug-handoff.json",
+      "sha256": "b78c9b293c3b31c90781913ab2236aeb718878a1dbde59be6f166f66eafc2d27",
+      "exitCode": 0,
+      "sourcesUnchanged": true
+    },
+    "release-handoff": {
+      "path": "verification/guest-ui-bridge/release-handoff.json",
+      "sha256": "39efca99b992aea320bb7bd4c01630dbdb7995447ebab2a4c93b10a51faabece",
+      "exitCode": 0,
+      "sourcesUnchanged": true
+    },
+    "tsan-handoff": {
+      "path": "verification/guest-ui-bridge/tsan-handoff.json",
+      "sha256": "0cc9c091ea4a4dbb5ee0d4b5098356e6c7f3df2b6e013f7597995dbbadabf54a",
+      "exitCode": 0,
+      "sourcesUnchanged": true
+    },
+    "ios-handoff": {
+      "path": "verification/guest-ui-bridge/ios-handoff.json",
+      "sha256": "abcb96fd4285e1835cb284b231358bdaaaa53b8d7d1e08d2a1884373812e30d4",
+      "exitCode": 0,
+      "sourcesUnchanged": true
+    },
+    "android-handoff": {
+      "path": "verification/guest-ui-bridge/android-handoff.json",
+      "sha256": "8d43c7dbf3f44f93f30a6419433e9b53508145a95069e6627d264f83763f91f3",
+      "exitCode": 0,
+      "sourcesUnchanged": true
+    }
+  },
+  "testCounts": {
+    "debugAll": 47,
+    "releaseAll": 47,
+    "threadSanitizerGuestUI": 13
+  },
+  "finalImplementationSourceManifestSHA256": "1a6328a463f7269e919c212ab3fbfe7140fca668cc64f359adb85ae2d4f6bd2c",
+  "currentSourcesMatchFinalDebugReceipt": true,
+  "allFinalCommandsUsedSameSourceTuple": true,
+  "ownedSourcePaths": [
+    "experimental-capability-runtime/Sources/CMixerVMCapability/include/MixerVMCapability.h",
+    "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestUITurns.swift",
+    "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Native.swift",
+    "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Ownership.swift",
+    "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Session.swift",
+    "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Validation.swift",
+    "experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/GuestUIProgram.swift",
+    "experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/GuestUITests.swift"
+  ],
+  "runnerSHA256": "e6575a8f51a0b80d317a3a43afedaf303f17db835a414450acc7ee432598bfe5",
+  "frozenContractSHA256": "34180d46e20e403c9cd3f3aa1584a7b6d0e67e94900267c7aa51c87116566024",
+  "frozenSeparateHeaderSHA256": "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5",
+  "nativeArchive": {
+    "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/guest-ui-native/libmixer_vm_capability_experimental.a",
+    "sha256": "5358e39b9efb0561d185c4c22152df057a78a2ca43c582e7b5493e5877fe23e4"
+  },
+  "nativeBuilderEvidence": "verification/guest-ui-native/receipt.json",
+  "linkEvidence": {
+    "path": "verification/guest-ui-bridge/link-inputs.json",
+    "sha256": "b6efbdcd52cb1765fd9e272ac4ef2f53b6a45efd20f7390e34e3115d5ac018b2",
+    "singleSelectedArchiveAndOneValidatorInEachBinary": true
+  },
+  "acceptedSPIClarification": {
+    "approvedBy": "root integration coordinator",
+    "date": "2026-10-23",
+    "signature": "GuestUIExchangeV1.finishReadyWithoutInvocation(_ claim: GuestUITurnClaimV1) throws",
+    "semantics": "Only exact current issuer/generation/ready claim is released when native wake reports didInvoke=false; no harvest, frame, event, or successful guest-turn count. Stale/foreign/stopped claims use local rejection; no new terminal domain or wire/header bytes."
+  },
+  "observedCoverage": [
+    "Additive native validator exact typed required-defined-export tuple, shared two-permit validation capacity, full construction revalidation and adapter retirement without synthetic bridge detail.",
+    "Unaligned little-endian 32-byte header; magic/length/capacity/reserved and nonoverflow/disjoint numeric ranges; startup actual event-buffer bounds copy; immutable event-buffer descriptor across actual wakes.",
+    "Existing raw UI document preflight/subset limits/revisions via SDK exchange; invalid event turn admits zero storage calls; invalid ready turn can enqueue another write but harvest closes before its native take/admission.",
+    "Exact event byte/length guest checks; same-revision unchanged event harvest is allowed; real committed storage completion produces next document; denied completion never publishes Saved sample.",
+    "Only fixed SPI operations for UI owners; generic startup/invoke/read/write/development enable rejected without stopping a live owner.",
+    "Every actual successful native startup/event/wake counted even if ensuing UI harvest fails; repeated nonconsuming ready wakes stay within four-turn batches; one fixed event slot and bounded frame/raw-byte counters.",
+    "Existing 10ms UI polling, 32-way accepted-input/close race, queued construction cancellation, one cleanup job and concrete retirement, absolute owned-enable deadline with separate typed stop.",
+    "Actual native-enable/confirmation window holds pending storage I/O paused for40ms without terminal; existing timer resumes concrete storage after shared confirmation.",
+    "Rejected returned construction and CancellationError failure latch shared cancelled before owner cleanup, avoiding a cleanup-closed tag winning the cancellation race."
+  ],
+  "retainedFailedOrSupersededEvidence": [
+    {
+      "receipt": "debug-first.json",
+      "reason": "Independently authored fixture used unsupported UI-v1 button property title; corrected to existing label. Production runtime correctly rejected it."
+    },
+    {
+      "receipt": "tsan-ui.json",
+      "reason": "One test incorrectly required first event offer to win a concurrent no-op-ready claim. Retried only local busy; no accepted event replay and no sanitizer diagnostic. Three SDK sources also changed during this superseded run."
+    },
+    {
+      "receipt": "release-all.json",
+      "reason": "All44 tests passed, but three SDK source files changed during build. Superseded by same-source final47 test run."
+    },
+    {
+      "receipt": "debug-confirmation.json",
+      "reason": "New window fixture waited for two C call takes, but pre-enable requests complete inside native mailbox and do not produce C call takes. Corrected to observe first enabled pending call, then proved zero I/O until confirmation."
+    }
+  ],
+  "limitations": [
+    "Implementer local Mac verification; independent root review and signed activation/presentation evidence remain separately owned.",
+    "Rust archive, system frameworks and platform adapters are not Swift TSan-instrumented; no exhaustive race or hard latency/allocation proof.",
+    "iOS17 arm64 and AndroidAPI28 aarch64 are compile-only targets, without new native cross-platform archive link or execution qualification.",
+    "AppleSwift6.4/Xcode27.1 local host and iOS compile, officialSwift6.3.3 Android compile; pinnedCI toolchain qualification is separate.",
+    "Phones remain disconnected; no discovery, physical-device run, reconnect request, full Swift guest, native renderer, store, dogfood, published-package or GA evidence.",
+    "Existing b25 native builder pins and artifacts intentionally unchanged pending root review; the updated bridge requires the new combined archive/header in future builder qualification.",
+    "Already admitted effects may commit after stop; shared admission checkpoint blocks subsequent requests without asserting rollback.",
+    "The47-test default bridge suite includes existing adapter/HTTP tests; the separately guarded normal-trust loopback TLS test was not enabled in this UI lane."
+  ]
+}

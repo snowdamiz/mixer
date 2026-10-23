@@ -1,0 +1,154 @@
+Building for debugging...
+[Planning deferred tasks]
+[4 / 43]
+[5 / 36] MixerApple
+[10 / 35] MixerApple
+error: SwiftCompile normal arm64 /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/Sources/MixerCapabilityActivation/CapabilityGuestUIRuntime.swift failed with a nonzero exit code. Command line:     cd /Users/andreyyurlov/Documents/dev/mixer/.build
+    builtin-SwiftPerFileCompile CapabilityGuestUIRuntime.swift
+/Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/Sources/MixerCapabilityActivation/CapabilityGuestUIRuntime.swift:9:23: error: cannot find type 'CapabilityColdStartCloseCore' in scope
+ 7 | /// callback, adapter or milestone injection is exposed.
+ 8 | public final class CapabilityGuestUIRuntime: Sendable {
+ 9 |     private let core: CapabilityColdStartCloseCore
+   |                       `- error: cannot find type 'CapabilityColdStartCloseCore' in scope
+10 |     private init(_ core: CapabilityColdStartCloseCore) { self.core = core }
+11 |     public static func open(configuration: CapabilityColdStartConfiguration,
+
+/Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/Sources/MixerCapabilityActivation/CapabilityGuestUIRuntime.swift:10:26: error: cannot find type 'CapabilityColdStartCloseCore' in scope
+ 8 | public final class CapabilityGuestUIRuntime: Sendable {
+ 9 |     private let core: CapabilityColdStartCloseCore
+10 |     private init(_ core: CapabilityColdStartCloseCore) { self.core = core }
+   |                          `- error: cannot find type 'CapabilityColdStartCloseCore' in scope
+11 |     public static func open(configuration: CapabilityColdStartConfiguration,
+12 |                             execution: InstalledCapabilityExecution) async throws -> CapabilityGuestUIRuntime {
+
+/Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/Sources/MixerCapabilityActivation/CapabilityGuestUIRuntime.swift:11:44: error: cannot find type 'CapabilityColdStartConfiguration' in scope
+ 9 |     private let core: CapabilityColdStartCloseCore
+10 |     private init(_ core: CapabilityColdStartCloseCore) { self.core = core }
+11 |     public static func open(configuration: CapabilityColdStartConfiguration,
+   |                                            `- error: cannot find type 'CapabilityColdStartConfiguration' in scope
+12 |                             execution: InstalledCapabilityExecution) async throws -> CapabilityGuestUIRuntime {
+13 |         try await openOwned(configuration: configuration, installed: execution.installed, environment: .init())
+
+/Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/Sources/MixerCapabilityActivation/CapabilityGuestUIRuntime.swift:12:40: error: cannot find type 'InstalledCapabilityExecution' in scope
+10 |     private init(_ core: CapabilityColdStartCloseCore) { self.core = core }
+11 |     public static func open(configuration: CapabilityColdStartConfiguration,
+12 |                             execution: InstalledCapabilityExecution) async throws -> CapabilityGuestUIRuntime {
+   |                                        `- error: cannot find type 'InstalledCapabilityExecution' in scope
+13 |         try await openOwned(configuration: configuration, installed: execution.installed, environment: .init())
+14 |     }
+
+/Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/Sources/MixerCapabilityActivation/CapabilityGuestUIRuntime.swift:15:42: error: cannot find type 'CapabilityColdStartConfiguration' in scope
+13 |         try await openOwned(configuration: configuration, installed: execution.installed, environment: .init())
+14 |     }
+15 |     static func openOwned(configuration: CapabilityColdStartConfiguration, installed: InstalledMaterial,
+   |                                          `- error: cannot find type 'CapabilityColdStartConfiguration' in scope
+16 |                           environment: CapabilityRecoveryEnvironment) async throws -> CapabilityGuestUIRuntime {
+17 |         try CapabilityInstalledExecutionMode.requireGuestUI(installed.identity, milestones: configuration.requiredMilestones)
+
+/Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/Sources/MixerCapabilityActivation/CapabilityGuestUIRuntime.swift:15:87: error: cannot find type 'InstalledMaterial' in scope
+13 |         try await openOwned(configuration: configuration, installed: execution.installed, environment: .init())
+14 |     }
+15 |     static func openOwned(configuration: CapabilityColdStartConfiguration, installed: InstalledMaterial,
+   |                                                                                       `- error: cannot find type 'InstalledMaterial' in scope
+16 |                           environment: CapabilityRecoveryEnvironment) async throws -> CapabilityGuestUIRuntime {
+17 |         try CapabilityInstalledExecutionMode.requireGuestUI(installed.identity, milestones: configuration.requiredMilestones)
+
+/Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/Sources/MixerCapabilityActivation/CapabilityGuestUIRuntime.swift:16:40: error: cannot find type 'CapabilityRecoveryEnvironment' in scope
+14 |     }
+15 |     static func openOwned(configuration: CapabilityColdStartConfiguration, installed: InstalledMaterial,
+16 |                           environment: CapabilityRecoveryEnvironment) async throws -> CapabilityGuestUIRuntime {
+   |                                        `- error: cannot find type 'CapabilityRecoveryEnvironment' in scope
+17 |         try CapabilityInstalledExecutionMode.requireGuestUI(installed.identity, milestones: configuration.requiredMilestones)
+18 |         let checked = try configuration.checked()
+
+/Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/Sources/MixerCapabilityActivation/CapabilityGuestUIRuntime.swift:47:73: error: cannot find type 'CapabilityColdStartOperation' in scope
+45 |         try await withTaskCancellationHandler { try await beginOwned(signedManifest, signedAssignment, op) } onCancel: { op.cancel() }
+46 |     }
+47 |     private func beginOwned(_ manifest: Data, _ assignment: Data, _ op: CapabilityColdStartOperation) async throws {
+   |                                                                         `- error: cannot find type 'CapabilityColdStartOperation' in scope
+48 |         try op.check()
+49 |         let m = Self.snapshot(manifest), a = Self.snapshot(assignment)
+
+/Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/Sources/MixerCapabilityActivation/CapabilityGuestUIRuntime.swift:61:69: error: cannot find type 'CapabilityColdStartOperation' in scope
+59 |         try await withTaskCancellationHandler { try await appendOwned(bytes, offset, op) } onCancel: { op.cancel() }
+60 |     }
+61 |     private func appendOwned(_ bytes: Data, _ offset: UInt64, _ op: CapabilityColdStartOperation) async throws {
+   |                                                                     `- error: cannot find type 'CapabilityColdStartOperation' in scope
+62 |         try op.check(); let owned = Self.snapshot(bytes)
+63 |         try await core.worker.append(owned, offset, op)
+
+/Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/Sources/MixerCapabilityActivation/CapabilityGuestUIRuntime.swift:73:41: error: cannot find type 'CapabilityGuestUIActivationSnapshot' in scope
+71 |         try await withTaskCancellationHandler { try await core.worker.cancelDownload(op) } onCancel: { op.cancel() }
+72 |     }
+73 |     public func start() async throws -> CapabilityGuestUIActivationSnapshot {
+   |                                         `- error: cannot find type 'CapabilityGuestUIActivationSnapshot' in scope
+74 |         let op = try core.control.admit(.start)
+75 |         do {
+
+/Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/Sources/MixerCapabilityActivation/CapabilityGuestUIRuntime.swift:80:45: error: cannot find type 'CapabilityGuestUIRecoverySnapshot' in scope
+78 |         } catch { core.control.finish(op); throw error }
+79 |     }
+80 |     public func recoverySnapshot() async -> CapabilityGuestUIRecoverySnapshot {
+   |                                             `- error: cannot find type 'CapabilityGuestUIRecoverySnapshot' in scope
+81 |         CapabilityGuestUIRecoverySnapshot(core.control.recoverySnapshot, activation: core.control.guestUISnapshot)
+82 |     }
+
+/Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/Sources/MixerCapabilityActivation/CapabilityGuestUIRuntime.swift:17:13: error: cannot find 'CapabilityInstalledExecutionMode' in scope
+15 |     static func openOwned(configuration: CapabilityColdStartConfiguration, installed: InstalledMaterial,
+16 |                           environment: CapabilityRecoveryEnvironment) async throws -> CapabilityGuestUIRuntime {
+17 |         try CapabilityInstalledExecutionMode.requireGuestUI(installed.identity, milestones: configuration.requiredMilestones)
+   |             `- error: cannot find 'CapabilityInstalledExecutionMode' in scope
+18 |         let checked = try configuration.checked()
+19 |         let reservation = try CapabilityAttemptReservation.acquire() // Before actor/I/O/captured owner allocation.
+
+/Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/Sources/MixerCapabilityActivation/CapabilityGuestUIRuntime.swift:19:31: error: cannot find 'CapabilityAttemptReservation' in scope
+17 |         try CapabilityInstalledExecutionMode.requireGuestUI(installed.identity, milestones: configuration.requiredMilestones)
+18 |         let checked = try configuration.checked()
+19 |         let reservation = try CapabilityAttemptReservation.acquire() // Before actor/I/O/captured owner allocation.
+   |                               `- error: cannot find 'CapabilityAttemptReservation' in scope
+20 |         let core: CapabilityColdStartCloseCore
+21 |         do {
+
+/Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/Sources/MixerCapabilityActivation/CapabilityGuestUIRuntime.swift:20:19: error: cannot find type 'CapabilityColdStartCloseCore' in scope
+18 |         let checked = try configuration.checked()
+19 |         let reservation = try CapabilityAttemptReservation.acquire() // Before actor/I/O/captured owner allocation.
+20 |         let core: CapabilityColdStartCloseCore
+   |                   `- error: cannot find type 'CapabilityColdStartCloseCore' in scope
+21 |         do {
+22 |             let binding = await CapabilityGuestUIPresentationBinding()
+
+/Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/Sources/MixerCapabilityActivation/CapabilityGuestUIRuntime.swift:24:24: error: cannot find 'CapabilityColdStartCloseCore' in scope
+22 |             let binding = await CapabilityGuestUIPresentationBinding()
+23 |             try Task.checkCancellation()
+24 |             core = try CapabilityColdStartCloseCore(configuration: checked, installed: installed,
+   |                        `- error: cannot find 'CapabilityColdStartCloseCore' in scope
+25 |                 environment: environment, reservation: reservation, guestUIBinding: binding)
+26 |         }
+
+/Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/Sources/MixerCapabilityActivation/CapabilityGuestUIRuntime.swift:43:93: error: cannot find 'coldStartError' in scope
+41 |     }
+42 |     public func beginDownload(signedManifest: Data, signedAssignment: Data) async throws {
+43 |         guard signedManifest.count <= 65_536, signedAssignment.count <= 65_536 else { throw coldStartError("size") }
+   |                                                                                             `- error: cannot find 'coldStartError' in scope
+44 |         let op = try core.control.admit(.download); defer { core.control.finish(op) }
+45 |         try await withTaskCancellationHandler { try await beginOwned(signedManifest, signedAssignment, op) } onCancel: { op.cancel() }
+
+/Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/Sources/MixerCapabilityActivation/CapabilityGuestUIRuntime.swift:57:53: error: cannot find 'coldStartError' in scope
+55 |     }
+56 |     public func appendDownload(_ bytes: Data, atOffset offset: UInt64) async throws {
+57 |         guard bytes.count <= 1_048_576 else { throw coldStartError("size") }
+   |                                                     `- error: cannot find 'coldStartError' in scope
+58 |         let op = try core.control.admit(.download); defer { core.control.finish(op) }
+59 |         try await withTaskCancellationHandler { try await appendOwned(bytes, offset, op) } onCancel: { op.cancel() }
+
+/Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/Sources/MixerCapabilityActivation/CapabilityGuestUIRuntime.swift:81:9: error: cannot find 'CapabilityGuestUIRecoverySnapshot' in scope
+79 |     }
+80 |     public func recoverySnapshot() async -> CapabilityGuestUIRecoverySnapshot {
+81 |         CapabilityGuestUIRecoverySnapshot(core.control.recoverySnapshot, activation: core.control.guestUISnapshot)
+   |         `- error: cannot find 'CapabilityGuestUIRecoverySnapshot' in scope
+82 |     }
+83 |     /// Admission and local cause stop synchronously before native cancellation.
+Failed frontend command:
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift-frontend -frontend -c /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/Sources/MixerCapabilityActivation/CapabilityGuestUIApple.swift /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/Sources/MixerCapabilityActivation/CapabilityGuestUIPresentation.swift -primary-file /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/Sources/MixerCapabilityActivation/CapabilityGuestUIRuntime.swift -emit-dependencies-path /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/Intermediates.noindex/MixerGuestUIPresentationReview.build/Debug/MixerCapabilityActivation-t.build/Objects-normal/arm64/CapabilityGuestUIRuntime.d -emit-const-values-path /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/Intermediates.noindex/MixerGuestUIPresentationReview.build/Debug/MixerCapabilityActivation-t.build/Objects-normal/arm64/CapabilityGuestUIRuntime.swiftconstvalues -emit-reference-dependencies-path /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/Intermediates.noindex/MixerGuestUIPresentationReview.build/Debug/MixerCapabilityActivation-t.build/Objects-normal/arm64/CapabilityGuestUIRuntime.swiftdeps -serialize-diagnostics-path /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/Intermediates.noindex/MixerGuestUIPresentationReview.build/Debug/MixerCapabilityActivation-t.build/Objects-normal/arm64/CapabilityGuestUIRuntime.dia -target arm64-apple-macos14.0 -module-can-import-version AppKit 2775.10.103.1 2775.10.103 -module-can-import MixerApple -module-can-import-version SwiftUI 8.0.84.1 8.0.84 -disable-cross-import-overlay-search -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libFoundationMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#FoundationMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libObservationMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#ObservationMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libPreviewsMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#PreviewsMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libSwiftMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#SwiftMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libSwiftUIMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#SwiftUIMacros -disable-implicit-swift-modules -Xcc -fno-implicit-modules -Xcc -fno-implicit-module-maps -explicit-swift-module-map-file /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/Intermediates.noindex/MixerGuestUIPresentationReview.build/Debug/MixerCapabilityActivation-t.build/Objects-normal/arm64/MixerCapabilityActivation-dependencies-1.json -Xllvm -aarch64-use-tbi -enable-objc-interop -stack-check -sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk -I /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/Products/Debug -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib -F /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/Products/Debug/PackageFrameworks -F /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/Products/Debug -F /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks -module-cache-path /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/Intermediates.noindex/SwiftExplicitPrecompiledModules -no-color-diagnostics -Xcc -fno-color-diagnostics -enable-testing -g -debug-info-format\=dwarf -dwarf-version\=4 -swift-version 6 -Onone -D SWIFT_PACKAGE -D DEBUG -D SWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE -D Xcode -serialize-debugging-options -enable-experimental-feature DebugDescriptionMacro -empty-abi-descriptor -validate-clang-modules-once -clang-build-session-file /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/ModuleCache.noindex/Session.modulevalidation -Xcc -working-directory -Xcc /Users/andreyyurlov/Documents/dev/mixer/.build -enable-anonymous-context-mangled-names -file-compilation-dir /Users/andreyyurlov/Documents/dev/mixer/.build -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -Xcc -ivfsstatcache -Xcc /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/SDKStatCaches.noindex/macosx27.0-26A425-80c5bbf1d171475443272936d42f90a37231f6df4def33e022ae2eb8f782df1a.sdkstatcache -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -Xcc -I/Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/Products/Debug/include -Xcc -I/Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/Intermediates.noindex/MixerGuestUIPresentationReview.build/Debug/MixerCapabilityActivation-t.build/DerivedSources-normal/arm64 -Xcc -I/Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/Intermediates.noindex/MixerGuestUIPresentationReview.build/Debug/MixerCapabilityActivation-t.build/DerivedSources/arm64 -Xcc -I/Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/Intermediates.noindex/MixerGuestUIPresentationReview.build/Debug/MixerCapabilityActivation-t.build/DerivedSources -Xcc -DSWIFT_PACKAGE -Xcc -DDEBUG\=1 -no-auto-bridging-header-chaining -module-name MixerCapabilityActivation -package-name guest_ui_presentation -const-gather-protocols-file /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/Intermediates.noindex/MixerGuestUIPresentationReview.build/Debug/MixerCapabilityActivation-t.build/Objects-normal/arm64/MixerCapabilityActivation_const_extract_protocols.json -disable-clang-spi -clang-target arm64-apple-macos27.0 -target-sdk-version 27.0 -target-sdk-name macosx27.0 -in-process-plugin-server-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/libSwiftInProcPluginServer.dylib -parse-as-library -o /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/Intermediates.noindex/MixerGuestUIPresentationReview.build/Debug/MixerCapabilityActivation-t.build/Objects-normal/arm64/CapabilityGuestUIRuntime.o -debug-module-path /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/Intermediates.noindex/MixerGuestUIPresentationReview.build/Debug/MixerCapabilityActivation-t.build/Objects-normal/arm64/MixerCapabilityActivation.swiftmodule -index-unit-output-path /MixerGuestUIPresentationReview.build/Debug/MixerCapabilityActivation-t.build/Objects-normal/arm64/CapabilityGuestUIRuntime.o -index-store-path /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out -index-system-modules
+error: Build failed
+error: fatalError

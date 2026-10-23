@@ -1,0 +1,65 @@
+Building for debugging...
+[Pre-planning 1 / 185]
+[Planning deferred tasks]
+[51 / 106]
+[52 / 107] MixerCore
+[62 / 147]
+[69 / 147]
+[71 / 147]
+[76 / 147]
+[80 / 147]
+[83 / 147]
+[85 / 147]
+[86 / 147]
+[91 / 147] MixerCore
+[99 / 148]
+[100 / 153] MixerUI
+[101 / 153] MixerCore
+[113 / 154] MixerCore
+[116 / 156] MixerGuest
+[120 / 161] MixerGuest
+[123 / 161] MixerGuest
+[133 / 198]
+[141 / 198]
+[149 / 198]
+[153 / 198]
+[159 / 198]
+[162 / 198]
+[163 / 198]
+[164 / 198]
+[165 / 198]
+[174 / 199] MixerCapabilityActivation
+[177 / 202] MixerCapabilityActivation
+error: SwiftCompile normal arm64 /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/Sources/MixerCapabilityActivation/CapabilityGuestUIPresentation.swift failed with a nonzero exit code. Command line:     cd /Users/andreyyurlov/Documents/dev/mixer/.build
+    builtin-SwiftPerFileCompile CapabilityGuestUIPresentation.swift
+/Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/Sources/MixerCapabilityActivation/CapabilityGuestUIPresentation.swift:52:75: error: 'generation' is inaccessible due to 'private' protection level
+ 50 |         guard let model = box.model, model.bindingIdentity === box.identity,
+ 51 |               let exchange = model.exchange else { return }
+ 52 |         guard let claim = exchange.claimPresentation(generation: exchange.generation) else { return }
+    |                                                                           `- error: 'generation' is inaccessible due to 'private' protection level
+ 53 |         if let result = claim.eventResult { model.lastEventResult = result }
+ 54 |         if claim.stop != nil {
+
+MixerGuest.GuestUIExchangeV1.generation:2:13: note: 'generation' declared here
+1 | class GuestUIExchangeV1 {
+2 | private let generation: UInt64}
+  |             `- note: 'generation' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/Sources/MixerCapabilityActivation/CapabilityGuestUIPresentation.swift:173:63: error: 'generation' is inaccessible due to 'private' protection level
+171 |                                            event: action.event, value: action.value)
+172 |             guard (try? host.route(envelope)) == action else { return }
+173 |             _ = exchange.offer(envelope, generation: exchange.generation)
+    |                                                               `- error: 'generation' is inaccessible due to 'private' protection level
+174 |             self.refreshInput()
+175 |         }
+
+MixerGuest.GuestUIExchangeV1.generation:2:13: note: 'generation' declared here
+1 | class GuestUIExchangeV1 {
+2 | private let generation: UInt64}
+  |             `- note: 'generation' declared here
+3 | 
+Failed frontend command:
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift-frontend -frontend -c /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/Sources/MixerCapabilityActivation/CapabilityGuestUIApple.swift -primary-file /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/Sources/MixerCapabilityActivation/CapabilityGuestUIPresentation.swift -emit-dependencies-path /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/Intermediates.noindex/MixerGuestUIPresentationReview.build/Debug/MixerCapabilityActivation-t.build/Objects-normal/arm64/CapabilityGuestUIPresentation.d -emit-const-values-path /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/Intermediates.noindex/MixerGuestUIPresentationReview.build/Debug/MixerCapabilityActivation-t.build/Objects-normal/arm64/CapabilityGuestUIPresentation.swiftconstvalues -emit-reference-dependencies-path /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/Intermediates.noindex/MixerGuestUIPresentationReview.build/Debug/MixerCapabilityActivation-t.build/Objects-normal/arm64/CapabilityGuestUIPresentation.swiftdeps -serialize-diagnostics-path /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/Intermediates.noindex/MixerGuestUIPresentationReview.build/Debug/MixerCapabilityActivation-t.build/Objects-normal/arm64/CapabilityGuestUIPresentation.dia -target arm64-apple-macos14.0 -module-can-import-version AppKit 2775.10.103.1 2775.10.103 -module-can-import MixerApple -module-can-import-version SwiftUI 8.0.84.1 8.0.84 -disable-cross-import-overlay-search -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libFoundationMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#FoundationMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libObservationMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#ObservationMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libPreviewsMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#PreviewsMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libSwiftMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#SwiftMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libSwiftUIMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#SwiftUIMacros -disable-implicit-swift-modules -Xcc -fno-implicit-modules -Xcc -fno-implicit-module-maps -explicit-swift-module-map-file /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/Intermediates.noindex/MixerGuestUIPresentationReview.build/Debug/MixerCapabilityActivation-t.build/Objects-normal/arm64/MixerCapabilityActivation-dependencies-1.json -Xllvm -aarch64-use-tbi -enable-objc-interop -stack-check -sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk -I /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/Products/Debug -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib -F /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/Products/Debug/PackageFrameworks -F /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/Products/Debug -F /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks -module-cache-path /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/Intermediates.noindex/SwiftExplicitPrecompiledModules -no-color-diagnostics -Xcc -fno-color-diagnostics -enable-testing -g -debug-info-format\=dwarf -dwarf-version\=4 -swift-version 6 -Onone -D SWIFT_PACKAGE -D DEBUG -D SWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE -D Xcode -serialize-debugging-options -enable-experimental-feature DebugDescriptionMacro -empty-abi-descriptor -validate-clang-modules-once -clang-build-session-file /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/ModuleCache.noindex/Session.modulevalidation -Xcc -working-directory -Xcc /Users/andreyyurlov/Documents/dev/mixer/.build -enable-anonymous-context-mangled-names -file-compilation-dir /Users/andreyyurlov/Documents/dev/mixer/.build -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -Xcc -ivfsstatcache -Xcc /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/SDKStatCaches.noindex/macosx27.0-26A425-80c5bbf1d171475443272936d42f90a37231f6df4def33e022ae2eb8f782df1a.sdkstatcache -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -Xcc -I/Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/Products/Debug/include -Xcc -I/Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/Intermediates.noindex/MixerGuestUIPresentationReview.build/Debug/MixerCapabilityActivation-t.build/DerivedSources-normal/arm64 -Xcc -I/Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/Intermediates.noindex/MixerGuestUIPresentationReview.build/Debug/MixerCapabilityActivation-t.build/DerivedSources/arm64 -Xcc -I/Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/Intermediates.noindex/MixerGuestUIPresentationReview.build/Debug/MixerCapabilityActivation-t.build/DerivedSources -Xcc -DSWIFT_PACKAGE -Xcc -DDEBUG\=1 -no-auto-bridging-header-chaining -module-name MixerCapabilityActivation -package-name guest_ui_presentation -const-gather-protocols-file /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/Intermediates.noindex/MixerGuestUIPresentationReview.build/Debug/MixerCapabilityActivation-t.build/Objects-normal/arm64/MixerCapabilityActivation_const_extract_protocols.json -disable-clang-spi -clang-target arm64-apple-macos27.0 -target-sdk-version 27.0 -target-sdk-name macosx27.0 -in-process-plugin-server-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/libSwiftInProcPluginServer.dylib -parse-as-library -o /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/Intermediates.noindex/MixerGuestUIPresentationReview.build/Debug/MixerCapabilityActivation-t.build/Objects-normal/arm64/CapabilityGuestUIPresentation.o -debug-module-path /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out/Intermediates.noindex/MixerGuestUIPresentationReview.build/Debug/MixerCapabilityActivation-t.build/Objects-normal/arm64/MixerCapabilityActivation.swiftmodule -index-unit-output-path /MixerGuestUIPresentationReview.build/Debug/MixerCapabilityActivation-t.build/Objects-normal/arm64/CapabilityGuestUIPresentation.o -index-store-path /Users/andreyyurlov/Documents/dev/mixer/.build/guest-ui-presentation/build/out -index-system-modules
+error: Build failed
+error: fatalError

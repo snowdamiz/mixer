@@ -1,4 +1,5 @@
 import Foundation
+@_spi(GuestUIV1) import MixerGuest
 
 /// All durable/adapter work is reached from this private non-MainActor owner.
 /// The reservation's retained store worker reaches notification consumers only
@@ -9,6 +10,7 @@ actor CapabilityColdStartWorker {
     private let environment: CapabilityRecoveryEnvironment
     private let admission: CapabilityRecoveryStoreAdmission
     private let control: CapabilityColdStartControl
+    private let guestUIBinding: CapabilityGuestUIPresentationBinding?
     private var store: CapabilityRecoveryStore?
     private var active: CapabilityConsumedStartup?
     private var signals: CapabilityAttemptSignals?
@@ -16,15 +18,15 @@ actor CapabilityColdStartWorker {
     private var earnedHealth = false
     init(configuration: CapabilityRecoveryConfiguration, installed: InstalledMaterial,
          environment: CapabilityRecoveryEnvironment, admission: CapabilityRecoveryStoreAdmission,
-         control: CapabilityColdStartControl) {
+         control: CapabilityColdStartControl, guestUIBinding: CapabilityGuestUIPresentationBinding? = nil) {
         self.configuration = configuration; self.installed = installed
-        self.environment = environment; self.admission = admission; self.control = control
+        self.environment = environment; self.admission = admission; self.control = control; self.guestUIBinding = guestUIBinding
     }
     func open(_ op: CapabilityColdStartOperation) async throws {
         try control.requireCurrent(op)
         guard let installed else { throw coldStartError("closed") }
         let opened = try await CapabilityRecoveryStore.open(admission: admission, installed: installed,
-            configuration: configuration, environment: environment)
+            configuration: configuration, environment: environment, guestUI: guestUIBinding != nil)
         store = opened
         guard control.installStore(opened) else { throw coldStartError("closed") }
         try control.requireCurrent(op)
@@ -101,11 +103,21 @@ actor CapabilityColdStartWorker {
                                    _ op: CapabilityColdStartOperation) async throws -> StartupStep {
         let store = try currentStore(op)
         guard let installed else { throw coldStartError("closed") }
-        let signals = CapabilityAttemptSignals(generation: selection.generation)
+        let exchange = try guestUIBinding.map { _ in try GuestUIExchangeV1(generation: selection.generation) }
+        let signals = CapabilityAttemptSignals(generation: selection.generation, guestUI: exchange)
         try control.installObservation(signals, worker: self, candidate: selection.candidateID,
             launch: selection.launchID, op: op)
         var consumed: CapabilityConsumedStartup?
         do {
+            if let guestUIBinding, let exchange {
+                let presentation = try await guestUIBinding.bind(exchange)
+                guard control.installPresentationConsumer(presentation, signals: signals, op: op) else {
+                    exchange.stop(.closed)
+                    await presentation.value // Close raced the MainActor bind.
+                    throw coldStartError("closed")
+                }
+                try control.requireCurrent(op)
+            }
             let input = try await store.consume(selection, signals: signals)
             consumed = input; active = input; self.signals = signals; milestones.removeAll(); earnedHealth = false
             control.markConsumed(true)
@@ -115,7 +127,8 @@ actor CapabilityColdStartWorker {
             try control.installConcrete(attempt, signals: signals) // Before any construct await.
             try await attempt.construct()
             try requireAttempt(op, signals)
-            _ = try await attempt.startup() // Effects remain disabled.
+            if exchange != nil { try await attempt.startupGuestUI() }
+            else { _ = try await attempt.startup() } // Effects remain disabled.
             try requireAttempt(op, signals)
             try await store.recordEffectsIntent(input, signals: signals)
             try requireAttempt(op, signals)
@@ -123,6 +136,12 @@ actor CapabilityColdStartWorker {
             try requireAttempt(op, signals)
             try await store.confirmEffectsEnabled(input, signals: signals)
             try requireAttempt(op, signals)
+            if let exchange {
+                try exchange.confirmEffectsEnabled(generation: input.generation)
+                try await store.reportMilestone(input, id: "feature_started")
+                milestones.insert("feature_started")
+                try requireAttempt(op, signals)
+            }
             try control.armTimer(seconds: configuration.observationSeconds, signals: signals)
             control.setPhase(.provisionalGuest)
             return .live
@@ -197,6 +216,16 @@ actor CapabilityColdStartWorker {
     private func reconcileOwned(fromConsumer: Bool) async -> CapabilityColdStartObservation? {
         control.clearPendingWake()
         guard !control.isClosed, let active, let signals, let store else { return nil }
+        if let exchange = signals.guestUI, !signals.snapshot.stopped,
+           let receipt = exchange.snapshot().pendingPresentationReceipt {
+            do {
+                try await store.reportMilestone(active, id: "first_screen")
+                milestones.insert("first_screen")
+                exchange.consumeObservedPresentation(generation: receipt.generation, frameSerial: receipt.frameSerial)
+            } catch {
+                if !signals.snapshot.stopped { signals.requestStop(.closed) }
+            }
+        }
         if !signals.snapshot.stopped, !earnedHealth, control.timerFired,
            configuration.requiredMilestones.isSubset(of: milestones) {
             do {

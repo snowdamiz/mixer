@@ -1,5 +1,6 @@
 import Foundation
-import MixerExperimentalCapabilityRuntime
+@_spi(GuestUIV1) import MixerExperimentalCapabilityRuntime
+@_spi(GuestUIV1) import MixerGuest
 @_spi(CapabilityDurableV3) import MixerUpdates
 
 /// Store-local issuer identity. Only this source file can mint one.
@@ -19,13 +20,17 @@ final class CapabilityRecoveryStore: Sendable {
     }
     static func open(admission: CapabilityRecoveryStoreAdmission, installed: InstalledMaterial,
                      configuration: CapabilityRecoveryConfiguration,
-                     environment: CapabilityRecoveryEnvironment = .init()) async throws -> CapabilityRecoveryStore {
+                     environment: CapabilityRecoveryEnvironment = .init(),
+                     guestUI: Bool = false) async throws -> CapabilityRecoveryStore {
+        if guestUI {
+            try CapabilityInstalledExecutionMode.requireGuestUI(installed.identity, milestones: configuration.requiredMilestones)
+        }
         let obligation = try admission.claimStore() // Before actor/configuration capture or any I/O.
         do {
             try validate(configuration)
             let control = CapabilityRecoveryControl(obligation: obligation)
             let worker = CapabilityRecoveryWorker(installed: installed, configuration: configuration,
-                environment: environment, control: control, obligation: obligation)
+                environment: environment, control: control, obligation: obligation, guestUI: guestUI)
             try obligation.retainOwner(worker) // Bounded cycle survives accidental façade drop.
             let store = CapabilityRecoveryStore(worker: worker, control: control, obligation: obligation, monotonic: environment.monotonic)
             let operation = try control.admit()
@@ -74,7 +79,10 @@ final class CapabilityRecoveryStore: Sendable {
     }
     func consume(_ selection: CapabilityStartupSelection, signals: CapabilityAttemptSignals) async throws -> CapabilityConsumedStartup {
         let op = try control.admit(); defer { control.finish(op) }
-        return try await withTaskCancellationHandler { try await worker.consume(selection, signals: signals, op) } onCancel: { op.cancel() }
+        do {
+            let input = try await withTaskCancellationHandler { try await worker.consume(selection, signals: signals, op) } onCancel: { op.cancel() }
+            await worker.finishRetired(); return input
+        } catch { await worker.finishRetired(); throw error }
     }
     func recordEffectsIntent(_ consumed: CapabilityConsumedStartup, signals: CapabilityAttemptSignals) async throws {
         let op = try control.admit(); defer { control.finish(op) }
@@ -204,9 +212,9 @@ private final class CapabilityRecoveryControl: @unchecked Sendable {
     }
     var closeWasRequested: Bool { lock.lock(); defer { lock.unlock() }; return closeRequested }
     var snapshot: CapabilityRecoverySnapshot { lock.lock(); defer { lock.unlock() }; return report }
-    func publish(_ state: CapabilityRecoveryState?, poisoned: Bool) {
+    func publish(_ state: CapabilityRecoveryState?, requiresReopen: Bool) {
         lock.lock(); defer { lock.unlock() }
-        report.requiresReopen = poisoned
+        report.requiresReopen = requiresReopen
         if let state {
             report.acceptedSequence = state.acceptedSequence; report.downloading = state.pending?.candidateID
             report.staged = state.staged; report.healthy = state.healthy?.candidateID
@@ -242,6 +250,7 @@ private final class CapabilityRecoveryOperation: @unchecked Sendable {
 }
 
 private actor CapabilityRecoveryWorker {
+    private let guestUI: Bool
     private let installed: InstalledMaterial
     private let configuration: CapabilityRecoveryConfiguration
     private let environment: CapabilityRecoveryEnvironment
@@ -263,9 +272,10 @@ private actor CapabilityRecoveryWorker {
     private var effectsEnabledAt: UInt64?
     private var milestones: Set<String> = []
     init(installed: InstalledMaterial, configuration: CapabilityRecoveryConfiguration,
-         environment: CapabilityRecoveryEnvironment, control: CapabilityRecoveryControl, obligation: CapabilityStoreObligation) {
+         environment: CapabilityRecoveryEnvironment, control: CapabilityRecoveryControl, obligation: CapabilityStoreObligation,
+         guestUI: Bool) {
         self.installed = installed; self.configuration = configuration; self.environment = environment
-        self.control = control; self.obligation = obligation
+        self.control = control; self.obligation = obligation; self.guestUI = guestUI
     }
     func open(_ op: CapabilityRecoveryOperation) throws {
         try op.check()
@@ -343,8 +353,8 @@ private actor CapabilityRecoveryWorker {
         let end = began.addingReportingOverflow(delta.partialValue)
         guard !delta.overflow, !end.overflow else { throw capabilityRecoveryError("deadline") }
         try current(op, candidate: candidate, began: began, cutoff: end.partialValue)
-        let validation = try ExperimentalCapabilityValidator.prepare(module: bytes,
-            startupExport: installed.identity.execution.startupExport, configuration: CapabilityExecutionPolicy.nativeConfiguration(installed: installed, signed: artifact.resourceLimits))
+        let validation = try prepareValidation(bytes,
+            configuration: CapabilityExecutionPolicy.nativeConfiguration(installed: installed, signed: artifact.resourceLimits))
         op.attach(validation); validating = true
         defer { op.detach() }
         if let gate = environment.beforeValidation { await gate() }
@@ -443,8 +453,7 @@ private actor CapabilityRecoveryWorker {
         }
         let cutoff = try startupCutoff(began: began, interval: policy.startupMilliseconds)
         try selectedCurrent(candidate, source: source, began: began, cutoff: cutoff, op)
-        let validator = try ExperimentalCapabilityValidator.prepare(module: bytes,
-            startupExport: installed.identity.execution.startupExport, configuration: policy.native)
+        let validator = try prepareValidation(bytes, configuration: policy.native)
         op.attach(validator); validating = true
         defer { op.detach() }
         if let gate = environment.beforeValidation { await gate() }
@@ -476,9 +485,10 @@ private actor CapabilityRecoveryWorker {
         return result
     }
     func consume(_ selection: CapabilityStartupSelection, signals: CapabilityAttemptSignals,
-                 _ op: CapabilityRecoveryOperation) throws -> CapabilityConsumedStartup {
+                 _ op: CapabilityRecoveryOperation) async throws -> CapabilityConsumedStartup {
         let (_, s) = try available(op)
         guard prepared === selection, active == nil, signals.generation == selection.generation,
+              (signals.guestUI != nil) == guestUI,
               s.attempt?.launchID == selection.launchID else { throw capabilityRecoveryError("selection") }
         do {
             try checkStartupClock(began: selection.startupBeganUptimeNanoseconds, cutoff: selection.startupCutoffUptimeNanoseconds)
@@ -486,6 +496,16 @@ private actor CapabilityRecoveryWorker {
             let input = try selection.inspect(for: selectionKey)
             guard let candidate = s.candidates[input.candidateID] else { throw capabilityRecoveryError("selection") }
             try revalidate(input.evidence, candidate: candidate, bytes: input.module)
+            if guestUI {
+                // Consumption is another checked boundary. Keep the same
+                // bounded validation permit until the native call has returned.
+                let validation = try prepareValidation(input.module, configuration: input.policy.native)
+                op.attach(validation); validating = true
+                defer { op.detach() }
+                try await validation.validate()
+                try checkStartupClock(began: selection.startupBeganUptimeNanoseconds, cutoff: selection.startupCutoffUptimeNanoseconds)
+                try revalidate(input.evidence, candidate: candidate, bytes: input.module)
+            }
             try op.check(); try signals.requireCommitEntry(expectedGeneration: input.generation)
             _ = try selection.take(for: selectionKey)
             prepared = nil; active = input; activeSignals = signals
@@ -566,6 +586,18 @@ private actor CapabilityRecoveryWorker {
         guard let candidate = s.candidates[input.candidateID] else { throw capabilityRecoveryError("attempt") }
         let snapshot = signals.snapshot
         guard snapshot.stopped else { throw capabilityRecoveryError("terminal_missing") }
+        if case .protocolViolation(let terminal) = snapshot.guestUI?.stop {
+            let effects = terminal.effectStage == .intentEntered || snapshot.effectsMayHaveOpened || s.attempt?.effectsMayHaveOpened == true
+            var next = s
+            next.lastRecovery = effects ? "ui_protocol_after_effects" : "ui_protocol_before_effects"
+            next.attempt = nil; next.staged = nil
+            try commit(next, op)
+            prepared = nil; active = nil; activeSignals = nil; effectsEnabledAt = nil; milestones.removeAll()
+            if effects { recoveryRequired = true; publish(); return .recoveryRequired }
+            guard allowFallback else { return .nativeFallback }
+            if let selection = try await prepareRetained(excludingArtifact: candidate.artifactSHA256, began: began, op) { return .selection(selection) }
+            return .nativeFallback
+        }
         let failure = CapabilityRecoveryFailure.classify(snapshot)
         let effects = snapshot.effectsMayHaveOpened || s.attempt?.effectsMayHaveOpened == true
         var next = s
@@ -583,7 +615,7 @@ private actor CapabilityRecoveryWorker {
         next.attempt = nil; next.staged = nil // Records/history remain; never silently retry this failed fresh stage.
         try commit(next, op)
         prepared = nil; active = nil; activeSignals = nil; effectsEnabledAt = nil; milestones.removeAll()
-        if effects { recoveryRequired = true; return .recoveryRequired }
+        if effects { recoveryRequired = true; publish(); return .recoveryRequired }
         // A closing coordinator records the original checked terminal/history
         // without creating another selection, validation or durable attempt.
         guard allowFallback else { return .nativeFallback }
@@ -592,6 +624,11 @@ private actor CapabilityRecoveryWorker {
         if [.cancelled, .deadline, .closed].contains(failure) { return .nativeFallback }
         if let selection = try await prepareRetained(excludingArtifact: candidate.artifactSHA256, began: began, op) { return .selection(selection) }
         return .nativeFallback
+    }
+    private func prepareValidation(_ module: Data, configuration: ExperimentalCapabilityConfiguration) throws -> ExperimentalCapabilityValidation {
+        if guestUI { return try ExperimentalCapabilityValidator.prepareGuestUIV1(module: module, configuration: configuration) }
+        return try ExperimentalCapabilityValidator.prepare(module: module,
+            startupExport: installed.identity.execution.startupExport, configuration: configuration)
     }
     private func bound(_ input: CapabilityConsumedStartup, _ signals: CapabilityAttemptSignals,
                        _ op: CapabilityRecoveryOperation) throws -> (CapabilityDurableDirectory, CapabilityRecoveryState) {
@@ -736,7 +773,11 @@ private actor CapabilityRecoveryWorker {
         let free = try d.availableBytes()
         guard free >= bytes, free - bytes >= configuration.reserveDiskBytes else { throw capabilityRecoveryError("disk") }
     }
-    private func publish() { control.publish(state, poisoned: poisoned) }
+    private func publish() {
+        // The explicit UI facade exposes logical post-intent uncertainty as
+        // requiring reopen even when the durable store itself remains usable.
+        control.publish(state, requiresReopen: poisoned || (guestUI && recoveryRequired))
+    }
     private func poison() { poisoned = true; publish() }
     private func part(_ c: CapabilityRecoveryCandidate) -> String { c.candidateID + ".payload.part" }
     private func payload(_ c: CapabilityRecoveryCandidate) -> String { c.payloadSHA256 + ".payload" }

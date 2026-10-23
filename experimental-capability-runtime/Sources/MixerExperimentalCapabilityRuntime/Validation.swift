@@ -1,6 +1,7 @@
 import Foundation
 import Dispatch
 import CMixerVMCapability
+@_spi(GuestUIV1) import MixerGuest
 
 private final class ValidationPermit: @unchecked Sendable {
     private static let count = Locked(0)
@@ -37,6 +38,16 @@ enum ValidationQueue {
 
 /// Admission only. A successful return is not an execution or activation proof.
 public enum ExperimentalCapabilityValidator {
+    @_spi(GuestUIV1)
+    public static func prepareGuestUIV1(module: Data, configuration: ExperimentalCapabilityConfiguration) throws -> ExperimentalCapabilityValidation {
+        guard module.count <= 4_194_304 else { throw ExperimentalCapabilityError("invalid_module_or_startup") }
+        try configuration.validate()
+        let permit = try ValidationPermit.acquire()
+        let snapshot = module.withUnsafeBytes { bytes in
+            bytes.isEmpty ? Data() : Data(bytes: bytes.baseAddress!, count: bytes.count)
+        }
+        return ExperimentalCapabilityValidation(module: snapshot, startup: "mixer_guest_ui_start_v1", configuration: configuration, permit: permit, guestUI: true)
+    }
     public static func prepare(module: Data, startupExport: String,
                                configuration: ExperimentalCapabilityConfiguration = .init()) throws -> ExperimentalCapabilityValidation {
         guard module.count <= 4_194_304, !startupExport.isEmpty, startupExport.utf8.prefix(4097).count <= 4096 else {
@@ -59,6 +70,7 @@ public final class ExperimentalCapabilityValidation: @unchecked Sendable {
         let module: Data
         let startup: String
         let configuration: ExperimentalCapabilityConfiguration
+        let guestUI: Bool
     }
     private struct State {
         var input: Input?
@@ -68,8 +80,8 @@ public final class ExperimentalCapabilityValidation: @unchecked Sendable {
     }
     private let state: Locked<State>
     private let permit: ValidationPermit
-    fileprivate init(module: Data, startup: String, configuration: ExperimentalCapabilityConfiguration, permit: ValidationPermit) {
-        state = Locked(State(input: Input(module: module, startup: startup, configuration: configuration)))
+    fileprivate init(module: Data, startup: String, configuration: ExperimentalCapabilityConfiguration, permit: ValidationPermit, guestUI: Bool = false) {
+        state = Locked(State(input: Input(module: module, startup: startup, configuration: configuration, guestUI: guestUI)))
         self.permit = permit
     }
     deinit {
@@ -116,6 +128,10 @@ public final class ExperimentalCapabilityValidation: @unchecked Sendable {
             return state.cancelled ? nil : input
         }
         guard let input else { return .failure(CancellationError()) }
+        if input.guestUI {
+            do { try NativeCapabilitySession.validateGuestUI(module: input.module, configuration: input.configuration); return .success(()) }
+            catch { return .failure(error) }
+        }
         var vm = input.configuration.vm, capability = input.configuration.capability, report = MixerVmReport()
         let name = Array(input.startup.utf8)
         let status = input.module.withUnsafeBytes { bytes in

@@ -1,0 +1,954 @@
+{
+  "schema_version": 1,
+  "started_utc": "2026-10-23T11:55:42.438536+00:00",
+  "source_revision": "1adb25c48a8723f56ed2649712fe5e357920c53e",
+  "head_at_start": "1adb25c48a8723f56ed2649712fe5e357920c53e",
+  "implementation_selection": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "xhigh"
+  },
+  "source_files": {
+    "experimental-capability-runtime/build-vm.py": "73a9b997930b36b0eb9d7d02b7fdd31ea70fa9b64c244210595f916a237260ea",
+    "experimental-capability-runtime/build-tests/test_builder.py": "c7eb84365a063213bf75d601349522c65c624ed74103769efdfce039e052aea3",
+    "experimental-capability-runtime/build-tests/mixed_registry.c": "2ac350af5178a1798175677c08c719162076e46af64b2dfdacea71ca5fe214b1",
+    "experimental-capability-runtime/build-tests/guest_ui.c": "141c22438c39619fd25d3222c4d60a09ad82126e459fb16dafdc9bb66901e17f",
+    "experimental-capability-runtime/build-verification/README.md": "c97a96b6bcf6111f3856d17e4e74150f1248e42e9ed8313e27115a1ba5b3f704",
+    "experimental-capability-runtime/build-verification/run.py": "ef60f1f27877f9185b21fd070e0d0bd90f5dd67c2c0ae0143e38c343a8b11f48"
+  },
+  "source_manifest_sha256": "6a9329b3a33b3200316da5ddd4b1ddc888fae9fedc431dda2307487123dc9fad",
+  "commands": [
+    {
+      "name": "python-version",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.007471,
+      "log": "python-version.log",
+      "sha256": "f615dc9512de8b165e2b595e5cdc608a3ba7927ae92f959c5b42ec3d58e2ffa8"
+    },
+    {
+      "name": "tests-normal",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-tests/test_builder.py"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 8.560453,
+      "log": "tests-normal.log",
+      "sha256": "abe728f60fa9ae9dbdf442667d11bea37eb91f29959eded29b0c31dce4ce0e82"
+    },
+    {
+      "name": "tests-optimized",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-O",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-tests/test_builder.py"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 8.826745,
+      "log": "tests-optimized.log",
+      "sha256": "f814bfb5eecf8df7e2513f7fbe0e3cdae601fb6a4a572e196a1b0c90cb3c234d"
+    },
+    {
+      "name": "previous-mixer_vm.h",
+      "argv": [
+        "git",
+        "show",
+        "b25e3b7de2391a80d12e7fd75e60903495bec120:vm/include/mixer_vm.h"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.006981,
+      "log": "previous-mixer_vm.h.log",
+      "sha256": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd"
+    },
+    {
+      "name": "previous-mixer_vm_capability.h",
+      "argv": [
+        "git",
+        "show",
+        "b25e3b7de2391a80d12e7fd75e60903495bec120:vm/include/mixer_vm_capability.h"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.00519,
+      "log": "previous-mixer_vm_capability.h.log",
+      "sha256": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6"
+    },
+    {
+      "name": "build-host",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-vm.py",
+        "--revision",
+        "1adb25c48a8723f56ed2649712fe5e357920c53e",
+        "--target",
+        "host",
+        "--output",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host",
+        "--cache",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-native-verification",
+        "--rustc",
+        "/opt/homebrew/opt/rustup/bin/rustc"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 2.005987,
+      "log": "build-host.log",
+      "sha256": "dfbb3e6010490375e24edb853f7c685182b1b7c432a9f1e59689e3aa681f510b"
+    },
+    {
+      "name": "host-c-layout",
+      "argv": [
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-isysroot",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk",
+        "-mmacosx-version-min=14.0",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/include",
+        "-c",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/source/vm/tests/capability_ffi_smoke.c",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/capability-layout.o"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.019892,
+      "log": "host-c-layout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "host-c-link",
+      "argv": [
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-isysroot",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk",
+        "-mmacosx-version-min=14.0",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/include",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/source/vm/tests/capability_ffi_smoke.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/lib/libmixer_vm_capability_experimental.a",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/capability-smoke"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.040925,
+      "log": "host-c-link.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "host-client-file",
+      "argv": [
+        "/usr/bin/file",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/capability-smoke"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.002872,
+      "log": "host-client-file.log",
+      "sha256": "021d3707a4c8ce82f6c9cf1be149d6327eecbceab657dd64076c86b32c694bd5"
+    },
+    {
+      "name": "host-ui-c-link",
+      "argv": [
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-isysroot",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk",
+        "-mmacosx-version-min=14.0",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/include",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-tests/guest_ui.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/lib/libmixer_vm_capability_experimental.a",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/guest-ui-smoke"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.041227,
+      "log": "host-ui-c-link.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "host-ui-client-file",
+      "argv": [
+        "/usr/bin/file",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/guest-ui-smoke"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.003005,
+      "log": "host-ui-client-file.log",
+      "sha256": "c1033b938f2621a6db5d6fc4d76c248e9e5091fb6a99091df29e5d12fe677c2e"
+    },
+    {
+      "name": "host-c-smoke",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/capability-smoke"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.067452,
+      "log": "host-c-smoke.log",
+      "sha256": "a12db8a9736d3c5231ada76b5c9e51c69b90aca5dd19b7efe4cb02a2080d150f"
+    },
+    {
+      "name": "mixed-registry-compile",
+      "argv": [
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-isysroot",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk",
+        "-mmacosx-version-min=14.0",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/include",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-tests/mixed_registry.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/lib/libmixer_vm_capability_experimental.a",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/mixed-registry"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.040386,
+      "log": "mixed-registry-compile.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "mixed-registry-run",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/mixed-registry"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.067216,
+      "log": "mixed-registry-run.log",
+      "sha256": "09e8be3751978da81c87fe19af999d320555a4f1fbed8d514e5ab5736e5f8a6d"
+    },
+    {
+      "name": "host-ui-c-smoke",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/guest-ui-smoke"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.059684,
+      "log": "host-ui-c-smoke.log",
+      "sha256": "fb4c661b86c9e400df5d703b4b5d73885975ea6c4c156baf453d481b8c328d3e"
+    },
+    {
+      "name": "build-ios",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-vm.py",
+        "--revision",
+        "1adb25c48a8723f56ed2649712fe5e357920c53e",
+        "--target",
+        "ios",
+        "--output",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios",
+        "--cache",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-native-verification",
+        "--rustc",
+        "/opt/homebrew/opt/rustup/bin/rustc"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 2.111756,
+      "log": "build-ios.log",
+      "sha256": "cc6b4edb52bfda421c7fba656c9ff70bb51afb9da8b222bb753c1001b0ac10ce"
+    },
+    {
+      "name": "ios-c-layout",
+      "argv": [
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-target",
+        "arm64-apple-ios17.0",
+        "-isysroot",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS27.1.sdk",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios/include",
+        "-c",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios/source/vm/tests/capability_ffi_smoke.c",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios/capability-layout.o"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.020436,
+      "log": "ios-c-layout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "ios-c-link",
+      "argv": [
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-target",
+        "arm64-apple-ios17.0",
+        "-isysroot",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS27.1.sdk",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios/include",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios/source/vm/tests/capability_ffi_smoke.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios/lib/libmixer_vm_capability_experimental.a",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios/capability-smoke"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.037004,
+      "log": "ios-c-link.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "ios-client-file",
+      "argv": [
+        "/usr/bin/file",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios/capability-smoke"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.003003,
+      "log": "ios-client-file.log",
+      "sha256": "9c0b3d94a9477a5e334d1eba4e9308a313a313b81c48e79c67dd715316c78df2"
+    },
+    {
+      "name": "ios-ui-c-link",
+      "argv": [
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-target",
+        "arm64-apple-ios17.0",
+        "-isysroot",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS27.1.sdk",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios/include",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-tests/guest_ui.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios/lib/libmixer_vm_capability_experimental.a",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios/guest-ui-smoke"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.037953,
+      "log": "ios-ui-c-link.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "ios-ui-client-file",
+      "argv": [
+        "/usr/bin/file",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios/guest-ui-smoke"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.002575,
+      "log": "ios-ui-client-file.log",
+      "sha256": "9071c393d94540660d290b548bd8916affbbe8ed464fdf7af8f4770f262729a7"
+    },
+    {
+      "name": "build-ios-simulator",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-vm.py",
+        "--revision",
+        "1adb25c48a8723f56ed2649712fe5e357920c53e",
+        "--target",
+        "ios-simulator",
+        "--output",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios-simulator",
+        "--cache",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-native-verification",
+        "--rustc",
+        "/opt/homebrew/opt/rustup/bin/rustc"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 2.125626,
+      "log": "build-ios-simulator.log",
+      "sha256": "ff417eef3a16147129c854dc94cfe16dd59307c045c7358b9105f4c18bea05e2"
+    },
+    {
+      "name": "ios-simulator-c-layout",
+      "argv": [
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-target",
+        "arm64-apple-ios17.0-simulator",
+        "-isysroot",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios-simulator/include",
+        "-c",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios-simulator/source/vm/tests/capability_ffi_smoke.c",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios-simulator/capability-layout.o"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.033232,
+      "log": "ios-simulator-c-layout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "ios-simulator-c-link",
+      "argv": [
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-target",
+        "arm64-apple-ios17.0-simulator",
+        "-isysroot",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios-simulator/include",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios-simulator/source/vm/tests/capability_ffi_smoke.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios-simulator/lib/libmixer_vm_capability_experimental.a",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios-simulator/capability-smoke"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.04096,
+      "log": "ios-simulator-c-link.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "ios-simulator-client-file",
+      "argv": [
+        "/usr/bin/file",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios-simulator/capability-smoke"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.00304,
+      "log": "ios-simulator-client-file.log",
+      "sha256": "7039c63e9c5e19d4050a3b3bb32649b421fe045943cd8002980a0ea88da94717"
+    },
+    {
+      "name": "ios-simulator-ui-c-link",
+      "argv": [
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-target",
+        "arm64-apple-ios17.0-simulator",
+        "-isysroot",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios-simulator/include",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-tests/guest_ui.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios-simulator/lib/libmixer_vm_capability_experimental.a",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios-simulator/guest-ui-smoke"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.038913,
+      "log": "ios-simulator-ui-c-link.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "ios-simulator-ui-client-file",
+      "argv": [
+        "/usr/bin/file",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios-simulator/guest-ui-smoke"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.003044,
+      "log": "ios-simulator-ui-client-file.log",
+      "sha256": "2ce859977c42375d8b3e651a8f7f37dd1075159cb40788ff3879449f092c11bc"
+    },
+    {
+      "name": "build-android",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-vm.py",
+        "--revision",
+        "1adb25c48a8723f56ed2649712fe5e357920c53e",
+        "--target",
+        "android",
+        "--output",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/android",
+        "--cache",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-native-verification",
+        "--rustc",
+        "/opt/homebrew/opt/rustup/bin/rustc",
+        "--ndk",
+        "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 2.250386,
+      "log": "build-android.log",
+      "sha256": "cdbb87b9edf9399131d6acea41081ee46028c6715edf2dfaea826c56081e0355"
+    },
+    {
+      "name": "android-c-layout",
+      "argv": [
+        "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android28-clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/android/include",
+        "-c",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/android/source/vm/tests/capability_ffi_smoke.c",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/android/capability-layout.o"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.059421,
+      "log": "android-c-layout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "android-c-link",
+      "argv": [
+        "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android28-clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/android/include",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/android/source/vm/tests/capability_ffi_smoke.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/android/lib/libmixer_vm_capability_experimental.a",
+        "-ldl",
+        "-llog",
+        "-lm",
+        "-Wl,-z,max-page-size=16384",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/android/capability-smoke"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.05413,
+      "log": "android-c-link.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "android-client-file",
+      "argv": [
+        "/usr/bin/file",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/android/capability-smoke"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.00293,
+      "log": "android-client-file.log",
+      "sha256": "ff001da551aa46e8e1b6eb3d7ff98a635274917b9daf8141bb8424cbc220a707"
+    },
+    {
+      "name": "android-ui-c-link",
+      "argv": [
+        "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android28-clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/android/include",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-tests/guest_ui.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/android/lib/libmixer_vm_capability_experimental.a",
+        "-ldl",
+        "-llog",
+        "-lm",
+        "-Wl,-z,max-page-size=16384",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/android/guest-ui-smoke"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.053253,
+      "log": "android-ui-c-link.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "android-ui-client-file",
+      "argv": [
+        "/usr/bin/file",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/android/guest-ui-smoke"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.002932,
+      "log": "android-ui-client-file.log",
+      "sha256": "8cf94df27e3c2588deb71f819ff4ea39fa9264e8c6bf98e8515e435c3be7f1c6"
+    }
+  ],
+  "targets": {
+    "host": {
+      "builder_receipt": "host-builder-receipt.json",
+      "builder_receipt_sha256": "73eec997b44b7a0b359673ebb08a06fce22d219de1b587b045204edce1aaa832",
+      "library": {
+        "sha256": "4d3b6dc36ea034d5604299752d560cbbc0615002b6b5ef4e5c25bbb3cb7c6120",
+        "bytes": 19306488,
+        "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/lib/libmixer_vm_capability_experimental.a"
+      },
+      "headers": {
+        "mixer_vm.h": {
+          "sha256": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+          "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/include/mixer_vm.h"
+        },
+        "mixer_vm_capability.h": {
+          "sha256": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+          "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/include/mixer_vm_capability.h"
+        },
+        "mixer_vm_guest_ui.h": {
+          "sha256": "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5",
+          "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/include/mixer_vm_guest_ui.h"
+        }
+      },
+      "source_manifest_sha256": "cd913dc2c067022ad627e93ae0d50ee1151b88f5c711a8d92bfd58facba8890b",
+      "source_archive_sha256": "213fd38a4d403bed966eaeadf128a6d481f1dc67e1078dbc6163ff0d187030a9",
+      "source_files": 90,
+      "public_C_symbol_count": 28,
+      "public_C_symbols": [
+        "mixer_vm_capability_ack_exit_v1",
+        "mixer_vm_capability_expire_v1",
+        "mixer_vm_capability_guest_ui_validate_v1",
+        "mixer_vm_capability_limit_deadline_v1",
+        "mixer_vm_capability_post_v1",
+        "mixer_vm_capability_session_cancel_v1",
+        "mixer_vm_capability_session_close_v1",
+        "mixer_vm_capability_session_create_v1",
+        "mixer_vm_capability_session_enable_v1",
+        "mixer_vm_capability_session_invoke_v1",
+        "mixer_vm_capability_session_read_v1",
+        "mixer_vm_capability_session_startup_v1",
+        "mixer_vm_capability_session_wake_v1",
+        "mixer_vm_capability_session_write_v1",
+        "mixer_vm_capability_take_v1",
+        "mixer_vm_capability_validate_v1",
+        "mixer_vm_invoke",
+        "mixer_vm_invoke_numeric_v2",
+        "mixer_vm_invoke_table_memory_v3",
+        "mixer_vm_session_cancel_v1",
+        "mixer_vm_session_close_v1",
+        "mixer_vm_session_create_v1",
+        "mixer_vm_session_invoke_v1",
+        "mixer_vm_session_read_v1",
+        "mixer_vm_session_write_v1",
+        "mixer_vm_validate",
+        "mixer_vm_validate_numeric_v2",
+        "mixer_vm_validate_table_memory_v3"
+      ],
+      "features": [
+        "experimental-capability-mailbox",
+        "experimental-capability-guest",
+        "experimental-capability-native"
+      ],
+      "rust_target": "aarch64-apple-darwin",
+      "executed": true,
+      "client_sha256": "f9127f923345d16cef4136d93009ac89114433ad0db6d46b576c1ea642370253",
+      "layout_object_sha256": "2dac4060799f60f93b942b74108a79b3fd80fa84fe0c9a3852ee90a93fef8c32",
+      "ui_client_sha256": "af6f1e4df300891a915cc22738334deadd39a228ec805c9baa5ebf9d2e4905bc"
+    },
+    "ios": {
+      "builder_receipt": "ios-builder-receipt.json",
+      "builder_receipt_sha256": "498f38266329aa771f8a32990c7b23d3f307db29ec6818e61283e1050cd9c30f",
+      "library": {
+        "sha256": "08b5dd24534b085fc1def83f430e87aa875db4decae3b52819a0a56ced93079c",
+        "bytes": 19002136,
+        "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios/lib/libmixer_vm_capability_experimental.a"
+      },
+      "headers": {
+        "mixer_vm.h": {
+          "sha256": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+          "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios/include/mixer_vm.h"
+        },
+        "mixer_vm_capability.h": {
+          "sha256": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+          "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios/include/mixer_vm_capability.h"
+        },
+        "mixer_vm_guest_ui.h": {
+          "sha256": "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5",
+          "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios/include/mixer_vm_guest_ui.h"
+        }
+      },
+      "source_manifest_sha256": "cd913dc2c067022ad627e93ae0d50ee1151b88f5c711a8d92bfd58facba8890b",
+      "source_archive_sha256": "213fd38a4d403bed966eaeadf128a6d481f1dc67e1078dbc6163ff0d187030a9",
+      "source_files": 90,
+      "public_C_symbol_count": 28,
+      "public_C_symbols": [
+        "mixer_vm_capability_ack_exit_v1",
+        "mixer_vm_capability_expire_v1",
+        "mixer_vm_capability_guest_ui_validate_v1",
+        "mixer_vm_capability_limit_deadline_v1",
+        "mixer_vm_capability_post_v1",
+        "mixer_vm_capability_session_cancel_v1",
+        "mixer_vm_capability_session_close_v1",
+        "mixer_vm_capability_session_create_v1",
+        "mixer_vm_capability_session_enable_v1",
+        "mixer_vm_capability_session_invoke_v1",
+        "mixer_vm_capability_session_read_v1",
+        "mixer_vm_capability_session_startup_v1",
+        "mixer_vm_capability_session_wake_v1",
+        "mixer_vm_capability_session_write_v1",
+        "mixer_vm_capability_take_v1",
+        "mixer_vm_capability_validate_v1",
+        "mixer_vm_invoke",
+        "mixer_vm_invoke_numeric_v2",
+        "mixer_vm_invoke_table_memory_v3",
+        "mixer_vm_session_cancel_v1",
+        "mixer_vm_session_close_v1",
+        "mixer_vm_session_create_v1",
+        "mixer_vm_session_invoke_v1",
+        "mixer_vm_session_read_v1",
+        "mixer_vm_session_write_v1",
+        "mixer_vm_validate",
+        "mixer_vm_validate_numeric_v2",
+        "mixer_vm_validate_table_memory_v3"
+      ],
+      "features": [
+        "experimental-capability-mailbox",
+        "experimental-capability-guest",
+        "experimental-capability-native"
+      ],
+      "rust_target": "aarch64-apple-ios",
+      "executed": false,
+      "client_sha256": "167650fe6d6acba12f93ef8ef2510d1bec3f3822f47372877d479050c26dd36f",
+      "layout_object_sha256": "d87cad7455fad96ffca4b6ffb93dc31ca86e055ed5d939cd688ac2513294e01e",
+      "ui_client_sha256": "df3f2b9a0c6c702f50a91b367af208139e9de95779ed3c0561e2d517146a009e"
+    },
+    "ios-simulator": {
+      "builder_receipt": "ios-simulator-builder-receipt.json",
+      "builder_receipt_sha256": "3aca878bd743f825b8af15796b8c19f935be441133690326f53f03acb33de71f",
+      "library": {
+        "sha256": "5d25a53828192483a343086bb7bf7b727916f4e7e8c2338cc4f479b6cda5b9f1",
+        "bytes": 18999856,
+        "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios-simulator/lib/libmixer_vm_capability_experimental.a"
+      },
+      "headers": {
+        "mixer_vm.h": {
+          "sha256": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+          "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios-simulator/include/mixer_vm.h"
+        },
+        "mixer_vm_capability.h": {
+          "sha256": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+          "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios-simulator/include/mixer_vm_capability.h"
+        },
+        "mixer_vm_guest_ui.h": {
+          "sha256": "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5",
+          "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/ios-simulator/include/mixer_vm_guest_ui.h"
+        }
+      },
+      "source_manifest_sha256": "cd913dc2c067022ad627e93ae0d50ee1151b88f5c711a8d92bfd58facba8890b",
+      "source_archive_sha256": "213fd38a4d403bed966eaeadf128a6d481f1dc67e1078dbc6163ff0d187030a9",
+      "source_files": 90,
+      "public_C_symbol_count": 28,
+      "public_C_symbols": [
+        "mixer_vm_capability_ack_exit_v1",
+        "mixer_vm_capability_expire_v1",
+        "mixer_vm_capability_guest_ui_validate_v1",
+        "mixer_vm_capability_limit_deadline_v1",
+        "mixer_vm_capability_post_v1",
+        "mixer_vm_capability_session_cancel_v1",
+        "mixer_vm_capability_session_close_v1",
+        "mixer_vm_capability_session_create_v1",
+        "mixer_vm_capability_session_enable_v1",
+        "mixer_vm_capability_session_invoke_v1",
+        "mixer_vm_capability_session_read_v1",
+        "mixer_vm_capability_session_startup_v1",
+        "mixer_vm_capability_session_wake_v1",
+        "mixer_vm_capability_session_write_v1",
+        "mixer_vm_capability_take_v1",
+        "mixer_vm_capability_validate_v1",
+        "mixer_vm_invoke",
+        "mixer_vm_invoke_numeric_v2",
+        "mixer_vm_invoke_table_memory_v3",
+        "mixer_vm_session_cancel_v1",
+        "mixer_vm_session_close_v1",
+        "mixer_vm_session_create_v1",
+        "mixer_vm_session_invoke_v1",
+        "mixer_vm_session_read_v1",
+        "mixer_vm_session_write_v1",
+        "mixer_vm_validate",
+        "mixer_vm_validate_numeric_v2",
+        "mixer_vm_validate_table_memory_v3"
+      ],
+      "features": [
+        "experimental-capability-mailbox",
+        "experimental-capability-guest",
+        "experimental-capability-native"
+      ],
+      "rust_target": "aarch64-apple-ios-sim",
+      "executed": false,
+      "client_sha256": "8c6c16068e1c61fe39ed8a3066dfd05fd9b1be99d0df82f78bd7004be280f3ab",
+      "layout_object_sha256": "881a1c217412c722348fc322812f580dbb14a3e6f81c86b98365e6c49998445f",
+      "ui_client_sha256": "bf582315380f873fc6cad25987b5b654509bc71c792e128298b73e94dac97670"
+    },
+    "android": {
+      "builder_receipt": "android-builder-receipt.json",
+      "builder_receipt_sha256": "1748d20ba93ecd46f1042934c439399e410288ea18c030a326635d4194a05b1d",
+      "library": {
+        "sha256": "ec9f7e1e0feccc9e58c8c18635b8b0fba1965265463741f9b90440c68cbae309",
+        "bytes": 25318248,
+        "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/android/lib/libmixer_vm_capability_experimental.a"
+      },
+      "headers": {
+        "mixer_vm.h": {
+          "sha256": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+          "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/android/include/mixer_vm.h"
+        },
+        "mixer_vm_capability.h": {
+          "sha256": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+          "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/android/include/mixer_vm_capability.h"
+        },
+        "mixer_vm_guest_ui.h": {
+          "sha256": "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5",
+          "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/android/include/mixer_vm_guest_ui.h"
+        }
+      },
+      "source_manifest_sha256": "cd913dc2c067022ad627e93ae0d50ee1151b88f5c711a8d92bfd58facba8890b",
+      "source_archive_sha256": "213fd38a4d403bed966eaeadf128a6d481f1dc67e1078dbc6163ff0d187030a9",
+      "source_files": 90,
+      "public_C_symbol_count": 28,
+      "public_C_symbols": [
+        "mixer_vm_capability_ack_exit_v1",
+        "mixer_vm_capability_expire_v1",
+        "mixer_vm_capability_guest_ui_validate_v1",
+        "mixer_vm_capability_limit_deadline_v1",
+        "mixer_vm_capability_post_v1",
+        "mixer_vm_capability_session_cancel_v1",
+        "mixer_vm_capability_session_close_v1",
+        "mixer_vm_capability_session_create_v1",
+        "mixer_vm_capability_session_enable_v1",
+        "mixer_vm_capability_session_invoke_v1",
+        "mixer_vm_capability_session_read_v1",
+        "mixer_vm_capability_session_startup_v1",
+        "mixer_vm_capability_session_wake_v1",
+        "mixer_vm_capability_session_write_v1",
+        "mixer_vm_capability_take_v1",
+        "mixer_vm_capability_validate_v1",
+        "mixer_vm_invoke",
+        "mixer_vm_invoke_numeric_v2",
+        "mixer_vm_invoke_table_memory_v3",
+        "mixer_vm_session_cancel_v1",
+        "mixer_vm_session_close_v1",
+        "mixer_vm_session_create_v1",
+        "mixer_vm_session_invoke_v1",
+        "mixer_vm_session_read_v1",
+        "mixer_vm_session_write_v1",
+        "mixer_vm_validate",
+        "mixer_vm_validate_numeric_v2",
+        "mixer_vm_validate_table_memory_v3"
+      ],
+      "features": [
+        "experimental-capability-mailbox",
+        "experimental-capability-guest",
+        "experimental-capability-native"
+      ],
+      "rust_target": "aarch64-linux-android",
+      "executed": false,
+      "client_sha256": "5fa2924869cc8809218a30cfd823513c3c156b013735bc36b4f9f95b3c641399",
+      "layout_object_sha256": "a1947b3f4db6ebfe258a32e116b61e18ef7c35d17d67a35e7267251cd3e792c5",
+      "ui_client_sha256": "4a4268b2bd1a434a249322c8698e8ff8eafec6f279ac3e9d0b610b406eebd1d4"
+    }
+  },
+  "host_tests": {
+    "normal_functions": 24,
+    "optimized_functions": 24,
+    "fixture_scope": "original temporary Git/filesystem/process cases; not VM semantic qualification",
+    "native_C_status_alias_checks": 27,
+    "one_archive_mixed_registry_checks": 52,
+    "mixed_client_sha256": "630ad1563800c5bd68b24a4a40a602856ff5b5af12dddf4459c2161dcf0d2838",
+    "guest_ui_public_C_checks": 42
+  },
+  "actual_native_revision_frozen": true,
+  "device_commands": false,
+  "qualification": "local immutable native-only source builder and host public C/UI consumers; cross compile/link only; no release/identity/device/bit-reproducibility claim",
+  "native_feature_selection": [
+    "experimental-capability-mailbox",
+    "experimental-capability-guest",
+    "experimental-capability-native"
+  ],
+  "stream_cache_features_enabled": false,
+  "previous_qualified_artifacts_modified": false,
+  "unchanged_headers": {
+    "mixer_vm.h": {
+      "previous_source_revision": "b25e3b7de2391a80d12e7fd75e60903495bec120",
+      "source_revision": "1adb25c48a8723f56ed2649712fe5e357920c53e",
+      "sha256": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd"
+    },
+    "mixer_vm_capability.h": {
+      "previous_source_revision": "b25e3b7de2391a80d12e7fd75e60903495bec120",
+      "source_revision": "1adb25c48a8723f56ed2649712fe5e357920c53e",
+      "sha256": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6"
+    }
+  }
+}

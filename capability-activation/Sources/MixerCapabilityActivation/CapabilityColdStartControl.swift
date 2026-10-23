@@ -1,4 +1,5 @@
 import Foundation
+@_spi(GuestUIV1) import MixerGuest
 
 enum CapabilityColdStartOperationKind { case opening, download, start, milestone }
 final class CapabilityColdStartOperation: @unchecked Sendable {
@@ -17,12 +18,15 @@ final class CapabilityColdStartOperation: @unchecked Sendable {
 struct CapabilityColdStartObservation: Sendable {
     let signals: CapabilityAttemptSignals
     let consumer: Task<Void, Never>
+    var presentationConsumer: Task<Void, Never>?
     var timer: CapabilityColdStartObservationTimer?
     func finish() async {
+        signals.guestUI?.stop(.closed)
         timer?.cancel()
         signals.finishNotifications()
         if let timer { await timer.waitForCancellation() }
         await consumer.value
+        await presentationConsumer?.value
     }
 }
 
@@ -111,16 +115,32 @@ final class CapabilityColdStartControl: @unchecked Sendable {
     func installObservation(_ signals: CapabilityAttemptSignals, worker: CapabilityColdStartWorker,
                             candidate: String, launch: String, op: CapabilityColdStartOperation) throws {
         let box = CapabilityColdStartWeakWorker(worker), stream = signals.notifications, generation = signals.generation
+        let reader = try signals.guestUI?.coordinatorWake.takeConsumer()
         lock.lock(); defer { lock.unlock() }
         guard !closed, ordinary === op, observation == nil, endingObservation == nil else { throw coldStartError("closed") }
         let consumer = Task.detached {
-            for await _ in stream {
-                await CapabilityColdStartWorker.handleNotificationOwned(box, generation: generation)
+            if let reader {
+                // Reader owns only its data queue; no exchange/signals/worker
+                // survives the inner helper across the next suspension.
+                while (try? await reader.next()) == true {
+                    await CapabilityColdStartWorker.handleNotificationOwned(box, generation: generation)
+                }
+            } else {
+                for await _ in stream {
+                    await CapabilityColdStartWorker.handleNotificationOwned(box, generation: generation)
+                }
             }
         }
         observation = CapabilityColdStartObservation(signals: signals, consumer: consumer)
         lastSignalObject = nil; lastSignal = nil
         candidateID = candidate; launchID = launch; phase = .starting
+    }
+    func installPresentationConsumer(_ consumer: Task<Void, Never>, signals: CapabilityAttemptSignals,
+                                     op: CapabilityColdStartOperation) -> Bool {
+        lock.lock(); defer { lock.unlock() }
+        guard !closed, ordinary === op, observation?.signals === signals,
+              observation?.presentationConsumer == nil else { return false }
+        observation?.presentationConsumer = consumer; return true
     }
     func installConcrete(_ value: CapabilityConcreteAttempt, signals: CapabilityAttemptSignals) throws {
         lock.lock(); let valid = !closed && concrete == nil && observation?.signals === signals
@@ -207,6 +227,13 @@ final class CapabilityColdStartControl: @unchecked Sendable {
     var recoverySnapshot: CapabilityRecoverySnapshot {
         lock.lock(); let current = store, final = finalRecovery; lock.unlock()
         return current?.snapshot ?? final
+    }
+    var guestUISnapshot: CapabilityGuestUIActivationSnapshot {
+        let base = snapshot
+        lock.lock()
+        let signal = (observation ?? endingObservation)?.signals.snapshot ?? lastSignalObject?.snapshot ?? lastSignal
+        lock.unlock()
+        return CapabilityGuestUIActivationSnapshot(base, ui: signal?.guestUI)
     }
     var snapshot: CapabilityActivationSnapshot {
         lock.lock()

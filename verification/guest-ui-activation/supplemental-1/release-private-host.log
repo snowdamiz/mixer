@@ -1,0 +1,14 @@
+/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation/supplemental-1/host.swift:3:101: error: 'renderHost' is inaccessible due to 'internal' protection level
+1 | import MixerCapabilityActivation
+2 | import MixerGuest
+3 | @MainActor func probe(_ p: GuestUIPresentation, _ r: CapabilityGuestUIRuntime) async throws { _ = p.renderHost }
+  |                                                                                                     `- error: 'renderHost' is inaccessible due to 'internal' protection level
+4 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation/.build/candidate-4/source/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIPresentation.swift:20:42: note: 'renderHost' declared here
+ 18 | public final class GuestUIPresentation: ObservableObject {
+ 19 |     @Published public private(set) var state: GuestUIPresentationState = .waiting
+ 20 |     @Published internal private(set) var renderHost: MixerUIHost?
+    |                                          `- note: 'renderHost' declared here
+ 21 |     @Published internal private(set) var inputEnabled = false
+ 22 | 

@@ -1,0 +1,92 @@
+{
+  "scope": "Private store transition probe, real signed download plus selected native-only module validation; no VM execution/effects enable, native view, health, device, or GA claim",
+  "base_receipt": {
+    "tests": 109,
+    "dylib": {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation/.build/candidate-2/debug/products/libMixerCapabilityActivationGuestUI.dylib",
+      "sha256": "49f32736921913ea4e5824ad27096ebe4733d3a08016f2f1195a84ea4be72c77"
+    },
+    "bundle_binary": {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation/.build/candidate-2/debug/GuestUIActivationTests.xctest/Contents/MacOS/GuestUIActivationTests",
+      "sha256": "d857fad753c6b21bd13982aecac2a90048e7fbf3f09c6c7a6953d3577d18ab8c"
+    }
+  },
+  "commands": [
+    {
+      "name": "link",
+      "command": [
+        "swiftc",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation/.build/candidate-2/debug/products",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-parse-as-library",
+        "-swift-version",
+        "6",
+        "-warnings-as-errors",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/transitions-qualified-2026-10-23-candidate-3/retained-debug/products",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-fmodule-map-file=/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation/.build/candidate-2/debug/modulemaps/CMixerVMCapability.modulemap",
+        "-Xcc",
+        "-fmodule-map-file=/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation/.build/candidate-2/debug/modulemaps/MixerCapabilityDurableIO.modulemap",
+        "-Xcc",
+        "-fmodule-map-file=/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation/.build/candidate-2/debug/modulemaps/MixerCapabilityIO.modulemap",
+        "-Xcc",
+        "-fmodule-map-file=/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation/.build/candidate-2/debug/modulemaps/MixerDurableIO.modulemap",
+        "-Xcc",
+        "-I/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/include",
+        "-emit-library",
+        "-module-name",
+        "MixerColdStartTests",
+        "-L",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation/.build/candidate-2/debug/products",
+        "-lMixerCapabilityActivationGuestUI",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-Xlinker",
+        "-rpath",
+        "-Xlinker",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation/.build/candidate-2/debug/products",
+        "-Xlinker",
+        "-rpath",
+        "-Xlinker",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xlinker",
+        "-rpath",
+        "-Xlinker",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation-review/RecoveryDiagnosticsProbe.xctest/Contents/MacOS/RecoveryDiagnosticsProbe",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation-review/RecoveryDiagnosticsProbe.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation-review/probe-inputs/Bundle.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation-review/probe-inputs/GuestUISignedFixture.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation-review/probe-inputs/GuestUISignedProgram.swift"
+      ],
+      "extra_environment": {},
+      "exit_code": 0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "run",
+      "command": [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/xctest",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-activation-review/RecoveryDiagnosticsProbe.xctest"
+      ],
+      "extra_environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer",
+        "MIXER_COLD_START_TEST_BUNDLE": "/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/transitions-qualified-2026-10-23-candidate-3/retained-debug/products/MixerCapabilityActivation_MixerCapabilityActivationTests.bundle"
+      },
+      "exit_code": 1,
+      "log_sha256": "1b0f51c25a722e4302209c1f1ec2a9d9b4fe52a3bfba850608ed9532bfd9ef7e"
+    }
+  ],
+  "probe_inputs": {
+    "verification/guest-ui-activation-review/RecoveryDiagnosticsProbe.swift": "ada9fd2f45e32699ee819dc4d80aece9acc8071d87fb69bce4450937aa820244",
+    "verification/guest-ui-activation-review/probe-inputs/Bundle.swift": "ed98bd543434fcb0a3cc07cd6e40376e3b79964bddaf6008e223000fa804c51d",
+    "verification/guest-ui-activation-review/probe-inputs/GuestUISignedFixture.swift": "53270b40dc6f0cea19fc7d3a7d27424b0d5ef6227f68ae9da175a9d9208c6d76",
+    "verification/guest-ui-activation-review/probe-inputs/GuestUISignedProgram.swift": "b561a9574d3b01e57e9e819c7f20c72de047210c756094e4623bec23a77d6e85"
+  }
+}

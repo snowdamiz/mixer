@@ -1,0 +1,709 @@
+{
+  "schema_version": 1,
+  "source_revision": "1adb25c48a8723f56ed2649712fe5e357920c53e",
+  "feature": "experimental-capability-native",
+  "features": [
+    "experimental-capability-mailbox",
+    "experimental-capability-guest",
+    "experimental-capability-native"
+  ],
+  "target_selector": "host",
+  "started_utc": "2026-10-23T11:56:02.577342+00:00",
+  "commands": [
+    {
+      "name": "rust-sysroot",
+      "argv": [
+        "/opt/homebrew/opt/rustup/bin/rustc",
+        "--print",
+        "sysroot"
+      ],
+      "cwd": "/",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.028,
+      "log": "rust-sysroot.log",
+      "sha256": "227730a0fd343950e38862b1b98da7ad62364b46ed496228058922d39a4289f8"
+    },
+    {
+      "name": "rustc-version",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+        "-Vv"
+      ],
+      "cwd": "/",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.019378,
+      "log": "rustc-version.log",
+      "sha256": "352d6857968e80a6357a926ac685b9b07f77c479aaafde33e73a53945e802909"
+    },
+    {
+      "name": "cargo-version",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+        "-V"
+      ],
+      "cwd": "/",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.007891,
+      "log": "cargo-version.log",
+      "sha256": "1f88eaf7fe1aaec83184752cf4c944cd22f00184136ff36a3e4c318cc60ef566"
+    },
+    {
+      "name": "llvm-nm-version",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/llvm-nm",
+        "--version"
+      ],
+      "cwd": "/",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.010147,
+      "log": "llvm-nm-version.log",
+      "sha256": "b9b121c361180ea1d23e5c1aed2830e2374b8317378fc0fc2f01ce758ee4cf7b"
+    },
+    {
+      "name": "apple-sdk",
+      "argv": [
+        "xcrun",
+        "--sdk",
+        "macosx",
+        "--show-sdk-path"
+      ],
+      "cwd": "/",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.005403,
+      "log": "apple-sdk.log",
+      "sha256": "7da0fd6d11521838939c36a6c45bfaeb893ecd0f8db281f9093f2c93af465ed1"
+    },
+    {
+      "name": "apple-clang-path",
+      "argv": [
+        "xcrun",
+        "--find",
+        "clang"
+      ],
+      "cwd": "/",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.004753,
+      "log": "apple-clang-path.log",
+      "sha256": "083060ae79a9cc17bc69cb6166b1e16396c638b533de036324d8c6d49b77af24"
+    },
+    {
+      "name": "apple-linker-version",
+      "argv": [
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "--version"
+      ],
+      "cwd": "/",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.005694,
+      "log": "apple-linker-version.log",
+      "sha256": "4e8a77bcb032deb6591b0db384ff9808d01d9030f00e2d877394df88a12a2536"
+    },
+    {
+      "name": "cargo-build",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+        "build",
+        "--locked",
+        "--offline",
+        "--release",
+        "--lib",
+        "--no-default-features",
+        "--features",
+        "experimental-capability-native",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/source/vm/Cargo.toml"
+      ],
+      "cwd": "/",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.711993,
+      "log": "cargo-build.log",
+      "sha256": "8a9987eacdaacfcc1e0359d75c62931141d70c7e63f7dc37fb30b5fc26afadc4"
+    },
+    {
+      "name": "archive-symbols",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/llvm-nm",
+        "--extern-only",
+        "--defined-only",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-native-verification/release/libmixer_vm.a"
+      ],
+      "cwd": "/",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.047143,
+      "log": "archive-symbols.log",
+      "sha256": "301b98fdd5730518a01cb330ecfdeef1f9956bf8a57848a4ee6ed33d81b0b89f"
+    }
+  ],
+  "qualification": "local frozen-source development artifact; no release/identity/signing/device/bit-reproducibility claim",
+  "builder_sha256": "73a9b997930b36b0eb9d7d02b7fdd31ea70fa9b64c244210595f916a237260ea",
+  "mutable_SDK_source_consumed": false,
+  "source_manifest_sha256": "cd913dc2c067022ad627e93ae0d50ee1151b88f5c711a8d92bfd58facba8890b",
+  "source_file_count": 90,
+  "source_blobs": {
+    "capabilities/schema/hashes.json": {
+      "sha256": "5407bea4cbb2a43be1a2bd8faa9983b06fe158ecc1bca99b2123e7f0869bc185",
+      "git_blob": "58a3efdaad1f264e531978c70c6c59ec858fd6df",
+      "bytes": 401
+    },
+    "capabilities/schema/v1.json": {
+      "sha256": "2b7519e0daea5a1dd25f8d2f93d2dc25c32caa376b8cf21a15e69505c621d77e",
+      "git_blob": "a9a23a156f243166013a02e4c9d2f80b6c8c2906",
+      "bytes": 4480
+    },
+    "contracts/guest-capability-transport-v1.json": {
+      "sha256": "052ebe9fbdc20a41307332086767e7903680bc83ba273c696edf9187be6b6439",
+      "git_blob": "41d7dc4575e3a3055515f2845bacb345f7c156f8",
+      "bytes": 21478
+    },
+    "contracts/vm-profile-v1.json": {
+      "sha256": "813a54a4e198a73d49afffe7c8d9cf54f6e76bfca80dd6556a439a4bdf1bdf4c",
+      "git_blob": "48c26b3b4e6485a62edb38cc23446db48fab9427",
+      "bytes": 10667
+    },
+    "contracts/vm-session-v1.json": {
+      "sha256": "6921f707b943ab76cdc3dae996ac7448d3c720676f290e259c892afcab1bf41a",
+      "git_blob": "b0d65091613515188775965b7cfa798678ed8d92",
+      "bytes": 3750
+    },
+    "runtime/Sources/CMixerVM/include/mixer_vm.h": {
+      "sha256": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+      "git_blob": "3b03723483961c161adc1bcb7086a2ccf416ba90",
+      "bytes": 6436
+    },
+    "vm/Cargo.lock": {
+      "sha256": "d877b303c72f7d7bfd9e3d7535b8eb10db3fb63be118b3281cdcc0db21ef0f96",
+      "git_blob": "8410bf3ba3962528bb5566f6dee259c1d8016ff1",
+      "bytes": 152
+    },
+    "vm/Cargo.toml": {
+      "sha256": "545810c4dd52fa177a8c5e651d266922939edcf965e357fdcece5a3b33150867",
+      "git_blob": "6b4afa886658e7306e2d982617fa63bfe32f6541",
+      "bytes": 646
+    },
+    "vm/include/mixer_vm.h": {
+      "sha256": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+      "git_blob": "3b03723483961c161adc1bcb7086a2ccf416ba90",
+      "bytes": 6436
+    },
+    "vm/include/mixer_vm_capability.h": {
+      "sha256": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+      "git_blob": "6dca30a954ecada98e9849c0c0de333f87d854c6",
+      "bytes": 6873
+    },
+    "vm/include/mixer_vm_guest_ui.h": {
+      "sha256": "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5",
+      "git_blob": "f24f261f76ae475aeac963f8e0978022fba1bea4",
+      "bytes": 1985
+    },
+    "vm/profiles/numeric-v2.json": {
+      "sha256": "4eb10d61ddc0092bec5f40b40cc3473ae3443491e7bdfe49b9cae80b58e09d57",
+      "git_blob": "516a66dfa0e251b942a203e96c01b237f9a09629",
+      "bytes": 15161
+    },
+    "vm/profiles/table-memory-v3.json": {
+      "sha256": "c46d5527aa1d4ed1e4b282269546a132d75f8f1895640978165db68ec9ed028d",
+      "git_blob": "c7f9ed37cfc3628b5e07a39134d1f51a92daa4d6",
+      "bytes": 5915
+    },
+    "vm/src/capability_ffi/api.rs": {
+      "sha256": "d8ed4930654a4d44b63c2fe82ff1d450f3a82749e60edadb89cb4ed895fe11f8",
+      "git_blob": "ac4a0d504c2e677f5a4e2c31500d9cd54a99dc6c",
+      "bytes": 15946
+    },
+    "vm/src/capability_ffi/error.rs": {
+      "sha256": "7d8f97fe6dd6bdafa403990b41237c966bec2b7c95b1b176d7c1a3ca1b3df38a",
+      "git_blob": "179965dd6e92584e9e1acba6a17a972dc496185a",
+      "bytes": 2587
+    },
+    "vm/src/capability_ffi/exports.rs": {
+      "sha256": "6123c20dcb6f48102e2c4ceff2a2f71de4d32417d88f11668c95ea2b86c9fb62",
+      "git_blob": "c808a85167e82121a50151ed7a681a3976304e6b",
+      "bytes": 6676
+    },
+    "vm/src/capability_ffi/mod.rs": {
+      "sha256": "0d48990765d8e22f0557b207749e6e293081d5c942e7d5e05653b4a14052cf52",
+      "git_blob": "b408ba42538d3391671e23ee4b0b07023b51dd58",
+      "bytes": 465
+    },
+    "vm/src/capability_ffi/preflight.rs": {
+      "sha256": "05e8952e0963c4d430e5d4a1bd327e4b9e8a387433fcff5cf352704dd522e914",
+      "git_blob": "88698f072fe02d783e1600297d0d62ab099addcc",
+      "bytes": 4359
+    },
+    "vm/src/capability_ffi/ranges.rs": {
+      "sha256": "1f4adbef4dc181cf60eeffe8f041c508b361154cb4a4f3c1c61dddae706e20be",
+      "git_blob": "9a934ea8b6b39889d1f07a5b1d076d86fa7b551e",
+      "bytes": 6145
+    },
+    "vm/src/capability_ffi/session.rs": {
+      "sha256": "b23e74c27be471b24e2810f47151e367b5e4d98137dbff839424b4cf952b7649",
+      "git_blob": "33c02cbc37d36ebca14333d2b00516d17aa9a919",
+      "bytes": 13408
+    },
+    "vm/src/capability_ffi/types.rs": {
+      "sha256": "dc0269a9d0bf8b6641bf31d84945962d6a1f15e87e3ac8731af8e1fc805df61f",
+      "git_blob": "ed6416116720e3f3db0f64f0545785dc3032a3b2",
+      "bytes": 3947
+    },
+    "vm/src/decode.rs": {
+      "sha256": "bdce49fdd3f03434ff1afb5ae7a3a8ce4657ae55b0b550f03d89ed2bf749947e",
+      "git_blob": "ae0b18f03fe45c6c3b45e6e3349112d9a6a14160",
+      "bytes": 27673
+    },
+    "vm/src/execute.rs": {
+      "sha256": "58eb56f6036de38f383867e88c505f5a738bf9430cc203ab3ad7dc089177ec9a",
+      "git_blob": "acd2d9e74bbbde1775312a9e60d2ea0531ea9f8c",
+      "bytes": 33971
+    },
+    "vm/src/experimental/account.rs": {
+      "sha256": "e33ee76cb44d67c3edf0a9c2ad5c6e08e2938dd4fad206f1d53886a2b7d7d983",
+      "git_blob": "6fafafb089f4f2ccac7c37e404e0569e6fea3ebd",
+      "bytes": 8376
+    },
+    "vm/src/experimental/cache/decode.rs": {
+      "sha256": "d5ec3a33297c1dc38f8834e70ea13e525244e868aeac997d955a50d418fd3ae1",
+      "git_blob": "4c0a34e88b144ed3cc2a2409785eedb47578ff2f",
+      "bytes": 16205
+    },
+    "vm/src/experimental/cache/mod.rs": {
+      "sha256": "464bc9bf0fc5415fd30632953cf7bb6e300a808f9fd9313832a24e78403d3135",
+      "git_blob": "0ac4e3571fbd956dbaf98b52a366794fee14ad20",
+      "bytes": 23833
+    },
+    "vm/src/experimental/cache/tests.rs": {
+      "sha256": "6531b53842c8801e88889fd7b72ccf4fdcd420c76caf272ad7e4c1ca5c67eecd",
+      "git_blob": "ac3f1ea3603ce75ac08baca4bcc795878c04c01c",
+      "bytes": 8374
+    },
+    "vm/src/experimental/metadata.rs": {
+      "sha256": "387c4e954d2f9b37ae81cd65d1fb46166d9d965038a2b206b852c93186a907f1",
+      "git_blob": "493ca04a5567140d84563f761ffea1ae0a2d2e67",
+      "bytes": 22003
+    },
+    "vm/src/experimental/mod.rs": {
+      "sha256": "8750078ad79c430ed5e8418e9706e9d07d8ceaac328021c5ea39c2caf4e15b1b",
+      "git_blob": "575f1f26704006b77ffb25aa67dcbda9604ece60",
+      "bytes": 8739
+    },
+    "vm/src/experimental/reader.rs": {
+      "sha256": "21f3dee08519c5ae7261e213532e379430bb7d3ed7ee2bb83e66d45af34cce83",
+      "git_blob": "ce9e1a7d3e0ae750c145603dce1c71f6c346a7c8",
+      "bytes": 4392
+    },
+    "vm/src/experimental/validate.rs": {
+      "sha256": "06c3b9f0e8e66955355679584d09577a8c0f8250c20deef1aab6878131dde584",
+      "git_blob": "16d7f0b236f2d9999039ec8093c259a0e95e6f2d",
+      "bytes": 19955
+    },
+    "vm/src/experimental_capability/guest.rs": {
+      "sha256": "b00dda244d5975c8ea41573e7580d669e8a207f0e4d219db314ca47d05425486",
+      "git_blob": "d57c3144c351e594797d163d8cb8595308bf3cfc",
+      "bytes": 5782
+    },
+    "vm/src/experimental_capability/mod.rs": {
+      "sha256": "b48db52c6d7bec7fa593075711e9c0f6b7460a56725463bdc36daa6b5ceb84bb",
+      "git_blob": "a595997fefdc077acb5c4cc1a1faf544b05c985d",
+      "bytes": 25755
+    },
+    "vm/src/experimental_capability/tests.rs": {
+      "sha256": "c23bfc4a2dfb036e88730def56502b81588afeca19429eb2087d069703db2ef8",
+      "git_blob": "673e8a86da5de1a12d88ced4a7174006bc28719b",
+      "bytes": 6711
+    },
+    "vm/src/experimental_capability_guest/fixed.rs": {
+      "sha256": "d57d49bd77691540a42fd4ad1eb93097570fa26c994fcd83a5f0bbfd6792f135",
+      "git_blob": "34723aed22d88177cc8fbbb03bc1658054b4d0fd",
+      "bytes": 1746
+    },
+    "vm/src/experimental_capability_guest/generated/http_request-cancelled.json": {
+      "sha256": "fbe9435474203552d4671b71eb39ac715a2bb29b4ca9f92fdaaa7f793a5616dd",
+      "git_blob": "912194890eebdf4ff43c1852108aa10e5ec94ccb",
+      "bytes": 190
+    },
+    "vm/src/experimental_capability_guest/generated/http_request-deadlineExceeded.json": {
+      "sha256": "62c2298f217c0776aa99b30c5a10e1ecb41eb3619c13185af6716ca4edb11084",
+      "git_blob": "310153da1663acaf5958422fed8d64d2c08c0409",
+      "bytes": 197
+    },
+    "vm/src/experimental_capability_guest/generated/http_request-unavailable.json": {
+      "sha256": "fade6194a443035ed32bb08652e331ecdb77f4c04cf868292f7b6f55b634884a",
+      "git_blob": "69fc62211f2f961e5107248379f973fe991dacf2",
+      "bytes": 192
+    },
+    "vm/src/experimental_capability_guest/generated/storage_delete-cancelled.json": {
+      "sha256": "64cc28485fb8686dfc4d2056e7b8cc6988b150b06713e83fc3304dcd4d51a8e3",
+      "git_blob": "43e3d13e7a5114e29b7602005f66661bf8a1c27c",
+      "bytes": 193
+    },
+    "vm/src/experimental_capability_guest/generated/storage_delete-deadlineExceeded.json": {
+      "sha256": "fdb28708bbf0d3d76e7ab6ac1aeb411c2fbc0046199a27923804069a60128648",
+      "git_blob": "1d30b80143d45c721b037af4e7c90cfe055d8d59",
+      "bytes": 200
+    },
+    "vm/src/experimental_capability_guest/generated/storage_delete-unavailable.json": {
+      "sha256": "082b9eb6f242d29e03d1ceafc4c590eabc6e6f617f554899fd68e9b3102b16d0",
+      "git_blob": "e7c5567689fd0559f5eaa9fd050ec320931c7394",
+      "bytes": 195
+    },
+    "vm/src/experimental_capability_guest/generated/storage_get-cancelled.json": {
+      "sha256": "391c14fcab3f3c380610787bd8eacafeb3491826b332267a906c792c557c3ab1",
+      "git_blob": "a2c6301a38334b6a509c5d092eec371829407a1d",
+      "bytes": 190
+    },
+    "vm/src/experimental_capability_guest/generated/storage_get-deadlineExceeded.json": {
+      "sha256": "8b5560b8420cfd8aeddd8ed972226ea74c59a63141af76c658636832c8160ce9",
+      "git_blob": "4a62128420903f3e9d254098692ca214516fb279",
+      "bytes": 197
+    },
+    "vm/src/experimental_capability_guest/generated/storage_get-unavailable.json": {
+      "sha256": "6c17aa4ff7a2e9b05aa49e1d5f8830e2198127ca4e7d1254b8c6fb9d5332420d",
+      "git_blob": "c8954da7cf2d7ef27b07902c2a5182636669313b",
+      "bytes": 192
+    },
+    "vm/src/experimental_capability_guest/generated/storage_put-cancelled.json": {
+      "sha256": "661a1a78669100e0371ad6f081beaf993cce441cbdaa4a7152aedaa7a41865eb",
+      "git_blob": "4072b22f3db284d860f69d86d641d765fcc2b39c",
+      "bytes": 190
+    },
+    "vm/src/experimental_capability_guest/generated/storage_put-deadlineExceeded.json": {
+      "sha256": "eabf694da8b2f1dbfd00e98c0614b41a1d403a729fc59d24b49909657015a663",
+      "git_blob": "a0f141c971ad342812fcc52558d328b1d9daf04f",
+      "bytes": 197
+    },
+    "vm/src/experimental_capability_guest/generated/storage_put-unavailable.json": {
+      "sha256": "4377c1508d64036ce7ce3b06bdf16cb3313ef253e1a33448c50182ed20a44ae2",
+      "git_blob": "776f1ee41d41d972fcda01ea4a10e10ca11cf9d3",
+      "bytes": 192
+    },
+    "vm/src/experimental_capability_guest/mod.rs": {
+      "sha256": "9ba8fb532ed9c9d5f0e63a0ceac22e280610eb6e1e8f194f884c497e68849d91",
+      "git_blob": "188f7ce19a898632578aceeee0e4fedf31abed67",
+      "bytes": 29631
+    },
+    "vm/src/ffi.rs": {
+      "sha256": "fc6fcd076ff4e42c60e04f19b0b94bd3b630dfabad03fb73193dedfafe5593e6",
+      "git_blob": "2d7d07b00e2b7bf3a4608cabfba0a67a0aa549b2",
+      "bytes": 12316
+    },
+    "vm/src/float.rs": {
+      "sha256": "db8057f709115016eae689efbd1fdd47b2b1ddee371d45159a0160c8ccc4b711",
+      "git_blob": "96133024719d8d7a50f0c22608d191dedea8f18d",
+      "bytes": 13547
+    },
+    "vm/src/inspect.rs": {
+      "sha256": "e8082d1b774b2dc254033ddb6e8b9fc94758dfcd0bb5e114835421210ab9eb65",
+      "git_blob": "884a33cd801d568e01982ae739720a7a8fafa73b",
+      "bytes": 4849
+    },
+    "vm/src/lib.rs": {
+      "sha256": "267120b3add89245d4293f45982c31a0981aa61d20ae57fd9ae6d9cadebad413",
+      "git_blob": "6e04c0dc47a2142c3052f4d137f7254b65258f07",
+      "bytes": 8107
+    },
+    "vm/src/main.rs": {
+      "sha256": "89ebba469fcca3885cf15743e6a80c5f82137c93c617a52418e3fb5a68155a5e",
+      "git_blob": "cf14cd9c238a191050c97daa9f731508be81069d",
+      "bytes": 6064
+    },
+    "vm/src/session.rs": {
+      "sha256": "ce446d2bb18a0aabe9750707901a4f6eb5e6dbfeb9494ce955ce2f3e44b591b8",
+      "git_blob": "cb709a7490f1fe34345c5fa6fd741b027adba6a7",
+      "bytes": 25761
+    },
+    "vm/src/validate.rs": {
+      "sha256": "808f16ca2f637541e11138754c54fd159c49722ac9f066202a9afccf0f8774c3",
+      "git_blob": "6a3ae02b5474e6ccf2892ca03a6178a1463475bf",
+      "bytes": 16507
+    },
+    "vm/tests/capability_ffi/fixture.rs": {
+      "sha256": "ea03a5cebc8730c3bd502cf8cc566b55698793cec233629f31260bd907f0aa78",
+      "git_blob": "b0af565068b021d3eac538f378cc98309efe0136",
+      "bytes": 1807
+    },
+    "vm/tests/capability_ffi/internal.rs": {
+      "sha256": "6ac67996fe751e162b7eaba8e7702e61664ea883cde3796c301aaa921d90751f",
+      "git_blob": "b32cede7b343860d51724c35accf0ca53a3229bb",
+      "bytes": 4852
+    },
+    "vm/tests/capability_ffi/ledger.rs": {
+      "sha256": "9dd4ee7800a0c1c98b3292c2c6dca0b6b380031f05a5344ce6de3e333e96b086",
+      "git_blob": "35809eb425da4ae80e85cdf9ef829feec788d7b8",
+      "bytes": 7214
+    },
+    "vm/tests/capability_ffi_allocations.rs": {
+      "sha256": "b419f52b49e75337bf6cd1d45a2123ba2d5535f31b4ba3b9294bcac60d51d396",
+      "git_blob": "2161197fa314df5614fc385ceb21bedf458e8863",
+      "bytes": 7506
+    },
+    "vm/tests/capability_ffi_public.rs": {
+      "sha256": "216020e4d8199a680f80fbf86e61b4c94770638e15cdc1b3a653840ae5831a6e",
+      "git_blob": "869cab21220ed966f6ce214eaa5514e61a35b5fc",
+      "bytes": 14640
+    },
+    "vm/tests/capability_ffi_smoke.c": {
+      "sha256": "a84056e493eb78521edb17413dbfe7f0b6131766c042e9525fa05bab05b09873",
+      "git_blob": "e6690e1729efac82d75246515ae2febf8dbf3d62",
+      "bytes": 7218
+    },
+    "vm/tests/capability_registry.rs": {
+      "sha256": "edaad6e2f097eb14d732754afaefc1a8ed6351ec2715196db4b6adf75102c7c4",
+      "git_blob": "2003ac42854666c41d3e31843bf6addfafdc1bca",
+      "bytes": 7909
+    },
+    "vm/tests/cli.rs": {
+      "sha256": "dea855d0f60d927bf6e1701165f29b79d62a0080695869c7c0ec56dd5f4af418",
+      "git_blob": "401690d3e97735fd66c1b2f280a0299e426d24e1",
+      "bytes": 3899
+    },
+    "vm/tests/common/mod.rs": {
+      "sha256": "0ad900f4dbd88f1ca6152d8e6a18e3d0f8fbf2d0db6d40c2af0abdc0f1c67e21",
+      "git_blob": "f8e81852e9e89d687bd5778a1867293838a91392",
+      "bytes": 6866
+    },
+    "vm/tests/differential.rs": {
+      "sha256": "5736545020fde2a2b69d3eaad07c04786acd4c74e9471dc392fe18b9ac71c853",
+      "git_blob": "99c848a0db13a340447cb148b3fa8bae5d78359b",
+      "bytes": 10024
+    },
+    "vm/tests/experimental_allocations.rs": {
+      "sha256": "1c7a7fbd8bb10781a06fdebe68e87ac5911733999de25a11855cbf1efb4af6b8",
+      "git_blob": "e6a95be0524e2945e6c93f012ef7099fffe41964",
+      "bytes": 10860
+    },
+    "vm/tests/experimental_capability_allocations.rs": {
+      "sha256": "d30bbf680b6605598f2b088db4f8d0f39476193af83f8a20dce6307ca38146ac",
+      "git_blob": "80487c12217fd76d1b2b4bd73ccc9453ac3613e0",
+      "bytes": 14073
+    },
+    "vm/tests/experimental_capability_guest.rs": {
+      "sha256": "c5a52f9d38dc96afbe3f98200a8a8e78e1cf1824c08a1056efb2080bf954fb80",
+      "git_blob": "2f791d37d21a292c000e61fb5abf713f8d9a6a09",
+      "bytes": 35992
+    },
+    "vm/tests/experimental_capability_guest_allocations.rs": {
+      "sha256": "807b4a95c09a7ec14344de48fa9f422ca021905e6b60daa95685fdfe17d20915",
+      "git_blob": "43fc4b67417ad2caadf4f45b03fb91a802038c2b",
+      "bytes": 10450
+    },
+    "vm/tests/experimental_capability_mailbox.rs": {
+      "sha256": "ba1ea55a15472c8088af10347f87fd391c56eb19b307da6e57a479f6524b19f5",
+      "git_blob": "a40c2dbaa42544ce804403efd4c867c97e1b425d",
+      "bytes": 21017
+    },
+    "vm/tests/experimental_guest_ui_allocations.rs": {
+      "sha256": "272efe0f0a81792686d3ba05ac0a2a4e3452d487773134e6b4c8cc51b3c6afbc",
+      "git_blob": "26cd2b8247f901260ade20e24ed42cbe569803be",
+      "bytes": 3629
+    },
+    "vm/tests/experimental_guest_ui_validation.rs": {
+      "sha256": "9cd72b97a9b6d31d936809c3a401af4b1d130f8a7bb366a5af4ad9b2048ba8eb",
+      "git_blob": "4482e1369348f9e1a443de165468c3bf96438459",
+      "bytes": 12103
+    },
+    "vm/tests/experimental_oracle.rs": {
+      "sha256": "622dfecbc743c209d1db2b1484523f0387aa3dceadc11d62a51c35cd74f62ef5",
+      "git_blob": "28c3b778ae5df498700a3bae9e747cada0ecd5b6",
+      "bytes": 4788
+    },
+    "vm/tests/experimental_stream.rs": {
+      "sha256": "bb20a73209d3d540e531b3007e99563ac6b4a1e79a2355b51f333df29b480009",
+      "git_blob": "c3e6b41577e124b40a3959882c61f03450627759",
+      "bytes": 24532
+    },
+    "vm/tests/ffi_numeric_smoke.c": {
+      "sha256": "a97fa9cd6e065da316f6fc7624efa17a24469c3572cd1b7bc5346e032cde61d6",
+      "git_blob": "3f16da8faaceb1492f84f2133fb270ffd2acfe44",
+      "bytes": 2613
+    },
+    "vm/tests/ffi_session_smoke.c": {
+      "sha256": "d6c78fdabbc3914927a781042b29552f75a6b07831ddd85c1a3cebb10728d0ae",
+      "git_blob": "641d9777b3b6950ee82d0933d7e853ad1b7ff403",
+      "bytes": 2035
+    },
+    "vm/tests/ffi_smoke.c": {
+      "sha256": "915826885e0a8ceb7c5de977abdd35b513bd64db1411a69724cc9352d0623d93",
+      "git_blob": "9a6a12ca4572e1b2f6b261968bfcaadf44a959cc",
+      "bytes": 1259
+    },
+    "vm/tests/ffi_table_memory_smoke.c": {
+      "sha256": "b116b684ebd6e868d2dd673735e6a6858be174e77d3afe8d607f545402df18b8",
+      "git_blob": "b306c23eb11f235263218667925071a58d7442ad",
+      "bytes": 1438
+    },
+    "vm/tests/float.rs": {
+      "sha256": "b2545ad07317b889dd485377732d459434ff83a8c2a8b12decfebae6b7c1ec82",
+      "git_blob": "a52b4b3a2c362480b84f894dc90d8c98913d5e4c",
+      "bytes": 15436
+    },
+    "vm/tests/float_differential.rs": {
+      "sha256": "0dd30f053dbd2317ea42967ec5f25982029405e7fb0b9f0d7467070798bfc405",
+      "git_blob": "26fc115eda27886189a913f49f686d379329d7f4",
+      "bytes": 14079
+    },
+    "vm/tests/guest_ui/fixture.rs": {
+      "sha256": "821cee513c0322510f2e0cb2b7d76ce248f0c3537fc8dd839f05a60204452510",
+      "git_blob": "276a0237a90bc36c5b666455e864704e9bb0a511",
+      "bytes": 3569
+    },
+    "vm/tests/interpreter.rs": {
+      "sha256": "668ac57130a12319ee033c2b7861b107dc7f61ed06c3d2baf82053d2ac7d4870",
+      "git_blob": "1263cb62fbb6c4eb84a8ce1143ddd351767b59b9",
+      "bytes": 17349
+    },
+    "vm/tests/review_boundaries.rs": {
+      "sha256": "17258beaf740c45cbf5357fc73bd5d0a9fa7db6c3fdfffb729872466f98cc57b",
+      "git_blob": "326aa4425890e759830daa0706f309d3e31f95df",
+      "bytes": 7610
+    },
+    "vm/tests/review_session_lifetime.rs": {
+      "sha256": "b400bd03338122e4ee0df1850c8923bfc2115c03f7c85e90dd5c68828ad6f94d",
+      "git_blob": "aedb42aea2dbf20009eb157422dc2c66352af575",
+      "bytes": 3055
+    },
+    "vm/tests/sessions.rs": {
+      "sha256": "10122ece4a6e436e6129cee678d4a6c097bc18ba009edbddeb224105f2bb51c5",
+      "git_blob": "07cf3296bb5b7da7099baeeb39aa6529a47d524b",
+      "bytes": 10314
+    },
+    "vm/tests/span_function_cache.rs": {
+      "sha256": "e5b204c7c88aafdc5d01993eca4c85442304b193c6f848d1a38978f67246ea8e",
+      "git_blob": "3fb9a23e1736133129202bf0a208816730544f68",
+      "bytes": 14848
+    },
+    "vm/tests/span_function_cache_allocations.rs": {
+      "sha256": "cb4aed1d15db28d9e2f2085c30819ab149e877ac45b0e0dca6de27f2465ff12b",
+      "git_blob": "2cc8603622124e6ff0f55a75f94931e9782616cf",
+      "bytes": 11504
+    },
+    "vm/tests/table_memory.rs": {
+      "sha256": "6e4c2d2f2493714ebc976a3141a2c46dd60413f866724accea4b28f4efdb6946",
+      "git_blob": "c2b01cfb519751dd2b6ff8ddf07900de1e91a835",
+      "bytes": 14302
+    },
+    "vm/tests/table_memory_differential.rs": {
+      "sha256": "edeae488922136b28572199adc7c885c4b55f9fad7157bd4edbd4819f651c62c",
+      "git_blob": "06d095c684e6d5201e22780f96bf4e204f3581e7",
+      "bytes": 9536
+    },
+    "vm/tools/generate-capability-terminals.py": {
+      "sha256": "341e732017403bfbfd9f76c47f581b480d8b852d54f751dd25057420e3d51ae7",
+      "git_blob": "9d90cf167504ae7c590eecf076aa68aea72bc109",
+      "bytes": 3018
+    }
+  },
+  "source_archive_sha256": "213fd38a4d403bed966eaeadf128a6d481f1dc67e1078dbc6163ff0d187030a9",
+  "tools": {
+    "rustc_selector": {
+      "path": "/opt/homebrew/opt/rustup/bin/rustc",
+      "resolved_path": "/opt/homebrew/Cellar/rustup/1.29.1/bin/rustc",
+      "sha256": "53d84580eddd2f4a3c1ef16c3d14d0522f1852c39690eb20a506d04d30c621e5"
+    },
+    "cargo": {
+      "path": "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+      "resolved_path": "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+      "sha256": "fc7aa5077deca8abc0651f329e8ec1d968f520e996a93b428f9935014362b382"
+    },
+    "rustc": {
+      "path": "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+      "resolved_path": "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+      "sha256": "dd6f58440b3418aa9157ae3f05d71eecff741ca41bc4eec120e7e8f2d933b9a0"
+    },
+    "llvm_nm": {
+      "path": "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/llvm-nm",
+      "resolved_path": "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/llvm-nm",
+      "sha256": "65902eef48a374f0fddad3ac6229ce6333a800c7695a5f24de1fcc5bf3fa26c8"
+    },
+    "linker": {
+      "path": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+      "resolved_path": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+      "sha256": "ee029330bf58ab6e481385f4237cc54602eaa8b81526242e5c5ab5b76e8c5a7e"
+    }
+  },
+  "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1",
+  "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+  "rust_target": "aarch64-apple-darwin",
+  "llvm_nm": "llvm-nm, compatible with GNU nm\nLLVM (http://llvm.org/):\n  LLVM version 23.1.1-rust-1.99.0-stable\n  Optimized build.",
+  "linker": "Apple clang version 21.0.0 (clang-2100.3.34.2)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+  "environment": {
+    "HOME": "/Users/andreyyurlov",
+    "PATH": "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+    "CARGO_HOME": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/cargo-home",
+    "CARGO_TARGET_DIR": "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-native-verification",
+    "TMPDIR": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/tmp",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "RUSTC": "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+    "MACOSX_DEPLOYMENT_TARGET": "14.0",
+    "SDKROOT": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk"
+  },
+  "cache_path": "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-native-verification",
+  "cache_preflight": {
+    "entries": 8504,
+    "regular_inodes": 4364,
+    "internal_hardlinks_permitted": true
+  },
+  "cache_after_build": {
+    "entries": 8504,
+    "regular_inodes": 4364,
+    "internal_hardlinks_permitted": true
+  },
+  "public_C_symbols": [
+    "mixer_vm_capability_ack_exit_v1",
+    "mixer_vm_capability_expire_v1",
+    "mixer_vm_capability_guest_ui_validate_v1",
+    "mixer_vm_capability_limit_deadline_v1",
+    "mixer_vm_capability_post_v1",
+    "mixer_vm_capability_session_cancel_v1",
+    "mixer_vm_capability_session_close_v1",
+    "mixer_vm_capability_session_create_v1",
+    "mixer_vm_capability_session_enable_v1",
+    "mixer_vm_capability_session_invoke_v1",
+    "mixer_vm_capability_session_read_v1",
+    "mixer_vm_capability_session_startup_v1",
+    "mixer_vm_capability_session_wake_v1",
+    "mixer_vm_capability_session_write_v1",
+    "mixer_vm_capability_take_v1",
+    "mixer_vm_capability_validate_v1",
+    "mixer_vm_invoke",
+    "mixer_vm_invoke_numeric_v2",
+    "mixer_vm_invoke_table_memory_v3",
+    "mixer_vm_session_cancel_v1",
+    "mixer_vm_session_close_v1",
+    "mixer_vm_session_create_v1",
+    "mixer_vm_session_invoke_v1",
+    "mixer_vm_session_read_v1",
+    "mixer_vm_session_write_v1",
+    "mixer_vm_validate",
+    "mixer_vm_validate_numeric_v2",
+    "mixer_vm_validate_table_memory_v3"
+  ],
+  "library": {
+    "sha256": "4d3b6dc36ea034d5604299752d560cbbc0615002b6b5ef4e5c25bbb3cb7c6120",
+    "bytes": 19306488,
+    "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/lib/libmixer_vm_capability_experimental.a"
+  },
+  "headers": {
+    "mixer_vm.h": {
+      "sha256": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/include/mixer_vm.h"
+    },
+    "mixer_vm_capability.h": {
+      "sha256": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/include/mixer_vm_capability.h"
+    },
+    "mixer_vm_guest_ui.h": {
+      "sha256": "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5",
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/guest-ui-1adb25c-v2/host/include/mixer_vm_guest_ui.h"
+    }
+  },
+  "completed_utc": "2026-10-23T11:56:03.642318+00:00"
+}

@@ -2,6 +2,8 @@ import Foundation
 import Dispatch
 import MixerCapabilities
 @_spi(CapabilityLifecycle) import MixerExperimentalCapabilityRuntime
+@_spi(GuestUIV1) import MixerExperimentalCapabilityRuntime
+@_spi(GuestUIV1) import MixerGuest
 import MixerUpdates
 
 /// Private concrete owner, never an evidence ingress or public execution API.
@@ -45,6 +47,16 @@ final class CapabilityConcreteAttempt: Sendable {
             control.methodDidReturn(); return result
         } catch { control.stop(nil); control.methodDidReturn(); throw error }
     }
+    func startupGuestUI() async throws {
+        guard control.signals.guestUI != nil else { throw concreteAttemptError("installed_mode") }
+        try control.beginMethod()
+        do {
+            try await withTaskCancellationHandler {
+                try await Self.startupGuestUIOwned(control)
+            } onCancel: { control.stop(.cancelled) }
+            control.methodDidReturn()
+        } catch { control.stop(nil); control.methodDidReturn(); throw error }
+    }
     func enableEffects() async throws {
         try control.beginMethod()
         do {
@@ -83,6 +95,12 @@ final class CapabilityConcreteAttempt: Sendable {
         try c.requireOpen(deadline: true)
         let session = try c.sessionForMethod()
         try await session.enableOwnedEffects(noLaterThanUptimeNanoseconds: c.cutoff)
+        try c.requireOpen(deadline: true)
+    }
+    private static func startupGuestUIOwned(_ c: CapabilityConcreteControl) async throws {
+        try c.requireOpen(deadline: true)
+        let session = try c.sessionForMethod()
+        try await session.startupGuestUIV1()
         try c.requireOpen(deadline: true)
     }
     private static func invokeOwned(_ c: CapabilityConcreteControl, export: String) async throws -> ExperimentalCapabilityInvocation {
@@ -218,9 +236,16 @@ private actor CapabilityConcreteSetup {
             group = createdGroup
             guard control.installGroup(createdGroup) else { createdGroup.closeIfUntransferred(); throw concreteAttemptError("stopped") }
             try control.requireOpen(deadline: true)
-            let construction = try ExperimentalCapabilitySession.prepareOwned(module: input.consumed.module,
-                startupExport: input.consumed.startupExport, configuration: input.consumed.policy.native,
-                policy: input.consumed.policy.policy, adapterGroup: createdGroup)
+            let construction: ExperimentalCapabilityConstruction
+            if let exchange = control.signals.guestUI {
+                construction = try ExperimentalCapabilitySession.prepareOwnedGuestUIV1(module: input.consumed.module,
+                    configuration: input.consumed.policy.native, policy: input.consumed.policy.policy,
+                    adapterGroup: createdGroup, exchange: exchange)
+            } else {
+                construction = try ExperimentalCapabilitySession.prepareOwned(module: input.consumed.module,
+                    startupExport: input.consumed.startupExport, configuration: input.consumed.policy.native,
+                    policy: input.consumed.policy.policy, adapterGroup: createdGroup)
+            }
             guard control.installConstruction(construction) else { construction.cancel(); throw concreteAttemptError("stopped") }
             let session = try await construction.create()
             guard control.installSession(session) else { session.close(); throw concreteAttemptError("stopped") }

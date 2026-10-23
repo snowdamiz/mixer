@@ -83,6 +83,12 @@ jobs:
             "$RUNNER_TEMP/capability-vm/lib/libmixer_vm_capability_experimental.a" \
             -lpthread -ldl -lm -o "$RUNNER_TEMP/capability-vm-registry"
           "$RUNNER_TEMP/capability-vm-registry"
+          "$capability_clang" -isysroot "$capability_sdk" -std=c11 -Wall -Wextra -Werror -mmacosx-version-min=14.0 \
+            -I"$RUNNER_TEMP/capability-vm/include" \
+            experimental-capability-runtime/build-tests/guest_ui.c \
+            "$RUNNER_TEMP/capability-vm/lib/libmixer_vm_capability_experimental.a" \
+            -lpthread -ldl -lm -o "$RUNNER_TEMP/capability-vm-guest-ui"
+          "$RUNNER_TEMP/capability-vm-guest-ui"
       - name: Experimental guest-to-native bridge and public consumer
         run: |
           for mode in debug release tsan; do
@@ -143,6 +149,10 @@ jobs:
             vm/tests/capability_ffi_smoke.c vm/target/release/libmixer_vm.a \
             -ldl -lpthread -lm -o "$RUNNER_TEMP/capability-native-smoke"
           "$RUNNER_TEMP/capability-native-smoke"
+          cc -std=c11 -O2 -Wall -Wextra -Werror -Ivm/include \
+            experimental-capability-runtime/build-tests/guest_ui.c vm/target/release/libmixer_vm.a \
+            -ldl -lpthread -lm -o "$RUNNER_TEMP/capability-native-guest-ui"
+          "$RUNNER_TEMP/capability-native-guest-ui"
           python3 verification/capability-native-review/make-fixtures.py "$RUNNER_TEMP/capability-native-fixtures"
           cc -std=c11 -O2 -Wall -Wextra -Werror -Ivm/include \
             verification/capability-native-review/public_client.c vm/target/release/libmixer_vm.a \
