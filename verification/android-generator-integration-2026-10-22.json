@@ -1,0 +1,87 @@
+{
+  "schema": 1,
+  "status": "passed scoped Android generator integration and repaired staging review",
+  "reviewedAt": "2026-10-23T03:23:23.961071+00:00",
+  "sourceRevision": "b588481e21c521e264826a5c442901b8157fc112",
+  "sourceDigest": "a320bb38ae83a854a9db29f373203ba8a8bd835fee18f0a9543130182b070c69",
+  "initialQualification": {
+    "path": "verification/android-generated-consumer/receipt.json",
+    "sha256": "c14798eabaf022c2969fd1423fb9bec5ab456749262d9a18a0e79cd7725155d5",
+    "sourceFilesMatchedToGit": 68,
+    "commandLogsMatched": 21,
+    "additionalExistingEngineCrossBuild": {
+      "path": "verification/android-generated-consumer/existing-engine-cross-receipt.json",
+      "sha256": "247b121e40988225565ea2f3fe0c44184d0328ea349333e8c9771a2cb0f9c96d"
+    }
+  },
+  "fixedQualification": {
+    "path": "verification/android-staging-fix-2026-10-22/receipt.json",
+    "sha256": "57996d0dd7c33e92c56ce1db87ae1c52458798ce29101be3358f993d75c80012",
+    "sourceFilesMatchedToGit": 85,
+    "commandLogsMatched": 9,
+    "buildReceiptsMatched": 2,
+    "actualApkHashMatched": true
+  },
+  "independentReview": {
+    "path": "verification/android-generator-review/receipt.json",
+    "sha256": "7af119e8643698c1ed2762502848c4eddbb4c84f2b18dfaa65df97a8889efdea",
+    "commit": "7f69a8a50e75ae52b1dd7cf00756640c2c7913dd",
+    "sourceSnapshotsMatchedToGit": {
+      "b4f13ec9a78b882380a6cfba0a9607990ca9babe": 153,
+      "b588481e21c521e264826a5c442901b8157fc112": 154
+    },
+    "evidenceFilesMatched": 116,
+    "tests": {
+      "frozen_cli_initial": 19,
+      "frozen_cli_repaired": 19,
+      "frozen_reusable_runtime": 3,
+      "frozen_existing_engine": 5,
+      "independent_runtime": 6,
+      "independent_generated_shared_host": 4,
+      "independent_generated_actual_C_ABI": 1,
+      "permanent_staging_normal": 9,
+      "permanent_staging_optimized": 9,
+      "independent_staging_fix_cases": 9,
+      "final_pinned_official_artifact_commands": 22
+    }
+  },
+  "resolvedFinding": {
+    "priority": "P1",
+    "title": "Staging links could mutate files outside project output before rejected build",
+    "original_reproductions": [
+      ".mixer directory symlink",
+      "android-build directory symlink",
+      "build-input.json.tmp file symlink",
+      "build-input.json.tmp hardlink"
+    ],
+    "fixed_revision": "b588481e21c521e264826a5c442901b8157fc112",
+    "state": "resolved",
+    "replay": "staging-fix-replay.json"
+  },
+  "apk": {
+    "name": "actual-fixed-driver-rebuilt-apk",
+    "apk_sha256": "a170142c2d91f6475d20e6545f3ab509011b950bb41b16e5945cbd2fe92f8fe3",
+    "apk_bytes": 27257525,
+    "apk_content_sha256": "179f7855b676c64d2e14c1e333199ef1f5640bbcd16f3f76fb36fe2b01ed90ac",
+    "entries": 21,
+    "libraries": 18,
+    "unsigned": true
+  },
+  "historicalFailure": "Initial independent runtime harness decoded a guarded UIDocument via an ordinary JSONDecoder; failed log and original source retained, public guarded decoder fixed harness and all six tests passed.",
+  "limitations": [
+    "Trusted value-state callbacks are synchronous, non-reentrant and free of external effects; Sendable does not isolate reference graphs",
+    "Local staging preflight and before/after source observations are not concurrent same-user filesystem isolation or arbitrary package-code sandboxing",
+    "Actual APK build and cached rebuild performed by root; independent reviewer audited source, logs and actual artifact with pinned official tools rather than repeating the full cross-build.",
+    "Initial source qualification includes an unsigned iOS Simulator cross-build, not a new simulator launch or physical-device run.",
+    "physical iOS/Android (phones disconnected)",
+    "production signing/installability",
+    "native resources/capabilities",
+    "persistence/process restoration/navigation",
+    "device UI/IME/accessibility/performance",
+    "independent clean CI APK builds",
+    "published immutable separate-repository packages",
+    "external FieldLog D2",
+    "store acceptance",
+    "GA"
+  ]
+}

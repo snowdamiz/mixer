@@ -69,12 +69,12 @@ jobs:
         run: cargo test --locked --manifest-path vm/Cargo.toml
       - name: Owned VM release tests
         run: cargo test --locked --release --manifest-path vm/Cargo.toml
-      - name: Experimental streaming validator and explicit reference checks
+      - name: Experimental streaming validator, capability mailbox and explicit reference checks
         run: |
-          cargo test --locked --manifest-path vm/Cargo.toml --features experimental-stream-validation
-          cargo test --locked --release --manifest-path vm/Cargo.toml --features experimental-stream-validation
-          cargo test --locked --manifest-path vm/Cargo.toml --features experimental-stream-validation -- --ignored
-          cargo test --locked --release --manifest-path vm/Cargo.toml --features experimental-stream-validation -- --ignored
+          cargo test --locked --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-capability-mailbox
+          cargo test --locked --release --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-capability-mailbox
+          cargo test --locked --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-capability-mailbox -- --ignored
+          cargo test --locked --release --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-capability-mailbox -- --ignored
   services:
     runs-on: ubuntu-24.04
     timeout-minutes: 15

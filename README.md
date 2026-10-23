@@ -56,12 +56,27 @@ parsing remains unfinished. Generated Xcode projects refuse to overwrite modifie
 project bytes. App-owned native source remains editable. Export excludes build
 caches, dotenv secrets, signing certificates/keys and provisioning profiles.
 
+Android consumer generation uses the installed official Swift6.3.3 Android SDK,
+NDKr27d, Android37.0/build-tools37.0.0 and JDK25. Their distributions and the copied
+owned Java/JNI/runtime sources are locked at creation:
+
+```sh
+scripts/mixer create MyAndroidApp --platform android
+scripts/mixer build --platform android --directory MyAndroidApp
+```
+
+The build compiles the application's shared Swift feature and app-owned Android
+entry into an unsigned arm64 APK. It preserves native edits and rejects unsupported
+resources/capabilities. Signing, installation, lifecycle and published native SDK
+consumption remain pending. See the generated Android README and
+[`verification/android-generated-consumer/README.md`](verification/android-generated-consumer/README.md).
+
 ## Current components
 
 | Component | Implemented scope | Remaining acceptance |
 | --- | --- | --- |
 | `sdk/` | Swift state/effects, bounded UI protocol, reconciliation, native Apple controls, guest codecs | Broad UI/navigation/plugins, physical behavior/accessibility, full guest parity |
-| `cli/` | Creation, doctor, locked source snapshots, host tests, iOS Simulator build/run, read-only inventory, export | Android workflow, compiler semantic inventory, signing/distribution/debug tooling |
+| `cli/` | Creation, doctor, locked source snapshots, host tests, iOS Simulator build/run, unsigned Android APK generation/build, read-only inventory, export | Full Android lifecycle/resources/plugins, compiler semantic inventory, signing/distribution/debug tooling |
 | `vm/` | Owned bounded integer/numeric/table-memory profiles, validation, execution, persistent C sessions, inventory | Full emitted Swift profile/imports, aggregate memory design, fuzz campaigns, independent audit |
 | `runtime/` | Typed native Swift sessions and complete validation without session allocation | Immutable published native artifacts and full runtime identity |
 | `activation/` | Signed cold-start selection into owned VM, signed limits, retained state, health and fallback | Full Swift/UI/capability integration, physical lifecycle/recovery and FieldLog adoption |

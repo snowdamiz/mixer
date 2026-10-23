@@ -1,0 +1,173 @@
+{
+  "schema": 1,
+  "status": "passed scoped local containment and unsigned cross-build",
+  "sourceRevision": "b588481e21c521e264826a5c442901b8157fc112",
+  "sourceDigest": "a320bb38ae83a854a9db29f373203ba8a8bd835fee18f0a9543130182b070c69",
+  "sourceManifest": "verification/android-staging-fix-2026-10-22/source-manifest.sha256",
+  "sourceFiles": 85,
+  "frozenSource": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-staging-fix-4uhlq35_/source",
+  "application": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-staging-fix-4uhlq35_/Application",
+  "qualifier": {
+    "path": "verification/tools/qualify-android-staging.py",
+    "sha256": "987084b8a25b0588a6f90aaf5ae36d3a2fd3a036f9e8610763c37da83eb78d0e"
+  },
+  "commands": [
+    {
+      "name": "host-toolchain",
+      "command": [
+        "/usr/bin/swift",
+        "--version"
+      ],
+      "exitCode": 0,
+      "developerDirectory": "/Applications/Xcode.app/Contents/Developer",
+      "output": "verification/android-staging-fix-2026-10-22/host-toolchain.log",
+      "sha256": "30bb0d72a580e8e936ab32e24cab2876f82fa6b06d66fef876fe21a47e828acc"
+    },
+    {
+      "name": "staging-normal",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-staging-fix-4uhlq35_/source/cli/build-tests",
+        "-v"
+      ],
+      "exitCode": 0,
+      "developerDirectory": "/Applications/Xcode.app/Contents/Developer",
+      "output": "verification/android-staging-fix-2026-10-22/staging-normal.log",
+      "sha256": "2924bd71d7d38d3994727ec63d7aea84d9eb7869e0f914c3f7f21f208f7adb6e"
+    },
+    {
+      "name": "staging-optimized",
+      "command": [
+        "python3",
+        "-O",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-staging-fix-4uhlq35_/source/cli/build-tests",
+        "-v"
+      ],
+      "exitCode": 0,
+      "developerDirectory": "/Applications/Xcode.app/Contents/Developer",
+      "output": "verification/android-staging-fix-2026-10-22/staging-optimized.log",
+      "sha256": "37074d270767db4d2b7c45842dee7b4ce053b0570534e0e4bd5b8fc42b23ee2a"
+    },
+    {
+      "name": "cli-host",
+      "command": [
+        "/usr/bin/swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-staging-fix-4uhlq35_/source/cli"
+      ],
+      "exitCode": 0,
+      "developerDirectory": "/Applications/Xcode.app/Contents/Developer",
+      "output": "verification/android-staging-fix-2026-10-22/cli-host.log",
+      "sha256": "d90da9e83ceac5ab8022e239004e254cf5a827af5a4a4d9461d0766c924dd856"
+    },
+    {
+      "name": "runtime-host",
+      "command": [
+        "/usr/bin/swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-staging-fix-4uhlq35_/source/native/android/engine"
+      ],
+      "exitCode": 0,
+      "developerDirectory": "/Applications/Xcode.app/Contents/Developer",
+      "output": "verification/android-staging-fix-2026-10-22/runtime-host.log",
+      "sha256": "83c01f457113428690c0aa7a2c2cada80552c2d448d6380cde1671ffdaf40499"
+    },
+    {
+      "name": "create",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-staging-fix-4uhlq35_/source/cli/.build/debug/mixer",
+        "create",
+        "StagingFixed",
+        "--directory",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-staging-fix-4uhlq35_/Application",
+        "--application",
+        "dev.mixer.stagingfixed",
+        "--platform",
+        "android",
+        "--sdk-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-staging-fix-4uhlq35_/source/sdk",
+        "--android-adapter-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-staging-fix-4uhlq35_/source/native/android"
+      ],
+      "exitCode": 0,
+      "developerDirectory": "/Applications/Xcode_26.6.app/Contents/Developer",
+      "output": "verification/android-staging-fix-2026-10-22/create.log",
+      "sha256": "b0697cf863f73c2e2e74609222198127bc5e10488cc497eaa2be34c86a5db8b6"
+    },
+    {
+      "name": "generated-host",
+      "command": [
+        "/usr/bin/swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-staging-fix-4uhlq35_/Application/Platforms/Android"
+      ],
+      "exitCode": 0,
+      "developerDirectory": "/Applications/Xcode.app/Contents/Developer",
+      "output": "verification/android-staging-fix-2026-10-22/generated-host.log",
+      "sha256": "f1a7226e04ae20715442aff2dd5b517739dcda5b251d09d825fc35e05662ba81"
+    },
+    {
+      "name": "android-build",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-staging-fix-4uhlq35_/source/cli/.build/debug/mixer",
+        "build",
+        "--platform",
+        "android",
+        "--directory",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-staging-fix-4uhlq35_/Application"
+      ],
+      "exitCode": 0,
+      "developerDirectory": "/Applications/Xcode_26.6.app/Contents/Developer",
+      "output": "verification/android-staging-fix-2026-10-22/android-build.log",
+      "sha256": "6c84d572f04e61ed274ef610d98f54272c91511fc09bc10c54555cecd6241a1c"
+    },
+    {
+      "name": "android-rebuild",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-staging-fix-4uhlq35_/source/cli/.build/debug/mixer",
+        "build",
+        "--platform",
+        "android",
+        "--directory",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-staging-fix-4uhlq35_/Application"
+      ],
+      "exitCode": 0,
+      "developerDirectory": "/Applications/Xcode_26.6.app/Contents/Developer",
+      "output": "verification/android-staging-fix-2026-10-22/android-rebuild.log",
+      "sha256": "d0011fcef9e29ef927d622d401a2dde93a8b7cd40dc78d293e0b66c82586bbbf"
+    }
+  ],
+  "scope": "Static local staging containment, CLI/runtime host regression and actual unsigned Android arm64 APK build from immutable exported source. No concurrent same-user filesystem isolation or arbitrary package-code sandbox.",
+  "pending": [
+    "physical devices",
+    "signing/installability",
+    "independent CI APK build",
+    "immutable published native packages",
+    "FieldLog D2",
+    "lifecycle/accessibility/performance/store/GA"
+  ],
+  "apk": {
+    "apk": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-staging-fix-4uhlq35_/Application/.mixer/android-build/StagingFixed-unsigned.apk",
+    "apk_bytes": 27257525,
+    "apk_sha256": "a170142c2d91f6475d20e6545f3ab509011b950bb41b16e5945cbd2fe92f8fe3",
+    "apk_content_sha256": "179f7855b676c64d2e14c1e333199ef1f5640bbcd16f3f76fb36fe2b01ed90ac"
+  },
+  "buildReceipts": {
+    "build-receipt.json": "ce610c55bb52d6b633290d6e20ec2c0262be798c281e43e8c0154ce433ac0739",
+    "rebuild-receipt.json": "37f7e61825c48f09163ffa1ad5fcea280c3b49ebf48f24ea2907f969c54d8003"
+  },
+  "observedAt": "2026-10-23T03:16:46.961967+00:00"
+}

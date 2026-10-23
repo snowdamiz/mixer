@@ -23,6 +23,18 @@ Observed implementation and evidence:
   Instrumentation and real input/touch paths verify text, task creation, toggles,
   stable IDs and stale-event rejection. Independent review fixed non-ASCII JSON
   escape acceptance and reran device tests. See `native/android/verification/receipt.json`.
+  The CLI now generates an Android consumer whose shared Swift feature owns its
+  draft/add/toggle state and whose native entry remains app-owned. The locked
+  official toolchain builds an actual unsigned arm64 APK with inspected native
+  dependency closure and DEX classes. Host checks cover the CLI, reusable runtime,
+  existing checklist engine and generated app C ABI. Independent review reproduced
+  staging symlink/hardlink writes outside the build directory; the repair rejects
+  those paths before mutation and passes the original exploit replays. A fresh
+  fixed consumer build and rebuild pass, with independent final APK inspection.
+  These are local compilation/host results; the earlier physical checklist receipt
+  does not qualify the new generator. Signing/installability, native resources and
+  capabilities, published packages, FieldLog D2 and device/lifecycle/accessibility
+  evidence remain open. See `verification/android-generator-integration-2026-10-22.json`.
 - The dependency-free owned Wasm interpreter executes the bounded integer-v1
   profile. The opt-in numeric-v2 extension matches 29,794 floating-point reference
   cases on the physical Pixel and through the public C ABI in a signed iPhone
@@ -172,6 +184,17 @@ Observed implementation and evidence:
   route. Full Swift admission and production integration remain open. See
   `verification/function-diagnostics-owner-review-2026-10-22.json` and
   `verification/stream-validator-owner-review-2026-10-22.json`.
+
+A nondefault Rust capability-mailbox experiment now snapshots bounded requests,
+gates dispatch on successful turns, and separates terminal delivery from native
+exit acknowledgement. Twenty new tests pass, with unchanged default profiles,
+128 combined-feature tests per build mode and all nine explicit oracle functions.
+Root matched 47 source inputs, 19 logs and 12 unchanged compatibility inputs.
+Independent review is underway. Payload allocation refusal is handled atomically;
+the recorded macOS standard-library mutex allocation can still abort on OOM.
+This has no guest imports, C route, strict payload/grant bridge, native I/O,
+scheduler, counted registry retention or activation admission. See
+`vm/verification/capability-mailbox/receipt.json`.
 
 Official Swift 6.3.3 Android/Wasm SDKs are installed and compiler probes have run
 on a physical Pixel and in a development-only Node WASI oracle. Xcode 27.1 / Swift
