@@ -1,0 +1,31 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/.build/capability-mailbox-independent-4e37b35/source/vm)
+   Compiling mailbox-independent-review v0.0.0 (/Users/andreyyurlov/Documents/dev/mixer/.build/capability-mailbox-independent-4e37b35/harness)
+    Finished `release` profile [optimized] target(s) in 1.33s
+     Running tests/adversarial.rs (.build/capability-mailbox-independent-4e37b35/target/release/deps/adversarial-35c20a9fd45a46b5)
+
+running 8 tests
+test all_five_step_lifecycle_traces_obey_a_delivery_exit_product_model ... independent lifecycle traces=3125 transitions=15625; delivery and native exit accounted separately
+ok
+test concurrent_close_reports_keep_all_and_only_unacknowledged_leases ... concurrent close/delivery/partial-exit rounds=32; stable reports retain exactly four outstanding native identities
+ok
+test exact_capacity_counts_opposite_halves_of_native_and_delivery_obligations ... ok
+test invalid_buffers_cannot_consume_controls_failures_or_payloads ... ok
+test many_posters_pollers_cancellation_and_exit_have_exactly_one_complete_delivery ... concurrent completion/cancel/exit/delivery rounds=64; actors_per_round=14; one intact delivery per round
+ok
+test owner_turn_and_generation_boundaries_survive_cross_product_replays ... ok
+test private_monotonic_deadlines_narrow_from_origin_and_preserve_first_terminal ... ok
+test successful_turns_gate_calls_while_controls_and_trap_cleanup_remain_live ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.38s
+
+     Running tests/allocator.rs (.build/capability-mailbox-independent-4e37b35/target/release/deps/allocator-06642f01da871691)
+
+running 1 test
+test independent_allocator_measurements_and_stalled_snapshot_race ... independent expected std first-lock OOM negative probe: status=signal: 6 (SIGABRT); stderr=memory allocation of 64 bytes failed
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+independent observed metadata=984; construction=0 allocations; first-lock=(1, 64, 64); payload refusals=2 atomic; varying-size full payload allocations/retained/peak=(16, 8388580, 8388580); no new allocations for control delivery, quota refusal, close or acknowledgements
+independent paused-copy race: cancel waits for mutex; 600ms stall exceeds 500ms enqueue deadline; post and cancel observe first DeadlineExceeded terminal; candidate completion dropped
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.62s
+

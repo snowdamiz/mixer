@@ -1,0 +1,429 @@
+{
+  "schema": 1,
+  "scope": "Independent Rust-only experimental mailbox code review and adversarial host verification; immutable Git-object export; no production integration or device qualification",
+  "reviewed_revision": "4e37b357ae029d9cdf5e5c6b4281d82f61b65f3a",
+  "started_utc": "2026-10-23T03:28:51.952892+00:00",
+  "environment": {
+    "PATH_prefix": "/opt/homebrew/opt/rustup/bin",
+    "CARGO_TARGET_DIR": "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-mailbox-independent-4e37b35/target"
+  },
+  "scratch": ".build/capability-mailbox-independent-4e37b35",
+  "commands": [
+    {
+      "name": "version-rustc",
+      "argv": [
+        "rustc",
+        "-Vv"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "elapsed_host_seconds": 0.06253,
+      "log": "verification/capability-mailbox-review/version-rustc.log",
+      "log_sha256": "352d6857968e80a6357a926ac685b9b07f77c479aaafde33e73a53945e802909"
+    },
+    {
+      "name": "version-cargo",
+      "argv": [
+        "cargo",
+        "-V"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "elapsed_host_seconds": 0.042221,
+      "log": "verification/capability-mailbox-review/version-cargo.log",
+      "log_sha256": "1f88eaf7fe1aaec83184752cf4c944cd22f00184136ff36a3e4c318cc60ef566"
+    },
+    {
+      "name": "version-host",
+      "argv": [
+        "uname",
+        "-a"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "elapsed_host_seconds": 0.004901,
+      "log": "verification/capability-mailbox-review/version-host.log",
+      "log_sha256": "10c12b8125890b3768695048cf390858bb6f17cf67c1f5747e582c221c2932f0"
+    },
+    {
+      "name": "version-macos",
+      "argv": [
+        "sw_vers"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "elapsed_host_seconds": 0.014756,
+      "log": "verification/capability-mailbox-review/version-macos.log",
+      "log_sha256": "4ef10a0fc370704ea84699cf3851e51488598c5f1ab35cb572eb6b96278a8e5c"
+    },
+    {
+      "name": "version-python",
+      "argv": [
+        "python3",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "elapsed_host_seconds": 0.012941,
+      "log": "verification/capability-mailbox-review/version-python.log",
+      "log_sha256": "f615dc9512de8b165e2b595e5cdc608a3ba7927ae92f959c5b42ec3d58e2ffa8"
+    },
+    {
+      "name": "review-format",
+      "argv": [
+        "rustfmt",
+        "--edition",
+        "2021",
+        "--check",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-mailbox-review/adversarial.rs",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-mailbox-review/allocator.rs",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-mailbox-review/whitebox.rs"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "elapsed_host_seconds": 0.054158,
+      "log": "verification/capability-mailbox-review/review-format.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "default-api-negative-compile",
+      "argv": [
+        "cargo",
+        "check",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-mailbox-independent-4e37b35/negative-default/Cargo.toml"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 101,
+      "expected_exit_code": 101,
+      "elapsed_host_seconds": 0.208731,
+      "log": "verification/capability-mailbox-review/default-api-negative-compile.log",
+      "log_sha256": "dc5073f51d0f67c63b13ea0957423c3cf9ba27f528b90914761badcea3da7794"
+    },
+    {
+      "name": "independent-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-mailbox-independent-4e37b35/harness/Cargo.toml",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "elapsed_host_seconds": 1.816484,
+      "log": "verification/capability-mailbox-review/independent-debug.log",
+      "log_sha256": "aeb7003cedde2eeed771dceec67352e5fee53d31ad5023fff0281bbde12cc6b6"
+    },
+    {
+      "name": "whitebox-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-mailbox-independent-4e37b35/whitebox/Cargo.toml",
+        "independent_review",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "elapsed_host_seconds": 0.311037,
+      "log": "verification/capability-mailbox-review/whitebox-debug.log",
+      "log_sha256": "3bc6323eb0e9fbbb46efb5c522293b72089f84a302b710266f2abf028b9dee39"
+    },
+    {
+      "name": "independent-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-mailbox-independent-4e37b35/harness/Cargo.toml",
+        "--release",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "elapsed_host_seconds": 1.793378,
+      "log": "verification/capability-mailbox-review/independent-release.log",
+      "log_sha256": "cce4fbdad906a2e8faa867ff4b1855b1c54c204dd9866e69f820425a943eae40"
+    },
+    {
+      "name": "whitebox-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-mailbox-independent-4e37b35/whitebox/Cargo.toml",
+        "--release",
+        "independent_review",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "elapsed_host_seconds": 0.498815,
+      "log": "verification/capability-mailbox-review/whitebox-release.log",
+      "log_sha256": "9f0c4e71926b598fadca3cb333afe4b0f3ca385f65781348015b4dd141e7772c"
+    },
+    {
+      "name": "review-clippy",
+      "argv": [
+        "cargo",
+        "clippy",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-mailbox-independent-4e37b35/harness/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "elapsed_host_seconds": 0.624786,
+      "log": "verification/capability-mailbox-review/review-clippy.log",
+      "log_sha256": "c8bee6220e695cd85eadd17c3a05da4f5b06dc595a8c182ea5e10c7ab479137d"
+    },
+    {
+      "name": "snapshot-default-execution",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-mailbox-independent-4e37b35/source/vm/Cargo.toml"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "elapsed_host_seconds": 2.774622,
+      "log": "verification/capability-mailbox-review/snapshot-default-execution.log",
+      "log_sha256": "cc59ea4a86e3acb052d272ac7347a4d927a6cff265edcc5dbcd92de26eee8aba"
+    },
+    {
+      "name": "snapshot-combined-execution",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-mailbox-independent-4e37b35/source/vm/Cargo.toml",
+        "--features",
+        "experimental-capability-mailbox,experimental-stream-validation"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "elapsed_host_seconds": 6.615832,
+      "log": "verification/capability-mailbox-review/snapshot-combined-execution.log",
+      "log_sha256": "6d87821993b706bdcdc5007e9d9cd8c58a3c584d3a7a1cf9f048c40c5f5cbbdb"
+    }
+  ],
+  "implementation_source_digest": "369b698053b2ca5217819679b9050e0a43a9947c9de87c0b66be4e1722ccbe49",
+  "implementation_source_count": 47,
+  "frozen_inputs": [
+    {
+      "path": "contracts/vm-profile-v1.json",
+      "sha256": "813a54a4e198a73d49afffe7c8d9cf54f6e76bfca80dd6556a439a4bdf1bdf4c",
+      "compared_base_revision": "b4f13ec9a78b882380a6cfba0a9607990ca9babe",
+      "equals_base_revision": true
+    },
+    {
+      "path": "contracts/vm-session-v1.json",
+      "sha256": "6921f707b943ab76cdc3dae996ac7448d3c720676f290e259c892afcab1bf41a",
+      "compared_base_revision": "b4f13ec9a78b882380a6cfba0a9607990ca9babe",
+      "equals_base_revision": true
+    },
+    {
+      "path": "runtime/Sources/CMixerVM/include/mixer_vm.h",
+      "sha256": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+      "compared_base_revision": "b4f13ec9a78b882380a6cfba0a9607990ca9babe",
+      "equals_base_revision": true
+    },
+    {
+      "path": "vm/include/mixer_vm.h",
+      "sha256": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+      "compared_base_revision": "b4f13ec9a78b882380a6cfba0a9607990ca9babe",
+      "equals_base_revision": true
+    },
+    {
+      "path": "vm/profiles/numeric-v2.json",
+      "sha256": "4eb10d61ddc0092bec5f40b40cc3473ae3443491e7bdfe49b9cae80b58e09d57",
+      "compared_base_revision": "b4f13ec9a78b882380a6cfba0a9607990ca9babe",
+      "equals_base_revision": true
+    },
+    {
+      "path": "vm/profiles/table-memory-v3.json",
+      "sha256": "c46d5527aa1d4ed1e4b282269546a132d75f8f1895640978165db68ec9ed028d",
+      "compared_base_revision": "b4f13ec9a78b882380a6cfba0a9607990ca9babe",
+      "equals_base_revision": true
+    },
+    {
+      "path": "vm/src/decode.rs",
+      "sha256": "53cf889a54aa9161c1dc8703ac02878d511bea91335ba09b983eb43eb7169134",
+      "compared_base_revision": "b4f13ec9a78b882380a6cfba0a9607990ca9babe",
+      "equals_base_revision": true
+    },
+    {
+      "path": "vm/src/execute.rs",
+      "sha256": "19c2d0a9a84670d94f28f57841af1fff6c67ca6bfbb263628584fc07ff219557",
+      "compared_base_revision": "b4f13ec9a78b882380a6cfba0a9607990ca9babe",
+      "equals_base_revision": true
+    },
+    {
+      "path": "vm/src/ffi.rs",
+      "sha256": "fc6fcd076ff4e42c60e04f19b0b94bd3b630dfabad03fb73193dedfafe5593e6",
+      "compared_base_revision": "b4f13ec9a78b882380a6cfba0a9607990ca9babe",
+      "equals_base_revision": true
+    },
+    {
+      "path": "vm/src/float.rs",
+      "sha256": "db8057f709115016eae689efbd1fdd47b2b1ddee371d45159a0160c8ccc4b711",
+      "compared_base_revision": "b4f13ec9a78b882380a6cfba0a9607990ca9babe",
+      "equals_base_revision": true
+    },
+    {
+      "path": "vm/src/session.rs",
+      "sha256": "75fccc10f123b3761c5814018045df3efc7a74889f1f581b81f410b49fc33af3",
+      "compared_base_revision": "b4f13ec9a78b882380a6cfba0a9607990ca9babe",
+      "equals_base_revision": true
+    },
+    {
+      "path": "vm/src/validate.rs",
+      "sha256": "18a42d1d2501f2cbcd23ac9b460f0a9a4806e98186f5712c935fe2434142b3d2",
+      "compared_base_revision": "b4f13ec9a78b882380a6cfba0a9607990ca9babe",
+      "equals_base_revision": true
+    }
+  ],
+  "derived_whitebox": {
+    "source_prefix": "vm/src/experimental_capability/mod.rs",
+    "original_prefix_sha256": "e37aba23bc20c450fbe0eacac7dac9894eb13ff23162ba1577e3efbaaeb823b5",
+    "derived_source_sha256": "7f8908d232e1bafa7a78b422f2a9aacc9fc932aa6ad84c94a95125a93f408ae7",
+    "change": "Append only cfg(test) independent_review module declaration; add independently authored review tests; immutable export unchanged"
+  },
+  "review_source_digest": "79bdd220d851cbaa7826087ffdb653b19e8e3fe0c9b9ce7c20f831effc6ab54a",
+  "review_source_manifest": "verification/capability-mailbox-review/review-source-manifest.sha256",
+  "immutable_snapshot_unchanged": true,
+  "review_sources_unchanged_during_checks": true,
+  "completed_utc": "2026-10-23T03:29:07.835114+00:00",
+  "result": "No actionable defects found within the documented standalone experimental Rust-only scope; all 13 independent tests pass per debug/release mode; qualification boundaries remain open",
+  "independent_review": true,
+  "actionable_findings": [],
+  "independent_results": {
+    "debug": {
+      "public_adversarial_tests": 9,
+      "allocator_tests": 1,
+      "private_boundary_tests": 3,
+      "passed": 13
+    },
+    "release": {
+      "public_adversarial_tests": 9,
+      "allocator_tests": 1,
+      "private_boundary_tests": 3,
+      "passed": 13
+    },
+    "lifecycle_scripts_per_mode": 3125,
+    "lifecycle_transitions_per_mode": 15625,
+    "completion_cancel_delivery_exit_race_rounds_per_mode": 64,
+    "actors_per_completion_race_round": 14,
+    "close_partial_exit_delivery_race_rounds_per_mode": 32,
+    "remaining_owner_ids_issued_under_contention_per_mode": 4095,
+    "owner_counter_contenders_per_mode": 16
+  },
+  "baseline_results": {
+    "snapshot-default-execution": {
+      "passed": 91,
+      "failed": 0,
+      "ignored": 8,
+      "counted_as_independent": false
+    },
+    "snapshot-combined-execution": {
+      "passed": 128,
+      "failed": 0,
+      "ignored": 9,
+      "counted_as_independent": false
+    }
+  },
+  "expected_negative_probes": [
+    {
+      "name": "Default API unavailable without feature",
+      "exit_code": 101,
+      "logs": [
+        "verification/capability-mailbox-review/default-api-negative-compile.log"
+      ],
+      "meaning": "Expected E0432 compile rejection, not an unexpected verification failure"
+    },
+    {
+      "name": "macOS first std mutex allocation refusal",
+      "child_signal": 6,
+      "child_outcome": "SIGABRT: memory allocation of 64 bytes failed",
+      "logs": [
+        "verification/capability-mailbox-review/independent-debug.log",
+        "verification/capability-mailbox-review/independent-release.log"
+      ],
+      "meaning": "Known platform-specific infallible synchronization allocation; no general OOM/no-unwind claim"
+    }
+  ],
+  "unexpected_failed_experiments": [],
+  "preserved_earlier_run_logs": [
+    {
+      "path": "verification/capability-mailbox-review/default-api-negative-compile.previous-1.log",
+      "sha256": "3fff65d743783abd53137872156c000acb834f635c3f9cfe8c2a19ebfe67bd78"
+    },
+    {
+      "path": "verification/capability-mailbox-review/independent-debug.previous-1.log",
+      "sha256": "9ddda225bffcda09e892874b5d4e94a222d37178c4036d36834b2c3187db099a"
+    },
+    {
+      "path": "verification/capability-mailbox-review/independent-release.previous-1.log",
+      "sha256": "bdb03c1860b4f9a62197cd57ecfe54046a1dab98026bf208cffc9553d424b852"
+    },
+    {
+      "path": "verification/capability-mailbox-review/review-clippy.previous-1.log",
+      "sha256": "6d436c87800be9520438d9078b2e84887d4803ea2e94ebbf952fcd3d272ca6e9"
+    },
+    {
+      "path": "verification/capability-mailbox-review/snapshot-combined-execution.previous-1.log",
+      "sha256": "b09da03daa9256d42bfd644bc1c170bc280413574d6403a3a4a731838527fd73"
+    },
+    {
+      "path": "verification/capability-mailbox-review/snapshot-default-execution.previous-1.log",
+      "sha256": "d470cae1b3bd3a7e05b5acc3af4761bc4bbeafae6c4026158f3c7e5fed8267ce"
+    },
+    {
+      "path": "verification/capability-mailbox-review/whitebox-debug.previous-1.log",
+      "sha256": "8e31635c9fdcd058a9e19b93838f3e3843e0d3f6cbd43a447a333c8a06849181"
+    },
+    {
+      "path": "verification/capability-mailbox-review/whitebox-release.previous-1.log",
+      "sha256": "453242b5fa176d0f917a35112aa9b4d2d8ee0d10c587648656056f918d6479e9"
+    }
+  ],
+  "accepted_scope_limits": [
+    "Standalone nondefault Rust-only API, no enabled guest imports, profile, C ABI or VM execution route",
+    "No process/session quota or enforced mailbox owner lifetime through native exit",
+    "Payload reservations exclude metadata, standard mutex, allocator overhead and caller/native/codec buffers",
+    "Host mutex/copy/OS scheduling is not hard-real-time bounded",
+    "Opaque bytes require future strict codec, operation/grant binding and actual native exit integration",
+    "Finite schedules are not an interleaving proof or sanitizer run",
+    "macOS arm64 host evidence does not qualify Linux, physical devices, immutable packages, stores, operations, security review or GA"
+  ],
+  "prohibited_actions_attempted": []
+}

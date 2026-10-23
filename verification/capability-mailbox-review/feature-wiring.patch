@@ -1,0 +1,25 @@
+diff --git a/vm/Cargo.toml b/vm/Cargo.toml
+index 9437691..7815543 100644
+--- a/vm/Cargo.toml
++++ b/vm/Cargo.toml
+@@ -8,6 +8,7 @@ description = "Independently authored bounded integer WebAssembly interpreter"
+ [features]
+ default = []
+ experimental-stream-validation = []
++experimental-capability-mailbox = []
+ 
+ [lib]
+ name = "mixer_vm"
+diff --git a/vm/src/lib.rs b/vm/src/lib.rs
+index cddd57c..58ac711 100644
+--- a/vm/src/lib.rs
++++ b/vm/src/lib.rs
+@@ -3,6 +3,8 @@ mod decode;
+ mod execute;
+ #[cfg(feature = "experimental-stream-validation")]
+ pub mod experimental;
++#[cfg(feature = "experimental-capability-mailbox")]
++pub mod experimental_capability;
+ mod ffi;
+ mod float;
+ mod inspect;

@@ -1,0 +1,209 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/.build/capability-mailbox-independent-4e37b35/source/vm)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.34s
+     Running unittests src/lib.rs (.build/capability-mailbox-independent-4e37b35/target/debug/deps/mixer_vm-2f165367cf10b6b0)
+
+running 7 tests
+test ffi::tests::null_inputs_fail_without_unwind ... ok
+test session::tests::generation_exhaustion_permanently_retires_slot ... ok
+test session::tests::closed_in_flight_and_reserved_slots_still_count_against_cap ... ok
+test session::tests::busy_session_and_cross_thread_stop_are_nonblocking ... ok
+test session::tests::unwound_creation_releases_unpublished_reservation ... ok
+test session::tests::panic_poison_prevents_state_reuse_without_poisoning_registry ... ok
+test ffi::tests::panic_is_contained ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (.build/capability-mailbox-independent-4e37b35/target/debug/deps/mixer_vm-250f7b1159e1c2e9)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/cli.rs (.build/capability-mailbox-independent-4e37b35/target/debug/deps/cli-3dc787b68b06e2ae)
+
+running 3 tests
+test table_memory_profile_requires_explicit_cli_selection ... ok
+test numeric_profile_is_explicit_and_float_json_preserves_bits ... ok
+test machine_readable_cli_contract ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+     Running tests/differential.rs (.build/capability-mailbox-independent-4e37b35/target/debug/deps/differential-9585a55a8e14746d)
+
+running 3 tests
+test accepted_mutations_are_also_valid_webassembly_in_node ... ignored, development validation oracle; run explicitly with Node
+test every_integer_opcode_matches_node ... ignored, development oracle; run cargo test --test differential -- --ignored --nocapture with Node available
+test structured_control_and_memory_match_node ... ignored, development oracle; run explicitly with Node
+
+test result: ok. 0 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/experimental_allocations.rs (.build/capability-mailbox-independent-4e37b35/target/debug/deps/experimental_allocations-aad37bc6a52f53cc)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/experimental_capability_allocations.rs (.build/capability-mailbox-independent-4e37b35/target/debug/deps/experimental_capability_allocations-320f5dd2e35d7131)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/experimental_capability_mailbox.rs (.build/capability-mailbox-independent-4e37b35/target/debug/deps/experimental_capability_mailbox-67c2ab03a2a80415)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/experimental_oracle.rs (.build/capability-mailbox-independent-4e37b35/target/debug/deps/experimental_oracle-5575d0c97f43e727)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/experimental_stream.rs (.build/capability-mailbox-independent-4e37b35/target/debug/deps/experimental_stream-7779a4ae0d957218)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/float.rs (.build/capability-mailbox-independent-4e37b35/target/debug/deps/float-c1e68ff6ed21d082)
+
+running 15 tests
+test numeric_profile_cannot_be_reinstantiated_as_integer ... ok
+test integer_profile_remains_closed_to_floats ... ok
+test saturating_conversions_clamp_and_meter_one_instruction ... ok
+test float_memory_locals_globals_and_control_are_typed ... ok
+test float_to_integer_traps_are_distinct_and_boundaries_truncate ... ok
+test division_and_nan_comparison_follow_ieee ... ok
+test rounding_is_ties_even_and_retains_negative_zero ... ok
+test arithmetic_without_nan_inputs_produces_canonical_nan_on_invalid_operations ... ok
+test signaling_and_quiet_nans_keep_integer_conversion_and_comparison_semantics ... ok
+test signed_zero_min_max_and_copysign ... ok
+test constants_reinterpret_and_bitwise_preserve_nan_payloads ... ok
+test malformed_float_immediates_and_type_mismatch_reject ... ok
+test prefix_metering_and_float_mutation_execution_are_bounded ... ok
+test f64_arithmetic_and_demotion_canonicalize_all_nan_inputs ... ok
+test f32_arithmetic_and_promotion_canonicalize_all_nan_inputs ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/float_differential.rs (.build/capability-mailbox-independent-4e37b35/target/debug/deps/float_differential-ba2678e99c97ff6d)
+
+running 3 tests
+test conversions_reinterpret_and_saturating_boundaries ... ignored, development Node oracle; run explicitly
+test every_float_arithmetic_comparison_rounding_and_bitwise_opcode ... ignored, development Node oracle; run explicitly
+test float_memory_calls_and_global_ownership_preserve_bits ... ignored, development Node oracle; run explicitly
+
+test result: ok. 0 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/interpreter.rs (.build/capability-mailbox-independent-4e37b35/target/debug/deps/interpreter-7c9dd28530a4c28d)
+
+running 35 tests
+test arithmetic_wrap_and_arguments ... ok
+test br_if_preserves_false_label_value ... ok
+test br_table_default_and_index ... ok
+test branch_preserves_block_result_and_discards_intermediates ... ok
+test cancellation_before_execution ... ok
+test branch_to_function_and_return ... ok
+test direct_call_and_locals ... ok
+test division_traps_and_remainder_overflow_semantics ... ok
+test duplicate_ordered_sections_bad_utf8_and_length_are_rejected ... ok
+test host_abort_is_a_structured_failure ... ok
+test host_imports_are_metered_and_capability_closed ... ok
+test if_result_both_arms ... ok
+test effective_address_does_not_wrap32 ... ok
+test infinite_loop_is_metered ... ok
+test integer64_signed_leb_roundtrips ... ok
+test invalid_stack_types_and_indices_fail_validation ... ok
+test invalid_import_signatures_memory_alignment_and_immutable_globals_reject ... ok
+test loop_countdown_and_branch ... ok
+test malformed_control_is_rejected ... ok
+test malformed_leb_width_and_unused_bits ... ok
+test memory_limit_flags_are_bytes_and_cannot_use_leb_aliases ... ok
+test mutable_globals_persist_per_instance ... ok
+test memory_load_store_and_data ... ok
+test narrowed_instance_limits_revalidate_control_and_source_size ... ok
+test non_authorizing_inventory_records_unsupported_float_and_bulk_memory ... ok
+test memory_growth_is_capped_and_zero_filled ... ok
+test recursion_uses_explicit_bounded_frames ... ok
+test resource_limits_fail_closed ... ok
+test unreachable_stack_polymorphism_is_valid ... ok
+test narrow_load_sign_extends ... ok
+test unsupported_opcodes_fail_before_execution_and_partial_inventory_is_honest ... ok
+test wrong_arguments_and_unknown_exports_fail ... ok
+test oob_store_and_segment_trap ... ok
+test mutated_executable_modules_never_panic_with_tight_execution_budgets ... ok
+test decoder_mutation_smoke_has_no_panics ... ok
+
+test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/review_boundaries.rs (.build/capability-mailbox-independent-4e37b35/target/debug/deps/review_boundaries-7bd7865457d31b2a)
+
+running 6 tests
+test c_boundary_rejects_bad_value_contracts_before_execution ... ok
+test reference_inventory_does_not_consume_the_instruction_after_ref_as_non_null ... ok
+test unreachable_code_still_rejects_illegal_indices_and_branch_label_types ... ok
+test c_boundary_accepts_documented_unaligned_structs_and_rejects_huge_lengths ... ok
+test reference_branch_inventory_consumes_label_index_and_preserves_next_opcode ... ok
+test maximal_effective_addresses_trap_without_wrap_or_partial_store ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/review_session_lifetime.rs (.build/capability-mailbox-independent-4e37b35/target/debug/deps/review_session_lifetime-fe0fc291d7be1dc2)
+
+running 1 test
+test closed_in_flight_storage_counts_until_destructor_finishes ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/sessions.rs (.build/capability-mailbox-independent-4e37b35/target/debug/deps/sessions-e87193ef10759f6d)
+
+running 7 tests
+test copied_memory_whole_bounds_zero_length_and_no_partial_write ... ok
+test trap_cancellation_and_signature_errors_are_terminal ... ok
+test opt_in_profiles_and_per_call_budgets_are_retained ... ok
+test retained_memory_globals_and_owned_input ... ok
+test failed_creates_release_reservations_and_cap_is_enforced ... ok
+test close_and_slot_reuse_reject_stale_handles ... ok
+test malformed_abi_arguments_leave_session_usable ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/table_memory.rs (.build/capability-mailbox-independent-4e37b35/target/debug/deps/table_memory-25cf1c01cd895e46)
+
+running 17 tests
+test equivalent_duplicate_function_types_match_structurally ... ok
+test indirect_calls_null_and_bounds_have_structured_traps ... ok
+test old_profiles_reject_table_and_bulk_features ... ok
+test indirect_float_values_preserve_bits_through_arguments_and_results ... ok
+test indirect_and_bulk_operands_are_statically_typed_even_when_unreachable ... ok
+test element_order_overlap_explicit_table_and_zero_length_bounds ... ok
+test approved_imports_remain_metered_when_called_indirectly ... ok
+test mismatched_function_signature_traps_without_calling_target ... ok
+test recursive_indirect_calls_share_depth_and_fuel_limits ... ok
+test unknown_table_forms_and_bulk_indices_fail_closed ... ok
+test table_type_index_function_index_and_quota_validate_before_instantiation ... ok
+test cancellation_and_bad_element_declarations_do_not_execute ... ok
+test bulk_bounds_preflight_preserves_memory_and_zero_lengths_check_addresses ... ok
+test overlapping_copy_is_memmove_in_both_directions ... ok
+test fill_masks_byte_and_bulk_fuel_is_precharged_before_mutation ... ok
+test measured_table_shape_fits_only_the_new_bounded_resource_class ... ok
+test table_bulk_mutation_smoke_is_bounded_and_never_panics ... ok
+
+test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+
+     Running tests/table_memory_differential.rs (.build/capability-mailbox-independent-4e37b35/target/debug/deps/table_memory_differential-d5c9f03834059b9a)
+
+running 2 tests
+test copy_fill_overlap_bounds_and_zero_length ... ignored, development Node oracle; run explicitly
+test indirect_types_arguments_nulls_elements_and_instantiation ... ignored, development Node oracle; run explicitly
+
+test result: ok. 0 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests mixer_vm
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
