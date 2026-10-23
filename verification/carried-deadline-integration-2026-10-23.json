@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "observedAt": "2026-10-23T04:45:03.659396+00:00",
+  "receipt": "capabilities/verification/carried-deadline/receipt.json",
+  "receiptSHA256": "78dd87bae1847b583b496224d94a086d1837ca8110e33bd96a83f4dac0eef56d",
+  "sourceManifestSHA256": "57f9b61d33d5171fa02726169cce994e4578949c6179af5519f078b56ef6f5ad",
+  "matchedSourceFiles": 63,
+  "matchedCommandLogs": 15,
+  "nativeImplementationSHA256": "4fcc770e62d39b415e657ce03aa11fa7fb83ee8bfe1a99567716e9b4372d1c59",
+  "review": "Root independently read Host.swift delta, six original public-API concrete storage tests and qualification driver. Shared acceptance computes min(existing host/operation cutoff, carried absolute cutoff) before scheduling, preserving legacy overload and all existing exit/terminal paths. No actionable findings.",
+  "validation": {
+    "identity-generation": "compile or tool check",
+    "swift-version": "compile or tool check",
+    "xcode-version": "compile or tool check",
+    "official-swift-version": "compile or tool check",
+    "android-manifest-xcode-version": "compile or tool check",
+    "host-version": "compile or tool check",
+    "python-version": "compile or tool check",
+    "generator-check": "compile or tool check",
+    "capability-debug": 51,
+    "capability-release": 51,
+    "native-deadline-tsan": 31,
+    "ios-cross-build": "compile or tool check",
+    "android-cross-build": "compile or tool check",
+    "wasi-module-build": "compile or tool check",
+    "java-identity-build": "compile or tool check"
+  },
+  "limitations": [
+    "Public tests use bounded test-only isolated storage actor and delivery gates; production clocks/adapters are unchanged",
+    "No claim of durable-effect rollback or no side effects if a task suspends after the pre-invoke check",
+    "System frameworks are not sanitizer-instrumented",
+    "Phones disconnected; no physical-device commands",
+    "Root reviewed source and authenticated recorded output; author executed these SDK checks.",
+    "No native guest bridge or activation integration; all product gates remain open."
+  ]
+}

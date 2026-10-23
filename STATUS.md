@@ -85,6 +85,15 @@ Observed implementation and evidence:
   25 Thread Sanitizer tests and iOS/Android/WASI compilation. See
   `verification/guest-codec-deadline-integration-2026-10-23.json`. These are value
   codec and native host results; actual guest-to-I/O integration remains open.
+  The observed installed-adapter API now also accepts a caller's existing absolute
+  monotonic deadline. It narrows the host/operation cutoff, so mailbox or actor
+  queue delay cannot renew the budget. Six concrete-storage regressions cover
+  expired no-I/O admission, queue delay, earlier caps, unextended defaults and
+  terminal/exit ownership. All 51 capability tests pass per host mode, 31 native
+  HTTP/exit/deadline tests pass under Thread Sanitizer, and iOS/Android/WASI
+  compilation passes. Root reviewed the source and matched 63 inputs and 15 logs;
+  see `verification/carried-deadline-integration-2026-10-23.json`. This SDK
+  prerequisite does not implement the guest bridge or qualify physical behavior.
   See `capabilities/verification/receipt.json` and
   `verification/independent-capabilities-2026-10-22.json`.
 - The Go development service verifies canonical signed artifacts and separately
@@ -308,3 +317,9 @@ GitHub run39899331225 at3b1903a passed all three jobs, including 45 capability
 tests, 25 native HTTP/exit/deadline tests under Thread Sanitizer and the generated
 iOS simulator consumer. See `verification/github-ci-3b1903a/receipt.json`. This
 run predates the Rust guest composition and the new full raw-fixture CI step.
+
+GitHub run39901133183 at3e118a9 passed all three jobs. It includes the opt-in
+Rust guest tests and all 90 raw transport fixtures in each Swift build mode,
+plus the existing 45 capability and 25 native Thread Sanitizer tests. See
+`verification/github-ci-3e118a9/receipt.json`. The carried deadline overload and
+experimental native C session implementation are later work, outside that run.
