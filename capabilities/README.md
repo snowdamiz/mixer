@@ -85,7 +85,10 @@ regular files with no symlink/hard-link following, and validates namespaces/keys
 identifiers (no slash, dot components or traversal). Physical components use canonical
 lowercase base32 of the exact ASCII bytes; case-insensitive filesystems cannot merge
 distinct grant namespaces or keys. Maximum32 installed namespaces,
-64KiB/value, 4MiB total and1024 entries; configured limits may be lower. Empty values
+64KiB/value, 4MiB total and1024 entries; configured limits may be lower. Reopening
+checks all retained bytes and entries against those configured limits and fails
+with `quotaExceeded` if either is exceeded, preserving values. To narrow a policy,
+the trusted host must first prune under its previous limits. Empty values
 are distinct from missing values. Writes use an owned temporary file, file `fsync`,
 atomic rename and directory `fsync`; replacement cannot expose a partial value.
 Recognized abandoned transactions are pruned on open/next inventory. Missing values

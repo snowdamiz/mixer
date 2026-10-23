@@ -52,7 +52,7 @@ before = source(); base = capture(["git", "rev-parse", "HEAD"]).stdout.strip()
 commands = [run("generated-check", ["python3", "capabilities/tools/generate.py", "--check"], "closed-schema generated DTO, host/guest adapter and native identity drift check")]
 android = [SWIFT, "build", "--package-path", "capabilities", "--swift-sdks-path", SDK_PATH, "--swift-sdk", "aarch64-unknown-linux-android28"]
 jobs = [
-    ("capability-tests", ["swift", "test", "--package-path", "capabilities"], "12 macOS host typed lifecycle/storage tests; fixture HTTP transport only", None),
+    ("capability-tests", ["swift", "test", "--package-path", "capabilities"], "13 macOS host typed lifecycle/storage tests; fixture HTTP transport only", None),
     ("existing-sdk-tests", ["swift", "test", "--package-path", "sdk"], "23 existing Core/UI/Apple tests preserved on macOS", None),
     ("ios-build", ["swift", "build", "--package-path", "sdk", "--target", "MixerCapabilities", "--triple", "arm64-apple-ios17.0", "--sdk", "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS27.1.sdk", "--scratch-path", "capabilities/.build/ios"], "iOS arm64 native capability library cross-compilation only", None),
     ("android-build", android + ["--static-swift-stdlib", "-c", "release", "--product", "capability-probe", "--scratch-path", "capabilities/.build/android"], "Android aarch64 API28 static Swift codec probe cross-compilation only", ANDROID_ENV),
@@ -80,7 +80,13 @@ receipt = dict(schemaVersion=1, createdAt=now(), repositoryHeadAtRun=base,
         initialCommand=["swift", "test", "--package-path", "capabilities", "--filter", "privateStorageIdentityCannotAliasOnCaseInsensitiveFilesystems"],
         initialExitCode=1, initialOutput="capabilities/verification/logs/initial-case-alias-regression.log",
         preFixNativeImplementationSHA256="0cbc39dcb8edc1d5796501121f8209b93c954ddbe279e6c5dfb074bdea3403ca",
-        fix="Canonical lowercase base32 physical components of exact ASCII bytes, strict reverse inventory validation, and namespace/key case isolation regression")],
+        fix="Canonical lowercase base32 physical components of exact ASCII bytes, strict reverse inventory validation, and namespace/key case isolation regression"),
+        dict(id="CAP-REVIEW-01", status="fixed after independent root review", severity="P2",
+        description="Reopen validated hard ceilings but allowed retained state above narrower configured byte/entry ceilings",
+        initialCommand=["swift", "test", "--package-path", "capabilities", "--filter", "privateStoreReopenRejectsExistingStateAboveConfiguredQuotas"],
+        initialExitCode=1, initialOutput="capabilities/verification/logs/initial-reopen-quota-regression.log",
+        preFixNativeImplementationSHA256="12e1e150f804f036a817beff539cf0d6aa0f055699822a4cf7188069accca958",
+        fix="Check retained inventory against both configured ceilings on open; regress byte-only, entry-only and combined exceedance, exact-boundary acceptance, cleanup and explicit policy narrowing")],
     assertions=dict(typedClosedDispatch=True, rawDecodesSnapshotAndPreflight=True, noReflectiveNativeLookup=True,
         noNativePointersInWire=True, manifestGrantsCannotExpandInstalledPolicy=True, generationWrapRetires=True,
         oneTerminalResponsePerSubmittedCall=True, cancellationKeepsLeaseUntilAdapterExit=True, storageAtomicQuotaBounded=True,

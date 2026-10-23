@@ -165,6 +165,36 @@ private func client(_ host: CapabilityHost) -> GuestCapabilityClient {
     await store.close()
 }
 
+@Test func privateStoreReopenRejectsExistingStateAboveConfiguredQuotas() async throws {
+    let directory = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-kv-reopen-\(UUID().uuidString)")
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let store = try AppPrivateKeyValueStore(directory: directory, namespaces: ["entries", "drafts"])
+    _ = try await store.put(KVPutArguments(namespace: "entries", key: "one", valueBase64: "YWJj"))
+    _ = try await store.put(KVPutArguments(namespace: "drafts", key: "two", valueBase64: "ZGVm"))
+    _ = try await store.put(KVPutArguments(namespace: "drafts", key: "empty", valueBase64: ""))
+    await store.close()
+    for (bytes, entries) in [(5, 3), (6, 2), (5, 2)] {
+        do {
+            let invalid = try AppPrivateKeyValueStore(directory: directory, namespaces: ["entries", "drafts"], maximumTotalBytes: bytes, maximumEntries: entries)
+            await invalid.close()
+            Issue.record("Reopen admitted state above configured quota: \(bytes) bytes, \(entries) entries")
+        } catch let failure as CapabilityFailure { #expect(failure == .quotaExceeded) }
+        catch { Issue.record("Unexpected reopen error: \(error)") }
+    }
+    // Rejected initialization releases its exclusive lock and preserves every value.
+    let exact = try AppPrivateKeyValueStore(directory: directory, namespaces: ["entries", "drafts"], maximumTotalBytes: 6, maximumEntries: 3)
+    #expect(try await exact.get(KVGetArguments(namespace: "entries", key: "one")).valueBase64 == "YWJj")
+    #expect(try await exact.get(KVGetArguments(namespace: "drafts", key: "two")).valueBase64 == "ZGVm")
+    #expect(try await exact.get(KVGetArguments(namespace: "drafts", key: "empty")).found)
+    _ = try await exact.delete(KVDeleteArguments(namespace: "drafts", key: "two"))
+    _ = try await exact.delete(KVDeleteArguments(namespace: "drafts", key: "empty"))
+    await exact.close()
+    // The host can explicitly prune under its previous policy, then narrow safely.
+    let narrowed = try AppPrivateKeyValueStore(directory: directory, namespaces: ["entries", "drafts"], maximumTotalBytes: 3, maximumEntries: 1)
+    #expect(try await narrowed.get(KVGetArguments(namespace: "entries", key: "one")).valueBase64 == "YWJj")
+    await narrowed.close()
+}
+
 @Test func actualPrivateStorageRunsThroughTypedHostPermissionBoundary() async throws {
     let directory=FileManager.default.temporaryDirectory.appendingPathComponent("mixer-kv-host-\(UUID().uuidString)")
     defer {try? FileManager.default.removeItem(at:directory)}

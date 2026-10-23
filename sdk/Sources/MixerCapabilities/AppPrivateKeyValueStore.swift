@@ -59,6 +59,8 @@ private enum KVFileNames {
 
 /// Dedicated app-private directory; namespaces/keys are ASCII value identifiers,
 /// never paths. One serial actor and exclusive OS lock own all file operations.
+/// Configured total-byte/entry ceilings include retained state: reopening above
+/// either ceiling fails without deleting stored values.
 public actor AppPrivateKeyValueStore: AppPrivateKeyValueServing {
     private let directory: KVDirectory
     private let namespaces: Set<String>
@@ -71,7 +73,10 @@ public actor AppPrivateKeyValueStore: AppPrivateKeyValueServing {
         for name in namespaces { _ = try WireRules.string(["v": .string(name)], "v", rule: "identifier", maximum: 64) }
         self.namespaces = namespaces; maximumBytes = maximumTotalBytes; self.maximumEntries = maximumEntries
         self.directory = try KVDirectory(directory)
-        _ = try self.directory.inventory(namespaces: namespaces)
+        let inventory = try self.directory.inventory(namespaces: namespaces)
+        guard inventory.bytes <= maximumTotalBytes, inventory.entries <= maximumEntries else {
+            throw CapabilityFailure.quotaExceeded
+        }
     }
     public func close() { closed = true; directory.close() }
     private func available(_ namespace: String) throws {
