@@ -783,3 +783,15 @@ steps were skipped, not passed. Byte-preserving fixture repairs now pass locally
 checks,13 runtime UI tests and113 activation tests. The repair receipt is
 verification/guest-ui-ci-repair/receipt.json. Pinned GCC/Swift confirmation
 remains pending the next hosted run.
+
+Hosted run39961877995 at35a9a36 passed VM/services, the48-test bridge matrix
+and113 activation XCTests, then exposed a native SwiftUI graph teardown crash
+in attachment publication. The repaired model separates published readiness
+from synchronous attachment authority; the original-source regression observes
+five unsafe publications and the repaired path observes none. Debug/Release
+execute13 presentation tests with one positive-window skip each; TSan executes12,
+and official mobile module compilation passes. Independent attachment probes
+also pass. Evidence: verification/guest-ui-teardown-repair/receipt.json.
+The pinned hosted recheck and current-repair visible native flow remain pending;
+previous signed Mac evidence stays tied to its original runtime binary. No
+physical/device, full Swift/size, published consumer or GA gate is closed.

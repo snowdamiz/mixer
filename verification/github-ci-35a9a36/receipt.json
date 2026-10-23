@@ -1,0 +1,31 @@
+{
+  "observed_at_utc": "2026-10-23T13:57:48.589974+00:00",
+  "commit": "35a9a36c8837fd2dd3e491419b7965b6307cd6b9",
+  "run_id": 39961877995,
+  "url": "https://github.com/snowdamiz/mixer/actions/runs/39961877995",
+  "status": "failed",
+  "jobs": [
+    {
+      "name": "vm",
+      "job_id": 120441625769,
+      "conclusion": "success"
+    },
+    {
+      "name": "services",
+      "job_id": 120441626105,
+      "conclusion": "success"
+    },
+    {
+      "name": "swift",
+      "job_id": 120441626118,
+      "conclusion": "failure"
+    }
+  ],
+  "evidence": {
+    "jobs.json": "8c187bd395245fe822f33d6e7eb2fdb3aa1cede87683f67337fe99631509fdc1",
+    "swift.log": "35a4568bd88ba72c6bf0468abd1b83c1b72f3fc8411a6069b3a26f1a88281029"
+  },
+  "finding": "VM and services passed. Pinned Swift bridge48 tests each Debug/Release/TSan and113 activation XCTests passed. Swift Testing native presentation then aborted: GraphHost.invalidate modification overlapped Published inputEnabled read via detachNativeAttachment from dismantleNSViewController. Generated consumer step skipped. This is a production native-lifecycle publication defect, not a test fixture/compiler failure.",
+  "repair": "Use private published readiness plus synchronous non-publishing attachment gate; pending recheck after next push.",
+  "scope": "Hosted validation at exact commit; no physical device or GA claim."
+}

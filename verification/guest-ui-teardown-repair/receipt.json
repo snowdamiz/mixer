@@ -1,0 +1,62 @@
+{
+  "observed_at_utc": "2026-10-23T13:57:48.589974+00:00",
+  "base_revision": "35a9a36c8837fd2dd3e491419b7965b6307cd6b9",
+  "status": "local-repair-passed-pinned-CI-pending",
+  "production_files": [
+    "capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIPresentation.swift"
+  ],
+  "baseline": {
+    "command": [
+      "swift",
+      "test",
+      "--package-path",
+      "verification/guest-ui-teardown-repair/.build/baseline",
+      "--scratch-path",
+      "verification/guest-ui-teardown-repair/.build/baseline/build",
+      "--jobs",
+      "4",
+      "--filter",
+      "nativeAttachmentChangesRevokeAuthorityWithoutPublishingIntoSwiftUIGraph",
+      "-Xswiftc",
+      "-warnings-as-errors"
+    ],
+    "exit_code": 1,
+    "synchronous_publication_failures": 5,
+    "inputs_sha256": "4b99a650cc216f3f96ca17dbbf6cfebab3825dfabeeb3c92c4a9f555b866bba7",
+    "log_sha256": "f26a0bc1664a1c989afc9622042498fdace29c91e7ee5603eea7046ccf29c4c3",
+    "scope": "Old production source plus new regression reproduces five unsafe synchronous publications locally. The actual SwiftUI abort was observed on hosted macOS in the linked CI log."
+  },
+  "patched": {
+    "receipt": "verification/guest-ui-presentation/2026-10-23-candidate-7-teardown/receipt.json",
+    "sha256": "247d0b47e4b1a2242e37ea1c35f374b40756be01ef6efad439476e6f115d9d1f",
+    "executed_debug": 13,
+    "executed_release": 13,
+    "positive_visible_window_skipped_per_mode": 1,
+    "executed_tsan": 12,
+    "ios_module_compile": true,
+    "android_portable_module_compile": true
+  },
+  "behavior": "Native attach/detach/duplicate callbacks do not publish into an invalidating SwiftUI graph. Input/ticket/callback authority revokes synchronously, readiness notifications stay on existing sole consumer. Duplicate attachment before an attempt remains observationally waiting until bind publishes its typed before-intent stop. No new task or notification queue.",
+  "pending": [
+    "Pinned Xcode26.3/Swift6.2.4 CI",
+    "Current-repair visible native signed window, physical mobile lifecycle, full Swift and GA qualification"
+  ],
+  "independent_review": {
+    "path": "verification/next-slice-review/ui-receipt.json",
+    "sha256": "fe68aa7ae7766261374a3000a2c346b72c61b72efd6d07a84c4f367c7f8c09ab",
+    "executed_probes": 2,
+    "blocking_findings": 0
+  },
+  "baseline_replay": {
+    "command": [
+      "python3",
+      "verification/guest-ui-teardown-repair/reproduce-baseline.py",
+      "--output",
+      ".build/guest-ui-teardown-replay-validation"
+    ],
+    "exit_code": 0,
+    "receipt": "verification/guest-ui-teardown-repair/replay-receipt.json",
+    "receipt_sha256": "b04bd93dcc47e7b9f7b39fa78d61a5c4fd30a32e69b9bf26493a59d564b19adc",
+    "scope": "Executable reproducer independently rerun: expected old-code five-publication regression confirmed."
+  }
+}

@@ -190,9 +190,16 @@ struct GuestUIPresentationModelTests {
 
     @Test func duplicateAttachmentBeforeBindingBecomesTypedFailureOnFreshExchange() async throws {
         let binding = CapabilityGuestUIPresentationBinding()
+        var publications = 0
+        let subscription = binding.presentation.objectWillChange.sink { publications += 1 }
         let attachment = try #require(binding.presentation.claimNativeAttachment())
         #expect(binding.presentation.claimNativeAttachment() == nil)
-        #expect(binding.presentation.state == .stopped)
+        // Native construction callbacks latch rejection without publishing into
+        // a graph being built. Binding the attempt publishes its typed stop.
+        #expect(binding.presentation.state == .waiting)
+        #expect(!binding.presentation.inputEnabled)
+        #expect(publications == 0)
+        withExtendedLifetime(subscription) {}
         let exchange = try GuestUIExchangeV1(generation: 1)
         let consumer = try await binding.bind(exchange)
         #expect(exchange.snapshot().firstUIProtocolFailure?.failure ==
@@ -210,6 +217,44 @@ struct GuestUIPresentationModelTests {
         #expect(next.snapshot().firstUIProtocolFailure == nil)
         binding.presentation.detachNativeAttachment(attachment)
         next.stop(.closed); await second.value
+    }
+
+    @Test func nativeAttachmentChangesRevokeAuthorityWithoutPublishingIntoSwiftUIGraph() async throws {
+        let binding = CapabilityGuestUIPresentationBinding()
+        let exchange = try GuestUIExchangeV1(generation: 7)
+        let consumer = try await binding.bind(exchange)
+        try startPresentationExchange(exchange)
+        try await awaitPresentation { binding.presentation.state == .displaying(revision: 1) }
+        var publications = 0
+        let subscription = binding.presentation.objectWillChange.sink { publications += 1 }
+        let attachment = try #require(binding.presentation.claimNativeAttachment())
+        #expect(publications == 0)
+        #expect(binding.presentation.inputEnabled)
+        let host = try #require(binding.presentation.renderHost)
+        let identity = try #require(host.snapshot.identity(for: "save"))
+        let action = try host.route(UIEventEnvelope(revision: 1, identity: identity, event: .activate))
+        let oldCallback = binding.presentation.actionHandler(host: host, attachment: attachment)
+        let oldTicket = try #require(binding.presentation.nativeDisplayTicket(attachment: attachment))
+        binding.presentation.detachNativeAttachment(attachment)
+        #expect(publications == 0)
+        #expect(!binding.presentation.inputEnabled)
+        #expect(!binding.presentation.isCurrentNativeDisplay(oldTicket))
+        oldCallback(action)
+        #expect(exchange.snapshot().counters.acceptedEvents == 0)
+        let next = try #require(binding.presentation.claimNativeAttachment())
+        #expect(publications == 0)
+        #expect(binding.presentation.inputEnabled)
+        oldCallback(action)
+        #expect(exchange.snapshot().counters.acceptedEvents == 0)
+        #expect(binding.presentation.claimNativeAttachment() == nil)
+        #expect(publications == 0)
+        #expect(!binding.presentation.inputEnabled)
+        #expect(exchange.snapshot().firstUIProtocolFailure?.failure.code == .presentationInvariant)
+        binding.presentation.detachNativeAttachment(next)
+        #expect(publications == 0)
+        withExtendedLifetime(subscription) {}
+        await consumer.value
+        #expect(binding.presentation.state == .stopped)
     }
 
     @Test func revisionChangeInvalidatesUnobservedNativeTicket() async throws {

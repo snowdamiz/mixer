@@ -18,7 +18,14 @@ public enum GuestUIPresentationState: Sendable, Equatable {
 public final class GuestUIPresentation: ObservableObject {
     @Published public private(set) var state: GuestUIPresentationState = .waiting
     @Published internal private(set) var renderHost: MixerUIHost?
-    @Published internal private(set) var inputEnabled = false
+    @Published private var inputReady = false
+    // Native representable attach/dismantle callbacks may run while SwiftUI is
+    // invalidating its graph. Revoke attachment authority synchronously without
+    // publishing back into that same graph. The sole consumer publishes ordinary
+    // readiness changes; a new native subtree reads this gate after attachment.
+    internal var inputEnabled: Bool {
+        inputReady && attachment != nil && !pendingAttachmentInvariant && exchange?.snapshot().stop == nil
+    }
 
     private var exchange: GuestUIExchangeV1?
     private var bindingIdentity: CapabilityGuestUIBindingIdentity?
@@ -40,7 +47,7 @@ public final class GuestUIPresentation: ObservableObject {
         guard bindingIdentity == nil else { throw GuestUIControlRejectionV1.busy }
         attachmentObserver?.invalidatePresentationProbe()
         renderHost = nil; ticket = nil; lastEventResult = nil
-        inputEnabled = false; observedNativeDisplay = false
+        inputReady = false; observedNativeDisplay = false
         self.exchange = exchange; bindingIdentity = identity; state = .waiting
         if pendingAttachmentInvariant {
             pendingAttachmentInvariant = false
@@ -117,14 +124,14 @@ public final class GuestUIPresentation: ObservableObject {
 
     private func retireView() {
         attachmentObserver?.invalidatePresentationProbe()
-        inputEnabled = false; ticket = nil; renderHost = nil
+        inputReady = false; ticket = nil; renderHost = nil
         state = .stopped
     }
 
     private func refreshInput() {
-        guard let exchange, renderHost != nil, attachment != nil else { inputEnabled = false; return }
+        guard let exchange, renderHost != nil else { inputReady = false; return }
         let snapshot = exchange.snapshot()
-        inputEnabled = snapshot.stop == nil && snapshot.effectsConfirmed && !snapshot.guestTurnInFlight &&
+        inputReady = snapshot.stop == nil && snapshot.effectsConfirmed && !snapshot.guestTurnInFlight &&
             !snapshot.eventOutstanding && snapshot.displayedRevision != nil &&
             snapshot.displayedRevision == snapshot.latestRevision
     }
@@ -139,14 +146,13 @@ public final class GuestUIPresentation: ObservableObject {
             } else if state == .waiting {
                 // A facade may be attached before its first signed attempt.
                 // Preserve one typed failure for that attempt's exact exchange.
-                pendingAttachmentInvariant = true; state = .stopped
+                pendingAttachmentInvariant = true
             }
-            inputEnabled = false
             attachmentObserver?.invalidatePresentationProbe()
             return nil
         }
         let identity = CapabilityGuestUIAttachmentIdentity()
-        attachment = identity; refreshInput(); return identity
+        attachment = identity; return identity
     }
 
     internal func installNativeAttachment(_ observer: any CapabilityGuestUIAttachmentObserver,
@@ -159,7 +165,7 @@ public final class GuestUIPresentation: ObservableObject {
     internal func detachNativeAttachment(_ identity: CapabilityGuestUIAttachmentIdentity) {
         guard attachment === identity else { return }
         attachmentObserver?.invalidatePresentationProbe()
-        attachmentObserver = nil; attachment = nil; inputEnabled = false
+        attachmentObserver = nil; attachment = nil
     }
 
     internal func nativeDisplayTicket(attachment identity: CapabilityGuestUIAttachmentIdentity)

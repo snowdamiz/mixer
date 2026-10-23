@@ -73,7 +73,7 @@ def main():
         "snapshot_package_sha256": sha(PACKAGE.encode()), "snapshot": str(SNAPSHOT),
         "sdk_receipt": str(sdk_receipt_path.relative_to(ROOT)), "sdk_receipt_sha256": sha(sdk_receipt_path.read_bytes()),
         "commands": [],
-        "scope": "Frozen model/Apple wrapper only, excluding mutable signed coordinator and native runtime. Debug/Release have twelve executed tests and one explicitly skipped visible-native-window qualification. TSan executes eleven model tests. iOS module compilation includes the native wrapper; Android compiles its unsupported-platform binding only. No physical devices, simulator execution, positive native display receipt, signed end-to-end screen, immutable consumer package, compositor or GA claim.",
+        "scope": "Frozen model/Apple wrapper only, excluding mutable signed coordinator and native runtime. Debug/Release have thirteen executed tests and one explicitly skipped visible-native-window qualification. TSan executes twelve model tests. iOS module compilation includes the native wrapper; Android compiles its unsupported-platform binding only. No physical devices, simulator execution, positive native display receipt, signed end-to-end screen, immutable consumer package, compositor or GA claim.",
         "pending": ["Positive visible native Mac window: retained attempts remained occluded and correctly earned no receipt.",
                     "iOS native foreground-scene appearance/layout/CA/display-link execution and screenshots/accessibility.",
                     "Physical iOS/Android, signed facade integration, published package consumer and GA gates."],
