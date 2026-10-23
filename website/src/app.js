@@ -146,15 +146,20 @@
   const app = document.getElementById('demo-app');
   const status = document.getElementById('preview-status');
   const shipLabel = ship ? [...ship.childNodes].map(node => node.cloneNode(true)) : [];
+  const preview = part => [...document.querySelectorAll(`[data-preview="${part}"]`)];
   let updateTimers = [];
   function setStatus(message) { if (status) status.replaceChildren(Object.assign(document.createElement('span'), { className: 'status-dot' }), document.createTextNode(message)); }
+  function showPreview(updated) {
+    const [first, second] = updated ? ['Good ideas.', 'Even better.'] : ['Make something', 'great.'];
+    preview('app').forEach(screen => screen.classList.toggle('updated', updated));
+    preview('heading').forEach(heading => heading.replaceChildren(document.createTextNode(first), document.createElement('br'), document.createTextNode(second)));
+    preview('subtitle').forEach(subtitle => { subtitle.textContent = updated ? 'A fresh home for what comes next.' : 'Your next idea starts here.'; });
+    preview('note').forEach(note => { note.hidden = !updated; });
+    document.getElementById('preview-version').textContent = updated ? 'v1.1' : 'v1.0';
+  }
   function finishUpdate() {
-    app.classList.add('updated');
-    document.getElementById('preview-heading').replaceChildren(document.createTextNode('Good ideas.'), document.createElement('br'), document.createTextNode('Even better.'));
-    document.getElementById('preview-subtitle').textContent = 'A fresh home for whatever comes next.';
-    document.getElementById('preview-version').textContent = 'v1.1';
-    document.getElementById('new-note').hidden = false;
-    setStatus('Example update applied. Same native app.');
+    showPreview(true);
+    setStatus('Example update applied to both. Same native apps.');
     ship.textContent = 'Update applied ✓';
     reset.hidden = false;
     app.removeAttribute('aria-busy');
@@ -171,11 +176,8 @@
   });
   reset?.addEventListener('click', () => {
     updateTimers.forEach(clearTimeout); updateTimers = [];
-    app.classList.remove('updated'); app.removeAttribute('aria-busy');
-    document.getElementById('preview-heading').replaceChildren(document.createTextNode('Make something'), document.createElement('br'), document.createTextNode('great.'));
-    document.getElementById('preview-subtitle').textContent = 'Your next idea starts here.';
-    document.getElementById('preview-version').textContent = 'v1.0';
-    document.getElementById('new-note').hidden = true;
+    app.removeAttribute('aria-busy');
+    showPreview(false);
     setStatus('One screen. Two native experiences.');
     ship.replaceChildren(...shipLabel.map(node => node.cloneNode(true))); ship.disabled = false; reset.hidden = true;
     ship.focus();

@@ -13,15 +13,11 @@
     <symbol id="arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
     <symbol id="check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
     <symbol id="copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V4H4v12h4"/></symbol>
-    <symbol id="code" viewBox="0 0 24 24"><path d="m8 6-6 6 6 6m8-12 6 6-6 6m-3-15-2 18"/></symbol>
-    <symbol id="layers" viewBox="0 0 24 24"><path d="m12 3 10 5-10 5L2 8zm-10 9 10 5 10-5M2 16l10 5 10-5"/></symbol>
-    <symbol id="shield" viewBox="0 0 24 24"><path d="m12 2 8 3v6c0 5-8 11-8 11S4 16 4 11V5z"/><path d="m8 11 3 3 5-6"/></symbol>
     <symbol id="branch" viewBox="0 0 24 24"><circle cx="6" cy="4" r="2"/><circle cx="6" cy="20" r="2"/><circle cx="18" cy="5" r="2"/><path d="M6 6v12m0-4c8 0 12-2 12-7"/></symbol>
-    <symbol id="terminal" viewBox="0 0 24 24"><path d="m4 6 6 6-6 6m9 0h7"/></symbol>
-    <symbol id="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></symbol>
-    <symbol id="hammer" viewBox="0 0 24 24"><path d="m14.5 9.5-10 10a1.4 1.4 0 0 0 2 2l10-10M13 5.5 16.5 2l5.5 5.5-3.5 3.5z"/></symbol>
-    <symbol id="phone" viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M10.5 18.5h3"/></symbol>
-    <symbol id="server" viewBox="0 0 24 24"><rect x="3.5" y="4" width="17" height="7" rx="2"/><rect x="3.5" y="13" width="17" height="7" rx="2"/><path d="M7.5 7.5h.01M7.5 16.5h.01"/></symbol>
+    <symbol id="shield" viewBox="0 0 24 24"><path d="m12 2 8 3v6c0 5-8 11-8 11S4 16 4 11V5z"/><path d="m8 11 3 3 5-6"/></symbol>
+    <symbol id="undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
+    <symbol id="folder" viewBox="0 0 24 24"><path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2.5h7a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></symbol>
+    <symbol id="file" viewBox="0 0 24 24"><path d="M6.5 3.5h7l4.5 4.5v12.5h-11.5z"/><path d="M13.5 3.5V8H18"/></symbol>
     <symbol id="search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></symbol>
     <symbol id="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
     <symbol id="chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
@@ -44,32 +40,48 @@
     </div>
   </header>
   <main id="main">
-    <section class="hero container" aria-labelledby="hero-title">
-      <div class="hero-copy">
-        <p class="eyebrow"><span class="status-dot"></span> Your next app starts here</p>
-        <h1 id="hero-title">Write Swift.<br><span class="serif-accent">Ship both.</span></h1>
-        <p class="hero-description">One codebase. Native iOS and Android. Everything you need to build, ship, and keep making it better.</p>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy container">
+        <h1 id="hero-title"><span>Write Swift.</span> <span class="serif-accent">Ship both.</span></h1>
+        <p class="hero-description">Native iOS and Android apps from one Swift codebase.</p>
         <div class="hero-actions">
           <a class="button button-orange" href="{{SIGNUP_URL}}">Start building for free <svg><use href="#arrow"/></svg></a>
           <button class="command-copy" data-copy="mixer create MyApp" aria-label="Copy mixer create MyApp command"><span class="command-dollar">$</span><code>mixer create MyApp</code><span class="copy-chip"><svg><use href="#copy"/></svg><span class="copy-label">Copy</span></span></button>
         </div>
-        <ul class="hero-points"><li><svg><use href="#check"/></svg>Local-first</li><li><svg><use href="#check"/></svg>Native by design</li><li><svg><use href="#check"/></svg>Yours to keep</li></ul>
       </div>
-      <div class="hero-art" role="img" aria-label="The same Swift screen rendered with native iOS controls and with native Android Material controls">
+      <div class="hero-art" role="img" aria-label="A MixerUI Swift file in an editor, with the same screen running natively on an iPhone and on an Android phone">
         <img class="hero-fox" src="{{BASE}}assets/flick-256.webp" width="256" height="256" alt="">
+        <div class="editor">
+          <div class="editor-bar"><span class="traffic"><i></i><i></i><i></i></span><span class="editor-tab"><i></i>IdeasScreen.swift</span></div>
+          <pre class="editor-code"><code><span><b class="k">import</b> MixerUI</span>
+<span></span>
+<span><b class="k">let</b> screen = <b class="t">Navigation</b>(<b class="s">"ideas"</b>, title: <b class="s">"Ideas"</b>) {</span>
+<span>    <b class="t">List</b>(<b class="s">"home"</b>) {</span>
+<span>        <b class="t">Section</b>(<b class="s">"recent"</b>, title: <b class="s">"Recent"</b>) {</span>
+<span>            <b class="t">Text</b>(<b class="s">"spark"</b>, <b class="s">"A little spark"</b>)</span>
+<span>            <b class="t">Text</b>(<b class="s">"plan"</b>, <b class="s">"Make it happen"</b>)</span>
+<span>            <b class="t">Text</b>(<b class="s">"next"</b>, <b class="s">"The next big thing"</b>)</span>
+<span>        }</span>
+<span class="is-current">        <b class="t">Section</b>(<b class="s">"prefs"</b>) {</span>
+<span>            <b class="t">Toggle</b>(<b class="s">"digest"</b>, <b class="s">"Daily digest"</b>,</span>
+<span>                   value: digest, action: <b class="s">"digest.toggle"</b>)</span>
+<span>        }</span>
+<span>        <b class="t">Button</b>(<b class="s">"add"</b>, <b class="s">"Add an idea"</b>, action: <b class="s">"idea.add"</b>)</span>
+<span>    }</span>
+<span>}</span></code></pre>
+        </div>
         <div class="device device-ios">
           <div class="screen">
             <div class="status"><b>9:41</b><i class="island"></i><svg><use href="#status"/></svg></div>
-            <div class="ios-toolbar"><svg><use href="#plus"/></svg></div>
-            <p class="ios-title">Ideas</p>
+            <div class="ios-nav"><span>Ideas</span><i>S</i></div>
             <div class="ios-search"><svg><use href="#search"/></svg>Search</div>
             <p class="ios-section">Recent</p>
             <div class="ios-group">
-              <div class="ios-row"><span class="tile tile-warm"><svg><use href="#spark"/></svg></span><span class="row-text"><b>A little spark</b><small>Today</small></span><svg class="chevron"><use href="#chevron"/></svg></div>
-              <div class="ios-row"><span class="tile tile-green"><svg><use href="#trend"/></svg></span><span class="row-text"><b>Make it happen</b><small>Yesterday</small></span><svg class="chevron"><use href="#chevron"/></svg></div>
-              <div class="ios-row"><span class="tile tile-slate"><svg><use href="#notes"/></svg></span><span class="row-text"><b>The next big thing</b><small>Monday</small></span><svg class="chevron"><use href="#chevron"/></svg></div>
+              <div class="ios-row"><span class="row-icon icon-warm"><svg><use href="#spark"/></svg></span><span class="row-text">A little spark</span><svg class="chevron"><use href="#chevron"/></svg></div>
+              <div class="ios-row"><span class="row-icon icon-green"><svg><use href="#trend"/></svg></span><span class="row-text">Make it happen</span><svg class="chevron"><use href="#chevron"/></svg></div>
+              <div class="ios-row"><span class="row-icon icon-slate"><svg><use href="#notes"/></svg></span><span class="row-text">The next big thing</span><svg class="chevron"><use href="#chevron"/></svg></div>
             </div>
-            <div class="ios-group"><div class="ios-row"><span class="row-text"><b>Daily digest</b></span><span class="ios-switch"></span></div></div>
+            <div class="ios-group"><div class="ios-row"><span class="row-text">Daily digest</span><span class="ios-switch"></span></div></div>
             <div class="ios-button">Add an idea</div>
             <div class="ios-tabbar"><span class="is-active"><svg><use href="#home"/></svg>Ideas</span><span><svg><use href="#notes"/></svg>Notes</span><span><svg><use href="#grid"/></svg>Projects</span></div>
             <i class="home-bar"></i>
@@ -78,127 +90,182 @@
         <div class="device device-android">
           <div class="screen">
             <div class="status"><b>9:41</b><i class="punch-hole"></i><svg><use href="#status"/></svg></div>
-            <div class="m3-appbar"><svg><use href="#menu"/></svg><span>Ideas</span><i class="m3-avatar">S</i></div>
+            <div class="m3-appbar"><svg><use href="#menu"/></svg><span>Ideas</span><i>S</i></div>
             <div class="m3-search"><svg><use href="#search"/></svg>Search ideas</div>
             <p class="m3-subheader">Recent</p>
-            <div class="m3-item"><span class="m3-lead"><svg><use href="#spark"/></svg></span><span class="row-text"><b>A little spark</b><small>Today · Ideas</small></span></div>
-            <div class="m3-item"><span class="m3-lead"><svg><use href="#trend"/></svg></span><span class="row-text"><b>Make it happen</b><small>Yesterday · Planning</small></span></div>
-            <div class="m3-item"><span class="m3-lead"><svg><use href="#notes"/></svg></span><span class="row-text"><b>The next big thing</b><small>Monday · Projects</small></span></div>
+            <div class="m3-item"><span class="m3-lead"><svg><use href="#spark"/></svg></span><span class="row-text">A little spark</span></div>
+            <div class="m3-item"><span class="m3-lead"><svg><use href="#trend"/></svg></span><span class="row-text">Make it happen</span></div>
+            <div class="m3-item"><span class="m3-lead"><svg><use href="#notes"/></svg></span><span class="row-text">The next big thing</span></div>
             <i class="m3-divider"></i>
-            <div class="m3-item"><span class="row-text"><b>Daily digest</b><small>Every morning</small></span><span class="m3-switch"></span></div>
+            <div class="m3-item"><span class="row-text">Daily digest</span><span class="m3-switch"></span></div>
             <div class="m3-fab"><svg><use href="#plus"/></svg>Add an idea</div>
             <div class="m3-navbar"><span class="is-active"><i><svg><use href="#home"/></svg></i>Ideas</span><span><i><svg><use href="#notes"/></svg></i>Notes</span><span><i><svg><use href="#grid"/></svg></i>Projects</span></div>
             <i class="gesture-bar"></i>
           </div>
         </div>
-        <div class="hero-caption"><span class="platform-tag"><i></i>iOS</span><span class="caption-rule"></span><span class="source-tag"><svg><use href="#code"/></svg>One Swift codebase</span><span class="caption-rule"></span><span class="platform-tag"><i class="android-dot"></i>Android</span></div>
       </div>
     </section>
-    <div class="toolbelt container">
-      <p><span>Familiar tools.</span> <span>A whole new reach.</span></p>
-      <ul>
-        <li><svg><use href="#code"/></svg>Swift</li>
-        <li><svg><use href="#hammer"/></svg>Xcode</li>
-        <li><svg><use href="#phone"/></svg>Android Studio</li>
-        <li><svg><use href="#terminal"/></svg>Your terminal</li>
-        <li><svg><use href="#server"/></svg>Your backend</li>
-      </ul>
-    </div>
-    <section class="platform-section section container" id="platform" aria-labelledby="platform-title">
-      <div class="section-heading reveal"><div><p class="eyebrow"><span class="eyebrow-num">01</span> Feels right. On both.</p><h2 id="platform-title">Native is a feeling.<br><span class="serif-accent">Keep it.</span></h2></div><p>Your app should feel at home in every hand. Mixer brings your Swift logic and UI to real native controls, with the gestures, accessibility, and details people expect.</p></div>
-      <figure class="compare reveal">
-        <div class="compare-head" aria-hidden="true"><span><i></i>iOS</span><span>Shared Swift</span><span><i class="android-dot"></i>Android</span></div>
-        <div class="compare-row">
-          <div class="render render-ios" aria-hidden="true"><div class="ios-cell"><span>Daily digest</span><span class="ios-switch"></span></div></div>
-          <pre class="compare-code"><code><span class="syntax-blue">Toggle</span>(<span class="syntax-green">"digest"</span>, <span class="syntax-green">"Daily digest"</span>,
-       value: digest, action: <span class="syntax-green">"digest.toggle"</span>)</code></pre>
-          <div class="render render-android" aria-hidden="true"><div class="m3-cell"><span>Daily digest</span><span class="m3-switch"></span></div></div>
+
+    <section class="section container" id="platform" aria-labelledby="platform-title">
+      <div class="section-heading reveal"><h2 id="platform-title">Native on <span class="serif-accent">both.</span></h2><p>One declaration in Swift. Each platform’s own controls, gestures, and accessibility.</p></div>
+      <div class="native-tile reveal" role="img" aria-label="Toggle, TextField and Button declarations in MixerUI, rendered as an iOS switch, text field and button, and as an Android Material switch, outlined text field and button">
+        <div class="native-panel panel-ios">
+          <span class="panel-label">iOS</span>
+          <div class="ios-cell"><span>Daily digest</span><span class="ios-switch"></span></div>
+          <div class="ios-field">A little spark<i class="caret"></i></div>
+          <div class="ios-filled">Save idea</div>
         </div>
-        <div class="compare-row">
-          <div class="render render-ios" aria-hidden="true"><div class="ios-field">A little spark<i class="caret"></i></div></div>
-          <pre class="compare-code"><code><span class="syntax-blue">TextField</span>(<span class="syntax-green">"title"</span>, <span class="syntax-green">"Idea title"</span>,
-          value: title, action: <span class="syntax-green">"title.edit"</span>)</code></pre>
-          <div class="render render-android" aria-hidden="true"><div class="m3-field"><span>Idea title</span>A little spark<i class="caret"></i></div></div>
+        <pre class="native-code"><code><b class="t">Toggle</b>(<b class="s">"digest"</b>, <b class="s">"Daily digest"</b>,
+       value: digest, action: <b class="s">"digest.toggle"</b>)
+
+<b class="t">TextField</b>(<b class="s">"title"</b>, <b class="s">"Idea title"</b>,
+          value: title, action: <b class="s">"title.edit"</b>)
+
+<b class="t">Button</b>(<b class="s">"save"</b>, <b class="s">"Save idea"</b>,
+       action: <b class="s">"idea.save"</b>)</code></pre>
+        <div class="native-panel panel-android">
+          <span class="panel-label">Android</span>
+          <div class="m3-cell"><span>Daily digest</span><span class="m3-switch"></span></div>
+          <div class="m3-field"><span>Idea title</span>A little spark<i class="caret"></i></div>
+          <div class="m3-filled">Save idea</div>
         </div>
-        <div class="compare-row">
-          <div class="render render-ios" aria-hidden="true"><div class="ios-filled">Save idea</div></div>
-          <pre class="compare-code"><code><span class="syntax-blue">Button</span>(<span class="syntax-green">"save"</span>, <span class="syntax-green">"Save idea"</span>,
-       action: <span class="syntax-green">"idea.save"</span>)</code></pre>
-          <div class="render render-android" aria-hidden="true"><div class="m3-filled">Save idea</div></div>
-        </div>
-        <figcaption>One declaration. Each platform’s own control, with the behavior people already know.</figcaption>
-      </figure>
-      <div class="feature-columns">
-        <article class="feature-column reveal"><div class="feature-icon"><svg><use href="#layers"/></svg></div><h3>One shared foundation.</h3><p>Write your interface, state, and app logic in Swift. Share what matters across iOS and Android.</p><a href="{{BASE}}docs/#write">Meet MixerUI <svg><use href="#arrow"/></svg></a></article>
-        <article class="feature-column reveal"><div class="feature-icon"><svg><use href="#sun"/></svg></div><h3>Every platform, at home.</h3><p>Native controls, accessible text, and familiar navigation. Platform-specific APIs when you need them.</p><a href="{{BASE}}docs/#native">Explore native capabilities <svg><use href="#arrow"/></svg></a></article>
-        <article class="feature-column reveal"><div class="feature-icon"><svg><use href="#branch"/></svg></div><h3>Always your project.</h3><p>Build locally, bring your backend, and open your generated projects in Xcode or Android Studio.</p><a href="{{BASE}}docs/#ownership">Make yourself at home <svg><use href="#arrow"/></svg></a></article>
       </div>
     </section>
-    <section class="workflow-section section" id="workflow" aria-labelledby="workflow-title">
+
+    <section class="section workflow-section" id="workflow" aria-labelledby="workflow-title">
       <div class="container">
-        <div class="section-heading reveal"><div><p class="eyebrow"><span class="eyebrow-num">02</span> Less between idea and app</p><h2 id="workflow-title">A small workflow.<br><span class="serif-accent">A big head start.</span></h2></div><p>Stay in the language you love. Go from your first screen to your next release without changing the way you think.</p></div>
+        <div class="section-heading reveal"><h2 id="workflow-title">Write. Build. <span class="serif-accent">Update.</span></h2><p>The whole loop, in the language you already love. Try it.</p></div>
         <div class="workbench reveal" data-workbench>
-          <div class="workbench-header"><div class="workbench-tabs" role="tablist" aria-label="Example workflow"><button id="tab-write" role="tab" aria-selected="true" aria-controls="stage-write" data-stage="write"><span>01</span> Write</button><button id="tab-build" role="tab" aria-selected="false" aria-controls="stage-build" tabindex="-1" data-stage="build"><span>02</span> Build</button><button id="tab-update" role="tab" aria-selected="false" aria-controls="stage-update" tabindex="-1" data-stage="update"><span>03</span> Update</button></div><span class="demo-label"><span></span> Interactive example</span></div>
+          <div class="workbench-header"><div class="workbench-tabs" role="tablist" aria-label="Example workflow"><button id="tab-write" role="tab" aria-selected="true" aria-controls="stage-write" data-stage="write">Write</button><button id="tab-build" role="tab" aria-selected="false" aria-controls="stage-build" tabindex="-1" data-stage="build">Build</button><button id="tab-update" role="tab" aria-selected="false" aria-controls="stage-update" tabindex="-1" data-stage="update">Update</button></div><span class="demo-label"><span></span> Interactive example</span></div>
           <div class="workbench-body">
             <div class="editor-area">
-              <div class="editor-file"><div class="window-dots"><i></i><i></i><i></i></div><span id="editor-filename">ProjectFeature.swift</span><span>Swift</span></div>
-              <div id="stage-write" class="stage-panel" role="tabpanel" aria-labelledby="tab-write" tabindex="0"><pre class="code-sample"><code><span class="syntax-purple">import</span> MixerUI
+              <div class="editor-file"><span id="editor-filename">ProjectFeature.swift</span></div>
+              <div id="stage-write" class="stage-panel" role="tabpanel" aria-labelledby="tab-write" tabindex="0"><pre class="code-sample"><code><b class="k">import</b> MixerUI
 
-<span class="syntax-comment">// A little Swift. A lot of possibility.</span>
-<span class="syntax-purple">let</span> screen = <span class="syntax-blue">Navigation</span>(<span class="syntax-green">"home"</span>, title: <span class="syntax-green">"FieldLog"</span>) {
-    <span class="syntax-blue">List</span>(<span class="syntax-green">"ideas"</span>) {
-        <span class="syntax-blue">Section</span>(<span class="syntax-green">"today"</span>, title: <span class="syntax-green">"Make something great."</span>) {
-            <span class="syntax-blue">Text</span>(<span class="syntax-green">"greeting"</span>, <span class="syntax-green">"Your next idea starts here."</span>)
-            <span class="syntax-blue">Button</span>(<span class="syntax-green">"add"</span>, <span class="syntax-green">"Add an idea"</span>, action: <span class="syntax-green">"idea.add"</span>)
+<b class="k">let</b> screen = <b class="t">Navigation</b>(<b class="s">"home"</b>, title: <b class="s">"FieldLog"</b>) {
+    <b class="t">List</b>(<b class="s">"ideas"</b>) {
+        <b class="t">Section</b>(<b class="s">"today"</b>, title: <b class="s">"Make something great."</b>) {
+            <b class="t">Text</b>(<b class="s">"greeting"</b>, <b class="s">"Your next idea starts here."</b>)
+            <b class="t">Button</b>(<b class="s">"add"</b>, <b class="s">"Add an idea"</b>, action: <b class="s">"idea.add"</b>)
         }
     }
-}</code></pre><div class="editor-caption"><span class="terminal-green">●</span> Shared Swift UI · native on both platforms</div></div>
-              <div id="stage-build" class="stage-panel" role="tabpanel" aria-labelledby="tab-build" tabindex="0" hidden><pre class="code-sample terminal-sample"><code><span class="syntax-comment"># Your app, ready for both stores.</span>
-<span class="syntax-orange">$</span> mixer build --platform all --profile production
+}</code></pre></div>
+              <div id="stage-build" class="stage-panel" role="tabpanel" aria-labelledby="tab-build" tabindex="0" hidden><pre class="code-sample"><code><b class="p">$</b> mixer build --platform all --profile production
 
-<span class="syntax-green">✓</span> Resolve locked dependencies
-<span class="syntax-green">✓</span> Compile shared Swift application
-<span class="syntax-green">✓</span> Build native iOS application
-<span class="syntax-green">✓</span> Build native Android application
-<span class="syntax-green">✓</span> Prepare signed artifacts
+<b class="ok">✓</b> Resolve locked dependencies
+<b class="ok">✓</b> Compile shared Swift application
+<b class="ok">✓</b> Build native iOS application
+<b class="ok">✓</b> Build native Android application
+<b class="ok">✓</b> Prepare signed artifacts
 
-<span class="syntax-comment"># Keep distribution in the same workflow.</span>
-<span class="syntax-orange">$</span> mixer submit --platform all --track testing</code></pre><div class="editor-caption"><span class="terminal-green">●</span> Example output · iOS + Android build pipeline</div></div>
-              <div id="stage-update" class="stage-panel" role="tabpanel" aria-labelledby="tab-update" tabindex="0" hidden><pre class="code-sample terminal-sample"><code><span class="syntax-comment"># Give your ideas a little more room.</span>
-<span class="syntax-orange">$</span> mixer update prepare --platform all
-<span class="syntax-orange">$</span> mixer update verify candidate
+<b class="p">$</b> mixer submit --platform all --track testing</code></pre></div>
+              <div id="stage-update" class="stage-panel" role="tabpanel" aria-labelledby="tab-update" tabindex="0" hidden><pre class="code-sample"><code><b class="p">$</b> mixer update prepare --platform all
+<b class="p">$</b> mixer update verify candidate
 
-<span class="syntax-green">✓</span> Runtime compatibility checked
-<span class="syntax-green">✓</span> Supported UI changes validated
-<span class="syntax-green">✓</span> Artifact signatures verified
+<b class="ok">✓</b> Runtime compatibility checked
+<b class="ok">✓</b> Supported UI changes validated
+<b class="ok">✓</b> Artifact signatures verified
 
-<span class="syntax-orange">$</span> mixer update publish candidate \
-    --channel production --rollout 5</code></pre><div class="demo-controls"><button class="button button-orange button-small" id="ship-update">Try an update <svg><use href="#arrow"/></svg></button><button class="reset-demo" id="reset-demo" hidden>Reset demo ↺</button></div><p class="demo-hint">A local simulation of a compatible UI update.</p></div>
+<b class="p">$</b> mixer update publish candidate \
+    --channel production --rollout 5</code></pre><div class="demo-controls"><button class="button button-orange button-small" id="ship-update">Try an update <svg><use href="#arrow"/></svg></button><button class="reset-demo" id="reset-demo" hidden>Reset demo ↺</button></div></div>
             </div>
-            <div class="live-preview"><div class="preview-topline"><span>YOUR APP</span><span id="preview-version">v1.0</span></div><div class="mini-app" id="demo-app"><div class="app-wordmark"><span class="app-mark">f.</span><b>fieldlog</b><span class="avatar">S</span></div><span class="mini-eyebrow">A PLACE FOR YOUR IDEAS</span><h3 id="preview-heading">Make something<br>great.</h3><p id="preview-subtitle">Your next idea starts here.</p><div class="mini-note"><span><svg><use href="#spark"/></svg></span><div><strong>The next big thing</strong><small>One good idea is all it takes.</small></div></div><div class="mini-note new-note" id="new-note" hidden><span><svg><use href="#trend"/></svg></span><div><strong>A little more possibility</strong><small>Fresh from your latest update.</small></div></div><div class="mini-app-button" aria-hidden="true">+ Add an idea</div><div class="preview-footer">Made with Swift. Feels like home.</div></div><div class="preview-status" id="preview-status" role="status" aria-live="polite"><span class="status-dot"></span> One screen. Two native experiences.</div></div>
+            <div class="live-preview" id="demo-app">
+              <div class="preview-topline"><span>Your app</span><span id="preview-version">v1.0</span></div>
+              <div class="preview-devices">
+                <div class="device device-ios">
+                  <div class="screen" data-preview="app">
+                    <div class="status"><b>9:41</b><i class="island"></i><svg><use href="#status"/></svg></div>
+                    <p class="preview-title" data-preview="heading">Make something<br>great.</p>
+                    <p class="preview-subtitle" data-preview="subtitle">Your next idea starts here.</p>
+                    <div class="ios-group">
+                      <div class="ios-row"><span class="row-icon icon-warm"><svg><use href="#spark"/></svg></span><span class="row-text">The next big thing</span></div>
+                      <div class="ios-row new-note" data-preview="note" hidden><span class="row-icon icon-green"><svg><use href="#trend"/></svg></span><span class="row-text">A little more possibility</span></div>
+                    </div>
+                    <div class="ios-button">Add an idea</div>
+                    <div class="ios-tabbar"><span class="is-active"><svg><use href="#home"/></svg>Ideas</span><span><svg><use href="#notes"/></svg>Notes</span><span><svg><use href="#grid"/></svg>Projects</span></div>
+                    <i class="home-bar"></i>
+                  </div>
+                </div>
+                <div class="device device-android">
+                  <div class="screen" data-preview="app">
+                    <div class="status"><b>9:41</b><i class="punch-hole"></i><svg><use href="#status"/></svg></div>
+                    <p class="preview-title" data-preview="heading">Make something<br>great.</p>
+                    <p class="preview-subtitle" data-preview="subtitle">Your next idea starts here.</p>
+                    <div class="m3-item"><span class="m3-lead"><svg><use href="#spark"/></svg></span><span class="row-text">The next big thing</span></div>
+                    <div class="m3-item new-note" data-preview="note" hidden><span class="m3-lead"><svg><use href="#trend"/></svg></span><span class="row-text">A little more possibility</span></div>
+                    <div class="m3-filled">Add an idea</div>
+                    <div class="m3-navbar"><span class="is-active"><i><svg><use href="#home"/></svg></i>Ideas</span><span><i><svg><use href="#notes"/></svg></i>Notes</span><span><i><svg><use href="#grid"/></svg></i>Projects</span></div>
+                    <i class="gesture-bar"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="preview-status" id="preview-status" role="status" aria-live="polite"><span class="status-dot"></span> One screen. Two native experiences.</div>
+            </div>
           </div>
         </div>
         <noscript><p class="noscript-note">The interactive example uses JavaScript. You can explore the complete workflow in <a href="{{BASE}}docs/">the getting-started guide</a>.</p></noscript>
       </div>
     </section>
-    <section class="delivery-section section container" aria-labelledby="delivery-title">
-      <div class="section-heading reveal"><div><p class="eyebrow"><span class="eyebrow-num">03</span> The good part comes next</p><h2 id="delivery-title">Ship it.<br><span class="serif-accent">Then make it better.</span></h2></div><p>Your first release is just the beginning. Build, distribute, and deliver compatible updates from one considered workflow.</p></div>
-      <div class="delivery-grid">
-        <article class="delivery-card updates-card reveal"><div class="card-copy"><span class="small-label">Over-the-air updates</span><h3>Small changes.<br>Big momentum.</h3><p>Deliver compatible logic and UI changes to both platforms. Start with a small cohort, watch release health, and expand with confidence.</p></div><div class="rollout-illustration" role="img" aria-label="Example rollout: internal and beta stages complete, production rolling out to 5 percent"><div class="rollout-heading"><span><i></i> A better home screen</span><span>Example release</span></div><ol class="rollout-track"><li class="is-done"><b><svg><use href="#check"/></svg></b><span>Internal</span><small>Complete</small></li><li class="is-done"><b><svg><use href="#check"/></svg></b><span>Beta</span><small>Complete</small></li><li class="is-live"><b><svg><use href="#trend"/></svg></b><span>Production</span><small>5% rollout</small></li></ol><div class="release-guard"><svg><use href="#shield"/></svg><span>Signed. Validated. Ready to roll back.</span></div></div><a href="{{BASE}}docs/#updates">Meet your release workflow <svg><use href="#arrow"/></svg></a></article>
-        <article class="delivery-card builds-card reveal"><div class="card-copy"><span class="small-label">Build &amp; distribute</span><h3>From your terminal<br>to their home screen.</h3><p>Managed iOS and Android builds, secure signing, and store submission. Follow every step from queued to ready for testing.</p></div><div class="build-illustration" role="img" aria-label="Illustrative build pipeline: signed iOS and Android artifacts ready for testing"><div class="build-row"><span class="build-platform">iOS</span><div><strong>iOS build</strong><small>Signed artifact → TestFlight</small></div><span class="build-status"><svg><use href="#check"/></svg>Ready</span></div><div class="build-row"><span class="build-platform build-android">A</span><div><strong>Android build</strong><small>Signed artifact → Play testing</small></div><span class="build-status"><svg><use href="#check"/></svg>Ready</span></div><div class="build-source"><svg><use href="#branch"/></svg> One source. A clear path to both stores.</div></div><a href="{{BASE}}docs/#build">Explore builds and distribution <svg><use href="#arrow"/></svg></a></article>
+
+    <section class="section container" aria-labelledby="delivery-title">
+      <div class="section-heading reveal"><h2 id="delivery-title">Ship it. <span class="serif-accent">Then make it better.</span></h2><p>Builds, releases, and updates for both stores, from one workflow.</p></div>
+      <div class="bento">
+        <article class="bento-card reveal">
+          <div class="bento-visual" role="img" aria-label="Example rollout of version 1.1: internal and beta at 100 percent, production at 5 percent">
+            <div class="rollout">
+              <div class="rollout-head"><b>v1.1</b><span>A better home screen</span><em>Rolling out</em></div>
+              <div class="rollout-row"><span>Internal</span><i style="--p: 100%"></i><b>100%</b></div>
+              <div class="rollout-row"><span>Beta</span><i style="--p: 100%"></i><b>100%</b></div>
+              <div class="rollout-row is-live"><span>Production</span><i style="--p: 5%"></i><b>5%</b></div>
+              <div class="rollout-foot"><span><svg><use href="#shield"/></svg>Signed</span><span><svg><use href="#check"/></svg>Validated</span><span><svg><use href="#undo"/></svg>Rollback ready</span></div>
+            </div>
+          </div>
+          <h3>Update over the air.</h3>
+          <p>Release compatible changes to a small cohort first. Halt or roll back anytime.</p>
+        </article>
+        <article class="bento-card reveal">
+          <div class="bento-visual" role="img" aria-label="One source branch producing a signed iOS build for TestFlight and a signed Android build for Play testing">
+            <div class="pipeline">
+              <span class="pipe-source"><svg><use href="#branch"/></svg>main</span>
+              <svg class="pipe-lines" viewBox="0 0 60 120" preserveAspectRatio="none" aria-hidden="true"><path d="M0 60C30 60 30 22 60 22M0 60C30 60 30 98 60 98"/></svg>
+              <div class="pipe-targets">
+                <div class="pipe-card"><span class="pipe-badge">iOS</span><span><b>Signed build</b><small>TestFlight</small></span><i><svg><use href="#check"/></svg></i></div>
+                <div class="pipe-card"><span class="pipe-badge is-android">A</span><span><b>Signed build</b><small>Play testing</small></span><i><svg><use href="#check"/></svg></i></div>
+              </div>
+            </div>
+          </div>
+          <h3>Builds for both stores.</h3>
+          <p>Signed iOS and Android builds from one command, with every step in view.</p>
+        </article>
+        <article class="bento-card reveal">
+          <div class="bento-visual" role="img" aria-label="A Mixer project folder with shared Swift modules and native iOS and Android projects that open in Xcode and Android Studio">
+            <ul class="tree">
+              <li class="is-root"><svg><use href="#folder"/></svg>MyApp</li>
+              <li><svg><use href="#folder"/></svg>AppFeatures</li>
+              <li><svg><use href="#folder"/></svg>AppModels</li>
+              <li><svg><use href="#folder"/></svg>Platforms</li>
+              <li class="is-nested"><svg><use href="#folder"/></svg>iOS<em>Xcode</em></li>
+              <li class="is-nested"><svg><use href="#folder"/></svg>Android<em>Android Studio</em></li>
+              <li><svg><use href="#file"/></svg>mixer.lock</li>
+            </ul>
+          </div>
+          <h3>Yours to keep.</h3>
+          <p>Real native projects, your backend, and a clear way out whenever you need one.</p>
+        </article>
       </div>
-      <a class="ownership-banner reveal" href="{{BASE}}docs/#ownership"><span class="ownership-icon"><svg><use href="#shield"/></svg></span><span class="ownership-copy"><strong>Your app stays yours.</strong><span>Local builds. Inspectable native projects. Your backend. A clear way out, whenever you need one.</span></span><span class="ownership-link">Read about ownership <svg><use href="#arrow"/></svg></span></a>
     </section>
-    <section class="pricing-section section" id="pricing" aria-labelledby="pricing-title"><div class="container">
-      <div class="pricing-heading reveal"><p class="eyebrow"><span class="eyebrow-num">04</span> Room to start. Room to grow.</p><h2 id="pricing-title">Start with an idea.<br><span class="serif-accent">Scale on your terms.</span></h2><p>Build locally for free. Add the cloud when you need it.</p></div>
+
+    <section class="section pricing-section" id="pricing" aria-labelledby="pricing-title"><div class="container">
+      <div class="section-heading reveal"><h2 id="pricing-title">Start free. <span class="serif-accent">Grow on your terms.</span></h2><p>Build locally for free. Add the cloud when you need it.</p></div>
       <div class="pricing-grid">
-        <article class="price-card reveal"><span class="small-label">Local</span><h3>For the first spark.</h3><div class="price">$0<span> / forever</span></div><p>The foundation for your next app.</p><a class="button button-outline" href="{{BASE}}docs/">Build locally <svg><use href="#arrow"/></svg></a><ul><li>Swift SDK and CLI</li><li>Local iOS &amp; Android builds</li><li>Native project export</li><li>Your tools and your backend</li></ul></article>
-        <article class="price-card price-featured reveal"><span class="recommended">A good place to grow</span><span class="small-label">Starter</span><h3>For the real thing.</h3><div class="price">$39<span> / month</span></div><p>Managed delivery for your app.</p><a class="button button-orange" href="{{SIGNUP_URL}}">Get started <svg><use href="#arrow"/></svg></a><ul><li>Everything in Local</li><li>Hosted builds and updates</li><li>Staged releases &amp; rollback</li><li>Usage visibility and alerts</li></ul></article>
-        <article class="price-card reveal"><span class="small-label">Team</span><h3>For building together.</h3><div class="price"><small>from </small>$149<span> / month</span></div><p>More hands. One shared workflow.</p><a class="button button-outline" href="{{BASE}}docs/#teams">Explore Team <svg><use href="#arrow"/></svg></a><ul><li>Everything in Starter</li><li>Team roles and release controls</li><li>Expanded build concurrency</li><li>Production environments &amp; audit tools</li></ul></article>
-      </div><p class="pricing-note">Hosted plans include allowances, with additional build and update usage billed separately. Safety checks and recovery are built in across every plan.</p>
-      <div class="enterprise-row reveal"><div><strong>A bigger team? A particular setup?</strong><span>SSO, dedicated runners, customer-owned keys, and tailored support.</span></div><a class="button button-outline button-small" href="{{BASE}}docs/#enterprise">Meet Enterprise <svg><use href="#arrow"/></svg></a></div>
+        <article class="price-card reveal"><h3>Local</h3><div class="price">$0</div><p>The foundation for your next app.</p><a class="button button-outline" href="{{BASE}}docs/">Build locally</a><ul><li>Swift SDK and CLI</li><li>Local iOS &amp; Android builds</li><li>Native project export</li><li>Your tools and your backend</li></ul></article>
+        <article class="price-card price-featured reveal"><h3>Starter <span class="recommended">Recommended</span></h3><div class="price">$39<span>/mo</span></div><p>Managed delivery for your app.</p><a class="button button-orange" href="{{SIGNUP_URL}}">Get started</a><ul><li>Everything in Local</li><li>Hosted builds and updates</li><li>Staged releases &amp; rollback</li><li>Usage visibility and alerts</li></ul></article>
+        <article class="price-card reveal"><h3>Team</h3><div class="price"><small>from</small> $149<span>/mo</span></div><p>More hands. One shared workflow.</p><a class="button button-outline" href="{{BASE}}docs/#teams">Explore Team</a><ul><li>Everything in Starter</li><li>Roles and release controls</li><li>Expanded build concurrency</li><li>Production environments &amp; audit</li></ul></article>
+      </div>
+      <p class="pricing-note">Hosted plans include allowances; extra build and update usage is billed separately. Need SSO or dedicated runners? <a href="{{BASE}}docs/#enterprise">Meet Enterprise</a></p>
     </div></section>
-    <section class="faq-section section container" id="faq" aria-labelledby="faq-title"><div class="faq-intro reveal"><p class="eyebrow">Good questions.</p><h2 id="faq-title">A little more<br><span class="serif-accent">clarity.</span></h2><div class="faq-card"><img src="{{BASE}}assets/flick-128.webp" width="64" height="64" alt="" loading="lazy"><div><strong>Still curious?</strong><p>The guide walks from a blank folder to your next release.</p><a href="{{BASE}}docs/">Read the guide <svg><use href="#arrow"/></svg></a></div></div></div><div class="faq-list reveal">
+
+    <section class="section faq-section container" id="faq" aria-labelledby="faq-title"><div class="section-heading reveal"><h2 id="faq-title">Good <span class="serif-accent">questions.</span></h2></div><div class="faq-list reveal">
       <details><summary>Are these really native apps?<span aria-hidden="true"></span></summary><p>Yes. Mixer compiles your Swift application for iOS and Android and renders supported UI through native platform controls. Native integrations remain available through platform adapters and custom extensions.</p></details>
       <details><summary>Can I bring an existing Swift app?<span aria-hidden="true"></span></summary><p>Yes. Start with a compatibility assessment and migrate one screen or feature at a time. Shared interfaces use MixerUI; existing SwiftUI code may need adaptation. You can keep platform-specific screens and integrations along the way.</p></details>
       <details><summary>What can I update over the air?<span aria-hidden="true"></span></summary><p>Compatible app logic and supported UI changes within the installed app’s capabilities. Mixer checks the runtime and release contracts before distribution. New native code, permissions, entitlements, and runtime changes go through a new store release.</p></details>
@@ -206,9 +273,14 @@
       <details><summary>What happens if an update goes wrong?<span aria-hidden="true"></span></summary><p>Signed artifacts, compatibility checks, staged rollout, and local recovery work together. You can halt a rollout or roll back to a compatible healthy release. Offline devices continue using their installed healthy app.</p></details>
       <details><summary>Can I use my own backend and tools?<span aria-hidden="true"></span></summary><p>Absolutely. Bring your existing backend, use your preferred editor, and open generated native projects in Xcode or Android Studio. Mixer fits into your workflow, including automation through the CLI and release API.</p></details>
     </div></section>
-    <section class="final-cta container reveal" aria-labelledby="cta-title"><div class="cta-copy"><p class="eyebrow">A little Swift. A lot of possibility.</p><h2 id="cta-title">Go make<br><span class="serif-accent">your thing.</span></h2><p>Two platforms are waiting for your next idea.</p><div class="cta-actions"><a class="button button-dark" href="{{SIGNUP_URL}}">Start building for free <svg><use href="#arrow"/></svg></a><a class="cta-link" href="{{BASE}}docs/">Read the guide <svg><use href="#arrow"/></svg></a></div></div><div class="cta-fox-wrap"><span class="cta-orbit"></span><img src="{{BASE}}assets/flick-512.webp" alt="Flick, ready for your next idea" width="300" height="300" loading="lazy"><svg class="cta-spark"><use href="#spark"/></svg><span class="cta-label">Let’s make something good.</span></div></section>
+
+    <section class="final-cta container reveal" aria-labelledby="cta-title">
+      <img class="cta-fox" src="{{BASE}}assets/flick-512.webp" alt="Flick, the Mixer fox" width="300" height="300" loading="lazy">
+      <h2 id="cta-title">Go make <span class="serif-accent">your thing.</span></h2>
+      <div class="hero-actions"><a class="button button-dark" href="{{SIGNUP_URL}}">Start building for free <svg><use href="#arrow"/></svg></a><a class="cta-link" href="{{BASE}}docs/">Read the guide <svg><use href="#arrow"/></svg></a></div>
+    </section>
   </main>
-  <footer class="site-footer container"><div class="footer-top"><a class="brand" href="{{BASE}}"><img src="{{BASE}}assets/flick-128.webp" width="34" height="34" alt=""><span>mixer<span class="brand-period">.</span></span></a><p>One Swift app. A world of possibility.</p><nav aria-label="Footer"><a href="{{BASE}}docs/">Documentation</a><a href="{{REPO_URL}}" target="_blank" rel="noopener noreferrer">GitHub ↗</a><a href="{{BASE}}assets/mixer-brand-kit.zip" download>Brand kit</a><a href="{{BASE}}privacy/">Privacy</a></nav></div><div class="footer-bottom"><span>© {{YEAR}} Mixer</span><span>Thoughtfully built for the things you’ll build.</span><a href="#main">Back to top ↑</a></div></footer>
+  <footer class="site-footer container"><div class="footer-top"><a class="brand" href="{{BASE}}"><img src="{{BASE}}assets/flick-128.webp" width="34" height="34" alt=""><span>mixer<span class="brand-period">.</span></span></a><p>One Swift app. A world of possibility.</p><nav aria-label="Footer"><a href="{{BASE}}docs/">Documentation</a><a href="{{REPO_URL}}" target="_blank" rel="noopener noreferrer">GitHub ↗</a><a href="{{BASE}}assets/mixer-brand-kit.zip" download>Brand kit</a><a href="{{BASE}}privacy/">Privacy</a></nav></div><div class="footer-bottom"><span>© {{YEAR}} Mixer</span><a href="#main">Back to top ↑</a></div></footer>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </body>
 </html>

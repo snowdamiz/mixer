@@ -21,8 +21,9 @@ Observed implementation and evidence:
   the completed product at the user's request; it does not change engineering
   readiness. No public domain, deployment, store listing, or GA acceptance is
   claimed. See `verification/website-launch/receipt.json`,
-  `verification/website-light-refinement/receipt.json`, and
-  `verification/website-design-elevation/receipt.json`.
+  `verification/website-light-refinement/receipt.json`,
+  `verification/website-design-elevation/receipt.json`, and
+  `verification/website-design-simplification/receipt.json`.
 - Swift state/effects, generation-checked resources, bounded UI documents,
   reconciliation and native Apple controls pass host tests and iOS compilation.
   Raw UI decoding requires strict duplicate-key/Unicode/resource validation.
