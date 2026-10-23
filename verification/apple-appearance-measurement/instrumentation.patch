@@ -1,0 +1,33 @@
+--- frozen/MixerNativeView.swift
++++ instrumented-sdk/Sources/MixerApple/MixerNativeView.swift
+@@ -57,9 +57,17 @@
+     let dispatch: @MainActor (UIEventEnvelope) -> Void
+ 
+     var body: some SwiftUI.View {
+-        accessibility(render())
++        accessibility(observedRender())
+             .disabled(node.properties["disabled"]?.bool == true)
+             .accessibilityIdentifier(node.properties["accessibilityIdentifier"]?.string ?? node.id)
++    }
++
++    private func observedRender() -> AnyView {
++        // Section must remain structural in List. Measure its explicit header
++        // and child content separately; no fictional section bounding box.
++        if node.kind == .section { return render() }
++        return AnyView(render().background(MeasurementProbe(nodeID: node.id,
++            kind: node.kind.rawValue, explicitFont: node.kind == .text ? font : nil)))
+     }
+ 
+     private var children: some SwiftUI.View {
+@@ -100,7 +108,10 @@
+             return AnyView(SwiftUI.List { children })
+         case .section:
+             if let title = node.properties["title"]?.string {
+-                return AnyView(SwiftUI.Section { children } header: { SwiftUI.Text(title) })
++                return AnyView(SwiftUI.Section { children } header: {
++                    SwiftUI.Text(title).background(MeasurementProbe(nodeID: node.id + ".header",
++                        kind: "sectionHeader", explicitFont: nil))
++                })
+             }
+             return AnyView(SwiftUI.Section { children })
+         case .navigation:

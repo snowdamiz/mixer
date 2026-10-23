@@ -88,8 +88,13 @@ with 350,077 assertions pass per Debug/Release. Root verifies 224 bindings in
 `verification/ui-appearance-resolution-root-review/acceptance.json`. The plan
 resolves all ten current kinds, inherited disabled state, explicit canvas paint,
 logical RTL metrics and bounded text-scale floors. Native consumption remains
-pending; Java resolution and measurements of the unchanged Apple reference are
-active implementation lanes.
+pending. Java resolution has passed its producer corpus and is under independent
+review. The unchanged Apple reference now has 24 measured captures and scoped root
+acceptance in `verification/apple-appearance-measurement-root-review/acceptance.json`.
+Root verifies 385 bindings and independently decodes every PNG using Apple ImageIO: all
+16 historical and 12 Debug/Release comparisons match exactly. Per-role accessibility
+profiles and contextual font probes are the next reference refinement; actual
+renderer consumption, interaction and physical design parity remain pending.
 
 Eight unchanged iOS simulator screenshots are retained in
 `verification/apple-appearance-reference/gallery.html`; root accepts the baseline
@@ -594,3 +599,6 @@ Targeted all-feature Clippy and formatting pass. The original timing failure and
 the first run's pre-existing minimal-feature Clippy warning remain recorded.
 Active cache and Android qualification, physical devices, full-target execution,
 immutable published consumers and every specified GA acceptance remain pending.
+
+Hosted `5988e4a` now passes all VM/Swift/services jobs, including the pure shared
+appearance resolver. See `verification/github-ci-5988e4a/receipt.json`.

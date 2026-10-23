@@ -48,7 +48,7 @@ fresh private Android host runner under Swift 6.2.4. See
 `verification/swift-minimal-descriptor-ci-repair/receipt.json` and
 `verification/github-ci-d6c41a0/receipt.json`.
 
-Latest hosted evidence: `09dac10`, `958998d` and `0f177ad` pass all three
+Latest hosted evidence: `09dac10`, `958998d`, `0f177ad` and `5988e4a` pass all three
 VM/Swift/services jobs. The earlier `d814055` fixed-35ms polling failure remains
 recorded; the repaired observed-tick test now passes hosted Swift 6.2.4 as well as
 local Debug/Release/TSan. See `verification/github-ci-0f177ad/receipt.json`.
@@ -62,6 +62,14 @@ algorithm is implemented by this prerequisite. Full target execution remains pen
 
 Observed implementation and evidence:
 
+- The unchanged Apple design is measured in 24 simulator captures across 12
+  Debug/Release profiles. Root verifies 385 bindings and independently decodes all
+  pixels with Apple ImageIO: 16 historical and 12 Debug/Release comparisons match
+  exactly. See `verification/apple-appearance-measurement-root-review/acceptance.json`.
+  Measurements show that per-role accessibility scaling, navigation/section fonts,
+  disabled control paints and grouped-list/switch geometry need shared recipe
+  refinement. This accepts measurement integrity only; candidate1 is still not a
+  reference match, and renderer consumption/physical parity remain pending.
 - The private Swift cache candidate3 passes all 18 required named tests per Debug
   and Release, all 21 explicit terminal-latch cases with 315 repeated routes per
   mode, and three actual isolated constructor owner-exhaustion cleanup cases per
