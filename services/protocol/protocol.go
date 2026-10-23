@@ -342,11 +342,15 @@ func Eligible(a Assignment, installation string) bool {
 // DecodeJSON rejects duplicate fields at every depth, unknown fields and trailing
 // values. JSON is an inspection/transport form; only canonical CBOR is signed.
 func DecodeJSON(data []byte, v any) error {
+	model := jsonTargetType(v)
+	if maximum := jsonProtocolDocumentLimit(model); maximum != 0 && len(data) > maximum {
+		return fmt.Errorf("protocol document exceeds byte limit")
+	}
 	if !utf8.Valid(data) {
 		return fmt.Errorf("invalid JSON UTF-8")
 	}
 	d := json.NewDecoder(bytes.NewReader(data))
-	if e := walkJSON(d, 0); e != nil {
+	if e := walkJSON(d, 0, model); e != nil {
 		return e
 	}
 	if _, e := d.Token(); e != io.EOF {
@@ -359,7 +363,7 @@ func DecodeJSON(data []byte, v any) error {
 	}
 	return nil
 }
-func walkJSON(d *json.Decoder, depth int) error {
+func walkJSON(d *json.Decoder, depth int, model reflect.Type) error {
 	if depth > 32 {
 		return fmt.Errorf("JSON nesting limit")
 	}
@@ -367,11 +371,24 @@ func walkJSON(d *json.Decoder, depth int) error {
 	if e != nil {
 		return e
 	}
+	model = jsonShapeType(model)
+	if isJSONBytes(model) {
+		text, ok := t.(string)
+		if !ok {
+			return fmt.Errorf("JSON bytes require canonical base64 text")
+		}
+		_, e := canonicalBase64(text)
+		return e
+	}
 	switch t {
 	case nil:
 		return fmt.Errorf("JSON null is not in the v1 data model")
 	case json.Delim('{'):
 		seen := map[string]bool{}
+		fields, e := jsonModelFields(model)
+		if e != nil {
+			return e
+		}
 		for d.More() {
 			k, e := d.Token()
 			if e != nil {
@@ -382,15 +399,29 @@ func walkJSON(d *json.Decoder, depth int) error {
 				return fmt.Errorf("duplicate or invalid JSON key")
 			}
 			seen[s] = true
-			if e := walkJSON(d, depth+1); e != nil {
+			var child reflect.Type
+			if fields != nil {
+				var ok bool
+				child, ok = fields[s]
+				if !ok {
+					return fmt.Errorf("unknown or alternate-cased JSON model field")
+				}
+			} else if model != nil && model.Kind() == reflect.Map {
+				child = model.Elem()
+			}
+			if e := walkJSON(d, depth+1, child); e != nil {
 				return e
 			}
 		}
 		_, e = d.Token()
 		return e
 	case json.Delim('['):
+		var child reflect.Type
+		if model != nil && (model.Kind() == reflect.Array || model.Kind() == reflect.Slice) {
+			child = model.Elem()
+		}
 		for d.More() {
-			if e := walkJSON(d, depth+1); e != nil {
+			if e := walkJSON(d, depth+1, child); e != nil {
 				return e
 			}
 		}

@@ -2,7 +2,6 @@ package protocol
 
 import (
 	"crypto/ed25519"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -357,24 +356,10 @@ func DecodeSignedAssignmentV2(data []byte) (SignedAssignmentV2, error) {
 }
 
 // Required zero-valued fields and empty arrays are not interchangeable with
-// omitted fields. Only v2 structs add this requirement; v1 decoding stays frozen.
+// omitted fields. Both protocol versions keep exact, closed JSON model shapes;
+// v2 retains its separate smaller document bound and signature domains.
 func exactV2Object(data []byte, fields ...string) (map[string]json.RawMessage, error) {
-	if len(data) > MaxV2DocumentBytes {
-		return nil, fmt.Errorf("v2 document exceeds byte limit")
-	}
-	var raw map[string]json.RawMessage
-	if e := DecodeJSON(data, &raw); e != nil {
-		return nil, e
-	}
-	if len(raw) != len(fields) {
-		return nil, fmt.Errorf("missing or unknown v2 fields")
-	}
-	for _, field := range fields {
-		if _, ok := raw[field]; !ok {
-			return nil, fmt.Errorf("missing v2 field")
-		}
-	}
-	return raw, nil
+	return exactProtocolObject(data, MaxV2DocumentBytes, fields...)
 }
 
 func (g *CapabilityGrant) UnmarshalJSON(data []byte) error {
@@ -382,7 +367,12 @@ func (g *CapabilityGrant) UnmarshalJSON(data []byte) error {
 		return e
 	}
 	type plain CapabilityGrant
-	return DecodeJSON(data, (*plain)(g))
+	var decoded plain
+	if e := DecodeJSON(data, &decoded); e != nil {
+		return e
+	}
+	*g = CapabilityGrant(decoded)
+	return nil
 }
 
 func (g *CapabilityGrants) UnmarshalJSON(data []byte) error {
@@ -390,7 +380,12 @@ func (g *CapabilityGrants) UnmarshalJSON(data []byte) error {
 		return e
 	}
 	type plain CapabilityGrants
-	return DecodeJSON(data, (*plain)(g))
+	var decoded plain
+	if e := DecodeJSON(data, &decoded); e != nil {
+		return e
+	}
+	*g = CapabilityGrants(decoded)
+	return nil
 }
 
 func (m *ManifestV2) UnmarshalJSON(data []byte) error {
@@ -405,7 +400,12 @@ func (m *ManifestV2) UnmarshalJSON(data []byte) error {
 		return e
 	}
 	type plain ManifestV2
-	return DecodeJSON(data, (*plain)(m))
+	var decoded plain
+	if e := DecodeJSON(data, &decoded); e != nil {
+		return e
+	}
+	*m = ManifestV2(decoded)
+	return nil
 }
 
 func (a *AssignmentV2) UnmarshalJSON(data []byte) error {
@@ -417,7 +417,12 @@ func (a *AssignmentV2) UnmarshalJSON(data []byte) error {
 		return e
 	}
 	type plain AssignmentV2
-	return DecodeJSON(data, (*plain)(a))
+	var decoded plain
+	if e := DecodeJSON(data, &decoded); e != nil {
+		return e
+	}
+	*a = AssignmentV2(decoded)
+	return nil
 }
 
 func (s *SignedManifestV2) UnmarshalJSON(data []byte) error {
@@ -425,11 +430,16 @@ func (s *SignedManifestV2) UnmarshalJSON(data []byte) error {
 	if e != nil {
 		return e
 	}
-	if e = signatureEncodingV2(raw["signature"]); e != nil {
+	if e = signatureEncoding(raw["signature"]); e != nil {
 		return e
 	}
 	type plain SignedManifestV2
-	return DecodeJSON(data, (*plain)(s))
+	var decoded plain
+	if e := DecodeJSON(data, &decoded); e != nil {
+		return e
+	}
+	*s = SignedManifestV2(decoded)
+	return nil
 }
 
 func (s *SignedAssignmentV2) UnmarshalJSON(data []byte) error {
@@ -437,21 +447,14 @@ func (s *SignedAssignmentV2) UnmarshalJSON(data []byte) error {
 	if e != nil {
 		return e
 	}
-	if e = signatureEncodingV2(raw["signature"]); e != nil {
+	if e = signatureEncoding(raw["signature"]); e != nil {
 		return e
 	}
 	type plain SignedAssignmentV2
-	return DecodeJSON(data, (*plain)(s))
-}
-
-func signatureEncodingV2(raw []byte) error {
-	var text string
-	if e := json.Unmarshal(raw, &text); e != nil || len(text) != 88 {
-		return fmt.Errorf("v2 signature must be canonical base64 text")
+	var decoded plain
+	if e := DecodeJSON(data, &decoded); e != nil {
+		return e
 	}
-	decoded, e := base64.StdEncoding.Strict().DecodeString(text)
-	if e != nil || len(decoded) != ed25519.SignatureSize || base64.StdEncoding.EncodeToString(decoded) != text {
-		return fmt.Errorf("v2 signature must encode exactly 64 bytes in canonical padded base64")
-	}
+	*s = SignedAssignmentV2(decoded)
 	return nil
 }

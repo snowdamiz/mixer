@@ -10,7 +10,12 @@
     "artifact_signature": "Ed25519(mixer.artifact.v1 followed by one NUL byte followed by canonical CBOR manifest)",
     "assignment_signature": "Ed25519(mixer.assignment.v1 followed by one NUL byte followed by canonical CBOR assignment)",
     "artifact_identity": "lowercase SHA256 hex of canonical CBOR manifest",
-    "signature_transport": "RFC4648 standard base64 64-byte signature",
+    "signature_transport": "RFC4648 standard padded base64 text encoding exactly 64 signature bytes; reject numeric arrays, CR/LF, missing padding and nonzero pad bits",
+    "byte_transport": "All JSON byte strings, including pinned public keys and HTTP payloads, use canonical RFC4648 standard padded base64 text; decoding and re-encoding must reproduce the decoded JSON string exactly",
+    "json_shape": "Closed signed envelopes, manifest, assignment, scope, limits, host and trust-root objects require every declared field, including zero integers and false booleans; field names match exactly after JSON escape decoding. Reject case aliases, unknown fields, duplicate decoded names, nulls and trailing JSON values. capability_hashes and asset_hashes keys remain dynamic, case-sensitive identifiers; distinct SCHEMA, Schema and schema keys are not aliases",
+    "json_integer_transport": "Unsigned integer fields require JSON integer syntax in uint64 range; reject fractional/exponent forms, negative zero and overflow",
+    "json_document_bytes": "1..1048576 bytes per v1 signed/configuration protocol document, including outer whitespace, at bounded DecodeJSON/Swift StrictJSON entry points; standard json.Unmarshal strips outer whitespace before model callbacks and is not a transport size guard",
+    "go_model_reuse": "Closed v1/v2 model JSON decoders replace the complete receiver only after successful structural decoding; incoming empty maps replace prior maps and failed decoding preserves the receiver. Structural decoding is not signature, compatibility or execution authorization. Generic configuration DTO missing-field/default behavior remains separate",
     "unknown_duplicate_trailing_json_fields": "reject"
   },
   "manifest_fields": {

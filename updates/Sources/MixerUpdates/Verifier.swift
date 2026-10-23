@@ -86,7 +86,9 @@ public struct TrustRoot: Codable, Sendable {
         try requireConfigurationFields(decoder, Set(CodingKeys.allCases.map(\.stringValue)))
         let fields = try decoder.container(keyedBy: CodingKeys.self)
         keyID = try fields.decode(String.self, forKey: .keyID)
-        publicKey = try fields.decode(Data.self, forKey: .publicKey)
+        let encodedKey = try fields.decode(String.self, forKey: .publicKey)
+        guard let key = Data(base64Encoded: encodedKey), key.base64EncodedString() == encodedKey else { throw UpdateError("trust.encoding", "Expected canonical base64 public key") }
+        publicKey = key
         scope = try fields.decode(UpdateScope.self, forKey: .scope)
         artifact = try fields.decode(Bool.self, forKey: .artifact)
         assignment = try fields.decode(Bool.self, forKey: .assignment)
@@ -248,7 +250,7 @@ public struct ReleaseVerifier: Sendable {
         try values.exactKeys([field, "signature"])
         let encodedSignature = try values.text("signature")
         guard let signature = Data(base64Encoded: encodedSignature), signature.count == 64,
-              host.protocolVersion != 2 || signature.base64EncodedString() == encodedSignature else { throw UpdateError("signature.encoding", "Expected a base64 Ed25519 signature") }
+              signature.base64EncodedString() == encodedSignature else { throw UpdateError("signature.encoding", "Expected a canonical base64 Ed25519 signature") }
         return (try values.required(field), signature)
     }
 

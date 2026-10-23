@@ -1,7 +1,7 @@
 # Signed release protocols
 
-Release-v1's Go types, canonical bytes, signature domains, and fixtures remain
-unchanged. V1 capability hashes describe compatibility and confer no permission.
+Release-v1's declared fields, canonical bytes, signature domains, and original
+fixtures remain unchanged. V1 capability hashes describe compatibility and confer no permission.
 The existing local service and CLI publication API continue to accept only v1.
 
 [release-v2](../../contracts/release-v2.json) adds mandatory signed capability
@@ -63,7 +63,35 @@ them in an application or service. The payload is a non-executable test string.
 
 These are protocol and local recovery checks. They do not qualify native guest
 capability imports, immutable published package adoption, HTTP v2 delivery,
-physical devices, store/OTA policy, or hosted operations. Legacy generic Go v1
-struct JSON decoding still follows `encoding/json` case-insensitive field
-matching; v2 adds exact-field preflight without changing that legacy path. No
-signature or tenant-authority bypass is established by that legacy ambiguity.
+physical devices, store/OTA policy, or hosted operations.
+
+Legacy v1 wire decoding now uses the same strict shape rules as Swift: every
+closed model field is mandatory, including zero and false values, and fixed
+names match exactly after JSON escape decoding. Numeric signature arrays,
+base64 newlines, missing padding and nonzero pad bits are rejected. Canonical
+public-key and HTTP payload byte strings follow the same text rule. Valid
+existing signatures and canonical CBOR identities are preserved. Distinct
+dynamic map keys such as `SCHEMA`, `Schema` and `schema` remain distinct; arrays
+and raw JSON values do not acquire fixed-model field names. A single escaped
+spelling of a declared key is valid, while duplicate decoded keys are rejected.
+
+The Go closed model decoders enforce their invariants under direct
+`json.Unmarshal` too. They decode into fresh values and assign only on success,
+so reused maps are replaced and failed input cannot partly mutate the receiver.
+Generic configuration DTOs keep their omitted-field defaults; exact fixed names
+and canonical byte text still apply when decoded through `DecodeJSON`. Use
+bounded `DecodeJSON` for untrusted v1 documents (1 MiB), and the v2 helpers above
+for v2 (64 KiB). Direct standard-library `json.Unmarshal` strips outer whitespace
+before a model callback and is therefore not a complete transport size guard.
+
+The original cross-language reproducer found alternate wire forms of valid
+signed bytes, including Go case folding and base64 pad-bit acceptance in both
+verifiers; it did not establish a signature or tenant-authority bypass. The
+shared 271-case `legacy-v1-wire-cases.json` corpus tests strict rejection and
+preserved dynamic names through the actual Go and Swift signature verifiers.
+Run its complete host regression with `verification/verify-wire.py` using the
+same `--swift` and fresh `--output-dir` options shown above. That harness also
+runs the existing services suite, CLI integration tests, v2/policy regressions,
+receiver-reuse tests and external constructor checks. PostgreSQL integration
+requires its separate explicit local database setup; host unit runs do not
+constitute real database evidence.

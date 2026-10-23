@@ -189,7 +189,11 @@ func TestStrictTransportJSON(t *testing.T) {
 			t.Fatalf("accepted %s", input)
 		}
 	}
-	var a protocol.Assignment
+	// Numeric precision is independent of the closed Assignment shape. A partial
+	// assignment is no longer a valid protocol document.
+	var a struct {
+		Sequence uint64 `json:"sequence"`
+	}
 	if e := protocol.DecodeJSON([]byte(`{"sequence":18446744073709551615}`), &a); e != nil || a.Sequence != math.MaxUint64 {
 		t.Fatal("uint64 precision lost", e)
 	}
