@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mixer:release-v2",
+  "title": "Mixer signed capability grant protocol v2",
+  "protocol_status": "protocol_reference_and_host_verifier_only_not_HTTP_hosted_device_or_OTA_qualification",
+  "canonicalization": {
+    "standard": "RFC8949 section 4.2.1 core deterministic CBOR",
+    "map_order": "bytewise lexicographic order of encoded keys",
+    "data_model": "text keys and values, unsigned integers, arrays, maps and booleans; all declared struct fields included, no nulls or omitted fields",
+    "artifact_signature": "Ed25519(mixer.artifact.v2 followed by one NUL byte followed by canonical CBOR manifest)",
+    "assignment_signature": "Ed25519(mixer.assignment.v2 followed by one NUL byte followed by canonical CBOR assignment)",
+    "artifact_identity": "lowercase SHA256 hex of canonical CBOR manifest",
+    "signature_transport": "RFC4648 canonical padded standard base64 text encoding exactly 64 bytes; numeric arrays, CR/LF, nonzero pad bits and missing padding reject",
+    "unknown_duplicate_trailing_json_fields": "reject"
+  },
+  "negotiation": "Installed host protocol exactly 2; manifest schema/protocol exactly 2; assignment schema exactly 2. Protocol1 remains strict release-v1 with v1 signature domains and rejects grants. No implicit upgrade or downgrade. Guest ABI and UI schema remain 1.",
+  "manifest_fields": {
+    "schema": 2,
+    "scope": {
+      "organization": "identifier",
+      "project": "identifier",
+      "app": "identifier",
+      "environment": "identifier",
+      "platform": "ios or android"
+    },
+    "release_id": "identifier",
+    "source_commit": "40 or 64 lowercase hex",
+    "provenance_id": "identifier",
+    "runtime": "64 lowercase hex exact installed runtime fingerprint",
+    "protocol": 2,
+    "guest_abi": 1,
+    "ui_schema": 1,
+    "capability_hashes": "map identifier to 64 lowercase hex, exact host map match",
+    "state_min": "uint64 inclusive",
+    "state_max": "uint64 inclusive",
+    "payload_sha256": "64 lowercase hex",
+    "compressed_bytes": "uint64 1..16777216",
+    "expanded_bytes": "uint64 identical to compressed_bytes in v2",
+    "compression": "none",
+    "asset_hashes": "empty map only; separate assets fail closed until verified extraction exists",
+    "source_map_sha256": "64 lowercase hex reference; source map is not executed or fetched by v1",
+    "limits": {
+      "memory_bytes": "positive uint64",
+      "fuel": "positive uint64",
+      "startup_milliseconds": "positive uint64"
+    },
+    "key_id": "identifier pinned artifact authority",
+    "created_at_unix": "positive uint64 audit time, not replay authority",
+    "capability_grants": {
+      "schema": 1,
+      "schema_sha256": "b394ffd165ef28977de9743b1c1a98c419504787f2912e30d419cfb1582e15e1",
+      "entries": "0..2 closed grant entries; every array explicit, strictly sorted unique ASCII, and every present entry binds its signed capability_hashes schema hash"
+    }
+  },
+  "assignment_fields": {
+    "schema": 2,
+    "scope": "same scope object as manifest",
+    "channel": "identifier",
+    "cohort": "sha256-v1",
+    "rollout_basis_points": "uint64 0..10000",
+    "sequence": "positive uint64 monotonically increasing within app/environment/platform/runtime/channel",
+    "release_id": "exact manifest release_id",
+    "artifact_sha256": "SHA256 of canonical CBOR manifest",
+    "runtime": "exact manifest runtime",
+    "key_id": "identifier pinned assignment authority",
+    "created_at_unix": "positive uint64 audit time"
+  },
+  "capability_grant_descriptor": {
+    "schema": 1,
+    "object_fields": [
+      "entries",
+      "schema",
+      "schema_sha256"
+    ],
+    "entry_fields": [
+      "capability_id",
+      "methods",
+      "namespaces",
+      "origins",
+      "permissions",
+      "schema_sha256"
+    ],
+    "maximum_entries": 2,
+    "entry_order": "strict ascending ASCII capability_id; reject duplicates",
+    "set_order": "strict ascending ASCII strings; reject duplicates before set conversion",
+    "missing_entry": "deny; installed schema hash alone grants no authority",
+    "binding": "each present entry equals its signed capability_hashes entry and the known schema hash",
+    "origins": {
+      "scheme": "https",
+      "exact_origin_only": true,
+      "ascii_only": true,
+      "maximum_host_bytes": 253,
+      "maximum_label_bytes": 63,
+      "host_rule": "lowercase DNS labels a-z 0-9 hyphen; nonempty labels; no leading or trailing hyphen",
+      "port_rule": "absent or canonical decimal 1..65535 excluding 443; no leading zeros",
+      "forbidden": [
+        "userinfo",
+        "path",
+        "query",
+        "fragment",
+        "IPv6",
+        "uppercase host",
+        "percent escapes",
+        "trailing dot"
+      ]
+    },
+    "capabilities": {
+      "network.http.v1": {
+        "schema_sha256": "fa1549c0a1e2e6b3bf4a83af1a6d37730bbefc8cddc3ffbe3c807d5e7af503f3",
+        "permissions": [
+          "network.https"
+        ],
+        "maximum_permissions": 1,
+        "maximum_origins": 32,
+        "maximum_methods": 6,
+        "allowed_methods": [
+          "DELETE",
+          "GET",
+          "HEAD",
+          "PATCH",
+          "POST",
+          "PUT"
+        ],
+        "maximum_namespaces": 0
+      },
+      "storage.keyValue.v1": {
+        "schema_sha256": "4a311222c978ddd0982e8dfbcf3d4864b856a80bcc1efb3b725adede7f8e22fd",
+        "permissions": [
+          "storage.appPrivate"
+        ],
+        "maximum_permissions": 1,
+        "maximum_origins": 0,
+        "maximum_methods": 0,
+        "maximum_namespaces": 32,
+        "namespace_rule": "case-sensitive ASCII A-Z a-z 0-9 underscore hyphen; length 1..64"
+      }
+    }
+  },
+  "capability_grant_descriptor_sha256": "b394ffd165ef28977de9743b1c1a98c419504787f2912e30d419cfb1582e15e1",
+  "capability_grant_descriptor_hash": "lowercase SHA256 of RFC8949 core deterministic CBOR of capability_grant_descriptor; bytewise encoded-key ordering; descriptor hash excludes this parent document",
+  "capability_grant_entry_fields": {
+    "capability_id": "known capability identifier, unique entry strictly sorted by ASCII",
+    "schema_sha256": "exact known schema hash and matching signed capability_hashes entry",
+    "permissions": "explicit strictly sorted unique ASCII array; empty denies; subset of the family permission",
+    "origins": "explicit strictly sorted unique ASCII array; HTTP exact canonical origins only; empty denies HTTP",
+    "methods": "explicit strictly sorted unique ASCII array; HTTP allowed method names only; empty denies HTTP",
+    "namespaces": "explicit strictly sorted unique ASCII array; storage exact identifiers only; empty denies storage"
+  },
+  "authority": "Only successfully signature/payload-verified manifests expose trusted grant data and resource limits. Installed permissions/origins/methods/namespaces intersect the signed grants independently per capability. Missing/empty grants deny; capability_hashes prove compatibility only. Public configuration/model constructors, unverified manifests, sidecars and tool receipts do not confer execution authority.",
+  "native_fingerprint": "Installed runtime fingerprint must additionally cover installed grants/configuration, generated bridge and native implementation, compiler/toolchain/platform, dependencies, permissions and custom HTTP implementation. This protocol does not generate or attest that fingerprint.",
+  "identifier": "1..128 ASCII letters, numbers, dot, underscore or hyphen",
+  "cohort": "SHA256 of canonical CBOR map {organization,project,app,environment,channel,installation}; treat digest as unsigned big-endian integer modulo 10000; eligible if less than signed rollout_basis_points. Stable expansion; installation ID is app-private random pseudonym, never account/customer data. Reinstallation generates new ID; account switching retains ID.",
+  "trust": "Direct Ed25519 roots pinned in host/config, exact signed scope, independent artifact/assignment roles, explicit revocation and optional not-before/not-after. No delegation documents supported; unknown protocol features reject. Rotation needs preinstalled additional public root; compromised roots may need new binary. Existing healthy offline launches do not recheck root expiry.",
+  "bounds": {
+    "maximum_signed_manifest_json_bytes": 65536,
+    "maximum_signed_assignment_json_bytes": 65536,
+    "maximum_payload_bytes": 16777216,
+    "maximum_capability_hashes": 128
+  },
+  "http": "Existing /v1 service and CLI publication remain release-v1 only. This contract adds no HTTP v2 route or acceptance; a separately coordinated service/CLI integration is required."
+}

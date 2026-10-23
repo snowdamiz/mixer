@@ -96,12 +96,41 @@ public struct TrustRoot: Codable, Sendable {
     }
 }
 
+/// Closed, signed grant values. There is no public constructor or decoder: these
+/// are available only through a successfully verified artifact. The native host
+/// must still intersect them with its installed capability policy.
+public struct VerifiedCapabilityGrant: Equatable, Sendable {
+    public let capabilityID: String
+    public let schemaSHA256: String
+    public let permissions: [String]
+    public let origins: [String]
+    public let methods: [String]
+    public let namespaces: [String]
+    fileprivate init(capabilityID: String, schemaSHA256: String, permissions: [String], origins: [String], methods: [String], namespaces: [String]) {
+        self.capabilityID = capabilityID; self.schemaSHA256 = schemaSHA256; self.permissions = permissions
+        self.origins = origins; self.methods = methods; self.namespaces = namespaces
+    }
+}
+public struct VerifiedCapabilityGrants: Equatable, Sendable {
+    public static let descriptorSHA256 = "b394ffd165ef28977de9743b1c1a98c419504787f2912e30d419cfb1582e15e1"
+    public let schema: UInt64
+    public let schemaSHA256: String
+    public let entries: [VerifiedCapabilityGrant]
+    fileprivate init(entries: [VerifiedCapabilityGrant]) {
+        schema = 1; schemaSHA256 = Self.descriptorSHA256; self.entries = entries
+    }
+}
+
 public struct VerifiedArtifact: Sendable {
     public let manifest: CanonicalValue
     public let artifactSHA256: String
     public let payloadSHA256: String
     public let releaseID: String
     public let payloadBytes: UInt64
+    public let resourceLimits: ResourceLimits
+    /// nil for strict release-v1; schema2 carries an explicit value even when no
+    /// entries are granted. Hash-only v1 metadata never grants native authority.
+    public let capabilityGrants: VerifiedCapabilityGrants?
     // Signing evidence is retained privately; a token is not transferable authority
     // under another pinned configuration or after a signing-key validity change.
     fileprivate let artifactSignature: Data
@@ -118,7 +147,7 @@ public struct ReleaseVerifier: Sendable {
     private let roots: [String: TrustRoot]
     public init(host: InstalledRuntime, roots: [TrustRoot]) throws {
         try host.scope.validate()
-        guard validDigest(host.runtime), host.protocolVersion == 1, host.guestABI == 1, host.uiSchema == 1,
+        guard validDigest(host.runtime), [1, 2].contains(host.protocolVersion), host.guestABI == 1, host.uiSchema == 1,
               host.maxPayloadBytes > 0, host.maxPayloadBytes <= 16 * 1_048_576,
               host.limits.memoryBytes > 0, host.limits.fuel > 0, host.limits.startupMilliseconds > 0,
               host.capabilityHashes.count <= 128, host.capabilityHashes.allSatisfy({ validID($0.key) && validDigest($0.value) }) else { throw UpdateError("host.invalid", "Unsupported or invalid installed runtime contract") }
@@ -139,7 +168,8 @@ public struct ReleaseVerifier: Sendable {
         let count = (try fields.uint("compressed_bytes"))
         let digest = (try fields.text("payload_sha256"))
         guard UInt64(payload.count) == count, Self.sha256(payload) == digest else { throw UpdateError("payload.integrity", "Payload length or SHA-256 mismatch") }
-        return VerifiedArtifact(manifest: manifest, artifactSHA256: Self.sha256(try manifest.canonicalCBOR()), payloadSHA256: digest, releaseID: (try fields.text("release_id")), payloadBytes: count, artifactSignature: signature)
+        return VerifiedArtifact(manifest: manifest, artifactSHA256: Self.sha256(try manifest.canonicalCBOR()), payloadSHA256: digest, releaseID: (try fields.text("release_id")), payloadBytes: count,
+            resourceLimits: try resourceLimits(fields), capabilityGrants: try capabilityGrants(fields), artifactSignature: signature)
     }
 
     /// `lastSequence` must come from durable app/runtime/channel state. A rollback
@@ -158,7 +188,7 @@ public struct ReleaseVerifier: Sendable {
         guard let fields = assignment.object else { throw UpdateError("assignment.shape", "Assignment must be an object") }
         try fields.exactKeys(["schema", "scope", "channel", "cohort", "rollout_basis_points", "sequence", "release_id", "artifact_sha256", "runtime", "key_id", "created_at_unix"])
         try validateScope((try fields.required("scope")))
-        guard (try fields.uint("schema")) == 1, (try fields.text("cohort")) == "sha256-v1", (try fields.uint("created_at_unix")) > 0,
+        guard (try fields.uint("schema")) == host.protocolVersion, (try fields.text("cohort")) == "sha256-v1", (try fields.uint("created_at_unix")) > 0,
               (try fields.uint("rollout_basis_points")) <= 10_000, validID((try fields.text("key_id"))), validID((try fields.text("release_id"))),
               validDigest((try fields.text("runtime"))), validDigest((try fields.text("artifact_sha256"))) else { throw UpdateError("assignment.profile", "Unsupported assignment profile") }
         let manifest = try manifestObject(artifactManifest)
@@ -213,10 +243,12 @@ public struct ReleaseVerifier: Sendable {
     public static func sha256(_ data: Data) -> String { SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined() }
 
     private func signed(_ data: Data, field: String) throws -> (CanonicalValue, Data) {
-        let envelope = try StrictJSON.decode(CanonicalValue.self, from: data)
+        let envelope = try StrictJSON.decode(CanonicalValue.self, from: data, maximumBytes: host.protocolVersion == 2 ? 65_536 : 1_048_576)
         guard let values = envelope.object else { throw UpdateError("signature.envelope", "Signed document must be an object") }
         try values.exactKeys([field, "signature"])
-        guard let signature = Data(base64Encoded: try values.text("signature")), signature.count == 64 else { throw UpdateError("signature.encoding", "Expected a base64 Ed25519 signature") }
+        let encodedSignature = try values.text("signature")
+        guard let signature = Data(base64Encoded: encodedSignature), signature.count == 64,
+              host.protocolVersion != 2 || signature.base64EncodedString() == encodedSignature else { throw UpdateError("signature.encoding", "Expected a base64 Ed25519 signature") }
         return (try values.required(field), signature)
     }
 
@@ -226,15 +258,19 @@ public struct ReleaseVerifier: Sendable {
               artifact ? root.artifact : root.assignment,
               now >= root.notBeforeUnix, root.notAfterUnix == 0 || now < root.notAfterUnix else { throw UpdateError("signature.authority", "Pinned signing authority denied") }
         let key = try Curve25519.Signing.PublicKey(rawRepresentation: root.publicKey)
-        let message = Data((artifact ? "mixer.artifact.v1\0" : "mixer.assignment.v1\0").utf8) + (try value.canonicalCBOR())
+        let domain = artifact ? "mixer.artifact.v\(host.protocolVersion)\0" : "mixer.assignment.v\(host.protocolVersion)\0"
+        let message = Data(domain.utf8) + (try value.canonicalCBOR())
         guard key.isValidSignature(signature, for: message) else { throw UpdateError("signature.invalid", "Ed25519 signature verification failed") }
     }
 
     private func manifestObject(_ value: CanonicalValue) throws -> [String: CanonicalValue] {
         guard let fields = value.object else { throw UpdateError("manifest.shape", "Manifest must be an object") }
-        try fields.exactKeys(["schema", "scope", "release_id", "source_commit", "provenance_id", "runtime", "protocol", "guest_abi", "ui_schema", "capability_hashes", "state_min", "state_max", "payload_sha256", "compressed_bytes", "expanded_bytes", "compression", "asset_hashes", "source_map_sha256", "limits", "key_id", "created_at_unix"])
+        var keys: Set<String> = ["schema", "scope", "release_id", "source_commit", "provenance_id", "runtime", "protocol", "guest_abi", "ui_schema", "capability_hashes", "state_min", "state_max", "payload_sha256", "compressed_bytes", "expanded_bytes", "compression", "asset_hashes", "source_map_sha256", "limits", "key_id", "created_at_unix"]
+        if host.protocolVersion == 2 { keys.insert("capability_grants") }
+        try fields.exactKeys(keys)
         try validateScope((try fields.required("scope")))
-        for key in ["schema", "protocol", "guest_abi", "ui_schema"] { guard (try fields.uint(key)) == 1 else { throw UpdateError("manifest.version", "Unsupported \(key)") } }
+        for key in ["schema", "protocol"] { guard (try fields.uint(key)) == host.protocolVersion else { throw UpdateError("manifest.version", "Unsupported \(key)") } }
+        for key in ["guest_abi", "ui_schema"] { guard (try fields.uint(key)) == 1 else { throw UpdateError("manifest.version", "Unsupported \(key)") } }
         for key in ["release_id", "provenance_id", "key_id"] { guard validID((try fields.text(key))) else { throw UpdateError("manifest.identity", "Invalid \(key)") } }
         for key in ["runtime", "payload_sha256", "source_map_sha256"] { guard validDigest((try fields.text(key))) else { throw UpdateError("manifest.digest", "Invalid \(key)") } }
         let source = (try fields.text("source_commit"))
@@ -246,6 +282,7 @@ public struct ReleaseVerifier: Sendable {
         let capabilities = (try fields.object("capability_hashes"))
         guard capabilities.count <= 128 else { throw UpdateError("manifest.capabilities", "Too many capabilities") }
         for (key, value) in capabilities { guard validID(key), let digest = value.text, validDigest(digest) else { throw UpdateError("manifest.capabilities", "Invalid capability schema digest") } }
+        _ = try capabilityGrants(fields)
         let limits = (try fields.object("limits"))
         try limits.exactKeys(["memory_bytes", "fuel", "startup_milliseconds"])
         guard (try limits.uint("memory_bytes")) > 0, (try limits.uint("memory_bytes")) <= host.limits.memoryBytes,
@@ -255,6 +292,65 @@ public struct ReleaseVerifier: Sendable {
         guard (try fields.required("scope")) == host.scope.canonical, (try fields.text("runtime")) == host.runtime,
               capabilities == expectedCapabilities, host.stateVersion >= (try fields.uint("state_min")), host.stateVersion <= (try fields.uint("state_max")) else { throw UpdateError("manifest.compatibility", "Installed runtime/capability/state contract mismatch") }
         return fields
+    }
+    private func resourceLimits(_ fields: [String: CanonicalValue]) throws -> ResourceLimits {
+        let limits = try fields.object("limits")
+        return try ResourceLimits(memoryBytes: limits.uint("memory_bytes"), fuel: limits.uint("fuel"), startupMilliseconds: limits.uint("startup_milliseconds"))
+    }
+    private func capabilityGrants(_ fields: [String: CanonicalValue]) throws -> VerifiedCapabilityGrants? {
+        guard host.protocolVersion == 2 else { return nil }
+        let grants = try fields.object("capability_grants")
+        try grants.exactKeys(["schema", "schema_sha256", "entries"])
+        guard try grants.uint("schema") == 1, try grants.text("schema_sha256") == VerifiedCapabilityGrants.descriptorSHA256,
+              case let .array(entries) = try grants.required("entries"), entries.count <= 2 else { throw UpdateError("manifest.grants", "Unsupported capability grant descriptor") }
+        let hashes = try fields.object("capability_hashes")
+        var previous = "", verified: [VerifiedCapabilityGrant] = []
+        for entry in entries {
+            guard let grant = entry.object else { throw UpdateError("manifest.grants", "Grant entry must be an object") }
+            try grant.exactKeys(["capability_id", "schema_sha256", "permissions", "origins", "methods", "namespaces"])
+            let id = try grant.text("capability_id"), hash = try grant.text("schema_sha256")
+            let http = id == "network.http.v1"
+            let expectedHash = http ? "fa1549c0a1e2e6b3bf4a83af1a6d37730bbefc8cddc3ffbe3c807d5e7af503f3" : "4a311222c978ddd0982e8dfbcf3d4864b856a80bcc1efb3b725adede7f8e22fd"
+            guard validID(id), id > previous, http || id == "storage.keyValue.v1", hash == expectedHash, hashes[id]?.text == hash else { throw UpdateError("manifest.grants", "Unknown, unsorted, duplicate or unbound capability grant") }
+            previous = id
+            let permissions = try grantStrings(grant, "permissions", maximum: 1)
+            let origins = try grantStrings(grant, "origins", maximum: 32)
+            let methods = try grantStrings(grant, "methods", maximum: 6)
+            let namespaces = try grantStrings(grant, "namespaces", maximum: 32)
+            let permission = http ? "network.https" : "storage.appPrivate"
+            guard permissions.allSatisfy({ $0 == permission }) else { throw UpdateError("manifest.grants", "Unsupported capability permission") }
+            if http {
+                guard namespaces.isEmpty, origins.allSatisfy(validGrantOrigin), methods.allSatisfy({ ["DELETE", "GET", "HEAD", "PATCH", "POST", "PUT"].contains($0) }) else { throw UpdateError("manifest.grants", "Invalid HTTP grant") }
+            } else {
+                guard origins.isEmpty, methods.isEmpty, namespaces.allSatisfy({ value in
+                    (1...64).contains(value.utf8.count) && value.utf8.allSatisfy { (65...90).contains($0) || (97...122).contains($0) || (48...57).contains($0) || [45, 95].contains($0) }
+                }) else { throw UpdateError("manifest.grants", "Invalid storage grant") }
+            }
+            verified.append(VerifiedCapabilityGrant(capabilityID: id, schemaSHA256: hash, permissions: permissions, origins: origins, methods: methods, namespaces: namespaces))
+        }
+        return VerifiedCapabilityGrants(entries: verified)
+    }
+    private func grantStrings(_ fields: [String: CanonicalValue], _ key: String, maximum: Int) throws -> [String] {
+        guard case let .array(values) = try fields.required(key), values.count <= maximum else { throw UpdateError("manifest.grants", "Grant array exceeds its bound or has wrong type") }
+        var previous = "", strings: [String] = []
+        for value in values {
+            guard let string = value.text, string.utf8.count <= 4096, string.utf8.allSatisfy({ (33...126).contains($0) }), string > previous else { throw UpdateError("manifest.grants", "Grant arrays must be strictly sorted unique ASCII strings") }
+            previous = string; strings.append(string)
+        }
+        return strings
+    }
+    private func validGrantOrigin(_ value: String) -> Bool {
+        guard value.hasPrefix("https://"), value.utf8.count <= 267 else { return false }
+        let parts = value.dropFirst(8).split(separator: ":", omittingEmptySubsequences: false)
+        guard (1...2).contains(parts.count), !parts[0].isEmpty, parts[0].utf8.count <= 253 else { return false }
+        let labels = parts[0].split(separator: ".", omittingEmptySubsequences: false)
+        guard labels.allSatisfy({ label in
+            !label.isEmpty && label.utf8.count <= 63 && label.first != "-" && label.last != "-" && label.utf8.allSatisfy { (97...122).contains($0) || (48...57).contains($0) || $0 == 45 }
+        }) else { return false }
+        if parts.count == 2 {
+            guard let port = UInt16(parts[1]), port > 0, port != 443, String(port) == parts[1] else { return false }
+        }
+        return true
     }
     private func validateScope(_ scope: CanonicalValue) throws {
         guard let fields = scope.object else { throw UpdateError("scope.shape", "Scope must be an object") }
