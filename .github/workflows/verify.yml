@@ -51,6 +51,7 @@ jobs:
           python3 -B -m unittest discover -s cli/build-tests -v
           swift test --package-path native/android/engine
           python3 runtime-identity/tools/vectors.py --check
+          python3 runtime-identity/tools/vectors_v2.py --check
           swift test --package-path runtime-identity
           python3 -B -m unittest discover -s runtime-identity/build-tools/tests -v
       - name: Statically linked owned VM and signed startup
@@ -98,6 +99,13 @@ jobs:
           done
           swift test --package-path verification/capability-bridge-review \
             --scratch-path "$RUNNER_TEMP/bridge-public" \
+            -Xcc "-I$RUNNER_TEMP/capability-vm/include" \
+            -Xlinker "-L$RUNNER_TEMP/capability-vm/lib" -Xswiftc -warnings-as-errors
+      - name: Installed capability material and exact native preimage
+        run: |
+          python3 -B verification/capability-installed-material/test_native_preimage.py -v
+          swift test --package-path capability-activation \
+            --scratch-path "$RUNNER_TEMP/capability-material" \
             -Xcc "-I$RUNNER_TEMP/capability-vm/include" \
             -Xlinker "-L$RUNNER_TEMP/capability-vm/lib" -Xswiftc -warnings-as-errors
       - name: Generated consumer integration

@@ -1,0 +1,7 @@
+/Users/andreyyurlov/Documents/dev/mixer/verification/capability-installed-root-review/public.swift:32:50: error: call can throw, but it is executed in a non-throwing autoclosure
+30 | }
+31 | let baseline = try admit(identityObject, original)
+32 | precondition(baseline.runtimeFingerprint == (try CapabilityRuntimeIdentity(json: identityBytes)).fingerprint)
+   |                                                  `- error: call can throw, but it is executed in a non-throwing autoclosure
+33 | let cases = try JSONDecoder().decode(Corpus.self, from: Data(contentsOf: URL(fileURLWithPath: CommandLine.arguments[2])))
+34 | var checked = 0

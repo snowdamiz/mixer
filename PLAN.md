@@ -48,9 +48,12 @@ jobs after the pinned-compiler bridge and fixture repairs.
 Bounded full native validation, zero-page parity and typed failure classification
 now have a reviewed candidate; see `verification/capability-validation-review/`.
 The operation returns no transferable proof and construction still revalidates.
-Next bind exact captured material to concrete adapters in a separate activation
-package and qualify durable signed recovery. The material-only API is reviewed in
-`docs/capability-installed-factory-api-design.md`; updater ownership needs its own
-review before implementation.
-Explicit hosted v3 routes/storage and immutable external distribution follow.
+Installed material now has a separately reviewed package, exact native-preimage
+helper and bounded immutable policy/root capture; see
+`verification/capability-installed-root-review/receipt.json`. It creates no adapters
+or execution authority. The next slice composes concrete adapter lifecycle with
+private durable signed recovery after review of the updater ownership design.
+Explicit hosted v3 routes/storage are under implementation. Immutable external
+distribution follows. All three hosted jobs pass at09c317c, including the new
+validator matrix; installed-material CI is added in this checkpoint.
 Keep the full product plan and physical/published-consumer/GA gates in scope.

@@ -494,9 +494,24 @@ nine derived ownership-probe executions, ten unchanged public tests and four
 platform links pass. Root matched64 source inputs, logs and binaries, reviewed
 lifetime/classification invariants and passed22 original public checks. See
 `verification/capability-validation-review/receipt.json`. The full matrix uses
-local Swift6.3.3; hosted qualification for this new candidate remains pending.
+local Swift6.3.3. Run39919256699 at09c317c also passes all three hosted jobs,
+including27 tests per bridge/validation debug/release/TSan mode,10 public bridge
+tests and the generated simulator consumer with pinned Xcode26.3. See
+`verification/github-ci-09c317c/receipt.json`.
 
-Exact material binding to linked concrete adapters, durable v3 selection, signed
+Installed material now binds exact canonical policy/configuration/grant bytes and
+raw roots to identity2 plus the linked known native/schema constants. Root found
+and fixed unbounded role-ID hashing before admission. The final candidate passes
+16 tests per debug/release/TSan mode, helper and public opacity checks, and official
+iOS/Android module/object compilation. Root matched135 frozen inputs,21 command
+results,8 cross artifacts and the final source/evidence manifests, then passed53
+public shared origin/namespace cases. See
+`verification/capability-installed-root-review/receipt.json`. The read-only helper
+exports the exact2394-byte native digest preimage without a final LF.
+
+This material value creates no adapter, session, task or filesystem state. It does
+not attest arbitrary descriptor build hashes or the complete linked graph. Hosted
+material CI is pending. Concrete adapter construction, durable v3 selection, signed
 activation, hosted v3 routes and full FieldLog execution remain in progress.
 Physical checks remain pending while the phones are disconnected; no product or
 GA gate is closed by this checkpoint.
