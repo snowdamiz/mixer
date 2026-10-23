@@ -1,0 +1,270 @@
+{
+  "schema": 1,
+  "status": "host baseline and original adversarial tests passed; findings documented separately",
+  "reviewer": {
+    "model": "gpt-6.1-sol",
+    "reasoning": "xhigh"
+  },
+  "scope": "independent read-only source review and original host adversarial probes; no device or full Swift execution claim",
+  "commands": [
+    {
+      "name": "base-commit",
+      "command": [
+        "/opt/homebrew/bin/git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "executable": {
+        "path": "/opt/homebrew/bin/git",
+        "resolvedPath": "/opt/homebrew/Cellar/git/2.56.0/bin/git",
+        "bytes": 3758960,
+        "sha256": "92229f2456a49561ac5d614bbed775224e2fc32a8eca22ac41aeb3ce47d7899c"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "elapsedSeconds": 0.03,
+      "stdout": {
+        "path": "base-commit.stdout",
+        "bytes": 41,
+        "sha256": "d87d602434d9f09312410e3401e4a5a177b2633d3623dcecf5db43e8347b40a8"
+      },
+      "stderr": {
+        "path": "base-commit.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "build-fixed-vm",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/Documents/dev/mixer/runtime/build-vm.py",
+        "--revision",
+        "64123c509e861ddd522631b293eadebdaca11341",
+        "--target",
+        "host",
+        "--output",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/activation-review/.build/2026-10-22-adversarial/native-vm"
+      ],
+      "executable": {
+        "path": "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "resolvedPath": "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+        "bytes": 34640,
+        "sha256": "e401ac7a95cda75dee34a0cfe1e4faf0a6df1a501cf67887f177fb78cd4eb60a"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "elapsedSeconds": 1.134,
+      "stdout": {
+        "path": "build-fixed-vm.stdout",
+        "bytes": 288,
+        "sha256": "590a6c62960b01bf3cfcbe8f8cdc6b71285133255226e23603563c3842e723ad"
+      },
+      "stderr": {
+        "path": "build-fixed-vm.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "swift-version",
+      "command": [
+        "/usr/bin/xcrun",
+        "swift",
+        "--version"
+      ],
+      "executable": {
+        "path": "/usr/bin/xcrun",
+        "resolvedPath": "/usr/bin/xcrun",
+        "bytes": 199024,
+        "sha256": "bbe7671518a3905f9d3fce54312fbc77c2876b0d62aca74a0688fa869d31a8a9"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "elapsedSeconds": 0.127,
+      "stdout": {
+        "path": "swift-version.stdout",
+        "bytes": 98,
+        "sha256": "04630ab8fa201f57c63c59730e638135e32584a97e16e004a417eb8ed283dc83"
+      },
+      "stderr": {
+        "path": "swift-version.stderr",
+        "bytes": 30,
+        "sha256": "bbc8b176d3c74d4c5a7fd00b40280f98168e116d5272273bfe8e71407625540e"
+      }
+    },
+    {
+      "name": "host-os",
+      "command": [
+        "/usr/bin/sw_vers"
+      ],
+      "executable": {
+        "path": "/usr/bin/sw_vers",
+        "resolvedPath": "/usr/bin/sw_vers",
+        "bytes": 217168,
+        "sha256": "b822969762f22f30bfdd9139e5188949ddbc75b5f0c8e58788d7bb88b3c11e25"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "elapsedSeconds": 0.028,
+      "stdout": {
+        "path": "host-os.stdout",
+        "bytes": 66,
+        "sha256": "4ef10a0fc370704ea84699cf3851e51488598c5f1ab35cb572eb6b96278a8e5c"
+      },
+      "stderr": {
+        "path": "host-os.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "baseline-tests",
+      "command": [
+        "/usr/bin/xcrun",
+        "swift",
+        "test",
+        "--build-system",
+        "native",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/activation-review/.build/2026-10-22-adversarial/source/activation",
+        "--scratch-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/activation-review/.build/2026-10-22-adversarial/swift-build",
+        "-Xlinker",
+        "-L/Users/andreyyurlov/Documents/dev/mixer/verification/activation-review/.build/2026-10-22-adversarial/native-vm/lib",
+        "--skip",
+        "IndependentActivationReview"
+      ],
+      "executable": {
+        "path": "/usr/bin/xcrun",
+        "resolvedPath": "/usr/bin/xcrun",
+        "bytes": 199024,
+        "sha256": "bbe7671518a3905f9d3fce54312fbc77c2876b0d62aca74a0688fa869d31a8a9"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "elapsedSeconds": 12.805,
+      "stdout": {
+        "path": "baseline-tests.stdout",
+        "bytes": 2259,
+        "sha256": "3f76baf5b240ac3882d3d7caf26f6487ed90580a0bba6d58690aaaa2a8e97ff0"
+      },
+      "stderr": {
+        "path": "baseline-tests.stderr",
+        "bytes": 6776,
+        "sha256": "42e0fb2aeb24292c4668f0a5f54de53b807fad0210d748816a5ed82194ae05b6"
+      }
+    },
+    {
+      "name": "independent-tests",
+      "command": [
+        "/usr/bin/xcrun",
+        "swift",
+        "test",
+        "--build-system",
+        "native",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/activation-review/.build/2026-10-22-adversarial/source/activation",
+        "--scratch-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/activation-review/.build/2026-10-22-adversarial/swift-build",
+        "-Xlinker",
+        "-L/Users/andreyyurlov/Documents/dev/mixer/verification/activation-review/.build/2026-10-22-adversarial/native-vm/lib",
+        "--filter",
+        "IndependentActivationReview"
+      ],
+      "executable": {
+        "path": "/usr/bin/xcrun",
+        "resolvedPath": "/usr/bin/xcrun",
+        "bytes": 199024,
+        "sha256": "bbe7671518a3905f9d3fce54312fbc77c2876b0d62aca74a0688fa869d31a8a9"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "elapsedSeconds": 1.656,
+      "stdout": {
+        "path": "independent-tests.stdout",
+        "bytes": 2372,
+        "sha256": "2262e74ecaca551099a043c5ab2f19fd34af217c669e72bcf517011854a1ed00"
+      },
+      "stderr": {
+        "path": "independent-tests.stderr",
+        "bytes": 350,
+        "sha256": "4a6a991c77a67e918c1a4581e5c70ca4350eb64ecde22802c240d3c0bd444ddf"
+      }
+    }
+  ],
+  "vm_revision": "64123c509e861ddd522631b293eadebdaca11341",
+  "base_commit": "e040d2ceed0657ea14a9ebf42b8582aeb2e75773",
+  "source_manifest": {
+    "activation/Package.swift": "7ca1db9cd3c9edb9f268954559ac44a6594ece40ea5849e83ea6bdfe7254061c",
+    "activation/Package.resolved": "a4caf80b45df4fe1ca8f40f55f0a3e024fabca5272070c44b1f6e31bae48967e",
+    "activation/Sources/MixerActivation/ColdStartRuntime.swift": "dcd08dd46acdeffcb9c8aeb2675bf0e7fa6d0e07a5c42b1d2b3fc040f9c9db1c",
+    "activation/Sources/MixerActivation/InstalledExecution.swift": "55bb1767ff0d13e9411c3501f1fa12158cde2d919a4bed847a98eddc96a56187",
+    "activation/Sources/MixerActivation/StartupWork.swift": "1d25c8bafe9d80fa877249356ba365747a757e361abcb2be1dc6d8dd7d62209b",
+    "activation/Tests/MixerActivationTests/ActivationTests.swift": "a03e44c3af10b7166e1316088711674393a94e216ed511e7975c6c41a174457a",
+    "runtime/Package.swift": "f45bdb15337bd7c408a598d895a9ee8a478bb328063f65461db0a7e94cbbcb59",
+    "runtime/Sources/CMixerVM/abi.c": "1d19436083061e8beebc109f1a735e3f09913b15ac17f980073e43530cd3e001",
+    "runtime/Sources/CMixerVM/include/mixer_vm.h": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+    "runtime/Sources/MixerRuntime/Session.swift": "e3e86165703423c885612b50c45ab28b5346c320c9f08679f52b7794214769e6",
+    "runtime/Tests/MixerRuntimeTests/SessionTests.swift": "8df0a7ad5e418ac01ce975b503c6b8491ef6a7a790dfe74439a6e39942578743",
+    "runtime/Tests/__pycache__/test_build_vm.cpython-314.pyc": "f61aa30acc5bff741309fc791dfca2ddc8510183ec462d15d6088cf5cd81103e",
+    "updates/Package.swift": "d75de1e5a9b3e3db7e7a6ce3845df39fb9afe81b1e51ac29e0a33f43e0b4f658",
+    "updates/Package.resolved": "e7dfdfed9b632538cd61bdff7bc705cb2a30cc7be661f31d6076f18b58d3f1ab",
+    "updates/Sources/MixerDurableIO/include/MixerDurableIO.h": "9b34b963e739b61a4220113ea36b569fe59d23b775da46789dc079be4c333ada",
+    "updates/Sources/MixerDurableIO/lock.c": "ca2e421d23ec1981fc9825871229b4c1cd92b5aee711e4f77ce62df85571b493",
+    "updates/Sources/MixerUpdateTool/main.swift": "38e244f41b1c12ef3c3f01838cc7aa360a6cba5955f4a07e3673c70ac54ac98f",
+    "updates/Sources/MixerUpdates/CanonicalValue.swift": "9d378b14b7a768fe2a176b888b668ce33bcbb7fca79df2c5647197cacadcf954",
+    "updates/Sources/MixerUpdates/ColdStartModels.swift": "92f78089c6db400306231f1d231a2dd76d7becc689a70ce1626f2964a1f64f6c",
+    "updates/Sources/MixerUpdates/ColdStartUpdater.swift": "91f66219305adcf3419115007165ba2c1ef1b68287ac6544f54bfb53f220d3c4",
+    "updates/Sources/MixerUpdates/DurableDirectory.swift": "08126d6a57a83fce3229284c1f0267f496cd6352ce095f74855f1cabe04528bc",
+    "updates/Sources/MixerUpdates/StrictJSON.swift": "52952e49cc90961e3179d82809219b817b1bd4c3cb55613d2c732b62d05dcdf6",
+    "updates/Sources/MixerUpdates/UpdateInputFile.swift": "56d5221c04a2015cf9f8d5ab66c1a60bbf3cacd20854d10c194c7c514eb91c5d",
+    "updates/Sources/MixerUpdates/Verifier.swift": "ec9106c9469297055c91dd705d244b907f6c9cd6653569aff08ceae9e063a409",
+    "updates/Tests/MixerUpdatesTests/AdversarialTests.swift": "a5791ff9987af8a7098759109544aa64ccb18ff93e6bddc8a14881307c2a215a",
+    "updates/Tests/MixerUpdatesTests/ColdStartUpdaterTests.swift": "b27bc3173519247111fa6ad71e6cc5e68878c466814f2898d0063fe99ea9d3b1",
+    "updates/Tests/MixerUpdatesTests/Fixtures/capability-grant-cases-v1.json": "3a7d74362432b843acb378375b88d44a38bc234c10091b9215672cb2b18b26c8",
+    "updates/Tests/MixerUpdatesTests/Fixtures/signed-release-v1.json": "d9bfa9505a83898c7ca397719e5ca6794d39e28eb8d3bd5897f1958f7801e2d7",
+    "updates/Tests/MixerUpdatesTests/Fixtures/signed-release-v2.json": "37d9ac75bad95f68a74f779d647c74134f0b49be0eedf4dfb6a9f0beed9717f7",
+    "updates/Tests/MixerUpdatesTests/VerifierTests.swift": "210fa666acdb9ac274710faeb701f698d0822f7c1c7e5fe20399bd2ce3316917",
+    "updates/Tests/MixerUpdatesTests/VerifierV2Tests.swift": "9cf81c76b05070bc0bfcd7b1c9ea9904da21adde5ca1a8e525200da561aac766"
+  },
+  "source_digest": "6b037d0e07e4b73afa62f7385cd7b21ef86fd17e8fb01d99026071047ecb331c",
+  "original_review_test_sha256": "924075a3dedf88b6279dd7be1c8b307c2012d1130644ccf76ca53113fab8aa82",
+  "runner_sha256": "892708c82187e40f6d6873c524a252be52cfe5251191b4621398b5ff1be7cfb1",
+  "helper_sha256": "e4d862f7671e94da0a0181313022d195b62cb592eed69f1c491ca0c11dd537c4",
+  "vm_build": {
+    "source_revision": "64123c509e861ddd522631b293eadebdaca11341",
+    "source_archive_sha256": "881d6a4d03cca2954761ce49bc450b75698e998b341390e45a1851b7f132b1c1",
+    "target": "host",
+    "command": [
+      "cargo",
+      "build",
+      "--release",
+      "--lib",
+      "--manifest-path",
+      "/Users/andreyyurlov/Documents/dev/mixer/verification/activation-review/.build/2026-10-22-adversarial/native-vm/source/vm/Cargo.toml"
+    ],
+    "exit_code": 0,
+    "build_log_sha256": "e0502a2080d81c3fd7f5190c8e8891197e507ed1bdf4e3eef073c9b92c349c4c",
+    "header_sha256": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+    "static_library_sha256": "5053e0d03513bfd43c09863c6da0f01b578f55acf7b6157cae68134281da52ff",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1",
+    "generator_sha256": "33f5e0e8218296913e88673130fcfa83616e8a9f245511ca6252ac34cbd252ea",
+    "environment_overrides": {
+      "CARGO_TARGET_DIR": "/Users/andreyyurlov/Documents/dev/mixer/verification/activation-review/.build/2026-10-22-adversarial/native-vm/target"
+    },
+    "qualification": "local development artifact; immutable published packaging/runtime fingerprint/signing are pending"
+  },
+  "swift": "Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.0.0",
+  "os": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+  "baseline-tests_count": 10,
+  "independent-tests_count": 13,
+  "source_files_changed_on_live_tree_since_snapshot": []
+}

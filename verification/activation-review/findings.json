@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "reviewer": {
+    "model": "gpt-6.1-sol",
+    "reasoning": "xhigh"
+  },
+  "status": "no unresolved confirmed blocker within scoped source and host review",
+  "findings": [
+    {
+      "id": "fallback-startup-timing-scope",
+      "severity": "bounded timing-contract discrepancy",
+      "status": "root corrected before frozen replay",
+      "path": "activation/Sources/MixerActivation/ColdStartRuntime.swift",
+      "problem": "Healthy fallback timing origin was reset after reportFailure had selected and validated fallback, excluding that pass from its signed startup duration.",
+      "correction": "Capture fallbackBegan before reportFailure and retain it as fallback timing origin.",
+      "observed_before_source_sha256": "dcd08dd46acdeffcb9c8aeb2675bf0e7fa6d0e07a5c42b1d2b3fc040f9c9db1c",
+      "observed_fixed_source_sha256": "3e23414e6bf73a832f4967d1444699fd64105cdc3e6ae93844cd8445aaa6d68a",
+      "original_regression": "fallbackSelectionElapsedTimeConsumesItsOwnSignedStartupBudget",
+      "expected": "1100ms gated recovery/selection consumes healthy signed1000ms startup; nativeFallback with unreachable + activation.deadline, candidate trap count1 and no healthy trap count.",
+      "evidence_scope": "Initial behavior identified by source inspection; original regression executed on corrected working snapshot. No pre-fix failing test execution is claimed."
+    }
+  ],
+  "limitations": [
+    "Host-only review; no device operation attempted",
+    "No full Swift/WASI execution or feature UI/effects",
+    "No TSan, fuzzing, general security audit or mobile performance qualification",
+    "Installed immutable-build identity/published-package/FieldLog adoption remains open",
+    "No aggregate process-byte ceiling qualified",
+    "Already-healthy artifact runtime-failure quarantine remains explicitly open policy"
+  ],
+  "reviewed_commit": "dcca70fe1d3c343a4b6168ae78e9a466216f729b",
+  "frozen_source_digest": "57d0c64160711c9310ae07be9d89d9ee9b864f026e8bbae806025a38906f6a02",
+  "frozen_receipt": "evidence/2026-10-22-frozen/receipt.json",
+  "host_tests": {
+    "root_functions": 10,
+    "root_cases": 11,
+    "independent_functions": 15,
+    "independent_cases": 15
+  }
+}
