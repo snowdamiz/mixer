@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "observedAt": "2026-10-23T01:41:18.360610+00:00",
+  "sourceRevision": "6cb27591319a2066e1eb8b3025400137373cb2d6",
+  "sourceDigest": "a73176f23af147b6a1482d1a6a2d2a63e2f80ff9481407505fec209cb9cb5737",
+  "scope": "Root source and exact evidence integrity review of strict Go/Swift legacy JSON parity and atomic closed-model receivers; not an independent security audit",
+  "verifiedSourceFiles": 137,
+  "verifiedEvidenceFiles": 22,
+  "receipt": "services/protocol/verification/wire-receipt-2026-10-22.json",
+  "receiptSHA256": "a4210e5fd22a55b06aad1114d4f28d8762791d709768711db616b136c6c950f2",
+  "evidenceMap": "services/protocol/verification/wire-2026-10-22/manifest.json",
+  "findings": [
+    {
+      "id": "WIRE-01",
+      "status": "resolved",
+      "description": "Closed fields require exact case and presence, byte fields require canonical padded base64, while dictionary keys remain case-sensitive dynamic data."
+    },
+    {
+      "id": "WIRE-02",
+      "status": "resolved",
+      "description": "All14 closed v1/v2 receivers decode into fresh local aliases then assign only after success. Successful replacement does not retain old map entries; errors preserve receivers."
+    }
+  ],
+  "verifiedScope": [
+    "271 shared transport/config cases:7accepted264rejected",
+    "V1/v2 canonical fixtures and signature domains unchanged",
+    "HTTP malformed requests reject before artifacts/audit mutation",
+    "805 executed Go race tests; Swift debug/release53 executions each; CLI15",
+    "Frozen original logs durably copied with exact hash mapping; source-drift development receipt separately labeled invalidated"
+  ],
+  "limitations": [
+    "Real PostgreSQL suite excluded by build tag; no database test claim",
+    "No HTTPv2 composition, physical device, full OTA, production host or complete audit qualification"
+  ]
+}

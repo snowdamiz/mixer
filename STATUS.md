@@ -68,7 +68,12 @@ Observed implementation and evidence:
   canonical-CBOR and cohort vectors. The verifier executable runs on the physical
   Pixel and rejects replay. This is protocol evidence, not mobile OTA activation.
   Independent review fixed cross-verifier authority, strict pinned configuration
-  decoding and bounded reads. The durable Swift updater now passes 28 test functions
+  decoding and bounded reads. Legacy JSON hardening now rejects alternate field
+  spellings and noncanonical base64, while preserving dynamic map keys and original
+  signatures. All closed Go models decode atomically into fresh receivers. The
+  271 shared wire cases, 805 Go race executions, Swift debug/release and CLI checks
+  pass; root matched 137 source files and 22 durably preserved evidence files. See
+  `verification/protocol-wire-owner-review-2026-10-22.json`. The durable Swift updater now passes 28 test functions
   (40 parameter executions) on the Pixel and in a physical iPhone app sandbox:
   replay, resumed downloads, journal fault
   injection, monotonic health, quarantine and fallback. App lifecycle, physical
@@ -81,6 +86,17 @@ Observed implementation and evidence:
   validation. Full Swift/UI/capability execution, compiled feature fallback integration,
   physical lifecycle and complete installed runtime identity remain open. See
   `verification/activation-2026-10-22/receipt.json`.
+- Installed runtime identity now validates a closed build descriptor and derives
+  exact compatibility, verifier policy and VM startup limits from its canonical
+  fingerprint. Eight identity tests and thirteen activation functions/fourteen
+  cases pass on the host; the activation cases also pass in the iOS simulator,
+  with iOS and Android cross-builds. Independent review adds seven parser and
+  three activation tests, 32 CLI hash-oracle cases and nine rejection cases. It
+  reproduced and verified fixes for mixed verifier policy and a file-open race;
+  the fixed file probe passes 80 attempts and all 53 update test cases pass.
+  Declared hashes still require complete build-input capture, signed binary
+  embedding and provenance. This is not a build attestation or physical-device
+  qualification. See `verification/runtime-identity-integration-2026-10-22.json`.
 - The CLI creates source-locked projects, builds/tests host packages, generates and
   runs iOS simulator apps, inventories migration concerns and exports source.
   Local update verification snapshots bounded inputs so signatures and executable
@@ -122,7 +138,7 @@ Observed implementation and evidence:
   unchanged control-depth ceiling. Source, diagnostic index and one decoded body
   peak at 55,910,263 directly requested bytes; diagnostic process peak RSS is
   60,276,736 bytes. These are diagnostic measurements, not full module validation
-  or execution. A separately gated streaming-validator experiment will test complete
+  or execution. A separately gated streaming-validator experiment is testing complete
   validation under the existing profiles. See
   `verification/function-diagnostics-owner-review-2026-10-22.json`.
 
@@ -152,3 +168,13 @@ d8c6965 also passed all three jobs, including the public SDK, capabilities, nati
 VM wrapper, activation and generated simulator consumer. See
 `verification/github-ci-d8c6965.json`. Run39881858217 at c99ed79 also passed
 all three jobs; see `verification/github-ci-c99ed79.json`.
+
+The independent FieldLog public-consumer review passed ten adversarial host test
+functions/twelve cases, including save failures, retry, observer ownership, close
+and durable-state preservation. The stale README introduction was corrected in
+FieldLog commit8219234. This review confirms the scoped MixerCore adoption; D1,
+Android app behavior and full plugin/guest adoption remain open. See
+`verification/fieldlog-consumer-review-resolution-2026-10-22.json`.
+
+GitHub run39883597203 at37c1253 passed all three jobs, including the expanded Swift
+and generated simulator-consumer workflow. See `verification/github-ci-37c1253.json`.

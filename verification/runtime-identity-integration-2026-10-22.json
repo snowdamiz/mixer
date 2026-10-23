@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "reviewedAt": "2026-10-23T01:58:19.769523+00:00",
+  "reviewer": "root implementation owner; independent review linked separately",
+  "sourceRevision": "fb4691a6fee4e3591f5d45adbcd1d6b93862b437",
+  "status": "passed scoped identity, policy binding and input-file review",
+  "qualification": {
+    "path": "verification/runtime-identity-2026-10-22-final/receipt.json",
+    "sha256": "602d782763a6847e8b9c30e9a91e0ead17c27481872c3e00008838ea5798ac12",
+    "sourceDigest": "d71c4cb65f4530a7663fba7e2676345bf624ad215244916df9b7f6ec6c0f6a87",
+    "sourceFilesMatchedToGit": 68,
+    "commandOutputFilesMatched": 28,
+    "runnerAndHelperHashesMatched": true
+  },
+  "independentReview": {
+    "path": "verification/runtime-identity-review/receipt.json",
+    "sha256": "7319ef83938ab7aae02b16aa56b3985f9377e481481d6e3a5b6bfae3e34c11b7",
+    "sourceDigest": "2a88c132bb42b5d2fa28845cf9df5e96c114f4207d468fee147249272e301fbd",
+    "sourceFilesMatchedToGit": 62,
+    "commandLogsMatched": 7,
+    "probeReferencesMatched": 7,
+    "testAndProbeSourceHashesMatched": true
+  },
+  "checks": {
+    "hostIdentityFunctions": 8,
+    "activationHostReleaseFunctions": 13,
+    "activationHostReleaseCases": 14,
+    "simulatorFunctions": 13,
+    "simulatorCases": 14,
+    "simulatorFailures": 0,
+    "simulatorSkipped": 0,
+    "iosArm64WarningsAsErrorsCompile": true,
+    "androidArm64TestRunnerCompileAndLink": true,
+    "androidExecution": false,
+    "independentIdentityFunctions": 7,
+    "independentActivationFunctions": 3,
+    "independentCLIValidOracleCases": 32,
+    "independentCLIRejectedCases": 9,
+    "independentFIFORaceAttempts": 80,
+    "completeUpdateFunctions": 40,
+    "completeUpdateCases": 53
+  },
+  "findings": [
+    {
+      "id": "IDENTITY-REVIEW-01",
+      "severity": "P2",
+      "status": "fixed and independently replayed",
+      "discoveredRevision": "6cb27591319a2066e1eb8b3025400137373cb2d6",
+      "description": "Descriptor-derived execution accepted a same-fingerprint verifier host with changed scope/protocol/state/payload/memory/fuel/startup policy",
+      "reproduction": "initial-mixed-host-reproduction.json",
+      "originalFailures": 7,
+      "fixRevision": "188e88ad4429397a22b9c578ebb2b769475a26e9",
+      "fix": "Private immutable full host binding retained for descriptor-derived execution; exact represented policy checked at public runtime open; explicit legacy string API unchanged"
+    },
+    {
+      "id": "IDENTITY-REVIEW-02",
+      "severity": "P2",
+      "status": "fixed and independently replayed",
+      "discoveredRevision": "188e88ad4429397a22b9c578ebb2b769475a26e9",
+      "description": "Path metadata check followed by blocking open allowed regular-file replacement with FIFO; retained writer rescued blocked CLI and supplied accepted descriptor bytes",
+      "reproduction": "fifo-race-frozen-replay.json",
+      "firstObservedAttempt": 12,
+      "independentReplayAttempt": 4,
+      "fixRevision": "fb4691a6fee4e3591f5d45adbcd1d6b93862b437",
+      "fix": "Nonblocking no-follow close-on-exec open, then fstat actual descriptor type/size and bounded reads; explicit final symlink and malformed URL rejection"
+    }
+  ],
+  "historicalQualification": {
+    "path": "verification/runtime-identity-2026-10-22/receipt.json",
+    "sha256": "0d05c0dac6a7f7ebc2e5421093b81ee0d387eee8caf1a691c95770b4e5f541a1",
+    "sourceRevision": "188e88ad4429397a22b9c578ebb2b769475a26e9",
+    "status": "failed; retained without conversion to pass",
+    "explanation": "Initial harness parsed a printed project path as JSON. The recorded continuation read prepared.json, then three simulator tests failed because its Xcode test target omitted fixture resources. After recording failures, the owned stalled xcodebuild process was terminated. Commit fb4691a retained fixture resources; all unchanged assertions passed in the fresh final frozen-source run.",
+    "initialHarnessFailure": {
+      "path": "verification/runtime-identity-2026-10-22/initial-harness-failure.json",
+      "sha256": "26ba5e6fe02f9c9e0443e5ba8d53cdf08a6b597fb30f7b65561bd723911624db"
+    }
+  },
+  "limitations": [
+    "Build descriptor validates declared inputs; no complete graph attestation, signed binary embedding or published immutable native distribution",
+    "Original small Wasm fixtures, not full Swift/FieldLog/capability guest execution",
+    "iOS simulator execution and Android/iOS compilation do not qualify physical device lifecycle or performance; phones disconnected",
+    "Descriptor digests do not attest actual input graph completeness, separately supplied trust/grant objects or signed native artifact provenance.",
+    "Independent FIFO probe is bounded scheduling evidence, not exhaustive filesystem fuzzing or hard wall-clock I/O guarantee.",
+    "Legacy trusted string-based execution policy remains available; only identity-derived policy adds full descriptor host binding.",
+    "All GA and dogfood gates remain open."
+  ],
+  "physicalDeviceCommandsAttempted": false,
+  "GAAccepted": false
+}
