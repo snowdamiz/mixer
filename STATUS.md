@@ -64,6 +64,16 @@ Observed implementation and evidence:
   cross-language cases and native-policy parity. Guest imports, Android networking
   packaging/trust behavior, physical behavior and FieldLog plugin adoption remain open.
   See `verification/http-transport-owner-review-2026-10-22.json`.
+  Installed concrete HTTP/storage adapters now separately observe operation return
+  and native cleanup before releasing capacity. Terminal delivery, cancellation
+  and host deallocation cannot fabricate exit. Thirty-seven tests pass in debug
+  and release, with 24 HTTP/exit tests under Thread Sanitizer and iOS/Android/WASI
+  cross-builds. Six independent lifecycle/reentrancy probes pass in all three host
+  configurations; arbitrary adapter substitution is rejected at compile time.
+  Root matched 49 implementation inputs, 12 logs and 105 frozen review files.
+  This proves the documented owned-adapter cleanup boundary, not process-wide
+  quiescence, OS socket/RSS reclamation, rollback or guest integration. See
+  `verification/capability-foundations-integration-2026-10-22.json`.
   See `capabilities/verification/receipt.json` and
   `verification/independent-capabilities-2026-10-22.json`.
 - The Go development service verifies canonical signed artifacts and separately
@@ -190,11 +200,14 @@ gates dispatch on successful turns, and separates terminal delivery from native
 exit acknowledgement. Twenty new tests pass, with unchanged default profiles,
 128 combined-feature tests per build mode and all nine explicit oracle functions.
 Root matched 47 source inputs, 19 logs and 12 unchanged compatibility inputs.
-Independent review is underway. Payload allocation refusal is handled atomically;
+Thirteen independent adversarial tests pass in both modes, including exhaustive
+bounded lifecycle scripts, concurrent delivery/exit races and identity exhaustion.
+Root matched the review sources and all 14 command logs. Payload allocation refusal is handled atomically;
 the recorded macOS standard-library mutex allocation can still abort on OOM.
 This has no guest imports, C route, strict payload/grant bridge, native I/O,
 scheduler, counted registry retention or activation admission. See
-`vm/verification/capability-mailbox/receipt.json`.
+`vm/verification/capability-mailbox/receipt.json` and
+`verification/capability-foundations-integration-2026-10-22.json`.
 
 Official Swift 6.3.3 Android/Wasm SDKs are installed and compiler probes have run
 on a physical Pixel and in a development-only Node WASI oracle. Xcode 27.1 / Swift
@@ -249,3 +262,9 @@ The numeric fix source and local evidence review is recorded in
 `verification/numeric-portability-owner-review-2026-10-22.json`.
 
 Successful repaired CI evidence: `verification/github-ci-8ab3b7f/receipt.json`.
+
+GitHub run39894771420 at8e76cfd passed all three jobs, including Linux default and
+combined stream/mailbox checks and numeric reference oracles in both modes,
+Android runtime host tests and build-staging regressions, and the generated iOS
+simulator build. This run predates the installed native exit change and does not
+build an Android APK on CI. See `verification/github-ci-8e76cfd/receipt.json`.

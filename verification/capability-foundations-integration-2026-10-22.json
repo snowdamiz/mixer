@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "observedAt": "2026-10-23T03:37:51.300025+00:00",
+  "scope": "Root source/evidence identity audit of separately reviewed mailbox and installed native exit layers; no combined execution",
+  "command": [
+    "python3",
+    "verification/tools/audit-capability-foundations.py"
+  ],
+  "mailbox": {
+    "revision": "4e37b357ae029d9cdf5e5c6b4281d82f61b65f3a",
+    "reviewRevision": "19c3949ca982a1f6f582e945eb5e4007ad23fdf6",
+    "sourceFilesMatched": 47,
+    "reviewSourcesMatched": 4,
+    "commandLogsMatched": 14,
+    "unchangedCompatibilityInputs": 12,
+    "independentTestsPerMode": 13,
+    "receipt": "verification/capability-mailbox-review/receipt.json"
+  },
+  "nativeExit": {
+    "revision": "3d4b88dd2eea3e26ce7ea87b3f78cb11631b410a",
+    "reviewRevision": "bc747c9d85ffdd022b5c948f5869b08d36da4e34",
+    "sourceFilesMatched": 49,
+    "commandLogsMatched": 12,
+    "reviewFrozenFilesMatched": 105,
+    "reviewEvidenceFilesMatched": 23,
+    "reviewCommandLogsMatched": 8,
+    "independentTestsPerConfiguration": 6,
+    "configurations": [
+      "debug",
+      "release",
+      "ThreadSanitizer"
+    ],
+    "receipt": "verification/capability-exit-review/receipt.json"
+  },
+  "ci": {
+    "receipt": "verification/github-ci-8e76cfd/receipt.json",
+    "runId": 39894771420,
+    "sourceRevision": "8e76cfd16bf27f574d30961488e3abcd3a58ad1e",
+    "jobsPassed": 3,
+    "includesNativeExitChange": false
+  },
+  "receiptHashes": {
+    "verification/capability-mailbox-review/receipt.json": "9c582b1c18b6de9a29eead935e6c150dc1198c7ac252bcefa2522d27f862b3be",
+    "verification/capability-exit-review/receipt.json": "d0eb27e5c460250599081ebc942fffd8d8282f5fa1f86470069d57dd388c81cf",
+    "capabilities/verification/exit-observation/receipt.json": "abad353f6b1be62a4ab9111a253c37a7cb0e5a5e485dd9ccf34e9e1f8f193e89"
+  },
+  "result": "All recorded source and evidence hashes matched; scoped independent reviews report no unresolved findings",
+  "limitations": [
+    "Two separate components, no guest/native bridge, C ABI, counted session retention or activation admission",
+    "Mailbox standard mutex first-lock OOM may abort; no general no-unwind guarantee",
+    "Native exit joins invocation return with owned adapter cleanup, not kernel/socket/RSS reclamation or durable mutation rollback",
+    "Host and cross-compile evidence does not qualify physical devices, immutable FieldLog packages, stores, operations or GA"
+  ]
+}
