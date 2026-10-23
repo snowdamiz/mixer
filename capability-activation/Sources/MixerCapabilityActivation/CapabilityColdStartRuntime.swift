@@ -15,17 +15,23 @@ public final class CapabilityColdStartRuntime: Sendable {
         try CapabilityInstalledExecutionMode.requireCapabilityOnly(installed.identity)
         let checked = try configuration.checked()
         let reservation = try CapabilityAttemptReservation.acquire() // Before actor/I/O/captured owner allocation.
-        let core: CapabilityColdStartCloseCore
-        do { core = try CapabilityColdStartCloseCore(configuration: checked, installed: installed, environment: environment, reservation: reservation) }
-        catch { reservation.beginClosing(); throw error }
-        let op = try core.control.admit(.opening)
+        var core: CapabilityColdStartCloseCore?
+        var opening: CapabilityColdStartOperation?
         do {
+            let created = try CapabilityColdStartCloseCore(configuration: checked, installed: installed, environment: environment, reservation: reservation)
+            core = created
+            let op = try created.control.admit(.opening); opening = op
+            let core = created
             try await withTaskCancellationHandler { try await core.worker.open(op) } onCancel: { core.requestClose(.cancelled) }
             core.control.finish(op)
             guard !core.control.isClosed else { await core.waitForClose(); throw CancellationError() }
             return CapabilityColdStartRuntime(core)
         } catch {
-            core.control.finish(op); core.requestClose(.closed); await core.waitForClose(); throw error
+            if let core {
+                if let opening { core.control.finish(opening) }
+                core.requestClose(.closed); await core.waitForClose()
+            } else { reservation.beginClosing() }
+            throw error
         }
     }
     public func beginDownload(signedManifest: Data, signedAssignment: Data) async throws {
@@ -106,13 +112,21 @@ final class CapabilityColdStartCloseCore: @unchecked Sendable {
             environment: environment, admission: admission, control: control, guestUIBinding: guestUIBinding)
     }
     func requestClose(_ cause: CapabilityAttemptLocalStop) {
+        guestUIBinding?.requestFinalClose(cause)
         control.requestClose(cause)
         lock.lock(); defer { lock.unlock() }
         guard !closeStarted else { return }
         closeStarted = true
         closeJob = Task.detached { [self] in
-            if let observation = control.detachObservation() { await observation.finish() }
+            if let observation = control.detachObservation(),
+               let result = await observation.finish(), !result.isRetired { control.reservation.quarantine() }
             await control.waitForOrdinaryTail()
+            // A bind/install loser still owns its local permit until the above
+            // ordinary tail. Only now may core move the remaining pre-bind cell.
+            if let guestUIBinding {
+                let result = await guestUIBinding.finishFinalClose(using: guestUIBinding.takeFinalJoinPermit())
+                if !result.isRetired { control.reservation.quarantine() }
+            }
             let recovery = await worker.closeStore()
             control.storeDidClose(recovery)
             control.reservation.beginClosing()

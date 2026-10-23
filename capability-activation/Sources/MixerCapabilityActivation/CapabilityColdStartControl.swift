@@ -15,18 +15,47 @@ final class CapabilityColdStartOperation: @unchecked Sendable {
     }
 }
 
-struct CapabilityColdStartObservation: Sendable {
+final class CapabilityColdStartObservation: @unchecked Sendable {
     let signals: CapabilityAttemptSignals
     let consumer: Task<Void, Never>
-    var presentationConsumer: Task<Void, Never>?
     var timer: CapabilityColdStartObservationTimer?
-    func finish() async {
+    private let lock = NSLock()
+    private var presentation: CapabilityPresentationInstallation?
+    private var finishing = false
+    private var finished = false
+    private var result: CapabilityPresentationJoinStatus?
+    init(signals: CapabilityAttemptSignals, consumer: Task<Void, Never>) { self.signals = signals; self.consumer = consumer }
+    func install(_ value: CapabilityPresentationInstallation) -> Bool {
+        lock.lock(); defer { lock.unlock() }
+        guard !finishing, !finished, presentation == nil, let moved = value.move() else { return false }
+        presentation = moved; return true
+    }
+    private func beginFinish() -> (Bool, CapabilityPresentationInstallation?, CapabilityPresentationJoinStatus?) {
+        lock.lock(); defer { lock.unlock() }
+        if finished { return (false, nil, result) }
+        if finishing { return (false, nil, .pending) }
+        finishing = true
+        let moved = presentation?.move()
+        if presentation != nil, moved == nil {
+            result = .invariant(.wrongJoinOwner); finishing = false; finished = true
+            return (false, nil, result)
+        }
+        presentation = nil
+        return (true, moved, nil)
+    }
+    private func complete(_ result: CapabilityPresentationJoinStatus?) {
+        lock.lock(); self.result = result; finishing = false; finished = true; lock.unlock()
+    }
+    func finish() async -> CapabilityPresentationJoinStatus? {
+        let (first, presentation, early) = beginFinish()
+        guard first else { return early }
         signals.guestUI?.stop(.closed)
         timer?.cancel()
         signals.finishNotifications()
         if let timer { await timer.waitForCancellation() }
         await consumer.value
-        await presentationConsumer?.value
+        let result = await presentation?.finish()
+        complete(result); return result
     }
 }
 
@@ -112,6 +141,12 @@ final class CapabilityColdStartControl: @unchecked Sendable {
         if !open { store.requestStop() }
         return open
     }
+    func acceptPreparedPresentation(_ binding: CapabilityGuestUIPresentationBinding,
+                                    installation: CapabilityPresentationInstallation) -> Bool {
+        lock.lock(); defer { lock.unlock() }
+        guard !closed else { return false }
+        return binding.acceptPrepared(installation)
+    }
     func installObservation(_ signals: CapabilityAttemptSignals, worker: CapabilityColdStartWorker,
                             candidate: String, launch: String, op: CapabilityColdStartOperation) throws {
         let box = CapabilityColdStartWeakWorker(worker), stream = signals.notifications, generation = signals.generation
@@ -135,12 +170,12 @@ final class CapabilityColdStartControl: @unchecked Sendable {
         lastSignalObject = nil; lastSignal = nil
         candidateID = candidate; launchID = launch; phase = .starting
     }
-    func installPresentationConsumer(_ consumer: Task<Void, Never>, signals: CapabilityAttemptSignals,
+    func installPresentationLifetime(_ installation: CapabilityPresentationInstallation, signals: CapabilityAttemptSignals,
                                      op: CapabilityColdStartOperation) -> Bool {
         lock.lock(); defer { lock.unlock() }
-        guard !closed, ordinary === op, observation?.signals === signals,
-              observation?.presentationConsumer == nil else { return false }
-        observation?.presentationConsumer = consumer; return true
+        guard !closed, ordinary === op, observation?.signals === signals, let observation,
+              let exchange = signals.guestUI, installation.lifetime?.isBound(to: exchange) == true else { return false }
+        return observation.install(installation)
     }
     func installConcrete(_ value: CapabilityConcreteAttempt, signals: CapabilityAttemptSignals) throws {
         lock.lock(); let valid = !closed && concrete == nil && observation?.signals === signals

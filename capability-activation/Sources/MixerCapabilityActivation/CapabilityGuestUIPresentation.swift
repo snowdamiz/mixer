@@ -128,6 +128,11 @@ public final class GuestUIPresentation: ObservableObject {
         state = .stopped
     }
 
+    fileprivate func retireKnownEmpty() -> Bool {
+        guard bindingIdentity == nil, exchange == nil else { return false }
+        retireView(); return true
+    }
+
     private func refreshInput() {
         guard let exchange, renderHost != nil else { inputReady = false; return }
         let snapshot = exchange.snapshot()
@@ -235,42 +240,89 @@ private final class CapabilityGuestUIWeakPresentation: Sendable {
     }
 }
 
-/// The activation owner counts the returned task until actual `task.value`
-/// returns, including the final MainActor retirement turn.
 @MainActor
-internal final class CapabilityGuestUIPresentationBinding: Sendable {
-    let presentation = GuestUIPresentation()
-    init() {}
+internal final class CapabilityGuestUIPresentationBinding: Sendable, CapabilityPresentationRetirement {
+    let presentation: GuestUIPresentation
+    nonisolated private let gate: CapabilityPresentationBindingGate
+    private init(obligation: CapabilityPresentationObligation) {
+        gate = CapabilityPresentationBindingGate(obligation: obligation)
+        presentation = GuestUIPresentation()
+    }
+    nonisolated static func prepare(reservation: CapabilityAttemptReservation) async throws -> CapabilityPreparedPresentation {
+        let obligation = try reservation.reservePresentation() // Before model allocation.
+        do {
+            let binding = await CapabilityGuestUIPresentationBinding(obligation: obligation)
+            let initial = try binding.gate.initial(retirement: binding)
+            let prepared = CapabilityPreparedPresentation(binding: binding, reservation: reservation, installation: initial)
+            do { try Task.checkCancellation(); return prepared }
+            catch { _ = await prepared.cleanupAfterFailure(); throw error }
+        } catch {
+            // If no guard was returned, no Task or model binding could exist.
+            obligation.retire(); throw error
+        }
+    }
+    nonisolated func acceptPrepared(_ initial: CapabilityPresentationInstallation) -> Bool { gate.accept(initial) }
+    nonisolated func requestFinalClose(_ cause: CapabilityAttemptLocalStop) { gate.requestClose(cause) }
+    nonisolated func takeFinalJoinPermit() -> CapabilityPresentationJoinPermit? { gate.takeCorePermit() }
+    nonisolated func finishFinalClose(using permit: CapabilityPresentationJoinPermit?) async -> CapabilityPresentationJoinStatus {
+        await gate.finish(using: permit)
+    }
+    nonisolated var finalStatus: CapabilityPresentationJoinStatus { gate.status }
+    func retireEmptyPresentation() async -> Bool { presentation.retireKnownEmpty() }
 
-    func bind(_ exchange: GuestUIExchangeV1) async throws -> Task<Void, Never> {
-        try presentation.requireBindable()
-        let reader = try exchange.deliveryWake.takeConsumer()
-        let identity = CapabilityGuestUIBindingIdentity()
-        try presentation.bind(exchange, identity: identity)
-        let box = CapabilityGuestUIWeakPresentation(presentation, identity: identity)
-        return Task.detached { [reader, box] in
-            while true {
-                do {
-                    guard try await reader.next() else { break }
-                    await GuestUIPresentation.consume(box)
-                } catch {
-                    // A private sole reader cannot produce readerBusy. If that
-                    // invariant fails, stop then keep this same loop available
-                    // for its bounded final terminal-result retirement hint.
-                    await GuestUIPresentation.consumerFailed(box)
+    func bind(_ exchange: GuestUIExchangeV1) async throws -> CapabilityPresentationInstallation {
+        let installation = try gate.beginBind(retirement: self)
+        do {
+            try presentation.requireBindable()
+            let reader = try exchange.deliveryWake.takeConsumer()
+            let identity = CapabilityGuestUIBindingIdentity()
+            try presentation.bind(exchange, identity: identity)
+            let box = CapabilityGuestUIWeakPresentation(presentation, identity: identity)
+            let task = Task.detached { [reader, box] in
+                while true {
+                    do {
+                        guard try await reader.next() else { break }
+                        await GuestUIPresentation.consume(box)
+                    } catch {
+                        // Keep this sole existing reader for the bounded terminal hint.
+                        await GuestUIPresentation.consumerFailed(box)
+                    }
                 }
+                await GuestUIPresentation.finish(box)
             }
-            await GuestUIPresentation.finish(box)
+            // The local installation owns the permit until control accepts it.
+            // Close can latch during @Published, but cannot take this authority.
+            guard installation.lifetime?.attach(task, exchange: exchange) == true else {
+                exchange.stop(.closed); await task.value
+                gate.quarantine(); throw coldStartError("presentation_attach")
+            }
+            return installation
+        } catch {
+            exchange.stop(.closed)
+            let result = await installation.finish()
+            if !result.isRetired { gate.quarantine() }
+            throw error
         }
     }
 }
 #else
 /// Portable activation code can retain this type without importing Apple UI.
 /// The bound native screen profile is unsupported on these platforms.
-@MainActor
 internal final class CapabilityGuestUIPresentationBinding: Sendable {
-    init() {}
-    func bind(_ exchange: GuestUIExchangeV1) async throws -> Task<Void, Never> {
+    private init() {}
+    static func prepare(reservation: CapabilityAttemptReservation) async throws -> CapabilityPreparedPresentation {
+        let obligation = try reservation.reservePresentation()
+        // Stage 2 deliberately allocates no facade, endpoint, resource owner,
+        // model or Task on Android. The unused obligation has an explicit end.
+        obligation.retire()
+        throw GuestUIProtocolFailureV1(phase: .presentation, code: .presentationInvariant)
+    }
+    func acceptPrepared(_ initial: CapabilityPresentationInstallation) -> Bool { false }
+    func requestFinalClose(_ cause: CapabilityAttemptLocalStop) {}
+    func takeFinalJoinPermit() -> CapabilityPresentationJoinPermit? { nil }
+    func finishFinalClose(using permit: CapabilityPresentationJoinPermit?) async -> CapabilityPresentationJoinStatus { .invariant(.invalidState) }
+    var finalStatus: CapabilityPresentationJoinStatus { .invariant(.invalidState) }
+    func bind(_ exchange: GuestUIExchangeV1) async throws -> CapabilityPresentationInstallation {
         throw GuestUIProtocolFailureV1(phase: .presentation, code: .presentationInvariant)
     }
 }

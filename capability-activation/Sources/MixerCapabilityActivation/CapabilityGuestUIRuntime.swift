@@ -17,22 +17,32 @@ public final class CapabilityGuestUIRuntime: Sendable {
         try CapabilityInstalledExecutionMode.requireGuestUI(installed.identity, milestones: configuration.requiredMilestones)
         let checked = try configuration.checked()
         let reservation = try CapabilityAttemptReservation.acquire() // Before actor/I/O/captured owner allocation.
-        let core: CapabilityColdStartCloseCore
+        var prepared: CapabilityPreparedPresentation?
+        var core: CapabilityColdStartCloseCore?
+        var opening: CapabilityColdStartOperation?
+        var transferred = false
         do {
-            let binding = await CapabilityGuestUIPresentationBinding()
-            try Task.checkCancellation()
-            core = try CapabilityColdStartCloseCore(configuration: checked, installed: installed,
-                environment: environment, reservation: reservation, guestUIBinding: binding)
-        }
-        catch { reservation.beginClosing(); throw error }
-        let op = try core.control.admit(.opening)
-        do {
+            let guardOwner = try await CapabilityGuestUIPresentationBinding.prepare(reservation: reservation)
+            prepared = guardOwner
+            let created = try CapabilityColdStartCloseCore(configuration: checked, installed: installed,
+                environment: environment, reservation: reservation, guestUIBinding: guardOwner.binding)
+            core = created
+            try guardOwner.transfer(to: created); transferred = true
+            let op = try created.control.admit(.opening); opening = op
+            let core = created
             try await withTaskCancellationHandler { try await core.worker.open(op) } onCancel: { core.requestClose(.cancelled) }
             core.control.finish(op)
             guard !core.control.isClosed else { await core.waitForClose(); throw CancellationError() }
             return CapabilityGuestUIRuntime(core)
         } catch {
-            core.control.finish(op); core.requestClose(.closed); await core.waitForClose(); throw error
+            if !transferred, let prepared { _ = await prepared.cleanupAfterFailure() }
+            if let core {
+                if let opening { core.control.finish(opening) }
+                // Before transfer the explicit setup guard already joined its
+                // permit; the same core cleanup job can close its empty store.
+                core.requestClose(.closed); await core.waitForClose()
+            } else { reservation.beginClosing() }
+            throw error
         }
     }
     @MainActor public var presentation: GuestUIPresentation {

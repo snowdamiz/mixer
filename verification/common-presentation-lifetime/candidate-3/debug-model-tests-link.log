@@ -1,0 +1,63 @@
+/Users/andreyyurlov/Documents/dev/mixer/verification/common-presentation-lifetime/.build/candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/GuestUIPresentationWindowTests.swift:53:83: warning: main actor-isolated property 'bounds' can not be referenced from a nonisolated context
+51 |             print("native window observation: visible=\(window.isVisible), occlusion=\(window.occlusionState.rawValue), frame=\(window.frame)")
+52 |             func nativeTree(_ native: NSView, depth: Int = 0) {
+53 |                 print("native view \(depth): \(type(of: native)), bounds=\(native.bounds), window=\(native.window != nil), hidden=\(native.isHiddenOrHasHiddenAncestor)")
+   |                                                                                   `- warning: main actor-isolated property 'bounds' can not be referenced from a nonisolated context
+54 |                 for child in native.subviews { nativeTree(child, depth: depth + 1) }
+55 |             }
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk/System/Library/Frameworks/AppKit.framework/Headers/NSView.h:139:18: note: property declared here
+137 | - (void)scaleUnitSquareToSize:(NSSize)newUnitSize;
+138 | - (void)rotateByAngle:(CGFloat)angle;
+139 | @property NSRect bounds;
+    |                  `- note: property declared here
+140 | 
+141 | @property (getter=isFlipped, readonly) BOOL flipped;
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/common-presentation-lifetime/.build/candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/GuestUIPresentationWindowTests.swift:53:108: warning: main actor-isolated property 'window' can not be referenced from a nonisolated context
+51 |             print("native window observation: visible=\(window.isVisible), occlusion=\(window.occlusionState.rawValue), frame=\(window.frame)")
+52 |             func nativeTree(_ native: NSView, depth: Int = 0) {
+53 |                 print("native view \(depth): \(type(of: native)), bounds=\(native.bounds), window=\(native.window != nil), hidden=\(native.isHiddenOrHasHiddenAncestor)")
+   |                                                                                                            `- warning: main actor-isolated property 'window' can not be referenced from a nonisolated context
+54 |                 for child in native.subviews { nativeTree(child, depth: depth + 1) }
+55 |             }
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk/System/Library/Frameworks/AppKit.framework/Headers/NSView.h:86:61: note: property declared here
+ 84 | - (nullable instancetype)initWithCoder:(NSCoder *)coder NS_DESIGNATED_INITIALIZER;
+ 85 | 
+ 86 | @property (nullable, readonly, unsafe_unretained) NSWindow *window;
+    |                                                             `- note: property declared here
+ 87 | @property (nullable, readonly, unsafe_unretained) NSView *superview;
+ 88 | @property (copy) NSArray<__kindof NSView *> *subviews;
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/common-presentation-lifetime/.build/candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/GuestUIPresentationWindowTests.swift:53:140: warning: main actor-isolated property 'isHiddenOrHasHiddenAncestor' can not be referenced from a nonisolated context
+51 |             print("native window observation: visible=\(window.isVisible), occlusion=\(window.occlusionState.rawValue), frame=\(window.frame)")
+52 |             func nativeTree(_ native: NSView, depth: Int = 0) {
+53 |                 print("native view \(depth): \(type(of: native)), bounds=\(native.bounds), window=\(native.window != nil), hidden=\(native.isHiddenOrHasHiddenAncestor)")
+   |                                                                                                                                            `- warning: main actor-isolated property 'isHiddenOrHasHiddenAncestor' can not be referenced from a nonisolated context
+54 |                 for child in native.subviews { nativeTree(child, depth: depth + 1) }
+55 |             }
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk/System/Library/Frameworks/AppKit.framework/Headers/NSView.h:93:63: note: property declared here
+ 91 | @property (nullable, readonly, assign) NSView *opaqueAncestor;
+ 92 | @property (getter=isHidden) BOOL hidden;
+ 93 | @property (getter=isHiddenOrHasHiddenAncestor, readonly) BOOL hiddenOrHasHiddenAncestor;
+    |                                                               `- note: property declared here
+ 94 | 
+ 95 | - (void)getRectsBeingDrawn:(const NSRect * _Nullable * _Nullable)rects count:(nullable NSInteger *)count;
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/common-presentation-lifetime/.build/candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/GuestUIPresentationWindowTests.swift:54:37: warning: main actor-isolated property 'subviews' can not be referenced from a nonisolated context
+52 |             func nativeTree(_ native: NSView, depth: Int = 0) {
+53 |                 print("native view \(depth): \(type(of: native)), bounds=\(native.bounds), window=\(native.window != nil), hidden=\(native.isHiddenOrHasHiddenAncestor)")
+54 |                 for child in native.subviews { nativeTree(child, depth: depth + 1) }
+   |                                     `- warning: main actor-isolated property 'subviews' can not be referenced from a nonisolated context
+55 |             }
+56 |             nativeTree(view)
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk/System/Library/Frameworks/AppKit.framework/Headers/NSView.h:88:46: note: property declared here
+ 86 | @property (nullable, readonly, unsafe_unretained) NSWindow *window;
+ 87 | @property (nullable, readonly, unsafe_unretained) NSView *superview;
+ 88 | @property (copy) NSArray<__kindof NSView *> *subviews;
+    |                                              `- note: property declared here
+ 89 | - (BOOL)isDescendantOf:(NSView *)view;
+ 90 | - (nullable NSView *)ancestorSharedWithView:(NSView *)view;

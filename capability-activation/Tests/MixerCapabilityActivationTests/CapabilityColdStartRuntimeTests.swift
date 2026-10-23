@@ -17,6 +17,13 @@ private final class ColdStartQueueGate: @unchecked Sendable {
     func release() { condition.lock(); released = true; condition.broadcast(); condition.unlock() }
 }
 
+private final class ColdStartReturnObservation: @unchecked Sendable {
+    private let lock = NSLock()
+    private var returned = false
+    var didReturn: Bool { lock.lock(); defer { lock.unlock() }; return returned }
+    func recordReturn() { lock.lock(); returned = true; lock.unlock() }
+}
+
 private actor ColdStartGate {
     private var entered = false, released = false, armed = false
     func arm() { armed = true }
@@ -206,15 +213,28 @@ final class CapabilityColdStartRuntimeTests: XCTestCase, @unchecked Sendable {
     }
     func testCloseDuringQueuedNativeCreationKeepsCountedOrdinaryAndAdapterTails() async throws {
         let baseline = CapabilityAttemptReservation.occupiedSlots, f = try fixture(), runtime = try await opened(f), gate = ColdStartQueueGate()
+        let startupReturn = ColdStartReturnObservation(), closeReturn = ColdStartReturnObservation()
         try await stage(f,runtime,storage: true)
         ExperimentalQueues.construction.async { gate.hold() }; defer { gate.release() }
         try await eventually("construction worker gate not entered") { gate.entered }
-        let startup = Task { try await runtime.start() }
+        let startup = Task { defer { startupReturn.recordReturn() }; return try await runtime.start() }
         try await eventually("concrete setup never opened KV") { FileManager.default.fileExists(atPath: f.root.appendingPathComponent("material_test").path) }
-        let closing = Task { await runtime.close() }
+        let closing = Task { defer { closeReturn.recordReturn() }; await runtime.close() }
         try await eventually("close did not synchronously stop admission") { (await runtime.recoverySnapshot()).activation.phase == .closed }
-        XCTAssertEqual(CapabilityAttemptReservation.occupiedSlots,baseline+1)
-        let pending = await runtime.recoverySnapshot(); XCTAssertTrue(pending.activation.cleanupPending)
+        // Directory creation precedes native construction admission. Close may
+        // win in between and finish without ever entering the held native queue.
+        // Returned capacity is valid only if both actual async tails can return
+        // while that queue remains blocked. A queued tail cannot satisfy this.
+        let pending = await runtime.recoverySnapshot()
+        let occupied = CapabilityAttemptReservation.occupiedSlots
+        if !pending.activation.cleanupPending || occupied != baseline + 1 {
+            try await eventually("capacity returned before blocked startup/close tails") {
+                startupReturn.didReturn && closeReturn.didReturn
+            }
+            XCTAssertEqual(CapabilityAttemptReservation.occupiedSlots,baseline)
+            let completed = await runtime.recoverySnapshot()
+            XCTAssertFalse(completed.activation.cleanupPending)
+        }
         gate.release(); do { _ = try await startup.value; XCTFail("Cancelled queued creation returned live") } catch {}
         await closing.value; try await eventually("actual create/adapter cleanup tail leaked") { CapabilityAttemptReservation.occupiedSlots == baseline }
     }

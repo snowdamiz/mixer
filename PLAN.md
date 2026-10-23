@@ -343,3 +343,26 @@ its exact source is unknown. Remaining observers of that form are being repaired
 The new Android host CI step was skipped by that earlier failure, not passed.
 Original logs remain in `verification/github-ci-22d048c/` and
 `verification/github-ci-d6505ac/`. No failed CI run or skipped gate is relabeled.
+
+
+Common presentation lifetime integration now keeps its once-only obligation
+through the actual Apple task join and final MainActor view retirement. Protected
+setup, failed bind and close races preserve ownership; pending or quarantined
+results cannot release capacity. Owner checks pass 14 XCTest and 13 model/hidden
+window tests per Debug/Release/TSan, with one explicit visible-window skip.
+Independent review passes 13 XCTest per mode plus API-authority negatives; the
+portable unsupported branch passes 32 host cycles per mode. Root audited 1,163
+bindings in `verification/common-presentation-lifetime-root-review/receipt.json`.
+The cold-start CI test now accepts early capacity return only after both actual
+tails finish while its native queue remains held. Deterministic original/repaired
+pre-admission and queued cases pass their 15 expected outcomes across modes;
+see `verification/cold-start-cleanup-ci-repair/final-1/receipt.json`. The original
+hosted interleaving remains unproven. Apple receipts cover view retirement, not
+destruction of publicly retainable model shells; Android binding remains pending.
+
+Hosted020f909 passes all three engine jobs, including the new Android facade host
+regression step. This is the prior Swift-control/C checkpoint, not a hosted pass
+for these newer presentation or observer changes. Hosted d6505ac's Swift job also
+finished successfully; its original VM failure remains retained. Physical phones,
+actual Android signed binding/display, full Swift target execution, immutable
+consumers and GA acceptance remain pending.

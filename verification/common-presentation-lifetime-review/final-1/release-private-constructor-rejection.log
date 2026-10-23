@@ -1,0 +1,55 @@
+/Users/andreyyurlov/Documents/dev/mixer/verification/common-presentation-lifetime-review/.build/final-1/source/verification/common-presentation-lifetime-review/PrivateReceiptClient.swift:4:14: error: 'CapabilityPresentationLifetimeID' initializer is inaccessible due to 'private' protection level
+2 | 
+3 | func forge() throws {
+4 |     let id = CapabilityPresentationLifetimeID(1)
+  |              `- error: 'CapabilityPresentationLifetimeID' initializer is inaccessible due to 'private' protection level
+5 |     _ = CapabilityPresentationJoinPermit(id)
+6 |     _ = CapabilityPresentationLifetimeReceipt(apple: 1, lifetime: id, joined: .joined)
+
+MixerCapabilityActivation.CapabilityPresentationLifetimeID.init:2:9: note: 'init(_:)' declared here
+1 | struct CapabilityPresentationLifetimeID {
+2 | private init(_ value: UInt64)}
+  |         `- note: 'init(_:)' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/common-presentation-lifetime-review/.build/final-1/source/verification/common-presentation-lifetime-review/PrivateReceiptClient.swift:5:9: error: 'CapabilityPresentationJoinPermit' initializer is inaccessible due to 'fileprivate' protection level
+3 | func forge() throws {
+4 |     let id = CapabilityPresentationLifetimeID(1)
+5 |     _ = CapabilityPresentationJoinPermit(id)
+  |         `- error: 'CapabilityPresentationJoinPermit' initializer is inaccessible due to 'fileprivate' protection level
+6 |     _ = CapabilityPresentationLifetimeReceipt(apple: 1, lifetime: id, joined: .joined)
+7 |     _ = CapabilityFacadeCleanupReceipt(facade: 1, cleanupSerial: 1, finalEntrySerial: 1)
+
+MixerCapabilityActivation.CapabilityPresentationJoinPermit.init:2:13: note: 'init(_:)' declared here
+1 | class CapabilityPresentationJoinPermit {
+2 | fileprivate init(_ lifetime: MixerCapabilityActivation.CapabilityPresentationLifetimeID)}
+  |             `- note: 'init(_:)' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/common-presentation-lifetime-review/.build/final-1/source/verification/common-presentation-lifetime-review/PrivateReceiptClient.swift:6:9: error: 'CapabilityPresentationLifetimeReceipt' initializer is inaccessible due to 'fileprivate' protection level
+4 |     let id = CapabilityPresentationLifetimeID(1)
+5 |     _ = CapabilityPresentationJoinPermit(id)
+6 |     _ = CapabilityPresentationLifetimeReceipt(apple: 1, lifetime: id, joined: .joined)
+  |         `- error: 'CapabilityPresentationLifetimeReceipt' initializer is inaccessible due to 'fileprivate' protection level
+7 |     _ = CapabilityFacadeCleanupReceipt(facade: 1, cleanupSerial: 1, finalEntrySerial: 1)
+8 | }
+
+MixerCapabilityActivation.CapabilityPresentationLifetimeReceipt.init:2:13: note: 'init(apple:lifetime:joined:)' declared here
+1 | struct CapabilityPresentationLifetimeReceipt {
+2 | fileprivate init(apple facade: UInt64, lifetime: MixerCapabilityActivation.CapabilityPresentationLifetimeID, joined: MixerCapabilityActivation.CapabilityPresentationTaskJoin)}
+  |             `- note: 'init(apple:lifetime:joined:)' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/common-presentation-lifetime-review/.build/final-1/source/verification/common-presentation-lifetime-review/PrivateReceiptClient.swift:7:9: error: 'CapabilityFacadeCleanupReceipt' initializer is inaccessible due to 'private' protection level
+5 |     _ = CapabilityPresentationJoinPermit(id)
+6 |     _ = CapabilityPresentationLifetimeReceipt(apple: 1, lifetime: id, joined: .joined)
+7 |     _ = CapabilityFacadeCleanupReceipt(facade: 1, cleanupSerial: 1, finalEntrySerial: 1)
+  |         `- error: 'CapabilityFacadeCleanupReceipt' initializer is inaccessible due to 'private' protection level
+8 | }
+9 | 
+
+MixerCapabilityActivation.CapabilityFacadeCleanupReceipt.init:2:9: note: 'init(facade:cleanupSerial:finalEntrySerial:)' declared here
+1 | struct CapabilityFacadeCleanupReceipt {
+2 | private init(facade: UInt64, cleanupSerial: UInt64, finalEntrySerial: UInt64)}
+  |         `- note: 'init(facade:cleanupSerial:finalEntrySerial:)' declared here
+3 | 

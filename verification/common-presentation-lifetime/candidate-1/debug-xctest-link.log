@@ -1,0 +1,85 @@
+/Users/andreyyurlov/Documents/dev/mixer/verification/common-presentation-lifetime/.build/candidate-1/source/capability-activation/Tests/MixerCapabilityActivationTests/GuestUIPresentationLifetimeTests.swift:76:41: error: actor-isolated property 'turns' can not be referenced from a nonisolated autoclosure
+ 20 | 
+ 21 | private actor PresentationRetirementProbe: CapabilityPresentationRetirement {
+ 22 |     private(set) var turns = 0
+    |                      `- note: property declared here
+ 23 |     func retireEmptyPresentation() async -> Bool { turns += 1; return true }
+ 24 | }
+    :
+ 74 |         XCTAssertEqual(early, .pending)
+ 75 |         XCTAssertEqual(lifetime.status, .pending)
+ 76 |         XCTAssertEqual(await retirement.turns, 1) // Only the unrelated empty lifetime retired.
+    |                                         `- error: actor-isolated property 'turns' can not be referenced from a nonisolated autoclosure
+ 77 |         await tail.release()
+ 78 |         let results = await [first.value, second.value]
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/common-presentation-lifetime/.build/candidate-1/source/capability-activation/Tests/MixerCapabilityActivationTests/GuestUIPresentationLifetimeTests.swift:84:41: error: actor-isolated property 'turns' can not be referenced from a nonisolated autoclosure
+ 20 | 
+ 21 | private actor PresentationRetirementProbe: CapabilityPresentationRetirement {
+ 22 |     private(set) var turns = 0
+    |                      `- note: property declared here
+ 23 |     func retireEmptyPresentation() async -> Bool { turns += 1; return true }
+ 24 | }
+    :
+ 82 |         XCTAssertEqual(joined.taskJoin, .joined)
+ 83 |         XCTAssertNil(joined.endpoint); XCTAssertNil(joined.facadeCleanup)
+ 84 |         XCTAssertEqual(await retirement.turns, 2)
+    |                                         `- error: actor-isolated property 'turns' can not be referenced from a nonisolated autoclosure
+ 85 |         XCTAssertEqual(lifetime.status, .finished(.retired(joined)))
+ 86 |         XCTAssertEqual(await lifetime.finish(using: permit), lifetime.status)
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/common-presentation-lifetime/.build/candidate-1/source/capability-activation/Tests/MixerCapabilityActivationTests/GuestUIPresentationLifetimeTests.swift:76:24: error: 'await' in an autoclosure that does not support concurrency
+ 74 |         XCTAssertEqual(early, .pending)
+ 75 |         XCTAssertEqual(lifetime.status, .pending)
+ 76 |         XCTAssertEqual(await retirement.turns, 1) // Only the unrelated empty lifetime retired.
+    |                        `- error: 'await' in an autoclosure that does not support concurrency
+ 77 |         await tail.release()
+ 78 |         let results = await [first.value, second.value]
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/common-presentation-lifetime/.build/candidate-1/source/capability-activation/Tests/MixerCapabilityActivationTests/GuestUIPresentationLifetimeTests.swift:84:24: error: 'await' in an autoclosure that does not support concurrency
+ 82 |         XCTAssertEqual(joined.taskJoin, .joined)
+ 83 |         XCTAssertNil(joined.endpoint); XCTAssertNil(joined.facadeCleanup)
+ 84 |         XCTAssertEqual(await retirement.turns, 2)
+    |                        `- error: 'await' in an autoclosure that does not support concurrency
+ 85 |         XCTAssertEqual(lifetime.status, .finished(.retired(joined)))
+ 86 |         XCTAssertEqual(await lifetime.finish(using: permit), lifetime.status)
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/common-presentation-lifetime/.build/candidate-1/source/capability-activation/Tests/MixerCapabilityActivationTests/GuestUIPresentationLifetimeTests.swift:86:30: error: 'async' call in an autoclosure that does not support concurrency
+ 84 |         XCTAssertEqual(await retirement.turns, 2)
+ 85 |         XCTAssertEqual(lifetime.status, .finished(.retired(joined)))
+ 86 |         XCTAssertEqual(await lifetime.finish(using: permit), lifetime.status)
+    |                              `- error: 'async' call in an autoclosure that does not support concurrency
+ 87 |     }
+ 88 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/common-presentation-lifetime/.build/candidate-1/source/capability-activation/Tests/MixerCapabilityActivationTests/GuestUIPresentationLifetimeTests.swift:97:30: error: 'async' call in an autoclosure that does not support concurrency
+ 95 |         XCTAssertEqual(cleaned.taskJoin, .noTaskCreated)
+ 96 |         XCTAssertEqual(publicModel.state, .stopped)
+ 97 |         XCTAssertEqual(await prepared.cleanupAfterFailure(), .finished(.retired(cleaned)))
+    |                              `- error: 'async' call in an autoclosure that does not support concurrency
+ 98 |         reservation.beginClosing(); XCTAssertTrue(reservation.isReleased)
+ 99 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/common-presentation-lifetime/.build/candidate-1/source/capability-activation/Tests/MixerCapabilityActivationTests/GuestUIPresentationLifetimeTests.swift:106:30: error: 'async' call in an autoclosure that does not support concurrency
+104 |         XCTAssertThrowsError(try transferred.transfer(to: control))
+105 |         // A disarmed setup guard cannot steal the core's initial permit.
+106 |         XCTAssertEqual(await transferred.cleanupAfterFailure(), .pending)
+    |                              `- error: 'async' call in an autoclosure that does not support concurrency
+107 |         let binding = transferred.binding
+108 |         binding.requestFinalClose(.closed)
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/common-presentation-lifetime/.build/candidate-1/source/capability-activation/Tests/MixerCapabilityActivationTests/GuestUIPresentationLifetimeTests.swift:142:30: error: 'async' call in an autoclosure that does not support concurrency
+140 |         XCTAssertNotEqual(next.lifetime?.id, oldReceipt.lifetime)
+141 |         XCTAssertEqual(next.lifetime?.facade, oldReceipt.facade)
+142 |         XCTAssertEqual(await oldInstallation.finish(), .invariant(.wrongJoinOwner))
+    |                              `- error: 'async' call in an autoclosure that does not support concurrency
+143 |         replacement.stop(.closed)
+144 |         let nextReceipt = try receipt(await next.finish())
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/common-presentation-lifetime/.build/candidate-1/source/capability-activation/Tests/MixerCapabilityActivationTests/GuestUIPresentationLifetimeTests.swift:149:30: error: 'async' call in an autoclosure that does not support concurrency
+147 |         binding.requestFinalClose(.closed)
+148 |         XCTAssertNil(binding.takeFinalJoinPermit())
+149 |         XCTAssertEqual(await binding.finishFinalClose(using: nil), .finished(.retired(nextReceipt)))
+    |                              `- error: 'async' call in an autoclosure that does not support concurrency
+150 |         reservation.beginClosing(); XCTAssertTrue(reservation.isReleased)
+151 |     }

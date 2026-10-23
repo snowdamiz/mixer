@@ -1,0 +1,30 @@
+{
+  "observed_utc": "2026-10-23T17:31:45.195030+00:00",
+  "command": "python3 verification/common-presentation-lifetime-root-review/audit.py",
+  "python": "3.14.8",
+  "auditor_sha256": "379cd36491f4c6cc1c5e5ed130066e02ef5221e546bc74acbf4b145205c199f7",
+  "verified_bindings": 1163,
+  "receipts": {
+    "verification/common-presentation-lifetime/final-1/receipt.json": "b1170406d20390a383d1fede09e43aaddd2cf343f164ad068664c00885f59450",
+    "verification/common-presentation-lifetime/portable-1/receipt.json": "0b306ef510bdbd3c0e7fe385fad8c3c1e0ab5903dc1d50adaa82b8e6d73a4b6b",
+    "verification/common-presentation-lifetime-review/final-1/receipt.json": "5536c7b00ac5bb80a356bf59522cf8818da0cdf17f00b88c61ed9af3ed98ba0b",
+    "verification/cold-start-cleanup-ci-repair/final-1/receipt.json": "8ccfd8f5e4e2797562e6bf73566156e5efe39bb7edd8bc954da8678ceca77ef8"
+  },
+  "independent_seal_sha256": "9c96a31ba2f303303000e45a79a7f5541634245e0486483662ce1de907a770f9",
+  "source_tree_sha256": "8d540e60a53c40267e68de822cee181e22f92b69e61fe023d03e05ad6f247f47",
+  "result": "accepted common presentation lifetime and test-only CI ordering repair",
+  "review": [
+    "Root inspected all changed activation sources, move/finish authority, protected open catches, bind failure cleanup and final-close ordering.",
+    "Once-only pre-bind presentation obligation is acquired before model allocation; actual Task.value plus final MainActor retirement precedes typed receipt.",
+    "Only exact retired status permits reuse; pending/invariant/quarantine cannot free reservation. Unclaimed store admission drops during close.",
+    "Existing queued-native test permits early capacity return only after actual startup and close tails return while the native queue remains held. Deterministic original failure and both real orderings are retained."
+  ],
+  "scope": "Owner14 XCTest and13 Apple model/hidden-window passes plus1explicitvisible skip per Debug/Release/TSan; independent13XCTest plus public/testable API negatives per mode; portable host unsupported branch32cycles per mode. CI repair15expected run outcomes across modes. Root audit only, no additional independent executable rerun.",
+  "limitations": [
+    "Exact hosted cold-start interleaving remains unproven; replay proves the original test rejected a legal ordering.",
+    "TSan instruments rebuilt source; dependencies retain their explicitly recorded uninstrumented objects.",
+    "Apple receipts cover view/resource retirement, not destruction of publicly retained model shells.",
+    "Android signedUI/C/JNI binding remains unimplemented; portable branch tests are not Android builds.",
+    "No physical device, current positive visible-window, immutable consumer, signing/store/customer/operational or GA qualification."
+  ]
+}

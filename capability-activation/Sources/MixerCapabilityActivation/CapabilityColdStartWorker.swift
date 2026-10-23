@@ -8,7 +8,7 @@ actor CapabilityColdStartWorker {
     private let configuration: CapabilityRecoveryConfiguration
     private var installed: InstalledMaterial?
     private let environment: CapabilityRecoveryEnvironment
-    private let admission: CapabilityRecoveryStoreAdmission
+    private var admission: CapabilityRecoveryStoreAdmission?
     private let control: CapabilityColdStartControl
     private let guestUIBinding: CapabilityGuestUIPresentationBinding?
     private var store: CapabilityRecoveryStore?
@@ -24,7 +24,8 @@ actor CapabilityColdStartWorker {
     }
     func open(_ op: CapabilityColdStartOperation) async throws {
         try control.requireCurrent(op)
-        guard let installed else { throw coldStartError("closed") }
+        guard let installed, let admission else { throw coldStartError("closed") }
+        self.admission = nil // One-shot input belongs to this open frame now.
         let opened = try await CapabilityRecoveryStore.open(admission: admission, installed: installed,
             configuration: configuration, environment: environment, guestUI: guestUIBinding != nil)
         store = opened
@@ -73,12 +74,12 @@ actor CapabilityColdStartWorker {
                 switch step {
                 case .live: return
                 case .recovery(let observation):
-                    if let observation { await observation.finish() }
+                    if let observation { try await finishObservation(observation) }
                     return
                 case .fallback(let fallback, let retirement, let observation):
                     // No old concrete/group/session/construction/consumed alias
                     // survives runSelectionOwned's return before either join.
-                    if let observation { await observation.finish() }
+                    if let observation { try await finishObservation(observation) }
                     try control.requireCurrent(op)
                     if let retirement {
                         control.setRetirementWait(retirement)
@@ -95,7 +96,7 @@ actor CapabilityColdStartWorker {
             // Final close owns durable terminal persistence after this ordinary
             // tail. Keep only its consumed metadata, never concrete aliases.
             let observation = control.isClosed ? nil : abandonOwned()
-            if let observation { await observation.finish() }
+            if let observation { try await finishObservation(observation) }
             throw error
         }
     }
@@ -111,9 +112,10 @@ actor CapabilityColdStartWorker {
         do {
             if let guestUIBinding, let exchange {
                 let presentation = try await guestUIBinding.bind(exchange)
-                guard control.installPresentationConsumer(presentation, signals: signals, op: op) else {
+                guard control.installPresentationLifetime(presentation, signals: signals, op: op) else {
                     exchange.stop(.closed)
-                    await presentation.value // Close raced the MainActor bind.
+                    let result = await presentation.finish() // Close raced the MainActor bind.
+                    if !result.isRetired { control.reservation.quarantine() }
                     throw coldStartError("closed")
                 }
                 try control.requireCurrent(op)
@@ -181,6 +183,12 @@ actor CapabilityColdStartWorker {
         try control.requireCurrent(op)
         guard !signals.snapshot.stopped else { throw coldStartError("terminal") }
     }
+    private func finishObservation(_ observation: CapabilityColdStartObservation) async throws {
+        if let result = await observation.finish(), !result.isRetired {
+            control.reservation.quarantine()
+            throw coldStartError("presentation_join")
+        }
+    }
     /// Returns before the caller joins timer/consumer continuations. All concrete
     /// aliases and this actor's unique old consumed payload leave first.
     private func abandonOwned() -> CapabilityColdStartObservation? {
@@ -191,7 +199,7 @@ actor CapabilityColdStartWorker {
     }
     func reportMilestone(_ id: String, _ op: CapabilityColdStartOperation) async throws {
         let observation = try await reportMilestoneOwned(id, op)
-        if let observation { await observation.finish() }
+        if let observation { try await finishObservation(observation) }
     }
     private func reportMilestoneOwned(_ id: String, _ op: CapabilityColdStartOperation) async throws -> CapabilityColdStartObservation? {
         let store = try currentStore(op)
@@ -247,6 +255,7 @@ actor CapabilityColdStartWorker {
         return control.detachObservation()
     }
     func closeStore() async -> CapabilityRecoverySnapshot {
+        admission = nil // An opening-admission failure never claimed a store.
         if let store {
             if let active, let signals, !store.snapshot.requiresReopen {
                 do { _ = try await store.failAndPrepareFallback(active, signals: signals, allowFallback: false) }
