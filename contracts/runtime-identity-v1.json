@@ -1,0 +1,138 @@
+{
+  "schema": 1,
+  "name": "mixer-runtime-identity-v1",
+  "status": "implemented input descriptor; distribution, actual signed build embedding and complete graph capture pending",
+  "domain": "mixer.runtime.identity.v1\\0",
+  "hash": "SHA-256 of UTF-8 domain with final single NUL byte followed by restricted deterministic CBOR descriptor",
+  "canonicalization": "RFC8949 restricted data model reused from release-v1: unsigned integers, booleans, text, arrays and maps with encoded keys lexicographically sorted; preferred shortest integers/lengths; no null/floats/tags/indefinite lengths. Hash covers the entire descriptor.",
+  "input": {
+    "format": "strict JSON; closed field sets at every object; every listed field mandatory",
+    "maximumBytes": 131072,
+    "maximumCanonicalBytes": 131072,
+    "duplicateKeys": "reject including equivalent escaped key spellings",
+    "numbers": "unsigned base10 integer tokens only; uint64 range; no decimal/exponent/negative/bool coercion",
+    "strings": "Identifiers ASCII [A-Za-z0-9_.-], 1..128 bytes; labels printable ASCII1..256 without boundary spaces; startup export exact UTF-8 1..4096 bytes with no U+0000..001F/U+007F; no Unicode normalization",
+    "digests": "64 lowercase hex SHA256 of named immutable build input bytes; empty sets hash their explicit serialized representation, never omit a digest"
+  },
+  "fields": {
+    "schema": 1,
+    "application": [
+      "organization",
+      "project",
+      "app",
+      "environment",
+      "bundle_id"
+    ],
+    "platform": [
+      "os",
+      "architecture",
+      "environment",
+      "minimum_os",
+      "target"
+    ],
+    "engine": [
+      "version",
+      "source_sha256",
+      "artifact_sha256",
+      "profile",
+      "guest_abi",
+      "ui_schema",
+      "ui_contract_sha256",
+      "capability_contract_sha256"
+    ],
+    "toolchain": [
+      "compiler_version",
+      "compiler_sha256",
+      "sdk_version",
+      "sdk_sha256",
+      "build_tools_sha256"
+    ],
+    "dependencies": "see arrays",
+    "capabilities": "see arrays",
+    "build": [
+      "configuration",
+      "settings_sha256",
+      "generated_bridge_sha256",
+      "link_inputs_sha256",
+      "native_fallback_sha256",
+      "permissions_sha256",
+      "entitlements_sha256",
+      "trust_roots_sha256",
+      "resource_policy_sha256"
+    ],
+    "execution": [
+      "startup_export",
+      "startup_ms",
+      "max_payload_bytes",
+      "memory_bytes",
+      "fuel",
+      "operand_stack",
+      "call_depth",
+      "host_calls",
+      "state_schema",
+      "protocol"
+    ]
+  },
+  "arrays": {
+    "dependencies": {
+      "maximum": 128,
+      "fields": [
+        "id",
+        "version",
+        "artifact_sha256"
+      ],
+      "order": "strict ascending unique ASCII id"
+    },
+    "capabilities": {
+      "maximum": 128,
+      "fields": [
+        "id",
+        "schema_sha256",
+        "native_sha256",
+        "configuration_sha256",
+        "grants_sha256"
+      ],
+      "order": "strict ascending unique ASCII id",
+      "protocol": "nonempty capabilities require protocol2; no guest import approval implied"
+    }
+  },
+  "platforms": {
+    "ios": "arm64 device; arm64/x86_64 simulator; minimum major>=17 and canonical 2 or 3 numeric dotted components; exact ARCH-apple-iosMINIMUM[-simulator] target",
+    "android": "arm64/x86_64 device or simulator; canonical unsigned API>=28; target aarch64 or x86_64-unknown-linux-androidAPI"
+  },
+  "engine": {
+    "profiles": [
+      "mixer-integer-v1",
+      "mixer-numeric-v2",
+      "mixer-table-memory-v3"
+    ],
+    "guest_abi": 1,
+    "ui_schema": 1
+  },
+  "execution": {
+    "startup_ms": "1..60000",
+    "max_payload_bytes": "1..4194304",
+    "memory_bytes": "1..4194304 (linear memory only)",
+    "fuel": "1..1000000",
+    "operand_stack": "1..4096",
+    "call_depth": "1..64",
+    "host_calls": "0..1024",
+    "state_schema": "0..uint64max",
+    "protocol": "1 or2"
+  },
+  "authority": {
+    "trustedInput": "Compiled native/build configuration only; release metadata cannot choose the descriptor, fingerprint, installed grants or ceilings",
+    "proof": "Hash equality proves equal descriptors, not accurate or complete build inventory or trusted provenance",
+    "factory": "InstalledRuntime scope, versions, capability schema hashes, state and resource ceilings derive from the same validated descriptor",
+    "embedding": "Build pipeline must capture complete resolved graph and actual input files, then embed descriptor+fingerprint in native binary; signed provenance binds final binary hash to descriptor",
+    "circularity": "Native fallback, engine library and link input identities refer to pre-embedding inputs. Do not include final identity-bearing binary hash as an input to itself.",
+    "compatibility": "Exact fingerprint equality only; no ranges, automatic platform fallback or admission of unsupported VM imports",
+    "grants": "Native configuration/grants/permissions/trust-root files are hashed. This descriptor does not itself authorize network/storage access or bind supplied runtime objects to those file bytes."
+  },
+  "limitations": [
+    "No completed artifact attestation, isolated signed build, store publication, production native embedding or physical qualification",
+    "Input graph completeness and cryptographic trust root capture require separate build pipeline review",
+    "Current activation still rejects nonempty capabilities until guest imports are implemented",
+    "The existing string-based trusted installed policy API remains available for prior consumers; descriptor adoption is explicit"
+  ]
+}

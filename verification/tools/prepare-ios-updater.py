@@ -29,6 +29,9 @@ def main():
     out = a.output.resolve()
     out.mkdir(parents=True, exist_ok=False)
     packages = ['activation', 'runtime', 'updates'] if a.package == 'activation' else [a.package]
+    # Older frozen activation commits predate descriptor-derived identity.
+    if a.package == 'activation' and subprocess.run(['git', 'cat-file', '-e', f'{revision}:runtime-identity/Package.swift'], cwd=ROOT, capture_output=True).returncode == 0:
+        packages.append('runtime-identity')
     archive = subprocess.check_output(['git', 'archive', revision, *packages], cwd=ROOT)
     with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
         tar.extractall(out, filter='data')
@@ -44,7 +47,7 @@ def main():
     product = {'runtime': 'MixerRuntime', 'updates': 'MixerUpdates', 'activation': 'MixerActivation'}[a.package]
     test_target = product + 'Tests'
     shutil.copytree(out / 'package/Tests' / test_target, tests)
-    if a.package == 'updates':
+    if (tests / 'Fixtures').is_dir():
         (tests / 'FixtureBundle.swift').write_text('''import Foundation
 private final class FixtureBundleAnchor: NSObject {}
 extension Bundle { static var module: Bundle { Bundle(for: FixtureBundleAnchor.self) } }
@@ -125,7 +128,7 @@ extension Bundle { static var module: Bundle { Bundle(for: FixtureBundleAnchor.s
     (out / 'prepared.json').write_text(json.dumps({'source_revision': revision,
         'source_archive_sha256': hashlib.sha256(archive).hexdigest(), 'files': hashes,
         'package': a.package, 'native_vm': native_receipt,
-        'scope': 'Original package/test assertions unchanged; Xcode test-host plus updater-only Bundle.module adapter'}, indent=2) + '\n')
+        'scope': 'Original package/test assertions unchanged; Xcode test-host plus test-fixture Bundle.module adapter when resources exist'}, indent=2) + '\n')
     print(project)
 
 

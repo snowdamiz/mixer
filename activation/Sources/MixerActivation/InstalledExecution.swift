@@ -1,6 +1,7 @@
 import Foundation
 import MixerRuntime
 import MixerUpdates
+import MixerRuntimeIdentity
 
 /// Trusted native configuration compiled into an installed binary. The release
 /// cannot choose a profile, entry point, native implementation or higher ceiling.
@@ -12,6 +13,26 @@ public struct InstalledExecution: Sendable {
     public let limits: VMLimits
     public let startupExport: String
     public let maximumStartupMilliseconds: UInt64
+
+    /// Derive execution and verifier policy from the same immutable descriptor.
+    /// Build-input completeness and actual binary embedding remain the native
+    /// build pipeline's responsibility. This cannot enable unimplemented imports.
+    public init(identity: RuntimeIdentity) throws {
+        let profile: VMProfile
+        switch identity.execution.profile {
+        case "mixer-integer-v1": profile = .integerV1
+        case "mixer-numeric-v2": profile = .numericV2
+        case "mixer-table-memory-v3": profile = .tableMemoryV3
+        default: throw UpdateError("activation.configuration", "Unsupported identity profile")
+        }
+        let host = identity.installedRuntime
+        try self.init(runtimeFingerprint: identity.fingerprint, profile: profile,
+            limits: VMLimits(fuel: host.limits.fuel, memoryPages: UInt32(host.limits.memoryBytes / 65_536),
+                operandStack: identity.execution.operandStack, callDepth: identity.execution.callDepth,
+                hostCalls: UInt32(identity.execution.hostCalls)),
+            startupExport: identity.execution.startupExport, maximumStartupMilliseconds: host.limits.startupMilliseconds)
+        try check(host)
+    }
 
     public init(runtimeFingerprint: String, profile: VMProfile, limits: VMLimits = VMLimits(),
                 startupExport: String, maximumStartupMilliseconds: UInt64 = 1_000) throws {

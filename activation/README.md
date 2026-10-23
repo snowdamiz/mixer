@@ -6,9 +6,12 @@ Swift/WASI guest execution, capabilities, UI transport and FieldLog adoption rem
 open; this package does not represent D3–D5 or mobile lifecycle qualification.
 
 The installed app constructs `InstalledExecution` with its exact runtime
-fingerprint, explicit VM profile, native ceilings and startup export. The fingerprint
-must describe the complete installed native build, including this policy. Generating,
-signing and publishing that immutable build identity remain separate work. A release
+fingerprint, explicit VM profile, native ceilings and startup export. Alternatively,
+parse a trusted build descriptor with `RuntimeIdentity(json:)`, use its
+`installedRuntime` for the verifier and pass it to `InstalledExecution(identity:)`.
+Both configurations then derive from the same domain-separated canonical identity.
+The descriptor must describe the complete installed native build, including this
+policy. Actual graph capture, signing, embedding and publishing remain open. A release
 cannot select a profile, entry point or native adapter. This slice rejects any
 installed capability map or signed grant requiring a guest capability import.
 

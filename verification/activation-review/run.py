@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import re
 import shutil
+import subprocess
 import sys
 import tarfile
 sys.dont_write_bytecode = True
@@ -45,19 +46,23 @@ def main():
         record['base_commit'] = run('base-commit', [shutil.which('git', path=env['PATH']), 'rev-parse', 'HEAD']).strip()
         source = work / 'source'
         input_root = ROOT
+        packages = ['activation', 'runtime', 'updates']
         if args.revision:
             git = shutil.which('git', path=env['PATH'])
             revision = run('reviewed-commit', [git, 'rev-parse', args.revision + '^{commit}']).strip()
             archive = work / 'reviewed-source.tar'
-            run('reviewed-export', [git, 'archive', '--format=tar', '--output=' + str(archive), revision,
-                                    'activation', 'runtime', 'updates'])
+            if subprocess.run([git, 'cat-file', '-e', revision + ':runtime-identity/Package.swift'], cwd=ROOT, capture_output=True).returncode == 0:
+                packages.append('runtime-identity')
+            run('reviewed-export', [git, 'archive', '--format=tar', '--output=' + str(archive), revision, *packages])
             record['reviewed_commit'] = revision
             record['reviewed_archive_sha256'] = helper.digest(archive)
             input_root = work / 'exported'
             with tarfile.open(archive) as stream:
                 stream.extractall(input_root, filter='data')
+        elif (ROOT / 'runtime-identity/Package.swift').exists():
+            packages.append('runtime-identity')
         manifest = {}
-        for package in ('activation', 'runtime', 'updates'):
+        for package in packages:
             for relative in ('Package.swift', 'Package.resolved', 'Sources', 'Tests'):
                 original = input_root / package / relative
                 if not original.exists():

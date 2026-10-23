@@ -4,7 +4,7 @@
   "implementation": "activation/Sources/MixerActivation",
   "installed_policy": {
     "authority": "trusted compiled native embedding, never a downloaded manifest or unsigned sidecar",
-    "runtime_fingerprint": "exact equality with InstalledRuntime and verified artifact; complete build fingerprint generation/publication remains open",
+    "runtime_fingerprint": "exact equality with InstalledRuntime and verified artifact; optional RuntimeIdentity descriptor factory derives hash and directly represented host/VM policy together. Actual complete build input capture, signed embedding and publication remain open.",
     "profile": "explicit integer-v1, numeric-v2 or table-memory-v3; guest cannot select",
     "startup_export": "fixed nonempty UTF-8 name <=4096 bytes; no startup arguments",
     "maximum_startup_milliseconds": "1..60000; effective minimum with signed artifact",
@@ -34,10 +34,19 @@
     "native_fallback": "embedding launches its actual compiled implementation; coordinator does not fabricate native success",
     "health": "successful startup plus installed host-reported required milestones and durable updater monotonic observation interval",
     "deterministic_traps": [
-      "unreachable", "fuel_exhausted", "memory_out_of_bounds", "table_out_of_bounds",
-      "indirect_call_null", "indirect_call_type_mismatch", "call_depth_exceeded",
-      "operand_stack_exceeded", "integer_divide_by_zero", "integer_overflow",
-      "invalid_conversion_to_integer", "host_call_limit", "host_abort"
+      "unreachable",
+      "fuel_exhausted",
+      "memory_out_of_bounds",
+      "table_out_of_bounds",
+      "indirect_call_null",
+      "indirect_call_type_mismatch",
+      "call_depth_exceeded",
+      "operand_stack_exceeded",
+      "integer_divide_by_zero",
+      "integer_overflow",
+      "invalid_conversion_to_integer",
+      "host_call_limit",
+      "host_abort"
     ],
     "other_failures": "unknown interruption; argument errors, cancellation, unsupported native float state and contained native panic never count as deterministic guest traps",
     "post_start_failure": "close guest, return error and native-fallback snapshot; do not live-switch to another guest",

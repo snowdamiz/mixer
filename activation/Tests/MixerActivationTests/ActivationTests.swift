@@ -4,6 +4,7 @@ import Testing
 import Crypto
 import MixerRuntime
 import MixerUpdates
+import MixerRuntimeIdentity
 @testable import MixerActivation
 
 private final class Clock: @unchecked Sendable {
@@ -22,7 +23,10 @@ private struct Offer {
 
 private struct Fixture {
     let protocolVersion: UInt64
-    init(protocolVersion: UInt64 = 1) { self.protocolVersion = protocolVersion }
+    init(protocolVersion: UInt64 = 1, runtimeFingerprint: String? = nil) {
+        self.protocolVersion = protocolVersion
+        fingerprint = runtimeFingerprint ?? ReleaseVerifier.sha256(Data("owned-VM-test-installed-build-v1".utf8))
+    }
     // Originally authored guest counter, with retained mutable global/memory.
     static let counter = Data([0,97,115,109,1,0,0,0,
         1,5,1,96,0,1,127,3,2,1,0,5,4,1,1,1,1,
@@ -34,7 +38,7 @@ private struct Fixture {
     let directory = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-activation-\(UUID().uuidString)")
     let clock = Clock()
     let now: UInt64 = 1_792_627_300
-    let fingerprint = ReleaseVerifier.sha256(Data("owned-VM-test-installed-build-v1".utf8))
+    let fingerprint: String
     let scope = UpdateScope(organization: "test-org", project: "test-project", app: "test-app", environment: "development", platform: "ios")
     var scopeValue: CanonicalValue { .object(["organization": .text(scope.organization), "project": .text(scope.project),
         "app": .text(scope.app), "environment": .text(scope.environment), "platform": .text(scope.platform)]) }
@@ -105,6 +109,38 @@ private func rejects(_ code: String? = nil, _ operation: () async throws -> Void
 
 @Suite(.serialized)
 struct ActivationTests {
+    @Test func identityDerivedPolicyVerifiesAndStartsSameSignedGuest() async throws {
+        let path = try #require(Bundle.module.url(forResource: "runtime-identity", withExtension: "json", subdirectory: "Fixtures"))
+        let identity = try RuntimeIdentity(json: Data(contentsOf: path))
+        let policy = try InstalledExecution(identity: identity)
+        let f = Fixture(protocolVersion: 2, runtimeFingerprint: identity.fingerprint); defer { f.clean() }
+        let runtime = try ColdStartRuntime.open(configuration: ColdStartConfiguration(directory: f.directory,
+            channel: "beta", installation: "test-installation", reserveDiskBytes: 0, monotonicNanoseconds: { f.clock.now() }),
+            verifier: f.verifier(host: identity.installedRuntime), execution: policy)
+        try await f.stage(f.offer(), on: runtime)
+        #expect(try await runtime.start(now: f.now).startupResult?.value == .i32(1))
+        #expect(try await runtime.invoke("run").value == .i32(2))
+        #expect(policy.runtimeFingerprint == identity.installedRuntime.runtime)
+        #expect(policy.limits.memoryPages == 64 && policy.maximumStartupMilliseconds == 5_000)
+        await runtime.close()
+
+        // A trusted policy from another descriptor cannot be paired with this
+        // verifier merely because both are individually well-formed.
+        let otherPolicy = try Fixture().policy()
+        await rejects("activation.compatibility") {
+            _ = try ColdStartRuntime.open(configuration: ColdStartConfiguration(directory: f.directory,
+                channel: "beta", installation: "test-installation", reserveDiskBytes: 0),
+                verifier: f.verifier(host: identity.installedRuntime), execution: otherPolicy)
+        }
+    }
+
+    @Test func identityCapabilitiesCannotEnableUnimplementedGuestImports() throws {
+        let path = try #require(Bundle.module.url(forResource: "runtime-identity-capabilities", withExtension: "json", subdirectory: "Fixtures"))
+        let identity = try RuntimeIdentity(json: Data(contentsOf: path))
+        #expect(identity.installedRuntime.capabilityHashes.count == 1)
+        #expect(throws: UpdateError.self) { try InstalledExecution(identity: identity) }
+    }
+
     @Test func emptyStoreSelectsRealNativeFallbackAndCannotExecuteGuest() async throws {
         let f = Fixture(); defer { f.clean() }; let runtime = try f.open()
         let status = try await runtime.start(now: f.now)
