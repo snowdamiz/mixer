@@ -1,0 +1,55 @@
+{
+  "classification": "The original observer is unsound in a multi-threaded test process; independently synchronized allocation reproduces the 900-byte false leak and global fault-ordinal interference.",
+  "ci_origin_limit": "The saved CI log does not identify the exact allocation or thread responsible for its 900-byte change; no claim of allocation stack attribution is made.",
+  "production_change_scope": "None; only the two assigned allocation tests and their common observer helper.",
+  "preserved_assertion_counts": {
+    "span_function_cache_allocations.rs": {
+      "original_assertions": 30,
+      "repaired_assertions": 30
+    },
+    "span_execution_allocations.rs": {
+      "original_assertions": 23,
+      "repaired_assertions": 23
+    }
+  },
+  "original_live_reproduction": {
+    "left": 8095,
+    "right": 7195,
+    "delta": 900,
+    "exit": 101
+  },
+  "original_fault_reproduction": {
+    "background_allocation_denied": true,
+    "foreground_constructor_succeeded": true,
+    "observed_requests": 3,
+    "exit": 101
+  },
+  "repaired_observations": {
+    "cache": {
+      "constructor_calls": 2,
+      "decode_calls": 3,
+      "constructor_requested_peak": 1248,
+      "decode_requested_peak": 4277,
+      "max_owned_slots": 17
+    },
+    "execution": {
+      "constructor_calls": 6,
+      "invoke_calls": 4,
+      "constructor_requested_peak": 462872,
+      "invoke_requested_peak": 131357,
+      "max_owned_slots": 37
+    },
+    "ledger_capacity": 4096,
+    "identical_debug_release_noise_baseline": true
+  },
+  "tools": {
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "git": "git version 2.56.0"
+  },
+  "limits": [
+    "Single synchronous ownership lane; future test-owned worker allocations would need explicit attribution.",
+    "Unregister before System.dealloc; hold ledger lock across System.realloc to protect address lifetimes.",
+    "Ledger overflow aborts, never silently omits bytes.",
+    "Device, compiler target, signing, package publication, release and GA gates remain outside this host test slice."
+  ]
+}

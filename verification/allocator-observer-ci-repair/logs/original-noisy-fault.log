@@ -1,0 +1,25 @@
+CWD: /var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-original-observer-ole4peb6/source
+COMMAND: cargo test --locked --manifest-path vm/Cargo.toml --features experimental-span-execution --test span_function_cache_allocations -- --nocapture
+   Compiling mixer-vm v0.1.0 (/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-original-observer-ole4peb6/source/vm)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.18s
+     Running tests/span_function_cache_allocations.rs (/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-original-observer-ole4peb6/target/debug/deps/span_function_cache_allocations-85d7600df72539fd)
+
+running 1 test
+cache observation: constructor_allocations=2 decode_allocations=3 constructor_requested_peak=1248 decode_requested_peak=4277 peak_cache_reserved=15605 peak_total_reserved=17419 work=5871
+original fault reproduction: background_allocated=false requested_calls=3
+
+thread 'every_allocation_ordinal_cancellation_and_requested_peak_cleanup' (52986034) panicked at tests/span_function_cache_allocations.rs:240:26:
+called `Option::unwrap()` on a `None` value
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test every_allocation_ordinal_cancellation_and_requested_peak_cleanup ... FAILED
+
+failures:
+
+failures:
+    every_allocation_ordinal_cancellation_and_requested_peak_cleanup
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `--test span_function_cache_allocations`
+
+EXIT: 101

@@ -3,97 +3,16 @@ mod common;
 use common::*;
 use mixer_vm::experimental::{cache::*, execution::*, validate_spans, ValidationBudget};
 use mixer_vm::{Cancellation, Limits, Profile, Type, Value};
-use std::alloc::{GlobalAlloc, Layout, System};
-use std::sync::atomic::{AtomicBool, AtomicPtr, AtomicUsize, Ordering::SeqCst};
+#[path = "common/allocation_observer.rs"]
+mod allocation_observer;
+use allocation_observer::{
+    begin as start, Background, Observed, Ownership, CALLS as REQUESTS, LIVE, MAX_SLOTS,
+    PEAK as HIGH, REALLOCATIONS as RESIZES,
+};
+use std::sync::atomic::Ordering::SeqCst;
 
-struct Allocator;
-static TRACK: AtomicBool = AtomicBool::new(false);
-static LIVE: AtomicUsize = AtomicUsize::new(0);
-static HIGH: AtomicUsize = AtomicUsize::new(0);
-static REQUESTS: AtomicUsize = AtomicUsize::new(0);
-static RESIZES: AtomicUsize = AtomicUsize::new(0);
-static DENY: AtomicUsize = AtomicUsize::new(0);
-static STOP: AtomicUsize = AtomicUsize::new(0);
-static TOKEN: AtomicPtr<Cancellation> = AtomicPtr::new(std::ptr::null_mut());
-fn admit() -> bool {
-    if !TRACK.load(SeqCst) {
-        return true;
-    }
-    let n = REQUESTS.fetch_add(1, SeqCst) + 1;
-    if n == STOP.load(SeqCst) {
-        let token = TOKEN.load(SeqCst);
-        if !token.is_null() {
-            // The only test keeps this token alive until tracking ends.
-            unsafe {
-                (&*token).cancel();
-            }
-        }
-    }
-    n != DENY.load(SeqCst)
-}
-fn account(bytes: usize) {
-    let next = LIVE.fetch_add(bytes, SeqCst) + bytes;
-    if TRACK.load(SeqCst) {
-        HIGH.fetch_max(next, SeqCst);
-    }
-}
-unsafe impl GlobalAlloc for Allocator {
-    unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
-        if !admit() {
-            return std::ptr::null_mut();
-        }
-        let p = System.alloc(layout);
-        if !p.is_null() {
-            account(layout.size());
-        }
-        p
-    }
-    unsafe fn alloc_zeroed(&self, layout: Layout) -> *mut u8 {
-        if !admit() {
-            return std::ptr::null_mut();
-        }
-        let p = System.alloc_zeroed(layout);
-        if !p.is_null() {
-            account(layout.size());
-        }
-        p
-    }
-    unsafe fn realloc(&self, pointer: *mut u8, layout: Layout, bytes: usize) -> *mut u8 {
-        if TRACK.load(SeqCst) {
-            RESIZES.fetch_add(1, SeqCst);
-        }
-        if !admit() {
-            return std::ptr::null_mut();
-        }
-        let p = System.realloc(pointer, layout, bytes);
-        if !p.is_null() {
-            LIVE.fetch_sub(layout.size(), SeqCst);
-            account(bytes);
-        }
-        p
-    }
-    unsafe fn dealloc(&self, pointer: *mut u8, layout: Layout) {
-        System.dealloc(pointer, layout);
-        LIVE.fetch_sub(layout.size(), SeqCst);
-    }
-}
 #[global_allocator]
-static ALLOCATOR: Allocator = Allocator;
-fn start(deny: usize, stop: usize, token: &Cancellation) -> usize {
-    let before = LIVE.load(SeqCst);
-    HIGH.store(before, SeqCst);
-    REQUESTS.store(0, SeqCst);
-    RESIZES.store(0, SeqCst);
-    DENY.store(deny, SeqCst);
-    STOP.store(stop, SeqCst);
-    TOKEN.store(std::ptr::from_ref(token).cast_mut(), SeqCst);
-    TRACK.store(true, SeqCst);
-    before
-}
-fn end() {
-    TRACK.store(false, SeqCst);
-    TOKEN.store(std::ptr::null_mut(), SeqCst);
-}
+static ALLOCATOR: Observed = Observed;
 fn cache(bytes: &[u8]) -> FunctionCache {
     let token = Cancellation::default();
     let limits = Limits {
@@ -127,21 +46,24 @@ fn clean(span: &SpanInstance) {
 }
 #[test]
 fn every_allocator_failure_and_cancel_ordinal_is_fallible_and_cleans_owned_pins() {
+    let background = Background::new();
+    let _ownership = Ownership::new();
+    background.check_observer();
     let bytes = module();
     let token = Cancellation::default();
     let proof = cache(&bytes);
-    let baseline = start(0, 0, &token);
+    let operation = start(0, 0, &token);
     let result = SpanInstance::new(proof, ExecutionBudget::default(), token.clone());
-    end();
+    let baseline = operation.finish();
     let constructor_allocations = REQUESTS.load(SeqCst);
     let constructor_peak = HIGH.load(SeqCst) - baseline;
     let mut span = result.unwrap();
     assert_eq!(constructor_allocations, 6);
     assert_eq!(RESIZES.load(SeqCst), 0);
     assert!(constructor_peak <= span.usage().peak_state_reserved);
-    let baseline = start(0, 0, &token);
+    let operation = start(0, 0, &token);
     let result = span.invoke("run", &[]);
-    end();
+    let baseline = operation.finish();
     assert_eq!(result.unwrap(), Some(Value::I32(1)));
     let invoke_allocations = REQUESTS.load(SeqCst);
     let invoke_peak = HIGH.load(SeqCst) - baseline;
@@ -155,9 +77,9 @@ fn every_allocator_failure_and_cancel_ordinal_is_fallible_and_cleans_owned_pins(
     // Warm-cache dispatch, successful returns and a declared-limit grow denial
     // are allocation-free, even with the allocator refusing its first request.
     assert_eq!(span.invoke("run", &[]).unwrap(), Some(Value::I32(2)));
-    start(1, 0, &token);
+    let operation = start(1, 0, &token);
     let third = span.invoke("run", &[]);
-    end();
+    operation.finish();
     assert_eq!(third.unwrap(), Some(Value::I32(-1)));
     assert_eq!(REQUESTS.load(SeqCst), 0);
     drop(span);
@@ -165,9 +87,9 @@ fn every_allocator_failure_and_cancel_ordinal_is_fallible_and_cleans_owned_pins(
         let token = Cancellation::default();
         let before = LIVE.load(SeqCst);
         let proof = cache(&bytes);
-        start(ordinal, 0, &token);
+        let operation = start(ordinal, 0, &token);
         let result = SpanInstance::new(proof, ExecutionBudget::default(), token.clone());
-        end();
+        operation.finish();
         let error = result.err().unwrap();
         assert_eq!(
             error.kind,
@@ -179,9 +101,9 @@ fn every_allocator_failure_and_cancel_ordinal_is_fallible_and_cleans_owned_pins(
         let token = Cancellation::default();
         let before = LIVE.load(SeqCst);
         let proof = cache(&bytes);
-        start(0, ordinal, &token);
+        let operation = start(0, ordinal, &token);
         let result = SpanInstance::new(proof, ExecutionBudget::default(), token.clone());
-        end();
+        operation.finish();
         assert_eq!(result.err().unwrap().kind, ExecutionFailureKind::Cancelled);
         assert_eq!(LIVE.load(SeqCst), before);
     }
@@ -190,9 +112,9 @@ fn every_allocator_failure_and_cancel_ordinal_is_fallible_and_cleans_owned_pins(
         let mut span =
             SpanInstance::new(cache(&bytes), ExecutionBudget::default(), token.clone()).unwrap();
         let before = LIVE.load(SeqCst);
-        start(ordinal, 0, &token);
+        let operation = start(ordinal, 0, &token);
         let result = span.invoke("run", &[]);
-        end();
+        operation.finish();
         let error = result.unwrap_err();
         assert!(matches!(
             error.kind,
@@ -203,17 +125,17 @@ fn every_allocator_failure_and_cancel_ordinal_is_fallible_and_cleans_owned_pins(
         // A failed cache decode releases all temporary allocations. A growth
         // failure may leave one retained decoded entry, still explicitly counted.
         assert!(LIVE.load(SeqCst) <= before + span.cache_usage().resident_bytes);
-        start(1, 0, &token);
+        let operation = start(1, 0, &token);
         let repeated = span.invoke("run", &[]);
-        end();
+        operation.finish();
         assert_eq!(repeated, Err(error));
         assert_eq!(REQUESTS.load(SeqCst), 0);
         let token = Cancellation::default();
         let mut span =
             SpanInstance::new(cache(&bytes), ExecutionBudget::default(), token.clone()).unwrap();
-        start(0, ordinal, &token);
+        let operation = start(0, ordinal, &token);
         let result = span.invoke("run", &[]);
-        end();
+        operation.finish();
         let error = result.unwrap_err();
         assert!(
             error.kind == ExecutionFailureKind::Cancelled
@@ -223,5 +145,10 @@ fn every_allocator_failure_and_cancel_ordinal_is_fallible_and_cleans_owned_pins(
         );
         clean(&span);
     }
+    println!(
+        "observer maximum ownership slots={} capacity=4096 background_noise={}",
+        MAX_SLOTS.load(SeqCst),
+        std::env::var_os("MIXER_ALLOCATOR_NOISE").is_some()
+    );
     println!("owned allocation observations: constructor_allocations={constructor_allocations} initial_invoke_allocations={invoke_allocations} constructor_requested_peak={constructor_peak} invoke_requested_peak={invoke_peak}; every failure/cancellation ordinal cleaned");
 }

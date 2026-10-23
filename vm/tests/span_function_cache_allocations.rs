@@ -3,102 +3,15 @@ mod common;
 use common::*;
 use mixer_vm::experimental::{cache::*, validate_spans, ValidatedSpans, ValidationBudget};
 use mixer_vm::{Cancellation, Limits, Type};
-use std::alloc::{GlobalAlloc, Layout, System};
-use std::sync::atomic::{AtomicBool, AtomicPtr, AtomicUsize, Ordering::SeqCst};
+#[path = "common/allocation_observer.rs"]
+mod allocation_observer;
+use allocation_observer::{
+    begin, Background, Observed, Ownership, CALLS, LIVE, MAX_SLOTS, PEAK, REALLOCATIONS,
+};
+use std::sync::atomic::Ordering::SeqCst;
 
-// One test in its own process: gate allocation failures and cancellation without
-// allocator hooks or test-only branches in product code.
-struct Observed;
-static ACTIVE: AtomicBool = AtomicBool::new(false);
-static LIVE: AtomicUsize = AtomicUsize::new(0);
-static PEAK: AtomicUsize = AtomicUsize::new(0);
-static CALLS: AtomicUsize = AtomicUsize::new(0);
-static REALLOCATIONS: AtomicUsize = AtomicUsize::new(0);
-static FAIL: AtomicUsize = AtomicUsize::new(0);
-static CANCEL_AT: AtomicUsize = AtomicUsize::new(0);
-static CANCEL: AtomicPtr<Cancellation> = AtomicPtr::new(std::ptr::null_mut());
-fn request() -> bool {
-    if !ACTIVE.load(SeqCst) {
-        return true;
-    }
-    let call = CALLS.fetch_add(1, SeqCst) + 1;
-    if call == CANCEL_AT.load(SeqCst) {
-        let pointer = CANCEL.load(SeqCst);
-        if !pointer.is_null() {
-            // The single test publishes a borrowed stable cancellation flag only
-            // for this synchronous allocation interval and clears it afterwards.
-            unsafe {
-                (&*pointer).cancel();
-            }
-        }
-    }
-    call != FAIL.load(SeqCst)
-}
-fn added(bytes: usize) {
-    let live = LIVE.fetch_add(bytes, SeqCst) + bytes;
-    if ACTIVE.load(SeqCst) {
-        PEAK.fetch_max(live, SeqCst);
-    }
-}
-unsafe impl GlobalAlloc for Observed {
-    unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
-        if !request() {
-            return std::ptr::null_mut();
-        }
-        let pointer = System.alloc(layout);
-        if !pointer.is_null() {
-            added(layout.size());
-        }
-        pointer
-    }
-    unsafe fn alloc_zeroed(&self, layout: Layout) -> *mut u8 {
-        if !request() {
-            return std::ptr::null_mut();
-        }
-        let pointer = System.alloc_zeroed(layout);
-        if !pointer.is_null() {
-            added(layout.size());
-        }
-        pointer
-    }
-    unsafe fn dealloc(&self, pointer: *mut u8, layout: Layout) {
-        System.dealloc(pointer, layout);
-        LIVE.fetch_sub(layout.size(), SeqCst);
-    }
-    unsafe fn realloc(&self, pointer: *mut u8, layout: Layout, bytes: usize) -> *mut u8 {
-        if ACTIVE.load(SeqCst) {
-            REALLOCATIONS.fetch_add(1, SeqCst);
-        }
-        if !request() {
-            return std::ptr::null_mut();
-        }
-        let next = System.realloc(pointer, layout, bytes);
-        if !next.is_null() {
-            LIVE.fetch_sub(layout.size(), SeqCst);
-            added(bytes);
-        }
-        next
-    }
-}
 #[global_allocator]
 static ALLOCATOR: Observed = Observed;
-fn begin(fail: usize, cancel_at: usize, cancellation: &Cancellation) -> usize {
-    let baseline = LIVE.load(SeqCst);
-    PEAK.store(baseline, SeqCst);
-    CALLS.store(0, SeqCst);
-    REALLOCATIONS.store(0, SeqCst);
-    FAIL.store(fail, SeqCst);
-    CANCEL_AT.store(cancel_at, SeqCst);
-    CANCEL.store(std::ptr::from_ref(cancellation).cast_mut(), SeqCst);
-    ACTIVE.store(true, SeqCst);
-    baseline
-}
-fn finish() {
-    ACTIVE.store(false, SeqCst);
-    FAIL.store(0, SeqCst);
-    CANCEL_AT.store(0, SeqCst);
-    CANCEL.store(std::ptr::null_mut(), SeqCst);
-}
 fn proof(bytes: &[u8]) -> ValidatedSpans {
     validate_spans(
         bytes,
@@ -123,10 +36,10 @@ fn observe(label: &str, bytes: &[u8]) {
     let before = LIVE.load(SeqCst);
     let spans = proof(bytes);
     let proof_requested = LIVE.load(SeqCst) - before;
-    let baseline = begin(0, 0, &cancel);
+    let operation = begin(0, 0, &cancel);
     let mut cache = FunctionCache::new(spans, CacheBudget::default(), &cancel).unwrap();
     let pin = cache.pin(0, &cancel).unwrap();
-    finish();
+    let baseline = operation.finish();
     let peak = PEAK.load(SeqCst) - baseline;
     let calls = CALLS.load(SeqCst);
     let usage = cache.usage();
@@ -141,22 +54,25 @@ fn observe(label: &str, bytes: &[u8]) {
 }
 #[test]
 fn every_allocation_ordinal_cancellation_and_requested_peak_cleanup() {
+    let background = Background::new();
+    let _ownership = Ownership::new();
+    background.check_observer();
     let bytes = bytes();
     let cancel = Cancellation::default();
     let before_proof = LIVE.load(SeqCst);
     let spans = proof(&bytes);
-    let baseline = begin(0, 0, &cancel);
+    let operation = begin(0, 0, &cancel);
     let result = FunctionCache::new(spans, CacheBudget::default(), &cancel);
-    finish();
+    let baseline = operation.finish();
     let constructor_calls = CALLS.load(SeqCst);
     let mut cache = result.unwrap();
     assert_eq!(constructor_calls, 2);
     assert_eq!(REALLOCATIONS.load(SeqCst), 0);
     let constructor_peak = PEAK.load(SeqCst) - baseline;
     assert!(constructor_peak <= cache.usage().peak_cache_reserved);
-    let baseline = begin(0, 0, &cancel);
+    let operation = begin(0, 0, &cancel);
     let result = cache.pin(0, &cancel);
-    finish();
+    let baseline = operation.finish();
     let decode_calls = CALLS.load(SeqCst);
     let requested_peak = PEAK.load(SeqCst) - baseline;
     let pin = result.unwrap();
@@ -165,9 +81,9 @@ fn every_allocation_ordinal_cancellation_and_requested_peak_cleanup() {
     assert_eq!(requested_peak, cache.usage().resident_bytes);
     assert!(constructor_peak + requested_peak <= cache.usage().peak_cache_reserved);
     let usage = cache.usage();
-    let baseline = begin(1, 0, &cancel);
+    let operation = begin(1, 0, &cancel);
     let hit = cache.pin(0, &cancel);
-    finish();
+    let baseline = operation.finish();
     let hit = hit.unwrap();
     assert_eq!(CALLS.load(SeqCst), 0);
     assert_eq!(LIVE.load(SeqCst), baseline);
@@ -179,9 +95,9 @@ fn every_allocation_ordinal_cancellation_and_requested_peak_cleanup() {
     for ordinal in 1..=constructor_calls {
         let before = LIVE.load(SeqCst);
         let spans = proof(&bytes);
-        begin(ordinal, 0, &cancel);
+        let operation = begin(ordinal, 0, &cancel);
         let result = FunctionCache::new(spans, CacheBudget::default(), &cancel);
-        finish();
+        operation.finish();
         assert_eq!(
             result.err().unwrap().kind,
             CacheFailureKind::AllocationFailure,
@@ -193,9 +109,9 @@ fn every_allocation_ordinal_cancellation_and_requested_peak_cleanup() {
         let before = LIVE.load(SeqCst);
         let cancel = Cancellation::default();
         let spans = proof(&bytes);
-        begin(0, ordinal, &cancel);
+        let operation = begin(0, ordinal, &cancel);
         let result = FunctionCache::new(spans, CacheBudget::default(), &cancel);
-        finish();
+        operation.finish();
         assert_eq!(
             result.err().unwrap().kind,
             CacheFailureKind::Cancelled,
@@ -207,9 +123,9 @@ fn every_allocation_ordinal_cancellation_and_requested_peak_cleanup() {
     for ordinal in 1..=decode_calls {
         let before = LIVE.load(SeqCst);
         let mut cache = FunctionCache::new(proof(&bytes), CacheBudget::default(), &cancel).unwrap();
-        let baseline = begin(ordinal, 0, &cancel);
+        let operation = begin(ordinal, 0, &cancel);
         let result = cache.pin(0, &cancel);
-        finish();
+        let baseline = operation.finish();
         assert_eq!(
             result.unwrap_err().kind,
             CacheFailureKind::AllocationFailure,
@@ -233,9 +149,9 @@ fn every_allocation_ordinal_cancellation_and_requested_peak_cleanup() {
         let before = LIVE.load(SeqCst);
         let cancel = Cancellation::default();
         let mut cache = FunctionCache::new(proof(&bytes), CacheBudget::default(), &cancel).unwrap();
-        let baseline = begin(0, ordinal, &cancel);
+        let operation = begin(0, ordinal, &cancel);
         let result = cache.pin(0, &cancel);
-        finish();
+        let baseline = operation.finish();
         assert_eq!(
             result.unwrap_err().kind,
             CacheFailureKind::Cancelled,
@@ -267,9 +183,9 @@ fn every_allocation_ordinal_cancellation_and_requested_peak_cleanup() {
     .unwrap();
     let old = cache.pin(1, &cancel).unwrap();
     cache.release(old).unwrap();
-    begin(2, 0, &cancel);
+    let operation = begin(2, 0, &cancel);
     let failed = cache.pin(0, &cancel);
-    finish();
+    operation.finish();
     assert_eq!(
         failed.unwrap_err().kind,
         CacheFailureKind::AllocationFailure
@@ -283,9 +199,9 @@ fn every_allocation_ordinal_cancellation_and_requested_peak_cleanup() {
         (0, 0, 1)
     );
     let pin = cache.pin(0, &cancel).unwrap();
-    begin(1, 0, &cancel);
+    let operation = begin(1, 0, &cancel);
     let result = cache.release(pin);
-    finish();
+    operation.finish();
     result.unwrap();
     assert_eq!(CALLS.load(SeqCst), 0);
     drop(cache);
@@ -312,4 +228,9 @@ fn every_allocation_ordinal_cancellation_and_requested_peak_cleanup() {
     }
     controls.extend(vec![0x0b; 128]);
     observe("128-controls", &Spec::one(vec![], None, controls).bytes());
+    println!(
+        "observer maximum ownership slots={} capacity=4096 background_noise={}",
+        MAX_SLOTS.load(SeqCst),
+        std::env::var_os("MIXER_ALLOCATOR_NOISE").is_some()
+    );
 }

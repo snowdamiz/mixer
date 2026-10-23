@@ -1,0 +1,170 @@
+{
+  "observed_utc": "2026-10-23T16:12:22.295940+00:00",
+  "command": "python3 verification/allocator-observer-root-review/audit.py",
+  "python": "3.14.8",
+  "auditor_source_sha256": "a1ae31b1f83dc6de859398cb034d5d6445801706491979b3a8727e51ebf6e5d7",
+  "owner_receipt_sha256": "ca923637225669fe89e8e1f8547a7f19326278c263ee3c73c56a650368e3f0f3",
+  "baseline_revision": "e299f1a60eb06dc9405021fc49ced215eaa42336",
+  "snapshot_sha256": "db6844662ac7f6818d856758847032dd19e5ac20f43363c472de1522f59ec336",
+  "tested_tree_sha256": "284fdb493288887333ce9cd1c1c4ee8e4d4bb0c7cbbf5597abaa53642590919e",
+  "snapshot_files": 404,
+  "overlay": {
+    "vm/tests/span_function_cache_allocations.rs": "3b80f53bb75968d022fcf9a5d2730f75d37c321c7b539fc8976e17ea8a49c0c4",
+    "vm/tests/span_execution_allocations.rs": "1a97af2c3d362753674fad7ddefcb60142fd3532fb800e85f15c05b29bb4996f",
+    "vm/tests/common/allocation_observer.rs": "f5329a0622524507dd6f9b92d8ffea179eccd03422846821a27f71c0fbf5ed6b"
+  },
+  "checks": [
+    {
+      "check": "retained snapshot digest",
+      "passed": true
+    },
+    {
+      "check": "complete snapshot file manifest",
+      "passed": true
+    },
+    {
+      "check": "immutable source before and after",
+      "passed": true
+    },
+    {
+      "check": "complete source digest",
+      "passed": true
+    },
+    {
+      "check": "baseline export identity",
+      "passed": true
+    },
+    {
+      "check": "only named overlay paths differ",
+      "passed": true
+    },
+    {
+      "check": "current overlay vm/tests/span_function_cache_allocations.rs",
+      "passed": true
+    },
+    {
+      "check": "current overlay vm/tests/span_execution_allocations.rs",
+      "passed": true
+    },
+    {
+      "check": "current overlay vm/tests/common/allocation_observer.rs",
+      "passed": true
+    },
+    {
+      "check": "successful command debug-baseline",
+      "passed": true
+    },
+    {
+      "check": "stable command source debug-baseline",
+      "passed": true
+    },
+    {
+      "check": "log identity debug-baseline",
+      "passed": true
+    },
+    {
+      "check": "both test processes pass debug-baseline",
+      "passed": true
+    },
+    {
+      "check": "cache exact original measurements debug-baseline",
+      "passed": true
+    },
+    {
+      "check": "executor exact original measurements debug-baseline",
+      "passed": true
+    },
+    {
+      "check": "successful command debug-noise",
+      "passed": true
+    },
+    {
+      "check": "stable command source debug-noise",
+      "passed": true
+    },
+    {
+      "check": "log identity debug-noise",
+      "passed": true
+    },
+    {
+      "check": "both test processes pass debug-noise",
+      "passed": true
+    },
+    {
+      "check": "cache exact original measurements debug-noise",
+      "passed": true
+    },
+    {
+      "check": "executor exact original measurements debug-noise",
+      "passed": true
+    },
+    {
+      "check": "successful command release-baseline",
+      "passed": true
+    },
+    {
+      "check": "stable command source release-baseline",
+      "passed": true
+    },
+    {
+      "check": "log identity release-baseline",
+      "passed": true
+    },
+    {
+      "check": "both test processes pass release-baseline",
+      "passed": true
+    },
+    {
+      "check": "cache exact original measurements release-baseline",
+      "passed": true
+    },
+    {
+      "check": "executor exact original measurements release-baseline",
+      "passed": true
+    },
+    {
+      "check": "successful command release-noise",
+      "passed": true
+    },
+    {
+      "check": "stable command source release-noise",
+      "passed": true
+    },
+    {
+      "check": "log identity release-noise",
+      "passed": true
+    },
+    {
+      "check": "both test processes pass release-noise",
+      "passed": true
+    },
+    {
+      "check": "cache exact original measurements release-noise",
+      "passed": true
+    },
+    {
+      "check": "executor exact original measurements release-noise",
+      "passed": true
+    },
+    {
+      "check": "successful command clippy",
+      "passed": true
+    },
+    {
+      "check": "stable command source clippy",
+      "passed": true
+    },
+    {
+      "check": "log identity clippy",
+      "passed": true
+    }
+  ],
+  "source_review": [
+    "Root reviewed both full test diffs and the allocation observer helper; all original product assertions and fault ordinals remain.",
+    "Fault and cancellation state are thread local, with a retained Cancellation and non-Send interval guards. Background allocations cannot consume foreground ordinals.",
+    "Fixed pointer ownership accounting spans preparation, measurement and destruction; cross-thread free/realloc follows recorded pointer ownership. System realloc is serialized with address lifetime bookkeeping.",
+    "All allocator hook bookkeeping is bounded and allocation free; ledger exhaustion aborts. The single synchronous owner requirement is explicit.",
+    "Root inspected deterministic failures in preserved original-observer logs and the repaired four-configuration observations. CI allocation stack remains unattributed."
+  ],
+  "scope": "Test instrumentation only, audited against immutable baseline plus exactly three test files. No production changes or new physical, execution, published-package or GA qualification. Active Swift validator changes are excluded and require separate integration checks."
+}

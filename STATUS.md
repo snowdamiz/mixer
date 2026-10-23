@@ -837,3 +837,15 @@ join. Android binding remains incomplete: bounded fence-progress notification,
 pre-bind presentation reservation, exact waiter publication, real main-Looper
 and Swift Task join, JNI widgets and display/health integration are required.
 These host checks do not qualify Android execution or any GA gate.
+
+
+The allocator observer repair now isolates synchronous test ownership from harness
+threads while preserving the original product assertions and fault ordinals.
+Original observers deterministically fail under a background 900-byte allocation
+and fault-ordinal interference; the repaired two tests pass Debug/Release with
+and without that noise. Root audited the immutable e299f1a baseline plus exactly
+three test files, 404 snapshot files and unchanged counts/peaks; see
+`verification/allocator-observer-root-review/receipt.json`. The exact origin of
+the earlier CI allocation remains unattributed and that failed run stays failed.
+Hosted checkpoints 92e93b2 and e299f1a now pass all three jobs. Full Swift validator
+work remains a separate uncommitted lane; physical phones stay disconnected.

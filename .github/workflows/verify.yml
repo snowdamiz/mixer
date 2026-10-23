@@ -142,6 +142,12 @@ jobs:
           cargo test --locked --release --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-function-cache,experimental-span-execution,experimental-swift-wasi,experimental-capability-native
           cargo test --locked --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-function-cache,experimental-span-execution,experimental-swift-wasi,experimental-capability-native -- --ignored
           cargo test --locked --release --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-function-cache,experimental-span-execution,experimental-swift-wasi,experimental-capability-native -- --ignored
+      - name: Allocation observer isolation under background noise
+        env:
+          MIXER_ALLOCATOR_NOISE: '1'
+        run: |
+          cargo test --locked --manifest-path vm/Cargo.toml --features experimental-span-execution --test span_function_cache_allocations --test span_execution_allocations -- --nocapture
+          cargo test --locked --release --manifest-path vm/Cargo.toml --features experimental-span-execution --test span_function_cache_allocations --test span_execution_allocations -- --nocapture
       - name: Public native capability C client
         run: |
           cargo build --locked --release --lib --manifest-path vm/Cargo.toml --features experimental-capability-native

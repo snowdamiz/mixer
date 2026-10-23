@@ -1,0 +1,44 @@
+COMMAND: cargo test --locked --manifest-path vm/Cargo.toml --features experimental-span-execution --test span_function_cache_allocations --test span_execution_allocations -- --nocapture
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/vm)
+error[E0308]: mismatched types
+   --> src/experimental/mod.rs:225:48
+    |
+225 |     let mut metadata = metadata::read(&source, &policy, &mut meter)?;
+    |                        --------------          ^^^^^^^ expected `&Limits`, found `&Policy`
+    |                        |
+    |                        arguments to this function are incorrect
+    |
+    = note: expected reference `&Limits`
+               found reference `&Policy`
+note: function defined here
+   --> src/experimental/metadata.rs:208:15
+    |
+208 | pub(super) fn read(
+    |               ^^^^
+209 |     source: &[u8],
+210 |     policy: &Limits,
+    |     ---------------
+
+error[E0308]: mismatched types
+   --> src/experimental/mod.rs:226:28
+    |
+226 |     validate::all(&source, &policy, &mut metadata, &mut meter)?;
+    |     -------------          ^^^^^^^ expected `&Limits`, found `&Policy`
+    |     |
+    |     arguments to this function are incorrect
+    |
+    = note: expected reference `&Limits`
+               found reference `&Policy`
+note: function defined here
+   --> src/experimental/validate.rs:126:15
+    |
+126 | pub(super) fn all(
+    |               ^^^
+127 |     source: &[u8],
+128 |     limits: &Limits,
+    |     ---------------
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `mixer-vm` (lib) due to 2 previous errors
+
+EXIT: 101
