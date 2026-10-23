@@ -354,7 +354,10 @@ pub(crate) fn foundation_construction_bytes() -> Option<usize> {
         (4, size_of::<SwiftRunFailure>()),
         (4, size_of::<SwiftRunUsage>()),
         (6, size_of::<ReservationTicket>()),
-        (2, size_of::<WasiUsage>()),
+        // Five nested observed-control arguments plus one retained caller
+        // observation. Count each Copy binding, including Option's tag; do not
+        // rely on last-use elision or another component's cleanup envelope.
+        (6, size_of::<Option<WasiUsage>>()),
     ]
     .into_iter()
     .try_fold(0usize, |sum, (count, bytes)| {

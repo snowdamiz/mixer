@@ -1,0 +1,24 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-instruction-observation-review/.build/source/vm)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.50s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-instruction-observation-review/.build/target/debug/deps/mixer_vm-31ac86bb7e3dcf7f)
+
+running 3 tests
+review layouts control=1720 failure=1096 usage=504
+
+thread 'experimental_swift_reactor::control::tests::review_none_wrapper_parity_and_layout' (54121644) panicked at src/experimental_swift_reactor/control_tests.rs:1516:13:
+assertion `left == right` failed
+  left: (Ok(()), SwiftRunUsage { reservations: SwiftReservations { retained_source: SwiftReservationUsage { current: 1795, peak: 1795 }, retained_metadata: SwiftReservationUsage { current: 2300, peak: 2300 }, cache: SwiftReservationUsage { current: 0, peak: 0 }, state: SwiftReservationUsage { current: 0, peak: 0 }, wasi: SwiftReservationUsage { current: 0, peak: 0 }, shared: SwiftReservationUsage { current: 1744, peak: 1744 }, construction: SwiftReservationUsage { current: 16040, peak: 16040 }, combined: SwiftReservationUsage { current: 21879, peak: 21879 }, live_tickets: 5, peak_tickets: 5 }, live: SwiftLiveUsage { cache_entries: SwiftReservationUsage { current: 0, peak: 0 }, active_pins: SwiftReservationUsage { current: 0, peak: 0 }, frames: SwiftReservationUsage { current: 0, peak: 0 }, values: SwiftReservationUsage { current: 0, peak: 0 }, controls: SwiftReservationUsage { current: 0, peak: 0 }, memory_pages: SwiftReservationUsage { current: 0, peak: 0 } }, cache_work: 0, execution_work: 0, instruction_fuel: 7, instructions: 0, host_calls: 0, cleanup_invariant: None, elapsed_micros: 0, deadline_ms: 30000, deadline_origin: Run, deadline_overshoot_micros: 0, validation: SwiftValidationUsage { input_visible_bytes: 1795, source_bytes: 1795, metadata_reserved: 2300, scratch_reserved: 0, metadata_peak_reserved: 2300, scratch_peak_reserved: 1056, total_peak_reserved: 5151, work_used: 10279, elapsed_micros: 222, deadline_ms: 120000 }, wasi: None })
+ right: (Ok(()), SwiftRunUsage { reservations: SwiftReservations { retained_source: SwiftReservationUsage { current: 1795, peak: 1795 }, retained_metadata: SwiftReservationUsage { current: 2300, peak: 2300 }, cache: SwiftReservationUsage { current: 0, peak: 0 }, state: SwiftReservationUsage { current: 0, peak: 0 }, wasi: SwiftReservationUsage { current: 0, peak: 0 }, shared: SwiftReservationUsage { current: 1744, peak: 1744 }, construction: SwiftReservationUsage { current: 16040, peak: 16040 }, combined: SwiftReservationUsage { current: 21879, peak: 21879 }, live_tickets: 5, peak_tickets: 5 }, live: SwiftLiveUsage { cache_entries: SwiftReservationUsage { current: 0, peak: 0 }, active_pins: SwiftReservationUsage { current: 0, peak: 0 }, frames: SwiftReservationUsage { current: 0, peak: 0 }, values: SwiftReservationUsage { current: 0, peak: 0 }, controls: SwiftReservationUsage { current: 0, peak: 0 }, memory_pages: SwiftReservationUsage { current: 0, peak: 0 } }, cache_work: 0, execution_work: 0, instruction_fuel: 7, instructions: 0, host_calls: 0, cleanup_invariant: None, elapsed_micros: 0, deadline_ms: 30000, deadline_origin: Run, deadline_overshoot_micros: 0, validation: SwiftValidationUsage { input_visible_bytes: 1795, source_bytes: 1795, metadata_reserved: 2300, scratch_reserved: 0, metadata_peak_reserved: 2300, scratch_peak_reserved: 1056, total_peak_reserved: 5151, work_used: 10279, elapsed_micros: 123, deadline_ms: 120000 }, wasi: None })
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test experimental_swift_reactor::control::tests::review_none_wrapper_parity_and_layout ... FAILED
+test experimental_swift_reactor::control::tests::review_actual_wasi_precedence_and_sticky_failure ... ok
+test experimental_swift_reactor::control::tests::review_zero_bulk_and_max_arithmetic_boundaries ... ok
+
+failures:
+
+failures:
+    experimental_swift_reactor::control::tests::review_none_wrapper_parity_and_layout
+
+test result: FAILED. 2 passed; 1 failed; 0 ignored; 0 measured; 72 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `--lib`

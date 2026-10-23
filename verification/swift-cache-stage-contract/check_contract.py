@@ -62,8 +62,8 @@ def require(condition, message):
 
 
 def validate_plan(plan):
-    require(plan["schema"] == "mixer-swift-cache-stage-contract-v2", "wrong schema")
-    require(plan["proposal_revision"] == 2, "wrong proposal revision")
+    require(plan["schema"] == "mixer-swift-cache-stage-contract-v3", "wrong schema")
+    require(plan["proposal_revision"] == 3, "wrong proposal revision")
     require(plan["status"] == "proposed_contract_implementation_pending", "proposal status changed")
     require(plan["root_freeze"] == "pending", "root freeze is pending")
     require(plan["whole_cache_implementation_authorized"] is False, "whole cache implementation requires root prerequisite acceptance")
@@ -111,7 +111,7 @@ def validate_plan(plan):
     require(tail["completion_returns"] == "unit; copied outcome argument receives first failure", "completion cannot return another large failure wrapper")
     require(tail["empty_slot_and_large_result_dropped_before_refund"] is True, "large return/slot wrappers must die before refund")
     require(tail["omitted_completion"] == "conservatively retain header charge", "omitted completion cannot refund")
-    require(tail["foundation_named_counts"] == {"SwiftRunFailure": 4, "SwiftRunUsage": 4, "ReservationTicket": 6, "WasiUsage": 2}, "foundation completion inventory changed")
+    require(tail["foundation_named_counts"] == {"SwiftRunFailure": 4, "SwiftRunUsage": 4, "ReservationTicket": 6, "Option<WasiUsage>": 6}, "foundation completion inventory changed")
     observation = plan["observation_contract"]
     require(observation["pairing_helper"] == "AccountedWasi::checked_usage", "actual WASI pairing helper required")
     require(observation["identity_predicate"] == "exact nonzero identity only; pure bool", "identity predicate must be pure exact nonzero match")
@@ -121,6 +121,11 @@ def validate_plan(plan):
     require(observation["pairing_admission_work_cancel_deadline_checks_allowed"] is False, "pairing helper must remain cleanup-safe")
     require(observation["existing_dispatch_changes"] is False, "existing dispatch must remain unchanged")
     require(plan["historical_v1_manifest_sha256"] == "6ee5555d406b76bc88fb7670bf0723ac769713537c7e6e23b78269cb7fb3dac9", "historical manifest changed")
+    require(plan["historical_v2_manifest_sha256"] == "beb7f4c95a321108868aaeb4e92ccd1f8e85b0d6259164409c20c0b2f84935b1", "historical v2 manifest changed")
+    amendment = plan["observation_accounting_amendment"]
+    require(amendment["max_control_parameters"] == 5 and amendment["retained_caller_shapes"] == 1, "observation chain count changed")
+    require(amendment["last_use_elision_allowed"] is False and amendment["component_envelope_reuse_allowed"] is False, "unsound observation reuse")
+    require(amendment["source_acceptance"] == "pending", "source acceptance belongs to separate root receipt")
     require(all(args[0] == "cargo" for args in plan["regression_commands"]), "unexpected regression executable")
     return plan
 
@@ -134,12 +139,20 @@ def check_history(plan):
         archived = ROOT / entry["archived_path"]
         require(hashlib.sha256(archived.read_bytes()).hexdigest() == entry["sha256"], "historical artifact changed: " + entry["archived_path"])
 
+    v2_path = HERE / "historical-v2/archive-manifest.json"
+    require(hashlib.sha256(v2_path.read_bytes()).hexdigest() == plan["historical_v2_manifest_sha256"], "historical v2 manifest bytes changed")
+    for entry in json.loads(v2_path.read_text())["files"].values():
+        require(hashlib.sha256((ROOT / entry["archived_path"]).read_bytes()).hexdigest() == entry["sha256"], "historical v2 artifact changed")
+
 
 def check():
     plan = validate_plan(json.loads((HERE / "acceptance.json").read_text()))
     check_history(plan)
     review = ROOT / plan["independent_review"]
     require(hashlib.sha256(review.read_bytes()).hexdigest() == plan["independent_review_sha256"], "independent review binding changed")
+    amendment = plan["observation_accounting_amendment"]
+    for key in ("review", "map"):
+        require(hashlib.sha256((ROOT / amendment[key]).read_bytes()).hexdigest() == amendment[key + "_sha256"], "observation amendment binding changed")
     return plan
 
 

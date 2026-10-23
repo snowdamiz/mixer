@@ -11,6 +11,11 @@ Revision 2 incorporates accepted review findings R1-R3 from
 `verification/swift-cache-contract-review/review.md`. Exact v1 artifacts and its
 receipt remain under `verification/swift-cache-stage-contract/historical-v1/`.
 Whole-cache implementation must wait for root prerequisite acceptance.
+Revision 3 corrects the shared-foundation observation allowance after actual
+layout measurement and global control call-chain review. Exact v2 artifacts
+and its implementation freeze are preserved under
+`verification/swift-cache-stage-contract/historical-v2/`. This refinement requires
+new root source acceptance; it does not retroactively change prior receipts.
 
 ## Ownership and dependency freeze
 
@@ -397,14 +402,28 @@ the header charge. The tail's exclusive borrow prevents control substitution;
 pairing diagnostics use attributable actual WASI usage without time/work checks.
 
 The small completion/refund/output tail must be mapped explicitly to the existing
-foundation's **4 SwiftRunFailure, 4 SwiftRunUsage, 6 ReservationTicket and 2
-WasiUsage** named simultaneous allowances (plus its separately named
+foundation's **4 SwiftRunFailure, 4 SwiftRunUsage, 6 ReservationTicket and 6
+Option<WasiUsage>** named simultaneous allowances (plus its separately named
 proof/control/adopted objects). Record exact Result/Option sizes and overlapping
 active values; no assumed spare allowance or double-use with another live phase.
 The private complete API returns unit to avoid a further owned failure wrapper
 after refund. Its caller-owned outcome and observed refund/fault transfers must
 fit that frozen named model; otherwise root revisits the upfront accounting model
 before implementation acceptance. Cleanup never obtains last-minute extra room.
+The six optional observation shapes cover five simultaneously active observed-
+control parameters plus one retained caller value. Count every named Copy
+binding; do not rely on last-use/compiler elision or borrow another component's
+envelope. See `verification/swift-executor-contract-review/foundation-tail-addendum.md`
+and its exhaustive `observation-chain-map.json`. Earlier three-option reasoning
+covered only successful component refund, not standalone control fault paths.
+The independently measured Apple arm64 layout is raw104/optional112, increasing
+the upfront foundation by464 bytes to16504. Other targets use their own actual
+size/alignment. Existing failure/usage/ticket counts apply to sequential named
+transfer phases; nested payload bytes provide no spare capacity. Additional
+caller-held observations/outcomes and large owner/Result/Option/tail storage
+require disjoint upfront component or execution envelopes. At the final header
+refund, only the one retained observation assigned above may survive in that
+class; actual composed field/phase maps remain an implementation prerequisite.
 No ticket has a ledger pointer or self-referential borrow. Ordinary accidental
 ticket loss conservatively retains charge; only explicit consuming cleanup
 refunds. Cache-only cleanup leaves control/WASI reservations live; after all

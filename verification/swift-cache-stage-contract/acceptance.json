@@ -1,5 +1,5 @@
 {
-  "schema": "mixer-swift-cache-stage-contract-v2",
+  "schema": "mixer-swift-cache-stage-contract-v3",
   "status": "proposed_contract_implementation_pending",
   "contract": "docs/swift-cache-stage-contract.md",
   "root_freeze_required": true,
@@ -189,7 +189,7 @@
         "Pre-reserved same-header envelope covers chosen Result/tail/Option/cache/entry/vector/ticket/borrowed/failure/usage transfers; tail retains same header until caller drops empty slot and large wrappers, complete returns unit and named foundation count mapping is recorded",
         "Rejected WASI/cache pairing leaves caller slot Some(cache) with no owner effects; after successful preflight later invariant drains everything and returns tail with caller slot None",
         "Omitting tail completion retains full header charge; tail exclusive control borrow prevents substitution; no returned large Result/Option survives refund",
-        "Explicit final completion/refund/output active-value mapping fits foundation 4 failure/4 usage/6 ticket/2 WASI usage counts; no presumed slack or duplicate allowance"
+        "Explicit final completion/refund/output active-value mapping fits foundation 4 failure/4 usage/6 ticket/6 optional WASI usage counts; no presumed slack or duplicate allowance"
       ]
     },
     {
@@ -297,7 +297,7 @@
     "Immutable published consumer",
     "Size/performance and GA gates"
   ],
-  "proposal_revision": 2,
+  "proposal_revision": 3,
   "root_freeze": "pending",
   "whole_cache_implementation_authorized": false,
   "historical_v1_manifest_sha256": "6ee5555d406b76bc88fb7670bf0723ac769713537c7e6e23b78269cb7fb3dac9",
@@ -348,8 +348,20 @@
       "SwiftRunFailure": 4,
       "SwiftRunUsage": 4,
       "ReservationTicket": 6,
-      "WasiUsage": 2
+      "Option<WasiUsage>": 6
     },
     "actual_simultaneous_layout_evidence": "pending"
+  },
+  "historical_v2_manifest_sha256": "beb7f4c95a321108868aaeb4e92ccd1f8e85b0d6259164409c20c0b2f84935b1",
+  "observation_accounting_amendment": {
+    "review": "verification/swift-executor-contract-review/foundation-tail-addendum.md",
+    "review_sha256": "9cf433922dcfcfc77d01d498871af83f081a30153c446186b69d4f7d0ca76b86",
+    "map": "verification/swift-executor-contract-review/observation-chain-map.json",
+    "map_sha256": "3617182f26a973b83036ae3d95e87ced1f17d654fb8fdd5c5760d0d4b38f6d52",
+    "max_control_parameters": 5,
+    "retained_caller_shapes": 1,
+    "last_use_elision_allowed": false,
+    "component_envelope_reuse_allowed": false,
+    "source_acceptance": "pending"
   }
 }

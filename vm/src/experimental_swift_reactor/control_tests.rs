@@ -1173,6 +1173,74 @@ fn all_control_activity_after_proof_and_token_acquisition_is_allocation_free() {
 }
 
 #[test]
+fn optional_observation_chain_is_reserved_before_runtime_work() {
+    // Caller plus instruction -> charge_fuel -> check -> fail -> usage, or
+    // caller plus drop_proof -> refund -> cleanup_fault -> fail -> usage.
+    // Each named by-value argument remains counted through the nested call.
+    let observed_chain = size_of::<[Option<WasiUsage>; 6]>();
+    let historical_observations = 2 * size_of::<WasiUsage>();
+    let extra = observed_chain.checked_sub(historical_observations).unwrap();
+    assert!(extra > 0);
+    let non_observation_shapes = 3 * size_of::<ValidatedSwiftReactor>()
+        + 3 * size_of::<RuntimeControl>()
+        + 3 * size_of::<AdoptedProof>()
+        + 4 * size_of::<SwiftRunFailure>()
+        + 4 * size_of::<SwiftRunUsage>()
+        + 6 * size_of::<ReservationTicket>();
+    let historical_floor = non_observation_shapes + historical_observations;
+    let required_floor = non_observation_shapes + observed_chain;
+    assert_eq!(foundation_construction_bytes(), Some(required_floor));
+    println!(
+        "observation chain target={}-{} raw={} raw_align={} optional={} optional_align={} count=6 old_floor={} new_floor={} added={}",
+        std::env::consts::ARCH,
+        std::env::consts::OS,
+        size_of::<WasiUsage>(),
+        std::mem::align_of::<WasiUsage>(),
+        size_of::<Option<WasiUsage>>(),
+        std::mem::align_of::<Option<WasiUsage>>(),
+        historical_floor,
+        required_floor,
+        extra,
+    );
+    for headroom in [0, extra - 1, extra] {
+        let sealed = proof();
+        let validation = sealed.usage();
+        let before = validation.source_bytes
+            + validation.metadata_reserved
+            + size_of::<RuntimeControl>()
+            + Cancellation::requested_backing_layout().size();
+        let budget = SwiftRunBudget {
+            combined_bytes: before + historical_floor + headroom,
+            ..SwiftRunBudget::default()
+        };
+        let cancellation = Cancellation::default();
+        let (result, stats) = super::super::allocation_tests::measure(|| {
+            RuntimeControl::adopt(sealed, budget, Instant::now(), cancellation)
+        });
+        no_allocations(stats);
+        if headroom < extra {
+            let failure = result.err().unwrap();
+            assert_eq!(failure.kind, SwiftRunFailureKind::CombinedExhausted);
+            assert_eq!(failure.attempted as usize, before + required_floor);
+            assert_eq!(failure.limit as usize, budget.combined_bytes);
+            assert_eq!(failure.at_failure.reservations.combined.current, before);
+            assert_eq!(failure.at_failure.reservations.construction.current, 0);
+            assert_empty(failure.after_cleanup.unwrap());
+        } else {
+            let (control, adopted) = result.ok().unwrap();
+            let usage = control.usage(None);
+            assert_eq!(usage.reservations.construction.current, required_floor);
+            assert_eq!(usage.reservations.combined.current, budget.combined_bytes);
+            assert_eq!(usage.reservations.live_tickets, 5);
+            let (after, stats) =
+                super::super::allocation_tests::measure(|| clean(control, adopted));
+            no_allocations(stats);
+            assert_empty(after);
+        }
+    }
+}
+
+#[test]
 fn measured_named_layouts_are_recorded_without_allocator_or_rss_claims() {
     println!("Swift control foundation target={}-{} control={} align={} proof={} align={} adopted={} align={} ticket={} align={} option_ticket={} usage={} failure={} construction={} cancellation_requested={} cancellation_align={} max_inline_tickets={}",
         std::env::consts::ARCH, std::env::consts::OS,

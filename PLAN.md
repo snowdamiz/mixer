@@ -443,3 +443,22 @@ Swift library tests per mode, Clippy and formatting. Root binds 853 checks in
 and executor acceptance remain pending. Active cache and Android edits are outside
 this qualification. The preceding4585220 CI currently passes VM/services while
 its Swift job is still running. No physical, target-execution or GA claim changes.
+
+
+Independent review now accepts the private instruction/fuel observation delta at
+`3a1bb5a`: the original eleven actual-context cases and three additional boundary
+probes pass per Debug/Release. Root verifies 443 independent bindings and the
+853 producer bindings in `verification/swift-instruction-observation/acceptance.json`.
+Hosted `4585220` passes all three VM/Swift/services jobs. This does not qualify
+active cache or Android changes. Cache layout measurements exposed a separate
+shared-foundation observation allowance gap. The accepted correction now counts
+six optional observations: five nested control arguments plus one caller copy.
+Root audits 522 independent and 859 producer bindings; isolated Debug/Release
+each pass320 tests plus9 reference checks and73 minimal-Swift library checks.
+Independent admission and30 control tests per mode exercise deep faults after
+actual WASI teardown;36 contract mutations fail closed. The revised cache v3
+implementation freeze is `verification/swift-cache-stage-acceptance.json`, with
+exact v2 history preserved. Actual cache implementation review, executor contract
+refinement/implementation and composed temporary layouts remain pending.
+Physical phones, full-target execution, immutable published consumers and all
+external GA requirements remain open.

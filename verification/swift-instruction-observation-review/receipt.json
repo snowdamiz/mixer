@@ -1,0 +1,173 @@
+{
+  "completed_utc": "2026-10-23T18:40:46.833703+00:00",
+  "reviewer": "/root/swift_executor_prerequisite_review",
+  "model": "gpt-6.1-sol",
+  "reasoning_effort": "xhigh",
+  "python": "3.14.8",
+  "revision": "3a1bb5a455973bde841a4b57993277fa2c054569",
+  "base_revision": "45852204fbcced037d8e530876b619d9ed1c2ce1",
+  "source_archive": "verification/swift-instruction-observation-review/source.tar",
+  "source_archive_sha256": "1a2584301ff272e54b6c7f4ae6cca657a2a222d33d1b830aa9555d09a0b55b3a",
+  "source_tree_sha256": "5dcaaf357620f5d5a41ad2c218614b7d1cd9ba52eff453a09f5687b8ca586744",
+  "source_files": 417,
+  "changed_sources": {
+    "vm/src/experimental_swift_reactor/control.rs": "b31e6fa7c90a0568bc854033fa959967d04371bba08bcf80650d292eff69cc43",
+    "vm/src/experimental_swift_reactor/control_tests.rs": "29df50f34772ee1b133ac61f595204478903e985dda4464864f7a73331885ba5"
+  },
+  "producer_receipt_sha256": "22e487135fcad7d66e935106c2aa513219f89aa203b071d4e9a929b1c8fedcc3",
+  "root_audit_sha256": "64e96c73502d7253df140851e45dc2c3079e3b49be708aa45e98368e598eb47c",
+  "audited_bindings": 853,
+  "audited_test_counts": {
+    "debug": 319,
+    "debug-oracles": 9,
+    "debug-minimal-swift": 72,
+    "release": 319,
+    "release-oracles": 9,
+    "release-minimal-swift": 72
+  },
+  "probe_sha256": "3beb53eb35ab0bfbc1333bf5a592ca1ca5893911f8596634dfa66f960292b001",
+  "probe_tree_sha256": "bf3a53cd094a1c77683c559275aee3e118715b3a0304af3d9dd42efcc2dbac95",
+  "script_sha256": "f2791dad06343ae84ea396b71a07cf7536fa39d03c468ae213de88cbe5261870",
+  "commands": [
+    {
+      "label": "rust-version",
+      "argv": [
+        "rustc",
+        "--version",
+        "--verbose"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-instruction-observation-review/.build/source",
+      "exit": 0,
+      "seconds": 0.03242729196790606,
+      "log": "verification/swift-instruction-observation-review/rust-version.log",
+      "sha256": "352d6857968e80a6357a926ac685b9b07f77c479aaafde33e73a53945e802909"
+    },
+    {
+      "label": "cargo-version",
+      "argv": [
+        "cargo",
+        "--version",
+        "--verbose"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-instruction-observation-review/.build/source",
+      "exit": 0,
+      "seconds": 0.02244933310430497,
+      "log": "verification/swift-instruction-observation-review/cargo-version.log",
+      "sha256": "85e64e95b6dd5ba44476f91800ea454677ce55524a5e8ea5166b47d6f607eb74"
+    },
+    {
+      "label": "debug-actual-eleven",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-swift-reactor",
+        "--lib",
+        "experimental_swift_reactor::control::tests::instruction_and_bulk_fuel_failures_retain_actual_wasi_counters",
+        "--",
+        "--exact",
+        "--nocapture"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-instruction-observation-review/.build/source",
+      "exit": 0,
+      "seconds": 0.040745832957327366,
+      "log": "verification/swift-instruction-observation-review/debug-actual-eleven.log",
+      "sha256": "87f58244b82e2cabdab9e373be6ecf98f48ccfa11af1d0505463a01be712e34b",
+      "passed_tests": 1
+    },
+    {
+      "label": "release-actual-eleven",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-swift-reactor",
+        "--lib",
+        "--release",
+        "experimental_swift_reactor::control::tests::instruction_and_bulk_fuel_failures_retain_actual_wasi_counters",
+        "--",
+        "--exact",
+        "--nocapture"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-instruction-observation-review/.build/source",
+      "exit": 0,
+      "seconds": 0.02817033405881375,
+      "log": "verification/swift-instruction-observation-review/release-actual-eleven.log",
+      "sha256": "f22bf5f40a255334a03c8c7ed66e0d4aea3a30a36c2024ae3de4fec789224c80",
+      "passed_tests": 1
+    },
+    {
+      "label": "debug-independent-boundaries",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-swift-reactor",
+        "--lib",
+        "experimental_swift_reactor::control::tests::review_",
+        "--",
+        "--nocapture"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-instruction-observation-review/.build/source",
+      "exit": 0,
+      "seconds": 0.5882676660548896,
+      "log": "verification/swift-instruction-observation-review/debug-independent-boundaries.log",
+      "sha256": "a8dbd8ed824b5793a6c76743bd4d548a4cfbbac77adc08befaf3391c522cd069",
+      "passed_tests": 3
+    },
+    {
+      "label": "release-independent-boundaries",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-swift-reactor",
+        "--lib",
+        "--release",
+        "experimental_swift_reactor::control::tests::review_",
+        "--",
+        "--nocapture"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-instruction-observation-review/.build/source",
+      "exit": 0,
+      "seconds": 2.285663167014718,
+      "log": "verification/swift-instruction-observation-review/release-independent-boundaries.log",
+      "sha256": "c0ce384a04cab50801a6695233a6e9402e7251bad534859d2a603e2193f523cc",
+      "passed_tests": 3
+    }
+  ],
+  "preserved_artifacts": {
+    "verification/swift-instruction-observation/isolated-1/receipt.json": "22e487135fcad7d66e935106c2aa513219f89aa203b071d4e9a929b1c8fedcc3",
+    "verification/swift-instruction-observation/root-audit.json": "64e96c73502d7253df140851e45dc2c3079e3b49be708aa45e98368e598eb47c",
+    "verification/swift-instruction-observation/collect.py": "795fada8a6160ef9d59d17810f63f126f633c7e5a8844d959cbff6e0ff1cfdbf",
+    "verification/swift-instruction-observation/audit.py": "d70cd8907fb12a06b04db681d10651fc5f9b263789f6b15cacb5c191bd6a334b",
+    "verification/swift-instruction-observation/isolated-1/source.tar.gz": "b9bdb2d1bd643ece42b2a286cdf640254deb7b43f94012e3e091f769fa99df5c",
+    "verification/swift-instruction-observation/isolated-1/rust-version.log": "352d6857968e80a6357a926ac685b9b07f77c479aaafde33e73a53945e802909",
+    "verification/swift-instruction-observation/isolated-1/cargo-version.log": "1f88eaf7fe1aaec83184752cf4c944cd22f00184136ff36a3e4c318cc60ef566",
+    "verification/swift-instruction-observation/isolated-1/debug.log": "d69cbe9483de40401b474d905e91c0c32cb1118800d55e8a772a1409b1fe7881",
+    "verification/swift-instruction-observation/isolated-1/debug-oracles.log": "ffc0c914270baf5407413e0436b55038a84ad86459f5d52771d5625cf3e2be2e",
+    "verification/swift-instruction-observation/isolated-1/debug-minimal-swift.log": "4fe6f17850ef09fcfe4bb852f2ce20bef205edaa1d14cb95258c08e1fe7cb0d2",
+    "verification/swift-instruction-observation/isolated-1/release.log": "c324b694c502ef643c9251c303aebeb280f1b77a42e35be7d591fe988c31b4f2",
+    "verification/swift-instruction-observation/isolated-1/release-oracles.log": "7d4a445280e09d31f687526e66fa365bb54fd8f47481a5302b11bb733adff58a",
+    "verification/swift-instruction-observation/isolated-1/release-minimal-swift.log": "42ba2262913bb6773f9bdde88a1f854b21b8a11283eacf13dde59384163f3c73",
+    "verification/swift-instruction-observation/isolated-1/clippy.log": "7321d48cd9d9650834983c456ec889e2058b5c9152ea3ebc15822108eccc28d5",
+    "verification/swift-instruction-observation/isolated-1/format.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "producer_artifacts_unchanged": true,
+  "passed": true,
+  "probe_authoring_note": "Initial None-parity probe compared historical validation wall-clock durations across separately validated fixtures; the retained probe-authoring-failure.log records this harness-only failure. Final comparison normalizes only runtime and historical validation elapsed/overshoot fields.",
+  "decision": "accepted-private-instruction-observation-prerequisite",
+  "scope": "Frozen two-file private control delta only; actual WASI observation, unchanged None behavior/arithmetic/order/layout; independent host control probes. No executor/cache acceptance, target instantiation/execution, compiler/device/signing/store/dogfood or GA qualification."
+}
