@@ -1,6 +1,29 @@
 //! Owned numeric-v2 semantics, derived from the WebAssembly numeric definitions.
 //! Values carry IEEE bits; bitwise float instructions never canonicalize NaNs.
+//! Arithmetic, rounding, square root and float-width conversions choose positive
+//! canonical NaNs from the spec's permitted set, independently of host behavior.
 use crate::{Error, Type, Value};
+
+// Host rounding libraries can return a signaling NaN unchanged. Wasm arithmetic
+// must return an arithmetic NaN (or a canonical NaN when all NaN inputs are
+// canonical). Canonicalizing every NaN result satisfies both cases, including
+// invalid operations with no NaN inputs. Use integer bits so this check itself
+// cannot quiet or otherwise alter the value before classifying it.
+// https://webassembly.github.io/spec/core/exec/numerics.html#nan-propagation
+fn arithmetic_nan32(bits: u32) -> u32 {
+    if bits & 0x7fff_ffff > 0x7f80_0000 {
+        0x7fc0_0000
+    } else {
+        bits
+    }
+}
+fn arithmetic_nan64(bits: u64) -> u64 {
+    if bits & 0x7fff_ffff_ffff_ffff > 0x7ff0_0000_0000_0000 {
+        0x7ff8_0000_0000_0000
+    } else {
+        bits
+    }
+}
 
 pub(crate) fn shape(op: u8) -> Option<(Type, usize, Type)> {
     use Type::*;
@@ -173,7 +196,12 @@ pub(crate) fn numeric(op: u8, s: &mut Vec<Value>) -> Result<(), &'static str> {
                 0x98 => (a & 0x7fff_ffff) | (b & 0x8000_0000),
                 _ => unreachable!(),
             };
-            s.push(F32(bits));
+            // abs, neg and copysign preserve the exact NaN payload bits.
+            s.push(F32(if (0x8d..=0x97).contains(&op) {
+                arithmetic_nan32(bits)
+            } else {
+                bits
+            }));
         }
         0x99..=0xa6 => {
             let b = if op >= 0xa0 { pop64(s) } else { 0 };
@@ -213,7 +241,11 @@ pub(crate) fn numeric(op: u8, s: &mut Vec<Value>) -> Result<(), &'static str> {
                 0xa6 => (a & 0x7fff_ffff_ffff_ffff) | (b & 0x8000_0000_0000_0000),
                 _ => unreachable!(),
             };
-            s.push(F64(bits));
+            s.push(F64(if (0x9b..=0xa5).contains(&op) {
+                arithmetic_nan64(bits)
+            } else {
+                bits
+            }));
         }
         0xa8..=0xab | 0xae..=0xb1 => {
             let (input, _, output) = shape(op).unwrap();
@@ -241,7 +273,7 @@ pub(crate) fn numeric(op: u8, s: &mut Vec<Value>) -> Result<(), &'static str> {
         }
         0xb6 => {
             let x = f64::from_bits(pop64(s));
-            s.push(F32((x as f32).to_bits()));
+            s.push(F32(arithmetic_nan32((x as f32).to_bits())));
         }
         0xb7..=0xba => {
             let x = match (op, integer(s)) {
@@ -255,7 +287,7 @@ pub(crate) fn numeric(op: u8, s: &mut Vec<Value>) -> Result<(), &'static str> {
         }
         0xbb => {
             let x = f32::from_bits(pop32(s));
-            s.push(F64((x as f64).to_bits()));
+            s.push(F64(arithmetic_nan64((x as f64).to_bits())));
         }
         0xbc => {
             let x = pop32(s);
