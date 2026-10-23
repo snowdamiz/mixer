@@ -17,14 +17,11 @@
   --orange-hover: #a93c1c;
   --code-bg: #1c241f;
   --code-line: #2e3a33;
-  --ios-tint: #2f6b4f;
-  --m3-primary: #3a6b50;
-  --m3-container: #c3ebd0;
-  --m3-surface: #f4f8f0;
+  --app-tint: #2f6b4f;
+  --app-surface: #f5f4ef;
   --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
   --serif: Georgia, "Times New Roman", serif;
   --mono: "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
-  --android-font: Roboto, "Google Sans", var(--sans);
   --shadow-sm: 0 1px 2px #2a2d1f0a, 0 2px 8px #2a2d1f08;
   --shadow-md: 0 2px 4px #2a2d1f08, 0 14px 34px #2a2d1f0f;
   --shadow-lg: 0 4px 10px #2a2d1f0b, 0 30px 64px #2a2d1f1a;
@@ -136,8 +133,8 @@ main { overflow-x: clip; }
 .device-android { border-radius: 2.45em; background: linear-gradient(150deg, #3b403e, #171a19 35%, #222624); }
 .device-android::before { left: auto; right: -.2em; top: 6.4em; height: 2em; border-radius: 0 .2em .2em 0; box-shadow: none; }
 .device-android::after { top: 10em; height: 4.6em; }
-.screen { position: relative; height: 100%; overflow: hidden; padding: 0 1.05em; border-radius: 2.5em; background: #f2f2f6; color: #111; font-family: var(--sans); line-height: 1.25; }
-.device-android .screen { border-radius: 2.02em; background: var(--m3-surface); color: #1a1c19; font-family: var(--android-font); }
+.screen { position: relative; height: 100%; overflow: hidden; padding: 0 1.05em; border-radius: 2.5em; background: var(--app-surface); color: #111; font-family: var(--sans); line-height: 1.25; }
+.device-android .screen { border-radius: 2.02em; }
 .status { position: relative; display: flex; align-items: center; justify-content: space-between; height: 2.9em; margin: 0 -1.05em; padding: 0 1.65em 0 2em; }
 .status b { font-size: .76em; font-weight: 600; }
 .status svg { width: 2.7em; height: .8em; }
@@ -147,51 +144,29 @@ main { overflow-x: clip; }
 .home-bar, .gesture-bar { position: absolute; left: 50%; bottom: .5em; width: 6.6em; height: .3em; border-radius: 1em; background: #111; transform: translateX(-50%); }
 .gesture-bar { width: 5.6em; height: .26em; background: #1a1c19; opacity: .8; }
 .row-text { flex: 1; min-width: 0; font-size: .84em; white-space: nowrap; }
-.ios-nav { display: flex; align-items: center; justify-content: space-between; margin: .55em 0 .6em; }
-.ios-nav span { font-size: 2.15em; font-weight: 700; line-height: 1.1; letter-spacing: -.025em; }
-.ios-nav i, .m3-appbar i { display: grid; place-items: center; width: 2.6em; height: 2.6em; border-radius: 50%; background: #f1d4bd; color: #7c5537; font-size: .8em; font-style: normal; font-weight: 600; }
-.ios-search { display: flex; align-items: center; gap: .4em; height: 2.5em; padding: 0 .7em; border-radius: .8em; background: #e3e3e8; color: #8a8a8f; font-size: .84em; }
-.ios-search svg { width: 1.15em; height: 1.15em; stroke-width: 2.2; }
-.ios-section { margin: 1.3em 0 .5em .9em; color: #6d6d72; font-size: .62em; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; }
-.ios-group { margin-top: .8em; overflow: hidden; border-radius: .9em; background: #fff; }
-.ios-section + .ios-group { margin-top: 0; }
-.ios-row { position: relative; display: flex; align-items: center; gap: .7em; min-height: 3em; padding: .5em .8em; }
-.ios-row + .ios-row::before { content: ""; position: absolute; top: 0; left: 3.35em; right: 0; height: .06em; background: #e2e2e7; }
+.app-header { display: flex; align-items: center; justify-content: space-between; margin: .55em 0 .6em; }
+.app-header span { font-size: 2.15em; font-weight: 700; line-height: 1.1; letter-spacing: -.025em; }
+.app-header i { display: grid; place-items: center; width: 2.6em; height: 2.6em; border-radius: 50%; background: #f1d4bd; color: #7c5537; font-size: .8em; font-style: normal; font-weight: 600; }
+.app-search { display: flex; align-items: center; gap: .45em; height: 2.6em; padding: 0 .8em; border-radius: .9em; background: #e9e7df; color: #7d7f76; font-size: .84em; }
+.app-search svg { width: 1.15em; height: 1.15em; stroke-width: 2.2; }
+.app-label { margin: 1.3em 0 .5em .2em; color: #6f7468; font-size: .64em; font-weight: 600; letter-spacing: .02em; }
+.app-card { margin-top: .8em; overflow: hidden; border-radius: 1em; background: #fff; box-shadow: 0 .06em .15em #2a2d1f0d; }
+.app-label + .app-card { margin-top: 0; }
+.app-row { position: relative; display: flex; align-items: center; gap: .7em; min-height: 3em; padding: .5em .8em; }
+.app-row + .app-row::before { content: ""; position: absolute; top: 0; left: 3.35em; right: 0; height: .06em; background: #ecebe5; }
 .row-icon { display: grid; place-items: center; flex-shrink: 0; width: 1.85em; height: 1.85em; border-radius: .5em; color: #fff; }
 .row-icon svg { width: 1.05em; height: 1.05em; stroke-width: 2; }
 .icon-warm { background: #e8743f; }
 .icon-green { background: #3f8a63; }
 .icon-slate { background: #6a7f95; }
 .chevron { width: .8em; height: .8em; color: #c4c4c8; stroke-width: 2.8; }
-.ios-switch { position: relative; flex-shrink: 0; width: 2.8em; height: 1.7em; border-radius: 1em; background: #34c759; }
-.ios-switch::after { content: ""; position: absolute; top: .14em; right: .14em; width: 1.42em; height: 1.42em; border-radius: 50%; background: #fff; box-shadow: 0 .1em .3em #0000002e, 0 .05em .05em #0000001a; }
-.ios-button { display: grid; place-items: center; height: 3.1em; margin-top: 1.2em; border-radius: 1.1em; background: var(--ios-tint); color: #fff; font-size: .84em; font-weight: 600; transition: background .4s; }
-.ios-tabbar, .m3-navbar { position: absolute; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(3, 1fr); }
-.ios-tabbar { height: 4.6em; padding-top: .55em; border-top: .06em solid #dcdce0; background: #f9f9f9f0; color: #8e8e93; }
-.ios-tabbar span, .m3-navbar span { display: flex; flex-direction: column; align-items: center; gap: .3em; font-size: .56em; font-weight: 500; }
-.ios-tabbar svg { width: 2.5em; height: 2.5em; stroke-width: 1.9; }
-.ios-tabbar .is-active { color: var(--ios-tint); }
-.m3-appbar { display: flex; align-items: center; gap: .9em; height: 3.3em; }
-.m3-appbar svg { width: 1.35em; height: 1.35em; stroke-width: 2; }
-.m3-appbar span { font-size: 1.38em; }
-.m3-appbar i { margin-left: auto; }
-.m3-search { display: flex; align-items: center; gap: .65em; height: 3.5em; margin: .3em 0 .8em; padding: 0 1.1em; border-radius: 2em; background: #e4eadf; color: #43483f; font-size: .82em; }
-.m3-search svg { width: 1.35em; height: 1.35em; stroke-width: 2; }
-.m3-subheader { margin: 0 0 .2em; color: var(--m3-primary); font-size: .64em; font-weight: 600; }
-.m3-item { display: flex; align-items: center; gap: .85em; min-height: 3.1em; }
-.m3-lead { display: grid; place-items: center; flex-shrink: 0; width: 2.35em; height: 2.35em; border-radius: 50%; background: var(--m3-container); color: #0f4f31; }
-.m3-lead svg { width: 1.15em; height: 1.15em; stroke-width: 2; }
-.m3-divider { display: block; height: .06em; margin: .25em 0; background: #c3c9bd; }
-.m3-switch { position: relative; flex-shrink: 0; width: 2.9em; height: 1.78em; border-radius: 1em; background: var(--m3-primary); }
-.m3-switch::after { content: ""; position: absolute; top: .23em; right: .23em; width: 1.32em; height: 1.32em; border-radius: 50%; background: #fff; }
-.m3-fab { position: absolute; right: 1em; bottom: 6.1em; display: flex; align-items: center; gap: .55em; height: 4em; padding: 0 1.3em 0 1.1em; border-radius: 1.2em; background: var(--m3-container); color: #0b2e1c; font-size: .8em; font-weight: 600; box-shadow: 0 .25em .6em #0f2a1a2b, 0 .1em .2em #0f2a1a24; }
-.m3-fab svg { width: 1.5em; height: 1.5em; stroke-width: 2.2; }
-.m3-navbar { height: 5em; padding-top: .65em; background: #e9efe5; color: #42493f; }
-.m3-navbar i { display: grid; place-items: center; width: 4.9em; height: 2.5em; border-radius: 1.3em; }
-.m3-navbar svg { width: 2.2em; height: 2.2em; stroke-width: 1.9; }
-.m3-navbar .is-active { color: #1a1c19; font-weight: 700; }
-.m3-navbar .is-active i { background: #cfe6d2; }
-.m3-filled { display: grid; place-items: center; height: 2.6em; padding: 0 1.5em; border-radius: 999px; background: var(--m3-primary); color: #fff; font-size: .94em; font-weight: 500; letter-spacing: .01em; transition: background .4s; }
+.app-switch { position: relative; flex-shrink: 0; width: 2.8em; height: 1.7em; border-radius: 1em; background: var(--app-tint); }
+.app-switch::after { content: ""; position: absolute; top: .14em; right: .14em; width: 1.42em; height: 1.42em; border-radius: 50%; background: #fff; box-shadow: 0 .1em .3em #0000002e, 0 .05em .05em #0000001a; }
+.app-button { display: grid; place-items: center; height: 3.1em; margin-top: 1.2em; border-radius: 1.1em; background: var(--app-tint); color: #fff; font-size: .84em; font-weight: 600; transition: background .4s; }
+.app-tabbar { position: absolute; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(3, 1fr); height: 4.6em; padding-top: .6em; border-top: .06em solid #e4e2da; background: #fbfaf6f2; color: #8b8f86; }
+.app-tabbar span { display: flex; flex-direction: column; align-items: center; gap: .3em; font-size: .56em; font-weight: 500; }
+.app-tabbar svg { width: 2.5em; height: 2.5em; stroke-width: 1.9; }
+.app-tabbar .is-active { color: var(--app-tint); font-weight: 650; }
 .hero-art .device { position: absolute; left: 50%; top: 6em; z-index: 2; transition: transform .35s cubic-bezier(.2, .7, .2, 1); }
 .hero-art .device-ios { margin-left: -37em; transform: rotate(-3deg) translate(calc(var(--hero-x, 0px) * .55), calc(var(--hero-y, 0px) * .55)); }
 .hero-art .device-android { margin-left: 20em; transform: rotate(3deg) translate(calc(var(--hero-x, 0px) * -.45), calc(var(--hero-y, 0px) * -.45)); }
@@ -203,27 +178,18 @@ main { overflow-x: clip; }
 
 /* Native controls */
 .native-tile { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 56px; padding: 72px 64px; border-radius: 36px; background: var(--tile); }
-.native-panel { position: relative; display: grid; gap: 14px; justify-items: stretch; padding: 56px 26px 28px; border-radius: 28px; font-size: 16px; box-shadow: 0 1px 0 #ffffffb0 inset, var(--shadow-md); }
-.panel-ios { background: #f2f2f6; color: #111; }
-.panel-android { background: var(--m3-surface); color: #1a1c19; font-family: var(--android-font); }
-.panel-label { position: absolute; top: 18px; left: 26px; display: flex; align-items: center; gap: 7px; color: var(--subtle); font-family: var(--sans); font-size: 13px; font-weight: 650; }
+.native-panel { position: relative; display: grid; gap: 14px; justify-items: stretch; padding: 56px 26px 28px; border-radius: 28px; background: var(--app-surface); color: #111; font-size: 16px; box-shadow: 0 1px 0 #ffffffb0 inset, var(--shadow-md); }
+.panel-label { position: absolute; top: 18px; left: 26px; display: flex; align-items: center; gap: 7px; color: var(--subtle); font-size: 13px; font-weight: 650; }
 .panel-label::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #3a403c; }
-.panel-android .panel-label::before { background: #6d9a5f; }
+.panel-label.is-android::before { background: #6d9a5f; }
 .native-code { position: relative; margin: 0; padding: 28px 30px; border-radius: 22px; background: var(--code-bg); color: #e3e9dc; font-family: var(--mono); font-size: 13px; line-height: 1.75; white-space: pre; box-shadow: var(--shadow-lg); }
 .native-code::before, .native-code::after { content: ""; position: absolute; top: 50%; width: 56px; height: 2px; background: repeating-linear-gradient(90deg, #c7c3b4 0 6px, transparent 6px 11px); }
 .native-code::before { right: 100%; }
 .native-code::after { left: 100%; }
-.ios-cell, .m3-cell { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.ios-cell { padding: 12px 14px 12px 18px; border-radius: 12px; background: #fff; }
-.m3-cell { padding: 8px 2px; }
-.ios-field, .m3-field { display: flex; align-items: center; }
-.ios-field { height: 46px; padding: 0 14px; border: 1px solid #d1d1d6; border-radius: 10px; background: #fff; }
-.m3-field { position: relative; height: 56px; padding: 0 16px; border: 2px solid var(--m3-primary); border-radius: 6px; }
-.m3-field span { position: absolute; top: -10px; left: 11px; padding: 0 5px; background: var(--m3-surface); color: var(--m3-primary); font-size: 12px; font-weight: 500; line-height: 18px; }
-.caret { display: inline-block; width: 2px; height: 1.15em; margin-left: 1px; background: var(--ios-tint); animation: caret-blink 1.1s steps(1) infinite; }
-.m3-field .caret { background: var(--m3-primary); }
-.ios-filled { display: grid; place-items: center; height: 48px; border-radius: 13px; background: var(--ios-tint); color: #fff; font-weight: 600; }
-.native-panel .m3-filled { height: 44px; font-size: 15px; }
+.app-cell { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px 12px 18px; border-radius: 14px; background: #fff; }
+.app-field { display: flex; align-items: center; height: 48px; padding: 0 16px; border: 1px solid #dcdad0; border-radius: 14px; background: #fff; }
+.caret { display: inline-block; width: 2px; height: 1.15em; margin-left: 1px; background: var(--app-tint); animation: caret-blink 1.1s steps(1) infinite; }
+.app-filled { display: grid; place-items: center; height: 48px; border-radius: 14px; background: var(--app-tint); color: #fff; font-weight: 600; }
 
 /* Workflow */
 .workflow-section { background: var(--paper-deep); }
@@ -249,12 +215,8 @@ main { overflow-x: clip; }
 .preview-topline > span:last-child { padding: 3px 9px; border-radius: 999px; background: #fff; color: var(--ink); font-family: var(--mono); font-size: 12px; box-shadow: var(--shadow-sm); }
 .preview-devices { display: flex; gap: 1.8em; font-size: 9.4px; }
 .preview-title { margin: 1.4em 0 .35em; color: #111; font-size: 1.9em; font-weight: 700; line-height: 1.08; letter-spacing: -.03em; transition: color .4s; }
-.device-android .preview-title { color: #1a1c19; }
 .preview-subtitle { margin: 0 0 1.4em; color: #6b6b70; font-size: .78em; }
-.device-android .preview-title { font-weight: 500; letter-spacing: -.01em; }
-.device-android .preview-subtitle { color: #42493f; }
-.live-preview .m3-filled { height: 3em; margin-top: 1.2em; font-size: .84em; }
-.screen.updated .ios-button, .screen.updated .m3-filled { background: #c4623a; }
+.screen.updated .app-button { background: #c4623a; }
 .screen.updated .preview-title { color: #9e4a26; }
 .screen.updated .new-note { animation: new-note .5s ease; }
 .preview-status { display: flex; align-items: center; gap: 8px; min-height: 22px; color: #4b5d3f; font-size: 14px; }
@@ -388,8 +350,8 @@ details p { margin: -6px 56px 26px 0; font-size: 16px; line-height: 1.75; }
   .native-tile { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "code code" "ios android"; gap: 20px; padding: 24px; border-radius: 28px; }
   .native-code { grid-area: code; justify-self: center; }
   .native-code::before, .native-code::after { display: none; }
-  .panel-ios { grid-area: ios; }
-  .panel-android { grid-area: android; }
+  .native-panel:first-child { grid-area: ios; }
+  .native-panel:last-child { grid-area: android; }
   .workbench-body { grid-template-columns: 1fr; }
   .stage-panel { padding-bottom: 22px; }
   .live-preview { padding-block: 32px; }
@@ -432,12 +394,9 @@ details p { margin: -6px 56px 26px 0; font-size: 16px; line-height: 1.75; }
   .native-code { justify-self: stretch; padding: 18px; overflow-x: auto; border-radius: 16px; font-size: 10.5px; }
   .native-panel { gap: 10px; padding: 42px 12px 14px; border-radius: 18px; font-size: 13px; }
   .panel-label { top: 14px; left: 14px; font-size: 12px; }
-  .ios-cell { padding: 9px 10px 9px 12px; white-space: nowrap; }
-  .m3-cell { white-space: nowrap; }
-  .ios-field { height: 38px; padding: 0 10px; }
-  .m3-field { height: 46px; padding: 0 12px; }
-  .ios-filled { height: 40px; border-radius: 11px; }
-  .native-panel .m3-filled { height: 38px; font-size: 13px; }
+  .app-cell { padding: 9px 10px 9px 12px; white-space: nowrap; }
+  .app-field { height: 40px; padding: 0 10px; border-radius: 11px; }
+  .app-filled { height: 40px; border-radius: 11px; }
   .workbench { border-radius: 20px; }
   .workbench-header { padding: 10px; }
   .workbench-tabs { width: 100%; }

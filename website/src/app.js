@@ -159,7 +159,7 @@
   }
   function finishUpdate() {
     showPreview(true);
-    setStatus('Example update applied to both. Same native apps.');
+    setStatus('Example update applied to both platforms.');
     ship.textContent = 'Update applied ✓';
     reset.hidden = false;
     app.removeAttribute('aria-busy');
@@ -178,7 +178,7 @@
     updateTimers.forEach(clearTimeout); updateTimers = [];
     app.removeAttribute('aria-busy');
     showPreview(false);
-    setStatus('One screen. Two native experiences.');
+    setStatus('One screen. The same app on both.');
     ship.replaceChildren(...shipLabel.map(node => node.cloneNode(true))); ship.disabled = false; reset.hidden = true;
     ship.focus();
   });
