@@ -1,0 +1,193 @@
+swift	Experimental guest-to-native bridge and public consumer	﻿2026-10-23T21:15:45.3623290Z ##[group]Run for mode in debug release tsan; do
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:15:45.3623760Z ^[[36;1mfor mode in debug release tsan; do^[[0m
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:15:45.3623990Z ^[[36;1m  bridge_flags=()^[[0m
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:15:45.3624240Z ^[[36;1m  if [[ "$mode" == release ]]; then bridge_flags=(-c release); fi^[[0m
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:15:45.3624620Z ^[[36;1m  if [[ "$mode" == tsan ]]; then bridge_flags=(--sanitize thread); fi^[[0m
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:15:45.3625050Z ^[[36;1m  python3 -B experimental-capability-runtime/verification/with-loopback.py \^[[0m
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:15:45.3625450Z ^[[36;1m    --output "$RUNNER_TEMP/bridge-$mode-tls" -- \^[[0m
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:15:45.3625790Z ^[[36;1m    swift test --package-path experimental-capability-runtime \^[[0m
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:15:45.3626200Z ^[[36;1m    --scratch-path "$RUNNER_TEMP/bridge-$mode" "${bridge_flags[@]}" \^[[0m
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:15:45.3626560Z ^[[36;1m    -Xcc "-I$RUNNER_TEMP/capability-vm/include" \^[[0m
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:15:45.3626850Z ^[[36;1m    -Xlinker "-L$RUNNER_TEMP/capability-vm/lib" \^[[0m
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:15:45.3627300Z ^[[36;1m    -Xswiftc -warnings-as-errors -Xswiftc -DMIXER_EXPERIMENTAL_LOCAL_TLS_TEST^[[0m
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:15:45.3627630Z ^[[36;1mdone^[[0m
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:15:45.3627890Z ^[[36;1mswift test --package-path verification/capability-bridge-review \^[[0m
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:15:45.3628440Z ^[[36;1m  --scratch-path "$RUNNER_TEMP/bridge-public" \^[[0m
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:15:45.3628730Z ^[[36;1m  -Xcc "-I$RUNNER_TEMP/capability-vm/include" \^[[0m
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:15:45.3629080Z ^[[36;1m  -Xlinker "-L$RUNNER_TEMP/capability-vm/lib" -Xswiftc -warnings-as-errors^[[0m
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:15:45.4509040Z shell: /bin/bash -e {0}
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:15:45.4509250Z env:
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:15:45.4509480Z   DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:15:45.4509820Z   TOOLCHAINS: com.apple.dt.toolchain.XcodeDefault
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:15:45.4510050Z ##[endgroup]
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.6933440Z Building for debugging...
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.6940110Z [0/13] /Users/runner/work/_temp/bridge-debug/arm64-apple-macosx/debug/MixerExperimentalCapabilityRuntimePackageTests.derived/runner.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.6989560Z [1/13] Write sources
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.6990530Z [8/13] Write swift-version-1977FEB4D2752686.txt
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.6991250Z [9/18] Compiling CMixerVMCapability bridge.c
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.6991920Z [10/18] Compiling MixerCapabilityIO lock.c
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.6992400Z [12/18] Compiling MixerCore Lifecycle.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.6992840Z [13/18] Compiling MixerCore Navigation.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.6993320Z [14/18] Compiling MixerCore FeatureStore.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.6993890Z [15/18] Compiling MixerCore JSONInputGuard.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.6994410Z [16/18] Emitting module MixerCore
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.6994880Z [17/19] Compiling MixerCore Resources.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.6995320Z [18/33] Emitting module MixerUI
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.6995800Z [19/34] Compiling MixerUI Authoring.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.6996250Z [20/34] Compiling MixerUI NativePacketV1.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.6996810Z [21/34] Compiling MixerUI Protocol.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7003090Z [22/34] Compiling MixerUI Reconciliation.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7004380Z [23/38] Compiling MixerUI Validation.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7005450Z [28/43] Emitting module MixerCapabilities
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7006560Z [29/43] Compiling MixerCapabilities AppPrivateKeyValueStore.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7007990Z [30/43] Compiling MixerCapabilities CapabilityExitLease.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7009250Z [31/43] Compiling MixerCapabilities GeneratedGuestAdapters.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7010680Z [32/43] Compiling MixerCapabilities GeneratedGuestTransport.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7011810Z [33/43] Emitting module MixerGuest
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7012920Z [34/43] Compiling MixerGuest GuestUICodec.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7014130Z [35/43] Compiling MixerGuest GuestUIEventCodecV1.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7015360Z [36/43] Compiling MixerGuest GuestUIExchangeV1.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7016430Z [37/43] Compiling MixerGuest GuestUIProtocolV1.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7017560Z [38/44] Compiling MixerGuest GuestUIWakeV1.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7021140Z [39/44] Compiling MixerCapabilities Host.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7022190Z [40/44] Compiling MixerCapabilities InstalledCapabilityAdapters.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7022880Z [41/44] Compiling MixerCapabilities URLSessionHTTPTransport.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7023390Z [42/44] Compiling MixerCapabilities Wire.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7023940Z [43/51] Compiling MixerExperimentalCapabilityRuntime Failure.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7024640Z [44/51] Compiling MixerExperimentalCapabilityRuntime GuestUITurns.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7026920Z [45/51] Compiling MixerExperimentalCapabilityRuntime Lifecycle.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7028440Z [46/53] Compiling MixerExperimentalCapabilityRuntime Native.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7029130Z [47/53] Compiling MixerExperimentalCapabilityRuntime Ownership.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7029830Z [48/53] Compiling MixerExperimentalCapabilityRuntime Session.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7030360Z [49/53] Emitting module MixerExperimentalCapabilityRuntime
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7030970Z [50/53] Compiling MixerExperimentalCapabilityRuntime Types.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7031590Z [51/53] Compiling MixerExperimentalCapabilityRuntime Validation.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7032250Z [52/63] Compiling MixerExperimentalCapabilityRuntimeTests HTTPTests.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7043910Z [53/63] Compiling MixerExperimentalCapabilityRuntimeTests LifecycleTests.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7045350Z [54/63] Compiling MixerExperimentalCapabilityRuntimeTests MeasurementTests.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7046710Z [55/63] Compiling MixerExperimentalCapabilityRuntimeTests OwnedEnableDeadlineTests.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7048430Z [56/63] Compiling MixerExperimentalCapabilityRuntimeTests ConstructionTests.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7049790Z [57/63] Compiling MixerExperimentalCapabilityRuntimeTests FailureTests.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7051190Z [58/63] Compiling MixerExperimentalCapabilityRuntimeTests GuestProgram.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7052540Z [59/63] Compiling MixerExperimentalCapabilityRuntimeTests GuestUIProgram.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7053970Z [60/63] Compiling MixerExperimentalCapabilityRuntimeTests GuestUITests.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7055360Z [61/63] Emitting module MixerExperimentalCapabilityRuntimeTests
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7056660Z [62/67] Compiling MixerExperimentalCapabilityRuntimeTests OwnedLifecycleTests.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7058190Z [63/67] Compiling MixerExperimentalCapabilityRuntimeTests StorageTests.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7059530Z [64/67] Compiling MixerExperimentalCapabilityRuntimeTests ValidationGuest.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7060950Z [65/67] Compiling MixerExperimentalCapabilityRuntimeTests ValidationTests.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7062240Z [66/69] Compiling MixerExperimentalCapabilityRuntimePackageTests runner.swift
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7063580Z [67/69] Emitting module MixerExperimentalCapabilityRuntimePackageTests
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7064640Z [67/69] Write Objects.LinkFileList
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7065450Z [68/69] Linking MixerExperimentalCapabilityRuntimePackageTests
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7066410Z Build complete! (29.50s)
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7067090Z Test Suite 'All tests' started at 2026-10-23 21:16:16.972.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7068070Z Test Suite 'All tests' passed at 2026-10-23 21:16:16.975.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7069070Z 	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.003) seconds
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7071950Z ◇ Test run started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7072710Z ↳ Testing Library Version: 1501
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7073580Z ↳ Target Platform: arm64e-apple-macos14.0
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7074410Z ◇ Suite ExperimentalBridgeTests started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7075670Z ◇ Test cancelledQueuedCreateKeepsPermitUntilItsCleanupRuns() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7079360Z ✔ Test cancelledQueuedCreateKeepsPermitUntilItsCleanupRuns() passed after 0.134 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7081120Z ◇ Test concurrentPrepareRejectsBeforeMoreThanSixteenModuleCaptures() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7083010Z ✔ Test concurrentPrepareRejectsBeforeMoreThanSixteenModuleCaptures() passed after 0.011 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7116170Z ◇ Test unusedConstructionPermitsBoundCapturesAndRelease() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7125040Z ✔ Test unusedConstructionPermitsBoundCapturesAndRelease() passed after 0.001 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7127270Z ◇ Test checkedNativeMappingKeepsValidationInstantiationRuntimeAndInterruptionsDistinct() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7129960Z ✔ Test checkedNativeMappingKeepsValidationInstantiationRuntimeAndInterruptionsDistinct() passed after 0.003 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7132110Z ◇ Test negativeReportCombinationsAndMisleadingMessagesNeverManufactureGuestTrap() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7134230Z ✔ Test negativeReportCombinationsAndMisleadingMessagesNeverManufactureGuestTrap() passed after 0.001 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7136370Z ◇ Test autonomousWakeFailurePublishesFirstTypedDetailThroughRealConcreteStorage() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7138340Z ✔ Test autonomousWakeFailurePublishesFirstTypedDetailThroughRealConcreteStorage() passed after 0.037 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7140830Z ◇ Test guestUIValidatorUsesCheckedRequiredExportDomainAndSameCapacity() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7142770Z ✔ Test guestUIValidatorUsesCheckedRequiredExportDomainAndSameCapacity() passed after 0.002 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7145040Z ◇ Test guestUIConstructionRevalidatesAndRetiresWithoutFabricatedBridgeFailure() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7145970Z ✔ Test guestUIConstructionRevalidatesAndRetiresWithoutFabricatedBridgeFailure() passed after 0.001 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7146810Z ◇ Test guestUIHeaderPreflightChecksUnalignedFieldsOverflowOverlapAndImmutability() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7147640Z ✔ Test guestUIHeaderPreflightChecksUnalignedFieldsOverflowOverlapAndImmutability() passed after 0.001 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7148400Z ◇ Test guestUIStartupIsAtomicAndGenericOperationsCannotBypassTurnGuard() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7149100Z ✔ Test guestUIStartupIsAtomicAndGenericOperationsCannotBypassTurnGuard() passed after 0.071 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7149880Z ◇ Test guestUIFailedStorageCompletionCannotPublishSavedDocument() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7150570Z ✔ Test guestUIFailedStorageCompletionCannotPublishSavedDocument() passed after 0.075 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7151220Z ◇ Test guestUIRepeatedActualReadyTurnsRespectExistingBatchLimit() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7152010Z ✔ Test guestUIRepeatedActualReadyTurnsRespectExistingBatchLimit() passed after 0.150 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7152790Z ◇ Test guestUIInvalidInitialHeaderStopsBeforeIntentAndNativeMemoryFailureKeepsBridgeDomain() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7153700Z ✔ Test guestUIInvalidInitialHeaderStopsBeforeIntentAndNativeMemoryFailureKeepsBridgeDomain() passed after 0.079 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7154490Z ◇ Test guestUIInvalidEventTurnCannotAdmitItsStorageCalls() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7155110Z ✔ Test guestUIInvalidEventTurnCannotAdmitItsStorageCalls() passed after 0.119 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7155770Z ◇ Test guestUIHarvestsEveryActualReadyWakeBeforeTakingItsNewStorageCall() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7156470Z ✔ Test guestUIHarvestsEveryActualReadyWakeBeforeTakingItsNewStorageCall() passed after 0.237 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7157140Z ◇ Test guestUIIdlePollingCloseAndAcceptedInputRaceRemainBounded() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7158060Z ✘ Test guestUIIdlePollingCloseAndAcceptedInputRaceRemainBounded() recorded an issue at GuestUITests.swift:210:9: Expectation failed: (h.session.status.timerTicks → 0) > (ticks → 0)
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7159180Z ✘ Test guestUIIdlePollingCloseAndAcceptedInputRaceRemainBounded() failed after 0.113 seconds with 1 issue.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7159930Z ◇ Test guestUIQueuedCancellationRetainsConstructionUntilItsActualTail() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7160670Z ✔ Test guestUIQueuedCancellationRetainsConstructionUntilItsActualTail() passed after 0.110 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7161370Z ◇ Test guestUIOwnedEnablePreservesAbsoluteDeadlineAndTypedStop() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7162010Z ✔ Test guestUIOwnedEnablePreservesAbsoluteDeadlineAndTypedStop() passed after 0.046 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7163090Z ◇ Test guestUIActualNativeEnableWaitsForSharedConfirmationBeforeNewIO() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7163850Z ✔ Test guestUIActualNativeEnableWaitsForSharedConfirmationBeforeNewIO() passed after 0.204 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7164640Z ◇ Test publicOwnerDeinitRetainsActualNativeExitAndConstructionBudget() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7166900Z ✔ Test publicOwnerDeinitRetainsActualNativeExitAndConstructionBudget() passed after 0.111 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7168820Z ◇ Test interceptedHTTPUsesRealHostAdapterAndStrictGuestConversion() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7170450Z ✔ Test interceptedHTTPUsesRealHostAdapterAndStrictGuestConversion() passed after 0.061 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7171560Z ◇ Test HTTPEnqueueTimeoutAndHostCapDeliverBeforeNativeExit() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7172350Z ✔ Test HTTPEnqueueTimeoutAndHostCapDeliverBeforeNativeExit() passed after 0.351 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7172950Z ◇ Test policyDeniedInlineCallbacksStillResolveOneTakenExit() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7173650Z ✔ Test policyDeniedInlineCallbacksStillResolveOneTakenExit() passed after 0.053 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7174210Z ◇ Test realWasmNormalTrustRejectsActualLoopbackTLSCertificate() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7175110Z ✔ Test realWasmNormalTrustRejectsActualLoopbackTLSCertificate() passed after 0.099 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7175710Z ◇ Test constructionDoubleCancelAndFailureCannotLosePermits() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7176360Z ✔ Test constructionDoubleCancelAndFailureCannotLosePermits() passed after 0.014 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7176850Z ◇ Test rateRejectionIsLocalBoundedAndNeverRetried() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7177300Z ✔ Test rateRejectionIsLocalBoundedAndNeverRetried() passed after 0.064 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7177740Z ◇ Test nonconsumingWakeYieldsAndIdleSessionParks() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7178160Z ✔ Test nonconsumingWakeYieldsAndIdleSessionParks() passed after 0.295 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7178770Z ◇ Test commandBoundsRejectBeforeAllocationAndKeepOwnerUsable() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7179380Z ✔ Test commandBoundsRejectBeforeAllocationAndKeepOwnerUsable() passed after 0.043 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7180020Z ◇ Test observationsSeparateLogicalPayloadFromAllocatorAndIdleCPU() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7182990Z BRIDGE_MEASUREMENT {"before":{"allocatorAllocatedBytes":29147136,"allocatorInUseBytes":3873664,"allocatorMaximumInUseBytes":106461936,"processCPUMicroseconds":260237,"processMaximumRSSBytes":112852992},"drained":{"allocatorAllocatedBytes":29163520,"allocatorInUseBytes":3903280,"allocatorMaximumInUseBytes":106557152,"processCPUMicroseconds":265952,"processMaximumRSSBytes":118210560},"idle":{"allocatorAllocatedBytes":29163520,"allocatorInUseBytes":24365680,"allocatorMaximumInUseBytes":106539808,"processCPUMicroseconds":264016,"processMaximumRSSBytes":118194176},"idleCPUMicroseconds":184,"idleTimerTicks":0,"idleWallSeconds":0.25891187500000001,"live16":{"allocatorAllocatedBytes":29163520,"allocatorInUseBytes":24367152,"allocatorMaximumInUseBytes":106538784,"processCPUMicroseconds":263832,"processMaximumRSSBytes":118194176},"scope":"macOS process-wide observational allocator\/RSS\/CPU,16 idle owners; no hard RSS\/no-abort\/recovery claim"}
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7186170Z ✔ Test observationsSeparateLogicalPayloadFromAllocatorAndIdleCPU() passed after 0.280 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7186740Z ◇ Test queuedOwnedEnableExpiresNormallyWithoutOpeningEffects() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7187360Z ✔ Test queuedOwnedEnableExpiresNormallyWithoutOpeningEffects() passed after 0.128 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7187960Z ◇ Test futureOwnedEnableUsesConcreteStorageAndExpiredFollowupStaysTerminal() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7188740Z ✔ Test futureOwnedEnableUsesConcreteStorageAndExpiredFollowupStaysTerminal() passed after 0.080 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7189520Z ◇ Test ownedEnableRejectsDevelopmentOwnerWithoutChangingLegacyEnable() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7190220Z ✔ Test ownedEnableRejectsDevelopmentOwnerWithoutChangingLegacyEnable() passed after 0.012 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7191300Z ◇ Test untransferredConcreteGroupClosesOnceAfterFailedSetupAndDeinit() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7192060Z ✔ Test untransferredConcreteGroupClosesOnceAfterFailedSetupAndDeinit() passed after 0.025 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7192800Z ◇ Test ownedPrepareFailureRetainsGroupAndConsumedFailureReturnsOnlyNewPermit() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7194100Z ✔ Test ownedPrepareFailureRetainsGroupAndConsumedFailureReturnsOnlyNewPermit() passed after 0.018 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7194940Z ◇ Test abandonedAndQueuedCancelledOwnedConstructionRetireAfterCleanup() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7195710Z ✔ Test abandonedAndQueuedCancelledOwnedConstructionRetireAfterCleanup() passed after 0.071 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7196470Z ◇ Test ownedRealStorageDrainAndSessionDeinitRetireAndReleaseObservers() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7197180Z ✔ Test ownedRealStorageDrainAndSessionDeinitRetireAndReleaseObservers() passed after 0.085 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7197910Z ◇ Test nativeBusyAndOrdinaryCreateErrorsCloseConcreteGroupAndKeepTypedContext() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7198670Z ✔ Test nativeBusyAndOrdinaryCreateErrorsCloseConcreteGroupAndKeepTypedContext() passed after 0.005 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7200060Z ◇ Test realWasmPerformsConcreteStoragePutGetDeleteAndMissing() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7200600Z ✔ Test realWasmPerformsConcreteStoragePutGetDeleteAndMissing() passed after 0.061 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7201630Z ◇ Test trappedEnqueueCannotStartConcreteStorage() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7202090Z ✔ Test trappedEnqueueCannotStartConcreteStorage() passed after 0.001 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7202670Z ◇ Test malformedArgumentsRejectThroughGuestWithoutStoreMutation() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7203340Z ✔ Test malformedArgumentsRejectThroughGuestWithoutStoreMutation() passed after 0.013 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7203950Z ◇ Test validationChecksUncalledBodiesAndExactImportWakeStartupMemory() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7204680Z ✔ Test validationChecksUncalledBodiesAndExactImportWakeStartupMemory() passed after 0.002 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7206130Z ◇ Test zeroPageValidationAndConstructionAgreeWithoutRoundingUp() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7206840Z ✔ Test zeroPageValidationAndConstructionAgreeWithoutRoundingUp() passed after 0.022 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7207590Z ◇ Test validationIsNotInstantiationOrStartupProofAndFailuresKeepContext() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7208250Z ✔ Test validationIsNotInstantiationOrStartupProofAndFailuresKeepContext() passed after 0.016 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7208910Z ◇ Test realRuntimeResourceFailuresAreNotClassifiedAsGuestTraps() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7209580Z ✔ Test realRuntimeResourceFailuresAreNotClassifiedAsGuestTraps() passed after 0.066 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7210250Z ◇ Test actualNativeDeterministicTrapsHaveCheckedInvocationLocations() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7211390Z ✔ Test actualNativeDeterministicTrapsHaveCheckedInvocationLocations() passed after 0.193 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7213680Z ◇ Test validationBoundsAndTwoPermitsAreIndependentOfConstructionCapacity() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7215380Z ✔ Test validationBoundsAndTwoPermitsAreIndependentOfConstructionCapacity() passed after 0.030 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7216210Z ◇ Test validationSnapshotsForeignBackingAndConcurrentPrepareIsBounded() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7218230Z ✔ Test validationSnapshotsForeignBackingAndConcurrentPrepareIsBounded() passed after 0.001 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7219840Z ◇ Test validationOneShotConcurrentAndCancelledQueueRetainFiniteOwnership() started.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7220590Z ✔ Test validationOneShotConcurrentAndCancelledQueueRetainFiniteOwnership() passed after 0.026 seconds.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7221280Z ✘ Suite ExperimentalBridgeTests failed after 3.647 seconds with 1 issue.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7221790Z ✘ Test run with 48 tests in 1 suite failed after 3.647 seconds with 1 issue.
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7222090Z 
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7223130Z {"tcp_accepts": 1, "tls_failures": 1, "application_requests": 0, "errors": ["SSLEOFError:[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1082)"]}
+swift	Experimental guest-to-native bridge and public consumer	2026-10-23T21:16:20.7247180Z ##[error]Process completed with exit code 1.

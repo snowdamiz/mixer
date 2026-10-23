@@ -1,0 +1,312 @@
+{
+  "revision": "d81405559cc6bb50803a674f556eb61e75507940",
+  "source_manifest_sha256": "d5a759e009acc97d397a27483b18b1f2d8668ef4ea4af7e9dd55157fdb2ed2ed",
+  "source_manifest": "verification/guest-ui-polling-ci-repair/source-manifest.json",
+  "source_overlay": {
+    "experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/GuestUITests.swift": "8aa746fc630fea50e80ab006c6ef3a7658f592fcd7115c849b9d301efa458577"
+  },
+  "commands": [
+    {
+      "name": "swift-version",
+      "argv": [
+        "swift",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/tree",
+      "exit_code": 0,
+      "expected_exit": "zero",
+      "seconds": 0.13049795804545283,
+      "log": "verification/guest-ui-polling-ci-repair/swift-version.log",
+      "log_sha256": "30bb0d72a580e8e936ab32e24cab2876f82fa6b06d66fef876fe21a47e828acc",
+      "test_counts": []
+    },
+    {
+      "name": "xcode-version",
+      "argv": [
+        "xcodebuild",
+        "-version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/tree",
+      "exit_code": 0,
+      "expected_exit": "zero",
+      "seconds": 0.1079247499583289,
+      "log": "verification/guest-ui-polling-ci-repair/xcode-version.log",
+      "log_sha256": "ee3fe26035862d2b9653c1a570be3eca4ee5be2815f0ce99ff2d8ffa3399e4c8",
+      "test_counts": []
+    },
+    {
+      "name": "python-version",
+      "argv": [
+        "python3",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/tree",
+      "exit_code": 0,
+      "expected_exit": "zero",
+      "seconds": 0.01346216700039804,
+      "log": "verification/guest-ui-polling-ci-repair/python-version.log",
+      "log_sha256": "f615dc9512de8b165e2b595e5cdc608a3ba7927ae92f959c5b42ec3d58e2ffa8",
+      "test_counts": []
+    },
+    {
+      "name": "full-debug",
+      "argv": [
+        "python3",
+        "-B",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/tree/experimental-capability-runtime/verification/with-loopback.py",
+        "--output",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/build/debug-tls",
+        "--",
+        "swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/tree/experimental-capability-runtime",
+        "--scratch-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/build/debug",
+        "-Xcc",
+        "-I/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/build/native/include",
+        "-Xlinker",
+        "-L/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/build/native/lib",
+        "-Xswiftc",
+        "-warnings-as-errors",
+        "-Xswiftc",
+        "-DMIXER_EXPERIMENTAL_LOCAL_TLS_TEST"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/tree",
+      "exit_code": 0,
+      "expected_exit": "zero",
+      "seconds": 13.11252562503796,
+      "log": "verification/guest-ui-polling-ci-repair/full-debug.log",
+      "log_sha256": "10e6a53ec93a95c7bd994e7422ec9d61367f5c06d24978e978c7559abb20e573",
+      "test_counts": [
+        [
+          "48",
+          "passed"
+        ]
+      ]
+    },
+    {
+      "name": "full-release",
+      "argv": [
+        "python3",
+        "-B",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/tree/experimental-capability-runtime/verification/with-loopback.py",
+        "--output",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/build/release-tls",
+        "--",
+        "swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/tree/experimental-capability-runtime",
+        "--scratch-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/build/release",
+        "-c",
+        "release",
+        "-Xcc",
+        "-I/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/build/native/include",
+        "-Xlinker",
+        "-L/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/build/native/lib",
+        "-Xswiftc",
+        "-warnings-as-errors",
+        "-Xswiftc",
+        "-DMIXER_EXPERIMENTAL_LOCAL_TLS_TEST"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/tree",
+      "exit_code": 0,
+      "expected_exit": "zero",
+      "seconds": 24.96865783398971,
+      "log": "verification/guest-ui-polling-ci-repair/full-release.log",
+      "log_sha256": "6569a376d9e9ef003b00fd9550ddb3ecf72f32e03537b559233d9a11a7c1eefe",
+      "test_counts": [
+        [
+          "48",
+          "passed"
+        ]
+      ]
+    },
+    {
+      "name": "full-tsan",
+      "argv": [
+        "python3",
+        "-B",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/tree/experimental-capability-runtime/verification/with-loopback.py",
+        "--output",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/build/tsan-tls",
+        "--",
+        "swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/tree/experimental-capability-runtime",
+        "--scratch-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/build/tsan",
+        "--sanitize",
+        "thread",
+        "-Xcc",
+        "-I/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/build/native/include",
+        "-Xlinker",
+        "-L/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/build/native/lib",
+        "-Xswiftc",
+        "-warnings-as-errors",
+        "-Xswiftc",
+        "-DMIXER_EXPERIMENTAL_LOCAL_TLS_TEST"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/tree",
+      "exit_code": 0,
+      "expected_exit": "zero",
+      "seconds": 17.80596675002016,
+      "log": "verification/guest-ui-polling-ci-repair/full-tsan.log",
+      "log_sha256": "87894ce817c8edae749820f62f2f46c752d2e5d782cd35dd497af5d296dac65b",
+      "test_counts": [
+        [
+          "48",
+          "passed"
+        ]
+      ]
+    },
+    {
+      "name": "controlled-old-debug",
+      "argv": [
+        "swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/tree/experimental-capability-runtime",
+        "--scratch-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/build/debug",
+        "-Xcc",
+        "-I/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/build/native/include",
+        "-Xlinker",
+        "-L/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/build/native/lib",
+        "-Xswiftc",
+        "-warnings-as-errors",
+        "-Xswiftc",
+        "-DMIXER_EXPERIMENTAL_LOCAL_TLS_TEST",
+        "--filter",
+        "guestUIIdlePollingCloseAndAcceptedInputRaceRemainBounded"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/tree",
+      "exit_code": 1,
+      "expected_exit": "nonzero",
+      "seconds": 4.058721374953166,
+      "log": "verification/guest-ui-polling-ci-repair/controlled-old-debug.log",
+      "log_sha256": "c790a712189209d5703289457dae80e3aea1344fbeffe2af06a5c54c3fe86522",
+      "test_counts": [
+        [
+          "1",
+          "failed"
+        ]
+      ]
+    },
+    {
+      "name": "controlled-old-release",
+      "argv": [
+        "swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/tree/experimental-capability-runtime",
+        "--scratch-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/build/release",
+        "-c",
+        "release",
+        "-Xcc",
+        "-I/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/build/native/include",
+        "-Xlinker",
+        "-L/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/build/native/lib",
+        "-Xswiftc",
+        "-warnings-as-errors",
+        "-Xswiftc",
+        "-DMIXER_EXPERIMENTAL_LOCAL_TLS_TEST",
+        "--filter",
+        "guestUIIdlePollingCloseAndAcceptedInputRaceRemainBounded"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/tree",
+      "exit_code": 1,
+      "expected_exit": "nonzero",
+      "seconds": 15.029592707986012,
+      "log": "verification/guest-ui-polling-ci-repair/controlled-old-release.log",
+      "log_sha256": "371d005eef33f6d9475b042049c03b097c307606096dab73c999067d93212a9b",
+      "test_counts": [
+        [
+          "1",
+          "failed"
+        ]
+      ]
+    },
+    {
+      "name": "controlled-fixed-debug",
+      "argv": [
+        "swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/tree/experimental-capability-runtime",
+        "--scratch-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/build/debug",
+        "-Xcc",
+        "-I/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/build/native/include",
+        "-Xlinker",
+        "-L/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/build/native/lib",
+        "-Xswiftc",
+        "-warnings-as-errors",
+        "-Xswiftc",
+        "-DMIXER_EXPERIMENTAL_LOCAL_TLS_TEST",
+        "--filter",
+        "guestUIIdlePollingCloseAndAcceptedInputRaceRemainBounded"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/tree",
+      "exit_code": 0,
+      "expected_exit": "zero",
+      "seconds": 3.4720738329924643,
+      "log": "verification/guest-ui-polling-ci-repair/controlled-fixed-debug.log",
+      "log_sha256": "17c9f0bafde2977c361555d22a2f9127bbc2c935e962fd67ab94c6d9b27f9cc7",
+      "test_counts": [
+        [
+          "1",
+          "passed"
+        ]
+      ]
+    },
+    {
+      "name": "controlled-fixed-release",
+      "argv": [
+        "swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/tree/experimental-capability-runtime",
+        "--scratch-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/build/release",
+        "-c",
+        "release",
+        "-Xcc",
+        "-I/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/build/native/include",
+        "-Xlinker",
+        "-L/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/build/native/lib",
+        "-Xswiftc",
+        "-warnings-as-errors",
+        "-Xswiftc",
+        "-DMIXER_EXPERIMENTAL_LOCAL_TLS_TEST",
+        "--filter",
+        "guestUIIdlePollingCloseAndAcceptedInputRaceRemainBounded"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/tree",
+      "exit_code": 0,
+      "expected_exit": "zero",
+      "seconds": 12.513678000075743,
+      "log": "verification/guest-ui-polling-ci-repair/controlled-fixed-release.log",
+      "log_sha256": "2bcf362f9c991f79c26813d8bab344ee697bdfe934156cfe8ce7e4a6edcac561",
+      "test_counts": [
+        [
+          "1",
+          "passed"
+        ]
+      ]
+    }
+  ],
+  "native_artifacts": {
+    "verification/guest-ui-polling-ci-repair/build/native/lib/libmixer_vm_capability_experimental.a": "af0acddd9ce7cf510e55e8413b1df112860e868d877c5b4dcd08b3862aa6c69f",
+    "verification/guest-ui-polling-ci-repair/build/native/include/mixer_vm.h": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+    "verification/guest-ui-polling-ci-repair/build/native/include/mixer_vm_capability.h": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+    "verification/guest-ui-polling-ci-repair/build/native/include/mixer_vm_guest_ui.h": "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5"
+  },
+  "scope": "Test-only bounded polling repair on frozen committed SDK/runtime and freshly built exact-revision native archive. Real timer handler/guest bridge; no physical devices. Local Swift6.4 differs from hosted Swift6.2.4. Controlled queue delay demonstrates the old wait assumption, not exact hosted scheduling cause. Rust/system libraries are not Swift TSan instrumented.",
+  "status": "passed",
+  "observed_utc": "2026-10-23T21:22:42.354100+00:00"
+}

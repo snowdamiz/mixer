@@ -1,0 +1,31 @@
+{
+  "observed_utc": "2026-10-23T21:24:15.680868+00:00",
+  "decision": "accepted-test-only-bounded-observed-tick-wait",
+  "integrator": "root",
+  "source_log_native_checks": 126,
+  "bindings": {
+    "verification/guest-ui-polling-ci-repair/controlled-old.swift": "84093c4c88b9fcc4c707e1cf47c97e6df754fdf7355d80a6114c28e0fe86f7d6",
+    "verification/guest-ui-polling-ci-repair/source-manifest.json": "8c0a792dc273b1b591285b409620b8f94e80217b4b1ef96acd91b6932af76ac8",
+    "verification/guest-ui-polling-ci-repair/hosted-failure.log": "650b33377513dd66f9a733d6bf92198ed0647c9921610b43801022b0db440229",
+    "verification/guest-ui-polling-ci-repair/full-tsan.log": "87894ce817c8edae749820f62f2f46c752d2e5d782cd35dd497af5d296dac65b",
+    "verification/guest-ui-polling-ci-repair/controlled-fixed-debug.log": "17c9f0bafde2977c361555d22a2f9127bbc2c935e962fd67ab94c6d9b27f9cc7",
+    "verification/guest-ui-polling-ci-repair/swift-version.log": "30bb0d72a580e8e936ab32e24cab2876f82fa6b06d66fef876fe21a47e828acc",
+    "verification/guest-ui-polling-ci-repair/python-version.log": "f615dc9512de8b165e2b595e5cdc608a3ba7927ae92f959c5b42ec3d58e2ffa8",
+    "verification/guest-ui-polling-ci-repair/native-receipt.json": "8737341624b3ba6d37af8b2e38287715be1157240dc4f6c40847e8d06777d770",
+    "verification/guest-ui-polling-ci-repair/full-release.log": "6569a376d9e9ef003b00fd9550ddb3ecf72f32e03537b559233d9a11a7c1eefe",
+    "verification/guest-ui-polling-ci-repair/.gitignore": "5ea7ce3631a2cd92ad864005c18e1612d1a4b4f274649f9f0cb38e677382b4ac",
+    "verification/guest-ui-polling-ci-repair/full-debug.log": "10e6a53ec93a95c7bd994e7422ec9d61367f5c06d24978e978c7559abb20e573",
+    "verification/guest-ui-polling-ci-repair/controlled-old-release.log": "371d005eef33f6d9475b042049c03b097c307606096dab73c999067d93212a9b",
+    "verification/guest-ui-polling-ci-repair/controlled-fixed.swift": "b975c8bd2b15dbc367b171caf731db739e720fddbf0c3787f1d3100a8059dd91",
+    "verification/guest-ui-polling-ci-repair/original-test.swift": "70a60f14eb548ecd456376672f6a78191f108089c979cc8c895de07a2c239852",
+    "verification/guest-ui-polling-ci-repair/controlled-fixed-release.log": "2bcf362f9c991f79c26813d8bab344ee697bdfe934156cfe8ce7e4a6edcac561",
+    "verification/guest-ui-polling-ci-repair/fixed-test.swift": "8aa746fc630fea50e80ab006c6ef3a7658f592fcd7115c849b9d301efa458577",
+    "verification/guest-ui-polling-ci-repair/xcode-version.log": "ee3fe26035862d2b9653c1a570be3eca4ee5be2815f0ce99ff2d8ffa3399e4c8",
+    "verification/guest-ui-polling-ci-repair/qualify.py": "3e0f0ae0e0616f23e6a9a2147b81db8ab5cf2e137da6b9eeb83f37fccf4689af",
+    "verification/guest-ui-polling-ci-repair/controlled-old-debug.log": "c790a712189209d5703289457dae80e3aea1344fbeffe2af06a5c54c3fe86522",
+    "verification/guest-ui-polling-ci-repair/receipt.json": "beabc0107c81edf9966616f57e2b17840830ee5f61b743abfda79e0020e7e56f"
+  },
+  "change": "Replace fixed35ms timer expectation with existing bounded bridgeEventually condition; keep actual timer tick assertion and original close/input race checks. Product runtime unchanged.",
+  "evidence": "48 tests each Debug/Release/SwiftTSan; controlled real guest-queue hold reproduces old assertion failure in Debug/Release and repaired scenario passes after release.",
+  "limits": "Controlled scheduling mechanism is not exact attribution of hosted failure. LocalSwift6.4; hostedSwift6.2.4 rerun pending. Native Rust/system libraries not TSan instrumented. No devices, performance latency guarantee, release or GA qualification."
+}

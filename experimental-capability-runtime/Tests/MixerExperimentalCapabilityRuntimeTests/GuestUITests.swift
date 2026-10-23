@@ -206,7 +206,9 @@ extension ExperimentalBridgeTests {
         try await h.enable()
         let envelope = try h.present()
         let ticks = h.session.status.timerTicks
-        try await Task.sleep(for: .milliseconds(35))
+        // Dispatch timer delivery is asynchronous, including on a loaded CI host.
+        // Keep the required observed tick; wait within the existing bounded helper.
+        try await bridgeEventually { h.session.status.timerTicks > ticks }
         #expect(h.session.status.timerTicks > ticks)
         await withTaskGroup(of: Void.self) { group in
             for index in 0..<32 {
