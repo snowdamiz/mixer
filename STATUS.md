@@ -15,6 +15,9 @@ Observed implementation and evidence:
   Raw UI decoding requires strict duplicate-key/Unicode/resource validation.
   An independently checked generated iOS consumer builds and runs in a dedicated
   simulator; this is not physical FieldLog D1 acceptance.
+  The repository root now exports the same SDK products for revision-pinned Git
+  consumption. A clean exported source package passes 23 tests; actual remote
+  consumption by FieldLog remains pending.
 - The Android Swift/JNI/native widget adapter runs on a physical Pixel 8 Pro.
   Instrumentation and real input/touch paths verify text, task creation, toggles,
   stable IDs and stale-event rejection. Independent review fixed non-ASCII JSON
@@ -39,9 +42,10 @@ Observed implementation and evidence:
   strict cross-language codecs, grant intersection, bounded ownership and cancellation.
   Real app-private storage checks quotas on both mutation and reopen. Thirteen host
   tests and codec comparisons pass; official iOS/Android/WASI compilation is qualified
-  separately. HTTP currently exposes an installed transport hook. Signed per-release
-  grants, guest imports, bundled networking, physical behavior and FieldLog adoption
-  remain open. See `capabilities/verification/receipt.json` and
+  separately. HTTP currently exposes an installed transport hook. Signed release-v2
+  grants now pass 115 cross-language cases and native-policy parity. Guest imports,
+  bundled networking, physical behavior and FieldLog adoption remain open.
+  See `capabilities/verification/receipt.json` and
   `verification/independent-capabilities-2026-10-22.json`.
 - The Go development service verifies canonical signed artifacts and separately
   signed rollout assignments, with scoped authorization, durable local state and
@@ -50,7 +54,9 @@ Observed implementation and evidence:
   A local PostgreSQL17 implementation adds tenant transactions, forced row-level
   security, immutable audit/history/outbox and concurrent retry/sequence controls.
   Its isolated database checks include an actual local server crash. Independent
-  review is in progress; hosted identity, production operations and deployment remain open.
+  review found and fixed unsafe schema/function ownership and unknown migration
+  version acceptance. Root reviewed the committed changes and matched their
+  evidence. Hosted identity, production operations and deployment remain open.
 - The Swift verifier uses pinned standard cryptography and matches Go signature,
   canonical-CBOR and cohort vectors. The verifier executable runs on the physical
   Pixel and rejects replay. This is protocol evidence, not mobile OTA activation.
@@ -60,6 +66,14 @@ Observed implementation and evidence:
   replay, resumed downloads, journal fault
   injection, monotonic health, quarantine and fallback. App lifecycle, physical
   power-loss and actual guest activation qualification remain open.
+- `MixerActivation` now composes verified v1/v2 selection with the owned VM, enforcing
+  installed and signed limits, retaining guest state and handling health and fallback.
+  Its frozen source passes ten functions/11 cases in host release and the iOS simulator,
+  plus 15 independent adversarial host tests; iOS and Android cross-builds pass.
+  Review corrected the healthy fallback's startup timer to include selection and
+  validation. Full Swift/UI/capability execution, compiled feature fallback integration,
+  physical lifecycle and complete installed runtime identity remain open. See
+  `verification/activation-2026-10-22/receipt.json`.
 - The CLI creates source-locked projects, builds/tests host packages, generates and
   runs iOS simulator apps, inventories migration concerns and exports source.
   Local update verification snapshots bounded inputs so signatures and executable
@@ -82,6 +96,11 @@ Observed implementation and evidence:
   smallest is 52,008,982 raw bytes / 18,852,048 gzip bytes, above the 3MiB budget.
   ICU accounts for 33,976,096 linked data bytes; removing it is not qualified by
   this corpus. Measured linear-memory page counts do not establish peak RSS.
+  Separate bounded VM layout/session probes measured Rust heap allocations and
+  process peak RSS. Applying measured layouts to the full corpus estimates at least
+  341,333,936 bytes for eager decoding and initial memory; that is arithmetic,
+  not an observed full-corpus execution or RSS measurement. Production memory
+  architecture and ceilings remain unqualified.
 
 Official Swift 6.3.3 Android/Wasm SDKs are installed and compiler probes have run
 on a physical Pixel and in a development-only Node WASI oracle. Xcode 27.1 / Swift
@@ -102,6 +121,8 @@ to `snowdamiz/mixer` are authorized and recorded in PLAN.md. The initial GitHub
 run passed Rust and Go checks and the 23 Swift SDK tests, then rejected the CLI
 because the runner supplied Swift 6.1 while the package requires 6.2. CI now selects
 and verifies Xcode26.3/Swift6.2 explicitly, with updater tests added. Hosted run
-39877689050 at commit17134eb passed all three jobs, including the generated iOS
+39877689050 at commit17134eb and 39879453401 at b492da3 passed all three jobs, including the generated iOS
 simulator consumer. This covers the listed host CI suite, not physical devices,
-PostgreSQL integration or full release gates. See `verification/github-ci-17134eb.json`.
+PostgreSQL integration or full release gates. The newly added public SDK, capability,
+native VM wrapper and activation checks need a hosted run after the next push.
+See `verification/github-ci-b492da3.json`.

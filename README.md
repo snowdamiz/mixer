@@ -10,14 +10,23 @@ artifacts and rollout assignments. No Patch/Skip implementation is used.
 
 ## Local development
 
-Requirements: Xcode/Swift 6.2+, Rust, Go 1.26, Python 3. Node is used only as a
+The repository root is a Swift package exporting `MixerCore`, `MixerUI`,
+`MixerApple`, `MixerGuest` and `MixerCapabilities` from the same sources as `sdk/`.
+An external project can use `https://github.com/snowdamiz/mixer.git` with a full
+commit revision and product package identity `mixer`. Pin a reviewed revision;
+these are development APIs, with no stable release tag or compatibility guarantee.
+The root package does not distribute the VM, updater or activation binary.
+Their immutable native packaging remains separate work.
+
+Requirements: Xcode/Swift 6.2+, Rust, Go 1.26.4, Python 3.12+. Node is used only as a
 development test oracle. See `release/toolchain-candidate.json` for cross-target
 compiler candidates; the default Xcode compiler does not match Android/Wasm SDKs.
 
 ```sh
-swift test --package-path sdk
+swift test
 swift test --package-path cli
 swift test --package-path updates
+swift test --package-path capabilities
 cargo test --manifest-path vm/Cargo.toml
 cd services && go test -race ./...
 ```
@@ -53,15 +62,24 @@ caches, dotenv secrets, signing certificates/keys and provisioning profiles.
 | --- | --- | --- |
 | `sdk/` | Swift state/effects, bounded UI protocol, reconciliation, native Apple controls, guest codecs | Broad UI/navigation/plugins, physical behavior/accessibility, full guest parity |
 | `cli/` | Creation, doctor, locked source snapshots, host tests, iOS Simulator build/run, read-only inventory, export | Android workflow, compiler semantic inventory, signing/distribution/debug tooling |
-| `vm/` | Owned bounded integer Wasm profile, validation, execution, traps, C ABI, inventory | Full emitted Swift profile/imports/concurrency, fuzz campaigns, independent audit |
+| `vm/` | Owned bounded integer/numeric/table-memory profiles, validation, execution, persistent C sessions, inventory | Full emitted Swift profile/imports, aggregate memory design, fuzz campaigns, independent audit |
+| `runtime/` | Typed native Swift sessions and complete validation without session allocation | Immutable published native artifacts and full runtime identity |
+| `activation/` | Signed cold-start selection into owned VM, signed limits, retained state, health and fallback | Full Swift/UI/capability integration, physical lifecycle/recovery and FieldLog adoption |
+| `capabilities/` | Generated Swift/Java codecs, bounded request ownership, typed HTTP hook, real app-private key-value storage | Guest/JNI transport, bundled networking, other native families and physical qualification |
 | `native/android/` | Swift/JNI/native widgets with physical Pixel input and identity tests | FieldLog adoption, lifecycle/accessibility/performance/device matrix |
-| `updates/` | Swift Ed25519/canonical CBOR artifact and assignment verifier; Go interoperability | Durable Swift mobile activation, recovery, delegated key rotation |
-| `services/` | Signed CBOR contracts, local durable updater reference, authenticated development release API | Mobile updater, PostgreSQL hosted durability, isolated workers/signers, stores/billing/SSO |
-| `compiler/Fixtures/FeatureProbe/` | Real Swift model probe built for host/Android/Wasm | Actual FieldLog dependency graph and production package budgets |
+| `updates/` | Swift signed artifact/assignment verifier and durable recovery store with scoped physical receipts | Integrated physical activation, state migration and delegated key rotation |
+| `services/` | Signed CBOR contracts, authenticated development release API, local PostgreSQL tenant transactions/audit/outbox | Hosted identity/durability, isolated workers/signers, stores/billing/SSO |
+| `compiler/` | Full-SDK FieldLog model corpus and measured size/layout experiments | Full feature dependency graph, owned Swift execution and production budgets |
 
 Each component documents its exact limitations. A local backend reference is not
 a hosted product. A Wasm run in a development oracle is not a MixerVM pass. Host
 unit tests and simulator builds are not physical-device qualification.
+
+Native session/activation tests need the owned static VM archive. Follow
+[`runtime/README.md`](runtime/README.md) and [`activation/README.md`](activation/README.md)
+to build a frozen source revision and pass its isolated library directory to Swift.
+Do not point the linker at a Cargo directory containing both static and dynamic
+VM libraries. CI performs the static build and runs the corresponding host suites.
 
 `tests/integration/release-workflow.py` exercises actual local HTTP delivery,
 the Swift verifier and integer VM together. `mixer update verify` uses private

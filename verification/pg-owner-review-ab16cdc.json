@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "createdAt": "2026-10-23T00:50:58.466409+00:00",
+  "status": "fixed-source reviewed; hosted and full release acceptance remain open",
+  "reviewedCommit": "ab16cdc85f46f3e5d7f3633747e2b6a65660f10d",
+  "reviewedServicesTree": "6ac24e80edd9ba627b68c91601e99e5a52caac9e",
+  "implementationReceipt": "verification/pg-independent-review/receipt.json",
+  "implementationReceiptSHA256": "5049eac42474a8c92c27d04f041d750273a08e5815e8f84d22af356c7250a992",
+  "review": {
+    "source": "Inspected migration/startup explicit version check and recursive PostgreSQL role query against PostgreSQL17 USAGE/SET and ADMIN OPTION authority semantics. Schema, relation and function owners are checked. Elevated attributes require assumable authority; non-assumable attribute-only membership is not treated as owner or superuser. No unresolved confirmed issue found in this scoped fixed-source review.",
+    "evidence": "Matched all three committed implementation files to tested overlay and verified canonical fixed snapshot digest, 65 evidence file hashes and three review input hashes. Original three negative regressions are retained.",
+    "testsRerun": false,
+    "reason": "Frozen evidence is intact and the scoped source review found no new change or unresolved concern requiring repeat execution."
+  },
+  "fixedSnapshotSHA256": "4d842117d696ecd310e3bdc41501c17f5d6fdf180d370bd34ca71db82a8727d2",
+  "resolvedFindings": [
+    "PG-01",
+    "PG-02",
+    "PG-03"
+  ],
+  "primarySources": [
+    "https://www.postgresql.org/docs/17/role-membership.html",
+    "https://www.postgresql.org/docs/17/functions-info.html"
+  ],
+  "limitations": [
+    "Only local PostgreSQL17.11 execution is qualified by the implementer receipt.",
+    "No hosted authentication/TLS, operational backup/failover, production deployment, independent external security audit or GA acceptance.",
+    "Startup guards assume an administrator does not subsequently grant new unsafe authority; operational permission monitoring remains open."
+  ],
+  "physicalDevices": false,
+  "productionDatabaseUsed": false
+}
