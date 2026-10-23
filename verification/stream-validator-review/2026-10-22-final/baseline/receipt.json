@@ -1,0 +1,816 @@
+{
+  "schema_version": 1,
+  "observed_at_utc": "2026-10-23T02:06:13.607661+00:00",
+  "implementation_agent_selection": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "xhigh"
+  },
+  "independent_review": false,
+  "host_revision_at_start": "4ca99c581a0cdbf4a69e15623ae676ca73403262",
+  "source_tree_digest": "11e74f195e051317d8097953d8dd9193e29d3a0d66011fe00f29a36f34d5b8fe",
+  "source_manifest": "vm/verification/stream-validation/independent-baseline/source-manifest.sha256",
+  "frozen_production_reference": "64123c509e861ddd522631b293eadebdaca11341",
+  "frozen_production_identity": "vm/verification/stream-validation/independent-baseline/unchanged-production.json",
+  "scope": "macOS arm64 host only; nondefault complete selected-profile validation experiment; no executable route",
+  "environment": {
+    "PATH_prefix": "/opt/homebrew/opt/rustup/bin",
+    "CARGO_TARGET_DIR": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source/vm/target/stream-validation-verification"
+  },
+  "versions": {
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1",
+    "node": "v22.23.3",
+    "clang": "Apple clang version 21.0.0 (clang-2100.3.34.2)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "python": "Python 3.14.8",
+    "macos": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "architecture": "arm64"
+  },
+  "commands": [
+    {
+      "name": "version-cargo",
+      "argv": [
+        "cargo",
+        "--version"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.81755,
+      "output": "vm/verification/stream-validation/independent-baseline/version-cargo.log",
+      "output_sha256": "1f88eaf7fe1aaec83184752cf4c944cd22f00184136ff36a3e4c318cc60ef566"
+    },
+    {
+      "name": "version-rustc",
+      "argv": [
+        "rustc",
+        "--version",
+        "--verbose"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.0658,
+      "output": "vm/verification/stream-validation/independent-baseline/version-rustc.log",
+      "output_sha256": "352d6857968e80a6357a926ac685b9b07f77c479aaafde33e73a53945e802909"
+    },
+    {
+      "name": "version-node",
+      "argv": [
+        "node",
+        "--version"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.107375,
+      "output": "vm/verification/stream-validation/independent-baseline/version-node.log",
+      "output_sha256": "33e26f35db6e57ce0c486ddc815fe966867e4f649e418eaf323f75f4720eb8e9"
+    },
+    {
+      "name": "version-clang",
+      "argv": [
+        "clang",
+        "--version"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.104418,
+      "output": "vm/verification/stream-validation/independent-baseline/version-clang.log",
+      "output_sha256": "4e8a77bcb032deb6591b0db384ff9808d01d9030f00e2d877394df88a12a2536"
+    },
+    {
+      "name": "version-python",
+      "argv": [
+        "python3",
+        "--version"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.015065,
+      "output": "vm/verification/stream-validation/independent-baseline/version-python.log",
+      "output_sha256": "f615dc9512de8b165e2b595e5cdc608a3ba7927ae92f959c5b42ec3d58e2ffa8"
+    },
+    {
+      "name": "version-macos",
+      "argv": [
+        "sw_vers"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.013737,
+      "output": "vm/verification/stream-validation/independent-baseline/version-macos.log",
+      "output_sha256": "4ef10a0fc370704ea84699cf3851e51488598c5f1ab35cb572eb6b96278a8e5c"
+    },
+    {
+      "name": "version-architecture",
+      "argv": [
+        "uname",
+        "-m"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.004877,
+      "output": "vm/verification/stream-validation/independent-baseline/version-architecture.log",
+      "output_sha256": "c1669e1d8edca98769c37d494b76442a1d6e5ffffd7b4da1fb63aef8ebaf6f01"
+    },
+    {
+      "name": "format",
+      "argv": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.205923,
+      "output": "vm/verification/stream-validation/independent-baseline/format.log",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "default-debug-tests",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--",
+        "--nocapture"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 3.505711,
+      "output": "vm/verification/stream-validation/independent-baseline/default-debug-tests.log",
+      "output_sha256": "d34fa8c018e4cad4fd000cb16356f83255b275bdb45ad308680d1dd03777d1a3"
+    },
+    {
+      "name": "feature-debug-tests",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-stream-validation",
+        "--",
+        "--nocapture"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 6.717015,
+      "output": "vm/verification/stream-validation/independent-baseline/feature-debug-tests.log",
+      "output_sha256": "0f125f0a39cd34c1552beb0d22be889b16713a7ea4ef017866a98f113877eabb"
+    },
+    {
+      "name": "feature-release-tests",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--release",
+        "--features",
+        "experimental-stream-validation",
+        "--",
+        "--nocapture"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 6.439253,
+      "output": "vm/verification/stream-validation/independent-baseline/feature-release-tests.log",
+      "output_sha256": "b6b4e1a29c81da3f694ac3d602e1b81d05c728aabefee718793da55416d8daf2"
+    },
+    {
+      "name": "feature-debug-explicit-oracles",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-stream-validation",
+        "--",
+        "--ignored",
+        "--nocapture"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 6.138693,
+      "output": "vm/verification/stream-validation/independent-baseline/feature-debug-explicit-oracles.log",
+      "output_sha256": "6d05a42ceac26f7a8b39ac622404473e4c820c3fdb26a30229787f00a71d18f1"
+    },
+    {
+      "name": "feature-release-explicit-oracles",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--release",
+        "--features",
+        "experimental-stream-validation",
+        "--",
+        "--ignored",
+        "--nocapture"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 5.186051,
+      "output": "vm/verification/stream-validation/independent-baseline/feature-release-explicit-oracles.log",
+      "output_sha256": "7d829d6b88800edff5c8ec7cd76d994bff66e331ccba9fd4890236f5d4b4b385"
+    },
+    {
+      "name": "clippy-default",
+      "argv": [
+        "cargo",
+        "clippy",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.931866,
+      "output": "vm/verification/stream-validation/independent-baseline/clippy-default.log",
+      "output_sha256": "9d615b590c718699a452441ba109b00b0c95afd29b7458c957ef03ea021b22a0"
+    },
+    {
+      "name": "clippy-feature",
+      "argv": [
+        "cargo",
+        "clippy",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-stream-validation",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.742293,
+      "output": "vm/verification/stream-validation/independent-baseline/clippy-feature.log",
+      "output_sha256": "6301fafeea95db7d6687e160eca31d08128f9334c486259ce88c0d4b57095e9e"
+    },
+    {
+      "name": "default-release-build",
+      "argv": [
+        "cargo",
+        "build",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--release"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 1.761556,
+      "output": "vm/verification/stream-validation/independent-baseline/default-release-build.log",
+      "output_sha256": "6803fd20c4f80791ed40f7973df6e7c97751422a8fa7b619c92dca1716f74730"
+    },
+    {
+      "name": "default-symbols",
+      "argv": [
+        "nm",
+        "-gU",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source/vm/target/stream-validation-verification/release/libmixer_vm.dylib"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.030837,
+      "output": "vm/verification/stream-validation/independent-baseline/default-symbols.log",
+      "output_sha256": "b47897373b5dc73f1244042cd8e44d6b6bf47ed2b6dbdbea15a36c0ba50a3e93"
+    },
+    {
+      "name": "default-ffi_smoke-build",
+      "argv": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "vm/include",
+        "vm/tests/ffi_smoke.c",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source/vm/target/stream-validation-verification/release/libmixer_vm.a",
+        "-o",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source/vm/target/stream-validation-verification/default-ffi_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.184486,
+      "output": "vm/verification/stream-validation/independent-baseline/default-ffi_smoke-build.log",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "default-ffi_smoke-run",
+      "argv": [
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source/vm/target/stream-validation-verification/default-ffi_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.054528,
+      "output": "vm/verification/stream-validation/independent-baseline/default-ffi_smoke-run.log",
+      "output_sha256": "22e011bf9720cb2a6378d3bb582b1f734d18811d8e9622af4545a62ffc67b89d"
+    },
+    {
+      "name": "default-ffi_numeric_smoke-build",
+      "argv": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "vm/include",
+        "vm/tests/ffi_numeric_smoke.c",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source/vm/target/stream-validation-verification/release/libmixer_vm.a",
+        "-o",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source/vm/target/stream-validation-verification/default-ffi_numeric_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.064687,
+      "output": "vm/verification/stream-validation/independent-baseline/default-ffi_numeric_smoke-build.log",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "default-ffi_numeric_smoke-run",
+      "argv": [
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source/vm/target/stream-validation-verification/default-ffi_numeric_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.058853,
+      "output": "vm/verification/stream-validation/independent-baseline/default-ffi_numeric_smoke-run.log",
+      "output_sha256": "a009a7fccb4af9d1c562e9fbb41b66ade3becc0665f2f66869e8216d5a354273"
+    },
+    {
+      "name": "default-ffi_table_memory_smoke-build",
+      "argv": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "vm/include",
+        "vm/tests/ffi_table_memory_smoke.c",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source/vm/target/stream-validation-verification/release/libmixer_vm.a",
+        "-o",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source/vm/target/stream-validation-verification/default-ffi_table_memory_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.06678,
+      "output": "vm/verification/stream-validation/independent-baseline/default-ffi_table_memory_smoke-build.log",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "default-ffi_table_memory_smoke-run",
+      "argv": [
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source/vm/target/stream-validation-verification/default-ffi_table_memory_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.057382,
+      "output": "vm/verification/stream-validation/independent-baseline/default-ffi_table_memory_smoke-run.log",
+      "output_sha256": "90d70aba024698a2839f670630576917d75836dcab17de4a40259bfcef494c6d"
+    },
+    {
+      "name": "default-ffi_session_smoke-build",
+      "argv": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "vm/include",
+        "vm/tests/ffi_session_smoke.c",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source/vm/target/stream-validation-verification/release/libmixer_vm.a",
+        "-o",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source/vm/target/stream-validation-verification/default-ffi_session_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.066705,
+      "output": "vm/verification/stream-validation/independent-baseline/default-ffi_session_smoke-build.log",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "default-ffi_session_smoke-run",
+      "argv": [
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source/vm/target/stream-validation-verification/default-ffi_session_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.071872,
+      "output": "vm/verification/stream-validation/independent-baseline/default-ffi_session_smoke-run.log",
+      "output_sha256": "45c0d9a25d44ca97c4dd00a4eeac2d46557f059c590e498db5d91e9bce490aef"
+    },
+    {
+      "name": "feature-release-build",
+      "argv": [
+        "cargo",
+        "build",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--release",
+        "--features",
+        "experimental-stream-validation"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 2.279783,
+      "output": "vm/verification/stream-validation/independent-baseline/feature-release-build.log",
+      "output_sha256": "c89afb25d9045fa9a74c4c01b03fa699acb062d0a8042a22b4db9f714beeb261"
+    },
+    {
+      "name": "feature-symbols",
+      "argv": [
+        "nm",
+        "-gU",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source/vm/target/stream-validation-verification/release/libmixer_vm.dylib"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.018196,
+      "output": "vm/verification/stream-validation/independent-baseline/feature-symbols.log",
+      "output_sha256": "d2f4fb24831b6b8d851ec94120e53a75a4e8d69a4aaf73b042594079f3c40418"
+    },
+    {
+      "name": "feature-ffi_smoke-build",
+      "argv": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "vm/include",
+        "vm/tests/ffi_smoke.c",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source/vm/target/stream-validation-verification/release/libmixer_vm.a",
+        "-o",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source/vm/target/stream-validation-verification/feature-ffi_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.101792,
+      "output": "vm/verification/stream-validation/independent-baseline/feature-ffi_smoke-build.log",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "feature-ffi_smoke-run",
+      "argv": [
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source/vm/target/stream-validation-verification/feature-ffi_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.062884,
+      "output": "vm/verification/stream-validation/independent-baseline/feature-ffi_smoke-run.log",
+      "output_sha256": "22e011bf9720cb2a6378d3bb582b1f734d18811d8e9622af4545a62ffc67b89d"
+    },
+    {
+      "name": "feature-ffi_numeric_smoke-build",
+      "argv": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "vm/include",
+        "vm/tests/ffi_numeric_smoke.c",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source/vm/target/stream-validation-verification/release/libmixer_vm.a",
+        "-o",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source/vm/target/stream-validation-verification/feature-ffi_numeric_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.097652,
+      "output": "vm/verification/stream-validation/independent-baseline/feature-ffi_numeric_smoke-build.log",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "feature-ffi_numeric_smoke-run",
+      "argv": [
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source/vm/target/stream-validation-verification/feature-ffi_numeric_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.061738,
+      "output": "vm/verification/stream-validation/independent-baseline/feature-ffi_numeric_smoke-run.log",
+      "output_sha256": "a009a7fccb4af9d1c562e9fbb41b66ade3becc0665f2f66869e8216d5a354273"
+    },
+    {
+      "name": "feature-ffi_table_memory_smoke-build",
+      "argv": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "vm/include",
+        "vm/tests/ffi_table_memory_smoke.c",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source/vm/target/stream-validation-verification/release/libmixer_vm.a",
+        "-o",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source/vm/target/stream-validation-verification/feature-ffi_table_memory_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.066071,
+      "output": "vm/verification/stream-validation/independent-baseline/feature-ffi_table_memory_smoke-build.log",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "feature-ffi_table_memory_smoke-run",
+      "argv": [
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source/vm/target/stream-validation-verification/feature-ffi_table_memory_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.05775,
+      "output": "vm/verification/stream-validation/independent-baseline/feature-ffi_table_memory_smoke-run.log",
+      "output_sha256": "90d70aba024698a2839f670630576917d75836dcab17de4a40259bfcef494c6d"
+    },
+    {
+      "name": "feature-ffi_session_smoke-build",
+      "argv": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "vm/include",
+        "vm/tests/ffi_session_smoke.c",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source/vm/target/stream-validation-verification/release/libmixer_vm.a",
+        "-o",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source/vm/target/stream-validation-verification/feature-ffi_session_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.072783,
+      "output": "vm/verification/stream-validation/independent-baseline/feature-ffi_session_smoke-build.log",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "feature-ffi_session_smoke-run",
+      "argv": [
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source/vm/target/stream-validation-verification/feature-ffi_session_smoke"
+      ],
+      "exit_code": 0,
+      "elapsed_host_development_seconds": 0.059883,
+      "output": "vm/verification/stream-validation/independent-baseline/feature-ffi_session_smoke-run.log",
+      "output_sha256": "45c0d9a25d44ca97c4dd00a4eeac2d46557f059c590e498db5d91e9bce490aef"
+    }
+  ],
+  "test_counts": {
+    "default_debug": {
+      "passed": 87,
+      "ignored": 8
+    },
+    "feature_debug": {
+      "passed": 104,
+      "ignored": 9
+    },
+    "feature_release": {
+      "passed": 104,
+      "ignored": 9
+    },
+    "explicit_oracles": {
+      "debug": {
+        "passed": 9,
+        "ignored": 0
+      },
+      "release": {
+        "passed": 9,
+        "ignored": 0
+      }
+    }
+  },
+  "bounded_mutation_truncation_parity_cases": 2040,
+  "new_independent_node_validation_cases_per_build": 178,
+  "parity_reference_is_independent_standards_oracle": false,
+  "intentional_additional_work_budget_rejection": {
+    "frozen_decoder_accepts": true,
+    "experimental_result": "ResourceExhausted/Work; no proof",
+    "limit": 64000000,
+    "used": 64000000,
+    "attempted": 64000001,
+    "function": 0,
+    "absolute_offset": 35306,
+    "fixture": "original two-function module;16384 unreachable calls to4096-parameter signature"
+  },
+  "allocation_observations": {
+    "debug": {
+      "branch-labels-10": {
+        "source_bytes": 51,
+        "measured_requested_peak": 163,
+        "measured_retained": 91,
+        "allocation_calls": 7,
+        "total_peak_reserved": 1427,
+        "metadata_peak_reserved": 560,
+        "scratch_peak_reserved": 816,
+        "work_credits": 182
+      },
+      "branch-labels-200000": {
+        "source_bytes": 200047,
+        "measured_requested_peak": 200159,
+        "measured_retained": 200087,
+        "allocation_calls": 7,
+        "total_peak_reserved": 201423,
+        "metadata_peak_reserved": 560,
+        "scratch_peak_reserved": 816,
+        "work_credits": 1000150
+      },
+      "512-types-each-4096-parameters": {
+        "source_bytes": 2099225,
+        "measured_requested_peak": 5251097,
+        "measured_retained": 4202533,
+        "allocation_calls": 33,
+        "total_peak_reserved": 5252361,
+        "metadata_peak_reserved": 3152392,
+        "scratch_peak_reserved": 6888,
+        "work_credits": 10500655
+      },
+      "200000-instructions": {
+        "source_bytes": 200036,
+        "measured_requested_peak": 200140,
+        "measured_retained": 200076,
+        "allocation_calls": 6,
+        "total_peak_reserved": 201404,
+        "metadata_peak_reserved": 560,
+        "scratch_peak_reserved": 808,
+        "work_credits": 800101
+      },
+      "exact-4MiB-source": {
+        "source_bytes": 4194304,
+        "measured_requested_peak": 4194304,
+        "measured_retained": 4194304,
+        "allocation_calls": 1,
+        "total_peak_reserved": 4195568,
+        "metadata_peak_reserved": 520,
+        "scratch_peak_reserved": 744,
+        "work_credits": 8388609
+      },
+      "128-controls": {
+        "source_bytes": 416,
+        "measured_requested_peak": 3528,
+        "measured_retained": 456,
+        "allocation_calls": 11,
+        "total_peak_reserved": 4792,
+        "metadata_peak_reserved": 560,
+        "scratch_peak_reserved": 3816,
+        "work_credits": 1875
+      },
+      "4096-operands": {
+        "source_bytes": 12323,
+        "measured_requested_peak": 18571,
+        "measured_retained": 12363,
+        "allocation_calls": 16,
+        "total_peak_reserved": 19835,
+        "metadata_peak_reserved": 560,
+        "scratch_peak_reserved": 6952,
+        "work_credits": 61532
+      },
+      "v3-65536-elements": {
+        "source_bytes": 65592,
+        "measured_requested_peak": 65712,
+        "measured_retained": 65648,
+        "allocation_calls": 7,
+        "total_peak_reserved": 66976,
+        "metadata_peak_reserved": 576,
+        "scratch_peak_reserved": 808,
+        "work_credits": 196767
+      }
+    },
+    "release": {
+      "branch-labels-10": {
+        "source_bytes": 51,
+        "measured_requested_peak": 163,
+        "measured_retained": 91,
+        "allocation_calls": 7,
+        "total_peak_reserved": 1427,
+        "metadata_peak_reserved": 560,
+        "scratch_peak_reserved": 816,
+        "work_credits": 182
+      },
+      "branch-labels-200000": {
+        "source_bytes": 200047,
+        "measured_requested_peak": 200159,
+        "measured_retained": 200087,
+        "allocation_calls": 7,
+        "total_peak_reserved": 201423,
+        "metadata_peak_reserved": 560,
+        "scratch_peak_reserved": 816,
+        "work_credits": 1000150
+      },
+      "512-types-each-4096-parameters": {
+        "source_bytes": 2099225,
+        "measured_requested_peak": 5251097,
+        "measured_retained": 4202533,
+        "allocation_calls": 33,
+        "total_peak_reserved": 5252361,
+        "metadata_peak_reserved": 3152392,
+        "scratch_peak_reserved": 6888,
+        "work_credits": 10500655
+      },
+      "200000-instructions": {
+        "source_bytes": 200036,
+        "measured_requested_peak": 200140,
+        "measured_retained": 200076,
+        "allocation_calls": 6,
+        "total_peak_reserved": 201404,
+        "metadata_peak_reserved": 560,
+        "scratch_peak_reserved": 808,
+        "work_credits": 800101
+      },
+      "exact-4MiB-source": {
+        "source_bytes": 4194304,
+        "measured_requested_peak": 4194304,
+        "measured_retained": 4194304,
+        "allocation_calls": 1,
+        "total_peak_reserved": 4195568,
+        "metadata_peak_reserved": 520,
+        "scratch_peak_reserved": 744,
+        "work_credits": 8388609
+      },
+      "128-controls": {
+        "source_bytes": 416,
+        "measured_requested_peak": 3528,
+        "measured_retained": 456,
+        "allocation_calls": 11,
+        "total_peak_reserved": 4792,
+        "metadata_peak_reserved": 560,
+        "scratch_peak_reserved": 3816,
+        "work_credits": 1875
+      },
+      "4096-operands": {
+        "source_bytes": 12323,
+        "measured_requested_peak": 18571,
+        "measured_retained": 12363,
+        "allocation_calls": 16,
+        "total_peak_reserved": 19835,
+        "metadata_peak_reserved": 560,
+        "scratch_peak_reserved": 6952,
+        "work_credits": 61532
+      },
+      "v3-65536-elements": {
+        "source_bytes": 65592,
+        "measured_requested_peak": 65712,
+        "measured_retained": 65648,
+        "allocation_calls": 7,
+        "total_peak_reserved": 66976,
+        "metadata_peak_reserved": 576,
+        "scratch_peak_reserved": 808,
+        "work_credits": 196767
+      }
+    }
+  },
+  "allocation_method": "separate single-test integration process; System GlobalAlloc requested Layout bytes and live incremental peak; caller source/cancellation/harness baseline excluded; all observed proof drops and 12 injected allocation failures restore baseline",
+  "allocation_failure_checks": {
+    "each_of_12_allocation_ordinals": "AllocationFailure with no leak",
+    "oversized_source_and_invalid_limits": "zero allocation even with first allocation forced to fail",
+    "source_vec_to_box": "one exact-source-length allocation; zero realloc across conversion and fallible vector growth",
+    "cancellation": "four deterministic allocation gates across source/metadata/body traversal; no proof"
+  },
+  "accounting_is_measured_rss_or_native_allocator_usable_size": false,
+  "public_c_symbols": {
+    "default": [
+      "_mixer_vm_invoke",
+      "_mixer_vm_invoke_numeric_v2",
+      "_mixer_vm_invoke_table_memory_v3",
+      "_mixer_vm_session_cancel_v1",
+      "_mixer_vm_session_close_v1",
+      "_mixer_vm_session_create_v1",
+      "_mixer_vm_session_invoke_v1",
+      "_mixer_vm_session_read_v1",
+      "_mixer_vm_session_write_v1",
+      "_mixer_vm_validate",
+      "_mixer_vm_validate_numeric_v2",
+      "_mixer_vm_validate_table_memory_v3"
+    ],
+    "feature": [
+      "_mixer_vm_invoke",
+      "_mixer_vm_invoke_numeric_v2",
+      "_mixer_vm_invoke_table_memory_v3",
+      "_mixer_vm_session_cancel_v1",
+      "_mixer_vm_session_close_v1",
+      "_mixer_vm_session_create_v1",
+      "_mixer_vm_session_invoke_v1",
+      "_mixer_vm_session_read_v1",
+      "_mixer_vm_session_write_v1",
+      "_mixer_vm_validate",
+      "_mixer_vm_validate_numeric_v2",
+      "_mixer_vm_validate_table_memory_v3"
+    ]
+  },
+  "c_abi_outputs": {
+    "default-ffi_smoke": "C ABI smoke: passed",
+    "default-ffi_numeric_smoke": "FP flush-to-zero rejection: exercised\nFP hardware invalid-trap rejection: exercised\nNumeric-v2 C ABI smoke: passed",
+    "default-ffi_table_memory_smoke": "Table-memory-v3 C ABI smoke: passed; legacy struct layouts unchanged",
+    "default-ffi_session_smoke": "Persistent session C ABI smoke: passed; legacy layouts and one-shot state unchanged",
+    "feature-ffi_smoke": "C ABI smoke: passed",
+    "feature-ffi_numeric_smoke": "FP flush-to-zero rejection: exercised\nFP hardware invalid-trap rejection: exercised\nNumeric-v2 C ABI smoke: passed",
+    "feature-ffi_table_memory_smoke": "Table-memory-v3 C ABI smoke: passed; legacy struct layouts unchanged",
+    "feature-ffi_session_smoke": "Persistent session C ABI smoke: passed; legacy layouts and one-shot state unchanged"
+  },
+  "built_artifacts": {
+    "default": {
+      "archive_sha256": "3ea5debd52de3b0bf08f7e20591adf8ae14ba2a784c629000d52ba24ab56f642",
+      "dynamic_sha256": "78275241a87380438bae02aacceeea95c47aac00fa7679c21ffb061bd7a0ec1b"
+    },
+    "feature": {
+      "archive_sha256": "83a83d97cc146a3979e68dc5c7beb757ada1e98ee7daf85fb4e2f72ff24f91db",
+      "dynamic_sha256": "c0758f3f059bddd58c91926a23e7b7a21b5417dd6d4e1b991bb260213509ee3a"
+    }
+  },
+  "full_fieldlog_passed_to_experimental_validator": false,
+  "unchanged_full_fieldlog_candidate": {
+    "bytes": 52008982,
+    "sha256": "19ac88f26f0daf34b64acb3c5b895fc79b52701368fc4c532ac8ede5844fee75",
+    "validation_or_execution_claim": false
+  },
+  "open_gates": [
+    "independent experimental review",
+    "complete standards suite and coverage-guided fuzzing",
+    "physical iOS/Android experimental validator qualification (phones disconnected)",
+    "allocator-internal/RSS/stack-frame observations on deployment targets",
+    "all cache/execution/ABI/public routing design and implementation",
+    "full Swift source/function/global/control/instruction/memory admission contract",
+    "all34WASI imports and full Swift/FieldLog owned-VM execution",
+    "OTA/D3/GA"
+  ]
+}

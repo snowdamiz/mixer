@@ -1,0 +1,283 @@
+{
+  "schema_version": 1,
+  "independent_review": true,
+  "reviewer": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "xhigh"
+  },
+  "observed_at_utc": "2026-10-23T02:15:13.021178+00:00",
+  "reviewed_revision": "4ca99c581a0cdbf4a69e15623ae676ca73403262",
+  "reviewed_tree": "5644af5361d13828c74b19cb0dc1f9b7a13c0fc9",
+  "scoped_vm_source_digest": "11e74f195e051317d8097953d8dd9193e29d3a0d66011fe00f29a36f34d5b8fe",
+  "all_committed_vm_and_contract_files_manifest_sha256": "2c9cf4a4a9ebd1610485527b3d3b001161841e4c5c409c0d4f6a88e3645791ca",
+  "frozen_production_reference": "64123c509e861ddd522631b293eadebdaca11341",
+  "temporary_export": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source",
+  "baseline_receipt": "2026-10-22-final/baseline/receipt.json",
+  "environment": {
+    "PATH_prefix": "/opt/homebrew/opt/rustup/bin",
+    "CARGO_TARGET_DIR": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source/vm/target/independent-review"
+  },
+  "versions": {
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1",
+    "node": "v22.23.3",
+    "clang": "Apple clang version 21.0.0 (clang-2100.3.34.2)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "python": "Python 3.14.8",
+    "macos": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "architecture": "arm64"
+  },
+  "baseline_counts": {
+    "default_debug": {
+      "passed": 87,
+      "ignored": 8
+    },
+    "feature_debug": {
+      "passed": 104,
+      "ignored": 9
+    },
+    "feature_release": {
+      "passed": 104,
+      "ignored": 9
+    },
+    "explicit_oracles": {
+      "debug": {
+        "passed": 9,
+        "ignored": 0
+      },
+      "release": {
+        "passed": 9,
+        "ignored": 0
+      }
+    }
+  },
+  "commands": [
+    {
+      "name": "format-review-probes",
+      "argv": [
+        "rustfmt",
+        "--edition",
+        "2021",
+        "--check",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/stream-validator-review/review_semantics.rs",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/stream-validator-review/review_allocations.rs"
+      ],
+      "cwd": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source",
+      "exit_code": 0,
+      "elapsed_seconds": 0.095108,
+      "output": "2026-10-22-final/format-review-probes.log",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "debug-independent-semantics",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-stream-validation",
+        "--test",
+        "review_semantics",
+        "--",
+        "--nocapture"
+      ],
+      "cwd": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source",
+      "exit_code": 0,
+      "elapsed_seconds": 1.348789,
+      "output": "2026-10-22-final/debug-independent-semantics.log",
+      "output_sha256": "4dcff458fa717c723a9e6c347b3af79550cf6b8517115bb7c26372d91053bd13"
+    },
+    {
+      "name": "debug-independent-allocation",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-stream-validation",
+        "--test",
+        "review_allocations",
+        "--",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "cwd": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source",
+      "exit_code": 0,
+      "elapsed_seconds": 0.63836,
+      "output": "2026-10-22-final/debug-independent-allocation.log",
+      "output_sha256": "834b932d95eaaece0ecc971c847bde495729866ca6958130514dbd306ead8e03"
+    },
+    {
+      "name": "release-independent-semantics",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-stream-validation",
+        "--release",
+        "--test",
+        "review_semantics",
+        "--",
+        "--nocapture"
+      ],
+      "cwd": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source",
+      "exit_code": 0,
+      "elapsed_seconds": 0.882897,
+      "output": "2026-10-22-final/release-independent-semantics.log",
+      "output_sha256": "b71a542c244844e8408c77d457924dae1fc144b9d5de2d5952bdb974f9af6b13"
+    },
+    {
+      "name": "release-independent-allocation",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-stream-validation",
+        "--release",
+        "--test",
+        "review_allocations",
+        "--",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "cwd": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source",
+      "exit_code": 0,
+      "elapsed_seconds": 0.590814,
+      "output": "2026-10-22-final/release-independent-allocation.log",
+      "output_sha256": "6a0caf9dfc362230ac783fe5586a206823844d23cf1362b62b7f2bbdebca1fa1"
+    },
+    {
+      "name": "clippy-review-probes",
+      "argv": [
+        "cargo",
+        "clippy",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-stream-validation",
+        "--test",
+        "review_semantics",
+        "--test",
+        "review_allocations",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stream-review-76ymb0lv/source",
+      "exit_code": 0,
+      "elapsed_seconds": 0.288752,
+      "output": "2026-10-22-final/clippy-review-probes.log",
+      "output_sha256": "6804ca77b1e33b7feb9b9e177246007bd1777a07b1f83bd9cf986b1639cad948"
+    }
+  ],
+  "probes": {
+    "run.py": "1ab9ebd6b4f647ab4c23d8d72528573aa4bc22d5c47b6280fb4958403f70a3fa",
+    "review_semantics.rs": "07057ba94621f4012b5db136c04b463772d2738b0e8b1302965b01f14d6ac582",
+    "review_allocations.rs": "c2a9cad512b0a080c8f6e42c713cd2f738a799d3c42de4fa0f613f5de622dd55"
+  },
+  "node_comparisons_each_build": {
+    "debug": {
+      "uncalled-bodies": {
+        "cases": 7,
+        "accepted": 0,
+        "rejected": 7
+      },
+      "leb-and-utf8": {
+        "cases": 10,
+        "accepted": 7,
+        "rejected": 3
+      },
+      "memory-call-indirect-context": {
+        "cases": 435,
+        "accepted": 111,
+        "rejected": 324
+      },
+      "branch-table-if-joins": {
+        "cases": 680,
+        "accepted": 34,
+        "rejected": 646
+      },
+      "integer-short-frames": {
+        "cases": 14280,
+        "accepted": 1902,
+        "rejected": 12378
+      }
+    },
+    "release": {
+      "uncalled-bodies": {
+        "cases": 7,
+        "accepted": 0,
+        "rejected": 7
+      },
+      "leb-and-utf8": {
+        "cases": 10,
+        "accepted": 7,
+        "rejected": 3
+      },
+      "memory-call-indirect-context": {
+        "cases": 435,
+        "accepted": 111,
+        "rejected": 324
+      },
+      "branch-table-if-joins": {
+        "cases": 680,
+        "accepted": 34,
+        "rejected": 646
+      },
+      "integer-short-frames": {
+        "cases": 14280,
+        "accepted": 1902,
+        "rejected": 12378
+      }
+    }
+  },
+  "work_prefix_rejections_each_build": 517,
+  "independent_allocation_observations": {
+    "debug": {
+      "allocation_calls": 38,
+      "allocation_failure_ordinals": 38,
+      "cancellation_gates": 38,
+      "measured_requested_heap_peak": 35736,
+      "total_peak_reserved": 37000
+    },
+    "release": {
+      "allocation_calls": 38,
+      "allocation_failure_ordinals": 38,
+      "cancellation_gates": 38,
+      "measured_requested_heap_peak": 35736,
+      "total_peak_reserved": 37000
+    }
+  },
+  "independent_growth_overlap": {
+    "debug": {
+      "retained_metadata": 18452,
+      "peak_metadata": 26644,
+      "full_allocation_calls": 14,
+      "overlap_rejected_allocation_calls": 13
+    },
+    "release": {
+      "retained_metadata": 18452,
+      "peak_metadata": 26644,
+      "full_allocation_calls": 14,
+      "overlap_rejected_allocation_calls": 13
+    }
+  },
+  "production_findings": [],
+  "scope": "macOS arm64 host; immutable nondefault Rust experiment; independent targeted semantic/resource review; no production route",
+  "remaining_requirements": [
+    "full standards suite",
+    "coverage-guided fuzzing",
+    "external security audit",
+    "physical experimental validation (phones disconnected)",
+    "full Swift/FieldLog admission",
+    "cache/executable integration design and qualification",
+    "OTA/GA acceptance"
+  ],
+  "full_swift_qualified": false,
+  "ga_qualified": false
+}
