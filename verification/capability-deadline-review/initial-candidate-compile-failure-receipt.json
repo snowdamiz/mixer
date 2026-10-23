@@ -1,0 +1,243 @@
+{
+  "schema": 1,
+  "scope": "Read-only production review; small captured-source deterministic watchdog scheduling experiment; unmodified Host control plus derived delayed-watchdog Host; installed local storage only; no network/device/build-system/publication actions",
+  "started_utc": "2026-10-23T03:53:45.777232+00:00",
+  "revision": "e8012c5a923397729974dab6b297eab2f6e7cf0b",
+  "commands": [
+    {
+      "name": "version-swift",
+      "argv": [
+        "swiftc",
+        "--version"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.112975,
+      "log": "verification/capability-deadline-review/version-swift.log",
+      "log_sha256": "30bb0d72a580e8e936ab32e24cab2876f82fa6b06d66fef876fe21a47e828acc"
+    },
+    {
+      "name": "version-clang",
+      "argv": [
+        "clang",
+        "--version"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.013421,
+      "log": "verification/capability-deadline-review/version-clang.log",
+      "log_sha256": "4e8a77bcb032deb6591b0db384ff9808d01d9030f00e2d877394df88a12a2536"
+    },
+    {
+      "name": "version-host",
+      "argv": [
+        "uname",
+        "-a"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.004092,
+      "log": "verification/capability-deadline-review/version-host.log",
+      "log_sha256": "10c12b8125890b3768695048cf390858bb6f17cf67c1f5747e582c221c2932f0"
+    },
+    {
+      "name": "version-python",
+      "argv": [
+        "python3",
+        "--version"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.011663,
+      "log": "verification/capability-deadline-review/version-python.log",
+      "log_sha256": "f615dc9512de8b165e2b595e5cdc608a3ba7927ae92f959c5b42ec3d58e2ffa8"
+    },
+    {
+      "name": "compile-json-guard",
+      "argv": [
+        "swiftc",
+        "-swift-version",
+        "6",
+        "-parse-as-library",
+        "-emit-library",
+        "-emit-module",
+        "-module-name",
+        "MixerCore",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/original/sdk/Sources/MixerCore/JSONInputGuard.swift",
+        "-emit-module-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/build/MixerCore.swiftmodule",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/build/libMixerCore.dylib"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.488325,
+      "log": "verification/capability-deadline-review/compile-json-guard.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "compile-owned-native-lock",
+      "argv": [
+        "clang",
+        "-c",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/original/sdk/Sources/MixerCapabilities/NativeIO/lock.c",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/original/sdk/Sources/MixerCapabilities/NativeIO/include",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/build/lock.o"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.02944,
+      "log": "verification/capability-deadline-review/compile-owned-native-lock.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "compile-control",
+      "argv": [
+        "swiftc",
+        "-swift-version",
+        "6",
+        "-parse-as-library",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/build",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/c-module",
+        "-L",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/build",
+        "-lMixerCore",
+        "-Xlinker",
+        "-rpath",
+        "-Xlinker",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/build",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/original/sdk/Sources/MixerCapabilities/Wire.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/original/sdk/Sources/MixerCapabilities/GeneratedModels.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/original/sdk/Sources/MixerCapabilities/GeneratedHostAdapters.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/original/sdk/Sources/MixerCapabilities/CapabilityExitLease.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/original/sdk/Sources/MixerCapabilities/InstalledCapabilityAdapters.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/original/sdk/Sources/MixerCapabilities/AppPrivateKeyValueStore.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/original/sdk/Sources/MixerCapabilities/URLSessionHTTPTransport.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/original/sdk/Sources/MixerCapabilities/Host.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-deadline-review/Probe.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/build/lock.o",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/build/deadline-control"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 2.255181,
+      "log": "verification/capability-deadline-review/compile-control.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "run-control",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/build/deadline-control",
+        "normal-watchdog",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/store-control"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.204198,
+      "log": "verification/capability-deadline-review/run-control.log",
+      "log_sha256": "13c46b84c822088fa039103bec179846ff7118476bf27d768cce2e1f5da4951f"
+    },
+    {
+      "name": "compile-delayed",
+      "argv": [
+        "swiftc",
+        "-swift-version",
+        "6",
+        "-parse-as-library",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/build",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/c-module",
+        "-L",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/build",
+        "-lMixerCore",
+        "-Xlinker",
+        "-rpath",
+        "-Xlinker",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/build",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/original/sdk/Sources/MixerCapabilities/Wire.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/original/sdk/Sources/MixerCapabilities/GeneratedModels.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/original/sdk/Sources/MixerCapabilities/GeneratedHostAdapters.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/original/sdk/Sources/MixerCapabilities/CapabilityExitLease.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/original/sdk/Sources/MixerCapabilities/InstalledCapabilityAdapters.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/original/sdk/Sources/MixerCapabilities/AppPrivateKeyValueStore.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/original/sdk/Sources/MixerCapabilities/URLSessionHTTPTransport.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/derived/Host.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-deadline-review/Probe.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/build/lock.o",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/build/deadline-delayed"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 2.506513,
+      "log": "verification/capability-deadline-review/compile-delayed.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "run-delayed",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/build/deadline-delayed",
+        "delayed-watchdog",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/store-delayed"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.165311,
+      "log": "verification/capability-deadline-review/run-delayed.log",
+      "log_sha256": "24df8cc3a925c3c728dfc1d841841ebf2af9b06a748648b6e211be2200605929"
+    }
+  ],
+  "sources": {
+    "sdk/Sources/MixerCore/JSONInputGuard.swift": "c01ae7ad973dcfc40d2b4ecef3fb8091d1c94484410621f28e77096e952de07c",
+    "sdk/Sources/MixerCapabilities/Host.swift": "62a84a250fa160f343e97e59c67c86c29fee7ab84b0e5439bc93f95d67bb5619",
+    "sdk/Sources/MixerCapabilities/Wire.swift": "6628b5fb2f4ef70e58ea80af01e4ff2969d71da0ff13253081d196a082b3de89",
+    "sdk/Sources/MixerCapabilities/GeneratedModels.swift": "8f8533f45bcd195212e589c23349309870577b3e72ea0b3b75d2538bfba8056f",
+    "sdk/Sources/MixerCapabilities/GeneratedHostAdapters.swift": "cc0d4fb317684bf3b848d914e67201b21acda717a29a79e4531baaae69690d41",
+    "sdk/Sources/MixerCapabilities/CapabilityExitLease.swift": "f155677aa105f4238e115f49456c1f97b4bd52b7dee938d203c66006e972b383",
+    "sdk/Sources/MixerCapabilities/InstalledCapabilityAdapters.swift": "f5926ddd09bd705ec487068a1ea966feac89977924bb2dd975dd2927ed55fa9d",
+    "sdk/Sources/MixerCapabilities/AppPrivateKeyValueStore.swift": "a2f5378900f257e4f2806fd3568a683d9808f15debcb186be94dfb9aa44f3be7",
+    "sdk/Sources/MixerCapabilities/URLSessionHTTPTransport.swift": "0dd09dbedf42988c151a5b00a2d218f30b79ed27d78f37cff305aec6cb9f881a",
+    "sdk/Sources/MixerCapabilities/NativeIO/lock.c": "984b40388c210fd12414dc6afac3fbee2316b9b3baaf594a0fb6fba4a0151f4e",
+    "sdk/Sources/MixerCapabilities/NativeIO/include/MixerCapabilityIO.h": "a56788d09419a0a437f0ba26fbc1934005da4c7a343d0c72ae72f6e637519d3b"
+  },
+  "source_digest": "7c20cd4b5831f9555524c6a8fcada7e29a83bf0e9639d9232d21210a9b6ef918",
+  "derived_host_sha256": "e35a7f80148341a26ef60979f7f3814c20c5667689448a102be708a8ca50c707",
+  "probe_sha256": "e10a7aa2443ec2efb86ecb4df5aa1992ea739b65002e67906e8a6e4a7ce85c2a",
+  "driver_sha256": "f24bee0cc8d59af1667dd96ed2cbbb7f919aaa846e18ab9f7af62073d20a790e",
+  "production_inputs_unchanged_after_probe": true,
+  "completed_utc": "2026-10-23T03:53:51.584758+00:00",
+  "result": "Delayed-watchdog captured-copy experiment reproduced late host success; original-host control delivered deadlineExceeded and preserved installed exit retention",
+  "candidate_commands": [
+    {
+      "name": "compile-candidate",
+      "argv": [
+        "swiftc",
+        "-swift-version",
+        "6",
+        "-parse-as-library",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/build",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/c-module",
+        "-L",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/build",
+        "-lMixerCore",
+        "-Xlinker",
+        "-rpath",
+        "-Xlinker",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/build",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/original/sdk/Sources/MixerCapabilities/Wire.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/original/sdk/Sources/MixerCapabilities/GeneratedModels.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/original/sdk/Sources/MixerCapabilities/GeneratedHostAdapters.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/original/sdk/Sources/MixerCapabilities/CapabilityExitLease.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/original/sdk/Sources/MixerCapabilities/InstalledCapabilityAdapters.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/original/sdk/Sources/MixerCapabilities/AppPrivateKeyValueStore.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/original/sdk/Sources/MixerCapabilities/URLSessionHTTPTransport.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/derived/Host.candidate-instrumented.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-deadline-review/CandidateProbe.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/build/lock.o",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-deadline-review/build/deadline-proposed-candidate"
+      ],
+      "exit_code": 1,
+      "log": "verification/capability-deadline-review/compile-candidate.log",
+      "log_sha256": "0b399487c17b87963b91f720d262a32ab1f94d82d958f5a8c44919891c127bdd"
+    }
+  ]
+}

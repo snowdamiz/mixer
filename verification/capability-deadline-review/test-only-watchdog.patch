@@ -1,0 +1,10 @@
+--- original/Host.swift
++++ derived/Host.swift
+@@ -188,6 +188,7 @@
+         let timeout: UInt32
+         if case .http(let request) = call.operation { timeout = min(request.timeoutMilliseconds, defaultTimeoutMilliseconds) } else { timeout = defaultTimeoutMilliseconds }
+         slots[index].timer = Task.detached { [weak self] in
++            await ReviewHooks.beforeWatchdogSleep() // TEST ONLY: withhold watchdog scheduling
+             do { try await Task.sleep(nanoseconds: UInt64(timeout) * 1_000_000) } catch { return }
+             await self?.deadline(call.identity)
+         }

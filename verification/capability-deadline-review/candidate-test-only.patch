@@ -1,0 +1,30 @@
+--- proposed/Host.swift
++++ test-instrumented/Host.swift
+@@ -178,6 +178,7 @@
+         slots[index].work = Task.detached { [weak self] in
+             defer { returned() }
+             let outcome: CapabilityOutcome
++            await ReviewCandidateHooks.beforeWorkerDeadlineCheck() // TEST ONLY
+             do {
+                 guard ContinuousClock.now < deadline else {
+                     #if !os(WASI)
+@@ -195,8 +196,10 @@
+             catch is CapabilityWireError { outcome = .failure(.invalidResponse) }
+             catch { outcome = .failure(.ioFailure) }
+             await self?.complete(call.identity, outcome: outcome)
++            await ReviewCandidateHooks.beforeInvocationReturn.hold() // TEST ONLY
+         }
+         slots[index].timer = Task.detached { [weak self] in
++            await ReviewCandidateHooks.watchdog.hold() // TEST ONLY
+             do { try await ContinuousClock().sleep(until: deadline) } catch { return }
+             await self?.deadline(call.identity)
+         }
+@@ -249,3 +252,8 @@
+ }
+ 
+ extension CapabilityFailure: Error {}
++
++// TEST ONLY forwarding to exercise first-terminal immutability after the cutoff.
++extension CapabilityHost {
++    func reviewDeliverExpiredWatchdog(_ id: CapabilityRequestID) { deadline(id) }
++}

@@ -1,0 +1,16 @@
+/Users/andreyyurlov/Documents/dev/mixer/verification/capability-deadline-review/CandidateProbe.swift:53:99: error: call to actor-isolated instance method 'count()' in a synchronous main actor-isolated context [#ActorIsolatedCall]
+10 |         await withCheckedContinuation { pending.append($0) }
+11 |     }
+12 |     func count() -> Int { waiting }
+   |          `- note: calls to instance method 'count()' from outside of its actor context are implicitly asynchronous
+13 |     func release() { released = true; let p = pending; pending.removeAll(); for c in p { c.resume() } }
+14 | }
+   :
+51 |         let started = ContinuousClock.now
+52 |         try await host.submitObserved(CapabilityCodec.encodeCall(call), deliver: { record.deliver($0) }, didExit: { record.exit() })
+53 |         try await eventually { await beforeComplete.count() == 1 && ReviewCandidateHooks.watchdog.count() == 1 }
+   |                                                                                                   `- error: call to actor-isolated instance method 'count()' in a synchronous main actor-isolated context [#ActorIsolatedCall]
+54 |         if !timely { try await ContinuousClock().sleep(until: started.advanced(by: .milliseconds(100))) }
+55 |         await beforeComplete.release()
+
+[#ActorIsolatedCall]: <https://docs.swift.org/compiler/documentation/diagnostics/actor-isolated-call>

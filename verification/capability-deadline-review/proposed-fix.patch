@@ -1,0 +1,70 @@
+--- a/sdk/Sources/MixerCapabilities/Host.swift
++++ b/sdk/Sources/MixerCapabilities/Host.swift
+@@ -65,6 +65,7 @@
+         var terminal = false
+         var work: Task<Void, Never>?
+         var timer: Task<Void, Never>?
++        var deadline: ContinuousClock.Instant?
+         #if !os(WASI)
+         var exitLease: CapabilityExitLease?
+         #endif
+@@ -170,10 +171,20 @@
+             #endif
+             return
+         }
++        let timeout: UInt32
++        if case .http(let request) = call.operation { timeout = min(request.timeoutMilliseconds, defaultTimeoutMilliseconds) } else { timeout = defaultTimeoutMilliseconds }
++        let deadline = ContinuousClock.now.advanced(by: .milliseconds(Int64(timeout)))
++        slots[index].deadline = deadline
+         slots[index].work = Task.detached { [weak self] in
+             defer { returned() }
+             let outcome: CapabilityOutcome
+             do {
++                guard ContinuousClock.now < deadline else {
++                    #if !os(WASI)
++                    lease?.adapterExited() // No adapter was invoked; join with returned() below.
++                    #endif
++                    throw CapabilityFailure.deadlineExceeded
++                }
+                 let result = try await invoke()
+                 if case .http(let response) = result, (300...399).contains(response.status) { throw CapabilityFailure.redirectDenied }
+                 // Reuse the same strict result path for native callbacks.
+@@ -185,10 +196,8 @@
+             catch { outcome = .failure(.ioFailure) }
+             await self?.complete(call.identity, outcome: outcome)
+         }
+-        let timeout: UInt32
+-        if case .http(let request) = call.operation { timeout = min(request.timeoutMilliseconds, defaultTimeoutMilliseconds) } else { timeout = defaultTimeoutMilliseconds }
+         slots[index].timer = Task.detached { [weak self] in
+-            do { try await Task.sleep(nanoseconds: UInt64(timeout) * 1_000_000) } catch { return }
++            do { try await ContinuousClock().sleep(until: deadline) } catch { return }
+             await self?.deadline(call.identity)
+         }
+     }
+@@ -209,14 +218,16 @@
+         if let bytes = try? CapabilityCodec.encodeCompletion(CapabilityCompletion(call: call, outcome: outcome)) { delivery(bytes) }
+     }
+     private func release(_ index: Int) {
+-        slots[index].work = nil; slots[index].timer?.cancel(); slots[index].timer = nil; slots[index].call = nil; slots[index].delivery = nil; slots[index].reserved = false; slots[index].terminal = false
++        slots[index].work = nil; slots[index].timer?.cancel(); slots[index].timer = nil; slots[index].call = nil; slots[index].delivery = nil; slots[index].reserved = false; slots[index].terminal = false; slots[index].deadline = nil
+         #if !os(WASI)
+         slots[index].exitLease = nil
+         #endif
+     }
+     private func complete(_ id: CapabilityRequestID, outcome: CapabilityOutcome) {
+         guard !closed, let index = try? index(id), slots[index].call != nil else { return }
+-        terminal(index, outcome: outcome)
++        guard let deadline = slots[index].deadline else { return }
++        let selected: CapabilityOutcome = ContinuousClock.now >= deadline ? .failure(.deadlineExceeded) : outcome
++        terminal(index, outcome: selected)
+         #if !os(WASI)
+         if slots[index].exitLease != nil { return }
+         #endif
+@@ -230,6 +241,7 @@
+     #endif
+     private func deadline(_ id: CapabilityRequestID) {
+         guard !closed, let index = try? index(id), slots[index].call != nil else { return }
++        guard let deadline = slots[index].deadline, ContinuousClock.now >= deadline else { return }
+         terminal(index, outcome: .failure(.deadlineExceeded)); slots[index].work?.cancel()
+         // The installed path joins invocation return with adapter resource exit.
+         // Legacy closures retain their slot until dispatch returns only.

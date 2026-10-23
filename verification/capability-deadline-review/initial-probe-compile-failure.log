@@ -1,0 +1,47 @@
+/Users/andreyyurlov/Documents/dev/mixer/verification/capability-deadline-review/Probe.swift:78:19: error: sending value of non-Sendable type '() async -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+ 76 |         let acceptedBefore = ContinuousClock.now
+ 77 |         try await host.submitObserved(CapabilityCodec.encodeCall(call), deliver: { record.delivered($0) }, didExit: { record.exited() })
+ 78 |         try await awaitCondition { await afterNative.waiters() == 1 }
+    |                   |- error: sending value of non-Sendable type '() async -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+    |                   `- note: sending main actor-isolated value of non-Sendable type '() async -> Bool' to @concurrent global function 'awaitCondition' risks causing races in between main actor-isolated and @concurrent uses
+ 79 |         if delayed { try await awaitCondition { await ReviewHooks.watchdog.waiters() == 1 } }
+ 80 |         // Storage has returned, but the dispatch task is deliberately held in
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/capability-deadline-review/Probe.swift:79:32: error: sending value of non-Sendable type '() async -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+ 77 |         try await host.submitObserved(CapabilityCodec.encodeCall(call), deliver: { record.delivered($0) }, didExit: { record.exited() })
+ 78 |         try await awaitCondition { await afterNative.waiters() == 1 }
+ 79 |         if delayed { try await awaitCondition { await ReviewHooks.watchdog.waiters() == 1 } }
+    |                                |- error: sending value of non-Sendable type '() async -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+    |                                `- note: sending main actor-isolated value of non-Sendable type '() async -> Bool' to @concurrent global function 'awaitCondition' risks causing races in between main actor-isolated and @concurrent uses
+ 80 |         // Storage has returned, but the dispatch task is deliberately held in
+ 81 |         // the existing installed-adapter afterInvocation seam. The independent
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/capability-deadline-review/Probe.swift:91:23: error: sending value of non-Sendable type '() async -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+ 89 |             try require(record.state().payloads.isEmpty, "watchdog escaped test gate")
+ 90 |         } else {
+ 91 |             try await awaitCondition { !record.state().payloads.isEmpty }
+    |                       |- error: sending value of non-Sendable type '() async -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+    |                       `- note: sending main actor-isolated value of non-Sendable type '() async -> Bool' to @concurrent global function 'awaitCondition' risks causing races in between main actor-isolated and @concurrent uses
+ 92 |             let beforeReturn = try CapabilityCodec.decodeCompletion(record.state().payloads[0], expected: call)
+ 93 |             try require(beforeReturn.outcome == .failure(.deadlineExceeded), "normal watchdog did not install timeout")
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/capability-deadline-review/Probe.swift:96:19: error: sending value of non-Sendable type '() async -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+ 94 |         }
+ 95 |         await afterNative.release()
+ 96 |         try await awaitCondition { record.state().payloads.count == 1 && record.state().exits == 1 }
+    |                   |- error: sending value of non-Sendable type '() async -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+    |                   `- note: sending main actor-isolated value of non-Sendable type '() async -> Bool' to @concurrent global function 'awaitCondition' risks causing races in between main actor-isolated and @concurrent uses
+ 97 |         let result = record.state()
+ 98 |         let completion = try CapabilityCodec.decodeCompletion(result.payloads[0], expected: call)
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/capability-deadline-review/Probe.swift:107:19: error: sending value of non-Sendable type '() async -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+105 |         }
+106 |         var replacement: CapabilityRequestID?
+107 |         try await awaitCondition {
+    |                   |- error: sending value of non-Sendable type '() async -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+    |                   `- note: sending main actor-isolated value of non-Sendable type '() async -> Bool' to @concurrent global function 'awaitCondition' risks causing races in between main actor-isolated and @concurrent uses
+108 |             do { replacement = try await host.issueRequestID(); return true } catch { return false }
+109 |         }
+
+[#RegionIsolation]: <https://docs.swift.org/compiler/documentation/diagnostics/region-isolation>
+[#SendingRisksDataRace]: <https://docs.swift.org/compiler/documentation/diagnostics/sending-risks-data-race>
