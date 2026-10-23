@@ -16,8 +16,9 @@ Observed implementation and evidence:
   An independently checked generated iOS consumer builds and runs in a dedicated
   simulator; this is not physical FieldLog D1 acceptance.
   The repository root now exports the same SDK products for revision-pinned Git
-  consumption. A clean exported source package passes 23 tests; actual remote
-  consumption by FieldLog remains pending.
+  consumption. A clean exported source package passes 23 tests. FieldLog now
+  resolves public revision d8c6965 through SwiftPM and Xcode and uses MixerCore
+  for its native task editor's state and save effects; see the consumer receipt below.
 - The Android Swift/JNI/native widget adapter runs on a physical Pixel 8 Pro.
   Instrumentation and real input/touch paths verify text, task creation, toggles,
   stable IDs and stale-event rejection. Independent review fixed non-ASCII JSON
@@ -87,6 +88,12 @@ Observed implementation and evidence:
   editing, reorder, exact draft restoration, entry commit, report sharing and local
   pending changes; dark-mode controls were visually reviewed and corrected. Authentication,
   backend synchronization and real user adoption are not implemented or simulated.
+  At d51adf5, the native task editor consumes the public MixerCore package pinned
+  to d8c6965, with no engine-internal import or local Mixer dependency. Seventeen
+  host tests and the unchanged end-to-end simulator workflow pass. Persisted
+  models and native SwiftUI controls remain compatible. This is initial external
+  package consumption, not full MixerUI/guest adoption or D1 acceptance; physical
+  regression is pending. See `verification/fieldlog-public-sdk-2026-10-22.json`.
 - Actual FieldLog models at baseline `1587d2d` produce matching observations
   on macOS, the physical Pixel and the full Swift Wasm SDK in a development oracle:
   1,000 tasks, 50% progress, ordering, Unicode draft restoration, entry commit and
@@ -123,6 +130,7 @@ because the runner supplied Swift 6.1 while the package requires 6.2. CI now sel
 and verifies Xcode26.3/Swift6.2 explicitly, with updater tests added. Hosted run
 39877689050 at commit17134eb and 39879453401 at b492da3 passed all three jobs, including the generated iOS
 simulator consumer. This covers the listed host CI suite, not physical devices,
-PostgreSQL integration or full release gates. The newly added public SDK, capability,
-native VM wrapper and activation checks need a hosted run after the next push.
-See `verification/github-ci-b492da3.json`.
+PostgreSQL integration or full release gates. The expanded run39880996716 at
+d8c6965 also passed all three jobs, including the public SDK, capabilities, native
+VM wrapper, activation and generated simulator consumer. See
+`verification/github-ci-d8c6965.json`.

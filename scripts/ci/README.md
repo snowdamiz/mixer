@@ -43,8 +43,9 @@ For a local probe, pass the actual installed Xcode path/version/build and a fres
 receipt path. This does not modify the global `xcode-select` setting. The local
 receipt records Xcode 26.6 because 26.3 is absent on this Mac; only a subsequent
 GitHub run can establish the pinned hosted execution result. Run39877689050 at
-17134eb passed the initial three jobs; subsequent runtime/capability/activation
-steps need their own hosted receipt after they are pushed.
+17134eb passed the initial three jobs. Run39880996716 at d8c6965 passed all three
+expanded jobs, including the public SDK and runtime/capability/activation steps;
+see `verification/github-ci-d8c6965.json`.
 
 These jobs cover host package behavior and an unsigned generated simulator build.
 They do not qualify physical devices, OTA deployment, PostgreSQL integration or
