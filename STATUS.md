@@ -63,7 +63,15 @@ Observed implementation and evidence:
   Its isolated database checks include an actual local server crash. Independent
   review found and fixed unsafe schema/function ownership and unknown migration
   version acceptance. Root reviewed the committed changes and matched their
-  evidence. Hosted identity, production operations and deployment remain open.
+  evidence. Explicit v2 HTTP routes now compose typed signed grants with the same
+  tenant transactions, audit, idempotency and sequence controls. A successful v2
+  domain transaction atomically upgrades local storage; old service binaries reject
+  that schema, and existing v1 bytes survive restart. The full Go race suite passes
+  839 executions, CLI passes 15 tests, and isolated PostgreSQL passes 46 executions.
+  Actual loopback HTTP reaches the public Swift verifier for both versions. Nine
+  independent adversarial functions/36 cases pass, with source and log identities
+  matched by root. Hosted identity, production operations and deployment remain
+  open. See `verification/release-v2-owner-review-2026-10-22.json`.
 - The Swift verifier uses pinned standard cryptography and matches Go signature,
   canonical-CBOR and cohort vectors. The verifier executable runs on the physical
   Pixel and rejects replay. This is protocol evidence, not mobile OTA activation.
@@ -94,9 +102,16 @@ Observed implementation and evidence:
   three activation tests, 32 CLI hash-oracle cases and nine rejection cases. It
   reproduced and verified fixes for mixed verifier policy and a file-open race;
   the fixed file probe passes 80 attempts and all 53 update test cases pass.
-  Declared hashes still require complete build-input capture, signed binary
-  embedding and provenance. This is not a build attestation or physical-device
-  qualification. See `verification/runtime-identity-integration-2026-10-22.json`.
+  A bounded capture tool now copies declared inputs through pinned file descriptors,
+  computes hashes from those exact bytes and verifies a content-addressed snapshot.
+  Thirteen implementation tests and twenty independent checks pass in both normal
+  and optimized Python modes; a real simulator VM archive also passes capture and
+  verification after its original private copy changes. Review verified the fix for
+  an oversized JSON integer that previously printed a traceback on rejection.
+  Complete graph discovery, actual build consumption, signed binary embedding and
+  provenance remain open. This is not a build attestation or physical-device
+  qualification. See `verification/runtime-identity-integration-2026-10-22.json`
+  and `verification/input-capture-integration-2026-10-22.json`.
 - The CLI creates source-locked projects, builds/tests host packages, generates and
   runs iOS simulator apps, inventories migration concerns and exports source.
   Local update verification snapshots bounded inputs so signatures and executable
@@ -138,9 +153,14 @@ Observed implementation and evidence:
   unchanged control-depth ceiling. Source, diagnostic index and one decoded body
   peak at 55,910,263 directly requested bytes; diagnostic process peak RSS is
   60,276,736 bytes. These are diagnostic measurements, not full module validation
-  or execution. A separately gated streaming-validator experiment is testing complete
-  validation under the existing profiles. See
-  `verification/function-diagnostics-owner-review-2026-10-22.json`.
+  or execution. A nondefault Rust streaming-validator experiment now completes
+  validation under the existing profiles with separately bounded metadata, scratch
+  and work. Its 104 feature checks and targeted independent review pass, including
+  15,412 Node comparisons per build, allocation failures, cancellation and growth
+  overlap. It retains immutable source spans and has no executable or public C
+  route. Full Swift admission and production integration remain open. See
+  `verification/function-diagnostics-owner-review-2026-10-22.json` and
+  `verification/stream-validator-owner-review-2026-10-22.json`.
 
 Official Swift 6.3.3 Android/Wasm SDKs are installed and compiler probes have run
 on a physical Pixel and in a development-only Node WASI oracle. Xcode 27.1 / Swift
@@ -178,3 +198,6 @@ Android app behavior and full plugin/guest adoption remain open. See
 
 GitHub run39883597203 at37c1253 passed all three jobs, including the expanded Swift
 and generated simulator-consumer workflow. See `verification/github-ci-37c1253.json`.
+
+GitHub run39887102131 at80268f7 passed all three jobs, including runtime identity
+and signed activation checks. See `verification/github-ci-80268f7.json`.

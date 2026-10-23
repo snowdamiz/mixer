@@ -1,0 +1,70 @@
+{
+  "schema": 1,
+  "reviewedAt": "2026-10-23T02:32:47.643019+00:00",
+  "sourceRevision": "16f6175441565adf5d1a2dc13bf2a591e65518e6",
+  "status": "passed scoped local HTTP v2 integration review",
+  "reviewer": "root source/identity review with linked independent adversarial review",
+  "implementation": {
+    "path": "services/verification/http-v2-2026-10-22/receipt.json",
+    "sha256": "7b3574724ee0190723b8e08e00315a3bf6beee9ba0986449d496fa98eb4ac70a",
+    "sourceFilesMatchedToGit": 57,
+    "preservedEvidenceFilesMatched": 63,
+    "manifest": {
+      "path": "services/verification/http-v2-2026-10-22/manifest.json",
+      "sha256": "d3446066fcf41cf4faa9cd9c32ecaf331162c3e322fd6c3aad73d2fc6db18e97"
+    },
+    "sourceDigest": "15a98c124cbe66d7b1d4635f58d57aaff6e0d6512141e531042a295c8e16ac36"
+  },
+  "independentReview": {
+    "path": "verification/release-v2-review/evidence/16f6175-final/receipt.json",
+    "sha256": "854c33b00791035aacbda19a8a5fb88a0b89444b9f7d73ccdfdb7fde6224b155",
+    "sourceFilesMatchedToGit": 140,
+    "commandLogsMatched": 16,
+    "testAndRunnerSourceMatched": true,
+    "testCounts": {
+      "top_level": 9,
+      "executions_including_subtests": 36,
+      "failed": [],
+      "skipped": []
+    },
+    "evidenceAudit": {
+      "path": "verification/release-v2-review/evidence/16f6175-matched-evidence-final.json",
+      "sha256": "f2a1929cf4f94e640d07358aec91c81a5f8749f3242dd068a1e6f150d3f686f5"
+    },
+    "commit": "b7cd207d88926f0a379ae34dfb9fefda5fec4305"
+  },
+  "checks": {
+    "goRaceExecutions": 839,
+    "cliTests": 15,
+    "postgresTopLevelFunctions": 13,
+    "postgresDatabaseFunctions": 12,
+    "postgresExecutions": 46,
+    "realPostgresVersion": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "migration001SHA256": "c352755698244eff1a5d65ac32d0255478ea270be1fc143a94bdbba876b47605",
+    "publicSwiftHTTPProtocols": [
+      1,
+      2
+    ],
+    "oldBinaryRefusesSchema2WithoutMutation": true,
+    "restartPreservesV1BytesAndV2Grants": true,
+    "physicalDevicesAttempted": false
+  },
+  "findings": [],
+  "historicalHarnessCorrections": [
+    "Implementer CLI summary classifier corrected from preserved passing output; lost durations remain null.",
+    "Independent initial request helper omitted Content-Type, then corrected review source only; failed attempt preserved.",
+    "Independent initial evidence audit mistook no-test-files package events for skipped tests; failed audit preserved."
+  ],
+  "limitations": [
+    "Local checkout dependencies, not immutable published consumer adoption.",
+    "Public TEST roots/non-executable payloads only; no production credential, native capability execution, activation or device/OTA qualification.",
+    "Swift HTTP test consumer accepts small fixtures up to 96KiB and uses the metadata string bound; this is not a production large-payload downloader.",
+    "This HTTP harness uses the local snapshot store; real PostgreSQL is exercised by the separate isolated-cluster runner.",
+    "No new CLI publication command, hosted deployment, outbox dispatch or production readiness.",
+    "PostgreSQL test cluster uses private Unix sockets and is deleted; no external/user database or credential changes.",
+    "Unit command outputs passed; a wrapper summary pattern was corrected from retained output without rerunning tests. Command durations lost by that wrapper are explicitly null, not invented.",
+    "Legacy integration removes its private intermediate logs; the preserved outer output contains its semantic receipt and binary hashes, with no source-build attestation of the pre-existing VM executable.",
+    "Independent PostgreSQL checks reviewed actual adapter decoders and audited retained real-server results; reviewer did not start another database.",
+    "No compiler eligibility, guest capability execution, production signing, physical lifecycle, hosted deployment or GA/dogfood closure."
+  ]
+}

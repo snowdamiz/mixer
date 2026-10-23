@@ -1,0 +1,84 @@
+{
+  "schema": 1,
+  "status": "passed scoped declared-input capture integration review",
+  "sourceRevision": "629ee0f725ae407fc1967af150d5ce38f2c009cc",
+  "sourceDigest": "0e93029747dc12bea68a543782b30c415700b7785c91f7f16301c86bdede3a5c",
+  "reviewCommit": "48217b5ebdb1ed15cdc010a67c009f534b5e37dc",
+  "scope": "Root source/log identity check, prior source review, actual CLI frozen qualification and independent adversarial review; no graph or build attestation",
+  "verified": {
+    "qualificationSourceFiles": 48,
+    "qualificationLogs": 20,
+    "reviewSourceFiles": 48,
+    "reviewLogs": 14
+  },
+  "qualification": {
+    "path": "verification/input-capture-2026-10-22-reviewed/receipt.json",
+    "sha256": "17c77d5777bc0c255d8d1c3a06681a5e8b4b20f3579fd73bf3c329d35cf6af31",
+    "testsPerMode": 13,
+    "modes": [
+      "normal",
+      "Python -O"
+    ],
+    "nativeArchiveProbe": {
+      "sourceRevision": "64123c509e861ddd522631b293eadebdaca11341",
+      "librarySHA256": "a406c86d9d8ba6236ed99af579e04abbe4dd2b4e44543521cdd966b9d2a2f175",
+      "capturedArchiveBytes": 18805808,
+      "result": {
+        "buildAttested": false,
+        "completeGraphProven": false,
+        "fingerprint": "405d7f209100818be4a53bb174c13f276f238c363dede6747387dbaa24ce276a",
+        "objects": 2,
+        "snapshotSHA256": "d0186ec8ae0a810e48b412cb2be1e00c657048b8ba5397747f2417f3d33cb784",
+        "sourceBytes": 18805855
+      },
+      "verifiedAfterOriginalPathMutation": true,
+      "inventorySHA256": "d0186ec8ae0a810e48b412cb2be1e00c657048b8ba5397747f2417f3d33cb784",
+      "descriptorSHA256": "36fecaec78e30e5785fb9df2b7d055752fe3cb8558b4f6edf374095360938935"
+    }
+  },
+  "independentReview": {
+    "path": "verification/input-capture-review/evidence/629ee0f-final/receipt.json",
+    "sha256": "b330d89d4e76f4700a274cff2941d6260d860d4407bbaa23cac9e94d59ea5063",
+    "testsPerMode": 20,
+    "modes": [
+      "normal",
+      "Python -O"
+    ],
+    "finding": {
+      "priority": "P3",
+      "status": "resolved by root in629ee0f",
+      "description": "plain ValueError for5000-digit invalid JSON schema escaped decoder diagnostic wrapper; always exited1 with no output",
+      "before": {
+        "case": "5000-digit-invalid-schema",
+        "exit_code": 1,
+        "stderr_bytes": 1923,
+        "traceback": true
+      },
+      "after": {
+        "case": "5000-digit-invalid-schema",
+        "exit_code": 1,
+        "stderr_bytes": 29,
+        "traceback": false
+      }
+    }
+  },
+  "historicalAttempts": [
+    {
+      "path": "verification/input-capture-2026-10-22/receipt.json",
+      "status": "harness failed before tests because recorder requires an absolute executable; retained"
+    },
+    {
+      "path": "verification/input-capture-2026-10-22-final/receipt.json",
+      "status": "passed frozen c01e801 before error diagnostic fix; superseded by reviewed qualification"
+    }
+  ],
+  "limitations": [
+    "Declared file capture only; no automatic complete graph capture, build consumption or compiler/SDK version attestation",
+    "Snapshot includes a real frozen simulator VM archive as a byte-copy probe; remaining inputs and descriptor are synthetic integration fixtures",
+    "No binary embedding, signing, physical execution, release publication or GA qualification",
+    "trusted CLI reused from hashed root frozen build; not independently rebuilt",
+    "exact1GiB/4GiB streaming not exercised; reduced byte-stream caps and actual oversized stat guard exercised",
+    "no graph discovery/compiler version truth/build consumption/signature/binary embedding/same-user immutability",
+    "no power-loss/filesystem completeness/security audit or device/release/GA qualification"
+  ]
+}
