@@ -646,3 +646,32 @@ This host qualification uses frozen transition candidate2 and does not include
 the new coordinator or its combined cross builds. All three hosted jobs atf5d99d1
 pass for the preceding durable-transition checkpoint; see
 `verification/github-ci-f5d99d1/receipt.json`.
+
+The additive signed cold-start coordinator composes that ownership with the
+current durable store and signal control wakes. Its combined suite passes all
+95 functions in each of Debug, Release and TSan. Thirteen functions per mode
+exercise derived scheduling/retirement cases; only five are additional to the
+eight coordinator tests. Two ordinary public consumers and six privacy-negative
+compiles pass, as do official iOS/Android module/object builds. Root audited 133
+frozen inputs, 47 command logs, 29 artifacts and 354 retained dependency bindings;
+see `verification/capability-cold-start-runtime-root-review/receipt.json`.
+
+Root's four original flows pass unchanged in all three host modes: early
+milestones commit health later without another report, actually committed health
+restarts after root-key expiry, the seventeenth owner opens no directory, and 32
+cancelled opens per mode return capacity after actual cleanup. Independent review
+found no actionable defect; two held health-write/close races pass in each host
+mode, including 144 concurrent close calls. Both committed health and uncertain
+state survive conservative reopen recovery. The owner-only
+derived invoke driver is absent from production. Synthetic milestones and public
+native-fallback smoke do not qualify guest event delivery, real UI health,
+FieldLog or physical devices. All GA and dogfood gates remain open.
+
+Hosted run 39939500626 at36c5579 passes VM/services but fails Swift 6.2.4
+typechecking on three long test-fixture byte-array expressions. The test-only
+repair produces exactly the same bytes for both valid and invalid-data variants
+and passes all six affected XCTest functions locally. Original CI logs and the
+fixture parser's stderr-count correction are preserved; no production bytes
+changed. See `verification/github-ci-36c5579/receipt.json` and
+`verification/capability-concrete-ci-fixture-fix/receipt.json`. Confirmation with
+the pinned hosted compiler is pending.

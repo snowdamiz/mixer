@@ -1,0 +1,47 @@
+/Users/andreyyurlov/Documents/dev/mixer/verification/capability-cold-start-runtime-root-review/.build/preliminary-linked-1/ColdStartFlowProbe.swift:142:19: error: sending value of non-Sendable type '() async -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+140 |         // No further milestone or external call drives health. The timer must wake
+141 |         // the existing consumer when both reports precede the observation window.
+142 |         try await eventually("Observation did not promote health") {
+    |                   |- error: sending value of non-Sendable type '() async -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+    |                   `- note: sending main actor-isolated value of non-Sendable type '() async -> Bool' to @concurrent static method 'eventually' risks causing races in between main actor-isolated and @concurrent uses
+143 |             let snapshot = await runtime.recoverySnapshot()
+144 |             return snapshot.activation.phase == .healthyGuest && snapshot.healthy == started.candidateID
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/capability-cold-start-runtime-root-review/.build/preliminary-linked-1/ColdStartFlowProbe.swift:150:19: error: sending value of non-Sendable type '() async -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+148 |         try check(healthy.healthy?.candidateID == started.candidateID && healthy.attempt?.effectsMayHaveOpened == true, "Health lost the live effects attempt")
+149 |         await runtime.close()
+150 |         try await eventually("Close did not release real owners") {
+    |                   |- error: sending value of non-Sendable type '() async -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+    |                   `- note: sending main actor-isolated value of non-Sendable type '() async -> Bool' to @concurrent static method 'eventually' risks causing races in between main actor-isolated and @concurrent uses
+151 |             !(await runtime.recoverySnapshot()).activation.cleanupPending && CapabilityAttemptReservation.occupiedSlots == baseline
+152 |         }
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/capability-cold-start-runtime-root-review/.build/preliminary-linked-1/ColdStartFlowProbe.swift:162:19: error: sending value of non-Sendable type '() async -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+160 |         try check(state.attempt?.source == "healthy" && state.acceptedSequence == 1, "Reopen laundered retained health as fresh or lowered high-water")
+161 |         await reopened.close()
+162 |         try await eventually("Retained close did not release owners") { CapabilityAttemptReservation.occupiedSlots == baseline }
+    |                   |- error: sending value of non-Sendable type '() async -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+    |                   `- note: sending main actor-isolated value of non-Sendable type '() async -> Bool' to @concurrent static method 'eventually' risks causing races in between main actor-isolated and @concurrent uses
+163 |         print("PASS real committed healthy provenance survives cold reopen after root expiry")
+164 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/capability-cold-start-runtime-root-review/.build/preliminary-linked-1/ColdStartFlowProbe.swift:178:19: error: sending value of non-Sendable type '() async -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+176 |         for owner in owners { await owner.close() }
+177 |         owners.removeAll()
+178 |         try await eventually("Idle close did not return capacity") { CapabilityAttemptReservation.occupiedSlots == baseline }
+    |                   |- error: sending value of non-Sendable type '() async -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+    |                   `- note: sending main actor-isolated value of non-Sendable type '() async -> Bool' to @concurrent static method 'eventually' risks causing races in between main actor-isolated and @concurrent uses
+179 |         print("PASS public owner ceiling rejects before directory creation and idle close returns capacity")
+180 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/capability-cold-start-runtime-root-review/.build/preliminary-linked-1/ColdStartFlowProbe.swift:187:23: error: sending value of non-Sendable type '() async -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+185 |             do { let completedBeforeCancellation = try await task.value; await completedBeforeCancellation.close() }
+186 |             catch { /* Cancellation may win before store admission or during open. */ }
+187 |             try await eventually("Cancelled open leaked a counted owner") { CapabilityAttemptReservation.occupiedSlots == baseline }
+    |                       |- error: sending value of non-Sendable type '() async -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+    |                       `- note: sending main actor-isolated value of non-Sendable type '() async -> Bool' to @concurrent static method 'eventually' risks causing races in between main actor-isolated and @concurrent uses
+188 |         }
+189 |         print("PASS 32 cancelled opens preserve capacity after actual cleanup")
+
+[#RegionIsolation]: <https://docs.swift.org/compiler/documentation/diagnostics/region-isolation>
+[#SendingRisksDataRace]: <https://docs.swift.org/compiler/documentation/diagnostics/sending-risks-data-race>

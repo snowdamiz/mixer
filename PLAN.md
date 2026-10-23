@@ -99,6 +99,18 @@ outer slot remains held through setup/method return and actual bridge retirement
 cancelled waits do not release it. Root verified both evidence seals; see
 `verification/capability-concrete-attempt-root-review/receipt.json`.
 Hosted CI atf5d99d1 passes all three jobs for the preceding durable transitions.
-The signed coordinator is the current lane; combined composition/cross builds,
-actual UI health and published consumer qualification remain.
+The signed cold-start coordinator now passes the combined 95-function suite in
+Debug, Release and TSan, public consumer/privacy checks and official iOS/Android
+module builds. Root's identical four flow checks pass in all three host modes;
+see `verification/capability-cold-start-runtime-root-review/receipt.json`.
+Independent shutdown/health-write review found no actionable defect; two original
+races pass in all three modes, including 144 concurrent close calls. Hosted CI at
+36c5579 exposed three test-fixture expression limits in Swift 6.2.4; a test-only
+split preserves both Wasm variants exactly and passes six local XCTest functions.
+The fixed hosted outcome remains pending. Actual guest UI/event delivery, real UI
+health and published consumer qualification remain separate.
+The next integration design connects validated UI documents and bounded native
+events to the signed guest. Parallel compiler investigation uses the retained
+full-Swift corpus to identify its actual WASI calls and memory requirements;
+the full Swift execution and artifact-size requirements remain open.
 Keep the full product plan and physical/published-consumer/GA gates in scope.

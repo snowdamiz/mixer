@@ -1,0 +1,51 @@
+--- original/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartWorker.swift
++++ derived/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartWorker.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import MixerExperimentalCapabilityRuntime
+ 
+ /// All durable/adapter work is reached from this private non-MainActor owner.
+ /// The reservation's retained store worker reaches notification consumers only
+@@ -115,7 +116,7 @@
+             try control.installConcrete(attempt, signals: signals) // Before any construct await.
+             try await attempt.construct()
+             try requireAttempt(op, signals)
+-            _ = try await attempt.startup() // Effects remain disabled.
++            do { _ = try await attempt.startup() } catch { await ColdStartDerivedHooks.startupFailure.hold(); throw error } // Captured-source gate after real checked startup failure.
+             try requireAttempt(op, signals)
+             try await store.recordEffectsIntent(input, signals: signals)
+             try requireAttempt(op, signals)
+@@ -217,6 +218,10 @@
+         if fromConsumer { control.endObservationFromConsumer(); return nil }
+         return control.detachObservation()
+     }
++    func derivedInvoke(_ name: String) async throws -> MixerExperimentalCapabilityRuntime.ExperimentalCapabilityInvocation {
++        let attempt = try control.concreteForMethod()
++        return try await attempt.invoke(name)
++    }
+     func closeStore() async -> CapabilityRecoverySnapshot {
+         if let store {
+             if let active, let signals, !store.snapshot.requiresReopen {
+--- original/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartRuntime.swift
++++ derived/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartRuntime.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import MixerExperimentalCapabilityRuntime
+ 
+ /// Explicit capability cold-start owner. Executable bytes enter only through
+ /// signed downloads and this instance's private store. No caller-supplied
+@@ -73,6 +74,14 @@
+             core.control.finish(op)
+         } catch { core.control.finish(op); throw error }
+     }
++    func derivedInvoke(_ name: String) async throws -> MixerExperimentalCapabilityRuntime.ExperimentalCapabilityInvocation {
++        let op = try core.control.admit(.milestone)
++        do {
++            let value = try await core.worker.derivedInvoke(name)
++            await ColdStartDerivedHooks.ordinaryTail.hold()
++            core.control.finish(op); return value
++        } catch { core.control.finish(op); throw error }
++    }
+     public func recoverySnapshot() async -> CapabilityColdStartRecoverySnapshot {
+         CapabilityColdStartRecoverySnapshot(core.control.recoverySnapshot, activation: core.control.snapshot)
+     }

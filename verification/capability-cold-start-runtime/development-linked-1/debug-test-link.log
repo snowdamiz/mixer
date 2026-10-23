@@ -1,0 +1,10 @@
+/Users/andreyyurlov/Documents/dev/mixer/verification/capability-cold-start-runtime/.build/development-linked-1/source/capability-activation/Tests/MixerCapabilityActivationTests/CapabilityColdStartRuntimeTests.swift:196:18: error: weak variable 'observed' was never mutated; consider changing to 'let' constant [#VariableNeverMutated::WeakMutability]
+194 |         let baseline = CapabilityAttemptReservation.occupiedSlots, f = try fixture()
+195 |         var runtime: CapabilityColdStartRuntime? = try await opened(f)
+196 |         weak var observed = runtime; XCTAssertNotNil(observed); runtime = nil; XCTAssertNil(observed)
+    |                  `- error: weak variable 'observed' was never mutated; consider changing to 'let' constant [#VariableNeverMutated::WeakMutability]
+197 |         try await eventually("deinit cleanup parked") { CapabilityAttemptReservation.occupiedSlots == baseline }
+198 |         for index in 0..<16 {
+
+[#VariableNeverMutated]: <https://docs.swift.org/compiler/documentation/diagnostics/variable-never-mutated>
+[#WeakMutability]: <https://docs.swift.org/compiler/documentation/diagnostics/weak-mutability>

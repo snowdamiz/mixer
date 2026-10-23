@@ -1,0 +1,168 @@
+{
+  "scope": "Two original real health-commit / repeated public close races; signed TESTONLY fixture scaffold credited to root review and transition candidate3. Synthetic embedding milestones; real monotonic clock, store, native VM and lifecycle. No production source changes or publication.",
+  "mode": "tsan",
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "source_manifest_sha256": "68177f0a8488386138c8e9f2a92c7ea7d4c788caf74b7053c8f648179f95c078",
+  "baseline_revision": "f5d99d1ea1595c431d87c99d110eb2bd4acd5b4c",
+  "owner_receipt_sha256": "1115ce2c70d7c7e8e01c5265f88a1b5cd3b817aaca098f9439a4c4261aabfc06",
+  "owner_final_seal_sha256": "32d31ae27e2665dd92ba6d4e0fcfed59a9402ff18bc2a64004518c7d5db69661",
+  "driver_sha256": "bc1dbc1de40a1332edd8450cec7c105b89ab81645a007077c77c1df42829f5f9",
+  "probe_sha256": "8c87f218f3c8e55c330d6192e98edfbce893fa80fb6cf89e7d89bcd88937edfd",
+  "credited_scaffold_path": "verification/capability-cold-start-runtime-root-review/ColdStartFlowProbe.swift",
+  "artifacts": {
+    "module": {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-cold-start-runtime/.build/2026-10-23-candidate-1/tsan/products/libMixerCapabilityActivationColdStart.dylib",
+      "sha256": "85d7fb001fd7ffc86dcc3f1be0debc8c36f8e374b221c17db97b651722c422d5"
+    },
+    "swiftmodule": {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-cold-start-runtime/.build/2026-10-23-candidate-1/tsan/products/MixerCapabilityActivation.swiftmodule",
+      "sha256": "2d69b7bc6dd02a927fe813a57c9b60fc0840ff0447427af7d1b7bb66d1cc4929"
+    },
+    "tests": {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-cold-start-runtime/.build/2026-10-23-candidate-1/tsan/ColdStartTests.xctest/Contents/MacOS/ColdStartTests",
+      "sha256": "5dd18b0b0c141750642f10b66c5c1bcb6413ee0690500f81951c9c7e927426f7"
+    }
+  },
+  "commands": [
+    {
+      "name": "swift-version",
+      "command": [
+        "swiftc",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit_code": 0,
+      "seconds": 0.10031649994198233,
+      "log": "swift-version.log",
+      "log_sha256": "1b207d5b85484205225f907ee34c5c63fcf5ba15260fad7ceb129191841e9908"
+    },
+    {
+      "name": "xcode-version",
+      "command": [
+        "xcodebuild",
+        "-version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit_code": 0,
+      "seconds": 0.05488812504336238,
+      "log": "xcode-version.log",
+      "log_sha256": "ee3fe26035862d2b9653c1a570be3eca4ee5be2815f0ce99ff2d8ffa3399e4c8"
+    },
+    {
+      "name": "compile",
+      "command": [
+        "swiftc",
+        "-swift-version",
+        "6",
+        "-warnings-as-errors",
+        "-parse-as-library",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-cold-start-runtime/.build/2026-10-23-candidate-1/tsan/products",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/transitions-qualified-2026-10-23-candidate-3/retained-tsan/products",
+        "-L",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-cold-start-runtime/.build/2026-10-23-candidate-1/tsan/products",
+        "-lMixerCapabilityActivationColdStart",
+        "-Xlinker",
+        "-rpath",
+        "-Xlinker",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-cold-start-runtime/.build/2026-10-23-candidate-1/tsan/products",
+        "-Xcc",
+        "-fmodule-map-file=/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/transitions-qualified-2026-10-23-candidate-3/retained-tsan/modulemaps/CMixerVMCapability.modulemap",
+        "-Xcc",
+        "-fmodule-map-file=/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/transitions-qualified-2026-10-23-candidate-3/retained-tsan/modulemaps/MixerCapabilityDurableIO.modulemap",
+        "-Xcc",
+        "-fmodule-map-file=/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/transitions-qualified-2026-10-23-candidate-3/retained-tsan/modulemaps/MixerCapabilityIO.modulemap",
+        "-Xcc",
+        "-fmodule-map-file=/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/transitions-qualified-2026-10-23-candidate-3/retained-tsan/modulemaps/MixerDurableIO.modulemap",
+        "-sanitize=thread",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-cold-start-runtime-review/.build/2026-10-23-tsan/ColdStartCommitCloseProbe.swift",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-cold-start-runtime-review/.build/2026-10-23-tsan/probe"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit_code": 0,
+      "seconds": 0.4783741249702871,
+      "log": "compile.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "defined-native-symbols",
+      "command": [
+        "nm",
+        "-gU",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-cold-start-runtime-review/.build/2026-10-23-tsan/probe"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit_code": 0,
+      "seconds": 0.010686458903364837,
+      "log": "defined-native-symbols.log",
+      "log_sha256": "1fb42eabd04a2d9cbf172d88ba65da9c625809213465767b2de637e5882e569f"
+    },
+    {
+      "name": "linked-libraries",
+      "command": [
+        "otool",
+        "-L",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-cold-start-runtime-review/.build/2026-10-23-tsan/probe"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit_code": 0,
+      "seconds": 0.010110292001627386,
+      "log": "linked-libraries.log",
+      "log_sha256": "4d460e1f8b1924449959fe250763eeb85cba3575108f4b1b7bec6f2097ba617d"
+    },
+    {
+      "name": "execute",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-cold-start-runtime-review/.build/2026-10-23-tsan/probe",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-cold-start-runtime/.build/2026-10-23-candidate-1/source/capability-activation/Tests/MixerCapabilityActivationTests/Fixtures",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-cold-start-runtime-review/2026-10-23-tsan/state"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit_code": 0,
+      "seconds": 4.188140165992081,
+      "log": "execute.log",
+      "log_sha256": "23c4f45d03e950c18104799a8abe44d5628985c2c4a509126d22651e6e875d67"
+    }
+  ],
+  "limitations": [
+    "Controlled synchronous filesystem boundary holds do not prove all scheduler interleavings.",
+    "No physical iOS/Android device tools or runs; those gates remain pending.",
+    "Swift TSan excludes uninstrumented Rust and system frameworks.",
+    "Synthetic embedding milestone reports do not qualify UI, FieldLog, publication, customer or GA gates."
+  ],
+  "binary": {
+    "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-cold-start-runtime-review/.build/2026-10-23-tsan/probe",
+    "sha256": "84a71b9656cf58d3b2fb072773896faa3d867173d5f6ed23aa8c374af4e91f0e"
+  },
+  "frozen_inputs_unchanged": true,
+  "state_files": {
+    "state/close-during-health-fsync/store/.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "state/close-during-health-fsync/store/2527fc0b0485bc3ef35f9062a215d2f7726a726084cd241f37539ea5c77241f6.payload": "2527fc0b0485bc3ef35f9062a215d2f7726a726084cd241f37539ea5c77241f6",
+    "state/close-during-health-fsync/store/state.json": "bcaef1ff1390b73851eb660a93946b13a942d47934f29c68067adef814589f6c",
+    "state/close-during-uncertain-health-rename/store/.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "state/close-during-uncertain-health-rename/store/2527fc0b0485bc3ef35f9062a215d2f7726a726084cd241f37539ea5c77241f6.payload": "2527fc0b0485bc3ef35f9062a215d2f7726a726084cd241f37539ea5c77241f6",
+    "state/close-during-uncertain-health-rename/store/state.json": "70b9cb24b10d989de0b19ba63d03e83035a9e288791425ed228e80018e618cc2"
+  },
+  "status": "two original close race cases passed",
+  "completed_at": "2026-10-23T10:40:36.677956+00:00"
+}

@@ -1,0 +1,171 @@
+{
+  "status": "both Wasm fixture variants byte-identical and six XCTest functions passed",
+  "source": "capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift",
+  "failed_revision": "36c55799fa8518fc7110911ae396e9a7cf72916a",
+  "failed_job": 120367174277,
+  "old_sha256": "a49cf1ee0461f29a4946c60e2a5ff0534616daa1b56e6eabef52743bdda0e99c",
+  "new_sha256": "66b81809f720363e15e6c4836d664b2b3cb97df2b10411ef7392309731c1dbbe",
+  "owner_receipt_sha256": "1115ce2c70d7c7e8e01c5265f88a1b5cd3b817aaca098f9439a4c4261aabfc06",
+  "driver_sha256": "ae8e90fdb4029ffbd27c5035a35d8b5f15557b3e0a7b862f17056fb1b2a58961",
+  "commands": [
+    {
+      "name": "swift-version",
+      "command": [
+        "swift",
+        "--version"
+      ],
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit_code": 0,
+      "log": "swift-version.log",
+      "log_sha256": "1b207d5b85484205225f907ee34c5c63fcf5ba15260fad7ceb129191841e9908"
+    },
+    {
+      "name": "parity-compile",
+      "command": [
+        "swiftc",
+        "-warnings-as-errors",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-concrete-ci-fixture-fix/fixture-parity.swift",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-concrete-ci-fixture-fix/.build/parity"
+      ],
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit_code": 0,
+      "log": "parity-compile.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "parity-run",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-concrete-ci-fixture-fix/.build/parity"
+      ],
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit_code": 0,
+      "log": "parity-run.log",
+      "log_sha256": "c04f0ea739dabd4efbe948acc364b6b8da75efc7585fc64ae91957396956554f"
+    },
+    {
+      "name": "xctest-link",
+      "command": [
+        "swiftc",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-cold-start-runtime/.build/2026-10-23-candidate-1/debug/products",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-parse-as-library",
+        "-swift-version",
+        "6",
+        "-warnings-as-errors",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/transitions-qualified-2026-10-23-candidate-3/retained-debug/products",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-fmodule-map-file=/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/transitions-qualified-2026-10-23-candidate-3/retained-debug/modulemaps/CMixerVMCapability.modulemap",
+        "-Xcc",
+        "-fmodule-map-file=/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/transitions-qualified-2026-10-23-candidate-3/retained-debug/modulemaps/MixerCapabilityDurableIO.modulemap",
+        "-Xcc",
+        "-fmodule-map-file=/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/transitions-qualified-2026-10-23-candidate-3/retained-debug/modulemaps/MixerCapabilityIO.modulemap",
+        "-Xcc",
+        "-fmodule-map-file=/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/transitions-qualified-2026-10-23-candidate-3/retained-debug/modulemaps/MixerDurableIO.modulemap",
+        "-Xcc",
+        "-I/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/transitions-qualified-2026-10-23-candidate-3/native/include",
+        "-emit-library",
+        "-module-name",
+        "MixerColdStartTests",
+        "-L",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-cold-start-runtime/.build/2026-10-23-candidate-1/debug/products",
+        "-lMixerCapabilityActivationColdStart",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-Xlinker",
+        "-rpath",
+        "-Xlinker",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-cold-start-runtime/.build/2026-10-23-candidate-1/debug/products",
+        "-Xlinker",
+        "-rpath",
+        "-Xlinker",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xlinker",
+        "-rpath",
+        "-Xlinker",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-concrete-ci-fixture-fix/.build/ConcreteTests.xctest/Contents/MacOS/ConcreteTests",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-concrete-ci-fixture-fix/.build/ConcreteAttemptTests.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-cold-start-runtime/.build/2026-10-23-candidate-1/source/verification/capability-cold-start-runtime/Bundle.swift"
+      ],
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit_code": 0,
+      "log": "xctest-link.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "xctest-run",
+      "command": [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/xctest",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-concrete-ci-fixture-fix/.build/ConcreteTests.xctest"
+      ],
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer",
+        "MIXER_COLD_START_TEST_BUNDLE": "/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/transitions-qualified-2026-10-23-candidate-3/retained-debug/products/MixerCapabilityActivation_MixerCapabilityActivationTests.bundle"
+      },
+      "exit_code": 0,
+      "log": "xctest-run.log",
+      "log_sha256": "10545ece61859cf0d2faf174ea1d6cfc0e64bf2fb564edad056aaba0fa4f6f87"
+    },
+    {
+      "name": "defined-symbols",
+      "command": [
+        "nm",
+        "-gU",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-concrete-ci-fixture-fix/.build/ConcreteTests.xctest/Contents/MacOS/ConcreteTests"
+      ],
+      "exit_code": 0,
+      "log": "defined-symbols.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "scope": "Test fixture expressions only; full two-value Bool input domain has identical Wasm bytes. Production remains exact frozen coordinator candidate1. Local Xcode27 XCTest replay does not qualify hosted Swift6.2.4; hosted confirmation pending.",
+  "probe_sha256": "c85f01b8a2e99537b4fe9020890911ac663dfc6cf65238ba59194402de0da81b",
+  "fixture_bytes": {
+    "false": {
+      "sha256": "f8c216b994cef5231aa4ab7f04c0f8c9c62488716f1f0ba58da32ca8a8a10293",
+      "bytes": 295
+    },
+    "true": {
+      "sha256": "87f5853a38bc5130b4809edc369774b39ac296071abd0d342537ea344c142d7e",
+      "bytes": 303
+    }
+  },
+  "tests": 6,
+  "artifact": {
+    "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-concrete-ci-fixture-fix/.build/ConcreteTests.xctest/Contents/MacOS/ConcreteTests",
+    "sha256": "5835ad8ea79a22f0853370d4fc2010fe2e9e6a51e24074c7eb65cc4b95ab3756"
+  },
+  "production_artifacts": {
+    "module": {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-cold-start-runtime/.build/2026-10-23-candidate-1/debug/products/libMixerCapabilityActivationColdStart.dylib",
+      "sha256": "0c06e9ca6e0aad778fc5213fcdacc23d11b28ffedc472665371341ef7ae27cfc"
+    },
+    "swiftmodule": {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-cold-start-runtime/.build/2026-10-23-candidate-1/debug/products/MixerCapabilityActivation.swiftmodule",
+      "sha256": "2d69b7bc6dd02a927fe813a57c9b60fc0840ff0447427af7d1b7bb66d1cc4929"
+    },
+    "tests": {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-cold-start-runtime/.build/2026-10-23-candidate-1/debug/ColdStartTests.xctest/Contents/MacOS/ColdStartTests",
+      "sha256": "f42645dfd1c2be47c2eb8eb0d7c42a2d1fec73d6bd47d1e31403f7d2258edcf5"
+    }
+  },
+  "initial_receipt_sha256": "cbf47e3617ff28a02da458faffd7ec7017e6d8e8d7903c3fb225016d727f4f1c",
+  "corrected_driver_sha256": "a5176416fbd0fac580fcce404150c4e53b03d5df4deb24a51f9a67ec97ca00b4",
+  "reconciliation_driver_sha256": "11415799e9b362a24cc49e7b4e51faf10494781b45666a3984106fa05e10de20",
+  "evidence_note": "Initial driver read stdout only when counting XCTest results; actual six-test pass was in retained stderr. Both fixture parity and tests succeeded. Receipt completed from combined original log without repeating tests; initial driver and receipt preserved."
+}
