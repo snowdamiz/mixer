@@ -141,6 +141,28 @@ struct ActivationTests {
         #expect(throws: UpdateError.self) { try InstalledExecution(identity: identity) }
     }
 
+    @Test func identityBindingRejectsReusedFingerprintWithDifferentHostPolicy() throws {
+        let path = try #require(Bundle.module.url(forResource: "runtime-identity", withExtension: "json", subdirectory: "Fixtures"))
+        let identity = try RuntimeIdentity(json: Data(contentsOf: path)), h = identity.installedRuntime
+        let execution = try InstalledExecution(identity: identity)
+        for changed in 0..<9 {
+            let host = InstalledRuntime(
+                scope: changed == 0 ? UpdateScope(organization: h.scope.organization, project: h.scope.project, app: "other-app", environment: h.scope.environment, platform: h.scope.platform) : h.scope,
+                runtime: h.runtime, protocolVersion: changed == 1 ? 1 : h.protocolVersion,
+                guestABI: changed == 2 ? 2 : h.guestABI, uiSchema: changed == 3 ? 2 : h.uiSchema,
+                capabilityHashes: h.capabilityHashes, stateVersion: changed == 4 ? 2 : h.stateVersion,
+                maxPayloadBytes: changed == 5 ? 100 : h.maxPayloadBytes,
+                limits: ResourceLimits(memoryBytes: changed == 6 ? 65536 : h.limits.memoryBytes,
+                    fuel: changed == 7 ? 100 : h.limits.fuel, startupMilliseconds: changed == 8 ? 100 : h.limits.startupMilliseconds))
+            #expect(throws: UpdateError.self) { try execution.check(host) }
+        }
+        try execution.check(h)
+        // Existing callers explicitly supplying a trusted string retain their
+        // prior contract; only descriptor-derived policies carry full binding.
+        let legacy = try InstalledExecution(runtimeFingerprint: h.runtime, profile: .integerV1, startupExport: "run")
+        try legacy.check(h)
+    }
+
     @Test func emptyStoreSelectsRealNativeFallbackAndCannotExecuteGuest() async throws {
         let f = Fixture(); defer { f.clean() }; let runtime = try f.open()
         let status = try await runtime.start(now: f.now)

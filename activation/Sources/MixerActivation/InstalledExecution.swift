@@ -13,6 +13,7 @@ public struct InstalledExecution: Sendable {
     public let limits: VMLimits
     public let startupExport: String
     public let maximumStartupMilliseconds: UInt64
+    private let boundHost: InstalledRuntime?
 
     /// Derive execution and verifier policy from the same immutable descriptor.
     /// Build-input completeness and actual binary embedding remain the native
@@ -30,12 +31,19 @@ public struct InstalledExecution: Sendable {
             limits: VMLimits(fuel: host.limits.fuel, memoryPages: UInt32(host.limits.memoryBytes / 65_536),
                 operandStack: identity.execution.operandStack, callDepth: identity.execution.callDepth,
                 hostCalls: UInt32(identity.execution.hostCalls)),
-            startupExport: identity.execution.startupExport, maximumStartupMilliseconds: host.limits.startupMilliseconds)
+            startupExport: identity.execution.startupExport, maximumStartupMilliseconds: host.limits.startupMilliseconds,
+            boundHost: host)
         try check(host)
     }
 
     public init(runtimeFingerprint: String, profile: VMProfile, limits: VMLimits = VMLimits(),
                 startupExport: String, maximumStartupMilliseconds: UInt64 = 1_000) throws {
+        try self.init(runtimeFingerprint: runtimeFingerprint, profile: profile, limits: limits,
+            startupExport: startupExport, maximumStartupMilliseconds: maximumStartupMilliseconds, boundHost: nil)
+    }
+
+    private init(runtimeFingerprint: String, profile: VMProfile, limits: VMLimits,
+                 startupExport: String, maximumStartupMilliseconds: UInt64, boundHost: InstalledRuntime?) throws {
         guard runtimeFingerprint.utf8.count == 64,
               runtimeFingerprint.utf8.allSatisfy({ (48...57).contains($0) || (97...102).contains($0) }),
               !startupExport.isEmpty, startupExport.utf8.count <= 4096,
@@ -47,9 +55,19 @@ public struct InstalledExecution: Sendable {
         }
         self.runtimeFingerprint = runtimeFingerprint; self.profile = profile; self.limits = limits
         self.startupExport = startupExport; self.maximumStartupMilliseconds = maximumStartupMilliseconds
+        self.boundHost = boundHost
     }
 
     func check(_ host: InstalledRuntime) throws {
+        if let expected = boundHost {
+            guard host.scope == expected.scope, host.runtime == expected.runtime,
+                  host.protocolVersion == expected.protocolVersion, host.guestABI == expected.guestABI,
+                  host.uiSchema == expected.uiSchema, host.capabilityHashes == expected.capabilityHashes,
+                  host.stateVersion == expected.stateVersion, host.maxPayloadBytes == expected.maxPayloadBytes,
+                  host.limits == expected.limits else {
+                throw UpdateError("activation.compatibility", "Verifier policy differs from the installed runtime identity")
+            }
+        }
         guard host.runtime == runtimeFingerprint, host.guestABI == 1,
               host.capabilityHashes.isEmpty, host.maxPayloadBytes <= 4_194_304 else {
             throw UpdateError("activation.compatibility", "Installed bounded VM cannot provide this runtime contract")
