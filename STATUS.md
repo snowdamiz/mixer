@@ -439,7 +439,12 @@ and services jobs passed. A narrow expansion into typed loops preserves the same
 lock and observation order. Local16 debug/release/TSan tests,10 public tests and
 four platform links pass; root matched sources, logs and linked binaries in
 `verification/capability-bridge-compiler-compat-review-2026-10-23.json`.
-The repaired source still requires the pinned hosted compiler result.
+At99c9f5b the pinned compiler builds the repaired production bridge, then fails
+on three long expressions in its test-only Wasm builder. The subsequent fixture
+rewrite preserves byte-identical output for11 modes and passes all16 host tests
+against frozen99c9f5b production, including normal-trust TLS rejection. See
+`verification/bridge-fixture-compiler-review/` and the preserved failed run in
+`verification/github-ci-99c9f5b/`. Hosted completion of the full step remains pending.
 
 
 Four additive contracts now define capability execution through identity2,

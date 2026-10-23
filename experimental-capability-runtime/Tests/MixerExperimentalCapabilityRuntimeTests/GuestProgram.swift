@@ -48,13 +48,29 @@ struct GuestProgram {
         }
         run += [0x0b]
         // Output per stage at 4096*stage; length words at 124+4*stage.
-        let poll = i(16) + [0x29,0,0,0x23,0] + i(4096) + [0x6c] + i(2048) + [0x23,0] + i(4) + [0x6c] + i(124) + [0x6a,0x10,5]
+        var poll = i(16)
+        poll += [0x29,0,0,0x23,0]
+        poll += i(4096)
+        poll += [0x6c]
+        poll += i(2048)
+        poll += [0x23,0]
+        poll += i(4)
+        poll += [0x6c]
+        poll += i(124)
+        poll += [0x6a,0x10,5]
         var wake: [UInt8]
         if case .unconsumed = mode { wake = [0x0b] }
         else if case .burst(let count) = mode {
             wake = []
             for index in 0..<count {
-                wake += i(Int32(16 + index * 8)) + [0x29,0,0] + i(Int32(4096*(index+1))) + i(2048) + i(Int32(128+4*index)) + [0x10,5,0x45,0x04,0x40,0x23,0] + i(1) + [0x6a,0x24,0,0x0b]
+                wake += i(Int32(16 + index * 8))
+                wake += [0x29,0,0]
+                wake += i(Int32(4096*(index+1)))
+                wake += i(2048)
+                wake += i(Int32(128+4*index))
+                wake += [0x10,5,0x45,0x04,0x40,0x23,0]
+                wake += i(1)
+                wake += [0x6a,0x24,0,0x0b]
             }
             wake += [0x0b]
         }
@@ -77,10 +93,15 @@ struct GuestProgram {
         for b in bodies { let body = [UInt8(0)] + b; code += u(UInt32(body.count)) + body }
         var data = u(2)
         for (offset, bytes) in [(Int32(1024),arg),(Int32(1536),get)] { data += [0] + i(offset) + [0x0b] + u(UInt32(bytes.count)) + bytes }
-        return Data([0,97,115,109,1,0,0,0]
-            + section(1,u(UInt32(types.count)) + types.flatMap { $0 })
-            + section(2,imports) + section(3,[4,3,4,3,4])
-            + section(5,[1,1,10,64]) + section(6,[1,0x7f,1,0x41,0,0x0b])
-            + section(7,exports) + section(10,code) + section(11,data))
+        var module: [UInt8] = [0,97,115,109,1,0,0,0]
+        module += section(1,u(UInt32(types.count)) + types.flatMap { $0 })
+        module += section(2,imports)
+        module += section(3,[4,3,4,3,4])
+        module += section(5,[1,1,10,64])
+        module += section(6,[1,0x7f,1,0x41,0,0x0b])
+        module += section(7,exports)
+        module += section(10,code)
+        module += section(11,data)
+        return Data(module)
     }
 }
