@@ -56,16 +56,18 @@
         "experimental-capability-runtime/verification/2026-10-23-active-payload-4/receipt.json",
         "verification/capability-bridge-integration-2026-10-23.json",
         "verification/github-ci-2f6b393/receipt.json",
-        "verification/capability-authority-contract-freeze-2026-10-23.json"
+        "verification/capability-authority-contract-freeze-2026-10-23.json",
+        "verification/github-ci-24a7437/receipt.json",
+        "verification/release-v3-root-review/receipt.json"
       ],
-      "remaining": "Public SDK and declared-input capture/embedding, generated native consumers and isolated experimental archive/Swift bridge have scoped host and cross-build evidence. Complete graph discovery and actual build consumption, signed toolchain lock/provenance/final embedding, clean-machine immutable distribution and complete two-platform FieldLog builds remain open. Bridge cross-links do not establish mobile execution. Linux allocator-fixture repair and all three existing CI jobs pass at2f6b393; new bridge CI pending."
+      "remaining": "Public SDK and declared-input capture/embedding, generated native consumers and isolated experimental archive/Swift bridge have scoped host and cross-build evidence. Complete graph discovery and actual build consumption, signed toolchain lock/provenance/final embedding, clean-machine immutable distribution and complete two-platform FieldLog builds remain open. Bridge cross-links do not establish mobile execution. All three hosted jobs pass at24a7437, including bridge debug/release/TSan and public-consumer checks after pinned-compiler repairs. This predates additive identity2/release3 and current validator/material work. Identity2 strict parser/capture/embed passes its fixed owned-snapshot matrix; declared-input checks are not complete build-graph or linked-adapter attestation."
     },
     {
       "id": "W03",
       "name": "Core Swift model",
       "owner": "Framework lead",
       "deliverables": "Lifecycle, state, effects, navigation model, resources, errors",
-      "dependencies": "W01\u201302",
+      "dependencies": "W01–02",
       "acceptance": "Same state/effect tests in native targets; restoration works.",
       "state": "in_progress",
       "evidence": [
@@ -96,7 +98,7 @@
       "name": "Android UI adapter",
       "owner": "Android lead",
       "deliverables": "JNI boundary, Compose/native controls, lifecycle, back behavior, native resources",
-      "dependencies": "W02\u201303",
+      "dependencies": "W02–03",
       "acceptance": "D2 with native Android interaction and accessibility evidence.",
       "state": "in_progress",
       "evidence": [
@@ -134,7 +136,7 @@
       "name": "Guest compilation",
       "owner": "Compiler lead",
       "deliverables": "Guest libraries, module extraction, API diagnostics, source maps, dependency closure",
-      "dependencies": "W02\u201303, W06",
+      "dependencies": "W02–03, W06",
       "acceptance": "FieldLog feature graph compiles to native and Wasm with no silent behavior loss.",
       "state": "in_progress",
       "evidence": [
@@ -213,7 +215,7 @@
       "name": "First-party integrations",
       "owner": "iOS/Android leads",
       "deliverables": "All capability families in Section 9, plugin authoring guide",
-      "dependencies": "W04\u201306",
+      "dependencies": "W04–06",
       "acceptance": "FieldLog flows pass on both devices; native additions correctly require binary changes.",
       "state": "in_progress",
       "evidence": [
@@ -237,8 +239,8 @@
       "name": "Device updater",
       "owner": "Runtime/release leads",
       "deliverables": "Verifier, cache, activation, health, quarantine, recovery, key rotation",
-      "dependencies": "W07\u201308",
-      "acceptance": "D4\u201305, data-preserving rollback, offline recovery, fault matrix.",
+      "dependencies": "W07–08",
+      "acceptance": "D4–05, data-preserving rollback, offline recovery, fault matrix.",
       "state": "in_progress",
       "evidence": [
         "updates/README.md",
@@ -259,9 +261,10 @@
         "verification/runtime-identity-integration-2026-10-22.json",
         "verification/release-v2-owner-review-2026-10-22.json",
         "verification/runtime-embedding-integration-2026-10-22.json",
-        "verification/capability-authority-contract-freeze-2026-10-23.json"
+        "verification/capability-authority-contract-freeze-2026-10-23.json",
+        "verification/release-v3-root-review/receipt.json"
       ],
-      "remaining": "Durable store has earlier scoped physical recovery receipts. New signed v1/v2 selection into bounded owned VM enforces installed/signed limits, retained state, health and candidate/healthy/native fallback, passing 14 simulator cases plus the earlier 15 adversarial activation cases and three new independent identity-policy tests. Descriptor hashing and full represented host binding pass, but actual build graph capture and signed embedding remain open. Actual compiled feature fallback integration, full Swift/UI/capabilities, physical lifecycle/power-loss, healthy guest quarantine policy, state migration, key rotation and D4-D5 remain open."
+      "remaining": "Durable store has earlier scoped physical recovery receipts. New signed v1/v2 selection into bounded owned VM enforces installed/signed limits, retained state, health and candidate/healthy/native fallback, passing 14 simulator cases plus the earlier 15 adversarial activation cases and three new independent identity-policy tests. Descriptor hashing and full represented host binding pass, but actual build graph capture and signed embedding remain open. Actual compiled feature fallback integration, full Swift/UI/capabilities, physical lifecycle/power-loss, healthy guest quarantine policy, state migration, key rotation and D4-D5 remain open. Additive release3 opaque signature proofs and identity2 metadata integration now pass host/independent review; durable v3 selection, concrete material binding and signed capability execution are still open."
     },
     {
       "id": "W11",
@@ -283,9 +286,10 @@
         "services/protocol/verification/receipt-2026-10-22.json",
         "services/protocol/verification/wire-receipt-2026-10-22.json",
         "verification/protocol-wire-owner-review-2026-10-22.json",
-        "verification/release-v2-owner-review-2026-10-22.json"
+        "verification/release-v2-owner-review-2026-10-22.json",
+        "verification/release-v3-root-review/receipt.json"
       ],
-      "remaining": "Local PostgreSQL17 tenant transactions, forced RLS, immutable audit/history/outbox and crash/retry controls pass scoped tests. Independent review found and fixed unsafe schema/function ownership and unknown migration version acceptance; root reviewed the committed fix and matched evidence. Explicit HTTP v2 composition, atomic local schema upgrade, unchanged PostgreSQL migration and public Swift typed verification now pass local tests and independent adversarial review. Both versions retain scoped authorization, idempotency/audit and monotonic assignments. Hosted identity, dispatch, deployment/backup/failover and full release approval remain open."
+      "remaining": "Local PostgreSQL17 tenant transactions, forced RLS, immutable audit/history/outbox and crash/retry controls pass scoped tests. Independent review found and fixed unsafe schema/function ownership and unknown migration version acceptance; root reviewed the committed fix and matched evidence. Explicit HTTP v2 composition, atomic local schema upgrade, unchanged PostgreSQL migration and public Swift typed verification now pass local tests and independent adversarial review. Both versions retain scoped authorization, idempotency/audit and monotonic assignments. Hosted identity, dispatch, deployment/backup/failover and full release approval remain open. Additive Go release3 primitives and shared Swift vectors pass full services races and independent public API review. Existing HTTP/storage routes remain unchanged; hosted v3 admission is not yet implemented."
     },
     {
       "id": "W12",
@@ -314,7 +318,7 @@
       "name": "Console and commercial",
       "owner": "Product/cloud leads",
       "deliverables": "Onboarding, permissions, SSO, release console, usage, billing, support",
-      "dependencies": "W11\u201313",
+      "dependencies": "W11–13",
       "acceptance": "New organization completes full workflow through public UX/API.",
       "state": "ready",
       "evidence": [],
@@ -325,7 +329,7 @@
       "name": "Debug/import/export",
       "owner": "DevEx lead",
       "deliverables": "Native/guest debug, migration reports, profiler, export/ejection guide",
-      "dependencies": "W02, W07\u201310",
+      "dependencies": "W02, W07–10",
       "acceptance": "Original source diagnostics, external app import, independent CI export build.",
       "state": "in_progress",
       "evidence": [
@@ -341,7 +345,7 @@
       "name": "Security and reliability",
       "owner": "Security/QA/SRE",
       "deliverables": "Threat review, audit remediation, monitoring, backups, recovery drills, load tests",
-      "dependencies": "Starts W01; final W10\u201314",
+      "dependencies": "Starts W01; final W10–14",
       "acceptance": "No unresolved launch-blocking findings; measured service objectives.",
       "state": "in_progress",
       "evidence": [
@@ -381,9 +385,11 @@
         "experimental-capability-runtime/verification/2026-10-23-active-payload-4/receipt.json",
         "verification/capability-bridge-integration-2026-10-23.json",
         "verification/github-ci-2f6b393/receipt.json",
-        "verification/capability-authority-contract-freeze-2026-10-23.json"
+        "verification/capability-authority-contract-freeze-2026-10-23.json",
+        "verification/github-ci-24a7437/receipt.json",
+        "verification/release-v3-root-review/receipt.json"
       ],
-      "remaining": "Strict signed wire/replay, native policy intersection, deadline and real exit ownership have scoped host/cross evidence. Native and Swift bridge reviews preserve failure probes, quarantine invariants and close-race repairs;76 final independent bridge cases pass. No whole-stack race freedom, recoverable OOM, hard real-time, external-effect rollback or OS/Task reclamation claim. Broader threat model and security audit, fault/lifecycle/load corpus, identity-bound capability activation, production operations and physical gate evidence remain open. Linux allocator-fixture repair and all three existing CI jobs pass at2f6b393; new bridge CI pending."
+      "remaining": "Strict signed wire/replay, native policy intersection, deadline and real exit ownership have scoped host/cross evidence. Native and Swift bridge reviews preserve failure probes, quarantine invariants and close-race repairs;76 final independent bridge cases pass. No whole-stack race freedom, recoverable OOM, hard real-time, external-effect rollback or OS/Task reclamation claim. Broader threat model and security audit, fault/lifecycle/load corpus, identity-bound capability activation, production operations and physical gate evidence remain open. All three hosted jobs pass at24a7437, including bridge debug/release/TSan and public-consumer checks after pinned-compiler repairs. This predates additive identity2/release3 and current validator/material work. Root repaired identity2 borrowed-input scan/decode mismatch and matched the fixed matrix; independent Go and Swift release3 signature/context review passes without extending this to executable authority."
     },
     {
       "id": "W17",
@@ -391,7 +397,7 @@
       "owner": "Dogfood app lead",
       "deliverables": "Real product, backend, users, both stores, continuous updates",
       "dependencies": "Starts W01; consumes all",
-      "acceptance": "D0\u201308 with independently reviewable evidence and no private escape routes.",
+      "acceptance": "D0–08 with independently reviewable evidence and no private escape routes.",
       "state": "in_progress",
       "evidence": [
         "../fieldlog/verification/native-baseline-2026-10-22.json",
@@ -409,7 +415,7 @@
       "name": "External qualification and launch",
       "owner": "Product + DevEx",
       "deliverables": "Two external apps minimum, paid pilots, docs, support, migration, release train",
-      "dependencies": "W09\u201317",
+      "dependencies": "W09–17",
       "acceptance": "Section 29 gates; customers onboard and pay without bespoke engine forks.",
       "state": "ready",
       "evidence": [],

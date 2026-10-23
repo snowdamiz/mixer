@@ -1,0 +1,59 @@
+{
+  "status": "passed",
+  "base_revision": "aca686bfc72b8f18db727de5307977fb51790e0a",
+  "completed_utc": "2026-10-23T07:05:02.949773+00:00",
+  "tool": "go version go1.26.4 darwin/arm64",
+  "source_inputs": {
+    "services/protocol/v3.go": "ca2bac3c5c071429741211900aacc752a3477306b768765d77c5c88b8ad71fca",
+    "services/protocol/v3_test.go": "1717fcec5495212a962c61b58cd36cc93dfdb941adcc225918c2e9404ff7f8d3",
+    "services/protocol/json_shape.go": "da89f9e60f12a5c86c6195fd84ecf77c2c53089eb2e548fa499eea9df793e054",
+    "services/protocol/testdata/generate-v3.go": "0f6e12b3016fddfc1cbf057d82d88f48616c94cbc46c5707520c3daff5a68ebc",
+    "services/protocol/testdata/signed-release-v3.json": "ee4935fedca51b728e78801cb05c5732e8547bda1e26f109330e6659a0a2f77a",
+    "services/protocol/testdata/release-v3-cases.json": "8f62ae6bc91e951c3c66ab16689dd20f9465c7b671b2f24ad44b5960923c2b44"
+  },
+  "old_or_frozen_bytes_preserved": {
+    "services/protocol/protocol.go": "a116ae466c4dbb636be571b66f6f4f82107ccf57b606a193836f7b4738c05431",
+    "services/protocol/v2.go": "14830254bdc75cdd3413fb9d7b3accd02220f2527cc8850e39ceff917b9cbd49",
+    "services/protocol/testdata/signed-release-v1.json": "d9bfa9505a83898c7ca397719e5ca6794d39e28eb8d3bd5897f1958f7801e2d7",
+    "services/protocol/testdata/signed-release-v2.json": "37d9ac75bad95f68a74f779d647c74134f0b49be0eedf4dfb6a9f0beed9717f7",
+    "services/protocol/testdata/capability-grant-cases-v1.json": "a87a4eb20b83e5ef159d95091e8e3ea919db4a8b952c16df98c2854e09e891ea",
+    "services/protocol/testdata/generate-v2.go": "3aeea14665c4bec0bb998a4b1baf4bd4afedc2c9a078719f9e3f7a61ff1ff25d",
+    "contracts/release-v1.json": "ff899af876c1bb28b0c65c913702b22af9e7031537f5d37ff36f41bf88e12769",
+    "contracts/release-v2.json": "ab4f5d881b1fd0cb91d01bd1da25a0b864690d29936063e0144304bfd275ba4b",
+    "contracts/release-v3.json": "935c2311fb32a72d4b1e49ce55fd1c63f9f8448386a7076db48550767f6212f0"
+  },
+  "commands": [
+    {
+      "argv": [
+        "go",
+        "test",
+        "-race",
+        "./...",
+        "-count=1"
+      ],
+      "cwd": "services",
+      "exit_code": 0,
+      "log": "services-race.log",
+      "sha256": "6f05be72d71787cd27dabb28c08305665305dc1827f6b72956d257a3bce5aadf"
+    },
+    {
+      "argv": [
+        "go",
+        "run",
+        "./protocol/testdata/generate-v3.go",
+        "--test-fixtures-only",
+        "--repository",
+        ".."
+      ],
+      "cwd": "services",
+      "exit_code": 0,
+      "log": "fixture-replay.log",
+      "sha256": "df7c7fe5e971597847e5a5acc268cb28c27c38f021dd903fb712ede4fb55c518"
+    }
+  ],
+  "fixture_replay_byte_equal": true,
+  "v3_top_level_tests": 6,
+  "shared_manifest_cases": 154,
+  "shared_assignment_cases": 36,
+  "scope": "Strict separate Go protocol3 wire/signature/host/payload/replay checks. Mutable Go DTOs confer no opaque execution authority. No hosted v3 route/store or durable updater, native executable validation, activation, physical device or GA claim."
+}

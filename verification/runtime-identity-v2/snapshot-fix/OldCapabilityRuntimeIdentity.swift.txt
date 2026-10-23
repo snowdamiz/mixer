@@ -1,0 +1,212 @@
+import Foundation
+import MixerUpdates
+
+/// Explicit schema2 description of declared installed capability build inputs.
+/// Its InstalledRuntime is a raw DTO, never verified release or execution authority.
+public struct CapabilityRuntimeIdentity: Sendable {
+    public static let maximumDescriptorBytes = 131_072
+    public static let domain = "mixer.runtime.identity.v2\0"
+    public let fingerprint: String
+    public let canonicalCBOR: Data
+    public let descriptor: CanonicalValue
+    public let installedRuntime: InstalledRuntime
+    public let execution: ExecutionPolicy
+    public let capabilityExecution: CapabilityExecutionPolicy
+    public let capabilities: [CapabilityRecord]
+
+    public static let executionContractSHA256 = "898ea22b93a5b0dcd94c3b54f7cc97c41a259cd2285cbacd54bf0bd52ba48c97"
+    public static let transportSHA256 = "052ebe9fbdc20a41307332086767e7903680bc83ba273c696edf9187be6b6439"
+    public static let nativeHeaderSHA256 = "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6"
+    public static let uiContractSHA256 = "e9983da1c8f5b79dcead9fc7c99172be374ddeba319308615108651cb3931ac5"
+    public static let semanticCapabilitySHA256 = "ca53c3c2ea1d8f08020468cc5d458d86542e0806d6494840557e591342f1154e"
+    public static let capabilitySchemas = [
+        "network.http.v1": "fa1549c0a1e2e6b3bf4a83af1a6d37730bbefc8cddc3ffbe3c807d5e7af503f3",
+        "storage.keyValue.v1": "4a311222c978ddd0982e8dfbcf3d4864b856a80bcc1efb3b725adede7f8e22fd",
+    ]
+
+    public struct CapabilityExecutionPolicy: Sendable, Encodable {
+        public let route: String
+        public let maximumRequests: UInt32
+        public let reservationBytes: UInt64
+        public let timeoutMilliseconds: UInt64
+        public let turnMilliseconds: UInt64
+        public let bridgePolicySHA256: String
+    }
+    public struct CapabilityRecord: Sendable, Encodable {
+        public let id: String
+        public let schemaSHA256: String
+        public let nativeSHA256: String
+        public let configurationSHA256: String
+        public let grantsSHA256: String
+    }
+
+    public struct ExecutionPolicy: Sendable, Encodable {
+        public let profile: String
+        public let startupExport: String
+        public let operandStack: UInt32
+        public let callDepth: UInt32
+        public let hostCalls: UInt64
+        /// Downward conversion only. Positive byte limits below65536 yield0.
+        public let maximumMemoryPages: UInt32
+    }
+
+    public init(json: Data) throws {
+        let value = try StrictJSON.decode(CanonicalValue.self, from: json, maximumBytes: Self.maximumDescriptorBytes)
+        let root = try CapabilityIdentityFields(value, keys: ["schema", "application", "platform", "engine", "toolchain", "dependencies", "capabilities", "build", "execution", "capability_execution"])
+        guard try root.number("schema", 2...2) == 2 else { throw capabilityIdentityError("schema") }
+
+        let app = try CapabilityIdentityFields(root.value("application"), keys: ["organization", "project", "app", "environment", "bundle_id"])
+        let organization = try app.identifier("organization"), project = try app.identifier("project")
+        let appID = try app.identifier("app"), environment = try app.identifier("environment")
+        _ = try app.identifier("bundle_id")
+
+        let platform = try CapabilityIdentityFields(root.value("platform"), keys: ["os", "architecture", "environment", "minimum_os", "target"])
+        let os = try platform.oneOf("os", ["ios", "android"])
+        let architecture = try platform.oneOf("architecture", ["arm64", "x86_64"])
+        let deployment = try platform.oneOf("environment", ["device", "simulator"])
+        let minimumOS = try platform.identifier("minimum_os")
+        let target = try platform.identifier("target")
+        try Self.checkPlatform(os: os, architecture: architecture, environment: deployment, minimumOS: minimumOS, target: target)
+
+        let engine = try CapabilityIdentityFields(root.value("engine"), keys: ["version", "source_sha256", "artifact_sha256", "profile", "guest_abi", "ui_schema", "ui_contract_sha256", "capability_contract_sha256"])
+        _ = try engine.label("version")
+        try engine.digests(["source_sha256", "artifact_sha256", "ui_contract_sha256", "capability_contract_sha256"])
+        let profile = try engine.oneOf("profile", ["mixer-table-memory-v3"])
+        let guestABI = try engine.number("guest_abi", 2...2), uiSchema = try engine.number("ui_schema", 1...1)
+
+        guard try engine.label("ui_contract_sha256") == Self.uiContractSHA256,
+              try engine.label("capability_contract_sha256") == Self.semanticCapabilitySHA256 else { throw capabilityIdentityError("contract") }
+
+        let toolchain = try CapabilityIdentityFields(root.value("toolchain"), keys: ["compiler_version", "compiler_sha256", "sdk_version", "sdk_sha256", "build_tools_sha256"])
+        _ = try toolchain.label("compiler_version"); _ = try toolchain.label("sdk_version")
+        try toolchain.digests(["compiler_sha256", "sdk_sha256", "build_tools_sha256"])
+
+        var previousDependency: String?
+        for entry in try root.list("dependencies", maximum: 128) {
+            let dependency = try CapabilityIdentityFields(entry, keys: ["id", "version", "artifact_sha256"])
+            let id = try dependency.identifier("id")
+            try Self.next(id, previous: &previousDependency)
+            _ = try dependency.label("version"); try dependency.digests(["artifact_sha256"])
+        }
+        var capabilityHashes: [String: String] = [:]
+        var previousCapability: String?
+        var records: [CapabilityRecord] = []
+        for entry in try root.list("capabilities", maximum: 2) {
+            let capability = try CapabilityIdentityFields(entry, keys: ["id", "schema_sha256", "native_sha256", "configuration_sha256", "grants_sha256"])
+            let id = try capability.identifier("id")
+            try Self.next(id, previous: &previousCapability)
+            try capability.digests(["schema_sha256", "native_sha256", "configuration_sha256", "grants_sha256"])
+            let schema = try capability.label("schema_sha256")
+            guard Self.capabilitySchemas[id] == schema else { throw capabilityIdentityError("capability_schema") }
+            capabilityHashes[id] = schema
+            records.append(CapabilityRecord(id: id, schemaSHA256: schema, nativeSHA256: try capability.label("native_sha256"), configurationSHA256: try capability.label("configuration_sha256"), grantsSHA256: try capability.label("grants_sha256")))
+        }
+
+        let build = try CapabilityIdentityFields(root.value("build"), keys: ["configuration", "settings_sha256", "generated_bridge_sha256", "link_inputs_sha256", "native_fallback_sha256", "permissions_sha256", "entitlements_sha256", "trust_roots_sha256", "resource_policy_sha256"])
+        _ = try build.oneOf("configuration", ["debug", "release"])
+        try build.digests(["settings_sha256", "generated_bridge_sha256", "link_inputs_sha256", "native_fallback_sha256", "permissions_sha256", "entitlements_sha256", "trust_roots_sha256", "resource_policy_sha256"])
+
+        let policy = try CapabilityIdentityFields(root.value("execution"), keys: ["startup_export", "startup_ms", "max_payload_bytes", "memory_bytes", "fuel", "operand_stack", "call_depth", "host_calls", "state_schema", "protocol"])
+        let startup = try policy.exportName("startup_export")
+        let startupMS = try policy.number("startup_ms", 1...60_000)
+        let payload = try policy.number("max_payload_bytes", 1...4_194_304)
+        let memory = try policy.number("memory_bytes", 1...4_194_304)
+        let fuel = try policy.number("fuel", 1...1_000_000)
+        let operands = try policy.number("operand_stack", 1...4096)
+        let depth = try policy.number("call_depth", 1...64)
+        let hostCalls = try policy.number("host_calls", 0...1024)
+        let state = try policy.number("state_schema", 0...UInt64.max)
+        let protocolVersion = try policy.number("protocol", 3...3)
+        let capabilityPolicy = try CapabilityIdentityFields(root.value("capability_execution"), keys: ["route", "contract_sha256", "transport_sha256", "native_header_sha256", "maximum_requests", "reservation_bytes", "timeout_milliseconds", "turn_milliseconds", "bridge_policy_sha256"])
+        let route = try capabilityPolicy.oneOf("route", ["capability-guest-v1"])
+        try capabilityPolicy.digests(["contract_sha256", "transport_sha256", "native_header_sha256", "bridge_policy_sha256"])
+        guard try capabilityPolicy.label("contract_sha256") == Self.executionContractSHA256,
+              try capabilityPolicy.label("transport_sha256") == Self.transportSHA256,
+              try capabilityPolicy.label("native_header_sha256") == Self.nativeHeaderSHA256 else { throw capabilityIdentityError("contract") }
+        let maximumRequests = try capabilityPolicy.number("maximum_requests", 1...8)
+        let reservation = try capabilityPolicy.number("reservation_bytes", 1...8_388_608)
+        let timeout = try capabilityPolicy.number("timeout_milliseconds", 1...30_000)
+        let turn = try capabilityPolicy.number("turn_milliseconds", 1...50)
+
+        let cbor = try value.canonicalCBOR()
+        guard cbor.count <= Self.maximumDescriptorBytes else { throw capabilityIdentityError("size") }
+        let fingerprint = ReleaseVerifier.sha256(Data(Self.domain.utf8) + cbor)
+        self.fingerprint = fingerprint; canonicalCBOR = cbor; descriptor = value
+        installedRuntime = InstalledRuntime(
+            scope: UpdateScope(organization: organization, project: project, app: appID, environment: environment, platform: os),
+            runtime: fingerprint, protocolVersion: protocolVersion, guestABI: guestABI, uiSchema: uiSchema,
+            capabilityHashes: capabilityHashes, stateVersion: state, maxPayloadBytes: payload,
+            limits: ResourceLimits(memoryBytes: memory, fuel: fuel, startupMilliseconds: startupMS))
+        execution = ExecutionPolicy(profile: profile, startupExport: startup, operandStack: UInt32(operands), callDepth: UInt32(depth), hostCalls: hostCalls, maximumMemoryPages: UInt32(memory / 65536))
+        capabilities = records
+        capabilityExecution = CapabilityExecutionPolicy(route: route, maximumRequests: UInt32(maximumRequests), reservationBytes: reservation, timeoutMilliseconds: timeout, turnMilliseconds: turn, bridgePolicySHA256: try capabilityPolicy.label("bridge_policy_sha256"))
+    }
+
+    private static func next(_ id: String, previous: inout String?) throws {
+        guard previous.map({ $0.utf8.lexicographicallyPrecedes(id.utf8) }) ?? true else { throw capabilityIdentityError("order") }
+        previous = id
+    }
+
+    private static func checkPlatform(os: String, architecture: String, environment: String, minimumOS: String, target: String) throws {
+        if os == "ios" {
+            let parts = minimumOS.split(separator: ".", omittingEmptySubsequences: false)
+            guard (2...3).contains(parts.count), parts.allSatisfy({ part in
+                guard let n = UInt16(part) else { return false }
+                return String(n) == part
+            }), let major = UInt16(parts[0]), major >= 17,
+            environment == "simulator" || architecture == "arm64" else { throw capabilityIdentityError("platform") }
+            let suffix = environment == "simulator" ? "-simulator" : ""
+            guard target == "\(architecture)-apple-ios\(minimumOS)\(suffix)" else { throw capabilityIdentityError("target") }
+        } else {
+            guard let api = UInt16(minimumOS), api >= 28, String(api) == minimumOS,
+                  environment == "device" || environment == "simulator" else { throw capabilityIdentityError("platform") }
+            let arch = architecture == "arm64" ? "aarch64" : "x86_64"
+            guard target == "\(arch)-unknown-linux-android\(minimumOS)" else { throw capabilityIdentityError("target") }
+        }
+    }
+}
+
+private func capabilityIdentityError(_ code: String) -> UpdateError { UpdateError("identity2.\(code)", "Invalid installed runtime identity: \(code)") }
+
+private struct CapabilityIdentityFields {
+    let fields: [String: CanonicalValue]
+    init(_ value: CanonicalValue, keys: Set<String>) throws {
+        guard let fields = value.object, Set(fields.keys) == keys else { throw capabilityIdentityError("fields") }
+        self.fields = fields
+    }
+    func value(_ key: String) throws -> CanonicalValue {
+        guard let value = fields[key] else { throw capabilityIdentityError("missing") }; return value
+    }
+    func label(_ key: String) throws -> String {
+        guard let text = try value(key).text, !text.isEmpty, text.utf8.count <= 256,
+              text.utf8.allSatisfy({ (32...126).contains($0) }), text.first != " ", text.last != " " else { throw capabilityIdentityError("text") }
+        return text
+    }
+    func identifier(_ key: String) throws -> String {
+        let text = try label(key)
+        guard text.utf8.count <= 128, text.utf8.allSatisfy({ (65...90).contains($0) || (97...122).contains($0) || (48...57).contains($0) || [45, 46, 95].contains($0) }) else { throw capabilityIdentityError("identifier") }
+        return text
+    }
+    func exportName(_ key: String) throws -> String {
+        // Original Wasm export names may be Unicode. Preserve exact UTF-8 without
+        // normalizing spelling; native linker/source inputs are separately hashed.
+        guard let text = try value(key).text, !text.isEmpty, text.utf8.count <= 4096,
+              !text.unicodeScalars.contains(where: { $0.value < 32 || $0.value == 127 }) else { throw capabilityIdentityError("export") }
+        return text
+    }
+    func oneOf(_ key: String, _ choices: Set<String>) throws -> String {
+        let text = try label(key); guard choices.contains(text) else { throw capabilityIdentityError("version") }; return text
+    }
+    func number(_ key: String, _ bounds: ClosedRange<UInt64>) throws -> UInt64 {
+        guard let n = try value(key).uint, bounds.contains(n) else { throw capabilityIdentityError("number") }; return n
+    }
+    func digests(_ keys: [String]) throws {
+        for key in keys {
+            let text = try label(key)
+            guard text.utf8.count == 64, text.utf8.allSatisfy({ (48...57).contains($0) || (97...102).contains($0) }) else { throw capabilityIdentityError("digest") }
+        }
+    }
+    func list(_ key: String, maximum: Int) throws -> [CanonicalValue] {
+        guard case let .array(values) = try value(key), values.count <= maximum else { throw capabilityIdentityError("collection") }; return values
+    }
+}

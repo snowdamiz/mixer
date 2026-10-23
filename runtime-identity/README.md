@@ -51,3 +51,28 @@ configuration. It never stages a release or changes installed authority.
 swift run --package-path runtime-identity mixer-identity inspect descriptor.json
 swift test --package-path runtime-identity
 ```
+
+## Explicit capability identity v2
+
+`CapabilityRuntimeIdentity(json:)` is the separate parser for
+`contracts/runtime-identity-v2.json`. It accepts only schema2/protocol3/guestABI2,
+UI1, table-memory-v3 and capability-guest-v1, with the exact frozen contract,
+transport, header and semantic schema hashes. It exposes immutable typed execution
+and capability digest records. `installedRuntime` is a raw DTO: parsing this type
+never invokes a release verifier and grants no authority to execute or use native
+capabilities. Old `RuntimeIdentity(json:)` remains schema1-only.
+
+```sh
+swift run --package-path runtime-identity mixer-identity inspect-v2 descriptor-v2.json
+python3 runtime-identity/tools/vectors_v2.py --check
+```
+
+`execution.maximumMemoryPages` divides the positive byte ceiling by65536 with
+rounding downward, including an exact zero-page result. It does not validate or
+create a guest. Same-config VM admission, installed material/adapters, v3 signed
+selection, effects gating and actual health remain separate requirements.
+
+The explicit v2 capture/emitter commands are documented in
+[build-tools/README.md](build-tools/README.md). Their generated source uses the
+distinct `MixerInstalledCapabilityRuntime.load()` symbol and parser. This package
+links no Rust archive and introduces no SDK, bridge or activation dependency.

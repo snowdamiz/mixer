@@ -39,9 +39,16 @@ contracts for implementation; see
 Static contract approval enables no release or guest effect. Old identity1,
 release1/2, activation1, default VM routes and frozen guest wire bytes stay strict.
 
-Next implement explicit identity2 parsing/capture/embed, protocol3 Go/Swift
-verification and cross-language vectors, plus bounded full native validation and
-typed failure classification. Then bind exact captured material to concrete
-adapters in a separate activation package and qualify durable signed recovery.
+Explicit identity2 parsing/capture/embed and protocol3 Go/Swift verification now
+have scoped owner, independent review and combined-source receipts. See
+`verification/release-v3-root-review/receipt.json`; these metadata and signature
+proofs do not authorize a guest session. Hosted CI at24a7437 also passes all three
+jobs after the pinned-compiler bridge and fixture repairs.
+
+Next finish bounded full native validation and typed failure classification, bind
+exact captured material to concrete adapters in a separate activation package,
+and qualify durable signed recovery. The material-only API is reviewed in
+`docs/capability-installed-factory-api-design.md`; updater ownership needs its own
+review before implementation.
 Explicit hosted v3 routes/storage and immutable external distribution follow.
 Keep the full product plan and physical/published-consumer/GA gates in scope.

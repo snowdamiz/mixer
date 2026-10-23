@@ -150,3 +150,31 @@ libraries and their platform dependencies through `LD_LIBRARY_PATH`, and point
 The production `mixer-update` CLI has no new self-test command or activation behavior.
 The receipt proves runner compilation only; a device run needs its own exit/output,
 executable/library/resource hashes and device identity evidence.
+
+## Explicit release-v3 verification
+
+`ReleaseVerifierV3(host:roots:)` is a separate synchronous verifier for the frozen
+protocol3/guestABI2/UI1 contract. It requires known exact capability schema maps
+with zero to two entries, signed documents at most64KiB, payload and linear-memory
+ceilings at most4MiB, fuel at most1M and startup at most60000ms, all narrowed by the
+installed host. The original `ReleaseVerifier` remains strict protocol1/2 + ABI1.
+No existing updater, activation, CLI, service or recovery route selects v3.
+
+Successful verification returns distinct `VerifiedArtifactV3`,
+`VerifiedAssignmentV3` and readable v3 grant values. They have no public constructor
+or decoder. Verifier value copies share one immutable private context; an
+independently initialized verifier must verify signed bytes again. Assignment
+verification rechecks artifact signing authority at the supplied current time.
+`revalidateArtifact(_:payload:now:)` also checks the exact supplied payload and
+current authority. Root key bytes are privately captured. A proof is not serialized
+replay state, executable validation, installed adapter authority, durable selection,
+effects enablement or health. A later factory must consume a private verified
+selection, rebind the whole artifact/payload and intersect installed/signed grants;
+a standalone grant array or caller-created host/policy object is insufficient.
+
+The initial v3 slice has no retained-health authority exception, asynchronous
+updater validator, v3 durable store/coordinator, hosted delivery or device proof.
+Those remain separate reviewed work. The API design is
+`docs/release-v3-swift-api-design.md`; source-bound host tests, shared Go/Swift
+vectors and public-client opacity checks are recorded under
+`verification/release-v3-swift/`. Fixture keys and payloads are test-only.

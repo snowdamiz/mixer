@@ -1,0 +1,323 @@
+test_compiled_v2_consumer_without_snapshot_and_fingerprint_mismatch (test_capability_capture.CapabilityCaptureTests.test_compiled_v2_consumer_without_snapshot_and_fingerprint_mismatch) ... FAIL
+test_fixed_contract_header_schema_preimages_fail_closed (test_capability_capture.CapabilityCaptureTests.test_fixed_contract_header_schema_preimages_fail_closed) ... ok
+test_material_canonical_closed_and_family_rules (test_capability_capture.CapabilityCaptureTests.test_material_canonical_closed_and_family_rules) ... ok
+test_material_exact_bounds_structure_and_empty_denials (test_capability_capture.CapabilityCaptureTests.test_material_exact_bounds_structure_and_empty_denials) ... ok
+test_old_and_new_public_modes_reject_each_other (test_capability_capture.CapabilityCaptureTests.test_old_and_new_public_modes_reject_each_other) ... ok
+test_partial_sync_and_existing_outputs_are_atomic (test_capability_capture.CapabilityCaptureTests.test_partial_sync_and_existing_outputs_are_atomic) ... ok
+test_raw_preimages_roles_relocation_and_mutation (test_capability_capture.CapabilityCaptureTests.test_raw_preimages_roles_relocation_and_mutation) ... ok
+test_raw_roles_reject_collections_and_empty_native (test_capability_capture.CapabilityCaptureTests.test_raw_roles_reject_collections_and_empty_native) ... ok
+test_source_swap_symlinks_and_snapshot_corruption (test_capability_capture.CapabilityCaptureTests.test_source_swap_symlinks_and_snapshot_corruption) ... ok
+test_v2_cli_and_optimized_rejection (test_capability_capture.CapabilityCaptureTests.test_v2_cli_and_optimized_rejection) ... ok
+test_v2_emitter_uses_verified_bytes_and_distinct_type (test_capability_capture.CapabilityCaptureTests.test_v2_emitter_uses_verified_bytes_and_distinct_type) ... ok
+
+======================================================================
+FAIL: test_compiled_v2_consumer_without_snapshot_and_fingerprint_mismatch (test_capability_capture.CapabilityCaptureTests.test_compiled_v2_consumer_without_snapshot_and_fingerprint_mismatch)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/runtime-identity/build-tools/tests/test_capability_capture.py", line 183, in test_compiled_v2_consumer_without_snapshot_and_fingerprint_mismatch
+    run=subprocess.run(command,capture_output=True,text=True,timeout=240);self.assertEqual(run.returncode,0,run.stderr)
+                                                                          ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : Fetching https://github.com/apple/swift-crypto.git from cache
+Fetched https://github.com/apple/swift-crypto.git from cache (0.20s)
+Computing version for https://github.com/apple/swift-crypto.git
+Computed https://github.com/apple/swift-crypto.git at 5.0.3 (0.54s)
+Fetching https://github.com/apple/swift-asn1.git from cache
+Fetched https://github.com/apple/swift-asn1.git from cache (0.16s)
+Computing version for https://github.com/apple/swift-asn1.git
+Computed https://github.com/apple/swift-asn1.git at 1.7.3 (0.47s)
+Creating working copy for https://github.com/apple/swift-asn1.git
+Working copy of https://github.com/apple/swift-asn1.git resolved at 1.7.3
+Creating working copy for https://github.com/apple/swift-crypto.git
+Working copy of https://github.com/apple/swift-crypto.git resolved at 5.0.3
+Building for debugging...
+[Pre-planning 1 / 185]
+[Planning deferred tasks]
+[52 / 86]
+[54 / 87] MixerDurableIO
+[63 / 100]
+[67 / 100] Crypto
+[77 / 153]
+[84 / 153] MixerDurableIO
+[88 / 153]
+[89 / 153]
+[93 / 153]
+[96 / 153]
+[102 / 153]
+[104 / 153]
+[105 / 153]
+[122 / 153] Crypto
+[131 / 154] MixerUpdates
+[141 / 164] MixerUpdates
+error: SwiftCompile normal arm64 /Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerUpdates/VerifierV3.swift failed with a nonzero exit code. Command line:     cd /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity2-9f_n3oer
+    builtin-SwiftPerFileCompile VerifierV3.swift
+/Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerUpdates/VerifierV3.swift:136:47: error: call can throw but is not marked with 'try'
+134 |         let fields = try V3Rules.object(assignment, keys: V3Rules.assignmentKeys)
+135 |         try scopeObject(fields.required("scope"))
+136 |         guard try fields.uint("schema") == 3, fields.text("cohort") == "sha256-v1",
+    |                                               |- error: call can throw but is not marked with 'try'
+    |                                               |- note: did you mean to use 'try'?
+    |                                               |- note: did you mean to handle error as optional value?
+    |                                               `- note: did you mean to disable error propagation?
+137 |               fields.uint("created_at_unix") > 0, fields.uint("rollout_basis_points") <= 10_000,
+138 |               V3Rules.identifier(fields.text("key_id")), V3Rules.identifier(fields.text("release_id")),
+
+/Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerUpdates/VerifierV3.swift:137:15: error: call can throw but is not marked with 'try'
+135 |         try scopeObject(fields.required("scope"))
+136 |         guard try fields.uint("schema") == 3, fields.text("cohort") == "sha256-v1",
+137 |               fields.uint("created_at_unix") > 0, fields.uint("rollout_basis_points") <= 10_000,
+    |               |- error: call can throw but is not marked with 'try'
+    |               |- note: did you mean to use 'try'?
+    |               |- note: did you mean to handle error as optional value?
+    |               `- note: did you mean to disable error propagation?
+138 |               V3Rules.identifier(fields.text("key_id")), V3Rules.identifier(fields.text("release_id")),
+139 |               V3Rules.digest(fields.text("runtime")), V3Rules.digest(fields.text("artifact_sha256")) else {
+
+/Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerUpdates/VerifierV3.swift:137:51: error: call can throw but is not marked with 'try'
+135 |         try scopeObject(fields.required("scope"))
+136 |         guard try fields.uint("schema") == 3, fields.text("cohort") == "sha256-v1",
+137 |               fields.uint("created_at_unix") > 0, fields.uint("rollout_basis_points") <= 10_000,
+    |                                                   |- error: call can throw but is not marked with 'try'
+    |                                                   |- note: did you mean to use 'try'?
+    |                                                   |- note: did you mean to handle error as optional value?
+    |                                                   `- note: did you mean to disable error propagation?
+138 |               V3Rules.identifier(fields.text("key_id")), V3Rules.identifier(fields.text("release_id")),
+139 |               V3Rules.digest(fields.text("runtime")), V3Rules.digest(fields.text("artifact_sha256")) else {
+
+/Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerUpdates/VerifierV3.swift:138:34: error: call can throw but is not marked with 'try'
+136 |         guard try fields.uint("schema") == 3, fields.text("cohort") == "sha256-v1",
+137 |               fields.uint("created_at_unix") > 0, fields.uint("rollout_basis_points") <= 10_000,
+138 |               V3Rules.identifier(fields.text("key_id")), V3Rules.identifier(fields.text("release_id")),
+    |                                  |- error: call can throw but is not marked with 'try'
+    |                                  |- note: did you mean to use 'try'?
+    |                                  |- note: did you mean to handle error as optional value?
+    |                                  `- note: did you mean to disable error propagation?
+139 |               V3Rules.digest(fields.text("runtime")), V3Rules.digest(fields.text("artifact_sha256")) else {
+140 |             throw V3Rules.error("assignment.profile", "Invalid v3 assignment shape")
+
+/Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerUpdates/VerifierV3.swift:138:77: error: call can throw but is not marked with 'try'
+136 |         guard try fields.uint("schema") == 3, fields.text("cohort") == "sha256-v1",
+137 |               fields.uint("created_at_unix") > 0, fields.uint("rollout_basis_points") <= 10_000,
+138 |               V3Rules.identifier(fields.text("key_id")), V3Rules.identifier(fields.text("release_id")),
+    |                                                                             |- error: call can throw but is not marked with 'try'
+    |                                                                             |- note: did you mean to use 'try'?
+    |                                                                             |- note: did you mean to handle error as optional value?
+    |                                                                             `- note: did you mean to disable error propagation?
+139 |               V3Rules.digest(fields.text("runtime")), V3Rules.digest(fields.text("artifact_sha256")) else {
+140 |             throw V3Rules.error("assignment.profile", "Invalid v3 assignment shape")
+
+/Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerUpdates/VerifierV3.swift:139:30: error: call can throw but is not marked with 'try'
+137 |               fields.uint("created_at_unix") > 0, fields.uint("rollout_basis_points") <= 10_000,
+138 |               V3Rules.identifier(fields.text("key_id")), V3Rules.identifier(fields.text("release_id")),
+139 |               V3Rules.digest(fields.text("runtime")), V3Rules.digest(fields.text("artifact_sha256")) else {
+    |                              |- error: call can throw but is not marked with 'try'
+    |                              |- note: did you mean to use 'try'?
+    |                              |- note: did you mean to handle error as optional value?
+    |                              `- note: did you mean to disable error propagation?
+140 |             throw V3Rules.error("assignment.profile", "Invalid v3 assignment shape")
+141 |         }
+
+/Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerUpdates/VerifierV3.swift:139:70: error: call can throw but is not marked with 'try'
+137 |               fields.uint("created_at_unix") > 0, fields.uint("rollout_basis_points") <= 10_000,
+138 |               V3Rules.identifier(fields.text("key_id")), V3Rules.identifier(fields.text("release_id")),
+139 |               V3Rules.digest(fields.text("runtime")), V3Rules.digest(fields.text("artifact_sha256")) else {
+    |                                                                      |- error: call can throw but is not marked with 'try'
+    |                                                                      |- note: did you mean to use 'try'?
+    |                                                                      |- note: did you mean to handle error as optional value?
+    |                                                                      `- note: did you mean to disable error propagation?
+140 |             throw V3Rules.error("assignment.profile", "Invalid v3 assignment shape")
+141 |         }
+
+/Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerUpdates/VerifierV3.swift:142:69: error: call can throw but is not marked with 'try'
+140 |             throw V3Rules.error("assignment.profile", "Invalid v3 assignment shape")
+141 |         }
+142 |         guard try fields.required("scope") == host.scope.canonical, fields.text("runtime") == host.runtime,
+    |                                                                     |- error: call can throw but is not marked with 'try'
+    |                                                                     |- note: did you mean to use 'try'?
+    |                                                                     |- note: did you mean to handle error as optional value?
+    |                                                                     `- note: did you mean to disable error propagation?
+143 |               fields.text("release_id") == artifact.releaseID, fields.text("artifact_sha256") == artifact.artifactSHA256,
+144 |               fields.text("channel") == channel else {
+
+/Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerUpdates/VerifierV3.swift:143:15: error: call can throw but is not marked with 'try'
+141 |         }
+142 |         guard try fields.required("scope") == host.scope.canonical, fields.text("runtime") == host.runtime,
+143 |               fields.text("release_id") == artifact.releaseID, fields.text("artifact_sha256") == artifact.artifactSHA256,
+    |               |- error: call can throw but is not marked with 'try'
+    |               |- note: did you mean to use 'try'?
+    |               |- note: did you mean to handle error as optional value?
+    |               `- note: did you mean to disable error propagation?
+144 |               fields.text("channel") == channel else {
+145 |             throw V3Rules.error("assignment.binding", "Assignment does not bind artifact, host and channel")
+
+/Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerUpdates/VerifierV3.swift:143:64: error: call can throw but is not marked with 'try'
+141 |         }
+142 |         guard try fields.required("scope") == host.scope.canonical, fields.text("runtime") == host.runtime,
+143 |               fields.text("release_id") == artifact.releaseID, fields.text("artifact_sha256") == artifact.artifactSHA256,
+    |                                                                |- error: call can throw but is not marked with 'try'
+    |                                                                |- note: did you mean to use 'try'?
+    |                                                                |- note: did you mean to handle error as optional value?
+    |                                                                `- note: did you mean to disable error propagation?
+144 |               fields.text("channel") == channel else {
+145 |             throw V3Rules.error("assignment.binding", "Assignment does not bind artifact, host and channel")
+
+/Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerUpdates/VerifierV3.swift:144:15: error: call can throw but is not marked with 'try'
+142 |         guard try fields.required("scope") == host.scope.canonical, fields.text("runtime") == host.runtime,
+143 |               fields.text("release_id") == artifact.releaseID, fields.text("artifact_sha256") == artifact.artifactSHA256,
+144 |               fields.text("channel") == channel else {
+    |               |- error: call can throw but is not marked with 'try'
+    |               |- note: did you mean to use 'try'?
+    |               |- note: did you mean to handle error as optional value?
+    |               `- note: did you mean to disable error propagation?
+145 |             throw V3Rules.error("assignment.binding", "Assignment does not bind artifact, host and channel")
+146 |         }
+
+/Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerUpdates/VerifierV3.swift:191:47: error: call can throw but is not marked with 'try'
+189 |         let fields = try V3Rules.object(value, keys: V3Rules.manifestKeys)
+190 |         try scopeObject(fields.required("scope"))
+191 |         guard try fields.uint("schema") == 3, fields.uint("protocol") == 3, fields.uint("guest_abi") == 2, fields.uint("ui_schema") == 1 else {
+    |                                               |- error: call can throw but is not marked with 'try'
+    |                                               |- note: did you mean to use 'try'?
+    |                                               |- note: did you mean to handle error as optional value?
+    |                                               `- note: did you mean to disable error propagation?
+192 |             throw V3Rules.error("manifest.version", "Expected exact v3/ABI2/UI1 tuple")
+193 |         }
+
+/Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerUpdates/VerifierV3.swift:191:77: error: call can throw but is not marked with 'try'
+189 |         let fields = try V3Rules.object(value, keys: V3Rules.manifestKeys)
+190 |         try scopeObject(fields.required("scope"))
+191 |         guard try fields.uint("schema") == 3, fields.uint("protocol") == 3, fields.uint("guest_abi") == 2, fields.uint("ui_schema") == 1 else {
+    |                                                                             |- error: call can throw but is not marked with 'try'
+    |                                                                             |- note: did you mean to use 'try'?
+    |                                                                             |- note: did you mean to handle error as optional value?
+    |                                                                             `- note: did you mean to disable error propagation?
+192 |             throw V3Rules.error("manifest.version", "Expected exact v3/ABI2/UI1 tuple")
+193 |         }
+
+/Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerUpdates/VerifierV3.swift:191:108: error: call can throw but is not marked with 'try'
+189 |         let fields = try V3Rules.object(value, keys: V3Rules.manifestKeys)
+190 |         try scopeObject(fields.required("scope"))
+191 |         guard try fields.uint("schema") == 3, fields.uint("protocol") == 3, fields.uint("guest_abi") == 2, fields.uint("ui_schema") == 1 else {
+    |                                                                                                            |- error: call can throw but is not marked with 'try'
+    |                                                                                                            |- note: did you mean to use 'try'?
+    |                                                                                                            |- note: did you mean to handle error as optional value?
+    |                                                                                                            `- note: did you mean to disable error propagation?
+192 |             throw V3Rules.error("manifest.version", "Expected exact v3/ABI2/UI1 tuple")
+193 |         }
+
+/Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerUpdates/VerifierV3.swift:202:55: error: call can throw but is not marked with 'try'
+200 |         let source = try fields.text("source_commit")
+201 |         guard [40, 64].contains(source.utf8.count), source.utf8.allSatisfy(V3Rules.hex),
+202 |               try fields.uint("created_at_unix") > 0, fields.uint("state_min") <= fields.uint("state_max") else {
+    |                                                       |- error: call can throw but is not marked with 'try'
+    |                                                       |- note: did you mean to use 'try'?
+    |                                                       |- note: did you mean to handle error as optional value?
+    |                                                       `- note: did you mean to disable error propagation?
+203 |             throw V3Rules.error("manifest.identity", "Invalid source, audit time or state interval")
+204 |         }
+
+/Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerUpdates/VerifierV3.swift:202:83: error: call can throw but is not marked with 'try'
+200 |         let source = try fields.text("source_commit")
+201 |         guard [40, 64].contains(source.utf8.count), source.utf8.allSatisfy(V3Rules.hex),
+202 |               try fields.uint("created_at_unix") > 0, fields.uint("state_min") <= fields.uint("state_max") else {
+    |                                                                                   |- error: call can throw but is not marked with 'try'
+    |                                                                                   |- note: did you mean to use 'try'?
+    |                                                                                   |- note: did you mean to handle error as optional value?
+    |                                                                                   `- note: did you mean to disable error propagation?
+203 |             throw V3Rules.error("manifest.identity", "Invalid source, audit time or state interval")
+204 |         }
+
+/Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerUpdates/VerifierV3.swift:206:15: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+204 |         }
+205 |         let count = try fields.uint("compressed_bytes")
+206 |         guard try count > 0, count == fields.uint("expanded_bytes"), count <= host.maxPayloadBytes,
+    |               `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+207 |               count <= V3Rules.payloadMaximum, fields.text("compression") == "none", fields.object("asset_hashes").isEmpty else {
+208 |             throw V3Rules.error("manifest.payload", "Unsupported payload size, compression or assets")
+
+/Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerUpdates/VerifierV3.swift:206:39: error: call can throw but is not marked with 'try'
+204 |         }
+205 |         let count = try fields.uint("compressed_bytes")
+206 |         guard try count > 0, count == fields.uint("expanded_bytes"), count <= host.maxPayloadBytes,
+    |                                       |- error: call can throw but is not marked with 'try'
+    |                                       |- note: did you mean to use 'try'?
+    |                                       |- note: did you mean to handle error as optional value?
+    |                                       `- note: did you mean to disable error propagation?
+207 |               count <= V3Rules.payloadMaximum, fields.text("compression") == "none", fields.object("asset_hashes").isEmpty else {
+208 |             throw V3Rules.error("manifest.payload", "Unsupported payload size, compression or assets")
+
+/Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerUpdates/VerifierV3.swift:207:48: error: call can throw but is not marked with 'try'
+205 |         let count = try fields.uint("compressed_bytes")
+206 |         guard try count > 0, count == fields.uint("expanded_bytes"), count <= host.maxPayloadBytes,
+207 |               count <= V3Rules.payloadMaximum, fields.text("compression") == "none", fields.object("asset_hashes").isEmpty else {
+    |                                                |- error: call can throw but is not marked with 'try'
+    |                                                |- note: did you mean to use 'try'?
+    |                                                |- note: did you mean to handle error as optional value?
+    |                                                `- note: did you mean to disable error propagation?
+208 |             throw V3Rules.error("manifest.payload", "Unsupported payload size, compression or assets")
+209 |         }
+
+/Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerUpdates/VerifierV3.swift:207:86: error: call can throw but is not marked with 'try'
+205 |         let count = try fields.uint("compressed_bytes")
+206 |         guard try count > 0, count == fields.uint("expanded_bytes"), count <= host.maxPayloadBytes,
+207 |               count <= V3Rules.payloadMaximum, fields.text("compression") == "none", fields.object("asset_hashes").isEmpty else {
+    |                                                                                      |- error: call can throw but is not marked with 'try'
+    |                                                                                      |- note: did you mean to use 'try'?
+    |                                                                                      |- note: did you mean to handle error as optional value?
+    |                                                                                      `- note: did you mean to disable error propagation?
+208 |             throw V3Rules.error("manifest.payload", "Unsupported payload size, compression or assets")
+209 |         }
+
+/Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerUpdates/VerifierV3.swift:211:69: error: call can throw but is not marked with 'try'
+209 |         }
+210 |         let hashes = try fields.object("capability_hashes")
+211 |         guard try fields.required("scope") == host.scope.canonical, fields.text("runtime") == host.runtime,
+    |                                                                     |- error: call can throw but is not marked with 'try'
+    |                                                                     |- note: did you mean to use 'try'?
+    |                                                                     |- note: did you mean to handle error as optional value?
+    |                                                                     `- note: did you mean to disable error propagation?
+212 |               hashes.count <= 2, hashes == host.capabilityHashes.mapValues(CanonicalValue.text),
+213 |               host.stateVersion >= fields.uint("state_min"), host.stateVersion <= fields.uint("state_max") else {
+
+/Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerUpdates/VerifierV3.swift:213:36: error: call can throw but is not marked with 'try'
+211 |         guard try fields.required("scope") == host.scope.canonical, fields.text("runtime") == host.runtime,
+212 |               hashes.count <= 2, hashes == host.capabilityHashes.mapValues(CanonicalValue.text),
+213 |               host.stateVersion >= fields.uint("state_min"), host.stateVersion <= fields.uint("state_max") else {
+    |                                    |- error: call can throw but is not marked with 'try'
+    |                                    |- note: did you mean to use 'try'?
+    |                                    |- note: did you mean to handle error as optional value?
+    |                                    `- note: did you mean to disable error propagation?
+214 |             throw V3Rules.error("manifest.compatibility", "Scope, runtime, state or capability map differs from installed host")
+215 |         }
+
+/Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerUpdates/VerifierV3.swift:213:83: error: call can throw but is not marked with 'try'
+211 |         guard try fields.required("scope") == host.scope.canonical, fields.text("runtime") == host.runtime,
+212 |               hashes.count <= 2, hashes == host.capabilityHashes.mapValues(CanonicalValue.text),
+213 |               host.stateVersion >= fields.uint("state_min"), host.stateVersion <= fields.uint("state_max") else {
+    |                                                                                   |- error: call can throw but is not marked with 'try'
+    |                                                                                   |- note: did you mean to use 'try'?
+    |                                                                                   |- note: did you mean to handle error as optional value?
+    |                                                                                   `- note: did you mean to disable error propagation?
+214 |             throw V3Rules.error("manifest.compatibility", "Scope, runtime, state or capability map differs from installed host")
+215 |         }
+
+/Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerUpdates/VerifierV3.swift:237:47: error: call can throw but is not marked with 'try'
+235 |     private func grants(_ value: CanonicalValue, hashes: [String: CanonicalValue]) throws -> [VerifiedCapabilityGrantV3] {
+236 |         let fields = try V3Rules.object(value, keys: ["schema", "schema_sha256", "entries"])
+237 |         guard try fields.uint("schema") == 1, fields.text("schema_sha256") == VerifiedCapabilityGrantsV3.descriptorSHA256,
+    |                                               |- error: call can throw but is not marked with 'try'
+    |                                               |- note: did you mean to use 'try'?
+    |                                               |- note: did you mean to handle error as optional value?
+    |                                               `- note: did you mean to disable error propagation?
+238 |               case let .array(entries) = try fields.required("entries"), entries.count <= 2 else {
+239 |             throw V3Rules.error("manifest.grants", "Unsupported grant descriptor")
+
+[#UnnecessaryEffectMarker]: <https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker>
+Failed frontend command:
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift-frontend -frontend -c /Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerUpdates/CanonicalValue.swift /Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerUpdates/ColdStartModels.swift /Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerUpdates/ColdStartUpdater.swift /Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerUpdates/DurableDirectory.swift /Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerUpdates/StrictJSON.swift /Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerUpdates/UpdateInputFile.swift /Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerUpdates/Verifier.swift -primary-file /Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerUpdates/VerifierV3.swift -emit-dependencies-path /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity2-9f_n3oer/consumer/.build/out/Intermediates.noindex/MixerUpdates.build/Debug/MixerUpdates-t.build/Objects-normal/arm64/VerifierV3.d -emit-const-values-path /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity2-9f_n3oer/consumer/.build/out/Intermediates.noindex/MixerUpdates.build/Debug/MixerUpdates-t.build/Objects-normal/arm64/VerifierV3.swiftconstvalues -emit-reference-dependencies-path /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity2-9f_n3oer/consumer/.build/out/Intermediates.noindex/MixerUpdates.build/Debug/MixerUpdates-t.build/Objects-normal/arm64/VerifierV3.swiftdeps -serialize-diagnostics-path /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity2-9f_n3oer/consumer/.build/out/Intermediates.noindex/MixerUpdates.build/Debug/MixerUpdates-t.build/Objects-normal/arm64/VerifierV3.dia -target arm64-apple-macos14.0 -module-can-import-version Darwin 428.0.10 0 -disable-cross-import-overlay-search -swift-module-cross-import Darwin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/Darwin.swiftcrossimport/xlocale.swiftoverlay -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libFoundationMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#FoundationMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libObservationMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#ObservationMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libSwiftMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#SwiftMacros -disable-implicit-swift-modules -Xcc -fno-implicit-modules -Xcc -fno-implicit-module-maps -explicit-swift-module-map-file /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity2-9f_n3oer/consumer/.build/out/Intermediates.noindex/MixerUpdates.build/Debug/MixerUpdates-t.build/Objects-normal/arm64/MixerUpdates-dependencies-1.json -Xllvm -aarch64-use-tbi -enable-objc-interop -stack-check -sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk -I /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity2-9f_n3oer/consumer/.build/out/Products/Debug -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib -F /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity2-9f_n3oer/consumer/.build/out/Products/Debug/PackageFrameworks -F /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity2-9f_n3oer/consumer/.build/out/Products/Debug -F /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks -module-cache-path /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity2-9f_n3oer/consumer/.build/out/Intermediates.noindex/SwiftExplicitPrecompiledModules -no-color-diagnostics -Xcc -fno-color-diagnostics -enable-testing -g -debug-info-format\=dwarf -dwarf-version\=4 -swift-version 6 -Onone -D SWIFT_PACKAGE -D DEBUG -D SWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE -D Xcode -serialize-debugging-options -enable-experimental-feature DebugDescriptionMacro -empty-abi-descriptor -validate-clang-modules-once -clang-build-session-file /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity2-9f_n3oer/consumer/.build/out/ModuleCache.noindex/Session.modulevalidation -Xcc -working-directory -Xcc /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity2-9f_n3oer -enable-anonymous-context-mangled-names -file-compilation-dir /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity2-9f_n3oer -Xcc -fmodule-map-file\=/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity2-9f_n3oer/consumer/.build/out/Intermediates.noindex/GeneratedModuleMaps/MixerDurableIO.modulemap -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -Xcc -ivfsstatcache -Xcc /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity2-9f_n3oer/consumer/.build/out/SDKStatCaches.noindex/macosx27.0-26A425-80c5bbf1d171475443272936d42f90a37231f6df4def33e022ae2eb8f782df1a.sdkstatcache -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -Xcc -I/Users/andreyyurlov/Documents/dev/mixer/updates/Sources/MixerDurableIO/include -Xcc -I/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity2-9f_n3oer/consumer/.build/out/Products/Debug/include -Xcc -I/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity2-9f_n3oer/consumer/.build/out/Intermediates.noindex/MixerUpdates.build/Debug/MixerUpdates-t.build/DerivedSources-normal/arm64 -Xcc -I/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity2-9f_n3oer/consumer/.build/out/Intermediates.noindex/MixerUpdates.build/Debug/MixerUpdates-t.build/DerivedSources/arm64 -Xcc -I/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity2-9f_n3oer/consumer/.build/out/Intermediates.noindex/MixerUpdates.build/Debug/MixerUpdates-t.build/DerivedSources -Xcc -DSWIFT_PACKAGE -Xcc -DDEBUG\=1 -no-auto-bridging-header-chaining -module-name MixerUpdates -package-name updates -const-gather-protocols-file /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity2-9f_n3oer/consumer/.build/out/Intermediates.noindex/MixerUpdates.build/Debug/MixerUpdates-t.build/Objects-normal/arm64/MixerUpdates_const_extract_protocols.json -disable-clang-spi -clang-target arm64-apple-macos27.0 -target-sdk-version 27.0 -target-sdk-name macosx27.0 -in-process-plugin-server-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/libSwiftInProcPluginServer.dylib -parse-as-library -o /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity2-9f_n3oer/consumer/.build/out/Intermediates.noindex/MixerUpdates.build/Debug/MixerUpdates-t.build/Objects-normal/arm64/VerifierV3.o -debug-module-path /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity2-9f_n3oer/consumer/.build/out/Intermediates.noindex/MixerUpdates.build/Debug/MixerUpdates-t.build/Objects-normal/arm64/MixerUpdates.swiftmodule -index-unit-output-path /MixerUpdates.build/Debug/MixerUpdates-t.build/Objects-normal/arm64/VerifierV3.o -index-store-path /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity2-9f_n3oer/consumer/.build/out -index-system-modules
+error: Build failed
+
+
+----------------------------------------------------------------------
+Ran 11 tests in 11.005s
+
+FAILED (failures=1)

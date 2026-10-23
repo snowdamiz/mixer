@@ -118,3 +118,47 @@ The host test compiles and runs a real Swift consumer after deleting the snapsho
 and original input files, compares recovered policy with the public validator,
 and recompiles a changed fingerprint to verify rejection. This is scoped compiled
 data embedding, not a signed application or physical-device qualification.
+
+## Explicit schema2 tools
+
+Schema2 uses separate entrypoints; old commands and snapshot schema1 remain
+strict. Build the CLI above, then run:
+
+```sh
+python3 runtime-identity/build-tools/capture-v2.py capture-v2 \
+  --descriptor descriptor-v2.json --bindings bindings.json \
+  --input-root /absolute/private/inputs --output /absolute/private/new-v2-snapshot \
+  --identity-tool /absolute/trusted/mixer-identity
+python3 runtime-identity/build-tools/capture-v2.py verify-v2 \
+  --snapshot /absolute/private/new-v2-snapshot --expected-fingerprint EXPECTED \
+  --identity-tool /absolute/trusted/mixer-identity
+python3 runtime-identity/build-tools/embed-v2.py \
+  --snapshot /absolute/private/new-v2-snapshot --expected-fingerprint EXPECTED \
+  --identity-tool /absolute/trusted/mixer-identity --output /absolute/private/new-v2-source
+```
+
+Binding manifests retain their closed schema1 generic file/collection format.
+The resulting snapshot has closed schema2 with `identity_schema:2`; validation
+calls only `inspect-v2`. Fixed execution/wire/header/UI and semantic/schema digests
+require raw-file preimages matching their frozen hashes. Semantic schema preimages
+are the SDK's compact sorted ASCII JSON **without** a final LF, rather than a
+pretty-printed schema or a text file containing its digest. Each capability's
+`native_sha256` requires a nonempty raw-file preimage; it commits to those copied
+bytes, without claiming they are the linked SDK or a complete dependency graph.
+Generic source/dependency/link collections remain separately declared bindings.
+
+The bridge policy and each installed configuration/grant require raw canonical
+JSON files: sorted ASCII keys, compact separators, ASCII escaping and one LF.
+The tool checks the closed family schemas, exact grant IDs/schema hashes, sorted
+sets, HTTP concurrency equality and storage path grammar. Limits are64KiB/file,
+5files/320KiB total, depth8 and8192 values/file. Empty installed grants remain
+denials; these tools construct no adapters. Material hashes are computed from
+copied bytes and roles are checked again during snapshot verification.
+
+`embed-v2.py` emits `MixerInstalledCapabilityRuntime.swift`, whose `load()` returns
+`CapabilityRuntimeIdentity` from compiled bytes and checks the expected v2
+fingerprint. Existing v1 symbols and emitted bytes are unchanged. Canonical input
+capture, source emission and host consumer tests do not prove graph completeness,
+actual build consumption, linked native identity, signed application embedding,
+concrete adapter authority, native I/O or execution authorization. The trusted
+private-parent and non-adversarial same-user ownership assumptions above apply.

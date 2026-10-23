@@ -1,0 +1,446 @@
+package review_test
+
+import (
+	"bytes"
+	"crypto/ed25519"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/json"
+	"fmt"
+	"math"
+	p "mixer/services/protocol"
+	"reflect"
+	"strconv"
+	"strings"
+	"testing"
+)
+
+// Independently authored TEST ONLY models and keys; no service or installed authority.
+func reviewBase(t *testing.T) (p.SignedManifestV3, p.SignedAssignmentV3, []p.Root, p.Host, []byte, ed25519.PrivateKey, ed25519.PrivateKey) {
+	t.Helper()
+	a := sha256.Sum256([]byte("independent public TEST ONLY Go v3 artifact review"))
+	b := sha256.Sum256([]byte("independent public TEST ONLY Go v3 assignment review"))
+	ak := ed25519.NewKeyFromSeed(a[:])
+	bk := ed25519.NewKeyFromSeed(b[:])
+	scope := p.Scope{Organization: "review", Project: "protocol", App: "app", Environment: "test", Platform: "android"}
+	payload := []byte("original review payload; not Wasm")
+	caps := map[string]string{p.HTTPGrantID: p.HTTPGrantSHA256, p.StorageGrantID: p.StorageGrantSHA256}
+	host := p.Host{Scope: scope, Runtime: p.Hash([]byte("synthetic review runtime")), Protocol: 3, GuestABI: 2, UISchema: 1, CapabilityHashes: caps, StateVersion: 5, MaxPayloadBytes: 4194304, Limits: p.Limits{MemoryBytes: 4194304, Fuel: 1000000, StartupMilliseconds: 60000}}
+	m := p.ManifestV3{Schema: 3, Protocol: 3, GuestABI: 2, UISchema: 1, Scope: scope, ReleaseID: "r", SourceCommit: strings.Repeat("b", 40), ProvenanceID: "p", Runtime: host.Runtime, CapabilityHashes: caps, CapabilityGrants: p.CapabilityGrants{Schema: 1, SchemaSHA256: p.GrantSchemaSHA256, Entries: []p.CapabilityGrant{{CapabilityID: p.HTTPGrantID, SchemaSHA256: p.HTTPGrantSHA256, Permissions: []string{"network.https"}, Origins: []string{"https://review.example:8443"}, Methods: []string{"GET"}, Namespaces: []string{}}, {CapabilityID: p.StorageGrantID, SchemaSHA256: p.StorageGrantSHA256, Permissions: []string{"storage.appPrivate"}, Origins: []string{}, Methods: []string{}, Namespaces: []string{"Review"}}}}, StateMin: 4, StateMax: 6, PayloadSHA256: p.Hash(payload), CompressedBytes: uint64(len(payload)), ExpandedBytes: uint64(len(payload)), Compression: "none", AssetHashes: map[string]string{}, SourceMapSHA256: p.Hash([]byte("map")), Limits: p.Limits{MemoryBytes: 65536, Fuel: 99, StartupMilliseconds: 100}, KeyID: "artifact", CreatedAtUnix: 123}
+	sm := p.SignedManifestV3{Manifest: m, Signature: reviewSign(t, p.ArtifactDomainV3, m, ak)}
+	digest, e := p.ManifestDigestV3(m)
+	if e != nil {
+		t.Fatal(e)
+	}
+	assignment := p.AssignmentV3{Schema: 3, Scope: scope, Channel: "candidate", Cohort: "sha256-v1", RolloutBasisPoints: 10000, Sequence: 11, ReleaseID: m.ReleaseID, ArtifactSHA256: digest, Runtime: host.Runtime, KeyID: "assignment", CreatedAtUnix: 124}
+	sa := p.SignedAssignmentV3{Assignment: assignment, Signature: reviewSign(t, p.AssignmentDomainV3, assignment, bk)}
+	roots := []p.Root{{KeyID: "artifact", PublicKey: ak.Public().(ed25519.PublicKey), Scope: scope, Artifact: true, NotBeforeUnix: 120, NotAfterUnix: 140}, {KeyID: "assignment", PublicKey: bk.Public().(ed25519.PublicKey), Scope: scope, Assignment: true, NotBeforeUnix: 120, NotAfterUnix: 140}}
+	if e = p.VerifyManifestV3(sm, payload, roots, host, 130); e != nil {
+		t.Fatal(e)
+	}
+	if e = p.VerifyAssignmentV3(sa, sm, roots, host, "candidate", "private-review-installation", 10, 130); e != nil {
+		t.Fatal(e)
+	}
+	return sm, sa, roots, host, payload, ak, bk
+}
+func reviewSign(t *testing.T, domain string, value any, key ed25519.PrivateKey) []byte {
+	t.Helper()
+	b, e := p.CanonicalCBOR(value)
+	if e != nil {
+		t.Fatal(e)
+	}
+	return ed25519.Sign(key, append([]byte(domain), b...))
+}
+func reviewJSON(t *testing.T, value any) []byte {
+	t.Helper()
+	b, e := json.Marshal(value)
+	if e != nil {
+		t.Fatal(e)
+	}
+	return b
+}
+func reviewMap(t *testing.T, value any) map[string]any {
+	t.Helper()
+	var m map[string]any
+	d := json.NewDecoder(bytes.NewReader(reviewJSON(t, value)))
+	d.UseNumber()
+	if e := d.Decode(&m); e != nil {
+		t.Fatal(e)
+	}
+	return m
+}
+func reviewLeaves(value any, path []string) [][]string {
+	result := [][]string{}
+	switch v := value.(type) {
+	case map[string]any:
+		for k, x := range v {
+			result = append(result, reviewLeaves(x, append(append([]string{}, path...), k))...)
+		}
+	case []any:
+		for i, x := range v {
+			result = append(result, reviewLeaves(x, append(append([]string{}, path...), fmt.Sprint(i)))...)
+		}
+	default:
+		result = append(result, append([]string{}, path...))
+	}
+	return result
+}
+func reviewAt(value any, path []string) any {
+	if len(path) == 0 {
+		return value
+	}
+	switch v := value.(type) {
+	case map[string]any:
+		return reviewAt(v[path[0]], path[1:])
+	case []any:
+		i, _ := strconv.Atoi(path[0])
+		return reviewAt(v[i], path[1:])
+	}
+	panic("unexpected original review path")
+}
+func reviewChanged(value any) any {
+	switch v := value.(type) {
+	case json.Number:
+		n, e := strconv.ParseUint(string(v), 10, 64)
+		if e != nil {
+			panic(e)
+		}
+		if n == math.MaxUint64 {
+			return json.Number(fmt.Sprint(n - 1))
+		}
+		return json.Number(fmt.Sprint(n + 1))
+	case string:
+		if (len(v) == 40 || len(v) == 64) && strings.Trim(v, "0123456789abcdef") == "" {
+			return map[bool]string{true: "1", false: "0"}[v[0] == '0'] + v[1:]
+		}
+		if strings.HasPrefix(v, "https://") {
+			return strings.Replace(v, "review.example", "changed.example", 1)
+		}
+		return v + "x"
+	default:
+		panic("unexpected original review primitive")
+	}
+}
+func reviewReplace(value any, path []string, replacement any) {
+	if len(path) == 1 {
+		switch v := value.(type) {
+		case map[string]any:
+			v[path[0]] = replacement
+		case []any:
+			var i int
+			fmt.Sscan(path[0], &i)
+			v[i] = replacement
+		}
+		return
+	}
+	switch v := value.(type) {
+	case map[string]any:
+		reviewReplace(v[path[0]], path[1:], replacement)
+	case []any:
+		var i int
+		fmt.Sscan(path[0], &i)
+		reviewReplace(v[i], path[1:], replacement)
+	}
+}
+
+func TestIndependentEverySignedLeafRejectsMutation(t *testing.T) {
+	sm, sa, roots, host, payload, _, _ := reviewBase(t)
+	for _, which := range []string{"manifest", "assignment"} {
+		var original any = sm.Manifest
+		if which == "assignment" {
+			original = sa.Assignment
+		}
+		base := reviewMap(t, original)
+		for _, path := range reviewLeaves(base, nil) {
+			t.Run(which+"/"+strings.Join(path, "/"), func(t *testing.T) {
+				mutated := reviewMap(t, original)
+				reviewReplace(mutated, path, reviewChanged(reviewAt(base, path)))
+				if which == "manifest" {
+					var m p.ManifestV3
+					if e := p.DecodeJSON(reviewJSON(t, mutated), &m); e == nil {
+						candidate := sm
+						candidate.Manifest = m
+						if p.VerifyManifestV3(candidate, payload, roots, host, 130) == nil {
+							t.Fatal("signed field mutation accepted")
+						}
+					}
+				} else {
+					var a p.AssignmentV3
+					if e := p.DecodeJSON(reviewJSON(t, mutated), &a); e == nil {
+						candidate := sa
+						candidate.Assignment = a
+						if p.VerifyAssignmentV3(candidate, sm, roots, host, "candidate", "private-review-installation", 10, 130) == nil {
+							t.Fatal("signed assignment mutation accepted")
+						}
+					}
+				}
+			})
+		}
+	}
+	for i := 0; i < 64; i++ {
+		candidate := sm
+		candidate.Signature = bytes.Clone(sm.Signature)
+		candidate.Signature[i] ^= 1
+		if p.VerifyManifestV3(candidate, payload, roots, host, 130) == nil {
+			t.Fatal("signature bit mutation accepted", i)
+		}
+	}
+}
+
+func TestIndependentClosedAtomicModels(t *testing.T) {
+	sm, sa, _, _, _, _, _ := reviewBase(t)
+	for _, model := range []any{sm.Manifest, sm, sa.Assignment, sa} {
+		original := reviewJSON(t, model)
+		base := reviewMap(t, model)
+		hostile := [][]byte{[]byte("null"), []byte("{}"), append(bytes.Clone(original), []byte("{}")...), bytes.Replace(original, []byte(`"schema":3`), []byte(`"schema":3.0`), 1), bytes.Replace(original, []byte(`"schema":3`), []byte(`"schema":3e0`), 1), bytes.Replace(original, []byte(`"schema":3`), []byte(`"schema":-0`), 1), bytes.Replace(original, []byte(`"schema":3`), []byte(`"schema":true`), 1), bytes.Replace(original, []byte(`"schema":3`), []byte(`"schema":18446744073709551616`), 1), bytes.Replace(original, []byte(`"schema":3`), []byte(`"schema":3,"sch\u0065ma":3`), 1)}
+		for key := range base {
+			m := reviewMap(t, model)
+			delete(m, key)
+			hostile = append(hostile, reviewJSON(t, m))
+			m = reviewMap(t, model)
+			m[key] = nil
+			hostile = append(hostile, reviewJSON(t, m))
+			m = reviewMap(t, model)
+			m[strings.ToUpper(key)] = m[key]
+			delete(m, key)
+			hostile = append(hostile, reviewJSON(t, m))
+		}
+		if _, ok := base["manifest"]; ok {
+			for _, field := range []string{"scope", "limits", "capability_grants"} {
+				m := reviewMap(t, model)
+				m["manifest"].(map[string]any)[field].(map[string]any)["unknown"] = uint64(0)
+				hostile = append(hostile, reviewJSON(t, m))
+			}
+		}
+		for i, bad := range hostile {
+			if bytes.Equal(bad, original) {
+				t.Fatal("unmodified hostile fixture")
+			}
+			for _, decode := range []func([]byte, any) error{p.DecodeJSON, json.Unmarshal} {
+				target := reflect.New(reflect.TypeOf(model))
+				target.Elem().Set(reflect.ValueOf(model))
+				if e := decode(bad, target.Interface()); e == nil {
+					t.Fatalf("malformed %T case%d accepted", model, i)
+				}
+				if !bytes.Equal(reviewJSON(t, target.Interface()), original) {
+					t.Fatalf("receiver changed %T case%d", model, i)
+				}
+			}
+		}
+	}
+}
+
+func TestIndependentSignatureEncodingAndDocumentBounds(t *testing.T) {
+	sm, sa, _, _, _, _, _ := reviewBase(t)
+	for _, model := range []any{sm, sa} {
+		raw := reviewMap(t, model)
+		good := raw["signature"].(string)
+		alphabet := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+		badPad := []byte(good)
+		badPad[85] = alphabet[strings.IndexByte(alphabet, badPad[85])+1]
+		for _, bad := range []any{nil, []any{1, 2}, good[:86], good[:40] + "\n" + good[40:], string(badPad), base64.StdEncoding.EncodeToString(make([]byte, 63))} {
+			raw["signature"] = bad
+			encoded := reviewJSON(t, raw)
+			target := reflect.New(reflect.TypeOf(model))
+			if e := p.DecodeJSON(encoded, target.Interface()); e == nil {
+				t.Fatal("noncanonical signature accepted")
+			}
+			if e := json.Unmarshal(encoded, target.Interface()); e == nil {
+				t.Fatal("direct noncanonical signature accepted")
+			}
+		}
+	}
+	good := reviewJSON(t, sm)
+	exact := append(bytes.Repeat([]byte{' '}, 65536-len(good)), good...)
+	if _, e := p.DecodeSignedManifestV3(exact); e != nil {
+		t.Fatal("exact document bound rejected", e)
+	}
+	tooLarge := append([]byte{' '}, exact...)
+	if _, e := p.DecodeSignedManifestV3(tooLarge); e == nil {
+		t.Fatal("whole document +1 accepted")
+	}
+	var target p.SignedManifestV3
+	if e := p.DecodeJSON(tooLarge, &target); e == nil {
+		t.Fatal("generic checked entrypoint +1 accepted")
+	}
+	// encoding/json strips outer whitespace before calling UnmarshalJSON. Only
+	// the checked protocol entrypoints can enforce total transport byte length.
+	if e := json.Unmarshal(tooLarge, &target); e != nil {
+		t.Fatal("standard-library raw-value behavior changed", e)
+	}
+	t.Log("Whole-document bound enforced by DecodeSignedManifestV3/DecodeJSON; direct encoding/json sees only raw non-whitespace value")
+}
+
+func TestIndependentRootsFreshnessRolesAndBounds(t *testing.T) {
+	sm, sa, roots, host, payload, _, _ := reviewBase(t)
+	for _, now := range []uint64{0, 119, 140, math.MaxUint64} {
+		if p.VerifyManifestV3(sm, payload, roots, host, now) == nil {
+			t.Fatal("root time boundary accepted", now)
+		}
+	}
+	for _, now := range []uint64{120, 139} {
+		if e := p.VerifyAssignmentV3(sa, sm, roots, host, "candidate", "private-review-installation", 10, now); e != nil {
+			t.Fatal("valid half-open time rejected", e)
+		}
+	}
+	for _, mutate := range []func(*p.Root){func(r *p.Root) { r.KeyID = "" }, func(r *p.Root) { r.Revoked = true }, func(r *p.Root) { r.Artifact = false }, func(r *p.Root) { r.Scope.Organization = "other" }, func(r *p.Root) { r.PublicKey = make([]byte, 31) }, func(r *p.Root) { r.NotBeforeUnix = 135; r.NotAfterUnix = 135 }} {
+		copyRoots := append([]p.Root{}, roots...)
+		mutate(&copyRoots[0])
+		if p.VerifyAssignmentV3(sa, sm, copyRoots, host, "candidate", "private-review-installation", 10, 130) == nil {
+			t.Fatal("assignment did not reject invalid artifact authority")
+		}
+	}
+	duplicate := append(append([]p.Root{}, roots...), roots[0])
+	if p.VerifyManifestV3(sm, payload, duplicate, host, 130) == nil {
+		t.Fatal("duplicate roots accepted")
+	}
+	many := append([]p.Root{}, roots...)
+	for i := 2; i < 128; i++ {
+		r := roots[0]
+		r.KeyID = fmt.Sprint("unused-", i)
+		many = append(many, r)
+	}
+	if e := p.VerifyManifestV3(sm, payload, many, host, 130); e != nil {
+		t.Fatal("128 roots rejected", e)
+	}
+	many = append(many, roots[0])
+	many[128].KeyID = "unused-128"
+	if p.VerifyManifestV3(sm, payload, many, host, 130) == nil {
+		t.Fatal("129 roots accepted")
+	}
+}
+
+func TestIndependentResourcesAndCapabilityMapFailClosed(t *testing.T) {
+	sm, _, roots, host, payload, key, _ := reviewBase(t)
+	for _, limits := range []p.Limits{{1, 1, 1}, {4194304, 1000000, 60000}} {
+		m := sm
+		m.Manifest.Limits = limits
+		m.Signature = reviewSign(t, p.ArtifactDomainV3, m.Manifest, key)
+		if e := p.VerifyManifestV3(m, payload, roots, host, 130); e != nil {
+			t.Fatal("valid limits rejected", e)
+		}
+	}
+	for _, limits := range []p.Limits{{0, 1, 1}, {1, 0, 1}, {1, 1, 0}, {4194305, 1, 1}, {1, 1000001, 1}, {1, 1, 60001}} {
+		m := sm
+		m.Manifest.Limits = limits
+		m.Signature = reviewSign(t, p.ArtifactDomainV3, m.Manifest, key)
+		if p.VerifyManifestV3(m, payload, roots, host, 130) == nil {
+			t.Fatal("invalid signed limit accepted", limits)
+		}
+	}
+	for _, caps := range []map[string]string{nil, {"network.http.v1": p.StorageGrantSHA256}, {"unknown": p.HTTPGrantSHA256}} {
+		m := sm
+		m.Manifest.CapabilityHashes = caps
+		h := host
+		h.CapabilityHashes = caps
+		m.Manifest.CapabilityGrants.Entries = []p.CapabilityGrant{}
+		m.Signature = reviewSign(t, p.ArtifactDomainV3, m.Manifest, key)
+		if p.VerifyManifestV3(m, payload, roots, h, 130) == nil {
+			t.Fatal("unknown/malformed map accepted")
+		}
+	}
+	for _, n := range []int{4194304, 4194305} {
+		m := sm
+		body := bytes.Repeat([]byte{0x63}, n)
+		m.Manifest.CompressedBytes = uint64(n)
+		m.Manifest.ExpandedBytes = uint64(n)
+		m.Manifest.PayloadSHA256 = p.Hash(body)
+		m.Signature = reviewSign(t, p.ArtifactDomainV3, m.Manifest, key)
+		if (p.VerifyManifestV3(m, body, roots, host, 130) == nil) != (n == 4194304) {
+			t.Fatal("payload bound", n)
+		}
+	}
+}
+
+func TestIndependentDomainsReplayAndHeaderScope(t *testing.T) {
+	sm, sa, roots, host, payload, ak, bk := reviewBase(t)
+	for _, domain := range []string{p.ArtifactDomain, p.ArtifactDomainV2, p.AssignmentDomainV3, "mixer.artifact.v3", p.ArtifactDomainV3 + "\x00"} {
+		m := sm
+		m.Signature = reviewSign(t, domain, m.Manifest, ak)
+		if p.VerifyManifestV3(m, payload, roots, host, 130) == nil {
+			t.Fatal("artifact domain accepted", domain)
+		}
+	}
+	for _, domain := range []string{p.AssignmentDomain, p.AssignmentDomainV2, p.ArtifactDomainV3, "mixer.assignment.v3"} {
+		a := sa
+		a.Signature = reviewSign(t, domain, a.Assignment, bk)
+		if p.VerifyAssignmentV3(a, sm, roots, host, "candidate", "private-review-installation", 10, 130) == nil {
+			t.Fatal("assignment domain accepted", domain)
+		}
+	}
+	for _, last := range []uint64{11, 12, math.MaxUint64} {
+		if p.VerifyAssignmentV3(sa, sm, roots, host, "candidate", "private-review-installation", last, 130) == nil {
+			t.Fatal("replay accepted")
+		}
+	}
+	for _, install := range []string{"", strings.Repeat("a", 129), "customer/account"} {
+		if p.VerifyAssignmentV3(sa, sm, roots, host, "candidate", install, 10, 130) == nil {
+			t.Fatal("invalid installation accepted")
+		}
+	}
+	if p.VerifyManifestV3(sm, []byte("substituted"), roots, host, 130) == nil {
+		t.Fatal("payload substitute accepted")
+	}
+	if e := p.VerifyAssignmentHeaderV3(sa, sm, roots, host, "candidate", 10, 130); e != nil {
+		t.Fatal(e)
+	}
+	old := p.SignedManifestV2{Manifest: p.ManifestV2(sm.Manifest), Signature: sm.Signature}
+	old.Manifest.Schema = 2
+	old.Manifest.Protocol = 2
+	old.Manifest.GuestABI = 1
+	h := host
+	h.Protocol = 2
+	h.GuestABI = 1
+	if p.VerifyManifestV2(old, payload, roots, h, 130) == nil {
+		t.Fatal("v2 accepted v3 signature")
+	}
+}
+
+func TestIndependentValidHeaderChangesRequireFreshSignature(t *testing.T) {
+	changes := []struct {
+		name   string
+		mutate func(*p.ManifestV3)
+	}{
+		{"release", func(m *p.ManifestV3) { m.ReleaseID += "x" }}, {"provenance", func(m *p.ManifestV3) { m.ProvenanceID += "x" }},
+		{"source", func(m *p.ManifestV3) { m.SourceCommit = strings.Repeat("c", 40) }}, {"map", func(m *p.ManifestV3) { m.SourceMapSHA256 = p.Hash([]byte("changed-map")) }},
+		{"audit", func(m *p.ManifestV3) { m.CreatedAtUnix++ }}, {"state-min", func(m *p.ManifestV3) { m.StateMin++ }}, {"state-max", func(m *p.ManifestV3) { m.StateMax++ }},
+		{"memory", func(m *p.ManifestV3) { m.Limits.MemoryBytes++ }}, {"fuel", func(m *p.ManifestV3) { m.Limits.Fuel++ }}, {"startup", func(m *p.ManifestV3) { m.Limits.StartupMilliseconds++ }},
+		{"payload-hash", func(m *p.ManifestV3) { m.PayloadSHA256 = p.Hash([]byte("different")) }}, {"payload-length", func(m *p.ManifestV3) { m.CompressedBytes++; m.ExpandedBytes++ }},
+		{"grant-namespace", func(m *p.ManifestV3) { m.CapabilityGrants.Entries[1].Namespaces = []string{"Other"} }},
+	}
+	for _, change := range changes {
+		t.Run(change.name, func(t *testing.T) {
+			sm, _, roots, host, _, key, _ := reviewBase(t)
+			change.mutate(&sm.Manifest)
+			if e := sm.Manifest.Validate(); e != nil {
+				t.Fatal("review change unexpectedly invalid", e)
+			}
+			if p.VerifyManifestHeaderV3(sm, roots, host, 130) == nil {
+				t.Fatal("valid changed field accepted old signature")
+			}
+			sm.Signature = reviewSign(t, p.ArtifactDomainV3, sm.Manifest, key)
+			if e := p.VerifyManifestHeaderV3(sm, roots, host, 130); e != nil {
+				t.Fatal("freshly signed valid change rejected", e)
+			}
+		})
+	}
+	sm, sa, roots, host, _, _, key := reviewBase(t)
+	for _, field := range []string{"sequence", "rollout", "audit"} {
+		a := sa
+		switch field {
+		case "sequence":
+			a.Assignment.Sequence++
+		case "rollout":
+			a.Assignment.RolloutBasisPoints--
+		case "audit":
+			a.Assignment.CreatedAtUnix++
+		}
+		if p.VerifyAssignmentHeaderV3(a, sm, roots, host, "candidate", 10, 130) == nil {
+			t.Fatal("changed assignment accepted old signature", field)
+		}
+		a.Signature = reviewSign(t, p.AssignmentDomainV3, a.Assignment, key)
+		if e := p.VerifyAssignmentHeaderV3(a, sm, roots, host, "candidate", 10, 130); e != nil {
+			t.Fatal(e)
+		}
+	}
+}

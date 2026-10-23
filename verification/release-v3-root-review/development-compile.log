@@ -1,0 +1,27 @@
+verification/release-v3-root-review/probe.swift:24:5: error: main actor-isolated var 'checks' can not be mutated from a nonisolated context
+ 20 | }
+ 21 | 
+ 22 | var checks = 0
+    |     `- note: mutation of this var is only permitted within the actor
+ 23 | func require(_ value: Bool, _ context: String) throws {
+    |      `- note: add '@MainActor' to make global function 'require' part of global actor 'MainActor'
+ 24 |     checks += 1
+    |     `- error: main actor-isolated var 'checks' can not be mutated from a nonisolated context
+ 25 |     if !value { throw NSError(domain: "RootV3Review", code: 1, userInfo: [NSLocalizedDescriptionKey: context]) }
+ 26 | }
+
+verification/release-v3-root-review/probe.swift:28:31: error: main actor-isolated var 'checks' can not be mutated from a nonisolated context
+ 20 | }
+ 21 | 
+ 22 | var checks = 0
+    |     `- note: mutation of this var is only permitted within the actor
+ 23 | func require(_ value: Bool, _ context: String) throws {
+ 24 |     checks += 1
+ 25 |     if !value { throw NSError(domain: "RootV3Review", code: 1, userInfo: [NSLocalizedDescriptionKey: context]) }
+ 26 | }
+ 27 | func denied(_ context: String, _ body: () throws -> Void) throws {
+    |      `- note: add '@MainActor' to make global function 'denied' part of global actor 'MainActor'
+ 28 |     do { try body() } catch { checks += 1; return }
+    |                               `- error: main actor-isolated var 'checks' can not be mutated from a nonisolated context
+ 29 |     try require(false, context)
+ 30 | }

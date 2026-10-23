@@ -444,7 +444,10 @@ on three long expressions in its test-only Wasm builder. The subsequent fixture
 rewrite preserves byte-identical output for11 modes and passes all16 host tests
 against frozen99c9f5b production, including normal-trust TLS rejection. See
 `verification/bridge-fixture-compiler-review/` and the preserved failed run in
-`verification/github-ci-99c9f5b/`. Hosted completion of the full step remains pending.
+`verification/github-ci-99c9f5b/`. Run39916644922 at24a7437 now passes all three
+hosted jobs, including16 bridge tests per debug/release/TSan and10 public-consumer
+tests with pinned Xcode26.3. See `verification/github-ci-24a7437/receipt.json`.
+This qualifies that revision, before the following additive implementation.
 
 
 Four additive contracts now define capability execution through identity2,
@@ -452,7 +455,32 @@ release3 and guest ABI2 over the unchanged table-memory-v3 grammar. Root matched
 241 static checks in normal and optimized Python,79 independent consistency
 checks,35 implementation bindings and eight unchanged old contract files before
 freezing the definitions for implementation. Static checks confer no execution
-or release authority. Schema2 capture/embedding, protocol3 verification, bounded
-complete validation/typed failures, concrete material binding and separate signed
-activation remain implementation work. See
+or release authority. See
 `verification/capability-authority-contract-freeze-2026-10-23.json`.
+
+Identity2 now has strict parsing, declared-input capture and embedded-source
+generation. Root review found and repaired a caller-backed Data gap between the
+strict scan and typed decode; both now consume one owned snapshot. The fixed
+candidate passes19 Swift tests per debug/release,32 Python tests normally and
+under optimization, and byte-identical old CLI outputs. Capture verifies declared
+inputs, not completeness of the build graph or final linked adapter identity.
+See `verification/runtime-identity-v2/README.md` and the final snapshot receipt.
+
+Explicit release3 Go and Swift verifiers now share154 manifest and36 assignment
+cases. Swift exposes opaque artifacts/grants tied to one verifier context;55 tests
+per debug/release and15 scoped TSan tests pass, with public construction/decoding
+rejected at compile time. Official iOS/Android checks compile modules/objects only.
+Go passes the full services race suite and seven independent public-API test
+functions, canonical-byte checks and fixture regeneration. Use the checked Go
+decoders at document boundaries; raw stdlib decoding strips outer whitespace.
+Root matched the frozen sources, logs and artifacts, passed89 independent Swift
+public checks and19 combined identity tests, and verified identity2-to-release3
+metadata binding with legacy rejection. Receipts are in
+`verification/release-v3-root-review/`, `verification/release-v3-swift/`,
+`verification/release-v3-go/` and `verification/release-v3-go-review/`.
+
+These are parsing and signature primitives. Bounded complete validation and typed
+failures, exact material binding to linked concrete adapters, durable v3 selection,
+signed activation, hosted v3 routes and full FieldLog execution remain in progress.
+Physical checks remain pending while the phones are disconnected; no product or
+GA gate is closed by this checkpoint.

@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "scope": "TEST-ONLY deterministic derived StrictJSON scanner/decode hook; no production hook/source edit; no concurrent pointer read/write. Copy is not an atomic external-buffer snapshot guarantee.",
+  "old_parser_sha256": "8fe3feae4f1e7d1e114c60c860b9f9a423cfdc0e8f88779d1f519edb286738c6",
+  "fixed_parser_sha256": "bf628aaa9bcfec6ce65b2b3e3cf3008ce066974885d292275d3c687fcfebfdc3",
+  "commands": [
+    {
+      "argv": [
+        "/usr/bin/swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/runtime-identity-v2/local/snapshot-gate/old/runtime-identity",
+        "--filter",
+        "ReviewSnapshotBoundary"
+      ],
+      "exit_code": 0,
+      "expected_fuel": "777777",
+      "instrumented_scanner_sha256": "b346e0e02feec5507d49c0ccdef97f46b1015c12c4c35684e29c694a1bb09e06",
+      "test_sha256": "61157f9da49364c52b56285ee049636f00f0aad8841d5f74e9a822ff3b83bd66",
+      "log_sha256": "93d5af249f3acda4e3706952e38d8ff9cb1b6dbbb3a9b0715deffb194509eb0b"
+    },
+    {
+      "argv": [
+        "/usr/bin/swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/runtime-identity-v2/local/snapshot-gate/fixed/runtime-identity",
+        "--filter",
+        "ReviewSnapshotBoundary"
+      ],
+      "exit_code": 0,
+      "expected_fuel": "1000000",
+      "instrumented_scanner_sha256": "b346e0e02feec5507d49c0ccdef97f46b1015c12c4c35684e29c694a1bb09e06",
+      "test_sha256": "61157f9da49364c52b56285ee049636f00f0aad8841d5f74e9a822ff3b83bd66",
+      "log_sha256": "4cd38340b49001b425ac1919dc3b0cc9c7bfda356a1332c1dbcf507bf40acd7a"
+    }
+  ],
+  "result": "Old parser accepted unscanned duplicate-key replacement fuel777777; fixed parser retained scanned owned snapshot fuel1000000. Both reject replacement when scanned normally.",
+  "script_sha256": "f7bc4aefc1f5d484a4198f8fa4bc5ac63302dc9bdca9defb102f8884aa40a5d1"
+}

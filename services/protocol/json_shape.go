@@ -22,6 +22,8 @@ func jsonProtocolDocumentLimit(model reflect.Type) int {
 	case reflect.TypeFor[ManifestV2](), reflect.TypeFor[AssignmentV2](), reflect.TypeFor[SignedManifestV2](), reflect.TypeFor[SignedAssignmentV2](),
 		reflect.TypeFor[CapabilityGrant](), reflect.TypeFor[CapabilityGrants]():
 		return MaxV2DocumentBytes
+	case reflect.TypeFor[ManifestV3](), reflect.TypeFor[AssignmentV3](), reflect.TypeFor[SignedManifestV3](), reflect.TypeFor[SignedAssignmentV3]():
+		return MaxV3DocumentBytes
 	default:
 		return 0
 	}
