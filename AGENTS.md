@@ -24,6 +24,12 @@ it does not replace or narrow that scope. Keep `STATUS.md`, `work-graph.json`,
 
 ## Verification
 
+The user authorized periodic commits and pushes to `snowdamiz/mixer`; see PLAN.md.
+Root coordinates pushes of coherent validated slices to `origin/main`, without
+force-pushing or sweeping other agents' unfinished files into commits. Inspect CI
+after pushes. Phones are disconnected until further notice: do not attempt new
+physical-device runs or ask to reconnect; keep those checks explicitly pending.
+
 Record command, tool version, source revision/tree digest, output, and scope.
 Mac unit tests are not physical iOS/Android receipts. FieldLog must eventually
 consume immutable published packages from a separate repository. Local checkout
