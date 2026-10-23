@@ -39,11 +39,54 @@ struct Frame {
     stack: Vec<Value>,
     labels: Vec<Label>,
 }
+struct ImportContext<'a> {
+    #[cfg(feature = "experimental-capability-guest")]
+    guest: Option<&'a crate::experimental_capability_guest::GuestImports<'a>>,
+    _lifetime: std::marker::PhantomData<&'a ()>,
+}
+impl ImportContext<'_> {
+    fn legacy() -> Self {
+        Self {
+            #[cfg(feature = "experimental-capability-guest")]
+            guest: None,
+            _lifetime: std::marker::PhantomData,
+        }
+    }
+    fn check(&self, _function: u32, _offset: usize) -> Result<(), Error> {
+        #[cfg(feature = "experimental-capability-guest")]
+        if let Some(guest) = self.guest {
+            guest.check(_function, _offset)?;
+        }
+        Ok(())
+    }
+}
+enum Entry<'a> {
+    Export(&'a str),
+    #[cfg(feature = "experimental-capability-guest")]
+    Function(u32),
+}
 impl Instance {
     pub fn new(module: Module, limits: Limits) -> Result<Self, Error> {
+        Self::new_with_admission(module, limits, ImportAdmission::Legacy)
+    }
+    #[cfg(feature = "experimental-capability-guest")]
+    pub(crate) fn new_capability(module: Module, limits: Limits) -> Result<Self, Error> {
+        Self::new_with_admission(module, limits, ImportAdmission::ExperimentalCapabilityV1)
+    }
+    fn new_with_admission(
+        module: Module,
+        limits: Limits,
+        admission: ImportAdmission,
+    ) -> Result<Self, Error> {
         // A module decoded with wider limits is revalidated against this instance's limits.
         limits.check()?;
-        crate::validate::module(&module, &limits)?;
+        match admission {
+            ImportAdmission::Legacy => crate::validate::module(&module, &limits)?,
+            #[cfg(feature = "experimental-capability-guest")]
+            ImportAdmission::ExperimentalCapabilityV1 => {
+                crate::validate::module_with_admission(&module, &limits, admission)?
+            }
+        }
         if module.source_bytes > limits.module_bytes {
             return Err(Error::new(
                 "limit",
@@ -156,22 +199,69 @@ impl Instance {
         Ok(())
     }
     pub fn invoke(&mut self, name: &str, args: &[Value]) -> Result<Option<Value>, Error> {
+        self.invoke_inner(Entry::Export(name), args, ImportContext::legacy())
+    }
+    #[cfg(feature = "experimental-capability-guest")]
+    pub(crate) fn invoke_capability(
+        &mut self,
+        index: u32,
+        args: &[Value],
+        guest: &crate::experimental_capability_guest::GuestImports<'_>,
+    ) -> Result<Option<Value>, Error> {
+        self.invoke_inner(
+            Entry::Function(index),
+            args,
+            ImportContext {
+                guest: Some(guest),
+                _lifetime: std::marker::PhantomData,
+            },
+        )
+    }
+    #[cfg(feature = "experimental-capability-guest")]
+    pub(crate) fn invoke_capability_export(
+        &mut self,
+        name: &str,
+        args: &[Value],
+        guest: &crate::experimental_capability_guest::GuestImports<'_>,
+    ) -> Result<Option<Value>, Error> {
+        self.invoke_inner(
+            Entry::Export(name),
+            args,
+            ImportContext {
+                guest: Some(guest),
+                _lifetime: std::marker::PhantomData,
+            },
+        )
+    }
+    fn invoke_inner(
+        &mut self,
+        entry: Entry<'_>,
+        args: &[Value],
+        imports: ImportContext<'_>,
+    ) -> Result<Option<Value>, Error> {
         self.fuel_remaining = self.limits.fuel;
         self.host_calls_used = 0;
         if self.limits.profile.floats() {
             crate::float::environment()?;
         }
-        let (kind, index) = *self.module.exports.get(name).ok_or_else(|| {
-            Error::new("unknown_export", format!("unknown export {name}"), None, 0)
-        })?;
-        if kind != 0 {
-            return Err(Error::new(
-                "invalid_arguments",
-                "export is not a function",
-                None,
-                0,
-            ));
-        }
+        let index = match entry {
+            Entry::Export(name) => {
+                let (kind, index) = *self.module.exports.get(name).ok_or_else(|| {
+                    Error::new("unknown_export", format!("unknown export {name}"), None, 0)
+                })?;
+                if kind != 0 {
+                    return Err(Error::new(
+                        "invalid_arguments",
+                        "export is not a function",
+                        None,
+                        0,
+                    ));
+                }
+                index
+            }
+            #[cfg(feature = "experimental-capability-guest")]
+            Entry::Function(index) => index,
+        };
         let sig = self.module.signature(index).expect("validated signature");
         if args.len() != sig.params.len() || args.iter().zip(&sig.params).any(|(a, t)| a.ty() != *t)
         {
@@ -184,8 +274,7 @@ impl Instance {
         }
         if (index as usize) < self.module.imports.len() {
             self.charge(index, 0)?;
-            self.import(index, args, index, 0)?;
-            return Ok(None);
+            return self.import(index, args, index, 0, &imports);
         }
         let mut frames = vec![self.frame(index, args.to_vec())?];
         loop {
@@ -202,6 +291,7 @@ impl Instance {
                     offset,
                 ));
             }
+            imports.check(function, offset)?;
             if self.fuel_remaining == 0 {
                 return Err(Error::new(
                     "fuel_exhausted",
@@ -286,7 +376,8 @@ impl Instance {
                     let split = frame.stack.len() - sig.params.len();
                     let args = frame.stack.split_off(split);
                     if (*index as usize) < self.module.imports.len() {
-                        self.import(*index, &args, function, offset)?;
+                        let result = self.import(*index, &args, function, offset, &imports)?;
+                        frame.stack.extend(result);
                     } else {
                         if frames.len() >= self.limits.call_depth {
                             return Err(trap("call_depth_exceeded", "call depth limit exceeded"));
@@ -319,7 +410,8 @@ impl Instance {
                         .stack
                         .split_off(frame.stack.len() - expected.params.len());
                     if (target as usize) < self.module.imports.len() {
-                        self.import(target, &args, function, offset)?;
+                        let result = self.import(target, &args, function, offset, &imports)?;
+                        frame.stack.extend(result);
                     } else {
                         if frames.len() >= self.limits.call_depth {
                             return Err(trap("call_depth_exceeded", "call depth limit exceeded"));
@@ -546,7 +638,9 @@ impl Instance {
         args: &[Value],
         caller: u32,
         offset: usize,
-    ) -> Result<(), Error> {
+        imports: &ImportContext<'_>,
+    ) -> Result<Option<Value>, Error> {
+        imports.check(caller, offset)?;
         if self.cancellation.is_cancelled() {
             return Err(Error::new(
                 "cancelled",
@@ -564,8 +658,29 @@ impl Instance {
             ));
         }
         self.host_calls_used += 1;
+        #[cfg(feature = "experimental-capability-guest")]
+        if self.module.imports[index as usize].module
+            == crate::experimental_capability_guest::IMPORT_MODULE
+        {
+            let guest = imports.guest.ok_or_else(|| {
+                Error::new(
+                    "unsupported",
+                    "capability import requires its private guest wrapper",
+                    Some(caller),
+                    offset,
+                )
+            })?;
+            return guest.import(
+                &self.module.imports[index as usize].name,
+                args,
+                &mut self.memory,
+                &mut self.fuel_remaining,
+                caller,
+                offset,
+            );
+        }
         match self.module.imports[index as usize].name.as_str() {
-            "checkpoint" => Ok(()),
+            "checkpoint" => Ok(None),
             "abort" => Err(Error::new(
                 "host_abort",
                 format!("guest requested abort: {:?}", args[0]),

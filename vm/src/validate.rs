@@ -77,6 +77,15 @@ impl Validator {
     }
 }
 pub(crate) fn module(m: &Module, limits: &Limits) -> Result<(), Error> {
+    module_with_admission(m, limits, ImportAdmission::Legacy)
+}
+pub(crate) fn module_with_admission(
+    m: &Module,
+    limits: &Limits,
+    admission: ImportAdmission,
+) -> Result<(), Error> {
+    #[cfg(not(feature = "experimental-capability-guest"))]
+    let _ = admission;
     if m.profile != limits.profile {
         return Err(Error::new(
             "invalid_limits",
@@ -104,6 +113,10 @@ pub(crate) fn module(m: &Module, limits: &Limits) -> Result<(), Error> {
                 "abort" => sig.params == [Type::I32] && sig.result.is_none(),
                 _ => false,
             };
+        #[cfg(feature = "experimental-capability-guest")]
+        let allowed = allowed
+            || matches!(admission, ImportAdmission::ExperimentalCapabilityV1)
+                && crate::experimental_capability_guest::allowed_import(import, sig);
         if !allowed {
             return Err(Error::new(
                 "unsupported",
@@ -112,6 +125,17 @@ pub(crate) fn module(m: &Module, limits: &Limits) -> Result<(), Error> {
                 0,
             ));
         }
+    }
+    #[cfg(feature = "experimental-capability-guest")]
+    if matches!(admission, ImportAdmission::ExperimentalCapabilityV1)
+        && (limits.profile != Profile::TableMemoryV3 || m.memory.is_none())
+    {
+        return Err(Error::new(
+            "unsupported",
+            "capability guest requires v3 instruction grammar and defined memory zero",
+            None,
+            0,
+        ));
     }
     for (name, (kind, index)) in &m.exports {
         let valid = match kind {

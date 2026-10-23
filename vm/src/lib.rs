@@ -5,6 +5,8 @@ mod execute;
 pub mod experimental;
 #[cfg(feature = "experimental-capability-mailbox")]
 pub mod experimental_capability;
+#[cfg(feature = "experimental-capability-guest")]
+pub mod experimental_capability_guest;
 mod ffi;
 mod float;
 mod inspect;
@@ -16,6 +18,15 @@ pub use execute::{Cancellation, Instance};
 pub use ffi::*;
 pub use inspect::inventory;
 pub use session::*;
+
+/// Complete validation always receives an explicit native-selected import policy.
+/// No public profile, serialized field or Cargo feature selects it implicitly.
+#[derive(Clone, Copy)]
+pub(crate) enum ImportAdmission {
+    Legacy,
+    #[cfg(feature = "experimental-capability-guest")]
+    ExperimentalCapabilityV1,
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Type {

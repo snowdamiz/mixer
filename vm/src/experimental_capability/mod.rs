@@ -720,5 +720,8 @@ impl Mailbox {
     }
 }
 
+#[cfg(feature = "experimental-capability-guest")]
+mod guest;
+
 #[cfg(test)]
 mod tests;

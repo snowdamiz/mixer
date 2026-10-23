@@ -68,7 +68,20 @@ impl Module {
             profile: limits.profile,
             ..Inventory::default()
         };
-        parse(bytes, limits, &mut inv)
+        parse(bytes, limits, &mut inv, ImportAdmission::Legacy)
+    }
+    #[cfg(feature = "experimental-capability-guest")]
+    pub(crate) fn decode_capability(bytes: &[u8], limits: &Limits) -> Result<Self, Error> {
+        let mut inv = Inventory {
+            profile: limits.profile,
+            ..Inventory::default()
+        };
+        parse(
+            bytes,
+            limits,
+            &mut inv,
+            ImportAdmission::ExperimentalCapabilityV1,
+        )
     }
     pub fn function_count(&self) -> usize {
         self.imports.len() + self.functions.len()
@@ -92,7 +105,7 @@ pub fn validation_inventory(bytes: &[u8], limits: &Limits) -> Inventory {
         profile: limits.profile,
         ..Inventory::default()
     };
-    if let Err(e) = parse(bytes, limits, &mut inv) {
+    if let Err(e) = parse(bytes, limits, &mut inv, ImportAdmission::Legacy) {
         inv.error = Some(e);
     }
     inv
@@ -233,7 +246,12 @@ impl<'a> Reader<'a> {
         Ok(v)
     }
 }
-fn parse(bytes: &[u8], limits: &Limits, inv: &mut Inventory) -> Result<Module, Error> {
+fn parse(
+    bytes: &[u8],
+    limits: &Limits,
+    inv: &mut Inventory,
+    admission: ImportAdmission,
+) -> Result<Module, Error> {
     limits.check()?;
     if bytes.len() > limits.module_bytes {
         return Err(Error::new("limit", "module byte limit exceeded", None, 0));
@@ -483,7 +501,7 @@ fn parse(bytes: &[u8], limits: &Limits, inv: &mut Inventory) -> Result<Module, E
         return Err(r.err("validation", "functions have no code section"));
     }
     inv.complete = true;
-    crate::validate::module(&m, limits)?;
+    crate::validate::module_with_admission(&m, limits, admission)?;
     m.inventory = inv.clone();
     Ok(m)
 }

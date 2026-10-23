@@ -1,6 +1,6 @@
 # Experimental Rust guest capability composition
 
-Status: bounded Rust-only implementation direction approved by root on 2026-10-23, after the design summary. This document is an implementation contract, not evidence that the code/tests exist. Selection: `gpt-6.1-sol`, `xhigh`. Root owns integration/push and the later C/registry layer. No device commands are permitted while phones remain disconnected.
+Status: bounded Rust-only implementation direction approved by root on 2026-10-23, after the design summary. Implementation is under `vm/src/experimental_capability_guest` and the nondefault Cargo feature below; [host evidence](../vm/verification/capability-guest/README.md) records actual results separately from this contract. Selection: `gpt-6.1-sol`, `xhigh`. Root owns integration/push and the later C/registry layer. No device commands are permitted while phones remain disconnected.
 
 Baseline: reviewed mailbox `4e37b357ae029d9cdf5e5c6b4281d82f61b65f3a`. Payload/import contract: `3ba601332dab7c2aba98d7a50d7f0e893b1ea776`, [guest-capability-transport-v1.json](../contracts/guest-capability-transport-v1.json), file SHA-256 `052ebe9fbdc20a41307332086767e7903680bc83ba273c696edf9187be6b6439`. The broader [ABI proposal](guest-capability-abi-proposal.md) remains the product direction; this slice is smaller and supplies no new public profile/guest ABI/C/activation/identity/release admission.
 
@@ -9,7 +9,7 @@ Baseline: reviewed mailbox `4e37b357ae029d9cdf5e5c6b4281d82f61b65f3a`. Payload/i
 Add nondefault Cargo feature `experimental-capability-guest`, depending on `experimental-capability-mailbox`. Keep `Profile`, `Limits`, `Module`/`Instance` field layouts, old headers/C/session entry points and all current ceilings unchanged. Require `Limits.profile == TableMemoryV3` only as the inherited numeric/table instruction grammar, not as permission to admit capability imports into profile3. The new constructor is the explicit experiment selector:
 
 ```rust
-// Declarations for coordination, not existing API.
+// Rust-only experiment; these types are unavailable without the feature.
 pub struct GuestLimits { pub turn_milliseconds: u32 } // 1..=50, default50
 pub struct CapabilityGuest { /* private Instance, startup/wake indices, owner */ }
 pub struct CapabilityPort { /* private shared mailbox owner */ }
@@ -20,6 +20,7 @@ impl CapabilityGuest {
         mailbox: experimental_capability::Limits, guest: GuestLimits,
         installed_startup_export: &str) -> Result<Self, crate::Error>;
     pub fn native_port(&self) -> CapabilityPort;
+    pub fn cancellation(&self) -> crate::Cancellation;
     pub fn startup(&mut self) -> Result<Option<crate::Value>, crate::Error>;
     pub fn enable_effects(&mut self) -> Result<(), crate::Error>;
     pub fn invoke(&mut self, export: &str, args: &[crate::Value])
@@ -27,10 +28,12 @@ impl CapabilityGuest {
     pub fn wake_once(&mut self) -> Result<bool, crate::Error>;
     pub fn close(&mut self) -> Result<experimental_capability::CloseReport, crate::Error>;
     pub fn memory(&self) -> &[u8]; // read-only borrow, no exposed Instance/Module
+    pub fn fuel_remaining(&self) -> u64;
+    pub fn host_calls_used(&self) -> u64;
 }
 ```
 
-`CapabilityPort` is the narrow trusted native half: bounded caller-buffer `take` returns no message/required capacity/call with `DispatchLease`/cancel identity; `post_trusted(&DispatchLease, &[u8])`, `ack_exit(&DispatchLease)`, `limit_deadline`, `expire` and `usage` preserve the reviewed mailbox rules. Errors retain opaque lease identity for retry. No port method accepts a guest-selected mailbox/session or calls guest code. `post_trusted` deliberately names its trust requirement: bytes remain opaque in Rust; the later strict native codec must bind result schema/operation/grants before posting or I/O. This slice runs no native I/O.
+`CapabilityPort` is Clone and is the narrow trusted native half: bounded caller-buffer `take` returns no message/required capacity/call with `DispatchLease`/cancel identity; `post_trusted(&DispatchLease, &[u8])`, `ack_exit(&DispatchLease)`, `limit_deadline`, `expire`, `usage` and `close` preserve the reviewed mailbox rules. A ticket also provides `ack_exit()`, so an actual native exit can be acknowledged even after every guest/port is dropped. Errors retain opaque lease identity for retry. No port method accepts a guest-selected mailbox/session or calls guest code. `post_trusted` deliberately names its trust requirement: bytes remain opaque in Rust; the later strict native codec must bind result schema/operation/grants before posting or I/O. This slice runs no native I/O.
 
 Introduce a private `ImportAdmission::{Legacy, ExperimentalCapabilityV1}` for full parse/type validation and private instance construction. Public `Module::decode`, `Instance::new`, CLI/inventory/C/session and experimental streaming routes always select Legacy, even with the Cargo feature enabled. Only the bytes-based wrapper constructor selects the experimental context and keeps its decoded Module/Instance private; there is no conversion, deref, module getter or public constructor accepting a predecoded privileged module. `Instance::new` must revalidate Legacy and reject such a module even if a private test obtains one. Merely recognizing import names during inventory never authorizes execution.
 
@@ -46,7 +49,7 @@ Every actual entry begins one owner-bound turn. On complete interpreter success,
 
 A panic/unwind guard closes on an unfinished turn without changing the original panic or panicking during cleanup; errors during best-effort close are suppressed in Drop. Rust unwinding is not advertised as general OOM containment. Poison/allocation/identifier-exhaustion are explicit interpreter traps, not invented guest transport codes; they also permanently stop guest admission. A poisoned lock can prevent normal mailbox cleanup/ack, retaining bounded state instead of claiming successful reclamation; no recovery/reopen or poison-clearing authority is introduced. This case needs an explicit negative test and remains a native registry follow-on concern.
 
-A fixed coalesced readiness bit is set by terminal availability, not by arbitrary callback/export names. `wake_once` only claims it after the preceding turn finishes, calls the prevalidated wake entry at most once, and re-arms once if unconsumed terminal work remains. No reentrant invoke or internal spin loop. Every turn checks private `Instant` time and cancellation at instruction/import boundaries with existing fuel/host-call limits. The caller must serialize `&mut CapabilityGuest`. This is not an automatic executor: four-turn/8ms scheduler yielding, native rate limits and Swift continuation scheduling remain later work.
+Coalesced readiness is derived under the existing mailbox lock from its bounded authoritative slots: no active turn and some ready, unconsumed terminal. No additional readiness bit or expanding queue is introduced. `wake_once` checks that predicate, calls the prevalidated wake entry at most once and returns; unconsumed terminal work leaves the next explicit wake eligible. No reentrant invoke or internal spin loop. Every turn checks private `Instant` time and cancellation at instruction/import boundaries with existing fuel/host-call limits. The caller must serialize `&mut CapabilityGuest`. The cloneable existing `Cancellation` permits another thread to cancel a running turn; once observed, this terminates the wrapper permanently and is distinct from per-request guest cancel. Dropping `CapabilityGuest` best-effort closes the mailbox, cancels execution and refuses future native take, while previously retained normal tickets remain ackable. This is not an automatic executor: four-turn/8ms scheduler yielding, native rate limits and Swift continuation scheduling remain later work.
 
 ## Guest memory transactions and fuel
 
