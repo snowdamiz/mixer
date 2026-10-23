@@ -3,6 +3,8 @@ mod decode;
 mod execute;
 #[cfg(feature = "experimental-stream-validation")]
 pub mod experimental;
+#[cfg(feature = "experimental-capability-mailbox")]
+pub mod experimental_capability;
 mod ffi;
 mod float;
 mod inspect;
