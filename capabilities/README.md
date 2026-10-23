@@ -191,3 +191,36 @@ tests and a real local untrusted-certificate rejection without changing trust st
 It does not qualify successful production TLS, Android runtime trust configuration,
 real redirect/auth/cache behavior on all platforms, device radio/background lifecycle,
 guest imports, signed network-grant activation or FieldLog network integration.
+
+## Strict guest transport value codec
+
+`GuestCapabilityTransportCodecV1` now implements the four methods declared by the
+[frozen development transport contract](../contracts/guest-capability-transport-v1.json):
+`decodeArguments(_:operation:)`, `encodeArguments(_:)`,
+`decodeCompletion(_:expectedOperation:)` and `encodeCompletion(_:operation:)`.
+`GuestCapabilityOperationV1` has exactly `httpRequest`, `storageGet`, `storagePut`
+and `storageDelete` (tags1...4). Completion values are typed success, unchanged
+capability failure, or the separate `rejected(.invalidArguments)` transport outcome.
+
+The generator derives fixed metadata from the existing schema and approved mapping.
+The codec reuses strict object preflight/type dispatch, validates directly constructed
+DTOs during encoding, rejects wrong-operation results, normalizes new decode failures
+to sanitized `CapabilityWireError` and retains the existing value
+semantics: HTTP302 and `found=false` with nonempty canonical bytes are type-valid.
+Native redirect/store policy is enforced separately. No identity/token appears in
+these payloads; the bridge must validate its actual native `CapabilityCall` before
+conversion and retain originating request ownership outside this value codec.
+
+The separate public `guest-transport-probe` executes all90 original frozen fixtures
+in debug and release. The [codec receipt](verification/guest-transport-codec/README.md)
+also records direct-DTO/boundary/routing tests, first-generation native-hash coverage,
+old Swift/Java codec regression, and iOS/Android/WASI compilation. The historical
+contract/projection receipt remains unchanged. Schema/old envelope/model/adapter
+bytes and semantic hashes remain frozen; this slice changes the generated native
+implementation identity from `9e66695878568cbb0859d13cc6505ffd45b1471365af4d236fb9601efc0f6ed2`
+to `9a89c437d78df58eb809765c945ba05239f491c85b4e72f1ffba22c640e7759e`.
+This is an installed-code change requiring the correct new native fingerprint.
+
+This codec does not register Wasm imports, supply a native bridge or Swift async
+executor, enable capability activation, implement identity/release version changes,
+or qualify OTA/device/FieldLog/store/GA behavior. Phones remain disconnected.
