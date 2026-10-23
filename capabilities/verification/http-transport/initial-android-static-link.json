@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "sourceDigest": "3a8ac00a825d3c6fa075f738c90d39fa840540ba50f49807e6dcb61fa06400b7",
+  "repositoryHeadAtRun": "c99ed797023ec7a78b692799b06b59fcc15a9db4",
+  "attempt": {
+    "name": "android-build",
+    "command": [
+      "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift",
+      "build",
+      "--package-path",
+      "capabilities",
+      "--swift-sdks-path",
+      "/Users/andreyyurlov/.swiftpm/swift-sdks",
+      "--swift-sdk",
+      "aarch64-unknown-linux-android28",
+      "--static-swift-stdlib",
+      "-c",
+      "release",
+      "--product",
+      "capability-probe",
+      "--scratch-path",
+      "capabilities/.build/http-android"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+    "startedAt": "2026-10-23T01:07:42.833389+00:00",
+    "endedAt": "2026-10-23T01:07:50.273279+00:00",
+    "exitCode": 1,
+    "output": "capabilities/verification/http-transport/logs/initial-android-static-missing-libs.log",
+    "outputSHA256": "756553d4cae918a6bd4a9548ff77ef0150f2cf439004f0ccb88832361602e098",
+    "scope": "Android aarch64 API28 static Swift codec probe cross-compilation only",
+    "environment": {
+      "DEVELOPER_DIR": "/Applications/Xcode_26.6.app/Contents/Developer"
+    }
+  },
+  "expectedAtAttempt": 0,
+  "actualResult": "failed; official SDK static libcurl transitive dependencies not linked",
+  "resolution": "add explicit -Xlinker -lssl -Xlinker -lcrypto -Xlinker -lz, without stale libcurl.pc paths",
+  "resolvedAttemptIn": "receipt.json"
+}

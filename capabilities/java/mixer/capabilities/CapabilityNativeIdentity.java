@@ -2,5 +2,5 @@
 package mixer.capabilities;
 public final class CapabilityNativeIdentity {
     private CapabilityNativeIdentity() {}
-    public static final String SHA256 = "29c018b8c58166a3397ac285bcd1ec54fd2880d1e22679c079ae75d0d58058e9";
+    public static final String SHA256 = "14f7257965a5d468d8901e5456253298346025ccdfba0a5d70554cea0c7ba305";
 }

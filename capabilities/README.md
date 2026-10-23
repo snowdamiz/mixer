@@ -32,6 +32,9 @@ closed type vocabulary. Unknown versions, IDs, operations, fields or hash values
   cancel imports. It carries encoded values; it does not load or execute Wasm.
 - `AppPrivateKeyValueStore` is a real native serial actor for the storage protocol.
   `CapabilityNativeIdentity.sha256` is the generated bridge implementation identity.
+- `URLSessionHTTPTransport` is an explicitly installed, bounded native HTTP adapter
+  using Foundation URLSession (FoundationNetworking on Android). It is unavailable
+  in the WASI guest module; no guest networking bypass is provided.
 
 Swift and Java codecs accept the same strict v1 byte representation. The generator
 uses only this owned schema and original generator/runtime source. It never loads
@@ -69,15 +72,67 @@ cancellation. Timers bound response lifetime, not an OS call's physical duration
 Failures are fixed codes without native exception text or credentials. Reserved
 requests that were never submitted have no completion to deliver.
 
-HTTP has a real bounded schema and typed installed transport hook, **no bundled
-production network adapter**. Default transport is unavailable. Installed transports
-must enforce the request64KiB/response256KiB limits before allocating entire responses,
-OS TLS, explicit headers only, no ambient credentials/cookie storage, no retries and
-no redirect following. The host rejects returned3xx responses. Any future redirect
-support must reauthorize destination origin **and method before sending**, and qualify
-credential forwarding separately. Streaming, resumable transfers and connectivity
-are unavailable in this version; they need explicit schemas and tests. Codec/model
-validation after a custom callback cannot retroactively bound its network allocation.
+HTTP now includes `URLSessionHTTPTransport(maximumConcurrentRequests: 64)`, with
+configured capacity1...256. The host's default transport remains unavailable; the
+trusted embedding explicitly installs it after constructing its intersected policy:
+
+```swift
+let transport = try URLSessionHTTPTransport(maximumConcurrentRequests: 32)
+let host = try CapabilityHost(policy: policy, http: { try await transport.request($0) })
+```
+
+The adapter validates even directly constructed typed requests before starting I/O.
+The unchanged v1 limits are HTTPS URL4096 bytes,32 unique headers,64-byte names,
+4096-byte printable ASCII values, request64KiB, response256KiB, deadline1...30000ms.
+Each request has one data task in a private ephemeral session: cache, cookie and
+credential stores are disabled, automatic cookie handling is disabled, no delegate
+accepts credentials, and TLS uses normal system verification. Darwin server-trust
+challenges use default handling; FoundationNetworking verifies in its native backend.
+There is no public custom session, protocol class, certificate or trust override.
+An explicit `authorization` header is permitted by the frozen schema as request
+data; this adapter injects no account secret or ambient credential. Default
+`Accept-Encoding` is `identity`, `Accept-Language` is empty and `User-Agent` is the
+fixed `MixerCapabilitiesHTTP/1`; explicit allowed values can replace those defaults.
+The OS still supplies HTTP framing headers and its normal network/proxy behavior.
+
+All3xx responses and redirect callbacks fail with `redirectDenied` before a follow-up
+task is authorized. Future redirect support must reauthorize destination origin
+**and method before sending**, with a separate credential-forwarding policy. There
+are no adapter retries; OS protocol retransmission/reconnection is not an exactly-once
+server-effect guarantee. Credential negotiation (including client certificates,
+HTTP authentication and proxy authentication) fails with `ioFailure`. Compressed
+responses fail with `invalidResponse`; this avoids exposing a decompressed body with
+an original encoding header. No automatic JSON/text decoding occurs.
+
+Response headers are bounded at the delegate boundary and normalized to lowercase,
+sorted wire headers. Cookie and HTTP framing/hop headers are removed. Malformed or
+oversized metadata fails before retained body buffering. A declared body over256KiB
+fails immediately; unknown/deceptive lengths are checked again on each received
+chunk, and nonzero length mismatches fail. HEAD/204 return no body; HEAD representation
+length metadata does not allocate a body. Zero-byte bodies are valid. The adapter
+bounds its own retained body/metadata, not opaque URLSession/native TLS buffers or
+the OS HTTP parser's header allocation/coalescing before delegate delivery.
+
+The request captures a process-local monotonic deadline before preflight. Admission,
+received headers/chunks and the final successful-result transition check that deadline;
+a delayed watchdog cannot authorize a late success. Swift task cancellation and a
+monotonic watchdog race through one locked terminal result. This is not hard real-time
+network termination. Failures cancel/invalidate the session; success finishes and
+invalidates it. A native capacity lease is released only when URLSession acknowledges invalidation.
+Late callbacks cannot resume a continuation twice. Cancellation/deadline may occur
+after a server accepted a mutation; callers must resolve uncertain remote effects.
+Streaming/resumable guest transfers and connectivity remain unavailable schemas.
+Custom installed callbacks must independently enforce equivalent bounds: codec/model
+validation after their return cannot retroactively bound network allocation.
+
+Android dynamic Swift compilation links the official SDK's FoundationNetworking
+backend. With the installed Swift6.3.3 Android SDK, static Swift linking additionally
+requires `-Xlinker -lssl -Xlinker -lcrypto -Xlinker -lz`; the separate receipt preserves
+the original unresolved-symbol failure and the successful aarch64 link with those
+flags. They match the SDK's `libcurl.pc` OpenSSL/zlib dependency declarations; its
+stale absolute build paths are not used. Package manifests stay portable. Native
+dependency packaging/notices/security review and Android trust-store execution are
+pending; cross-compilation does not qualify an APK or establish shipped library versions.
 
 Storage's dedicated host-supplied directory must have an existing private parent.
 The adapter creates mode0700, uses an exclusive process lock, descriptor-relative
@@ -119,6 +174,8 @@ swift build --package-path capabilities --product capability-probe
 # The receipt contains the exact installed JDK and SDK commands.
 python3 capabilities/tools/codec-differential.py
 python3 capabilities/verification/verify.py
+# Separate transport receipt; prior receipt intentionally pins its earlier source.
+python3 capabilities/verification/http-transport/verify.py
 ```
 
 `verification/receipt.json` records source hashes, commands, tools, outputs and scope.
@@ -129,3 +186,8 @@ FieldLog must consume an immutable published package from its separate repositor
 this checkout/test adapter is not dogfood qualification. W06/W09/GA remain open,
 including all other Section9 families, first FieldLog plugin, physical lifecycle and
 permission tests, security review, migration, observability and operational support.
+The separate HTTP transport receipt covers injected URLProtocol lifecycle/boundary
+tests and a real local untrusted-certificate rejection without changing trust stores.
+It does not qualify successful production TLS, Android runtime trust configuration,
+real redirect/auth/cache behavior on all platforms, device radio/background lifecycle,
+guest imports, signed network-grant activation or FieldLog network integration.

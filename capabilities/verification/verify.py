@@ -52,10 +52,10 @@ before = source(); base = capture(["git", "rev-parse", "HEAD"]).stdout.strip()
 commands = [run("generated-check", ["python3", "capabilities/tools/generate.py", "--check"], "closed-schema generated DTO, host/guest adapter and native identity drift check")]
 android = [SWIFT, "build", "--package-path", "capabilities", "--swift-sdks-path", SDK_PATH, "--swift-sdk", "aarch64-unknown-linux-android28"]
 jobs = [
-    ("capability-tests", ["swift", "test", "--package-path", "capabilities"], "13 macOS host typed lifecycle/storage tests; fixture HTTP transport only", None),
+    ("capability-tests", ["swift", "test", "--package-path", "capabilities"], "24 macOS typed lifecycle/storage/native HTTP tests; URLProtocol substitutes network I/O; separate HTTP receipt adds local untrusted-TLS rejection", None),
     ("existing-sdk-tests", ["swift", "test", "--package-path", "sdk"], "23 existing Core/UI/Apple tests preserved on macOS", None),
     ("ios-build", ["swift", "build", "--package-path", "sdk", "--target", "MixerCapabilities", "--triple", "arm64-apple-ios17.0", "--sdk", "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS27.1.sdk", "--scratch-path", "capabilities/.build/ios"], "iOS arm64 native capability library cross-compilation only", None),
-    ("android-build", android + ["--static-swift-stdlib", "-c", "release", "--product", "capability-probe", "--scratch-path", "capabilities/.build/android"], "Android aarch64 API28 static Swift codec probe cross-compilation only", ANDROID_ENV),
+    ("android-build", android + ["--static-swift-stdlib", "-c", "release", "--product", "capability-probe", "--scratch-path", "capabilities/.build/android", "-Xlinker", "-lssl", "-Xlinker", "-lcrypto", "-Xlinker", "-lz"], "Android aarch64 API28 static Swift codec probe cross-compilation only; explicit official SDK FoundationNetworking libcurl dependencies", ANDROID_ENV),
     ("android-test-build", android + ["-c", "release", "--build-tests", "-Xswiftc", "-enable-testing", "--scratch-path", "capabilities/.build/android-tests"], "Android dynamic Swift Testing runner cross-compilation only", ANDROID_ENV),
     ("wasi-module-build", [SWIFT, "build", "--package-path", "sdk", "--swift-sdks-path", SDK_PATH, "--swift-sdk", "swift-6.3.3-RELEASE_wasm", "--triple", "wasm32-unknown-wasip1", "-c", "release", "--target", "MixerCapabilities", "--scratch-path", "capabilities/.build/wasm"], "official WASI target module compilation; no linked/validated/executed owned-VM guest", ANDROID_ENV),
     ("java-build", [JDK + "/bin/javac", "--release", "8", "-Xlint:all,-options", "-Werror", "-d", "capabilities/.build/java"] + [str(p.relative_to(ROOT)) for p in sorted((ROOT / "capabilities/java").rglob("*.java"))] + ["capabilities/Tests/Java/CapabilityCodecTests.java"], "Java8 typed codec classfiles; suppress only JDK25 obsolete-target option warning", JAVA_ENV),
@@ -90,10 +90,10 @@ receipt = dict(schemaVersion=1, createdAt=now(), repositoryHeadAtRun=base,
     assertions=dict(typedClosedDispatch=True, rawDecodesSnapshotAndPreflight=True, noReflectiveNativeLookup=True,
         noNativePointersInWire=True, manifestGrantsCannotExpandInstalledPolicy=True, generationWrapRetires=True,
         oneTerminalResponsePerSubmittedCall=True, cancellationKeepsLeaseUntilAdapterExit=True, storageAtomicQuotaBounded=True,
-        bundledProductionHTTPAdapter=False, linkedGuestValidatedInOwnedVM=False, guestExecuted=False, deviceReceipt=False,
+        bundledNativeHTTPAdapter=True, productionHTTPQualified=False, linkedGuestValidatedInOwnedVM=False, guestExecuted=False, deviceReceipt=False,
         privateCredentialsUsed=False, thirdPartyEngineUsed=False, W06Accepted=False),
     unqualified=["independent adversarial review", "signed manifest grant contract/verifier integration (release-v1 currently carries capability hashes only)",
-        "complete installed native fingerprint/permissions/configuration and custom adapter identity integration", "real bounded OS HTTP/TLS adapter including credential/redirect policy",
+        "complete installed native fingerprint/permissions/configuration and custom adapter identity integration", "HTTP device/runtime trust, redirect/authentication/lifecycle and dependency-packaging qualification (see separate http-transport receipt)",
         "actual guest reserve/invoke/cancel imports, owned-VM execution and JNI transport", "physical iOS/Android lifecycle/permission and minimum-OS matrix",
         "physical storage power-loss, fault injection and storage migrations/database/files/secrets families", "all other Section9 capability families and plugin publication trust workflow",
         "immutable published-package FieldLog plugin consumption", "external security review, operational observability/runbooks, W06/W09/GA"])
