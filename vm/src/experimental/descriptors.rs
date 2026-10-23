@@ -17,6 +17,11 @@ pub(super) struct ImportView<'a> {
 }
 
 #[derive(Clone, Copy)]
+#[cfg(any(
+    feature = "experimental-span-execution",
+    feature = "experimental-swift-reactor"
+))]
+#[cfg_attr(not(feature = "experimental-span-execution"), allow(dead_code))] // Awaiting private Swift executor.
 pub(crate) struct GlobalView<'a> {
     pub(crate) ty: Type,
     pub(crate) mutable: bool,
@@ -24,7 +29,10 @@ pub(crate) struct GlobalView<'a> {
 }
 
 /// Borrowed code span; the function index includes the sealed imports.
-#[cfg(feature = "experimental-swift-reactor")]
+#[cfg(any(
+    feature = "experimental-function-cache",
+    feature = "experimental-swift-reactor"
+))]
 #[allow(dead_code)] // Consumed by the later private execution/cache stage.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) struct FunctionSpanView<'a> {

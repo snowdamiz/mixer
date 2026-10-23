@@ -8,6 +8,15 @@ native Swift signature verifier, CLI, and a separate FieldLog repository.
 `work-graph.json` retains every W01–W18 package; all G01–G38 and D0–D8 gates remain
 open. Implemented slices do not replace their complete acceptance requirements.
 
+The updated section 8.3 requires shared-theme design parity on iOS and Android,
+with platform-specific app appearance only when explicitly declared. Current Apple
+and Android adapters still use platform defaults and do not meet this requirement.
+Shared appearance contracts, both renderers and FieldLog reference screens need
+implementation and review. Native accessibility, navigation, text input and
+system-owned surfaces remain native. Prior interaction/device receipts are not
+design-parity evidence; physical side-by-side review remains pending while phones
+are disconnected. See `verification/ui-design-parity-plan-update/receipt.json`.
+
 Current checkpoint: the private Android host binding and fresh-source host CI
 runner have scoped root and independent acceptance. All 39 ordinary scenarios
 pass per Debug/Release/TSan; the runner rebuilds actual Swift/C/SDK sources and
@@ -21,6 +30,11 @@ No native Android witness, signed core integration, physical device, published
 FieldLog consumer, release or GA pass follows. JNI/Java contract work is next;
 the private Swift cache's complete memory accounting is still under review.
 The preceding `3d93137` checkpoint passed all VM/Swift/services CI jobs.
+Hosted `61c5c8b` passed services but its new minimal-feature Clippy check rejected
+unused private descriptor fields after tests passed. A descriptor-only repair
+passes 202 Debug and 202 Release tests plus four Clippy feature combinations on a
+clean source snapshot; new hosted confirmation is pending. See
+`verification/swift-minimal-descriptor-ci-repair/receipt.json`.
 
 Observed implementation and evidence:
 

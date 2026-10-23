@@ -4,6 +4,16 @@ The complete specification is [mixer-product-plan.md](mixer-product-plan.md).
 All W01–W18 packages, G01–G38 launch gates, and D0–D8 dogfood milestones remain
 in scope. No internal slice substitutes for those completion requirements.
 
+Section 8.3 requires the same shared app design on iOS and Android. Shared theme
+values control layout, typography scale, colors, iconography, spacing and component
+appearance; platform-specific app appearance requires an explicit declaration.
+Native accessibility, navigation, text input and system-owned surfaces retain their
+platform behavior. The existing adapters do not yet satisfy this appearance
+contract. W03/W04/W05 must coordinate its shared schema and renderer changes;
+W17/G06 require side-by-side physical reference-screen review. Those device checks
+remain pending while phones are disconnected. See
+`verification/ui-design-parity-plan-update/receipt.json`.
+
 Track implementation in `work-graph.json`, evidence in `verification/`, and current
 limitations in `STATUS.md`. Work proceeds through the dependency graph in sections
 24–25. This repository begins with no inherited implementation.
@@ -48,6 +58,13 @@ pre-enlargement phase alternatives are measured. Executor implementation and
 full-target execution remain gated on that acceptance. Hosted checkpoint
 `3d93137` passed all three jobs; its receipt is
 `verification/github-ci-3d93137/receipt.json`.
+
+The next hosted checkpoint `61c5c8b` exposed a minimal-feature Clippy failure in
+unused private descriptor fields after its tests passed. The descriptor-only
+repair passes 202 tests per Debug/Release and four feature-combination Clippy
+checks against clean `61c5c8b` source. See
+`verification/swift-minimal-descriptor-ci-repair/receipt.json`; this is independent
+of the cache candidate and awaits a new hosted run.
 
 
 ## Capability execution integration

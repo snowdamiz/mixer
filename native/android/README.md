@@ -4,6 +4,15 @@ This W05 slice uses the Android widget toolkit through independently authored Ja
 
 The example is an editable project title and checklist: text edits update the Swift title; a draft plus Add button appends a stable-ID task; native toggles update completion counts; reversing the list preserves logical generations and native View instances. UTF-8 text including accented, CJK and non-BMP characters crosses the byte-array JNI boundary.
 
+The updated product plan section 8.3 requires shared-theme design parity with the
+iOS app. This adapter's current Android default controls and hardcoded visual
+values do not meet that requirement. Shared appearance/schema and renderer work
+remain open; platform-specific app appearance must be explicitly declared. Native
+accessibility, navigation, text input and system-owned surfaces retain their
+platform behavior. Earlier physical interaction receipts do not verify design
+parity. Side-by-side physical reference-screen review is pending while phones are
+disconnected.
+
 ## Reproduce
 
 ```sh

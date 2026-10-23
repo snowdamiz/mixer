@@ -5,6 +5,13 @@ release, a complete UI inventory, or evidence of native/guest parity. It has no
 third-party package dependencies. Implementation uses Swift's standard library,
 Foundation, SwiftUI and the platform Swift Testing library.
 
+The product plan's section 8.3 requires the same app design on iOS and Android,
+driven by a shared theme. The current authoring schema and Apple/Android controls
+do not yet implement that appearance contract; native default styling is an
+implementation gap. Platform-specific app appearance must be explicit. Native
+accessibility, navigation, text input and system-owned surfaces retain platform
+behavior. Side-by-side physical reference-screen review remains pending.
+
 The package uses Swift 6 language mode and declares iOS 17 and macOS 14 minima.
 The checked-in receipt records the actual toolchain used; declaring an OS minimum
 does not qualify every OS release or device in that range.
