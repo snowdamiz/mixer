@@ -1,0 +1,93 @@
+{
+  "schema": 1,
+  "baselineRevision": "1ab4d4ee76a5d4ba206bd370cbeeeb73a7c6c636",
+  "scope": "Allocator test fixture only; Rust production unchanged. Caller-thread requested byte deltas, not process heap/RSS or cross-thread ownership accounting.",
+  "source": {
+    "vm/tests/experimental_capability_allocations.rs": "d30bbf680b6605598f2b088db4f8d0f39476193af83f8a20dce6307ca38146ac"
+  },
+  "baseline": {
+    "path": "baseline/experimental_capability_allocations.rs",
+    "sha256": "b4b17c4c704a3e5eb550ee26acbb96b6778d3979a3660f8e1b99e36ac3ef63ce"
+  },
+  "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1\n",
+  "commands": [
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-stream-validation,experimental-capability-native",
+        "--test",
+        "experimental_capability_allocations",
+        "--",
+        "--nocapture"
+      ],
+      "exit": 0,
+      "log": "debug.log",
+      "sha256": "99a4c8abfc4dbab5b742687b18c3b6688d98cce7ba5cc0eb76c08e92a73e86fb"
+    },
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--release",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-stream-validation,experimental-capability-native",
+        "--test",
+        "experimental_capability_allocations",
+        "--",
+        "--nocapture"
+      ],
+      "exit": 0,
+      "log": "release.log",
+      "sha256": "c9a1377f4051a9e443274c10620fc793868a1bf4a8dc78341eb36cd0fc6453f9"
+    }
+  ],
+  "negative": {
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "--release",
+      "--manifest-path",
+      "/Users/andreyyurlov/Documents/dev/mixer/verification/local/capability-allocation-fixture-negative/Cargo.toml",
+      "--features",
+      "experimental-stream-validation,experimental-capability-native",
+      "--test",
+      "experimental_capability_allocations",
+      "--",
+      "--nocapture"
+    ],
+    "exit": 101,
+    "seconds": 1.4829209999879822,
+    "expected": "Unrelated worker allocation consumes process-global refusal and aborts; exact CI stack not observable",
+    "source_sha256": "f19dff6876c7dc22305535c162da07ad89f07c5b592469aabd832b7ca82005df",
+    "log_sha256": "6988ecc3783dfe4c21d2af550b6b446497cd6f284afe94957cebd2c4f6e38161"
+  },
+  "limits": [
+    "No Linux reproduction of the exact libtest allocation stack locally; hosted rerun pending",
+    "macOS standard-library first-lock64-byte allocation still aborts under refusal; isolated child explicitly observes this existing limitation",
+    "No production archive requalification from a test fixture change"
+  ],
+  "independentSourceReview": {
+    "agent": "numeric_nan_fix",
+    "result": "No blocking defect; const Cell TLS, teardown and caller scope reviewed. Reviewer did not rerun tests. Final follow-up changes only add caller-thread labels to comment/printed measurement.",
+    "reviewedSourceSHA256": "7d5a4b38afbf7c8bccc02a4cb633e8bb4c356966c475d60b7292eaa7f2562011",
+    "documentation": [
+      "https://doc.rust-lang.org/std/thread/struct.LocalKey.html#initialization-and-destruction",
+      "https://doc.rust-lang.org/std/alloc/trait.GlobalAlloc.html#re-entrance"
+    ],
+    "remainingAccountingLimit": "LIVE is same-thread alloc-minus-dealloc modular bookkeeping, not process live bytes or ownership-tagged cross-thread accounting; measurements use synchronous mailbox payload operations."
+  },
+  "policy": {
+    "log": "policy.log",
+    "sha256": "8b70ea56e1c6652b8e1758e2ea0e215fe144b6a692023584b12839e7d710abe6",
+    "exit": 0
+  }
+}

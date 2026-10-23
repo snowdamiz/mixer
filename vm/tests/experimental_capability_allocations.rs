@@ -1,37 +1,56 @@
 #![cfg(feature = "experimental-capability-mailbox")]
-//! One test in its own process: deterministic allocator refusal and measurements.
+//! Caller-thread allocator refusal and requested-byte observations; not process heap accounting.
 use mixer_vm::experimental_capability::*;
 use std::alloc::{GlobalAlloc, Layout, System};
-use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering::SeqCst};
+use std::cell::Cell;
+use std::sync::atomic::{AtomicBool, Ordering::SeqCst};
 use std::time::{Duration, Instant};
 
 struct Probe;
-static TRACKING: AtomicBool = AtomicBool::new(false);
-static CALLS: AtomicUsize = AtomicUsize::new(0);
-static LIVE: AtomicUsize = AtomicUsize::new(0);
-static PEAK: AtomicUsize = AtomicUsize::new(0);
-static FAIL_AT: AtomicUsize = AtomicUsize::new(0);
+// libtest and the deadline helper may allocate concurrently, even in a binary
+// with one test. Faults and requested-byte observations belong to the caller
+// thread executing the synchronous mailbox operation. Const TLS has no heap
+// initialization and try_with also permits allocator use during TLS teardown.
+thread_local! {
+    static TRACKING: Cell<bool> = const { Cell::new(false) };
+    static CALLS: Cell<usize> = const { Cell::new(0) };
+    static LIVE: Cell<usize> = const { Cell::new(0) };
+    static PEAK: Cell<usize> = const { Cell::new(0) };
+    static FAIL_AT: Cell<usize> = const { Cell::new(0) };
+}
 static PAUSE: AtomicBool = AtomicBool::new(false);
 static ENTERED: AtomicBool = AtomicBool::new(false);
 static RELEASE: AtomicBool = AtomicBool::new(false);
 fn permit() -> bool {
-    if !TRACKING.load(SeqCst) {
+    if !TRACKING.try_with(Cell::get).unwrap_or(false) {
         return true;
     }
-    let ordinal = CALLS.fetch_add(1, SeqCst) + 1;
+    let ordinal = CALLS.with(|calls| {
+        let ordinal = calls.get() + 1;
+        calls.set(ordinal);
+        ordinal
+    });
     if PAUSE.load(SeqCst) && ordinal == 1 {
         ENTERED.store(true, SeqCst);
         while !RELEASE.load(SeqCst) {
             std::hint::spin_loop();
         }
     }
-    ordinal != FAIL_AT.load(SeqCst)
+    ordinal != FAIL_AT.with(Cell::get)
 }
 fn allocated(bytes: usize) {
-    let live = LIVE.fetch_add(bytes, SeqCst) + bytes;
-    if TRACKING.load(SeqCst) {
-        PEAK.fetch_max(live, SeqCst);
-    }
+    let _ = LIVE.try_with(|live| {
+        // Like the old atomic counter, wrapping outside a tracked interval is
+        // allowed for test-runner allocations freed on a different thread.
+        let count = live.get().wrapping_add(bytes);
+        live.set(count);
+        if TRACKING.try_with(Cell::get).unwrap_or(false) {
+            PEAK.with(|peak| peak.set(peak.get().max(count)));
+        }
+    });
+}
+fn deallocated(bytes: usize) {
+    let _ = LIVE.try_with(|live| live.set(live.get().wrapping_sub(bytes)));
 }
 unsafe impl GlobalAlloc for Probe {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
@@ -60,32 +79,32 @@ unsafe impl GlobalAlloc for Probe {
         }
         let updated = unsafe { System.realloc(ptr, layout, size) };
         if !updated.is_null() {
-            LIVE.fetch_sub(layout.size(), SeqCst);
+            deallocated(layout.size());
             allocated(size);
         }
         updated
     }
     unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
         unsafe { System.dealloc(ptr, layout) };
-        LIVE.fetch_sub(layout.size(), SeqCst);
+        deallocated(layout.size());
     }
 }
 #[global_allocator]
 static ALLOCATOR: Probe = Probe;
 fn track(fail: usize) -> usize {
-    CALLS.store(0, SeqCst);
-    FAIL_AT.store(fail, SeqCst);
-    let baseline = LIVE.load(SeqCst);
-    PEAK.store(baseline, SeqCst);
-    TRACKING.store(true, SeqCst);
+    CALLS.with(|calls| calls.set(0));
+    FAIL_AT.with(|ordinal| ordinal.set(fail));
+    let baseline = LIVE.with(Cell::get);
+    PEAK.with(|peak| peak.set(baseline));
+    TRACKING.with(|tracking| tracking.set(true));
     baseline
 }
 fn stop(baseline: usize) -> (usize, usize, usize) {
-    TRACKING.store(false, SeqCst);
+    TRACKING.with(|tracking| tracking.set(false));
     (
-        CALLS.load(SeqCst),
-        LIVE.load(SeqCst).saturating_sub(baseline),
-        PEAK.load(SeqCst).saturating_sub(baseline),
+        CALLS.with(Cell::get),
+        LIVE.with(Cell::get).saturating_sub(baseline),
+        PEAK.with(Cell::get).saturating_sub(baseline),
     )
 }
 fn take(mailbox: &Mailbox, output: &mut [u8]) -> NativeLease {
@@ -94,15 +113,54 @@ fn take(mailbox: &Mailbox, output: &mut [u8]) -> NativeLease {
         other => panic!("{other:?}"),
     }
 }
+fn unrelated_thread_cannot_consume_fault_or_pollute_measurement() {
+    fn wait(flag: &AtomicBool) -> bool {
+        let deadline = Instant::now() + Duration::from_secs(5);
+        while !flag.load(SeqCst) && Instant::now() < deadline {
+            std::hint::spin_loop();
+        }
+        flag.load(SeqCst)
+    }
+    let ready = AtomicBool::new(false);
+    let go = AtomicBool::new(false);
+    let done = AtomicBool::new(false);
+    let release = AtomicBool::new(false);
+    std::thread::scope(|scope| {
+        let worker = scope.spawn(|| {
+            ready.store(true, SeqCst);
+            if !wait(&go) {
+                return false;
+            }
+            let foreign = std::hint::black_box(vec![13u8; 148]);
+            done.store(true, SeqCst);
+            let released = wait(&release);
+            std::hint::black_box(foreign);
+            released
+        });
+        assert!(wait(&ready), "foreign allocator worker did not start");
+        let baseline = track(1);
+        go.store(true, SeqCst);
+        let allocated = wait(&done);
+        let refusal = Vec::<u8>::new().try_reserve_exact(17);
+        let measured = stop(baseline);
+        release.store(true, SeqCst);
+        assert!(worker.join().unwrap(), "foreign worker was not released");
+        assert!(allocated, "foreign allocation did not finish");
+        assert!(refusal.is_err(), "foreign allocation consumed the refusal");
+        assert_eq!(measured, (1, 0, 0));
+    });
+    println!("foreign-thread148-byte allocation excluded; caller-thread first allocation still refused; requested(calls,retained,peak)=(1,0,0)");
+}
 #[test]
 fn allocations_fail_atomically_and_all_auxiliary_state_is_fixed() {
     if std::env::var_os("MIXER_CAPABILITY_MUTEX_OOM_PROBE").is_some() {
         let mailbox = Mailbox::new(Limits::default()).unwrap();
         track(1);
         let _ = mailbox.enable(); // standard-library first-lock allocation may abort
-        TRACKING.store(false, SeqCst);
+        TRACKING.with(|tracking| tracking.set(false));
         return;
     }
+    unrelated_thread_cannot_consume_fault_or_pollute_measurement();
     // Warm the platform clock before the observed intervals.
     let _ = Instant::now();
     let baseline = track(1);
@@ -289,7 +347,7 @@ fn allocations_fail_atomically_and_all_auxiliary_state_is_fixed() {
         Ok(Poll::Failure(FailureCode::DeadlineExceeded))
     );
     slow.ack_exit(&lease).unwrap();
-    println!("inline metadata bytes={}; construction allocations=0; std first-lock allocation={first_lock:?}; enqueue allocations=1 bytes=17; post allocations=1 bytes=19; failure ordinals=1 per payload allocating path; failure retained delta=0; full mailbox allocations={} retained={} peak={}; auxiliary take/poll/cancel/close/ack allocations=0; delayed post refuses late success", std::mem::size_of::<Mailbox>(), measured.0, measured.1, measured.2);
+    println!("caller-thread requested bytes only (not process heap/RSS); inline metadata bytes={}; construction allocations=0; std first-lock allocation={first_lock:?}; enqueue allocations=1 bytes=17; post allocations=1 bytes=19; failure ordinals=1 per payload allocating path; failure retained delta=0; full mailbox allocations={} retained={} peak={}; auxiliary take/poll/cancel/close/ack allocations=0; delayed post refuses late success", std::mem::size_of::<Mailbox>(), measured.0, measured.1, measured.2);
 }
 fn before_with_active(mut usage: Usage) -> Usage {
     usage.turn_active = true;

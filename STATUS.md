@@ -379,7 +379,8 @@ optimized Python, including a deliberately delayed child startup. It preserves
 exact timeout/overflow/exit assertions and checks that descendant writes stop.
 Root reviewed the new fixture and matched both logs and source snapshots; the
 production builder remains byte-identical. See
-`verification/capability-builder-review/ci-fixture-fix.json`. Hosted rerun pending.
+`verification/capability-builder-review/ci-fixture-fix.json`. The following hosted
+runs pass both repaired boundary suites.
 
 
 GitHub run39908555619 at bd24e7c passes both 22-function builder suites and builds
@@ -388,4 +389,19 @@ because the CI command used an unqualified compiler without an explicit macOS SD
 The workflow now selects clang and SDK with xcrun and passes `-isysroot`; both
 corrected C recipes compile and execute locally (27 smoke/52 mixed checks).
 See `verification/github-ci-bd24e7c/receipt.json` and
-`verification/capability-builder-review/ci-apple-sdk-fix.json`. Hosted rerun pending.
+`verification/capability-builder-review/ci-apple-sdk-fix.json`. The following hosted
+run passes the corrected recipes.
+
+
+GitHub run39909473019 at 1ab4d4e passes all Swift and service steps, including
+the archive builder, 27 C smoke and 52 shared-registry checks. The Linux VM job
+then aborts in its release mailbox allocator fixture on a 148-byte allocation;
+remaining release suites, explicit oracles and public Linux C clients do not run.
+A deterministic foreign-thread regression reproduces that abort with the old
+process-wide fault injector. The fixture now scopes refusal and requested-byte
+counters to the thread running the synchronous mailbox operation, preserving
+all payload refusal/cleanup assertions and passing host debug/release. These are
+caller-thread observations, not total heap or cross-thread ownership accounting.
+Independent source review found no blocking defect; the production VM is unchanged.
+See `verification/github-ci-1ab4d4e/receipt.json` and
+`verification/capability-allocation-fixture-review/receipt.json`. Linux rerun pending.
