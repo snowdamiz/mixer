@@ -5,8 +5,10 @@ a durable local recovery model and an authenticated loopback HTTP release
 workflow. It does **not** qualify a mobile updater, compile a guest, authorize
 an OTA release from syntax, operate a hosted service or establish a GA gate.
 The protocol registries are [`release-v1`](../contracts/release-v1.json) and
-[`release-v2`](../contracts/release-v2.json). The service supports both explicitly;
-the existing CLI publication commands and Go recovery reference remain v1.
+[`release-v2`](../contracts/release-v2.json). The service supports v1/v2 and additive v3 explicitly;
+the existing CLI publication commands and Go recovery reference remain v1. See
+[`release/README-v3.md`](release/README-v3.md) for the separate protocol3/ABI2 route,
+closed request ceilings and schema3 persistence contract.
 
 ## Run and configuration
 
@@ -141,7 +143,9 @@ validation, compiler/type-check evidence, asset validation, platform UI/capabili
 enforcement, data-migration rollback tests, policy approval and physical-device
 qualification remain external gates.
 
-Requests are bounded to 24 MiB, 128 concurrent handlers and 120 requests per
+Legacy v1/v2 requests are bounded to24MiB. V3 artifact envelopes are bounded to6MiB
+and other v3 mutation documents to128KiB, including whitespace. All routes retain
+128 concurrent handlers and120 requests per
 minute per directly connected source IP. Only direct connections are supported;
 proxy forwarding headers are not trusted. Audit and outbox reads accept
 `after` and `limit` (1..100). Public delivery is intentionally uncached in this
@@ -176,10 +180,10 @@ idempotency/audit/outbox commits. Its migration owner and runtime credentials ar
 separate. Production startup remains disabled. See
 [`release/POSTGRES.md`](release/POSTGRES.md) for configuration, schema/transaction
 contracts, limits and the real isolated PostgreSQL test runner.
-The existing PostgreSQL bytea records store signed v1/v2 bytes without a DDL
+The existing PostgreSQL bytea records store signed v1/v2/v3 bytes without a DDL
 migration. Exact schema dispatch precedes complete typed interpretation and
 scope/content checks. Migration001/checksum, FORCE RLS, role guards, append-only
-rows and shared tenant transaction locks remain in place. Both versions count
+rows and shared tenant transaction locks remain in place. All versions count
 toward the existing development capacity limit.
 
 The Go `updater` package explicitly supports protocol1/guestABI1/UI1 and rejects

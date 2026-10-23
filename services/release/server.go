@@ -100,6 +100,15 @@ func ValidateConfig(c Config) error {
 		}
 		seen[r.KeyID] = true
 	}
+	hasV3 := false
+	for _, h := range c.Hosts {
+		if h.Protocol == 3 {
+			hasV3 = true
+		}
+	}
+	if hasV3 && len(c.Roots) > 128 {
+		return fmt.Errorf("v3 trust root count outside bounds")
+	}
 	seen = map[string]bool{}
 	for _, h := range c.Hosts {
 		if e := h.Scope.Validate(); e != nil {
@@ -107,7 +116,13 @@ func ValidateConfig(c Config) error {
 		}
 		a := protocol.Assignment{Scope: h.Scope, Runtime: h.Runtime}
 		key := channelKey(a)
-		if (h.Protocol != 1 && h.Protocol != 2) || h.GuestABI != 1 || h.UISchema != 1 || !protocol.ValidDigest(h.Runtime) || h.MaxPayloadBytes == 0 || h.MaxPayloadBytes > protocol.MaxPayloadBytes || h.Limits.MemoryBytes == 0 || h.Limits.Fuel == 0 || h.Limits.StartupMilliseconds == 0 || seen[key] {
+		invalid := false
+		if h.Protocol == 3 {
+			invalid = protocol.ValidateHostV3(h) != nil
+		} else {
+			invalid = (h.Protocol != 1 && h.Protocol != 2) || h.GuestABI != 1 || h.UISchema != 1 || !protocol.ValidDigest(h.Runtime) || h.MaxPayloadBytes == 0 || h.MaxPayloadBytes > protocol.MaxPayloadBytes || h.Limits.MemoryBytes == 0 || h.Limits.Fuel == 0 || h.Limits.StartupMilliseconds == 0
+		}
+		if invalid || seen[key] {
 			return fmt.Errorf("invalid/duplicate registered host")
 		}
 		seen[key] = true
@@ -274,6 +289,8 @@ func (s *Server) route(r *http.Request, id, ip string) (Response, error) {
 		version = 1
 	} else if len(p) > 0 && p[0] == "v2" {
 		version = 2
+	} else if len(p) > 0 && p[0] == "v3" {
+		version = 3
 	}
 	if version == 0 {
 		return Response{}, apiError{404, "not_found", "endpoint not found"}
@@ -402,7 +419,13 @@ func (s *Server) mutate(r *http.Request, p []string, who access, role, key strin
 		var req struct {
 			ArtifactSHA256 string `json:"artifact_sha256"`
 		}
-		raw, e := body(r, &req)
+		var raw []byte
+		var e error
+		if version == 3 {
+			raw, e = bodyV3(r, &req, maxV3MutationBody, "artifact_sha256")
+		} else {
+			raw, e = body(r, &req)
+		}
 		if e != nil {
 			return Response{}, e
 		}
@@ -523,6 +546,11 @@ func (s *Server) publicArtifact(r *http.Request, digest string, version uint64) 
 }
 
 func uploadBody(r *http.Request, version uint64) (Record, []byte, error) {
+	if version == 3 {
+		var a ArtifactV3
+		raw, e := bodyV3(r, &a, maxV3ArtifactBody, "signed_manifest", "payload")
+		return Record{Version3: &a}, raw, e
+	}
 	if version == 2 {
 		var a ArtifactV2
 		raw, e := body(r, &a)
@@ -533,6 +561,13 @@ func uploadBody(r *http.Request, version uint64) (Record, []byte, error) {
 	return Record{Artifact: a}, raw, e
 }
 func assignmentBody(r *http.Request, version uint64) (Channel, []byte, error) {
+	if version == 3 {
+		var req struct {
+			Signed protocol.SignedAssignmentV3 `json:"signed_assignment"`
+		}
+		raw, e := bodyV3(r, &req, maxV3MutationBody, "signed_assignment")
+		return Channel{Version3: &req.Signed}, raw, e
+	}
 	if version == 2 {
 		var req struct {
 			Signed protocol.SignedAssignmentV2 `json:"signed_assignment"`
@@ -545,4 +580,29 @@ func assignmentBody(r *http.Request, version uint64) (Channel, []byte, error) {
 	}
 	raw, e := body(r, &req)
 	return Channel{SignedAssignment: req.Signed}, raw, e
+}
+
+const maxV3ArtifactBody = 6 * 1024 * 1024
+const maxV3MutationBody = 128 * 1024
+
+// V3 bounds the entire transport document, then requires its closed envelope.
+// The typed nested decoders independently enforce signed-value byte ceilings.
+func bodyV3(r *http.Request, target any, maximum int, names ...string) ([]byte, error) {
+	if r.Header.Get("Content-Type") != "application/json" {
+		return nil, apiError{400, "content_type", "application/json required"}
+	}
+	raw, e := io.ReadAll(io.LimitReader(r.Body, int64(maximum)+1))
+	if e != nil {
+		return nil, apiError{400, "malformed_body", "body could not be read"}
+	}
+	if len(raw) > maximum {
+		return nil, apiError{413, "body_too_large", "v3 body exceeds route byte limit"}
+	}
+	if _, e = closedStorageObject(raw, names...); e != nil {
+		return nil, apiError{400, "invalid_json", e.Error()}
+	}
+	if e = protocol.DecodeJSON(raw, target); e != nil {
+		return nil, apiError{400, "invalid_json", e.Error()}
+	}
+	return raw, nil
 }

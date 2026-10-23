@@ -511,7 +511,25 @@ exports the exact2394-byte native digest preimage without a final LF.
 
 This material value creates no adapter, session, task or filesystem state. It does
 not attest arbitrary descriptor build hashes or the complete linked graph. Hosted
-material CI is pending. Concrete adapter construction, durable v3 selection, signed
-activation, hosted v3 routes and full FieldLog execution remain in progress.
+material CI at61f34bf now passes all three jobs, including16 material tests and the
+preimage helper with pinned Xcode26.3. See `verification/github-ci-61f34bf/receipt.json`.
+
+The explicit v3 development service now accepts only registered protocol3/ABI2
+hosts through closed bounded transport envelopes, preserves old protocol routes
+and advances local state to schema3 without later downgrade. PostgreSQL migration
+001 and protocol primitives are byte-identical. Full Go races (25 protocol,22
+release,9 updater test functions), vet, isolated PostgreSQL17.11 fault/RLS/restart
+tests and old-binary schema rejection pass. Four independent public Go race tests
+and12 original TCP assertions pass; the public Swift verifier accepts delivered
+signed metadata before/after reopen and rejects replay/retargeting/tampering. Root
+matched53 source inputs and owner/review/subreceipt logs. See
+`verification/release-v3-service-root-review/receipt.json`. Synthetic service
+payloads are metadata fixtures; production mode remains disabled.
+
+The reviewed durable-updater design now requires a separate immediate terminal
+failure latch because exact cleanup drain may never arrive. It also reserves a
+process-wide owner before any adapters and retains it through actual cleanup.
+Metadata SPI, adapter lifecycle and private durable I/O are under implementation.
+Concrete signed execution, health/recovery and full FieldLog remain in progress.
 Physical checks remain pending while the phones are disconnected; no product or
 GA gate is closed by this checkpoint.

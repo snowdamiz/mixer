@@ -1,0 +1,25 @@
+#!/usr/bin/env python3
+"""Original old/new container admission probe, no HTTP server or user data."""
+from pathlib import Path
+import argparse,base64,hashlib,json,os,re,shutil,subprocess,time
+ROOT=Path(__file__).resolve().parents[2]
+p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);p.add_argument('--services',type=Path,default=ROOT/'services');p.add_argument('--repository',type=Path,default=ROOT);a=p.parse_args()
+out=a.output.resolve();out.mkdir(parents=True,exist_ok=False);scratch=ROOT/'.build/release-v3-service-old'/out.name;scratch.mkdir(parents=True,exist_ok=False)
+pin='c5bf3fee0c7823d976861d7c452ef3245980df30';old=scratch/'old';old.mkdir();sha=lambda b:hashlib.sha256(b).hexdigest()
+names=subprocess.check_output(['git','ls-tree','-r','--name-only',pin,'--','services'],cwd=a.repository,text=True).splitlines();inputs={}
+for name in names:
+ if not (name.endswith(('.go','.sql')) or name in ['services/go.mod','services/go.sum']):continue
+ data=subprocess.check_output(['git','show',pin+':'+name],cwd=a.repository);target=old/name;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(data);inputs[name]=sha(data)
+manifest=''.join(d+'  '+n+'\n' for n,d in sorted(inputs.items()));(out/'old-source-manifest.sha256').write_text(manifest)
+record={'status':'running','scope':'Prior unchanged service binary rejects new schema3 even with only legacy host config; new New/Close consumer accepts the identical empty schema3 container. No HTTP listener, production endpoint or mutation.','oldRevision':pin,'oldSource':inputs,'oldSourceManifestSHA256':sha(manifest.encode()),'oldSourceExport':str(old),'commands':[],'driverSHA256':sha(Path(__file__).read_bytes())}
+def save(): (out/'receipt.json').write_text(json.dumps(record,indent=2)+'\n')
+def run(name,command,cwd,env=None):
+ began=time.monotonic();r=subprocess.run(list(map(str,command)),cwd=cwd,env=os.environ|(env or {}),stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=120);(out/(name+'.log')).write_bytes(r.stdout);record['commands'].append({'name':name,'command':list(map(str,command)),'cwd':str(cwd),'environment':env or {},'exitCode':r.returncode,'elapsedSeconds':time.monotonic()-began,'logSHA256':sha(r.stdout)});save();return r
+version=run('go-version',['go','version'],a.services);oldbinary=scratch/'old-mixer-service';r=run('old-build',['go','build','-trimpath','-o',oldbinary,'./cmd/mixer-service'],old/'services');assert r.returncode==0
+newbinary=scratch/'new-container-probe';consumer=ROOT/'verification/release-v3-service/ContainerProbe/main.go';r=run('new-build',['go','build','-trimpath','-o',newbinary,consumer],a.services);assert r.returncode==0
+(out/'consumer-source.go.txt').write_bytes(consumer.read_bytes());record['consumerSHA256']=sha(consumer.read_bytes());record['currentSource']={str(v.relative_to(a.services)):sha(v.read_bytes()) for v in sorted(a.services.rglob('*')) if v.is_file() and (v.suffix in ['.go','.sql'] or v.name in ['go.mod','go.sum'])};record['binaries']={str(v):sha(v.read_bytes()) for v in [oldbinary,newbinary]}
+data=scratch/'private-data';data.mkdir(mode=0o700);(data/'release.json').write_text(json.dumps({'schema':3,'artifacts':{},'channels':{},'idempotency':{},'audit':[],'outbox':[]},separators=(',',':')))
+scope={'organization':'org-a','project':'project-a','app':'fieldlog','environment':'development','platform':'ios'}
+config={'developer_mode':True,'listen':'127.0.0.1:0','data_directory':str(data),'tokens':[{'sha256':sha(b'TEST ONLY old binary consumer'),'role':'publisher','organization':'org-a','project':'project-a','actor':'publisher'}],'roots':[{'key_id':'test-root','public_key':base64.b64encode(bytes(32)).decode(),'scope':scope,'artifact':True,'assignment':True,'revoked':False,'not_before_unix':0,'not_after_unix':0}],'hosts':[{'scope':scope,'runtime':sha(b'TEST ONLY legacy host'),'protocol':1,'guest_abi':1,'ui_schema':1,'capability_hashes':{},'state_version':1,'max_payload_bytes':1048576,'limits':{'memory_bytes':1048576,'fuel':1000,'startup_milliseconds':1000}}]}
+path=scratch/'config.json';path.write_text(json.dumps(config));record['configSHA256']=sha(path.read_bytes());record['containerSHA256Before']=sha((data/'release.json').read_bytes());r=run('old-rejection',[oldbinary],scratch,{'MIXER_SERVICE_CONFIG':str(path)});record['oldRejectsSchema3']=r.returncode==1 and b'unknown durable store schema' in r.stdout
+r=run('new-acceptance',[newbinary,path],scratch);record['newAcceptsSchema3']=r.returncode==0;record['containerUnchanged']=record['containerSHA256Before']==sha((data/'release.json').read_bytes());record['status']='passed' if record['oldRejectsSchema3'] and record['newAcceptsSchema3'] and record['containerUnchanged'] else 'failed_check_preserved';record['limitations']=['Empty-schema-container compatibility probe, not release authorization or deployment','Local Go1.26.4/macOS; no Linux/container/device or operational claim'];(out/'receipt.json').write_text(json.dumps(record,indent=2)+'\n');print(record['status']);raise SystemExit(0 if record['status']=='passed' else 1)

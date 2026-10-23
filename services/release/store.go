@@ -20,12 +20,14 @@ type Artifact struct {
 type Record struct {
 	Artifact  Artifact    `json:"artifact"`
 	Version2  *ArtifactV2 `json:"-"`
+	Version3  *ArtifactV3 `json:"-"`
 	Validated bool        `json:"validated"`
 	Published bool        `json:"published"`
 }
 type Channel struct {
 	SignedAssignment protocol.SignedAssignment    `json:"signed_assignment"`
 	Version2         *protocol.SignedAssignmentV2 `json:"-"`
+	Version3         *protocol.SignedAssignmentV3 `json:"-"`
 }
 type Event struct {
 	ID            uint64 `json:"id"`
@@ -90,13 +92,13 @@ func openStore(dir string, fault durable.Fault) (*store, error) {
 			l.Close()
 			return nil, fmt.Errorf("corrupt durable store: %w", e)
 		}
-		if (s.state.Schema != 1 && s.state.Schema != 2) || s.state.Artifacts == nil || s.state.Channels == nil || s.state.Idempotency == nil {
+		if (s.state.Schema < 1 || s.state.Schema > 3) || s.state.Artifacts == nil || s.state.Channels == nil || s.state.Idempotency == nil {
 			l.Close()
 			return nil, fmt.Errorf("unknown durable store schema")
 		}
 		for key, record := range s.state.Artifacts {
 			digest, err := record.digest()
-			if err != nil || record.version() == 2 && s.state.Schema != 2 || key != artifactKey(record.scope(), digest) || checkArtifact(tenant{record.scope().Organization, record.scope().Project}, digest, record) != nil {
+			if err != nil || record.version() > s.state.Schema || key != artifactKey(record.scope(), digest) || checkArtifact(tenant{record.scope().Organization, record.scope().Project}, digest, record) != nil {
 				l.Close()
 				return nil, fmt.Errorf("invalid durable artifact variant or identity")
 			}
@@ -104,7 +106,7 @@ func openStore(dir string, fault durable.Fault) (*store, error) {
 		for key, channel := range s.state.Channels {
 			a := channel.assignment()
 			artifact, exists := s.state.Artifacts[artifactKey(a.Scope, a.ArtifactSHA256)]
-			if channel.version() == 2 && s.state.Schema != 2 || checkChannel(tenant{a.Scope.Organization, a.Scope.Project}, key, channel) != nil || !exists || !artifact.Published || checkChannelArtifact(artifact, channel) != nil {
+			if channel.version() > s.state.Schema || checkChannel(tenant{a.Scope.Organization, a.Scope.Project}, key, channel) != nil || !exists || !artifact.Published || checkChannelArtifact(artifact, channel) != nil {
 				l.Close()
 				return nil, fmt.Errorf("invalid durable assignment variant or identity")
 			}

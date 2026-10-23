@@ -116,8 +116,8 @@ func (t *memoryTransaction) saveArtifact(digest string, rec Record) error {
 			return apiError{409, "local_capacity", "local development artifact limit reached"}
 		}
 	}
-	if rec.version() == 2 {
-		t.db.Schema = 2
+	if version := rec.version(); version > t.db.Schema {
+		t.db.Schema = version
 	}
 	t.db.Artifacts[key] = rec
 	return nil
@@ -146,8 +146,8 @@ func (t *memoryTransaction) saveChannel(key string, c Channel) error {
 	if old, ok := t.db.Channels[key]; ok && (c.version() != old.version() || c.assignment().Sequence <= old.assignment().Sequence) {
 		return apiError{409, "assignment_rejected", "assignment sequence must increase"}
 	}
-	if c.version() == 2 {
-		t.db.Schema = 2
+	if version := c.version(); version > t.db.Schema {
+		t.db.Schema = version
 	}
 	t.db.Channels[key] = c
 	return nil

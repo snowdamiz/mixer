@@ -113,7 +113,7 @@ func TestHTTPV2CoexistsWithLegacyAndPreservesRuntimeChannels(t *testing.T) {
 		{"PUT", v2Base + "/artifacts/" + digest, "legacy-upload", publisher, a, 409},
 		{"PUT", v1Base + "/artifacts/" + digest, "wrong-v1-route", publisher, a, 400},
 		{"PUT", v2Base + "/artifacts/" + legacyDigest, "wrong-v2-route", publisher, legacy, 400},
-		{"PUT", strings.Replace(v2Base, "/v2/", "/v3/", 1) + "/artifacts/" + digest, "unknown-route", publisher, a, 404},
+		{"PUT", strings.Replace(v2Base, "/v2/", "/v4/", 1) + "/artifacts/" + digest, "unknown-route", publisher, a, 404},
 	} {
 		v2Status(t, v2Request(s, bad.method, bad.path, bad.key, bad.token, bad.body), bad.status)
 	}
@@ -357,7 +357,7 @@ func TestLocalStoreRejectsV2VariantsInLegacySchemaAndCorruptReopen(t *testing.T)
 			if kind == "legacy-schema" {
 				fields["schema"] = []byte(`1`)
 			} else if kind == "unknown-schema" {
-				fields["schema"] = []byte(`3`)
+				fields["schema"] = []byte(`4`)
 			} else {
 				var artifacts map[string]map[string]json.RawMessage
 				json.Unmarshal(fields["artifacts"], &artifacts)

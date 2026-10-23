@@ -1,0 +1,272 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "scope": "real isolated local PostgreSQL transactional/RLS tests; no hosted/GA claim",
+  "commands": [
+    {
+      "name": "postgres-version",
+      "command": [
+        "/opt/homebrew/bin/postgres",
+        "--version"
+      ],
+      "exitCode": 0,
+      "executableSHA256": "9d1930da02e11e446b42f9d79cf2e6bce307a6decb6a089591f8726d0f49b6f2",
+      "elapsedSeconds": 0.014,
+      "stdout": {
+        "path": "postgres-version.stdout",
+        "bytes": 39,
+        "sha256": "1fb2f20d9f998fb585cf5edb1878e8381f2e78c75597c8a18a19e50178f621b2"
+      },
+      "stderr": {
+        "path": "postgres-version.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "psql-version",
+      "command": [
+        "/opt/homebrew/bin/psql",
+        "--version"
+      ],
+      "exitCode": 0,
+      "executableSHA256": "489412cf78f2745d95a5cf5778b6d2731406e98529ff32964007140135011557",
+      "elapsedSeconds": 0.011,
+      "stdout": {
+        "path": "psql-version.stdout",
+        "bytes": 35,
+        "sha256": "58ef21a3c0982fb44cd078785174fb495d951ea7b4384793dcf5a5985451bd2d"
+      },
+      "stderr": {
+        "path": "psql-version.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "go-version",
+      "command": [
+        "/Users/andreyyurlov/.local/bin/go",
+        "version"
+      ],
+      "exitCode": 0,
+      "executableSHA256": "e61851b2c0cde9b9ac4ae044fcce6ba9d55cb15f98ded3964793acaa8632242f",
+      "elapsedSeconds": 0.017,
+      "stdout": {
+        "path": "go-version.stdout",
+        "bytes": 33,
+        "sha256": "36849436282e424cf1142184057f25a7bd6845d03b16fedbb1071bc6722524c4"
+      },
+      "stderr": {
+        "path": "go-version.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "go-root",
+      "command": [
+        "/Users/andreyyurlov/.local/bin/go",
+        "env",
+        "GOROOT"
+      ],
+      "exitCode": 0,
+      "executableSHA256": "e61851b2c0cde9b9ac4ae044fcce6ba9d55cb15f98ded3964793acaa8632242f",
+      "elapsedSeconds": 0.017,
+      "stdout": {
+        "path": "go-root.stdout",
+        "bytes": 52,
+        "sha256": "5f741db0a647cec48db44a1b2940aedb0893e7f19e18ffd603da5f1e6986ba04"
+      },
+      "stderr": {
+        "path": "go-root.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "initialize",
+      "command": [
+        "/opt/homebrew/bin/initdb",
+        "-D",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pg-d24b0frr/data",
+        "-U",
+        "mixer_migration_owner",
+        "--auth-local=trust",
+        "--auth-host=reject",
+        "--no-locale",
+        "--encoding=UTF8"
+      ],
+      "exitCode": 0,
+      "executableSHA256": "0b6e460ed82fabebd4d42bdf85ebbf7ff1922ebad20ef349930a9b0fd2bfffb6",
+      "elapsedSeconds": 0.443,
+      "stdout": {
+        "path": "initialize.stdout",
+        "bytes": 931,
+        "sha256": "96b171de7cc009a3a6fa544e3f15d3503c1b37aeb27a1a063f454995160e3ec4"
+      },
+      "stderr": {
+        "path": "initialize.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "start",
+      "command": [
+        "/opt/homebrew/bin/pg_ctl",
+        "-D",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pg-d24b0frr/data",
+        "-l",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/release-v3-service/2026-10-23-candidate-2/postgres/postgres.log",
+        "-o",
+        "-k /var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pg-d24b0frr/socket -c listen_addresses='' -c fsync=on -c full_page_writes=on",
+        "-w",
+        "start"
+      ],
+      "exitCode": 0,
+      "executableSHA256": "e35b9b7312ac500b2943eced2952f3836e606860c04f057380719855b9833cf3",
+      "elapsedSeconds": 0.135,
+      "stdout": {
+        "path": "start.stdout",
+        "bytes": 52,
+        "sha256": "66afd0411ccc09366e99fdd99b85f21899c8d2d064f5835126859618802153ad"
+      },
+      "stderr": {
+        "path": "start.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "real-postgres-tests",
+      "command": [
+        "/Users/andreyyurlov/.local/bin/go",
+        "test",
+        "-race",
+        "-tags=postgres_integration",
+        "./release",
+        "-run",
+        "^TestPostgres",
+        "-count=1",
+        "-v"
+      ],
+      "exitCode": 0,
+      "executableSHA256": "e61851b2c0cde9b9ac4ae044fcce6ba9d55cb15f98ded3964793acaa8632242f",
+      "elapsedSeconds": 21.603,
+      "stdout": {
+        "path": "real-postgres-tests.stdout",
+        "bytes": 19199,
+        "sha256": "0dc46690efa83561cb565f9ba01db2ff58364ed5e1aad1872df18bc8bd17c279"
+      },
+      "stderr": {
+        "path": "real-postgres-tests.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "stop",
+      "command": [
+        "/opt/homebrew/bin/pg_ctl",
+        "-D",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pg-d24b0frr/data",
+        "-m",
+        "immediate",
+        "-w",
+        "stop"
+      ],
+      "exitCode": 0,
+      "executableSHA256": "e35b9b7312ac500b2943eced2952f3836e606860c04f057380719855b9833cf3",
+      "elapsedSeconds": 0.134,
+      "stdout": {
+        "path": "stop.stdout",
+        "bytes": 56,
+        "sha256": "ca19178a35ab4153b75b494963b66ce8243e1b94c173107c87b44d09db23652d"
+      },
+      "stderr": {
+        "path": "stop.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "mockDatabase": false,
+  "tools": {
+    "initdb": {
+      "path": "/opt/homebrew/bin/initdb",
+      "sha256": "0b6e460ed82fabebd4d42bdf85ebbf7ff1922ebad20ef349930a9b0fd2bfffb6"
+    },
+    "pg_ctl": {
+      "path": "/opt/homebrew/bin/pg_ctl",
+      "sha256": "e35b9b7312ac500b2943eced2952f3836e606860c04f057380719855b9833cf3"
+    },
+    "postgres": {
+      "path": "/opt/homebrew/bin/postgres",
+      "sha256": "9d1930da02e11e446b42f9d79cf2e6bce307a6decb6a089591f8726d0f49b6f2"
+    },
+    "psql": {
+      "path": "/opt/homebrew/bin/psql",
+      "sha256": "489412cf78f2745d95a5cf5778b6d2731406e98529ff32964007140135011557"
+    },
+    "go": {
+      "path": "/Users/andreyyurlov/.local/bin/go",
+      "sha256": "e61851b2c0cde9b9ac4ae044fcce6ba9d55cb15f98ded3964793acaa8632242f"
+    }
+  },
+  "sourceSHA256": {
+    "cmd/mixer-service/main.go": "a97229a3b6c85b0842ec5fd00e4c26edb271bcec24dc188541ea174b73508f12",
+    "go.mod": "5ec375e73b588601bfe5b9a7a29e6cf10b6401c9e5e7fc355673ee678cbd5d38",
+    "go.sum": "a5e7a8db07eba28dbde48bf9a54c4e9084a5a95ded581c0ff44c08b74e3dfe69",
+    "internal/durable/free_unix.go": "b3d2e6f312a06482f156511301b799ec5f0d018c6ae29ed2e1f9b56f5a760499",
+    "internal/durable/store.go": "66ef3f2f9dfb08c87c9448bf40d1844a7358438e524101240646fcec4112f374",
+    "internal/testutil/fixture.go": "c726ca5132599fc0d1ba4bf7b73983fbcc9347c94266afd88e0eb9b991dc57cb",
+    "internal/testutil/v2.go": "9a2c344c1f696ff18ac067d4ddaea25562c8585d0673013cfffb02524d923509",
+    "internal/testutil/v3.go": "4ef0b4640f0c64c1101779b210017865bdc7d9d30e2662bc95342ce3f8514c6e",
+    "protocol/cbor.go": "fcef8b1e7047c5559d6e85c67389da5210a6b8bce7c0f0e668d8c382f0c651ef",
+    "protocol/http_shape_test.go": "8bb92acde637db94d56f921a3637b4804dbe4ee4f2afea49df0bfb1114ac6fc0",
+    "protocol/json_shape.go": "da89f9e60f12a5c86c6195fd84ecf77c2c53089eb2e548fa499eea9df793e054",
+    "protocol/legacy_wire_test.go": "5131e7167e6dff3ecb5a526d6ccd09d7fa84ffbebafc5fc52ee1f196620adc02",
+    "protocol/protocol.go": "a116ae466c4dbb636be571b66f6f4f82107ccf57b606a193836f7b4738c05431",
+    "protocol/protocol_test.go": "34b9a72abc9b8517c02ef60654e83448a77e8234c767a051ce14295e8048621f",
+    "protocol/testdata/generate-v1-wire.go": "7f253f6b93df5f0bfddd9e00a576ee744268b2b702cecbdff5cfb4db99ca182e",
+    "protocol/testdata/generate-v2.go": "3aeea14665c4bec0bb998a4b1baf4bd4afedc2c9a078719f9e3f7a61ff1ff25d",
+    "protocol/testdata/generate-v3.go": "0f6e12b3016fddfc1cbf057d82d88f48616c94cbc46c5707520c3daff5a68ebc",
+    "protocol/v1_json.go": "3ee82ab67a31ebb2898d80ff7e3eca4c7e36f1800a223de29e5adc72610e66bb",
+    "protocol/v2.go": "14830254bdc75cdd3413fb9d7b3accd02220f2527cc8850e39ceff917b9cbd49",
+    "protocol/v2_test.go": "f7ed9af9c55f44269defeb9f1a30bf4deb2f245f9ea3c34d00a56888133caeef",
+    "protocol/v3.go": "ca2bac3c5c071429741211900aacc752a3477306b768765d77c5c88b8ad71fca",
+    "protocol/v3_test.go": "1717fcec5495212a962c61b58cd36cc93dfdb941adcc225918c2e9404ff7f8d3",
+    "release/migrations/001_release.sql": "c352755698244eff1a5d65ac32d0255478ea270be1fc143a94bdbba876b47605",
+    "release/postgres.go": "7649c08117984a3e520c75ced7a91f15b90c8fc7d7315e7db4bd212979d9d068",
+    "release/postgres_guards_integration_test.go": "c20c3bbcefe0615d37d7ec8e2f4a57d52e786da3b4ea040426a30fd8e566c375",
+    "release/postgres_integration_test.go": "e9a069e85ac7cd5ef9a1f1cff15374bd762e93bd414dc0f4bb756d6736b0e024",
+    "release/postgres_v2_integration_test.go": "b49f8215e61a92f7fa7f979546b67a1f759506d3fc743545932b2d242c7efa3f",
+    "release/postgres_v3_integration_test.go": "f9eb14134154afa6c6d890220ee8944f18920f429c16d97b874640b75801714d",
+    "release/server.go": "fd7eed9bc290373f439293de1116a97677a6a758b57b7d071b0eef9e54ff3515",
+    "release/server_test.go": "519dde552e48cd875f4c27b8e4158dfd9e79f12c70c6c331eac8eaf8f0da68ca",
+    "release/storage.go": "87cf58552cb3a37656f67ebab69bf334721ef6fd31d8f37ca843f70fe8be1217",
+    "release/storage_test.go": "7e07434387817a407c3a9f29c110fc61c598b0780c078c848e7e9cb20666b877",
+    "release/store.go": "3acd8f2ca5bdca7a3be45890ba8669b5c5055eb6715d5ab1add3a4ac3233f35a",
+    "release/v2_test.go": "ef6d93ba5be4ed3d17675399dc9039c1697f2df1f6dc30eb4627f011e372ef80",
+    "release/v3_test.go": "b49b2d7c94e53220befd0e9cf177e8c88679c189227876a4b25ae0371ea30165",
+    "release/versioned.go": "ccf4b28188955187310eb43ef883cbaf9996d88d2eaf0f29f51b408067b52722",
+    "updater/updater.go": "437f16ecb3ab1d7df87118502094e3e98653e2e37213b1d322cd990641b63818",
+    "updater/updater_test.go": "e3208c65fffc8b667dd4c0ee68e5df68804d0ee0289f0c4c0af0b0a2353b99f3",
+    "verification/postgres.py": "dc39d0dd7ee24147d711eef44ec42c00eff34d2233c9acf5308cd7d6b72c412a"
+  },
+  "postgresVersion": "postgres (PostgreSQL) 17.11 (Homebrew)",
+  "psqlVersion": "psql (PostgreSQL) 17.11 (Homebrew)",
+  "goVersion": "go version go1.26.4 darwin/arm64",
+  "selectedGoToolchain": {
+    "path": "/Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/bin/go",
+    "sha256": "e61851b2c0cde9b9ac4ae044fcce6ba9d55cb15f98ded3964793acaa8632242f"
+  },
+  "tests": "real PostgreSQL HTTP multi-instance concurrency, tenant/RBAC/RLS, immutability, unknown schema/runtime-role refusal, bounded query deadline, pre/post publication commit interruption and actual immediate database restart",
+  "limitations": [
+    "Private Unix-socket test authentication is limited to this deleted test cluster. No production database credentials were created or altered.",
+    "Local config bearer authority remains bootstrap-only; no identity provider, organization onboarding or hosted auth qualification.",
+    "Pending outbox records are not dispatched. No backup/restore, multi-zone, CDN, operational, mobile OTA, physical-device or GA evidence."
+  ],
+  "privateClusterRemoved": true
+}

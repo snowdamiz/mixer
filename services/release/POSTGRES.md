@@ -178,3 +178,8 @@ cross-tenant delivery/storage rejection and immediate database restart before
 and after a v2 publication commit. Unit tests and controlled faults are recorded
 separately from real database crash evidence. Multi-zone failover, backup restore,
 operational RPO/RTO, hosted authentication and launch review remain open.
+
+The explicit v3 service route additionally decodes signed schema3 through its
+checked v3 types. It shares the same unchanged migration001 and capacity, tenant,
+FORCE RLS, immutable-history and transaction rules; see [README-v3.md](README-v3.md).
+V3 HTTP/payload ceilings are narrower than the historical SQL byte ceilings.

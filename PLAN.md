@@ -53,7 +53,12 @@ helper and bounded immutable policy/root capture; see
 `verification/capability-installed-root-review/receipt.json`. It creates no adapters
 or execution authority. The next slice composes concrete adapter lifecycle with
 private durable signed recovery after review of the updater ownership design.
-Explicit hosted v3 routes/storage are under implementation. Immutable external
-distribution follows. All three hosted jobs pass at09c317c, including the new
-validator matrix; installed-material CI is added in this checkpoint.
+Explicit v3 development routes and schema3 storage now pass full local races,
+PostgreSQL faults and independent public review; actual TCP delivery also verifies
+with the public Swift v3 API before/after reopen. See
+`verification/release-v3-service-root-review/receipt.json`. Production deployment
+and immutable distribution remain separate. Hosted CI at61f34bf passes all three
+jobs, including the installed-material package. Durable updater ownership is
+approved in `docs/capability-durable-updater-api-design.md`; metadata SPI, concrete
+adapter lifecycle and private recovery storage are the current implementation lanes.
 Keep the full product plan and physical/published-consumer/GA gates in scope.

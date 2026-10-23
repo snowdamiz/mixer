@@ -1,0 +1,98 @@
+{
+  "schema": 1,
+  "result": "root source/evidence audit and original TCP-to-Swift integration passed",
+  "audit": {
+    "result": "PASS",
+    "owner_receipt_sha256": "974478bb7f9c50173ca0dfd3defac5828ade0d4aa16ebbb106780c338b2cad0b",
+    "source_manifest_sha256": "e37325fc0c158a3b41f399f2cee80d372eb3527cc321698d0c5262b724bd3b4b",
+    "current_and_export_source_files": 53,
+    "commands": 9,
+    "subreceipts": {
+      "postgres": {
+        "sha256": "ad780670612d52f32777c4881bb6ec83b624908d86aac41c560455e365001cbe",
+        "status": "passed",
+        "v3TestsPresent": true,
+        "noSkippedCases": true,
+        "privateClusterRemoved": true
+      },
+      "old-binary": {
+        "sha256": "2101bb169a612863829ff977113cf2571139cfd56d8ecc8706db90e3556b2e84",
+        "status": "passed"
+      }
+    }
+  },
+  "commands": [
+    {
+      "argv": [
+        "swiftc",
+        "-O",
+        "-swift-version",
+        "6",
+        "-warnings-as-errors",
+        "-I",
+        "updates/.build/qualification-release-v3-2026-10-23-candidate-1/build/out/Products/Release",
+        "-Xcc",
+        "-fmodule-map-file=updates/.build/qualification-release-v3-2026-10-23-candidate-1/build/out/Intermediates.noindex/GeneratedModuleMaps/MixerDurableIO.modulemap",
+        "-L",
+        "updates/.build/qualification-release-v3-2026-10-23-candidate-1/build/out/Products/Release",
+        "-lMixerUpdates",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/release-v3-service-root-review/consumer.swift",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/release-v3-service-root-review/consumer"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "go",
+        "run",
+        "-race",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/release-v3-service-root-review/server.go",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/release-v3-service-root-review/delivery",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/release-v3-service-root-review/consumer"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/.build/release-v3-service/2026-10-23-candidate-2/source/services",
+      "exit_code": 0
+    }
+  ],
+  "swift_binary": {
+    "path": "/Users/andreyyurlov/Documents/dev/mixer/.build/release-v3-service-root-review/consumer",
+    "sha256": "fe444a57579b668933b28ec51c3f486cfb5f1ba1b0a23ed565bd34e5d58bace7",
+    "frozen_verifier_sha256": "96c8cb21dceb2fe50334f279d3b2656b3ed92efb101fd62f5765ffe4e83d8cd1"
+  },
+  "observed": [
+    "12 original real TCP HTTP assertions against frozen candidate2",
+    "Public Swift V3 verifier accepts signed HTTP result before and after store reopen",
+    "Signed one-byte memory ceiling, fuel777 and case-sensitive Drafts/drafts grant survive delivery",
+    "Replay, wrong channel, foreign verifier context, payload tamper and legacy entrypoint reject",
+    "Idempotent publication response byte-identical after reopen; temporary store removed"
+  ],
+  "limitations": [
+    "Small synthetic metadata payload; no Wasm/compiler/activation or real app execution",
+    "Literal-loopback fixture with TEST-only key/bearer; production remains disabled",
+    "Swift fixture downloader bounds after response allocation; not a production streaming client",
+    "No physical mobile, hosted service deployment, customer identity/dispatch/CDN/backup/GA qualification"
+  ],
+  "evidence_sha256": {
+    "audit.json": "97dd2d57d264d9b93bc58eda7bd41bf25e9844cf61a71bbeb11852643aa799ec",
+    "audit.py": "ac421b32f0a39d361a96820bff0d6503eb3fdb6240710dda81b4da21d3bb4d28",
+    "commands.json": "a4d647849c54e628f00851d3e4622c29b4fed276fd6f0e06c17179cd56cb2534",
+    "compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "consumer.swift": "563aca398f42d218f5b64cfe287767afec7982fe88c3ba1a572b4b3252f576d1",
+    "delivery/artifact.json": "9cc00221a7a3803b20100faccce42da5297692a69b02eb41894df749e748f3d6",
+    "delivery/fixture.json": "5dbd41a6565058c07aa9d97cb7a4bcb5826451c7b5d5d5168cd40ea58f0cf600",
+    "delivery/swift-after-reopen.log": "cb45e87d5e5458abcd5f2ab5552a80dc154c06fefb6eb877b70104dd6dc3ecbd",
+    "delivery/swift-before-reopen.log": "cb45e87d5e5458abcd5f2ab5552a80dc154c06fefb6eb877b70104dd6dc3ecbd",
+    "development-commands.json": "84d83305a59857fe971c8cfa74d421153e6be0bba9c9b25838d0edde4317ab13",
+    "development-legacy-init.log": "41298c79edf82aa4552aa2eba4c805a22786da8c1e02fc54c07600f2b5a3e19b",
+    "public-http.log": "9d38b4389f61a9207d326208f89d51cc57f20cffb8f8dc8e93d019f1fddbb591",
+    "server.go": "ab360a42ca71699a27c260c17b4165fc3f7484755860a1525826f5f18906068b"
+  },
+  "independent_review": {
+    "path": "verification/release-v3-service-review/final-receipt.json",
+    "sha256": "9fe9d8ebcb52fc1283817e9b5b18086d4fb234126dbde1bdcc1acf8b8757c46a",
+    "matched_evidence_files": 10,
+    "matched_command_log_files": 33
+  }
+}
