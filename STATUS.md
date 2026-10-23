@@ -817,3 +817,23 @@ both features explicitly. WASI is not yet admitted/routed by the VM; frozen
 profiles, native ABI, signing paths and release pins are unchanged. Full Swift
 policy/validation/execution, total session accounting, mobile, immutable consumer
 and GA qualification remain open.
+
+Teardown repair 5a5b395 now passes all three hosted jobs, including pinned Swift
+6.2.4 and generated consumer checks. A fresh source build at 92e93b2 also passes
+the actual Mac public native flow: Start, Save sample, Saved sample, committed
+health, exact stored bytes and joined Close. Root verified 208 frozen inputs, 54
+artifacts and 33 build commands; see
+`verification/guest-ui-teardown-window/root-flow-receipt.json`. The later
+diagnostic checkpoint caaa005 passes Swift/services but exposes an intermittent
+process-wide allocation-observer mismatch in a cache test; investigation is
+active and its VM job remains failed. No failed run is relabeled a pass.
+
+The Android C transport slice passes 26 owner cases and 9 independent cases in
+each Debug/Release/ASan+UBSan/TSan mode, plus API 30 arm64 compile/link checks.
+Root audited 66 bindings in `verification/android-transport-root-review.json`.
+It counts a process baseline of two FDs, one Looper registration/reference and
+16 static owner slots. Callback-return fencing is separate from actual consumer
+join. Android binding remains incomplete: bounded fence-progress notification,
+pre-bind presentation reservation, exact waiter publication, real main-Looper
+and Swift Task join, JNI widgets and display/health integration are required.
+These host checks do not qualify Android execution or any GA gate.

@@ -1,0 +1,597 @@
+{
+  "schema_version": 1,
+  "observed_at_utc": "2026-10-23T14:15:24.871787+00:00",
+  "executor": "Independent Android transport review lane",
+  "source_revision_before": "caaa0055db1492f284da00993ae37c9239bd3b5c",
+  "source_revision_after": "caaa0055db1492f284da00993ae37c9239bd3b5c",
+  "selected_sources_unchanged": true,
+  "implementation_receipt_selected_sources_match": {
+    "native/android/signed-guest-ui/transport/include/mixer_ui_transport.h": true,
+    "native/android/signed-guest-ui/transport/internal.h": true,
+    "native/android/signed-guest-ui/transport/platform_android.c": true,
+    "native/android/signed-guest-ui/transport/tests/android_link_probe.c": true,
+    "native/android/signed-guest-ui/transport/tests/host_tests.c": true,
+    "native/android/signed-guest-ui/transport/transport.c": true,
+    "native/android/signed-guest-ui/transport/verify.py": true,
+    "AGENTS.md": true,
+    "THIRD_PARTY.yml": true,
+    "docs/android-guest-ui-transport-design.md": true
+  },
+  "source_tree_digest": "2dbb1d73d3cc03b8d292edf2d2010d15089369a8b41a4b39b1a92cfa4f5aa99e",
+  "source_before_manifest": "verification/android-transport-review/source-before.sha256",
+  "source_after_manifest": "verification/android-transport-review/source-after.sha256",
+  "tool_versions": {
+    "clang": "Apple clang version 21.0.0 (clang-2100.1.1.101)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "python": "Python 3.14.8",
+    "ndk": "Pkg.Desc = Android NDK\nPkg.Revision = 27.3.13750724\nPkg.BaseRevision = 27.3.13750724\nPkg.ReleaseName = r27d"
+  },
+  "tool_inputs_sha256": {
+    "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang": "7def90dd8829726686213a747fc5bff1583df933dae5edc55d755479e0bfe00a",
+    "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/android/looper.h": "e5e7198cadb31077648292abc3ae08245ef33df0982fad2c3ccc5187e046cb41",
+    "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/SDKSettings.json": "f8d005f09381389167f9e0aeaa169bc9e7dff162ef22ca2fd8e98df7ff1acafe"
+  },
+  "environment": {
+    "DEVELOPER_DIR": "/Applications/Xcode_26.6.app/Contents/Developer",
+    "host_sysroot": "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+    "ASAN_OPTIONS": "detect_leaks=0:halt_on_error=1",
+    "UBSAN_OPTIONS": "halt_on_error=1",
+    "TSAN_OPTIONS": "halt_on_error=1"
+  },
+  "commands": [
+    {
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/source-revision-before.log"
+    },
+    {
+      "argv": [
+        "git",
+        "status",
+        "--short"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/source-status-before.log"
+    },
+    {
+      "argv": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/clang-version.log"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/python-version.log"
+    },
+    {
+      "argv": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wpedantic",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wstrict-prototypes",
+        "-pthread",
+        "-isysroot",
+        "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-idirafter",
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include",
+        "-O0",
+        "-g",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/transport.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/platform_android.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/probes.c",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-debug"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/debug-build.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-debug",
+        "--list"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/debug-cases.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-debug",
+        "completing_baton"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/debug-tests.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-debug",
+        "slot_reuse_during_scan"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/debug-tests.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-debug",
+        "many_rounds"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/debug-tests.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-debug",
+        "join_before_completion_returns"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/debug-tests.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-debug",
+        "registration_guards"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/debug-tests.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-debug",
+        "register_absent"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/debug-tests.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-debug",
+        "register_rejected"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/debug-tests.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-debug",
+        "stale_generation_storm"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/debug-tests.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-debug",
+        "waiter_is_immediate_demand"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/debug-tests.log"
+    },
+    {
+      "argv": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wpedantic",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wstrict-prototypes",
+        "-pthread",
+        "-isysroot",
+        "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-idirafter",
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include",
+        "-O2",
+        "-DNDEBUG",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/transport.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/platform_android.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/probes.c",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-release"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/release-build.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-release",
+        "--list"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/release-cases.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-release",
+        "completing_baton"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/release-tests.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-release",
+        "slot_reuse_during_scan"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/release-tests.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-release",
+        "many_rounds"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/release-tests.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-release",
+        "join_before_completion_returns"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/release-tests.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-release",
+        "registration_guards"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/release-tests.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-release",
+        "register_absent"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/release-tests.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-release",
+        "register_rejected"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/release-tests.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-release",
+        "stale_generation_storm"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/release-tests.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-release",
+        "waiter_is_immediate_demand"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/release-tests.log"
+    },
+    {
+      "argv": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wpedantic",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wstrict-prototypes",
+        "-pthread",
+        "-isysroot",
+        "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-idirafter",
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include",
+        "-O1",
+        "-g",
+        "-fsanitize=address,undefined",
+        "-fno-omit-frame-pointer",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/transport.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/platform_android.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/probes.c",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-asan-ubsan"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/asan-ubsan-build.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-asan-ubsan",
+        "--list"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/asan-ubsan-cases.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-asan-ubsan",
+        "completing_baton"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/asan-ubsan-tests.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-asan-ubsan",
+        "slot_reuse_during_scan"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/asan-ubsan-tests.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-asan-ubsan",
+        "many_rounds"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/asan-ubsan-tests.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-asan-ubsan",
+        "join_before_completion_returns"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/asan-ubsan-tests.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-asan-ubsan",
+        "registration_guards"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/asan-ubsan-tests.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-asan-ubsan",
+        "register_absent"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/asan-ubsan-tests.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-asan-ubsan",
+        "register_rejected"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/asan-ubsan-tests.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-asan-ubsan",
+        "stale_generation_storm"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/asan-ubsan-tests.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-asan-ubsan",
+        "waiter_is_immediate_demand"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/asan-ubsan-tests.log"
+    },
+    {
+      "argv": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wpedantic",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wstrict-prototypes",
+        "-pthread",
+        "-isysroot",
+        "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-idirafter",
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include",
+        "-O1",
+        "-g",
+        "-fsanitize=thread",
+        "-fno-omit-frame-pointer",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/transport.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/platform_android.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/probes.c",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-tsan"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/tsan-build.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-tsan",
+        "--list"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/tsan-cases.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-tsan",
+        "completing_baton"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/tsan-tests.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-tsan",
+        "slot_reuse_during_scan"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/tsan-tests.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-tsan",
+        "many_rounds"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/tsan-tests.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-tsan",
+        "join_before_completion_returns"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/tsan-tests.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-tsan",
+        "registration_guards"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/tsan-tests.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-tsan",
+        "register_absent"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/tsan-tests.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-tsan",
+        "register_rejected"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/tsan-tests.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-tsan",
+        "stale_generation_storm"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/tsan-tests.log"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/build/probes-tsan",
+        "waiter_is_immediate_demand"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/tsan-tests.log"
+    },
+    {
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/source-revision-after.log"
+    },
+    {
+      "argv": [
+        "git",
+        "status",
+        "--short"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-transport-review/source-status-after.log"
+    }
+  ],
+  "results": {
+    "debug": {
+      "cases_passed": 9,
+      "cases": [
+        "completing_baton",
+        "slot_reuse_during_scan",
+        "many_rounds",
+        "join_before_completion_returns",
+        "registration_guards",
+        "register_absent",
+        "register_rejected",
+        "stale_generation_storm",
+        "waiter_is_immediate_demand"
+      ],
+      "output": "verification/android-transport-review/debug-tests.log"
+    },
+    "release": {
+      "cases_passed": 9,
+      "cases": [
+        "completing_baton",
+        "slot_reuse_during_scan",
+        "many_rounds",
+        "join_before_completion_returns",
+        "registration_guards",
+        "register_absent",
+        "register_rejected",
+        "stale_generation_storm",
+        "waiter_is_immediate_demand"
+      ],
+      "output": "verification/android-transport-review/release-tests.log"
+    },
+    "asan-ubsan": {
+      "cases_passed": 9,
+      "cases": [
+        "completing_baton",
+        "slot_reuse_during_scan",
+        "many_rounds",
+        "join_before_completion_returns",
+        "registration_guards",
+        "register_absent",
+        "register_rejected",
+        "stale_generation_storm",
+        "waiter_is_immediate_demand"
+      ],
+      "output": "verification/android-transport-review/asan-ubsan-tests.log"
+    },
+    "tsan": {
+      "cases_passed": 9,
+      "cases": [
+        "completing_baton",
+        "slot_reuse_during_scan",
+        "many_rounds",
+        "join_before_completion_returns",
+        "registration_guards",
+        "register_absent",
+        "register_rejected",
+        "stale_generation_storm",
+        "waiter_is_immediate_demand"
+      ],
+      "output": "verification/android-transport-review/tsan-tests.log"
+    }
+  },
+  "review": "review.md",
+  "scope": "Unchanged transport.c and platform_android.c on POSIX host using installed official android/looper.h and original test-only ALooper symbol implementations.",
+  "limitations": [
+    "No actual Android Looper, Java main-thread proof, JNI, Swift continuation or Task.value execution.",
+    "Synthetic consumer_joined assertions establish only transport pinning behavior.",
+    "No emulator or physical device discovery, queries, runs or reconnect request.",
+    "No Android native mobile, signed runtime, widget, health, publication or GA gate qualification.",
+    "ASan leak detection is disabled; no RSS, energy or leak qualification."
+  ]
+}

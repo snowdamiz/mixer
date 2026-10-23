@@ -1,0 +1,1450 @@
+{
+  "schema_version": 1,
+  "observed_at_utc": "2026-10-23T14:03:44.687476+00:00",
+  "executor": "Android guest UI transport implementation lane",
+  "reviewer": "root independent review pending",
+  "source_revision": "35a9a36c8837fd2dd3e491419b7965b6307cd6b9",
+  "selected_inputs_unchanged_during_checks": true,
+  "source_tree_digest": "f3a3c18b7bb4b91f8fb81b5b72b60d043b0d8cfea02f8c846512bb3a732b0bd4",
+  "source_manifest": "verification/android-guest-ui-transport/source-manifest.sha256",
+  "tool_versions": {
+    "host_clang": "Apple clang version 21.0.0 (clang-2100.1.1.101)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "android_clang": "Android (13691557, +pgo, -bolt, +lto, -mlgo, based on r522817d) clang version 18.0.4 (https://android.googlesource.com/toolchain/llvm-project d8003a456d14a3deb8054cdaa529ffbf02d9b262)\nTarget: aarch64-unknown-linux-android30\nThread model: posix\nInstalledDir: /Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin",
+    "python": "Python 3.14.8",
+    "ndk": "Pkg.Desc = Android NDK\nPkg.Revision = 27.3.13750724\nPkg.BaseRevision = 27.3.13750724\nPkg.ReleaseName = r27d"
+  },
+  "tool_input_sha256": {
+    "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang": "7def90dd8829726686213a747fc5bff1583df933dae5edc55d755479e0bfe00a",
+    "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android30-clang": "cf2d40be93fb6051d3a66f5d6bdd24ccbe6595913040460f3607a241d562af76",
+    "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/source.properties": "fb5eec1ca5dac09442109cf79e9ce49faecd8b312dbc997e88903a394e14994a",
+    "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/android/looper.h": "e5e7198cadb31077648292abc3ae08245ef33df0982fad2c3ccc5187e046cb41",
+    "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/SDKSettings.json": "f8d005f09381389167f9e0aeaa169bc9e7dff162ef22ca2fd8e98df7ff1acafe"
+  },
+  "environment": {
+    "DEVELOPER_DIR": "/Applications/Xcode_26.6.app/Contents/Developer",
+    "explicit_host_sysroot": "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+    "ASAN_OPTIONS": "detect_leaks=0:halt_on_error=1",
+    "UBSAN_OPTIONS": "halt_on_error=1",
+    "TSAN_OPTIONS": "halt_on_error=1"
+  },
+  "commands": [
+    {
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/source-revision.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "git",
+        "status",
+        "--short"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/source-status.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/version-host-clang.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android30-clang",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/version-android-clang.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/version-python.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "-isysroot",
+        "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wpedantic",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wstrict-prototypes",
+        "-pthread",
+        "-DMIXER_UI_TRANSPORT_TESTING=1",
+        "-O0",
+        "-g",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/transport.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/tests/host_tests.c",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-debug"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/debug-build.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-debug",
+        "--list"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/debug-cases.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-debug",
+        "capacity"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/debug-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-debug",
+        "coalescing"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/debug-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-debug",
+        "successor_from_complete"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/debug-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-debug",
+        "close_before_claim"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/debug-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-debug",
+        "close_during_helper"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/debug-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-debug",
+        "callback_tail"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/debug-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-debug",
+        "reentrant"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/debug-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-debug",
+        "stalled_consumer"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/debug-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-debug",
+        "failed_retirement"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/debug-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-debug",
+        "join_during_completion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/debug-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-debug",
+        "failed_present"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/debug-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-debug",
+        "write_eio"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/debug-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-debug",
+        "write_eagain"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/debug-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-debug",
+        "write_eintr_exhausted"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/debug-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-debug",
+        "read_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/debug-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-debug",
+        "fence_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/debug-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-debug",
+        "eintr_recovery"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/debug-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-debug",
+        "pipe_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/debug-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-debug",
+        "fcntl_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/debug-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-debug",
+        "register_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/debug-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-debug",
+        "owner_exhaustion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/debug-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-debug",
+        "waiter_exhaustion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/debug-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-debug",
+        "epoch_exhaustion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/debug-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-debug",
+        "wrong_descriptor"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/debug-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-debug",
+        "unknown_hook"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/debug-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-debug",
+        "repeated_retirement"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/debug-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "-isysroot",
+        "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wpedantic",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wstrict-prototypes",
+        "-pthread",
+        "-DMIXER_UI_TRANSPORT_TESTING=1",
+        "-O2",
+        "-DNDEBUG",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/transport.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/tests/host_tests.c",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-release"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/release-build.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-release",
+        "--list"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/release-cases.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-release",
+        "capacity"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/release-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-release",
+        "coalescing"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/release-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-release",
+        "successor_from_complete"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/release-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-release",
+        "close_before_claim"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/release-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-release",
+        "close_during_helper"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/release-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-release",
+        "callback_tail"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/release-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-release",
+        "reentrant"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/release-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-release",
+        "stalled_consumer"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/release-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-release",
+        "failed_retirement"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/release-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-release",
+        "join_during_completion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/release-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-release",
+        "failed_present"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/release-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-release",
+        "write_eio"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/release-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-release",
+        "write_eagain"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/release-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-release",
+        "write_eintr_exhausted"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/release-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-release",
+        "read_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/release-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-release",
+        "fence_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/release-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-release",
+        "eintr_recovery"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/release-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-release",
+        "pipe_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/release-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-release",
+        "fcntl_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/release-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-release",
+        "register_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/release-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-release",
+        "owner_exhaustion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/release-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-release",
+        "waiter_exhaustion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/release-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-release",
+        "epoch_exhaustion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/release-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-release",
+        "wrong_descriptor"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/release-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-release",
+        "unknown_hook"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/release-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-release",
+        "repeated_retirement"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/release-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "-isysroot",
+        "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wpedantic",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wstrict-prototypes",
+        "-pthread",
+        "-DMIXER_UI_TRANSPORT_TESTING=1",
+        "-O1",
+        "-g",
+        "-fsanitize=address,undefined",
+        "-fno-omit-frame-pointer",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/transport.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/tests/host_tests.c",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-asan-ubsan"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/asan-ubsan-build.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-asan-ubsan",
+        "--list"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/asan-ubsan-cases.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-asan-ubsan",
+        "capacity"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/asan-ubsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-asan-ubsan",
+        "coalescing"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/asan-ubsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-asan-ubsan",
+        "successor_from_complete"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/asan-ubsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-asan-ubsan",
+        "close_before_claim"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/asan-ubsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-asan-ubsan",
+        "close_during_helper"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/asan-ubsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-asan-ubsan",
+        "callback_tail"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/asan-ubsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-asan-ubsan",
+        "reentrant"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/asan-ubsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-asan-ubsan",
+        "stalled_consumer"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/asan-ubsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-asan-ubsan",
+        "failed_retirement"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/asan-ubsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-asan-ubsan",
+        "join_during_completion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/asan-ubsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-asan-ubsan",
+        "failed_present"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/asan-ubsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-asan-ubsan",
+        "write_eio"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/asan-ubsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-asan-ubsan",
+        "write_eagain"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/asan-ubsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-asan-ubsan",
+        "write_eintr_exhausted"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/asan-ubsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-asan-ubsan",
+        "read_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/asan-ubsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-asan-ubsan",
+        "fence_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/asan-ubsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-asan-ubsan",
+        "eintr_recovery"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/asan-ubsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-asan-ubsan",
+        "pipe_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/asan-ubsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-asan-ubsan",
+        "fcntl_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/asan-ubsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-asan-ubsan",
+        "register_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/asan-ubsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-asan-ubsan",
+        "owner_exhaustion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/asan-ubsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-asan-ubsan",
+        "waiter_exhaustion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/asan-ubsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-asan-ubsan",
+        "epoch_exhaustion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/asan-ubsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-asan-ubsan",
+        "wrong_descriptor"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/asan-ubsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-asan-ubsan",
+        "unknown_hook"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/asan-ubsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-asan-ubsan",
+        "repeated_retirement"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/asan-ubsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "-isysroot",
+        "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wpedantic",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wstrict-prototypes",
+        "-pthread",
+        "-DMIXER_UI_TRANSPORT_TESTING=1",
+        "-O1",
+        "-g",
+        "-fsanitize=thread",
+        "-fno-omit-frame-pointer",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/transport.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/tests/host_tests.c",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-tsan"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/tsan-build.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-tsan",
+        "--list"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/tsan-cases.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-tsan",
+        "capacity"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/tsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-tsan",
+        "coalescing"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/tsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-tsan",
+        "successor_from_complete"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/tsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-tsan",
+        "close_before_claim"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/tsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-tsan",
+        "close_during_helper"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/tsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-tsan",
+        "callback_tail"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/tsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-tsan",
+        "reentrant"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/tsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-tsan",
+        "stalled_consumer"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/tsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-tsan",
+        "failed_retirement"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/tsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-tsan",
+        "join_during_completion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/tsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-tsan",
+        "failed_present"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/tsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-tsan",
+        "write_eio"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/tsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-tsan",
+        "write_eagain"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/tsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-tsan",
+        "write_eintr_exhausted"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/tsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-tsan",
+        "read_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/tsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-tsan",
+        "fence_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/tsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-tsan",
+        "eintr_recovery"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/tsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-tsan",
+        "pipe_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/tsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-tsan",
+        "fcntl_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/tsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-tsan",
+        "register_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/tsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-tsan",
+        "owner_exhaustion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/tsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-tsan",
+        "waiter_exhaustion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/tsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-tsan",
+        "epoch_exhaustion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/tsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-tsan",
+        "wrong_descriptor"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/tsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-tsan",
+        "unknown_hook"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/tsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/host-tsan",
+        "repeated_retirement"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/tsan-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android30-clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wpedantic",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wstrict-prototypes",
+        "-O2",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/transport.c",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/transport-android.o"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/android-transport-object.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android30-clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wpedantic",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wstrict-prototypes",
+        "-O2",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/platform_android.c",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/platform_android-android.o"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/android-platform_android-object.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-nm",
+        "-g",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/transport-android.o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/platform_android-android.o"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/android-product-symbols.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android30-clang",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/transport-android.o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/platform_android-android.o",
+        "-shared",
+        "-Wl,--no-undefined",
+        "-Wl,-z,max-page-size=16384",
+        "-Wl,-z,relro,-z,now",
+        "-landroid",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/missing-hooks.so"
+      ],
+      "exit_code": 1,
+      "output": "verification/android-guest-ui-transport/android-required-hooks-negative.log",
+      "expected_success": false
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android30-clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wpedantic",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wstrict-prototypes",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/transport-android.o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/platform_android-android.o",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/tests/android_link_probe.c",
+        "-shared",
+        "-Wl,--no-undefined",
+        "-Wl,-z,max-page-size=16384",
+        "-Wl,-z,relro,-z,now",
+        "-landroid",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/libmxuit-link-probe.so"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/android-probe-link.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-readelf",
+        "-d",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/libmxuit-link-probe.so"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/android-probe-dynamic.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-readelf",
+        "-h",
+        "-l",
+        "-W",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/libmxuit-link-probe.so"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/android-probe-elf.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-nm",
+        "-g",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-guest-ui-transport/build/libmxuit-link-probe.so"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-guest-ui-transport/android-probe-symbols.log",
+      "expected_success": true
+    }
+  ],
+  "host_results": {
+    "debug": {
+      "cases_passed": 26,
+      "cases": [
+        "capacity",
+        "coalescing",
+        "successor_from_complete",
+        "close_before_claim",
+        "close_during_helper",
+        "callback_tail",
+        "reentrant",
+        "stalled_consumer",
+        "failed_retirement",
+        "join_during_completion",
+        "failed_present",
+        "write_eio",
+        "write_eagain",
+        "write_eintr_exhausted",
+        "read_failure",
+        "fence_failure",
+        "eintr_recovery",
+        "pipe_failure",
+        "fcntl_failure",
+        "register_failure",
+        "owner_exhaustion",
+        "waiter_exhaustion",
+        "epoch_exhaustion",
+        "wrong_descriptor",
+        "unknown_hook",
+        "repeated_retirement"
+      ],
+      "output": "verification/android-guest-ui-transport/debug-tests.log"
+    },
+    "release": {
+      "cases_passed": 26,
+      "cases": [
+        "capacity",
+        "coalescing",
+        "successor_from_complete",
+        "close_before_claim",
+        "close_during_helper",
+        "callback_tail",
+        "reentrant",
+        "stalled_consumer",
+        "failed_retirement",
+        "join_during_completion",
+        "failed_present",
+        "write_eio",
+        "write_eagain",
+        "write_eintr_exhausted",
+        "read_failure",
+        "fence_failure",
+        "eintr_recovery",
+        "pipe_failure",
+        "fcntl_failure",
+        "register_failure",
+        "owner_exhaustion",
+        "waiter_exhaustion",
+        "epoch_exhaustion",
+        "wrong_descriptor",
+        "unknown_hook",
+        "repeated_retirement"
+      ],
+      "output": "verification/android-guest-ui-transport/release-tests.log"
+    },
+    "asan-ubsan": {
+      "cases_passed": 26,
+      "cases": [
+        "capacity",
+        "coalescing",
+        "successor_from_complete",
+        "close_before_claim",
+        "close_during_helper",
+        "callback_tail",
+        "reentrant",
+        "stalled_consumer",
+        "failed_retirement",
+        "join_during_completion",
+        "failed_present",
+        "write_eio",
+        "write_eagain",
+        "write_eintr_exhausted",
+        "read_failure",
+        "fence_failure",
+        "eintr_recovery",
+        "pipe_failure",
+        "fcntl_failure",
+        "register_failure",
+        "owner_exhaustion",
+        "waiter_exhaustion",
+        "epoch_exhaustion",
+        "wrong_descriptor",
+        "unknown_hook",
+        "repeated_retirement"
+      ],
+      "output": "verification/android-guest-ui-transport/asan-ubsan-tests.log"
+    },
+    "tsan": {
+      "cases_passed": 26,
+      "cases": [
+        "capacity",
+        "coalescing",
+        "successor_from_complete",
+        "close_before_claim",
+        "close_during_helper",
+        "callback_tail",
+        "reentrant",
+        "stalled_consumer",
+        "failed_retirement",
+        "join_during_completion",
+        "failed_present",
+        "write_eio",
+        "write_eagain",
+        "write_eintr_exhausted",
+        "read_failure",
+        "fence_failure",
+        "eintr_recovery",
+        "pipe_failure",
+        "fcntl_failure",
+        "register_failure",
+        "owner_exhaustion",
+        "waiter_exhaustion",
+        "epoch_exhaustion",
+        "wrong_descriptor",
+        "unknown_hook",
+        "repeated_retirement"
+      ],
+      "output": "verification/android-guest-ui-transport/tsan-tests.log"
+    }
+  },
+  "android_artifact_sha256": {
+    "verification/android-guest-ui-transport/build/transport-android.o": "502f9d218917c3de95cf9fca515d1f53f64021d6048739eae344e0ca5b4aefb8",
+    "verification/android-guest-ui-transport/build/platform_android-android.o": "b0e375d07ec05f41e2ab184c8170934e1685710b0ecaf588daf3d05eb0e253f2",
+    "verification/android-guest-ui-transport/build/libmxuit-link-probe.so": "78b1e4e939eaf6300d7b973c3407cf8b53a7bf1c1e20e01b7a401b2a0b06286c"
+  },
+  "android_checks": [
+    "API30 arm64 product C objects compiled with strict warnings",
+    "missing fixed hooks failed no-undefined link",
+    "test-only fixed-hook probe linked with libandroid",
+    "ELF/symbols recorded; test controls absent from product objects"
+  ],
+  "resource_baseline": {
+    "process_lifetime_pipe_fds": 2,
+    "process_lifetime_registration": 1,
+    "process_lifetime_acquired_looper_references": 1,
+    "owner_slots": 16
+  },
+  "scope": "Original C transport state machine on POSIX host plus Android object/shared-link checks only.",
+  "limitations": [
+    "Host driver simulates serialized callback return; no Android Looper execution.",
+    "consumer_joined is internal caller assertion; C does not prove actual Swift Task.value.",
+    "Android probe hooks are test-only inert link inputs, never an application host.",
+    "ASan leak detection disabled; no RSS/energy/lifetime performance qualification.",
+    "No Swift/Java/activation/generator integration, signed selection, native UI, health or release authority.",
+    "No emulator executed in this bounded slice; emulator execution remains permitted.",
+    "Physical phone queries/runs remain prohibited; no device tool called."
+  ]
+}
