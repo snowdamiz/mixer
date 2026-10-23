@@ -1,4 +1,4 @@
 // Generated; include this plus toolchain/platform/configuration/dependencies in the installed native runtime fingerprint.
 public enum CapabilityNativeIdentity {
-    public static let sha256 = "25a597ec0162a42e9d13b737d66cce2a7fe888e781b97490ded8991c9bb84b9a"
+    public static let sha256 = "4fcc770e62d39b415e657ce03aa11fa7fb83ee8bfe1a99567716e9b4372d1c59"
 }

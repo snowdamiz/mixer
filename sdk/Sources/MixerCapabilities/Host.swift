@@ -109,9 +109,23 @@ public actor CapabilityHost {
     /// This is not a durable-effect rollback or total OS-resource destruction ack.
     public func submitObserved(_ bytes: Data, deliver: @escaping Delivery,
                                didExit: @escaping @Sendable () -> Void) throws {
+        try acceptObserved(bytes, noLaterThan: nil, deliver: deliver, didExit: didExit)
+    }
+    /// Also caps this request at the caller's existing monotonic deadline. Time
+    /// spent before host acceptance is not renewed; this cannot extend host or
+    /// operation limits. An already elapsed cap accepts a no-I/O deadline result
+    /// and still joins invocation return with explicit adapter exit observation.
+    public func submitObserved(_ bytes: Data, noLaterThan deadline: ContinuousClock.Instant,
+                               deliver: @escaping Delivery,
+                               didExit: @escaping @Sendable () -> Void) throws {
+        try acceptObserved(bytes, noLaterThan: deadline, deliver: deliver, didExit: didExit)
+    }
+    private func acceptObserved(_ bytes: Data, noLaterThan deadline: ContinuousClock.Instant?,
+                                deliver: @escaping Delivery,
+                                didExit: @escaping @Sendable () -> Void) throws {
         guard !closed, installedAdapters != nil else { throw CapabilityWireError.invalid("observed host unavailable") }
         guard case .call(let call) = try CapabilityCodec.decodeInbound(bytes) else { throw CapabilityWireError.invalid("observed call required") }
-        try accept(call, deliver: deliver, didExit: didExit)
+        try accept(call, noLaterThan: deadline, deliver: deliver, didExit: didExit)
     }
     #endif
     deinit { for slot in slots { slot.work?.cancel(); slot.timer?.cancel() } }
@@ -138,7 +152,8 @@ public actor CapabilityHost {
             try accept(call, deliver: deliver, didExit: nil)
         }
     }
-    private func accept(_ call: CapabilityCall, deliver: @escaping Delivery, didExit: (@Sendable () -> Void)?) throws {
+    private func accept(_ call: CapabilityCall, noLaterThan cap: ContinuousClock.Instant? = nil,
+                        deliver: @escaping Delivery, didExit: (@Sendable () -> Void)?) throws {
         let index = try index(call.identity)
         guard slots[index].reserved, slots[index].call == nil else { throw CapabilityWireError.invalid("duplicate call") }
         slots[index].reserved = false; slots[index].call = call; slots[index].delivery = deliver
@@ -173,7 +188,8 @@ public actor CapabilityHost {
         }
         let timeout: UInt32
         if case .http(let request) = call.operation { timeout = min(request.timeoutMilliseconds, defaultTimeoutMilliseconds) } else { timeout = defaultTimeoutMilliseconds }
-        let deadline = ContinuousClock.now.advanced(by: .milliseconds(Int64(timeout)))
+        let hostDeadline = ContinuousClock.now.advanced(by: .milliseconds(Int64(timeout)))
+        let deadline = cap.map { min(hostDeadline, $0) } ?? hostDeadline
         slots[index].deadline = deadline
         slots[index].work = Task.detached { [weak self] in
             defer { returned() }
