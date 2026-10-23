@@ -1,0 +1,171 @@
+import Foundation
+import MixerUpdates
+
+/// The single outer pool counts complete coordinator/attempt owners, including
+/// idle, failed-init and closing owners. It is independent of the native16 pool.
+final class CapabilityAttemptReservation: @unchecked Sendable {
+    private struct State {
+        var closing = false
+        var quarantined = false
+        var released = false
+        var storeIssued = false
+        var storeClaimed = false
+        var nextID: UInt64 = 0
+        var storeID: UInt64?
+        var adapterID: UInt64?
+        var storeOwner: (any AnyObject & Sendable)?
+        var adapterOwner: (any AnyObject & Sendable)?
+    }
+    private static let pool = CapabilityAttemptPool()
+    private let lock = NSLock()
+    private var state = State()
+    private init() {}
+
+    static func acquire() throws -> CapabilityAttemptReservation {
+        try pool.acquire()
+        return CapabilityAttemptReservation()
+    }
+    static var occupiedSlots: Int { pool.occupied }
+
+    func issueStoreAdmission() throws -> CapabilityRecoveryStoreAdmission {
+        let id: UInt64 = try locked { s in
+            guard !s.closing, !s.quarantined, !s.released, !s.storeIssued else { throw reservationError("state") }
+            let id = try Self.next(&s); s.storeIssued = true; s.storeID = id; return id
+        }
+        return CapabilityRecoveryStoreAdmission(reservation: self, id: id)
+    }
+    func reserveAdapterGroup() throws -> CapabilityAdapterObligation {
+        let id: UInt64 = try locked { s in
+            guard !s.closing, !s.quarantined, !s.released, s.adapterID == nil else { throw reservationError("state") }
+            let id = try Self.next(&s); s.adapterID = id; return id
+        }
+        return CapabilityAdapterObligation(reservation: self, id: id)
+    }
+    func beginClosing() {
+        let release = locked { s in s.closing = true; return Self.releaseReady(&s) }
+        if release { Self.pool.release() }
+    }
+    func quarantine() { locked { $0.quarantined = true; $0.closing = true } }
+    var isQuarantined: Bool { locked { $0.quarantined } }
+    var isReleased: Bool { locked { $0.released } }
+
+    fileprivate func claimStore(_ id: UInt64) throws -> CapabilityStoreObligation {
+        try locked { s in
+            guard !s.closing, !s.quarantined, !s.released, s.storeID == id, !s.storeClaimed else { throw reservationError("state") }
+            s.storeClaimed = true
+        }
+        return CapabilityStoreObligation(reservation: self, id: id)
+    }
+    fileprivate func unusedStore(_ id: UInt64) {
+        let release = locked { s in
+            guard s.storeID == id, !s.storeClaimed else { return false }
+            s.storeID = nil; return Self.releaseReady(&s)
+        }
+        if release { Self.pool.release() }
+    }
+    fileprivate func hold(_ owner: any AnyObject & Sendable, id: UInt64, store: Bool) throws {
+        try locked { s in
+            let current = store ? s.storeID : s.adapterID
+            let existing = store ? s.storeOwner : s.adapterOwner
+            guard current == id, existing == nil, !s.released, !s.quarantined else { throw reservationError("state") }
+            if store { s.storeOwner = owner } else { s.adapterOwner = owner }
+        }
+    }
+    fileprivate func retire(_ id: UInt64, store: Bool) {
+        // Move retained owners out under the lock, destroy only after unlocking.
+        var outcome: (Bool, (any AnyObject & Sendable)?) = locked { s in
+            guard (store ? s.storeID : s.adapterID) == id else { return (false, nil) }
+            let owner = store ? s.storeOwner : s.adapterOwner
+            if store { s.storeID = nil; s.storeOwner = nil } else { s.adapterID = nil; s.adapterOwner = nil }
+            return (Self.releaseReady(&s), owner)
+        }
+        outcome.1 = nil
+        if outcome.0 { Self.pool.release() }
+    }
+    private static func next(_ s: inout State) throws -> UInt64 {
+        guard s.nextID < UInt64.max else { s.quarantined = true; s.closing = true; throw reservationError("exhausted") }
+        s.nextID += 1; return s.nextID
+    }
+    private static func releaseReady(_ s: inout State) -> Bool {
+        guard s.closing, !s.quarantined, !s.released, s.storeID == nil, s.adapterID == nil else { return false }
+        s.released = true; return true
+    }
+    private func locked<T>(_ body: (inout State) throws -> T) rethrows -> T {
+        lock.lock(); defer { lock.unlock() }; return try body(&state)
+    }
+    deinit {
+        // No claimed I/O owner can normally reach this point because hold()
+        // retains it. An abandoned claimed obligation pins the pool permanently.
+        let release = locked { s in
+            s.closing = true
+            if s.storeID != nil || s.adapterID != nil { s.quarantined = true }
+            return Self.releaseReady(&s)
+        }
+        if release { Self.pool.release() }
+    }
+}
+
+private final class CapabilityAttemptPool: @unchecked Sendable {
+    private let lock = NSLock()
+    private var count = 0
+    var occupied: Int { lock.lock(); defer { lock.unlock() }; return count }
+    func acquire() throws {
+        lock.lock(); defer { lock.unlock() }
+        guard count < 16 else { throw reservationError("busy") }
+        count += 1
+    }
+    func release() {
+        lock.lock(); defer { lock.unlock() }
+        // Only a reservation's one-shot release transition reaches here.
+        precondition(count > 0); count -= 1
+    }
+}
+
+final class CapabilityRecoveryStoreAdmission: @unchecked Sendable {
+    private let lock = NSLock()
+    private var consumed = false
+    private let reservation: CapabilityAttemptReservation
+    private let id: UInt64
+    fileprivate init(reservation: CapabilityAttemptReservation, id: UInt64) { self.reservation = reservation; self.id = id }
+    func claimStore() throws -> CapabilityStoreObligation {
+        lock.lock(); defer { lock.unlock() }
+        guard !consumed else { throw reservationError("consumed") }
+        let obligation = try reservation.claimStore(id)
+        consumed = true; return obligation
+    }
+    deinit { if !consumed { reservation.unusedStore(id) } }
+}
+
+/// Actual retirement is an assertion by the trusted owner, not a deinit effect.
+/// Dropping a claimed obligation without retire quarantines its outer slot.
+final class CapabilityStoreObligation: @unchecked Sendable {
+    private let lock = NSLock()
+    private var retired = false
+    private let reservation: CapabilityAttemptReservation
+    private let id: UInt64
+    fileprivate init(reservation: CapabilityAttemptReservation, id: UInt64) { self.reservation = reservation; self.id = id }
+    func retainOwner(_ owner: any AnyObject & Sendable) throws { try reservation.hold(owner, id: id, store: true) }
+    func retire() {
+        lock.lock(); let first = !retired; retired = true; lock.unlock()
+        if first { reservation.retire(id, store: true) }
+    }
+    func quarantine() { reservation.quarantine() }
+    deinit { if !retired { reservation.quarantine() } }
+}
+final class CapabilityAdapterObligation: @unchecked Sendable {
+    private let lock = NSLock()
+    private var retired = false
+    private let reservation: CapabilityAttemptReservation
+    private let id: UInt64
+    fileprivate init(reservation: CapabilityAttemptReservation, id: UInt64) { self.reservation = reservation; self.id = id }
+    func retainOwner(_ owner: any AnyObject & Sendable) throws { try reservation.hold(owner, id: id, store: false) }
+    func retire() {
+        lock.lock(); let first = !retired; retired = true; lock.unlock()
+        if first { reservation.retire(id, store: false) }
+    }
+    func quarantine() { reservation.quarantine() }
+    deinit { if !retired { reservation.quarantine() } }
+}
+private func reservationError(_ code: String) -> UpdateError {
+    UpdateError("capability.attempt.\(code)", "Capability attempt reservation rejected")
+}

@@ -1,0 +1,52 @@
+{
+  "scope": "Independent derived-only scheduling barrier after actual worker.append return, while owned append snapshot remains in ingress frame. Recompiled captured Store only; real retained dependency library, no production edits/no replacement I/O. Not unmodified public reproduction.",
+  "baseStoreSHA256": "a8d4c7547c056135023627d1ace18c613d4a58e981ad1265c6dce15c027dabe7",
+  "derivedStoreSHA256": "7157e62ba482bdf610a9326d40ef2803739a2060c856c4ff9c0b91d88671b437",
+  "patchSHA256": "d4c951a20c2cc4663f40efe332b336e7ee3fdf265296c7b93234425af547f88c",
+  "inputs": {
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-durable-store-review/StoreFixture.swift": "5ce6b6168f74be82ca8ca868f67788b2d099daeee9c4517550bd769e6196d1c4",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-durable-store-review/IngressTailProbe.swift": "f40c720f6b2f204bf3e5382ca85b2b15d57a334ac0c9c72fced2a7aa819922e2",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-durable-store-review/.build/negative-ingress/CapabilityRecoveryStore.swift": "7157e62ba482bdf610a9326d40ef2803739a2060c856c4ff9c0b91d88671b437"
+  },
+  "librarySHA256": "f58111f9c3db9ec82c65b492bb1fea66a3f5b996135f7eb8c055e8b06bdf4b23",
+  "compile": {
+    "command": [
+      "swiftc",
+      "-swift-version",
+      "6",
+      "-parse-as-library",
+      "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-durable-store-review/StoreFixture.swift",
+      "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-durable-store-review/IngressTailProbe.swift",
+      "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-durable-store-review/.build/negative-ingress/CapabilityRecoveryStore.swift",
+      "-I/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/store-retirement-pre-fix-products",
+      "-L/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/store-retirement-pre-fix-products",
+      "-lMixerCapabilityActivation",
+      "-L/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/qualification-2026-10-23-candidate-2/native/lib",
+      "-lmixer_vm_capability_experimental",
+      "-o",
+      "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-durable-store-review/.build/negative-ingress/ingress-probe",
+      "-Xcc",
+      "-fmodule-map-file=/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/durable-store-development/out/Intermediates.noindex/GeneratedModuleMaps/CMixerVMCapability.modulemap",
+      "-Xcc",
+      "-fmodule-map-file=/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/durable-store-development/out/Intermediates.noindex/GeneratedModuleMaps/MixerCapabilityDurableIO.modulemap",
+      "-Xcc",
+      "-fmodule-map-file=/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/durable-store-development/out/Intermediates.noindex/GeneratedModuleMaps/MixerCapabilityIO.modulemap",
+      "-Xcc",
+      "-fmodule-map-file=/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/durable-store-development/out/Intermediates.noindex/GeneratedModuleMaps/MixerDurableIO.modulemap",
+      "-Xcc",
+      "-I/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/qualification-2026-10-23-candidate-2/native/include"
+    ],
+    "exitCode": 0,
+    "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "run": {
+    "command": [
+      "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-durable-store-review/.build/negative-ingress/ingress-probe",
+      "/Users/andreyyurlov/Documents/dev/mixer/capability-activation/Tests/MixerCapabilityActivationTests/Fixtures"
+    ],
+    "exitCode": 1,
+    "expectedOldFailureExitCode": 1,
+    "logSHA256": "0938c93b92460f6095c00dad9407b387d885f37cc476f79e6e92fccb45dc9864"
+  },
+  "binarySHA256": "342f77f762c4dac736d0e2dccf1dfc456030a2725e14d72cb9752215c84a3e9c"
+}

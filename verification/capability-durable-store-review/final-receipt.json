@@ -1,0 +1,243 @@
+{
+  "status": "independent source/artifact audit and24 original probe executions passed; two reported defects fixed",
+  "sealedAt": "2026-10-23T09:08:00.219257+00:00",
+  "auditCommand": [
+    "python3",
+    "-B",
+    "verification/capability-durable-store-review/audit.py"
+  ],
+  "auditOutput": "verification/capability-durable-store-review/audit.log",
+  "auditPythonVersion": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "ownerReceipt": {
+    "path": "verification/capability-durable-store/2026-10-23-candidate-2/receipt.json",
+    "sha256": "5aa8a0f4e533c7d42bd5e81fce5abaa84b3c1fe2f68f7ec9308f593e68d36c36"
+  },
+  "sourceManifestSHA256": "8e75b805bb82b0c31174a2ffee992b24be207fd6c60c4ee316b9af5c46198376",
+  "sourceInputsVerified": 113,
+  "reviewedProduction": {
+    "capability-activation/Sources/MixerCapabilityActivation/CapabilityAttemptReservation.swift": "886d6c44984cfa40135c6aa865a594edb63185f818e5596332118faa13a83ef0",
+    "capability-activation/Sources/MixerCapabilityActivation/CapabilityRecoveryModels.swift": "8a628723bc59e505f5d63e54135e36d91bb2fdc1b75f3cb4456f02ccfeffe4cb",
+    "capability-activation/Sources/MixerCapabilityActivation/CapabilityRecoveryStore.swift": "fe6073f8d463ee27b6f62a343093fe0948391096fdde9a6d9e2646ed041248f3"
+  },
+  "ownerCommandsVerified": 16,
+  "retainedOwnerFilesVerified": 188,
+  "ownerArtifactsVerified": 7,
+  "reviewReceipt": {
+    "path": "verification/capability-durable-store-review/2026-10-23-candidate-2/receipt.json",
+    "sha256": "9eead03a2ac66157b431a10a6f803cbf5b80698f0af6f744e574d5ff9d9175fb"
+  },
+  "probeExecutions": 24,
+  "modes": [
+    "debug",
+    "release",
+    "tsan"
+  ],
+  "reviewProductBindingsVerified": 294,
+  "sourceAndProductsUnchanged": true,
+  "nativeFiles": {
+    "receipt.json": "92c88a98c81955a8139f6f583ed64e48dfb4c51a2ece42bec15ac2b2ef7fde4a",
+    "include/mixer_vm.h": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+    "include/mixer_vm_capability.h": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+    "lib/libmixer_vm_capability_experimental.a": "a015ff65980422dd0b9c5cad2e28741d1e5ba478e0f657dcaedf75477d553b72"
+  },
+  "resolvedFindings": [
+    {
+      "problem": "Concurrent store/adapter retirement released outer slot while prior retained-owner destructor was blocked",
+      "negativeReceipt": "verification/capability-durable-store-review/negative-concurrent-retirement/receipt.json",
+      "fix": "Per-kind retiring flags join both owner releases and reject replacement during adapter destruction",
+      "finalProbeCases": [
+        "retirement-store-first",
+        "retirement-adapter-first",
+        "retirement-replacement"
+      ]
+    },
+    {
+      "problem": "Actual actor I/O close released outer slot before owned ordinary ingress snapshot frame returned",
+      "negativeReceipt": "verification/capability-durable-store-review/negative-ingress-tail/receipt.json",
+      "fix": "Owned inner helper return plus control join of actual I/O close and ordinary/cancellation tails",
+      "finalProbeCases": [
+        "ingress-derived"
+      ]
+    }
+  ],
+  "openActionableFindings": [],
+  "reusedEvidence": {
+    "verification/capability-durable-io/final-receipt.json": "f9f44af8e609ad872588533960d1912ef4be03ca8d7c564aeb2b40298e322764",
+    "verification/capability-durable-io-review/final-receipt.json": "d9da45c178c57df971b8de565aaaab7bedafb4d0aa72da28c97dcc082b497ce9",
+    "verification/release-v3-durable-spi/final-receipt.json": "7f0a737eb8e544c849a1e11bde4a4c0187c613c0774e8f9ef3c1bb2034007e41",
+    "verification/release-v3-durable-spi-root-review/receipt.json": "9e30911199aa83a9f8c2d99349fd1950371fd11a4d8f37692b025e8b3d8170bb"
+  },
+  "sharedSupportingSourcesVerified": {
+    "capability-activation/Sources/MixerCapabilityActivation/CapabilityDurableDirectory.swift": "d2c07daaca9f2309be0572263e789f32fd7091dc6238d7b0dcfa752590019309",
+    "capability-activation/Sources/MixerCapabilityDurableIO/lock.c": "89a6f106d5b980bf6f39a05ed313cb5de4346da1f8bd80d5a5fc705c046ab22d",
+    "capability-activation/Sources/MixerCapabilityDurableIO/include/MixerCapabilityDurableIO.h": "4627aa8b8d8afbf5680709421a01afc4b7b51ec6b147a0500ea4f10c1c234c18",
+    "updates/Sources/MixerUpdates/VerifierV3.swift": "474e8d3223430225a06743ccb6d29043980b1ad4b57f69a44308182260c9a3ac"
+  },
+  "instrumentationReferenceObservation": {
+    "debug": {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/store-qualified-2026-10-23-candidate-2/retained-debug/products/libMixerCapabilityActivation.a",
+      "sha256": "701be4c304b333a37932326a29ae57568050fc919de756476a8771f5f6843d99",
+      "command": [
+        "nm",
+        "/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/store-qualified-2026-10-23-candidate-2/retained-debug/products/libMixerCapabilityActivation.a"
+      ],
+      "exitCode": 0,
+      "tsanReferenceLines": 0,
+      "nmOutputSHA256": "b10d40bcd548e700f91afd3de82a9614860c65dc1e1d408a1e5a87a7efeaa784",
+      "sample": []
+    },
+    "release": {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/store-qualified-2026-10-23-candidate-2/retained-release/products/libMixerCapabilityActivation.a",
+      "sha256": "7b20320be3418ce6514927d3c8f0614a8972129eed65189274d3b2a7b445a3bc",
+      "command": [
+        "nm",
+        "/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/store-qualified-2026-10-23-candidate-2/retained-release/products/libMixerCapabilityActivation.a"
+      ],
+      "exitCode": 0,
+      "tsanReferenceLines": 0,
+      "nmOutputSHA256": "4dc72ab05234c96fb2242eecefb86d218e04020387e3a0c49625699973598975",
+      "sample": []
+    },
+    "tsan": {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/store-qualified-2026-10-23-candidate-2/host/out/Products/Debug/libMixerCapabilityActivation.a",
+      "sha256": "fe001af458a6c67ca47c7811be11eb8363b42cfe6f17668434bab56cd8aa9d7a",
+      "command": [
+        "nm",
+        "/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/store-qualified-2026-10-23-candidate-2/host/out/Products/Debug/libMixerCapabilityActivation.a"
+      ],
+      "exitCode": 0,
+      "tsanReferenceLines": 142,
+      "nmOutputSHA256": "a880d92eba5e6f7aa1ab6a4f2d0c9a8f3db5140a6a0dd2dae41b0d349392a00e",
+      "sample": [
+        "                 U ___tsan_atomic64_load",
+        "                 U ___tsan_atomic64_store",
+        "                 U ___tsan_external_write",
+        "                 U ___tsan_func_entry",
+        "                 U ___tsan_func_exit"
+      ]
+    }
+  },
+  "evidenceFiles": {
+    "verification/capability-durable-store-review/.gitignore": "8067ca2e066912ef84703652776783fceab72752431b59b47af36511982a51bc",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/IngressTailProbe.swift.txt": "f40c720f6b2f204bf3e5382ca85b2b15d57a334ac0c9c72fced2a7aa819922e2",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/RetirementProbe.swift.txt": "964afa6bf8c22751dfe51720857ae77d1b59b583c5ab2bae8c2453c8dc989f93",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/StoreFixture.swift.txt": "5ce6b6168f74be82ca8ca868f67788b2d099daeee9c4517550bd769e6196d1c4",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/StoreProbe.swift.txt": "ebc4c8d20bc30d83265aa83821509f905ede19b0f39ddfccc3b119289a63de2d",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/debug-ingress-derived-compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/debug-ingress-derived.log": "cd9d7d6f77bed456ee1b4200fa7b7441083ecded646f529a137e9ec54b483abc",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/debug-retirement-adapter-first.log": "b54bd42455a9e87a383d94072259b969dc58261baa679e8f3f2d04278d4b9612",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/debug-retirement-compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/debug-retirement-replacement.log": "bedb16be70d8aa7798d9d62c0d96398c5fb4a0e2cf0ee07bdd67c5fa70e11c50",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/debug-retirement-store-first.log": "b54bd42455a9e87a383d94072259b969dc58261baa679e8f3f2d04278d4b9612",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/debug-store-cancel-close.log": "ce4f7e8e82d2c738dc89229f1d06666ff0d24726b45fac356b45f9ac53826d8c",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/debug-store-compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/debug-store-host-mismatch.log": "c64cbc3457799305625055c949acbb0a356c63ea6abc1494be568dcc4f7321f3",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/debug-store-signed-highwater.log": "837fd4b118e924b0faa6c68c5572ee08b5655723091db599959de19e050499cb",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/debug-store-uncertain-stage.log": "84741dac8b22b412fdc26fd86122e7c267acdd07e8566b093219cdb0af180c96",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/derived-CapabilityRecoveryStore.swift.txt": "5492aadbbad4987eb04e22c53d393fa1429b72fff2093836045ae21e525e81a2",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/instrumentation-observation.json": "d59063639f46e2bc547079340feda9daa14d01241a461cc0fb4928c932fc2deb",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/receipt.json": "e945109ad806d67f64d2eb12044d075f2273d9e8fc25a677145ce193f0b12b26",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/release-ingress-derived-compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/release-ingress-derived.log": "cd9d7d6f77bed456ee1b4200fa7b7441083ecded646f529a137e9ec54b483abc",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/release-retirement-adapter-first.log": "b54bd42455a9e87a383d94072259b969dc58261baa679e8f3f2d04278d4b9612",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/release-retirement-compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/release-retirement-replacement.log": "bedb16be70d8aa7798d9d62c0d96398c5fb4a0e2cf0ee07bdd67c5fa70e11c50",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/release-retirement-store-first.log": "b54bd42455a9e87a383d94072259b969dc58261baa679e8f3f2d04278d4b9612",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/release-store-cancel-close.log": "ce4f7e8e82d2c738dc89229f1d06666ff0d24726b45fac356b45f9ac53826d8c",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/release-store-compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/release-store-host-mismatch.log": "c64cbc3457799305625055c949acbb0a356c63ea6abc1494be568dcc4f7321f3",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/release-store-signed-highwater.log": "837fd4b118e924b0faa6c68c5572ee08b5655723091db599959de19e050499cb",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/release-store-uncertain-stage.log": "84741dac8b22b412fdc26fd86122e7c267acdd07e8566b093219cdb0af180c96",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/review.py.txt": "474e5261465591d7e4c7534d5ffac1e2acfc9e232fae98099e90815fd914b178",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/swift-version.log": "30bb0d72a580e8e936ab32e24cab2876f82fa6b06d66fef876fe21a47e828acc",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/test-only.patch": "3ba8ff1d7d6c48954322b458a77fee67cf67bba324bfdc6e596e3efa5dd46396",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/tsan-ingress-derived-compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/tsan-ingress-derived.log": "cd9d7d6f77bed456ee1b4200fa7b7441083ecded646f529a137e9ec54b483abc",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/tsan-retirement-adapter-first.log": "b54bd42455a9e87a383d94072259b969dc58261baa679e8f3f2d04278d4b9612",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/tsan-retirement-compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/tsan-retirement-replacement.log": "bedb16be70d8aa7798d9d62c0d96398c5fb4a0e2cf0ee07bdd67c5fa70e11c50",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/tsan-retirement-store-first.log": "b54bd42455a9e87a383d94072259b969dc58261baa679e8f3f2d04278d4b9612",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/tsan-store-cancel-close.log": "ce4f7e8e82d2c738dc89229f1d06666ff0d24726b45fac356b45f9ac53826d8c",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/tsan-store-compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/tsan-store-host-mismatch.log": "c64cbc3457799305625055c949acbb0a356c63ea6abc1494be568dcc4f7321f3",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/tsan-store-signed-highwater.log": "837fd4b118e924b0faa6c68c5572ee08b5655723091db599959de19e050499cb",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/tsan-store-uncertain-stage.log": "84741dac8b22b412fdc26fd86122e7c267acdd07e8566b093219cdb0af180c96",
+    "verification/capability-durable-store-review/2026-10-23-candidate-1/xcode-version.log": "ee3fe26035862d2b9653c1a570be3eca4ee5be2815f0ce99ff2d8ffa3399e4c8",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/IngressTailProbe.swift.txt": "f40c720f6b2f204bf3e5382ca85b2b15d57a334ac0c9c72fced2a7aa819922e2",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/RetirementProbe.swift.txt": "964afa6bf8c22751dfe51720857ae77d1b59b583c5ab2bae8c2453c8dc989f93",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/StoreFixture.swift.txt": "5ce6b6168f74be82ca8ca868f67788b2d099daeee9c4517550bd769e6196d1c4",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/StoreProbe.swift.txt": "ebc4c8d20bc30d83265aa83821509f905ede19b0f39ddfccc3b119289a63de2d",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/debug-ingress-derived-compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/debug-ingress-derived.log": "cd9d7d6f77bed456ee1b4200fa7b7441083ecded646f529a137e9ec54b483abc",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/debug-retirement-adapter-first.log": "b54bd42455a9e87a383d94072259b969dc58261baa679e8f3f2d04278d4b9612",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/debug-retirement-compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/debug-retirement-replacement.log": "bedb16be70d8aa7798d9d62c0d96398c5fb4a0e2cf0ee07bdd67c5fa70e11c50",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/debug-retirement-store-first.log": "b54bd42455a9e87a383d94072259b969dc58261baa679e8f3f2d04278d4b9612",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/debug-store-cancel-close.log": "ce4f7e8e82d2c738dc89229f1d06666ff0d24726b45fac356b45f9ac53826d8c",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/debug-store-compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/debug-store-host-mismatch.log": "c64cbc3457799305625055c949acbb0a356c63ea6abc1494be568dcc4f7321f3",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/debug-store-signed-highwater.log": "837fd4b118e924b0faa6c68c5572ee08b5655723091db599959de19e050499cb",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/debug-store-uncertain-stage.log": "84741dac8b22b412fdc26fd86122e7c267acdd07e8566b093219cdb0af180c96",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/derived-CapabilityRecoveryStore.swift.txt": "e7e117c0e19fbe31ab263166148f103174d62c8019fc4011d594fbc56c7fd5d7",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/receipt.json": "9eead03a2ac66157b431a10a6f803cbf5b80698f0af6f744e574d5ff9d9175fb",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/release-ingress-derived-compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/release-ingress-derived.log": "cd9d7d6f77bed456ee1b4200fa7b7441083ecded646f529a137e9ec54b483abc",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/release-retirement-adapter-first.log": "b54bd42455a9e87a383d94072259b969dc58261baa679e8f3f2d04278d4b9612",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/release-retirement-compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/release-retirement-replacement.log": "bedb16be70d8aa7798d9d62c0d96398c5fb4a0e2cf0ee07bdd67c5fa70e11c50",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/release-retirement-store-first.log": "b54bd42455a9e87a383d94072259b969dc58261baa679e8f3f2d04278d4b9612",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/release-store-cancel-close.log": "ce4f7e8e82d2c738dc89229f1d06666ff0d24726b45fac356b45f9ac53826d8c",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/release-store-compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/release-store-host-mismatch.log": "c64cbc3457799305625055c949acbb0a356c63ea6abc1494be568dcc4f7321f3",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/release-store-signed-highwater.log": "837fd4b118e924b0faa6c68c5572ee08b5655723091db599959de19e050499cb",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/release-store-uncertain-stage.log": "84741dac8b22b412fdc26fd86122e7c267acdd07e8566b093219cdb0af180c96",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/review.py.txt": "474e5261465591d7e4c7534d5ffac1e2acfc9e232fae98099e90815fd914b178",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/swift-version.log": "30bb0d72a580e8e936ab32e24cab2876f82fa6b06d66fef876fe21a47e828acc",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/test-only.patch": "3ba8ff1d7d6c48954322b458a77fee67cf67bba324bfdc6e596e3efa5dd46396",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/tsan-ingress-derived-compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/tsan-ingress-derived.log": "cd9d7d6f77bed456ee1b4200fa7b7441083ecded646f529a137e9ec54b483abc",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/tsan-retirement-adapter-first.log": "b54bd42455a9e87a383d94072259b969dc58261baa679e8f3f2d04278d4b9612",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/tsan-retirement-compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/tsan-retirement-replacement.log": "bedb16be70d8aa7798d9d62c0d96398c5fb4a0e2cf0ee07bdd67c5fa70e11c50",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/tsan-retirement-store-first.log": "b54bd42455a9e87a383d94072259b969dc58261baa679e8f3f2d04278d4b9612",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/tsan-store-cancel-close.log": "ce4f7e8e82d2c738dc89229f1d06666ff0d24726b45fac356b45f9ac53826d8c",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/tsan-store-compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/tsan-store-host-mismatch.log": "c64cbc3457799305625055c949acbb0a356c63ea6abc1494be568dcc4f7321f3",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/tsan-store-signed-highwater.log": "837fd4b118e924b0faa6c68c5572ee08b5655723091db599959de19e050499cb",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/tsan-store-uncertain-stage.log": "84741dac8b22b412fdc26fd86122e7c267acdd07e8566b093219cdb0af180c96",
+    "verification/capability-durable-store-review/2026-10-23-candidate-2/xcode-version.log": "ee3fe26035862d2b9653c1a570be3eca4ee5be2815f0ce99ff2d8ffa3399e4c8",
+    "verification/capability-durable-store-review/IngressTailProbe.swift": "f40c720f6b2f204bf3e5382ca85b2b15d57a334ac0c9c72fced2a7aa819922e2",
+    "verification/capability-durable-store-review/README.md": "6f6d776b200ecb96d7ec709e94417cfb2ffa22c17002a8cfe5ee1ba6a17a8a9f",
+    "verification/capability-durable-store-review/RetirementProbe.swift": "964afa6bf8c22751dfe51720857ae77d1b59b583c5ab2bae8c2453c8dc989f93",
+    "verification/capability-durable-store-review/StoreFixture.swift": "5ce6b6168f74be82ca8ca868f67788b2d099daeee9c4517550bd769e6196d1c4",
+    "verification/capability-durable-store-review/StoreProbe.swift": "ebc4c8d20bc30d83265aa83821509f905ede19b0f39ddfccc3b119289a63de2d",
+    "verification/capability-durable-store-review/audit.py": "550ede3caacf06d37660677b211f4ad4e0bdbe56d0b99f2b95ff67ffe374daf2",
+    "verification/capability-durable-store-review/development-functional/compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/capability-durable-store-review/development-functional/receipt.json": "ef5f1e2215d1a4b8ef0c835b1fb6a60d868ee34d2307d81e26e6464185a7e481",
+    "verification/capability-durable-store-review/negative-concurrent-retirement/RetirementProbe.swift.txt": "a426cfb2fd4f0f47c3389c7462175245889eeac66bed26ac1f0079b4071b7834",
+    "verification/capability-durable-store-review/negative-concurrent-retirement/compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/capability-durable-store-review/negative-concurrent-retirement/receipt.json": "042fe4d34eff67763242312eda8141f83b199352aeacc05ed972b7f36c6f62ac",
+    "verification/capability-durable-store-review/negative-concurrent-retirement/run.log": "e41b26568f51e65c235ee4cc8ac2bbc8a6ee72a0af587d31052c334ef25bfa8c",
+    "verification/capability-durable-store-review/negative-ingress-tail/base-CapabilityRecoveryStore.swift.txt": "a8d4c7547c056135023627d1ace18c613d4a58e981ad1265c6dce15c027dabe7",
+    "verification/capability-durable-store-review/negative-ingress-tail/compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/capability-durable-store-review/negative-ingress-tail/derived-CapabilityRecoveryStore.swift.txt": "7157e62ba482bdf610a9326d40ef2803739a2060c856c4ff9c0b91d88671b437",
+    "verification/capability-durable-store-review/negative-ingress-tail/receipt.json": "bc2a5e86ec857d7b97278f9f677752602fb9e5947670a39061c05fcc7dce73dd",
+    "verification/capability-durable-store-review/negative-ingress-tail/run.log": "0938c93b92460f6095c00dad9407b387d885f37cc476f79e6e92fccb45dc9864",
+    "verification/capability-durable-store-review/negative-ingress-tail/test-only.patch": "d4c951a20c2cc4663f40efe332b336e7ee3fdf265296c7b93234425af547f88c",
+    "verification/capability-durable-store-review/review.py": "474e5261465591d7e4c7534d5ffac1e2acfc9e232fae98099e90815fd914b178"
+  },
+  "evidenceManifestSHA256": "31feac0591bead383cce593dbc57e9d9461c4255e764851379609a4c61ecb924",
+  "scope": "Private durable metadata/download and outer16 foundation on frozen3bdf dependencies; no coordinator or execution authority",
+  "limitations": [
+    "Internal @testable review, not a new public updater or authority API",
+    "Reused inert installed descriptor/bridge templates are pinned; Wasm, signing context, envelopes and assertions are original",
+    "Fault and async gates are scheduling controls around real file operations/native validate, not device or power-loss evidence",
+    "Logical owned-frame and retained-owner release boundaries do not prove Task/allocator destruction or total RSS/OOM bounds",
+    "TSan excludes Rust/platform framework internals; local Xcode27.1/Swift6.3.3 is not hosted Xcode26.3 qualification",
+    "No adapter/session/selection/effects/health/release/device authority or execution is qualified",
+    "Prior I/O/sealed SPI evidence reused after matching supporting source hashes; not rerun here",
+    "Candidate1 positives are historical; final qualification targets candidate2 closed-state clearing",
+    "Source review of closed state is structural/identity validation; future selected/healthy execution must independently revalidate signed evidence",
+    "Observer/lifecycle SPI and execution-policy composition are not qualified by this foundation review"
+  ]
+}

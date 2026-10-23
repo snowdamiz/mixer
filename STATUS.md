@@ -566,10 +566,20 @@ no actionable issue; see `verification/capability-execution-policy/final-receipt
 Hosted run39925395453 at3bdf5cd passes all three jobs, including69 update and23
 material/I/O tests, before these lifecycle/policy additions.
 
-Counted recovery storage, startup cutoff at owned enable and coordinator
-integration are under implementation. Store review reproduced concurrent owner
-destruction and ingress-tail capacity races; repairs and final qualification are
-pending and those unfinished files are excluded from this checkpoint.
+Private counted recovery storage now passes41 debug/release tests,18 new TSan
+tests and24 independent probes. Both reviewed capacity races are fixed: concurrent
+owner destruction and live ingress snapshots now retain their outer reservation
+until their logical tails return. Exact signed download records preserve replay
+high-water and use real bounded native validation before staging. Root audited113
+frozen inputs,16 command logs, retained artifacts and both evidence seals; see
+`verification/capability-durable-store-root-review/receipt.json`. This foundation
+does not yet select startup candidates or commit effects/health. Its qualification
+uses frozen3bdf5cd dependencies; composition with later lifecycle/policy code is
+still pending. Hosted run39928599118 at4a413b4 passes all three jobs for the prior
+lifecycle/policy checkpoint; see `verification/github-ci-4a413b4/receipt.json`.
+
+Startup cutoff at owned enable and coordinator integration remain under
+implementation and their unfinished files are excluded from this checkpoint.
 Concrete signed execution, health/recovery and full FieldLog remain in progress.
 Physical checks remain pending while the phones are disconnected; no product or
 GA gate is closed by this checkpoint.

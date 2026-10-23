@@ -72,6 +72,10 @@ policy derivation passes30 host tests per mode and iOS/Android compilation; see
 `verification/capability-execution-policy/final-receipt.json`. It revalidates whole
 evidence and intersects installed/signed grants without creating adapters.
 Hosted CI at3bdf5cd passes all three jobs for the preceding SPI/I/O checkpoint.
-Counted recovery storage, startup cutoff at owned enable, and the signed
-coordinator are the current implementation lanes.
+Counted recovery storage now passes41 debug/release tests,18 new TSan tests and24
+independent probes after repairing both owner-retirement races. Root audited the
+frozen foundation; see `verification/capability-durable-store-root-review/receipt.json`.
+Hosted CI at4a413b4 passes all three jobs for the preceding lifecycle/policy slice.
+Startup cutoff at owned enable, durable selection/effects/health transitions and
+the signed coordinator are the current implementation lanes.
 Keep the full product plan and physical/published-consumer/GA gates in scope.
