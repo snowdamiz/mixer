@@ -1,0 +1,13 @@
+The first supplemental provenance attempt required a native-only rebuild to
+match the earlier independently reviewed V2 copied debug archive. It failed:
+  earlier V2 debug: d3c49dffd0fc6dea2d86f9d280c5d8fa5a7cb48a2916eb3152a4b1552dd9d2d7
+  rebuild debug:    66519ab92e7779121a450914698f9fe1f00760bbcbcafdee3c29975d8302e640
+All90 source-manifest hashes still matched freeze76372fd254e646141e991b3289b14c8380f13ea68602b21d4aa746080fddc8cf.
+This happened after switching features/build modes in the same incremental target
+tree. Cause was not investigated; no bit-reproducible build claim is made. The
+initial build log is retained as review-archive-debug-initial.log. An immediate
+same-mode build was cached and preserved the rebuilt hash. The supplemental
+provenance runner now captures fresh V3 copies directly from each logged build,
+checks source before/after and hashes both original and copied artifact. The
+independent reviewer was sent V3 paths to relink; earlier V2 evidence remains
+separately identified rather than silently replacing its archive.

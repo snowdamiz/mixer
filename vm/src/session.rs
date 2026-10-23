@@ -54,12 +54,32 @@ impl Session {
         Ok(guard)
     }
 }
+// Keep both bounded payloads inline in the one counted Arc. Boxing the smaller
+// variant would add another infallible allocation solely to reduce enum size.
+#[cfg_attr(
+    feature = "experimental-capability-native",
+    allow(clippy::large_enum_variant)
+)]
+enum ManagedSession {
+    Legacy(Session),
+    #[cfg(feature = "experimental-capability-native")]
+    Capability(crate::capability_ffi::session::CapabilitySession),
+}
+impl ManagedSession {
+    fn reclaim_ready(&self) -> bool {
+        match self {
+            Self::Legacy(_) => true,
+            #[cfg(feature = "experimental-capability-native")]
+            Self::Capability(session) => session.reclaim_ready(),
+        }
+    }
+}
 enum State {
     Empty,
     Reserved,
-    Live(Arc<Session>),
+    Live(Arc<ManagedSession>),
     // A closed in-flight instance still counts against the allocation ceiling.
-    Closing(Arc<Session>),
+    Closing(Arc<ManagedSession>),
     // Payload destruction has started outside the registry lock, but has not
     // completed. This slot cannot be reused until the final Arc drop returns.
     Reclaiming,
@@ -120,13 +140,14 @@ impl Registry {
             3,
         ))
     }
-    fn begin_reclaim(&mut self, handle: u64) -> Option<(usize, Arc<Session>)> {
+    fn begin_reclaim(&mut self, handle: u64) -> Option<(usize, Arc<ManagedSession>)> {
         let index = (handle as u32).checked_sub(1)? as usize;
         let slot = self.0.get_mut(index)?;
         if slot.generation != (handle >> 32) as u32 {
             return None;
         }
-        if matches!(&slot.state, State::Closing(session) if Arc::strong_count(session) == 1) {
+        if matches!(&slot.state, State::Closing(session) if Arc::strong_count(session) == 1 && session.reclaim_ready())
+        {
             let State::Closing(session) = std::mem::replace(&mut slot.state, State::Reclaiming)
             else {
                 unreachable!()
@@ -148,36 +169,70 @@ fn registry_lock() -> Result<MutexGuard<'static, Registry>, Failure> {
 }
 fn get(handle: u64) -> Result<SessionLease, Failure> {
     match &registry_lock()?.slot(handle)?.state {
-        State::Live(session) => Ok(SessionLease {
-            handle,
-            session: Some(Arc::clone(session)),
-        }),
+        State::Live(session) => match session.as_ref() {
+            ManagedSession::Legacy(_) => Ok(SessionLease {
+                handle,
+                session: Some(Arc::clone(session)),
+            }),
+            #[cfg(feature = "experimental-capability-native")]
+            ManagedSession::Capability(_) => {
+                Err(failure("invalid_session", "wrong session family", 3))
+            }
+        },
         _ => unreachable!("slot checks live state"),
     }
 }
 struct SessionLease {
     handle: u64,
-    session: Option<Arc<Session>>,
+    session: Option<Arc<ManagedSession>>,
 }
 impl std::ops::Deref for SessionLease {
     type Target = Session;
     fn deref(&self) -> &Session {
-        self.session.as_ref().expect("live operation lease")
+        match self.session.as_deref().expect("live operation lease") {
+            ManagedSession::Legacy(session) => session,
+            #[cfg(feature = "experimental-capability-native")]
+            ManagedSession::Capability(_) => unreachable!("legacy get checks family"),
+        }
     }
 }
 impl Drop for SessionLease {
     fn drop(&mut self) {
-        drop(self.session.take());
-        reclaim(self.handle);
+        if let Some(session) = self.session.take() {
+            release_lease(self.handle, session);
+        }
     }
 }
-fn reclaim(handle: u64) {
+// Publish all operation writes before another registry observer can see the last
+// transient reference disappear. The registry still owns a reference during
+// this drop, so the instance destructor cannot execute while holding its lock.
+fn release_lease(handle: u64, session: Arc<ManagedSession>) {
     let pending = {
         let Ok(mut registry) = registry().lock() else {
+            drop(session);
             return;
         };
+        let retained = (handle as u32)
+            .checked_sub(1)
+            .and_then(|index| registry.0.get(index as usize))
+            .filter(|slot| slot.generation == (handle >> 32) as u32)
+            .is_some_and(|slot| match &slot.state {
+                State::Live(owner) | State::Closing(owner) => Arc::ptr_eq(owner, &session),
+                _ => false,
+            });
+        if !retained {
+            // An unexpected registry state must not cause final destruction
+            // under the mutex, even on this defensive cleanup path.
+            drop(registry);
+            drop(session);
+            return;
+        }
+        drop(session);
         registry.begin_reclaim(handle)
     };
+    finish_reclaim(handle, pending);
+}
+fn finish_reclaim(handle: u64, pending: Option<(usize, Arc<ManagedSession>)>) {
     if let Some((index, session)) = pending {
         drop(session); // complete all instance and Arc deallocation before reuse
         if let Ok(mut registry) = registry().lock() {
@@ -202,7 +257,10 @@ impl Reservation {
             published: false,
         })
     }
-    fn publish(mut self, session: Session) -> Result<u64, Failure> {
+    fn publish(self, session: Session) -> Result<u64, Failure> {
+        self.publish_managed(ManagedSession::Legacy(session))
+    }
+    fn publish_managed(mut self, session: ManagedSession) -> Result<u64, Failure> {
         let session = Arc::new(session);
         let mut registry = registry_lock()?;
         let slot = &mut registry.0[self.index];
@@ -225,6 +283,117 @@ impl Drop for Reservation {
                 }
             }
         }
+    }
+}
+
+#[cfg(feature = "experimental-capability-native")]
+pub(crate) struct CapabilityRegistry;
+
+#[cfg(feature = "experimental-capability-native")]
+pub(crate) struct CapabilityReservation(Reservation);
+
+#[cfg(feature = "experimental-capability-native")]
+pub(crate) struct CapabilityLease {
+    handle: u64,
+    session: Option<Arc<ManagedSession>>,
+}
+
+#[cfg(feature = "experimental-capability-native")]
+impl std::ops::Deref for CapabilityLease {
+    type Target = crate::capability_ffi::session::CapabilitySession;
+    fn deref(&self) -> &Self::Target {
+        match self.session.as_deref().expect("live capability API lease") {
+            ManagedSession::Capability(session) => session,
+            ManagedSession::Legacy(_) => unreachable!("capability get checks family"),
+        }
+    }
+}
+
+#[cfg(feature = "experimental-capability-native")]
+impl Drop for CapabilityLease {
+    fn drop(&mut self) {
+        if let Some(session) = self.session.take() {
+            release_lease(self.handle, session);
+        }
+    }
+}
+
+#[cfg(feature = "experimental-capability-native")]
+fn capability_registry_error(error: Failure) -> crate::capability_ffi::error::Failure {
+    crate::capability_ffi::error::Failure {
+        status: error.1,
+        code: error.0.code,
+        message: "shared session registry rejected the operation",
+    }
+}
+
+#[cfg(feature = "experimental-capability-native")]
+impl crate::capability_ffi::session::Reservation for CapabilityReservation {
+    fn publish(
+        self,
+        session: crate::capability_ffi::session::CapabilitySession,
+    ) -> Result<u64, crate::capability_ffi::error::Failure> {
+        self.0
+            .publish_managed(ManagedSession::Capability(session))
+            .map_err(capability_registry_error)
+    }
+}
+
+#[cfg(feature = "experimental-capability-native")]
+impl crate::capability_ffi::session::Registry for CapabilityRegistry {
+    type Reservation = CapabilityReservation;
+    type Lease = CapabilityLease;
+
+    fn reserve(&self) -> Result<Self::Reservation, crate::capability_ffi::error::Failure> {
+        Reservation::new()
+            .map(CapabilityReservation)
+            .map_err(capability_registry_error)
+    }
+
+    fn get(
+        &self,
+        handle: u64,
+        mode: crate::capability_ffi::session::AccessMode,
+    ) -> Result<Self::Lease, crate::capability_ffi::error::Failure> {
+        use crate::capability_ffi::{error::Failure, session::AccessMode};
+        let registry = registry_lock().map_err(capability_registry_error)?;
+        let slot = (handle as u32)
+            .checked_sub(1)
+            .and_then(|index| registry.0.get(index as usize))
+            .filter(|slot| (handle >> 32) != 0 && slot.generation == (handle >> 32) as u32)
+            .ok_or_else(|| Failure::api("unknown or stale session handle"))?;
+        let owner = match &slot.state {
+            State::Live(owner) => owner,
+            State::Closing(owner) if mode == AccessMode::AckClosing => owner,
+            _ => return Err(Failure::api("closed or unavailable session handle")),
+        };
+        if !matches!(owner.as_ref(), ManagedSession::Capability(_)) {
+            return Err(Failure::api("wrong session family"));
+        }
+        Ok(CapabilityLease {
+            handle,
+            session: Some(Arc::clone(owner)),
+        })
+    }
+
+    fn close(&self, handle: u64) -> Result<Self::Lease, crate::capability_ffi::error::Failure> {
+        use crate::capability_ffi::error::Failure;
+        let mut registry = registry_lock().map_err(capability_registry_error)?;
+        let slot = registry.slot(handle).map_err(capability_registry_error)?;
+        let State::Live(owner) = &slot.state else {
+            unreachable!("slot checks live state")
+        };
+        let ManagedSession::Capability(session) = owner.as_ref() else {
+            return Err(Failure::api("wrong session family"));
+        };
+        // Atomics only: no instance, ticket ledger or mailbox lock here.
+        session.mark_terminal();
+        let retained = Arc::clone(owner);
+        slot.state = State::Closing(Arc::clone(&retained));
+        Ok(CapabilityLease {
+            handle,
+            session: Some(retained),
+        })
     }
 }
 
@@ -417,13 +586,21 @@ pub unsafe extern "C" fn mixer_vm_session_close_v1(handle: u64, out: *mut MixerV
                 let State::Live(session) = &slot.state else {
                     unreachable!()
                 };
+                #[cfg(not(feature = "experimental-capability-native"))]
+                let ManagedSession::Legacy(legacy) = session.as_ref();
+                #[cfg(feature = "experimental-capability-native")]
+                let legacy = match session.as_ref() {
+                    ManagedSession::Legacy(legacy) => legacy,
+                    ManagedSession::Capability(_) => {
+                        return Err(failure("invalid_session", "wrong session family", 3))
+                    }
+                };
+                legacy.stop();
                 let session = Arc::clone(session);
-                session.stop();
                 slot.state = State::Closing(Arc::clone(&session));
                 session
             };
-            drop(session); // large instance destruction does not hold the registry mutex
-            reclaim(handle);
+            release_lease(handle, session);
             Ok(MixerVmReport::default())
         })
     }
@@ -459,7 +636,9 @@ mod tests {
     #[test]
     fn closed_in_flight_and_reserved_slots_still_count_against_cap() {
         let mut registry = Registry::new();
-        let session = session();
+        let session = Arc::new(ManagedSession::Legacy(
+            Arc::try_unwrap(session()).ok().unwrap(),
+        ));
         registry.0[0].state = State::Closing(Arc::clone(&session));
         for i in 1..SESSION_CAP {
             assert_eq!(registry.reserve().unwrap().0, i);

@@ -1,0 +1,19 @@
+    Checking mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/vm)
+error: you seem to be trying to use `match` to destructure a single infallible pattern
+   --> src/session.rs:589:17
+    |
+589 | /                 let legacy = match session.as_ref() {
+590 | |                     ManagedSession::Legacy(legacy) => legacy,
+591 | |                     #[cfg(feature = "experimental-capability-native")]
+592 | |                     ManagedSession::Capability(_) => {
+...   |
+595 | |                 };
+    | |__________________^ help: consider using `let`: `let ManagedSession::Legacy(legacy) = session.as_ref();`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#infallible_destructuring_match
+    = note: `-D clippy::infallible-destructuring-match` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::infallible_destructuring_match)]`
+
+error: could not compile `mixer-vm` (lib test) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `mixer-vm` (lib) due to 1 previous error

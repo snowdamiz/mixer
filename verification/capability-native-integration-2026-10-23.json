@@ -1,0 +1,115 @@
+{
+  "schema": 1,
+  "observedAt": "2026-10-23T05:02:49.529994+00:00",
+  "sourceManifestSHA256": "76372fd254e646141e991b3289b14c8380f13ea68602b21d4aa746080fddc8cf",
+  "matched": {
+    "sourceFiles": 90,
+    "ownerCommandLogs": 76,
+    "archiveBuildLogs": 2,
+    "reviewCommandLogs": 9,
+    "unchangedLegacyInputs": 14,
+    "localArchivesRehashed": [
+      "debug",
+      "release"
+    ]
+  },
+  "receipts": {
+    "vm/verification/capability-native/2026-10-23-final/receipt.json": "e3d31407e3542484aadadd2b3b9134763ddaee8a29b9b307475711c02a6b4b9f",
+    "verification/capability-native-review/receipt.json": "e308e3cc4aeb5a579c62f671506ba8b9eddc3487e3d552189132d18760dc64af",
+    "vm/verification/capability-native/2026-10-23-final/review-archive-provenance.json": "740b3e4090e449018710649b1ed91f8d323711c5b4d9caaa89bf68dbfcc44ed5"
+  },
+  "rootSourceReview": "Shared registry, synchronized transient release, destructor retention, preflight, native ticket ledger, unwind quarantine, full validation split and status mapping reviewed; no outstanding findings.",
+  "checks": {
+    "default-debug": {
+      "passed": 91,
+      "ignored": 8
+    },
+    "default-release": {
+      "passed": 91,
+      "ignored": 8
+    },
+    "all-debug": {
+      "passed": 185,
+      "ignored": 9
+    },
+    "all-release": {
+      "passed": 185,
+      "ignored": 9
+    },
+    "review_session_lifetime-debug": {
+      "passed": 1,
+      "ignored": 0
+    },
+    "capability_registry-debug": {
+      "passed": 1,
+      "ignored": 0
+    },
+    "capability_ffi_public-debug": {
+      "passed": 4,
+      "ignored": 0
+    },
+    "capability_ffi_allocations-debug": {
+      "passed": 1,
+      "ignored": 0
+    },
+    "oracles-debug": {
+      "passed": 9,
+      "ignored": 0
+    },
+    "review_session_lifetime-release": {
+      "passed": 1,
+      "ignored": 0
+    },
+    "capability_registry-release": {
+      "passed": 1,
+      "ignored": 0
+    },
+    "capability_ffi_public-release": {
+      "passed": 4,
+      "ignored": 0
+    },
+    "capability_ffi_allocations-release": {
+      "passed": 1,
+      "ignored": 0
+    },
+    "oracles-release": {
+      "passed": 9,
+      "ignored": 0
+    }
+  },
+  "independentPublicRuns": [
+    {
+      "configuration": "debug",
+      "binary_sha256": "4e479722219937e04ae7f19695674455c5c9d1ee36f2bcafae12a33ad92950a9",
+      "result": {
+        "public_c_checks": 4517,
+        "passed": true,
+        "take_close_races": 48,
+        "ack_close_races": 48
+      }
+    },
+    {
+      "configuration": "release",
+      "binary_sha256": "ae717268232ab16a35a2e4d0bf6c8c907bf2240dda415dcf2683ba4b7c65a1e6",
+      "result": {
+        "public_c_checks": 4589,
+        "passed": true,
+        "take_close_races": 48,
+        "ack_close_races": 48
+      }
+    }
+  ],
+  "result": "Frozen native C implementation and independent public-boundary review matched",
+  "limitations": [
+    "existing core/Error String/Arc/standard mutex OOM abort boundaries remain; negative children retained by old suites",
+    "quarantine monotonic and capacity-pinning; poison ack failure is not recovery/reclamation",
+    "native C takes count exit obligations independently of temporary Rust objects; trusted caller must ack actual exit",
+    "dynamic post is trusted opaque bytes; no JSON/grants/I/O/Swift bridge/scheduler/release profile or identity qualification",
+    "raw tuple is scoped to supplied valid session; equal token bits in two valid contexts cannot reveal caller intent",
+    "iOS/Android cross-build/link only; phones disconnected, no physical run or mobile lifecycle claim",
+    "full Swift/FieldLog owned-VM execution, package dogfood, stores/operations/GA remain open",
+    "Default and experimental native C archives preserve legacy admission; there is no profile4 or activation/release migration.",
+    "A repeated debug build differed in bytes; exact tested archive provenance is retained, with no bit-reproducibility claim.",
+    "Expanded Linux native C CI is a subsequent check; local author/reviewer execution was macOS arm64."
+  ]
+}

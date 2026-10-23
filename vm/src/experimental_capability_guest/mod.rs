@@ -194,24 +194,8 @@ impl CapabilityGuest {
         guest: GuestLimits,
         installed_startup_export: &str,
     ) -> Result<Self, Error> {
-        if vm.profile != Profile::TableMemoryV3
-            || guest.turn_milliseconds == 0
-            || guest.turn_milliseconds > 50
-        {
-            return Err(error(
-                "invalid_limits",
-                "capability guest requires v3 grammar and a1..50ms turn ceiling",
-            ));
-        }
-        if installed_startup_export.is_empty() || installed_startup_export.len() > 4096 {
-            return Err(error(
-                "capability_export",
-                "invalid installed startup export",
-            ));
-        }
-        let module = Module::decode_capability(wasm, &vm)?;
-        let startup_index = exported(&module, installed_startup_export, false)?;
-        let wake_index = exported(&module, WAKE_EXPORT, true)?;
+        let (module, startup_index, wake_index) =
+            Self::validated(wasm, &vm, &mailbox, guest, installed_startup_export)?;
         let instance = Instance::new_capability(module, vm)?;
         let shared = Arc::new(Shared {
             mailbox: mb::Mailbox::new(mailbox).map_err(|e| {
@@ -232,6 +216,58 @@ impl CapabilityGuest {
             startup_complete: false,
             limits: guest,
         })
+    }
+    fn validated(
+        wasm: &[u8],
+        vm: &Limits,
+        mailbox: &mb::Limits,
+        guest: GuestLimits,
+        installed_startup_export: &str,
+    ) -> Result<(Module, u32, u32), Error> {
+        if vm.profile != Profile::TableMemoryV3
+            || guest.turn_milliseconds == 0
+            || guest.turn_milliseconds > 50
+        {
+            return Err(error(
+                "invalid_limits",
+                "capability guest requires v3 grammar and a1..50ms turn ceiling",
+            ));
+        }
+        if mailbox.maximum_requests == 0
+            || mailbox.maximum_requests > mb::MAX_REQUESTS
+            || mailbox.reservation_bytes == 0
+            || mailbox.reservation_bytes > mb::MAX_RESERVATION_BYTES
+            || mailbox.timeout_milliseconds == 0
+            || mailbox.timeout_milliseconds > mb::MAX_TIMEOUT_MILLISECONDS
+        {
+            return Err(error("invalid_limits", "invalid capability mailbox limits"));
+        }
+        if installed_startup_export.is_empty() || installed_startup_export.len() > 4096 {
+            return Err(error(
+                "capability_export",
+                "invalid installed startup export",
+            ));
+        }
+        let module = Module::decode_capability(wasm, vm)?;
+        let startup_index = exported(&module, installed_startup_export, false)?;
+        let wake_index = exported(&module, WAKE_EXPORT, true)?;
+        Ok((module, startup_index, wake_index))
+    }
+    /// Exact constructor validation, with no instance linear memory/owner/startup.
+    #[cfg(feature = "experimental-capability-native")]
+    pub(crate) fn validate_only(
+        wasm: &[u8],
+        vm: &Limits,
+        mailbox: &mb::Limits,
+        guest: GuestLimits,
+        startup: &str,
+    ) -> Result<(), Error> {
+        Self::validated(wasm, vm, mailbox, guest, startup).map(|_| ())
+    }
+    #[cfg(feature = "experimental-capability-native")]
+    pub(crate) fn write_memory(&mut self, offset: u32, source: &[u8]) -> Result<(), Error> {
+        self.live()?;
+        self.instance.write_memory(offset, source)
     }
     pub fn native_port(&self) -> CapabilityPort {
         CapabilityPort {

@@ -1,4 +1,6 @@
 //! Owned bounded WebAssembly profiles. No production runtime dependencies.
+#[cfg(feature = "experimental-capability-native")]
+mod capability_ffi;
 mod decode;
 mod execute;
 #[cfg(feature = "experimental-stream-validation")]
@@ -13,6 +15,8 @@ mod inspect;
 mod session;
 mod validate;
 
+#[cfg(feature = "experimental-capability-native")]
+pub use capability_ffi::*;
 pub use decode::{validation_inventory, Inventory, Module};
 pub use execute::{Cancellation, Instance};
 pub use ffi::*;

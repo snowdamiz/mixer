@@ -240,12 +240,19 @@ retain their tickets through actual cleanup; there is no counted C registry or
 native I/O bridge in this slice. Arc/mutex OOM abort and poisoned-mailbox ack
 failure remain explicit. See `verification/capability-guest-integration-2026-10-23.json`.
 
-The proposed follow-on native capability ABI must share the existing sixteen-session
-ceiling and retain closing sessions until every dispatched native operation exits.
-Its C structure layouts compile on macOS arm64/x86_64 and iOS/Android arm64; only
-the host assertion program executes. This is a design/layout check, without
-implemented functions, Rust layout parity or a native bridge. See
-`docs/capability-native-abi-proposal.md`.
+The opt-in native capability C layer now shares the existing sixteen-session
+registry with legacy sessions. A fixed eight-ticket ledger retains native exit
+obligations after close; quarantine and final destruction also retain capacity.
+Complete pointer preflight rejects writable aliases without changing any output.
+Default91 and combined185 tests pass per mode, plus9 explicit oracle functions
+per mode and14 actual C smoke runs. Independent public C checks include48 take/close
+and48 ack/close races in each mode. Root matched90 inputs,76 implementation logs,
+2 archive-build logs,9 independent logs and14 unchanged legacy inputs. iOS/Android
+arm64 archive/C layout/link checks pass without execution. Exact tested archives
+are pinned; a differing repeated debug build is preserved without a bit-reproducibility
+claim. Strict Swift dispatch, scheduler, actual guest I/O and activation remain
+open. See `verification/capability-native-integration-2026-10-23.json` and
+`docs/experimental-capability-native-implementation.md`.
 
 Official Swift 6.3.3 Android/Wasm SDKs are installed and compiler probes have run
 on a physical Pixel and in a development-only Node WASI oracle. Xcode 27.1 / Swift
@@ -323,3 +330,9 @@ Rust guest tests and all 90 raw transport fixtures in each Swift build mode,
 plus the existing 45 capability and 25 native Thread Sanitizer tests. See
 `verification/github-ci-3e118a9/receipt.json`. The carried deadline overload and
 experimental native C session implementation are later work, outside that run.
+
+GitHub run39902113915 atbec5731 passed all three jobs, including51 capability
+tests and31 native HTTP/exit/deadline tests under Thread Sanitizer, both raw90
+fixture modes and the generated simulator consumer. See
+`verification/github-ci-bec5731/receipt.json`. This predates the native C layer
+and its expanded Linux public-client checks.

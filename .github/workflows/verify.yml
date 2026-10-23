@@ -78,13 +78,27 @@ jobs:
         run: cargo test --locked --manifest-path vm/Cargo.toml
       - name: Owned VM release tests
         run: cargo test --locked --release --manifest-path vm/Cargo.toml
-      - name: Experimental streaming validator, capability guest and explicit reference checks
+      - name: Experimental streaming validator, native capability sessions and explicit reference checks
         run: |
           python3 vm/tools/generate-capability-terminals.py
-          cargo test --locked --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-capability-guest
-          cargo test --locked --release --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-capability-guest
-          cargo test --locked --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-capability-guest -- --ignored
-          cargo test --locked --release --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-capability-guest -- --ignored
+          cargo test --locked --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-capability-native
+          cargo test --locked --release --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-capability-native
+          cargo test --locked --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-capability-native -- --ignored
+          cargo test --locked --release --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-capability-native -- --ignored
+      - name: Public native capability C client
+        run: |
+          cargo build --locked --release --lib --manifest-path vm/Cargo.toml --features experimental-capability-native
+          cc -std=c11 -O2 -Wall -Wextra -Werror -Ivm/include \
+            vm/tests/capability_ffi_smoke.c vm/target/release/libmixer_vm.a \
+            -ldl -lpthread -lm -o "$RUNNER_TEMP/capability-native-smoke"
+          "$RUNNER_TEMP/capability-native-smoke"
+          python3 verification/capability-native-review/make-fixtures.py "$RUNNER_TEMP/capability-native-fixtures"
+          cc -std=c11 -O2 -Wall -Wextra -Werror -Ivm/include \
+            verification/capability-native-review/public_client.c vm/target/release/libmixer_vm.a \
+            -pthread -ldl -lm -o "$RUNNER_TEMP/capability-native-review"
+          "$RUNNER_TEMP/capability-native-review" \
+            "$RUNNER_TEMP/capability-native-fixtures/capability.wasm" \
+            "$RUNNER_TEMP/capability-native-fixtures/legacy.wasm"
   services:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
