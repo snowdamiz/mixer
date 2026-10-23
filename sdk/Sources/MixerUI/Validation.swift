@@ -99,7 +99,17 @@ public struct UIValidator: Sendable {
             // This aggregate bound also protects in-memory trees before encoding. The exact
             // serialized byte bound is checked by encode/decode on the wire.
             guard bytes <= limits.maximumMessageBytes else { throw UIValidationError.limitExceeded("contentBytes") }
-            pending.append(contentsOf: node.children.reversed().map { ($0, depth + 1) })
+            // Admit the entire next frontier before retaining any child. Counting
+            // only visited identities lets a wide/deep tree grow pending storage
+            // beyond the node limit before it reaches the eventual rejection.
+            guard node.children.isEmpty || depth < limits.maximumDepth else {
+                throw UIValidationError.limitExceeded("depth")
+            }
+            let availableNodes = limits.maximumNodes - identities.count - pending.count
+            guard node.children.count <= availableNodes else {
+                throw UIValidationError.limitExceeded("nodes")
+            }
+            for child in node.children.reversed() { pending.append((child, depth + 1)) }
         }
         return ValidatedUIDocument(document: document, nodeCount: identities.count)
     }

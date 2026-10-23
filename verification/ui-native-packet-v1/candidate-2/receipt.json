@@ -1,0 +1,514 @@
+{
+  "status": "passed",
+  "source_tree_sha256": "fe1077dc2319c0dc9e745b56f2cb439ee83f77e12c458ae335a447e82427ba8c",
+  "source_file_count": 48,
+  "head_at_start": "d6c41a06f9b787250a2ef3c30e51014f0b72b043",
+  "started_at": "2026-10-23T20:42:25.251480+00:00",
+  "commands": [
+    {
+      "name": "host-swift-version",
+      "argv": [
+        "swift",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source",
+      "exit_code": 0,
+      "elapsed_seconds": 0.09324695798568428,
+      "environment_overrides": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "log": "verification/ui-native-packet-v1/candidate-2/host-swift-version.log",
+      "log_sha256": "30bb0d72a580e8e936ab32e24cab2876f82fa6b06d66fef876fe21a47e828acc"
+    },
+    {
+      "name": "java-version",
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "-version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source",
+      "exit_code": 0,
+      "elapsed_seconds": 0.02652787510305643,
+      "environment_overrides": {},
+      "log": "verification/ui-native-packet-v1/candidate-2/java-version.log",
+      "log_sha256": "d41a01cb7c63cedd122f365a9431b058d35344e07c1fb9e5747b69889faad3d6"
+    },
+    {
+      "name": "official-swift-version",
+      "argv": [
+        "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source",
+      "exit_code": 0,
+      "elapsed_seconds": 0.34365420904941857,
+      "environment_overrides": {
+        "DEVELOPER_DIR": "/Applications/Xcode_26.6.app/Contents/Developer"
+      },
+      "log": "verification/ui-native-packet-v1/candidate-2/official-swift-version.log",
+      "log_sha256": "f7c8e3e54412f67bf6632e8c6744533677d8d65acd8ce3004b0f3b9806e8aa48"
+    },
+    {
+      "name": "iphoneos-sdk",
+      "argv": [
+        "xcrun",
+        "--sdk",
+        "iphoneos",
+        "--show-sdk-path"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source",
+      "exit_code": 0,
+      "elapsed_seconds": 0.007014832925051451,
+      "environment_overrides": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "log": "verification/ui-native-packet-v1/candidate-2/iphoneos-sdk.log",
+      "log_sha256": "b2591e080c0bf70d321e9b24dce762b470ead1f9e54887c13737c1565c183bd2"
+    },
+    {
+      "name": "sdk-manifest-parity",
+      "argv": [
+        "python3",
+        "scripts/ci/check-sdk-package.py"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source",
+      "exit_code": 0,
+      "elapsed_seconds": 1.1343311249511316,
+      "environment_overrides": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "log": "verification/ui-native-packet-v1/candidate-2/sdk-manifest-parity.log",
+      "log_sha256": "51f6ee611b50c501bc41941db245bcc28e2c56a4fe8cf8a10982a69023025b12"
+    },
+    {
+      "name": "sdk-debug",
+      "argv": [
+        "swift",
+        "test",
+        "--package-path",
+        "sdk",
+        "-c",
+        "debug",
+        "-Xswiftc",
+        "-warnings-as-errors"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source",
+      "exit_code": 0,
+      "elapsed_seconds": 13.79426141595468,
+      "environment_overrides": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "log": "verification/ui-native-packet-v1/candidate-2/sdk-debug.log",
+      "log_sha256": "45e637decf95efd022b8565c5ee003f3241a3262baa5fae6a09a2b329ffd3220"
+    },
+    {
+      "name": "sdk-release",
+      "argv": [
+        "swift",
+        "test",
+        "--package-path",
+        "sdk",
+        "-c",
+        "release",
+        "-Xswiftc",
+        "-warnings-as-errors"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source",
+      "exit_code": 0,
+      "elapsed_seconds": 14.457227332983166,
+      "environment_overrides": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "log": "verification/ui-native-packet-v1/candidate-2/sdk-release.log",
+      "log_sha256": "afe6c3901430dca2b58d96266145b914557d4bee1c45284a0d835e9e4ce05b16"
+    },
+    {
+      "name": "public-consumer-emit",
+      "argv": [
+        "swift",
+        "run",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/consumer",
+        "-c",
+        "release",
+        "-Xswiftc",
+        "-warnings-as-errors",
+        "PacketConsumer",
+        "emit",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/packets"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source",
+      "exit_code": 0,
+      "elapsed_seconds": 7.010741667007096,
+      "environment_overrides": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "log": "verification/ui-native-packet-v1/candidate-2/public-consumer-emit.log",
+      "log_sha256": "844576b8b64b2d3d8eb65bc90196489c52ebd05124963e712467f8f88fe82fef"
+    },
+    {
+      "name": "javac-production-decoder",
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/javac",
+        "--release",
+        "17",
+        "-Xlint:all",
+        "-Werror",
+        "-d",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/java",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/native/android/app/src/dev/mixer/android/Json.java",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/native/android/app/src/dev/mixer/android/UiPacket.java",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/verification/ui-native-packet-v1/PacketConsumer.java"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source",
+      "exit_code": 0,
+      "elapsed_seconds": 0.41216441593132913,
+      "environment_overrides": {},
+      "log": "verification/ui-native-packet-v1/candidate-2/javac-production-decoder.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "java-production-decoder",
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "-cp",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/java",
+        "dev.mixer.android.PacketConsumer",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/packets"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source",
+      "exit_code": 0,
+      "elapsed_seconds": 0.057404458057135344,
+      "environment_overrides": {},
+      "log": "verification/ui-native-packet-v1/candidate-2/java-production-decoder.log",
+      "log_sha256": "4da287418f8a60480fceb0205e95c8be2b74f03e541e27b7a075799bbbd83813"
+    },
+    {
+      "name": "public-consumer-return-events",
+      "argv": [
+        "swift",
+        "run",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/consumer",
+        "-c",
+        "release",
+        "-Xswiftc",
+        "-warnings-as-errors",
+        "PacketConsumer",
+        "verify-events",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/packets"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source",
+      "exit_code": 0,
+      "elapsed_seconds": 0.6965617089299485,
+      "environment_overrides": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "log": "verification/ui-native-packet-v1/candidate-2/public-consumer-return-events.log",
+      "log_sha256": "3cb3f46d592778bdca946585d773258e0b9ec9900e917b8d60cca996a71ef824"
+    },
+    {
+      "name": "ios-MixerCore",
+      "argv": [
+        "swiftc",
+        "-swift-version",
+        "6",
+        "-warnings-as-errors",
+        "-parse-as-library",
+        "-emit-module",
+        "-module-name",
+        "MixerCore",
+        "-emit-module-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/ios/MixerCore.swiftmodule",
+        "-module-cache-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/ios/cache",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/ios",
+        "-target",
+        "arm64-apple-ios17.0",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS27.1.sdk",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/sdk/Sources/MixerCore/FeatureStore.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/sdk/Sources/MixerCore/JSONInputGuard.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/sdk/Sources/MixerCore/Lifecycle.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/sdk/Sources/MixerCore/Navigation.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/sdk/Sources/MixerCore/Resources.swift"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source",
+      "exit_code": 0,
+      "elapsed_seconds": 1.4423698330065235,
+      "environment_overrides": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "log": "verification/ui-native-packet-v1/candidate-2/ios-MixerCore.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "ios-MixerUI",
+      "argv": [
+        "swiftc",
+        "-swift-version",
+        "6",
+        "-warnings-as-errors",
+        "-parse-as-library",
+        "-emit-module",
+        "-module-name",
+        "MixerUI",
+        "-emit-module-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/ios/MixerUI.swiftmodule",
+        "-module-cache-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/ios/cache",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/ios",
+        "-target",
+        "arm64-apple-ios17.0",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS27.1.sdk",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/sdk/Sources/MixerUI/Authoring.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/sdk/Sources/MixerUI/NativePacketV1.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/sdk/Sources/MixerUI/Protocol.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/sdk/Sources/MixerUI/Reconciliation.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/sdk/Sources/MixerUI/Validation.swift"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source",
+      "exit_code": 0,
+      "elapsed_seconds": 0.7713026669807732,
+      "environment_overrides": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "log": "verification/ui-native-packet-v1/candidate-2/ios-MixerUI.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "ios-MixerGuest",
+      "argv": [
+        "swiftc",
+        "-swift-version",
+        "6",
+        "-warnings-as-errors",
+        "-parse-as-library",
+        "-emit-module",
+        "-module-name",
+        "MixerGuest",
+        "-emit-module-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/ios/MixerGuest.swiftmodule",
+        "-module-cache-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/ios/cache",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/ios",
+        "-target",
+        "arm64-apple-ios17.0",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS27.1.sdk",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/sdk/Sources/MixerGuest/GuestUICodec.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/sdk/Sources/MixerGuest/GuestUIEventCodecV1.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/sdk/Sources/MixerGuest/GuestUIExchangeV1.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/sdk/Sources/MixerGuest/GuestUIProtocolV1.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/sdk/Sources/MixerGuest/GuestUIWakeV1.swift"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source",
+      "exit_code": 0,
+      "elapsed_seconds": 0.7293575409566984,
+      "environment_overrides": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "log": "verification/ui-native-packet-v1/candidate-2/ios-MixerGuest.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "android-MixerCore",
+      "argv": [
+        "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "-swift-version",
+        "6",
+        "-warnings-as-errors",
+        "-parse-as-library",
+        "-emit-module",
+        "-module-name",
+        "MixerCore",
+        "-emit-module-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/android/MixerCore.swiftmodule",
+        "-module-cache-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/android/cache",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/android",
+        "-target",
+        "aarch64-unknown-linux-android30",
+        "-sdk",
+        "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/ndk-sysroot",
+        "-resource-dir",
+        "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/swift-resources/usr/lib/swift-aarch64",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/sdk/Sources/MixerCore/FeatureStore.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/sdk/Sources/MixerCore/JSONInputGuard.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/sdk/Sources/MixerCore/Lifecycle.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/sdk/Sources/MixerCore/Navigation.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/sdk/Sources/MixerCore/Resources.swift"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source",
+      "exit_code": 0,
+      "elapsed_seconds": 2.0862267500488088,
+      "environment_overrides": {
+        "DEVELOPER_DIR": "/Applications/Xcode_26.6.app/Contents/Developer"
+      },
+      "log": "verification/ui-native-packet-v1/candidate-2/android-MixerCore.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "android-MixerUI",
+      "argv": [
+        "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "-swift-version",
+        "6",
+        "-warnings-as-errors",
+        "-parse-as-library",
+        "-emit-module",
+        "-module-name",
+        "MixerUI",
+        "-emit-module-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/android/MixerUI.swiftmodule",
+        "-module-cache-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/android/cache",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/android",
+        "-target",
+        "aarch64-unknown-linux-android30",
+        "-sdk",
+        "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/ndk-sysroot",
+        "-resource-dir",
+        "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/swift-resources/usr/lib/swift-aarch64",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/sdk/Sources/MixerUI/Authoring.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/sdk/Sources/MixerUI/NativePacketV1.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/sdk/Sources/MixerUI/Protocol.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/sdk/Sources/MixerUI/Reconciliation.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/sdk/Sources/MixerUI/Validation.swift"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source",
+      "exit_code": 0,
+      "elapsed_seconds": 0.7475927909836173,
+      "environment_overrides": {
+        "DEVELOPER_DIR": "/Applications/Xcode_26.6.app/Contents/Developer"
+      },
+      "log": "verification/ui-native-packet-v1/candidate-2/android-MixerUI.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "android-MixerGuest",
+      "argv": [
+        "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "-swift-version",
+        "6",
+        "-warnings-as-errors",
+        "-parse-as-library",
+        "-emit-module",
+        "-module-name",
+        "MixerGuest",
+        "-emit-module-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/android/MixerGuest.swiftmodule",
+        "-module-cache-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/android/cache",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/android",
+        "-target",
+        "aarch64-unknown-linux-android30",
+        "-sdk",
+        "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/ndk-sysroot",
+        "-resource-dir",
+        "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/swift-resources/usr/lib/swift-aarch64",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/sdk/Sources/MixerGuest/GuestUICodec.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/sdk/Sources/MixerGuest/GuestUIEventCodecV1.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/sdk/Sources/MixerGuest/GuestUIExchangeV1.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/sdk/Sources/MixerGuest/GuestUIProtocolV1.swift",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source/sdk/Sources/MixerGuest/GuestUIWakeV1.swift"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/ui-native-packet-v1/candidate-2/.build/source",
+      "exit_code": 0,
+      "elapsed_seconds": 0.7302432920550928,
+      "environment_overrides": {
+        "DEVELOPER_DIR": "/Applications/Xcode_26.6.app/Contents/Developer"
+      },
+      "log": "verification/ui-native-packet-v1/candidate-2/android-MixerGuest.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "artifacts": {
+    "verification/ui-native-packet-v1/candidate-2/.build/packets/activate.json": {
+      "sha256": "f96580437821aafb41b2af80e58fee65334ecd686d0b4d37891033c23b83bdce",
+      "bytes": 107
+    },
+    "verification/ui-native-packet-v1/candidate-2/.build/packets/all-kinds.json": {
+      "sha256": "5f5e8d5061bda8202eb3a20a49780fb675349b13c1ec63143c12857108842853",
+      "bytes": 1609
+    },
+    "verification/ui-native-packet-v1/candidate-2/.build/packets/baseline-unsupported.json": {
+      "sha256": "280655aaea19b886b3ed266b80fd0652e223ad0e534a53cdfbb8425cf69bece4",
+      "bytes": 369
+    },
+    "verification/ui-native-packet-v1/candidate-2/.build/packets/depth64.json": {
+      "sha256": "6219df081cb0722d000591534da916a471ed7cbee5d47998d1711ac34bb674e9",
+      "bytes": 7132
+    },
+    "verification/ui-native-packet-v1/candidate-2/.build/packets/exact-limit.json": {
+      "sha256": "1d110a5a9c1e2da78e5aec5203c1ffdb75063aa4ad69ac56bce4f66acf6ebe5b",
+      "bytes": 1048576
+    },
+    "verification/ui-native-packet-v1/candidate-2/.build/packets/first.json": {
+      "sha256": "c8c1b709d8d8fcc122ce8b0b27c3d865bccb3fd2666a0c4bd35a3437cf20f5bb",
+      "bytes": 524
+    },
+    "verification/ui-native-packet-v1/candidate-2/.build/packets/reinserted.json": {
+      "sha256": "caf86f4114bb0e05f8797677ea5220864a270513502ad21cfe1504561f7c103d",
+      "bytes": 372
+    },
+    "verification/ui-native-packet-v1/candidate-2/.build/packets/removed.json": {
+      "sha256": "569dc922feb891bc05063581b2ab48175969b4cf34b01efade3edfc54ccf2ad4",
+      "bytes": 372
+    },
+    "verification/ui-native-packet-v1/candidate-2/.build/packets/second.json": {
+      "sha256": "634e4dfb8916740f034e099ff9aa1c3d17efd989cfd4801e0950899fea926305",
+      "bytes": 530
+    },
+    "verification/ui-native-packet-v1/candidate-2/.build/packets/textChange.json": {
+      "sha256": "bcecb2a9104c9239c24defd37a1324d8457432862cdbca8dc3a6939696aad619",
+      "bytes": 127
+    },
+    "verification/ui-native-packet-v1/candidate-2/.build/packets/unicode.json": {
+      "sha256": "a7892e2e27556ba1650e991415edb4fea4a25d8b8cfce4d42f80918fb46d1942",
+      "bytes": 451
+    },
+    "verification/ui-native-packet-v1/candidate-2/.build/packets/valueChange.json": {
+      "sha256": "d0bf56b9fd6ff0857d380871b7397e294ce33cff8561f2d5a9dcdc9c6a8f2ec6",
+      "bytes": 111
+    },
+    "verification/ui-native-packet-v1/candidate-2/.build/ios/MixerCore.swiftmodule": {
+      "sha256": "649af0085501126000cf79b99bf86ebdad6e1cb250635e03e8af78997ef39e8e",
+      "bytes": 122320
+    },
+    "verification/ui-native-packet-v1/candidate-2/.build/ios/MixerUI.swiftmodule": {
+      "sha256": "6352b2737667b99bc32c1618efb78caf14b86081b0d211a506c6510f56d68490",
+      "bytes": 204704
+    },
+    "verification/ui-native-packet-v1/candidate-2/.build/ios/MixerGuest.swiftmodule": {
+      "sha256": "4073463bc28c502154b539044e48cdc1ec16d6fb27aafb55b9ed05b14c8ec5d3",
+      "bytes": 151456
+    },
+    "verification/ui-native-packet-v1/candidate-2/.build/android/MixerCore.swiftmodule": {
+      "sha256": "2b21fe8fb134a9c0c6ad3dbaa1b79826d985312d2240eb7e944b8afa170db480",
+      "bytes": 120492
+    },
+    "verification/ui-native-packet-v1/candidate-2/.build/android/MixerUI.swiftmodule": {
+      "sha256": "1bf2c75e0bb07877a3be896a99193cc0fd8a1476db1d032e15f1d82c5d810a98",
+      "bytes": 202780
+    },
+    "verification/ui-native-packet-v1/candidate-2/.build/android/MixerGuest.swiftmodule": {
+      "sha256": "bc68b67e88f0919772ae59c2c636f107c7065fda97dc2f40ce6f0ea67fda8a2c",
+      "bytes": 149680
+    }
+  },
+  "scope": "Data encoder only. Exact frozen SDK host Debug/Release tests, existing production Java decoder interoperation, public Swift event round trip, and iOS/Android modules. No native presentation, JNI, widget, signed-health, target runtime, physical parity, publication or GA qualification.",
+  "android_sdk_metadata": {
+    "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/swift-sdk.json": "e81f3f2142bce0a795cdec567ad24434db3a7b02c288eb2eef2041d2066111dc",
+    "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/swift-toolset.json": "0f9e3a784a4e60bf4c816460dae0ed64e0a723167af111fc05bac8a010b0e065"
+  },
+  "completed_at": "2026-10-23T20:43:09.813359+00:00",
+  "unchanged_live_and_archive_source_checks": 96
+}

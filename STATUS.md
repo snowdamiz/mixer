@@ -46,6 +46,18 @@ fresh private Android host runner under Swift 6.2.4. See
 
 Observed implementation and evidence:
 
+- The additive SDK native packet encoder preserves existing identities and full
+  unsigned revisions, validates standard UI bounds and measures escaped output
+  before allocating its 1 MiB buffer. Independent review found and verified a
+  repair to the shared validator's pending-tree bound: child count/depth admission
+  now precedes queue growth. The exact repaired candidate passes 51 SDK tests per
+  Debug/Release, nine new focused cases, 16 production Java decoder checks, three
+  public event round trips and iOS/Android module compilation. Two independent
+  probe functions per old/repaired candidate and build mode verify the original
+  8,992-entry pending queue becomes at most 3,997 in the standard comb test. Root
+  audits 158 bindings; see `verification/ui-native-packet-root-review/acceptance.json`.
+  Ordinary Android engine adoption, widget/JNI behavior, signed health, shared
+  styling and physical visual parity remain pending for this slice.
 - The fox-branded marketing website is implemented in `website/`, with responsive
   layout, a browser-local release demonstration, docs, private-by-default SEO,
   social/icon exports, and separate FieldLog app-store collateral. The original

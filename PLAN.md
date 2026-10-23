@@ -61,6 +61,16 @@ through the shared appearance foundation, closed native Swift backend, Java
 signed subset, actual JNI, and native observation before signed-core composition.
 Host receipts and declaration compilation grant no native authority.
 
+The data-only SDK native packet encoder and shared validator frontier repair now
+have root acceptance after independent replay; see
+`verification/ui-native-packet-root-review/acceptance.json`. The exact candidate
+passes 51 SDK tests per Debug/Release, 16 production-Java decoder assertions,
+three public Swift/Java event round trips and official iOS/Android module builds.
+The validator admits node count/depth before queuing children. The encoder emits
+one identity record per node from the same immutable snapshot and measures all
+escaped bytes before allocating the bounded output buffer. Ordinary Android
+engine adoption, native JNI/rendering and shared appearance remain separate.
+
 The independent cache review accepts the candidate's selected temporary-memory
 maps within the unchanged shared foundation. Complete stage acceptance still
 requires actual isolated owner-exhaustion coverage and repeated no-effects checks
