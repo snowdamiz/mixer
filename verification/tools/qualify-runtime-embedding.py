@@ -143,9 +143,11 @@ do {
         run("android-compile", [cross, "build", "--package-path", package, "--target", "EmbeddedIdentity",
             "--swift-sdks-path", "/Users/andreyyurlov/.swiftpm/swift-sdks", "--swift-sdk", "aarch64-unknown-linux-android28",
             "--scratch-path", work / "android", "-c", "release", "-j", "4"], cross_env)
-        receipt["mobileObjects"] = {str(p.relative_to(work)): helper.digest(p) for target in ["ios", "android"]
-                                    for p in (work / target).rglob("MixerInstalledRuntime.swift.o")}
-        if len(receipt["mobileObjects"]) != 2: raise ValueError("Missing compiled identity object")
+        receipt["mobileObjects"] = {}
+        for target, name in [("ios", "MixerInstalledRuntime.o"), ("android", "MixerInstalledRuntime.swift.o")]:
+            objects = list((work / target).rglob(name))
+            if len(objects) != 1: raise ValueError("Missing or ambiguous compiled identity object: " + target)
+            receipt["mobileObjects"][str(objects[0].relative_to(work))] = helper.digest(objects[0])
         if any(helper.digest(source / path) != digest for path, digest in manifest.items()): raise ValueError("Frozen source changed")
         receipt["sourceUnchangedDuringRun"] = True
         receipt["emitted"] = emitted

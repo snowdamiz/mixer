@@ -201,3 +201,14 @@ and generated simulator-consumer workflow. See `verification/github-ci-37c1253.j
 
 GitHub run39887102131 at80268f7 passed all three jobs, including runtime identity
 and signed activation checks. See `verification/github-ci-80268f7.json`.
+
+GitHub run39890316915 at2fda7ab passed Swift and services but failed the newly
+enabled Linux numeric reference test: f32.ceil returned a signaling NaN without
+quieting it. Commit16727d canonicalizes arithmetic NaNs while preserving exact-bit
+operations and integer conversion traps. The default91 and experimental108 host
+tests pass in both modes, along with all nine explicit Node oracle functions per
+mode. Linux CI qualification of the fix is pending. See
+`verification/github-ci-2fda7ab/receipt.json`.
+
+The numeric fix source and local evidence review is recorded in
+`verification/numeric-portability-owner-review-2026-10-22.json`.

@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "reviewedAt": "2026-10-23T02:48:55.591277+00:00",
+  "sourceRevision": "16727d210851cc8a15c36cd077e7397209314936",
+  "status": "passed scoped source and local evidence review; Linux rerun pending",
+  "reviewer": "root reviewed bit masks/opcode ranges, exact-bit exclusions and literal-bit regressions",
+  "implementationReceipt": {
+    "path": "vm/verification/numeric-portability/2026-10-23-nan/receipt.json",
+    "sha256": "eb15aa117c0e559bdd70c6e811efce32f550ea16c1eb84ec1bd52803498f8d33",
+    "sourceDigest": "7d5a3e1148200b1565df70db7a633b3f803087534cda35a4bf33d5aee5368e52",
+    "sourceFilesMatchedToGit": 45,
+    "commandLogsMatched": 15
+  },
+  "failureReceipt": "verification/github-ci-2fda7ab/receipt.json",
+  "checks": {
+    "default-debug-tests": {
+      "passed": 91,
+      "failed": 0,
+      "ignored": 8
+    },
+    "default-release-tests": {
+      "passed": 91,
+      "failed": 0,
+      "ignored": 8
+    },
+    "feature-debug-tests": {
+      "passed": 108,
+      "failed": 0,
+      "ignored": 9
+    },
+    "feature-release-tests": {
+      "passed": 108,
+      "failed": 0,
+      "ignored": 9
+    },
+    "feature-debug-explicit-oracles": {
+      "passed": 9,
+      "failed": 0,
+      "ignored": 0
+    },
+    "feature-release-explicit-oracles": {
+      "passed": 9,
+      "failed": 0,
+      "ignored": 0
+    }
+  },
+  "unchangedProfileAndOracleFiles": [
+    "contracts/vm-profile-v1.json",
+    "vm/profiles/numeric-v2.json",
+    "vm/profiles/table-memory-v3.json",
+    "vm/tests/differential.rs",
+    "vm/tests/float_differential.rs",
+    "vm/tests/table_memory_differential.rs",
+    "vm/tests/experimental_oracle.rs",
+    "vm/src/lib.rs"
+  ],
+  "policy": "Return positive canonical NaN for all NaN results from f32/f64 ceil, floor, trunc, nearest, sqrt, add, sub, mul, div, min, max, demote and promote. Keep abs, neg, copysign, reinterpret, constants, storage and transport bit-exact.",
+  "negativeControlScope": "12 passed, 2 failed; on macOS arm64 the old implementation quieted signaling ceil inputs while preserving their payloads. These two failures demonstrate the new canonical output policy tests are active; the confirmed nonconforming unquieted output was separately observed on Linux CI run 39890316915.",
+  "limitations": [
+    "Actual repaired Linux x86_64 debug/release execution remains pending root-controlled GitHub CI rerun",
+    "Physical iOS/Android checks remain pending; phones disconnected and no attempts made",
+    "No signing, package publication, FieldLog immutable package dogfood, OTA authorization, customer or GA qualification asserted",
+    "Local Node oracle is a development reference; owned literal-bit tests assert the chosen NaN policy independently"
+  ]
+}
