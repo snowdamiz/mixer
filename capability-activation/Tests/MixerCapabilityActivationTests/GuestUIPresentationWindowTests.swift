@@ -49,7 +49,7 @@ struct GuestUIPresentationWindowTests {
             window.orderFrontRegardless()
             view.needsLayout = true; view.layoutSubtreeIfNeeded(); window.displayIfNeeded()
             print("native window observation: visible=\(window.isVisible), occlusion=\(window.occlusionState.rawValue), frame=\(window.frame)")
-            func nativeTree(_ native: NSView, depth: Int = 0) {
+            @MainActor func nativeTree(_ native: NSView, depth: Int = 0) {
                 print("native view \(depth): \(type(of: native)), bounds=\(native.bounds), window=\(native.window != nil), hidden=\(native.isHiddenOrHasHiddenAncestor)")
                 for child in native.subviews { nativeTree(child, depth: depth + 1) }
             }

@@ -381,3 +381,14 @@ fault-ordinal interference; the actual hosted allocation origin is still unknown
 This changes test instrumentation only. Its hosted recheck, physical devices and
 all specified external qualification remain separate. Presentation checkpoint
 f19a18b has passed VM/services; its Swift job is still running at this observation.
+
+
+Hosted f19a18b and b79ca53 both pass VM/services but stop Swift compilation at
+the unannotated local NSView diagnostic helper. An explicit `@MainActor` fixes
+that test-only helper. The actual retained model/hidden-window suite passes
+13 tests with one visible-window skip per Debug/Release/TSan on Swift6.4. Root
+audited 111 bindings in `verification/presentation-actor-ci-repair/root-review.json`.
+The retained production module matches this committed checkpoint; concurrent
+Android implementation is outside that qualification. Pinned Swift6.2.4 rerun
+is pending. Both failed hosted receipts remain preserved; no skipped gate,
+physical device or GA check is relabeled as passed.
