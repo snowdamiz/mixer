@@ -316,10 +316,31 @@ final class NativeExitOwner: @unchecked Sendable {
         control.withLock { state in
             state.status.maximumBatchTurns = max(state.status.maximumBatchTurns, turns)
             if readyHint && !state.status.closed { state.status.yields &+= 1 }
-            state.status.retainedExits = state.tickets.compactMap { $0 }.filter { !$0.state.withLock { $0.acknowledged } }.count
-            state.status.retainedPayloadBytes = state.tickets.compactMap { $0 }.reduce(0) { $0 + $1.state.withLock { ($0.callback?.count ?? 0) + ($0.arguments?.count ?? 0) + ($0.encodedResult?.count ?? 0) + $0.legacyBytes } }
+            let currentTickets: [NativeTicket] = state.tickets.compactMap { $0 }
+            var retainedExits: Int = 0
+            for ticket in currentTickets {
+                let acknowledged: Bool = ticket.state.withLock { $0.acknowledged }
+                if !acknowledged { retainedExits += 1 }
+            }
+            state.status.retainedExits = retainedExits
+            var payloadBytes: Int = 0
+            for ticket in currentTickets {
+                let ticketBytes: Int = ticket.state.withLock { ticketState in
+                    let callbackBytes: Int = ticketState.callback?.count ?? 0
+                    let argumentBytes: Int = ticketState.arguments?.count ?? 0
+                    let resultBytes: Int = ticketState.encodedResult?.count ?? 0
+                    return callbackBytes + argumentBytes + resultBytes + ticketState.legacyBytes
+                }
+                payloadBytes += ticketBytes
+            }
+            state.status.retainedPayloadBytes = payloadBytes
             state.status.maximumLogicalPayloadBytes = max(state.status.maximumLogicalPayloadBytes, state.status.retainedPayloadBytes)
-            state.status.maximumWorkers = max(state.status.maximumWorkers, state.tickets.compactMap { $0 }.filter { $0.state.withLock { $0.workerRunning } }.count)
+            var workers: Int = 0
+            for ticket in currentTickets {
+                let running: Bool = ticket.state.withLock { $0.workerRunning }
+                if running { workers += 1 }
+            }
+            state.status.maximumWorkers = max(state.status.maximumWorkers, workers)
         }
         let active = tickets().contains { ticket in ticket.state.withLock { !$0.acknowledged && !$0.ackFailed } }
         if closed {

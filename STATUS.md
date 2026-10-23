@@ -432,6 +432,14 @@ caller-thread allocation fixture in Linux debug/release, the remaining VM/refere
 suites and public C clients, archive builder, Swift integration and generated
 simulator consumer. See `verification/github-ci-2f6b393/receipt.json`. This run
 precedes641b844 and its new Swift bridge debug/release/TSan/public-consumer CI step.
+The new step failed on641b844 andaca686b because pinned Xcode26.3 could not typecheck
+the bridge's nested metrics expression. Both failed runs are preserved in
+`verification/github-ci-641b844/` and `verification/github-ci-aca686b/`; their VM
+and services jobs passed. A narrow expansion into typed loops preserves the same
+lock and observation order. Local16 debug/release/TSan tests,10 public tests and
+four platform links pass; root matched sources, logs and linked binaries in
+`verification/capability-bridge-compiler-compat-review-2026-10-23.json`.
+The repaired source still requires the pinned hosted compiler result.
 
 
 Four additive contracts now define capability execution through identity2,
