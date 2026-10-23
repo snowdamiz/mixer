@@ -84,8 +84,12 @@ Observed implementation and evidence:
   92 bindings and13 design checks per normal/optimized mode. Shared authored
   geometry passes all94 SDK tests per Debug/Release,1,058 public contract outputs
   per mode and iOS/officialAndroid module checks. Root verifies148 bindings in
-  `verification/ui-appearance-geometry-v2/acceptance.json`. Codec implementation
-  is active; renderers, native resources/support and signed V2 remain pending.
+  `verification/ui-appearance-geometry-v2/acceptance.json`. The Swift V2 codec now
+  passes106 SDK tests and5,584 independent schema/roundtrip cases per mode, plus
+  public iOS/Android module checks. See
+  `verification/ui-appearance-descriptor-v2-root-review/acceptance.json`. Android
+  V2 data implementation is active; renderers, native resources/support and
+  signed V2 remain pending.
 
 - Java shared appearance resolution now has independent and root acceptance as
   immutable data. Root checks 183 bindings across both corpora and all four

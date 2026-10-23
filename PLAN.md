@@ -116,8 +116,12 @@ density conversion. All94 SDK tests pass per Debug/Release;1,058 public outputs
 per mode match the frozen contract, and iOS/officialAndroid modules compile.
 See `verification/ui-measured-appearance-v2-root-review/acceptance.json` and
 `verification/ui-appearance-geometry-v2/acceptance.json` (148 bindings). V1 remains
-unchanged. V2 codec work is active; actual native consumption, interaction, signed
-V2 installation and physical design parity remain pending.
+unchanged. The Swift V2 codec now passes106 SDK tests per mode and an independent
+5,584-case corpus (973 accepted/4,611 rejected), with exact canonical roundtrips.
+Public constructors and iOS/officialAndroid modules compile; see
+`verification/ui-appearance-descriptor-v2-root-review/acceptance.json`. Android
+V2 data implementation is active. Native consumers, resource/bootstrap support,
+signed V2 installation, interaction and physical design parity remain pending.
 
 Eight unchanged iOS simulator screenshots are retained in
 `verification/apple-appearance-reference/gallery.html`; root accepts the baseline
