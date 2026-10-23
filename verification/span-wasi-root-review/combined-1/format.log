@@ -1,0 +1,12 @@
+Diff in /Users/andreyyurlov/Documents/dev/mixer/vm/src/float.rs:347:
+ /// running Wasm with different arithmetic. No host FP control state is modified; arithmetic probes may set normal
+ /// sticky exception flags.
+ pub(crate) fn environment() -> Result<(), Error> {
+-    environment_check().map_err(|message| {
+-        Error::new("unsupported_float_environment", message, None, 0)
+-    })
++    environment_check()
++        .map_err(|message| Error::new("unsupported_float_environment", message, None, 0))
+ }
+ 
+ /// Same qualified-host check without allocating a diagnostic String. The owned

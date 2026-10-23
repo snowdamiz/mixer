@@ -23,8 +23,8 @@ pub(super) struct Signature {
 }
 #[derive(Clone, Copy)]
 pub(super) struct Import {
-    module: Span,
-    name: Span,
+    pub(super) module: Span,
+    pub(super) name: Span,
     pub type_index: u32,
 }
 #[derive(Clone, Copy)]
@@ -40,9 +40,9 @@ pub(super) struct Global {
 }
 #[derive(Clone, Copy)]
 pub(super) struct Export {
-    name: Span,
-    kind: u8,
-    index: u32,
+    pub(super) name: Span,
+    pub(super) kind: u8,
+    pub(super) index: u32,
 }
 #[derive(Clone, Copy)]
 pub(super) struct Segment {

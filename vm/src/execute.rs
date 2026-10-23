@@ -761,7 +761,7 @@ fn memory_width(o: u8) -> usize {
         _ => 1,
     }
 }
-fn numeric(o: u8, s: &mut Vec<Value>) -> Result<(), &'static str> {
+pub(crate) fn numeric(o: u8, s: &mut Vec<Value>) -> Result<(), &'static str> {
     use Value::*;
     let (t, count, out) = crate::validate::numeric_type(o);
     if t == Type::I32 {

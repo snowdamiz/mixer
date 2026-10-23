@@ -1,0 +1,71 @@
+{
+  "observed_utc": "2026-10-23T14:13:27.973581+00:00",
+  "revision": "caaa0055db1492f284da00993ae37c9239bd3b5c",
+  "status": "Reviewed additive host experiments; combined matrix passed",
+  "receipts": {
+    "verification/span-execution/receipt.json": "2e46f4de97415be88866adb66f18373a7bf748797ec0f61a37c9ed28987e3f0c",
+    "verification/swift-wasi/evidence/2026-10-23/receipt.json": "0d5a8a8202cf1ef66621e368e7e44d11589696237118463bffae351f703f47fe",
+    "verification/next-slice-review/span-receipt.json": "4b562b9336bfa61be3ebe5e6fa861de0f788ee1a1fd39e8a48766782c50260f9",
+    "verification/next-slice-review/span-repaired-receipt.json": "3579f519a85e6879e8691cb7f93c2b60398b6f06dc8ed46dc7a09fbc921d32dc",
+    "verification/next-slice-review/wasi-receipt.json": "0cf743625c8eb6cb200bec5b19ff3e51078e7952c6f040f529faf4ece9162a6d",
+    "verification/span-wasi-root-review/combined-1/receipt.json": "46b525d9f5f1eda954660e450f76beb781d0b61021086d4486b13342ed624152",
+    "verification/span-wasi-root-review/combined-2/receipt.json": "bb5cb09c58306bab9d1140d40161bcbdbb401f9ba3c40766927c1acd08ac533d"
+  },
+  "current_vm_source_manifest": "verification/span-wasi-root-review/combined-2/source-4057b101fc48a7da635b8eb80354f96fa5017c402b11e7c90dc1e324d968979b.json",
+  "verified_combined_logs": [
+    "verification/span-wasi-root-review/combined-2/rust-version.log",
+    "verification/span-wasi-root-review/combined-2/cargo-version.log",
+    "verification/span-wasi-root-review/combined-2/node-version.log",
+    "verification/span-wasi-root-review/combined-2/debug.log",
+    "verification/span-wasi-root-review/combined-2/debug-oracles.log",
+    "verification/span-wasi-root-review/combined-2/release.log",
+    "verification/span-wasi-root-review/combined-2/release-oracles.log",
+    "verification/span-wasi-root-review/combined-2/focused-clippy.log",
+    "verification/span-wasi-root-review/combined-2/format.log"
+  ],
+  "test_counts": {
+    "debug": {
+      "passed": 244,
+      "failed": 0,
+      "ignored": 9
+    },
+    "release": {
+      "passed": 244,
+      "failed": 0,
+      "ignored": 9
+    },
+    "debug-oracles": {
+      "passed": 9,
+      "failed": 0,
+      "ignored": 0
+    },
+    "release-oracles": {
+      "passed": 9,
+      "failed": 0,
+      "ignored": 0
+    }
+  },
+  "review_followups": [
+    {
+      "path": "vm/src/float.rs",
+      "review_digest": "bceb1348f79e6617ecda9cf548706ccbabfcc96d19735d28bab0433ee486c31a",
+      "current_digest": "fa29916b49301247c19c0fe09157cbb69168de5a0fbf14d9fc58f59fe1249439"
+    },
+    {
+      "path": "vm/src/float.rs",
+      "review_digest": "bceb1348f79e6617ecda9cf548706ccbabfcc96d19735d28bab0433ee486c31a",
+      "current_digest": "fa29916b49301247c19c0fe09157cbb69168de5a0fbf14d9fc58f59fe1249439"
+    }
+  ],
+  "review_followup_scope": "Root removed drop(non-Drop FunctionPin) from its added regression and rustfmt formatted the existing environment wrapper; full combined suite and focused lint/format subsequently pass. Independent constructor regression passed before these nonsemantic cleanups.",
+  "resolved_finding": "Constructor consumes and destroys pre-pinned cache before returning failure; no-owner active_pins now zero, attempted remains one. Original failing sources and D/R logs retained in independent review.",
+  "capabilities": "Cache-backed exact frozen v1/v2/v3 execution and separate exact34 Preview1 descriptor/dispatch adapter with explicit grants; no connection between WASI and VM admission or execution.",
+  "pending": [
+    "Additive full Swift policy and complete validator before execution",
+    "Aggregate full-reactor execution/cache/stack/RSS measurement",
+    "Native ABI/package and signed app integration",
+    "Pinned hosted new-feature CI",
+    "Physical iOS/Android (disconnected, not attempted)",
+    "Immutable published independent FieldLog consumer and product/GA qualification"
+  ]
+}

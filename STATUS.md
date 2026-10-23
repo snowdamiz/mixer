@@ -806,3 +806,14 @@ tool before replaying the full trace; historical evidence is preserved. See
 `verification/swift-reactor-diagnostics-root-review/audit.json`. The reference
 executes initialization once and all11 corpus observations twice; owned full
 Swift execution and the3MiB compressed-size gate remain unqualified.
+
+The additive cache-backed Rust executor and standalone exact34 Preview1 adapter
+now pass root combined Debug/Release checks:244 tests plus all9 explicit reference
+checks per mode, focused Clippy and formatting. Independent review passes4
+executor probes and6 WASI probes per mode (including1222 range/alias cases).
+Review found and root fixed a no-owner constructor pin counter; failed evidence
+is retained. See `verification/span-wasi-root-review/receipt.json`. CI includes
+both features explicitly. WASI is not yet admitted/routed by the VM; frozen
+profiles, native ABI, signing paths and release pins are unchanged. Full Swift
+policy/validation/execution, total session accounting, mobile, immutable consumer
+and GA qualification remain open.

@@ -1,0 +1,16 @@
+Command: PATH=/opt/homebrew/opt/rustup/bin:$PATH cargo test --manifest-path vm/Cargo.toml --features experimental-swift-wasi --test swift_wasi --test swift_wasi_allocations -- --nocapture
+Observed initial probe exit: 101
+Scope: Original allocator test meter before its fixed-slot tracking repair; adapter integration tests passed.
+
+     Running tests/swift_wasi_allocations.rs (vm/target/debug/deps/swift_wasi_allocations-f2a809892605f74b)
+
+running 1 test
+
+thread 'each_constructor_allocation_fails_cleanly_and_dispatch_never_allocates' (52856297) panicked at tests/swift_wasi_allocations.rs:37:35:
+attempt to subtract with overflow
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+fatal runtime error: failed to initiate panic, error 5, aborting
+error: test failed, to rerun pass `--test swift_wasi_allocations`
+
+Caused by:
+  process didn't exit successfully: `/Users/andreyyurlov/Documents/dev/mixer/vm/target/debug/deps/swift_wasi_allocations-f2a809892605f74b --nocapture` (signal: 6, SIGABRT: process abort signal)

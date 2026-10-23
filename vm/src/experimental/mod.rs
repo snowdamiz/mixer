@@ -1,4 +1,4 @@
-//! Complete validation experiment. No executable Module/Instance or C ABI route.
+//! Sealed complete validation; optional Rust-only cache and execution experiments.
 mod account;
 mod metadata;
 mod reader;
@@ -6,6 +6,11 @@ mod validate;
 
 #[cfg(feature = "experimental-function-cache")]
 pub mod cache;
+
+#[cfg(feature = "experimental-span-execution")]
+mod descriptors;
+#[cfg(feature = "experimental-span-execution")]
+pub mod execution;
 
 use crate::{Cancellation, Limits, Profile};
 use account::{Buffer, Cursor, Meter};

@@ -347,6 +347,13 @@ fn control_state_supported() -> bool {
 /// running Wasm with different arithmetic. No host FP control state is modified; arithmetic probes may set normal
 /// sticky exception flags.
 pub(crate) fn environment() -> Result<(), Error> {
+    environment_check()
+        .map_err(|message| Error::new("unsupported_float_environment", message, None, 0))
+}
+
+/// Same qualified-host check without allocating a diagnostic String. The owned
+/// span executor can report terminal resource failures without another allocation.
+pub(crate) fn environment_check() -> Result<(), &'static str> {
     #[cfg(any(target_vendor = "apple", target_os = "linux", target_os = "android"))]
     {
         #[cfg_attr(not(target_vendor = "apple"), link(name = "m"))]
@@ -358,7 +365,7 @@ pub(crate) fn environment() -> Result<(), Error> {
         // explicitly supported platform families, verified by platform headers.
         let nearest = unsafe { fegetround() } == 0;
         if !nearest || !control_state_supported() {
-            return Err(Error::new("unsupported_float_environment","numeric-v2 requires masked FP exceptions, nearest-even rounding and gradual underflow",None,0));
+            return Err("numeric-v2 requires masked FP exceptions, nearest-even rounding and gradual underflow");
         }
         let tiny32 = std::hint::black_box(f32::from_bits(1)) * std::hint::black_box(1.0f32);
         let tiny64 = std::hint::black_box(f64::from_bits(1)) * std::hint::black_box(1.0f64);
@@ -366,10 +373,5 @@ pub(crate) fn environment() -> Result<(), Error> {
             return Ok(());
         }
     }
-    Err(Error::new(
-        "unsupported_float_environment",
-        "numeric-v2 requires nearest-even rounding and gradual underflow on a qualified host",
-        None,
-        0,
-    ))
+    Err("numeric-v2 requires nearest-even rounding and gradual underflow on a qualified host")
 }
