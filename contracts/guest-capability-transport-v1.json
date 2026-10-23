@@ -1,0 +1,521 @@
+{
+  "contract": "mixer-guest-capability-transport-v1",
+  "schema_version": 1,
+  "status": "development_contract_only",
+  "scope": {
+    "guest_abi": 2,
+    "payload_wrapper_abi": 1,
+    "planned_profile": "mixer-capability-v4",
+    "import_admission": false,
+    "runtime_implemented": false,
+    "ota_authorization": false,
+    "swift_async_qualification": false,
+    "physical_device_qualification": false,
+    "identity_or_release_migration_authorized": false,
+    "native_c_layouts": "out of scope"
+  },
+  "authority": "This file freezes development payload/import semantics for coordinated implementation. It does not register an import, change any existing profile/ABI/envelope, enable native effects or authorize publication.",
+  "source": {
+    "revision": "19c3949ca982a1f6f582e945eb5e4007ad23fdf6",
+    "tree": "73739278f830a5f2729531cb4d8bc74b555d6200",
+    "sha256_file_bytes": {
+      "capabilities/schema/v1.json": "2b7519e0daea5a1dd25f8d2f93d2dc25c32caa376b8cf21a15e69505c621d77e",
+      "capabilities/schema/hashes.json": "cdba651c8eb3db42fbbfbdcc736e670fa73d3509340350eee1929b2fae45f204",
+      "sdk/Sources/MixerCapabilities/Wire.swift": "6628b5fb2f4ef70e58ea80af01e4ff2969d71da0ff13253081d196a082b3de89",
+      "sdk/Sources/MixerCapabilities/GeneratedModels.swift": "8f8533f45bcd195212e589c23349309870577b3e72ea0b3b75d2538bfba8056f",
+      "sdk/Sources/MixerCapabilities/Host.swift": "62a84a250fa160f343e97e59c67c86c29fee7ab84b0e5439bc93f95d67bb5619",
+      "sdk/Sources/MixerCore/JSONInputGuard.swift": "c01ae7ad973dcfc40d2b4ecef3fb8091d1c94484410621f28e77096e952de07c",
+      "capabilities/Probe/main.swift": "e7869f9cd292ce836fc14120d9c7a90ad795f9ea2e74460eadd9ce8a4fc08ef5",
+      "capabilities/tools/generate.py": "89298e1b6036e98b4829f996533bbafbaacadc9425ad8ed5478328be1d9c268c"
+    },
+    "capability_semantic_contract_sha256": "ca53c3c2ea1d8f08020468cc5d458d86542e0806d6494840557e591342f1154e",
+    "capability_schema_hashes": {
+      "network.http.v1": "fa1549c0a1e2e6b3bf4a83af1a6d37730bbefc8cddc3ffbe3c807d5e7af503f3",
+      "storage.keyValue.v1": "4a311222c978ddd0982e8dfbcf3d4864b856a80bcc1efb3b725adede7f8e22fd"
+    },
+    "rules": "types below preserve capabilities/schema/v1.json. New wrapper has this separate contract identity; existing schema and envelope hashes remain unchanged."
+  },
+  "imports": {
+    "module": "mixer.capability.v1",
+    "allowed_only_in_future_explicit_profile": true,
+    "functions": [
+      {
+        "name": "http_request",
+        "params": [
+          {
+            "name": "arguments_offset",
+            "type": "i32"
+          },
+          {
+            "name": "arguments_length",
+            "type": "i32"
+          },
+          {
+            "name": "token_offset",
+            "type": "i32"
+          }
+        ],
+        "results": [
+          "i32"
+        ],
+        "operation_tag": 1
+      },
+      {
+        "name": "storage_get",
+        "params": [
+          {
+            "name": "arguments_offset",
+            "type": "i32"
+          },
+          {
+            "name": "arguments_length",
+            "type": "i32"
+          },
+          {
+            "name": "token_offset",
+            "type": "i32"
+          }
+        ],
+        "results": [
+          "i32"
+        ],
+        "operation_tag": 2
+      },
+      {
+        "name": "storage_put",
+        "params": [
+          {
+            "name": "arguments_offset",
+            "type": "i32"
+          },
+          {
+            "name": "arguments_length",
+            "type": "i32"
+          },
+          {
+            "name": "token_offset",
+            "type": "i32"
+          }
+        ],
+        "results": [
+          "i32"
+        ],
+        "operation_tag": 3
+      },
+      {
+        "name": "storage_delete",
+        "params": [
+          {
+            "name": "arguments_offset",
+            "type": "i32"
+          },
+          {
+            "name": "arguments_length",
+            "type": "i32"
+          },
+          {
+            "name": "token_offset",
+            "type": "i32"
+          }
+        ],
+        "results": [
+          "i32"
+        ],
+        "operation_tag": 4
+      },
+      {
+        "name": "cancel",
+        "params": [
+          {
+            "name": "token",
+            "type": "i64"
+          }
+        ],
+        "results": [
+          "i32"
+        ]
+      },
+      {
+        "name": "poll",
+        "params": [
+          {
+            "name": "token",
+            "type": "i64"
+          },
+          {
+            "name": "output_offset",
+            "type": "i32"
+          },
+          {
+            "name": "output_capacity",
+            "type": "i32"
+          },
+          {
+            "name": "length_offset",
+            "type": "i32"
+          }
+        ],
+        "results": [
+          "i32"
+        ]
+      }
+    ],
+    "unknown_module_name_signature": "reject complete module validation; no arbitrary dispatch, callback, native pointer, selector, WASI or plugin lookup import",
+    "return_codes": {
+      "0": "accepted or poll delivered",
+      "1": "pending",
+      "2": "bufferTooSmall",
+      "3": "invalidArguments",
+      "4": "staleRequest",
+      "5": "quotaExceeded",
+      "6": "sessionClosed",
+      "7": "alreadyTerminal"
+    },
+    "per_function_codes": {
+      "enqueue": [
+        0,
+        3,
+        5,
+        6
+      ],
+      "cancel": [
+        0,
+        4,
+        6,
+        7
+      ],
+      "poll": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        6
+      ]
+    },
+    "status_domains": "Import return codes are separate from C report statuses, typed capability failure codes and VM traps. A successful enqueue owns a token, not native authorization or success."
+  },
+  "memory": {
+    "required": "one defined nonshared memory index0; offsets/lengths are unsigned i32 bit patterns",
+    "enqueue_bytes_minimum": 1,
+    "maximum_arguments_bytes": 524288,
+    "maximum_completion_bytes": 524288,
+    "maximum_poll_capacity": 524288,
+    "token_output": "8 little-endian bytes, no alignment requirement",
+    "length_output": "4 little-endian bytes, no alignment requirement",
+    "bounds": "check full non-wrapping ranges and non-overlap before copy or mutation; output_capacity0 requires output_offset<=memory byte length",
+    "enqueue_atomicity": "bounds/session/slot/byte-quota rejection writes nothing, allocates no request and advances no request generation; success snapshots arguments and writes one token atomically",
+    "poll": "pending writes length0 only; tooSmall writes required length only and retains result; success copies entire payload then consumes delivery exactly once; other rejection writes nothing; output range and length range must not overlap",
+    "ownership": "no retained guest/native pointers or guest-memory output from native completion callbacks; snapshots survive guest mutation/growth",
+    "dispatch": "imports do not block on actors/I/O; enqueue alone does not yield; requests drain only after their guest invocation returns successfully; queued calls from a trapping/cancelled/closed turn never start I/O",
+    "cancellation": "request token is scoped to current VM session and generation; cancel is per-request, separate from permanent whole-session cancellation; later cancellation cannot undo an admitted external effect",
+    "generation": "opaque i64 bits: high32 nonzero generation, low32 slot+1; retire instead of wrapping; no guest-selectable originating session identity"
+  },
+  "json": {
+    "encoding": "valid UTF-8; one JSON object followed only by optional JSON whitespace; no BOM/comments/trailing value",
+    "maximum_bytes": 524288,
+    "maximum_container_depth": 8,
+    "depth_counting": "root object counts1; at most8 simultaneously nested objects/arrays; scalar leaves do not add containers",
+    "maximum_values": 8192,
+    "value_counting": "count root and each array/object value including collections; object keys do not count as values",
+    "maximum_decoded_string_bytes": 350000,
+    "maximum_decoded_key_bytes": 64,
+    "unknown_fields": "reject at every object; all listed fields mandatory, including empty arrays and empty base64 strings",
+    "duplicate_keys": "reject before dictionary decoding after JSON escape/surrogate decoding; no Unicode normalization",
+    "numbers": "canonical unsigned decimal UInt32 tokens only: 0 or [1-9][0-9]*, <=4294967295; reject signs, leading zeros, fractions, exponents, strings and booleans in numeric fields; then apply field bounds",
+    "booleans": "true or false tokens only in bool fields; reject0/1/string/null coercion",
+    "unicode": "reject invalid UTF-8, lone/unpaired surrogates and malformed escapes; well-formed escapes may spell ASCII field names/values; do not normalize; typed identifiers/header/URL text are ASCII as specified below; opaque application Unicode/binary bytes cross as base64",
+    "key_order": "decode ignores key order; owned encoder emits sorted keys and unescaped slashes; escape spelling is not a signature or normalization authority",
+    "base64": "RFC4648 standard alphabet, canonical padded encoding with correct zero pad bits; decode then re-encode must equal input exactly; empty is valid; maximum values below count decoded bytes, never encoded characters; no whitespace/URL-safe alphabet/missing padding"
+  },
+  "arguments": {
+    "root": "exact operation-specific argument object only, with no wrapper",
+    "routing": "operation enum/import fixes capability, schema hash, operation and argument type; no operation/hash/identity/session/token/native implementation/grant/callback field appears in arguments",
+    "types": {
+      "Header": {
+        "name": {
+          "type": "string",
+          "rule": "headerName",
+          "maximum": 64
+        },
+        "value": {
+          "type": "string",
+          "rule": "ascii",
+          "maximum": 4096
+        }
+      },
+      "HTTPRequestArguments": {
+        "url": {
+          "type": "string",
+          "rule": "httpsURL",
+          "maximum": 4096
+        },
+        "method": {
+          "type": "string",
+          "rule": "method",
+          "maximum": 6
+        },
+        "headers": {
+          "type": "headers",
+          "maximum": 32
+        },
+        "bodyBase64": {
+          "type": "string",
+          "rule": "base64",
+          "maximum": 65536
+        },
+        "timeoutMilliseconds": {
+          "type": "uint",
+          "minimum": 1,
+          "maximum": 30000
+        }
+      },
+      "HTTPResponse": {
+        "status": {
+          "type": "uint",
+          "minimum": 100,
+          "maximum": 599
+        },
+        "headers": {
+          "type": "headers",
+          "maximum": 32
+        },
+        "bodyBase64": {
+          "type": "string",
+          "rule": "base64",
+          "maximum": 262144
+        }
+      },
+      "KVGetArguments": {
+        "namespace": {
+          "type": "string",
+          "rule": "identifier",
+          "maximum": 64
+        },
+        "key": {
+          "type": "string",
+          "rule": "identifier",
+          "maximum": 128
+        }
+      },
+      "KVPutArguments": {
+        "namespace": {
+          "type": "string",
+          "rule": "identifier",
+          "maximum": 64
+        },
+        "key": {
+          "type": "string",
+          "rule": "identifier",
+          "maximum": 128
+        },
+        "valueBase64": {
+          "type": "string",
+          "rule": "base64",
+          "maximum": 65536
+        }
+      },
+      "KVDeleteArguments": {
+        "namespace": {
+          "type": "string",
+          "rule": "identifier",
+          "maximum": 64
+        },
+        "key": {
+          "type": "string",
+          "rule": "identifier",
+          "maximum": 128
+        }
+      },
+      "KVGetResponse": {
+        "found": {
+          "type": "bool"
+        },
+        "valueBase64": {
+          "type": "string",
+          "rule": "base64",
+          "maximum": 65536
+        }
+      },
+      "KVMutationResponse": {
+        "committed": {
+          "type": "bool"
+        }
+      }
+    },
+    "type_fields": "each named type is an exact closed object with every field mandatory; Header name/value and all list elements are validated; arrays never accept dictionaries/null",
+    "rules": {
+      "identifier": "ASCII1..maximum bytes; only A-Z a-z0-9 hyphen underscore; case-sensitive; no slash/dot/path components; no normalization",
+      "ascii": "printable ASCII U+0020..U+007E only; may be empty unless another rule forbids it; field maximum counts UTF-8 bytes",
+      "method": [
+        "GET",
+        "POST",
+        "PUT",
+        "PATCH",
+        "DELETE",
+        "HEAD"
+      ],
+      "headers": "0..32 Header objects, unique exact decoded lowercase names; same Header type for arguments/results; no case folding to repair invalid input",
+      "headerName": "ASCII1..64 bytes, only lowercase a-z0-9 hyphen; deny host, connection, content-length, transfer-encoding, proxy-authorization, proxy-authenticate, cookie, set-cookie",
+      "httpsURL": "ASCII1..4096 bytes beginning exact lowercase https://; all URL bytes U+0021..U+007E, no # or backslash; authority ends at slash/question; lowercase DNS-style labels1..63 bytes, total hostname<=253, only a-z0-9 hyphen with no leading/trailing hyphen; no empty label, userinfo or IPv6; optional canonical nonzero UInt16 port excluding443; percent escapes require two uppercase hex digits; preserve path/query bytes exactly",
+      "origin": "https:// plus exact validated authority, excluding path/query; installed and signed release origin/method sets intersect exactly, never wildcard/path prefix/case normalization",
+      "namespace": "same identifier rule, exact case-sensitive grant namespace; keys are identifiers, never filesystem paths"
+    }
+  },
+  "operations": [
+    {
+      "tag": 1,
+      "swiftCase": "httpRequest",
+      "import": "http_request",
+      "capability": "network.http.v1",
+      "schemaHash": "fa1549c0a1e2e6b3bf4a83af1a6d37730bbefc8cddc3ffbe3c807d5e7af503f3",
+      "operation": "request",
+      "arguments": "HTTPRequestArguments",
+      "result": "HTTPResponse"
+    },
+    {
+      "tag": 2,
+      "swiftCase": "storageGet",
+      "import": "storage_get",
+      "capability": "storage.keyValue.v1",
+      "schemaHash": "4a311222c978ddd0982e8dfbcf3d4864b856a80bcc1efb3b725adede7f8e22fd",
+      "operation": "get",
+      "arguments": "KVGetArguments",
+      "result": "KVGetResponse"
+    },
+    {
+      "tag": 3,
+      "swiftCase": "storagePut",
+      "import": "storage_put",
+      "capability": "storage.keyValue.v1",
+      "schemaHash": "4a311222c978ddd0982e8dfbcf3d4864b856a80bcc1efb3b725adede7f8e22fd",
+      "operation": "put",
+      "arguments": "KVPutArguments",
+      "result": "KVMutationResponse"
+    },
+    {
+      "tag": 4,
+      "swiftCase": "storageDelete",
+      "import": "storage_delete",
+      "capability": "storage.keyValue.v1",
+      "schemaHash": "4a311222c978ddd0982e8dfbcf3d4864b856a80bcc1efb3b725adede7f8e22fd",
+      "operation": "delete",
+      "arguments": "KVDeleteArguments",
+      "result": "KVMutationResponse"
+    }
+  ],
+  "completion": {
+    "root_keys": [
+      "abi",
+      "capability",
+      "schemaHash",
+      "operation",
+      "outcome"
+    ],
+    "abi": 1,
+    "routing": "capability/schemaHash/operation must exactly match expectedOperation enum and its fixed table entry, not arbitrary caller strings; unknown or mismatched fields reject before returning any outcome",
+    "identity": "no identity, session, token, UUID, slot, generation or native pointer in payload; caller retains originating VM session/token context externally",
+    "outcomes": [
+      {
+        "kind": "success",
+        "exact_keys": [
+          "kind",
+          "value"
+        ],
+        "value": "typed result object of expected operation, validated through generated CapabilityResult.decode"
+      },
+      {
+        "kind": "failure",
+        "exact_keys": [
+          "kind",
+          "code"
+        ],
+        "codes": [
+          "permissionDenied",
+          "unavailable",
+          "cancelled",
+          "deadlineExceeded",
+          "invalidResponse",
+          "redirectDenied",
+          "quotaExceeded",
+          "ioFailure"
+        ]
+      },
+      {
+        "kind": "rejected",
+        "exact_keys": [
+          "kind",
+          "code"
+        ],
+        "codes": [
+          "invalidArguments"
+        ],
+        "meaning": "copied arguments failed strict typed decode before native dispatch; this is not an extra capability-v1 failure code"
+      }
+    ],
+    "no_additional_cross_field_rules": [
+      "KVGetResponse(found=false,valueBase64=nonempty canonical bytes) is type-valid; native store normally emits empty for missing, but codec must not invent a dependency",
+      "HTTPResponse status100..599 including3xx is type-valid; actual CapabilityHost rejects3xx with redirectDenied",
+      "KVMutationResponse committed=false is type-valid and is not coerced to failure",
+      "HTTP method/body/status combinations do not acquire extra codec restrictions absent schema v1"
+    ]
+  },
+  "native_policy": {
+    "authority": "payload validity never grants authority; native registry/configuration plus installed and verified signed release grants must bind one originating session, then permissions/origins/methods/namespaces intersect before I/O",
+    "http": {
+      "permission": "network.https",
+      "redirects": "host/adapter reject3xx and redirect callbacks before any follow-up; type codec still accepts3xx",
+      "ambient_cookies_credentials": false,
+      "retries": false,
+      "streaming": false,
+      "resumable": false,
+      "request_body_decoded_bytes": 65536,
+      "response_body_decoded_bytes": 262144,
+      "timeout_ms": [
+        1,
+        30000
+      ]
+    },
+    "storage": {
+      "permission": "storage.appPrivate",
+      "value_decoded_bytes": 65536,
+      "native_total_bytes": 4194304,
+      "native_entries": 1024,
+      "namespace": "exact installed and signed grant intersection",
+      "commit": "cancellation before precommit check aborts; once commit starts effect may remain; re-read resolves uncertainty",
+      "atomic_replace": true,
+      "secrets_database_migration": false
+    },
+    "failures": "fixed capability codes only; no native exception text/credentials; cancellation/deadline/close do not assert rollback or exactly-once effects"
+  },
+  "proposed_sdk_api": {
+    "status": "declarations only; not implemented or exported by this commit",
+    "module": "MixerCapabilities",
+    "operation_enum": "public enum GuestCapabilityOperationV1: UInt32, CaseIterable, Sendable { case httpRequest = 1, storageGet = 2, storagePut = 3, storageDelete = 4 }",
+    "rejection_enum": "public enum GuestCapabilityRejectionV1: String, Equatable, Sendable { case invalidArguments }",
+    "outcome_enum": "public enum GuestCapabilityCompletionV1: Equatable, Sendable { case success(CapabilityResult), failure(CapabilityFailure), rejected(GuestCapabilityRejectionV1) }",
+    "codec_enum": "public enum GuestCapabilityTransportCodecV1",
+    "signatures": [
+      "public static func decodeArguments(_ data: Data, operation: GuestCapabilityOperationV1) throws -> CapabilityOperation",
+      "public static func encodeArguments(_ operation: CapabilityOperation) throws -> Data",
+      "public static func decodeCompletion(_ data: Data, expectedOperation: GuestCapabilityOperationV1) throws -> GuestCapabilityCompletionV1",
+      "public static func encodeCompletion(_ outcome: GuestCapabilityCompletionV1, operation: GuestCapabilityOperationV1) throws -> Data"
+    ],
+    "implementation_rules": [
+      "Reuse CapabilityCodec.decodeObject/encodeObject internally; do not decode public DTOs through an unchecked raw Codable path",
+      "Map fixed enum to generated CapabilityOperation.decode/wire and CapabilityResult.decode/wire; no public arbitrary capability/hash/operation strings",
+      "Encoding arguments derives operation from CapabilityOperation and revalidates it before returning bounded data",
+      "Encoding completion binds success result case/schema to operation; validate failure/rejection variants and exact wrapper; never permit wrong-operation success",
+      "Bridge first uses existing CapabilityCodec.decodeCompletion(data, expected: actualCapabilityCall), then converts validated native outcome into new wrapper",
+      "Keep existing call/cancel/completion envelopes, signatures and hashes unchanged; rejected is only a new transport outcome; decoding failures throw CapabilityWireError rather than a native capability error",
+      "No token/session routing check is claimed by a value-only codec; mailbox/bridge must retain/check originating context externally"
+    ]
+  },
+  "fixtures": {
+    "manifest": "../verification/guest-capability-contract/cases.json",
+    "oracle": "existing public capability-probe over original raw argument objects/outcomes embedded in existing signed-independent capability envelopes; no JSON parser repairs duplicate/numeric/base64/Unicode bytes",
+    "new_wrapper_fixture_status": "not implemented; expected acceptance/meaning is contract data, not executed success",
+    "scope": "offline public-codec observations only, no Wasm/native mailbox/import/bridge/activation/release/Swiftasync/device qualification"
+  },
+  "preservation": "No old profile, schema, SDK/VM/header, runtime identity, signed release contract or activation implementation is changed. Identity-v2/release-v3 implementation remains unauthorized."
+}

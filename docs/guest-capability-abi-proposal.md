@@ -8,6 +8,15 @@ and exit-ack design need executable proof before consumers land. No current prof
 or activation admission changes. The binding scope is product-plan sections
 [9–11](../mixer-product-plan.md).
 
+The exact development payload/import semantics are now published in
+[`guest-capability-transport-v1.json`](../contracts/guest-capability-transport-v1.json),
+with the proposed reusable SDK codec API and
+[original fixtures plus scoped offline-codec evidence](../verification/guest-capability-contract/README.md).
+New wrapper/API fixtures are explicitly pending until implementation. The native
+exit-observation and standalone mailbox implementations have separate review lanes;
+this document's original inspection baseline below is historical. No profile/import
+admission or identity/release migration is authorized by the development contract.
+
 ## 1. Decision and current boundary
 
 Propose an explicit `mixer-capability-v4` execution profile and guest ABI **2**. Its
