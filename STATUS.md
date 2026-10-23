@@ -673,5 +673,31 @@ repair produces exactly the same bytes for both valid and invalid-data variants
 and passes all six affected XCTest functions locally. Original CI logs and the
 fixture parser's stderr-count correction are preserved; no production bytes
 changed. See `verification/github-ci-36c5579/receipt.json` and
-`verification/capability-concrete-ci-fixture-fix/receipt.json`. Confirmation with
-the pinned hosted compiler is pending.
+`verification/capability-concrete-ci-fixture-fix/receipt.json`. The hosted result
+below confirms the repair with the pinned compiler.
+
+Hosted run 39941366514 at ac2d2b6 now passes all three jobs, including all 95
+capability-activation functions under the pinned Swift 6.2.4 compiler. This
+confirms the fixture repair and committed coordinator composition; see
+`verification/github-ci-ac2d2b6/receipt.json`.
+
+The full-Swift compiler investigation preserves every original model observation
+while tracing nine actual WASI imports and 2,531 calls. Most random requests in
+the sampled stacks come from UUID/outbox operations. The VM's host-call meter
+resets per invocation; this single large corpus does not measure ordinary user
+turns. ICU has no final byte differences, which does not establish immutability,
+interim writes or peak/RSS savings. Official static reactor linkage works for a
+scalar Swift export, but the owned VM still rejects its size/resource/import
+requirements. Root reviewed the diagnostic source and verified 37 retained path
+bindings; see `verification/swift-guest-next-root-review.json`. The unchanged
+FieldLog model now also passes native/command/reactor parity for all 11 typed
+observations across two calls after one initialization. The first run failed
+because the second print remained buffered; an explicit flush in the test
+boundary repairs output delivery while preserving every corpus-body byte. Root
+matched 99 retained path bindings across 21 commands and sealed 131 evidence
+files; see `verification/fieldlog-reactor-root-review.json`. The full reactor is
+53,777,114 raw / 18,976,211 gzip bytes and still fails the unchanged owned VM
+module limit. Nesting, persistent feature state and peak/RSS are unmeasured.
+The separate bounded function-cache component is being developed.
+Complete compressed artifact size, including required runtime code, remains the
+3 MiB metric; delta/base reuse grants no size-budget or launch-gate credit.

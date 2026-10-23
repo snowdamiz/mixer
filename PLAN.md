@@ -107,10 +107,20 @@ Independent shutdown/health-write review found no actionable defect; two origina
 races pass in all three modes, including 144 concurrent close calls. Hosted CI at
 36c5579 exposed three test-fixture expression limits in Swift 6.2.4; a test-only
 split preserves both Wasm variants exactly and passes six local XCTest functions.
-The fixed hosted outcome remains pending. Actual guest UI/event delivery, real UI
+All three hosted jobs at ac2d2b6 now pass, including all 95 capability-activation
+functions on the pinned compiler. Actual guest UI/event delivery, real UI
 health and published consumer qualification remain separate.
 The next integration design connects validated UI documents and bounded native
 events to the signed guest. Parallel compiler investigation uses the retained
 full-Swift corpus to identify its actual WASI calls and memory requirements;
 the full Swift execution and artifact-size requirements remain open.
+Root reviewed the compiler diagnostic sources and verified 37 retained path
+bindings across ten commands; see `verification/swift-guest-next-root-review.json`.
+The actual unchanged FieldLog model now also passes complete native/command/reactor
+parity across two calls after one initialization. Root audited 99 retained path
+bindings across 21 commands; see `verification/fieldlog-reactor-root-review.json`.
+Its complete 18,976,211-byte gzip artifact exceeds the delivery budget and is
+still rejected by the owned VM. The separate nondefault function-cache component
+has an accepted bounded design, with implementation under way; it does not yet
+execute a guest or widen the existing VM limits.
 Keep the full product plan and physical/published-consumer/GA gates in scope.

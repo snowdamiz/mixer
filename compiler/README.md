@@ -42,7 +42,21 @@ read. Android uses `aarch64-unknown-linux-android28` and matching NDK libc++.
 The Wasm artifact uses the full `swift-6.3.3-RELEASE_wasm` SDK. See
 `release/toolchain-candidate.json` for the exact downloaded SDK identities.
 
-The current model corpus is approximately 60.5 MB before compression. This is
-evidence of a package-size/runtime gap, not a passed production download budget.
+The original model corpus is approximately 60.5 MB before compression. The
+smallest qualified full-SDK variant is 52,008,982 bytes / 18,852,048 gzip bytes.
+The later [reactor and WASI investigation](experiments/swift-guest-next/README.md)
+records actual import calls, final memory differences and supported static
+reactor linkage. A reactor initializes once and exposes repeated callable
+exports. The subsequent [actual model reactor](experiments/fieldlog-reactor/README.md)
+preserves the unchanged FieldLog corpus body and matches all 11 native/command
+observations twice after one initialization. Its complete artifact is 53,777,114
+raw / 18,976,211 gzip bytes; the owned VM still rejects it. An explicit test-boundary
+flush repairs the preserved first output-buffering failure. Root audited the exact
+sources, artifacts and retained results in
+`verification/fieldlog-reactor-root-review.json`. This proves model parity in a
+development oracle, without qualifying persistent feature/UI/effect execution.
+The complete compressed artifact, including required guest runtime code, must
+still meet the plan's 3 MiB budget. Reusing a store base or transferring a delta
+does not qualify that metric. These are measured package-size/runtime gaps.
 Full Swift interpreter execution, actual feature/UI/effect graphs, typed host
 imports, source maps, language coverage and performance qualification remain open.
