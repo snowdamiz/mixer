@@ -84,13 +84,21 @@ capture, Android widget styling, actual resource packaging/linked index and priv
 signed capture remain separately required. No default Android styling is permitted
 as a substitute for the shared app design.
 
-The independent cache review accepts the candidate's selected temporary-memory
-maps within the unchanged shared foundation. Complete stage acceptance still
-requires actual isolated owner-exhaustion coverage and repeated no-effects checks
-after every terminal failure kind. Executor implementation and full-target
-execution remain gated on that acceptance. Hosted checkpoint
-`3d93137` passed all three jobs; its receipt is
-`verification/github-ci-3d93137/receipt.json`.
+The private Swift cache candidate3 now has independent and root acceptance;
+see `verification/swift-function-cache-root-review/acceptance.json` and
+`docs/swift-cache-candidate3-acceptance.md`. Root verifies 823 exact bindings,
+including separately reconstructed measurement-only test overlays. All 18 named
+functions pass in Debug and Release. The missing assertions now cover 21 explicit
+terminal latches and 315 repeated no-effect routes per mode, plus three actual
+constructor owner-exhaustion failures with isolated counters and partial cleanup.
+These synthetic latch tests do not establish natural executor failure origins.
+Measured authored-value construction accounting rises by 96 to 57,224 bytes;
+other phase bounds remain unchanged. Physical stack/RSS is outside that model.
+A separately owned compiling executor type/lifetime/layout prerequisite is now
+assigned under the frozen contract. Actual executor implementation and the exact
+full-target runner still require separate acceptance. No full target is executed.
+All three hosted jobs at `01d8491` pass; see
+`verification/github-ci-01d8491/receipt.json`.
 
 The next hosted checkpoint `61c5c8b` exposed a minimal-feature Clippy failure in
 unused private descriptor fields after its tests passed. The descriptor-only

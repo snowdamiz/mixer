@@ -1,0 +1,213 @@
+
+running 1 test
+test experimental_swift_reactor::cache_tests::external_surface_and_borrow_privacy ... external privacy positive: expected=None exit=exit status: 0
+warning: function `f` is never used
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-function-cache-review/candidate2-independent-runs/tmp/mixer-cache-privacy-96286-debug/positive.rs:1:131
+  |
+1 | ... mixer_vm::experimental_swift_reactor::ValidatedSwiftReactor;fn f(_:CacheBudget,_:Option<FunctionCache>,p:&ValidatedSwiftReactor){...
+  |                                                                    ^
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: 1 warning emitted
+
+
+external privacy private_cache: expected=Some("E0603") exit=exit status: 1
+error[E0603]: module `cache` is private
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-function-cache-review/candidate2-independent-runs/tmp/mixer-cache-privacy-96286-debug/private_cache.rs:1:43
+  |
+1 | use mixer_vm::experimental_swift_reactor::cache::SwiftFunctionCache;
+  |                                           ^^^^^ private module
+  |
+note: the module `cache` is defined here
+ --> src/experimental_swift_reactor/mod.rs:7:1
+  |
+7 | mod cache;
+  | ^^^^^^^^^
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0603`.
+
+external privacy private_parts: expected=Some("E0603") exit=exit status: 1
+error[E0603]: module `borrowed` is private
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-function-cache-review/candidate2-independent-runs/tmp/mixer-cache-privacy-96286-debug/private_parts.rs:1:36
+   |
+ 1 | use mixer_vm::experimental::cache::borrowed::{SnapshotView,CacheParts,FrozenMode};
+   |                                    ^^^^^^^^   ------------ trait `SnapshotView` is not publicly re-exported
+   |                                    |
+   |                                    private module
+   |
+note: the module `borrowed` is defined here
+  --> src/experimental/cache/mod.rs:13:1
+   |
+13 | pub(crate) mod borrowed;
+   | ^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0603]: module `borrowed` is private
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-function-cache-review/candidate2-independent-runs/tmp/mixer-cache-privacy-96286-debug/private_parts.rs:1:36
+   |
+ 1 | use mixer_vm::experimental::cache::borrowed::{SnapshotView,CacheParts,FrozenMode};
+   |                                    ^^^^^^^^ private module
+   |
+note: the module `borrowed` is defined here
+  --> src/experimental/cache/mod.rs:13:1
+   |
+13 | pub(crate) mod borrowed;
+   | ^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 2 previous errors
+
+For more information about this error, try `rustc --explain E0603`.
+
+external privacy private_control: expected=Some("E0603") exit=exit status: 1
+error[E0603]: module `control` is private
+  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-function-cache-review/candidate2-independent-runs/tmp/mixer-cache-privacy-96286-debug/private_control.rs:1:43
+   |
+ 1 | use mixer_vm::experimental_swift_reactor::control::RuntimeControl;
+   |                                           ^^^^^^^ private module
+   |
+note: the module `control` is defined here
+  --> src/experimental_swift_reactor/mod.rs:10:1
+   |
+10 | pub(crate) mod control;
+   | ^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0603`.
+
+external privacy proof_forge: expected=Some("private fields") exit=exit status: 1
+error: cannot construct `ValidatedSwiftReactor` with struct literal syntax due to private fields
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-function-cache-review/candidate2-independent-runs/tmp/mixer-cache-privacy-96286-debug/proof_forge.rs:1:78
+  |
+1 | use mixer_vm::experimental_swift_reactor::ValidatedSwiftReactor;fn f(){let _=ValidatedSwiftReactor{};}
+  |                                                                              ^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 1 previous error
+
+
+external privacy proof_clone: expected=Some("E0599") exit=exit status: 1
+error[E0599]: no method named `clone` found for struct `ValidatedSwiftReactor` in the current scope
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-function-cache-review/candidate2-independent-runs/tmp/mixer-cache-privacy-96286-debug/proof_clone.rs:1:103
+  |
+1 | use mixer_vm::experimental_swift_reactor::ValidatedSwiftReactor;fn f(p:ValidatedSwiftReactor){let _=p.clone();}
+  |                                                                                                       ^^^^^ method not found in `ValidatedSwiftReactor`
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0599`.
+
+external privacy legacy_conversion: expected=Some("E0308") exit=exit status: 1
+error[E0308]: mismatched types
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-function-cache-review/candidate2-independent-runs/tmp/mixer-cache-privacy-96286-debug/legacy_conversion.rs:1:159
+  |
+1 | ...alidatedSwiftReactor){let _:ValidatedSpans=p;}
+  |                                -------------- ^ expected `ValidatedSpans`, found `ValidatedSwiftReactor`
+  |                                |
+  |                                expected due to this
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0308`.
+
+external privacy mutable_source: expected=Some("E0594") exit=exit status: 1
+error[E0594]: cannot assign to data in a `&` reference
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-function-cache-review/candidate2-independent-runs/tmp/mixer-cache-privacy-96286-debug/mutable_source.rs:1:95
+  |
+1 | use mixer_vm::experimental_swift_reactor::ValidatedSwiftReactor;fn f(p:ValidatedSwiftReactor){p.source()[0]=1;}
+  |                                                                                               ^^^^^^^^^^^^^^^ cannot assign
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0594`.
+
+external privacy proof_reuse: expected=Some("E0382") exit=exit status: 1
+error[E0382]: use of moved value: `p`
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-function-cache-review/candidate2-independent-runs/tmp/mixer-cache-privacy-96286-debug/proof_reuse.rs:1:142
+  |
+1 | ...eactor){}fn f(p:ValidatedSwiftReactor){take(p);take(p);}
+  |                  -                             -       ^ value used here after move
+  |                  |                             |
+  |                  |                             value moved here
+  |                  move occurs because `p` has type `ValidatedSwiftReactor`, which does not implement the `Copy` trait
+  |
+note: consider changing this parameter type in function `take` to borrow instead if owning the value isn't necessary
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-function-cache-review/candidate2-independent-runs/tmp/mixer-cache-privacy-96286-debug/proof_reuse.rs:1:75
+  |
+1 | ...or::ValidatedSwiftReactor;fn take(_:ValidatedSwiftReactor){}fn f(p:ValidatedSwiftReactor){take(p);take(p);}
+  |                                 ----   ^^^^^^^^^^^^^^^^^^^^^ this parameter takes ownership of the value
+  |                                 |
+  |                                 in this function
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0382`.
+
+external privacy view_mutation: expected=Some("E0502") exit=exit status: 1
+error[E0502]: cannot borrow `*c` as mutable because it is also borrowed as immutable
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-function-cache-review/candidate2-independent-runs/tmp/mixer-cache-privacy-96286-debug/view_mutation.rs:1:166
+  |
+1 | ...){let v=c.view(&p).unwrap();let _=c.pin(0,&Cancellation::default());let _=v.instructions.len();}
+  |            -                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^       -------------- immutable borrow later used here
+  |            |                         |
+  |            |                         mutable borrow occurs here
+  |            immutable borrow occurs here
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0502`.
+
+external privacy view_release: expected=Some("E0502") exit=exit status: 1
+error[E0502]: cannot borrow `*c` as mutable because it is also borrowed as immutable
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-function-cache-review/candidate2-independent-runs/tmp/mixer-cache-privacy-96286-debug/view_release.rs:1:137
+  |
+1 | ...FunctionPin){let v=c.view(&p).unwrap();let _=c.release(p);let _=v.instructions.len();}
+  |                       -                         ^^^^^^^^^^^^       -------------- immutable borrow later used here
+  |                       |                         |
+  |                       |                         mutable borrow occurs here
+  |                       immutable borrow occurs here
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0502`.
+
+external privacy pin_clone: expected=Some("E0599") exit=exit status: 1
+error[E0599]: no method named `clone` found for struct `FunctionPin` in the current scope
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-function-cache-review/candidate2-independent-runs/tmp/mixer-cache-privacy-96286-debug/pin_clone.rs:1:76
+  |
+1 | use mixer_vm::experimental::cache::FunctionPin;fn f(p:FunctionPin){let _=p.clone();}
+  |                                                                            ^^^^^ method not found in `FunctionPin`
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0599`.
+
+external privacy pin_forge: expected=Some("E0451") exit=exit status: 1
+warning: function `f` is never used
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-function-cache-review/candidate2-independent-runs/tmp/mixer-cache-privacy-96286-debug/pin_forge.rs:1:51
+  |
+1 | use mixer_vm::experimental::cache::FunctionPin;fn f(){let _=FunctionPin{owner:1,slot:0,nonce:1};}
+  |                                                   ^
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+error[E0451]: fields `owner`, `slot` and `nonce` of struct `FunctionPin` are private
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-function-cache-review/candidate2-independent-runs/tmp/mixer-cache-privacy-96286-debug/pin_forge.rs:1:73
+  |
+1 | use mixer_vm::experimental::cache::FunctionPin;fn f(){let _=FunctionPin{owner:1,slot:0,nonce:1};}
+  |                                                                         ^^^^^   ^^^^   ^^^^^ private field
+  |                                                                         |       |
+  |                                                                         |       private field
+  |                                                                         private field
+
+error: aborting due to 1 previous error; 1 warning emitted
+
+For more information about this error, try `rustc --explain E0451`.
+
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 124 filtered out; finished in 1.59s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-function-cache-review/candidate2-independent-runs/build/debug/deps/mixer_vm-f739d999de49f627)

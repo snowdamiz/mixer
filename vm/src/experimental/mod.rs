@@ -9,8 +9,14 @@ mod validate;
 
 #[cfg(feature = "experimental-function-cache")]
 pub mod cache;
+#[cfg(all(
+    feature = "experimental-swift-reactor",
+    not(feature = "experimental-function-cache")
+))]
+pub(crate) mod cache;
 
 #[cfg(any(
+    feature = "experimental-function-cache",
     feature = "experimental-span-execution",
     feature = "experimental-swift-reactor"
 ))]

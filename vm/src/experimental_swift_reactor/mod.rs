@@ -4,6 +4,9 @@
 //! package admission, signature, runtime readiness or Swift behavior.
 #[cfg(test)]
 pub(crate) mod allocation_tests;
+mod cache;
+#[cfg(test)]
+mod cache_tests;
 pub(crate) mod control;
 
 pub use crate::experimental::swift::{

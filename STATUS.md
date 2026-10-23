@@ -34,8 +34,9 @@ FieldLog consumer, release or GA pass follows. The separate JNI/Java design now
 has root acceptance after 11 declaration/audit commands and 81 input/artifact
 bindings; all 50 implementation cases remain pending. See
 `verification/android-jni-stage5-root-review/acceptance.json`. The private Swift
-cache's selected accounting maps now pass review, while two mandatory terminal
-failure assertion groups still need execution before stage acceptance.
+cache candidate3 now has scoped independent and root acceptance after its two
+mandatory assertion gaps were closed; a compiling executor layout prerequisite
+is assigned. Actual executor and full-target execution remain pending.
 The preceding `3d93137` checkpoint passed all VM/Swift/services CI jobs.
 Hosted `61c5c8b` passed services but its new minimal-feature Clippy check rejected
 unused private descriptor fields after tests passed. A descriptor-only repair
@@ -47,6 +48,19 @@ fresh private Android host runner under Swift 6.2.4. See
 
 Observed implementation and evidence:
 
+- The private Swift cache candidate3 passes all 18 required named tests per Debug
+  and Release, all 21 explicit terminal-latch cases with 315 repeated routes per
+  mode, and three actual isolated constructor owner-exhaustion cleanup cases per
+  mode. Independent concurrent probing verifies test counters do not change global
+  owner allocation. Root verifies 823 input/artifact bindings, separately checking
+  measurement overlays. Construction accounting is 57,224 bytes (+96); operation,
+  cleanup, header and foundation bounds remain unchanged. This models named Rust
+  values and requested payloads, not physical stack/RSS. Historical candidate2
+  receipts remain historical. See
+  `verification/swift-function-cache-root-review/acceptance.json`. Executor
+  type/lifetime/layout work is assigned; execution, physical devices, immutable
+  FieldLog release and every GA gate remain open. Hosted `01d8491` passes all three
+  configured jobs; later implementation checkpoints are being checked separately.
 - The additive SDK native packet encoder preserves existing identities and full
   unsigned revisions, validates standard UI bounds and measures escaped output
   before allocating its 1 MiB buffer. Independent review found and verified a

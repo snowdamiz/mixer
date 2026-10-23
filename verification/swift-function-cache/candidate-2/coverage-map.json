@@ -1,0 +1,445 @@
+{
+  "scope": "exact command/source mapping with explicit assertion qualifications; contract requirements are not blanket execution claims",
+  "tests": [
+    {
+      "name": "same_abi_descriptors_and_authority",
+      "source": "vm/src/experimental_swift_reactor/cache_tests.rs",
+      "line": 302,
+      "named_command_indices": [
+        0,
+        18
+      ],
+      "executed_modes": [
+        "debug",
+        "release"
+      ],
+      "contract_requirements": [
+        "Complete validator accepts each original fixture; exact imports, signatures, memory/table and exports observed",
+        "Descriptors borrow the original source address/extent and preserve absolute index/type/offset; import function lookup rejects",
+        "No extra source/metadata allocation or proof ticket appears when AdoptedProof moves into cache",
+        "Table host_maximum is effective metadata 46713, not policy 65536; memory host_maximum 768",
+        "Initializer offset is O(1) checked absolute first opcode, absent index None; exact retained source slice includes end without changing GlobalView"
+      ],
+      "independent_assertion_review": "pending",
+      "execution_scope": {
+        "observed": "Original named source assertions and exact executed output; requirement completeness remains an independent review question."
+      }
+    },
+    {
+      "name": "decoder_opcode_and_count_build_parity",
+      "source": "vm/src/experimental_swift_reactor/cache_tests.rs",
+      "line": 330,
+      "named_command_indices": [
+        1,
+        19
+      ],
+      "executed_modes": [
+        "debug",
+        "release"
+      ],
+      "contract_requirements": [
+        "All admitted scalar/float/saturating/table/bulk-memory instruction shapes and LEB/branch immediates match owned frozen IR where policies overlap",
+        "Both passes agree on defined locals/instructions/targets and sealed parameter count; absolute offsets retained",
+        "Test-only internal count mismatch fails DecoderMismatch before publication and is not treated as public proof evidence"
+      ],
+      "independent_assertion_review": "pending",
+      "execution_scope": {
+        "promoted_helper": "review_every_decoded_instruction_matches_independent_owned_ir",
+        "observed": "376 owned-IR Operation matches plus 3 target/offset matches; complete validator original Swift fixture"
+      }
+    },
+    {
+      "name": "parameters_and_function_inclusive_depth",
+      "source": "vm/src/experimental_swift_reactor/cache_tests.rs",
+      "line": 395,
+      "named_command_indices": [
+        2,
+        20
+      ],
+      "executed_modes": [
+        "debug",
+        "release"
+      ],
+      "contract_requirements": [
+        "128 parameters plus 128 declared locals succeeds; 129 parameters and 257 parameter-plus-locals fail complete validation",
+        "379 and 512 function-inclusive depth accepted, 513 rejected by complete validation",
+        "Both decoder passes enforce totals; decoded locals length/bytes exclude parameters and no private policy relaxes these assertions"
+      ],
+      "independent_assertion_review": "pending",
+      "execution_scope": {
+        "promoted_helper": "review_parameter_and_group_boundaries",
+        "observed": "128 params+128 locals succeeds; 129 params and257 locals reject;256 local groups succeeds/257 rejects;512 function-inclusive depth succeeds/513 rejects"
+      }
+    },
+    {
+      "name": "permanent_patch_arena_exact_requests",
+      "source": "vm/src/experimental_swift_reactor/cache_tests.rs",
+      "line": 440,
+      "named_command_indices": [
+        3,
+        21
+      ],
+      "executed_modes": [
+        "debug",
+        "release"
+      ],
+      "contract_requirements": [
+        "Exactly one 512-Patch allocation during cache construction; no patch allocation on any miss/pass",
+        "Slots, pins and all three decoded vectors have requested==observed capacity; zero-size vectors allocate nothing",
+        "Patch reset initializes/checks all slots in both passes; exact extra Swift credits are recorded; legacy 128-Patch layout/work unchanged"
+      ],
+      "independent_assertion_review": "pending",
+      "execution_scope": {
+        "observed": "Original named source assertions and exact executed output; requirement completeness remains an independent review question."
+      }
+    },
+    {
+      "name": "entry_and_combined_admission_precedes_allocation",
+      "source": "vm/src/experimental_swift_reactor/cache_tests.rs",
+      "line": 458,
+      "named_command_indices": [
+        4,
+        22
+      ],
+      "executed_modes": [
+        "debug",
+        "release"
+      ],
+      "contract_requirements": [
+        "Source/meta adopted once and all cache headers/buffers/ticket handles included; category sums equal combined current",
+        "Entry 3-vector aggregate admitted before first vector allocation; entry ceiling and combined exhaustion retain exact first resource",
+        "Existing pinned/resident entries and permanent arena remain live during incoming construction; no pinned/source double count and <=86 tickets",
+        "Same cache header ticket permanently includes checked cleanup named-object envelope; actual sizes/alignments/simultaneous counts recorded and no new ticket"
+      ],
+      "independent_assertion_review": "pending",
+      "execution_scope": {
+        "observed": "Original named source assertions and exact executed output; requirement completeness remains an independent review question."
+      }
+    },
+    {
+      "name": "zero_limits_and_exact_narrowing",
+      "source": "vm/src/experimental_swift_reactor/cache_tests.rs",
+      "line": 500,
+      "named_command_indices": [
+        5,
+        23
+      ],
+      "executed_modes": [
+        "debug",
+        "release"
+      ],
+      "contract_requirements": [
+        "Each Swift zero cache/work/entry/pin limit is real exhaustion rather than invalid budget or implicit default",
+        "Narrow cache entries/pins to 0/1/64 and all byte ceilings independently; >maximum rejected by foundation",
+        "Legacy zero entries/pins retain original InvalidBudget and precedence"
+      ],
+      "independent_assertion_review": "pending",
+      "execution_scope": {
+        "observed": "Original named source assertions and exact executed output; requirement completeness remains an independent review question."
+      }
+    },
+    {
+      "name": "pins_hits_lru_and_eviction",
+      "source": "vm/src/experimental_swift_reactor/cache_tests.rs",
+      "line": 535,
+      "named_command_indices": [
+        6,
+        24
+      ],
+      "executed_modes": [
+        "debug",
+        "release"
+      ],
+      "contract_requirements": [
+        "Hit/miss/decode/eviction snapshots, deterministic LRU tie order and last-pin pinned-byte transition exact",
+        "64 simultaneous distinct pins plus recursive same-function pins; 65th fails and all-pinned path preserves residents",
+        "Planning failure evicts nothing; build failure after committed eviction reports removed victims; incoming entry included in 64 slots"
+      ],
+      "independent_assertion_review": "pending",
+      "execution_scope": {
+        "promoted_helper": "review_64_distinct_live_pins_then_65th_and_terminal_release",
+        "observed": "64 distinct simultaneously live function pins;65th fails without allocations; all original pins can terminal-release"
+      }
+    },
+    {
+      "name": "foreign_stale_nonce_and_control_ownership",
+      "source": "vm/src/experimental_swift_reactor/cache_tests.rs",
+      "line": 629,
+      "named_command_indices": [
+        7,
+        25
+      ],
+      "executed_modes": [
+        "debug",
+        "release"
+      ],
+      "contract_requirements": [
+        "Wrong cache/control pair fails before work/allocation/mutation/refund; original owner can still drain",
+        "Foreign adopted proof rejects before preparation enlargement or construction effects after checking both sealed tickets; owned failure returns proof intact to original control",
+        "Foreign pin precedes stale nonce/entry checks; nonce/owner exhaustion uses test-only seeds and never issues duplicate authority",
+        "Release succeeds under cancellation and exhausted work; failed release returns owned pin for cleanup",
+        "Foreign owned-slot cleanup leaves exact Some(cache) in caller slot with unchanged vectors/pins/refunds/allocations and both reservation ledgers; handle failure then reuse slot with original control",
+        "Foreign optional WASI with different actual counters rejects preflight with wasi None and intact owner; missing header also contributes None; same-owner ledger invariant retains actual usage"
+      ],
+      "independent_assertion_review": "pending",
+      "execution_scope": {
+        "observed": "stale pin, nonce exhaustion, foreign cache/control cleanup rejection preserves Some owner, failed release returns owned foreign pin",
+        "not_claimed_in_named_body": [
+          "cache owner identity exhaustion",
+          "missing-WASI or same-owner WASI-underflow injection"
+        ],
+        "cross_named_evidence": [
+          "construction_and_operation_phase_boundaries",
+          "first_cause_retains_actual_wasi_usage",
+          "component_cleanup_and_first_cleanup_invariant"
+        ]
+      }
+    },
+    {
+      "name": "construction_and_operation_phase_boundaries",
+      "source": "vm/src/experimental_swift_reactor/cache_tests.rs",
+      "line": 694,
+      "named_command_indices": [
+        8,
+        26
+      ],
+      "executed_modes": [
+        "debug",
+        "release"
+      ],
+      "contract_requirements": [
+        "Prepare enlarges before phase/builder/cache/Result/borrowed operation wrappers coexist; caller completes only after construct or pin/decode returns and named temporaries drop",
+        "One-shot repeated construct returns its supplied proof intact and allocates nothing; omitted completion conservatively retains enlarged charge",
+        "Nested phases restore exact previous bound in reverse order rather than foundation; output transfer peaks and same-control borrowing verified",
+        "Complete all ordinary phases before cleanup; permanent header cleanup envelope remains fully reserved; cleanup never prepares/enlarges a phase",
+        "Freeze cleanup return/rejection wrapper and transfer accounting before whole-cache implementation; no disappearing charge across return"
+      ],
+      "independent_assertion_review": "pending",
+      "execution_scope": {
+        "promoted_helper": "review_exact_phase_and_header_admission_boundaries",
+        "observed": "exact-minus1/exact combined construction/operation admission; header-minus1/header/header+patch-minus1/exact fixed arena thresholds; no allocations before denial; existing one-shot/foreign-proof/omitted-completion/nested previous-bound cases"
+      }
+    },
+    {
+      "name": "every_constructor_allocation_ordinal",
+      "source": "vm/src/experimental_swift_reactor/cache_tests.rs",
+      "line": 761,
+      "named_command_indices": [
+        9,
+        27
+      ],
+      "executed_modes": [
+        "debug",
+        "release"
+      ],
+      "contract_requirements": [
+        "Measure successful cache-only construction allocation attempts N, then inject each ordinal 0..N-1 with fixtures/proof/control outside scope",
+        "Each failure observed exactly once, no Ready cache, zero leaked owned bytes/tickets after actual cleanup, source/meta/refund order verified",
+        "Partial slots/pins/patch/header initialization and every acquired ticket covered; no unobserved ordinal accepted"
+      ],
+      "independent_assertion_review": "pending",
+      "execution_scope": {
+        "observed": "Original named source assertions and exact executed output; requirement completeness remains an independent review question."
+      }
+    },
+    {
+      "name": "every_miss_allocation_ordinal_and_capacity_fault",
+      "source": "vm/src/experimental_swift_reactor/cache_tests.rs",
+      "line": 806,
+      "named_command_indices": [
+        10,
+        28
+      ],
+      "executed_modes": [
+        "debug",
+        "release"
+      ],
+      "contract_requirements": [
+        "Measure each unique 0/1/3-vector miss shape, inject all allocation ordinals including after eviction and first/second/third vector",
+        "Unexpected observed capacities fail typed allocation with requested/observed fields; no post-allocation excess admission",
+        "Drop partial payloads before refund; no pin/live entry escapes and hit/release/cleanup allocate nothing"
+      ],
+      "independent_assertion_review": "pending",
+      "execution_scope": {
+        "observed": "Original named source assertions and exact executed output; requirement completeness remains an independent review question."
+      }
+    },
+    {
+      "name": "every_work_prefix_and_cancellation_boundary",
+      "source": "vm/src/experimental_swift_reactor/cache_tests.rs",
+      "line": 887,
+      "named_command_indices": [
+        11,
+        29
+      ],
+      "executed_modes": [
+        "debug",
+        "release"
+      ],
+      "contract_requirements": [
+        "Enumerate all observed work/check ordinals for construction, hit, miss scan/build/reset, LRU planning and publication with thread-local cfg(test) hooks",
+        "Exhaust work at every prefix and cancel actual shared token at every check ordinal, including final publication boundary",
+        "No effects after terminal latch, work never exceeds budget; before-eviction and after-eviction expectations distinguished; no unbounded retry"
+      ],
+      "independent_assertion_review": "pending",
+      "execution_scope": {
+        "observed": "Original named source assertions and exact executed output; requirement completeness remains an independent review question."
+      }
+    },
+    {
+      "name": "deadline_inside_decode_and_reset",
+      "source": "vm/src/experimental_swift_reactor/cache_tests.rs",
+      "line": 1047,
+      "named_command_indices": [
+        12,
+        30
+      ],
+      "executed_modes": [
+        "debug",
+        "release"
+      ],
+      "contract_requirements": [
+        "Actual earliest carried deadline expires in each scan/build/reset loop using deterministic test-only pause at real check boundary",
+        "Selected Run/Wasi origin and overshoot retained; cancelled+expired precedence is cancellation; existing terminal cause wins both",
+        "No production clock hook; tests identify loop/cursor and demonstrate final check before publication"
+      ],
+      "independent_assertion_review": "pending",
+      "execution_scope": {
+        "observed": "Original named source assertions and exact executed output; requirement completeness remains an independent review question."
+      }
+    },
+    {
+      "name": "first_cause_retains_actual_wasi_usage",
+      "source": "vm/src/experimental_swift_reactor/cache_tests.rs",
+      "line": 1129,
+      "named_command_indices": [
+        13,
+        31
+      ],
+      "executed_modes": [
+        "debug",
+        "release"
+      ],
+      "contract_requirements": [
+        "Create actual AccountedWasi, perform real accepted/errno adapter dispatch, then cache work/entry/category/combined/capacity failures",
+        "At first failure wasi equals context.usage at that boundary and differs from an earlier snapshot; copied counters never admit resources",
+        "Borrow prevents simultaneous dispatch; later checks/faults/cleanup preserve original code/cursor/at_failure and only append after_cleanup",
+        "checked_usage first uses pure exact nonzero reservation_owner_matches, then full check_reservation_owner with belongs.then(actual usage); no work/admission/time/cancel checks",
+        "Foreign/missing WASI header first invariant has wasi None; same-owner accounting first invariant has actual dispatch counters; prior latched cause unchanged; existing dispatch untouched"
+      ],
+      "independent_assertion_review": "pending",
+      "execution_scope": {
+        "observed": "Original named source assertions and exact executed output; requirement completeness remains an independent review question."
+      }
+    },
+    {
+      "name": "component_cleanup_and_first_cleanup_invariant",
+      "source": "vm/src/experimental_swift_reactor/cache_tests.rs",
+      "line": 1276,
+      "named_command_indices": [
+        14,
+        32
+      ],
+      "executed_modes": [
+        "debug",
+        "release"
+      ],
+      "contract_requirements": [
+        "Consume cache with multiple residents and live/recursive pins; drain all vectors then source proof before respective refunds",
+        "Under cancellation/deadline/exhausted work cleanup uses zero allocation/work/services and preserves live WASI/control charges",
+        "First cleanup invariant receives actual WASI observation; later cleanup errors never replace first cause; final whole-owner cleanup combined/tickets zero",
+        "After earlier operation phase completion, cancelled/expired/work-exhausted/terminal cleanup and intact preflight rejection require no admission or construction enlargement",
+        "Pre-reserved same-header envelope covers chosen Result/tail/Option/cache/entry/vector/ticket/borrowed/failure/usage transfers; tail retains same header until caller drops empty slot and large wrappers, complete returns unit and named foundation count mapping is recorded",
+        "Rejected WASI/cache pairing leaves caller slot Some(cache) with no owner effects; after successful preflight later invariant drains everything and returns tail with caller slot None",
+        "Omitting tail completion retains full header charge; tail exclusive control borrow prevents substitution; no returned large Result/Option survives refund",
+        "Explicit final completion/refund/output active-value mapping fits foundation 4 failure/4 usage/6 ticket/6 optional WASI usage counts; no presumed slack or duplicate allowance"
+      ],
+      "independent_assertion_review": "pending",
+      "execution_scope": {
+        "promoted_helpers": [
+          "review_final_header_refund_fault_actual_wasi_and_prior_cause",
+          "review_cleanup_expired_deadline_exact_work_and_latched_terminal"
+        ],
+        "observed": "actual-WASI final header foreign-ticket fault preserves original charge and prior cause; ordinary failure/invariant/expired-clock/exact-work/terminal cleanup remain allocation-free",
+        "not_claimed_in_named_body": [
+          "missing-WASI or same-owner WASI-underflow injection"
+        ]
+      }
+    },
+    {
+      "name": "sticky_failure_has_no_new_effects",
+      "source": "vm/src/experimental_swift_reactor/cache_tests.rs",
+      "line": 1428,
+      "named_command_indices": [
+        15,
+        33
+      ],
+      "executed_modes": [
+        "debug",
+        "release"
+      ],
+      "contract_requirements": [
+        "After each terminal kind, repeated pin/cache operation returns the same copied first cause without decode/service/allocation/work",
+        "Failure after acquiring live pin/entry counters drains exactly once with no underflow or unpinned authority escape",
+        "First-failure and after-cleanup reservation/peak snapshots are distinct and accurate"
+      ],
+      "independent_assertion_review": "pending",
+      "execution_scope": {
+        "observed": "PinLimit first failure repeated five times; exact failure, no new allocation/work/reservation/live/cache-usage effects",
+        "not_claimed_in_named_body": [
+          "repetition after every other terminal failure kind"
+        ]
+      }
+    },
+    {
+      "name": "frozen_layout_allocation_work_error_snapshots",
+      "source": "vm/src/experimental_swift_reactor/cache_tests.rs",
+      "line": 1452,
+      "named_command_indices": [
+        16,
+        34
+      ],
+      "executed_modes": [
+        "debug",
+        "release"
+      ],
+      "contract_requirements": [
+        "Retain pre-extraction size/alignment/offset and requested allocation counts/bytes for all legacy cache/pin/slot/decoded/meter/pass owners",
+        "Replay identical old-route fixtures in frozen-only and all-feature builds; full usage/work/error/code/cursor/identity baselines equal",
+        "Include invalid budgets, cancellation+invalid function, scratch capacity+cancel, work+pin exhaustion, all-pinned/entry/nonce/capacity and eviction/build failures"
+      ],
+      "independent_assertion_review": "pending",
+      "execution_scope": {
+        "observed": "compiler sizes/alignments/offsets, explicit inventory fit checks, exact current cache snapshots",
+        "separate_executable_evidence": "legacy-parity-receipt.json covers unchanged original full allocation/work/error traces in four mode/feature pairs; full replay is not asserted inside this named body"
+      }
+    },
+    {
+      "name": "external_surface_and_borrow_privacy",
+      "source": "vm/src/experimental_swift_reactor/cache_tests.rs",
+      "line": 1568,
+      "named_command_indices": [
+        17,
+        35
+      ],
+      "executed_modes": [
+        "debug",
+        "release"
+      ],
+      "contract_requirements": [
+        "Separate downstream crate compile-fails forged/Clone/legacy conversion, private descriptors/SnapshotView/CacheParts/custom mode, Swift cache/pin constructors and mutable source",
+        "View cannot survive mutation/release; adopted proof cannot be reused after cache consumption; no arbitrary export/raw memory/host injection surface",
+        "Positive old public Rust/C/native consumers and unchanged header/export inventory pass; negative snippets fail for intended privacy/borrow reason"
+      ],
+      "independent_assertion_review": "pending",
+      "execution_scope": {
+        "observed": "downstream positive and negative compilation privacy probes, internal ordinary view lifetime and owned pin release",
+        "separate_executable_evidence": "candidate1 independent internal borrow/privacy probes remain separate review evidence"
+      }
+    }
+  ],
+  "independent_review_only": {
+    "missing_or_same_owner_underflow_WASI": "verification/swift-function-cache-review/independent-probes.json",
+    "internal_borrow_privacy": "verification/swift-function-cache-review/internal-privacy.json"
+  }
+}

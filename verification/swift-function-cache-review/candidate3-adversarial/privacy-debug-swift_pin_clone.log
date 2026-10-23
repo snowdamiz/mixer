@@ -1,0 +1,18 @@
+    Checking mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-function-cache-review/candidate3-adversarial/tree/vm)
+error[E0599]: no method named `clone` found for struct `experimental_swift_reactor::cache::SwiftFunctionPin` in the current scope
+    --> src/experimental_swift_reactor/cache_tests.rs:2323:56
+     |
+2323 | fn review_compile_negative(p:SwiftFunctionPin){let _=p.clone();}
+     |                                                        ^^^^^ method not found in `experimental_swift_reactor::cache::SwiftFunctionPin`
+     |
+    ::: src/experimental_swift_reactor/cache.rs:64:1
+     |
+  64 | pub(crate) struct SwiftFunctionPin {
+     | ---------------------------------- method `clone` not found for this struct
+     |
+     = help: items from traits can only be used if the trait is implemented and in scope
+     = note: the following trait defines an item `clone`, perhaps you need to implement it:
+             candidate #1: `Clone`
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `mixer-vm` (lib test) due to 1 previous error

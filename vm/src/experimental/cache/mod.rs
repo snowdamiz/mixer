@@ -1,7 +1,17 @@
 //! Nondefault, fallible decoded-function cache. This module cannot execute guests.
 // Static bounded diagnostic snapshots must remain usable after allocation failure.
 #![allow(clippy::result_large_err)]
-mod decode;
+// The frozen public specialization is intentionally private/unselected when only
+// the Swift experiment needs the borrowed decoder and cache algorithm.
+#![cfg_attr(
+    all(
+        feature = "experimental-swift-reactor",
+        not(feature = "experimental-function-cache")
+    ),
+    allow(dead_code)
+)]
+pub(crate) mod borrowed;
+pub(crate) mod decode;
 
 use super::ValidatedSpans;
 use crate::{Cancellation, Profile, Type, Value};
@@ -177,24 +187,24 @@ pub struct FunctionView<'a> {
     pub instructions: &'a [DecodedInstruction],
     pub branch_targets: &'a [u32],
 }
-struct DecodedFunction {
-    function: u32,
-    type_index: u32,
-    body_offset: usize,
-    locals: Vec<Type>,
-    instructions: Vec<DecodedInstruction>,
-    branch_targets: Vec<u32>,
-    bytes: usize,
+pub(crate) struct DecodedFunction {
+    pub(crate) function: u32,
+    pub(crate) type_index: u32,
+    pub(crate) body_offset: usize,
+    pub(crate) locals: Vec<Type>,
+    pub(crate) instructions: Vec<DecodedInstruction>,
+    pub(crate) branch_targets: Vec<u32>,
+    pub(crate) bytes: usize,
 }
-struct Slot {
+pub(crate) struct Slot {
     entry: Option<DecodedFunction>,
     pins: usize,
     last_used: u64,
 }
 #[derive(Clone, Copy, Default)]
-struct PinRecord {
-    nonce: u64,
-    entry: usize,
+pub(crate) struct PinRecord {
+    pub(crate) nonce: u64,
+    pub(crate) entry: usize,
 }
 /// Owns one complete validated snapshot and bounded decoded entries.
 ///
@@ -240,7 +250,7 @@ fn failure(
         usage,
     }
 }
-struct Meter<'a> {
+pub(crate) struct Meter<'a> {
     budget: CacheBudget,
     usage: &'a mut CacheUsage,
     cancellation: &'a Cancellation,
@@ -445,56 +455,33 @@ impl FunctionCache {
     pub fn usage(&self) -> CacheUsage {
         self.usage
     }
-    fn error(&self, kind: CacheFailureKind, code: &'static str) -> CacheFailure {
-        failure(self.usage, kind, code, None, 0, 0, 0)
-    }
-    fn checked_record(&self, pin: &FunctionPin) -> Result<PinRecord, CacheFailure> {
-        if pin.owner != self.owner {
-            return Err(self.error(CacheFailureKind::InvalidPin, "wrong_cache_owner"));
-        }
-        let record = self
-            .pins
-            .get(pin.slot)
-            .copied()
-            .filter(|record| record.nonce != 0 && record.nonce == pin.nonce)
-            .ok_or_else(|| self.error(CacheFailureKind::InvalidPin, "stale_pin"))?;
-        if self
-            .slots
-            .get(record.entry)
-            .is_none_or(|slot| slot.pins == 0 || slot.entry.is_none())
-        {
-            return Err(self.error(CacheFailureKind::InvalidPin, "stale_entry"));
-        }
-        Ok(record)
-    }
     pub fn view(&self, pin: &FunctionPin) -> Result<FunctionView<'_>, CacheFailure> {
-        let record = self.checked_record(pin)?;
-        let entry = self.slots[record.entry]
-            .entry
-            .as_ref()
-            .ok_or_else(|| self.error(CacheFailureKind::InvalidPin, "stale_entry"))?;
-        Ok(FunctionView {
-            function: entry.function,
-            type_index: entry.type_index,
-            body_offset: entry.body_offset,
-            locals: &entry.locals,
-            instructions: &entry.instructions,
-            branch_targets: &entry.branch_targets,
-        })
+        borrowed::view::<borrowed::FrozenMode>(
+            borrowed::CacheViewParts {
+                slots: &self.slots,
+                pins: &self.pins,
+                owner: self.owner,
+            },
+            pin,
+            &mut borrowed::FrozenDiagnostics { usage: &self.usage },
+        )
     }
     pub fn release(&mut self, pin: FunctionPin) -> Result<(), ReleaseFailure> {
-        let record = match self.checked_record(&pin) {
-            Ok(r) => r,
-            Err(failure) => return Err(ReleaseFailure { failure, pin }),
-        };
-        let slot = &mut self.slots[record.entry];
-        if slot.pins == 1 {
-            self.usage.pinned_bytes -= slot.entry.as_ref().expect("checked entry").bytes;
-        }
-        slot.pins -= 1;
-        self.usage.active_pins -= 1;
-        self.pins[pin.slot] = PinRecord::default();
-        Ok(())
+        let mut operation = borrowed::FrozenRelease { usage: self.usage };
+        borrowed::release::<borrowed::FrozenMode>(
+            borrowed::CacheParts {
+                snapshot: &self.spans,
+                slots: &mut self.slots,
+                pins: &mut self.pins,
+                owner: self.owner,
+                next_nonce: &mut self.next_nonce,
+                usage: &mut self.usage,
+                scratch: (),
+            },
+            pin,
+            &mut operation,
+        )
+        .map_err(|(failure, pin)| ReleaseFailure { failure, pin })
     }
     pub fn pin(
         &mut self,
@@ -518,194 +505,22 @@ impl FunctionCache {
         function: u32,
         cancellation: &Cancellation,
     ) -> Result<FunctionPin, CacheFailure> {
-        let mut meter = Meter {
-            budget: self.budget,
-            usage: &mut self.usage,
-            cancellation,
-            function: Some(function),
-            offset: 0,
-        };
-        meter.work(1)?;
-        let defined = (function as usize)
-            .checked_sub(self.spans.metadata.imports.len())
-            .and_then(|n| self.spans.metadata.functions.get(n))
-            .copied()
-            .ok_or_else(|| {
-                meter.error(CacheFailureKind::InvalidFunction, "not_defined_function")
-            })?;
-        meter.offset = defined.body.offset as usize;
-        let nonce = self
-            .next_nonce
-            .checked_add(1)
-            .ok_or_else(|| meter.error(CacheFailureKind::NonceExhausted, "pin_nonce_exhausted"))?;
-        let mut pin_slot = None;
-        for (index, record) in self.pins.iter().enumerate() {
-            meter.work(1)?;
-            if record.nonce == 0 {
-                pin_slot = Some(index);
-                break;
-            }
-        }
-        let pin_slot = pin_slot
-            .ok_or_else(|| meter.error(CacheFailureKind::PinExhausted, "pin_slots_exhausted"))?;
-        let mut hit = None;
-        for (index, slot) in self.slots.iter().enumerate() {
-            meter.work(1)?;
-            if slot
-                .entry
-                .as_ref()
-                .is_some_and(|entry| entry.function == function)
-            {
-                hit = Some(index);
-                break;
-            }
-        }
-        let slot_index =
-            if let Some(index) = hit {
-                meter.check()?;
-                meter.usage.hits =
-                    meter.usage.hits.checked_add(1).ok_or_else(|| {
-                        meter.error(CacheFailureKind::WorkExhausted, "hits_overflow")
-                    })?;
-                index
-            } else {
-                meter.usage.misses = meter.usage.misses.checked_add(1).ok_or_else(|| {
-                    meter.error(CacheFailureKind::WorkExhausted, "misses_overflow")
-                })?;
-                let next_decodes = meter.usage.decodes.checked_add(1).ok_or_else(|| {
-                    meter.error(CacheFailureKind::WorkExhausted, "decodes_overflow")
-                })?;
-                let body = defined.body.slice(self.spans.source());
-                let counts = decode::scan(
-                    body,
-                    defined.body.offset as usize,
-                    self.spans.limits(),
-                    &mut meter,
-                    None,
-                )?;
-                let bytes = counts.bytes(&meter)?;
-                if bytes > self.budget.entry_bytes {
-                    return Err(failure(
-                        *meter.usage,
-                        CacheFailureKind::EntryOversize,
-                        "entry_bytes",
-                        Some(function),
-                        meter.offset,
-                        bytes as u64,
-                        self.budget.entry_bytes as u64,
-                    ));
-                }
-                let base = meter.usage.fixed_reserved + meter.usage.scratch_reserved;
-                if base
-                    .checked_add(bytes)
-                    .is_none_or(|n| n > self.budget.capacity_bytes)
-                {
-                    return Err(meter.error(CacheFailureKind::Capacity, "entry_cannot_fit"));
-                }
-                let mut plan = [false; MAX_ENTRIES];
-                let mut remaining = meter.usage.resident_bytes;
-                meter.work(self.slots.len() as u64)?;
-                let mut empty = self.slots.iter().position(|slot| slot.entry.is_none());
-                while empty.is_none() || base + remaining + bytes > self.budget.capacity_bytes {
-                    let mut oldest: Option<usize> = None;
-                    for (index, slot) in self.slots.iter().enumerate() {
-                        meter.work(1)?;
-                        if !plan[index]
-                            && slot.pins == 0
-                            && slot.entry.is_some()
-                            && oldest.is_none_or(|previous| {
-                                slot.last_used < self.slots[previous].last_used
-                            })
-                        {
-                            oldest = Some(index);
-                        }
-                    }
-                    let victim = oldest.ok_or_else(|| {
-                        meter.error(CacheFailureKind::AllPinned, "all_entries_pinned")
-                    })?;
-                    plan[victim] = true;
-                    remaining -= self.slots[victim]
-                        .entry
-                        .as_ref()
-                        .expect("selected entry")
-                        .bytes;
-                    empty = Some(victim);
-                }
-                // Precharge the whole bounded application before any eviction.
-                meter.work(MAX_ENTRIES as u64)?;
-                let evictions = plan.iter().filter(|v| **v).count() as u64;
-                meter
-                    .usage
-                    .evictions
-                    .checked_add(evictions)
-                    .ok_or_else(|| {
-                        meter.error(CacheFailureKind::WorkExhausted, "evictions_overflow")
-                    })?;
-                meter.check()?;
-                for (index, selected) in plan.iter().enumerate().take(self.slots.len()) {
-                    if *selected {
-                        let old = self.slots[index].entry.take().expect("planned entry");
-                        let old_bytes = old.bytes;
-                        drop(old);
-                        meter.usage.resident_bytes -= old_bytes;
-                        meter.usage.evictions += 1;
-                    }
-                }
-                let index = empty
-                    .ok_or_else(|| meter.error(CacheFailureKind::Capacity, "no_entry_slot"))?;
-                meter.usage.construction_bytes = bytes;
-                update_peak(meter.usage, self.budget)?;
-                let decoded = decode::build(
-                    body,
-                    defined.body.offset as usize,
-                    defined.type_index,
-                    function,
-                    self.spans.limits(),
-                    counts,
-                    &mut meter,
-                );
-                let entry = match decoded {
-                    Ok(entry) => entry,
-                    Err(error) => {
-                        meter.usage.construction_bytes = 0;
-                        return Err(error);
-                    }
-                };
-                if let Err(error) = meter.check() {
-                    drop(entry);
-                    meter.usage.construction_bytes = 0;
-                    return Err(error);
-                }
-                meter.usage.decodes = next_decodes;
-                meter.usage.construction_bytes = 0;
-                meter.usage.resident_bytes += bytes;
-                meter.usage.peak_resident_bytes = meter
-                    .usage
-                    .peak_resident_bytes
-                    .max(meter.usage.resident_bytes);
-                self.slots[index].entry = Some(entry);
-                index
-            };
-        // No fallible operation follows entry publication.
-        let slot = &mut self.slots[slot_index];
-        if slot.pins == 0 {
-            meter.usage.pinned_bytes += slot.entry.as_ref().expect("resident entry").bytes;
-        }
-        meter.usage.peak_pinned_bytes = meter.usage.peak_pinned_bytes.max(meter.usage.pinned_bytes);
-        slot.pins += 1; // bounded by the preallocated pin table
-        slot.last_used = meter.usage.work_used;
-        self.pins[pin_slot] = PinRecord {
-            nonce: self.next_nonce,
-            entry: slot_index,
-        };
-        meter.usage.active_pins += 1;
-        let pin = FunctionPin {
-            owner: self.owner,
-            slot: pin_slot,
-            nonce: self.next_nonce,
-        };
-        self.next_nonce = nonce;
-        Ok(pin)
+        borrowed::pin::<borrowed::FrozenMode>(
+            borrowed::CacheParts {
+                snapshot: &self.spans,
+                slots: &mut self.slots,
+                pins: &mut self.pins,
+                owner: self.owner,
+                next_nonce: &mut self.next_nonce,
+                usage: &mut self.usage,
+                scratch: (),
+            },
+            function,
+            &mut borrowed::FrozenOperation {
+                budget: &self.budget,
+                cancellation,
+            },
+        )
     }
 }
 

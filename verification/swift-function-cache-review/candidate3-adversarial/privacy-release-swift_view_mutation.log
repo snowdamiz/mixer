@@ -1,0 +1,11 @@
+    Checking mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-function-cache-review/candidate3-adversarial/tree/vm)
+error[E0502]: cannot borrow `*cache` as mutable because it is also borrowed as immutable
+    --> src/experimental_swift_reactor/cache_tests.rs:2323:213
+     |
+2323 | ... v=cache.view(&p,c,None).unwrap();let mut phase=cache.prepare_operation(c,None,cache_cursor()).unwrap();let _=phase.pin(cache,34);let _=v.instructions.le...
+     |       -----                                                                                                      ^^^^^^^^^^^^^^^^^^^       -------------- immutable borrow later used here
+     |       |                                                                                                          |
+     |       immutable borrow occurs here                                                                               mutable borrow occurs here
+
+For more information about this error, try `rustc --explain E0502`.
+error: could not compile `mixer-vm` (lib test) due to 1 previous error

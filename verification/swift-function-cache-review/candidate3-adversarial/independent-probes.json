@@ -1,0 +1,74 @@
+{
+  "scope": "test-only isolated copies; candidate3 product source immutable",
+  "overlays": {
+    "vm/src/experimental_swift_reactor/cache.rs": {
+      "frozen_sha256": "43d4d7af4a1959d2afd5b1da39801b0a0e4a875d5b81f05142b4befa5e120614",
+      "derived_sha256": "976a98ebf29cf5e9c21583e2f93887e9e0ecbe40588fcbf19ac07cf10cbf2a47",
+      "test_include": "cache_probe_inspection.rs",
+      "test_include_sha256": "715b483c07a46de3e103188253c8a098957692025ecdb55deda089bef8d227c7"
+    },
+    "vm/src/experimental_swift_reactor/control.rs": {
+      "frozen_sha256": "55e0e89c5da57347f02fd13dfb97296c19c3ace7d94fc11109dd224c9046b79f",
+      "derived_sha256": "d3cdf2ff7347a7d53a02c3ffbfe7a145651a4d83726c82b480b8a3460a96ae4c",
+      "test_include": "control_probe_inspection.rs",
+      "test_include_sha256": "c3ce4cbe1dc4894856d03c15ae753b9da95e7158b64583daa1a1c80fbd8d528e"
+    },
+    "vm/src/experimental_wasi/accounted.rs": {
+      "frozen_sha256": "61dcdbfd544c6acbf4ab80b89a016121340c1175c1ed7b87ba92648e21f1f07b",
+      "derived_sha256": "b28caea7b16da24da8333aa75ec1953b755a679fa6544326274b274268760310",
+      "test_include": "wasi_probe_inspection.rs",
+      "test_include_sha256": "02c525856658a4f103636d95d115c22404d4ba39dfdd4dedcec89637dbad00cf"
+    },
+    "vm/src/experimental_swift_reactor/cache_tests.rs": {
+      "frozen_sha256": "a734428c772f6bcced05e51a452721831e9eb9ebfa6a84c44e02efec16987c00",
+      "derived_sha256": "0c168418201e86c2e2e4ce02fe48cbafddc85de9738e6facdb602f18b23f38f0",
+      "test_include": "independent_probes.rs",
+      "test_include_sha256": "b32c85ccb4ec9dc7c0db09d8cfb8070ef47b35df5f8e2da73c7cb2766018c385"
+    }
+  },
+  "commands": [
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--all-features",
+        "--lib",
+        "experimental_swift_reactor::cache_tests::independent_",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-function-cache-review/candidate3-adversarial/tree",
+      "exit_code": 0,
+      "seconds": 3.019213499967009,
+      "passed": 8,
+      "output": "independent-probes-debug.log",
+      "output_sha256": "d6b1046933ff4c51f25cfabf2e2a635817200a04705d057339c4db2f73b36d58"
+    },
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--all-features",
+        "--lib",
+        "--release",
+        "experimental_swift_reactor::cache_tests::independent_",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-function-cache-review/candidate3-adversarial/tree",
+      "exit_code": 0,
+      "seconds": 3.810706707998179,
+      "passed": 8,
+      "output": "independent-probes-release.log",
+      "output_sha256": "2e3bcf029fcf575f69758b82672974e30802c3d3136f344eda396606f554d7e5"
+    }
+  ]
+}

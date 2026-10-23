@@ -243,3 +243,274 @@ fn scalar_statistics_never_wrap_or_leak_construction() {
     );
     assert_eq!(cache.usage.work_used, u64::MAX);
 }
+
+#[test]
+fn frozen_layout_and_trace_observation() {
+    use std::mem::{align_of, offset_of, size_of};
+    macro_rules! shape {
+        ($ty:ty) => {
+            println!(
+                "layout {} {} {}",
+                stringify!($ty),
+                size_of::<$ty>(),
+                align_of::<$ty>()
+            );
+        };
+    }
+    shape!(FunctionCache);
+    shape!(FunctionPin);
+    shape!(Slot);
+    shape!(PinRecord);
+    shape!(DecodedFunction);
+    shape!(Meter<'static>);
+    shape!(decode::PassState);
+    shape!(decode::Reader<'static>);
+    shape!(CacheUsage);
+    shape!(CacheFailure);
+    println!(
+        "offsets cache {} {} {} {} {} {} {}",
+        offset_of!(FunctionCache, spans),
+        offset_of!(FunctionCache, budget),
+        offset_of!(FunctionCache, usage),
+        offset_of!(FunctionCache, owner),
+        offset_of!(FunctionCache, next_nonce),
+        offset_of!(FunctionCache, slots),
+        offset_of!(FunctionCache, pins)
+    );
+    println!(
+        "offsets pin {} {} {}",
+        offset_of!(FunctionPin, owner),
+        offset_of!(FunctionPin, slot),
+        offset_of!(FunctionPin, nonce)
+    );
+    println!(
+        "offsets slot {} {} {}",
+        offset_of!(Slot, entry),
+        offset_of!(Slot, pins),
+        offset_of!(Slot, last_used)
+    );
+    println!(
+        "offsets decoded {} {} {} {} {} {} {}",
+        offset_of!(DecodedFunction, function),
+        offset_of!(DecodedFunction, type_index),
+        offset_of!(DecodedFunction, body_offset),
+        offset_of!(DecodedFunction, locals),
+        offset_of!(DecodedFunction, instructions),
+        offset_of!(DecodedFunction, branch_targets),
+        offset_of!(DecodedFunction, bytes)
+    );
+    println!(
+        "offsets meter {} {} {} {} {}",
+        offset_of!(Meter<'static>, budget),
+        offset_of!(Meter<'static>, usage),
+        offset_of!(Meter<'static>, cancellation),
+        offset_of!(Meter<'static>, function),
+        offset_of!(Meter<'static>, offset)
+    );
+    println!(
+        "offsets pinrecord {} {}",
+        offset_of!(PinRecord, nonce),
+        offset_of!(PinRecord, entry)
+    );
+    println!("offsets decoder {:?}", decode::frozen_offsets());
+    println!("scratch {}", scratch_bytes());
+    for profile in [
+        Profile::IntegerV1,
+        Profile::NumericV2,
+        Profile::TableMemoryV3,
+    ] {
+        let bytes = module(&[0x41, 0x7f, 0x1a, 0x0b], profile);
+        let mut c = cache(&bytes, profile);
+        println!("new {:?} {:?}", profile, c.usage());
+        let p = c.pin(0, &Cancellation::default()).unwrap();
+        println!("miss {:?} {:?}", profile, c.usage());
+        let q = c.pin(0, &Cancellation::default()).unwrap();
+        println!("hit {:?} {:?}", profile, c.usage());
+        c.release(p).unwrap();
+        c.release(q).unwrap();
+        println!("release {:?} {:?}", profile, c.usage());
+        let x = c.pin(99, &Cancellation::default()).unwrap_err();
+        println!("invalid {:?} {:?}", profile, x);
+        let token = Cancellation::default();
+        token.cancel();
+        let x = c.pin(99, &token).unwrap_err();
+        println!("cancel {:?} {:?}", profile, x);
+    }
+    let bytes = module(&[0x0b], Profile::IntegerV1);
+    for (label, budget) in [
+        (
+            "entries_zero",
+            CacheBudget {
+                max_entries: 0,
+                ..CacheBudget::default()
+            },
+        ),
+        (
+            "pins_zero",
+            CacheBudget {
+                max_pins: 0,
+                ..CacheBudget::default()
+            },
+        ),
+        (
+            "capacity_widened",
+            CacheBudget {
+                capacity_bytes: CacheBudget::default().capacity_bytes + 1,
+                ..CacheBudget::default()
+            },
+        ),
+        (
+            "entry_widened",
+            CacheBudget {
+                entry_bytes: CacheBudget::default().entry_bytes + 1,
+                ..CacheBudget::default()
+            },
+        ),
+    ] {
+        let token = Cancellation::default();
+        let spans = super::super::validate_spans(
+            &bytes,
+            Limits::default(),
+            super::super::ValidationBudget::default(),
+            &token,
+        )
+        .unwrap();
+        println!(
+            "precedence new {label} {:?}",
+            FunctionCache::new(spans, budget, &token).err().unwrap()
+        );
+    }
+    for label in ["scratch_cancel", "entry", "capacity", "nonce", "work_pin"] {
+        let mut c = cache(&bytes, Profile::IntegerV1);
+        let token = Cancellation::default();
+        if label == "scratch_cancel" {
+            c.budget.capacity_bytes = c.usage.fixed_reserved + scratch_bytes() - 1;
+            token.cancel();
+        }
+        if label == "entry" {
+            c.budget.entry_bytes = 0;
+        }
+        if label == "capacity" {
+            c.budget.capacity_bytes = c.usage.fixed_reserved + scratch_bytes();
+        }
+        if label == "nonce" {
+            c.next_nonce = u64::MAX;
+        }
+        if label == "work_pin" {
+            for _ in 0..64 {
+                let _ = c.pin(0, &token).unwrap();
+            }
+            c.budget.work_credits = c.usage.work_used;
+        }
+        println!("precedence pin {label} {:?}", c.pin(0, &token).unwrap_err());
+    }
+    let mut many = b"\0asm\x01\0\0\0".to_vec();
+    section(&mut many, 1, &[1, 0x60, 0, 0]);
+    section(&mut many, 3, &[2, 0, 0]);
+    section(&mut many, 10, &[2, 2, 0, 0x0b, 2, 0, 0x0b]);
+    let build = || {
+        let token = Cancellation::default();
+        let spans = super::super::validate_spans(
+            &many,
+            Limits::default(),
+            super::super::ValidationBudget::default(),
+            &token,
+        )
+        .unwrap();
+        FunctionCache::new(
+            spans,
+            CacheBudget {
+                max_entries: 1,
+                max_pins: 2,
+                ..CacheBudget::default()
+            },
+            &token,
+        )
+        .unwrap()
+    };
+    let token = Cancellation::default();
+    let mut c = build();
+    let p = c.pin(0, &token).unwrap();
+    println!("precedence all_pinned {:?}", c.pin(1, &token).unwrap_err());
+    c.release(p).unwrap();
+    let base = c.usage.work_used;
+    let p = c.pin(1, &token).unwrap();
+    let credits = c.usage.work_used - base;
+    c.release(p).unwrap();
+    for prefix in 0..credits {
+        let mut c = build();
+        let p = c.pin(0, &token).unwrap();
+        c.release(p).unwrap();
+        c.budget.work_credits = c.usage.work_used + prefix;
+        let e = c.pin(1, &token).unwrap_err();
+        println!("eviction prefix {prefix} {e:?}");
+    }
+
+    #[cfg(feature = "experimental-swift-reactor")]
+    {
+        use crate::experimental_swift_reactor::allocation_tests::measure;
+        let bytes = module(&[0x41, 0x7f, 0x1a, 0x0b], Profile::IntegerV1);
+        let spans = super::super::validate_spans(
+            &bytes,
+            Limits::default(),
+            super::super::ValidationBudget::default(),
+            &Cancellation::default(),
+        )
+        .unwrap();
+        let token = Cancellation::default();
+        let (mut c, s) =
+            measure(|| FunctionCache::new(spans, CacheBudget::default(), &token).unwrap());
+        println!("allocation new {:?}", s);
+        let (p, s) = measure(|| c.pin(0, &token).unwrap());
+        println!("allocation miss {:?}", s);
+        let (q, s) = measure(|| c.pin(0, &token).unwrap());
+        println!("allocation hit {:?}", s);
+        let (_, s) = measure(|| {
+            c.release(p).unwrap();
+            c.release(q).unwrap();
+        });
+        println!("allocation release {:?}", s);
+    }
+}
+
+#[test]
+fn frozen_borrowed_transients_fit_existing_scratch() {
+    use std::mem::size_of;
+    // A scan wrapper returns before build is called. Each wrapper contains one
+    // literal PassState; scan_borrowed/build_borrowed contain only PassParts.
+    // Thus one 128-Patch state is simultaneous, even though the unchanged old
+    // model conservatively retains two sequential states/readers in its sum.
+    // Count every new argument/return/field-borrow transfer conservatively.
+    let named = [
+        (1, size_of::<decode::PassState>()),
+        (2, size_of::<decode::Reader<'static>>()),
+        (1, size_of::<Meter<'static>>()),
+        (3, size_of::<CacheFailure>()),
+        (1, size_of::<[bool; 64]>()),
+        (2, size_of::<DecodedFunction>()),
+        (4, size_of::<decode::Counts>()),
+        (
+            3,
+            size_of::<borrowed::CacheParts<'static, borrowed::FrozenMode>>(),
+        ),
+        (
+            3,
+            size_of::<borrowed::CacheFields<'static, borrowed::FrozenMode>>(),
+        ),
+        (2, size_of::<borrowed::FrozenOperation<'static>>()),
+        (2, size_of::<borrowed::FrozenPolicy<'static>>()),
+        (3, size_of::<decode::PassParts<'static>>()),
+        (
+            3,
+            size_of::<crate::experimental::descriptors::FunctionSpanView<'static>>(),
+        ),
+        (1, 256), // unchanged scalar/loop allowance, additional to named adapters
+    ];
+    let actual: usize = named.into_iter().map(|(n, size)| n * size).sum();
+    println!(
+        "legacy named simultaneous conservative={} unchanged_scratch={}",
+        actual,
+        scratch_bytes()
+    );
+    assert!(actual <= scratch_bytes());
+}

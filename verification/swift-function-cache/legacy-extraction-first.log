@@ -1,0 +1,111 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/vm)
+warning: unused import: `statistics`
+   --> src/experimental/cache/borrowed.rs:156:16
+    |
+156 | pub(crate) use statistics;
+    |                ^^^^^^^^^^
+    |
+    = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: methods `error` and `checked_record` are never used
+   --> src/experimental/cache/mod.rs:449:8
+    |
+363 | impl FunctionCache {
+    | ------------------ methods in this implementation
+...
+449 |     fn error(&self, kind: CacheFailureKind, code: &'static str) -> CacheFailure {
+    |        ^^^^^
+...
+452 |     fn checked_record(&self,pin:&FunctionPin)->Result<PinRecord,CacheFailure>{
+    |        ^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: methods `source`, `defined_function_count`, and `signature` are never used
+  --> src/experimental/cache/borrowed.rs:13:8
+   |
+12 | pub(crate) trait SnapshotView: sealed::Snapshot {
+   |                  ------------ methods in this trait
+13 |     fn source(&self) -> &[u8];
+   |        ^^^^^^
+14 |     fn defined_function_count(&self) -> usize;
+   |        ^^^^^^^^^^^^^^^^^^^^^^
+...
+17 |     fn signature(&self, absolute: u32) -> Option<SignatureView<'_>>;
+   |        ^^^^^^^^^
+
+warning: struct `SwiftPolicy` is never constructed
+  --> src/experimental/cache/borrowed.rs:74:19
+   |
+74 | pub(crate) struct SwiftPolicy<'a> {
+   |                   ^^^^^^^^^^^
+
+warning: methods `pinned` and `active` are never used
+   --> src/experimental/cache/borrowed.rs:124:8
+    |
+122 | pub(crate) trait Statistics {
+    |                  ---------- methods in this trait
+123 |     fn resident(&self)->usize;
+124 |     fn pinned(&self)->usize;
+    |        ^^^^^^
+125 |     fn active(&self)->usize;
+    |        ^^^^^^
+
+warning: method `release_pin` is never used
+   --> src/experimental/cache/borrowed.rs:171:8
+    |
+159 | pub(crate) trait AlgorithmMeter: DecodeMeter {
+    |                  -------------- method in this trait
+...
+171 |     fn release_pin(&mut self)->Result<(),Self::Failure>;
+    |        ^^^^^^^^^^^
+
+warning: `mixer-vm` (lib test) generated 6 warnings (run `cargo fix --lib -p mixer-vm --tests` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.89s
+     Running unittests src/lib.rs (vm/target/debug/deps/mixer_vm-654f4f6449b014e6)
+
+running 4 tests
+layout FunctionCache 768 8
+layout FunctionPin 24 8
+layout Slot 112 8
+layout PinRecord 16 8
+layout DecodedFunction 96 8
+layout Meter<'static> 72 8
+layout decode::PassState 4128 8
+layout decode::Reader<'static> 32 8
+layout CacheUsage 144 8
+layout CacheFailure 200 8
+offsets cache 0 568 608 752 760 520 544
+offsets pin 0 8 16
+offsets slot 0 96 104
+offsets decoded 88 92 72 0 24 48 80
+scratch 9312
+new IntegerV1 CacheUsage { source_bytes: 43, validation_metadata_bytes: 556, fixed_reserved: 1904, resident_bytes: 0, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 0, peak_pinned_bytes: 0, peak_construction_bytes: 0, scratch_reserved: 0, peak_cache_reserved: 11216, peak_total_reserved: 11815, work_used: 65, active_pins: 0, hits: 0, misses: 0, decodes: 0, evictions: 0 }
+miss IntegerV1 CacheUsage { source_bytes: 43, validation_metadata_bytes: 556, fixed_reserved: 1904, resident_bytes: 121, pinned_bytes: 121, construction_bytes: 0, peak_resident_bytes: 121, peak_pinned_bytes: 121, peak_construction_bytes: 121, scratch_reserved: 0, peak_cache_reserved: 11337, peak_total_reserved: 11936, work_used: 161, active_pins: 1, hits: 0, misses: 1, decodes: 1, evictions: 0 }
+hit IntegerV1 CacheUsage { source_bytes: 43, validation_metadata_bytes: 556, fixed_reserved: 1904, resident_bytes: 121, pinned_bytes: 121, construction_bytes: 0, peak_resident_bytes: 121, peak_pinned_bytes: 121, peak_construction_bytes: 121, scratch_reserved: 0, peak_cache_reserved: 11337, peak_total_reserved: 11936, work_used: 165, active_pins: 2, hits: 1, misses: 1, decodes: 1, evictions: 0 }
+release IntegerV1 CacheUsage { source_bytes: 43, validation_metadata_bytes: 556, fixed_reserved: 1904, resident_bytes: 121, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 121, peak_pinned_bytes: 121, peak_construction_bytes: 121, scratch_reserved: 0, peak_cache_reserved: 11337, peak_total_reserved: 11936, work_used: 165, active_pins: 0, hits: 1, misses: 1, decodes: 1, evictions: 0 }
+invalid IntegerV1 CacheFailure { kind: InvalidFunction, code: "not_defined_function", function: Some(99), offset: 0, attempted: 0, limit: 0, usage: CacheUsage { source_bytes: 43, validation_metadata_bytes: 556, fixed_reserved: 1904, resident_bytes: 121, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 121, peak_pinned_bytes: 121, peak_construction_bytes: 121, scratch_reserved: 0, peak_cache_reserved: 11337, peak_total_reserved: 11936, work_used: 166, active_pins: 0, hits: 1, misses: 1, decodes: 1, evictions: 0 } }
+cancel IntegerV1 CacheFailure { kind: Cancelled, code: "cancelled", function: Some(99), offset: 0, attempted: 0, limit: 0, usage: CacheUsage { source_bytes: 43, validation_metadata_bytes: 556, fixed_reserved: 1904, resident_bytes: 121, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 121, peak_pinned_bytes: 121, peak_construction_bytes: 121, scratch_reserved: 0, peak_cache_reserved: 11337, peak_total_reserved: 11936, work_used: 166, active_pins: 0, hits: 1, misses: 1, decodes: 1, evictions: 0 } }
+test experimental::cache::tests::stale_token_nonce_and_owner_exhaustion_fail_closed ... ok
+new NumericV2 CacheUsage { source_bytes: 43, validation_metadata_bytes: 556, fixed_reserved: 1904, resident_bytes: 0, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 0, peak_pinned_bytes: 0, peak_construction_bytes: 0, scratch_reserved: 0, peak_cache_reserved: 11216, peak_total_reserved: 11815, work_used: 65, active_pins: 0, hits: 0, misses: 0, decodes: 0, evictions: 0 }
+test experimental::cache::tests::scalar_statistics_never_wrap_or_leak_construction ... ok
+miss NumericV2 CacheUsage { source_bytes: 43, validation_metadata_bytes: 556, fixed_reserved: 1904, resident_bytes: 121, pinned_bytes: 121, construction_bytes: 0, peak_resident_bytes: 121, peak_pinned_bytes: 121, peak_construction_bytes: 121, scratch_reserved: 0, peak_cache_reserved: 11337, peak_total_reserved: 11936, work_used: 161, active_pins: 1, hits: 0, misses: 1, decodes: 1, evictions: 0 }
+hit NumericV2 CacheUsage { source_bytes: 43, validation_metadata_bytes: 556, fixed_reserved: 1904, resident_bytes: 121, pinned_bytes: 121, construction_bytes: 0, peak_resident_bytes: 121, peak_pinned_bytes: 121, peak_construction_bytes: 121, scratch_reserved: 0, peak_cache_reserved: 11337, peak_total_reserved: 11936, work_used: 165, active_pins: 2, hits: 1, misses: 1, decodes: 1, evictions: 0 }
+release NumericV2 CacheUsage { source_bytes: 43, validation_metadata_bytes: 556, fixed_reserved: 1904, resident_bytes: 121, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 121, peak_pinned_bytes: 121, peak_construction_bytes: 121, scratch_reserved: 0, peak_cache_reserved: 11337, peak_total_reserved: 11936, work_used: 165, active_pins: 0, hits: 1, misses: 1, decodes: 1, evictions: 0 }
+invalid NumericV2 CacheFailure { kind: InvalidFunction, code: "not_defined_function", function: Some(99), offset: 0, attempted: 0, limit: 0, usage: CacheUsage { source_bytes: 43, validation_metadata_bytes: 556, fixed_reserved: 1904, resident_bytes: 121, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 121, peak_pinned_bytes: 121, peak_construction_bytes: 121, scratch_reserved: 0, peak_cache_reserved: 11337, peak_total_reserved: 11936, work_used: 166, active_pins: 0, hits: 1, misses: 1, decodes: 1, evictions: 0 } }
+cancel NumericV2 CacheFailure { kind: Cancelled, code: "cancelled", function: Some(99), offset: 0, attempted: 0, limit: 0, usage: CacheUsage { source_bytes: 43, validation_metadata_bytes: 556, fixed_reserved: 1904, resident_bytes: 121, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 121, peak_pinned_bytes: 121, peak_construction_bytes: 121, scratch_reserved: 0, peak_cache_reserved: 11337, peak_total_reserved: 11936, work_used: 166, active_pins: 0, hits: 1, misses: 1, decodes: 1, evictions: 0 } }
+new TableMemoryV3 CacheUsage { source_bytes: 50, validation_metadata_bytes: 556, fixed_reserved: 1904, resident_bytes: 0, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 0, peak_pinned_bytes: 0, peak_construction_bytes: 0, scratch_reserved: 0, peak_cache_reserved: 11216, peak_total_reserved: 11822, work_used: 65, active_pins: 0, hits: 0, misses: 0, decodes: 0, evictions: 0 }
+miss TableMemoryV3 CacheUsage { source_bytes: 50, validation_metadata_bytes: 556, fixed_reserved: 1904, resident_bytes: 121, pinned_bytes: 121, construction_bytes: 0, peak_resident_bytes: 121, peak_pinned_bytes: 121, peak_construction_bytes: 121, scratch_reserved: 0, peak_cache_reserved: 11337, peak_total_reserved: 11943, work_used: 161, active_pins: 1, hits: 0, misses: 1, decodes: 1, evictions: 0 }
+hit TableMemoryV3 CacheUsage { source_bytes: 50, validation_metadata_bytes: 556, fixed_reserved: 1904, resident_bytes: 121, pinned_bytes: 121, construction_bytes: 0, peak_resident_bytes: 121, peak_pinned_bytes: 121, peak_construction_bytes: 121, scratch_reserved: 0, peak_cache_reserved: 11337, peak_total_reserved: 11943, work_used: 165, active_pins: 2, hits: 1, misses: 1, decodes: 1, evictions: 0 }
+release TableMemoryV3 CacheUsage { source_bytes: 50, validation_metadata_bytes: 556, fixed_reserved: 1904, resident_bytes: 121, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 121, peak_pinned_bytes: 121, peak_construction_bytes: 121, scratch_reserved: 0, peak_cache_reserved: 11337, peak_total_reserved: 11943, work_used: 165, active_pins: 0, hits: 1, misses: 1, decodes: 1, evictions: 0 }
+invalid TableMemoryV3 CacheFailure { kind: InvalidFunction, code: "not_defined_function", function: Some(99), offset: 0, attempted: 0, limit: 0, usage: CacheUsage { source_bytes: 50, validation_metadata_bytes: 556, fixed_reserved: 1904, resident_bytes: 121, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 121, peak_pinned_bytes: 121, peak_construction_bytes: 121, scratch_reserved: 0, peak_cache_reserved: 11337, peak_total_reserved: 11943, work_used: 166, active_pins: 0, hits: 1, misses: 1, decodes: 1, evictions: 0 } }
+cancel TableMemoryV3 CacheFailure { kind: Cancelled, code: "cancelled", function: Some(99), offset: 0, attempted: 0, limit: 0, usage: CacheUsage { source_bytes: 50, validation_metadata_bytes: 556, fixed_reserved: 1904, resident_bytes: 121, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 121, peak_pinned_bytes: 121, peak_construction_bytes: 121, scratch_reserved: 0, peak_cache_reserved: 11337, peak_total_reserved: 11943, work_used: 166, active_pins: 0, hits: 1, misses: 1, decodes: 1, evictions: 0 } }
+allocation new AllocationStats { allocations: 2, reallocations: 0, deallocations: 0, allocated_bytes: 1136, freed_bytes: 0, last_size: 1024, last_align: 8, attempts: 2, injected_failures: 0 }
+allocation miss AllocationStats { allocations: 2, reallocations: 0, deallocations: 0, allocated_bytes: 121, freed_bytes: 0, last_size: 120, last_align: 8, attempts: 2, injected_failures: 0 }
+allocation hit AllocationStats { allocations: 0, reallocations: 0, deallocations: 0, allocated_bytes: 0, freed_bytes: 0, last_size: 0, last_align: 0, attempts: 0, injected_failures: 0 }
+allocation release AllocationStats { allocations: 0, reallocations: 0, deallocations: 0, allocated_bytes: 0, freed_bytes: 0, last_size: 0, last_align: 0, attempts: 0, injected_failures: 0 }
+test experimental::cache::tests::frozen_layout_and_trace_observation ... ok
+test experimental::cache::tests::frozen_ir_parity_for_all_supported_opcode_shapes ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 72 filtered out; finished in 0.00s
+

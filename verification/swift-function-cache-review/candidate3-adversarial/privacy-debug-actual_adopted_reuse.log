@@ -1,0 +1,28 @@
+    Checking mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-function-cache-review/candidate3-adversarial/tree/vm)
+error[E0382]: use of moved value: `a`
+    --> src/experimental_swift_reactor/cache_tests.rs:2323:190
+     |
+2323 | ...ol,a:AdoptedProof){let mut phase=SwiftFunctionCache::prepare(c,None,&a,cache_cursor()).unwrap();let _=phase.construct(a);let _=phase.construct(a);}
+     |       - move occurs because `a` has type `control::AdoptedProof`, which does not implement the `Copy` trait              - value moved here       ^ value used here after move
+     |
+note: consider changing this parameter type in method `construct` to borrow instead if owning the value isn't necessary
+    --> src/experimental_swift_reactor/cache.rs:1553:18
+     |
+1551 |     pub(crate) fn construct(
+     |                   --------- in this method
+1552 |         &mut self,
+1553 |         adopted: AdoptedProof,
+     |                  ^^^^^^^^^^^^ this parameter takes ownership of the value
+note: if `control::AdoptedProof` implemented `Clone`, you could clone the value
+    --> src/experimental_swift_reactor/control.rs:295:1
+     |
+ 295 | pub(crate) struct AdoptedProof {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ consider implementing `Clone` for this type
+     |
+    ::: src/experimental_swift_reactor/cache_tests.rs:2323:165
+     |
+2323 | ...a,cache_cursor()).unwrap();let _=phase.construct(a);let _=phase.construct(a);}
+     |                                                     - you could clone this value
+
+For more information about this error, try `rustc --explain E0382`.
+error: could not compile `mixer-vm` (lib test) due to 1 previous error

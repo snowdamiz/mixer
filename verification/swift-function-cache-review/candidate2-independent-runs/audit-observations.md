@@ -1,0 +1,1 @@
+The first artifact audit stopped at a checker schema mismatch: phase-map layout rows include a descriptive `type` property, while layout-map rows contain only `size`/`align`. All 138 printed differences had equal size/alignment. The corrected checker compares the two shared layout properties; no product/source/artifact was changed.

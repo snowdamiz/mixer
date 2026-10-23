@@ -1,0 +1,143 @@
+warning: methods `source` and `defined_function_count` are never used
+  --> src/experimental/cache/borrowed.rs:13:8
+   |
+12 | pub(crate) trait SnapshotView: sealed::Snapshot {
+   |                  ------------ methods in this trait
+13 |     fn source(&self) -> &[u8];
+   |        ^^^^^^
+14 |     fn defined_function_count(&self) -> usize;
+   |        ^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `mixer-vm` (lib test) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (vm/target/debug/deps/mixer_vm-654f4f6449b014e6)
+
+running 18 tests
+layout SwiftFunctionCache 992 8
+layout Option<SwiftFunctionCache> 992 8
+layout SwiftResident 120 8
+layout Option<SwiftResident> 120 8
+layout SwiftSlot 136 8
+layout SwiftFunctionPin 24 8
+layout CacheControl<'static> 48 8
+layout CacheConstructionPhase<'static> 64 8
+layout CacheOperationPhase<'static> 56 8
+layout Partial 880 8
+layout CacheConstructionFailure 1808 8
+layout Result<SwiftFunctionCache,CacheConstructionFailure> 1808 8
+layout CacheCleanupTail<'static> 1136 8
+layout Option<CacheCleanupTail<'static>> 1136 8
+layout Result<CacheCleanupTail<'static>,SwiftRunFailure> 1136 8
+layout SwiftRunFailure 1096 8
+layout Option<SwiftRunFailure> 1096 8
+layout Result<(),SwiftRunFailure> 1096 8
+layout SwiftRunUsage 504 8
+layout ReservationTicket 24 8
+layout Option<ReservationTicket> 24 8
+layout WasiUsage 104 8
+layout Option<WasiUsage> 112 8
+layout Fault 64 8
+layout Cursor 32 8
+layout SwiftMeter<'static,'static> 16 8
+layout CacheParts<'static,SwiftMode> 80 8
+layout CacheFields<'static,SwiftMode> 72 8
+layout SwiftPolicy<'static> 24 8
+layout decode::PassParts<'static> 32 8
+layout decode::Patch 32 8
+layout Vec<decode::Patch> 24 8
+cache offsets adopted=0 slots=712 pins=736 patches=760 buffers=784 header=856
+bounds cleanup=36640 header=36968 construction=28264 operation=18928 foundation=16040
+
+thread 'experimental_swift_reactor::cache_tests::frozen_layout_allocation_work_error_snapshots' (54119891) panicked at src/experimental_swift_reactor/cache_tests.rs:115:246:
+assertion `left == right` failed
+  left: 112
+ right: 104
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+layout SwiftFunctionCache 992 8
+layout Option<SwiftFunctionCache> 992 8
+layout SwiftResident 120 8
+layout Option<SwiftResident> 120 8
+layout SwiftSlot 136 8
+layout SwiftFunctionPin 24 8
+layout CacheControl<'static> 48 8
+layout CacheConstructionPhase<'static> 64 8
+layout CacheOperationPhase<'static> 56 8
+layout Partial 880 8
+layout CacheConstructionFailure 1808 8
+layout Result<SwiftFunctionCache,CacheConstructionFailure> 1808 8
+layout CacheCleanupTail<'static> 1136 8
+layout Option<CacheCleanupTail<'static>> 1136 8
+layout Result<CacheCleanupTail<'static>,SwiftRunFailure> 1136 8
+layout SwiftRunFailure 1096 8
+layout Option<SwiftRunFailure> 1096 8
+layout Result<(),SwiftRunFailure> 1096 8
+layout SwiftRunUsage 504 8
+layout ReservationTicket 24 8
+layout Option<ReservationTicket> 24 8
+layout WasiUsage 104 8
+layout Option<WasiUsage> 112 8
+layout Fault 64 8
+layout Cursor 32 8
+layout SwiftMeter<'static,'static> 16 8
+layout CacheParts<'static,SwiftMode> 80 8
+layout CacheFields<'static,SwiftMode> 72 8
+layout SwiftPolicy<'static> 24 8
+layout decode::PassParts<'static> 32 8
+layout decode::Patch 32 8
+layout Vec<decode::Patch> 24 8
+cache offsets adopted=0 slots=712 pins=736 patches=760 buffers=784 header=856
+bounds cleanup=36640 header=36968 construction=28264 operation=18928 foundation=16040
+opcode parity instructions=376 targets=3 declared_locals=1
+constructor allocation ordinal 0 observed
+test experimental_swift_reactor::cache_tests::external_surface_and_borrow_privacy ... ok
+test experimental_swift_reactor::cache_tests::permanent_patch_arena_exact_requests ... ok
+test experimental_swift_reactor::cache_tests::decoder_opcode_and_count_build_parity ... ok
+test experimental_swift_reactor::cache_tests::frozen_layout_allocation_work_error_snapshots ... FAILED
+constructor allocation ordinal 1 observed
+test experimental_swift_reactor::cache_tests::first_cause_retains_actual_wasi_usage ... ok
+test experimental_swift_reactor::cache_tests::same_abi_descriptors_and_authority ... ok
+constructor allocation ordinal 2 observed
+test experimental_swift_reactor::cache_tests::sticky_failure_has_no_new_effects ... ok
+test experimental_swift_reactor::cache_tests::construction_and_operation_phase_boundaries ... ok
+test experimental_swift_reactor::cache_tests::foreign_stale_nonce_and_control_ownership ... ok
+test experimental_swift_reactor::cache_tests::every_constructor_allocation_ordinal ... ok
+miss shape 1 allocation 0 observed
+
+thread 'experimental_swift_reactor::cache_tests::entry_and_combined_admission_precedes_allocation' (54119884) panicked at src/experimental_swift_reactor/cache_tests.rs:78:139:
+called `Result::unwrap()` on an `Err` value: SwiftRunFailure { stage: Cache, kind: CombinedExhausted, code: "swift_run_combined_capacity", function: None, offset: None, resource: Some(Combined), attempted: 114402, limit: 114276, observed_capacity: None, deadline_origin: Run, wasi_failure: None, guest_exit: None, at_failure: SwiftRunUsage { reservations: SwiftReservations { retained_source: SwiftReservationUsage { current: 2098, peak: 2098 }, retained_metadata: SwiftReservationUsage { current: 3176, peak: 3176 }, cache: SwiftReservationUsage { current: 46696, peak: 46696 }, state: SwiftReservationUsage { current: 0, peak: 0 }, wasi: SwiftReservationUsage { current: 0, peak: 0 }, shared: SwiftReservationUsage { current: 1744, peak: 1744 }, construction: SwiftReservationUsage { current: 44304, peak: 44304 }, combined: SwiftReservationUsage { current: 98018, peak: 98018 }, live_tickets: 8, peak_tickets: 8 }, live: SwiftLiveUsage { cache_entries: SwiftReservationUsage { current: 0, peak: 0 }, active_pins: SwiftReservationUsage { current: 0, peak: 0 }, frames: SwiftReservationUsage { current: 0, peak: 0 }, values: SwiftReservationUsage { current: 0, peak: 0 }, controls: SwiftReservationUsage { current: 0, peak: 0 }, memory_pages: SwiftReservationUsage { current: 0, peak: 0 } }, cache_work: 128, execution_work: 0, instruction_fuel: 0, instructions: 0, host_calls: 0, cleanup_invariant: None, elapsed_micros: 12, deadline_ms: 30000, deadline_origin: Run, deadline_overshoot_micros: 0, validation: SwiftValidationUsage { input_visible_bytes: 2098, source_bytes: 2098, metadata_reserved: 3176, scratch_reserved: 0, metadata_peak_reserved: 3176, scratch_peak_reserved: 1056, total_peak_reserved: 6330, work_used: 11555, elapsed_micros: 166, deadline_ms: 120000 }, wasi: None }, after_cleanup: None }
+test experimental_swift_reactor::cache_tests::pins_hits_lru_and_eviction ... ok
+test experimental_swift_reactor::cache_tests::entry_and_combined_admission_precedes_allocation ... FAILED
+test experimental_swift_reactor::cache_tests::component_cleanup_and_first_cleanup_invariant ... ok
+miss shape 2 allocation 0 observed
+test experimental_swift_reactor::cache_tests::zero_limits_and_exact_narrowing ... ok
+miss shape 2 allocation 1 observed
+miss shape 3 allocation 0 observed
+miss shape 3 allocation 1 observed
+miss shape 3 allocation 2 observed
+test experimental_swift_reactor::cache_tests::parameters_and_function_inclusive_depth ... ok
+test experimental_swift_reactor::cache_tests::every_miss_allocation_ordinal_and_capacity_fault ... ok
+deadline step=ScanReset cursor=Some(1790) overshoot=15133
+deadline step=Scan cursor=Some(1790) overshoot=11979
+deadline step=BuildReset cursor=Some(1798) overshoot=12462
+deadline step=Build cursor=Some(1798) overshoot=14915
+deadline step=Publication cursor=Some(1798) overshoot=15155
+test experimental_swift_reactor::cache_tests::deadline_inside_decode_and_reset ... ok
+
+thread 'experimental_swift_reactor::cache_tests::every_work_prefix_and_cancellation_boundary' (54119887) panicked at src/experimental_swift_reactor/cache_tests.rs:102:272:
+assertion `left == right` failed
+  left: 4138
+ right: 0
+test experimental_swift_reactor::cache_tests::every_work_prefix_and_cancellation_boundary ... FAILED
+
+failures:
+
+failures:
+    experimental_swift_reactor::cache_tests::entry_and_combined_admission_precedes_allocation
+    experimental_swift_reactor::cache_tests::every_work_prefix_and_cancellation_boundary
+    experimental_swift_reactor::cache_tests::frozen_layout_allocation_work_error_snapshots
+
+test result: FAILED. 15 passed; 3 failed; 0 ignored; 0 measured; 76 filtered out; finished in 0.32s
+
+error: test failed, to rerun pass `--lib`

@@ -1,0 +1,11 @@
+    Checking mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-function-cache-review/tree/vm)
+error[E0502]: cannot borrow `*c` as immutable because it is also borrowed as mutable
+    --> src/experimental_swift_reactor/cache_tests.rs:1581:155
+     |
+1581 | ...e::cleanup(owner,c,None).unwrap();let _=c.usage(None);let mut outcome=None;tail.complete((),&mut outcome);}
+     |                     -                      ^ immutable borrow occurs here     ---- mutable borrow later used here
+     |                     |
+     |                     mutable borrow occurs here
+
+For more information about this error, try `rustc --explain E0502`.
+error: could not compile `mixer-vm` (lib test) due to 1 previous error
