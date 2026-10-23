@@ -1,0 +1,176 @@
+{
+  "schema": 1,
+  "createdAt": "2026-10-23T00:16:49.588243+00:00",
+  "reviewer": {
+    "model": "gpt-6.1-sol",
+    "reasoning": "xhigh",
+    "independent": true
+  },
+  "runtimeReviewedCommit": "3915397216256e9b5b885012802767fbccdde358",
+  "runtimeReviewedTree": "c846e0bfcba2e1da3291022cdfccdcae195e0c87",
+  "vmBuild": {
+    "source_revision": "64123c509e861ddd522631b293eadebdaca11341",
+    "source_archive_sha256": "881d6a4d03cca2954761ce49bc450b75698e998b341390e45a1851b7f132b1c1",
+    "target": "host",
+    "command": [
+      "cargo",
+      "build",
+      "--release",
+      "--lib",
+      "--manifest-path",
+      "/Users/andreyyurlov/Documents/dev/mixer/runtime/.build/independent-review-64123c5/source/vm/Cargo.toml"
+    ],
+    "exit_code": 0,
+    "build_log_sha256": "5e38c0f3724d6eb2cef18b29d6ae54f6bfc7a6a6f64a0770fc10454b4a796bd0",
+    "header_sha256": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+    "static_library_sha256": "5053e0d03513bfd43c09863c6da0f01b578f55acf7b6157cae68134281da52ff",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1",
+    "generator_sha256": "55e51d6aee350364c96e5506b2f095f254a62777971ca3b1defd72e694c6fa2d",
+    "environment_overrides": {
+      "CARGO_TARGET_DIR": "/Users/andreyyurlov/Documents/dev/mixer/runtime/.build/independent-review-64123c5/target"
+    },
+    "qualification": "local development artifact; immutable published packaging/runtime fingerprint/signing are pending"
+  },
+  "commands": [
+    {
+      "command": [
+        "swift",
+        "test",
+        "--package-path",
+        "runtime",
+        "--scratch-path",
+        "runtime/.build/independent-review-tests",
+        "-Xlinker",
+        "-L/Users/andreyyurlov/Documents/dev/mixer/runtime/.build/independent-review-64123c5/lib"
+      ],
+      "exit": 0,
+      "output": "runtime/.build/independent-review-evidence/0.log",
+      "sha256": "6b04486cea105759ca81bdeac8966b1c80b0cdc23a896695543f4f0d97a5592f"
+    },
+    {
+      "command": [
+        "swift",
+        "test",
+        "--package-path",
+        "runtime/.build/independent-adversarial",
+        "-Xlinker",
+        "-L/Users/andreyyurlov/Documents/dev/mixer/runtime/.build/independent-review-64123c5/lib"
+      ],
+      "exit": 0,
+      "output": "runtime/.build/independent-review-evidence/1.log",
+      "sha256": "b149a6595498b0bd46d8781a691955d12cdb808419e086ab7dbae5d60d59a915"
+    },
+    {
+      "command": [
+        "swift",
+        "test",
+        "--package-path",
+        "runtime",
+        "--scratch-path",
+        "runtime/.build/independent-review-tsan",
+        "--sanitize=thread",
+        "-Xlinker",
+        "-L/Users/andreyyurlov/Documents/dev/mixer/runtime/.build/independent-review-64123c5/lib"
+      ],
+      "exit": 0,
+      "output": "runtime/.build/independent-review-evidence/2.log",
+      "sha256": "aab1f965fa68a4ac99ee90a9d92950d2dc21260e997ab43a26f21057419baccc"
+    },
+    {
+      "command": [
+        "swift",
+        "test",
+        "--package-path",
+        "runtime/.build/independent-adversarial",
+        "--scratch-path",
+        "runtime/.build/independent-adversarial-tsan",
+        "--sanitize=thread",
+        "-Xlinker",
+        "-L/Users/andreyyurlov/Documents/dev/mixer/runtime/.build/independent-review-64123c5/lib"
+      ],
+      "exit": 0,
+      "output": "runtime/.build/independent-review-evidence/3.log",
+      "sha256": "2e7c7db2dda6ac2b253ee0dc1336af68433cbda8b58af45d93ba01c932605095"
+    },
+    {
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "runtime/build-tests",
+        "-v"
+      ],
+      "exit": 0,
+      "output": "runtime/.build/independent-review-evidence/4.log",
+      "sha256": "2800b79fe081bb885cb60098370aa6617891b94a26c1ec9676229806b30798cc"
+    },
+    {
+      "command": [
+        "nm",
+        "-g",
+        "runtime/.build/independent-review-tests/out/Products/Debug/MixerRuntimeTests.xctest/Contents/MacOS/MixerRuntimeTests"
+      ],
+      "exit": 0,
+      "output": "runtime/.build/independent-review-evidence/5.log",
+      "sha256": "4a8c71bb38c801c4be9e00f7a8f82045d6c8fc93559cc054b547d06fd2e1cba7"
+    },
+    {
+      "command": [
+        "otool",
+        "-L",
+        "runtime/.build/independent-review-tests/out/Products/Debug/MixerRuntimeTests.xctest/Contents/MacOS/MixerRuntimeTests"
+      ],
+      "exit": 0,
+      "output": "runtime/.build/independent-review-evidence/6.log",
+      "sha256": "19d062914971ebc6240af27205d31fb0383ed86178e131bb475634dd7614a4d4"
+    }
+  ],
+  "originalHeaderBypass": [
+    {
+      "mode": "normal",
+      "command": [
+        "python3",
+        "/Users/andreyyurlov/Documents/dev/mixer/runtime/.build/independent-header-guard/runtime/build-vm.py",
+        "--target",
+        "host",
+        "--output",
+        "/Users/andreyyurlov/Documents/dev/mixer/runtime/.build/independent-header-guard/normal-3915397"
+      ],
+      "exit": 1,
+      "libraryStaged": false
+    },
+    {
+      "mode": "optimized",
+      "command": [
+        "python3",
+        "-O",
+        "/Users/andreyyurlov/Documents/dev/mixer/runtime/.build/independent-header-guard/runtime/build-vm.py",
+        "--target",
+        "host",
+        "--output",
+        "/Users/andreyyurlov/Documents/dev/mixer/runtime/.build/independent-header-guard/optimized-3915397"
+      ],
+      "exit": 0,
+      "libraryStaged": true
+    }
+  ],
+  "finding": {
+    "severity": "P2",
+    "description": "Header identity guard used Python assert and was disabled by optimized mode",
+    "status": "Owner explicit conditional fix independently verified in current working tree"
+  },
+  "additionalTests": "runtime/.build/independent-adversarial/Tests/ReviewTests/ReviewTests.swift",
+  "noTrackedEdits": true,
+  "physicalDevices": false,
+  "limitations": [
+    "No VM Rust sanitizer instrumentation",
+    "No published artifact/fingerprint/signature acceptance",
+    "No owned-VM Swift guest/capability/updater composition",
+    "No physical device runs; user disconnected phones"
+  ],
+  "preservedAdditionalTests": "verification/runtime-review/Tests/ReviewTests/ReviewTests.swift",
+  "preservedAdditionalTestsSHA256": "e023ff3fe6f9abb32cd78e35f49826fc54d2f4f8585f1726b346a7bcb249bf78",
+  "fixedHeaderGuardRevision": "3a8a7914570b7b5ee77ef07adca91591b56101e3"
+}

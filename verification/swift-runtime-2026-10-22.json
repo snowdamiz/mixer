@@ -1,0 +1,112 @@
+{
+  "schema": 1,
+  "observed_at_utc": "2026-10-23T00:13:02.349822+00:00",
+  "source_revision": "3915397216256e9b5b885012802767fbccdde358",
+  "source_digest": "30ac21582a357b279752149190bf4ec1cd1bdea561c578f11d5a62f4f86d1e6d",
+  "vm_revision": "64123c509e861ddd522631b293eadebdaca11341",
+  "host_tests": {
+    "passed": 7,
+    "failed": 0,
+    "static_vm_linkage_checked": true,
+    "release_passed": 7,
+    "release_failed": 0
+  },
+  "ios_simulator": {
+    "devicesAndConfigurations": [
+      {
+        "device": {
+          "architecture": "arm64",
+          "deviceId": "463F0C3C-63BC-42C4-A17C-0908C07D341D",
+          "deviceName": "Mixer Qualification iPhone",
+          "modelName": "iPhone 17 Pro",
+          "osBuildNumber": "23F77",
+          "osVersion": "26.5",
+          "platform": "iOS Simulator"
+        },
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "passedTests": 7,
+        "skippedTests": 0,
+        "testPlanConfiguration": {
+          "configurationId": "1",
+          "configurationName": "Test Scheme Action"
+        }
+      }
+    ],
+    "environmentDescription": "UpdaterHost \u00b7 Built with macOS 27.0.1",
+    "expectedFailures": 0,
+    "failedTests": 0,
+    "finishTime": 1792714272.001,
+    "passedTests": 7,
+    "result": "Passed",
+    "runtimeWarnings": [],
+    "skippedTests": 0,
+    "startTime": 1792714253.067,
+    "statistics": [],
+    "testFailures": [],
+    "title": "Test - UpdaterHost",
+    "topInsights": [],
+    "totalTestCount": 7
+  },
+  "ios_arm64_compilation": {
+    "exit_code": 0,
+    "target": "MixerRuntime",
+    "sdk": "iPhoneOS27.1"
+  },
+  "android_tests_compilation": {
+    "exit_code": 0,
+    "target": "aarch64-unknown-linux-android28",
+    "compiler": "Swift6.3.3",
+    "runner_sha256": "6f5bd7a578860d8908600736b7f44d0dfaf417b97de14fff303abdac376fa0da",
+    "static_vm_linkage_checked": true,
+    "executed": false
+  },
+  "physical_devices": {
+    "status": "pending",
+    "reason": "User disconnected phones until further notice"
+  },
+  "evidence": {
+    "verification/local/runtime-ios-simulator/prepared.json": "143101c26581d6c27e44608e17a2a36d5af686d723b6a4cda6a13850dbc0d2d8",
+    "verification/local/runtime-ios-simulator/summary.json": "db5c0c9a9d3cc585e503cd9233b4487bdc7103469c1e52fa00d80dbf0b54ac09",
+    "verification/local/runtime-ios-simulator/test.log": "90784a95803006aba0779d62f1ed43d4ababcea0cfaae6dee597569115d8c2e5",
+    "verification/local/runtime-ios-simulator/host-linked-libraries.log": "2071ed2b0a32e608fbddc3e88ad1d7d8723d656e380b864ccbd8b2b2e4ef1296",
+    "verification/local/runtime-ios-simulator/android-linked-libraries.log": "5674854f90957fa41e6652a772e2a04b056781c5f257056d01b980632b760238",
+    "runtime/.build/native-host-reclamation/receipt.json": "d7358443483896cdc926207b2f266de9472ad192a234c9872a69f417fefe817c",
+    "runtime/.build/native-host-reclamation/swift-tests.log": "c8f3772023aabcbd1198288dd87147ac72676e4d24bb80ec83c913bfe7cc20b7",
+    "runtime/.build/out/Products/Debug/MixerRuntimeTests.xctest/Contents/MacOS/MixerRuntimeTests": "ce855d96718622005206369add5d7a386968e00b0d9b58b2605d7d701cd2dc0d",
+    "runtime/.build/ios-cross.log": "f69c5ab80dc96136aa2c15fb4d5443aa2e7dc1b12218a9956e7487e2235eff29",
+    "runtime/.build/android-build.log": "79501802decae5d714cc9cf42121a17ad63c28ec0c005506fd93d3599119906e",
+    "runtime/.build/android-tests/aarch64-unknown-linux-android28/release/MixerRuntimePackageTests.xctest": "6f5bd7a578860d8908600736b7f44d0dfaf417b97de14fff303abdac376fa0da",
+    "runtime/.build/native-android/receipt.json": "f76046803693b61e76b27e73feb065a3698002f3d6f7bb74c117146d2c473b8e",
+    "runtime/.build/native-host-reclamation/swift-release-tests.log": "f72249d99aef54ac827e203b233c79a50a71352023d1a69bdb1a73a6cd63f73c"
+  },
+  "commands": [
+    "python3 runtime/build-vm.py --revision 64123c5 --target host --output runtime/.build/native-host-reclamation",
+    "swift test --package-path runtime -Xlinker -L/Users/andreyyurlov/Documents/dev/mixer/runtime/.build/native-host-reclamation/lib",
+    "python3 runtime/build-vm.py --revision 64123c5 --target ios-simulator --output runtime/.build/native-ios-simulator",
+    "python3 verification/tools/prepare-ios-updater.py --package runtime --revision 3915397 --vm-library runtime/.build/native-ios-simulator/lib/libmixer_vm.a --output verification/local/runtime-ios-simulator",
+    "xcodebuild -project verification/local/runtime-ios-simulator/app/UpdaterHost.xcodeproj -scheme UpdaterHost -configuration Debug -destination 'platform=iOS Simulator,id=463F0C3C-63BC-42C4-A17C-0908C07D341D' -derivedDataPath verification/local/runtime-ios-simulator/build -resultBundlePath verification/local/runtime-ios-simulator/result.xcresult CODE_SIGNING_ALLOWED=NO test",
+    "swift build --package-path runtime --target MixerRuntime --triple arm64-apple-ios17.0 --sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS27.1.sdk --scratch-path runtime/.build/ios-cross",
+    "DEVELOPER_DIR=/Applications/Xcode_26.6.app/Contents/Developer /Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift build --package-path runtime --swift-sdks-path /Users/andreyyurlov/.swiftpm/swift-sdks --swift-sdk aarch64-unknown-linux-android28 -c release --build-tests -Xswiftc -enable-testing --scratch-path runtime/.build/android-tests -Xlinker -L/Users/andreyyurlov/Documents/dev/mixer/runtime/.build/native-android/lib",
+    "swift test --package-path runtime -c release -Xlinker -L/Users/andreyyurlov/Documents/dev/mixer/runtime/.build/native-host-reclamation/lib"
+  ],
+  "limitations": [
+    "Local development source and static VM artifacts; no immutable published package",
+    "No signed updater/capability/lifecycle integration or full Swift guest execution",
+    "No physical wrapper execution or post-reclamation physical VM qualification",
+    "No performance/device/store/standards/fuzz/audit/GA acceptance"
+  ],
+  "source_digest_scope": "Runtime package sources and original builder at source_revision; subsequent guard-only correction is separately pinned below",
+  "header_guard_fix": {
+    "revision": "3a8a7914570b7b5ee77ef07adca91591b56101e3",
+    "tests": 1,
+    "subcases": 3,
+    "modes": [
+      "normal",
+      "-O",
+      "PYTHONOPTIMIZE=1"
+    ],
+    "passed": true
+  },
+  "independent_review": "verification/runtime-review/receipt.json"
+}

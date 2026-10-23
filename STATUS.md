@@ -30,12 +30,27 @@ Observed implementation and evidence:
   physical iPhone; 12 session tests plus two existing ABI checks pass on Pixel.
   Independent review then reproduced a close/deallocation race in the 16-session
   ceiling. The fix retains the slot until actual deallocation completes; its host
-  regression passes, with new physical qualification pending. Bounded Swift/WASI
+  regression and 87 VM host tests pass, with new physical qualification pending.
+  The typed Swift session wrapper passes seven host debug/release and iOS simulator
+  tests, compiles for iOS/Android, and passes independent adversarial host review.
+  Review also fixed a native-header check bypass under optimized Python. Bounded Swift/WASI
   imports, mobile SDK/lifecycle integration and corpus budgets remain open.
+- Typed HTTP/storage capability schemas generate Swift and Java adapters with
+  strict cross-language codecs, grant intersection, bounded ownership and cancellation.
+  Real app-private storage checks quotas on both mutation and reopen. Thirteen host
+  tests and codec comparisons pass; official iOS/Android/WASI compilation is qualified
+  separately. HTTP currently exposes an installed transport hook. Signed per-release
+  grants, guest imports, bundled networking, physical behavior and FieldLog adoption
+  remain open. See `capabilities/verification/receipt.json` and
+  `verification/independent-capabilities-2026-10-22.json`.
 - The Go development service verifies canonical signed artifacts and separately
   signed rollout assignments, with scoped authorization, durable local state and
   retry/replay tests. It refuses production mode. Local HTTP → Swift verification
   → owned integer VM integration checks both iOS and Android metadata scopes.
+  A local PostgreSQL17 implementation adds tenant transactions, forced row-level
+  security, immutable audit/history/outbox and concurrent retry/sequence controls.
+  Its isolated database checks include an actual local server crash. Independent
+  review is in progress; hosted identity, production operations and deployment remain open.
 - The Swift verifier uses pinned standard cryptography and matches Go signature,
   canonical-CBOR and cohort vectors. The verifier executable runs on the physical
   Pixel and rejects replay. This is protocol evidence, not mobile OTA activation.
@@ -58,11 +73,15 @@ Observed implementation and evidence:
   editing, reorder, exact draft restoration, entry commit, report sharing and local
   pending changes; dark-mode controls were visually reviewed and corrected. Authentication,
   backend synchronization and real user adoption are not implemented or simulated.
-- Actual FieldLog models at that immutable revision produce matching observations
+- Actual FieldLog models at baseline `1587d2d` produce matching observations
   on macOS, the physical Pixel and the full Swift Wasm SDK in a development oracle:
   1,000 tasks, 50% progress, ordering, Unicode draft restoration, entry commit and
   report generation. The 60.5 MB Wasm module is rejected by the owned VM; neither
   full Swift execution nor production package-size budgets have passed.
+  Eleven full-SDK optimization variants preserve those sampled observations. The
+  smallest is 52,008,982 raw bytes / 18,852,048 gzip bytes, above the 3MiB budget.
+  ICU accounts for 33,976,096 linked data bytes; removing it is not qualified by
+  this corpus. Measured linear-memory page counts do not establish peak RSS.
 
 Official Swift 6.3.3 Android/Wasm SDKs are installed and compiler probes have run
 on a physical Pixel and in a development-only Node WASI oracle. Xcode 27.1 / Swift
@@ -70,9 +89,9 @@ on a physical Pixel and in a development-only Node WASI oracle. Xcode 27.1 / Swi
 through per-command `DEVELOPER_DIR`; no global Xcode selection was changed.
 
 The critical next dependencies are actual FieldLog model/feature compiler closure,
-the full owned Swift execution profile, typed native capabilities, broader native
-UI/lifecycle behavior, and durable device update activation/recovery. Hosted
-PostgreSQL services, isolated builds/signing, stores, console/commercial features,
+the full owned Swift execution profile, signed capability/guest integration, broader
+native UI/lifecycle behavior, and durable device update activation/recovery. Hosted
+services, isolated builds/signing, stores, console/commercial features,
 independent security/operational reviews, users and paid pilots remain mandatory.
 There is no production deployment receipt or GA claim; remote CI status is recorded below.
 
@@ -81,5 +100,6 @@ says otherwise. New device checks remain pending; development continues with hos
 cross-compiler and simulator evidence. Periodic source/evidence commits and pushes
 to `snowdamiz/mixer` are authorized and recorded in PLAN.md. The initial GitHub
 run passed Rust and Go checks and the 23 Swift SDK tests, then rejected the CLI
-because the runner supplied Swift 6.1 while the package requires 6.2. CI toolchain
-selection is being corrected; this is not a clean full CI result.
+because the runner supplied Swift 6.1 while the package requires 6.2. CI now selects
+and verifies Xcode26.3/Swift6.2 explicitly, with updater tests added. Local equivalent
+checks pass; the next hosted run remains pending and is not yet a clean CI result.

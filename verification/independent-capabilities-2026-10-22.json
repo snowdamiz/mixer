@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "observedAtUTC": "2026-10-23T00:21:37.178790+00:00",
+  "sourceRevision": "444e6073c43e2a937dc4257e285231268c8e9adc",
+  "scope": "Root independent review of bounded capability/storage slice; no W06/W09 or release approval",
+  "reviewed": [
+    "schema/v1.json",
+    "Host.swift",
+    "Wire.swift",
+    "GuestClient.swift",
+    "AppPrivateKeyValueStore.swift",
+    "README.md"
+  ],
+  "finding": {
+    "issue": "Reopening a store with lower configured quotas did not enforce retained bytes or entry counts",
+    "fixedRevision": "444e6073c43e2a937dc4257e285231268c8e9adc",
+    "regression": "13-test capability suite includes exact-boundary and over-quota reopen with preserved values"
+  },
+  "commands": [
+    {
+      "command": "python3 capabilities/tools/generate.py --check",
+      "exit": 0
+    },
+    {
+      "command": "swift test --package-path capabilities",
+      "exit": 0,
+      "passed": 13
+    },
+    {
+      "command": "python3 capabilities/tools/codec-differential.py",
+      "exit": 0,
+      "validInbound": 24,
+      "invalidInbound": 66,
+      "completionDirections": 38,
+      "invalidCompletions": 4
+    }
+  ],
+  "sourceReceipt": "capabilities/verification/receipt.json",
+  "nativeIdentity": "29c018b8c58166a3397ac285bcd1ec54fd2880d1e22679c079ae75d0d58058e9",
+  "evidence": {
+    "verification/local/capability-root-review/generated-final.log": "96608d20eb93aa11e5af3399bc9e401ad4cb0713d3eb4939b2c51a6fe0ff605d",
+    "verification/local/capability-root-review/swift-final.log": "87dc140c3ababb9cf5c3ab8d98e1b92600c0a2a071229c41632bdb33c5f449c5",
+    "verification/local/capability-root-review/differential-final.log": "3a4c600dac51cc6ba1f7416e77ebc07b00ef736d87f928d7eca2e8bf3454416e"
+  },
+  "limitations": [
+    "No physical phone execution",
+    "No owned-VM capability imports or signed per-release grants integration",
+    "No full HTTP network transport, FieldLog adoption, complete platform capability set or security audit"
+  ]
+}
