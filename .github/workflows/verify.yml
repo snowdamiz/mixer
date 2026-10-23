@@ -148,6 +148,14 @@ jobs:
         run: |
           cargo test --locked --manifest-path vm/Cargo.toml --features experimental-span-execution --test span_function_cache_allocations --test span_execution_allocations -- --nocapture
           cargo test --locked --release --manifest-path vm/Cargo.toml --features experimental-span-execution --test span_function_cache_allocations --test span_execution_allocations -- --nocapture
+      # Host callback/Looper simulations only; physical Android stays pending.
+      # NDK headers are provided by the GitHub-hosted Android toolchain image.
+      - name: Android facade and UI-entry transport host regressions
+        run: |
+          : "${ANDROID_NDK_HOME:?An official Android NDK is required}"
+          python3 scripts/ci/check-android-transport.py \
+            --cc cc --ndk "$ANDROID_NDK_HOME" \
+            --output "$RUNNER_TEMP/android-facade-transport"
       - name: Public native capability C client
         run: |
           cargo build --locked --release --lib --manifest-path vm/Cargo.toml --features experimental-capability-native

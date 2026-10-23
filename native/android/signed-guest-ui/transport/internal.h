@@ -14,5 +14,12 @@ enum mxuit_test_syscall {
 int32_t mxuit_test_fail_syscall(uint32_t operation, int error, uint32_t times);
 int32_t mxuit_test_set_issued(uint64_t value);
 int32_t mxuit_test_set_epoch(uint64_t value);
+int32_t mxuit_test_set_facade_issued(uint64_t value);
+int32_t mxuit_test_set_ui_entry_issued(uint64_t value);
+struct mxuit_test_facade_snapshot {
+    uint64_t id, current_endpoint, active_entry, last_entry_serial;
+    uint32_t closing, terminal_issued;
+};
+int32_t mxuit_test_inspect_facade(uint64_t facade, struct mxuit_test_facade_snapshot *output);
 #endif
 #endif

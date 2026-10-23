@@ -1,0 +1,3311 @@
+{
+  "schema_version": 1,
+  "observed_at_utc": "2026-10-23T16:48:14.940847+00:00",
+  "executor": "Android facade transport implementation lane",
+  "reviewer": "root independent review pending",
+  "source_revision": "76a3254f1e974fbce144e6887b6d73c243f68243",
+  "selected_inputs_unchanged_during_checks": true,
+  "source_tree_digest": "0d03c09717c32ed1f9e984db7e15a5d3a719c1138735275a737458764dcfd258",
+  "source_manifest": "verification/android-facade-transport/source-manifest.sha256",
+  "tool_versions": {
+    "host_clang": "Apple clang version 21.0.0 (clang-2100.1.1.101)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "android_clang": "Android (13691557, +pgo, -bolt, +lto, -mlgo, based on r522817d) clang version 18.0.4 (https://android.googlesource.com/toolchain/llvm-project d8003a456d14a3deb8054cdaa529ffbf02d9b262)\nTarget: aarch64-unknown-linux-android30\nThread model: posix\nInstalledDir: /Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin",
+    "python": "Python 3.14.8",
+    "ndk": "Pkg.Desc = Android NDK\nPkg.Revision = 27.3.13750724\nPkg.BaseRevision = 27.3.13750724\nPkg.ReleaseName = r27d"
+  },
+  "tool_input_sha256": {
+    "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang": "7def90dd8829726686213a747fc5bff1583df933dae5edc55d755479e0bfe00a",
+    "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android30-clang": "cf2d40be93fb6051d3a66f5d6bdd24ccbe6595913040460f3607a241d562af76",
+    "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/source.properties": "fb5eec1ca5dac09442109cf79e9ce49faecd8b312dbc997e88903a394e14994a",
+    "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/android/looper.h": "e5e7198cadb31077648292abc3ae08245ef33df0982fad2c3ccc5187e046cb41",
+    "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/SDKSettings.json": "f8d005f09381389167f9e0aeaa169bc9e7dff162ef22ca2fd8e98df7ff1acafe"
+  },
+  "environment": {
+    "DEVELOPER_DIR": "/Applications/Xcode_26.6.app/Contents/Developer",
+    "explicit_host_sysroot": "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+    "ASAN_OPTIONS": "detect_leaks=0:halt_on_error=1",
+    "UBSAN_OPTIONS": "halt_on_error=1",
+    "TSAN_OPTIONS": "halt_on_error=1"
+  },
+  "commands": [
+    {
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/source-revision.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "git",
+        "status",
+        "--short"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/source-status.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/version-host-clang.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android30-clang",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/version-android-clang.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/version-python.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "-isysroot",
+        "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-idirafter",
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/../sysroot/usr/include",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wpedantic",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wstrict-prototypes",
+        "-pthread",
+        "-DMIXER_UI_TRANSPORT_TESTING=1",
+        "-O0",
+        "-g",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/transport.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/tests/host_tests.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/tests/progress_probe.c",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-original"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-original-build.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-original",
+        "--list"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-original-cases.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-original",
+        "capacity"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-original",
+        "coalescing"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-original",
+        "successor_from_complete"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-original",
+        "close_before_claim"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-original",
+        "close_during_helper"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-original",
+        "callback_tail"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-original",
+        "reentrant"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-original",
+        "stalled_consumer"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-original",
+        "failed_retirement"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-original",
+        "join_during_completion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-original",
+        "failed_present"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-original",
+        "write_eio"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-original",
+        "write_eagain"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-original",
+        "write_eintr_exhausted"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-original",
+        "read_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-original",
+        "fence_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-original",
+        "eintr_recovery"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-original",
+        "pipe_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-original",
+        "fcntl_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-original",
+        "register_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-original",
+        "owner_exhaustion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-original",
+        "waiter_exhaustion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-original",
+        "epoch_exhaustion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-original",
+        "wrong_descriptor"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-original",
+        "unknown_hook"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-original",
+        "repeated_retirement"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "-isysroot",
+        "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-idirafter",
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/../sysroot/usr/include",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wpedantic",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wstrict-prototypes",
+        "-pthread",
+        "-DMIXER_UI_TRANSPORT_TESTING=1",
+        "-O0",
+        "-g",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/transport.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/platform_android.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/probes.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/tests/progress_probe.c",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-independent"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-independent-build.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-independent",
+        "--list"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-independent-cases.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-independent",
+        "completing_baton"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-independent",
+        "slot_reuse_during_scan"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-independent",
+        "many_rounds"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-independent",
+        "join_before_completion_returns"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-independent",
+        "registration_guards"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-independent",
+        "register_absent"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-independent",
+        "register_rejected"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-independent",
+        "stale_generation_storm"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-independent",
+        "waiter_is_immediate_demand"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "-isysroot",
+        "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-idirafter",
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/../sysroot/usr/include",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wpedantic",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wstrict-prototypes",
+        "-pthread",
+        "-DMIXER_UI_TRANSPORT_TESTING=1",
+        "-O0",
+        "-g",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/transport.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/platform_android.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/tests/facade_tests.c",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-facade"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-facade-build.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-facade",
+        "--list"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-facade-cases.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-facade",
+        "facade_capacity"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-facade",
+        "invalid_identities"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-facade",
+        "direct_entry_nested"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-facade",
+        "no_byte_nested"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-facade",
+        "helper_nested"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-facade",
+        "lifecycle_across_attempts"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-facade",
+        "terminal_admission"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-facade",
+        "cleanup_without_endpoint"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-facade",
+        "cleanup_inflight_acquire"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-facade",
+        "post_retire_cleanup_fence"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-facade",
+        "close_claimed_present"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-facade",
+        "exact_waiter_and_facade"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-facade",
+        "wrong_thread"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-facade",
+        "progress_fences"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-facade",
+        "facade_exhaustion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-facade",
+        "entry_exhaustion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-facade",
+        "worker_write_fault"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-facade",
+        "callback_read_fault"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-facade",
+        "leave_write_fault"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-facade",
+        "callback_event_fault"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-facade",
+        "initialization_fault"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-facade",
+        "failed_retire_pins_facade"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-facade",
+        "held_entry"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-facade",
+        "held_completion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-facade",
+        "held_callback_tail"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-facade",
+        "held_progress_tail"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/debug-facade",
+        "repeated_facades"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/debug-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "-isysroot",
+        "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-idirafter",
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/../sysroot/usr/include",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wpedantic",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wstrict-prototypes",
+        "-pthread",
+        "-DMIXER_UI_TRANSPORT_TESTING=1",
+        "-O2",
+        "-DNDEBUG",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/transport.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/tests/host_tests.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/tests/progress_probe.c",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-original"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-original-build.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-original",
+        "--list"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-original-cases.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-original",
+        "capacity"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-original",
+        "coalescing"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-original",
+        "successor_from_complete"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-original",
+        "close_before_claim"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-original",
+        "close_during_helper"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-original",
+        "callback_tail"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-original",
+        "reentrant"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-original",
+        "stalled_consumer"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-original",
+        "failed_retirement"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-original",
+        "join_during_completion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-original",
+        "failed_present"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-original",
+        "write_eio"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-original",
+        "write_eagain"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-original",
+        "write_eintr_exhausted"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-original",
+        "read_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-original",
+        "fence_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-original",
+        "eintr_recovery"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-original",
+        "pipe_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-original",
+        "fcntl_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-original",
+        "register_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-original",
+        "owner_exhaustion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-original",
+        "waiter_exhaustion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-original",
+        "epoch_exhaustion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-original",
+        "wrong_descriptor"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-original",
+        "unknown_hook"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-original",
+        "repeated_retirement"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "-isysroot",
+        "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-idirafter",
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/../sysroot/usr/include",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wpedantic",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wstrict-prototypes",
+        "-pthread",
+        "-DMIXER_UI_TRANSPORT_TESTING=1",
+        "-O2",
+        "-DNDEBUG",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/transport.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/platform_android.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/probes.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/tests/progress_probe.c",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-independent"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-independent-build.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-independent",
+        "--list"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-independent-cases.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-independent",
+        "completing_baton"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-independent",
+        "slot_reuse_during_scan"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-independent",
+        "many_rounds"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-independent",
+        "join_before_completion_returns"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-independent",
+        "registration_guards"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-independent",
+        "register_absent"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-independent",
+        "register_rejected"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-independent",
+        "stale_generation_storm"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-independent",
+        "waiter_is_immediate_demand"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "-isysroot",
+        "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-idirafter",
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/../sysroot/usr/include",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wpedantic",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wstrict-prototypes",
+        "-pthread",
+        "-DMIXER_UI_TRANSPORT_TESTING=1",
+        "-O2",
+        "-DNDEBUG",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/transport.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/platform_android.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/tests/facade_tests.c",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-facade"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-facade-build.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-facade",
+        "--list"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-facade-cases.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-facade",
+        "facade_capacity"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-facade",
+        "invalid_identities"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-facade",
+        "direct_entry_nested"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-facade",
+        "no_byte_nested"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-facade",
+        "helper_nested"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-facade",
+        "lifecycle_across_attempts"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-facade",
+        "terminal_admission"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-facade",
+        "cleanup_without_endpoint"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-facade",
+        "cleanup_inflight_acquire"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-facade",
+        "post_retire_cleanup_fence"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-facade",
+        "close_claimed_present"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-facade",
+        "exact_waiter_and_facade"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-facade",
+        "wrong_thread"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-facade",
+        "progress_fences"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-facade",
+        "facade_exhaustion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-facade",
+        "entry_exhaustion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-facade",
+        "worker_write_fault"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-facade",
+        "callback_read_fault"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-facade",
+        "leave_write_fault"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-facade",
+        "callback_event_fault"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-facade",
+        "initialization_fault"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-facade",
+        "failed_retire_pins_facade"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-facade",
+        "held_entry"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-facade",
+        "held_completion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-facade",
+        "held_callback_tail"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-facade",
+        "held_progress_tail"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/release-facade",
+        "repeated_facades"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/release-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "-isysroot",
+        "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-idirafter",
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/../sysroot/usr/include",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wpedantic",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wstrict-prototypes",
+        "-pthread",
+        "-DMIXER_UI_TRANSPORT_TESTING=1",
+        "-O1",
+        "-g",
+        "-fsanitize=address,undefined",
+        "-fno-omit-frame-pointer",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/transport.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/tests/host_tests.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/tests/progress_probe.c",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-original"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-original-build.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-original",
+        "--list"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-original-cases.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-original",
+        "capacity"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-original",
+        "coalescing"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-original",
+        "successor_from_complete"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-original",
+        "close_before_claim"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-original",
+        "close_during_helper"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-original",
+        "callback_tail"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-original",
+        "reentrant"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-original",
+        "stalled_consumer"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-original",
+        "failed_retirement"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-original",
+        "join_during_completion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-original",
+        "failed_present"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-original",
+        "write_eio"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-original",
+        "write_eagain"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-original",
+        "write_eintr_exhausted"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-original",
+        "read_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-original",
+        "fence_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-original",
+        "eintr_recovery"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-original",
+        "pipe_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-original",
+        "fcntl_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-original",
+        "register_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-original",
+        "owner_exhaustion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-original",
+        "waiter_exhaustion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-original",
+        "epoch_exhaustion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-original",
+        "wrong_descriptor"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-original",
+        "unknown_hook"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-original",
+        "repeated_retirement"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "-isysroot",
+        "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-idirafter",
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/../sysroot/usr/include",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wpedantic",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wstrict-prototypes",
+        "-pthread",
+        "-DMIXER_UI_TRANSPORT_TESTING=1",
+        "-O1",
+        "-g",
+        "-fsanitize=address,undefined",
+        "-fno-omit-frame-pointer",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/transport.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/platform_android.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/probes.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/tests/progress_probe.c",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-independent"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-independent-build.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-independent",
+        "--list"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-independent-cases.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-independent",
+        "completing_baton"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-independent",
+        "slot_reuse_during_scan"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-independent",
+        "many_rounds"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-independent",
+        "join_before_completion_returns"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-independent",
+        "registration_guards"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-independent",
+        "register_absent"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-independent",
+        "register_rejected"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-independent",
+        "stale_generation_storm"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-independent",
+        "waiter_is_immediate_demand"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "-isysroot",
+        "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-idirafter",
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/../sysroot/usr/include",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wpedantic",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wstrict-prototypes",
+        "-pthread",
+        "-DMIXER_UI_TRANSPORT_TESTING=1",
+        "-O1",
+        "-g",
+        "-fsanitize=address,undefined",
+        "-fno-omit-frame-pointer",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/transport.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/platform_android.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/tests/facade_tests.c",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-facade"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-facade-build.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-facade",
+        "--list"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-facade-cases.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-facade",
+        "facade_capacity"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-facade",
+        "invalid_identities"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-facade",
+        "direct_entry_nested"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-facade",
+        "no_byte_nested"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-facade",
+        "helper_nested"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-facade",
+        "lifecycle_across_attempts"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-facade",
+        "terminal_admission"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-facade",
+        "cleanup_without_endpoint"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-facade",
+        "cleanup_inflight_acquire"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-facade",
+        "post_retire_cleanup_fence"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-facade",
+        "close_claimed_present"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-facade",
+        "exact_waiter_and_facade"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-facade",
+        "wrong_thread"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-facade",
+        "progress_fences"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-facade",
+        "facade_exhaustion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-facade",
+        "entry_exhaustion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-facade",
+        "worker_write_fault"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-facade",
+        "callback_read_fault"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-facade",
+        "leave_write_fault"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-facade",
+        "callback_event_fault"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-facade",
+        "initialization_fault"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-facade",
+        "failed_retire_pins_facade"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-facade",
+        "held_entry"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-facade",
+        "held_completion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-facade",
+        "held_callback_tail"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-facade",
+        "held_progress_tail"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/asan-ubsan-facade",
+        "repeated_facades"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/asan-ubsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "-isysroot",
+        "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-idirafter",
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/../sysroot/usr/include",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wpedantic",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wstrict-prototypes",
+        "-pthread",
+        "-DMIXER_UI_TRANSPORT_TESTING=1",
+        "-O1",
+        "-g",
+        "-fsanitize=thread",
+        "-fno-omit-frame-pointer",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/transport.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/tests/host_tests.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/tests/progress_probe.c",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-original"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-original-build.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-original",
+        "--list"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-original-cases.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-original",
+        "capacity"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-original",
+        "coalescing"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-original",
+        "successor_from_complete"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-original",
+        "close_before_claim"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-original",
+        "close_during_helper"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-original",
+        "callback_tail"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-original",
+        "reentrant"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-original",
+        "stalled_consumer"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-original",
+        "failed_retirement"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-original",
+        "join_during_completion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-original",
+        "failed_present"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-original",
+        "write_eio"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-original",
+        "write_eagain"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-original",
+        "write_eintr_exhausted"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-original",
+        "read_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-original",
+        "fence_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-original",
+        "eintr_recovery"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-original",
+        "pipe_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-original",
+        "fcntl_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-original",
+        "register_failure"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-original",
+        "owner_exhaustion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-original",
+        "waiter_exhaustion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-original",
+        "epoch_exhaustion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-original",
+        "wrong_descriptor"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-original",
+        "unknown_hook"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-original",
+        "repeated_retirement"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-original-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "-isysroot",
+        "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-idirafter",
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/../sysroot/usr/include",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wpedantic",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wstrict-prototypes",
+        "-pthread",
+        "-DMIXER_UI_TRANSPORT_TESTING=1",
+        "-O1",
+        "-g",
+        "-fsanitize=thread",
+        "-fno-omit-frame-pointer",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/transport.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/platform_android.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-transport-review/probes.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/tests/progress_probe.c",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-independent"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-independent-build.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-independent",
+        "--list"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-independent-cases.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-independent",
+        "completing_baton"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-independent",
+        "slot_reuse_during_scan"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-independent",
+        "many_rounds"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-independent",
+        "join_before_completion_returns"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-independent",
+        "registration_guards"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-independent",
+        "register_absent"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-independent",
+        "register_rejected"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-independent",
+        "stale_generation_storm"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-independent",
+        "waiter_is_immediate_demand"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-independent-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "-isysroot",
+        "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-idirafter",
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/../sysroot/usr/include",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wpedantic",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wstrict-prototypes",
+        "-pthread",
+        "-DMIXER_UI_TRANSPORT_TESTING=1",
+        "-O1",
+        "-g",
+        "-fsanitize=thread",
+        "-fno-omit-frame-pointer",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/transport.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/platform_android.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/tests/facade_tests.c",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-facade"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-facade-build.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-facade",
+        "--list"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-facade-cases.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-facade",
+        "facade_capacity"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-facade",
+        "invalid_identities"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-facade",
+        "direct_entry_nested"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-facade",
+        "no_byte_nested"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-facade",
+        "helper_nested"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-facade",
+        "lifecycle_across_attempts"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-facade",
+        "terminal_admission"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-facade",
+        "cleanup_without_endpoint"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-facade",
+        "cleanup_inflight_acquire"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-facade",
+        "post_retire_cleanup_fence"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-facade",
+        "close_claimed_present"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-facade",
+        "exact_waiter_and_facade"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-facade",
+        "wrong_thread"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-facade",
+        "progress_fences"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-facade",
+        "facade_exhaustion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-facade",
+        "entry_exhaustion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-facade",
+        "worker_write_fault"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-facade",
+        "callback_read_fault"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-facade",
+        "leave_write_fault"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-facade",
+        "callback_event_fault"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-facade",
+        "initialization_fault"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-facade",
+        "failed_retire_pins_facade"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-facade",
+        "held_entry"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-facade",
+        "held_completion"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-facade",
+        "held_callback_tail"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-facade",
+        "held_progress_tail"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/tsan-facade",
+        "repeated_facades"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/tsan-facade-tests.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android30-clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wpedantic",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wstrict-prototypes",
+        "-O2",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/transport.c",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/transport-android.o"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/android-transport-object.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android30-clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wpedantic",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wstrict-prototypes",
+        "-O2",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-c",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/platform_android.c",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/platform_android-android.o"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/android-platform_android-object.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-nm",
+        "-g",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/transport-android.o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/platform_android-android.o"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/android-product-symbols.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android30-clang",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/transport-android.o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/platform_android-android.o",
+        "-shared",
+        "-Wl,--no-undefined",
+        "-Wl,-z,max-page-size=16384",
+        "-Wl,-z,relro,-z,now",
+        "-landroid",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/missing-hooks.so"
+      ],
+      "exit_code": 1,
+      "output": "verification/android-facade-transport/android-required-hooks-negative.log",
+      "expected_success": false
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android30-clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wpedantic",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wstrict-prototypes",
+        "-fPIC",
+        "-DMXUIT_PROBE_OMIT_PROGRESS=1",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/transport-android.o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/platform_android-android.o",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/tests/android_link_probe.c",
+        "-shared",
+        "-Wl,--no-undefined",
+        "-Wl,-z,max-page-size=16384",
+        "-Wl,-z,relro,-z,now",
+        "-landroid",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/missing-progress.so"
+      ],
+      "exit_code": 1,
+      "output": "verification/android-facade-transport/android-required-progress-negative.log",
+      "expected_success": false
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android30-clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wpedantic",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wstrict-prototypes",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/transport-android.o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/platform_android-android.o",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/signed-guest-ui/transport/tests/android_link_probe.c",
+        "-shared",
+        "-Wl,--no-undefined",
+        "-Wl,-z,max-page-size=16384",
+        "-Wl,-z,relro,-z,now",
+        "-landroid",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/libmxuit-link-probe.so"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/android-probe-link.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-readelf",
+        "-d",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/libmxuit-link-probe.so"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/android-probe-dynamic.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-readelf",
+        "-h",
+        "-l",
+        "-W",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/libmxuit-link-probe.so"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/android-probe-elf.log",
+      "expected_success": true
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-nm",
+        "-g",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-facade-transport/build/libmxuit-link-probe.so"
+      ],
+      "exit_code": 0,
+      "output": "verification/android-facade-transport/android-probe-symbols.log",
+      "expected_success": true
+    }
+  ],
+  "host_results": {
+    "debug": {
+      "original": {
+        "cases_passed": 26,
+        "cases": [
+          "capacity",
+          "coalescing",
+          "successor_from_complete",
+          "close_before_claim",
+          "close_during_helper",
+          "callback_tail",
+          "reentrant",
+          "stalled_consumer",
+          "failed_retirement",
+          "join_during_completion",
+          "failed_present",
+          "write_eio",
+          "write_eagain",
+          "write_eintr_exhausted",
+          "read_failure",
+          "fence_failure",
+          "eintr_recovery",
+          "pipe_failure",
+          "fcntl_failure",
+          "register_failure",
+          "owner_exhaustion",
+          "waiter_exhaustion",
+          "epoch_exhaustion",
+          "wrong_descriptor",
+          "unknown_hook",
+          "repeated_retirement"
+        ],
+        "output": "verification/android-facade-transport/debug-original-tests.log"
+      },
+      "independent": {
+        "cases_passed": 9,
+        "cases": [
+          "completing_baton",
+          "slot_reuse_during_scan",
+          "many_rounds",
+          "join_before_completion_returns",
+          "registration_guards",
+          "register_absent",
+          "register_rejected",
+          "stale_generation_storm",
+          "waiter_is_immediate_demand"
+        ],
+        "output": "verification/android-facade-transport/debug-independent-tests.log"
+      },
+      "facade": {
+        "cases_passed": 27,
+        "cases": [
+          "facade_capacity",
+          "invalid_identities",
+          "direct_entry_nested",
+          "no_byte_nested",
+          "helper_nested",
+          "lifecycle_across_attempts",
+          "terminal_admission",
+          "cleanup_without_endpoint",
+          "cleanup_inflight_acquire",
+          "post_retire_cleanup_fence",
+          "close_claimed_present",
+          "exact_waiter_and_facade",
+          "wrong_thread",
+          "progress_fences",
+          "facade_exhaustion",
+          "entry_exhaustion",
+          "worker_write_fault",
+          "callback_read_fault",
+          "leave_write_fault",
+          "callback_event_fault",
+          "initialization_fault",
+          "failed_retire_pins_facade",
+          "held_entry",
+          "held_completion",
+          "held_callback_tail",
+          "held_progress_tail",
+          "repeated_facades"
+        ],
+        "output": "verification/android-facade-transport/debug-facade-tests.log"
+      }
+    },
+    "release": {
+      "original": {
+        "cases_passed": 26,
+        "cases": [
+          "capacity",
+          "coalescing",
+          "successor_from_complete",
+          "close_before_claim",
+          "close_during_helper",
+          "callback_tail",
+          "reentrant",
+          "stalled_consumer",
+          "failed_retirement",
+          "join_during_completion",
+          "failed_present",
+          "write_eio",
+          "write_eagain",
+          "write_eintr_exhausted",
+          "read_failure",
+          "fence_failure",
+          "eintr_recovery",
+          "pipe_failure",
+          "fcntl_failure",
+          "register_failure",
+          "owner_exhaustion",
+          "waiter_exhaustion",
+          "epoch_exhaustion",
+          "wrong_descriptor",
+          "unknown_hook",
+          "repeated_retirement"
+        ],
+        "output": "verification/android-facade-transport/release-original-tests.log"
+      },
+      "independent": {
+        "cases_passed": 9,
+        "cases": [
+          "completing_baton",
+          "slot_reuse_during_scan",
+          "many_rounds",
+          "join_before_completion_returns",
+          "registration_guards",
+          "register_absent",
+          "register_rejected",
+          "stale_generation_storm",
+          "waiter_is_immediate_demand"
+        ],
+        "output": "verification/android-facade-transport/release-independent-tests.log"
+      },
+      "facade": {
+        "cases_passed": 27,
+        "cases": [
+          "facade_capacity",
+          "invalid_identities",
+          "direct_entry_nested",
+          "no_byte_nested",
+          "helper_nested",
+          "lifecycle_across_attempts",
+          "terminal_admission",
+          "cleanup_without_endpoint",
+          "cleanup_inflight_acquire",
+          "post_retire_cleanup_fence",
+          "close_claimed_present",
+          "exact_waiter_and_facade",
+          "wrong_thread",
+          "progress_fences",
+          "facade_exhaustion",
+          "entry_exhaustion",
+          "worker_write_fault",
+          "callback_read_fault",
+          "leave_write_fault",
+          "callback_event_fault",
+          "initialization_fault",
+          "failed_retire_pins_facade",
+          "held_entry",
+          "held_completion",
+          "held_callback_tail",
+          "held_progress_tail",
+          "repeated_facades"
+        ],
+        "output": "verification/android-facade-transport/release-facade-tests.log"
+      }
+    },
+    "asan-ubsan": {
+      "original": {
+        "cases_passed": 26,
+        "cases": [
+          "capacity",
+          "coalescing",
+          "successor_from_complete",
+          "close_before_claim",
+          "close_during_helper",
+          "callback_tail",
+          "reentrant",
+          "stalled_consumer",
+          "failed_retirement",
+          "join_during_completion",
+          "failed_present",
+          "write_eio",
+          "write_eagain",
+          "write_eintr_exhausted",
+          "read_failure",
+          "fence_failure",
+          "eintr_recovery",
+          "pipe_failure",
+          "fcntl_failure",
+          "register_failure",
+          "owner_exhaustion",
+          "waiter_exhaustion",
+          "epoch_exhaustion",
+          "wrong_descriptor",
+          "unknown_hook",
+          "repeated_retirement"
+        ],
+        "output": "verification/android-facade-transport/asan-ubsan-original-tests.log"
+      },
+      "independent": {
+        "cases_passed": 9,
+        "cases": [
+          "completing_baton",
+          "slot_reuse_during_scan",
+          "many_rounds",
+          "join_before_completion_returns",
+          "registration_guards",
+          "register_absent",
+          "register_rejected",
+          "stale_generation_storm",
+          "waiter_is_immediate_demand"
+        ],
+        "output": "verification/android-facade-transport/asan-ubsan-independent-tests.log"
+      },
+      "facade": {
+        "cases_passed": 27,
+        "cases": [
+          "facade_capacity",
+          "invalid_identities",
+          "direct_entry_nested",
+          "no_byte_nested",
+          "helper_nested",
+          "lifecycle_across_attempts",
+          "terminal_admission",
+          "cleanup_without_endpoint",
+          "cleanup_inflight_acquire",
+          "post_retire_cleanup_fence",
+          "close_claimed_present",
+          "exact_waiter_and_facade",
+          "wrong_thread",
+          "progress_fences",
+          "facade_exhaustion",
+          "entry_exhaustion",
+          "worker_write_fault",
+          "callback_read_fault",
+          "leave_write_fault",
+          "callback_event_fault",
+          "initialization_fault",
+          "failed_retire_pins_facade",
+          "held_entry",
+          "held_completion",
+          "held_callback_tail",
+          "held_progress_tail",
+          "repeated_facades"
+        ],
+        "output": "verification/android-facade-transport/asan-ubsan-facade-tests.log"
+      }
+    },
+    "tsan": {
+      "original": {
+        "cases_passed": 26,
+        "cases": [
+          "capacity",
+          "coalescing",
+          "successor_from_complete",
+          "close_before_claim",
+          "close_during_helper",
+          "callback_tail",
+          "reentrant",
+          "stalled_consumer",
+          "failed_retirement",
+          "join_during_completion",
+          "failed_present",
+          "write_eio",
+          "write_eagain",
+          "write_eintr_exhausted",
+          "read_failure",
+          "fence_failure",
+          "eintr_recovery",
+          "pipe_failure",
+          "fcntl_failure",
+          "register_failure",
+          "owner_exhaustion",
+          "waiter_exhaustion",
+          "epoch_exhaustion",
+          "wrong_descriptor",
+          "unknown_hook",
+          "repeated_retirement"
+        ],
+        "output": "verification/android-facade-transport/tsan-original-tests.log"
+      },
+      "independent": {
+        "cases_passed": 9,
+        "cases": [
+          "completing_baton",
+          "slot_reuse_during_scan",
+          "many_rounds",
+          "join_before_completion_returns",
+          "registration_guards",
+          "register_absent",
+          "register_rejected",
+          "stale_generation_storm",
+          "waiter_is_immediate_demand"
+        ],
+        "output": "verification/android-facade-transport/tsan-independent-tests.log"
+      },
+      "facade": {
+        "cases_passed": 27,
+        "cases": [
+          "facade_capacity",
+          "invalid_identities",
+          "direct_entry_nested",
+          "no_byte_nested",
+          "helper_nested",
+          "lifecycle_across_attempts",
+          "terminal_admission",
+          "cleanup_without_endpoint",
+          "cleanup_inflight_acquire",
+          "post_retire_cleanup_fence",
+          "close_claimed_present",
+          "exact_waiter_and_facade",
+          "wrong_thread",
+          "progress_fences",
+          "facade_exhaustion",
+          "entry_exhaustion",
+          "worker_write_fault",
+          "callback_read_fault",
+          "leave_write_fault",
+          "callback_event_fault",
+          "initialization_fault",
+          "failed_retire_pins_facade",
+          "held_entry",
+          "held_completion",
+          "held_callback_tail",
+          "held_progress_tail",
+          "repeated_facades"
+        ],
+        "output": "verification/android-facade-transport/tsan-facade-tests.log"
+      }
+    }
+  },
+  "android_artifact_sha256": {
+    "verification/android-facade-transport/build/transport-android.o": "0ecf18ed82aede25e7cb26be829d4a12be6180577ff4263e185d22fb76d8c985",
+    "verification/android-facade-transport/build/platform_android-android.o": "b0e375d07ec05f41e2ab184c8170934e1685710b0ecaf588daf3d05eb0e253f2",
+    "verification/android-facade-transport/build/libmxuit-link-probe.so": "c8d60ccdc3d5c788b384b51ead96063b53c1cc1cae45b26dbc77d94cb5a39404"
+  },
+  "preserved_test_sources_sha256": {
+    "native/android/signed-guest-ui/transport/tests/host_tests.c": "2e72417cd362417c4b521eac6f70c73544b023f0437d0c493d556f7fb68f4e02",
+    "verification/android-transport-review/probes.c": "d4508bb1e68934a472403b31d0220ca80c30976f7e752f86c94eea469710c4e7"
+  },
+  "accepted_contract_sha256": "8f45858cfb046aa16b4326b16b95ddd952764742bf820d1f59bd0586c8a2da8c",
+  "android_checks": [
+    "API30 arm64 product C objects compiled with strict warnings",
+    "missing all fixed hooks and missing progress alone failed no-undefined link",
+    "test-only fixed-hook probe linked with libandroid",
+    "ELF/symbols recorded; test controls absent from product objects"
+  ],
+  "resource_baseline": {
+    "process_lifetime_pipe_fds": 2,
+    "process_lifetime_registration": 1,
+    "process_lifetime_acquired_looper_references": 1,
+    "owner_slots": 16,
+    "additional_scalar_facade_slots": 16,
+    "global_active_ui_leases": 1
+  },
+  "scope": "C facade/endpoint/UI-entry/progress state machines and unchanged 26+9 regression cases on POSIX host plus Android object/shared-link checks only.",
+  "limitations": [
+    "Host driver simulates serialized callback return; no Android Looper execution.",
+    "consumer_joined is internal caller assertion; C does not prove actual Swift Task.value.",
+    "Android probe hooks are test-only inert link inputs, never an application host.",
+    "ASan leak detection disabled; no RSS/energy/lifetime performance qualification.",
+    "Direct JNI-entry and native-to-Java nesting probes simulate the scalar admission schedule; no JNI or Java code executes.",
+    "C facade reclaim assumes caller holds its separate exact final Swift cleanup receipt; it is not resource destruction proof.",
+    "No Swift/Java/activation/generator integration, signed selection, native UI, health or release authority; Android signed UI remains unsupported.",
+    "No emulator executed in this bounded slice; emulator execution remains permitted.",
+    "Physical phone queries/runs remain prohibited; no device tool called."
+  ]
+}

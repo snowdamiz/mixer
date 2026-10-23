@@ -906,3 +906,15 @@ website lockfile. The narrow guard correction reproduces all11 false positives,
 passes seven regression tests and keeps prohibited runtime names rejected; see
 `verification/dependency-architecture-ci-repair/receipt.json`. Original failed
 runs and skipped later checks stay explicit. No physical/GA gate changed.
+
+
+The private Android facade transport now adds 16 stable facade identities, counted
+UI entries, callback/entry fences, terminal cleanup admission and bounded progress
+notification. Owner checks pass 248 host case executions; independent review
+passes 292 across Debug, Release, ASan/UBSan and TSan, with API30 arm64 compile/link
+checks. Root audited 301 evidence bindings and ran 146 additional portable
+Debug/Release checks; see `verification/android-facade-transport-root-review/receipt.json`.
+The same host driver is now wired into Linux CI, whose first run is pending.
+These checks use host Looper simulations. Actual Swift/JNI binding, consumer joins,
+view cleanup, Android display/health and device qualification remain open. No
+Android signed UI mode or GA gate is enabled by this private C prerequisite.
