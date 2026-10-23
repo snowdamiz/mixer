@@ -479,8 +479,24 @@ metadata binding with legacy rejection. Receipts are in
 `verification/release-v3-root-review/`, `verification/release-v3-swift/`,
 `verification/release-v3-go/` and `verification/release-v3-go-review/`.
 
-These are parsing and signature primitives. Bounded complete validation and typed
-failures, exact material binding to linked concrete adapters, durable v3 selection,
-signed activation, hosted v3 routes and full FieldLog execution remain in progress.
+These are parsing and signature primitives. Run39917971778 atc5bf3fe passes all
+three hosted jobs, including55 update and19 identity tests with pinned Xcode26.3;
+see `verification/github-ci-c5bf3fe/receipt.json`.
+
+The next validator candidate adds two independent process-wide validation permits,
+owned bounded module capture, cancellation that retains queued/running capacity,
+and full native validation without instance, adapter or export execution. Matching
+construction accepts exact zero pages. Checked native status/code/context now
+produces typed diagnostics and preserves the first failure through cleanup. Owner
+review found and repaired premature deinit release of a quarantined validation
+permit; the negative reproduction remains preserved. All27 tests per mode,
+nine derived ownership-probe executions, ten unchanged public tests and four
+platform links pass. Root matched64 source inputs, logs and binaries, reviewed
+lifetime/classification invariants and passed22 original public checks. See
+`verification/capability-validation-review/receipt.json`. The full matrix uses
+local Swift6.3.3; hosted qualification for this new candidate remains pending.
+
+Exact material binding to linked concrete adapters, durable v3 selection, signed
+activation, hosted v3 routes and full FieldLog execution remain in progress.
 Physical checks remain pending while the phones are disconnected; no product or
 GA gate is closed by this checkpoint.

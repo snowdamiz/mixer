@@ -1,0 +1,10 @@
+--- base/Validation.swift
++++ derived/Validation.swift
+@@ -124,6 +124,7 @@
+                     name.baseAddress, name.count, &vm, &capability, &report)
+             }
+         }
++        ValidationProbeHooks.afterReturn(&report)
+         do {
+             try NativeDiagnostics.check(status, report, operation: .validation, moduleLength: input.module.count,
+                 configuration: input.configuration)

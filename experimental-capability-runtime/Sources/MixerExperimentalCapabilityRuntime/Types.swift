@@ -30,7 +30,7 @@ public struct ExperimentalCapabilityConfiguration: Sendable {
         self.batchMilliseconds = batchMilliseconds
     }
     func validate() throws {
-        guard (1...1_000_000).contains(fuel), (1...64).contains(memoryPages),
+        guard (1...1_000_000).contains(fuel), (0...64).contains(memoryPages),
               (1...4096).contains(operandStack), (1...64).contains(callDepth), hostCalls <= 1024,
               (1...8).contains(maximumRequests), (1...8_388_608).contains(reservationBytes),
               (1...30000).contains(timeoutMilliseconds), (1...50).contains(turnMilliseconds),
@@ -53,8 +53,15 @@ public struct ExperimentalCapabilityConfiguration: Sendable {
 public struct ExperimentalCapabilityError: Error, Sendable, Equatable, CustomStringConvertible {
     public let code: String
     public let nativeStatus: UInt32?
+    public let failure: ExperimentalCapabilityFailure
     public var description: String { code }
-    init(_ code: String, status: UInt32? = nil) { self.code = code; nativeStatus = status }
+    init(_ code: String, status: UInt32? = nil, operation: ExperimentalCapabilityFailureOperation = .localAPI,
+         kind: ExperimentalCapabilityFailureKind? = nil, location: ExperimentalCapabilityNativeLocation? = nil) {
+        self.code = code; nativeStatus = status
+        failure = ExperimentalCapabilityFailure(kind: kind ?? Self.localKind(code), operation: operation,
+            code: code, nativeStatus: status, location: location)
+    }
+    public static func == (lhs: Self, rhs: Self) -> Bool { lhs.code == rhs.code && lhs.nativeStatus == rhs.nativeStatus }
 }
 public enum ExperimentalVMValue: Sendable, Equatable {
     case i32(Int32), i64(Int64), f32Bits(UInt32), f64Bits(UInt64)
@@ -91,4 +98,5 @@ public struct ExperimentalCapabilityStatus: Sendable, Equatable {
     public internal(set) var maximumLogicalPayloadBytes = 0
     public internal(set) var maximumWorkers = 0
     public internal(set) var failure: String?
+    public internal(set) var failureDetail: ExperimentalCapabilityFailure?
 }

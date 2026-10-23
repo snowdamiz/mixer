@@ -35,6 +35,37 @@ mailbox tokens, host IDs, completions and exit acknowledgement stay private.
 `close()` synchronously latches admission shut and schedules cleanup off UI.
 Public-owner deinit also closes; accepted native exits retain their own lifetime.
 
+`ExperimentalCapabilityValidator.prepare(module:startupExport:configuration:)` is
+separate bounded admission-only work. Its one-shot `validate()` returns `Void`
+after the same private C validator used by construction checks every body, exact
+imports, defined startup/wake and declared memory. It creates no native instance,
+mailbox, host or adapters and executes no export. Success is not an instantiability,
+startup, authorization or transferable validation proof; construction revalidates.
+Two independent process permits cover unused, queued, running and draining
+validations on one serial off-UI worker. Synchronous prepare checks the 4MiB module,
+4096-byte startup and shared configuration bounds before a permit and explicit
+owned byte/name snapshot. A third validation rejects as `validation_busy` before
+snapshot or queueing. Unused cancel/deinit frees capacity; queued/running cancel
+retains it through actual dequeue/C return. Cancellation cannot interrupt native
+validation and has no latency/50ms validation guarantee. A malformed report or
+status4 quarantines only its validation permit, retaining no input or C session.
+The existing synchronous updater validator has no async integration here.
+
+`ExperimentalCapabilityError.failure` and `status.failureDetail` carry a closed
+kind/reason, native call context, checked machine code/status and bounded reported
+function/absolute byte offset. Human message text never classifies a failure.
+Validation and instantiation rejection, deterministic guest traps, cancellation,
+turn deadline, resource interruption, panic/quarantine and unknown reports stay
+separate. Unknown code/status/context combinations stay unknown; malformed metadata
+fails closed. Error equality still compares only the original code and status.
+The first status failure string/detail remain immutable, including autonomous wake
+failure; typed diagnostics do not relax exit or quarantine ownership.
+
+The shared configuration accepts an exact memory ceiling of zero pages. A valid
+module must still declare its one defined memory; a declared minimum or maximum
+above zero rejects under that ceiling. Signed-byte narrowing belongs to a future
+authorizing factory and must floor bytes/65536, never round up.
+
 A single serial off-UI pump checks the installed batch budget before transfer,
 codec and turn phases, processes at most four turns or eight milliseconds before
 yielding, and retains incomplete phases. Individual C/codec operations can
@@ -77,9 +108,9 @@ for frozen source export, debug/release, native Swift TSan, separate measurement
 public cross-probe link and official iOS/simulator/Android compilation/linking.
 The exact commands, source/SDK/header/archive hashes and logs are in the generated
 receipt. The cross probe is a link consumer using only public API; it deliberately
-rejects an empty module and is not a guest-effect happy-path test.
+rejects an empty module through typed validation and construction and is not a guest-effect happy-path test.
 
-The implementer suite authors real Wasm and verifies concrete app-private storage
+The implementer suite also tests uncalled invalid bodies, exact import/wake/startup/memory admission, independent validation capacity/cancellation, zero-page construction, checked report mutations and real runtime typed failures. Its original real Wasm verifies concrete app-private storage
 put/get/delete/missing results, traps before successful turn commit, strict
 malformed arguments, deadlines, rate/fairness and retained native exit ownership.
 HTTP URLProtocol tests are explicitly framework interception. A separate local

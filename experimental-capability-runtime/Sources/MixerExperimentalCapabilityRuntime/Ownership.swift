@@ -127,9 +127,12 @@ final class NativeExitOwner: @unchecked Sendable {
         }
         if needsSignal { source?.add(data: 1) }
     }
-    func stop(_ failure: String? = nil, quarantined: Bool = false) {
+    func stop(_ failure: String? = nil, quarantined: Bool = false, detail: ExperimentalCapabilityFailure? = nil) {
         let first = control.withLock { state in
-            if state.status.failure == nil { state.status.failure = failure }
+            if state.status.failure == nil, let failure {
+                state.status.failure = failure
+                state.status.failureDetail = detail ?? ExperimentalCapabilityError(failure).failure
+            }
             state.quarantined = state.quarantined || quarantined
             guard !state.status.closed else { return false }
             state.status.closed = true; return true
@@ -148,15 +151,17 @@ final class NativeExitOwner: @unchecked Sendable {
     }
     private func recordFailure(_ error: any Error) {
         let code = (error as? ExperimentalCapabilityError)?.code ?? "bridge_failure"
+        let detail = ExperimentalCapabilityError.detail(error)
         control.withLock { state in
-            if state.status.failure == nil { state.status.failure = code }
+            if state.status.failure == nil { state.status.failure = code; state.status.failureDetail = detail }
             let status = (error as? ExperimentalCapabilityError)?.nativeStatus
             if status == nil || status == 4 { state.quarantined = true }
         }
     }
     private func fail(_ error: any Error) {
         let e = error as? ExperimentalCapabilityError
-        stop(e?.code ?? "bridge_failure", quarantined: e?.nativeStatus == nil || e?.nativeStatus == 4)
+        stop(e?.code ?? "bridge_failure", quarantined: e?.nativeStatus == nil || e?.nativeStatus == 4,
+             detail: ExperimentalCapabilityError.detail(error))
     }
     private func closedRejection(_ error: any Error) -> Bool {
         // Ordinary access to a closed C generation rejects3. The synchronous

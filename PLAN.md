@@ -45,9 +45,11 @@ have scoped owner, independent review and combined-source receipts. See
 proofs do not authorize a guest session. Hosted CI at24a7437 also passes all three
 jobs after the pinned-compiler bridge and fixture repairs.
 
-Next finish bounded full native validation and typed failure classification, bind
-exact captured material to concrete adapters in a separate activation package,
-and qualify durable signed recovery. The material-only API is reviewed in
+Bounded full native validation, zero-page parity and typed failure classification
+now have a reviewed candidate; see `verification/capability-validation-review/`.
+The operation returns no transferable proof and construction still revalidates.
+Next bind exact captured material to concrete adapters in a separate activation
+package and qualify durable signed recovery. The material-only API is reviewed in
 `docs/capability-installed-factory-api-design.md`; updater ownership needs its own
 review before implementation.
 Explicit hosted v3 routes/storage and immutable external distribution follow.
