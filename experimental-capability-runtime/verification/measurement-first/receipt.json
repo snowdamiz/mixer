@@ -1,0 +1,52 @@
+{
+  "command": [
+    "swift",
+    "test",
+    "--package-path",
+    "experimental-capability-runtime",
+    "--scratch-path",
+    "experimental-capability-runtime/.build/debug",
+    "-Xcc",
+    "-I/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v3/host/include",
+    "-Xlinker",
+    "-L/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v3/host/lib",
+    "-Xswiftc",
+    "-warnings-as-errors",
+    "-Xswiftc",
+    "-DMIXER_EXPERIMENTAL_LOCAL_TLS_TEST"
+  ],
+  "environment": {
+    "MIXER_EXPERIMENTAL_TLS_URL": "https://127.0.0.1:54768/"
+  },
+  "exit_code": 1,
+  "output_sha256": "88ae01ad9b3e98c42aa151b1ed464ea75caddb245614cc140a06a1c0683a4192",
+  "certificate_generation": [
+    "openssl",
+    "req",
+    "-x509",
+    "-newkey",
+    "rsa:2048",
+    "-nodes",
+    "-keyout",
+    "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/untrusted-loopback-598xsuou/ephemeral-key.pem",
+    "-out",
+    "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/untrusted-loopback-598xsuou/certificate.pem",
+    "-days",
+    "1",
+    "-subj",
+    "/CN=127.0.0.1",
+    "-addext",
+    "subjectAltName=IP:127.0.0.1"
+  ],
+  "certificate_sha256": "95fa1addae964994ab133fd8aa07cbea83df4415f7955dd4916b89a5389630f4",
+  "observations": {
+    "tcp_accepts": 1,
+    "tls_failures": 1,
+    "application_requests": 0,
+    "errors": [
+      "SSLEOFError:[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1082)"
+    ]
+  },
+  "server_stopped": true,
+  "scope": "Actual normal-trust loopback TLS rejection, no trust/keychain/credential change; not HTTPS success or device evidence"
+}

@@ -82,6 +82,24 @@ jobs:
             "$RUNNER_TEMP/capability-vm/lib/libmixer_vm_capability_experimental.a" \
             -lpthread -ldl -lm -o "$RUNNER_TEMP/capability-vm-registry"
           "$RUNNER_TEMP/capability-vm-registry"
+      - name: Experimental guest-to-native bridge and public consumer
+        run: |
+          for mode in debug release tsan; do
+            bridge_flags=()
+            if [[ "$mode" == release ]]; then bridge_flags=(-c release); fi
+            if [[ "$mode" == tsan ]]; then bridge_flags=(--sanitize thread); fi
+            python3 -B experimental-capability-runtime/verification/with-loopback.py \
+              --output "$RUNNER_TEMP/bridge-$mode-tls" -- \
+              swift test --package-path experimental-capability-runtime \
+              --scratch-path "$RUNNER_TEMP/bridge-$mode" "${bridge_flags[@]}" \
+              -Xcc "-I$RUNNER_TEMP/capability-vm/include" \
+              -Xlinker "-L$RUNNER_TEMP/capability-vm/lib" \
+              -Xswiftc -warnings-as-errors -Xswiftc -DMIXER_EXPERIMENTAL_LOCAL_TLS_TEST
+          done
+          swift test --package-path verification/capability-bridge-review \
+            --scratch-path "$RUNNER_TEMP/bridge-public" \
+            -Xcc "-I$RUNNER_TEMP/capability-vm/include" \
+            -Xlinker "-L$RUNNER_TEMP/capability-vm/lib" -Xswiftc -warnings-as-errors
       - name: Generated consumer integration
         run: |
           swift run --package-path cli mixer create VerificationApp --directory "$RUNNER_TEMP/VerificationApp"

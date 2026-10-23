@@ -49,6 +49,22 @@ experiments with installed-selected module/startup/policy/adapters. A raw grant 
 or effects-open call is not verified activation authority. No profile-4 selection
 is added to `VMSession`, `VMProfile`, validation inventory or existing activation.
 
+Construction starts with a **synchronous** `prepare` admission permit before
+retaining/scheduling a closure or Task holding module Data. At most sixteen Swift
+pending constructions, live owners and closed/draining owners share that budget.
+A one-shot asynchronous construction value then runs heavy C validation/create
+off the UI executor. Busy rejects before scheduling, and failed creation holds
+its permit until cleanup finishes. A native registry reservation acquired only
+inside C create cannot bound an earlier Swift queue of 4 MiB module captures.
+Keep scheduler registration under the same aggregate owner bound. Test concurrent
+prepare/create/cancel/failure and permit handoff, not just native pool exhaustion.
+Input byte limits and retained-payload diagnostics measure logical byte counts.
+A caller's Data slice or String may retain a larger backing allocation; policies,
+adapters, DTOs, allocator overhead and framework/native buffers are separate.
+The sixteen permits bound retained attempts, not aggregate process RSS. Raw C
+take and host callback payloads use explicit owned copies; codec transient copies
+and actual allocator/RSS high-water observations require separate measurement.
+
 ## One session, eight mappings and retained exit ownership
 
 Construct one private `CapabilityHost(maximumRequests: 8, timeoutMilliseconds: T,
@@ -234,6 +250,12 @@ loop. Retain actual-exit obligations through stop. Poison/quarantine/failed ack
 retains counted ownership and diagnostics; there is no fabricated reclamation.
 Cleanup close/cancel status0 on a quarantined but unpoisoned owner proves only
 that stop transition: it does not clear sticky quarantine or release its capacity.
+Checked native command metadata/value faults latch closed and conservatively
+retain capacity even if cleanup later reports0. A malformed create report,
+status4, a successful create without a valid handle, an unexpected error handle,
+or failed cleanup similarly quarantines its Swift construction permit for the
+process lifetime without retaining the module. Valid ordinary failed creates
+with initialized zero handles release their permits. There is no recovery API.
 
 Close first latches the private attempt closed synchronously, before scheduling
 host cancellations or native close. All admission registrations and wake posts

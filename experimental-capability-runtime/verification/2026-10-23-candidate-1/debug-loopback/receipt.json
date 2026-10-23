@@ -1,0 +1,52 @@
+{
+  "command": [
+    "swift",
+    "test",
+    "--package-path",
+    "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-candidate-1/source/experimental-capability-runtime",
+    "--scratch-path",
+    "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-candidate-1/debug",
+    "-Xcc",
+    "-I/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v3/host/include",
+    "-Xlinker",
+    "-L/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v3/host/lib",
+    "-Xswiftc",
+    "-warnings-as-errors",
+    "-Xswiftc",
+    "-DMIXER_EXPERIMENTAL_LOCAL_TLS_TEST"
+  ],
+  "environment": {
+    "MIXER_EXPERIMENTAL_TLS_URL": "https://127.0.0.1:55260/"
+  },
+  "exit_code": 0,
+  "output_sha256": "f9698e31b4fb77be1ca902950a134b4f8c10b4a5dab79a4db9ad6f90a0a1114b",
+  "certificate_generation": [
+    "openssl",
+    "req",
+    "-x509",
+    "-newkey",
+    "rsa:2048",
+    "-nodes",
+    "-keyout",
+    "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-candidate-1/source/experimental-capability-runtime/.build/untrusted-loopback-rkzgqikm/ephemeral-key.pem",
+    "-out",
+    "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-candidate-1/source/experimental-capability-runtime/.build/untrusted-loopback-rkzgqikm/certificate.pem",
+    "-days",
+    "1",
+    "-subj",
+    "/CN=127.0.0.1",
+    "-addext",
+    "subjectAltName=IP:127.0.0.1"
+  ],
+  "certificate_sha256": "8e8e40eb59bf9aa4abfdcd132cf8601b29a403d5be7ef7a86ff3eb53d6aaab26",
+  "observations": {
+    "tcp_accepts": 1,
+    "tls_failures": 1,
+    "application_requests": 0,
+    "errors": [
+      "SSLEOFError:[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1082)"
+    ]
+  },
+  "server_stopped": true,
+  "scope": "Actual normal-trust loopback TLS rejection, no trust/keychain/credential change; not HTTPS success or device evidence"
+}

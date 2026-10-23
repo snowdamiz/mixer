@@ -250,8 +250,8 @@ and48 ack/close races in each mode. Root matched90 inputs,76 implementation logs
 2 archive-build logs,9 independent logs and14 unchanged legacy inputs. iOS/Android
 arm64 archive/C layout/link checks pass without execution. Exact tested archives
 are pinned; a differing repeated debug build is preserved without a bit-reproducibility
-claim. Strict Swift dispatch, scheduler, actual guest I/O and activation remain
-open. See `verification/capability-native-integration-2026-10-23.json` and
+claim. The following Swift bridge checkpoint adds dispatch, scheduling and
+actual host guest I/O; verified activation remains open. See `verification/capability-native-integration-2026-10-23.json` and
 `docs/experimental-capability-native-implementation.md`.
 
 The separate experimental archive builder now exports 81 immutable Git inputs,
@@ -265,9 +265,29 @@ execution. Process cleanup failures quarantine the owned cache; installed tools
 and coordinated cache use remain trusted. See
 `verification/capability-builder-review/receipt.json` and
 `experimental-capability-runtime/build-verification/RESULTS.md`.
-Swift guest-to-I/O composition, signed activation, distribution and physical-device
-qualification remain open. The first hosted builder step stopped in a timing-sensitive
-negative-test fixture before building its archive; that failure is retained below.
+The following Swift bridge checkpoint adds host guest-to-I/O composition. Signed
+activation, distribution and physical-device qualification remain open. The first
+hosted builder failures and subsequent repairs are retained below.
+
+The separate experimental Swift bridge now connects real Wasm requests to the
+strict codec and concrete HTTP/storage adapters. It reserves bounded construction
+ownership before queuing, uses a serialized pump with rate/deadline limits, parks
+idle timers, and retains native exits through cancellation, close and deinit.
+Sixteen tests pass in each debug/release/Swift-TSan mode. Independent review passes
+10 public and14 instrumented ordering tests in each mode, plus isolated metadata
+and constructor faults:76 test executions. Review reproduced an ordinary close
+race that reported failure after successful cleanup; four final regressions now
+pass while malformed metadata and failed acknowledgements remain fatal. Root
+matched55 implementation inputs,60 observation inputs,42 review files,131 evidence
+files,163 independent bindings and all four linked consumers. Actual normal-trust
+TLS rejection passes; iOS/simulator/Android links are not platform execution.
+Eight overlapping real storage gets drain with eight acknowledgements. Debug
+batches reach9.261–9.801ms, confirming the8ms budget is cooperative; sampled memory
+includes probe/runtime/framework work and does not bound transient allocation/RSS.
+See `verification/capability-bridge-integration-2026-10-23.json` and
+`experimental-capability-runtime/verification/RESULTS.md`. Verified installed
+material, signed capability activation, provisioned HTTPS success, full Swift/UI,
+FieldLog, publication and physical-device qualification remain open.
 
 Official Swift 6.3.3 Android/Wasm SDKs are installed and compiler probes have run
 on a physical Pixel and in a development-only Node WASI oracle. Xcode 27.1 / Swift

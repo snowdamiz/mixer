@@ -1,0 +1,146 @@
+{
+  "scope": "Design/fixture preparation only; no Swift bridge qualification or final source freeze",
+  "observed_utc": "2026-10-23T05:11:31.868582+00:00",
+  "head": "61ea10304332de142106fb2089f649d90201766a",
+  "native_dependency_pin": "b25e3b7de2391a80d12e7fd75e60903495bec120",
+  "inspected_source_sha256": {
+    "docs/experimental-capability-bridge-design.md": "fa7ac96bd7a81c8168b74ac11f3702146b69aae9a0e7b34e65b05af7116d5a27",
+    "vm/include/mixer_vm_capability.h": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+    "vm/include/mixer_vm.h": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+    "sdk/Sources/MixerCapabilities/Host.swift": "e49591ca89c1ce7b14178a062cfe22dd016066d4e9e51383e498734f665aa4bb",
+    "sdk/Sources/MixerCapabilities/CapabilityExitLease.swift": "f155677aa105f4238e115f49456c1f97b4bd52b7dee938d203c66006e972b383",
+    "sdk/Sources/MixerCapabilities/InstalledCapabilityAdapters.swift": "f5926ddd09bd705ec487068a1ea966feac89977924bb2dd975dd2927ed55fa9d",
+    "sdk/Sources/MixerCapabilities/AppPrivateKeyValueStore.swift": "a2f5378900f257e4f2806fd3568a683d9808f15debcb186be94dfb9aa44f3be7",
+    "sdk/Sources/MixerCapabilities/GeneratedGuestTransport.swift": "c8dfdcf51ba216129ee9d305b13c17c55d31a48abc63d728484c67cadfab0ed7",
+    "sdk/Sources/MixerCapabilities/Wire.swift": "6628b5fb2f4ef70e58ea80af01e4ff2969d71da0ff13253081d196a082b3de89",
+    "vm/src/experimental_capability/mod.rs": "b48db52c6d7bec7fa593075711e9c0f6b7460a56725463bdc36daa6b5ceb84bb",
+    "vm/src/experimental_capability_guest/mod.rs": "15b9f803e4c305d091b8544df4f2851504b7135423076b22d537fc19e9f9d739",
+    "vm/src/capability_ffi/session.rs": "b23e74c27be471b24e2810f47151e367b5e4d98137dbff839424b4cf952b7649",
+    "vm/src/session.rs": "ce446d2bb18a0aabe9750707901a4f6eb5e6dbfeb9494ce955ce2f3e44b591b8"
+  },
+  "commands": [
+    {
+      "argv": [
+        "python3",
+        "verification/capability-bridge-review/make-fixtures.py",
+        "verification/capability-bridge-review/fixtures"
+      ],
+      "output": "verification/capability-bridge-review/fixtures-create.log",
+      "sha256": "91a0bebddaa94101949d28cffcb3b1ea1c792cdeee634a0ba4851e8ba6758786",
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "node",
+        "verification/capability-bridge-review/validate-fixtures.mjs",
+        "verification/capability-bridge-review/fixtures"
+      ],
+      "source": "Fixture syntax validation only, WebAssembly.validate and Module introspection",
+      "output": "verification/capability-bridge-review/fixture-validation.log",
+      "sha256": "464c770ecdb6efd9511554004d0187b9d5c2c8d63cb56de56fb39069a8588a44",
+      "exit_code": 0,
+      "source_sha256": "6badeb5aa91941846b4cece7fa5a6152f31dce23e25bdd45cdf1a5df28d49d12"
+    },
+    {
+      "argv": [
+        "swift",
+        "package",
+        "--package-path",
+        "verification/capability-bridge-review",
+        "dump-package"
+      ],
+      "output": "verification/capability-bridge-review/package-description.json",
+      "sha256": "5e41634e8e8652be77c59f3ece787c6c6b2fd85658077908d3e589f53ebbbe6e",
+      "exit_code": 0,
+      "scope": "Manifest parsing only; no Swift source build, archive link or bridge execution"
+    },
+    {
+      "argv": [
+        "swiftc",
+        "-frontend",
+        "-parse",
+        "verification/capability-bridge-review/PublicHarness/PublicBridgeReviewTests.swift"
+      ],
+      "exit_code": 0,
+      "output": "verification/capability-bridge-review/public-swift-syntax.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "scope": "Swift syntax parsing only; no import typecheck, object build, archive link or bridge execution"
+    },
+    {
+      "argv": [
+        "swiftc",
+        "-frontend",
+        "-parse",
+        "verification/capability-bridge-review/InternalHarness/ReviewBridgeControls.swift",
+        "verification/capability-bridge-review/InternalHarness/Tests/InternalBridgeReviewTests.swift"
+      ],
+      "exit_code": 0,
+      "output": "verification/capability-bridge-review/internal-swift-syntax.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "scope": "Swift syntax parsing only; no import typecheck, object build, archive link or bridge execution"
+    },
+    {
+      "argv": [
+        "swift",
+        "package",
+        "--package-path",
+        "verification/capability-bridge-review/InternalHarness",
+        "dump-package"
+      ],
+      "exit_code": 0,
+      "output": "verification/capability-bridge-review/internal-package-description.json",
+      "sha256": "ea38e8f004589d944968b960d03f4299838615cbffa76ae2e5302b4cd279a2c9",
+      "scope": "Internal review manifest parsing only; no source build or bridge execution"
+    }
+  ],
+  "fixture_builder_sha256": "cbc4aefb4ae22409edb0ea2ae59ef82018da71419dfb661d78bd49a5d09229d4",
+  "fixture_manifest_sha256": "317ebfce4cd29564b7d1e4eb6d54a05bf092df10a94f5e02fa102a4a6bad02a9",
+  "final_qualification": false,
+  "no_devices_or_production_edits": true,
+  "versions": {
+    "python": "Python 3.14.8",
+    "node": "v22.23.3",
+    "swift": "Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.0.0"
+  },
+  "authored_public_harness": {
+    "case_count": 7,
+    "public_imports_only": true,
+    "compiled": false,
+    "executed": false,
+    "source_sha256": {
+      "Package.swift": "44079b4901930abe66983130790d26a48fc08fe1255263670605563a2170e7e5",
+      "PublicHarness/PublicBridgeReviewTests.swift": "e060d275d136620c10f815b85ab1c20c8b2f5ddb2a47f4981aa4cdcbb8b69a1b",
+      "PREPARATION.md": "b0076494e99a6c52cdf7016bfde00326a19db03261b6f9b73d89f1d2119fe1b5",
+      "make-fixtures.py": "cbc4aefb4ae22409edb0ea2ae59ef82018da71419dfb661d78bd49a5d09229d4",
+      "validate-fixtures.mjs": "6badeb5aa91941846b4cece7fa5a6152f31dce23e25bdd45cdf1a5df28d49d12"
+    }
+  },
+  "harness_fixture_resource_sha256": {
+    "burst-eight.wasm": "70255738c3e70dc879c26a347ddc8bb996cf3f4e8a13d5f9302f4d2901d493e9",
+    "duplicate-key.wasm": "5f703585db0845dbd65e4a8bed9b2885bc8da158d3479e3416698b6f038b7214",
+    "empty-arguments.wasm": "68bcd26d8b1dabfb8f25ee8bd63ae0ae7a2c725e50421e23d139c72aaf22124e",
+    "manifest.json": "317ebfce4cd29564b7d1e4eb6d54a05bf092df10a94f5e02fa102a4a6bad02a9",
+    "noncanonical-base64.wasm": "95b2f2025692b90bd69437340e90b95800d227be8b09e53bec5280e6063c86c1",
+    "ready-not-consumed.wasm": "77abdfee5c609b282c3faff1b33fbcf0ba3621e285f57423c2552cf9431a731d",
+    "single-put.wasm": "058c41e43cc123311d2e5c97e82c26f9aca58449e9dd680af95d2089a437b119",
+    "storage-flow.wasm": "74bbd989e476b63f4cdabb39535283a15fd57a26329d0ddaac8cdd034d1fd542",
+    "wrong-operation-object.wasm": "458b2f36f3bc4e712640eab6b25727193849a1d7d74943cba5e0a4f43d35649c"
+  },
+  "public_fixture_resources_match_prepared_inputs": true,
+  "updated_utc": "2026-10-23T05:51:52.149539+00:00",
+  "authored_internal_harness": {
+    "main_case_count": 10,
+    "separate_metadata_fault_case_count": 1,
+    "compiled": false,
+    "executed": false,
+    "requires_review_derived_source": true,
+    "source_sha256": {
+      "make-derived-review.py": "df5726c5cbd2cc354fe8b77c009727819c35f76cb5ba072aeac260130d230968",
+      "InternalHarness/ReviewBridgeControls.swift": "609328f8b9a2e63f6ca97a676c89f36b0d12998676ae0824a0da758a6bf0b54f",
+      "InternalHarness/Package.swift": "57061fd99b2e9855a72cc9d2e2f1a537aadac04361c5cdfd46a0bf930e6e01c6",
+      "InternalHarness/Tests/InternalBridgeReviewTests.swift": "754c063da6ba3966e4d7e133b87e822f5f0c4ee209e338e655b830b23790e8fb"
+    },
+    "scope": "Delay/reorder real bounded callbacks; scheduling and local metadata seams only; concrete adapter retained; distinct from uninstrumented public tests",
+    "documentation_sha256": "bbda50e104dac154197c292486ec2aeb9fe0ab522f66ed7e9cf4b6d9cf554569"
+  }
+}

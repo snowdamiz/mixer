@@ -1,0 +1,53 @@
+{
+  "status": "focused late-close probe failed",
+  "started_at": "2026-10-23T06:11:54.136117+00:00",
+  "source_manifest_sha256": "318d4ced6ae36e7f88cc80926c0c50a689e9a0ea7812b2a2a7457f7ab8325bd6",
+  "derived_map_sha256": "55c1874278447f55e785bc12958f8265b58f8f207609db316baefb6f254e9f9e",
+  "archive": {
+    "path": "experimental-capability-runtime/build-verification/local/qualified-final-v3/host/lib/libmixer_vm_capability_experimental.a",
+    "sha256": "a015ff65980422dd0b9c5cad2e28741d1e5ba478e0f657dcaedf75477d553b72"
+  },
+  "headers_sha256": {
+    "mixer_vm.h": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+    "mixer_vm_capability.h": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6"
+  },
+  "driver_sha256": "33417fca00a9fe400dfbcc8e5b89b95d940a4bae458c88bd4326cd9a0a490e7c",
+  "commands": [
+    {
+      "name": "late-close-debug",
+      "argv": [
+        "swift",
+        "test",
+        "-v",
+        "--package-path",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-bridge-candidate1-waest5vz/derived/verification/capability-bridge-review/InternalHarness",
+        "--scratch-path",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-bridge-candidate1-waest5vz/internal-build",
+        "--configuration",
+        "debug",
+        "-Xcc",
+        "-I/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v3/host/include",
+        "-Xlinker",
+        "-L/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v3/host/lib",
+        "-Xswiftc",
+        "-warnings-as-errors",
+        "--filter",
+        "InternalBridgeReviewTests.testTakeReturningAfterCloseRegistersOnlyLocalNoIOExit"
+      ],
+      "cwd": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-bridge-candidate1-waest5vz/derived",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit_code": 1,
+      "elapsed_seconds": 2.821971834055148,
+      "log": "verification/capability-bridge-review/candidate-1/internal-replay-3/late-close-debug.log",
+      "sha256": "8bd82b03d22062ad565aa24e91304a427e89f1592736707300f065116f633c2c",
+      "scope": "Focused root-requested normal-close status probe; derived C-take scheduling gate, no production edit"
+    }
+  ],
+  "scope": "Labelled review-only scheduling/local-metadata copies; real installed storage is retained; never substitute for unmodified public results",
+  "sanitizer_scope": "Swift and built C shim instrumentation with unchanged uninstrumented pinned Rust static archive; no whole-stack race-freedom claim",
+  "fault_filters_are_separate_processes": true,
+  "production_edits_or_devices": false,
+  "completed_at": "2026-10-23T06:11:56.969853+00:00"
+}
