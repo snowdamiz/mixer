@@ -74,15 +74,24 @@ engines now adopt it with transactional error preservation; nine tests per mode,
 build pass. See `verification/ui-native-packet-android/candidate-2/receipt.json`.
 Native JNI/rendering and shared appearance remain separate.
 
-The concrete shared appearance foundation contract is accepted in
-`verification/ui-shared-appearance-root-review/acceptance.json`: closed values and
-canonical codec, one 1,906-byte default and checked fixed-point metrics. Fifty
-design-shape tests pass per normal/optimized Python and typed declarations compile;
-this is design evidence only. The assigned SDK lane owns new values/codec/math/
-default sources and focused tests. Native style resolution, Apple reference
-capture, Android widget styling, actual resource packaging/linked index and private
-signed capture remain separately required. No default Android styling is permitted
-as a substitute for the shared app design.
+The shared appearance foundation implementation now has independent and root
+acceptance in `verification/ui-appearance-foundation-root-review/acceptance.json`:
+closed raw values and canonical codec, one 1,906-byte default, and checked metrics.
+All 66 SDK tests pass per Debug/Release; an independent 5,153-case corpus and
+2,507,093 assertions pass per mode. iOS and official Android modules compile.
+This qualifies pure data only. The private Java reader now passes independent review and root acceptance after
+7,990 independent cases across Java and Swift; 89 exact bindings are checked in
+`verification/android-appearance-descriptor-root-review/acceptance.json`. There is
+no Java default theme table. Shared per-node style resolution is a separate lane.
+
+Eight unchanged iOS simulator screenshots are retained in
+`verification/apple-appearance-reference/gallery.html`; root accepts the baseline
+reference in `verification/apple-appearance-reference-root-review/acceptance.json`.
+The provisional candidate recipe differs in navigation titles, section headers,
+toggle color and grouped-list geometry. It is not accepted as a match to that
+reference. Final shared native recipes must follow the iOS app design on both
+platforms. Native styling/resource packaging/private signed capture and physical
+side-by-side parity remain pending; Android defaults are not a substitute.
 
 The private Swift cache candidate3 now has independent and root acceptance;
 see `verification/swift-function-cache-root-review/acceptance.json` and
@@ -98,7 +107,15 @@ A separately owned compiling executor type/lifetime/layout prerequisite is now
 assigned under the frozen contract. Actual executor implementation and the exact
 full-target runner still require separate acceptance. No full target is executed.
 All three hosted jobs at `01d8491` pass; see
-`verification/github-ci-01d8491/receipt.json`.
+`verification/github-ci-01d8491/receipt.json`. The packet checkpoint
+`09dac10` also passes all three jobs. Cache checkpoint `d814055` passes VM/services,
+but its Swift bridge test failed to observe a timer tick after a fixed 35ms sleep.
+A test-only bounded observed-tick wait now passes all48 bridge tests per Debug,
+Release and SwiftTSan, plus old/fixed controlled real-queue probes in both modes.
+See `verification/guest-ui-polling-ci-repair/acceptance.json` and `verification/github-ci-d814055/receipt.json`. The exact
+hosted scheduling cause is not established. Executor final-cleanup layout work
+also exposed additional final borrows/locals requiring a separately reviewed named
+foundation allowance before layout acceptance; no allowance is silently reused.
 
 The next hosted checkpoint `61c5c8b` exposed a minimal-feature Clippy failure in
 unused private descriptor fields after its tests passed. The descriptor-only

@@ -1,0 +1,25 @@
+/Users/andreyyurlov/Documents/dev/mixer/verification/ui-appearance-foundation-review/candidate-1/derived/main.swift:18:5: error: main actor-isolated var 'assertions' can not be mutated from a nonisolated context
+ 14 | }
+ 15 | var failures: [ProbeFailure] = []
+ 16 | var assertions = 0
+    |     `- note: mutation of this var is only permitted within the actor
+ 17 | func check(_ condition: Bool, _ name: String, _ detail: String = "unexpected result") {
+    |      `- note: add '@MainActor' to make global function 'check' part of global actor 'MainActor'
+ 18 |     assertions += 1
+    |     `- error: main actor-isolated var 'assertions' can not be mutated from a nonisolated context
+ 19 |     if !condition { failures.append(ProbeFailure(name: name, detail: detail)) }
+ 20 | }
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/ui-appearance-foundation-review/candidate-1/derived/main.swift:19:21: error: main actor-isolated var 'failures' can not be mutated from a nonisolated context
+ 13 |     let detail: String
+ 14 | }
+ 15 | var failures: [ProbeFailure] = []
+    |     `- note: mutation of this var is only permitted within the actor
+ 16 | var assertions = 0
+ 17 | func check(_ condition: Bool, _ name: String, _ detail: String = "unexpected result") {
+    |      `- note: add '@MainActor' to make global function 'check' part of global actor 'MainActor'
+ 18 |     assertions += 1
+ 19 |     if !condition { failures.append(ProbeFailure(name: name, detail: detail)) }
+    |                     `- error: main actor-isolated var 'failures' can not be mutated from a nonisolated context
+ 20 | }
+ 21 | func reject(_ name: String, _ operation: () throws -> Void) {

@@ -1,0 +1,1 @@
+The initial root auditor stopped without creating acceptance because it assumed both source manifests used default-spaced JSON. The independent reviewer uses compact sorted JSON, while the root producer uses default separators. The auditor now explicitly checks each producer encoding and each actual corpus-receipt shape; no source or sealed receipt changed.

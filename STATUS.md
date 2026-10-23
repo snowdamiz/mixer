@@ -11,8 +11,9 @@ open. Implemented slices do not replace their complete acceptance requirements.
 The updated section 8.3 requires shared-theme design parity on iOS and Android,
 with platform-specific app appearance only when explicitly declared. Current Apple
 and Android adapters still use platform defaults and do not meet this requirement.
-The shared appearance foundation contract now has root acceptance; its codec,
-both renderers and FieldLog reference screens need implementation and review.
+The shared appearance data foundation now has independent and root acceptance.
+Both renderers still need shared style consumption and reference-driven refinement.
+Eight unchanged iOS simulator reference screenshots are captured and reviewed.
 Native accessibility, navigation, text input and
 system-owned surfaces remain native. Prior interaction/device receipts are not
 design-parity evidence; physical side-by-side review remains pending while phones
@@ -45,6 +46,14 @@ clean source snapshot. All three `d6c41a0` hosted jobs now pass, including the
 fresh private Android host runner under Swift 6.2.4. See
 `verification/swift-minimal-descriptor-ci-repair/receipt.json` and
 `verification/github-ci-d6c41a0/receipt.json`.
+
+Latest hosted evidence: `09dac10` passes VM/Swift/services. At cache checkpoint
+`d814055`, VM/services pass, but the bridge Debug test expected a timer tick after
+35ms and observed none. The test-only bounded observed-condition repair passes48 bridge tests in Debug,
+Release and SwiftTSan, with old/fixed delayed-queue probes in both build modes.
+Hosted recheck remains pending; no overall CI pass is claimed. Executor layout qualification also
+requires an explicit final-cleanup foundation inventory for surviving output
+borrows and locals; the new executor remains unaccepted.
 
 Observed implementation and evidence:
 
@@ -80,9 +89,25 @@ Observed implementation and evidence:
   concrete typed values, closed codec and integer sizing rules. Root verifies 46
   source/artifact bindings, 50 descriptor-shape tests in both Python modes and typed
   declarations. See `verification/ui-shared-appearance-root-review/acceptance.json`.
-  The assigned Swift foundation implementation is in progress; no current renderer
-  consumes the proposed theme yet. Native resource capture, packaging and private
-  signed consumption require their own implementation and evidence.
+  The implemented Swift foundation now passes 66 SDK tests per mode, independent
+  5,153-case descriptor review and 2,507,093 assertions per mode, plus iOS/Android
+  module compilation. Root checks 171 bindings; see
+  `verification/ui-appearance-foundation-root-review/acceptance.json`. The unchanged
+  iOS simulator baseline supplies eight reference images; root reviewed all eight
+  and verified 170 artifact bindings plus the 50 frozen Git inputs. Candidate1
+  theme tokens are provisional, with navigation/section/toggle/grouped-list
+  differences requiring refinement before parity qualification. No current renderer
+  consumes the proposed theme. Native resources, packaging and private signed
+  capture require their own implementation and evidence.
+- The private Android appearance descriptor reader now accepts exactly the closed
+  canonical data format, owns an immutable tree and has no independent Java theme
+  defaults. Root's 7,147 cases and independent review's 7,990 cases agree with the
+  Swift codec across Java default/interpreted and Swift Debug/Release. Independent
+  checks include exact 65,536-byte admission, full retained-value comparison and
+  mutation rejection; 89,438 Java assertions pass per mode. Root verifies 89
+  bindings in `verification/android-appearance-descriptor-root-review/acceptance.json`.
+  This is Java17 host data decoding, without Android ART, bootstrap/resource/font
+  capture, widgets, signed authority or visual parity qualification.
 - The fox-branded marketing website is implemented in `website/`, with responsive
   layout, a browser-local release demonstration, docs, private-by-default SEO,
   social/icon exports, and separate FieldLog app-store collateral. The original
