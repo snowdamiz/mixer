@@ -36,6 +36,10 @@ files into a private snapshot and computes every descriptor digest from those
 copied bytes. It also verifies snapshots against an expected fingerprint. Native
 build generators still need complete graph discovery and must consume the captured
 objects; file capture alone does not attest an application build.
+The companion emitter generates fixed Swift source containing those verified
+descriptor bytes and its expected fingerprint. `MixerInstalledRuntime.load()`
+revalidates the compiled data before returning policy. App build integration,
+link-input consumption, signing and provenance remain separate requirements.
 
 The wire contract is `../contracts/runtime-identity-v1.json`. The command-line
 tool opens the descriptor nonblocking with final-symlink rejection, checks the

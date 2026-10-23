@@ -61,7 +61,7 @@ def main():
         test_env = env | {"MIXER_IDENTITY_TOOL": str(tool)}
         for mode, flags in [("normal", []), ("optimized-python", ["-O"])]:
             run("capture-tests-" + mode, [sys.executable, *flags, "-B", "-m", "unittest", "discover", "-s",
-                source / "runtime-identity/build-tools/tests", "-v"], test_env)
+                source / "runtime-identity/build-tools/tests", "-p", "test_capture.py", "-v"], test_env)
         inputs = work / "inputs"; inputs.mkdir()
         native = ROOT / "runtime/.build/native-ios-simulator"
         native_receipt = json.loads((native / "receipt.json").read_text())

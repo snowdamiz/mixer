@@ -301,7 +301,12 @@ def capture(descriptor_path, bindings_path, input_root, output, tool):
             os.close(root_fd)
 
 
-def verify(snapshot, expected_fingerprint, tool):
+def verified_descriptor(snapshot, expected_fingerprint, tool):
+    """Return metadata and the exact descriptor bytes validated under one root FD.
+
+    Build adapters must use the returned bytes, not reopen descriptor.json after
+    verification. This does not attest that any other build input was consumed.
+    """
     require(type(expected_fingerprint) is str and HEX.fullmatch(expected_fingerprint), "expected fingerprint required")
     root_fd = open_root(snapshot)
     try:
@@ -354,10 +359,15 @@ def verify(snapshot, expected_fingerprint, tool):
             path = Path(temporary) / "descriptor.json"
             write_new(path, descriptor_bytes)
             require(inspect(tool, path) == expected_fingerprint, "runtime fingerprint mismatch")
-        return {"fingerprint": expected_fingerprint, "snapshotSHA256": sha(report_bytes),
-                "objects": len(used), "buildAttested": False, "completeGraphProven": False}
+        return ({"fingerprint": expected_fingerprint, "snapshotSHA256": sha(report_bytes),
+                 "objects": len(used), "buildAttested": False, "completeGraphProven": False},
+                descriptor_bytes)
     finally:
         os.close(root_fd)
+
+
+def verify(snapshot, expected_fingerprint, tool):
+    return verified_descriptor(snapshot, expected_fingerprint, tool)[0]
 
 
 def main():

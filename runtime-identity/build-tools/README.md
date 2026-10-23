@@ -81,3 +81,40 @@ The tests use the actual Swift CLI. They cover copied-byte identity, relocation,
 source mutation, exact limits, ambiguous manifests, missing/duplicate bindings,
 path escape and symlink/FIFO rejection, partial capture, object corruption and
 collection tampering. They do not qualify a complete application build graph.
+
+## Compile the identity into a native target
+
+`embed.py` verifies the snapshot and emits `MixerInstalledRuntime.swift` into a
+new private directory. Add that source to a native Swift target that depends on
+`MixerRuntimeIdentity`. The source contains the exact validated descriptor bytes
+and expected fingerprint as constants; it never loads identity from a runtime
+file. Descriptor values cannot become executable Swift syntax. An adjacent
+`embedding.json` records snapshot, descriptor and source hashes.
+
+```sh
+python3 runtime-identity/build-tools/embed.py \
+  --snapshot /absolute/private/snapshot \
+  --expected-fingerprint EXPECTED_64_HEX_FINGERPRINT \
+  --identity-tool /absolute/trusted/mixer-identity \
+  --output /absolute/private/new-generated-source
+```
+
+At startup, call `try MixerInstalledRuntime.load()` and use the returned
+`RuntimeIdentity` to derive verifier and execution policy. A decoding or fingerprint
+failure must keep guest activation disabled. The generated source propagates a
+typed error; it never substitutes a different descriptor or relaxes policy.
+
+The emitter returns the exact descriptor bytes verified through one pinned
+snapshot directory and does not reopen the descriptor afterward. It refuses
+existing outputs and publishes its receipt last. The same trusted-parent and
+same-user writer limitations as capture apply. A source-generation receipt does
+not prove compilation or linking: `compiled`, `signed`, `build_attested` and
+`complete_graph_proven` remain false. The native application build still needs to
+include the generated source, consume the declared captured objects, collect its
+full dependency graph and bind final binary identity through signed provenance.
+Current project generators do not automatically wire this source into an app.
+
+The host test compiles and runs a real Swift consumer after deleting the snapshot
+and original input files, compares recovered policy with the public validator,
+and recompiles a changed fingerprint to verify rejection. This is scoped compiled
+data embedding, not a signed application or physical-device qualification.
