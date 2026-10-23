@@ -6,6 +6,7 @@ import os
 import pathlib
 import re
 import shutil
+import stat
 import subprocess
 import sys
 import uuid
@@ -119,6 +120,47 @@ def configuration(value):
     return value
 
 
+def checked_output(root, create=False):
+    """Reject redirected local staging before cleanup or writes.
+
+    SwiftPM creates internal directory links (for example release -> triple/release),
+    which are allowed only when their existing target stays inside this output.
+    This is a local preflight, not isolation from concurrent same-user writers or
+    arbitrary code executed by a package's build tools.
+    """
+    root = root.resolve(strict=True)
+    output = root / '.mixer/android-build'
+    for path in (root / '.mixer', output):
+        try:
+            info = path.lstat()
+        except FileNotFoundError:
+            if create:
+                path.mkdir()
+            continue
+        if not stat.S_ISDIR(info.st_mode):
+            raise RuntimeError('Unsafe Android staging directory: ' + str(path))
+    if not output.exists():
+        return output
+    for base, dirs, names in os.walk(output, followlinks=False):
+        for name in sorted(dirs + names):
+            path = pathlib.Path(base) / name
+            info = path.lstat()
+            if stat.S_ISLNK(info.st_mode):
+                try:
+                    target = path.resolve(strict=True)
+                except (OSError, RuntimeError) as error:
+                    raise RuntimeError('Unsafe Android staging link: ' + str(path)) from error
+                if not target.is_relative_to(output):
+                    raise RuntimeError('Unsafe Android staging link escapes output: ' + str(path))
+                info = target.stat()
+            if stat.S_ISREG(info.st_mode):
+                if info.st_nlink != 1:
+                    raise RuntimeError('Unsafe Android staging hard link: ' + str(path))
+            elif not stat.S_ISDIR(info.st_mode):
+                raise RuntimeError('Unsafe Android staging special file: ' + str(path))
+    return output
+
+
 def inspect():
     swift_version = probe([SWIFT, '--version'])
     if 'Swift version 6.3.3 ' not in swift_version:
@@ -175,8 +217,7 @@ def build(root):
     config = configuration(read_json(root / 'mixer.yml'))
     if any(p.is_file() for p in (root / 'Resources').rglob('*')):
         raise RuntimeError('Android resource packaging is not integrated; resources cannot be omitted.')
-    output = root / '.mixer/android-build'
-    output.mkdir(parents=True, exist_ok=True)
+    output = checked_output(root, create=True)
     receipt_path = output / 'build-receipt.json'
     receipt_path.unlink(missing_ok=True)
     apk_path = output / (config['name'] + '-unsigned.apk')
@@ -192,6 +233,7 @@ def build(root):
         raise RuntimeError('Android toolchain differs from mixer.lock. Restore the exact installed tool distributions.')
     commands = []
     def run(args):
+        checked_output(root)
         args = list(map(str, args))
         p = subprocess.run(args, cwd=root, env=ENV, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         commands.append({'command': args, 'exit_code': p.returncode, 'output': p.stdout})
@@ -207,6 +249,7 @@ def build(root):
     if not engine.is_file():
         raise RuntimeError('Actual app Swift library missing: ' + str(engine))
     for path in [output / 'apk', output / 'classes', output / 'dex']:
+        checked_output(root)
         if path.exists():
             shutil.rmtree(path)
         path.mkdir()
@@ -240,6 +283,7 @@ def build(root):
     run([BT / 'd8', '--min-api', '28', '--lib', JAR, '--output', dex, *sorted(classes.rglob('*.class'))])
     unsigned = output / 'unaligned.apk'
     run([BT / 'aapt2', 'link', '-I', JAR, '--manifest', package / 'AndroidManifest.xml', '--min-sdk-version', '28', '--target-sdk-version', '37', '-o', unsigned])
+    checked_output(root)
     with zipfile.ZipFile(unsigned, 'a', compression=zipfile.ZIP_DEFLATED) as archive:
         for item in sorted((output / 'apk').rglob('*')):
             if item.is_file():
@@ -280,6 +324,7 @@ def build(root):
         'native_libraries': {p.name: digest(p) for p in sorted(libdir.glob('*.so'))}, 'commands': commands,
         'scope': 'Actual generated AppModels/AppFeatures Swift, owned JNI/native widgets, arm64 Android APK inspected. Unsigned; no install, device interaction, lifecycle, accessibility, performance, published SDK, store or FieldLog qualification.',
     }
+    checked_output(root)
     receipt_path.write_text(json.dumps(receipt, indent=2) + '\n')
     print('UNSIGNED APK:', apk_path, 'SHA256:', receipt['apk_sha256'], flush=True)
     print('RECEIPT:', receipt_path, flush=True)

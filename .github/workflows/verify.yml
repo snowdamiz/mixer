@@ -36,6 +36,8 @@ jobs:
           swift test
           swift test --package-path updates
           swift test --package-path cli
+          python3 -B -m unittest discover -s cli/build-tests -v
+          swift test --package-path native/android/engine
           python3 runtime-identity/tools/vectors.py --check
           swift test --package-path runtime-identity
           python3 -B -m unittest discover -s runtime-identity/build-tools/tests -v
