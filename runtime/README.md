@@ -11,6 +11,10 @@ Guest invocation is synchronous. Native apps should schedule feature work on a
 dedicated executor and cancel when its lifecycle ends. This package does not yet
 provide that executor, signed-update activation, capabilities or a Swift/WASI guest.
 All guest profile restrictions and resource ceilings remain unchanged.
+`VMValidator.validate` checks the complete module under an explicit profile and
+limits without creating an instance or consuming the native session quota.
+The separate `activation/` package composes this boundary with signed cold-start
+selection; it does not add guest capabilities or full Swift execution.
 
 Build a pinned static owned library, then supply its library search directory:
 

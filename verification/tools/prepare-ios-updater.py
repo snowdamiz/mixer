@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prepare an app-hosted Swift Testing project from a frozen updater or runtime commit.
+"""Prepare an app-hosted Swift Testing project from a frozen native package commit.
 
 This copies the original package tests without changing their assertions. The
 only additional test source supplies Bundle.module for the Xcode resource bundle.
@@ -20,15 +20,16 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--revision', required=True)
     p.add_argument('--output', type=Path, required=True)
-    p.add_argument('--package', choices=['updates', 'runtime'], default='updates')
+    p.add_argument('--package', choices=['updates', 'runtime', 'activation'], default='updates')
     p.add_argument('--vm-library', type=Path)
     a = p.parse_args()
-    if a.package == 'runtime' and not a.vm_library:
-        p.error('--vm-library is required for the runtime test host')
+    if a.package != 'updates' and not a.vm_library:
+        p.error('--vm-library is required for runtime and activation test hosts')
     revision = subprocess.check_output(['git', 'rev-parse', a.revision + '^{commit}'], cwd=ROOT, text=True).strip()
     out = a.output.resolve()
     out.mkdir(parents=True, exist_ok=False)
-    archive = subprocess.check_output(['git', 'archive', revision, a.package], cwd=ROOT)
+    packages = ['activation', 'runtime', 'updates'] if a.package == 'activation' else [a.package]
+    archive = subprocess.check_output(['git', 'archive', revision, *packages], cwd=ROOT)
     with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
         tar.extractall(out, filter='data')
     (out / a.package).rename(out / 'package')
@@ -40,7 +41,8 @@ def main():
 }
 ''')
     tests = app / 'Tests'
-    test_target = 'MixerRuntimeTests' if a.package == 'runtime' else 'MixerUpdatesTests'
+    product = {'runtime': 'MixerRuntime', 'updates': 'MixerUpdates', 'activation': 'MixerActivation'}[a.package]
+    test_target = product + 'Tests'
     shutil.copytree(out / 'package/Tests' / test_target, tests)
     if a.package == 'updates':
         (tests / 'FixtureBundle.swift').write_text('''import Foundation
@@ -48,17 +50,18 @@ private final class FixtureBundleAnchor: NSObject {}
 extension Bundle { static var module: Bundle { Bundle(for: FixtureBundleAnchor.self) } }
 ''')
     native_receipt = None
-    if a.package == 'runtime':
+    if a.package != 'updates':
         library = a.vm_library.resolve()
         native_receipt = json.loads((library.parent.parent / 'receipt.json').read_text())
         if native_receipt['static_library_sha256'] != hashlib.sha256(library.read_bytes()).hexdigest():
             raise ValueError('Static VM archive differs from its build receipt')
-        if native_receipt['header_sha256'] != hashlib.sha256((out / 'package/Sources/CMixerVM/include/mixer_vm.h').read_bytes()).hexdigest():
+        runtime_path = 'runtime' if a.package == 'activation' else 'package'
+        if native_receipt['header_sha256'] != hashlib.sha256((out / runtime_path / 'Sources/CMixerVM/include/mixer_vm.h').read_bytes()).hexdigest():
             raise ValueError('Runtime header differs from the native archive receipt')
         (app / 'lib').mkdir()
         shutil.copyfile(library, app / 'lib/libmixer_vm.a')
         host = app / 'Host.swift'
-        host.write_text(host.read_text().replace('updater app-sandbox', 'native runtime'))
+        host.write_text(host.read_text().replace('updater app-sandbox', a.package))
     project = app / 'UpdaterHost.xcodeproj'
     project.mkdir()
     template = ROOT / 'verification/tools/ios-numeric/NumericVM.xcodeproj/project.pbxproj'
@@ -95,9 +98,9 @@ extension Bundle { static var module: Bundle { Bundle(for: FixtureBundleAnchor.s
         'B00000000000000000000013 = { isa = PBXContainerItemProxy; containerPortal = A00000000000000000000001; proxyType = 1; remoteGlobalIDString = A00000000000000000000005; remoteInfo = UpdaterHost; };',
     ]
     pbx = pbx.replace('\n };\n rootObject', '\n' + '\n'.join(objects) + '\n };\n rootObject')
-    if a.package == 'runtime':
-        pbx = pbx.replace('productName = MixerUpdates;', 'productName = MixerRuntime;')
-        pbx = pbx.replace('dev.mixer.updaterqualification', 'dev.mixer.runtimequalification')
+    if a.package != 'updates':
+        pbx = pbx.replace('productName = MixerUpdates;', f'productName = {product};')
+        pbx = pbx.replace('dev.mixer.updaterqualification', f'dev.mixer.{a.package}qualification')
         pbx = pbx.replace('files = (A00000000000000000000018);', 'files = ();')
         pbx = pbx.replace('SWIFT_VERSION = 6.0;', 'SWIFT_VERSION = 6.0; LIBRARY_SEARCH_PATHS = "$(SRCROOT)/lib";')
     (project / 'project.pbxproj').write_text(pbx)

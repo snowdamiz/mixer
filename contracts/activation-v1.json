@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "status": "implemented local bounded-profile composition; full product and device gates remain open",
+  "implementation": "activation/Sources/MixerActivation",
+  "installed_policy": {
+    "authority": "trusted compiled native embedding, never a downloaded manifest or unsigned sidecar",
+    "runtime_fingerprint": "exact equality with InstalledRuntime and verified artifact; complete build fingerprint generation/publication remains open",
+    "profile": "explicit integer-v1, numeric-v2 or table-memory-v3; guest cannot select",
+    "startup_export": "fixed nonempty UTF-8 name <=4096 bytes; no startup arguments",
+    "maximum_startup_milliseconds": "1..60000; effective minimum with signed artifact",
+    "native_limits": "may only narrow unchanged VM ceilings",
+    "capabilities": "nonempty installed capability hashes or signed grants are rejected; guest capability imports are unavailable"
+  },
+  "verified_selection": {
+    "provisional_and_healthy": "immutable copied payload and VerifiedArtifact from the same private updater and pinned verifier",
+    "native_fallback": "no payload or verified artifact",
+    "executable_validation": "complete owned VM validation before staging and selection; no public accepting-validator hook",
+    "memory": "effective pages = min(installed pages, floor(signed memory_bytes/65536)); this bounds linear memory, not total process RSS",
+    "fuel": "effective minimum of installed and signed per-invocation fuel",
+    "remaining_resources": "installed operand stack, call depth and host call bounds; frozen profile bounds apply to decoder/functions/instructions/table/locals"
+  },
+  "lifecycle": {
+    "start": "once per coordinator process feature session",
+    "download": "host supplies signed offers and bounded chunks before start; high-water/replay state remains in durable updater",
+    "worker": "synchronous native execution in detached worker; actor remains responsive to close",
+    "invocation_admission": "one operation per coordinator at a time; overlapping work rejects",
+    "startup_deadline": "monotonic interval includes selection, validation, construction and startup export; watchdog cooperatively cancels published native session and rejects late completion",
+    "preemption": "validation/construction have fixed resource bounds but cannot be forcibly preempted; no hard wall-time termination guarantee",
+    "close": "invalidate coordinator, cancel work and close native session; admitted work may finish before cancellation",
+    "cancellation": "before publication retires subsequently created session; after completed publication a late timer cannot close it; no rollback"
+  },
+  "recovery": {
+    "startup_attempts": "candidate plus at most one retained healthy guest, then explicit native fallback",
+    "native_fallback": "embedding launches its actual compiled implementation; coordinator does not fabricate native success",
+    "health": "successful startup plus installed host-reported required milestones and durable updater monotonic observation interval",
+    "deterministic_traps": [
+      "unreachable", "fuel_exhausted", "memory_out_of_bounds", "table_out_of_bounds",
+      "indirect_call_null", "indirect_call_type_mismatch", "call_depth_exceeded",
+      "operand_stack_exceeded", "integer_divide_by_zero", "integer_overflow",
+      "invalid_conversion_to_integer", "host_call_limit", "host_abort"
+    ],
+    "other_failures": "unknown interruption; argument errors, cancellation, unsupported native float state and contained native panic never count as deterministic guest traps",
+    "post_start_failure": "close guest, return error and native-fallback snapshot; do not live-switch to another guest",
+    "healthy_execution_failure": "native fallback for this process; durable healthy-guest quarantine remains open",
+    "open_failure": "embedding chooses native fallback without deleting replay state"
+  },
+  "unqualified": [
+    "full Swift/WASI and UI guest execution",
+    "capability imports and native effect reconciliation",
+    "complete installed build identity and immutable published packaging",
+    "physical OS lifecycle, power loss and device performance",
+    "healthy-guest durable failure policy and app state migration",
+    "FieldLog adoption, hosted delivery, stores and GA"
+  ]
+}
