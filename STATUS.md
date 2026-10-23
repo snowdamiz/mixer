@@ -28,7 +28,10 @@ Observed implementation and evidence:
   Persistent native sessions now retain guest state through generation-checked
   handles, bounded copies and cancellation. Seven public session tests pass on
   physical iPhone; 12 session tests plus two existing ABI checks pass on Pixel.
-  Bounded Swift/WASI imports, mobile SDK/lifecycle integration and corpus budgets remain open.
+  Independent review then reproduced a close/deallocation race in the 16-session
+  ceiling. The fix retains the slot until actual deallocation completes; its host
+  regression passes, with new physical qualification pending. Bounded Swift/WASI
+  imports, mobile SDK/lifecycle integration and corpus budgets remain open.
 - The Go development service verifies canonical signed artifacts and separately
   signed rollout assignments, with scoped authorization, durable local state and
   retry/replay tests. It refuses production mode. Local HTTP → Swift verification
@@ -71,4 +74,12 @@ the full owned Swift execution profile, typed native capabilities, broader nativ
 UI/lifecycle behavior, and durable device update activation/recovery. Hosted
 PostgreSQL services, isolated builds/signing, stores, console/commercial features,
 independent security/operational reviews, users and paid pilots remain mandatory.
-There is no remote CI or production deployment receipt and no GA claim.
+There is no production deployment receipt or GA claim; remote CI status is recorded below.
+
+Current execution constraints: physical phones are disconnected until the user
+says otherwise. New device checks remain pending; development continues with host,
+cross-compiler and simulator evidence. Periodic source/evidence commits and pushes
+to `snowdamiz/mixer` are authorized and recorded in PLAN.md. The initial GitHub
+run passed Rust and Go checks and the 23 Swift SDK tests, then rejected the CLI
+because the runner supplied Swift 6.1 while the package requires 6.2. CI toolchain
+selection is being corrected; this is not a clean full CI result.

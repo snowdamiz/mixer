@@ -70,11 +70,12 @@ def main():
         run('clippy', ['cargo', 'clippy', '--manifest-path', source / 'vm/Cargo.toml', '--all-targets', '--', '-D', 'warnings'])
         text = run('host-tests', base)
         counts = re.findall(r'test result: ok\. (\d+) passed; (\d+) failed; (\d+) ignored', text)
-        assert sum(int(c[0]) for c in counts) == 86 and all(c[1] == '0' for c in counts), counts
-        results['host_unit'] = {'passed': 86, 'explicit_oracle_functions_initially_ignored': 8}
-        text = run('session-release', base + ['--release', '--test', 'sessions', '--lib'])
+        assert sum(int(c[0]) for c in counts) == 87 and all(c[1] == '0' for c in counts), counts
+        results['host_unit'] = {'passed': 87, 'explicit_oracle_functions_initially_ignored': 8}
+        text = run('session-release', base + ['--release', '--test', 'sessions', '--test', 'review_session_lifetime', '--lib'])
         assert text.count('test result: ok. 7 passed; 0 failed; 0 ignored') == 2
-        results['session_and_ffi_release'] = {'passed': 14, 'failed': 0, 'ignored': 0}
+        assert 'test result: ok. 1 passed; 0 failed; 0 ignored' in text
+        results['session_and_ffi_release'] = {'passed': 15, 'failed': 0, 'ignored': 0}
         text = run('explicit-oracles', base + ['--release', '--test', 'differential', '--test', 'float_differential',
                     '--test', 'table_memory_differential', '--', '--ignored', '--nocapture'])
         counts = re.findall(r'test result: ok\. (\d+) passed; (\d+) failed; (\d+) ignored', text)
@@ -90,7 +91,7 @@ def main():
         clang = args.ndk.resolve() / 'toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android28-clang'
         env['CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER'] = str(clang)
         versions['clang'] = run('version-clang',[clang,'--version']).strip()
-        text = run('build-android', base + ['--release','--target','aarch64-linux-android','--test','sessions',
+        text = run('build-android', base + ['--release','--target','aarch64-linux-android','--test','sessions','--test','review_session_lifetime',
                                           '--lib','--no-run','--message-format=json'])
         binaries = {}
         for line in text.splitlines():
@@ -98,7 +99,7 @@ def main():
                 item = json.loads(line)
                 if item.get('reason') == 'compiler-artifact' and item.get('executable') and item['profile']['test']:
                     binaries[item['target']['name']] = Path(item['executable'])
-        assert set(binaries) == {'sessions','mixer_vm'}, binaries
+        assert set(binaries) == {'sessions','mixer_vm','review_session_lifetime'}, binaries
         run('library',['cargo','build','--release','--manifest-path',source/'vm/Cargo.toml','--target','aarch64-linux-android','--lib'])
         binary = out/'ffi-session-smoke'
         run('build-c',[''+str(clang),'-std=c11','-Wall','-Wextra','-Werror','-I',source/'vm/include',
@@ -124,8 +125,9 @@ def main():
                     assert 'Persistent session C ABI smoke: passed' in text
                     results[name] = text.strip()
                 else:
-                    assert 'test result: ok. 7 passed; 0 failed; 0 ignored' in text
-                    results[name] = {'passed':7,'failed':0,'ignored':0}
+                    expected = 1 if name=='review_session_lifetime' else 7
+                    assert f'test result: ok. {expected} passed; 0 failed; 0 ignored' in text
+                    results[name] = {'passed':expected,'failed':0,'ignored':0}
         finally:
             run('remove-remote',adb+['shell','rm','-rf',remote])
     assert manifest == ''.join(f'{sha(p)}  {p.relative_to(source)}\n' for p in paths), 'Frozen source drift'

@@ -5,7 +5,7 @@ use crate::{
 };
 use std::sync::{
     atomic::{AtomicBool, Ordering},
-    Arc, Mutex, MutexGuard, OnceLock, TryLockError, Weak,
+    Arc, Mutex, MutexGuard, OnceLock, TryLockError,
 };
 
 const SESSION_CAP: usize = 16;
@@ -59,7 +59,10 @@ enum State {
     Reserved,
     Live(Arc<Session>),
     // A closed in-flight instance still counts against the allocation ceiling.
-    Closing(Weak<Session>),
+    Closing(Arc<Session>),
+    // Payload destruction has started outside the registry lock, but has not
+    // completed. This slot cannot be reused until the final Arc drop returns.
+    Reclaiming,
     Retired,
 }
 struct Slot {
@@ -86,9 +89,6 @@ impl Registry {
     }
     fn reserve(&mut self) -> Result<(usize, u32), Failure> {
         for (index, slot) in self.0.iter_mut().enumerate() {
-            if matches!(&slot.state, State::Closing(weak) if weak.strong_count() == 0) {
-                slot.release();
-            }
             if matches!(slot.state, State::Empty) {
                 slot.state = State::Reserved;
                 return Ok((index, slot.generation));
@@ -120,6 +120,22 @@ impl Registry {
             3,
         ))
     }
+    fn begin_reclaim(&mut self, handle: u64) -> Option<(usize, Arc<Session>)> {
+        let index = (handle as u32).checked_sub(1)? as usize;
+        let slot = self.0.get_mut(index)?;
+        if slot.generation != (handle >> 32) as u32 {
+            return None;
+        }
+        if matches!(&slot.state, State::Closing(session) if Arc::strong_count(session) == 1) {
+            let State::Closing(session) = std::mem::replace(&mut slot.state, State::Reclaiming)
+            else {
+                unreachable!()
+            };
+            Some((index, session))
+        } else {
+            None
+        }
+    }
 }
 fn registry() -> &'static Mutex<Registry> {
     static REGISTRY: OnceLock<Mutex<Registry>> = OnceLock::new();
@@ -130,10 +146,46 @@ fn registry_lock() -> Result<MutexGuard<'static, Registry>, Failure> {
         .lock()
         .map_err(|_| failure("registry_poisoned", "session registry is unavailable", 4))
 }
-fn get(handle: u64) -> Result<Arc<Session>, Failure> {
+fn get(handle: u64) -> Result<SessionLease, Failure> {
     match &registry_lock()?.slot(handle)?.state {
-        State::Live(session) => Ok(Arc::clone(session)),
+        State::Live(session) => Ok(SessionLease {
+            handle,
+            session: Some(Arc::clone(session)),
+        }),
         _ => unreachable!("slot checks live state"),
+    }
+}
+struct SessionLease {
+    handle: u64,
+    session: Option<Arc<Session>>,
+}
+impl std::ops::Deref for SessionLease {
+    type Target = Session;
+    fn deref(&self) -> &Session {
+        self.session.as_ref().expect("live operation lease")
+    }
+}
+impl Drop for SessionLease {
+    fn drop(&mut self) {
+        drop(self.session.take());
+        reclaim(self.handle);
+    }
+}
+fn reclaim(handle: u64) {
+    let pending = {
+        let Ok(mut registry) = registry().lock() else {
+            return;
+        };
+        registry.begin_reclaim(handle)
+    };
+    if let Some((index, session)) = pending {
+        drop(session); // complete all instance and Arc deallocation before reuse
+        if let Ok(mut registry) = registry().lock() {
+            let slot = &mut registry.0[index];
+            if slot.generation == (handle >> 32) as u32 && matches!(slot.state, State::Reclaiming) {
+                slot.release();
+            }
+        }
     }
 }
 struct Reservation {
@@ -367,10 +419,11 @@ pub unsafe extern "C" fn mixer_vm_session_close_v1(handle: u64, out: *mut MixerV
                 };
                 let session = Arc::clone(session);
                 session.stop();
-                slot.state = State::Closing(Arc::downgrade(&session));
+                slot.state = State::Closing(Arc::clone(&session));
                 session
             };
             drop(session); // large instance destruction does not hold the registry mutex
+            reclaim(handle);
             Ok(MixerVmReport::default())
         })
     }
@@ -407,12 +460,17 @@ mod tests {
     fn closed_in_flight_and_reserved_slots_still_count_against_cap() {
         let mut registry = Registry::new();
         let session = session();
-        registry.0[0].state = State::Closing(Arc::downgrade(&session));
+        registry.0[0].state = State::Closing(Arc::clone(&session));
         for i in 1..SESSION_CAP {
             assert_eq!(registry.reserve().unwrap().0, i);
         }
         assert_eq!(registry.reserve().unwrap_err().0.code, "session_limit");
         drop(session);
+        let (index, session) = registry.begin_reclaim(1u64 << 32 | 1).unwrap();
+        assert_eq!(index, 0);
+        assert_eq!(registry.reserve().unwrap_err().0.code, "session_limit");
+        drop(session);
+        registry.0[index].release();
         assert_eq!(registry.reserve().unwrap(), (0, 2));
         assert_eq!(registry.reserve().unwrap_err().0.code, "session_limit");
     }
