@@ -1,0 +1,213 @@
+"""LLDB-only controls of actual production frames, never product outcomes."""
+import json, pathlib, shlex, time, struct
+import lldb
+EVENTS=[]
+FAILED=[]
+def gate(frame, bp_loc, internal):
+    EVENTS.append({'point':'gate-reserved','thread':frame.GetThread().GetThreadID(),'function':frame.GetFunctionName()})
+    return False
+def acquire(frame,bp_loc,internal):
+    if not EVENTS or EVENTS[-1]['point']!='gate-reserved':FAILED.append('C acquire preceded actual gate reservation')
+    EVENTS.append({'point':'C-acquire','thread':frame.GetThread().GetThreadID(),'function':frame.GetFunctionName()})
+    return False
+def require(condition,message):
+    if not condition:raise RuntimeError(message)
+def expression(frame, code, language=lldb.eLanguageTypeSwift):
+    options=lldb.SBExpressionOptions();options.SetLanguage(language);options.SetIgnoreBreakpoints(True);options.SetTimeoutInMicroSeconds(5000000)
+    value=frame.EvaluateExpression(code,options)
+    require(value.GetError().Success(),code+': '+str(value.GetError()))
+    stream=lldb.SBStream();value.GetDescription(stream)
+    EVENTS.append({'point':'debugger-expression','code':code,'output':stream.GetData()})
+    return value
+def command(debugger,text,result,internal):
+    global EVENTS,FAILED
+    EVENTS=[];FAILED=[]
+    binary,scenario,output,source=shlex.split(text)
+    output=pathlib.Path(output);source=pathlib.Path(source)
+    target=debugger.CreateTarget(binary);require(target.IsValid(),'create target')
+    debugger.SetAsync(False)
+    launch=lldb.SBLaunchInfo([scenario]);launch.SetWorkingDirectory(str(output.parent))
+    launch.AddOpenFileAction(1,str(output.with_suffix('.stdout')),False,True)
+    launch.AddOpenFileAction(2,str(output.with_suffix('.stderr')),False,True)
+    hold=False;held_thread=None
+    try:
+        if scenario=='gate-order':
+            first=target.BreakpointCreateByRegex('CapabilityAndroidLifetimeControl.*reserveBindGate')
+            first.SetScriptCallbackFunction('debugger_driver.gate')
+            second=target.BreakpointCreateByName('mxuit_acquire_for_facade')
+            second.SetScriptCallbackFunction('debugger_driver.acquire')
+        else:
+            if scenario=='post-store':
+                first=target.BreakpointCreateByRegex('CapabilityAndroidLifetimeControl.*finishTask')
+                hold=True
+            elif scenario=='progress-tail':
+                first=target.BreakpointCreateByRegex('CapabilityAndroidProgressCell.*register');hold=True
+            elif scenario=='bind-return':
+                path=source/'capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidBinding.swift'
+                line=next(i for i,v in enumerate(path.read_text().splitlines(),1) if 'return installation' in v)
+                first=target.BreakpointCreateByLocation(str(path),line);hold=True
+            elif scenario=='cancel-accepted':
+                first=target.BreakpointCreateByName('mxish_debug_release_point')
+            elif scenario=='setup-alias':
+                path=source/'capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidResources.swift'
+                line=next(i for i,v in enumerate(path.read_text().splitlines(),1) if 'guard resources.exchange == nil' in v)
+                first=target.BreakpointCreateByLocation(str(path),line);hold=True
+            else:
+                regex={'waiter-exhaustion':'CapabilityAndroidLifetimeControl.*reserveWaiter','progress-token-exhaustion':'CapabilityAndroidProgressCell.*register','progress-sequence-exhaustion':'CapabilityAndroidProgressCell.*register','lifetime-exhaustion':'CapabilityPresentationCounter.*issue'}[scenario]
+                first=target.BreakpointCreateByRegex(regex)
+            first.SetOneShot(True)
+        error=lldb.SBError();process=target.Launch(launch,error)
+        require(error.Success(),'launch: '+str(error))
+        if scenario=='gate-order':
+            require(process.GetState()==lldb.eStateExited,'gate process exit')
+            require(not FAILED and [e['point'] for e in EVENTS]==['gate-reserved','C-acquire'],'actual gate order '+repr(EVENTS))
+        else:
+            require(process.GetState()==lldb.eStateStopped,'production breakpoint resolved/stopped')
+            thread=process.GetSelectedThread();frame=thread.GetFrameAtIndex(0)
+            if scenario=='progress-tail':
+                EVENTS.append({'point':'actual-progress-registration-entry','function':frame.GetFunctionName(),'thread':thread.GetThreadID()})
+                thread.StepOut();frame=thread.GetFrameAtIndex(0)
+                require('wait' in (frame.GetFunctionName() or ''),'actual register helper returned with exact waiter published')
+                EVENTS.append({'point':'actual-progress-registration-return','function':frame.GetFunctionName(),'thread':thread.GetThreadID()})
+                name='$s25MixerCapabilityActivation25capabilityAndroidProgressyys6UInt64V_ADs5Int32VtF'
+                symbols=target.FindSymbols(name,lldb.eSymbolTypeCode)
+                require(symbols.GetSize()==1,'exact frozen Swift progress symbol')
+                symbol=symbols.GetContextAtIndex(0).GetSymbol();instructions=symbol.GetInstructions(target)
+                rows=[];resume=[]
+                for instruction in instructions:
+                    row={'pc':instruction.GetAddress().GetLoadAddress(target),'mnemonic':instruction.GetMnemonic(target),'operands':instruction.GetOperands(target),'comment':instruction.GetComment(target)}
+                    rows.append(row)
+                    if row['mnemonic'] in ('bl','callq','call') and 'resume' in row['comment']:resume.append(row)
+                EVENTS.append({'point':'frozen-actual-progress-disassembly','instructions':rows})
+                require(len(resume)==1,'exact one actual continuation.resume call in frozen function: '+repr(resume))
+                after=resume[0]['pc']+4
+                next_break=target.BreakpointCreateByAddress(after);next_break.SetOneShot(True);first.SetEnabled(False)
+                marker=target.FindFirstGlobalVariable('debug_phase');error=lldb.SBError()
+                require(process.WriteMemory(marker.GetLoadAddress(),struct.pack('I',1),error)==4 and error.Success(),'signal actual progress waiter registered')
+                EVENTS.append({'point':'signal-registered-progress-wait','phase':1})
+                process.Continue();require(process.GetState()==lldb.eStateStopped,'actual continuation resume returned before held tail')
+                thread=process.GetSelectedThread()
+                frame=next((thread.GetFrameAtIndex(i) for i in range(thread.GetNumFrames()) if thread.GetFrameAtIndex(i).GetPC()==after and 'capabilityAndroidProgress' in (thread.GetFrameAtIndex(i).GetFunctionName() or '')),thread.GetFrameAtIndex(0))
+                EVENTS.append({'point':'post-resume-actual-native-stack','frames':[{'index':i,'function':thread.GetFrameAtIndex(i).GetFunctionName(),'pc':thread.GetFrameAtIndex(i).GetPC()} for i in range(thread.GetNumFrames())]})
+                require(frame.GetPC()==after and 'capabilityAndroidProgress' in (frame.GetFunctionName() or ''),'exact post-resume native frame')
+                EVENTS.append({'point':'actual-continuation-resume-returned','pc':after,'thread':thread.GetThreadID(),'function':frame.GetFunctionName()})
+                outgoing=frame.FindVariable('outgoing')
+                require(outgoing.IsValid() and outgoing.GetError().Success(),'actual outgoing continuation array debug location exists')
+                stream=lldb.SBStream();outgoing.GetDescription(stream)
+                count=outgoing.GetNumChildren()
+                EVENTS.append({'point':'actual-consumed-continuation-array','type':outgoing.GetTypeName(),'description':stream.GetData(),'element_count':count,'raw_bytes':outgoing.GetNonSyntheticValue().GetData().GetByteSize()})
+                require(count>0,'actual consumed continuation array remains alive')
+                variable=frame.FindVariable('continuation')
+                if not variable.IsValid() or not variable.GetError().Success() or variable.GetData().GetByteSize()==0:
+                    variable=outgoing.GetChildAtIndex(0)
+                require(variable.IsValid() and variable.GetError().Success() and variable.GetData().GetByteSize()>0 and 'CheckedContinuation' in (variable.GetTypeName() or ''),'actual consumed continuation local/array copy remains available')
+                stream=lldb.SBStream();variable.GetDescription(stream)
+                EVENTS.append({'point':'actual-consumed-continuation-local-or-array-copy','type':variable.GetTypeName(),'description':stream.GetData(),'raw_bytes':variable.GetData().GetByteSize()})
+            EVENTS.append({'point':'production-breakpoint','thread':thread.GetThreadID(),'pc':frame.GetPC(),'function':frame.GetFunctionName(),'description':str(frame)})
+            if scenario=='post-store':
+                expression(frame,'self.terminal')
+                stack=[{'index':i,'function':thread.GetFrameAtIndex(i).GetFunctionName(),'pc':thread.GetFrameAtIndex(i).GetPC()} for i in range(thread.GetNumFrames())]
+                EVENTS.append({'point':'actual-terminal-helper-call-stack','frames':stack})
+                caller=next((thread.GetFrameAtIndex(i) for i in range(1,thread.GetNumFrames()) if 'CapabilityAndroidLifetimeControl.run' in (thread.GetFrameAtIndex(i).GetFunctionName() or '')),thread.GetFrameAtIndex(1))
+                EVENTS.append({'point':'actual-presentation-caller-before-terminal-helper-return','function':caller.GetFunctionName(),'pc':caller.GetPC(),'description':str(caller)})
+                require('CapabilityAndroidLifetimeControl.run' in (caller.GetFunctionName() or ''),'actual synchronous terminal helper called by presentation run')
+                return_pc=caller.GetPC()
+                before=target.ReadInstructions(target.ResolveLoadAddress(return_pc-4),2)
+                decoded=[]
+                for instruction in before:
+                    decoded.append({'pc':instruction.GetAddress().GetLoadAddress(target),'mnemonic':instruction.GetMnemonic(target),'operands':instruction.GetOperands(target),'comment':instruction.GetComment(target)})
+                EVENTS.append({'point':'actual-terminal-helper-return-pc-binding','instructions':decoded})
+                require(decoded and 'finishTask' in decoded[0]['comment'],'exact caller return follows real terminal helper call')
+                returned=target.BreakpointCreateByAddress(return_pc);returned.SetOneShot(True);first.SetEnabled(False)
+                process.Continue()
+                require(process.GetState()==lldb.eStateStopped,'terminal helper and actual lock unlock returned')
+                thread=process.GetSelectedThread();frame=thread.GetFrameAtIndex(0)
+                require(frame.GetPC()==return_pc and 'CapabilityAndroidLifetimeControl.run' in (frame.GetFunctionName() or ''),'actual run suspended before Task return: '+str(frame))
+                EVENTS.append({'point':'after-terminal-helper-return-before-task-return','thread':thread.GetThreadID(),'pc':frame.GetPC(),'function':frame.GetFunctionName(),'description':str(frame)})
+                expression(frame,'self.terminal')
+            elif scenario=='progress-sequence-exhaustion':
+                thread.StepOut();frame=thread.GetFrameAtIndex(0)
+                EVENTS.append({'point':'actual-progress-register-return','function':frame.GetFunctionName(),'description':str(frame)})
+                expression(frame,'cell.sequence = UInt64.max')
+                expression(frame,'cell.sequence')
+            elif scenario=='cancel-accepted':
+                selected=None
+                for frame_index in range(1,thread.GetNumFrames()):
+                    candidate=thread.GetFrameAtIndex(frame_index);value=candidate.FindVariable('binding')
+                    if 'acceptedTaskCancellationPoint' in (candidate.GetFunctionName() or '') and value.IsValid() and value.GetValueAsUnsigned()!=0:
+                        selected=candidate;break
+                require(selected is not None,'exact verification holder frame with caller-owned binding')
+                frame=selected
+                EVENTS.append({'point':'exact-accepted-task-owner-frame','function':frame.GetFunctionName(),'description':str(frame)})
+                binding=frame.FindVariable('binding')
+                require(binding.IsValid() and binding.GetValueAsUnsigned()!=0,'exact caller-owned scalar binding handle available')
+                address=binding.GetValueAsUnsigned()
+                EVENTS.append({'point':'exact-owned-binding-address','address':address,'type':binding.GetTypeName()})
+                context=None
+                for thread_index in range(process.GetNumThreads()):
+                    candidate=process.GetThreadAtIndex(thread_index)
+                    for frame_index in range(candidate.GetNumFrames()):
+                        native_frame=candidate.GetFrameAtIndex(frame_index)
+                        if 'CapabilityGuestUIAndroidResources' in (native_frame.GetFunctionName() or ''):
+                            context=native_frame;break
+                    if context is not None:break
+                require(context is not None,'actual product Swift frame of held native RETIRE helper')
+                EVENTS.append({'point':'actual-product-swift-evaluation-context','thread':context.GetThread().GetThreadID(),'function':context.GetFunctionName()})
+                handle='unsafeBitCast(UInt('+str(address)+'), to: CapabilityGuestUIAndroidBinding.self).current!.lifetime.task!'
+                expression(context,handle+'.cancel()')
+                expression(context,handle+'.isCancelled')
+            elif scenario=='progress-tail':
+                pass
+            elif scenario=='bind-return':
+                EVENTS.append({'point':'actual-bind-return-frame','description':str(frame),'same_original_worker':thread.GetThreadID()})
+            elif scenario=='setup-alias':
+                variable=frame.FindVariable('resources')
+                require(variable.IsValid() and variable.GetValueAsUnsigned()!=0,'actual promoted strong resource local present')
+                EVENTS.append({'point':'actual-strong-resource-local','type':variable.GetTypeName(),'address':variable.GetValueAsUnsigned()})
+            else:
+                field={'waiter-exhaustion':'waiterSerial','progress-token-exhaustion':'issued','progress-sequence-exhaustion':'sequence','lifetime-exhaustion':'value'}[scenario]
+                expression(frame,'self.'+field+' = UInt64.max')
+                expression(frame,'self.'+field)
+            marker=target.FindFirstGlobalVariable('debug_phase')
+            require(marker.IsValid(),'fixed verification barrier symbol')
+            address=marker.GetLoadAddress();write_error=lldb.SBError()
+            require(process.WriteMemory(address,struct.pack('I',2 if scenario=='progress-tail' else 1),write_error)==4 and write_error.Success(),'signal fixed verification-only barrier')
+            EVENTS.append({'point':'signal-test-barrier','address':address,'value':2 if scenario=='progress-tail' else 1})
+            if hold:
+                held_thread=thread
+                require(held_thread.Suspend(),'suspend exact original production worker')
+                release=target.BreakpointCreateByName('mxish_debug_release_point');release.SetOneShot(True)
+                discarded=lldb.SBEvent()
+                while debugger.GetListener().GetNextEvent(discarded):pass
+                debugger.SetAsync(True);process.Continue()
+                deadline=time.monotonic()+20
+                released=False
+                while time.monotonic()<deadline:
+                    event=lldb.SBEvent();debugger.GetListener().WaitForEvent(1,event)
+                    if not released and process.GetState()==lldb.eStateStopped:
+                        current=None
+                        for index in range(process.GetNumThreads()):
+                            candidate=process.GetThreadAtIndex(index)
+                            if 'mxish_debug_release_point' in (candidate.GetFrameAtIndex(0).GetFunctionName() or ''):
+                                current=candidate;break
+                        if current is not None:
+                            current_frame=current.GetFrameAtIndex(0)
+                            EVENTS.append({'point':'other-worker-verified-hold','thread':current.GetThreadID(),'function':current_frame.GetFunctionName(),'held_thread':held_thread.GetThreadID()})
+                            require(held_thread.Resume(),'resume original production worker unchanged')
+                            released=True;process.Continue()
+                    if process.GetState()==lldb.eStateExited:break
+                require(released and process.GetState()==lldb.eStateExited,'held worker resumed and process exited')
+            else:
+                process.Continue();require(process.GetState()==lldb.eStateExited,'failure-only counter scenario exited')
+        require(process.GetExitStatus()==0,'harness exit '+str(process.GetExitStatus()))
+        stdout=output.with_suffix('.stdout').read_text();require('DEBUG_HOLD_PASS '+scenario in stdout,'actual harness assertions passed: '+stdout)
+        receipt={'scenario':scenario,'result':'passed','binary':binary,'events':EVENTS,'stdout':stdout,'exit':process.GetExitStatus(),'scope':'Actual unchanged production-byte frames under LLDB. Worker stop/resume or failure-only checked counter write; no success/cleanup/join receipt or C fence injection.'}
+        output.write_text(json.dumps(receipt,indent=2)+'\n');result.AppendMessage('LLDB_PASS '+scenario)
+    except BaseException as error:
+        if held_thread and held_thread.IsSuspended():held_thread.Resume()
+        p=target.GetProcess()
+        if p.IsValid() and p.GetState()!=lldb.eStateExited:p.Kill()
+        output.write_text(json.dumps({'scenario':scenario,'result':'failed','error':str(error),'events':EVENTS},indent=2)+'\n')
+        result.SetError(str(error))
+def __lldb_init_module(debugger,internal):
+    debugger.HandleCommand('command script add -f debugger_driver.command stage4-debugger')

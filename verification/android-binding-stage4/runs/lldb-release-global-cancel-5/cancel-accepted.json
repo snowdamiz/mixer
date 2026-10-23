@@ -1,0 +1,29 @@
+{
+  "scenario": "cancel-accepted",
+  "result": "failed",
+  "error": "import MixerCapabilityActivation\nUnmanaged<MixerCapabilityActivation.CapabilityGuestUIAndroidBinding>.fromOpaque(UnsafeRawPointer(bitPattern: 4309669840)!).takeUnretainedValue().current!.lifetime.task!.cancel(): error: error: <EXPR>:7:37: no type named 'CapabilityGuestUIAndroidBinding' in module 'MixerCapabilityActivation'\nUnmanaged<MixerCapabilityActivation.CapabilityGuestUIAndroidBinding>.fromOpaque(UnsafeRawPointer(bitPattern: 4309669840)!).takeUnretainedValue().current!.lifetime.task!.cancel()\n                                    ^\n\nerror: <EXPR>:7:170: failed to produce diagnostic for expression; please submit a bug report (https://swift.org/contributing/#reporting-bugs)\nUnmanaged<MixerCapabilityActivation.CapabilityGuestUIAndroidBinding>.fromOpaque(UnsafeRawPointer(bitPattern: 4309669840)!).takeUnretainedValue().current!.lifetime.task!.cancel()\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~\n",
+  "events": [
+    {
+      "point": "production-breakpoint",
+      "thread": 64424509441,
+      "pc": 4303544540,
+      "function": "mxish_debug_release_point",
+      "description": "frame #0: 0x000000010082e0dc libMixerAndroidStage4.dylib`mxish_debug_release_point at host_bridge.c:287:5 [opt]"
+    },
+    {
+      "point": "exact-accepted-task-owner-frame",
+      "function": "Stage4HostTests.acceptedTaskCancellationPoint(MixerCapabilityActivation.CapabilityGuestUIAndroidBinding) -> Swift.UInt",
+      "description": "frame #1: 0x0000000100000ef8 Stage4HostTests`acceptedTaskCancellationPoint(binding=0x0000000100e057d0) at DebuggerTests.swift:16:5 [opt]"
+    },
+    {
+      "point": "exact-owned-binding-address",
+      "address": 4309669840,
+      "type": "MixerCapabilityActivation.CapabilityGuestUIAndroidBinding"
+    },
+    {
+      "point": "actual-product-swift-evaluation-context",
+      "thread": 54648180,
+      "function": "MixerCapabilityActivation.CapabilityGuestUIAndroidResources.retire(key: MixerCapabilityActivation.CapabilityAndroidHostLifetimeKey, entry: Swift.UInt64, record: MixerCapabilityActivation.CapabilityAndroidFacadeRecord) throws -> Swift.Int32"
+    }
+  ]
+}

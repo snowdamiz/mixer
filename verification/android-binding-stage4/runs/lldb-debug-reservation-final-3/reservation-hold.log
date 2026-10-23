@@ -1,0 +1,26 @@
+(lldb) command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-debug-reservation-final-3/debugger_driver.py
+(lldb) stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/debug-debugger-matrix-final-3/Stage4HostTests reservation-hold /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-debug-reservation-final-3/reservation-hold.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/debug-debugger-matrix-final-3/source
+error: unknown or ambiguous option
+Process 53456 stopped
+* thread #4, name = 'Task 1', queue = 'com.apple.main-thread', stop reason = one-shot breakpoint 2
+       frame #0: 0x0000000100a5a738 libMixerAndroidStage4.dylib`mxish_debug_release_point at host_bridge.c:287:5
+   284 	}
+   285 	__attribute__((noinline)) void mxish_debug_release_point(void){
+   286 	    /* A fixed verification-only debugger breakpoint, never a product callback. */
+-> 287 	    pthread_mutex_lock(&host.lock);pthread_cond_broadcast(&host.changed);pthread_mutex_unlock(&host.lock);
+    	    ^
+   288 	}
+   289 	
+   290 	static uint64_t directory_count(const char *path,int exclude_self){
+  thread #5, name = 'Task 2', queue = 'com.apple.root.default-qos.cooperative', stop reason = one-shot breakpoint 1
+       frame #0: 0x0000000100a56cd0 libMixerAndroidStage4.dylib`mxuit_facade_acquire(facade=0x000000016ff12c18) at transport.c:211:9
+   208 	    return finish_locked(result);
+   209 	}
+   210 	int32_t mxuit_facade_acquire(uint64_t *facade) {
+-> 211 	    if (facade == NULL) return MXUIT_INVALID;
+    	        ^
+   212 	    *facade = 0;
+   213 	    pthread_mutex_lock(&state.lock);
+   214 	    int32_t result = available_locked();
+Target 0: (Stage4HostTests) stopped.
+LLDB_PASS reservation-hold

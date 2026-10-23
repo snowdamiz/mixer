@@ -1,0 +1,28 @@
+{
+  "scenario": "stale-cleanup-replay",
+  "result": "passed",
+  "binary": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-debugger-matrix-final-2/Stage4HostTests",
+  "events": [
+    {
+      "point": "production-breakpoint",
+      "thread": 64424509445,
+      "pc": 4306512744,
+      "function": "MixerCapabilityActivation.CapabilityAndroidRegistry.record(slot: Swift.Int, facade: Swift.UInt64) -> Swift.Optional<MixerCapabilityActivation.CapabilityAndroidFacadeRecord>",
+      "description": "frame #0: 0x0000000100b02b68 libMixerAndroidStage4.dylib`CapabilityAndroidRegistry.record(slot=0, facade=2) at CapabilityGuestUIAndroidRegistry.swift:83:15"
+    },
+    {
+      "point": "signal-test-barrier",
+      "address": 4310924176,
+      "value": 11
+    },
+    {
+      "point": "other-worker-verified-hold",
+      "thread": 64424509441,
+      "function": "mxish_debug_release_point",
+      "held_thread": 64424509445
+    }
+  ],
+  "stdout": "STALE_CLEANUP_REPLAY old_facade=1 later_facade=2 same_serial=1 final_success=0 capacity_pinned=1\nDEBUG_HOLD_PASS stale-cleanup-replay\n",
+  "exit": 0,
+  "scope": "Actual unchanged production-byte frames under LLDB. Worker stop/resume or failure-only checked counter write; no success/cleanup/join receipt or C fence injection."
+}

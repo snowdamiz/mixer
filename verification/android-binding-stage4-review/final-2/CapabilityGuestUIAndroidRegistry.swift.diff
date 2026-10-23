@@ -1,0 +1,35 @@
+--- verification/android-binding-stage4-review/candidate-1/source/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidRegistry.swift	2026-10-23 14:08:41
++++ verification/android-binding-stage4-review/final-2/source/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidRegistry.swift	2026-10-23 14:19:33
+@@ -11,10 +11,11 @@
+     let lifetime: CapabilityPresentationLifetimeID
+     let endpoint: UInt64
+     let facadeSlot: Int
++    let gate: CapabilityAndroidReservedBindGate
+     private let lock = NSLock()
+     private var taken = false
+-    fileprivate init(facade: UInt64, lifetime: CapabilityPresentationLifetimeID, endpoint: UInt64, facadeSlot: Int) {
+-        self.facade = facade; self.lifetime = lifetime; self.endpoint = endpoint; self.facadeSlot = facadeSlot
++    fileprivate init(facade: UInt64, lifetime: CapabilityPresentationLifetimeID, endpoint: UInt64, facadeSlot: Int, gate: CapabilityAndroidReservedBindGate) {
++        self.facade = facade; self.lifetime = lifetime; self.endpoint = endpoint; self.facadeSlot = facadeSlot; self.gate = gate
+     }
+     func take() -> Bool {
+         lock.lock(); defer { lock.unlock() }; guard !taken else { return false }; taken = true; return true
+@@ -109,7 +110,8 @@
+         let lifetime: CapabilityPresentationLifetimeID
+         do { lifetime = try CapabilityPresentationLifetimeID.issue() }
+         catch { available.reserved = false; available.facade = 0; throw error }
+-        // The Swift record and fresh lifetime exist before C can issue an ID.
++        let gate = CapabilityAndroidLifetimeControl.reserveBindGate()
++        // The Swift record, fresh lifetime and empty bind gate exist before C can issue an ID.
+         var owner: UInt64 = 0
+         let result = mxuit_acquire_for_facade(facade, UInt32(terminal ? UInt32(MXUIT_TERMINAL.rawValue) : UInt32(MXUIT_ATTEMPT.rawValue)), &owner)
+         guard result == Int32(MXUIT_OK.rawValue), owner > 0 else {
+@@ -119,7 +121,7 @@
+         }
+         available.owner = owner
+         record.withLock { $0.endpoint = owner; $0.lifetime = lifetime }
+-        return CapabilityAndroidAcquiredEndpoint(facade: facade, lifetime: lifetime, endpoint: owner, facadeSlot: slot)
++        return CapabilityAndroidAcquiredEndpoint(facade: facade, lifetime: lifetime, endpoint: owner, facadeSlot: slot, gate: gate)
+     }
+     func publishControl(_ control: CapabilityAndroidLifetimeControl) -> Bool {
+         admission.lock(); defer { admission.unlock() }

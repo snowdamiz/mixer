@@ -1,0 +1,26 @@
+(lldb) command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-debug-poststore-10/debugger_driver.py
+(lldb) stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/debug-debugger-final-8/Stage4HostTests post-store /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-debug-poststore-10/post-store.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/debug-debugger-final-8/source
+Process 32920 stopped
+* thread #5, name = 'Task 1', queue = 'com.apple.main-thread', stop reason = one-shot breakpoint 3
+       frame #0: 0x0000000100a46588 libMixerAndroidStage4.dylib`mxish_debug_release_point at host_bridge.c:281:5
+   278 	}
+   279 	__attribute__((noinline)) void mxish_debug_release_point(void){
+   280 	    /* A fixed verification-only debugger breakpoint, never a product callback. */
+-> 281 	    pthread_mutex_lock(&host.lock);pthread_cond_broadcast(&host.changed);pthread_mutex_unlock(&host.lock);
+    	    ^
+   282 	}
+   283 	
+   284 	static uint64_t directory_count(const char *path,int exclude_self){
+  thread #6, name = 'Task 2', queue = 'com.apple.root.default-qos.cooperative', stop reason = one-shot breakpoint 2
+       frame #0: 0x00000001009852e8 libMixerAndroidStage4.dylib`CapabilityAndroidLifetimeControl.run() at CapabilityGuestUIAndroidLifetime.swift:216:9
+   213 	        if hasFault { finishTask(.failed(.transportIO)); return }
+   214 	        requestStop(.closed)
+   215 	        guard let completion = await request(kind: UInt32(MXUIT_RETIRE.rawValue)) else { finishTask(.failed(.identityExhausted)); return }
+-> 216 	        finishTask(completion.kind == UInt32(MXUIT_RETIRE.rawValue) && completion.result == Int32(MXUIT_DRAIN_OK.rawValue) ? .retired : .failed(.retireFailed))
+    	        ^
+   217 	    }
+   218 	    @inline(never)
+   219 	    private func reserveWaiter(kind: UInt32, continuation: CheckedContinuation<Void, Never>) -> CapabilityAndroidRendezvous? {
+Target 0: (Stage4HostTests) stopped.
+Process 32920 exited with status = 0 (0x00000000) 
+LLDB_PASS post-store

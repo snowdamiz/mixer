@@ -1,0 +1,369 @@
+{
+  "schema_version": 1,
+  "status": "planned_only_not_executed",
+  "scope": "Standalone private Android host binding uses actual common Swift lifetime/permit and reservation plus exact C transport. Existing Apple binding/Prepared/core factories remain unchanged. Distinct host installation/status/receipt types grant no JNI, native profile, device or release authority.",
+  "required_modes": [
+    "debug",
+    "release",
+    "tsan"
+  ],
+  "required_sources": [
+    "unchanged stage4 production Swift files",
+    "sole shared source CapabilityGuestUIPresentationLifetime.swift with closed concrete host backend; existing Apple binding/Prepared/core sources unchanged",
+    "native/android/signed-guest-ui/transport/transport.c",
+    "real MixerGuest and MixerUI",
+    "independently authored fixed host platform/native resource fixture"
+  ],
+  "forbidden_success_substitutes": [
+    "joined Boolean",
+    "cleanup Boolean",
+    "injected driver/closure",
+    "test flag enabling a profile",
+    "synthetic native return fence",
+    "missing weak lookup treated as empty"
+  ],
+  "cases": [
+    {
+      "id": "S4-01",
+      "name": "actual_task_return",
+      "contract_sections": [
+        3,
+        6
+      ],
+      "schedule": "Drive real RETIRE, hold the presentation Task after terminal outcome but before its actual return; start the unique common finish.",
+      "pass": "No task-return evidence, consumer_joined, endpoint reclaim, retired receipt or replacement until the actual Task body returns. Observe the real Task.value await, then release the hold."
+    },
+    {
+      "id": "S4-02",
+      "name": "single_join_authority",
+      "contract_sections": [
+        3,
+        6
+      ],
+      "schedule": "Hold the authorized actual Task/native finish and make 64 concurrent finish reentries plus wrong and moved-permit calls.",
+      "pass": "One Task join and one C consumer_joined/reclaim owner; reentries are pending/invariant without new waiter or Task; completion repeats the immutable exact result."
+    },
+    {
+      "id": "S4-03",
+      "name": "weak_owner_and_destructor",
+      "contract_sections": [
+        2,
+        8
+      ],
+      "schedule": "Retain closed public/control shells, relinquish counted aliases, perform real Swift/C final close, and block the actual resource owner's deinit.",
+      "pass": "Outer reservation capacity stays occupied throughout deinit; after its return the resource weak reference is nil and capacity can return, while retained shells contain scalars only."
+    },
+    {
+      "id": "S4-04",
+      "name": "alias_fences",
+      "contract_sections": [
+        2,
+        5,
+        8
+      ],
+      "schedule": "Independently hold the one setup/closing alias and one leased synchronous UI alias; race final close and native reclaim.",
+      "pass": "No resource retirement while either count is nonzero; the inner helper really returns before outer decrement and UI leave; no alias spans an await."
+    },
+    {
+      "id": "S4-05",
+      "name": "fast_completion_and_exact_rendezvous",
+      "contract_sections": [
+        6
+      ],
+      "schedule": "Pump C from the registered host UI thread so complete runs before mxuit_request returns; then issue stale/duplicate completion after a successor waiter is published.",
+      "pass": "The prepublished exact waiter consumes once; old facade/lifetime/owner/waiter cannot consume the successor, including C slot reuse."
+    },
+    {
+      "id": "S4-06",
+      "name": "request_rejection_and_cancellation",
+      "contract_sections": [
+        6,
+        9
+      ],
+      "schedule": "Reject a real request through C state/ID checks; separately cancel the Swift Task with an accepted native request still held.",
+      "pass": "Only that request's one-shot token resolves rejection; cancellation never drops an accepted waiter and successful cleanup still requires real RETIRE plus join/fences."
+    },
+    {
+      "id": "S4-07",
+      "name": "lost_wake_before_registration",
+      "contract_sections": [
+        6,
+        7
+      ],
+      "schedule": "Advance the actual C fence/progress sequence between the first BUSY reclaim and join-progress registration.",
+      "pass": "Sequence mismatch prevents parking or immediately retries; no lost wake, duplicate waiter, poll or timer."
+    },
+    {
+      "id": "S4-08",
+      "name": "lost_wake_after_registration",
+      "contract_sections": [
+        6,
+        7
+      ],
+      "schedule": "Advance C return fences after exact token registration and before the mandatory second reclaim.",
+      "pass": "Second reclaim or exact progress consumption completes the join; only the matching token is cancelled and no continuation is resumed under a lock."
+    },
+    {
+      "id": "S4-09",
+      "name": "no_later_progress",
+      "contract_sections": [
+        6,
+        7
+      ],
+      "schedule": "Hold the registered host UI thread before the later accepted C callback, with an actual joiner parked on BUSY.",
+      "pass": "Cleanup and capacity remain pending with one continuation and no polling/timer/timeout-based success; later real pump progress completes them."
+    },
+    {
+      "id": "S4-10",
+      "name": "swift_record_reservation_and_capacity",
+      "contract_sections": [
+        1,
+        5
+      ],
+      "schedule": "Concurrently admit 16 facades/endpoints, hold publication boundaries, attempt a seventeenth, and inspect actual C and Swift occupancy.",
+      "pass": "Reserved Swift records cannot be stolen before C IDs publish; fixed limits hold and no C endpoint is requested before exact Swift rendezvous publication."
+    },
+    {
+      "id": "S4-11",
+      "name": "empty_acquisition_rollback",
+      "contract_sections": [
+        5,
+        9
+      ],
+      "schedule": "Force real C facade and endpoint acquisition failures independently before publication; include a sticky fault while known-empty cleanup is attempted.",
+      "pass": "Only empty reserved records roll back; a live C identity is not discarded; no consumer_joined for a nonexistent owner; uncertain facade/obligation remains pinned."
+    },
+    {
+      "id": "S4-12",
+      "name": "post_acquire_setup_failure",
+      "contract_sections": [
+        2,
+        3,
+        6,
+        9
+      ],
+      "schedule": "Throw/cancel at every recoverable standalone host preparation boundary after C endpoint acquire and before its own guard transfers to its final gate, using the already-created real pre-bind Task.",
+      "pass": "Same async preparation frame relinquishes aliases and joins explicit cleanup; no extra cleanup Task or deinit cleanup; abandonment quarantines. No existing common Prepared/core integration is claimed."
+    },
+    {
+      "id": "S4-13",
+      "name": "bind_close_linearization",
+      "contract_sections": [
+        3,
+        6,
+        9
+      ],
+      "schedule": "Race exact exchange binding and final close before/after bind-gate registration and before the host installation moves from the standalone final gate to its caller.",
+      "pass": "One reader and one Task; close-winning exchange stops; failed bind retains the local host installation and actually finishes it. Type-separated host installation cannot be passed to existing core/control/Apple gate."
+    },
+    {
+      "id": "S4-14",
+      "name": "fallback_and_slot_reuse",
+      "contract_sections": [
+        3,
+        6,
+        8
+      ],
+      "schedule": "Run two real bound exchanges on one host facade, holding first Task return and endpoint return fence independently. Separately hold a real adapter obligation/destructor to test independent reservation accounting.",
+      "pass": "No successor endpoint until exact old host finish returned; fresh endpoint/lifetime/reconciler/IDs; old result remains readable after slot reuse without history growth. Adapter hold pins outer capacity. Actual signed concrete-attempt fallback integration is explicitly stage6 pending."
+    },
+    {
+      "id": "S4-15",
+      "name": "hint_before_present_and_close_kind",
+      "contract_sections": [
+        6
+      ],
+      "schedule": "Run real deliveryWake and C demand; close before C claim and separately during a claimed PRESENT helper.",
+      "pass": "Every ordinary PRESENT consumes a hint; queued demand may validly become RETIRE; running PRESENT receives CLOSE_PENDING then same Task issues one RETIRE; no extra terminal hint required."
+    },
+    {
+      "id": "S4-16",
+      "name": "fault_fanout_all_wait_states",
+      "contract_sections": [
+        6,
+        7,
+        9
+      ],
+      "schedule": "Populate pre-bind, delivery-reader and native-rendezvous waits across fixed slots; cause actual worker write, callback read and UI-leave write faults in fresh processes.",
+      "pass": "Sticky quarantine precedes wake fanout, every exact data wait resolves/stops, no replacement/cleanup receipt/capacity release and no resource lookup in progress."
+    },
+    {
+      "id": "S4-17",
+      "name": "failed_retire_and_missing_resources",
+      "contract_sections": [
+        2,
+        6,
+        8,
+        9
+      ],
+      "schedule": "Make real fixed host resource cleanup fail; separately remove a published weak resource/native fixture owner, while retaining known-empty acquisition as a control.",
+      "pass": "Published missing state and failed RETIRE quarantine and cannot consumer_join/reclaim or become known-empty cleanup; truly never-published empty state follows its separate checked path."
+    },
+    {
+      "id": "S4-18",
+      "name": "late_close_before_final_decision",
+      "contract_sections": [
+        8
+      ],
+      "schedule": "Latch final close immediately before the active RETIRE helper samples its final-cleanup decision.",
+      "pass": "Exact helper clears final state and publishes exact host-scoped cleanup evidence; no unnecessary terminal endpoint; all actual join/fences still required."
+    },
+    {
+      "id": "S4-19",
+      "name": "late_close_after_final_decision",
+      "contract_sections": [
+        8
+      ],
+      "schedule": "Latch final close immediately after nonfinal RETIRE decision, after completion, and after old endpoint reclaim as separate executions.",
+      "pass": "Missing exact final receipt forces one fresh sequential TERMINAL endpoint/Task after old Task.value/reclaim, even when no endpoint exists; no guest start or input replay."
+    },
+    {
+      "id": "S4-20",
+      "name": "terminal_failure_pins_resources",
+      "contract_sections": [
+        8,
+        9
+      ],
+      "schedule": "Exhaust actual available C endpoints before terminal admission; separately fail terminal RETIRE and repeat final finish concurrently.",
+      "pass": "One final owner and at most one terminal issue; failure stays cleanupPending/quarantined with resource and obligation pinned, no retry success or fabricated final receipt."
+    },
+    {
+      "id": "S4-21",
+      "name": "facade_lifecycle_between_attempts",
+      "contract_sections": [
+        4,
+        8
+      ],
+      "schedule": "Retire an attempt, hold the interval with no endpoint, call stable scalar close, then submit stale input/probe/attachment tokens.",
+      "pass": "Facade close remains valid and causes terminal cleanup; stale attempt tokens cannot regain input/observation authority or retarget the reference."
+    },
+    {
+      "id": "S4-22",
+      "name": "leased_entry_and_nested_callback",
+      "contract_sections": [
+        2,
+        4,
+        5
+      ],
+      "schedule": "Enter actual C INGRESS/CLEANUP before weak resource lookup; from its fixed host native helper synchronously invoke the C callback, including pending/no-pending-byte schedules.",
+      "pass": "Nested callback returns BUSY before pipe read/fence/progress/lookup, existing demand remains, wrong thread rejects, helper postcheck handles reentrant scalar close before leave."
+    },
+    {
+      "id": "S4-23",
+      "name": "all_native_return_tails",
+      "contract_sections": [
+        4,
+        6,
+        8
+      ],
+      "schedule": "Hold real inner helper, Swift entry tail before leave, C completion tail, platform callback tail, and later accepted callback independently.",
+      "pass": "No endpoint/facade/resource reuse before every required actual return fence; no synthetic fence advancement or UI-thread blocking async join."
+    },
+    {
+      "id": "S4-24",
+      "name": "late_facade_entry_without_endpoint",
+      "contract_sections": [
+        4,
+        8
+      ],
+      "schedule": "After endpoint reclaim, acquire real C CLEANUP entry before final facade reclaim, hold its return, and attempt finalization.",
+      "pass": "Facade finalizer uses the same sequential progress cell and waits the later entry fence; C endpoint absence and old final entry serial cannot bypass this fence."
+    },
+    {
+      "id": "S4-25",
+      "name": "healthy_progress_tail",
+      "contract_sections": [
+        6,
+        7
+      ],
+      "schedule": "Resume a real CheckedContinuation<Void,Never> from fixed progress hook, hold a consumed continuation copy and process-only hook tail, and let real Task.value/final destruction proceed.",
+      "pass": "Joining/destruction may finish only because remaining tail touches permanent process scalars/consumed continuation; audit and dynamic checks detect any later owner/slot/resource access."
+    },
+    {
+      "id": "S4-26",
+      "name": "cleanup_evidence_exactness",
+      "contract_sections": [
+        3,
+        8
+      ],
+      "schedule": "Clear real fixed host resources under a valid final lease; try wrong facade/entry/lifetime/endpoint/slot generation, partial clear, nonfinal retire and stale cleanup serial.",
+      "pass": "Only exact completely cleared same-entry final observation can produce host cleanup evidence; no C OK or empty endpoint is sufficient; no partial success publishes final evidence."
+    },
+    {
+      "id": "S4-27",
+      "name": "host_native_scope_separation",
+      "contract_sections": [
+        3,
+        8,
+        10
+      ],
+      "schedule": "Compile/run exact host linkage. Compile ordinary and testable clients passing CapabilityAndroidHostInstallation/HostJoinStatus/HostReceipt to common installation, Apple gate/control or native receipt APIs, extracting raw lifetime/permit, and directly constructing sealed capsules/receipts.",
+      "pass": "Host types cannot convert or be injected, no raw authority accessor exists, receipt/capsule construction rejects. Existing common Apple installation/attach/isBound/finish/status explicitly reject a host backend before permit or Apple receipt construction; root source review verifies those guards. No host-to-native witness factory or caller scope enum/Boolean exists."
+    },
+    {
+      "id": "S4-28",
+      "name": "final_cleanup_before_resource_lookup_disable",
+      "contract_sections": [
+        2,
+        5,
+        8
+      ],
+      "schedule": "Hold exact helper before and after publishing cleanup, race new ingress and scalar close, then retain public/control shells through finalization.",
+      "pass": "Receipt publication and lookup-disable state are atomic; no later weak/native resource access; closed shells remain scalar; helper must really return before aliases/lease leave."
+    },
+    {
+      "id": "S4-29",
+      "name": "checked_exhaustion",
+      "contract_sections": [
+        1,
+        6,
+        7,
+        9
+      ],
+      "schedule": "Use test-only failure controls to drive real C identity/entry overflow and checked Swift lifetime/waiter/progress/cleanup counters to their boundaries.",
+      "pass": "No wrap, zero/reused identity or admission after exhaustion; typed pinned failure, never synthetic success. C controls cannot synthesize native/cleanup/join evidence."
+    },
+    {
+      "id": "S4-30",
+      "name": "no_extra_waiters_tasks_or_baseline_resources",
+      "contract_sections": [
+        1,
+        2,
+        7
+      ],
+      "schedule": "Run repeated success/fallback/close cycles and concurrent reentry with actual Swift/C instrumentation and real process-resource inventory.",
+      "pass": "At most 16 presentation and 16 progress continuations, one Task/endpoint per facade, no growing registry/history or per-owner FD/thread; permanent two-FD/Looper baseline remains explicit."
+    },
+    {
+      "id": "S4-31",
+      "name": "frozen_common_regressions",
+      "contract_sections": [
+        3,
+        10
+      ],
+      "schedule": "Rebuild complete activation source with only common lifetime changed, plus unchanged existing concrete Apple binding, common Prepared guard, core/portable tests. Run frozen actual Task/retirement holds and existing ordinary/ending-observation move regressions.",
+      "pass": "Existing Apple receipt scope and public model behavior preserved; portable Android prepare still rejects without C/resource/Task admission. Standalone host factory creates actual production binding without substituting common source. Host-to-signed-core integration remains pending."
+    },
+    {
+      "id": "S4-32",
+      "name": "fixed_link_symbols_and_cross_compile",
+      "contract_sections": [
+        4,
+        10
+      ],
+      "schedule": "Link real host Swift/C harness; remove required drain/complete/progress or native symbols in separate negative links; cross-compile reviewed source with official API30 C and Swift6.3.3 Android tools.",
+      "pass": "Required-symbol omission fails link, no callback setters or test controls in product objects; successful Android artifact checks remain compile/link-only, actual Looper/JNI execution pending."
+    }
+  ],
+  "separate_pending_gates": [
+    "existing signed core/Prepared integration and actual concrete-attempt fallback ownership",
+    "actual JNI weak-global cleanup and Java stack return",
+    "Android main Looper and widgets",
+    "draw plus later Choreographer health",
+    "physical iOS/Android",
+    "immutable separately published FieldLog consumer",
+    "signing/store/customer/operational qualification",
+    "accountable GA reviewers"
+  ],
+  "proposal_revision": 2
+}

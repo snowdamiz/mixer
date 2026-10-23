@@ -1,0 +1,62 @@
+{
+  "reference": "verification/android-binding-stage4/runs/release-debugger-matrix-final-2/receipt.json",
+  "reference_sha256": "d094457ee4359410b400e512cde055906a0a7c8ed5b2d606e2c2c6b6f08f2f2d",
+  "source_tree_sha256": "6d9d5afbb49b8a2b97ae0a39e5bb807bf7aa2932e9f7cc842c4820328b872f80",
+  "mode": "release",
+  "scope": "Separate LLDB scheduling/failure instrumentation of actual frozen product-byte Debug/Release/TSan build. No result/receipt/fence writes. Post-store proof requires actual terminal store+unlock and same original presentation worker resumed before actual Task.value evidence. Mode-specific optimized-frame limitations remain failures.",
+  "commands": [
+    {
+      "name": "lldb-version",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 0.14218987501226366,
+      "log": "verification/android-binding-stage4/runs/lldb-release-stale-final-2/lldb-version.log",
+      "sha256": "999c6bfe59784b17e53bf45cf42be20662b29814fc4ee105a7c4dc7315be41e1"
+    },
+    {
+      "name": "stale-cleanup-replay",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--batch",
+        "-o",
+        "command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-stale-final-2/debugger_driver.py",
+        "-o",
+        "stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-matrix-final-2/Stage4HostTests stale-cleanup-replay /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-stale-final-2/stale-cleanup-replay.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-matrix-final-2/source"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 124,
+      "seconds": 90.02944712492172,
+      "log": "verification/android-binding-stage4/runs/lldb-release-stale-final-2/stale-cleanup-replay.log",
+      "sha256": "eace2e9d185d6d291506dbfa58a77aa12ccc34492fca13aefd6b759bd4e8a779"
+    }
+  ],
+  "inputs": {
+    "driver": "916706030c9cdc7640cb17ca1a243926492ca62c5fa5e1d8751e1c4d8897923f",
+    "launcher": "4d7260cc51f5850cf84c732d70d6a864af5faa6f6c7e773dc4fb545e8e23b808"
+  },
+  "artifacts": {
+    "verification/android-binding-stage4/.build/release-debugger-matrix-final-2/Stage4HostTests": "e1eedac456caa241d3df8a651b4ac3b03a594939019f999a46a32f17a0d594c4",
+    "verification/android-binding-stage4/.build/release-debugger-matrix-final-2/libMixerAndroidStage4.dylib": "53100aec24d59311187f5cb46c03ce9764a1f73c7cc1cb0350c6d0e0faecb6ba"
+  },
+  "result": "failed instrumented attempts retained; no broader pass",
+  "evidence": {
+    "verification/android-binding-stage4/runs/lldb-release-stale-final-2/stale-cleanup-replay.log": "eace2e9d185d6d291506dbfa58a77aa12ccc34492fca13aefd6b759bd4e8a779",
+    "verification/android-binding-stage4/runs/lldb-release-stale-final-2/debugger_driver.py": "916706030c9cdc7640cb17ca1a243926492ca62c5fa5e1d8751e1c4d8897923f",
+    "verification/android-binding-stage4/runs/lldb-release-stale-final-2/lldb-version.log": "999c6bfe59784b17e53bf45cf42be20662b29814fc4ee105a7c4dc7315be41e1",
+    "verification/android-binding-stage4/runs/lldb-release-stale-final-2/stale-cleanup-replay.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/android-binding-stage4/runs/lldb-release-stale-final-2/stale-cleanup-replay.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "completed_utc": "2026-10-23T19:39:41.163511+00:00"
+}

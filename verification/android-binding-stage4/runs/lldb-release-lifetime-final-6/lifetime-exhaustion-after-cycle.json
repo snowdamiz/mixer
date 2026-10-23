@@ -1,0 +1,39 @@
+{
+  "scenario": "lifetime-exhaustion-after-cycle",
+  "result": "failed",
+  "error": "exact source-bound initialized private lifetime counter field",
+  "events": [
+    {
+      "point": "production-breakpoint",
+      "thread": 64424509441,
+      "pc": 4303302844,
+      "function": "MixerCapabilityActivation.CapabilityAndroidRegistry.acquireEndpoint(slot: Swift.Int, facade: Swift.UInt64, terminal: Swift.Bool) throws -> MixerCapabilityActivation.CapabilityAndroidAcquiredEndpoint",
+      "description": "frame #0: 0x00000001007f30bc libMixerAndroidStage4.dylib`CapabilityAndroidRegistry.acquireEndpoint(slot=0, facade=2, terminal=false) at CapabilityGuestUIAndroidRegistry.swift:103:9 [opt]"
+    },
+    {
+      "point": "actual-initialized-lifetime-counter-debug-storage",
+      "expected_source_line": 11,
+      "candidates": []
+    },
+    {
+      "point": "actual-private-counter-symbol-debug-binding",
+      "symbol": "$s25MixerCapabilityActivation0B22PresentationLifetimeIDV7counter33_04D5C17CDE194B0D6E360506A064416ELLAA0bD7CounterAELLCvpZ",
+      "storage_address": 4306608040,
+      "type": "MixerCapabilityActivation.CapabilityPresentationCounter",
+      "object_address": 0,
+      "field": "No value",
+      "field_type": null
+    },
+    {
+      "point": "actual-private-counter-heap-debug-binding",
+      "object_address": 4309695072,
+      "type": "MixerCapabilityActivation.CapabilityPresentationCounter",
+      "type_class": 8,
+      "byte_size": 0,
+      "fields": [],
+      "value": "No value",
+      "field": "No value",
+      "field_type": null
+    }
+  ]
+}

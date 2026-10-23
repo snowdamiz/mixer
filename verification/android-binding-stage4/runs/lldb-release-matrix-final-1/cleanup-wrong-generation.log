@@ -1,0 +1,11 @@
+(lldb) command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-matrix-final-1/debugger_driver.py
+(lldb) stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-matrix-final-1/Stage4HostTests cleanup-wrong-generation /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-matrix-final-1/cleanup-wrong-generation.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-matrix-final-1/source
+warning: libMixerAndroidStage4.dylib was compiled with optimization - stepping may behave oddly; variables may not be available.
+Process 51619 exited with status = 9 (0x00000009) killed
+error: ({ pthread_mutex_lock(&host.lock); host.slots[0].generation = 18446744073709551615ULL; pthread_mutex_unlock(&host.lock); }): error: Expression evaluation in pure C not supported. Ran expression as 'ISO C++'.
+error: <user expression 3>:1:4: 'pthread_mutex_lock' has unknown return type; cast the call to its declared return type
+    1 | ({ pthread_mutex_lock(&host.lock); host.slots[0].generation = 18446744073709551615ULL; pthread_mutex_unlock(&host.lock); })
+      |    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+error: <user expression 3>:1:88: 'pthread_mutex_unlock' has unknown return type; cast the call to its declared return type
+    1 | ({ pthread_mutex_lock(&host.lock); host.slots[0].generation = 18446744073709551615ULL; pthread_mutex_unlock(&host.lock); })
+      |                                                                                        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

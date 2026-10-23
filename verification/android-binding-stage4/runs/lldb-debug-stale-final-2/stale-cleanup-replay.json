@@ -1,0 +1,28 @@
+{
+  "scenario": "stale-cleanup-replay",
+  "result": "passed",
+  "binary": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/debug-debugger-matrix-final-2/Stage4HostTests",
+  "events": [
+    {
+      "point": "production-breakpoint",
+      "thread": 64424509445,
+      "pc": 4304963412,
+      "function": "(3) suspend resume partial function for MixerCapabilityActivation.CapabilityGuestUIAndroidBinding.finishFinalClose(using: Swift.Optional<MixerCapabilityActivation.CapabilityAndroidHostInstallation>) async -> MixerCapabilityActivation.CapabilityAndroidHostFinalCloseStatus",
+      "description": "frame #0: 0x0000000100988754 libMixerAndroidStage4.dylib`CapabilityGuestUIAndroidBinding.finishFinalClose(installation=nil) at CapabilityGuestUIAndroidBinding.swift:201:9"
+    },
+    {
+      "point": "signal-test-barrier",
+      "address": 4308941712,
+      "value": 11
+    },
+    {
+      "point": "other-worker-verified-hold",
+      "thread": 64424509441,
+      "function": "mxish_debug_release_point",
+      "held_thread": 64424509445
+    }
+  ],
+  "stdout": "STALE_CLEANUP_REPLAY old_facade=1 later_facade=2 same_serial=1 final_success=0 capacity_pinned=1\nDEBUG_HOLD_PASS stale-cleanup-replay\n",
+  "exit": 0,
+  "scope": "Actual unchanged production-byte frames under LLDB. Worker stop/resume or failure-only checked counter write; no success/cleanup/join receipt or C fence injection."
+}

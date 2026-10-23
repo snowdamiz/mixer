@@ -1,0 +1,63 @@
+{
+  "reference": "verification/android-binding-stage4/runs/tsan-debugger-repaired-2/receipt.json",
+  "reference_sha256": "cc763f40bf8ff6eef8f0b7a15d05cf335537fcaedec9239be107168c45e50e59",
+  "source_tree_sha256": "e8a6d021c7eb99db60391ba516870b6722c8307f5f331ad3f8a76999cb862645",
+  "mode": "tsan",
+  "scope": "Separate LLDB scheduling/failure instrumentation of actual frozen product-byte Debug/Release/TSan build. No result/receipt/fence writes. Post-store proof requires actual terminal store+unlock and same original presentation worker resumed before actual Task.value evidence. Mode-specific optimized-frame limitations remain failures.",
+  "commands": [
+    {
+      "name": "lldb-version",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 0.15708591707516462,
+      "log": "verification/android-binding-stage4/runs/lldb-tsan-cancel-repaired-3/lldb-version.log",
+      "sha256": "999c6bfe59784b17e53bf45cf42be20662b29814fc4ee105a7c4dc7315be41e1"
+    },
+    {
+      "name": "cancel-accepted",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--batch",
+        "-o",
+        "command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-tsan-cancel-repaired-3/debugger_driver.py",
+        "-o",
+        "stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-debugger-repaired-2/Stage4HostTests cancel-accepted /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-tsan-cancel-repaired-3/cancel-accepted.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-debugger-repaired-2/source"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 5.097797082969919,
+      "log": "verification/android-binding-stage4/runs/lldb-tsan-cancel-repaired-3/cancel-accepted.log",
+      "sha256": "22424c447a75afcf049f14ac338cce2deb1366b01b12345e8a963324565c9a04"
+    }
+  ],
+  "inputs": {
+    "driver": "6fe3eb670a5bcc563f8d58878b2cc847a0b3ad979aaafde5cca4699fc24c7c4b",
+    "launcher": "4d7260cc51f5850cf84c732d70d6a864af5faa6f6c7e773dc4fb545e8e23b808"
+  },
+  "artifacts": {
+    "verification/android-binding-stage4/.build/tsan-debugger-repaired-2/Stage4HostTests": "ff649445b22c14b99280b2b73af8dd5a8679df765cbd91ff514bc29573eff7be",
+    "verification/android-binding-stage4/.build/tsan-debugger-repaired-2/libMixerAndroidStage4.dylib": "77d20960c173e62c1f0f004415e8d2b7224965a469a1266e7ca91a100d335dd0"
+  },
+  "result": "all selected instrumented scheduling/failure proofs passed",
+  "evidence": {
+    "verification/android-binding-stage4/runs/lldb-tsan-cancel-repaired-3/debugger_driver.py": "6fe3eb670a5bcc563f8d58878b2cc847a0b3ad979aaafde5cca4699fc24c7c4b",
+    "verification/android-binding-stage4/runs/lldb-tsan-cancel-repaired-3/cancel-accepted.json": "202922fcd32584ad114fc0e2cb0021b7aad56d6ea91f1b396e2fa9fc008aaa28",
+    "verification/android-binding-stage4/runs/lldb-tsan-cancel-repaired-3/cancel-accepted.log": "22424c447a75afcf049f14ac338cce2deb1366b01b12345e8a963324565c9a04",
+    "verification/android-binding-stage4/runs/lldb-tsan-cancel-repaired-3/lldb-version.log": "999c6bfe59784b17e53bf45cf42be20662b29814fc4ee105a7c4dc7315be41e1",
+    "verification/android-binding-stage4/runs/lldb-tsan-cancel-repaired-3/cancel-accepted.stderr": "798def9311d1159d1d87e192af36afde1e2d6d270500025db5b754c5ab6656b1",
+    "verification/android-binding-stage4/runs/lldb-tsan-cancel-repaired-3/cancel-accepted.stdout": "e70293754ac0af011b6df20db01631f8e6808349a0c89f9a2bb16f397a004b7a"
+  },
+  "completed_utc": "2026-10-23T19:23:41.123092+00:00"
+}

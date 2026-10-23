@@ -1,0 +1,37 @@
+{
+  "scenario": "progress-sequence-exhaustion",
+  "result": "passed",
+  "binary": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-debugger-repaired-2/Stage4HostTests",
+  "events": [
+    {
+      "point": "production-breakpoint",
+      "thread": 64424509443,
+      "pc": 4306385368,
+      "function": "MixerCapabilityActivation.CapabilityAndroidProgressCell.register(after: Swift.UInt64, _: Swift.CheckedContinuation<(), Swift.Never>) -> Swift.Optional<Swift.UInt64>",
+      "description": "frame #0: 0x0000000100ae39d8 libMixerAndroidStage4.dylib`CapabilityAndroidProgressCell.register(expected=0, incoming=Swift.CheckedContinuation<Swift.Void, Swift.Never> @ 0x000000017002acf0) at CapabilityGuestUIAndroidProgress.swift:27:9"
+    },
+    {
+      "point": "actual-progress-register-return",
+      "function": "closure #1 (Swift.CheckedContinuation<(), Swift.Never>) -> () in MixerCapabilityActivation.CapabilityAndroidProgress.wait(slot: Swift.Int, endpoint: Swift.Optional<MixerCapabilityActivation.CapabilityAndroidHostLifetimeKey>, facade: Swift.UInt64) async -> Swift.Int32",
+      "description": "frame #0: 0x0000000100ae8c28 libMixerAndroidStage4.dylib`closure #1 in CapabilityAndroidProgress.wait(continuation=Swift.CheckedContinuation<Swift.Void, Swift.Never> @ 0x000000017002acf0, cell=0x0000000109e04c90, before=(sequence = 0, callbackFence = 0, entryFence = 0, fault = 0), slot=0, endpoint=some, facade=1, attempted=0x0000000109703580) at CapabilityGuestUIAndroidProgress.swift:87:40"
+    },
+    {
+      "point": "debugger-expression",
+      "code": "cell.sequence = UInt64.max",
+      "output": "() $R0 = {}\n"
+    },
+    {
+      "point": "debugger-expression",
+      "code": "cell.sequence",
+      "output": "(UInt64) $R1 = 18446744073709551615\n"
+    },
+    {
+      "point": "signal-test-barrier",
+      "address": 4310842256,
+      "value": 1
+    }
+  ],
+  "stdout": "DEBUG_HOLD_PASS progress-sequence-exhaustion\n",
+  "exit": 0,
+  "scope": "Actual unchanged production-byte frames under LLDB. Worker stop/resume or failure-only checked counter write; no success/cleanup/join receipt or C fence injection."
+}

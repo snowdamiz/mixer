@@ -1,0 +1,63 @@
+{
+  "reference": "verification/android-binding-stage4/runs/tsan-debugger-final-8/receipt.json",
+  "reference_sha256": "66e6111cbf71187e11db5983ddeeee9a36a2c370ad2bdb096773e8f60a2907d1",
+  "source_tree_sha256": "0e048fd29e02972aa1cc281999dbeb41b4918d9184d59017535962a0bbefe2d2",
+  "mode": "tsan",
+  "scope": "Separate LLDB scheduling/failure instrumentation of actual frozen product-byte Debug/Release/TSan build. No result/receipt/fence writes. Post-store proof requires actual terminal store+unlock and same original presentation worker resumed before actual Task.value evidence. Mode-specific optimized-frame limitations remain failures.",
+  "commands": [
+    {
+      "name": "lldb-version",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 0.18437587504740804,
+      "log": "verification/android-binding-stage4/runs/lldb-tsan-progress-8/lldb-version.log",
+      "sha256": "999c6bfe59784b17e53bf45cf42be20662b29814fc4ee105a7c4dc7315be41e1"
+    },
+    {
+      "name": "progress-tail",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--batch",
+        "-o",
+        "command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-tsan-progress-8/debugger_driver.py",
+        "-o",
+        "stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-debugger-final-8/Stage4HostTests progress-tail /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-tsan-progress-8/progress-tail.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-debugger-final-8/source"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 11.050069833989255,
+      "log": "verification/android-binding-stage4/runs/lldb-tsan-progress-8/progress-tail.log",
+      "sha256": "dd5e6437378f7a875e01464d10d1fec0731491f71c5306cf8474b0bfc433e87e"
+    }
+  ],
+  "inputs": {
+    "driver": "5e40ba19c49c7b4a639c00f74a153e723b08b12bec0db5667d3ac128cc45a51f",
+    "launcher": "4d7260cc51f5850cf84c732d70d6a864af5faa6f6c7e773dc4fb545e8e23b808"
+  },
+  "artifacts": {
+    "verification/android-binding-stage4/.build/tsan-debugger-final-8/Stage4HostTests": "838b7bef743a26dde38e949a5af612bcd7c1f0b362a809fc96c5c0a5eb9ad0e0",
+    "verification/android-binding-stage4/.build/tsan-debugger-final-8/libMixerAndroidStage4.dylib": "e39270b4cdabc097affdfe0541b2c4345a2a3ef08bc9432e6f96ba554c4c7a96"
+  },
+  "result": "all selected instrumented scheduling/failure proofs passed",
+  "evidence": {
+    "verification/android-binding-stage4/runs/lldb-tsan-progress-8/debugger_driver.py": "5e40ba19c49c7b4a639c00f74a153e723b08b12bec0db5667d3ac128cc45a51f",
+    "verification/android-binding-stage4/runs/lldb-tsan-progress-8/progress-tail.stdout": "2b2683fb91b83f4ac9e8f53f6c6a8b2f64081bc64cec74021c7e72c9ca767562",
+    "verification/android-binding-stage4/runs/lldb-tsan-progress-8/progress-tail.stderr": "cc54dac25fc1ac9951cccd716c73e170c2f7e052ed3bdf7a2ccfebbb63969b48",
+    "verification/android-binding-stage4/runs/lldb-tsan-progress-8/lldb-version.log": "999c6bfe59784b17e53bf45cf42be20662b29814fc4ee105a7c4dc7315be41e1",
+    "verification/android-binding-stage4/runs/lldb-tsan-progress-8/progress-tail.log": "dd5e6437378f7a875e01464d10d1fec0731491f71c5306cf8474b0bfc433e87e",
+    "verification/android-binding-stage4/runs/lldb-tsan-progress-8/progress-tail.json": "079963dbd051e8b5a5ed76a9a582d03a15956eb57b8e05578fc835665e62b91d"
+  },
+  "completed_utc": "2026-10-23T19:11:23.564283+00:00"
+}

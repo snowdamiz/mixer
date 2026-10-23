@@ -1,0 +1,111 @@
+{
+  "reference": "verification/android-binding-stage4/runs/release-debugger-matrix-final-1/receipt.json",
+  "reference_sha256": "cad4a7dc68c48ded204b1dec46a78da94cd67e9ec01ee9588bd802e59c140757",
+  "source_tree_sha256": "6486e5b64f9754385e90955c042d860ac7edb78697edf66ec51ec047bff2c831",
+  "mode": "release",
+  "scope": "Separate LLDB scheduling/failure instrumentation of actual frozen product-byte Debug/Release/TSan build. No result/receipt/fence writes. Post-store proof requires actual terminal store+unlock and same original presentation worker resumed before actual Task.value evidence. Mode-specific optimized-frame limitations remain failures.",
+  "commands": [
+    {
+      "name": "lldb-version",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 0.1376979169435799,
+      "log": "verification/android-binding-stage4/runs/lldb-release-matrix-final-1/lldb-version.log",
+      "sha256": "999c6bfe59784b17e53bf45cf42be20662b29814fc4ee105a7c4dc7315be41e1"
+    },
+    {
+      "name": "reservation-hold",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--batch",
+        "-o",
+        "command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-matrix-final-1/debugger_driver.py",
+        "-o",
+        "stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-matrix-final-1/Stage4HostTests reservation-hold /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-matrix-final-1/reservation-hold.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-matrix-final-1/source"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 1,
+      "seconds": 22.217070874990895,
+      "log": "verification/android-binding-stage4/runs/lldb-release-matrix-final-1/reservation-hold.log",
+      "sha256": "242a54c7b37f5770f48ff35daa71b10e2a131290f7a8fe1aa632d6430eb61957"
+    },
+    {
+      "name": "cleanup-wrong-entry",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--batch",
+        "-o",
+        "command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-matrix-final-1/debugger_driver.py",
+        "-o",
+        "stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-matrix-final-1/Stage4HostTests cleanup-wrong-entry /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-matrix-final-1/cleanup-wrong-entry.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-matrix-final-1/source"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 1.3714004580397159,
+      "log": "verification/android-binding-stage4/runs/lldb-release-matrix-final-1/cleanup-wrong-entry.log",
+      "sha256": "27a18650503a91dd6ed385895883e357f07304f764a505490cf824045f7b6910"
+    },
+    {
+      "name": "cleanup-wrong-generation",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--batch",
+        "-o",
+        "command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-matrix-final-1/debugger_driver.py",
+        "-o",
+        "stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-matrix-final-1/Stage4HostTests cleanup-wrong-generation /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-matrix-final-1/cleanup-wrong-generation.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-matrix-final-1/source"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 1,
+      "seconds": 1.3393398750340566,
+      "log": "verification/android-binding-stage4/runs/lldb-release-matrix-final-1/cleanup-wrong-generation.log",
+      "sha256": "785131eec03e67a03371a365eccb16ebf76caebf2f1c0d5345b3339afb827cda"
+    }
+  ],
+  "inputs": {
+    "driver": "9fbac7ab47c2dec71fd41ab37375a4515933bd422921d24239ed46fc6b94325d",
+    "launcher": "4d7260cc51f5850cf84c732d70d6a864af5faa6f6c7e773dc4fb545e8e23b808"
+  },
+  "artifacts": {
+    "verification/android-binding-stage4/.build/release-debugger-matrix-final-1/Stage4HostTests": "d5c3afadafbd0ff1bbb3365ddf33f19f5d0a97038b7e51c5d61a7da9eca50d68",
+    "verification/android-binding-stage4/.build/release-debugger-matrix-final-1/libMixerAndroidStage4.dylib": "3784d2c342ca1c89b1c133c3708ba074c48ca6f0ff2c87fc12ef63c6c458a413"
+  },
+  "result": "failed instrumented attempts retained; no broader pass",
+  "evidence": {
+    "verification/android-binding-stage4/runs/lldb-release-matrix-final-1/cleanup-wrong-entry.json": "c1e30b65aa1f3e68e8185cd137d7a2d1b0a35c0012974a460f5f682dfb3e94e9",
+    "verification/android-binding-stage4/runs/lldb-release-matrix-final-1/reservation-hold.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/android-binding-stage4/runs/lldb-release-matrix-final-1/cleanup-wrong-generation.log": "785131eec03e67a03371a365eccb16ebf76caebf2f1c0d5345b3339afb827cda",
+    "verification/android-binding-stage4/runs/lldb-release-matrix-final-1/cleanup-wrong-entry.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/android-binding-stage4/runs/lldb-release-matrix-final-1/debugger_driver.py": "9fbac7ab47c2dec71fd41ab37375a4515933bd422921d24239ed46fc6b94325d",
+    "verification/android-binding-stage4/runs/lldb-release-matrix-final-1/reservation-hold.log": "242a54c7b37f5770f48ff35daa71b10e2a131290f7a8fe1aa632d6430eb61957",
+    "verification/android-binding-stage4/runs/lldb-release-matrix-final-1/cleanup-wrong-entry.stdout": "f249593cd89d5659ba6ed6fd71b9f291149226b0a34b58894310b3d0614e3fa6",
+    "verification/android-binding-stage4/runs/lldb-release-matrix-final-1/reservation-hold.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/android-binding-stage4/runs/lldb-release-matrix-final-1/lldb-version.log": "999c6bfe59784b17e53bf45cf42be20662b29814fc4ee105a7c4dc7315be41e1",
+    "verification/android-binding-stage4/runs/lldb-release-matrix-final-1/cleanup-wrong-generation.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/android-binding-stage4/runs/lldb-release-matrix-final-1/cleanup-wrong-entry.log": "27a18650503a91dd6ed385895883e357f07304f764a505490cf824045f7b6910",
+    "verification/android-binding-stage4/runs/lldb-release-matrix-final-1/reservation-hold.json": "d0ed14741f32ca80064fd7b8a6adb5066c39315b1e03818ab1b4e3f0f4807dfd",
+    "verification/android-binding-stage4/runs/lldb-release-matrix-final-1/cleanup-wrong-generation.json": "df6f66318ceb37d51790900790610e008f64b25679d780ea4306280313289e18",
+    "verification/android-binding-stage4/runs/lldb-release-matrix-final-1/cleanup-wrong-generation.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "completed_utc": "2026-10-23T19:35:12.724961+00:00"
+}

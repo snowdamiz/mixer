@@ -1,0 +1,63 @@
+{
+  "reference": "verification/android-binding-stage4/runs/release-debugger-matrix-final-1/receipt.json",
+  "reference_sha256": "cad4a7dc68c48ded204b1dec46a78da94cd67e9ec01ee9588bd802e59c140757",
+  "source_tree_sha256": "6486e5b64f9754385e90955c042d860ac7edb78697edf66ec51ec047bff2c831",
+  "mode": "release",
+  "scope": "Separate LLDB scheduling/failure instrumentation of actual frozen product-byte Debug/Release/TSan build. No result/receipt/fence writes. Post-store proof requires actual terminal store+unlock and same original presentation worker resumed before actual Task.value evidence. Mode-specific optimized-frame limitations remain failures.",
+  "commands": [
+    {
+      "name": "lldb-version",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 0.12825095804873854,
+      "log": "verification/android-binding-stage4/runs/lldb-release-generation-final-2/lldb-version.log",
+      "sha256": "999c6bfe59784b17e53bf45cf42be20662b29814fc4ee105a7c4dc7315be41e1"
+    },
+    {
+      "name": "cleanup-wrong-generation",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--batch",
+        "-o",
+        "command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-generation-final-2/debugger_driver.py",
+        "-o",
+        "stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-matrix-final-1/Stage4HostTests cleanup-wrong-generation /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-generation-final-2/cleanup-wrong-generation.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-matrix-final-1/source"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 1.9493276249850169,
+      "log": "verification/android-binding-stage4/runs/lldb-release-generation-final-2/cleanup-wrong-generation.log",
+      "sha256": "111d293b26d4a6915fd53db156d80e60218c7298b29dcd5c5605e2bdf45eb8c8"
+    }
+  ],
+  "inputs": {
+    "driver": "867e30b83caf3630812145047bafd752c8b1816e1ebd770916c6317732ecff06",
+    "launcher": "4d7260cc51f5850cf84c732d70d6a864af5faa6f6c7e773dc4fb545e8e23b808"
+  },
+  "artifacts": {
+    "verification/android-binding-stage4/.build/release-debugger-matrix-final-1/Stage4HostTests": "d5c3afadafbd0ff1bbb3365ddf33f19f5d0a97038b7e51c5d61a7da9eca50d68",
+    "verification/android-binding-stage4/.build/release-debugger-matrix-final-1/libMixerAndroidStage4.dylib": "3784d2c342ca1c89b1c133c3708ba074c48ca6f0ff2c87fc12ef63c6c458a413"
+  },
+  "result": "all selected instrumented scheduling/failure proofs passed",
+  "evidence": {
+    "verification/android-binding-stage4/runs/lldb-release-generation-final-2/cleanup-wrong-generation.log": "111d293b26d4a6915fd53db156d80e60218c7298b29dcd5c5605e2bdf45eb8c8",
+    "verification/android-binding-stage4/runs/lldb-release-generation-final-2/debugger_driver.py": "867e30b83caf3630812145047bafd752c8b1816e1ebd770916c6317732ecff06",
+    "verification/android-binding-stage4/runs/lldb-release-generation-final-2/lldb-version.log": "999c6bfe59784b17e53bf45cf42be20662b29814fc4ee105a7c4dc7315be41e1",
+    "verification/android-binding-stage4/runs/lldb-release-generation-final-2/cleanup-wrong-generation.stdout": "b13c2ee26c10f61b1b8453bd2cde2cf2dc0a950740346fcd51b56f6a884fc13a",
+    "verification/android-binding-stage4/runs/lldb-release-generation-final-2/cleanup-wrong-generation.json": "b5acdc9c774fbc934276595b2d2c456108ff7f2bf3d43b518472b67d1f3d5249",
+    "verification/android-binding-stage4/runs/lldb-release-generation-final-2/cleanup-wrong-generation.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "completed_utc": "2026-10-23T19:37:40.339449+00:00"
+}

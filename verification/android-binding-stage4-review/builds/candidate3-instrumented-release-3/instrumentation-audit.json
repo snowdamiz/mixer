@@ -1,0 +1,14 @@
+{
+  "observed_utc": "2026-10-23T19:25:54.317636+00:00",
+  "receipt_sha256": "86fbcf0b1a272fa4770dc7b409991fbd6dfd35a3e8b6e8cd1d0e1db907f94669",
+  "source_tree_sha256": "e8a6d021c7eb99db60391ba516870b6722c8307f5f331ad3f8a76999cb862645",
+  "review_input_files": {
+    "verification/android-binding-stage4-review/builds/candidate3-instrumented-release-3/inputs/ReclaimRaceProbe.swift": "356b2694f17a3389d50b891f0eac12014f07a179eda71c57caa24b7205b8a342",
+    "verification/android-binding-stage4-review/builds/candidate3-instrumented-release-3/inputs/ReclaimHold.h": "5d27dbc51d8989434099f14bfc68e1e3fcc4eff47b58645479e824e0e756aa4d",
+    "verification/android-binding-stage4-review/builds/candidate3-instrumented-release-3/inputs/run_review.py": "3c6b34aa138e5fa82b22221b0d114c95da4b5c74dfd13df7f885f4ac7e013512",
+    "verification/android-binding-stage4-review/builds/candidate3-instrumented-release-3/inputs/ReclaimHold.c": "b742197a3153620c53f746929ec1a47b57b45185cd480cd1cfef67f83f2962a4"
+  },
+  "instrumentation": "Exact production Swift unchanged; original C transport compiled with mxuit_try_reclaim renamed to mxir_actual_try_reclaim only. Fixed review wrapper calls actual original exactly once per attempt and returns its saved result unchanged. Hold only occurs after actual target MXUIT_OK, while Swift Registry.reclaimEndpoint still owns admission. Real C-only cleanup entry/leave and real later C callback produce progress; real duplicate-register invariant supplies failure origin; no synthesized success/fence/receipt.",
+  "result": "One actual endpoint C success predates global fault. During held original return global fanout cannot win admission. After forwarding same C result, exact historical nonfinal endpoint receipt persists while fault quarantines facade and retains resources/destructor/capacity.",
+  "scope": "Additional instrumented Release host-only receipt, disjoint from ordinary Debug/Release/TSan and no JNI/Looper/device/GA authority."
+}

@@ -1,0 +1,157 @@
+/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-final-2/source/verification/android-binding-stage4/HostPrivateClient.swift:5:22: error: 'lifetime' is inaccessible due to 'private' protection level
+ 3 | 
+ 4 | func cannotExtract(_ installation: CapabilityAndroidHostInstallation) {
+ 5 |     _ = installation.lifetime
+   |                      `- error: 'lifetime' is inaccessible due to 'private' protection level
+ 6 |     _ = installation.permit
+ 7 |     _ = installation.finishAndroidHost
+
+MixerCapabilityActivation.CapabilityAndroidHostInstallation.lifetime:2:13: note: 'lifetime' declared here
+1 | class CapabilityAndroidHostInstallation {
+2 | private let lifetime: MixerCapabilityActivation.CapabilityGuestUIPresentationLifetime}
+  |             `- note: 'lifetime' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-final-2/source/verification/android-binding-stage4/HostPrivateClient.swift:6:22: error: 'permit' is inaccessible due to 'private' protection level
+ 4 | func cannotExtract(_ installation: CapabilityAndroidHostInstallation) {
+ 5 |     _ = installation.lifetime
+ 6 |     _ = installation.permit
+   |                      `- error: 'permit' is inaccessible due to 'private' protection level
+ 7 |     _ = installation.finishAndroidHost
+ 8 | }
+
+MixerCapabilityActivation.CapabilityAndroidHostInstallation.permit:2:13: note: 'permit' declared here
+1 | class CapabilityAndroidHostInstallation {
+2 | private var permit: MixerCapabilityActivation.CapabilityPresentationJoinPermit?}
+  |             `- note: 'permit' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-final-2/source/verification/android-binding-stage4/HostPrivateClient.swift:7:22: error: value of type 'CapabilityAndroidHostInstallation' has no member 'finishAndroidHost'
+ 5 |     _ = installation.lifetime
+ 6 |     _ = installation.permit
+ 7 |     _ = installation.finishAndroidHost
+   |                      `- error: value of type 'CapabilityAndroidHostInstallation' has no member 'finishAndroidHost'
+ 8 | }
+ 9 | func cannotCrossTypes(_ host: CapabilityAndroidHostInstallation,
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-final-2/source/verification/android-binding-stage4/HostPrivateClient.swift:12:49: error: cannot convert value of type 'CapabilityAndroidHostInstallation' to specified type 'CapabilityPresentationInstallation'
+10 |                       _ status: CapabilityAndroidHostJoinStatus,
+11 |                       _ receipt: CapabilityAndroidHostLifetimeReceipt) {
+12 |     let _: CapabilityPresentationInstallation = host
+   |                                                 `- error: cannot convert value of type 'CapabilityAndroidHostInstallation' to specified type 'CapabilityPresentationInstallation'
+13 |     let _: CapabilityPresentationJoinStatus = status
+14 |     let _: CapabilityPresentationLifetimeReceipt = receipt
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-final-2/source/verification/android-binding-stage4/HostPrivateClient.swift:13:47: error: cannot convert value of type 'CapabilityAndroidHostJoinStatus' to specified type 'CapabilityPresentationJoinStatus'
+11 |                       _ receipt: CapabilityAndroidHostLifetimeReceipt) {
+12 |     let _: CapabilityPresentationInstallation = host
+13 |     let _: CapabilityPresentationJoinStatus = status
+   |                                               `- error: cannot convert value of type 'CapabilityAndroidHostJoinStatus' to specified type 'CapabilityPresentationJoinStatus'
+14 |     let _: CapabilityPresentationLifetimeReceipt = receipt
+15 | }
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-final-2/source/verification/android-binding-stage4/HostPrivateClient.swift:14:52: error: cannot convert value of type 'CapabilityAndroidHostLifetimeReceipt' to specified type 'CapabilityPresentationLifetimeReceipt'
+12 |     let _: CapabilityPresentationInstallation = host
+13 |     let _: CapabilityPresentationJoinStatus = status
+14 |     let _: CapabilityPresentationLifetimeReceipt = receipt
+   |                                                    `- error: cannot convert value of type 'CapabilityAndroidHostLifetimeReceipt' to specified type 'CapabilityPresentationLifetimeReceipt'
+15 | }
+16 | func cannotConstruct(_ key: CapabilityAndroidHostLifetimeKey,
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-final-2/source/verification/android-binding-stage4/HostPrivateClient.swift:19:9: error: 'CapabilityAndroidHostTaskReturnEvidence' initializer is inaccessible due to 'fileprivate' protection level
+17 |                      _ task: Task<Void, Never>, _ control: CapabilityAndroidLifetimeControl,
+18 |                      _ evidence: CapabilityAndroidHostFacadeCleanupEvidence) {
+19 |     _ = CapabilityAndroidHostTaskReturnEvidence(key: key)
+   |         `- error: 'CapabilityAndroidHostTaskReturnEvidence' initializer is inaccessible due to 'fileprivate' protection level
+20 |     _ = CapabilityAndroidHostLifetimeCapsule(key: key, task: task, control: control)
+21 |     _ = CapabilityAndroidHostLifetimeKey(facade: key.facade, lifetime: key.lifetime, endpoint: key.endpoint)
+
+MixerCapabilityActivation.CapabilityAndroidHostTaskReturnEvidence.init:2:13: note: 'init(key:)' declared here
+1 | struct CapabilityAndroidHostTaskReturnEvidence {
+2 | fileprivate init(key: MixerCapabilityActivation.CapabilityAndroidHostLifetimeKey)}
+  |             `- note: 'init(key:)' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-final-2/source/verification/android-binding-stage4/HostPrivateClient.swift:20:9: error: 'CapabilityAndroidHostLifetimeCapsule' initializer is inaccessible due to 'fileprivate' protection level
+18 |                      _ evidence: CapabilityAndroidHostFacadeCleanupEvidence) {
+19 |     _ = CapabilityAndroidHostTaskReturnEvidence(key: key)
+20 |     _ = CapabilityAndroidHostLifetimeCapsule(key: key, task: task, control: control)
+   |         `- error: 'CapabilityAndroidHostLifetimeCapsule' initializer is inaccessible due to 'fileprivate' protection level
+21 |     _ = CapabilityAndroidHostLifetimeKey(facade: key.facade, lifetime: key.lifetime, endpoint: key.endpoint)
+22 |     _ = CapabilityAndroidHostFacadeCleanupReceipt.validate(evidence, for: key)
+
+MixerCapabilityActivation.CapabilityAndroidHostLifetimeCapsule.init:2:13: note: 'init(key:task:control:)' declared here
+1 | class CapabilityAndroidHostLifetimeCapsule {
+2 | fileprivate init(key: MixerCapabilityActivation.CapabilityAndroidHostLifetimeKey, task: Task<Void, Never>, control: MixerCapabilityActivation.CapabilityAndroidLifetimeControl)}
+  |             `- note: 'init(key:task:control:)' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-final-2/source/verification/android-binding-stage4/HostPrivateClient.swift:21:9: error: 'CapabilityAndroidHostLifetimeKey' initializer is inaccessible due to 'fileprivate' protection level
+19 |     _ = CapabilityAndroidHostTaskReturnEvidence(key: key)
+20 |     _ = CapabilityAndroidHostLifetimeCapsule(key: key, task: task, control: control)
+21 |     _ = CapabilityAndroidHostLifetimeKey(facade: key.facade, lifetime: key.lifetime, endpoint: key.endpoint)
+   |         `- error: 'CapabilityAndroidHostLifetimeKey' initializer is inaccessible due to 'fileprivate' protection level
+22 |     _ = CapabilityAndroidHostFacadeCleanupReceipt.validate(evidence, for: key)
+23 |     _ = CapabilityAndroidHostLifetimeReceipt.validate
+
+MixerCapabilityActivation.CapabilityAndroidHostLifetimeKey.init:2:13: note: 'init(facade:lifetime:endpoint:)' declared here
+1 | struct CapabilityAndroidHostLifetimeKey {
+2 | fileprivate init(facade: UInt64, lifetime: MixerCapabilityActivation.CapabilityPresentationLifetimeID, endpoint: UInt64)}
+  |             `- note: 'init(facade:lifetime:endpoint:)' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-final-2/source/verification/android-binding-stage4/HostPrivateClient.swift:22:51: error: 'validate' is inaccessible due to 'fileprivate' protection level
+20 |     _ = CapabilityAndroidHostLifetimeCapsule(key: key, task: task, control: control)
+21 |     _ = CapabilityAndroidHostLifetimeKey(facade: key.facade, lifetime: key.lifetime, endpoint: key.endpoint)
+22 |     _ = CapabilityAndroidHostFacadeCleanupReceipt.validate(evidence, for: key)
+   |                                                   `- error: 'validate' is inaccessible due to 'fileprivate' protection level
+23 |     _ = CapabilityAndroidHostLifetimeReceipt.validate
+24 |     _ = CapabilityAndroidHostEndpointRetirementEvidence(key: key, callbackFence: 1, uiEntryFence: 1, facadeCleanup: evidence)
+
+MixerCapabilityActivation.CapabilityAndroidHostFacadeCleanupReceipt.validate:2:25: note: 'validate(_:for:)' declared here
+1 | struct CapabilityAndroidHostFacadeCleanupReceipt {
+2 | fileprivate static func validate(_ evidence: MixerCapabilityActivation.CapabilityAndroidHostFacadeCleanupEvidence, for key: MixerCapabilityActivation.CapabilityAndroidHostLifetimeKey) -> MixerCapabilityActivation.CapabilityAndroidHostFacadeCleanupReceipt?}
+  |                         `- note: 'validate(_:for:)' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-final-2/source/verification/android-binding-stage4/HostPrivateClient.swift:23:46: error: 'validate' is inaccessible due to 'fileprivate' protection level
+21 |     _ = CapabilityAndroidHostLifetimeKey(facade: key.facade, lifetime: key.lifetime, endpoint: key.endpoint)
+22 |     _ = CapabilityAndroidHostFacadeCleanupReceipt.validate(evidence, for: key)
+23 |     _ = CapabilityAndroidHostLifetimeReceipt.validate
+   |                                              `- error: 'validate' is inaccessible due to 'fileprivate' protection level
+24 |     _ = CapabilityAndroidHostEndpointRetirementEvidence(key: key, callbackFence: 1, uiEntryFence: 1, facadeCleanup: evidence)
+25 |     _ = CapabilityAndroidHostFacadeCleanupEvidence(key: key, cleanupSerial: 1, finalEntrySerial: 1,
+
+MixerCapabilityActivation.CapabilityAndroidHostLifetimeReceipt.validate:2:25: note: 'validate(taskReturn:native:)' declared here
+1 | struct CapabilityAndroidHostLifetimeReceipt {
+2 | fileprivate static func validate(taskReturn: MixerCapabilityActivation.CapabilityAndroidHostTaskReturnEvidence, native: MixerCapabilityActivation.CapabilityAndroidHostEndpointRetirementEvidence) -> MixerCapabilityActivation.CapabilityAndroidHostLifetimeReceipt?}
+  |                         `- note: 'validate(taskReturn:native:)' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-final-2/source/verification/android-binding-stage4/HostPrivateClient.swift:24:9: error: 'CapabilityAndroidHostEndpointRetirementEvidence' initializer is inaccessible due to 'fileprivate' protection level
+22 |     _ = CapabilityAndroidHostFacadeCleanupReceipt.validate(evidence, for: key)
+23 |     _ = CapabilityAndroidHostLifetimeReceipt.validate
+24 |     _ = CapabilityAndroidHostEndpointRetirementEvidence(key: key, callbackFence: 1, uiEntryFence: 1, facadeCleanup: evidence)
+   |         `- error: 'CapabilityAndroidHostEndpointRetirementEvidence' initializer is inaccessible due to 'fileprivate' protection level
+25 |     _ = CapabilityAndroidHostFacadeCleanupEvidence(key: key, cleanupSerial: 1, finalEntrySerial: 1,
+26 |         bridgeSlotGeneration: 1, clearedExchangeGeneration: nil, clearedResourceStageRevision: 1)
+
+MixerCapabilityActivation.CapabilityAndroidHostEndpointRetirementEvidence.init:2:13: note: 'init(key:callbackFence:uiEntryFence:facadeCleanup:)' declared here
+1 | struct CapabilityAndroidHostEndpointRetirementEvidence {
+2 | fileprivate init(key: MixerCapabilityActivation.CapabilityAndroidHostLifetimeKey, callbackFence: UInt64, uiEntryFence: UInt64, facadeCleanup: MixerCapabilityActivation.CapabilityAndroidHostFacadeCleanupEvidence?)}
+  |             `- note: 'init(key:callbackFence:uiEntryFence:facadeCleanup:)' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-final-2/source/verification/android-binding-stage4/HostPrivateClient.swift:25:9: error: 'CapabilityAndroidHostFacadeCleanupEvidence' initializer is inaccessible due to 'fileprivate' protection level
+23 |     _ = CapabilityAndroidHostLifetimeReceipt.validate
+24 |     _ = CapabilityAndroidHostEndpointRetirementEvidence(key: key, callbackFence: 1, uiEntryFence: 1, facadeCleanup: evidence)
+25 |     _ = CapabilityAndroidHostFacadeCleanupEvidence(key: key, cleanupSerial: 1, finalEntrySerial: 1,
+   |         `- error: 'CapabilityAndroidHostFacadeCleanupEvidence' initializer is inaccessible due to 'fileprivate' protection level
+26 |         bridgeSlotGeneration: 1, clearedExchangeGeneration: nil, clearedResourceStageRevision: 1)
+27 | }
+
+MixerCapabilityActivation.CapabilityAndroidHostFacadeCleanupEvidence.init:2:13: note: 'init(key:cleanupSerial:finalEntrySerial:bridgeSlotGeneration:clearedExchangeGeneration:clearedResourceStageRevision:)' declared here
+1 | struct CapabilityAndroidHostFacadeCleanupEvidence {
+2 | fileprivate init(key: MixerCapabilityActivation.CapabilityAndroidHostLifetimeKey, cleanupSerial: UInt64, finalEntrySerial: UInt64, bridgeSlotGeneration: UInt64, clearedExchangeGeneration: UInt64?, clearedResourceStageRevision: UInt64)}
+  |             `- note: 'init(key:cleanupSerial:finalEntrySerial:bridgeSlotGeneration:clearedExchangeGeneration:clearedResourceStageRevision:)' declared here
+3 | 

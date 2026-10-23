@@ -1,0 +1,63 @@
+{
+  "reference": "verification/android-binding-stage4/runs/release-debugger-matrix-final-4/receipt.json",
+  "reference_sha256": "907773334913f8767a0b01e18b28c85b3ed58f580bc08cc74b0ad910e7dec405",
+  "source_tree_sha256": "fe051af90b9fb8735cfba2abc56f17b9dc536cc5748d1a95e1562564653fab08",
+  "mode": "release",
+  "scope": "Separate LLDB scheduling/failure instrumentation of actual frozen product-byte Debug/Release/TSan build. No result/receipt/fence writes. Post-store proof requires actual terminal store+unlock and same original presentation worker resumed before actual Task.value evidence. Mode-specific optimized-frame limitations remain failures.",
+  "commands": [
+    {
+      "name": "lldb-version",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 0.17202037503011525,
+      "log": "verification/android-binding-stage4/runs/lldb-release-lifetime-final-5/lldb-version.log",
+      "sha256": "999c6bfe59784b17e53bf45cf42be20662b29814fc4ee105a7c4dc7315be41e1"
+    },
+    {
+      "name": "lifetime-exhaustion-after-cycle",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--batch",
+        "-o",
+        "command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-lifetime-final-5/debugger_driver.py",
+        "-o",
+        "stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-matrix-final-4/Stage4HostTests lifetime-exhaustion-after-cycle /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-lifetime-final-5/lifetime-exhaustion-after-cycle.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-matrix-final-4/source"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 1,
+      "seconds": 4.209772833972238,
+      "log": "verification/android-binding-stage4/runs/lldb-release-lifetime-final-5/lifetime-exhaustion-after-cycle.log",
+      "sha256": "2aafd945b34b87d90c628daeb42cf4cf062b8d3e48421514c96a493c139cc210"
+    }
+  ],
+  "inputs": {
+    "driver": "84f4dff6cfffcc3dce851afd17042fc02824e846b9cc38635ba50e2cef5c2fa0",
+    "launcher": "4d7260cc51f5850cf84c732d70d6a864af5faa6f6c7e773dc4fb545e8e23b808"
+  },
+  "artifacts": {
+    "verification/android-binding-stage4/.build/release-debugger-matrix-final-4/Stage4HostTests": "e83799ccb93f27d95ec3c0f8b79b137bbd01acbf85c810c6de00c9c625156af9",
+    "verification/android-binding-stage4/.build/release-debugger-matrix-final-4/libMixerAndroidStage4.dylib": "d79e9187ed2055dbf55fd3759d71254bda8a7efba192ec2019e4b0f1c2af8e1d"
+  },
+  "result": "failed instrumented attempts retained; no broader pass",
+  "evidence": {
+    "verification/android-binding-stage4/runs/lldb-release-lifetime-final-5/debugger_driver.py": "84f4dff6cfffcc3dce851afd17042fc02824e846b9cc38635ba50e2cef5c2fa0",
+    "verification/android-binding-stage4/runs/lldb-release-lifetime-final-5/lifetime-exhaustion-after-cycle.log": "2aafd945b34b87d90c628daeb42cf4cf062b8d3e48421514c96a493c139cc210",
+    "verification/android-binding-stage4/runs/lldb-release-lifetime-final-5/lldb-version.log": "999c6bfe59784b17e53bf45cf42be20662b29814fc4ee105a7c4dc7315be41e1",
+    "verification/android-binding-stage4/runs/lldb-release-lifetime-final-5/lifetime-exhaustion-after-cycle.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/android-binding-stage4/runs/lldb-release-lifetime-final-5/lifetime-exhaustion-after-cycle.json": "d84ca09278da53d3551a04cecd4fa195862f7615960f224e87c99b07b1f6f9ed",
+    "verification/android-binding-stage4/runs/lldb-release-lifetime-final-5/lifetime-exhaustion-after-cycle.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "completed_utc": "2026-10-23T19:48:15.851724+00:00"
+}

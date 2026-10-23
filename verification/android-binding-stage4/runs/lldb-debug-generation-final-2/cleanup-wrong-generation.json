@@ -1,0 +1,47 @@
+{
+  "scenario": "cleanup-wrong-generation",
+  "result": "passed",
+  "binary": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/debug-debugger-matrix-final-1/Stage4HostTests",
+  "events": [
+    {
+      "point": "production-breakpoint",
+      "thread": 54660325,
+      "pc": 4305768772,
+      "function": "mxis_host_inspect",
+      "description": "frame #0: 0x0000000100a4d144 libMixerAndroidStage4.dylib`mxis_host_inspect(facade=1, entry=1, output=0x000000016fe864f8) at host_bridge.c:92:10"
+    },
+    {
+      "point": "debugger-expression",
+      "code": "host.slots[0].cleared",
+      "output": "(uint32_t) $0 = 1\n"
+    },
+    {
+      "point": "debugger-expression",
+      "code": "entry",
+      "output": "(uint64_t) $1 = 1\n"
+    },
+    {
+      "point": "debugger-expression",
+      "code": "host.slots[0].final_entry",
+      "output": "(uint64_t) $2 = 1\n"
+    },
+    {
+      "point": "debugger-expression",
+      "code": "({ ((int(*)(__typeof__(&host.lock)))pthread_mutex_lock)(&host.lock); host.slots[0].generation = 18446744073709551615ULL; ((int(*)(__typeof__(&host.lock)))pthread_mutex_unlock)(&host.lock); })",
+      "output": "(int) $3 = 0\n"
+    },
+    {
+      "point": "debugger-expression",
+      "code": "host.slots[0].generation",
+      "output": "(uint64_t) $4 = 18446744073709551615\n"
+    },
+    {
+      "point": "signal-test-barrier",
+      "address": 4308925328,
+      "value": 1
+    }
+  ],
+  "stdout": "DEBUG_HOLD_PASS cleanup-wrong-generation\n",
+  "exit": 0,
+  "scope": "Actual unchanged production-byte frames under LLDB. Worker stop/resume or failure-only checked counter write; no success/cleanup/join receipt or C fence injection."
+}

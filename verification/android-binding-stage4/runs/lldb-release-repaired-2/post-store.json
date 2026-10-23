@@ -1,0 +1,108 @@
+{
+  "scenario": "post-store",
+  "result": "passed",
+  "binary": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-repaired-2/Stage4HostTests",
+  "events": [
+    {
+      "point": "production-breakpoint",
+      "thread": 64424509442,
+      "pc": 4303212484,
+      "function": "MixerCapabilityActivation.CapabilityAndroidLifetimeControl.lock.getter : __C.NSLock",
+      "description": "frame #0: 0x00000001007dcfc4 libMixerAndroidStage4.dylib`CapabilityAndroidLifetimeControl.lock.getter() at CapabilityGuestUIAndroidLifetime.swift:95:32 [opt] [inlined]"
+    },
+    {
+      "point": "debugger-expression",
+      "code": "self.terminal",
+      "output": "(MixerCapabilityActivation.CapabilityAndroidLifetimeControl.Terminal) $R0 = pending\n"
+    },
+    {
+      "point": "actual-terminal-helper-call-stack",
+      "frames": [
+        {
+          "index": 0,
+          "function": "MixerCapabilityActivation.CapabilityAndroidLifetimeControl.lock.getter : __C.NSLock",
+          "pc": 4303212484
+        },
+        {
+          "index": 1,
+          "function": "MixerCapabilityActivation.CapabilityAndroidLifetimeControl.finishTask(MixerCapabilityActivation.CapabilityAndroidLifetimeControl.Terminal) -> ()",
+          "pc": 4303212484
+        },
+        {
+          "index": 2,
+          "function": "(12) suspend resume partial function for MixerCapabilityActivation.CapabilityAndroidLifetimeControl.run() async -> ()",
+          "pc": 4303208640
+        },
+        {
+          "index": 3,
+          "function": "(1) await resume partial function for partial apply forwarder for closure #1 () async -> () in MixerCapabilityActivation.CapabilityColdStartControl.installObservation(_: MixerCapabilityActivation.CapabilityAttemptSignals, worker: MixerCapabilityActivation.CapabilityColdStartWorker, candidate: Swift.String, launch: Swift.String, op: MixerCapabilityActivation.CapabilityColdStartOperation) throws -> ()",
+          "pc": 4303053504
+        },
+        {
+          "index": 4,
+          "function": "(1) await resume partial function for partial apply forwarder for closure #1 () async -> () in MixerCapabilityActivation.CapabilityColdStartControl.installObservation(_: MixerCapabilityActivation.CapabilityAttemptSignals, worker: MixerCapabilityActivation.CapabilityColdStartWorker, candidate: Swift.String, launch: Swift.String, op: MixerCapabilityActivation.CapabilityColdStartOperation) throws -> ()",
+          "pc": 4303053504
+        },
+        {
+          "index": 5,
+          "function": "(1) await resume partial function for generic specialization <()> of reabstraction thunk helper <\u03c4_0_0, \u03c4_0_1 where \u03c4_0_0: Swift.Sendable, \u03c4_0_1 == Swift.Never> from @escaping @isolated(any) @callee_guaranteed @async () -> (@out \u03c4_0_0) to @escaping @callee_guaranteed @async () -> (@out \u03c4_0_0, @error @owned Swift.Error)",
+          "pc": 4303062136
+        },
+        {
+          "index": 6,
+          "function": "(1) await resume partial function for partial apply forwarder for closure #1 () async -> () in MixerCapabilityActivation.CapabilityColdStartControl.installObservation(_: MixerCapabilityActivation.CapabilityAttemptSignals, worker: MixerCapabilityActivation.CapabilityColdStartWorker, candidate: Swift.String, launch: Swift.String, op: MixerCapabilityActivation.CapabilityColdStartOperation) throws -> ()",
+          "pc": 4303053504
+        }
+      ]
+    },
+    {
+      "point": "actual-presentation-caller-before-terminal-helper-return",
+      "function": "(12) suspend resume partial function for MixerCapabilityActivation.CapabilityAndroidLifetimeControl.run() async -> ()",
+      "pc": 4303208640,
+      "description": "frame #2: 0x00000001007dc0c0 libMixerAndroidStage4.dylib`CapabilityAndroidLifetimeControl.run() at CapabilityGuestUIAndroidLifetime.swift:0 [opt]"
+    },
+    {
+      "point": "actual-terminal-helper-return-pc-binding",
+      "instructions": [
+        {
+          "pc": 4303208636,
+          "mnemonic": "bl",
+          "operands": "0x1007dcfb0",
+          "comment": "MixerCapabilityActivation.CapabilityAndroidLifetimeControl.finishTask(MixerCapabilityActivation.CapabilityAndroidLifetimeControl.Terminal) -> () at CapabilityGuestUIAndroidLifetime.swift:194"
+        },
+        {
+          "pc": 4303208640,
+          "mnemonic": "ldr",
+          "operands": "x20, [x22, #0x128]",
+          "comment": ""
+        }
+      ]
+    },
+    {
+      "point": "after-terminal-helper-return-before-task-return",
+      "thread": 64424509442,
+      "pc": 4303208640,
+      "function": "(12) suspend resume partial function for MixerCapabilityActivation.CapabilityAndroidLifetimeControl.run() async -> ()",
+      "description": "frame #0: 0x00000001007dc0c0 libMixerAndroidStage4.dylib`CapabilityAndroidLifetimeControl.run() at CapabilityGuestUIAndroidLifetime.swift:0 [opt]"
+    },
+    {
+      "point": "debugger-expression",
+      "code": "self.terminal",
+      "output": "(MixerCapabilityActivation.CapabilityAndroidLifetimeControl.Terminal) $R1 = retired\n"
+    },
+    {
+      "point": "signal-test-barrier",
+      "address": 4306551640,
+      "value": 1
+    },
+    {
+      "point": "other-worker-verified-hold",
+      "thread": 64424509441,
+      "function": "mxish_debug_release_point",
+      "held_thread": 64424509442
+    }
+  ],
+  "stdout": "DEBUG_HOLD_PASS post-store\n",
+  "exit": 0,
+  "scope": "Actual unchanged production-byte frames under LLDB. Worker stop/resume or failure-only checked counter write; no success/cleanup/join receipt or C fence injection."
+}

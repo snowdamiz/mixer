@@ -1,0 +1,156 @@
+{
+  "reference": "verification/android-binding-stage4/runs/tsan-probe-repaired-3/receipt.json",
+  "reference_sha256": "3164ee340f9fd22c63a71ad8a35eb7afc70b15ed087f98ecefb35f66c3d2e106",
+  "mode": "tsan",
+  "source_tree_sha256": "6318884d872d853655fa6c81e50dd25d805ed9b508fc4a29df95efefad791ba5",
+  "source_sha256": "5a27b61ec7006cb0e0cd7b12ac862e0fb4849490f85e79751fcffe4fc4c75450",
+  "script_sha256": "ad0e2a098e3ab172837ca4490c2650f882d4ba946b7212e725aa1fdec1f510c2",
+  "commands": [
+    {
+      "name": "swift-version",
+      "argv": [
+        "xcrun",
+        "swiftc",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/supplemental-tsan-final-1",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 0.11066466604825109,
+      "log": "verification/android-binding-stage4/runs/supplemental-tsan-final-1/swift-version.log",
+      "sha256": "30bb0d72a580e8e936ab32e24cab2876f82fa6b06d66fef876fe21a47e828acc"
+    },
+    {
+      "name": "supplemental-link",
+      "argv": [
+        "xcrun",
+        "swiftc",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-probe-repaired-3",
+        "-parse-as-library",
+        "-swift-version",
+        "6",
+        "-warnings-as-errors",
+        "-enable-testing",
+        "-target",
+        "arm64-apple-macosx14.0",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-teardown-window/.build/current-caaa005-1/products",
+        "-module-cache-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-teardown-window/.build/current-caaa005-1/swift-cache",
+        "-Xcc",
+        "-fmodule-map-file=/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-teardown-window/.build/current-caaa005-1/modulemaps/CMixerVMCapability.modulemap",
+        "-Xcc",
+        "-fmodule-map-file=/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-teardown-window/.build/current-caaa005-1/modulemaps/MixerCapabilityDurableIO.modulemap",
+        "-Xcc",
+        "-fmodule-map-file=/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-teardown-window/.build/current-caaa005-1/modulemaps/MixerCapabilityIO.modulemap",
+        "-Xcc",
+        "-fmodule-map-file=/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-teardown-window/.build/current-caaa005-1/modulemaps/MixerDurableIO.modulemap",
+        "-Xcc",
+        "-I/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-teardown-window/.build/current-caaa005-1/source/native/include",
+        "-g",
+        "-sanitize=thread",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-probe-repaired-3/source/native/android/signed-guest-ui/binding/include",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-probe-repaired-3/source/verification/android-binding-stage4/host-bridge",
+        "-Xcc",
+        "-fmodule-map-file=/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-probe-repaired-3/source/verification/android-binding-stage4/host-bridge/test.modulemap",
+        "-Xcc",
+        "-fmodule-map-file=/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-probe-repaired-3/source/verification/android-binding-stage4/host-bridge/probe.modulemap",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/supplemental-tsan-final-1/SupplementalTests.swift",
+        "-emit-executable",
+        "-emit-module",
+        "-emit-module-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/supplemental-tsan-final-1/SupplementalHostTests.swiftmodule",
+        "-L",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-probe-repaired-3",
+        "-lMixerAndroidStage4",
+        "-Xlinker",
+        "-rpath",
+        "-Xlinker",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-probe-repaired-3",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/supplemental-tsan-final-1/SupplementalHostTests"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/supplemental-tsan-final-1",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 0.8982247500680387,
+      "log": "verification/android-binding-stage4/runs/supplemental-tsan-final-1/supplemental-link.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "c-endpoint-exhaustion",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/supplemental-tsan-final-1/SupplementalHostTests",
+        "c-endpoint-exhaustion"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/supplemental-tsan-final-1",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 2.132111791986972,
+      "log": "verification/android-binding-stage4/runs/supplemental-tsan-final-1/c-endpoint-exhaustion.log",
+      "sha256": "d5382db7f2139621e281d28680521e4880df9a264567369c5e2e853d1203eb52"
+    },
+    {
+      "name": "c-entry-exhaustion",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/supplemental-tsan-final-1/SupplementalHostTests",
+        "c-entry-exhaustion"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/supplemental-tsan-final-1",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 2.0567541669588536,
+      "log": "verification/android-binding-stage4/runs/supplemental-tsan-final-1/c-entry-exhaustion.log",
+      "sha256": "242bfde4369afa6d298665cfd0399a88b3458218dc57749c36e9f92b68604d3a"
+    },
+    {
+      "name": "fallback-before-fence",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/supplemental-tsan-final-1/SupplementalHostTests",
+        "fallback-before-fence"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/supplemental-tsan-final-1",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 2.061212250031531,
+      "log": "verification/android-binding-stage4/runs/supplemental-tsan-final-1/fallback-before-fence.log",
+      "sha256": "0203a19a23e31a335d9c7f767f33047e08696bc2bbeff3f867615905aa81885b"
+    },
+    {
+      "name": "late-after-completion",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/supplemental-tsan-final-1/SupplementalHostTests",
+        "late-after-completion"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/supplemental-tsan-final-1",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 2.059110917034559,
+      "log": "verification/android-binding-stage4/runs/supplemental-tsan-final-1/late-after-completion.log",
+      "sha256": "08c76b9d277a31b28c95bc1486f3422fd03b539fc30ea6de228f40bdd4fe7004"
+    }
+  ],
+  "artifacts": {
+    "verification/android-binding-stage4/.build/supplemental-tsan-final-1/SupplementalHostTests": "8512bf14bb6f9efcba38fe072d1bf4316161ff8d51ad670884dc9d19301c6003"
+  },
+  "scope": "Additional original matrix schedules against exact actual Swift/C probe build. C wrappers forward once; only real native counter failures and actual return-boundary holds. No product replacement, Task/receipt/fence synthesis or device authority.",
+  "result": "all four additional original matrix schedules passed",
+  "completed_utc": "2026-10-23T19:47:25.689462+00:00"
+}

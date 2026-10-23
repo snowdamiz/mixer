@@ -1,0 +1,24 @@
+(lldb) command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/debugger_driver.py
+(lldb) stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/debug-debugger-candidate-3/Stage4HostTests post-store /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-debug-candidate-3/post-store.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/debug-debugger-candidate-3/source
+Process 63711 stopped
+* thread #5, name = 'Task 1', queue = 'com.apple.main-thread', stop reason = one-shot breakpoint 2
+       frame #0: 0x0000000100a4262c libMixerAndroidStage4.dylib`mxish_debug_release_point at host_bridge.c:275:5
+   272 	}
+   273 	__attribute__((noinline)) void mxish_debug_release_point(void){
+   274 	    /* A fixed verification-only debugger breakpoint, never a product callback. */
+-> 275 	    pthread_mutex_lock(&host.lock);pthread_cond_broadcast(&host.changed);pthread_mutex_unlock(&host.lock);
+    	    ^
+   276 	}
+  thread #6, name = 'Task 2', queue = 'com.apple.root.default-qos.cooperative', stop reason = step out
+       frame #0: 0x00000001009812e8 libMixerAndroidStage4.dylib`CapabilityAndroidLifetimeControl.run() at CapabilityGuestUIAndroidLifetime.swift:216:9
+   213 	        if hasFault { finishTask(.failed(.transportIO)); return }
+   214 	        requestStop(.closed)
+   215 	        guard let completion = await request(kind: UInt32(MXUIT_RETIRE.rawValue)) else { finishTask(.failed(.identityExhausted)); return }
+-> 216 	        finishTask(completion.kind == UInt32(MXUIT_RETIRE.rawValue) && completion.result == Int32(MXUIT_DRAIN_OK.rawValue) ? .retired : .failed(.retireFailed))
+    	        ^
+   217 	    }
+   218 	    @inline(never)
+   219 	    private func reserveWaiter(kind: UInt32, continuation: CheckedContinuation<Void, Never>) -> CapabilityAndroidRendezvous? {
+Target 0: (Stage4HostTests) stopped.
+Process 63711 exited with status = 9 (0x00000009) killed
+error: held worker resumed and process exited

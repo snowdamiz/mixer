@@ -1,0 +1,32 @@
+{
+  "scenario": "waiter-exhaustion",
+  "result": "passed",
+  "binary": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/debug-debugger-final-7/Stage4HostTests",
+  "events": [
+    {
+      "point": "production-breakpoint",
+      "thread": 64424509442,
+      "pc": 4304962780,
+      "function": "MixerCapabilityActivation.CapabilityAndroidLifetimeControl.reserveWaiter(kind: Swift.UInt32, continuation: Swift.CheckedContinuation<(), Swift.Never>) -> Swift.Optional<MixerCapabilityActivation.CapabilityAndroidRendezvous>",
+      "description": "frame #0: 0x00000001009884dc libMixerAndroidStage4.dylib`CapabilityAndroidLifetimeControl.reserveWaiter(kind=2, continuation=Swift.CheckedContinuation<Swift.Void, Swift.Never> @ 0x000000016ff9ed40) at CapabilityGuestUIAndroidLifetime.swift:220:9"
+    },
+    {
+      "point": "debugger-expression",
+      "code": "self.waiterSerial = UInt64.max",
+      "output": "() $R0 = {}\n"
+    },
+    {
+      "point": "debugger-expression",
+      "code": "self.waiterSerial",
+      "output": "(UInt64) $R1 = 18446744073709551615\n"
+    },
+    {
+      "point": "signal-test-barrier",
+      "address": 4308892560,
+      "value": 1
+    }
+  ],
+  "stdout": "DEBUG_HOLD_PASS waiter-exhaustion\n",
+  "exit": 0,
+  "scope": "Actual unchanged production-byte frames under LLDB. Worker stop/resume or failure-only checked counter write; no success/cleanup/join receipt or C fence injection."
+}

@@ -1,0 +1,71 @@
+--- verification/android-binding-stage4-review/candidate-1/source/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidProgress.swift	2026-10-23 14:11:29
++++ verification/android-binding-stage4-review/final-2/source/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidProgress.swift	2026-10-23 14:49:02
+@@ -22,9 +22,11 @@
+         lock.lock(); defer { lock.unlock() }
+         return .init(sequence: sequence, callbackFence: callbackFence, entryFence: entryFence, fault: fault)
+     }
++    @inline(never)
+     func register(after expected: UInt64, _ incoming: CheckedContinuation<Void, Never>) -> UInt64? {
+         lock.lock(); defer { lock.unlock() }
+-        guard fault == 0, sequence == expected, waiter == nil else { return nil }
++        guard fault == 0, sequence == expected else { return nil }
++        guard waiter == nil else { fault = Int32(MXUIT_INVALID.rawValue); return nil }
+         guard issued < .max else { fault = Int32(MXUIT_EXHAUSTED.rawValue); return nil }
+         issued += 1; waiter = (issued, incoming); return issued
+     }
+@@ -58,6 +60,17 @@
+     func waitFacade(_ facade: UInt64, slot: Int) async -> Int32 {
+         await wait(slot: slot, endpoint: nil, facade: facade)
+     }
++    static func failClosed(_ code: Int32) {
++        let controls = CapabilityAndroidRegistry.shared.quarantineAll(code)
++        var outgoing: [CheckedContinuation<Void, Never>] = []
++        // Publish the fault in every permanent cell before any data/progress
++        // continuation wakes. Admission already irreversibly rejected new work.
++        for cell in shared.cells {
++            if let continuation = cell.merge(callback: 0, entry: 0, fault: code) { outgoing.append(continuation) }
++        }
++        for control in controls { control.transportFault(code) }
++        for continuation in outgoing { continuation.resume() }
++    }
+     private func reclaim(slot: Int, endpoint: CapabilityAndroidHostLifetimeKey?, facade: UInt64) -> Int32 {
+         if let endpoint { return CapabilityAndroidRegistry.shared.reclaimEndpoint(endpoint) }
+         return CapabilityAndroidRegistry.shared.reclaimFacade(slot: slot, facade: facade)
+@@ -71,7 +84,11 @@
+             if first != Int32(MXUIT_BUSY.rawValue) { return first }
+             let attempted = CapabilityAndroidReclaimAttempt()
+             await withCheckedContinuation { continuation in
+-                guard let token = cell.register(after: before.sequence, continuation) else { continuation.resume(); return }
++                guard let token = cell.register(after: before.sequence, continuation) else {
++                    let failure = cell.snapshot.fault
++                    if failure != 0 { Self.failClosed(failure) }
++                    continuation.resume(); return
++                }
+                 let second = reclaim(slot: slot, endpoint: endpoint, facade: facade)
+                 attempted.set(second)
+                 if second != Int32(MXUIT_BUSY.rawValue) { cell.cancel(token)?.resume() }
+@@ -94,16 +111,17 @@
+ }
+ @_cdecl("mxuit_progress")
+ func capabilityAndroidProgress(_ callbackFence: UInt64, _ uiEntryFence: UInt64, _ stickyFault: Int32) {
+-    // Healthy publication uses permanent cells only. Fault fanout closes
+-    // admission first and stops data-only gates before any continuation resumes.
+-    if stickyFault != 0 {
+-        let controls = CapabilityAndroidRegistry.shared.quarantineAll(stickyFault)
+-        for control in controls { control.transportFault(stickyFault) }
+-    }
++    // Healthy publication uses permanent cells only. A checked Swift sequence
++    // overflow takes the same fail-closed data/progress fanout as a C fault.
++    if stickyFault != 0 { CapabilityAndroidProgress.failClosed(stickyFault); return }
+     var outgoing: [CheckedContinuation<Void, Never>] = []
++    var checkedFault: Int32 = 0
+     for cell in CapabilityAndroidProgress.shared.cells {
+-        if let continuation = cell.merge(callback: callbackFence, entry: uiEntryFence, fault: stickyFault) { outgoing.append(continuation) }
++        if let continuation = cell.merge(callback: callbackFence, entry: uiEntryFence, fault: 0) { outgoing.append(continuation) }
++        let fault = cell.snapshot.fault
++        if checkedFault == 0, fault != 0 { checkedFault = fault }
+     }
++    if checkedFault != 0 { CapabilityAndroidProgress.failClosed(checkedFault) }
+     for continuation in outgoing { continuation.resume() }
+     // This post-resume tail can access only consumed continuations/process data.
+ }

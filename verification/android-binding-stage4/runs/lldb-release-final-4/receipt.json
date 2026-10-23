@@ -1,0 +1,255 @@
+{
+  "reference": "verification/android-binding-stage4/runs/release-debugger-final-4/receipt.json",
+  "reference_sha256": "b4d3401c1074f236b82440d6674c7f18a586593317cfb84875c9f66cd76da4a3",
+  "source_tree_sha256": "58b86ed0057e3f39d46c2ff45109189b3d4dd9c9f9627f8936a29b509c6ab55e",
+  "mode": "release",
+  "scope": "Separate LLDB scheduling/failure instrumentation of actual frozen product-byte Debug/Release/TSan build. No result/receipt/fence writes. Post-store proof requires actual terminal store+unlock and same original presentation worker resumed before actual Task.value evidence. Mode-specific optimized-frame limitations remain failures.",
+  "commands": [
+    {
+      "name": "lldb-version",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 0.15278045902960002,
+      "log": "verification/android-binding-stage4/runs/lldb-release-final-4/lldb-version.log",
+      "sha256": "999c6bfe59784b17e53bf45cf42be20662b29814fc4ee105a7c4dc7315be41e1"
+    },
+    {
+      "name": "post-store",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--batch",
+        "-o",
+        "command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-final-4/debugger_driver.py",
+        "-o",
+        "stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-final-4/Stage4HostTests post-store /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-final-4/post-store.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-final-4/source"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 1,
+      "seconds": 10.458336416981183,
+      "log": "verification/android-binding-stage4/runs/lldb-release-final-4/post-store.log",
+      "sha256": "78c8304f0189c883f63419552a047f0b78dc4b2bcac9e04004d38b5d26eac3bb"
+    },
+    {
+      "name": "setup-alias",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--batch",
+        "-o",
+        "command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-final-4/debugger_driver.py",
+        "-o",
+        "stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-final-4/Stage4HostTests setup-alias /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-final-4/setup-alias.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-final-4/source"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 2.6779663750203326,
+      "log": "verification/android-binding-stage4/runs/lldb-release-final-4/setup-alias.log",
+      "sha256": "e0191937a33b5c067d4153a403747458e5743620c696932fe12ccfc31cb52039"
+    },
+    {
+      "name": "bind-return",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--batch",
+        "-o",
+        "command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-final-4/debugger_driver.py",
+        "-o",
+        "stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-final-4/Stage4HostTests bind-return /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-final-4/bind-return.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-final-4/source"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 1.626765958033502,
+      "log": "verification/android-binding-stage4/runs/lldb-release-final-4/bind-return.log",
+      "sha256": "10b4c99003303a4dd65e71540e3c7addcd220eae74041310473a35a02fec2bf6"
+    },
+    {
+      "name": "cancel-accepted",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--batch",
+        "-o",
+        "command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-final-4/debugger_driver.py",
+        "-o",
+        "stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-final-4/Stage4HostTests cancel-accepted /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-final-4/cancel-accepted.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-final-4/source"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 1,
+      "seconds": 1.6265227909898385,
+      "log": "verification/android-binding-stage4/runs/lldb-release-final-4/cancel-accepted.log",
+      "sha256": "fe695b2cd494f7eae2a9c3174e47532d07a8ab6bc2e281a2d1d62d3c5ca1b133"
+    },
+    {
+      "name": "waiter-exhaustion",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--batch",
+        "-o",
+        "command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-final-4/debugger_driver.py",
+        "-o",
+        "stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-final-4/Stage4HostTests waiter-exhaustion /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-final-4/waiter-exhaustion.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-final-4/source"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 6.0354827920673415,
+      "log": "verification/android-binding-stage4/runs/lldb-release-final-4/waiter-exhaustion.log",
+      "sha256": "15054e3bf3516d03a5471c2e99248880f262b462d85ba14edf634aef5bc56755"
+    },
+    {
+      "name": "progress-token-exhaustion",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--batch",
+        "-o",
+        "command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-final-4/debugger_driver.py",
+        "-o",
+        "stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-final-4/Stage4HostTests progress-token-exhaustion /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-final-4/progress-token-exhaustion.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-final-4/source"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 5.832529166946188,
+      "log": "verification/android-binding-stage4/runs/lldb-release-final-4/progress-token-exhaustion.log",
+      "sha256": "76582e744521c8ffd194bb5d658b9b436e7cd16da201c7342f0617af4b9bf8ea"
+    },
+    {
+      "name": "progress-sequence-exhaustion",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--batch",
+        "-o",
+        "command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-final-4/debugger_driver.py",
+        "-o",
+        "stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-final-4/Stage4HostTests progress-sequence-exhaustion /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-final-4/progress-sequence-exhaustion.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-final-4/source"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 1,
+      "seconds": 5.038746124948375,
+      "log": "verification/android-binding-stage4/runs/lldb-release-final-4/progress-sequence-exhaustion.log",
+      "sha256": "dadf9511ce67dd97dd847f34ba8005c509e76293cdba5ea3d5e2f27efbf6172d"
+    },
+    {
+      "name": "lifetime-exhaustion",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--batch",
+        "-o",
+        "command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-final-4/debugger_driver.py",
+        "-o",
+        "stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-final-4/Stage4HostTests lifetime-exhaustion /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-final-4/lifetime-exhaustion.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-final-4/source"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 1,
+      "seconds": 4.672463957918808,
+      "log": "verification/android-binding-stage4/runs/lldb-release-final-4/lifetime-exhaustion.log",
+      "sha256": "4e9194d689f7e9524a4e3b94426df74836adc1695faf9a718f290bd7caad1783"
+    },
+    {
+      "name": "gate-order",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--batch",
+        "-o",
+        "command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-final-4/debugger_driver.py",
+        "-o",
+        "stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-final-4/Stage4HostTests gate-order /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-final-4/gate-order.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-final-4/source"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 4.465068166027777,
+      "log": "verification/android-binding-stage4/runs/lldb-release-final-4/gate-order.log",
+      "sha256": "834c2f00a2aa345e3fa886426c1f0e392e5d6ac36194f5e5a4d97a98716d0bcd"
+    }
+  ],
+  "inputs": {
+    "driver": "27e5697707e054ffe36ae04bfba1c50e1e700832f048787cff6429c6201bd826",
+    "launcher": "4d7260cc51f5850cf84c732d70d6a864af5faa6f6c7e773dc4fb545e8e23b808"
+  },
+  "artifacts": {
+    "verification/android-binding-stage4/.build/release-debugger-final-4/Stage4HostTests": "3dd6129f55f5e98887b2625381dd9b1fe857433c098008cdd6b976af86c9257d",
+    "verification/android-binding-stage4/.build/release-debugger-final-4/libMixerAndroidStage4.dylib": "c461caa9657c7af9efcfea2c204969fdfed48a7757e76991756c23ce40a706c8"
+  },
+  "result": "failed instrumented attempts retained; no broader pass",
+  "evidence": {
+    "verification/android-binding-stage4/runs/lldb-release-final-4/lifetime-exhaustion.json": "4f46c2620f22a0a2d6dc87d0fa975661e4ede257132ac36d756d988a4e9a1ad6",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/bind-return.stdout": "d2a79ac953e0ee56f13f8f284eb29a3ceab222b3ee95f9ed3877d2b9824374b2",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/post-store.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/bind-return.json": "a5b1cddb6e36f9a38d9490939b09d4191c6d49cdb3fbf713f85a7d98909310f1",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/debugger_driver.py": "27e5697707e054ffe36ae04bfba1c50e1e700832f048787cff6429c6201bd826",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/progress-sequence-exhaustion.stderr": "a4d6648503ec5ec403a659589d198be8bddf41d67df74cf9d872534710577004",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/setup-alias.json": "5b0bfcda169eacf2ecaeced76f778e2a2673a36bb3464ff7a5e9cfbe4b63ead7",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/cancel-accepted.json": "45c58df357985895a3df9715d14710b380fa7aad8872b336827132367fdd7a60",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/progress-sequence-exhaustion.json": "163e1fe1b4916682b91ca593d845749f239cf22df61d9200c8c1f6c48beb710a",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/progress-sequence-exhaustion.log": "dadf9511ce67dd97dd847f34ba8005c509e76293cdba5ea3d5e2f27efbf6172d",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/progress-sequence-exhaustion.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/gate-order.log": "834c2f00a2aa345e3fa886426c1f0e392e5d6ac36194f5e5a4d97a98716d0bcd",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/cancel-accepted.log": "fe695b2cd494f7eae2a9c3174e47532d07a8ab6bc2e281a2d1d62d3c5ca1b133",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/gate-order.json": "fb5fea2079056920714bd6600e801d1a2aca30a1d2bd9189c1328bde0c617de6",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/progress-token-exhaustion.log": "76582e744521c8ffd194bb5d658b9b436e7cd16da201c7342f0617af4b9bf8ea",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/post-store.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/bind-return.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/post-store.json": "d58d04f6d7d241faa8afd18438b906912d303dc9ca06dd3c4d8d24c6104450b5",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/bind-return.log": "10b4c99003303a4dd65e71540e3c7addcd220eae74041310473a35a02fec2bf6",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/lldb-version.log": "999c6bfe59784b17e53bf45cf42be20662b29814fc4ee105a7c4dc7315be41e1",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/waiter-exhaustion.stdout": "a49ae24d770be8cdb0dbb4e07e674fd3de508923592e87d3510446ce6811d855",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/lifetime-exhaustion.stderr": "b291cd411bfc67977949b76102878f5e90aec61656aeb7935fc3f150964cff6b",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/cancel-accepted.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/lifetime-exhaustion.log": "4e9194d689f7e9524a4e3b94426df74836adc1695faf9a718f290bd7caad1783",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/gate-order.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/setup-alias.stdout": "b8b4387c879ebc497637f6f30c579f1c78ed85cbfaeab77fb3ad878621deba96",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/progress-token-exhaustion.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/setup-alias.log": "e0191937a33b5c067d4153a403747458e5743620c696932fe12ccfc31cb52039",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/setup-alias.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/progress-token-exhaustion.stdout": "4226df6f197b2397f874ceb8a91209410c2fea549fb62cedf32d7a000db54e47",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/waiter-exhaustion.json": "3060e9c01f62979e00be4c0dbb4378ffe84e5c9c1c9e5e36e4d12d6fc47c494a",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/gate-order.stdout": "c75178f2b5d70e407dd47be2cee695ff85355392f41d395f5d8be14d9770e40a",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/waiter-exhaustion.log": "15054e3bf3516d03a5471c2e99248880f262b462d85ba14edf634aef5bc56755",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/cancel-accepted.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/progress-token-exhaustion.json": "85e5a0b51043e97677ebb3cc9e84d83d70785da17e7f8a10bcbdd83caec35dd4",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/lifetime-exhaustion.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/post-store.log": "78c8304f0189c883f63419552a047f0b78dc4b2bcac9e04004d38b5d26eac3bb",
+    "verification/android-binding-stage4/runs/lldb-release-final-4/waiter-exhaustion.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "completed_utc": "2026-10-23T19:05:34.530087+00:00"
+}

@@ -1,0 +1,25 @@
+{
+  "scenario": "reservation-hold",
+  "result": "failed",
+  "error": "self.facades[0].reserved: error: warning: Missing debug information for variable \"index\": no location, value may have been optimized out\nerror: <EXPR>:6:1: cannot find 'self' in scope; did you mean to use it in a type or extension context?\nself.facades[0].reserved\n^~~~\n",
+  "events": [
+    {
+      "point": "production-breakpoint",
+      "thread": 64424509442,
+      "pc": 4303590300,
+      "function": "mxuit_facade_acquire",
+      "description": "frame #0: 0x000000010083939c libMixerAndroidStage4.dylib`mxuit_facade_acquire(facade=0x000000016ff12bf0) at transport.c:211:16 [opt]"
+    },
+    {
+      "point": "actual-reserved-facade-caller-stack",
+      "frames": [
+        {
+          "function": "MixerCapabilityActivation.CapabilityAndroidRegistry.acquireFacade() throws -> (Swift.Int, Swift.UInt64)",
+          "pc": 4303300932,
+          "self": "(MixerCapabilityActivation.CapabilityAndroidRegistry) self = <could not evaluate DW_OP_entry_value: no call edge for retn-pc = 0x1007e7234 in parent frame (1) suspend resume partial function for static MixerCapabilityActivation.CapabilityGuestUIAndroidBinding.prepareHost(reservation: MixerCapabilityActivation.CapabilityAttemptReservation) async throws -> MixerCapabilityActivation.CapabilityAndroidHostPreparedPresentation>\n",
+          "record": "(MixerCapabilityActivation.CapabilityAndroidFacadeRecord) record = 0x0000000100e15c90 {\n  lock = 0x00000078ba808540 {\n    baseNSObject@0 = (isa = NSLock)\n  }\n  reserved = true\n  facade = 0\n  resources = nil {\n    facade = <parent failed to evaluate: read memory from 0x0 failed (0 of 8 bytes read)>\n\n    bridgeGeneration = <parent failed to evaluate: read memory from 0x0 failed (0 of 8 bytes read)>\n\n    revision = <parent failed to evaluate: read memory from 0x0 failed (0 of 8 bytes read)>\n\n    exchange = <parent failed to evaluate: read memory from 0x0 failed (0 of 8 bytes read)>\n\n    reconciler = <parent failed to evaluate: read memory from 0x0 failed (0 of 8 bytes read)>\n\n    snapshot = <parent failed to evaluate: read memory from 0x0 failed (0 of 8 bytes read)>\n\n    ticket = <parent failed to evaluate: read memory from 0x0 failed (0 of 8 bytes read)>\n\n    lastEvent = <parent failed to evaluate: read memory from 0x0 failed (0 of 8 bytes read)>\n\n    pendingPacket = <parent failed to evaluate: read memory from 0x0 failed (0 of 8 bytes read)>\n\n    tokenSerial = <parent failed to evaluate: read memory from 0x0 failed (0 of 8 bytes read)>\n\n    attachment = <parent failed to evaluate: read memory from 0x0 failed (0 of 8 bytes read)>\n\n    input = <parent failed to evaluate: read memory from 0x0 failed (0 of 8 bytes read)>\n\n    probe = <parent failed to evaluate: read memory from 0x0 failed (0 of 8 bytes read)>\n\n  }\n  published = false\n  facadeReclaimed = false\n  lookupEnabled = false\n  closing = false\n  quarantined = false\n  endpoint = 0\n  lifetime = nil\n  setupAliases = 0\n  uiAliases = 0\n  cleanupSerial = 0\n  cleanup = nil\n}"
+        }
+      ]
+    }
+  ]
+}

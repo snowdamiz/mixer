@@ -1,0 +1,33 @@
+{
+  "scenario": "setup-alias",
+  "result": "passed",
+  "binary": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-debugger-final-4/Stage4HostTests",
+  "events": [
+    {
+      "point": "production-breakpoint",
+      "thread": 64424509443,
+      "pc": 4306454232,
+      "function": "static MixerCapabilityActivation.CapabilityGuestUIAndroidResources.installInner(_: MixerGuest.GuestUIExchangeV1, record: MixerCapabilityActivation.CapabilityAndroidFacadeRecord) throws -> ()",
+      "description": "frame #0: 0x0000000100af46d8 libMixerAndroidStage4.dylib`static CapabilityGuestUIAndroidResources.installInner(exchange=0x0000000109c03700, record=0x000000010a605c40) at CapabilityGuestUIAndroidResources.swift:57:25"
+    },
+    {
+      "point": "actual-strong-resource-local",
+      "type": "MixerCapabilityActivation.CapabilityGuestUIAndroidResources",
+      "address": 4476402816
+    },
+    {
+      "point": "signal-test-barrier",
+      "address": 4310825872,
+      "value": 1
+    },
+    {
+      "point": "other-worker-verified-hold",
+      "thread": 64424509441,
+      "function": "mxish_debug_release_point",
+      "held_thread": 64424509443
+    }
+  ],
+  "stdout": "DEBUG_HOLD_PASS setup-alias\n",
+  "exit": 0,
+  "scope": "Actual unchanged production-byte frames under LLDB. Worker stop/resume or failure-only checked counter write; no success/cleanup/join receipt or C fence injection."
+}

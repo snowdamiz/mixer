@@ -1,0 +1,12 @@
+/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4-review/authority-candidate-1/testable-private-host-finish.swift:4:132: error: 'finishAndroidHost' is inaccessible due to 'fileprivate' protection level
+2 | @_spi(GuestUIV1) import MixerGuest
+3 | @testable import MixerCapabilityActivation
+4 | func bad(_ lifetime: CapabilityGuestUIPresentationLifetime, _ permit: CapabilityPresentationJoinPermit) async { _ = await lifetime.finishAndroidHost(using: permit) }
+  |                                                                                                                                    `- error: 'finishAndroidHost' is inaccessible due to 'fileprivate' protection level
+5 | 
+
+MixerCapabilityActivation.CapabilityGuestUIPresentationLifetime.finishAndroidHost:2:18: note: 'finishAndroidHost(using:)' declared here
+1 | class CapabilityGuestUIPresentationLifetime {
+2 | fileprivate func finishAndroidHost(using permit: MixerCapabilityActivation.CapabilityPresentationJoinPermit) async -> MixerCapabilityActivation.CapabilityAndroidHostJoinStatus}
+  |                  `- note: 'finishAndroidHost(using:)' declared here
+3 | 

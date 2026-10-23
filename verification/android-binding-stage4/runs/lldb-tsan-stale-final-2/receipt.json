@@ -1,0 +1,63 @@
+{
+  "reference": "verification/android-binding-stage4/runs/tsan-debugger-matrix-final-2/receipt.json",
+  "reference_sha256": "2ead1195af66fff149009e59237998da3323c1be75d172d6d406b2934588ae01",
+  "source_tree_sha256": "6d9d5afbb49b8a2b97ae0a39e5bb807bf7aa2932e9f7cc842c4820328b872f80",
+  "mode": "tsan",
+  "scope": "Separate LLDB scheduling/failure instrumentation of actual frozen product-byte Debug/Release/TSan build. No result/receipt/fence writes. Post-store proof requires actual terminal store+unlock and same original presentation worker resumed before actual Task.value evidence. Mode-specific optimized-frame limitations remain failures.",
+  "commands": [
+    {
+      "name": "lldb-version",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 0.14147520903497934,
+      "log": "verification/android-binding-stage4/runs/lldb-tsan-stale-final-2/lldb-version.log",
+      "sha256": "999c6bfe59784b17e53bf45cf42be20662b29814fc4ee105a7c4dc7315be41e1"
+    },
+    {
+      "name": "stale-cleanup-replay",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--batch",
+        "-o",
+        "command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-tsan-stale-final-2/debugger_driver.py",
+        "-o",
+        "stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-debugger-matrix-final-2/Stage4HostTests stale-cleanup-replay /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-tsan-stale-final-2/stale-cleanup-replay.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-debugger-matrix-final-2/source"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 12.010668082977645,
+      "log": "verification/android-binding-stage4/runs/lldb-tsan-stale-final-2/stale-cleanup-replay.log",
+      "sha256": "64f9d4476db906f4694d9909fdfc67e9a9b4f442604a6de47a25b406b792177d"
+    }
+  ],
+  "inputs": {
+    "driver": "916706030c9cdc7640cb17ca1a243926492ca62c5fa5e1d8751e1c4d8897923f",
+    "launcher": "4d7260cc51f5850cf84c732d70d6a864af5faa6f6c7e773dc4fb545e8e23b808"
+  },
+  "artifacts": {
+    "verification/android-binding-stage4/.build/tsan-debugger-matrix-final-2/Stage4HostTests": "000c551a4914aec84476144673781fc63b0ed91ccd1d8c23f44084f61f29cdef",
+    "verification/android-binding-stage4/.build/tsan-debugger-matrix-final-2/libMixerAndroidStage4.dylib": "95ec937034e3c4b4b7bae8099982c41e7440372813c99ff8a852a3bb4ec94698"
+  },
+  "result": "all selected instrumented scheduling/failure proofs passed",
+  "evidence": {
+    "verification/android-binding-stage4/runs/lldb-tsan-stale-final-2/stale-cleanup-replay.log": "64f9d4476db906f4694d9909fdfc67e9a9b4f442604a6de47a25b406b792177d",
+    "verification/android-binding-stage4/runs/lldb-tsan-stale-final-2/debugger_driver.py": "916706030c9cdc7640cb17ca1a243926492ca62c5fa5e1d8751e1c4d8897923f",
+    "verification/android-binding-stage4/runs/lldb-tsan-stale-final-2/stale-cleanup-replay.json": "22f6752b89c42d5f3bfd3bddb208b493ef5b83d5181bf9723166c10ddd09fa61",
+    "verification/android-binding-stage4/runs/lldb-tsan-stale-final-2/lldb-version.log": "999c6bfe59784b17e53bf45cf42be20662b29814fc4ee105a7c4dc7315be41e1",
+    "verification/android-binding-stage4/runs/lldb-tsan-stale-final-2/stale-cleanup-replay.stderr": "4c3084ef75b4833bd242c801df11e184d6619e400476e2d152029ecbe48cda04",
+    "verification/android-binding-stage4/runs/lldb-tsan-stale-final-2/stale-cleanup-replay.stdout": "34b22a97160bfefda9d85f33a550bbb1ace73ee629294b62b2b7700a9b66d983"
+  },
+  "completed_utc": "2026-10-23T19:38:23.144407+00:00"
+}

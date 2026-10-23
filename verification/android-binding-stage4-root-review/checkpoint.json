@@ -1,0 +1,34 @@
+{
+  "observed_utc": "2026-10-23T20:05:48.793303+00:00",
+  "source_revision": "3d931375dad842784217cda7a65e2e34a77eafed",
+  "inputs": {
+    "PLAN.md": "8933bb5d3971eb629293646aee9167471a42a6a201b64ba9879178db7e1697e7",
+    "STATUS.md": "232b6962c18f9673f4bc4e00eb932a4e8cb32b38304a774b9c48453b5f9b8698",
+    "work-graph.json": "f0b8c79124e8eb48afd53f4948bab40bee2911b68a7d3d5181c454e2ee1dc8b1",
+    "gates/ga.json": "060c4f56f48dfb2964f1bdbfc903c01407c3839364dd9a971e102774718ebb83",
+    "verification/android-binding-stage4-root-review/acceptance.json": "69bd4ab51dc8ebe7eb968baade461114dad48e35040da527dc946953575bfe79"
+  },
+  "commands": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "scripts/check-policy.py"
+      ],
+      "exit": 0,
+      "output": "verification/android-binding-stage4-root-review/policy-checkpoint.log",
+      "sha256": "9f72a75d581d6b43ac6ecd672663f368468f23864c1ccb0f13e66f46ba4a22ac"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "output": "verification/android-binding-stage4-root-review/diff-check-checkpoint.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "scope": "Checkpoint tracker consistency and whitespace checks. These do not expand the scoped host acceptance; hosted CI of the new step is pending."
+}

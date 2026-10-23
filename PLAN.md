@@ -31,6 +31,24 @@ implementation, host tests, cross-compilation and simulator validation. Preserve
 completed device receipts and mark subsequent physical-device checks pending;
 do not retry devices or request reconnection during this limitation.
 
+The private Android host binding is now accepted within its recorded host scope;
+see `verification/android-binding-stage4-root-review/acceptance.json`. Root
+verified 4,149 acceptance bindings after independent review of 3,182 files and
+nine additional lifecycle replays. A fresh-source CI runner passes 39 ordinary
+scenarios per Debug/Release/TSan, with 15 provenance/CI regressions per normal and
+optimized Python. The full original dynamic matrix is still incomplete: S4-21
+native event delivery and S4-29 optimized Release lifetime-counter injection are
+pending. Hosted pinned Swift 6.2.4 execution of the new runner is also pending.
+The next Android lane designs a separate JNI/Java ownership and verification
+contract before implementation. Host receipts grant no native authority.
+
+The independent cache review is repairing its temporary-memory maps before
+acceptance. Shared foundation bytes remain unchanged while complete prepare and
+pre-enlargement phase alternatives are measured. Executor implementation and
+full-target execution remain gated on that acceptance. Hosted checkpoint
+`3d93137` passed all three jobs; its receipt is
+`verification/github-ci-3d93137/receipt.json`.
+
 
 ## Capability execution integration
 
@@ -301,7 +319,7 @@ protocol start. The test-only repair observes start before advancing its deadlin
 and separately checks native invalidation before resume. Debug/Release52, TSan32,
 20 repeated cleanup pairs and alternate Swift6.3.3 TSan32 pass; root audited267
 bindings in `verification/http-cleanup-ci-repair/root-review.json`. Product HTTP
-transport is unchanged and pinned Swift6.2.4 revalidation remains pending CI.
+transport is unchanged and pinned Swift 6.2.4 revalidation remains pending CI.
 Hosted401e16c also passes VM/services but Swift stops at the dependency guard:
 its `wasm3` substring wrongly matches `wasm32` architecture names in the concurrent
 website lockfile. The narrow guard correction reproduces all11 false positives,
@@ -389,7 +407,7 @@ that test-only helper. The actual retained model/hidden-window suite passes
 13 tests with one visible-window skip per Debug/Release/TSan on Swift6.4. Root
 audited 111 bindings in `verification/presentation-actor-ci-repair/root-review.json`.
 The retained production module matches this committed checkpoint; concurrent
-Android implementation is outside that qualification. Pinned Swift6.2.4 rerun
+Android implementation is outside that qualification. Pinned Swift 6.2.4 rerun
 is pending. Both failed hosted receipts remain preserved; no skipped gate,
 physical device or GA check is relabeled as passed.
 
@@ -426,7 +444,7 @@ executor and bounded full-target runner remain pending. No cache execution or GA
 qualification follows from this prerequisite checkpoint.
 
 Hosted 8d809df and bd8a896 both pass all three VM/Swift/services jobs. This confirms
-the pinned Swift6.2.4 actor-helper repair and the accounted WASI checkpoint.
+the pinned Swift 6.2.4 actor-helper repair and the accounted WASI checkpoint.
 Historical failed runs remain retained. Android binding implementation/review is
 ongoing; physical phones, immutable separately published FieldLog packages,
 full-target performance/delivery-size and all specified external gates remain open.

@@ -1,0 +1,12 @@
+/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4-review/authority-candidate-1/testable-construct-cleanup.swift:4:57: error: 'CapabilityAndroidHostFacadeCleanupEvidence' initializer is inaccessible due to 'fileprivate' protection level
+2 | @_spi(GuestUIV1) import MixerGuest
+3 | @testable import MixerCapabilityActivation
+4 | func bad(_ key: CapabilityAndroidHostLifetimeKey) { _ = CapabilityAndroidHostFacadeCleanupEvidence(key: key, cleanupSerial: 1, finalEntrySerial: 1, bridgeSlotGeneration: 1, clearedExchangeGeneration: nil, clearedResourceStageRevision: 1) }
+  |                                                         `- error: 'CapabilityAndroidHostFacadeCleanupEvidence' initializer is inaccessible due to 'fileprivate' protection level
+5 | 
+
+MixerCapabilityActivation.CapabilityAndroidHostFacadeCleanupEvidence.init:2:13: note: 'init(key:cleanupSerial:finalEntrySerial:bridgeSlotGeneration:clearedExchangeGeneration:clearedResourceStageRevision:)' declared here
+1 | struct CapabilityAndroidHostFacadeCleanupEvidence {
+2 | fileprivate init(key: MixerCapabilityActivation.CapabilityAndroidHostLifetimeKey, cleanupSerial: UInt64, finalEntrySerial: UInt64, bridgeSlotGeneration: UInt64, clearedExchangeGeneration: UInt64?, clearedResourceStageRevision: UInt64)}
+  |             `- note: 'init(key:cleanupSerial:finalEntrySerial:bridgeSlotGeneration:clearedExchangeGeneration:clearedResourceStageRevision:)' declared here
+3 | 

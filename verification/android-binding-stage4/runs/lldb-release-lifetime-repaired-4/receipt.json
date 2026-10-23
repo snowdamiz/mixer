@@ -1,0 +1,63 @@
+{
+  "reference": "verification/android-binding-stage4/runs/release-debugger-repaired-2/receipt.json",
+  "reference_sha256": "62e4559ba802e4c220a9d35b54d2a3776337b1ad3f062793a2632bfd6937e947",
+  "source_tree_sha256": "e8a6d021c7eb99db60391ba516870b6722c8307f5f331ad3f8a76999cb862645",
+  "mode": "release",
+  "scope": "Separate LLDB scheduling/failure instrumentation of actual frozen product-byte Debug/Release/TSan build. No result/receipt/fence writes. Post-store proof requires actual terminal store+unlock and same original presentation worker resumed before actual Task.value evidence. Mode-specific optimized-frame limitations remain failures.",
+  "commands": [
+    {
+      "name": "lldb-version",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 0.2721947500249371,
+      "log": "verification/android-binding-stage4/runs/lldb-release-lifetime-repaired-4/lldb-version.log",
+      "sha256": "999c6bfe59784b17e53bf45cf42be20662b29814fc4ee105a7c4dc7315be41e1"
+    },
+    {
+      "name": "lifetime-exhaustion",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--batch",
+        "-o",
+        "command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-lifetime-repaired-4/debugger_driver.py",
+        "-o",
+        "stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-repaired-2/Stage4HostTests lifetime-exhaustion /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-lifetime-repaired-4/lifetime-exhaustion.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-repaired-2/source"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 1,
+      "seconds": 8.195694458903745,
+      "log": "verification/android-binding-stage4/runs/lldb-release-lifetime-repaired-4/lifetime-exhaustion.log",
+      "sha256": "9c623be0b9ac267651a3026c9b6fb14ad5ce3e9c047fdc2ba5cdb46635f19f52"
+    }
+  ],
+  "inputs": {
+    "driver": "cd604507b2e967c2435ace487da39f15360cc3223ba02767d7b7a0c6f569233f",
+    "launcher": "4d7260cc51f5850cf84c732d70d6a864af5faa6f6c7e773dc4fb545e8e23b808"
+  },
+  "artifacts": {
+    "verification/android-binding-stage4/.build/release-debugger-repaired-2/Stage4HostTests": "a10328f681f2a73ada0f652a47e206212974b95b7230f49c5edbaf9ef67f0bf2",
+    "verification/android-binding-stage4/.build/release-debugger-repaired-2/libMixerAndroidStage4.dylib": "65ee3bc396df01768fe6c390a75fd31a09763b5a6282fe562d57039c2d2dd89b"
+  },
+  "result": "failed instrumented attempts retained; no broader pass",
+  "evidence": {
+    "verification/android-binding-stage4/runs/lldb-release-lifetime-repaired-4/lifetime-exhaustion.json": "93ab4f8dd55775ecdfae68fbe85a1d404aa049f0f77447468eb617f3c9dad093",
+    "verification/android-binding-stage4/runs/lldb-release-lifetime-repaired-4/debugger_driver.py": "cd604507b2e967c2435ace487da39f15360cc3223ba02767d7b7a0c6f569233f",
+    "verification/android-binding-stage4/runs/lldb-release-lifetime-repaired-4/lldb-version.log": "999c6bfe59784b17e53bf45cf42be20662b29814fc4ee105a7c4dc7315be41e1",
+    "verification/android-binding-stage4/runs/lldb-release-lifetime-repaired-4/lifetime-exhaustion.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/android-binding-stage4/runs/lldb-release-lifetime-repaired-4/lifetime-exhaustion.log": "9c623be0b9ac267651a3026c9b6fb14ad5ce3e9c047fdc2ba5cdb46635f19f52",
+    "verification/android-binding-stage4/runs/lldb-release-lifetime-repaired-4/lifetime-exhaustion.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "completed_utc": "2026-10-23T19:27:40.822971+00:00"
+}

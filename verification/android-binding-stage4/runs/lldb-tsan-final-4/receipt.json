@@ -1,0 +1,255 @@
+{
+  "reference": "verification/android-binding-stage4/runs/tsan-debugger-final-4/receipt.json",
+  "reference_sha256": "0ba714e5c18e39545315bdbc7b924a4829598a70b1750aa6b677d6418d4a6484",
+  "source_tree_sha256": "58b86ed0057e3f39d46c2ff45109189b3d4dd9c9f9627f8936a29b509c6ab55e",
+  "mode": "tsan",
+  "scope": "Separate LLDB scheduling/failure instrumentation of actual frozen product-byte Debug/Release/TSan build. No result/receipt/fence writes. Post-store proof requires actual terminal store+unlock and same original presentation worker resumed before actual Task.value evidence. Mode-specific optimized-frame limitations remain failures.",
+  "commands": [
+    {
+      "name": "lldb-version",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 0.15161733399145305,
+      "log": "verification/android-binding-stage4/runs/lldb-tsan-final-4/lldb-version.log",
+      "sha256": "999c6bfe59784b17e53bf45cf42be20662b29814fc4ee105a7c4dc7315be41e1"
+    },
+    {
+      "name": "post-store",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--batch",
+        "-o",
+        "command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-tsan-final-4/debugger_driver.py",
+        "-o",
+        "stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-debugger-final-4/Stage4HostTests post-store /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-tsan-final-4/post-store.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-debugger-final-4/source"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 12.493176457937807,
+      "log": "verification/android-binding-stage4/runs/lldb-tsan-final-4/post-store.log",
+      "sha256": "b0373cd812e3071c18efccab4952c13c68dae7f6f9c67e060d0feaed107134be"
+    },
+    {
+      "name": "setup-alias",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--batch",
+        "-o",
+        "command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-tsan-final-4/debugger_driver.py",
+        "-o",
+        "stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-debugger-final-4/Stage4HostTests setup-alias /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-tsan-final-4/setup-alias.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-debugger-final-4/source"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 3.7699734589550644,
+      "log": "verification/android-binding-stage4/runs/lldb-tsan-final-4/setup-alias.log",
+      "sha256": "b8644a2438b68284fb4c14edb2cf4679eebfd7cfd6ea01398a21598c9c8ed805"
+    },
+    {
+      "name": "bind-return",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--batch",
+        "-o",
+        "command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-tsan-final-4/debugger_driver.py",
+        "-o",
+        "stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-debugger-final-4/Stage4HostTests bind-return /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-tsan-final-4/bind-return.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-debugger-final-4/source"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 4.220633417018689,
+      "log": "verification/android-binding-stage4/runs/lldb-tsan-final-4/bind-return.log",
+      "sha256": "8be0367c6634d6ef737a94ef699dba285fdb63f5f3d5363493a7677651155ee7"
+    },
+    {
+      "name": "cancel-accepted",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--batch",
+        "-o",
+        "command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-tsan-final-4/debugger_driver.py",
+        "-o",
+        "stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-debugger-final-4/Stage4HostTests cancel-accepted /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-tsan-final-4/cancel-accepted.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-debugger-final-4/source"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 1,
+      "seconds": 1.8319716249825433,
+      "log": "verification/android-binding-stage4/runs/lldb-tsan-final-4/cancel-accepted.log",
+      "sha256": "a55bb8f3a69a9d628ef5e69dee7a87ec1abaadec013339ad9e7574ac2c836f96"
+    },
+    {
+      "name": "waiter-exhaustion",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--batch",
+        "-o",
+        "command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-tsan-final-4/debugger_driver.py",
+        "-o",
+        "stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-debugger-final-4/Stage4HostTests waiter-exhaustion /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-tsan-final-4/waiter-exhaustion.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-debugger-final-4/source"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 7.647557999938726,
+      "log": "verification/android-binding-stage4/runs/lldb-tsan-final-4/waiter-exhaustion.log",
+      "sha256": "00a9730ab1eb9f776d73ab51809b3713c6d317bc3872b674f92723c8d0ed0eb6"
+    },
+    {
+      "name": "progress-token-exhaustion",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--batch",
+        "-o",
+        "command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-tsan-final-4/debugger_driver.py",
+        "-o",
+        "stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-debugger-final-4/Stage4HostTests progress-token-exhaustion /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-tsan-final-4/progress-token-exhaustion.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-debugger-final-4/source"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 7.286929999943823,
+      "log": "verification/android-binding-stage4/runs/lldb-tsan-final-4/progress-token-exhaustion.log",
+      "sha256": "7408ec9108cc0b3c2829dc8e652c2502155d7bd75ff88e52e275aa08639d9314"
+    },
+    {
+      "name": "progress-sequence-exhaustion",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--batch",
+        "-o",
+        "command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-tsan-final-4/debugger_driver.py",
+        "-o",
+        "stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-debugger-final-4/Stage4HostTests progress-sequence-exhaustion /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-tsan-final-4/progress-sequence-exhaustion.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-debugger-final-4/source"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 6.779381333035417,
+      "log": "verification/android-binding-stage4/runs/lldb-tsan-final-4/progress-sequence-exhaustion.log",
+      "sha256": "5d3940f8e0d236167677206134e77681f7be547693151494e640d1f6c41cd7e3"
+    },
+    {
+      "name": "lifetime-exhaustion",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--batch",
+        "-o",
+        "command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-tsan-final-4/debugger_driver.py",
+        "-o",
+        "stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-debugger-final-4/Stage4HostTests lifetime-exhaustion /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-tsan-final-4/lifetime-exhaustion.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-debugger-final-4/source"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 6.3249632499646395,
+      "log": "verification/android-binding-stage4/runs/lldb-tsan-final-4/lifetime-exhaustion.log",
+      "sha256": "7379dff63b713691609e72c76a384141b9c5e08c6493c1db6ec98ab52aed2488"
+    },
+    {
+      "name": "gate-order",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--batch",
+        "-o",
+        "command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-tsan-final-4/debugger_driver.py",
+        "-o",
+        "stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-debugger-final-4/Stage4HostTests gate-order /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-tsan-final-4/gate-order.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-debugger-final-4/source"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 6.071381916990504,
+      "log": "verification/android-binding-stage4/runs/lldb-tsan-final-4/gate-order.log",
+      "sha256": "39f3edbcc933858e6cd4b5132dc3ab4e5b4f7bc0223872c7e7b21da51dc11c03"
+    }
+  ],
+  "inputs": {
+    "driver": "27e5697707e054ffe36ae04bfba1c50e1e700832f048787cff6429c6201bd826",
+    "launcher": "4d7260cc51f5850cf84c732d70d6a864af5faa6f6c7e773dc4fb545e8e23b808"
+  },
+  "artifacts": {
+    "verification/android-binding-stage4/.build/tsan-debugger-final-4/Stage4HostTests": "1c7c2627b99f90f0be6ea54deb1a436a83e2e1c204316f15bddd06e38d53ac6c",
+    "verification/android-binding-stage4/.build/tsan-debugger-final-4/libMixerAndroidStage4.dylib": "a0a2657f43f66424caa69e2bea97f6b08ff3e0944945145ff36eddc800d0dd4f"
+  },
+  "result": "failed instrumented attempts retained; no broader pass",
+  "evidence": {
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/lifetime-exhaustion.json": "2ca82b63229120bc9d52e29027224a48a76b4de37b3073a9e511989e9ce6a7a6",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/bind-return.stdout": "d2a79ac953e0ee56f13f8f284eb29a3ceab222b3ee95f9ed3877d2b9824374b2",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/post-store.stdout": "e66d831aef92fc68fff5bc973ea4d8d3ac005d27ef20041d2761fe97a06c4ce8",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/bind-return.json": "f8b52f3d8f87ce62ea9c7676600dc041ba84169f0307601b735c3735db011fe1",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/debugger_driver.py": "27e5697707e054ffe36ae04bfba1c50e1e700832f048787cff6429c6201bd826",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/progress-sequence-exhaustion.stderr": "6af3df57be54b5c3f6e7666f8576178cefd913383c8e0118450a719322b415ea",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/setup-alias.json": "2ddd20df5e34faedec79f27db57c7f7091f051a793c4adcd110305d7f49cfae8",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/cancel-accepted.json": "916ebd9efa22437e1454d0204985f17771ac39317f2f86f61d358223e69f9452",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/progress-sequence-exhaustion.json": "acaebdbc9ad88c5372027062e6ced8b7f8df70e0c526141b8301476ed783e841",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/progress-sequence-exhaustion.log": "5d3940f8e0d236167677206134e77681f7be547693151494e640d1f6c41cd7e3",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/progress-sequence-exhaustion.stdout": "8e1de10e3c78beae250873903d292fcf0128186d7f17f59f8f0a944b6cf45858",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/gate-order.log": "39f3edbcc933858e6cd4b5132dc3ab4e5b4f7bc0223872c7e7b21da51dc11c03",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/cancel-accepted.log": "a55bb8f3a69a9d628ef5e69dee7a87ec1abaadec013339ad9e7574ac2c836f96",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/gate-order.json": "9ded7262d2ca0eb8d661ac01f517c6a815137369acd2563ba5d2fc07b3d6defe",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/progress-token-exhaustion.log": "7408ec9108cc0b3c2829dc8e652c2502155d7bd75ff88e52e275aa08639d9314",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/post-store.stderr": "f8a04a54e8aae30929a7b3e38d3ee3e547adbe235bcafc51043929e78b8baa17",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/bind-return.stderr": "17b9302bd4b9c450308409c6e7a7f14afc76de48b3cf44e395a9eecfca164213",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/post-store.json": "3da9a3a33560b170198f7c6da4aacc042f6b2a4f501f1c5eb3e46f16c8f2dae3",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/bind-return.log": "8be0367c6634d6ef737a94ef699dba285fdb63f5f3d5363493a7677651155ee7",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/lldb-version.log": "999c6bfe59784b17e53bf45cf42be20662b29814fc4ee105a7c4dc7315be41e1",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/waiter-exhaustion.stdout": "a49ae24d770be8cdb0dbb4e07e674fd3de508923592e87d3510446ce6811d855",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/lifetime-exhaustion.stderr": "388973be8d3a4514556671cc25d0c2475603882a304bca11a40e4a2a0cd2dca6",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/cancel-accepted.stderr": "f2b0eb26ffad39a754270174d887df030e963aea04ff84efcadc6f35de3baa2a",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/lifetime-exhaustion.log": "7379dff63b713691609e72c76a384141b9c5e08c6493c1db6ec98ab52aed2488",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/gate-order.stderr": "75c7556183f5ac5ffcde06298909cb5cd4d45d168c691f311695b41e2296b908",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/setup-alias.stdout": "b8b4387c879ebc497637f6f30c579f1c78ed85cbfaeab77fb3ad878621deba96",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/progress-token-exhaustion.stderr": "09a4520f94c5733c8569d29759532e0eed06ccb5233669ecf3ba7af6a28879db",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/setup-alias.log": "b8644a2438b68284fb4c14edb2cf4679eebfd7cfd6ea01398a21598c9c8ed805",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/setup-alias.stderr": "14c0cf26f98351b416803431ec8d823dbdf240b09134b787854d6788eeb0c898",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/progress-token-exhaustion.stdout": "4226df6f197b2397f874ceb8a91209410c2fea549fb62cedf32d7a000db54e47",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/waiter-exhaustion.json": "71035d5e0fdbe2ca63500e7a952b39f654b0c3b210cb91dd0c479861923c8555",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/gate-order.stdout": "c75178f2b5d70e407dd47be2cee695ff85355392f41d395f5d8be14d9770e40a",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/waiter-exhaustion.log": "00a9730ab1eb9f776d73ab51809b3713c6d317bc3872b674f92723c8d0ed0eb6",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/cancel-accepted.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/progress-token-exhaustion.json": "7c67be840b9fbd171f879552dc7f8181c4926a46eeff846ff30546027be32895",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/lifetime-exhaustion.stdout": "8bf3b596c82668031d004af685fc1b6486749c7283f96fd45a6c1ed6a302dce9",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/post-store.log": "b0373cd812e3071c18efccab4952c13c68dae7f6f9c67e060d0feaed107134be",
+    "verification/android-binding-stage4/runs/lldb-tsan-final-4/waiter-exhaustion.stderr": "c47d46fcb3353cb04e440a8b31b85947d46e44b1b0f3442e62890ddc6d810c51"
+  },
+  "completed_utc": "2026-10-23T19:05:48.520032+00:00"
+}

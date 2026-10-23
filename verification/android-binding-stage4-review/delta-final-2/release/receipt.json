@@ -1,0 +1,102 @@
+{
+  "source_tree_sha256": "e9b2427d8871c2c850da25753aa7e79ff57fedaf58739a85428b1447a18f7001",
+  "full_rebuild_receipt": "verification/android-binding-stage4-review/builds/final2-release/receipt.json",
+  "full_rebuild_receipt_sha256": "8ef0d3268371e78905fa821bed8eb171c0a78388e06dd11e58267133f0c1209c",
+  "mode": "release",
+  "scope": "Original independent derived host probes against previously rebuilt copied final-2 production module. Duplicate-waiter test uses real register invariant failure and real C callback; it does not prove counter MAX origin. No fabricated fence/success/receipt, no JNI/Looper/device/GA evidence.",
+  "commands": [
+    {
+      "name": "delta-link",
+      "argv": [
+        "xcrun",
+        "swiftc",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4-review/builds/final2-release",
+        "-parse-as-library",
+        "-swift-version",
+        "6",
+        "-warnings-as-errors",
+        "-enable-testing",
+        "-target",
+        "arm64-apple-macosx14.0",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-teardown-window/.build/current-caaa005-1/products",
+        "-module-cache-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4-review/builds/final2-release/swift-cache",
+        "-Xcc",
+        "-fmodule-map-file=/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-teardown-window/.build/current-caaa005-1/modulemaps/CMixerVMCapability.modulemap",
+        "-Xcc",
+        "-fmodule-map-file=/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-teardown-window/.build/current-caaa005-1/modulemaps/MixerCapabilityDurableIO.modulemap",
+        "-Xcc",
+        "-fmodule-map-file=/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-teardown-window/.build/current-caaa005-1/modulemaps/MixerCapabilityIO.modulemap",
+        "-Xcc",
+        "-fmodule-map-file=/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-teardown-window/.build/current-caaa005-1/modulemaps/MixerDurableIO.modulemap",
+        "-Xcc",
+        "-I/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-teardown-window/.build/current-caaa005-1/source/native/include",
+        "-O",
+        "-g",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4-review/final-2/source/native/android/signed-guest-ui/binding/include",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4-review/final-2/source/verification/android-binding-stage4/host-bridge",
+        "-Xcc",
+        "-fmodule-map-file=/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4-review/final-2/source/verification/android-binding-stage4/host-bridge/test.modulemap",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4-review/delta-final-2/release/DeltaProbes.swift",
+        "-L",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4-review/builds/final2-release",
+        "-lMixerAndroidStage4",
+        "-Xlinker",
+        "-rpath",
+        "-Xlinker",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4-review/builds/final2-release",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4-review/delta-final-2/release/DeltaProbes"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "output": "verification/android-binding-stage4-review/delta-final-2/release/delta-link.log",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "leased-race",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4-review/delta-final-2/release/DeltaProbes",
+        "leased-race"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "output": "verification/android-binding-stage4-review/delta-final-2/release/leased-race.log",
+      "output_sha256": "a55c8ad81ea07ae9973f12754baddf9060ebef3d56fb27762b2c26fd04478a9e"
+    },
+    {
+      "name": "fallback-ids",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4-review/delta-final-2/release/DeltaProbes",
+        "fallback-ids"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "output": "verification/android-binding-stage4-review/delta-final-2/release/fallback-ids.log",
+      "output_sha256": "b895c9648d103cd62f12ff858d6ac48fbd8e1eca32fb92ef98e24b07ac5d0e7e"
+    },
+    {
+      "name": "duplicate-progress-fanout",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4-review/delta-final-2/release/DeltaProbes",
+        "duplicate-progress-fanout"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "output": "verification/android-binding-stage4-review/delta-final-2/release/duplicate-progress-fanout.log",
+      "output_sha256": "7a2284191a5c20fa08c259afcceffc213f35c19d190c9ede6678195500e7e35a"
+    }
+  ],
+  "result": "all three original delta probes passed",
+  "artifacts": {
+    "verification/android-binding-stage4-review/delta-final-2/release/DeltaProbes": "7a240c11d759d7ebc87bd8810f1969789cb86d52642d2a698d5c316d13203faa"
+  },
+  "probe_sha256": "a809bc46796c9ef162b7f138348b88eaf1872d4398b224ca714814b88bf17386",
+  "completed_utc": "2026-10-23T19:09:22.758868+00:00"
+}

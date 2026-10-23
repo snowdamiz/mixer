@@ -1,0 +1,33 @@
+{
+  "scenario": "bind-return",
+  "result": "passed",
+  "binary": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/debug-debugger-repaired-2/Stage4HostTests",
+  "events": [
+    {
+      "point": "production-breakpoint",
+      "thread": 64424509443,
+      "pc": 4304901980,
+      "function": "(1) suspend resume partial function for MixerCapabilityActivation.CapabilityGuestUIAndroidBinding.bindHost(MixerGuest.GuestUIExchangeV1) async throws -> MixerCapabilityActivation.CapabilityAndroidHostInstallation",
+      "description": "frame #0: 0x000000010097975c libMixerAndroidStage4.dylib`CapabilityGuestUIAndroidBinding.bindHost(exchange=0x00000001010a42e0) at CapabilityGuestUIAndroidBinding.swift:142:20"
+    },
+    {
+      "point": "actual-bind-return-frame",
+      "description": "frame #0: 0x000000010097975c libMixerAndroidStage4.dylib`CapabilityGuestUIAndroidBinding.bindHost(exchange=0x00000001010a42e0) at CapabilityGuestUIAndroidBinding.swift:142:20",
+      "same_original_worker": 64424509443
+    },
+    {
+      "point": "signal-test-barrier",
+      "address": 4308892560,
+      "value": 1
+    },
+    {
+      "point": "other-worker-verified-hold",
+      "thread": 64424509441,
+      "function": "mxish_debug_release_point",
+      "held_thread": 64424509443
+    }
+  ],
+  "stdout": "DEBUG_HOLD_PASS bind-return\n",
+  "exit": 0,
+  "scope": "Actual unchanged production-byte frames under LLDB. Worker stop/resume or failure-only checked counter write; no success/cleanup/join receipt or C fence injection."
+}

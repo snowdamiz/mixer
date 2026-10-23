@@ -1,0 +1,29 @@
+/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4-review/ReclaimRaceProbe.swift:40:15: error: sending value of non-Sendable type '() -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+38 |         let installation=try await ap.binding.bindHost(exchange), owner=installation.key.endpoint
+39 |         installation.requestStop(.closed)
+40 |         await until {
+   |               |- error: sending value of non-Sendable type '() -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+   |               `- note: sending main actor-isolated value of non-Sendable type '() -> Bool' to @concurrent global function 'until' risks causing races in between main actor-isolated and @concurrent uses
+41 |             var s=mxuit_owner_snapshot();let global=snapshot()
+42 |             return mxuit_inspect_owner(owner,&s)==0 && s.retirement_done==1 && global.fenced_epoch>=s.last_hook_epoch && global.ui_entry_fenced>=s.last_entry_serial
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4-review/ReclaimRaceProbe.swift:55:15: error: sending value of non-Sendable type '() -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+53 |             require(cell.register(after:sequence,c) != nil,"actual first progress continuation");ready.set()
+54 |         }}
+55 |         await until {ready.value}
+   |               |- error: sending value of non-Sendable type '() -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+   |               `- note: sending main actor-isolated value of non-Sendable type '() -> Bool' to @concurrent global function 'until' risks causing races in between main actor-isolated and @concurrent uses
+56 |         await withCheckedContinuation { (c:CheckedContinuation<Void,Never>) in
+57 |             require(cell.register(after:sequence,c)==nil && cell.snapshot.fault==Int32(MXUIT_INVALID.rawValue),"real duplicate invariant failure");c.resume()
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4-review/ReclaimRaceProbe.swift:62:15: error: sending value of non-Sendable type '() -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+60 |         require(mxish_call_entry(bp.binding.facade,4)==0,"actual C-only CLEANUP enter/leave posts real callback")
+61 |         mxish_resume()
+62 |         await until {cell.snapshot.sequence>before}
+   |               |- error: sending value of non-Sendable type '() -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+   |               `- note: sending main actor-isolated value of non-Sendable type '() -> Bool' to @concurrent global function 'until' risks causing races in between main actor-isolated and @concurrent uses
+63 |         require(CapabilityAndroidProgress.shared.cells[aSlot].snapshot.fault==0,"global fanout cannot win admission while original successful C call still owns it")
+64 |         require(ap.binding.finalStatus == .pending && !ar.isReleased && mxish_destructors()==0,"held return cannot finalize facade/resources")
+
+[#RegionIsolation]: <https://docs.swift.org/compiler/documentation/diagnostics/region-isolation>
+[#SendingRisksDataRace]: <https://docs.swift.org/compiler/documentation/diagnostics/sending-risks-data-race>

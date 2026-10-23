@@ -1,0 +1,63 @@
+{
+  "reference": "verification/android-binding-stage4/runs/release-debugger-repaired-2/receipt.json",
+  "reference_sha256": "62e4559ba802e4c220a9d35b54d2a3776337b1ad3f062793a2632bfd6937e947",
+  "source_tree_sha256": "e8a6d021c7eb99db60391ba516870b6722c8307f5f331ad3f8a76999cb862645",
+  "mode": "release",
+  "scope": "Separate LLDB scheduling/failure instrumentation of actual frozen product-byte Debug/Release/TSan build. No result/receipt/fence writes. Post-store proof requires actual terminal store+unlock and same original presentation worker resumed before actual Task.value evidence. Mode-specific optimized-frame limitations remain failures.",
+  "commands": [
+    {
+      "name": "lldb-version",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 0.15639979194384068,
+      "log": "verification/android-binding-stage4/runs/lldb-release-cancel-repaired-3/lldb-version.log",
+      "sha256": "999c6bfe59784b17e53bf45cf42be20662b29814fc4ee105a7c4dc7315be41e1"
+    },
+    {
+      "name": "cancel-accepted",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--batch",
+        "-o",
+        "command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-cancel-repaired-3/debugger_driver.py",
+        "-o",
+        "stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-repaired-2/Stage4HostTests cancel-accepted /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-cancel-repaired-3/cancel-accepted.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-repaired-2/source"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 1,
+      "seconds": 2.318978374940343,
+      "log": "verification/android-binding-stage4/runs/lldb-release-cancel-repaired-3/cancel-accepted.log",
+      "sha256": "aeeb75e4f920397b3566b186eafbcb3dfe17f6b7bc14e6441f43ad8bdd29c440"
+    }
+  ],
+  "inputs": {
+    "driver": "6fe3eb670a5bcc563f8d58878b2cc847a0b3ad979aaafde5cca4699fc24c7c4b",
+    "launcher": "4d7260cc51f5850cf84c732d70d6a864af5faa6f6c7e773dc4fb545e8e23b808"
+  },
+  "artifacts": {
+    "verification/android-binding-stage4/.build/release-debugger-repaired-2/Stage4HostTests": "a10328f681f2a73ada0f652a47e206212974b95b7230f49c5edbaf9ef67f0bf2",
+    "verification/android-binding-stage4/.build/release-debugger-repaired-2/libMixerAndroidStage4.dylib": "65ee3bc396df01768fe6c390a75fd31a09763b5a6282fe562d57039c2d2dd89b"
+  },
+  "result": "failed instrumented attempts retained; no broader pass",
+  "evidence": {
+    "verification/android-binding-stage4/runs/lldb-release-cancel-repaired-3/debugger_driver.py": "6fe3eb670a5bcc563f8d58878b2cc847a0b3ad979aaafde5cca4699fc24c7c4b",
+    "verification/android-binding-stage4/runs/lldb-release-cancel-repaired-3/cancel-accepted.json": "71f840b709ea300d53802a4cbc74360c4694c47c6d67f00f7142bb9f2d616e5e",
+    "verification/android-binding-stage4/runs/lldb-release-cancel-repaired-3/cancel-accepted.log": "aeeb75e4f920397b3566b186eafbcb3dfe17f6b7bc14e6441f43ad8bdd29c440",
+    "verification/android-binding-stage4/runs/lldb-release-cancel-repaired-3/lldb-version.log": "999c6bfe59784b17e53bf45cf42be20662b29814fc4ee105a7c4dc7315be41e1",
+    "verification/android-binding-stage4/runs/lldb-release-cancel-repaired-3/cancel-accepted.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/android-binding-stage4/runs/lldb-release-cancel-repaired-3/cancel-accepted.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "completed_utc": "2026-10-23T19:23:38.344009+00:00"
+}

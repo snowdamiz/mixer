@@ -1,0 +1,12 @@
+/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4-review/authority-candidate-1/testable-construct-key.swift:4:56: error: 'CapabilityAndroidHostLifetimeKey' initializer is inaccessible due to 'fileprivate' protection level
+2 | @_spi(GuestUIV1) import MixerGuest
+3 | @testable import MixerCapabilityActivation
+4 | func bad(_ id: CapabilityPresentationLifetimeID) { _ = CapabilityAndroidHostLifetimeKey(facade: 1, lifetime: id, endpoint: 1) }
+  |                                                        `- error: 'CapabilityAndroidHostLifetimeKey' initializer is inaccessible due to 'fileprivate' protection level
+5 | 
+
+MixerCapabilityActivation.CapabilityAndroidHostLifetimeKey.init:2:13: note: 'init(facade:lifetime:endpoint:)' declared here
+1 | struct CapabilityAndroidHostLifetimeKey {
+2 | fileprivate init(facade: UInt64, lifetime: MixerCapabilityActivation.CapabilityPresentationLifetimeID, endpoint: UInt64)}
+  |             `- note: 'init(facade:lifetime:endpoint:)' declared here
+3 | 

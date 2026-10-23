@@ -1,0 +1,29 @@
+{
+  "scenario": "reservation-hold",
+  "result": "failed",
+  "error": "held worker resumed and process exited",
+  "events": [
+    {
+      "point": "production-breakpoint",
+      "thread": 64424509442,
+      "pc": 4305759440,
+      "function": "mxuit_facade_acquire",
+      "description": "frame #0: 0x0000000100a4acd0 libMixerAndroidStage4.dylib`mxuit_facade_acquire(facade=0x000000016ff12c18) at transport.c:211:9"
+    },
+    {
+      "point": "debugger-expression",
+      "code": "self.facades[0].reserved",
+      "output": "(Bool) $R0 = true\n"
+    },
+    {
+      "point": "debugger-expression",
+      "code": "self.facades[0].facade",
+      "output": "(UInt64) $R1 = 0\n"
+    },
+    {
+      "point": "signal-test-barrier",
+      "address": 4308925328,
+      "value": 1
+    }
+  ]
+}

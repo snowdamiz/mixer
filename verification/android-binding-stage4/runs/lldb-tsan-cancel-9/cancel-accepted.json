@@ -1,0 +1,47 @@
+{
+  "scenario": "cancel-accepted",
+  "result": "passed",
+  "binary": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/tsan-debugger-final-8/Stage4HostTests",
+  "events": [
+    {
+      "point": "production-breakpoint",
+      "thread": 64424509441,
+      "pc": 4307542584,
+      "function": "mxish_debug_release_point",
+      "description": "frame #0: 0x0000000100bfe238 libMixerAndroidStage4.dylib`mxish_debug_release_point at host_bridge.c:281:5 [opt]"
+    },
+    {
+      "point": "exact-accepted-task-owner-frame",
+      "function": "Stage4HostTests.acceptedTaskCancellationPoint(MixerCapabilityActivation.CapabilityGuestUIAndroidBinding) -> ()",
+      "description": "frame #1: 0x0000000100002310 Stage4HostTests`acceptedTaskCancellationPoint(binding=0x000000010a605040) at DebuggerTests.swift:15:104"
+    },
+    {
+      "point": "exact-owned-binding-address",
+      "address": 4469051456,
+      "type": "MixerCapabilityActivation.CapabilityGuestUIAndroidBinding"
+    },
+    {
+      "point": "actual-product-swift-evaluation-context",
+      "thread": 54455346,
+      "function": "MixerCapabilityActivation.CapabilityGuestUIAndroidResources.retire(key: MixerCapabilityActivation.CapabilityAndroidHostLifetimeKey, entry: Swift.UInt64, record: MixerCapabilityActivation.CapabilityAndroidFacadeRecord) throws -> Swift.Int32"
+    },
+    {
+      "point": "debugger-expression",
+      "code": "unsafeBitCast(UInt(4469051456), to: CapabilityGuestUIAndroidBinding.self).current!.lifetime.task!.cancel()",
+      "output": "() $R0 = {}\n"
+    },
+    {
+      "point": "debugger-expression",
+      "code": "unsafeBitCast(UInt(4469051456), to: CapabilityGuestUIAndroidBinding.self).current!.lifetime.task!.isCancelled",
+      "output": "(Bool) $R1 = true\n"
+    },
+    {
+      "point": "signal-test-barrier",
+      "address": 4310842256,
+      "value": 1
+    }
+  ],
+  "stdout": "DEBUG_HOLD_PASS cancel-accepted\n",
+  "exit": 0,
+  "scope": "Actual unchanged production-byte frames under LLDB. Worker stop/resume or failure-only checked counter write; no success/cleanup/join receipt or C fence injection."
+}

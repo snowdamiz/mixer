@@ -1,0 +1,63 @@
+{
+  "scenario": "reservation-hold",
+  "result": "passed",
+  "binary": "/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-matrix-final-3/Stage4HostTests",
+  "events": [
+    {
+      "point": "production-breakpoint",
+      "thread": 64424509442,
+      "pc": 4303590300,
+      "function": "mxuit_facade_acquire",
+      "description": "frame #0: 0x000000010083939c libMixerAndroidStage4.dylib`mxuit_facade_acquire(facade=0x000000016ff12bf0) at transport.c:211:16 [opt]"
+    },
+    {
+      "point": "actual-reserved-facade-caller-stack",
+      "frames": [
+        {
+          "function": "MixerCapabilityActivation.CapabilityAndroidRegistry.acquireFacade() throws -> (Swift.Int, Swift.UInt64)",
+          "pc": 4303300932,
+          "self": "(MixerCapabilityActivation.CapabilityAndroidRegistry) self = <could not evaluate DW_OP_entry_value: no call edge for retn-pc = 0x1007e7234 in parent frame (1) suspend resume partial function for static MixerCapabilityActivation.CapabilityGuestUIAndroidBinding.prepareHost(reservation: MixerCapabilityActivation.CapabilityAttemptReservation) async throws -> MixerCapabilityActivation.CapabilityAndroidHostPreparedPresentation>\n",
+          "record": "(MixerCapabilityActivation.CapabilityAndroidFacadeRecord) record = 0x0000000100e15c90 {\n  lock = 0x00000078f6804540 {\n    baseNSObject@0 = (isa = NSLock)\n  }\n  reserved = true\n  facade = 0\n  resources = nil {\n    facade = <parent failed to evaluate: read memory from 0x0 failed (0 of 8 bytes read)>\n\n    bridgeGeneration = <parent failed to evaluate: read memory from 0x0 failed (0 of 8 bytes read)>\n\n    revision = <parent failed to evaluate: read memory from 0x0 failed (0 of 8 bytes read)>\n\n    exchange = <parent failed to evaluate: read memory from 0x0 failed (0 of 8 bytes read)>\n\n    reconciler = <parent failed to evaluate: read memory from 0x0 failed (0 of 8 bytes read)>\n\n    snapshot = <parent failed to evaluate: read memory from 0x0 failed (0 of 8 bytes read)>\n\n    ticket = <parent failed to evaluate: read memory from 0x0 failed (0 of 8 bytes read)>\n\n    lastEvent = <parent failed to evaluate: read memory from 0x0 failed (0 of 8 bytes read)>\n\n    pendingPacket = <parent failed to evaluate: read memory from 0x0 failed (0 of 8 bytes read)>\n\n    tokenSerial = <parent failed to evaluate: read memory from 0x0 failed (0 of 8 bytes read)>\n\n    attachment = <parent failed to evaluate: read memory from 0x0 failed (0 of 8 bytes read)>\n\n    input = <parent failed to evaluate: read memory from 0x0 failed (0 of 8 bytes read)>\n\n    probe = <parent failed to evaluate: read memory from 0x0 failed (0 of 8 bytes read)>\n\n  }\n  published = false\n  facadeReclaimed = false\n  lookupEnabled = false\n  closing = false\n  quarantined = false\n  endpoint = 0\n  lifetime = nil\n  setupAliases = 0\n  uiAliases = 0\n  cleanupSerial = 0\n  cleanup = nil\n}"
+        }
+      ]
+    },
+    {
+      "point": "actual-reserved-Swift-record",
+      "address": 4309736592,
+      "reserved": 1,
+      "facade": 0,
+      "type": "MixerCapabilityActivation.CapabilityAndroidFacadeRecord"
+    },
+    {
+      "point": "signal-test-barrier",
+      "address": 4306617176,
+      "value": 1
+    },
+    {
+      "point": "other-worker-verified-hold",
+      "thread": 64424509441,
+      "function": "mxish_debug_release_point",
+      "held_thread": 64424509442
+    },
+    {
+      "point": "actual-blocked-facade-admission-contender",
+      "threads": [
+        {
+          "thread": 64424509443,
+          "functions": [
+            "__psynch_mutexwait",
+            "_pthread_mutex_firstfit_lock_wait",
+            "_pthread_mutex_firstfit_lock_slow",
+            "MixerCapabilityActivation.CapabilityAndroidRegistry.acquireFacade() throws -> (Swift.Int, Swift.UInt64)",
+            "(1) suspend resume partial function for static MixerCapabilityActivation.CapabilityGuestUIAndroidBinding.prepareHost(reservation: MixerCapabilityActivation.CapabilityAttemptReservation) async throws -> MixerCapabilityActivation.CapabilityAndroidHostPreparedPresentation",
+            "(2) await resume partial function for closure #2 () async throws -> MixerCapabilityActivation.CapabilityAndroidHostPreparedPresentation in static Stage4HostTests.DebuggerTests.main() async throws -> ()",
+            "(1) await resume partial function for partial apply forwarder for closure #2 () async throws -> MixerCapabilityActivation.CapabilityAndroidHostPreparedPresentation in static Stage4HostTests.DebuggerTests.main() async throws -> ()"
+          ]
+        }
+      ]
+    }
+  ],
+  "stdout": "DEBUG_HOLD_PASS reservation-hold\n",
+  "exit": 0,
+  "scope": "Actual unchanged production-byte frames under LLDB. Worker stop/resume or failure-only checked counter write; no success/cleanup/join receipt or C fence injection."
+}

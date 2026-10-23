@@ -1,0 +1,80 @@
+--- verification/android-binding-stage4-review/candidate-1/source/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidResources.swift	2026-10-23 14:11:29
++++ verification/android-binding-stage4-review/final-2/source/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidResources.swift	2026-10-23 14:29:32
+@@ -32,6 +32,7 @@
+     private var ticket: GuestUIPresentationTicketV1?
+     private var lastEvent: GuestUIEventResultV1?
+     private var pendingPacket: Data?
++    private var tokenSerial: UInt64 = 0
+     private var attachment: UInt64 = 0
+     private var input: UInt64 = 0
+     private var probe: UInt64 = 0
+@@ -83,7 +84,58 @@
+         }
+         return result
+     }
++    /// Future JNI entry edges may reuse this synchronous engine helper with
++    /// separately reviewed native witnesses. This host path grants no event or
++    /// observation authority. Even lookup-disabled cleanup takes a real C lease.
++    static func scalarEntry(facade: UInt64, slot: Int, kind: UInt32) -> Int32 {
++        guard kind == UInt32(MXUIT_UI_INGRESS.rawValue) || kind == UInt32(MXUIT_UI_CLEANUP.rawValue) else { return Int32(MXUIT_INVALID.rawValue) }
++        var entry: UInt64 = 0
++        let admitted = mxuit_ui_enter(facade, 0, 0, kind, &entry)
++        guard admitted == Int32(MXUIT_OK.rawValue) else { return admitted }
++        guard let record = CapabilityAndroidRegistry.shared.record(slot: slot, facade: facade) else {
++            _ = mxuit_ui_leave(facade, entry); return Int32(MXUIT_STALE.rawValue)
++        }
++        let state = record.withLock { r -> Int32 in
++            if !r.lookupEnabled { return Int32(MXUIT_CLOSED.rawValue) }
++            guard r.published, !r.quarantined, !r.facadeReclaimed,
++                  kind != UInt32(MXUIT_UI_INGRESS.rawValue) || !r.closing else { return Int32(MXUIT_CLOSED.rawValue) }
++            guard r.setupAliases == 0, r.uiAliases == 0 else { return Int32(MXUIT_BUSY.rawValue) }
++            r.uiAliases = 1; return Int32(MXUIT_OK.rawValue)
++        }
++        var result = state
++        if state == Int32(MXUIT_OK.rawValue) {
++            result = scalarEntryInner(facade: facade, entry: entry, record: record)
++            record.withLock { precondition($0.uiAliases == 1); $0.uiAliases = 0 }
++        }
++        let leave = mxuit_ui_leave(facade, entry)
++        if leave != Int32(MXUIT_OK.rawValue) || result == Int32(MXUIT_IO.rawValue) {
++            CapabilityAndroidRegistry.shared.quarantine(slot: slot, facade: facade)
++            CapabilityGuestUIAndroidBinding.quarantineHostOwner(slot: slot, facade: facade)
++            let control = CapabilityAndroidRegistry.shared.close(slot: slot, facade: facade)
++            _ = mxuit_facade_begin_close(facade); control?.requestStop(.closed)
++            return leave == Int32(MXUIT_OK.rawValue) ? result : leave
++        }
++        return result
++    }
+     @inline(never)
++    private static func scalarEntryInner(facade: UInt64, entry: UInt64, record: CapabilityAndroidFacadeRecord) -> Int32 {
++        guard let resources = record.resources else {
++            record.withLock { $0.quarantined = true; $0.closing = true }
++            return Int32(MXUIT_IO.rawValue)
++        }
++        do {
++            try resources.ensureNative(entry: entry)
++            guard mxis_interaction(facade, entry, 0) == Int32(MXUIT_OK.rawValue) else { throw coldStartError("android_entry_native") }
++            if record.withLock({ $0.closing || $0.quarantined }) {
++                guard mxis_interaction(facade, entry, 0) == Int32(MXUIT_OK.rawValue) else { throw coldStartError("android_entry_postcheck") }
++            }
++            return Int32(MXUIT_OK.rawValue)
++        } catch {
++            record.withLock { $0.quarantined = true; $0.closing = true }; return Int32(MXUIT_IO.rawValue)
++        }
++    }
++
++    @inline(never)
+     private static func drainInner(key: CapabilityAndroidHostLifetimeKey, entry: UInt64, kind: UInt32,
+                                    record: CapabilityAndroidFacadeRecord) -> Int32 {
+         guard let resources = record.resources else {
+@@ -122,8 +174,8 @@
+             // it is bounded by the exchange's 65,536-byte document limit.
+             pendingPacket = try JSONEncoder().encode(frame.document.document)
+             guard let packet = pendingPacket, packet.count <= 65536 else { throw coldStartError("android_packet") }
+-            guard attachment < UInt64(Int64.max), input < UInt64(Int64.max), probe < UInt64(Int64.max) else { throw coldStartError("android_ui_identity") }
+-            attachment += 1; input += 1; probe += 1
++            guard tokenSerial <= UInt64(Int64.max) - 3 else { throw coldStartError("android_ui_identity") }
++            attachment = tokenSerial + 1; input = tokenSerial + 2; probe = tokenSerial + 3; tokenSerial += 3
+             let applied = packet.withUnsafeBytes { bytes in
+                 mxis_apply(facade, entry, attachment, input, probe, bytes.bindMemory(to: UInt8.self).baseAddress, UInt32(bytes.count))
+             }

@@ -1,0 +1,88 @@
+--- verification/android-binding-stage4-review/candidate-1/source/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidLifetime.swift	2026-10-23 14:01:34
++++ verification/android-binding-stage4-review/final-2/source/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidLifetime.swift	2026-10-23 14:29:32
+@@ -45,11 +45,11 @@
+     }
+ }
+ 
+-private struct CapabilityAndroidDelivery: Sendable {
++fileprivate struct CapabilityAndroidDelivery: Sendable {
+     let generation: UInt64
+     let reader: GuestUIWakeConsumerV1
+ }
+-private enum CapabilityAndroidBindOutcome: Sendable { case bound(CapabilityAndroidDelivery), stopped }
++fileprivate enum CapabilityAndroidBindOutcome: Sendable { case bound(CapabilityAndroidDelivery), stopped }
+ private struct CapabilityAndroidCompletion: Sendable {
+     let kind: UInt32
+     let result: Int32
+@@ -72,20 +72,35 @@
+     var completion: CapabilityAndroidCompletion? { lock.lock(); defer { lock.unlock() }; return result }
+ }
+ 
++/// Allocated while the Swift endpoint record is reserved, before C acquire.
++/// It is an empty data-only bind-or-close gate, never a Task or owner callback.
++final class CapabilityAndroidReservedBindGate: @unchecked Sendable {
++    fileprivate let lock = NSLock()
++    fileprivate var started = false
++    fileprivate var closing = false
++    fileprivate var bound = false
++    fileprivate var binding = false
++    fileprivate weak var exchange: GuestUIExchangeV1?
++    fileprivate var delivery: CapabilityAndroidDelivery?
++    fileprivate var waiter: CheckedContinuation<CapabilityAndroidBindOutcome, Never>?
++    fileprivate init() {}
++}
++
+ /// One fixed Task/control per endpoint. No resource alias, packet, frame, native
+ /// object or caller callback is retained in this class or across suspension.
+ final class CapabilityAndroidLifetimeControl: @unchecked Sendable {
+     let key: CapabilityAndroidHostLifetimeKey
+     let facadeSlot: Int
+-    private let lock = NSLock()
+-    private var started = false
+-    private var closing = false
++    private let gate: CapabilityAndroidReservedBindGate
++    private var lock: NSLock { gate.lock }
++    private var started: Bool { get { gate.started } set { gate.started = newValue } }
++    private var closing: Bool { get { gate.closing } set { gate.closing = newValue } }
++    private var bound: Bool { get { gate.bound } set { gate.bound = newValue } }
++    private var binding: Bool { get { gate.binding } set { gate.binding = newValue } }
++    private var exchange: GuestUIExchangeV1? { get { gate.exchange } set { gate.exchange = newValue } }
++    private var delivery: CapabilityAndroidDelivery? { get { gate.delivery } set { gate.delivery = newValue } }
++    private var bindWaiter: CheckedContinuation<CapabilityAndroidBindOutcome, Never>? { get { gate.waiter } set { gate.waiter = newValue } }
+     private var fault: Int32 = 0
+-    private var bound = false
+-    private var binding = false
+-    private weak var exchange: GuestUIExchangeV1?
+-    private var delivery: CapabilityAndroidDelivery?
+-    private var bindWaiter: CheckedContinuation<CapabilityAndroidBindOutcome, Never>?
+     private var waiterSerial: UInt64 = 0
+     private var rendezvous: CapabilityAndroidRendezvous?
+     private enum Terminal { case pending, retired, failed(CapabilityAndroidHostFailureCode) }
+@@ -95,8 +110,10 @@
+     private var retirementEvidence: CapabilityAndroidHostEndpointRetirementEvidence?
+     private init(_ acquired: CapabilityAndroidAcquiredEndpoint) {
+         key = CapabilityAndroidHostLifetimeKey(facade: acquired.facade, lifetime: acquired.lifetime, endpoint: acquired.endpoint)
+-        facadeSlot = acquired.facadeSlot
++        facadeSlot = acquired.facadeSlot; gate = acquired.gate
+     }
++    @inline(never)
++    static func reserveBindGate() -> CapabilityAndroidReservedBindGate { CapabilityAndroidReservedBindGate() }
+     static func spawn(_ acquired: CapabilityAndroidAcquiredEndpoint) throws -> CapabilityAndroidHostLifetimeCapsule {
+         guard acquired.take() else { throw coldStartError("android_endpoint_consumed") }
+         let control = CapabilityAndroidLifetimeControl(acquired)
+@@ -173,6 +190,7 @@
+     }
+     private var stopped: Bool { lock.lock(); defer { lock.unlock() }; return closing || fault != 0 }
+     private var hasFault: Bool { lock.lock(); defer { lock.unlock() }; return fault != 0 }
++    @inline(never)
+     private func finishTask(_ result: Terminal) { lock.lock(); terminal = result; lock.unlock() }
+     private func run() async {
+         let initial = await waitForBind()
+@@ -197,6 +215,7 @@
+         guard let completion = await request(kind: UInt32(MXUIT_RETIRE.rawValue)) else { finishTask(.failed(.identityExhausted)); return }
+         finishTask(completion.kind == UInt32(MXUIT_RETIRE.rawValue) && completion.result == Int32(MXUIT_DRAIN_OK.rawValue) ? .retired : .failed(.retireFailed))
+     }
++    @inline(never)
+     private func reserveWaiter(kind: UInt32, continuation: CheckedContinuation<Void, Never>) -> CapabilityAndroidRendezvous? {
+         lock.lock(); defer { lock.unlock() }
+         guard fault == 0, rendezvous == nil, waiterSerial < .max else { return nil }

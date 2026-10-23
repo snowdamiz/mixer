@@ -1,0 +1,29 @@
+{
+  "scenario": "cancel-accepted",
+  "result": "failed",
+  "error": "unsafeBitCast(UInt(4309669824), to: CapabilityGuestUIAndroidBinding.self).current!.lifetime.task!.cancel(): error: error: <EXPR>:2:11: cannot find type '$__lldb_context' in scope\nextension $__lldb_context {\n          ^~~~~~~~~~~~~~~\n\nerror: <EXPR>:19:27: value of type 'CapabilityGuestUIAndroidResources' has no member '$__lldb_user_expr_0'\n    $__lldb_injected_self.$__lldb_user_expr_0(\n    ~~~~~~~~~~~~~~~~~~~~~ ^~~~~~~~~~~~~~~~~~~\n\nIf the member name is spelled correctly, this error could mean that it depends on a (private) type from a module that has not been imported into the current context.",
+  "events": [
+    {
+      "point": "production-breakpoint",
+      "thread": 64424509441,
+      "pc": 4303544540,
+      "function": "mxish_debug_release_point",
+      "description": "frame #0: 0x000000010082e0dc libMixerAndroidStage4.dylib`mxish_debug_release_point at host_bridge.c:287:5 [opt]"
+    },
+    {
+      "point": "exact-accepted-task-owner-frame",
+      "function": "Stage4HostTests.acceptedTaskCancellationPoint(MixerCapabilityActivation.CapabilityGuestUIAndroidBinding) -> Swift.UInt",
+      "description": "frame #1: 0x0000000100000ef8 Stage4HostTests`acceptedTaskCancellationPoint(binding=0x0000000100e057c0) at DebuggerTests.swift:16:5 [opt]"
+    },
+    {
+      "point": "exact-owned-binding-address",
+      "address": 4309669824,
+      "type": "MixerCapabilityActivation.CapabilityGuestUIAndroidBinding"
+    },
+    {
+      "point": "actual-product-swift-evaluation-context",
+      "thread": 54590324,
+      "function": "MixerCapabilityActivation.CapabilityGuestUIAndroidResources.retire(key: MixerCapabilityActivation.CapabilityAndroidHostLifetimeKey, entry: Swift.UInt64, record: MixerCapabilityActivation.CapabilityAndroidFacadeRecord) throws -> Swift.Int32"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/debug-probe-candidate-1/source/verification/android-binding-stage4/ProbeTests.swift:41:38: error: sending value of non-Sendable type '() -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+39 |                 guard case .quarantined=await binding.finishFinalClose(using:nil) else {fatalError("final uncertainty")}
+40 |             } else {
+41 |                 mxish_resume();await until{snapshot().completions>0}
+   |                                      |- error: sending value of non-Sendable type '() -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+   |                                      `- note: sending main actor-isolated value of non-Sendable type '() -> Bool' to @concurrent global function 'until' risks causing races in between main actor-isolated and @concurrent uses
+42 |                 check(installation.status == .pending,"real completion before request caller returns")
+43 |                 mxish_probe_release();reservation.beginClosing()
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/debug-probe-candidate-1/source/verification/android-binding-stage4/ProbeTests.swift:58:19: error: sending value of non-Sendable type '() -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+56 |         if scenario=="no-progress" {
+57 |             check(mxish_wait_hold()==0,"platform tail")
+58 |             await until{mxish_probe_reclaim_calls()>=2}
+   |                   |- error: sending value of non-Sendable type '() -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+   |                   `- note: sending main actor-isolated value of non-Sendable type '() -> Bool' to @concurrent global function 'until' risks causing races in between main actor-isolated and @concurrent uses
+59 |             check(mxish_probe_reclaim_calls()==2,"one first and one mandatory second reclaim")
+60 |             for _ in 0..<128 {await Task.yield()}
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/debug-probe-candidate-1/source/verification/android-binding-stage4/ProbeTests.swift:67:44: error: sending value of non-Sendable type '() -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+65 |             if scenario=="lost-before" || scenario=="lost-after" {
+66 |                 check(mxish_wait_hold()==0,"actual earlier callback return")
+67 |                 mxish_release_hold();await until{snapshot().fenced_epoch>0 && snapshot().ui_entry_fenced>0}
+   |                                            |- error: sending value of non-Sendable type '() -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+   |                                            `- note: sending main actor-isolated value of non-Sendable type '() -> Bool' to @concurrent global function 'until' risks causing races in between main actor-isolated and @concurrent uses
+68 |                 check(!reservation.isReleased,"actual blocked reclaim frame")
+69 |             } else if scenario=="ui-leave" {
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/debug-probe-candidate-1/source/verification/android-binding-stage4/ProbeTests.swift:72:23: error: sending value of non-Sendable type '() -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+70 |                 check(snapshot().active_entry_serial>0 && !reservation.isReleased,"inner returned but real C UI entry still held")
+71 |             } else if scenario=="completion" {
+72 |                 await until{mxish_probe_reclaim_calls()>=2}
+   |                       |- error: sending value of non-Sendable type '() -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+   |                       `- note: sending main actor-isolated value of non-Sendable type '() -> Bool' to @concurrent global function 'until' risks causing races in between main actor-isolated and @concurrent uses
+73 |                 check(snapshot().completing==1 && snapshot().occupied==1 && !reservation.isReleased,"real completion tail pins endpoint")
+74 |             } else if scenario=="progress" {
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/debug-probe-candidate-1/source/verification/android-binding-stage4/ProbeTests.swift:75:23: error: sending value of non-Sendable type '() -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+73 |                 check(snapshot().completing==1 && snapshot().occupied==1 && !reservation.isReleased,"real completion tail pins endpoint")
+74 |             } else if scenario=="progress" {
+75 |                 await until{reservation.isReleased}
+   |                       |- error: sending value of non-Sendable type '() -> Bool' risks causing data races [#RegionIsolation::SendingRisksDataRace]
+   |                       `- note: sending main actor-isolated value of non-Sendable type '() -> Bool' to @concurrent global function 'until' risks causing races in between main actor-isolated and @concurrent uses
+76 |                 check(mxish_destructors()==1 && snapshot().occupied_facades==0,"healthy process-only progress tail may coexist with final destruction")
+77 |             }
+
+[#RegionIsolation]: <https://docs.swift.org/compiler/documentation/diagnostics/region-isolation>
+[#SendingRisksDataRace]: <https://docs.swift.org/compiler/documentation/diagnostics/sending-risks-data-race>

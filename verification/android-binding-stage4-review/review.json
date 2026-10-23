@@ -1,0 +1,94 @@
+{
+  "reviewed_utc": "2026-10-23T18:20:26.540682+00:00",
+  "reviewed_candidate": "candidate-1",
+  "source_tree_sha256": "4acc9d8218927827994419e154c7d8313b1277b508e5fec04b5cd99e798c4d5e",
+  "status": "not accepted; final candidate and full 32-case matrix pending",
+  "ownership": "Review-only files under verification/android-binding-stage4-review; no product or producer edits, publication, commits, pushes, devices, external messages or third-party engine material.",
+  "reviewer_configuration": {
+    "requested_model": "gpt-6.1-sol",
+    "requested_reasoning_effort": "xhigh",
+    "context": "fresh bounded independent reviewer"
+  },
+  "observed_passes": [
+    {
+      "name": "permanent obligation retention under failure/drop",
+      "modes": [
+        "debug",
+        "release",
+        "tsan"
+      ],
+      "description": "Actual fixed native RETIRE fails; close quarantines; every binding/prepared caller reference drops. Actual resource and exact reservation remain weak-promotable, native allocations remain live, destructor count0, outer occupancy1, seventeenth admission rejects. Static exact-obligation cells preserve ARC chain."
+    },
+    {
+      "name": "actual destructor, tombstone and capacity contention",
+      "modes": [
+        "debug",
+        "release",
+        "tsan"
+      ],
+      "description": "Real resource deinit held inside fixed host release_destroyed. C facade/endpoint absent, exact Swift reservation tombstone remains, shell final pending, outer occupancy1. Fifteen other reservations fit but seventeenth rejects. After real destructor return weak resource nil, final receipt appears, exact Swift tombstone clears and outer capacity recovers."
+    },
+    {
+      "name": "shared permit and host type/source separation",
+      "description": "Common host uses existing real permit move/begin/consume and actual Task.value before fileprivate task-return evidence. All common Apple installation/attach/isBound/finish/status reject host backend; common installation constructor asserts Apple. Host sealed constructors distinct; no Prepared/core/Apple/factory/transport changes in reviewed source."
+    },
+    {
+      "name": "scheduler actual Task return barrier",
+      "receipt": "scheduler-final-3/review.json",
+      "description": "Producer instrumented Debug source/log/artifact binding independently checked; same production Swift/C source hashes as candidate1. Successful exact RETIRE completion marks TLS, actual Swift complete runs exactly once, only exact rendezvous continuation.resume can enqueue a job in this synchronous call. One original real runtime resume job parked: Cretirementdone1, consumerjoined0, destructor0, finalpending; forwarding same originaljob completes. Separate from ordinary Debug/Release/TSan; hold precedes resumed Swift terminal store, not inserted post-terminal hook."
+    },
+    {
+      "name": "independent authority rejection clients",
+      "description": "22 ordinary/testable clients reject host-to-common installation/status/receipt/Apple gate, raw lifetime/permit extraction, sealed key/capsule/task-return/cleanup construction and private host finish. Testable immutable-readback control succeeds. Each actual compiler failure inspected for intended access/type error.",
+      "receipt": "authority-candidate-1/receipt.json"
+    }
+  ],
+  "findings": [
+    {
+      "id": "S4R-01",
+      "priority": "P1",
+      "status": "reproduced; producer/root notified",
+      "file": "capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidBinding.swift",
+      "line": 227,
+      "title": "Transferred binding abandonment does not close or quarantine the live facade",
+      "description": "After transferToBinding, drop prepared, binding and reservation. Binding deinit only obligation.quarantine(). Exact resource retention repair works and outer reservation quarantines, but Swift facade remains quarantined=false, closing=false, lookupEnabled=true; C endpoint remains closing=0, retirement_done=0, requests=0. Quarantined owner leaves its data wait and facade admission live. Add scalar exact facade/control close and registry quarantine on abandoned binding, preserving permanent obligation cell; no cleanup Task or uncertainty retry.",
+      "evidence": [
+        "builds/debug/drop-transferred.log",
+        "builds/release/drop-transferred.log",
+        "builds/tsan/drop-transferred.log"
+      ]
+    },
+    {
+      "id": "S4R-02",
+      "priority": "P1",
+      "status": "source defect acknowledged by producer; repair pending final review",
+      "file": "capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidResources.swift",
+      "title": "Fallback resets active UI counters and can reuse token identities",
+      "description": "Nonfinal retire resets attachment/input/probe to0; next present starts again at1. Producer independently identified and plans checked facade-long counter separated from active tuple. No final candidate reviewed yet."
+    }
+  ],
+  "missing_evidence": [
+    "Required full32case matrix against exact final source in ordinary Debug, Release and TSan remains incomplete; producer24 ordinary scenarios do not establish every named schedule.",
+    "Real setupalias hold; exact lostwake windows before/after progress registration; all Swift entry/completion/progress tails; full checked Swift lifetime/waiter/progress/cleanup boundaries need explicit executable receipts.",
+    "Candidate1 has PRESENT/RETIRE leased helpers only; reusable INGRESS/CLEANUP helpers and endpoint-absent late cleanup path not implemented/proved yet for required matrix.",
+    "Independent final-candidate source freeze/revalidation required after abandonment/token repair and any helper or instrumentation changes.",
+    "Android API30/Swift6.3.3 compile/link, missing-symbol negative links, complete frozen common/core/portable regressions and all authority rejection clients need final-source exact receipts. Never substitute host runtime result for JNI/Looper/device evidence."
+  ],
+  "separate_pending_gates": [
+    "signed core/Prepared/factory integration",
+    "actual JNI weak-global deletion and Java stack return",
+    "Android main Looper/widgets",
+    "draw plus later Choreographer health",
+    "physical iOS/Android; disconnected, not attempted",
+    "immutable separately published FieldLog consumer",
+    "signing/store/customer/operational qualification",
+    "accountable GA reviewers"
+  ],
+  "receipts": [
+    "builds/debug/receipt.json",
+    "builds/release/receipt.json",
+    "builds/tsan/receipt.json",
+    "authority-candidate-1/receipt.json"
+  ],
+  "source_manifest": "candidate-1/freeze.json"
+}

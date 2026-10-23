@@ -1,0 +1,104 @@
+{
+  "sealed_utc": "2026-10-23T19:27:18.602628+00:00",
+  "decision": "S4R-03 repair and clarified join-admission addendum accepted within the independent bounded host review below; no general stage4 implementation or full32 matrix acceptance.",
+  "reviewer_configuration": {
+    "requested_model": "gpt-6.1-sol",
+    "requested_reasoning_effort": "xhigh",
+    "context": "bounded independent source delta and original probes"
+  },
+  "candidate": {
+    "producer_source": "verification/android-binding-stage4/.build/release-repaired-2/source",
+    "producer_receipt": "verification/android-binding-stage4/runs/release-repaired-2/receipt.json",
+    "producer_receipt_sha256": "71c98da65fdb5c48122c3506314557bd9d60ad0e8f49109d92c21a4c0680b53c",
+    "source_tree_sha256": "e8a6d021c7eb99db60391ba516870b6722c8307f5f331ad3f8a76999cb862645",
+    "source_manifest": "candidate-3/freeze.json",
+    "exact_product_delta_since_final2": {
+      "capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidLifetime.swift": {
+        "before": "372c3209bb953a9add5a982201e77da4e2e4ee4328a235cefabb9cfa5aaf645d",
+        "after": "35dade554a8e51388d8961efb9847f31e2a65bb230c8ce8135ae8369abd67232"
+      }
+    }
+  },
+  "addendum": {
+    "source": "docs/android-binding-stage4-join-admission-addendum.md",
+    "sha256": "8993c847984861bca4dd45a61f85eb711163f7c5e2d2bbed46bfd01d255820cb",
+    "frozen_copy": "candidate-3/join-admission-addendum-reviewed.md",
+    "decision": "Accepted precise control-local admission, explicit registry-to-control fanout interval, and separate real C-reclaim retirement point. This clarifies historical facts versus later facade authority and does not waive the initial S4R-03 defect."
+  },
+  "source_assessment": [
+    "Only product change since final2 is CapabilityAndroidLifetimeControl.beginJoin checking fault==0 under existing control lock before native consumer assertion. Existing exact key, one-shot, terminal RETIRE and actual common Task.value guards remain. No lock spans C.",
+    "A control-local fault latched before this admission rejects native bookkeeping. Registry fault can precede delivery to that control; that documented interval may still record genuine Task-return/RETIRE bookkeeping but cannot permit native reclaim.",
+    "Registry.reclaimEndpoint and quarantineAll serialize on the same admission mutex. Registry fault winning before real C reclaim blocks it. Actual C OK winning first is a completed historical endpoint fact; later exact scalar evidence/Swift endpoint removal are valid.",
+    "That fact is distinct from facade finalization. In the probed opposite ordering, global fault quarantines the facade, final finish returns quarantine, actual resources remain retained and capacity remains occupied. No general proof of every possible later facade-stage race is claimed by this bounded review."
+  ],
+  "independent_ordinary_results": [
+    {
+      "modes": [
+        "debug",
+        "release",
+        "tsan"
+      ],
+      "scenarios": [
+        "drop-failed-retire",
+        "drop-transferred",
+        "destructor-contention"
+      ],
+      "result": "Passed after fresh full copied-source activation Swift, exact original C transport and fixed fixture rebuild. Actual resource/reservation chain retained after failed RETIRE/drop; repaired abandonment closes/quarantines exact records; held actual destructor preserves Swift tombstone and outer capacity until return."
+    },
+    {
+      "modes": [
+        "debug",
+        "release",
+        "tsan"
+      ],
+      "scenario": "late-progress-join",
+      "result": "Passed original S4R-03 sequence: real completed nonfinal RETIRE, real duplicate progress invariant, actual C callback fault/fanout, then common final finish. retirement_done1, consumer_joined0, final quarantine and endpoint/resource/capacity retention. Only this derived scenario ran in each of these three receipts."
+    }
+  ],
+  "post_C_success_instrument": {
+    "receipt": "builds/candidate3-instrumented-release-3/receipt.json",
+    "audit": "builds/candidate3-instrumented-release-3/instrumentation-audit.json",
+    "result": "Passed",
+    "scope": "Separate instrumented Release host build; unchanged production Swift and original C transport source with only mxuit_try_reclaim symbol rename. Review wrapper calls actual original once and returns saved result unchanged. No success/fence/receipt synthesis.",
+    "observed": "Held actual target C OK while Registry admission still owned; real C owner already absent and Swift fact pending. Real duplicate-register failure plus actual C-only CLEANUP enter/leave and later callback queued fault; global admission could not win while held. After forwarding same OK, exact historical nonfinal endpoint receipt persists; facade final quarantined, actual destructor count0, resources and outer capacity2 pinned."
+  },
+  "retained_failures": [
+    {
+      "path": "final-2/review.json",
+      "scope": "Original S4R-03 rejected candidate2 and Release actual consumer_joined1 after prior control fault remain unchanged."
+    },
+    {
+      "path": "repaired-1",
+      "scope": "Earlier repaired product copy preserved; producer ordinary TSan repaired-1 failure was verification pause quiescence, not accepted as pass."
+    },
+    {
+      "path": "builds/candidate3-instrumented-release/receipt.json",
+      "scope": "Instrument harness compile failure for missing @Sendable annotation, retained; not product evidence."
+    },
+    {
+      "path": "builds/candidate3-instrumented-release-2/receipt.json",
+      "scope": "Instrument harness scheduling failure: test driver inherited MainActor before synchronous wait, retained; fixed only test scheduling in attempt3."
+    }
+  ],
+  "receipt_bindings": {
+    "builds/candidate3-debug/receipt.json": "d36b2f1f104cedf5fafb9488feaf7cd717406e42936a4ca6b88608ccb48236ec",
+    "builds/candidate3-release/receipt.json": "d150b2897c2040ba2ee0d87f5a6303c0f7a7eb0fe044fe2e4a4b02071b167719",
+    "builds/candidate3-tsan/receipt.json": "6414144fe9dbeba8f5dfa4acea959f62330725476a72820c3022f7de57d3c559",
+    "delta-candidate-3/debug/receipt.json": "f0ad3956e1e27e597a450fe3ce5a90c6f1b6270fdbbef8a2d0c2e485b08f5f93",
+    "delta-candidate-3/release/receipt.json": "cf5e9e04f4648f145d0bea3acc459a7529c643bbf6167479d3457ebd479749f6",
+    "delta-candidate-3/tsan/receipt.json": "1ceb15fdfdd0c9192bc03dac96a88da0165ba8e6548af936eeee1096c9e870b9",
+    "builds/candidate3-instrumented-release-3/receipt.json": "86fbcf0b1a272fa4770dc7b409991fbd6dfd35a3e8b6e8cd1d0e1db907f94669"
+  },
+  "scope_limits": [
+    "Producer complete matrix, cross-link, literal debugger/cancellation and other final acceptance qualification remain root-owned and outside this decision.",
+    "Ordinary TSan instruments rebuilt activation Swift/C transport/fixture only; retained real SDK/dependency artifacts are hash-validated, not rebuilt or TSan-instrumented.",
+    "No native JNI/Java weak-global/Looper/widget/device, signed core/Prepared/factory integration, published FieldLog, signing/store/customer/operational or GA authority.",
+    "No device discovery/run/reconnection, product/producer edits, commits/pushes or external messages performed."
+  ],
+  "summary_wording_clarification": "candidate-3/receipt-summary-clarification.json",
+  "output_hygiene": {
+    "all_initial_receipts_preserved": true,
+    "unignored_compiler_cache_count": 0,
+    "ignored_derived_artifacts_preserved": true
+  }
+}

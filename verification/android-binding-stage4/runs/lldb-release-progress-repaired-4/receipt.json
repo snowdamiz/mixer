@@ -1,0 +1,63 @@
+{
+  "reference": "verification/android-binding-stage4/runs/release-debugger-repaired-2/receipt.json",
+  "reference_sha256": "62e4559ba802e4c220a9d35b54d2a3776337b1ad3f062793a2632bfd6937e947",
+  "source_tree_sha256": "e8a6d021c7eb99db60391ba516870b6722c8307f5f331ad3f8a76999cb862645",
+  "mode": "release",
+  "scope": "Separate LLDB scheduling/failure instrumentation of actual frozen product-byte Debug/Release/TSan build. No result/receipt/fence writes. Post-store proof requires actual terminal store+unlock and same original presentation worker resumed before actual Task.value evidence. Mode-specific optimized-frame limitations remain failures.",
+  "commands": [
+    {
+      "name": "lldb-version",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 0.15737812500447035,
+      "log": "verification/android-binding-stage4/runs/lldb-release-progress-repaired-4/lldb-version.log",
+      "sha256": "999c6bfe59784b17e53bf45cf42be20662b29814fc4ee105a7c4dc7315be41e1"
+    },
+    {
+      "name": "progress-tail",
+      "argv": [
+        "xcrun",
+        "lldb",
+        "--batch",
+        "-o",
+        "command script import /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-progress-repaired-4/debugger_driver.py",
+        "-o",
+        "stage4-debugger /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-repaired-2/Stage4HostTests progress-tail /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/runs/lldb-release-progress-repaired-4/progress-tail.json /Users/andreyyurlov/Documents/dev/mixer/verification/android-binding-stage4/.build/release-debugger-repaired-2/source"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "exit": 0,
+      "seconds": 4.3513917500386015,
+      "log": "verification/android-binding-stage4/runs/lldb-release-progress-repaired-4/progress-tail.log",
+      "sha256": "869f1fa288a951226d9c58ca356bfa2e9047bad5f9c7cff1d00cbdcce2fd7db1"
+    }
+  ],
+  "inputs": {
+    "driver": "fdc0cc688986cdb4d0ddc68624dd646ae43f1878bd787f2b9cea9a9983f90578",
+    "launcher": "4d7260cc51f5850cf84c732d70d6a864af5faa6f6c7e773dc4fb545e8e23b808"
+  },
+  "artifacts": {
+    "verification/android-binding-stage4/.build/release-debugger-repaired-2/Stage4HostTests": "a10328f681f2a73ada0f652a47e206212974b95b7230f49c5edbaf9ef67f0bf2",
+    "verification/android-binding-stage4/.build/release-debugger-repaired-2/libMixerAndroidStage4.dylib": "65ee3bc396df01768fe6c390a75fd31a09763b5a6282fe562d57039c2d2dd89b"
+  },
+  "result": "all selected instrumented scheduling/failure proofs passed",
+  "evidence": {
+    "verification/android-binding-stage4/runs/lldb-release-progress-repaired-4/debugger_driver.py": "fdc0cc688986cdb4d0ddc68624dd646ae43f1878bd787f2b9cea9a9983f90578",
+    "verification/android-binding-stage4/runs/lldb-release-progress-repaired-4/progress-tail.stdout": "2b2683fb91b83f4ac9e8f53f6c6a8b2f64081bc64cec74021c7e72c9ca767562",
+    "verification/android-binding-stage4/runs/lldb-release-progress-repaired-4/progress-tail.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/android-binding-stage4/runs/lldb-release-progress-repaired-4/lldb-version.log": "999c6bfe59784b17e53bf45cf42be20662b29814fc4ee105a7c4dc7315be41e1",
+    "verification/android-binding-stage4/runs/lldb-release-progress-repaired-4/progress-tail.log": "869f1fa288a951226d9c58ca356bfa2e9047bad5f9c7cff1d00cbdcce2fd7db1",
+    "verification/android-binding-stage4/runs/lldb-release-progress-repaired-4/progress-tail.json": "b4dc9d3ec0b4fc179b44158f9116ce27ac7b548a11fc12fb75e018e552e15fae"
+  },
+  "completed_utc": "2026-10-23T19:25:23.248106+00:00"
+}

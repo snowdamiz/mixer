@@ -114,6 +114,26 @@ jobs:
             --scratch-path "$RUNNER_TEMP/capability-material" \
             -Xcc "-I$RUNNER_TEMP/capability-vm/include" \
             -Xlinker "-L$RUNNER_TEMP/capability-vm/lib" -Xswiftc -warnings-as-errors
+      - name: Fresh private Android host binding and ownership scenarios
+        run: |
+          for mode in debug release tsan; do
+            python3 -B scripts/ci/check-android-binding.py --mode "$mode" \
+              --native-root "$RUNNER_TEMP/capability-vm" \
+              --expected-native-revision "$GITHUB_SHA" \
+              --output "$RUNNER_TEMP/android-binding-$mode"
+          done
+      - name: Preserve private Android host binding receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-binding-host-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: ignore
+          path: |
+            ${{ runner.temp }}/android-binding-*/receipt.json
+            ${{ runner.temp }}/android-binding-*/logs/*.log
+            ${{ runner.temp }}/capability-vm/receipt.json
+            ${{ runner.temp }}/apple-toolchain.json
       - name: Generated consumer integration
         run: |
           swift run --package-path cli mixer create VerificationApp --directory "$RUNNER_TEMP/VerificationApp"
@@ -142,6 +162,11 @@ jobs:
           cargo test --locked --release --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-function-cache,experimental-span-execution,experimental-swift-wasi,experimental-swift-reactor,experimental-capability-native
           cargo test --locked --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-function-cache,experimental-span-execution,experimental-swift-wasi,experimental-swift-reactor,experimental-capability-native -- --ignored
           cargo test --locked --release --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-function-cache,experimental-span-execution,experimental-swift-wasi,experimental-swift-reactor,experimental-capability-native -- --ignored
+      - name: Private Swift reactor without legacy cache or execution features
+        run: |
+          cargo test --locked --manifest-path vm/Cargo.toml --features experimental-swift-reactor
+          cargo test --locked --release --manifest-path vm/Cargo.toml --features experimental-swift-reactor
+          cargo clippy --locked --manifest-path vm/Cargo.toml --lib --features experimental-swift-reactor -- -D warnings
       - name: Allocation observer isolation under background noise
         env:
           MIXER_ALLOCATOR_NOISE: '1'

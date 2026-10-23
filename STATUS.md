@@ -8,6 +8,20 @@ native Swift signature verifier, CLI, and a separate FieldLog repository.
 `work-graph.json` retains every W01–W18 package; all G01–G38 and D0–D8 gates remain
 open. Implemented slices do not replace their complete acceptance requirements.
 
+Current checkpoint: the private Android host binding and fresh-source host CI
+runner have scoped root and independent acceptance. All 39 ordinary scenarios
+pass per Debug/Release/TSan; the runner rebuilds actual Swift/C/SDK sources and
+checks locked dependency checkouts and native archive/header hashes. Root binds
+4,149 acceptance checks; independent review adds nine lifecycle replays and 15 CI
+tests per normal/optimized Python. See
+`verification/android-binding-stage4-root-review/acceptance.json`.
+S4-21 actual JNI stale delivery, S4-29 optimized Release lifetime-counter
+injection, and hosted pinned Swift 6.2.4 execution of the new runner remain pending.
+No native Android witness, signed core integration, physical device, published
+FieldLog consumer, release or GA pass follows. JNI/Java contract work is next;
+the private Swift cache's complete memory accounting is still under review.
+The preceding `3d93137` checkpoint passed all VM/Swift/services CI jobs.
+
 Observed implementation and evidence:
 
 - The fox-branded marketing website is implemented in `website/`, with responsive
@@ -478,7 +492,7 @@ See `verification/runtime-identity-v2/README.md` and the final snapshot receipt.
 
 Explicit release3 Go and Swift verifiers now share154 manifest and36 assignment
 cases. Swift exposes opaque artifacts/grants tied to one verifier context;55 tests
-per debug/release and15 scoped TSan tests pass, with public construction/decoding
+per debug/release and 15 scoped TSan tests pass, with public construction/decoding
 rejected at compile time. Official iOS/Android checks compile modules/objects only.
 Go passes the full services race suite and seven independent public-API test
 functions, canonical-byte checks and fixture regeneration. Use the checked Go
@@ -902,7 +916,7 @@ protocol start. The test-only repair observes start before advancing its deadlin
 and separately checks native invalidation before resume. Debug/Release52, TSan32,
 20 repeated cleanup pairs and alternate Swift6.3.3 TSan32 pass; root audited267
 bindings in `verification/http-cleanup-ci-repair/root-review.json`. Product HTTP
-transport is unchanged and pinned Swift6.2.4 revalidation remains pending CI.
+transport is unchanged and pinned Swift 6.2.4 revalidation remains pending CI.
 Hosted401e16c also passes VM/services but Swift stops at the dependency guard:
 its `wasm3` substring wrongly matches `wasm32` architecture names in the concurrent
 website lockfile. The narrow guard correction reproduces all11 false positives,
@@ -990,7 +1004,7 @@ that test-only helper. The actual retained model/hidden-window suite passes
 13 tests with one visible-window skip per Debug/Release/TSan on Swift6.4. Root
 audited 111 bindings in `verification/presentation-actor-ci-repair/root-review.json`.
 The retained production module matches this committed checkpoint; concurrent
-Android implementation is outside that qualification. Pinned Swift6.2.4 rerun
+Android implementation is outside that qualification. Pinned Swift 6.2.4 rerun
 is pending. Both failed hosted receipts remain preserved; no skipped gate,
 physical device or GA check is relabeled as passed.
 
@@ -1027,7 +1041,7 @@ executor and bounded full-target runner remain pending. No cache execution or GA
 qualification follows from this prerequisite checkpoint.
 
 Hosted 8d809df and bd8a896 both pass all three VM/Swift/services jobs. This confirms
-the pinned Swift6.2.4 actor-helper repair and the accounted WASI checkpoint.
+the pinned Swift 6.2.4 actor-helper repair and the accounted WASI checkpoint.
 Historical failed runs remain retained. Android binding implementation/review is
 ongoing; physical phones, immutable separately published FieldLog packages,
 full-target performance/delivery-size and all specified external gates remain open.

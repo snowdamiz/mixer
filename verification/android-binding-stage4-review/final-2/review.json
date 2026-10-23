@@ -1,0 +1,132 @@
+{
+  "reviewed_utc": "2026-10-23T19:11:56.314250+00:00",
+  "reviewer_configuration": {
+    "requested_model": "gpt-6.1-sol",
+    "requested_reasoning_effort": "xhigh",
+    "context": "bounded independent source delta and original probes"
+  },
+  "status": "final2 reviewed; pending root decision on late Swift fault assertion and final matrix receipts; no overall acceptance",
+  "source_tree_sha256": "e9b2427d8871c2c850da25753aa7e79ff57fedaf58739a85428b1447a18f7001",
+  "producer_receipt_sha256": "d8bb6f90e95092ee861ea29bf87fe597e8fa63eb0c0625047af70af1b2d50f0c",
+  "scope": "Private standalone host binding only. Exact production source copied and independently rebuilt; no normal factory/core/Prepared/Apple/transport change, JNI/Looper/device/release/GA authority. Retained SDK/dependency objects hash-validated, not rebuilt or sanitizer-instrumented.",
+  "changed_production_files": {
+    "capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidBinding.swift": {
+      "before": "e5521c931d2eaac90148a616ca63ce7ab158c5f80531d4b6e0c2735198f796fe",
+      "after": "9dd92ccfe0a610ff70d83cae2338ed8f6bbd27d3286061d4c41c56d420831e23"
+    },
+    "capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidResources.swift": {
+      "before": "7f141f22208e1f612dfc5273ed1bed6e7f89afe6aa5be6946ce1f7bd126ee4b1",
+      "after": "73dff81c095d879d2442dbdf0fca08eb7356b99418c6682b5ada32aaf0156c0e"
+    },
+    "capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidLifetime.swift": {
+      "before": "5db135a4f5dca79300fe2e7ae99d7b4fb236da4ff6b922db5a605b428024a150",
+      "after": "372c3209bb953a9add5a982201e77da4e2e4ee4328a235cefabb9cfa5aaf645d"
+    },
+    "capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidRegistry.swift": {
+      "before": "e1c4475a3adac621793f04c90fe5d435e6a54276d41bb8c8592cd1c1a30478b1",
+      "after": "ed9466d968a919382ca2cffb70d055ccc945310dc0452cb77d3f416cef42d531"
+    },
+    "capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidProgress.swift": {
+      "before": "6caf17d28f671e9b08fbf32937ecf570c85ad7413ea1280fe7f334bc9d435b19",
+      "after": "d47ff4889aef5b412766cd14dbd1f9a10e08dc4d7bbcb3fe94ac81f5aacba116"
+    }
+  },
+  "common_lifetime_header_transport_unchanged_since_initial": true,
+  "resolved_initial_findings": [
+    {
+      "id": "S4R-01",
+      "status": "resolved in reviewed final2",
+      "evidence": "builds/final2-{debug,release,tsan}/drop-transferred.log",
+      "description": "Actual binding shell weaknil after transfer/drop, actual resource/reservation alive, exact registry quarantined+closing, C endpoint closing1; final-cell chain preserved."
+    },
+    {
+      "id": "S4R-02",
+      "status": "resolved in reviewed final2",
+      "evidence": "delta-final-2/{debug,release,tsan}/fallback-ids.log",
+      "description": "Checked facade-long tokenSerial never resets on nonfinal retire. Three real bound exchanges show [1,2,3], [4,5,6], [7,8,9]; all three native tuple components exceed prior maximum, distinct. Actual old Task/native finish precedes successor and exact old readback persists."
+    }
+  ],
+  "independent_checks": [
+    {
+      "name": "original failure/drop/destructor/tombstone/capacity probes",
+      "modes": [
+        "debug",
+        "release",
+        "tsan"
+      ],
+      "result": "passed",
+      "receipts": [
+        "builds/final2-debug/receipt.json",
+        "builds/final2-release/receipt.json",
+        "builds/final2-tsan/receipt.json"
+      ]
+    },
+    {
+      "name": "original leased ingress/cleanup race",
+      "modes": [
+        "debug",
+        "release",
+        "tsan"
+      ],
+      "result": "passed",
+      "description": "Wrong thread rejects before UI-entry issue/alias; actual fixed UI thread performs both lease kinds, nested callback rejected; real native helper hold counts alias1, final close stays pending, helper returns before alias0/leave; closed ingress rejects, cleanup still leased; real later callbacks, joins and resource destructor release capacity."
+    },
+    {
+      "name": "original duplicate progress failure fanout",
+      "modes": [
+        "debug",
+        "release",
+        "tsan"
+      ],
+      "result": "passed",
+      "description": "Real first checked continuation registered in permanent cell, real second register rejects/sets INVALID; only actual C callback drives detection and global failClosed. All16 cells fault before wake; other prebind resolves quarantine; no replacement or resource/capacity release. This tests actual duplicate invariant origin, not counter MAX origin."
+    },
+    {
+      "name": "authority negatives",
+      "result": "22 ordinary/testable negatives reject intended access/type conversions; valid readback control passes",
+      "receipt": "authority-final-2/receipt.json"
+    },
+    {
+      "name": "pre-C reserved data-only gate order",
+      "result": "source verified",
+      "description": "Swift endpoint reservation and issued lifetime precede sealed empty bind-gate allocation, which precedes actual C endpoint acquisition. Exact acquired sealed token carries gate; fixed spawn creates sole Task. No injected Task/callback or supported factory."
+    }
+  ],
+  "delta_receipts": [
+    "delta-final-2/debug/receipt.json",
+    "delta-final-2/release/receipt.json",
+    "delta-final-2/tsan/receipt.json"
+  ],
+  "findings": [
+    {
+      "id": "S4R-03",
+      "priority": "P2",
+      "status": "root decision pending; reproduced Release",
+      "file": "capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidLifetime.swift",
+      "title": "A late Swift-only progress fault still permits consumer_joined after actual Task return",
+      "description": "Complete actual nonfinal RETIRE before common finish; cause real duplicate-progress invariant and actual C callback global quarantine; later finalfinish awaits actualTask and returns quarantined with endpoint/resource retained, but C consumer_joined becomes1. beginJoin observes terminal.retired without checking subsequently latched fault. This preserves safe final rejection and capacity but differs from frozen seams section4 assertion exclusion. Recommend reject nonzero control fault before consumer_joined, or root explicitly review precise contract interpretation.",
+      "receipt": "delta-final-2/release-late-progress/receipt.json",
+      "log": "delta-final-2/release-late-progress/late-progress-join.log"
+    }
+  ],
+  "pending_evidence": [
+    "Root qualification of complete acceptance32 matrix remains required; 32 ordinary scenario names are not proof of every required schedule.",
+    "Literal LLDB actual post-terminal store/Task return, setup-alias hold, all MAX counter origins, actual cancellation and bind-return/postresume tail schedules remain producer/root qualification; reviewer duplicate check is not MAX origin.",
+    "Final symbol-omission/cross-link Android API30 Swift6.3.3 and frozen common/core/portable regression receipts require exact final-source binding and root acceptance.",
+    "Any repair or product delta after final2 requires independent revalidation; initial candidate1 failures and receipts preserved."
+  ],
+  "separate_pending_gates": [
+    "signed core/Prepared/factory integration",
+    "actual JNI weak-global deletion and Java stack return",
+    "Android main Looper/widgets",
+    "draw plus later Choreographer health",
+    "physical devices disconnected; no discovery/run/reconnection attempted",
+    "immutable separately published FieldLog consumer",
+    "signing/store/customer/operational and accountable GA acceptance"
+  ],
+  "output_hygiene": {
+    "lane_local_ignore": "verification/android-binding-stage4-review/.gitignore",
+    "unignored_swift_cache_outputs": 0,
+    "receipt_bound_evidence_deleted": false
+  }
+}
