@@ -1,0 +1,184 @@
+{
+  "schema_version": 1,
+  "status": "proposal_only_not_implementation_authorization",
+  "java_class": "dev/mixer/android/SignedGuestScreen",
+  "java_class_final": true,
+  "constructor_descriptor": "(Landroid/app/Activity;JJ)V",
+  "java_origin_methods": [
+    {
+      "name": "nativeInstall",
+      "descriptor": "()I",
+      "access": "private static native",
+      "jni_symbol": "Java_dev_mixer_android_SignedGuestScreen_nativeInstall",
+      "jni_return": "jint",
+      "jni_arguments": [
+        "JNIEnv *env",
+        "jclass type"
+      ]
+    },
+    {
+      "name": "nativeAttach",
+      "descriptor": "(JJLdev/mixer/android/SignedGuestScreen;)I",
+      "access": "private static native",
+      "jni_symbol": "Java_dev_mixer_android_SignedGuestScreen_nativeAttach",
+      "jni_return": "jint",
+      "jni_arguments": [
+        "JNIEnv *env",
+        "jclass type",
+        "jlong lifecycle",
+        "jlong presentation",
+        "jobject wrapper"
+      ]
+    },
+    {
+      "name": "nativeActivate",
+      "descriptor": "(JJJJ[BJ)I",
+      "access": "private static native",
+      "jni_symbol": "Java_dev_mixer_android_SignedGuestScreen_nativeActivate",
+      "jni_return": "jint",
+      "jni_arguments": [
+        "JNIEnv *env",
+        "jclass type",
+        "jlong lifecycle",
+        "jlong attachment",
+        "jlong input",
+        "jlong revisionBits",
+        "jbyteArray nodeID",
+        "jlong generationBits"
+      ]
+    },
+    {
+      "name": "nativeObserve",
+      "descriptor": "(JJJJJ)I",
+      "access": "private static native",
+      "jni_symbol": "Java_dev_mixer_android_SignedGuestScreen_nativeObserve",
+      "jni_return": "jint",
+      "jni_arguments": [
+        "JNIEnv *env",
+        "jclass type",
+        "jlong lifecycle",
+        "jlong attachment",
+        "jlong probe",
+        "jlong drawSerial",
+        "jlong frameTimeNanos"
+      ]
+    },
+    {
+      "name": "nativeRequestClose",
+      "descriptor": "(JI)I",
+      "access": "private static native",
+      "jni_symbol": "Java_dev_mixer_android_SignedGuestScreen_nativeRequestClose",
+      "jni_return": "jint",
+      "jni_arguments": [
+        "JNIEnv *env",
+        "jclass type",
+        "jlong lifecycle",
+        "jint reason"
+      ]
+    },
+    {
+      "name": "nativeDetachUI",
+      "descriptor": "(JJ)I",
+      "access": "private static native",
+      "jni_symbol": "Java_dev_mixer_android_SignedGuestScreen_nativeDetachUI",
+      "jni_return": "jint",
+      "jni_arguments": [
+        "JNIEnv *env",
+        "jclass type",
+        "jlong lifecycle",
+        "jlong attachment"
+      ]
+    }
+  ],
+  "native_to_java_methods": [
+    {
+      "name": "applySigned",
+      "descriptor": "(JJJ[B)I",
+      "access": "private instance"
+    },
+    {
+      "name": "setInteraction",
+      "descriptor": "(I)I",
+      "access": "private instance"
+    },
+    {
+      "name": "retireSigned",
+      "descriptor": "(I)I",
+      "access": "private instance"
+    },
+    {
+      "name": "consumeObservation",
+      "descriptor": "(JJJJ)I",
+      "access": "private instance"
+    }
+  ],
+  "looper_class": "android/os/Looper",
+  "looper_methods": [
+    {
+      "name": "myLooper",
+      "descriptor": "()Landroid/os/Looper;",
+      "access": "public static"
+    },
+    {
+      "name": "getMainLooper",
+      "descriptor": "()Landroid/os/Looper;",
+      "access": "public static"
+    }
+  ],
+  "fixed_c_declarations": [
+    "int32_t mxis_apply(uint64_t facade, uint64_t entry, uint64_t attachment, uint64_t input, uint64_t probe, const uint8_t *packet, uint32_t packet_bytes);",
+    "int32_t mxis_interaction(uint64_t facade, uint64_t entry, uint32_t enabled);",
+    "int32_t mxis_retire(uint64_t facade, uint64_t entry, uint32_t final_facade);",
+    "int32_t mxisi_attach_begin(uint64_t facade, uint64_t entry, uint64_t presentation, uint64_t *attach_serial);",
+    "int32_t mxisi_attach_commit(uint64_t facade, uint64_t entry, uint64_t presentation, uint64_t attach_serial, uint64_t slot_generation);",
+    "int32_t mxisi_attach_abort(uint64_t facade, uint64_t entry, uint64_t attach_serial, uint32_t failure);",
+    "int32_t mxisi_activate(uint64_t facade, uint64_t entry, uint64_t attachment, uint64_t input, uint64_t revision, const uint8_t *node_id, uint32_t node_id_bytes, uint64_t generation);",
+    "int32_t mxisi_observe(uint64_t facade, uint64_t entry, uint64_t attachment, uint64_t probe, uint64_t draw_serial, uint64_t frame_time_nanos);",
+    "int32_t mxisi_request_close(uint64_t facade, uint32_t reason);",
+    "int32_t mxisi_detach_ui(uint64_t facade, uint64_t entry, uint64_t attachment);",
+    "int32_t mxis_native_slot_read(uint64_t facade, uint64_t entry, struct mxis_native_slot *out);",
+    "int32_t mxis_native_observation_take(uint64_t facade, uint64_t entry, uint64_t attachment, uint64_t probe, uint64_t draw_serial, uint64_t frame_time_nanos);",
+    "int32_t mxis_native_slot_reserve(uint64_t facade, uint64_t *slot_generation);",
+    "int32_t mxis_native_slot_release(uint64_t facade, uint64_t slot_generation, uint64_t final_entry);",
+    "int32_t mxis_native_slot_abort_empty(uint64_t facade, uint64_t slot_generation);"
+  ],
+  "unchanged_c_symbols": [
+    "mxis_apply",
+    "mxis_interaction",
+    "mxis_retire"
+  ],
+  "native_type_edges": [
+    "CapabilityAndroidNativeLifetimeCapsule",
+    "CapabilityAndroidNativeInstallation",
+    "CapabilityAndroidNativeTaskReturnEvidence",
+    "CapabilityAndroidNativeAttachmentEvidence",
+    "CapabilityAndroidNativeFacadeCleanupEvidence",
+    "CapabilityAndroidNativeEndpointRetirementEvidence",
+    "CapabilityAndroidNativeLifetimeReceipt",
+    "CapabilityAndroidNativeFinalReceipt"
+  ],
+  "authority_policy": "No host evidence conversion; native witness constructors private to actual proof source; no caller booleans, enum scope or fake native implementation.",
+  "bounds": {
+    "facades": 16,
+    "weak_globals_per_facade": 1,
+    "class_globals": 2,
+    "local_refs_per_helper": 16,
+    "packet_bytes": 1048576,
+    "guest_bytes": 65536,
+    "nodes": 256,
+    "depth": 16,
+    "children": 64,
+    "string_utf8_bytes": 4096,
+    "identifier_utf8_bytes": 128
+  },
+  "current_scope": {
+    "owned_paths": [
+      "docs/android-jni-stage5-seams.md",
+      "verification/android-jni-stage5-contract/**"
+    ],
+    "commits_or_pushes": false,
+    "production_mutation": false,
+    "native_acceptance_cases_executed": 0,
+    "phones": "disconnected_no_discovery_runs_or_reconnect_requests"
+  }
+}

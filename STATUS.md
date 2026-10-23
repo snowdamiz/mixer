@@ -25,16 +25,24 @@ checks locked dependency checkouts and native archive/header hashes. Root binds
 tests per normal/optimized Python. See
 `verification/android-binding-stage4-root-review/acceptance.json`.
 S4-21 actual JNI stale delivery, S4-29 optimized Release lifetime-counter
-injection, and hosted pinned Swift 6.2.4 execution of the new runner remain pending.
+injection remain pending. Hosted Swift 6.2.4 now passes all 39 ordinary host cases
+per Debug/Release/TSan; root verified 579 Git-input/log hashes in the downloaded
+artifact. See `verification/github-ci-61c5c8b/receipt.json`.
 No native Android witness, signed core integration, physical device, published
-FieldLog consumer, release or GA pass follows. JNI/Java contract work is next;
-the private Swift cache's complete memory accounting is still under review.
+FieldLog consumer, release or GA pass follows. The separate JNI/Java design now
+has root acceptance after 11 declaration/audit commands and 81 input/artifact
+bindings; all 50 implementation cases remain pending. See
+`verification/android-jni-stage5-root-review/acceptance.json`. The private Swift
+cache's selected accounting maps now pass review, while two mandatory terminal
+failure assertion groups still need execution before stage acceptance.
 The preceding `3d93137` checkpoint passed all VM/Swift/services CI jobs.
 Hosted `61c5c8b` passed services but its new minimal-feature Clippy check rejected
 unused private descriptor fields after tests passed. A descriptor-only repair
 passes 202 Debug and 202 Release tests plus four Clippy feature combinations on a
-clean source snapshot; new hosted confirmation is pending. See
-`verification/swift-minimal-descriptor-ci-repair/receipt.json`.
+clean source snapshot. All three `d6c41a0` hosted jobs now pass, including the
+fresh private Android host runner under Swift 6.2.4. See
+`verification/swift-minimal-descriptor-ci-repair/receipt.json` and
+`verification/github-ci-d6c41a0/receipt.json`.
 
 Observed implementation and evidence:
 

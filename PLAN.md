@@ -48,14 +48,24 @@ nine additional lifecycle replays. A fresh-source CI runner passes 39 ordinary
 scenarios per Debug/Release/TSan, with 15 provenance/CI regressions per normal and
 optimized Python. The full original dynamic matrix is still incomplete: S4-21
 native event delivery and S4-29 optimized Release lifetime-counter injection are
-pending. Hosted pinned Swift 6.2.4 execution of the new runner is also pending.
-The next Android lane designs a separate JNI/Java ownership and verification
-contract before implementation. Host receipts grant no native authority.
+pending. Hosted pinned Swift 6.2.4 now passes all 39 ordinary cases per mode;
+root matched 579 Git-input/log hashes in the retained CI artifact. See
+`verification/github-ci-61c5c8b/receipt.json`. That checkpoint failed the separate
+VM lint check described below.
+The separate JNI/Java ownership and verification design now has root acceptance;
+see `docs/android-jni-stage5-seams.md` and
+`verification/android-jni-stage5-root-review/acceptance.json`. Eleven declaration
+and audit commands pass, with 81 exact input/artifact bindings. All 50 native,
+visual and external implementation cases remain pending. Implementation proceeds
+through the shared appearance foundation, closed native Swift backend, Java
+signed subset, actual JNI, and native observation before signed-core composition.
+Host receipts and declaration compilation grant no native authority.
 
-The independent cache review is repairing its temporary-memory maps before
-acceptance. Shared foundation bytes remain unchanged while complete prepare and
-pre-enlargement phase alternatives are measured. Executor implementation and
-full-target execution remain gated on that acceptance. Hosted checkpoint
+The independent cache review accepts the candidate's selected temporary-memory
+maps within the unchanged shared foundation. Complete stage acceptance still
+requires actual isolated owner-exhaustion coverage and repeated no-effects checks
+after every terminal failure kind. Executor implementation and full-target
+execution remain gated on that acceptance. Hosted checkpoint
 `3d93137` passed all three jobs; its receipt is
 `verification/github-ci-3d93137/receipt.json`.
 
@@ -64,7 +74,9 @@ unused private descriptor fields after its tests passed. The descriptor-only
 repair passes 202 tests per Debug/Release and four feature-combination Clippy
 checks against clean `61c5c8b` source. See
 `verification/swift-minimal-descriptor-ci-repair/receipt.json`; this is independent
-of the cache candidate and awaits a new hosted run.
+of the cache candidate. All three `d6c41a0` hosted jobs now pass, including the
+fresh Android host runner under Swift 6.2.4; see
+`verification/github-ci-d6c41a0/receipt.json`.
 
 
 ## Capability execution integration

@@ -1,0 +1,1096 @@
+{
+  "schema_version": 1,
+  "proposal_revision": 1,
+  "status": "planned_only_not_executed",
+  "executed_native_acceptance_cases": 0,
+  "native_android_authority": false,
+  "full_original_dynamic32_pass": false,
+  "ga_gate_pass": false,
+  "stage4_pending": [
+    "S4-21 actual stale JNI delivery",
+    "S4-29 optimized Release lifetime-counter injection"
+  ],
+  "runner_contract": [
+    "--case NAME",
+    "--mode MODE",
+    "--output DIR"
+  ],
+  "case_count": 50,
+  "cases": [
+    {
+      "id": "J5-01",
+      "name": "native_scope_isolation",
+      "status": "pending_implementation",
+      "scope": "native",
+      "required_modes": [
+        "debug",
+        "release"
+      ],
+      "prerequisites": [
+        "5N",
+        "5B"
+      ],
+      "runner": "verification/android-jni-stage5-native/verify.py",
+      "schedule": "Compile ordinary and @testable clients attempting Host-to-Native receipt/capsule/installation conversion, native constructor access and native injection into Apple gate; link with both Host and Native modules.",
+      "pass": "Every forbidden source fails for intended type/privacy reason; mixed-module build rejects; positive ordinary host/Apple clients compile. No witness maker in tests.",
+      "contract_sections": [
+        "1",
+        "2"
+      ]
+    },
+    {
+      "id": "J5-02",
+      "name": "native_actual_task_return",
+      "status": "pending_implementation",
+      "scope": "integration",
+      "required_modes": [
+        "android-debug",
+        "android-release"
+      ],
+      "prerequisites": [
+        "5N",
+        "5B",
+        "5V"
+      ],
+      "runner": "verification/android-jni-stage5-integration/verify.py",
+      "schedule": "Hold real native presentation Task after terminal scalar publication before return; call unique common native finish and concurrent reentry; release.",
+      "pass": "No consumer_joined/receipt before actual Task.value; one permit/authoritative join; reentry pending/exact immutable result.",
+      "contract_sections": [
+        "2",
+        "5"
+      ]
+    },
+    {
+      "id": "J5-03",
+      "name": "sdk_snapshot_native_packet",
+      "status": "pending_implementation",
+      "scope": "java",
+      "required_modes": [
+        "jvm"
+      ],
+      "prerequisites": [
+        "5N"
+      ],
+      "runner": "verification/android-jni-stage5-java/verify.py",
+      "schedule": "Encode separate real UIReconciler snapshots using composed then decomposed canonically equivalent IDs and max UInt64 revision with genuine reconciler-issued generations. Test same-document canonical collision rejection and a custom-limit huge snapshot through new public encoder; independently authored Java packet tests cover max UInt64 generation as scalar decode only.",
+      "pass": "Exact authored bytes and authoritative snapshot generations preserved separately; canonical duplicate still rejects; bounded preflight/writer rejects oversized custom-limit inputs before unbounded serialization/temporary allocation. No fake max-generation snapshot or identity regeneration; <=1MiB output and <=65536 original guest frame remain separate.",
+      "contract_sections": [
+        "6"
+      ]
+    },
+    {
+      "id": "J5-04",
+      "name": "signed_node_depth_byte_limits",
+      "status": "pending_implementation",
+      "scope": "java",
+      "required_modes": [
+        "jvm"
+      ],
+      "prerequisites": [
+        "5A"
+      ],
+      "runner": "verification/android-jni-stage5-java/verify.py",
+      "schedule": "Decode exact limits and one-over each: 256nodes/depth16/64children/4096-byte strings/128-byte IDs/1MiB expanded packet. Feed oversized original guest frame through real exchange.",
+      "pass": "Boundary accepts only valid closed subset; every one-over rejects before renderer mutation; guest65537-byte frame rejected by actual exchange regardless of expanded packet.",
+      "contract_sections": [
+        "6"
+      ]
+    },
+    {
+      "id": "J5-05",
+      "name": "unsigned_utf8_transport",
+      "status": "pending_implementation",
+      "scope": "native",
+      "required_modes": [
+        "debug",
+        "release"
+      ],
+      "prerequisites": [
+        "5A",
+        "5B"
+      ],
+      "runner": "verification/android-jni-stage5-native/verify.py",
+      "schedule": "Round-trip 2^63-1/2^63/2^64-1 bits; supplementary text,NUL text,composed/decomposed IDs; deliver overlong/surrogate/truncated UTF8 and identifier controls through byte-region JNI.",
+      "pass": "Bits/raw bytes preserved; strict invalid-byte/ID rejection; text NUL retained; no modifiedUTF8 API; no signed ordering errors.",
+      "contract_sections": [
+        "6"
+      ]
+    },
+    {
+      "id": "J5-06",
+      "name": "closed_raw_json",
+      "status": "pending_implementation",
+      "scope": "java",
+      "required_modes": [
+        "jvm"
+      ],
+      "prerequisites": [
+        "5A"
+      ],
+      "runner": "verification/android-jni-stage5-java/verify.py",
+      "schedule": "Supply escaped duplicate keys, unknown/missing fields,BOM,trailing values,unpaired surrogates,1e0/1.0/-1/leading-zero/overflow identity numbers.",
+      "pass": "Every invalid candidate rejects deterministically before View access; exact unsigned values remain text/integer bits.",
+      "contract_sections": [
+        "6"
+      ]
+    },
+    {
+      "id": "J5-07",
+      "name": "validate_before_view_mutation",
+      "status": "pending_implementation",
+      "scope": "java",
+      "required_modes": [
+        "android-debug",
+        "android-release"
+      ],
+      "prerequisites": [
+        "5A"
+      ],
+      "runner": "verification/android-jni-stage5-java/verify.py",
+      "schedule": "Keep visible valid tree, apply candidate failing only at final node/property/identity; inject failure during actual mutation after full validation.",
+      "pass": "Invalid candidate changes no existing View; mutation failure synchronously clears full visible tree/listeners and reports failure, never partial success.",
+      "contract_sections": [
+        "6"
+      ]
+    },
+    {
+      "id": "J5-08",
+      "name": "closed_property_action_subset",
+      "status": "pending_implementation",
+      "scope": "java",
+      "required_modes": [
+        "jvm"
+      ],
+      "prerequisites": [
+        "5A"
+      ],
+      "runner": "verification/android-jni-stage5-java/verify.py",
+      "schedule": "Exercise vStack/text/button all UI-v1 allowed properties/types; unsupported controls/properties/event names,button nonnull payload,container actions and leaf children.",
+      "pass": "Only frozen closed subset constructs SignedUiPacket; UiPacket/NativeRenderer.Events cannot typecheck as signed inputs.",
+      "contract_sections": [
+        "1",
+        "6"
+      ]
+    },
+    {
+      "id": "J5-09",
+      "name": "successor_identity_lifetime",
+      "status": "pending_implementation",
+      "scope": "java",
+      "required_modes": [
+        "jvm"
+      ],
+      "prerequisites": [
+        "5A",
+        "5N"
+      ],
+      "runner": "verification/android-jni-stage5-java/verify.py",
+      "schedule": "Apply real authoritative reorder,same-kind property update,kind replacement,remove/reinsert,stale revision and inconsistent generations.",
+      "pass": "Survivors preserve generation; replacements never reuse; stale/inconsistent candidate rejects; no Java generation allocation.",
+      "contract_sections": [
+        "6"
+      ]
+    },
+    {
+      "id": "J5-10",
+      "name": "scalar_listener_ownership",
+      "status": "pending_implementation",
+      "scope": "java",
+      "required_modes": [
+        "jvm",
+        "android-debug"
+      ],
+      "prerequisites": [
+        "5A"
+      ],
+      "runner": "verification/android-jni-stage5-java/verify.py",
+      "schedule": "Inspect compiled final listener fields and run actual button path after packet replacement; retain obsolete listener while clearing old tree.",
+      "pass": "Only immutable lifecycle/attachment/input/revision/id bytes/generation retained; no packet/node/view/Activity/exchange/owner; removed views have no listener; activate(null) only.",
+      "contract_sections": [
+        "6"
+      ]
+    },
+    {
+      "id": "J5-11",
+      "name": "interaction_overlay_exact_gates",
+      "status": "pending_implementation",
+      "scope": "integration",
+      "required_modes": [
+        "android-debug",
+        "android-release"
+      ],
+      "prerequisites": [
+        "5A",
+        "5N",
+        "5B",
+        "5V"
+      ],
+      "runner": "verification/android-jni-stage5-integration/verify.py",
+      "schedule": "Toggle authored ancestor disabled,detached,effects unconfirmed,stop,turn/event outstanding,displayed lag; refresh same revision.",
+      "pass": "Native overlay and real Swift offer independently deny each false predicate; no same-revision reconciliation or event sequence advance.",
+      "contract_sections": [
+        "6"
+      ]
+    },
+    {
+      "id": "J5-12",
+      "name": "shared_theme_required",
+      "status": "pending_implementation",
+      "scope": "java",
+      "required_modes": [
+        "jvm",
+        "android-debug"
+      ],
+      "prerequisites": [
+        "5A",
+        "5T"
+      ],
+      "runner": "verification/android-jni-stage5-java/verify.py",
+      "schedule": "Omit/mismatch required immutable shared theme/font/asset token; vary Android default theme with same shared profile.",
+      "pass": "Missing required profile fails closed; platform theme change cannot alter signed app-screen design; only explicit authored variants accepted.",
+      "contract_sections": [
+        "1",
+        "6"
+      ]
+    },
+    {
+      "id": "J5-13",
+      "name": "install_fixed_cache_once",
+      "status": "pending_implementation",
+      "scope": "native",
+      "required_modes": [
+        "debug",
+        "release"
+      ],
+      "prerequisites": [
+        "5B"
+      ],
+      "runner": "verification/android-jni-stage5-native/verify.py",
+      "schedule": "Install actual final class twice; attempt different loader/VM,class/method absent,API<30 and partially failed transport setup.",
+      "pass": "One VM/two class globals/fixed IDs; same valid install idempotent only; failures unavailable/no retarget/retry fallback; candidate globals cleaned.",
+      "contract_sections": [
+        "3"
+      ]
+    },
+    {
+      "id": "J5-14",
+      "name": "actual_main_looper_install",
+      "status": "pending_implementation",
+      "scope": "integration",
+      "required_modes": [
+        "android-debug",
+        "android-release"
+      ],
+      "prerequisites": [
+        "5N",
+        "5B",
+        "5V"
+      ],
+      "runner": "verification/android-jni-stage5-integration/verify.py",
+      "schedule": "Attempt install on real HandlerThread versus actual main Java Looper; verify NDK registration callback thread and captured pthread.",
+      "pass": "Wrong thread rejects before model allocation; accepted main install maps real Java/NDK Looper and future calls enforce both checks.",
+      "contract_sections": [
+        "3",
+        "5"
+      ]
+    },
+    {
+      "id": "J5-15",
+      "name": "counted_ingress_before_lookup",
+      "status": "pending_implementation",
+      "scope": "native",
+      "required_modes": [
+        "debug",
+        "release",
+        "c-asan-ubsan"
+      ],
+      "prerequisites": [
+        "5B"
+      ],
+      "runner": "verification/android-jni-stage5-native/verify.py",
+      "schedule": "Hold actual enter/inner/leave schedule; instrument fixed JNI call ordering for attach/activate/observe/detach, including already closed facade.",
+      "pass": "C entry succeeds before any JNI/weak/model lookup; rejected entries do none; lookup-disabled close scalar only; no lock spans JNI/Swift callbacks.",
+      "contract_sections": [
+        "4",
+        "5"
+      ]
+    },
+    {
+      "id": "J5-16",
+      "name": "no_jnienv_attach_storage",
+      "status": "pending_implementation",
+      "scope": "native",
+      "required_modes": [
+        "debug",
+        "release"
+      ],
+      "prerequisites": [
+        "5B"
+      ],
+      "runner": "verification/android-jni-stage5-native/verify.py",
+      "schedule": "Call native-to-Java helpers from detached/wrong thread and inspect real linked native object imports/storage.",
+      "pass": "GetEnv only after UI validate; no stored JNIEnv or Attach/DetachCurrentThread; rejected helper accesses no weak/model.",
+      "contract_sections": [
+        "3",
+        "5"
+      ]
+    },
+    {
+      "id": "J5-17",
+      "name": "weak_prepublication_obligation",
+      "status": "pending_implementation",
+      "scope": "integration",
+      "required_modes": [
+        "android-debug",
+        "android-release"
+      ],
+      "prerequisites": [
+        "5N",
+        "5B",
+        "5V"
+      ],
+      "runner": "verification/android-jni-stage5-integration/verify.py",
+      "schedule": "Hold immediately after real NewWeakGlobalRef before exact slot publication; observe capacity and force publication rejection; resume cleanup unchanged.",
+      "pass": "New weak remains counted; same UI thread deletes before leave on failure; zero unowned globals; no attachment/final success minted.",
+      "contract_sections": [
+        "5"
+      ]
+    },
+    {
+      "id": "J5-18",
+      "name": "attach_close_exception_race",
+      "status": "pending_implementation",
+      "scope": "integration",
+      "required_modes": [
+        "android-debug",
+        "android-release"
+      ],
+      "prerequisites": [
+        "5A",
+        "5N",
+        "5B",
+        "5V"
+      ],
+      "runner": "verification/android-jni-stage5-integration/verify.py",
+      "schedule": "Close reentrantly or throw at begin,weak creation,staged publication,commit/saved apply; force real Java cleanup failure separately.",
+      "pass": "Exact abort and same-thread weak deletion on proven cleanup; otherwise poisoned/quarantined/pinned; no retry retarget or false receipt.",
+      "contract_sections": [
+        "5",
+        "8"
+      ]
+    },
+    {
+      "id": "J5-19",
+      "name": "attachment_exact_reference",
+      "status": "pending_implementation",
+      "scope": "integration",
+      "required_modes": [
+        "android-debug",
+        "android-release"
+      ],
+      "prerequisites": [
+        "5A",
+        "5N",
+        "5B",
+        "5V"
+      ],
+      "runner": "verification/android-jni-stage5-integration/verify.py",
+      "schedule": "Attach twice,wrong facade/presentation,other wrapper/classloader,stale reference after final cleanup; first attach saved snapshot same revision.",
+      "pass": "Duplicate/foreign/stale rejects before new owner; first attach applies saved exact snapshot without successor reconciliation; wrapper never retargets.",
+      "contract_sections": [
+        "2",
+        "3",
+        "5"
+      ]
+    },
+    {
+      "id": "J5-20",
+      "name": "published_weak_collected",
+      "status": "pending_implementation",
+      "scope": "integration",
+      "required_modes": [
+        "android-debug",
+        "android-release"
+      ],
+      "prerequisites": [
+        "5A",
+        "5N",
+        "5B",
+        "5V"
+      ],
+      "runner": "verification/android-jni-stage5-integration/verify.py",
+      "schedule": "Publish actual weak wrapper,remove Java owner and wait for real weak promotion failure; drive present/cleanup without inventing gc success.",
+      "pass": "Missing published wrapper fails/stops/quarantines and retains capacity; NEVER/final-cleaned success never inferred; actual GC observation required or case pending.",
+      "contract_sections": [
+        "5",
+        "8"
+      ]
+    },
+    {
+      "id": "J5-21",
+      "name": "bounded_locals_exceptions",
+      "status": "pending_implementation",
+      "scope": "native",
+      "required_modes": [
+        "debug",
+        "release",
+        "c-asan-ubsan"
+      ],
+      "prerequisites": [
+        "5B"
+      ],
+      "runner": "verification/android-jni-stage5-native/verify.py",
+      "schedule": "Run repeated actual JNI calls under CheckJNI; inject real failure at PushLocalFrame,array creation/region/method call/local promotion; hold inner cleanup.",
+      "pass": "<=16 simultaneous locals,no leaks/pins,pending exception handled before ordinary JNI,all owned locals gone before leave; failures stop,never empty success.",
+      "contract_sections": [
+        "6",
+        "8"
+      ]
+    },
+    {
+      "id": "J5-22",
+      "name": "fixed_apply_slot_postcondition",
+      "status": "pending_implementation",
+      "scope": "integration",
+      "required_modes": [
+        "android-debug",
+        "android-release"
+      ],
+      "prerequisites": [
+        "5A",
+        "5N",
+        "5B",
+        "5V"
+      ],
+      "runner": "verification/android-jni-stage5-integration/verify.py",
+      "schedule": "Call real mxis_apply/interact/retire with wrong facade/entry/slot generation and real <=1MiB snapshot packet.",
+      "pass": "Exact mxuit_ui_validate before GetEnv/weak; wrong lease denied; actual method uses cached fixed wrapper; no unrelated slot postcondition accepted.",
+      "contract_sections": [
+        "3",
+        "4",
+        "5"
+      ]
+    },
+    {
+      "id": "J5-23",
+      "name": "nested_native_callback_busy",
+      "status": "pending_implementation",
+      "scope": "integration",
+      "required_modes": [
+        "android-debug",
+        "android-release"
+      ],
+      "prerequisites": [
+        "5A",
+        "5N",
+        "5B",
+        "5V"
+      ],
+      "runner": "verification/android-jni-stage5-integration/verify.py",
+      "schedule": "During native-to-Java apply hold lease and synchronously attempt real transport callback reentry; return then allow actual later callback.",
+      "pass": "Nested returns BUSY with no byte read/fence/hook/scan or new wake; registration retained; later nonreentrant callback advances real return fences.",
+      "contract_sections": [
+        "5"
+      ]
+    },
+    {
+      "id": "J5-24",
+      "name": "reentrant_scalar_close_postcheck",
+      "status": "pending_implementation",
+      "scope": "integration",
+      "required_modes": [
+        "android-debug",
+        "android-release"
+      ],
+      "prerequisites": [
+        "5A",
+        "5N",
+        "5B",
+        "5V"
+      ],
+      "runner": "verification/android-jni-stage5-integration/verify.py",
+      "schedule": "Real apply/observation invokes fixed scalar RequestClose before helper postcheck; DetachUI during same active helper.",
+      "pass": "Scalar close succeeds without JNI/model/locks; cleanup BUSY; outer helper clears/disables before leave; no input/observation afterward.",
+      "contract_sections": [
+        "5",
+        "6",
+        "7"
+      ]
+    },
+    {
+      "id": "J5-25",
+      "name": "native_input_full_tuple",
+      "status": "pending_implementation",
+      "scope": "integration",
+      "required_modes": [
+        "android-debug",
+        "android-release"
+      ],
+      "prerequisites": [
+        "5A",
+        "5N",
+        "5B",
+        "5V"
+      ],
+      "runner": "verification/android-jni-stage5-integration/verify.py",
+      "schedule": "Deliver actual button JNI for each wrong lifecycle/attachment/input/revision/raw node ID/generation, including a canonically equivalent alternate UTF8 spelling which Swift dictionary lookup would otherwise find; then deliver exact current tuple.",
+      "pass": "Compare incoming ID bytes against actual stored identity.id bytes before route; every alias/invalid tuple leaves event sequence/counters unchanged. Correct real exchange accepts exactly activate(null) with action from exact current snapshot.",
+      "contract_sections": [
+        "4",
+        "6"
+      ]
+    },
+    {
+      "id": "J5-26",
+      "name": "s4_21_stale_jni_event_fallback",
+      "status": "pending_implementation",
+      "scope": "integration",
+      "required_modes": [
+        "android-debug",
+        "android-release"
+      ],
+      "prerequisites": [
+        "5A",
+        "5N",
+        "5B",
+        "5V"
+      ],
+      "runner": "verification/android-jni-stage5-integration/verify.py",
+      "schedule": "Retain genuine listener scalars from old native attempt; actual Task join/C reclaim,admit fresh attempt with same node/revision,deliver old JNI event before/during/after rebind.",
+      "pass": "Actual stale delivery never captures/offers event in successor; no sequence/counter advance; current new tuple can accept; receipt says boundary test only,no concrete VM fallback claim.",
+      "contract_sections": [
+        "2",
+        "5",
+        "6"
+      ]
+    },
+    {
+      "id": "J5-27",
+      "name": "s4_21_stale_probe_attachment",
+      "status": "pending_implementation",
+      "scope": "integration",
+      "required_modes": [
+        "android-debug",
+        "android-release"
+      ],
+      "prerequisites": [
+        "5A",
+        "5N",
+        "5B",
+        "5V"
+      ],
+      "runner": "verification/android-jni-stage5-integration/verify.py",
+      "schedule": "Save genuine old attachment/probe/draw tuple,retire/rebind real native boundary,deliver old Observe/Detach/Attach while lifecycle close also called between attempts.",
+      "pass": "Stale UI tuple cannot observe/clean/retarget successor; stable scalar lifecycle close valid between attempts; no observation receipt/counter increment.",
+      "contract_sections": [
+        "5",
+        "7"
+      ]
+    },
+    {
+      "id": "J5-28",
+      "name": "single_event_busy_no_replay",
+      "status": "pending_implementation",
+      "scope": "integration",
+      "required_modes": [
+        "android-debug",
+        "android-release"
+      ],
+      "prerequisites": [
+        "5A",
+        "5N",
+        "5B",
+        "5V"
+      ],
+      "runner": "verification/android-jni-stage5-integration/verify.py",
+      "schedule": "Queue real accepted event then click again while queued/running/result held,then close during accepted delivery.",
+      "pass": "One event slot/no JNI Task or guest invocation,repeated busy no sequence advance,no replay; terminal outcome preserves whether turn began.",
+      "contract_sections": [
+        "6",
+        "8"
+      ]
+    },
+    {
+      "id": "J5-29",
+      "name": "detach_cleanup_leased",
+      "status": "pending_implementation",
+      "scope": "integration",
+      "required_modes": [
+        "android-debug",
+        "android-release"
+      ],
+      "prerequisites": [
+        "5A",
+        "5N",
+        "5B",
+        "5V"
+      ],
+      "runner": "verification/android-jni-stage5-integration/verify.py",
+      "schedule": "Pause/detach nonreentrantly and while helper held; stall Looper after scalar close; later deliver current/stale cleanup calls.",
+      "pass": "Close immediate; exact cleanup requires C lease; no Looper blocking/queue; busy helper postchecks; missing cleanup stays pending; stale token cannot detach successor.",
+      "contract_sections": [
+        "5"
+      ]
+    },
+    {
+      "id": "J5-30",
+      "name": "attempt_retire_weak_retained",
+      "status": "pending_implementation",
+      "scope": "integration",
+      "required_modes": [
+        "android-debug",
+        "android-release"
+      ],
+      "prerequisites": [
+        "5A",
+        "5N",
+        "5B",
+        "5V"
+      ],
+      "runner": "verification/android-jni-stage5-integration/verify.py",
+      "schedule": "Execute actual nonfinal RETIRE and inspect Java tree/listeners/packet/probe and weak global count before later bind.",
+      "pass": "Attempt state empty,one facade weak retained,old tokens invalid; no final cleanup witness; replacement after exact old join/reclaim only.",
+      "contract_sections": [
+        "5"
+      ]
+    },
+    {
+      "id": "J5-31",
+      "name": "final_cleanup_real_weak_delete",
+      "status": "pending_implementation",
+      "scope": "integration",
+      "required_modes": [
+        "android-debug",
+        "android-release"
+      ],
+      "prerequisites": [
+        "5A",
+        "5N",
+        "5B",
+        "5V"
+      ],
+      "runner": "verification/android-jni-stage5-integration/verify.py",
+      "schedule": "Hold fixed real retireSigned return and DeleteWeakGlobalRef boundary separately,then Swift clear/evidence publication; replay genuine immutable old evidence against wrong key.",
+      "pass": "No witness before exact Java clear+weak deletion+Swift clear+lookup disable; stale replay rejects; deletion exactly once/same thread; no scalar snapshot can fabricate native receipt.",
+      "contract_sections": [
+        "2",
+        "5",
+        "8"
+      ]
+    },
+    {
+      "name": "native_slot_reuse_after_final_fences",
+      "status": "pending_implementation",
+      "scope": "integration",
+      "required_modes": [
+        "android-debug",
+        "android-release"
+      ],
+      "prerequisites": [
+        "5A",
+        "5N",
+        "5B",
+        "5V"
+      ],
+      "runner": "verification/android-jni-stage5-integration/verify.py",
+      "schedule": "Run >=17 sequential actual native facades through reserve/attach/final Java cleanup/weak deletion/Swift cleanup/actual joins/C reclaim/slot release/destruction. Separately hold real final slot read,helper return and final fences; observe unique final owner cannot reach release. Test never-attached real reserved NEVER slot and failure-only scalar release mismatch.",
+      "pass": "FINAL_DELETED remains occupied until exact final read,joins/fences/lookup removal/zero aliases. Trusted scalar release frees slot only after proof; old empty resource deinit performs no JNI/slot reads. Counters never reset; stale generations reject; held destructor pins outer capacity even after safe JNI slot release. Release failure quarantines before obligation retire.",
+      "contract_sections": [
+        "4",
+        "5",
+        "8"
+      ],
+      "id": "J5-32"
+    },
+    {
+      "name": "reserved_never_slot_setup_rollback",
+      "status": "pending_implementation",
+      "scope": "integration",
+      "required_modes": [
+        "android-debug",
+        "android-release"
+      ],
+      "prerequisites": [
+        "5N",
+        "5B",
+        "5V"
+      ],
+      "runner": "verification/android-jni-stage5-integration/verify.py",
+      "schedule": "Force real failure after each successful native NEVER-slot reserve and each subsequent prepublish allocation/empty retained-owner transfer, before resource lookup/reference/endpoint publication. Repeat >=17 failures. Separately force C reclaim fault, staged weak and published-resource uncertainty.",
+      "pass": "Only exact known-empty actual C facade close/reclaim plus NEVER/null weak/attachSerial0/no history/zero uses permits scalar abort and capacity return, with no cleanup/join witness or consumer_joined assertion. Published/staged/fault cases cannot use abort and remain actual-cleanup pending/quarantined. No silent sixteen-failure leak when cleanup is proven.",
+      "contract_sections": [
+        "4",
+        "5",
+        "8"
+      ],
+      "id": "J5-33"
+    },
+    {
+      "id": "J5-34",
+      "name": "late_final_terminal_endpoint",
+      "status": "pending_implementation",
+      "scope": "integration",
+      "required_modes": [
+        "android-debug",
+        "android-release"
+      ],
+      "prerequisites": [
+        "5A",
+        "5N",
+        "5B",
+        "5V"
+      ],
+      "runner": "verification/android-jni-stage5-integration/verify.py",
+      "schedule": "Close just after nonfinal RETIRE decision,after completion,before reclaim,and between attempts; force real terminal allocation failure.",
+      "pass": "One sequential terminal endpoint after actual old join,reclaim; no guest restart/replay; final evidence required; allocation failure pins cleanupPending.",
+      "contract_sections": [
+        "5"
+      ]
+    },
+    {
+      "id": "J5-35",
+      "name": "fault_join_admission_orderings",
+      "status": "pending_implementation",
+      "scope": "integration",
+      "required_modes": [
+        "android-debug",
+        "android-release"
+      ],
+      "prerequisites": [
+        "5N",
+        "5B",
+        "5V"
+      ],
+      "runner": "verification/android-jni-stage5-integration/verify.py",
+      "schedule": "Real successful nonfinal RETIRE,then local fault before beginJoin; registry fault before reclaim and after real reclaim as separate schedules.",
+      "pass": "Before-control admission consumer marker0; before reclaim no evidence; after reclaim only genuine historical endpoint fact,facade/resources pinned; no lock over callback.",
+      "contract_sections": [
+        "5",
+        "8"
+      ]
+    },
+    {
+      "id": "J5-36",
+      "name": "held_return_fences",
+      "status": "pending_implementation",
+      "scope": "integration",
+      "required_modes": [
+        "android-debug",
+        "android-release"
+      ],
+      "prerequisites": [
+        "5A",
+        "5N",
+        "5B",
+        "5V"
+      ],
+      "runner": "verification/android-jni-stage5-integration/verify.py",
+      "schedule": "Hold actual JNI inner return,entry leave,completion,ALooper callback epilogue and later callback separately; hold process-only progress tail after resume.",
+      "pass": "Endpoint/facade reclaim prevented by required held owner-dependent fence; later real callback advances; process-only tail never rereads owner; no fake return flags.",
+      "contract_sections": [
+        "5",
+        "8"
+      ]
+    },
+    {
+      "id": "J5-37",
+      "name": "final_alias_destructor_capacity",
+      "status": "pending_implementation",
+      "scope": "integration",
+      "required_modes": [
+        "android-debug",
+        "android-release"
+      ],
+      "prerequisites": [
+        "5N",
+        "5B",
+        "5V"
+      ],
+      "runner": "verification/android-jni-stage5-integration/verify.py",
+      "schedule": "Hold actual reservation resource destructor after all native joins and final cleanup; try seventeenth admission and retain closed reference shell.",
+      "pass": "Capacity pinned until actual destructor returns,then weak nil/reuse; zero setup/UI aliases; closed shell retains no resource/Java owner.",
+      "contract_sections": [
+        "2",
+        "5",
+        "8"
+      ]
+    },
+    {
+      "name": "draw_origin_marker_experiment",
+      "status": "pending_implementation",
+      "scope": "java",
+      "required_modes": [
+        "android-debug",
+        "android-release"
+      ],
+      "prerequisites": [
+        "5A",
+        "root_marker_mechanism_review"
+      ],
+      "runner": "verification/android-jni-stage5-java/verify.py",
+      "schedule": "Before health code: one final actual API30 Window root,one fixed traversal marker,draw-depth/serial and weak Choreographer callback. Hold actual dispatchDraw stack; compare real platform traversal with Bitmap,attached-root manual draw,hardware RecordingCanvas,nested and same-frame callbacks. No exchange/coordinator present.",
+      "pass": "Bound scalar traces establish draw-return/later-frame mechanism and manual/offscreen exclusion within fixed trusted native closure. No receipt/health output. Root reviews mechanism; failure keeps positive observation unavailable.",
+      "contract_sections": [
+        "7",
+        "9"
+      ],
+      "id": "J5-38"
+    },
+    {
+      "id": "J5-39",
+      "name": "real_draw_return_later_frame",
+      "status": "pending_implementation",
+      "scope": "integration",
+      "required_modes": [
+        "android-debug",
+        "android-release"
+      ],
+      "prerequisites": [
+        "5A",
+        "5N",
+        "5B",
+        "5V"
+      ],
+      "runner": "verification/android-jni-stage5-integration/verify.py",
+      "schedule": "Create actual resumed focused Window; hold real root dispatchDraw return,then same-frame and later Choreographer callbacks before/after entry leave.",
+      "pass": "Only real nonempty child draw with returned stack and strictly later current frame may pass fixed consumeObservation+exact stored Swift ticket; no observation while held/same-frame.",
+      "contract_sections": [
+        "7"
+      ]
+    },
+    {
+      "id": "J5-40",
+      "name": "manual_offscreen_draw_no_observation",
+      "status": "pending_implementation",
+      "scope": "integration",
+      "required_modes": [
+        "android-debug",
+        "android-release"
+      ],
+      "prerequisites": [
+        "5A",
+        "5N",
+        "5B",
+        "5V"
+      ],
+      "runner": "verification/android-jni-stage5-integration/verify.py",
+      "schedule": "Render unattached and attached roots manually into Bitmap and hardware RecordingCanvas; invoke draw-related callbacks directly; apply/resume/layout without real draw.",
+      "pass": "No real exchange observation receipt/counter; private traversal marker cannot be established by those calls. If platform origin cannot be proven,positive observation stays unavailable.",
+      "contract_sections": [
+        "7"
+      ]
+    },
+    {
+      "id": "J5-41",
+      "name": "window_visibility_lifecycle_probe",
+      "status": "pending_implementation",
+      "scope": "integration",
+      "required_modes": [
+        "android-debug",
+        "android-release"
+      ],
+      "prerequisites": [
+        "5A",
+        "5N",
+        "5B",
+        "5V"
+      ],
+      "runner": "verification/android-jni-stage5-integration/verify.py",
+      "schedule": "For genuine pending probe independently pause,finish,destroy,detach,hide ancestor,zero layout,remove child,lose focus,clip offscreen or replace root before later frame.",
+      "pass": "Each condition denies receipt and invalidates pending tuple; restored state needs fresh actual draw/frame; no diagnostics flag grants authority.",
+      "contract_sections": [
+        "7"
+      ]
+    },
+    {
+      "id": "J5-42",
+      "name": "current_ticket_effects_health_boundary",
+      "status": "pending_implementation",
+      "scope": "integration",
+      "required_modes": [
+        "android-debug",
+        "android-release"
+      ],
+      "prerequisites": [
+        "5A",
+        "5N",
+        "5B",
+        "5V"
+      ],
+      "runner": "verification/android-jni-stage5-integration/verify.py",
+      "schedule": "Hold genuine native probe,change snapshot/probe/revision/exchange effects/stop,then invoke actual Observe; keep coordinator absent.",
+      "pass": "Only exact live effects-confirmed stored ticket reaches observePresentation; close recheck wins; boundary receipt is not first_screen/commitHealth; stage6 health remains pending.",
+      "contract_sections": [
+        "2",
+        "7"
+      ]
+    },
+    {
+      "id": "J5-43",
+      "name": "strict_link_required_symbols",
+      "status": "pending_implementation",
+      "scope": "native",
+      "required_modes": [
+        "debug",
+        "release"
+      ],
+      "prerequisites": [
+        "5N",
+        "5B"
+      ],
+      "runner": "verification/android-jni-stage5-native/verify.py",
+      "schedule": "Strict-link real native Swift/C objects omitting each required mxis/mxisi/mxuit object in turn; attempt host-object substitution.",
+      "pass": "Every omission/substitution fails exact link/source attestation; declaration-only or fake success object cannot qualify native scope.",
+      "contract_sections": [
+        "2",
+        "3",
+        "4"
+      ]
+    },
+    {
+      "id": "J5-44",
+      "name": "android_full_boundary_closure",
+      "status": "pending_implementation",
+      "scope": "integration",
+      "required_modes": [
+        "android-debug",
+        "android-release"
+      ],
+      "prerequisites": [
+        "5A",
+        "5N",
+        "5B",
+        "5V"
+      ],
+      "runner": "verification/android-jni-stage5-integration/verify.py",
+      "schedule": "Fresh official matched Swift Android SDK/NDK/API30 build and strict-link complete real boundary,inspect ELF,exports,headers/source hashes and APK source closure.",
+      "pass": "Correct target/exported fixed names,unchanged transport,one native backend,no normal route change; scope boundary-only,no signed product enablement.",
+      "contract_sections": [
+        "1",
+        "9"
+      ]
+    },
+    {
+      "id": "J5-45",
+      "name": "accepted_host_apple_regressions",
+      "status": "pending_implementation",
+      "scope": "native",
+      "required_modes": [
+        "debug",
+        "release",
+        "tsan"
+      ],
+      "prerequisites": [
+        "5N"
+      ],
+      "runner": "verification/android-jni-stage5-native/verify.py",
+      "schedule": "Rebuild unchanged accepted stage4 host/ordinary common Apple/portable tests with native declarations present but native module absent.",
+      "pass": "Accepted host receipt source scope unchanged; guards/private constructors preserved; no additional public Android path; original pending cases stay pending.",
+      "contract_sections": [
+        "1",
+        "2",
+        "9"
+      ]
+    },
+    {
+      "id": "J5-46",
+      "name": "s4_29_optimized_lifetime_exhaustion",
+      "status": "pending_s4_29_independent_execution",
+      "scope": "native",
+      "required_modes": [
+        "release"
+      ],
+      "prerequisites": [
+        "5N"
+      ],
+      "runner": "verification/android-jni-stage5-native/verify.py",
+      "schedule": "Inject real lifetime counter at exhaustion under optimized Release using failure-only debugger hold,including post-cycle schedule.",
+      "pass": "Checked exhaustion denies new endpoint with no reuse/receipt fabrication; actual optimization/tool support evidenced or remains pending.",
+      "contract_sections": [
+        "5",
+        "9"
+      ]
+    },
+    {
+      "id": "J5-47",
+      "name": "design_parity_reference_states",
+      "status": "pending_implementation",
+      "scope": "java",
+      "required_modes": [
+        "android-debug",
+        "android-release"
+      ],
+      "prerequisites": [
+        "5A",
+        "5T"
+      ],
+      "runner": "verification/android-jni-stage5-java/verify.py",
+      "schedule": "Render same reference document/theme/logical viewport,text scale,locale/RTL,light/dark and normal/pressed/disabled/focus/busy states against iOS references.",
+      "pass": "Bound screenshots/geometry show shared hierarchy/content/colors/type scale/icons/spacing/component states; allowed rasterization/shaping/density/safe-area differences recorded; emulator evidence is preliminary.",
+      "contract_sections": [
+        "1",
+        "6",
+        "9"
+      ]
+    },
+    {
+      "id": "J5-48",
+      "name": "physical_ios_android_design_parity",
+      "status": "pending_phones_disconnected",
+      "scope": "physical",
+      "required_modes": [],
+      "prerequisites": [
+        "phones_reconnected_by_user_later",
+        "5T",
+        "stage6"
+      ],
+      "runner": null,
+      "schedule": "Pending future authorized physical side-by-side review of shared reference screens and interaction states. Do not discover devices or request reconnection now.",
+      "pass": "Accountable reviewer accepts design parity under updated product-plan8.3 with exact physical devices/OS/screens/theme; no host/emulator substitution.",
+      "contract_sections": [
+        "6",
+        "9"
+      ]
+    },
+    {
+      "id": "J5-49",
+      "name": "signed_core_vm_kv_health_integration",
+      "status": "pending_stage6",
+      "scope": "integration",
+      "required_modes": [
+        "android-debug",
+        "android-release"
+      ],
+      "prerequisites": [
+        "stage6"
+      ],
+      "runner": "verification/android-jni-stage5-integration/verify.py",
+      "schedule": "After separate stage6 contract,real signed core/Prepared/factory,VM event/KV/replacement/recovery and full health interval on actual Window.",
+      "pass": "Only actual signed source closure/coordinator milestones and concrete retirement count; no standalone boundary or Java flag health authority.",
+      "contract_sections": [
+        "1",
+        "2",
+        "7",
+        "9"
+      ]
+    },
+    {
+      "id": "J5-50",
+      "name": "published_fieldlog_external_gates",
+      "status": "pending_external_gates",
+      "scope": "external",
+      "required_modes": [],
+      "prerequisites": [
+        "stage6",
+        "separate_repo_immutable_packages",
+        "release_reviewers"
+      ],
+      "runner": null,
+      "schedule": "Future separately authorized immutable published FieldLog consumption,dual-platform meaningful OTA,signing/store/customer/operations and GA evidence.",
+      "pass": "Exact published artifacts,separate repository and accountable specified reviewers; no local-checkout/debugging substitute.",
+      "contract_sections": [
+        "9"
+      ]
+    }
+  ]
+}
