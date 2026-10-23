@@ -124,3 +124,9 @@ changes. This interface does not yet connect the typed capabilities, Swift async
 runtime, updater lifecycle or published mobile SDK. Full Swift execution and W08
 remain open. Host session tests cover retention, transfer bounds, stale handles,
 capacity, generation retirement, panic cleanup, concurrency and terminal state.
+
+## Experimental streaming validation (Rust only)
+
+The nondefault `experimental-stream-validation` feature exposes `experimental::validate_spans` for complete validation of the existing integer-v1, numeric-v2 and table-memory-v3 subsets. It owns an immutable exact-length source snapshot and retains compact spans while type-checking every body without decoded instruction/branch-target vectors. Additional metadata, scratch and validation-work budgets fail closed; all existing executable ceilings and import restrictions remain. A successful result is a sealed validation-only owner with borrowed inspection methods and has no interpreter, cache, C ABI or activation route.
+
+The [experimental contract and accounting notes](experimental-stream-validation.md) describe the fixed-state and growth-overlap reservations, static diagnostics, source lifetime, cooperative cancellation and intentionally additional work-budget rejection. Reproduce host evidence with `python3 -B vm/verify-stream-validation.py --name FRESH_NAME`. The verifier pins original production files/contracts to the frozen session-fix revision and separately checks the default and feature C ABI. This is a bounded host experiment; full Swift/FieldLog admission/execution, devices, cache routing, independent review and release qualification remain open.

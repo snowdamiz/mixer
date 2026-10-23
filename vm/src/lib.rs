@@ -1,6 +1,8 @@
 //! Owned bounded WebAssembly profiles. No production runtime dependencies.
 mod decode;
 mod execute;
+#[cfg(feature = "experimental-stream-validation")]
+pub mod experimental;
 mod ffi;
 mod float;
 mod inspect;
