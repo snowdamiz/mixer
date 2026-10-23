@@ -616,7 +616,11 @@ The earlier `c687e69` run failed the TSan `fault-leave` test with an observation
 deadline; its sparse log does not identify which wait timed out. A deterministic
 C schedule reproduces a test precondition gap: admitting the next owner during
 the earlier completion can coalesce its leave wake, leaving the injected write
-unattempted. The test-only repair is under fresh-build verification; that earlier
-failed run remains recorded. Constructor preflight remains under independent
+unattempted. The test-only repair now has root acceptance with 1,157 bindings,
+117 fresh Debug/Release/TSan scenario passes, six independent actual Swift/C
+schedule proofs and three fixture replays. See
+`verification/android-fault-leave-ci-root-review/acceptance.json`. Its hosted
+checkpoint verification remains pending; the earlier failure stays recorded.
+Constructor preflight remains under independent
 review after missing whole-value accounting wrappers were found; no constructor
 or full-target acceptance is claimed.

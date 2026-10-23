@@ -1,0 +1,20 @@
+--- original/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidLifetime.swift
++++ review/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidLifetime.swift
+@@ -3,6 +3,9 @@
+ @_spi(GuestUIV1) import MixerGuest
+ import CMixerUITransport
+ import CMixerUIAndroidHostBridge
++
++@_silgen_name("mxish_review_task_checkpoint")
++private func reviewAfterCompletionCheckpoint(_ owner: UInt64)
+ 
+ struct CapabilityAndroidHostLifetimeKey: Sendable, Equatable {
+     let facade: UInt64
+@@ -234,6 +237,7 @@
+         }
+         guard let token else { return nil }
+         clearRendezvous(token)
++        reviewAfterCompletionCheckpoint(key.endpoint) // Schedule barrier only.
+         return token.completion
+     }
+     private func clearRendezvous(_ token: CapabilityAndroidRendezvous) {

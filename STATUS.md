@@ -51,7 +51,10 @@ fresh private Android host runner under Swift 6.2.4. See
 Latest hosted evidence: `09dac10`, `958998d`, `0f177ad` and `5988e4a` pass all three
 VM/Swift/services jobs. `7c2baeb` also passes all three jobs. The earlier
 `c687e69` run failed TSan `fault-leave` with an observation deadline; a test-only
-precondition repair is being verified, and the failed receipt is retained.
+precondition repair now has scoped root acceptance with 1,157 exact bindings,
+117 fresh scenario passes, six independent actual Swift/C scheduling probes and
+three fixture replays. See `verification/android-fault-leave-ci-root-review/acceptance.json`.
+Repaired hosted verification remains pending; the failed receipt is retained.
 The earlier `d814055` fixed-35ms polling failure remains
 recorded; the repaired observed-tick test now passes hosted Swift 6.2.4 as well as
 local Debug/Release/TSan. See `verification/github-ci-0f177ad/receipt.json`.

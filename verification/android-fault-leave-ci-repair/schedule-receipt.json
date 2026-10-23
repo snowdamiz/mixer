@@ -1,0 +1,162 @@
+{
+  "observed_utc": "2026-10-23T22:12:27.326345+00:00",
+  "source_revision": "7c2baeb35704c3c10ba9c691e9b5f34a27ebfd9f",
+  "inputs": {
+    "verification/android-fault-leave-ci-repair/leave_schedule.c": "c33537b6ffa56bc289a3c9ac9c27a359b4f948ebeba954d7f58d13b8524eb75f",
+    "verification/android-fault-leave-ci-repair/schedule.py": "772605e3b6fe3138c337b38550f7a86abd47e8fac805fce6719935a8fa9a1ea8",
+    "native/android/signed-guest-ui/transport/transport.c": "fcd6fc49aeb255c1f2e64fff80b06fce6410724cbb2a4cbf79af28c4f29829b2",
+    "native/android/signed-guest-ui/transport/internal.h": "cbf4a3a6abe133c046dfe2563be55d627e08fae3071f3ee8711499797370c513",
+    "native/android/signed-guest-ui/transport/include/mixer_ui_transport.h": "e553fc276cd33ec8e7b253ccf0d32a6658f985100596ee06d062e20ee8c81f9d"
+  },
+  "commands": [
+    {
+      "command": [
+        "xcrun",
+        "clang",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "log": "verification/android-fault-leave-ci-repair/clang-version.log",
+      "sha256": "4e8a77bcb032deb6591b0db384ff9808d01d9030f00e2d877394df88a12a2536"
+    },
+    {
+      "command": [
+        "uname",
+        "-a"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "log": "verification/android-fault-leave-ci-repair/platform.log",
+      "sha256": "abe9ccb86c55e0593f387b3138e08c1d0bed9a04ba0080d7badcbf093fabd539"
+    },
+    {
+      "command": [
+        "xcrun",
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-DMIXER_UI_TRANSPORT_TESTING",
+        "-O0",
+        "-g",
+        "-Inative/android/signed-guest-ui/transport",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-repair/leave_schedule.c",
+        "native/android/signed-guest-ui/transport/transport.c",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-repair/build/leave-debug"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "log": "verification/android-fault-leave-ci-repair/debug-compile.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-repair/build/leave-debug",
+        "old"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "log": "verification/android-fault-leave-ci-repair/debug-old.log",
+      "sha256": "d633738ab403b34075e07f1fb84abaa00af8abb7e3817a251d136aa5e8a76731"
+    },
+    {
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-repair/build/leave-debug",
+        "fixed"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "log": "verification/android-fault-leave-ci-repair/debug-fixed.log",
+      "sha256": "4b78c02a6293f1a1b0f6cb0d193913ec6e41b7382ee5436163808cfef441118e"
+    },
+    {
+      "command": [
+        "xcrun",
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-DMIXER_UI_TRANSPORT_TESTING",
+        "-O2",
+        "-g",
+        "-Inative/android/signed-guest-ui/transport",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-repair/leave_schedule.c",
+        "native/android/signed-guest-ui/transport/transport.c",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-repair/build/leave-release"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "log": "verification/android-fault-leave-ci-repair/release-compile.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-repair/build/leave-release",
+        "old"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "log": "verification/android-fault-leave-ci-repair/release-old.log",
+      "sha256": "d633738ab403b34075e07f1fb84abaa00af8abb7e3817a251d136aa5e8a76731"
+    },
+    {
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-repair/build/leave-release",
+        "fixed"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "log": "verification/android-fault-leave-ci-repair/release-fixed.log",
+      "sha256": "4b78c02a6293f1a1b0f6cb0d193913ec6e41b7382ee5436163808cfef441118e"
+    },
+    {
+      "command": [
+        "xcrun",
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-DMIXER_UI_TRANSPORT_TESTING",
+        "-O1",
+        "-g",
+        "-fsanitize=thread",
+        "-Inative/android/signed-guest-ui/transport",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-repair/leave_schedule.c",
+        "native/android/signed-guest-ui/transport/transport.c",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-repair/build/leave-tsan"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "log": "verification/android-fault-leave-ci-repair/tsan-compile.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-repair/build/leave-tsan",
+        "old"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "log": "verification/android-fault-leave-ci-repair/tsan-old.log",
+      "sha256": "d633738ab403b34075e07f1fb84abaa00af8abb7e3817a251d136aa5e8a76731"
+    },
+    {
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-repair/build/leave-tsan",
+        "fixed"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "log": "verification/android-fault-leave-ci-repair/tsan-fixed.log",
+      "sha256": "4b78c02a6293f1a1b0f6cb0d193913ec6e41b7382ee5436163808cfef441118e"
+    }
+  ],
+  "scope": "Actual unchanged C transport deterministic schedule; fixed hooks are test drivers, not the Swift binding. Demonstrates old predicate permits coalesced leave and fixed predicate separates callbacks. Does not identify which wait timed out in sparse hosted log. First probe incorrectly expected OK completion after sticky fault; initial-probe retains that failed assertion and source. Corrected expectation follows the real CLOSE_PENDING completion."
+}

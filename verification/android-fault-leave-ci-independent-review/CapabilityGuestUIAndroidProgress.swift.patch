@@ -1,0 +1,15 @@
+--- original/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidProgress.swift
++++ review/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidProgress.swift
+@@ -105,8 +105,12 @@
+     guard let control = CapabilityAndroidRegistry.shared.control(owner: owner), control.matches(waiter: waiter, kind: kind) else { return Int32(MXUIT_DRAIN_FAILED.rawValue) }
+     return CapabilityGuestUIAndroidResources.drain(control: control, waiter: waiter, kind: kind)
+ }
++@_silgen_name("mxish_review_complete_checkpoint")
++private func reviewCompletionCheckpoint(_ owner: UInt64)
++
+ @_cdecl("mxuit_complete")
+ func capabilityAndroidComplete(_ owner: UInt64, _ waiter: UInt64, _ kind: UInt32, _ result: Int32) {
++    reviewCompletionCheckpoint(owner) // Observation barrier only; actual completion follows.
+     CapabilityAndroidRegistry.shared.control(owner: owner)?.complete(waiter: waiter, kind: kind, result: result)
+ }
+ @_cdecl("mxuit_progress")

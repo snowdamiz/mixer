@@ -103,10 +103,10 @@ private func owner() async throws -> Owner {
     try prepared.transferToBinding()
     return Owner(reservation: reservation, prepared: prepared)
 }
-private func waitUntil(_ predicate: () -> Bool) async throws {
+private func waitUntil(line: Int = #line, _ predicate: () -> Bool) async throws {
     let deadline = ContinuousClock.now + .seconds(8)
     while !predicate() {
-        require(ContinuousClock.now < deadline, "test observation deadline")
+        require(ContinuousClock.now < deadline, "test observation deadline", line: line)
         await Task.yield()
     }
 }
@@ -353,9 +353,17 @@ extension Stage4HostTests {
         let a = try await owner(); let b = try await owner(); let c = try await owner()
         require(mxish_set_hold(3, c.binding.facade) == 0, "hold native helper before leave")
         let xb = try frameExchange(901); let ib = try await b.binding.bindHost(xb)
-        try await waitUntil { transport().completions > 0 }
+        // A completion count can be observed inside b's callback, before its
+        // leave hint is consumed. If c joins that same callback, its leave
+        // coalesces with b's pending byte and never attempts the injected write.
+        // Observe b's entire callback/fence delivery before admitting c.
+        try await waitUntil {
+            let snapshot = transport()
+            return snapshot.completions > 0 && snapshot.pending_pipe_hint == 0 && snapshot.callback_active == 0
+        }
         let xc = try frameExchange(902); let ic = try await c.binding.bindHost(xc)
         require(mxish_wait_hold() == 0, "actual C active entry")
+        require(transport().pending_pipe_hint == 0, "held c leave must attempt a fresh write")
         require(mxish_inject_syscall(4) == 0, "actual leave write fault")
         mxish_release_hold()
         try await waitUntil { transport().fault != 0 }

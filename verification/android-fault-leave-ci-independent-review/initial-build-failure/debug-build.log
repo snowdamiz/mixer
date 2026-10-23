@@ -1,0 +1,88 @@
+Fetching https://github.com/apple/swift-crypto.git from cache
+Fetching https://github.com/apple/swift-asn1.git from cache
+Fetched https://github.com/apple/swift-crypto.git from cache (0.02s)
+Fetched https://github.com/apple/swift-asn1.git from cache (0.02s)
+Creating working copy for https://github.com/apple/swift-crypto.git
+Creating working copy for https://github.com/apple/swift-asn1.git
+Working copy of https://github.com/apple/swift-asn1.git resolved at 1.7.3
+Working copy of https://github.com/apple/swift-crypto.git resolved at 5.0.3
+Building for debugging...
+[Computing dependencies]
+[Pre-planning 1 / 543]
+[Planning deferred tasks]
+[107 / 215] swift-crypto_Crypto
+[110 / 215]
+[118 / 217] CMixerVMCapability
+[125 / 225] MixerCapabilityIO
+[140 / 245]
+[148 / 245] MixerCore
+[167 / 338]
+[185 / 338]
+[194 / 338]
+[197 / 338]
+[204 / 338]
+[210 / 338]
+[218 / 338]
+[222 / 338]
+[225 / 338]
+[226 / 338]
+[228 / 338]
+[235 / 338] MixerCore
+[251 / 338] MixerCore
+[260 / 338] Crypto-product
+[266 / 341] MixerCore
+[269 / 341] Crypto
+[270 / 341] MixerUI
+[288 / 376] MixerCapabilities
+[289 / 376] MixerUI
+[295 / 376] MixerUpdates
+[310 / 376] MixerCapabilities
+[323 / 376] MixerCapabilities
+[326 / 379] MixerCapabilities
+[326 / 379] MixerUpdates
+[326 / 379] MixerRuntimeIdentity
+[339 / 388]
+[345 / 388] MixerGuest
+[347 / 388] MixerGuest
+[367 / 424]
+[373 / 424]
+[382 / 434]
+[394 / 434]
+[403 / 434] MixerExperimentalCapabilityRuntime
+[404 / 434] MixerExperimentalCapabilityRuntime
+[407 / 434]
+[408 / 434]
+[409 / 434]
+[418 / 435] MixerCapabilityActivation
+[436 / 454] MixerCapabilityActivation
+[437 / 454] MixerCapabilityActivation
+[446 / 455] MixerCapabilityActivation
+[450 / 459] MixerApple
+error: SwiftCompile normal arm64 /Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/source/Harness/HostTests.swift failed with a nonzero exit code. Command line:     cd /Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build
+    builtin-SwiftPerFileCompile HostTests.swift
+/Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/source/Harness/HostTests.swift:92:90: error: value of type 'mxuit_owner_snapshot' has no member 'waiting'
+ 90 |             require(transport().completions > 0, "unchanged old predicate admits c")
+ 91 |             ic = try await c.binding.bindHost(xc)
+ 92 |             try await waitUntil { transport().requests == 2 && ownerSnapshot(c.endpoint).waiting == 1 }
+    |                                                                                          `- error: value of type 'mxuit_owner_snapshot' has no member 'waiting'
+ 93 |             mxish_review_release_completion()
+ 94 |         } else {
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/source/Harness/HostTests.swift:113:24: error: value of type 'mxuit_owner_snapshot' has no member 'waiting'
+111 |         try await waitUntil { xb.deliveryWake.hasWaitingConsumer }
+112 |         let parked = ownerSnapshot(b.endpoint)
+113 |         require(parked.waiting == 0 && parked.active == 0 && parked.completing == 0,
+    |                        `- error: value of type 'mxuit_owner_snapshot' has no member 'waiting'
+114 |                 "b's delayed actual task parks on delivery without another C request")
+115 |         require(transport().requests == 2 && transport().pending_pipe_hint == (old ? 1 : 0),
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/source/Harness/HostTests.swift:113:47: error: value of type 'mxuit_owner_snapshot' has no member 'active'
+111 |         try await waitUntil { xb.deliveryWake.hasWaitingConsumer }
+112 |         let parked = ownerSnapshot(b.endpoint)
+113 |         require(parked.waiting == 0 && parked.active == 0 && parked.completing == 0,
+    |                                               `- error: value of type 'mxuit_owner_snapshot' has no member 'active'
+114 |                 "b's delayed actual task parks on delivery without another C request")
+115 |         require(transport().requests == 2 && transport().pending_pipe_hint == (old ? 1 : 0),
+Failed frontend command:
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift-frontend -frontend -c /Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/source/Harness/HoldingExecutor.swift -primary-file /Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/source/Harness/HostTests.swift -emit-dependencies-path /Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/debug/out/Intermediates.noindex/MixerAndroidBindingHostChecks.build/Debug/Stage4HostTests-p.build/Objects-normal/arm64/HostTests.d -emit-const-values-path /Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/debug/out/Intermediates.noindex/MixerAndroidBindingHostChecks.build/Debug/Stage4HostTests-p.build/Objects-normal/arm64/HostTests.swiftconstvalues -emit-reference-dependencies-path /Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/debug/out/Intermediates.noindex/MixerAndroidBindingHostChecks.build/Debug/Stage4HostTests-p.build/Objects-normal/arm64/HostTests.swiftdeps -serialize-diagnostics-path /Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/debug/out/Intermediates.noindex/MixerAndroidBindingHostChecks.build/Debug/Stage4HostTests-p.build/Objects-normal/arm64/HostTests.dia -target arm64-apple-macos14.0 -disable-cross-import-overlay-search -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libFoundationMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#FoundationMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libObservationMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#ObservationMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libPreviewsMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#PreviewsMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libSwiftMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#SwiftMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libSwiftUIMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#SwiftUIMacros -disable-implicit-swift-modules -Xcc -fno-implicit-modules -Xcc -fno-implicit-module-maps -explicit-swift-module-map-file /Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/debug/out/Intermediates.noindex/MixerAndroidBindingHostChecks.build/Debug/Stage4HostTests-p.build/Objects-normal/arm64/Stage4HostTests-dependencies-1.json -Xllvm -aarch64-use-tbi -enable-objc-interop -stack-check -sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk -I /Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/debug/out/Products/Debug -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib -F /Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/debug/out/Products/Debug/PackageFrameworks -F /Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/debug/out/Products/Debug -F /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks -module-cache-path /Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/debug/out/Intermediates.noindex/SwiftExplicitPrecompiledModules -no-color-diagnostics -Xcc -fno-color-diagnostics -enable-testing -g -debug-info-format\=dwarf -dwarf-version\=4 -warnings-as-errors -warnings-as-errors -swift-version 6 -Onone -D SWIFT_PACKAGE -D DEBUG -D Xcode -serialize-debugging-options -enable-experimental-feature DebugDescriptionMacro -empty-abi-descriptor -validate-clang-modules-once -clang-build-session-file /Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/debug/out/ModuleCache.noindex/Session.modulevalidation -Xcc -working-directory -Xcc /Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build -enable-anonymous-context-mangled-names -file-compilation-dir /Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build -Xcc -fmodule-map-file\=/Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/debug/out/Intermediates.noindex/GeneratedModuleMaps/CMixerVMCapability.modulemap -Xcc -fmodule-map-file\=/Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/debug/out/Intermediates.noindex/GeneratedModuleMaps/MixerDurableIO.modulemap -Xcc -fmodule-map-file\=/Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/debug/out/Intermediates.noindex/GeneratedModuleMaps/MixerCapabilityIO.modulemap -Xcc -fmodule-map-file\=/Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/source/verification/android-binding-stage4/host-bridge/module.modulemap -Xcc -fmodule-map-file\=/Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/source/native/android/signed-guest-ui/binding/include/module.modulemap -Xcc -fmodule-map-file\=/Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/debug/out/Intermediates.noindex/GeneratedModuleMaps/MixerCapabilityDurableIO.modulemap -Xcc -fmodule-map-file\=/Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/source/verification/android-binding-stage4/host-bridge/test.modulemap -Xcc -I/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-polling-ci-repair/build/native/include -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -Xcc -ivfsstatcache -Xcc /Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/debug/out/SDKStatCaches.noindex/macosx27.0-26A425-80c5bbf1d171475443272936d42f90a37231f6df4def33e022ae2eb8f782df1a.sdkstatcache -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -Xcc -I/Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/source/experimental-capability-runtime/Sources/CMixerVMCapability/include -Xcc -I/Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/source/updates/Sources/MixerDurableIO/include -Xcc -I/Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/source/sdk/Sources/MixerCapabilities/NativeIO/include -Xcc -I/Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/source/verification/android-binding-stage4/host-bridge -Xcc -I/Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/source/native/android/signed-guest-ui/binding/include -Xcc -I/Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/source/capability-activation/Sources/MixerCapabilityDurableIO/include -Xcc -I/Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/debug/out/Products/Debug/include -Xcc -I/Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/debug/out/Intermediates.noindex/MixerAndroidBindingHostChecks.build/Debug/Stage4HostTests-p.build/DerivedSources-normal/arm64 -Xcc -I/Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/debug/out/Intermediates.noindex/MixerAndroidBindingHostChecks.build/Debug/Stage4HostTests-p.build/DerivedSources/arm64 -Xcc -I/Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/debug/out/Intermediates.noindex/MixerAndroidBindingHostChecks.build/Debug/Stage4HostTests-p.build/DerivedSources -Xcc -DSWIFT_PACKAGE -Xcc -DDEBUG\=1 -no-auto-bridging-header-chaining -module-name Stage4HostTests -package-name source -const-gather-protocols-file /Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/debug/out/Intermediates.noindex/MixerAndroidBindingHostChecks.build/Debug/Stage4HostTests-p.build/Objects-normal/arm64/Stage4HostTests_const_extract_protocols.json -disable-clang-spi -clang-target arm64-apple-macos27.0 -target-sdk-version 27.0 -target-sdk-name macosx27.0 -in-process-plugin-server-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/libSwiftInProcPluginServer.dylib -parse-as-library -o /Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/debug/out/Intermediates.noindex/MixerAndroidBindingHostChecks.build/Debug/Stage4HostTests-p.build/Objects-normal/arm64/HostTests.o -debug-module-path /Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/debug/out/Intermediates.noindex/MixerAndroidBindingHostChecks.build/Debug/Stage4HostTests-p.build/Objects-normal/arm64/Stage4HostTests.swiftmodule -index-unit-output-path /MixerAndroidBindingHostChecks.build/Debug/Stage4HostTests-p.build/Objects-normal/arm64/HostTests.o -index-store-path /Users/andreyyurlov/Documents/dev/mixer/verification/android-fault-leave-ci-independent-review/build/debug/out -index-system-modules
+error: Build failed
