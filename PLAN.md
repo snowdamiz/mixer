@@ -256,3 +256,21 @@ three test files, 404 snapshot files and unchanged counts/peaks; see
 the earlier CI allocation remains unattributed and that failed run stays failed.
 Hosted checkpoints 92e93b2 and e299f1a now pass all three jobs. Full Swift validator
 work remains a separate uncommitted lane; physical phones stay disconnected.
+
+
+The nondefault Swift reactor validator now type-checks every one of the immutable
+53,777,114-byte target's 79,832 defined bodies under the exact 34-import policy.
+It validates 6,505,659 instructions with a 54,827,522-byte internal reservation
+peak; retained caller input raises the measured reservation overlap to
+108,604,636 bytes. This is reservation accounting, not measured process RSS.
+Root combined Debug/Release checks each pass 263 tests and nine explicit reference
+checks; the older feature matrices also pass. Independent review verifies 147
+adversarial cases, all 41 allocation/cancellation ordinals, eight proof-authority
+compile failures and exact legacy observations/budget boundaries. Root audited
+1,071 source and evidence bindings in
+`verification/swift-reactor-root-review/receipt.json`. The opaque proof permits
+no execution, serialization or conversion into existing release authority.
+CI now explicitly includes the feature. Hosted checkpoint 8296296 passes all
+three jobs, including observer background-noise regressions. Full Swift execution,
+runtime/WASI composition, the compressed delivery budget, Android signed binding,
+physical devices, immutable published consumers and all GA acceptance remain open.

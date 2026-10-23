@@ -5,10 +5,63 @@ pub(super) struct Cursor {
     pub function: Option<u32>,
     pub offset: usize,
 }
-pub(super) struct Meter<'a> {
+pub(super) trait MeterControl {
+    fn source_limit(&self) -> usize {
+        4 * 1024 * 1024
+    }
+    fn expired(&self) -> bool {
+        false
+    }
+    fn operand(&mut self, _: usize) {}
+    fn control(&mut self, _: usize) {}
+    fn locals(&mut self, _: usize) {}
+    fn body(&mut self) {}
+}
+// This zero-sized specialization preserves frozen Meter layout and semantics,
+// including in binaries that also enable the Swift experiment.
+pub(super) struct FrozenControl;
+impl MeterControl for FrozenControl {}
+#[cfg(feature = "experimental-swift-reactor")]
+#[derive(Clone, Copy, Default)]
+pub(super) struct BodyObservations {
+    pub validated_bodies: usize,
+    pub max_parameters_plus_locals: usize,
+    pub max_operand_values: usize,
+    pub max_control_depth: usize,
+}
+#[cfg(feature = "experimental-swift-reactor")]
+pub(super) struct SwiftControl {
+    source_limit: usize,
+    deadline: std::time::Instant,
+    pub observations: BodyObservations,
+}
+#[cfg(feature = "experimental-swift-reactor")]
+impl MeterControl for SwiftControl {
+    fn source_limit(&self) -> usize {
+        self.source_limit
+    }
+    fn expired(&self) -> bool {
+        std::time::Instant::now() >= self.deadline
+    }
+    fn operand(&mut self, n: usize) {
+        self.observations.max_operand_values = self.observations.max_operand_values.max(n);
+    }
+    fn control(&mut self, n: usize) {
+        self.observations.max_control_depth = self.observations.max_control_depth.max(n);
+    }
+    fn locals(&mut self, n: usize) {
+        self.observations.max_parameters_plus_locals =
+            self.observations.max_parameters_plus_locals.max(n);
+    }
+    fn body(&mut self) {
+        self.observations.validated_bodies += 1;
+    }
+}
+pub(super) struct Meter<'a, C: MeterControl = FrozenControl> {
     budget: ValidationBudget,
     usage: Usage,
     cancellation: &'a Cancellation,
+    pub control: C,
 }
 impl<'a> Meter<'a> {
     pub fn new(budget: ValidationBudget, cancellation: &'a Cancellation) -> Result<Self, Failure> {
@@ -17,6 +70,7 @@ impl<'a> Meter<'a> {
             budget,
             usage: Usage::default(),
             cancellation,
+            control: FrozenControl,
         };
         if budget.metadata_bytes > defaults.metadata_bytes
             || budget.scratch_bytes > defaults.scratch_bytes
@@ -29,6 +83,31 @@ impl<'a> Meter<'a> {
             ));
         }
         Ok(meter)
+    }
+}
+#[cfg(feature = "experimental-swift-reactor")]
+impl<'a> Meter<'a, SwiftControl> {
+    pub fn swift(
+        budget: ValidationBudget,
+        source_limit: usize,
+        cancellation: &'a Cancellation,
+        deadline: std::time::Instant,
+    ) -> Self {
+        Self {
+            budget,
+            usage: Usage::default(),
+            cancellation,
+            control: SwiftControl {
+                source_limit,
+                deadline,
+                observations: BodyObservations::default(),
+            },
+        }
+    }
+}
+impl<C: MeterControl> Meter<'_, C> {
+    pub fn source_limit(&self) -> usize {
+        self.control.source_limit()
     }
     pub fn usage(&self) -> Usage {
         self.usage
@@ -49,6 +128,11 @@ impl<'a> Meter<'a> {
         if self.cancellation.is_cancelled() {
             Err(self.error(FailureKind::Cancelled, "cancelled", cursor))
         } else {
+            if self.control.expired() {
+                // Private code is mapped to the distinct Swift-only public kind.
+                // No frozen entry point creates a meter with a deadline.
+                return Err(self.error(FailureKind::Cancelled, "swift_deadline", cursor));
+            }
             Ok(())
         }
     }
@@ -74,7 +158,7 @@ impl<'a> Meter<'a> {
     ) -> Result<(), Failure> {
         self.check(cursor)?;
         let (current, limit) = match category {
-            Resource::Source => (self.usage.source_bytes, 4 * 1024 * 1024),
+            Resource::Source => (self.usage.source_bytes, self.source_limit()),
             Resource::Metadata => (self.usage.metadata_reserved, self.budget.metadata_bytes),
             Resource::Scratch => (self.usage.scratch_reserved, self.budget.scratch_bytes),
             Resource::Work | Resource::Profile => unreachable!(),
@@ -175,7 +259,7 @@ impl<T: Copy> Buffer<T> {
     pub fn reserve(
         &mut self,
         capacity: usize,
-        meter: &mut Meter<'_>,
+        meter: &mut Meter<'_, impl MeterControl>,
         cursor: Cursor,
     ) -> Result<(), Failure> {
         if capacity <= self.values.capacity() {
@@ -212,7 +296,12 @@ impl<T: Copy> Buffer<T> {
         self.charged = bytes;
         Ok(())
     }
-    pub fn push(&mut self, value: T, meter: &mut Meter<'_>, cursor: Cursor) -> Result<(), Failure> {
+    pub fn push(
+        &mut self,
+        value: T,
+        meter: &mut Meter<'_, impl MeterControl>,
+        cursor: Cursor,
+    ) -> Result<(), Failure> {
         meter.work(1, cursor)?;
         if self.values.len() == self.values.capacity() {
             let initial = if std::mem::size_of::<T>() == 1 { 8 } else { 4 };
@@ -229,7 +318,7 @@ impl<T: Copy> Buffer<T> {
         self.values.push(value);
         Ok(())
     }
-    pub fn dispose(self, meter: &mut Meter<'_>) {
+    pub fn dispose(self, meter: &mut Meter<'_, impl MeterControl>) {
         let category = self.category;
         let bytes = self.charged;
         drop(self);

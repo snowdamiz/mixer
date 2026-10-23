@@ -1,7 +1,10 @@
 //! Sealed complete validation; optional Rust-only cache and execution experiments.
 mod account;
 mod metadata;
+mod policy;
 mod reader;
+#[cfg(feature = "experimental-swift-reactor")]
+pub(crate) mod swift;
 mod validate;
 
 #[cfg(feature = "experimental-function-cache")]
@@ -13,7 +16,7 @@ mod descriptors;
 pub mod execution;
 
 use crate::{Cancellation, Limits, Profile};
-use account::{Buffer, Cursor, Meter};
+use account::{Buffer, Cursor, Meter, MeterControl};
 use metadata::Metadata;
 
 /// Additional validation-only ceilings; execution Limits can only narrow frozen profiles.
@@ -185,6 +188,9 @@ pub fn validate_spans(
         + std::mem::size_of::<Buffer<u32>>()
         + 2 * std::mem::size_of::<Failure>()
         + 128;
+    // The existing miscellaneous fixed-state allowance covers the lightweight
+    // borrowed policy view as well as cursors, headers and scalar temporaries.
+    // Frozen meter/body/metadata layouts are unchanged even with Swift enabled.
     meter.reserve(Resource::Scratch, scratch_fixed, cursor)?;
     // Match Limits::check without constructing its allocating String error.
     // A failure path must remain usable even when the source allocation fails.
@@ -218,8 +224,9 @@ pub fn validate_spans(
     source.extend_from_slice(input); // bounded nonpreemptible copy; exact capacity
     meter.check(cursor)?;
     let source = source.into_boxed_slice(); // capacity == length: no shrink allocation
-    let mut metadata = metadata::read(&source, &limits, &mut meter)?;
-    validate::all(&source, &limits, &mut metadata, &mut meter)?;
+    let policy = policy::Policy::frozen(&limits);
+    let mut metadata: Metadata = metadata::read(&source, &policy, &mut meter)?;
+    validate::all(&source, &policy, &mut metadata, &mut meter)?;
     meter.check(cursor)?;
     meter.release(Resource::Scratch, scratch_fixed);
     let usage = meter.usage();
@@ -258,5 +265,18 @@ impl Failure {
         self.attempted = attempted;
         self.limit = limit;
         self
+    }
+}
+
+#[cfg(all(test, target_pointer_width = "64"))]
+mod frozen_layout_tests {
+    use super::*;
+    #[test]
+    fn frozen_reservation_layouts_remain_exact_with_every_feature() {
+        assert_eq!(std::mem::size_of::<Meter<'_>>(), 88);
+        assert_eq!(std::mem::size_of::<Metadata>(), 352);
+        assert_eq!(std::mem::size_of::<validate::BodyState>(), 144);
+        assert_eq!(std::mem::size_of::<ValidatedSpans>(), 520);
+        assert_eq!(std::mem::size_of::<policy::Policy<'_>>(), 8);
     }
 }

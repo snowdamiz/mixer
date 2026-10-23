@@ -31,10 +31,13 @@ impl BodyState {
             max,
         }
     }
-    fn error(&self, meter: &Meter<'_>, code: &'static str) -> Failure {
+    fn error(&self, meter: &Meter<'_, impl MeterControl>, code: &'static str) -> Failure {
         meter.error(FailureKind::Validation, code, self.cursor)
     }
-    fn pop_any(&mut self, meter: &mut Meter<'_>) -> Result<Option<Type>, Failure> {
+    fn pop_any(
+        &mut self,
+        meter: &mut Meter<'_, impl MeterControl>,
+    ) -> Result<Option<Type>, Failure> {
         meter.work(1, self.cursor)?;
         let control = self
             .controls
@@ -48,7 +51,11 @@ impl BodyState {
         }
         Ok(self.operands.pop().unwrap())
     }
-    fn pop(&mut self, expected: Type, meter: &mut Meter<'_>) -> Result<(), Failure> {
+    fn pop(
+        &mut self,
+        expected: Type,
+        meter: &mut Meter<'_, impl MeterControl>,
+    ) -> Result<(), Failure> {
         if self
             .pop_any(meter)?
             .is_some_and(|actual| actual != expected)
@@ -57,7 +64,11 @@ impl BodyState {
         }
         Ok(())
     }
-    fn push(&mut self, ty: Option<Type>, meter: &mut Meter<'_>) -> Result<(), Failure> {
+    fn push(
+        &mut self,
+        ty: Option<Type>,
+        meter: &mut Meter<'_, impl MeterControl>,
+    ) -> Result<(), Failure> {
         if self.operands.len() >= self.max {
             return Err(meter
                 .error(
@@ -71,15 +82,21 @@ impl BodyState {
                     self.max as u64,
                 ));
         }
-        self.operands.push(ty, meter, self.cursor)
+        self.operands.push(ty, meter, self.cursor)?;
+        meter.control.operand(self.operands.len());
+        Ok(())
     }
-    fn result(&mut self, ty: Option<Type>, meter: &mut Meter<'_>) -> Result<(), Failure> {
+    fn result(
+        &mut self,
+        ty: Option<Type>,
+        meter: &mut Meter<'_, impl MeterControl>,
+    ) -> Result<(), Failure> {
         if let Some(ty) = ty {
             self.pop(ty, meter)?;
         }
         Ok(())
     }
-    fn unreachable(&mut self, meter: &mut Meter<'_>) -> Result<(), Failure> {
+    fn unreachable(&mut self, meter: &mut Meter<'_, impl MeterControl>) -> Result<(), Failure> {
         meter.work(1, self.cursor)?;
         let height = self
             .controls
@@ -90,7 +107,11 @@ impl BodyState {
         self.controls.last_mut().unwrap().unreachable = true;
         Ok(())
     }
-    fn label(&self, depth: u32, meter: &mut Meter<'_>) -> Result<Option<Type>, Failure> {
+    fn label(
+        &self,
+        depth: u32,
+        meter: &mut Meter<'_, impl MeterControl>,
+    ) -> Result<Option<Type>, Failure> {
         meter.work(1, self.cursor)?;
         let index = (depth as usize)
             .checked_add(1)
@@ -106,8 +127,8 @@ impl BodyState {
     fn call(
         &mut self,
         signature: Signature,
-        m: &Metadata,
-        meter: &mut Meter<'_>,
+        m: &Metadata<impl metadata::Declaration>,
+        meter: &mut Meter<'_, impl MeterControl>,
     ) -> Result<(), Failure> {
         for ty in m.params(signature).iter().rev() {
             self.pop(*ty, meter)?;
@@ -117,7 +138,7 @@ impl BodyState {
         }
         Ok(())
     }
-    fn dispose(self, meter: &mut Meter<'_>) {
+    fn dispose(self, meter: &mut Meter<'_, impl MeterControl>) {
         self.locals.dispose(meter);
         self.operands.dispose(meter);
         self.controls.dispose(meter);
@@ -125,9 +146,9 @@ impl BodyState {
 }
 pub(super) fn all(
     source: &[u8],
-    limits: &Limits,
-    m: &mut Metadata,
-    meter: &mut Meter<'_>,
+    limits: &policy::Policy<'_>,
+    m: &mut Metadata<impl metadata::Declaration>,
+    meter: &mut Meter<'_, impl MeterControl>,
 ) -> Result<(), Failure> {
     let mut total = 0usize;
     for defined in 0..m.functions.len() {
@@ -142,17 +163,23 @@ pub(super) fn all(
         let signature = *m.signatures.get(f.type_index as usize).unwrap();
         let mut r = Reader::new(f.body.slice(source), f.body.offset as usize);
         r.function = Some(function);
-        let mut state = BodyState::new(function, r.cursor().offset, limits.operand_stack);
+        let mut state = BodyState::new(function, r.cursor().offset, limits.operand_stack());
         for ty in m.params(signature) {
             state.locals.push(*ty, meter, r.cursor())?;
         }
-        for _ in 0..r.count(limits.locals, meter)? {
-            let n = r.count(limits.locals.saturating_sub(state.locals.len()), meter)?;
-            let ty = r.ty(limits.profile, meter)?;
+        for _ in 0..r.count(limits.local_groups(), meter)? {
+            let n = r.count(
+                limits
+                    .parameters_plus_locals()
+                    .saturating_sub(state.locals.len()),
+                meter,
+            )?;
+            let ty = r.ty(limits.floats(), meter)?;
             for _ in 0..n {
                 state.locals.push(ty, meter, r.cursor())?;
             }
         }
+        meter.control.locals(state.locals.len());
         state.controls.push(
             Control {
                 kind: BlockKind::Function,
@@ -164,6 +191,7 @@ pub(super) fn all(
             meter,
             r.cursor(),
         )?;
+        meter.control.control(1);
         loop {
             state.cursor = r.cursor();
             if state.controls.len() == 0 {
@@ -177,14 +205,18 @@ pub(super) fn all(
                     state.cursor,
                 )
             })?;
-            if total > limits.instructions {
+            if total > limits.instructions() {
                 return Err(meter
                     .error(
                         FailureKind::ResourceExhausted,
                         "profile_instruction_limit",
                         state.cursor,
                     )
-                    .resource(Resource::Profile, total as u64, limits.instructions as u64));
+                    .resource(
+                        Resource::Profile,
+                        total as u64,
+                        limits.instructions() as u64,
+                    ));
             }
             match opcode {
                 0 => state.unreachable(meter)?,
@@ -194,11 +226,11 @@ pub(super) fn all(
                         0x40 => None,
                         0x7f => Some(Type::I32),
                         0x7e => Some(Type::I64),
-                        0x7d if limits.profile.floats() => Some(Type::F32),
-                        0x7c if limits.profile.floats() => Some(Type::F64),
+                        0x7d if limits.floats() => Some(Type::F32),
+                        0x7c if limits.floats() => Some(Type::F64),
                         _ => return Err(r.error(meter, FailureKind::Unsupported, "block_type")),
                     };
-                    if state.controls.len() >= limits.control_depth {
+                    if state.controls.len() >= limits.control_depth() {
                         return Err(meter
                             .error(
                                 FailureKind::ResourceExhausted,
@@ -208,7 +240,7 @@ pub(super) fn all(
                             .resource(
                                 Resource::Profile,
                                 state.controls.len() as u64 + 1,
-                                limits.control_depth as u64,
+                                limits.control_depth() as u64,
                             ));
                     }
                     let kind = match opcode {
@@ -230,6 +262,7 @@ pub(super) fn all(
                         meter,
                         state.cursor,
                     )?;
+                    meter.control.control(state.controls.len());
                 }
                 5 => {
                     let control = *state.controls.last().unwrap();
@@ -281,7 +314,7 @@ pub(super) fn all(
                     }
                 }
                 0x0e => {
-                    let count = r.count(limits.instructions, meter)?;
+                    let count = r.count(limits.instructions(), meter)?;
                     state.pop(Type::I32, meter)?;
                     let mut expected = None;
                     for _ in 0..count {
@@ -311,7 +344,7 @@ pub(super) fn all(
                         .ok_or_else(|| state.error(meter, "call_index"))?;
                     state.call(called, m, meter)?;
                 }
-                0x11 if limits.profile == Profile::TableMemoryV3 => {
+                0x11 if limits.tables() => {
                     let ty = r.uint(meter)?;
                     if r.uint(meter)? != 0 {
                         return Err(state.error(meter, "indirect_table_index"));
@@ -368,7 +401,7 @@ pub(super) fn all(
                     }
                 }
                 0x28..=0x35 => {
-                    if [0x2a, 0x2b].contains(&opcode) && !limits.profile.floats() {
+                    if [0x2a, 0x2b].contains(&opcode) && !limits.floats() {
                         return Err(r.error(meter, FailureKind::Unsupported, "float_load"));
                     }
                     let alignment = r.uint(meter)?;
@@ -395,7 +428,7 @@ pub(super) fn all(
                     state.push(Some(ty), meter)?;
                 }
                 0x36..=0x3e => {
-                    if [0x38, 0x39].contains(&opcode) && !limits.profile.floats() {
+                    if [0x38, 0x39].contains(&opcode) && !limits.floats() {
                         return Err(r.error(meter, FailureKind::Unsupported, "float_store"));
                     }
                     let alignment = r.uint(meter)?;
@@ -441,17 +474,17 @@ pub(super) fn all(
                     r.signed(64, meter)?;
                     state.push(Some(Type::I64), meter)?;
                 }
-                0x43 if limits.profile.floats() => {
+                0x43 if limits.floats() => {
                     r.take(4, meter)?;
                     state.push(Some(Type::F32), meter)?;
                 }
-                0x44 if limits.profile.floats() => {
+                0x44 if limits.floats() => {
                     r.take(8, meter)?;
                     state.push(Some(Type::F64), meter)?;
                 }
                 0x45..=0xc4 => {
                     let floating = matches!(opcode,0x5b..=0x66|0x8b..=0xa6|0xa8..=0xab|0xae..=0xbf);
-                    if floating && !limits.profile.floats() {
+                    if floating && !limits.floats() {
                         return Err(r.error(meter, FailureKind::Unsupported, "float_numeric"));
                     }
                     let (input, count, output) = crate::validate::numeric_type(opcode);
@@ -460,7 +493,7 @@ pub(super) fn all(
                     }
                     state.push(Some(output), meter)?;
                 }
-                0xfc if limits.profile.floats() => {
+                0xfc if limits.floats() => {
                     let sub = r.uint(meter)?;
                     match sub {
                         0..=7 => {
@@ -468,7 +501,7 @@ pub(super) fn all(
                             state.pop(input, meter)?;
                             state.push(Some(output), meter)?;
                         }
-                        10 | 11 if limits.profile == Profile::TableMemoryV3 => {
+                        10 | 11 if limits.tables() => {
                             if r.uint(meter)? != 0 || (sub == 10 && r.uint(meter)? != 0) {
                                 return Err(state.error(meter, "bulk_memory_index"));
                             }
@@ -488,6 +521,7 @@ pub(super) fn all(
             }
         }
         state.dispose(meter);
+        meter.control.body();
     }
     m.instructions = total;
     Ok(())

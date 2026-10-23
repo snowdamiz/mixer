@@ -17,16 +17,21 @@ impl<'a> Reader<'a> {
     }
     pub fn cursor(&self) -> Cursor {
         // Reader construction is private: every nested slice comes from a
-        // successful take(), so base + position stays inside the <=4MiB source.
+        // successful take(), so base + position stays inside the policy source.
         Cursor {
             function: self.function,
             offset: self.base + self.position,
         }
     }
-    pub fn error(&self, meter: &Meter<'_>, kind: FailureKind, code: &'static str) -> Failure {
+    pub fn error(
+        &self,
+        meter: &Meter<'_, impl MeterControl>,
+        kind: FailureKind,
+        code: &'static str,
+    ) -> Failure {
         meter.error(kind, code, self.cursor())
     }
-    pub fn byte(&mut self, meter: &mut Meter<'_>) -> Result<u8, Failure> {
+    pub fn byte(&mut self, meter: &mut Meter<'_, impl MeterControl>) -> Result<u8, Failure> {
         meter.work(1, self.cursor())?;
         let b = *self
             .bytes
@@ -35,7 +40,11 @@ impl<'a> Reader<'a> {
         self.position += 1;
         Ok(b)
     }
-    pub fn take(&mut self, n: usize, meter: &mut Meter<'_>) -> Result<&'a [u8], Failure> {
+    pub fn take(
+        &mut self,
+        n: usize,
+        meter: &mut Meter<'_, impl MeterControl>,
+    ) -> Result<&'a [u8], Failure> {
         meter.work(n as u64, self.cursor())?;
         let end = self
             .position
@@ -46,7 +55,7 @@ impl<'a> Reader<'a> {
         self.position = end;
         Ok(bytes)
     }
-    pub fn uint(&mut self, meter: &mut Meter<'_>) -> Result<u32, Failure> {
+    pub fn uint(&mut self, meter: &mut Meter<'_, impl MeterControl>) -> Result<u32, Failure> {
         let mut n = 0u32;
         for i in 0..5 {
             let b = self.byte(meter)?;
@@ -60,7 +69,11 @@ impl<'a> Reader<'a> {
         }
         Err(self.error(meter, FailureKind::Malformed, "u32_leb_unterminated"))
     }
-    pub fn signed(&mut self, bits: u32, meter: &mut Meter<'_>) -> Result<i64, Failure> {
+    pub fn signed(
+        &mut self,
+        bits: u32,
+        meter: &mut Meter<'_, impl MeterControl>,
+    ) -> Result<i64, Failure> {
         let max = bits.div_ceil(7);
         let mut value = 0u64;
         for i in 0..max {
@@ -89,7 +102,11 @@ impl<'a> Reader<'a> {
         }
         Err(self.error(meter, FailureKind::Malformed, "signed_leb_unterminated"))
     }
-    pub fn count(&mut self, max: usize, meter: &mut Meter<'_>) -> Result<usize, Failure> {
+    pub fn count(
+        &mut self,
+        max: usize,
+        meter: &mut Meter<'_, impl MeterControl>,
+    ) -> Result<usize, Failure> {
         let n = self.uint(meter)? as usize;
         if n > max {
             Err(self
@@ -103,16 +120,20 @@ impl<'a> Reader<'a> {
             Ok(n)
         }
     }
-    pub fn ty(&mut self, profile: Profile, meter: &mut Meter<'_>) -> Result<crate::Type, Failure> {
+    pub fn ty(
+        &mut self,
+        floats: bool,
+        meter: &mut Meter<'_, impl MeterControl>,
+    ) -> Result<crate::Type, Failure> {
         match self.byte(meter)? {
             0x7f => Ok(crate::Type::I32),
             0x7e => Ok(crate::Type::I64),
-            0x7d if profile.floats() => Ok(crate::Type::F32),
-            0x7c if profile.floats() => Ok(crate::Type::F64),
+            0x7d if floats => Ok(crate::Type::F32),
+            0x7c if floats => Ok(crate::Type::F64),
             _ => Err(self.error(meter, FailureKind::Unsupported, "value_type")),
         }
     }
-    pub fn end(&self, meter: &Meter<'_>) -> Result<(), Failure> {
+    pub fn end(&self, meter: &Meter<'_, impl MeterControl>) -> Result<(), Failure> {
         if self.position == self.bytes.len() {
             Ok(())
         } else {

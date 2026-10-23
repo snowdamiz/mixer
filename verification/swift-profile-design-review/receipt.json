@@ -1,0 +1,330 @@
+{
+  "schema": 1,
+  "status": "proposal-audit-arithmetic-only",
+  "authorization": false,
+  "valid": false,
+  "scope": "Source review and bounded compiler layout/framing probe only; no engine changes, Wasm body validation, cache decode, execution, device, publication or GA evidence.",
+  "observedUtc": "2026-10-23T15:56:58.655516+00:00",
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "-B",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-profile-design-review/collect.py"
+  ],
+  "pythonVersion": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "pythonExecutableSHA256": "e401ac7a95cda75dee34a0cfe1e4faf0a6df1a501cf67887f177fb78cd4eb60a",
+  "revision": "e299f1a60eb06dc9405021fc49ced215eaa42336",
+  "dirtyTree": "?? docs/android-signed-ui-binding-design.md\n?? docs/swift-reactor-owned-profile-design.md\n?? verification/allocator-observer-ci-repair/\n?? verification/android-signed-ui-binding-design/\n?? verification/swift-profile-design-review/\n?? verification/swift-reactor-profile-design/\n",
+  "rustcExecutable": {
+    "path": "/opt/homebrew/opt/rustup/bin/rustc",
+    "sha256": "53d84580eddd2f4a3c1ef16c3d14d0522f1852c39690eb20a506d04d30c621e5"
+  },
+  "compilerDiagnosticEnvironment": {
+    "RUSTC_BOOTSTRAP": "1",
+    "RUSTUP_AUTO_INSTALL": "0"
+  },
+  "commands": [
+    {
+      "command": [
+        "/opt/homebrew/opt/rustup/bin/rustc",
+        "--version"
+      ],
+      "exitCode": 0,
+      "stdout": {
+        "path": "rustc-version.stdout",
+        "sha256": "8dc912acd5bfeafc70b01b1d2a2afb0844afa02f5dba2f1ae8d5c212d005afb6"
+      },
+      "stderr": {
+        "path": "rustc-version.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "command": [
+        "/opt/homebrew/opt/rustup/bin/rustc",
+        "--edition=2021",
+        "--crate-type",
+        "rlib",
+        "--cfg",
+        "feature=\"experimental-stream-validation\"",
+        "--cfg",
+        "feature=\"experimental-function-cache\"",
+        "--cfg",
+        "feature=\"experimental-span-execution\"",
+        "--cfg",
+        "feature=\"experimental-swift-wasi\"",
+        "-Zprint-type-sizes",
+        "--out-dir",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-profile-design-review/local/layout",
+        "vm/src/lib.rs"
+      ],
+      "exitCode": 0,
+      "stdout": {
+        "path": "layout.stdout",
+        "sha256": "9ce252582d448a9bcf1ad07057e04ee5670d2f0760b28c28fb70506961fb8e42"
+      },
+      "stderr": {
+        "path": "layout.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "layouts": {
+    "Type": 1,
+    "std::option::Option<Type>": 1,
+    "Value": 16,
+    "experimental::ValidatedSpans": 520,
+    "experimental::Failure": 112,
+    "experimental::metadata::Signature": 12,
+    "experimental::metadata::Import": 20,
+    "experimental::metadata::Function": 12,
+    "experimental::metadata::Global": 12,
+    "experimental::metadata::Export": 16,
+    "experimental::metadata::Segment": 16,
+    "experimental::validate::Control": 16,
+    "experimental::validate::BodyState": 144,
+    "experimental::account::Meter<'_>": 88,
+    "experimental::account::Buffer<u32>": 40,
+    "experimental::reader::Reader<'_>": 40,
+    "experimental::cache::decode::Patch": 32,
+    "experimental::cache::decode::PassState": 4128,
+    "experimental::cache::DecodedInstruction": 40,
+    "experimental_wasi::WasiContext": 1328
+  },
+  "arithmetic": {
+    "scope": "Current representation arithmetic under proposed counts, not future measured peaks or complete validation.",
+    "retained_current_metadata_parts": {
+      "fixed_current_wrapper": 520,
+      "signatures": 5916,
+      "parameters_capacity": 8192,
+      "imports": 680,
+      "functions": 957984,
+      "globals": 63276,
+      "exports": 48,
+      "data": 320,
+      "elements": 16
+    },
+    "retained_current_metadata_bytes": 1036952,
+    "current_representation_metadata_envelope_parts": {
+      "current_fixed_wrapper": 520,
+      "signatures": 6144,
+      "parameter_growth_overlap": 12288,
+      "total_function_metadata_upper": 1600000,
+      "globals": 98304,
+      "exports": 65536,
+      "segments": 131072
+    },
+    "current_representation_metadata_envelope_upper_bytes": 1913864,
+    "current_representation_scratch_parts": {
+      "current_fixed": 744,
+      "locals_growth_overlap": 384,
+      "operands_growth_overlap": 192,
+      "controls_growth_overlap": 12288,
+      "export_sort_scratch": 16384
+    },
+    "current_representation_scratch_conservative_sum_bytes": 29992,
+    "source_copy_plus_top_payload_lower_work": 107554182,
+    "top_sections": [
+      {
+        "id": 1,
+        "offset": 11,
+        "bytes": 5852
+      },
+      {
+        "id": 2,
+        "offset": 5866,
+        "bytes": 1332
+      },
+      {
+        "id": 3,
+        "offset": 7202,
+        "bytes": 81714
+      },
+      {
+        "id": 4,
+        "offset": 88918,
+        "bytes": 9
+      },
+      {
+        "id": 5,
+        "offset": 88929,
+        "bytes": 4
+      },
+      {
+        "id": 6,
+        "offset": 88937,
+        "bytes": 40340
+      },
+      {
+        "id": 7,
+        "offset": 129279,
+        "bytes": 51
+      },
+      {
+        "id": 9,
+        "offset": 129334,
+        "bytes": 120229
+      },
+      {
+        "id": 10,
+        "offset": 249568,
+        "bytes": 15736124
+      },
+      {
+        "id": 11,
+        "offset": 15985697,
+        "bytes": 37713036
+      },
+      {
+        "id": 0,
+        "offset": 53698737,
+        "bytes": 78377
+      }
+    ],
+    "maximum_successful_positive_growth_old_new_bytes": 100597760,
+    "loose_twice_maximum_memory_bytes": 100663296,
+    "maximum_stage_partition_sum_after_external_input_drop_bytes": 235144496,
+    "maximum_validation_partition_sum_including_one_64mib_input_bytes": 152043520,
+    "combined_limit_bytes": 268435456,
+    "future_complete_validation_work_512m_fit": "unknown",
+    "future_complete_validation_metadata_16mib_and_scratch_1mib_fit": "not measured; source arithmetic gives large headroom for current representation only",
+    "future_runtime_envelope_fit": "unknown"
+  },
+  "artifact": {
+    "path": "compiler/experiments/fieldlog-reactor/local/2026-10-23-qualified/wasm/fieldlog-reactor.wasm",
+    "bytes": 53777114,
+    "sha256": "24d85729a659ff3e5fc6f0517709afbb68b371a41829e90785dabd48e0620994"
+  },
+  "sourceManifest": [
+    {
+      "path": "AGENTS.md",
+      "bytes": 2226,
+      "sha256": "258d0dfea89e2da9afea3715c3e086f2bc62c8350b841a575803e57e57f5378d"
+    },
+    {
+      "path": "vm/Cargo.toml",
+      "bytes": 737,
+      "sha256": "7b7049c2d4faa513a1bda65c0ae92e90d8cb91061bcff44c77ca3d938429fefb"
+    },
+    {
+      "path": "vm/src/lib.rs",
+      "bytes": 8178,
+      "sha256": "4e42d1b65559c58d108d5e6409bdbda7c5f321256e5c4d6e0224aadfd97c8cea"
+    },
+    {
+      "path": "vm/src/execute.rs",
+      "bytes": 33982,
+      "sha256": "816ec862d91ca6086a2d059939a15e4c16acac1e1255503e192b344be3610011"
+    },
+    {
+      "path": "docs/swift-reactor-owned-profile-design.md",
+      "bytes": 23074,
+      "sha256": "446421759fe76264f58bff7b942e6e4e83af902d6a8996a52918fb60fd2abc38"
+    },
+    {
+      "path": "docs/swift-wasi-adapter-design.md",
+      "bytes": 8329,
+      "sha256": "2258e977131439508fb4abbd53f6a0bbf9ac13d62e2bab4a106259b04f076c2d"
+    },
+    {
+      "path": "docs/span-execution-design.md",
+      "bytes": 7739,
+      "sha256": "d492ef889535e8fd7c3ae1fce0c99a8c76a30c618406d601001709b2e7487f7b"
+    },
+    {
+      "path": "verification/swift-reactor-function-diagnostics/2026-10-23-reactor-final-v2/receipt.json",
+      "bytes": 20369,
+      "sha256": "3b92d504eb8fc9819f71face48f20e315a9d62ac5d7a7c0b5e950e92c60cd31c"
+    },
+    {
+      "path": "verification/swift-reactor-function-diagnostics/2026-10-23-reactor-final-v2/statistics.json",
+      "bytes": 126958,
+      "sha256": "41497ee59f1464e8b8af1dc972953fe23ac45750bd38cf5fd026cb20bf15a20c"
+    },
+    {
+      "path": "compiler/experiments/fieldlog-reactor/evidence/2026-10-23-qualified/descriptors.json",
+      "bytes": 10840,
+      "sha256": "7e7c884cf0d6eb3e05b1525736da93ee5f1bfca8081926aa065d7d6f478ebd59"
+    },
+    {
+      "path": "verification/swift-profile-design-review/collect.py",
+      "bytes": 11085,
+      "sha256": "cf4cc448c5d82f7678d280c35e7ab37cf23f99810219c50896f62b3af9ecef19"
+    },
+    {
+      "path": "verification/swift-profile-design-review/review.md",
+      "bytes": 13011,
+      "sha256": "dab746c32c6dc95dbe9247060b3e361c6366cc5b7528716b2d1b27b3d53a1e57"
+    },
+    {
+      "path": "vm/src/experimental/account.rs",
+      "bytes": 8376,
+      "sha256": "e33ee76cb44d67c3edf0a9c2ad5c6e08e2938dd4fad206f1d53886a2b7d7d983"
+    },
+    {
+      "path": "vm/src/experimental/cache/decode.rs",
+      "bytes": 16205,
+      "sha256": "d5ec3a33297c1dc38f8834e70ea13e525244e868aeac997d955a50d418fd3ae1"
+    },
+    {
+      "path": "vm/src/experimental/cache/mod.rs",
+      "bytes": 23833,
+      "sha256": "464bc9bf0fc5415fd30632953cf7bb6e300a808f9fd9313832a24e78403d3135"
+    },
+    {
+      "path": "vm/src/experimental/cache/tests.rs",
+      "bytes": 8374,
+      "sha256": "6531b53842c8801e88889fd7b72ccf4fdcd420c76caf272ad7e4c1ca5c67eecd"
+    },
+    {
+      "path": "vm/src/experimental/descriptors.rs",
+      "bytes": 2730,
+      "sha256": "1c93821e0b2ca952cc3beebdfd28d2856d414a9752c869f192131cfa7c742caa"
+    },
+    {
+      "path": "vm/src/experimental/execution/mod.rs",
+      "bytes": 47372,
+      "sha256": "a6814e64f08d899a40e6960ce2ae232c12d55661793f54ac56d7936314f54a62"
+    },
+    {
+      "path": "vm/src/experimental/metadata.rs",
+      "bytes": 22058,
+      "sha256": "d698c256ce3520deab9f4c41c53e06b7f585be8415dccfd141b55450c58ca62c"
+    },
+    {
+      "path": "vm/src/experimental/mod.rs",
+      "bytes": 8874,
+      "sha256": "a65f997649f53716aea26965dbbfdff2aab74a365a8a023815831d6a6d0f56b2"
+    },
+    {
+      "path": "vm/src/experimental/reader.rs",
+      "bytes": 4392,
+      "sha256": "21f3dee08519c5ae7261e213532e379430bb7d3ed7ee2bb83e66d45af34cce83"
+    },
+    {
+      "path": "vm/src/experimental/validate.rs",
+      "bytes": 19955,
+      "sha256": "06c3b9f0e8e66955355679584d09577a8c0f8250c20deef1aab6878131dde584"
+    },
+    {
+      "path": "vm/src/experimental_wasi/descriptor.rs",
+      "bytes": 5813,
+      "sha256": "5d62e14ef35bd53911d7b251fdcf0f25454767d225e20abdfe7dfccfccafbdff"
+    },
+    {
+      "path": "vm/src/experimental_wasi/mod.rs",
+      "bytes": 21516,
+      "sha256": "65edc90c4c43cb35b1e796a12f9af697d7840850900b8a0bfb3c5a2a7ddfe560"
+    },
+    {
+      "path": "vm/src/experimental_wasi/platform.rs",
+      "bytes": 5000,
+      "sha256": "83900886ea122c6bdfbbc7f052eaffcf9987934490e380b96b95a8b2ac98947a"
+    },
+    {
+      "path": "vm/src/experimental_wasi/tests.rs",
+      "bytes": 11046,
+      "sha256": "abc672fd652cee890fc558f9dd40ee2d96653330178c0c6cdb7cc6e02bf92956"
+    }
+  ],
+  "sourceManifestDigest": "de562dbbc615874c098684a0155ff48d7d7bf38295d83be62d08d07ea667191b"
+}

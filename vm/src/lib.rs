@@ -9,6 +9,8 @@ pub mod experimental;
 pub mod experimental_capability;
 #[cfg(feature = "experimental-capability-guest")]
 pub mod experimental_capability_guest;
+#[cfg(feature = "experimental-swift-reactor")]
+pub mod experimental_swift_reactor;
 #[cfg(feature = "experimental-swift-wasi")]
 pub mod experimental_wasi;
 mod ffi;
