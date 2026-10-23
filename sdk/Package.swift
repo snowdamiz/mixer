@@ -9,9 +9,12 @@ let package = Package(
         .library(name: "MixerUI", targets: ["MixerUI"]),
         .library(name: "MixerApple", targets: ["MixerApple"]),
         .library(name: "MixerGuest", targets: ["MixerGuest"]),
+        .library(name: "MixerCapabilities", targets: ["MixerCapabilities"]),
     ],
     targets: [
         .target(name: "MixerCore"),
+        .target(name: "MixerCapabilityIO", path: "Sources/MixerCapabilities/NativeIO"),
+        .target(name: "MixerCapabilities", dependencies: ["MixerCore", .target(name: "MixerCapabilityIO", condition: .when(platforms: [.iOS, .macOS, .linux, .android]))], exclude: ["NativeIO"]),
         .target(name: "MixerUI", dependencies: ["MixerCore"]),
         .target(name: "MixerApple", dependencies: ["MixerCore", "MixerUI"]),
         .target(name: "MixerGuest", dependencies: ["MixerCore", "MixerUI"]),
