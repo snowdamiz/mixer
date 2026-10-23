@@ -254,6 +254,20 @@ claim. Strict Swift dispatch, scheduler, actual guest I/O and activation remain
 open. See `verification/capability-native-integration-2026-10-23.json` and
 `docs/experimental-capability-native-implementation.md`.
 
+The separate experimental archive builder now exports 81 immutable Git inputs,
+uses isolated Cargo configuration and stages one distinctly named static archive
+with matching headers. Its frozen implementation passes 22 boundary tests in
+normal Python and 22 under optimization; an independent public CLI suite passes
+13 functions in both modes. Root matched all source, artifact, tool and log hashes.
+The actual macOS C consumers pass 27 smoke and 52 mixed legacy/capability registry
+checks. iOS, simulator and Android layout compilation and C linking pass without
+execution. Process cleanup failures quarantine the owned cache; installed tools
+and coordinated cache use remain trusted. See
+`verification/capability-builder-review/receipt.json` and
+`experimental-capability-runtime/build-verification/RESULTS.md`.
+Swift guest-to-I/O composition, signed activation, distribution and physical-device
+qualification remain open. The new hosted builder CI step awaits its first run.
+
 Official Swift 6.3.3 Android/Wasm SDKs are installed and compiler probes have run
 on a physical Pixel and in a development-only Node WASI oracle. Xcode 27.1 / Swift
 6.4 builds Apple targets. Cross compilation uses Xcode 26.6's matching macOS SDK
@@ -345,3 +359,8 @@ tests, 31 native Thread Sanitizer tests and the generated simulator consumer als
 pass. See `verification/github-ci-b25e3b7/receipt.json`. This qualifies the listed
 host CI execution; the Swift guest-to-I/O bridge and new physical-device checks
 remain pending.
+
+
+GitHub run39905251612 at 3dd90c2 passed all three existing jobs after the native
+C documentation/evidence checkpoint. See `verification/github-ci-3dd90c2/receipt.json`.
+This revision predates the separate archive builder and Swift bridge implementation.

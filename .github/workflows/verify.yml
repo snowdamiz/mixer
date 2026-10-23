@@ -15,6 +15,9 @@ jobs:
       TOOLCHAINS: com.apple.dt.toolchain.XcodeDefault
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Builder boundary fixtures read the independently reviewed native pin.
+          fetch-depth: 0
       - name: Verify and record pinned Apple toolchain
         run: |
           python3 scripts/ci/verify-apple-toolchain.py \
@@ -57,6 +60,26 @@ jobs:
           swift test --package-path runtime -Xlinker "-L$RUNNER_TEMP/native-vm/lib"
           swift test --package-path activation -Xlinker "-L$RUNNER_TEMP/native-vm/lib"
           swift test --package-path verification/runtime-review -Xlinker "-L$RUNNER_TEMP/native-vm/lib"
+      - name: Isolated experimental capability archive and shared registry
+        run: |
+          rustup component add llvm-tools
+          python3 experimental-capability-runtime/build-tests/test_builder.py
+          python3 -O experimental-capability-runtime/build-tests/test_builder.py
+          python3 experimental-capability-runtime/build-vm.py \
+            --revision "$GITHUB_SHA" --target host --output "$RUNNER_TEMP/capability-vm"
+          cat "$RUNNER_TEMP/capability-vm/receipt.json"
+          cc -std=c11 -Wall -Wextra -Werror -mmacosx-version-min=14.0 \
+            -I"$RUNNER_TEMP/capability-vm/include" \
+            "$RUNNER_TEMP/capability-vm/source/vm/tests/capability_ffi_smoke.c" \
+            "$RUNNER_TEMP/capability-vm/lib/libmixer_vm_capability_experimental.a" \
+            -lpthread -ldl -lm -o "$RUNNER_TEMP/capability-vm-smoke"
+          "$RUNNER_TEMP/capability-vm-smoke"
+          cc -std=c11 -Wall -Wextra -Werror -mmacosx-version-min=14.0 \
+            -I"$RUNNER_TEMP/capability-vm/include" \
+            experimental-capability-runtime/build-tests/mixed_registry.c \
+            "$RUNNER_TEMP/capability-vm/lib/libmixer_vm_capability_experimental.a" \
+            -lpthread -ldl -lm -o "$RUNNER_TEMP/capability-vm-registry"
+          "$RUNNER_TEMP/capability-vm-registry"
       - name: Generated consumer integration
         run: |
           swift run --package-path cli mixer create VerificationApp --directory "$RUNNER_TEMP/VerificationApp"

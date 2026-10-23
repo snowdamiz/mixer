@@ -1,0 +1,233 @@
+{
+  "schema_version": 1,
+  "started_utc": "2026-10-23T05:33:58.612399+00:00",
+  "source_revision": "b25e3b7de2391a80d12e7fd75e60903495bec120",
+  "head_at_start": "3dd90c227320d4f3b133259fc2a3b8f7e3b74281",
+  "implementation_selection": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "xhigh"
+  },
+  "source_files": {
+    "experimental-capability-runtime/build-vm.py": "e7e34079d7af7d26162ccfc0c43cc6d269fb500ed42bd5e1aef91765e2fee076",
+    "experimental-capability-runtime/build-tests/test_builder.py": "156a6eb26ebf0b5bcb49238c6bb05a8585a9d1a1182355535098e1bb66816ba5",
+    "experimental-capability-runtime/build-tests/mixed_registry.c": "250933e869889d87de966a3e60437036d8f200c1762e6188d031648bc6eb4899",
+    "experimental-capability-runtime/build-verification/README.md": "06675d1b93c8cb671044afd0b2688b194c9b086b297ec5c3ab405725b296a953",
+    "experimental-capability-runtime/build-verification/run.py": "b8fe1de40c86864ffb4a5ed6306a9a7dfe35bb421d933f87005ed188b0cc69af"
+  },
+  "source_manifest_sha256": "1b40722ec6dfbd04436cc12724a10065e33eebac3731fcf0e6ec1984dc3a6cb1",
+  "commands": [
+    {
+      "name": "python-version",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.00816,
+      "log": "python-version.log",
+      "sha256": "f615dc9512de8b165e2b595e5cdc608a3ba7927ae92f959c5b42ec3d58e2ffa8"
+    },
+    {
+      "name": "tests-normal",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-tests/test_builder.py"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 6.707008,
+      "log": "tests-normal.log",
+      "sha256": "3c9c1e54e71cf8098c1cd8521c3a59d82d75c5d02578718d5e8aa55b9d434fd9"
+    },
+    {
+      "name": "tests-optimized",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-O",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-tests/test_builder.py"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 7.076166,
+      "log": "tests-optimized.log",
+      "sha256": "639ee6e92e75a22d62e42730fed5632514d253c115b9da9d4fdef944a9ad26f4"
+    },
+    {
+      "name": "build-host",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-vm.py",
+        "--revision",
+        "b25e3b7de2391a80d12e7fd75e60903495bec120",
+        "--target",
+        "host",
+        "--output",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v2/host",
+        "--cache",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/capability-native-verification",
+        "--rustc",
+        "/opt/homebrew/opt/rustup/bin/rustc"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 2.192224,
+      "log": "build-host.log",
+      "sha256": "551298af2c310e7bb25ddb7ae988f37efdd9483c8c7c60d5dc8563ed5b62b156"
+    },
+    {
+      "name": "host-c-layout",
+      "argv": [
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-isysroot",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk",
+        "-mmacosx-version-min=14.0",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v2/host/include",
+        "-c",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v2/host/source/vm/tests/capability_ffi_smoke.c",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v2/host/capability-layout.o"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.022425,
+      "log": "host-c-layout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "host-c-link",
+      "argv": [
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-isysroot",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk",
+        "-mmacosx-version-min=14.0",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v2/host/include",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v2/host/source/vm/tests/capability_ffi_smoke.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v2/host/lib/libmixer_vm_capability_experimental.a",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v2/host/capability-smoke"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.045132,
+      "log": "host-c-link.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "host-client-file",
+      "argv": [
+        "/usr/bin/file",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v2/host/capability-smoke"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.003316,
+      "log": "host-client-file.log",
+      "sha256": "d941cdf8406a6dab67c13882aca240ea54da2e3a95d7091d0e0c87cd86a231f3"
+    },
+    {
+      "name": "host-c-smoke",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v2/host/capability-smoke"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.073564,
+      "log": "host-c-smoke.log",
+      "sha256": "a12db8a9736d3c5231ada76b5c9e51c69b90aca5dd19b7efe4cb02a2080d150f"
+    },
+    {
+      "name": "mixed-registry-compile",
+      "argv": [
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-isysroot",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk",
+        "-mmacosx-version-min=14.0",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v2/host/include",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-tests/mixed_registry.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v2/host/lib/libmixer_vm_capability_experimental.a",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v2/host/mixed-registry"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.044202,
+      "log": "mixed-registry-compile.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "mixed-registry-run",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v2/host/mixed-registry"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": -6,
+      "problem": null,
+      "elapsed_host_development_seconds": 0.081769,
+      "log": "mixed-registry-run.log",
+      "sha256": "fad07b622979df726bbfef123eb506a509910c2529ecd302432e41a553fe8f5b"
+    }
+  ],
+  "targets": {
+    "host": {
+      "builder_receipt": "host-builder-receipt.json",
+      "builder_receipt_sha256": "1c5b086c97e000818aad344041f17bc0a324449aac72c17bfdf447914a7ee4fc",
+      "library": {
+        "sha256": "a015ff65980422dd0b9c5cad2e28741d1e5ba478e0f657dcaedf75477d553b72",
+        "bytes": 19301552,
+        "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v2/host/lib/libmixer_vm_capability_experimental.a"
+      },
+      "headers": {
+        "mixer_vm.h": {
+          "sha256": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+          "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v2/host/include/mixer_vm.h"
+        },
+        "mixer_vm_capability.h": {
+          "sha256": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+          "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v2/host/include/mixer_vm_capability.h"
+        }
+      },
+      "source_manifest_sha256": "47ecc06679f61be0da8a53839830be72876889bb90c9a8e5834c8661f9312aa6",
+      "source_archive_sha256": "218dd785df1e19ec32e2c3d6621df3317be27525ba071f660edd8e248cf04add",
+      "source_files": 81,
+      "public_C_symbol_count": 27,
+      "rust_target": "aarch64-apple-darwin",
+      "executed": true,
+      "client_sha256": "040d081373622dad30feb74dadd841b553866164269e9e7ba0decc384c9f627d",
+      "layout_object_sha256": "2dac4060799f60f93b942b74108a79b3fd80fa84fe0c9a3852ee90a93fef8c32"
+    }
+  },
+  "host_tests": {
+    "normal_functions": 22,
+    "optimized_functions": 22,
+    "fixture_scope": "original temporary Git/filesystem/process cases; not VM semantic qualification",
+    "native_C_status_alias_checks": 27
+  },
+  "actual_native_revision_frozen": true,
+  "device_commands": false,
+  "qualification": "local frozen-source builder and host C consumer; cross compile/link only; no release/identity/device/bit-reproducibility claim"
+}

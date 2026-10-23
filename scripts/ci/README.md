@@ -62,3 +62,13 @@ checks all 90 raw guest transport fixtures in debug/release and runs native HTTP
 exit, deadline and carried-deadline tests under Thread Sanitizer. This does not
 execute the pending Swift guest-to-I/O bridge. Exact logs and job identities are
 in `verification/github-ci-b25e3b7/receipt.json`.
+
+The separate experimental archive step installs the selected Rust toolchain's
+`llvm-tools` component, runs the builder's normal/optimized Python boundary tests,
+and exports the exact checkout commit into a fresh host build directory. Matching
+Rust LLVM tools inspect the archive; Apple's `nm` cannot reliably read newer Rust
+LLVM bitcode. The step logs the complete build receipt and runs both the C smoke
+client and a mixed legacy/capability registry client against the single distinctly
+named archive. The legacy runtime/activation executables keep their separate
+default archive. This step does not yet compile or execute the Swift capability
+bridge, and its first hosted result is pending publication.
