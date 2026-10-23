@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {{SEO_HEAD}}
+  <link rel="stylesheet" href="{{BASE}}styles.css">
+  <link rel="stylesheet" href="{{BASE}}docs.css">
+  <script src="{{BASE}}app.js" defer></script>
+</head>
+<body class="docs-page">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+    <symbol id="arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+    <symbol id="copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V4H4v12h4"/></symbol>
+  </defs></svg>
+  <header class="site-header">
+    <div class="nav-wrap container">
+      <a class="brand" href="{{BASE}}" aria-label="Mixer home"><img src="{{BASE}}assets/flick-128.webp" width="38" height="38" alt=""><span>mixer<span class="brand-period">.</span></span></a>
+      <button class="menu-toggle" aria-expanded="false" aria-controls="main-nav" aria-label="Open navigation"><span></span><span></span></button>
+      <nav id="main-nav" class="main-nav" aria-label="Main navigation"><a href="{{BASE}}#platform">Platform</a><a href="{{BASE}}#workflow">How it works</a><a href="{{BASE}}#pricing">Pricing</a><a href="{{BASE}}docs/" aria-current="page">Docs</a></nav>
+      <a class="button button-small button-dark nav-cta" href="#start">Start building <svg><use href="#arrow"/></svg></a>
+    </div>
+  </header>
+  <main id="main" class="container">
+    <div class="docs-intro">
+      <p class="eyebrow"><span class="status-dot"></span> THE MIXER GUIDE</p>
+      <h1 class="page-title">A little Swift.<br><span class="serif-accent">A great place to start.</span></h1>
+      <p class="page-lede">Build your app in Swift, make it feel at home on iOS and Android, and keep it moving. Here’s your path from a blank folder to the next release.</p>
+    </div>
+    <div class="docs-layout">
+      <aside class="docs-sidebar" aria-label="Guide contents">
+        <p>MAKE YOURSELF AT HOME</p>
+        <nav class="docs-toc" aria-label="On this page">
+          <a href="#start"><span>01</span> Your first app</a>
+          <a href="#write"><span>02</span> Write with MixerUI</a>
+          <a href="#native"><span>03</span> Native capabilities</a>
+          <a href="#ownership"><span>04</span> Keep it yours</a>
+          <a href="#updates"><span>05</span> Deliver updates</a>
+          <a href="#build"><span>06</span> Build & distribute</a>
+          <a href="#teams"><span>07</span> Build together</a>
+          <a href="#enterprise"><span>08</span> Enterprise</a>
+        </nav>
+        <div class="sidebar-note"><img src="{{BASE}}assets/flick-128.webp" width="34" height="34" alt=""><div><p>Good things start with a question.</p><a href="https://github.com/snowdamiz/mixer/issues" target="_blank" rel="noopener noreferrer">Ask on GitHub ↗</a></div></div>
+      </aside>
+      <article class="docs-article" aria-label="Mixer documentation">
+        <section class="docs-section" id="start" aria-labelledby="start-title">
+          <span class="section-kicker">01 / YOUR FIRST APP</span>
+          <h2 id="start-title">Start with the source checkout.</h2>
+          <p>Create a project and test your shared Swift code without a cloud account. This quickstart uses the repository CLI for host tests and unsigned iOS Simulator development. The full-platform release examples later in this guide are illustrative workflow references.</p>
+          <h3 class="doc-step"><span>1</span> Get your tools ready</h3>
+          <p>Use macOS 14 or later and Swift 6.2 or later. Install and select Xcode for the optional iOS Simulator steps. Creating a project records your exact Swift compiler and SDK snapshot in <code>mixer.lock</code>; keep that compiler selected while working on the project.</p>
+          <h3 class="doc-step"><span>2</span> Build the CLI from source</h3>
+          <p>Clone Mixer and compile the release executable. The alias below makes <code>mixer</code> available in your current shell.</p>
+          <div class="doc-code"><div class="doc-code-header"><span>Terminal · install from source</span><button data-copy data-copy-target="install-command" aria-label="Copy CLI installation commands"><svg><use href="#copy"/></svg><span class="copy-label">Copy</span></button></div><pre><code id="install-command">git clone https://github.com/snowdamiz/mixer.git
+cd mixer
+swift build --package-path cli -c release
+alias mixer="$PWD/cli/.build/release/mixer"</code></pre></div>
+          <h3 class="doc-step"><span>3</span> Create something of your own</h3>
+          <p>Create the default iOS starter and enter its directory. Your shared Swift feature code and the generated native project live together in <code>MyApp</code>.</p>
+          <div class="doc-code"><div class="doc-code-header"><span>Terminal · your first project</span><button data-copy data-copy-target="create-command" aria-label="Copy project creation commands"><svg><use href="#copy"/></svg><span class="copy-label">Copy</span></button></div><pre><code id="create-command">mixer create MyApp
+cd MyApp
+mixer config validate</code></pre></div>
+          <h3 class="doc-step"><span>4</span> Build and test your shared code</h3>
+          <p>Run the starter’s tests and compile its Swift package on your Mac. These host checks are a useful first loop for models and feature logic.</p>
+          <div class="doc-code"><div class="doc-code-header"><span>Terminal · host development</span><button data-copy data-copy-target="run-command" aria-label="Copy host development commands"><svg><use href="#copy"/></svg><span class="copy-label">Copy</span></button></div><pre><code id="run-command">mixer test --platform host
+mixer build --platform host</code></pre></div>
+          <h3>Try the iOS Simulator</h3>
+          <p>With Xcode selected, create an unsigned Simulator build using <code>mixer build --platform ios</code>. Start an iOS Simulator in Xcode, list its identifier, and replace <code>SIMULATOR_UUID</code> below with that simulator’s UUID before running the command.</p>
+          <div class="doc-code"><div class="doc-code-header"><span>Terminal · optional iOS Simulator</span><button data-copy data-copy-target="simulator-command" aria-label="Copy iOS Simulator commands"><svg><use href="#copy"/></svg><span class="copy-label">Copy</span></button></div><pre><code id="simulator-command">mixer build --platform ios
+xcrun simctl list devices available
+mixer run ios --device SIMULATOR_UUID</code></pre></div>
+          <div class="doc-callout"><strong>Doctor is a broader environment inventory.</strong><p>Run <code>mixer doctor</code> when you want to inspect Swift, Xcode, Java, Gradle, connected physical devices, and matching Android/Wasm Swift SDKs. It returns exit code 2 when any check is incomplete; Android tools and connected phones are not prerequisites for the host steps above. This source CLI’s run command targets an iOS Simulator; its host tests are not iOS or Android device tests.</p></div>
+        </section>
+        <section class="docs-section" id="write" aria-labelledby="write-title">
+          <span class="section-kicker">02 / WRITE WITH MIXERUI</span>
+          <h2 id="write-title">Familiar Swift. A shared foundation.</h2>
+          <p>Put shared screens, state, and application logic in <code>AppFeatures</code>. Use <code>AppModels</code> for your value models and algorithms. MixerUI brings the familiar declarative approach to a UI contract designed for both platforms.</p>
+          <div class="doc-code"><div class="doc-code-header"><span>ProjectFeature.swift</span><button data-copy data-copy-target="swift-example" aria-label="Copy MixerUI example"><svg><use href="#copy"/></svg><span class="copy-label">Copy</span></button></div><pre><code id="swift-example"><span class="code-keyword">import</span> MixerUI
+
+<span class="code-keyword">let</span> screen = <span class="code-type">Navigation</span>(<span class="code-string">"home"</span>, title: <span class="code-string">"MyApp"</span>) {
+    <span class="code-type">List</span>(<span class="code-string">"ideas"</span>) {
+        <span class="code-type">Section</span>(<span class="code-string">"today"</span>, title: <span class="code-string">"Make something great."</span>) {
+            <span class="code-type">Text</span>(<span class="code-string">"greeting"</span>, <span class="code-string">"Your next idea starts here."</span>)
+            <span class="code-type">Button</span>(<span class="code-string">"add"</span>, <span class="code-string">"Add an idea"</span>, action: <span class="code-string">"idea.add"</span>)
+        }
+    }
+}</code></pre></div>
+          <p>Stable identifiers give controls and actions a clear identity as your UI changes. Keep the state your screen needs explicit, handle its actions in your feature layer, and use typed native services for platform APIs.</p>
+          <div class="doc-table-wrap"><table class="doc-table"><thead><tr><th scope="col">Project area</th><th scope="col">What belongs here</th></tr></thead><tbody>
+            <tr><td>AppFeatures</td><td>Shared MixerUI screens, feature state, validation, and application logic.</td></tr>
+            <tr><td>AppModels</td><td>Shared value models, data transformations, and supported algorithms.</td></tr>
+            <tr><td>NativeServices</td><td>Typed interfaces to services whose implementations run natively.</td></tr>
+            <tr><td>Platforms</td><td>Your iOS and Android entry points, integrations, and native extensions.</td></tr>
+            <tr><td>mixer.yml / mixer.lock</td><td>Application configuration and the pinned dependencies behind your builds.</td></tr>
+          </tbody></table></div>
+          <h3>Bringing an existing Swift app?</h3>
+          <p>Start with a compatibility assessment using <code>mixer import</code>. Move a feature at a time into shared modules while keeping your shipping iOS app. Existing SwiftUI screens may need adaptation to MixerUI; platform-specific screens can stay native alongside shared features.</p>
+          <div class="doc-code"><div class="doc-code-header"><span>Terminal · assess an existing project</span><button data-copy data-copy-target="import-command" aria-label="Copy import command"><svg><use href="#copy"/></svg><span class="copy-label">Copy</span></button></div><pre><code id="import-command">mixer import /path/to/ExistingApp --output migration-report.json</code></pre></div>
+        </section>
+        <section class="docs-section" id="native" aria-labelledby="native-title">
+          <span class="section-kicker">03 / NATIVE CAPABILITIES</span>
+          <h2 id="native-title">Let each platform be itself.</h2>
+          <p>Mixer compiles Swift for iOS and Android. MixerUI renders supported interfaces through native platform controls, preserving the navigation, accessibility, text behavior, and interactions people expect.</p>
+          <p>Reach platform APIs through typed services. Your app declares the capabilities it needs, and the native host supplies their implementations. Use native extensions for specialized SDKs, custom views, and the parts of your app that belong to one platform.</p>
+          <div class="doc-columns">
+            <div class="doc-card"><span>SHARE THE FEATURE</span><h3>One place for the idea.</h3><p>Share your models, business rules, state, UI structure, and supported asynchronous workflows in Swift.</p></div>
+            <div class="doc-card"><span>KEEP THE NATIVE DETAIL</span><h3>The right tool for the job.</h3><p>Use native integrations for camera and media, notifications, location, secure storage, purchases, and platform-specific experiences.</p></div>
+          </div>
+          <div class="doc-callout warm"><strong>A new native capability needs a new store build.</strong><p>Adding a permission, entitlement, native SDK, native control, or runtime capability changes the installed application. Ship that change through the stores before using it in a compatible update.</p></div>
+        </section>
+        <section class="docs-section" id="ownership" aria-labelledby="ownership-title">
+          <span class="section-kicker">04 / KEEP IT YOURS</span>
+          <h2 id="ownership-title">Your app. Your workflow.</h2>
+          <p>Mixer fits around the tools you already use. Work in your favorite editor, keep your source in your own repository, and connect to the backend that suits your app.</p>
+          <ul><li><strong>Build locally.</strong> The Swift SDK and CLI work without a cloud account.</li><li><strong>Inspect the native projects.</strong> Open your iOS and Android projects in Xcode or Android Studio.</li><li><strong>Own your extensions.</strong> Keep platform integrations in designated app-owned files.</li><li><strong>Keep a way forward.</strong> Export your source and pinned SDK to maintain your app in your own environment.</li></ul>
+          <div class="doc-code"><div class="doc-code-header"><span>Terminal · export your project</span><button data-copy data-copy-target="export-command" aria-label="Copy project export command"><svg><use href="#copy"/></svg><span class="copy-label">Copy</span></button></div><pre><code id="export-command">mixer export ../MyApp-export</code></pre></div>
+          <p>Hosted builds and delivery are services you can add to this foundation. Your application’s source, data model, and backend remain yours to manage.</p>
+        </section>
+        <section class="docs-section" id="updates" aria-labelledby="updates-title">
+          <span class="section-kicker">05 / DELIVER UPDATES</span>
+          <h2 id="updates-title">Keep a good app getting better.</h2>
+          <p>Deliver compatible feature logic and supported UI changes to installed apps. Each candidate is compiled for its target runtime, verified against the installed host’s contracts, and signed before distribution.</p>
+          <ol class="doc-flow"><li><span>01</span><strong>Prepare & verify</strong><p>Compile a candidate and check runtime identity, UI operations, capabilities, and recovery compatibility.</p></li><li><span>02</span><strong>Start small</strong><p>Publish to a channel and a small cohort. Review release health before expanding.</p></li><li><span>03</span><strong>Grow with confidence</strong><p>Promote the rollout, halt delivery, or return to a compatible healthy release.</p></li></ol>
+          <p>The following commands illustrate the complete release workflow. They are reference examples rather than commands to run with the source-checkout CLI used in the quickstart.</p>
+          <div class="doc-code"><div class="doc-code-header"><span>Workflow reference · staged release</span><button data-copy data-copy-target="update-command" aria-label="Copy staged update reference commands"><svg><use href="#copy"/></svg><span class="copy-label">Copy</span></button></div><pre><code id="update-command">mixer update prepare --platform all
+mixer update verify &lt;candidate&gt;
+mixer update publish &lt;candidate&gt; --channel production --rollout 5
+mixer update promote &lt;release&gt; --rollout 25</code></pre></div>
+          <p>Replace <code>&lt;candidate&gt;</code> and <code>&lt;release&gt;</code> with the identifiers returned by your workflow. Publishing and promotion are separate actions, so creating a candidate does not expand its audience.</p>
+          <div class="doc-table-wrap"><table class="doc-table"><thead><tr><th scope="col">Change</th><th scope="col">Delivery path</th></tr></thead><tbody>
+            <tr><td>Feature logic</td><td>A compatible update, when it stays within the installed runtime and service contracts.</td></tr>
+            <tr><td>Supported UI</td><td>A compatible update, when every operation is supported by the installed native host.</td></tr>
+            <tr><td>Native integration</td><td>A store release for new native code, SDKs, permissions, or entitlements.</td></tr>
+            <tr><td>Runtime change</td><td>A store release that includes the new runtime and establishes its compatibility identity.</td></tr>
+          </tbody></table></div>
+          <h3>Recovery is part of the workflow.</h3>
+          <p>Updates activate at a safe cold start. A device retains a healthy implementation, verifies updates before activation, and can recover locally if a candidate fails to start. Offline devices continue using their healthy installed app.</p>
+          <div class="doc-code"><div class="doc-code-header"><span>Workflow reference · return to a healthy release</span><button data-copy data-copy-target="rollback-command" aria-label="Copy rollback reference command"><svg><use href="#copy"/></svg><span class="copy-label">Copy</span></button></div><pre><code id="rollback-command">mixer update rollback &lt;release&gt; --reason "validation regression"</code></pre></div>
+          <div class="doc-callout warm"><strong>Compatibility and release review work together.</strong><p>Keep persistent data compatible with your recovery targets, test the workflows your change affects, and review applicable store requirements. Update delivery stays within the capabilities and purpose of the installed app.</p></div>
+        </section>
+        <section class="docs-section" id="build" aria-labelledby="build-title">
+          <span class="section-kicker">06 / BUILD & DISTRIBUTE</span>
+          <h2 id="build-title">A clear path to both stores.</h2>
+          <p>Use development profiles while you iterate, then create production builds for distribution. Mixer brings iOS and Android builds, signing, and submission into one workflow with traceable source, artifacts, and logs.</p>
+          <p>This production sequence is a full-platform workflow reference. For commands supported by the repository CLI, follow the <a href="#start">source-checkout quickstart</a> above.</p>
+          <div class="doc-code"><div class="doc-code-header"><span>Workflow reference · production distribution</span><button data-copy data-copy-target="build-command" aria-label="Copy production build reference commands"><svg><use href="#copy"/></svg><span class="copy-label">Copy</span></button></div><pre><code id="build-command">mixer release inspect
+mixer build --platform all --profile production
+mixer submit --platform all --track testing</code></pre></div>
+          <p>Connect your own Apple and Google developer accounts for store distribution. Configure your app identifiers, signing access, environment, and build profile before submitting. Store processing and review remain part of the release lifecycle.</p>
+          <div class="doc-columns"><div class="doc-card"><span>BUILD WHERE YOU WORK</span><h3>Your local toolchain.</h3><p>Compile locally, inspect diagnostics, and use your native IDE for platform-specific work.</p></div><div class="doc-card"><span>LET THE CLOUD HELP</span><h3>Managed builds.</h3><p>Use isolated macOS and Android runners, secure signing, retained logs, and shared build history.</p></div></div>
+          <div class="doc-callout"><strong>Follow the release through to availability.</strong><p>Build completion, upload acceptance, store processing, and readiness for testers are distinct states. Keep an eye on the distribution status until the store makes the build available to your intended audience.</p></div>
+        </section>
+        <section class="docs-section" id="teams" aria-labelledby="teams-title">
+          <span class="section-kicker">07 / BUILD TOGETHER</span>
+          <h2 id="teams-title">More hands. One shared workflow.</h2>
+          <p>Organize work into an organization, projects, and apps. Give development, staging, and production their own environments and policies, then use channels to choose where a compatible release goes.</p>
+          <p>Team roles keep build access and production publishing deliberate. Release controls, audit history, and scoped automation identities help everyone see what changed, who approved it, and which artifacts reached each audience.</p>
+          <div class="doc-columns"><div class="doc-card"><span>STARTER</span><h3>For the real thing.</h3><p class="doc-price">$39 <small>/ month</small></p><p>Hosted builds, compatible updates, staged releases, and usage visibility for your app.</p></div><div class="doc-card"><span>TEAM</span><h3>For building together.</h3><p class="doc-price"><small>from </small>$149 <small>/ month</small></p><p>Team roles, release controls, expanded build concurrency, production environments, and audit tools.</p></div></div>
+          <h3>Keep usage easy to understand.</h3>
+          <p>Hosted plans include allowances. Your usage view tracks build minutes, update delivery, storage, and concurrency, with alerts and spending controls. Additional usage is billed separately; review the applicable allowances and rates when choosing a plan.</p>
+          <p>Safety checks and recovery are included across plans. Local development remains free, so you can add hosted services when they make sense for your workflow.</p>
+        </section>
+        <section class="docs-section" id="enterprise" aria-labelledby="enterprise-title">
+          <span class="section-kicker">08 / ENTERPRISE</span>
+          <h2 id="enterprise-title">A little room for your requirements.</h2>
+          <p>Bring Mixer into the way your organization already builds and releases software. Enterprise adds identity, infrastructure, and support options for teams with specific operational needs.</p>
+          <ul><li><strong>Single sign-on.</strong> Connect your organization’s identity provider and manage access through your team’s policies.</li><li><strong>Customer-owned keys.</strong> Control signing through a managed key service or hardware-backed integration, with access kept separate from build workers.</li><li><strong>Dedicated runners.</strong> Run builds with dedicated capacity and an environment suited to your organization.</li><li><strong>Audit and release controls.</strong> Export audit records, scope service access, and apply production approval policies.</li><li><strong>Tailored support.</strong> Agree on onboarding, migration help, and a support plan for your team.</li></ul>
+          <div class="doc-bottom-card"><div><h3>Let’s find the right setup.</h3><p>Tell us about your team and the support plan you need.</p></div><a class="button button-dark button-small" href="https://github.com/snowdamiz/mixer/issues" target="_blank" rel="noopener noreferrer">Start on GitHub <svg><use href="#arrow"/></svg></a></div>
+        </section>
+      </article>
+    </div>
+  </main>
+  <footer class="site-footer container"><div class="footer-top"><a class="brand" href="{{BASE}}"><img src="{{BASE}}assets/flick-128.webp" width="34" height="34" alt=""><span>mixer<span class="brand-period">.</span></span></a><p>One Swift app. A world of possibility.</p><nav aria-label="Footer"><a href="{{BASE}}docs/">Documentation</a><a href="{{REPO_URL}}" target="_blank" rel="noopener noreferrer">GitHub ↗</a><a href="{{BASE}}assets/mixer-brand-kit.zip" download>Brand kit</a><a href="{{BASE}}privacy/">Privacy</a></nav></div><div class="footer-bottom"><span>© {{YEAR}} Mixer</span><span>Thoughtfully built for the things you’ll build.</span><a href="#main">Back to top ↑</a></div></footer>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

@@ -8,12 +8,73 @@ private final class RetiringProbe: @unchecked Sendable {
     init(_ entered: DispatchSemaphore, _ release: DispatchSemaphore) { self.entered = entered; self.release = release }
     deinit { entered.signal(); _ = release.wait(timeout: .now() + 10) }
 }
+private final class ReservationOwner: Sendable {}
 
 final class CapabilityAttemptReservationTests: XCTestCase, @unchecked Sendable {
     /// Runs in a fresh test process; permanent negative quarantine is deliberately
     /// last, never reset or silently reclaimed to make the test suite pass.
     func testSinglePoolAdmissionExplicitRetirementDestructorAndAbandonment() async throws {
         XCTAssertEqual(CapabilityAttemptReservation.occupiedSlots, 0)
+        // Presentation admission is once per facade, even if retired before
+        // closing; repeated fallback attempts must reuse that outer obligation.
+        let facade = try CapabilityAttemptReservation.acquire()
+        let presentation = try facade.reservePresentation()
+        try presentation.retainOwner(ReservationOwner())
+        XCTAssertThrowsError(try presentation.retainOwner(ReservationOwner()))
+        XCTAssertThrowsError(try facade.reservePresentation())
+        presentation.retire(); presentation.retire()
+        XCTAssertFalse(facade.isReleased)
+        XCTAssertThrowsError(try facade.reservePresentation())
+        XCTAssertThrowsError(try presentation.retainOwner(ReservationOwner()))
+        facade.beginClosing(); XCTAssertTrue(facade.isReleased)
+
+        // Every kind's final destructor independently fences the outer slot,
+        // including presentation before any guest was bound or started.
+        for heldKind in 0..<3 {
+            let owners = try (0..<16).map { _ in try CapabilityAttemptReservation.acquire() }
+            let store = try owners[0].issueStoreAdmission().claimStore()
+            let adapter = try owners[0].reserveAdapterGroup()
+            let ui = try owners[0].reservePresentation()
+            let entered = DispatchSemaphore(value: 0), release = DispatchSemaphore(value: 0), finished = DispatchSemaphore(value: 0)
+            switch heldKind {
+            case 0: try ui.retainOwner(RetiringProbe(entered, release))
+            case 1: try store.retainOwner(RetiringProbe(entered, release))
+            default: try adapter.retainOwner(RetiringProbe(entered, release))
+            }
+            owners[0].beginClosing()
+            DispatchQueue.global().async {
+                switch heldKind {
+                case 0: ui.retire()
+                case 1: store.retire()
+                default: adapter.retire()
+                }
+                finished.signal()
+            }
+            XCTAssertEqual(entered.wait(timeout: .now() + 10), .success)
+            if heldKind != 0 { ui.retire() }
+            if heldKind != 1 { store.retire() }
+            if heldKind != 2 { adapter.retire() }
+            XCTAssertEqual(CapabilityAttemptReservation.occupiedSlots, 16)
+            XCTAssertFalse(owners[0].isReleased)
+            XCTAssertThrowsError(try CapabilityAttemptReservation.acquire())
+            XCTAssertThrowsError(try owners[0].reservePresentation())
+            release.signal(); XCTAssertEqual(finished.wait(timeout: .now() + 10), .success)
+            for owner in owners { owner.beginClosing() }
+            XCTAssertEqual(CapabilityAttemptReservation.occupiedSlots, 0)
+        }
+
+        let contested = try CapabilityAttemptReservation.acquire()
+        let presentations = await withTaskGroup(of: CapabilityPresentationObligation?.self) { group in
+            for _ in 0..<32 { group.addTask { try? contested.reservePresentation() } }
+            var results: [CapabilityPresentationObligation] = []
+            for await result in group { if let result { results.append(result) } }
+            return results
+        }
+        XCTAssertEqual(presentations.count, 1)
+        contested.beginClosing(); XCTAssertFalse(contested.isReleased)
+        presentations[0].retire(); XCTAssertTrue(contested.isReleased)
+        XCTAssertEqual(CapabilityAttemptReservation.occupiedSlots, 0)
+
         let all = try (0..<16).map { _ in try CapabilityAttemptReservation.acquire() }
         XCTAssertEqual(CapabilityAttemptReservation.occupiedSlots, 16)
         XCTAssertThrowsError(try CapabilityAttemptReservation.acquire())
@@ -79,5 +140,13 @@ final class CapabilityAttemptReservationTests: XCTestCase, @unchecked Sendable {
         XCTAssertNotNil(unfinished); unfinished = nil
         XCTAssertTrue(abandoned.isQuarantined); abandoned.beginClosing(); XCTAssertFalse(abandoned.isReleased)
         XCTAssertEqual(CapabilityAttemptReservation.occupiedSlots, 1)
+
+        let abandonedFacade = try CapabilityAttemptReservation.acquire()
+        var unfinishedPresentation: CapabilityPresentationObligation? = try abandonedFacade.reservePresentation()
+        XCTAssertNotNil(unfinishedPresentation); unfinishedPresentation = nil
+        XCTAssertTrue(abandonedFacade.isQuarantined)
+        XCTAssertThrowsError(try abandonedFacade.reservePresentation())
+        abandonedFacade.beginClosing(); XCTAssertFalse(abandonedFacade.isReleased)
+        XCTAssertEqual(CapabilityAttemptReservation.occupiedSlots, 2)
     }
 }

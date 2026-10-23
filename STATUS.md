@@ -10,6 +10,13 @@ open. Implemented slices do not replace their complete acceptance requirements.
 
 Observed implementation and evidence:
 
+- The fox-branded marketing website is implemented in `website/`, with responsive
+  layout, a browser-local release demonstration, docs, private-by-default SEO,
+  social/icon exports, and separate FieldLog app-store collateral. Twenty-six
+  website tests and responsive browser checks pass. Copy intentionally presents
+  the completed product at the user's request; it does not change engineering
+  readiness. No public domain, deployment, store listing, or GA acceptance is
+  claimed. See `verification/website-launch/receipt.json`.
 - Swift state/effects, generation-checked resources, bounded UI documents,
   reconciliation and native Apple controls pass host tests and iOS compilation.
   Raw UI decoding requires strict duplicate-key/Unicode/resource validation.
@@ -867,3 +874,19 @@ CI now explicitly includes the feature. Hosted checkpoint 8296296 passes all
 three jobs, including observer background-noise regressions. Full Swift execution,
 runtime/WASI composition, the compressed delivery budget, Android signed binding,
 physical devices, immutable published consumers and all GA acceptance remain open.
+
+
+The presentation reservation prerequisite now holds the outer slot through its
+retained owner's actual destructor, independently of store and adapter retirement.
+Once-only admission, all three held-destructor orderings, concurrent admission and
+abandonment quarantine pass scoped Debug/Release/TSan checks and the reservation
+XCTest against the complete current activation module. Root audited 410 bindings
+in `verification/presentation-reservation/root-review.json`. The trusted final
+caller must first join work and relinquish every other resource-owner alias.
+The corrected Android binding contract is accepted for staged implementation in
+`verification/android-binding-contract-acceptance.json`; it fixes direct UI-entry
+counting, stable facade identity, exact final cleanup and single-owner joins.
+Common lifetime integration, C facade/entry fences, Swift Android/JNI binding and
+real display/health remain subsequent implementation and qualification work.
+These prerequisites enable no Android signed UI mode or GA acceptance. Physical
+phones remain disconnected; the next hosted checkpoint is pending.

@@ -14,10 +14,14 @@ final class CapabilityAttemptReservation: @unchecked Sendable {
         var nextID: UInt64 = 0
         var storeID: UInt64?
         var adapterID: UInt64?
+        var presentationIssued = false
+        var presentationID: UInt64?
         var storeRetiring = false
         var adapterRetiring = false
+        var presentationRetiring = false
         var storeOwner: (any AnyObject & Sendable)?
         var adapterOwner: (any AnyObject & Sendable)?
+        var presentationOwner: (any AnyObject & Sendable)?
     }
     private static let pool = CapabilityAttemptPool()
     private let lock = NSLock()
@@ -43,6 +47,16 @@ final class CapabilityAttemptReservation: @unchecked Sendable {
             let id = try Self.next(&s); s.adapterID = id; return id
         }
         return CapabilityAdapterObligation(reservation: self, id: id)
+    }
+    /// One presentation owner spans the complete facade, including pre-bind and
+    /// between-attempt states. Retiring an attempt cannot issue another facade.
+    func reservePresentation() throws -> CapabilityPresentationObligation {
+        let id: UInt64 = try locked { s in
+            guard !s.closing, !s.quarantined, !s.released, !s.presentationIssued else { throw reservationError("state") }
+            let id = try Self.next(&s)
+            s.presentationIssued = true; s.presentationID = id; return id
+        }
+        return CapabilityPresentationObligation(reservation: self, id: id)
     }
     func beginClosing() {
         let release = locked { s in s.closing = true; return Self.releaseReady(&s) }
@@ -95,12 +109,38 @@ final class CapabilityAttemptReservation: @unchecked Sendable {
         }
         if release { completeRelease() }
     }
+    fileprivate func holdPresentation(_ owner: any AnyObject & Sendable, id: UInt64) throws {
+        try locked { s in
+            guard s.presentationID == id, s.presentationOwner == nil, !s.released, !s.quarantined else { throw reservationError("state") }
+            s.presentationOwner = owner
+        }
+    }
+    fileprivate func retirePresentation(_ id: UInt64) {
+        // The trusted binding must first join all entry/task tails and relinquish
+        // its other resource-owner aliases. This fence covers destruction of the
+        // reservation's retained owner; it cannot prove external alias release.
+        var owner: (any AnyObject & Sendable)?
+        let moved = locked { s in
+            guard s.presentationID == id else { return false }
+            owner = s.presentationOwner
+            s.presentationRetiring = true; s.presentationID = nil; s.presentationOwner = nil
+            return true
+        }
+        guard moved else { return }
+        withExtendedLifetime(owner) {}
+        owner = nil
+        let release = locked { s in
+            s.presentationRetiring = false
+            return Self.releaseReady(&s)
+        }
+        if release { completeRelease() }
+    }
     private static func next(_ s: inout State) throws -> UInt64 {
         guard s.nextID < UInt64.max else { s.quarantined = true; s.closing = true; throw reservationError("exhausted") }
         s.nextID += 1; return s.nextID
     }
     private static func releaseReady(_ s: inout State) -> Bool {
-        guard s.closing, !s.quarantined, !s.released, !s.reclaiming, s.storeID == nil, s.adapterID == nil, !s.storeRetiring, !s.adapterRetiring else { return false }
+        guard s.closing, !s.quarantined, !s.released, !s.reclaiming, s.storeID == nil, s.adapterID == nil, s.presentationID == nil, !s.storeRetiring, !s.adapterRetiring, !s.presentationRetiring else { return false }
         s.reclaiming = true; return true
     }
     private func completeRelease() {
@@ -119,7 +159,7 @@ final class CapabilityAttemptReservation: @unchecked Sendable {
         // retains it. An abandoned claimed obligation pins the pool permanently.
         let release = locked { s in
             s.closing = true
-            if s.storeID != nil || s.adapterID != nil || s.storeRetiring || s.adapterRetiring { s.quarantined = true }
+            if s.storeID != nil || s.adapterID != nil || s.presentationID != nil || s.storeRetiring || s.adapterRetiring || s.presentationRetiring { s.quarantined = true }
             return Self.releaseReady(&s)
         }
         if release { completeRelease() }
@@ -183,6 +223,22 @@ final class CapabilityAdapterObligation: @unchecked Sendable {
     func retire() {
         lock.lock(); let first = !retired; retired = true; lock.unlock()
         if first { reservation.retire(id, store: false) }
+    }
+    func quarantine() { reservation.quarantine() }
+    deinit { if !retired { reservation.quarantine() } }
+}
+/// Internal facade lifetime obligation. Only the trusted binding may retire it
+/// after joined cleanup and release of every other resource-owning alias.
+final class CapabilityPresentationObligation: @unchecked Sendable {
+    private let lock = NSLock()
+    private var retired = false
+    private let reservation: CapabilityAttemptReservation
+    private let id: UInt64
+    fileprivate init(reservation: CapabilityAttemptReservation, id: UInt64) { self.reservation = reservation; self.id = id }
+    func retainOwner(_ owner: any AnyObject & Sendable) throws { try reservation.holdPresentation(owner, id: id) }
+    func retire() {
+        lock.lock(); let first = !retired; retired = true; lock.unlock()
+        if first { reservation.retirePresentation(id) }
     }
     func quarantine() { reservation.quarantine() }
     deinit { if !retired { reservation.quarantine() } }

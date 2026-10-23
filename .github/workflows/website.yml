@@ -1,0 +1,28 @@
+name: Website checks
+on:
+  push:
+    paths: ['website/**', '.github/workflows/website.yml']
+  pull_request:
+    paths: ['website/**', '.github/workflows/website.yml']
+permissions:
+  contents: read
+jobs:
+  website:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: website
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify build, discovery metadata, assets and HTTP behavior
+        run: npm test
+      - name: Build private preview artifact
+        run: npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mixer-website-preview
+          path: website/dist
