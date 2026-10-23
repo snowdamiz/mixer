@@ -35,7 +35,8 @@ def main():
     with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
         tar.extractall(source,filter='data')
     header = source/'vm/include/mixer_vm.h'
-    assert header.read_bytes() == (ROOT/'runtime/Sources/CMixerVM/include/mixer_vm.h').read_bytes(), 'Swift wrapper header differs from frozen VM'
+    if header.read_bytes() != (ROOT/'runtime/Sources/CMixerVM/include/mixer_vm.h').read_bytes():
+        raise ValueError('Swift wrapper header differs from frozen VM')
     env = dict(os.environ,PATH='/opt/homebrew/opt/rustup/bin:'+os.environ['PATH'],CARGO_TARGET_DIR=str(output/'target'))
     target = {'host':None,'ios':'aarch64-apple-ios','ios-simulator':'aarch64-apple-ios-sim','android':'aarch64-linux-android'}[args.target]
     if args.target.startswith('ios'):

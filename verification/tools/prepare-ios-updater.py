@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prepare an app-hosted XCTest/Swift Testing project from a frozen updater commit.
+"""Prepare an app-hosted Swift Testing project from a frozen updater or runtime commit.
 
 This copies the original package tests without changing their assertions. The
 only additional test source supplies Bundle.module for the Xcode resource bundle.
@@ -20,14 +20,18 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--revision', required=True)
     p.add_argument('--output', type=Path, required=True)
+    p.add_argument('--package', choices=['updates', 'runtime'], default='updates')
+    p.add_argument('--vm-library', type=Path)
     a = p.parse_args()
+    if a.package == 'runtime' and not a.vm_library:
+        p.error('--vm-library is required for the runtime test host')
     revision = subprocess.check_output(['git', 'rev-parse', a.revision + '^{commit}'], cwd=ROOT, text=True).strip()
     out = a.output.resolve()
     out.mkdir(parents=True, exist_ok=False)
-    archive = subprocess.check_output(['git', 'archive', revision, 'updates'], cwd=ROOT)
+    archive = subprocess.check_output(['git', 'archive', revision, a.package], cwd=ROOT)
     with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
         tar.extractall(out, filter='data')
-    (out / 'updates').rename(out / 'package')
+    (out / a.package).rename(out / 'package')
     app = out / 'app'
     app.mkdir()
     (app / 'Host.swift').write_text('''import SwiftUI
@@ -36,11 +40,25 @@ def main():
 }
 ''')
     tests = app / 'Tests'
-    shutil.copytree(out / 'package/Tests/MixerUpdatesTests', tests)
-    (tests / 'FixtureBundle.swift').write_text('''import Foundation
+    test_target = 'MixerRuntimeTests' if a.package == 'runtime' else 'MixerUpdatesTests'
+    shutil.copytree(out / 'package/Tests' / test_target, tests)
+    if a.package == 'updates':
+        (tests / 'FixtureBundle.swift').write_text('''import Foundation
 private final class FixtureBundleAnchor: NSObject {}
 extension Bundle { static var module: Bundle { Bundle(for: FixtureBundleAnchor.self) } }
 ''')
+    native_receipt = None
+    if a.package == 'runtime':
+        library = a.vm_library.resolve()
+        native_receipt = json.loads((library.parent.parent / 'receipt.json').read_text())
+        if native_receipt['static_library_sha256'] != hashlib.sha256(library.read_bytes()).hexdigest():
+            raise ValueError('Static VM archive differs from its build receipt')
+        if native_receipt['header_sha256'] != hashlib.sha256((out / 'package/Sources/CMixerVM/include/mixer_vm.h').read_bytes()).hexdigest():
+            raise ValueError('Runtime header differs from the native archive receipt')
+        (app / 'lib').mkdir()
+        shutil.copyfile(library, app / 'lib/libmixer_vm.a')
+        host = app / 'Host.swift'
+        host.write_text(host.read_text().replace('updater app-sandbox', 'native runtime'))
     project = app / 'UpdaterHost.xcodeproj'
     project.mkdir()
     template = ROOT / 'verification/tools/ios-numeric/NumericVM.xcodeproj/project.pbxproj'
@@ -77,6 +95,11 @@ extension Bundle { static var module: Bundle { Bundle(for: FixtureBundleAnchor.s
         'B00000000000000000000013 = { isa = PBXContainerItemProxy; containerPortal = A00000000000000000000001; proxyType = 1; remoteGlobalIDString = A00000000000000000000005; remoteInfo = UpdaterHost; };',
     ]
     pbx = pbx.replace('\n };\n rootObject', '\n' + '\n'.join(objects) + '\n };\n rootObject')
+    if a.package == 'runtime':
+        pbx = pbx.replace('productName = MixerUpdates;', 'productName = MixerRuntime;')
+        pbx = pbx.replace('dev.mixer.updaterqualification', 'dev.mixer.runtimequalification')
+        pbx = pbx.replace('files = (A00000000000000000000018);', 'files = ();')
+        pbx = pbx.replace('SWIFT_VERSION = 6.0;', 'SWIFT_VERSION = 6.0; LIBRARY_SEARCH_PATHS = "$(SRCROOT)/lib";')
     (project / 'project.pbxproj').write_text(pbx)
     scheme = project / 'xcshareddata/xcschemes/UpdaterHost.xcscheme'
     scheme.parent.mkdir(parents=True)
@@ -98,7 +121,8 @@ extension Bundle { static var module: Bundle { Bundle(for: FixtureBundleAnchor.s
               for f in sorted(out.rglob('*')) if f.is_file() and 'verification' not in f.relative_to(out).parts}
     (out / 'prepared.json').write_text(json.dumps({'source_revision': revision,
         'source_archive_sha256': hashlib.sha256(archive).hexdigest(), 'files': hashes,
-        'scope': 'Original updater package/test sources unchanged; Xcode test-host and Bundle.module adapter only'}, indent=2) + '\n')
+        'package': a.package, 'native_vm': native_receipt,
+        'scope': 'Original package/test assertions unchanged; Xcode test-host plus updater-only Bundle.module adapter'}, indent=2) + '\n')
     print(project)
 
 

@@ -20,6 +20,8 @@ def sha(path):
 
 
 def main():
+    if not __debug__:
+        raise SystemExit('Qualification checks require assertions; remove -O/PYTHONOPTIMIZE')
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--revision', required=True)
     parser.add_argument('--platform', choices=['host', 'android'], required=True)
