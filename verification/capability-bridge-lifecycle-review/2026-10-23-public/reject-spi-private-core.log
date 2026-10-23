@@ -1,0 +1,13 @@
+/Users/andreyyurlov/Documents/dev/mixer/verification/capability-bridge-lifecycle-review/CompileNegative/spi-private-core.swift:2:63: error: 'core' is inaccessible due to 'internal' protection level
+1 | @_spi(CapabilityLifecycle) import MixerExperimentalCapabilityRuntime
+2 | func denied(_ group: OwnedCapabilityAdapterGroup) { _ = group.core }
+  |                                                               `- error: 'core' is inaccessible due to 'internal' protection level
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-lifecycle-candidate-1/source/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Lifecycle.swift:24:9: note: 'core' declared here
+ 22 | @_spi(CapabilityLifecycle)
+ 23 | public final class OwnedCapabilityAdapterGroup: @unchecked Sendable {
+ 24 |     let core: AdapterCloseCore
+    |         `- note: 'core' declared here
+ 25 |     public init(http: URLSessionHTTPTransport? = nil, storage: AppPrivateKeyValueStore? = nil,
+ 26 |                 terminal: any CapabilityBridgeTerminalObserver,

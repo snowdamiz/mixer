@@ -4,4 +4,7 @@ let package = Package(name: "BridgeCrossProbe", platforms: [.iOS(.v17), .macOS(.
     dependencies: [.package(path: "../.."), .package(path: "../../../sdk")],
     targets: [.executableTarget(name: "bridge-cross-probe", dependencies: [
         .product(name: "MixerExperimentalCapabilityRuntime", package: "experimental-capability-runtime"),
-        .product(name: "MixerCapabilities", package: "sdk")])])
+        .product(name: "MixerCapabilities", package: "sdk")]),
+        .executableTarget(name: "bridge-lifecycle-probe", dependencies: [
+            .product(name: "MixerExperimentalCapabilityRuntime", package: "experimental-capability-runtime"),
+            .product(name: "MixerCapabilities", package: "sdk")])])

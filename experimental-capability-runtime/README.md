@@ -66,6 +66,31 @@ module must still declare its one defined memory; a declared minimum or maximum
 above zero rejects under that ceiling. Signed-byte narrowing belongs to a future
 authorizing factory and must floor bytes/65536, never round up.
 
+The trusted implementation SPI `CapabilityLifecycle` supplies one-shot
+`OwnedCapabilityAdapterGroup` and `prepareOwned`. Its private caller must reserve
+its own fixed whole-attempt slot before adapter setup, including partial setup
+that fails before a group exists. The group accepts only the concrete HTTP and
+optional KV owners and transfers exclusive use after successful prepare. The
+caller must not reuse retained aliases or supply unrelated active requests; Swift
+references and SPI do not prove uniqueness or execution authority. Prepare failure
+leaves the group untransferred for `closeIfUntransferred` or deinit cleanup;
+duplicate transfer releases only the newly acquired bridge permit.
+
+For an owned group, one close Task awaits host.close then optional KV.close; the
+separate native-close job remains one. Unused construction cancel/deinit and
+ordinary failed creation use this same close owner. Retirement waits for completed
+adapter close, the logical constructor worker tail on both success and failure,
+and exact native drain when a native owner exists. Malformed/quarantined ownership
+never emits retirement and retains counted state. First terminal failure has a
+separate synchronous immutable observer before cleanup/control scheduling, even
+when actual exit/drain is hung. Normal close/cancel and recoverable/explained
+status3 are not fabricated failures. Both fixed observers are trusted O(1),
+nonblocking/nonreentrant latches and must have no strong path back to their group,
+construction or session. Completed retirement clears their retained references.
+The SPI adds no service/validator closures, execution proof or outer coordinator;
+SDK close completion and logical worker return do not prove Task destruction or
+general OS/allocator recovery.
+
 A single serial off-UI pump checks the installed batch budget before transfer,
 codec and turn phases, processes at most four turns or eight milliseconds before
 yielding, and retains incomplete phases. Individual C/codec operations can

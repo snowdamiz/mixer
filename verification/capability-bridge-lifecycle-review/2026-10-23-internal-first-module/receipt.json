@@ -1,0 +1,85 @@
+{
+  "status": "failed private check preserved",
+  "owner_source_manifest_sha256": "f9e72d973b0cbc389a5b454dbf2126acb2c5e741e4d4ff7c0ec9e0b495daacb9",
+  "immutable_source": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-lifecycle-candidate-1/source",
+  "original_probe_sha256": "cbbe090d71dbef3f5bd9e602a76d4ba8a49ad9f24c205f3914c92671f571f58d",
+  "driver_sha256": "a6ab65037c34917d1bc68231e11cfbd636d90c60ba525335d0b4c16efd2c9fae",
+  "library": {
+    "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-lifecycle-candidate-1/debug/out/Products/Debug/libMixerExperimentalCapabilityRuntime.a",
+    "sha256": "2353e9afc5b11adcea01f03db9c00bf0e58a3e0455ff3cc4c7bfcb4c2bd6ab8b"
+  },
+  "native_archive": {
+    "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v3/host/lib/libmixer_vm_capability_experimental.a",
+    "sha256": "a015ff65980422dd0b9c5cad2e28741d1e5ba478e0f657dcaedf75477d553b72"
+  },
+  "commands": [
+    {
+      "name": "internal-link",
+      "argv": [
+        "swiftc",
+        "-parse-as-library",
+        "-swift-version",
+        "6",
+        "-warnings-as-errors",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-lifecycle-candidate-1/debug/out/Products/Debug",
+        "-Xcc",
+        "-fmodule-map-file=/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-lifecycle-candidate-1/debug/out/Intermediates.noindex/GeneratedModuleMaps/MixerCapabilityIO.modulemap",
+        "-Xcc",
+        "-fmodule-map-file=/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-lifecycle-candidate-1/debug/out/Intermediates.noindex/GeneratedModuleMaps/CMixerVMCapability.modulemap",
+        "-Xcc",
+        "-I/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v3/host/include",
+        "-L",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-lifecycle-candidate-1/debug/out/Products/Debug",
+        "-lMixerExperimentalCapabilityRuntime",
+        "-L",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v3/host/lib",
+        "-lmixer_vm_capability_experimental",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-bridge-lifecycle-review/.build/internal/InternalProbe.swift",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-bridge-lifecycle-review/.build/internal/internal-probe"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-lifecycle-candidate-1/source",
+      "exit_code": 0,
+      "timeout_seconds": 30,
+      "seconds": 0.3147719169501215,
+      "log": "verification/capability-bridge-lifecycle-review/2026-10-23-internal/internal-link.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "gates",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-bridge-lifecycle-review/.build/internal/internal-probe",
+        "gates"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-lifecycle-candidate-1/source",
+      "exit_code": 0,
+      "timeout_seconds": 30,
+      "seconds": 0.08511658292263746,
+      "log": "verification/capability-bridge-lifecycle-review/2026-10-23-internal/gates.log",
+      "sha256": "c13c800b8ac0aad6d85e15ab2008131b4bcd98638a1129308c50c123938f90ec"
+    },
+    {
+      "name": "close-failure",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-bridge-lifecycle-review/.build/internal/internal-probe",
+        "close-failure"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-lifecycle-candidate-1/source",
+      "exit_code": -5,
+      "timeout_seconds": 30,
+      "seconds": 0.06347379204817116,
+      "log": "verification/capability-bridge-lifecycle-review/2026-10-23-internal/close-failure.log",
+      "sha256": "fe697a4ee82924021a07516f7e06c96af1318a2730aabbf526895cb02135af47"
+    }
+  ],
+  "scope": "Review-only @testable private gates/faults against unmodified frozen Debug products, real concrete storage; manual nativeDidDrain is synthetic, stale native close deliberately violates public ownership.",
+  "limitations": [
+    "No production source mutation or hooks",
+    "Manual native-drain gate is not actual resource exit",
+    "Forced internal stale handle is not a public reproduction",
+    "Failed-close probe intentionally retains one owner/permit in its isolated subprocess",
+    "No additional package graph, devices, runtime OS destruction, activation or GA proof"
+  ],
+  "problem": "close-failure unexpected exit -5"
+}

@@ -1,0 +1,71 @@
+--- base/Session.swift
++++ derived/Session.swift
+@@ -74,6 +74,7 @@
+                     }
+                     // performCreate's payload/C frame is gone. Both successful
+                     // handoff and failure wait for this tiny logical worker tail.
++                    LifecycleProbeHooks.beforeConstructorTail()
+                     lifecycle?.constructorReturned()
+                 }
+             }
+--- base/Session.swift
++++ derived/Session.swift
+@@ -96,6 +96,7 @@
+                 timeoutMilliseconds: input.configuration.timeoutMilliseconds, installedAdapters: input.adapters)
+             host = createdHost
+             let native = try NativeCapabilitySession(module: input.module, startup: input.startup, configuration: input.configuration)
++            LifecycleProbeHooks.afterCreate()
+             lifecycle?.expectsNative()
+             return .success(NativeExitOwner(native: native, host: createdHost, configuration: input.configuration, permit: permit, lifecycle: lifecycle))
+         } catch let failure as NativeConstructionFailure {
+--- base/Lifecycle.swift
++++ derived/Lifecycle.swift
+@@ -103,6 +103,7 @@
+         Task.detached { [self, host, nativeOwner] in
+             if let host { await host.close() }
+             let storage = state.withLock { $0.storage }
++            await LifecycleProbeHooks.beforeStorageClose()
+             if let storage { await storage.close() }
+             state.withLock { $0.adaptersClosed = true; $0.http = nil; $0.storage = nil }
+             if let nativeOwner { nativeOwner.concreteAdaptersClosed() }
+--- base/Lifecycle.swift
++++ derived/Lifecycle.swift
+@@ -59,7 +59,7 @@
+         try state.withLock { state in
+             guard !state.consumed, !state.closeStarted else { throw ExperimentalCapabilityError("adapter_group_consumed") }
+             state.consumed = true; state.permit = permit
+-            return InstalledCapabilityAdapters(http: state.http, storage: state.storage)
++            return LifecycleProbeHooks.adapters(http: state.http, storage: state.storage)
+         }
+     }
+     func closeIfUntransferred() {
+--- base/Native.swift
++++ derived/Native.swift
+@@ -33,6 +33,7 @@
+                     name.baseAddress, name.count, &vm, &cap, &output, &report)
+             }
+         }
++        LifecycleProbeHooks.createReport(&report)
+         do {
+             try Self.check(status, report, operation: .construction, moduleLength: module.count, configuration: configuration)
+             guard output != 0 else { throw ExperimentalCapabilityError("invalid_native_handle", operation: .construction) }
+--- base/Native.swift
++++ derived/Native.swift
+@@ -46,6 +46,7 @@
+             var retain = reported.nativeStatus == nil || reported.nativeStatus == 4 || output != 0
+             if output != 0 {
+                 var cleanup = MixerVmReport()
++                LifecycleProbeHooks.nativeClose()
+                 let cleanupStatus = mixer_vm_capability_session_close_v1(output, &cleanup)
+                 do { try Self.check(cleanupStatus, cleanup, operation: .close, moduleLength: module.count, configuration: configuration) } catch { retain = true }
+             }
+--- base/Native.swift
++++ derived/Native.swift
+@@ -159,6 +159,7 @@
+         var report = MixerVmReport(); try check(mixer_vm_capability_expire_v1(handle, &report), report, operation: .expire)
+     }
+     func close() throws {
++        LifecycleProbeHooks.nativeClose()
+         var report = MixerVmReport(); try check(mixer_vm_capability_session_close_v1(handle, &report), report, operation: .close)
+     }
+     func discardScratchAfterDrain() { scratch = Data() }

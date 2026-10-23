@@ -19,10 +19,24 @@ public final class ExperimentalCapabilityConstruction: @unchecked Sendable {
     }
     private let state: Locked<State>
     private let permit: ConstructionPermit
+    private let lifecycle: AdapterCloseCore?
     fileprivate init(module: Data, startup: String, configuration: ExperimentalCapabilityConfiguration,
-                     policy: CapabilityPolicy, adapters: InstalledCapabilityAdapters, permit: ConstructionPermit) {
+                     policy: CapabilityPolicy, adapters: InstalledCapabilityAdapters, permit: ConstructionPermit, lifecycle: AdapterCloseCore? = nil) {
         state = Locked(State(input: Input(module: module, startup: startup, configuration: configuration, policy: policy, adapters: adapters)))
-        self.permit = permit
+        self.permit = permit; self.lifecycle = lifecycle
+    }
+    deinit {
+        let unused = state.withLock { state in
+            guard !state.started, !state.finished else { return false }
+            state.input = nil; state.finished = true; return true
+        }
+        if unused { closeUnused() }
+    }
+    private func closeUnused() {
+        if let lifecycle {
+            lifecycle.failedBeforeNative(host: nil, error: CancellationError(), quarantined: false)
+            lifecycle.constructorReturned()
+        } else { permit.release() }
     }
     /// Cancels only unfinished construction; it never closes an already returned
     /// session or changes the permit after its ownership was transferred.
@@ -30,47 +44,64 @@ public final class ExperimentalCapabilityConstruction: @unchecked Sendable {
         let unused = state.withLock { state in
             guard !state.finished else { return false }
             state.cancelled = true
-            if !state.started { state.input = nil; return true }
+            if !state.started { state.input = nil; state.finished = true; return true }
             return false
         }
-        if unused { permit.release() }
+        if unused { closeUnused() }
     }
     public func create() async throws -> ExperimentalCapabilitySession {
-        let input = try state.withLock { state in
-            guard !state.started, !state.finished, !state.cancelled, let input = state.input else {
+        try state.withLock { state in
+            guard !state.started, !state.finished, !state.cancelled, state.input != nil else {
                 throw ExperimentalCapabilityError("construction_consumed")
             }
-            state.started = true; state.input = nil; return input
+            state.started = true
         }
         return try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { continuation in
                 ExperimentalQueues.construction.async { [self] in
-                    do {
-                        guard !state.withLock({ $0.cancelled }) else { throw CancellationError() }
-                        let host = try CapabilityHost(policy: input.policy, maximumRequests: Int(input.configuration.maximumRequests),
-                            timeoutMilliseconds: input.configuration.timeoutMilliseconds, installedAdapters: input.adapters)
-                        let native = try NativeCapabilitySession(module: input.module, startup: input.startup, configuration: input.configuration)
-                        let owner = NativeExitOwner(native: native, host: host, configuration: input.configuration, permit: permit)
+                    let outcome = performCreate()
+                    let accepted = state.withLock { state in state.finished = true; return !state.cancelled }
+                    switch outcome {
+                    case .success(let owner):
                         owner.start()
-                        let accepted = state.withLock { state in
-                            state.finished = true; return !state.cancelled
-                        }
                         if accepted { continuation.resume(returning: ExperimentalCapabilitySession(owner: owner)) }
                         else { owner.stop(); continuation.resume(throwing: CancellationError()) }
-                    } catch {
-                        state.withLock { $0.finished = true }
-                        if let failure = error as? NativeConstructionFailure {
-                            if failure.retainsPermit { permit.quarantine() } else { permit.release() }
-                            continuation.resume(throwing: failure.reported)
-                        } else {
-                            permit.release()
-                            continuation.resume(throwing: error)
-                        }
+                    case .failure(let error, let host, let quarantined):
+                        if let lifecycle { lifecycle.failedBeforeNative(host: host, error: error, quarantined: quarantined) }
+                        else if quarantined { permit.quarantine() }
+                        else { permit.release() }
+                        continuation.resume(throwing: error)
                     }
+                    // performCreate's payload/C frame is gone. Both successful
+                    // handoff and failure wait for this tiny logical worker tail.
+                    lifecycle?.constructorReturned()
                 }
             }
         } onCancel: { self.cancel() }
     }
+    private enum Outcome {
+        case success(NativeExitOwner)
+        case failure(any Error, CapabilityHost?, Bool)
+    }
+    private func performCreate() -> Outcome {
+        let input = state.withLock { state -> Input? in
+            let input = state.input; state.input = nil
+            return state.cancelled ? nil : input
+        }
+        guard let input else { return .failure(CancellationError(),nil,false) }
+        var host: CapabilityHost?
+        do {
+            let createdHost = try CapabilityHost(policy: input.policy, maximumRequests: Int(input.configuration.maximumRequests),
+                timeoutMilliseconds: input.configuration.timeoutMilliseconds, installedAdapters: input.adapters)
+            host = createdHost
+            let native = try NativeCapabilitySession(module: input.module, startup: input.startup, configuration: input.configuration)
+            lifecycle?.expectsNative()
+            return .success(NativeExitOwner(native: native, host: createdHost, configuration: input.configuration, permit: permit, lifecycle: lifecycle))
+        } catch let failure as NativeConstructionFailure {
+            return .failure(failure.reported,host,failure.retainsPermit)
+        } catch { return .failure(error,host,false) }
+    }
+
 }
 
 /// Opt-in experimental owner. It never exposes a native handle, mailbox token,
@@ -89,6 +120,20 @@ public final class ExperimentalCapabilitySession: @unchecked Sendable {
         let permit = try ConstructionPermit.acquire()
         return ExperimentalCapabilityConstruction(module: module, startup: startupExport, configuration: configuration,
                                                  policy: policy, adapters: adapters, permit: permit)
+    }
+    @_spi(CapabilityLifecycle)
+    public static func prepareOwned(module: Data, startupExport: String,
+                                    configuration: ExperimentalCapabilityConfiguration = .init(),
+                                    policy: CapabilityPolicy, adapterGroup: OwnedCapabilityAdapterGroup) throws -> ExperimentalCapabilityConstruction {
+        guard module.count <= 4_194_304, !startupExport.isEmpty,
+              startupExport.utf8.prefix(4097).count <= 4096 else { throw ExperimentalCapabilityError("invalid_module_or_startup") }
+        try configuration.validate()
+        let permit = try ConstructionPermit.acquire()
+        do {
+            let adapters = try adapterGroup.core.consume(permit)
+            return ExperimentalCapabilityConstruction(module: module, startup: startupExport, configuration: configuration,
+                policy: policy, adapters: adapters, permit: permit, lifecycle: adapterGroup.core)
+        } catch { permit.release(); throw error }
     }
     deinit { owner.stop() }
     public var status: ExperimentalCapabilityStatus { owner.status }

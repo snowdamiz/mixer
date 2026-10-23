@@ -65,6 +65,13 @@ passes23 host tests per mode,29 independent checks and iOS/Android compilation.
 See `verification/release-v3-durable-spi-root-review/receipt.json` and
 `verification/capability-durable-io/final-receipt.json`. Actual committed-health
 provenance and signed execution remain the private updater's responsibility.
-Concrete adapter lifecycle, counted recovery storage and the coordinator are the
-current implementation lanes.
+Concrete adapter lifecycle now passes32 tests per mode,15 derived ownership
+probes, independent public/internal checks and eight linked consumers; see
+`verification/capability-bridge-lifecycle-root-review/receipt.json`. Pure private
+policy derivation passes30 host tests per mode and iOS/Android compilation; see
+`verification/capability-execution-policy/final-receipt.json`. It revalidates whole
+evidence and intersects installed/signed grants without creating adapters.
+Hosted CI at3bdf5cd passes all three jobs for the preceding SPI/I/O checkpoint.
+Counted recovery storage, startup cutoff at owned enable, and the signed
+coordinator are the current implementation lanes.
 Keep the full product plan and physical/published-consumer/GA gates in scope.

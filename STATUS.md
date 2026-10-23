@@ -546,8 +546,30 @@ primitive is not yet product actor/lifecycle integration. Hosted run39923420515 
 a81f54c passes all three jobs before these additions; see
 `verification/github-ci-a81f54c/receipt.json`.
 
-Concrete adapter lifecycle, counted recovery storage and coordinator integration
-are under implementation.
+The concrete adapter lifecycle SPI now joins constructor return, exact native
+drain and actual host/KV close before its separate retirement callback. The first
+checked terminal failure is delivered before cleanup. All32 owner tests pass in
+debug/release/TSan,15 derived race probes pass, ten old public tests pass, and eight
+ordinary/SPI consumers link across host/iOS/simulator/Android. Independent review
+adds17 public checks per host mode, four opacity rejections, eight internal gate
+checks and six forced private close-failure checks. Root matched71 source inputs
+and the full evidence seals; see
+`verification/capability-bridge-lifecycle-root-review/receipt.json`. Exclusive
+adapter transfer and fixed acyclic sinks remain trusted caller requirements.
+
+Pure internal execution policy now revalidates enclosing signed evidence, narrows
+native limits including zero-page memory and intersects each grant dimension.
+It creates no adapter/session or execution authority. Seven new tests plus23
+existing material/I/O tests pass in debug/release; official iOS/Android modules
+compile and external public access is rejected. Independent source review found
+no actionable issue; see `verification/capability-execution-policy/final-receipt.json`.
+Hosted run39925395453 at3bdf5cd passes all three jobs, including69 update and23
+material/I/O tests, before these lifecycle/policy additions.
+
+Counted recovery storage, startup cutoff at owned enable and coordinator
+integration are under implementation. Store review reproduced concurrent owner
+destruction and ingress-tail capacity races; repairs and final qualification are
+pending and those unfinished files are excluded from this checkpoint.
 Concrete signed execution, health/recovery and full FieldLog remain in progress.
 Physical checks remain pending while the phones are disconnected; no product or
 GA gate is closed by this checkpoint.

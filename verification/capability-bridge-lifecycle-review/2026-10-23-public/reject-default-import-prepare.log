@@ -1,0 +1,13 @@
+/Users/andreyyurlov/Documents/dev/mixer/verification/capability-bridge-lifecycle-review/CompileNegative/default-import-prepare.swift:2:51: error: 'prepareOwned' is inaccessible due to '@_spi' protection level
+1 | import MixerExperimentalCapabilityRuntime
+2 | func denied() { _ = ExperimentalCapabilitySession.prepareOwned }
+  |                                                   `- error: 'prepareOwned' is inaccessible due to '@_spi' protection level
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-lifecycle-candidate-1/source/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Session.swift:125:24: note: 'prepareOwned(module:startupExport:configuration:policy:adapterGroup:)' declared here
+123 |     }
+124 |     @_spi(CapabilityLifecycle)
+125 |     public static func prepareOwned(module: Data, startupExport: String,
+    |                        `- note: 'prepareOwned(module:startupExport:configuration:policy:adapterGroup:)' declared here
+126 |                                     configuration: ExperimentalCapabilityConfiguration = .init(),
+127 |                                     policy: CapabilityPolicy, adapterGroup: OwnedCapabilityAdapterGroup) throws -> ExperimentalCapabilityConstruction {

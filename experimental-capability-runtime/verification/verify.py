@@ -35,8 +35,8 @@ PIN = "b25e3b7de2391a80d12e7fd75e60903495bec120"
 def sha(data): return hashlib.sha256(data).hexdigest()
 def digest(path): return sha(path.read_bytes())
 def inputs():
-    fixed = [PACKAGE / "Package.swift", PACKAGE / "README.md", Path(__file__), PACKAGE / "verification/with-loopback.py", PACKAGE / "verification/validation-probes.py", ROOT / "docs/experimental-capability-bridge-design.md", ROOT / "docs/experimental-capability-validation-api-design.md"]
-    for folder in [PACKAGE / "Sources", PACKAGE / "Tests", PACKAGE / "verification/CrossProbe", PACKAGE / "verification/ValidationProbe", ROOT / "sdk"]:
+    fixed = [PACKAGE / "Package.swift", PACKAGE / "README.md", Path(__file__), PACKAGE / "verification/with-loopback.py", PACKAGE / "verification/validation-probes.py", ROOT / "docs/experimental-capability-bridge-design.md", ROOT / "docs/experimental-capability-validation-api-design.md", ROOT / "docs/capability-durable-updater-api-design.md", ROOT / "verification/capability-bridge-lifecycle/probes.py"]
+    for folder in [PACKAGE / "Sources", PACKAGE / "Tests", PACKAGE / "verification/CrossProbe", PACKAGE / "verification/ValidationProbe", ROOT / "verification/capability-bridge-lifecycle/Probe", ROOT / "sdk"]:
         fixed.extend(p for p in folder.rglob("*") if p.is_file() and not {".build", ".swiftpm", "__pycache__", ".git"}.intersection(p.relative_to(folder).parts) and p.name != ".DS_Store")
     return {str(p.relative_to(ROOT)): digest(p) for p in sorted(set(fixed))}
 
@@ -59,7 +59,7 @@ receipt = {"status": "running", "startedAt": datetime.datetime.now(datetime.time
     "repositoryHeadAtRun": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
     "source": baseline, "sourceManifestSHA256": sha(manifest.encode()), "frozenSourceExport": str(SOURCE),
     "nativeRevision": PIN, "nativeArtifacts": artifacts, "stageRoot": str(STAGE), "commands": [],
-    "scope": "Implementer additive validate-only/typed-failure/zero-page and existing Swift bridge qualification; real native admission, concrete storage and normal-trust TLS failure; separate package/single experimental archive",
+    "scope": "Implementer lifecycle SPI, additive validation and existing Swift bridge qualification; real native admission, concrete storage and normal-trust TLS failure; separate package/single experimental archive",
     "limitations": ["No devices or platform execution; cross compile/link only", "Rust archive/system frameworks are not Swift TSan instrumented", "Logical byte/worker counters exclude allocator backing, DTOs and Task/runtime/framework lifetime", "Process allocator/RSS/CPU observations are not hard bounds, no-OOM/no-abort or reclamation proof", "Cooperative batch/VM cutoff can overrun within one admitted operation", "No verified activation, release, identity, publication or GA claim", "Validation cancellation has no C interrupt or latency guarantee; queued cancellation test controls the private serial queue, not native execution", "Local Xcode27.1/Swift6.3.3 only; pinnedCI Xcode26.3 is not installed", "Independent review is separately owned; this receipt is implementer evidence"]}
 
 def save(): (OUT / "receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
@@ -88,7 +88,7 @@ loopback = ["python3", "-B", str(package / "verification/with-loopback.py")]
 for mode, extra in [("debug", []), ("release", ["-c", "release"]), ("tsan", ["--sanitize", "thread"])]:
     command = loopback + ["--output", str(OUT / (mode + "-loopback")), "--", "swift", "test", "--package-path", str(package), "--scratch-path", str(SCRATCH / mode)] + extra + flags("host") + ["-Xswiftc", "-DMIXER_EXPERIMENTAL_LOCAL_TLS_TEST"]
     record = run("bridge-" + mode, command, scope="Full original real-Wasm/concrete-adapter suite with actual normal-trust loopbackTLS failure")
-    record["expectedTests"] = 27; record["testCountsMatch"] = record.get("passedTests") == [27]
+    record["expectedTests"] = 32; record["testCountsMatch"] = record.get("passedTests") == [32]
     receipt["commands"].append(record); save()
 record = run("measurement-filtered", ["swift", "test", "--package-path", str(package), "--scratch-path", str(SCRATCH / "debug"), "--filter", "observationsSeparateLogicalPayloadFromAllocatorAndIdleCPU"] + flags("host") + ["-Xswiftc", "-DMIXER_EXPERIMENTAL_LOCAL_TLS_TEST"], scope="Separate filtered process: observational16-idle-owner allocator/RSS/CPU and timer ticks")
 record["expectedTests"] = 1; record["testCountsMatch"] = record.get("passedTests") == [1]
@@ -102,16 +102,18 @@ jobs.append(("android-public-link", [SWIFT, "build", "--package-path", probe, "-
 with ThreadPoolExecutor(max_workers=2) as pool:
     for record in pool.map(lambda job: run(*job), jobs): receipt["commands"].append(record); save()
 receipt["linkedConsumers"] = {}
-for target, folder in [("host", "probe-host"), ("ios", "ios"), ("ios-simulator", "ios-simulator"), ("android", "android")]:
-    binaries = sorted({p.resolve() for p in (SCRATCH / folder).rglob("bridge-cross-probe") if p.is_file()})
-    if len(binaries) != 1:
-        receipt["linkedConsumers"][target] = {"error": "expected exactly one linked consumer", "paths": [str(p) for p in binaries]}
-        continue
-    binary = binaries[0]
-    receipt["linkedConsumers"][target] = {"path": str(binary), "sha256": digest(binary), "bytes": binary.stat().st_size}
-    receipt["commands"].append(run(target + "-binary-file", ["file", str(binary)], scope="Identify actual linked public Swift consumer")); save()
-    if target == "host":
-        receipt["commands"].append(run("public-host-run", [str(binary)], scope="Execute public consumer's typed validate-only and construction empty-module C rejections; not a guest-effect test")); save()
+for product in ["bridge-cross-probe", "bridge-lifecycle-probe"]:
+    for target, folder in [("host", "probe-host"), ("ios", "ios"), ("ios-simulator", "ios-simulator"), ("android", "android")]:
+        key = target if product == "bridge-cross-probe" else target + "-lifecycle"
+        binaries = sorted({p.resolve() for p in (SCRATCH / folder).rglob(product) if p.is_file()})
+        if len(binaries) != 1:
+            receipt["linkedConsumers"][key] = {"error": "expected exactly one linked consumer", "paths": [str(p) for p in binaries]}
+            continue
+        binary = binaries[0]
+        receipt["linkedConsumers"][key] = {"path": str(binary), "sha256": digest(binary), "bytes": binary.stat().st_size}
+        receipt["commands"].append(run(key + "-binary-file", ["file", str(binary)], scope="Identify actual linked public/SPI Swift consumer")); save()
+        if target == "host":
+            receipt["commands"].append(run(key + "-consumer-run", [str(binary)], scope="Execute public validate/construct rejection or lifecycle SPI constructor cleanup; not guest-effect authority")); save()
 receipt["sourceUnchangedDuringRun"] = inputs() == baseline
 receipt["exportUnchangedDuringRun"] = all(digest(SOURCE / name) == value for name, value in baseline.items())
 receipt["nativeArtifactsUnchangedDuringRun"] = all(digest(STAGE / name) == value for entries in artifacts.values() for name, value in entries.items())

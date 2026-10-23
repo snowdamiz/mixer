@@ -90,6 +90,7 @@ final class NativeExitOwner: @unchecked Sendable {
     let host: CapabilityHost
     let configuration: ExperimentalCapabilityConfiguration
     private let permit: ConstructionPermit
+    private let lifecycle: AdapterCloseCore?
     let control = Locked(Control())
     private var source: DispatchSourceUserDataAdd?
     private var timer: DispatchSourceTimer?
@@ -103,9 +104,9 @@ final class NativeExitOwner: @unchecked Sendable {
     private var rateTime = ContinuousClock.now
 
     init(native: NativeCapabilitySession, host: CapabilityHost, configuration: ExperimentalCapabilityConfiguration,
-         permit: ConstructionPermit) {
+         permit: ConstructionPermit, lifecycle: AdapterCloseCore? = nil) {
         self.native = native; self.host = host; self.configuration = configuration
-        self.permit = permit; rateTokens = Double(configuration.dispatchBurst)
+        self.permit = permit; self.lifecycle = lifecycle; rateTokens = Double(configuration.dispatchBurst)
     }
     func start() {
         let source = DispatchSource.makeUserDataAddSource(queue: ExperimentalQueues.guest)
@@ -128,35 +129,50 @@ final class NativeExitOwner: @unchecked Sendable {
         if needsSignal { source?.add(data: 1) }
     }
     func stop(_ failure: String? = nil, quarantined: Bool = false, detail: ExperimentalCapabilityFailure? = nil) {
-        let first = control.withLock { state in
+        let transition = control.withLock { state -> (Bool, ExperimentalCapabilityFailure?) in
+            var published: ExperimentalCapabilityFailure?
             if state.status.failure == nil, let failure {
                 state.status.failure = failure
                 state.status.failureDetail = detail ?? ExperimentalCapabilityError(failure).failure
+                published = state.status.failureDetail
             }
             state.quarantined = state.quarantined || quarantined
-            guard !state.status.closed else { return false }
-            state.status.closed = true; return true
+            guard !state.status.closed else { return (false,published) }
+            state.status.closed = true; return (true,published)
         }
-        guard first else { return }
+        if let failure = transition.1 { lifecycle?.terminal(failure) }
+        if quarantined { lifecycle?.quarantine() }
+        guard transition.0 else { return }
         ExperimentalQueues.close.async { [self] in
             do { try native.close(); control.withLock { $0.nativeCloseSucceeded = true } }
             catch { recordFailure(error) }
             control.withLock { $0.closeFinished = true }; signal()
         }
-        Task.detached { [self] in
-            await host.close()
-            control.withLock { $0.hostCloseFinished = true }; signal()
+        if let lifecycle { lifecycle.close(host: host, nativeOwner: self) }
+        else {
+            Task.detached { [self] in
+                await host.close()
+                concreteAdaptersClosed()
+            }
         }
         signal()
+    }
+    func concreteAdaptersClosed() {
+        control.withLock { $0.hostCloseFinished = true }; signal()
     }
     private func recordFailure(_ error: any Error) {
         let code = (error as? ExperimentalCapabilityError)?.code ?? "bridge_failure"
         let detail = ExperimentalCapabilityError.detail(error)
-        control.withLock { state in
-            if state.status.failure == nil { state.status.failure = code; state.status.failureDetail = detail }
+        let published = control.withLock { state -> Bool in
+            let first = state.status.failure == nil
+            if first { state.status.failure = code; state.status.failureDetail = detail }
             let status = (error as? ExperimentalCapabilityError)?.nativeStatus
             if status == nil || status == 4 { state.quarantined = true }
+            return first
         }
+        if published { lifecycle?.terminal(detail) }
+        let status = (error as? ExperimentalCapabilityError)?.nativeStatus
+        if status == nil || status == 4 { lifecycle?.quarantine() }
     }
     private func fail(_ error: any Error) {
         let e = error as? ExperimentalCapabilityError
@@ -363,8 +379,8 @@ final class NativeExitOwner: @unchecked Sendable {
             if done {
                 native.discardScratchAfterDrain()
                 source?.setEventHandler {}; source?.cancel(); timer?.setEventHandler {}; timer?.cancel()
-                permit.release()
                 control.withLock { $0.tickets = Array(repeating: nil, count: 8); $0.status.drained = true }
+                if let lifecycle { lifecycle.nativeDidDrain() } else { permit.release() }
             }
         } else { armTimer(active || readyHint || drainHint) }
     }

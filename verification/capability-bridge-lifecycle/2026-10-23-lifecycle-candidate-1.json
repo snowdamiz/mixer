@@ -1,0 +1,56 @@
+{
+  "status": "implementer_scoped_checks_passed",
+  "completedAt": "2026-10-23T08:43:12.037221+00:00",
+  "receipts": {
+    "matrix": {
+      "path": "experimental-capability-runtime/verification/2026-10-23-lifecycle-candidate-1/receipt.json",
+      "sha256": "9274219cc7245b7919393e542da187cc5307b6644b7a5ef1fcd366391e535da3",
+      "status": "scoped_checks_passed"
+    },
+    "derived": {
+      "path": "verification/capability-bridge-lifecycle/2026-10-23-lifecycle-probes-1/receipt.json",
+      "sha256": "6dd3725d18763f7f9871aaa639f434e9f2f77460e1746abd46e3a67128f610c1",
+      "status": "passed"
+    },
+    "publicReplay": {
+      "path": "experimental-capability-runtime/verification/2026-10-23-lifecycle-public-1/receipt.json",
+      "sha256": "b4ff6250d5aeeb3a6688a56b1966b14d0efafbf35e52a0556d6c1c2ab9d67761",
+      "status": "passed"
+    }
+  },
+  "sourceInputCount": 71,
+  "sourceManifestSHA256": "f9e72d973b0cbc389a5b454dbf2126acb2c5e741e4d4ff7c0ec9e0b495daacb9",
+  "nativeRevision": "b25e3b7de2391a80d12e7fd75e60903495bec120",
+  "nativeHostArchiveSHA256": "a015ff65980422dd0b9c5cad2e28741d1e5ba478e0f657dcaedf75477d553b72",
+  "testExecutions": {
+    "fullSuite": {
+      "debug": 32,
+      "release": 32,
+      "tsan": 32
+    },
+    "separateIdleObservation": 1,
+    "derivedIsolatedLifecycle": 15,
+    "oldPublicDebug": 10
+  },
+  "linkedConsumerBinaries": 8,
+  "sourceExportAndArtifactsUnchanged": true,
+  "historicalEvidence": [
+    "verification/capability-bridge-lifecycle/initial-test-compile",
+    "verification/capability-bridge-lifecycle/development-probes-1"
+  ],
+  "limitations": [
+    "No devices or platform execution; cross compile/link only",
+    "Rust archive/system frameworks are not Swift TSan instrumented",
+    "Logical byte/worker counters exclude allocator backing, DTOs and Task/runtime/framework lifetime",
+    "Process allocator/RSS/CPU observations are not hard bounds, no-OOM/no-abort or reclamation proof",
+    "Cooperative batch/VM cutoff can overrun within one admitted operation",
+    "No verified activation, release, identity, publication or GA claim",
+    "Validation cancellation has no C interrupt or latency guarantee; queued cancellation test controls the private serial queue, not native execution",
+    "Local Xcode27.1/Swift6.3.3 only; pinnedCI Xcode26.3 is not installed",
+    "Independent review is separately owned; this receipt is implementer evidence",
+    "The SPI trusts exclusive adapter transfer and nonblocking sinks without strong back-edges; it cannot enforce reference uniqueness",
+    "Outer whole-attempt coordinator and its16-slot admission are separately owned and not implemented or qualified here",
+    "Derived barriers and malformed report injection are not unmodified public reproductions",
+    "Independent lifecycle review is separately owned; this aggregate is implementer evidence"
+  ]
+}
