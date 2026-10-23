@@ -86,6 +86,13 @@ all three hosted jobs atbf5021e. See `verification/github-ci-bf5021e/receipt.jso
 The latch now also permits generation-bound control wakes without consuming its
 terminal notification; eight cases pass per host mode, plus XCTest typechecking.
 See `verification/capability-attempt-signals/2026-10-23-control-wake-1/receipt.json`.
-Durable selection/effects/health
-transitions and the signed coordinator are the current implementation lanes.
+Private durable selection/effects/health transitions now pass79 debug/release
+functions and25 new TSan functions on frozen bf5021e dependencies, plus official
+iOS/Android module builds. Root reproduced and repaired cold retry of an
+interrupted or failed never-healthy candidate; the identical three probes pass
+in all three host modes. Closing can record failure without selecting a fallback.
+See `verification/capability-recovery-transitions-root-review/receipt.json`.
+Hosted CI at7365b85 passes all three jobs for the preceding control-wake checkpoint.
+Concrete attempt ownership and the signed coordinator are the current lanes;
+combined composition, actual UI health and published consumer qualification remain.
 Keep the full product plan and physical/published-consumer/GA gates in scope.

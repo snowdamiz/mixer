@@ -612,3 +612,21 @@ Eight cases pass in debug/release/TSan and the XCTest branch typechecks; see
 `verification/capability-attempt-signals/2026-10-23-control-wake-1/receipt.json`.
 The source-only independent review above applies to the earlier six-case latch.
 Actual timer, consumer and signed coordinator composition remain under development.
+
+Private durable startup selection, effects intent, observed health, exact typed
+failure counting and bounded retained fallback now pass79 functions in debug and
+release,25 transition functions under TSan, a public material-only consumer,
+three public privacy negatives and iOS/Android module/object builds. These use
+the immutable bf5021e dependency baseline. Root audited122 frozen inputs,116 Git
+inputs,16 command logs,295 retained files and nine cross/client artifacts.
+Review reproduced three cold-restart defects in the preliminary candidate;
+failed/interrupted fresh-stage pointers now clear while actual health, candidate
+records, accepted sequence and deny history remain durable. The same probes pass
+in debug/release/TSan against the final candidate. A new closing-only option
+persists failure without starting retained validation; synchronous stop remains
+separate from actual descriptor close. See
+`verification/capability-recovery-transitions-root-review/receipt.json`.
+This is controlled persisted close/reopen, not physical crash or real UI health
+qualification. Concrete attempt lifecycle and the public coordinator remain under
+integration. All three hosted jobs at7365b85 pass for the preceding control-wake
+checkpoint; see `verification/github-ci-7365b85/receipt.json`.

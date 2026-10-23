@@ -75,14 +75,18 @@ struct CapabilityRecoveryCandidate: Codable, Sendable {
     }
 }
 
-/// Persisted health/attempt structure only. This slice exposes no API to create
-/// health, publish a selection or execute a stored candidate.
+/// Exact durable health binding; only the private worker creates this after
+/// actual installed milestones and a new process-local observation interval.
 struct CapabilityStoredHealth: Codable, Sendable {
     let candidateID: String
     let launchID: String
     let committedAtWallTime: UInt64
     let observationSeconds: UInt64
     let completedMilestones: Set<String>
+    init(candidateID: String, launchID: String, committedAtWallTime: UInt64, observationSeconds: UInt64, completedMilestones: Set<String>) {
+        self.candidateID = candidateID; self.launchID = launchID; self.committedAtWallTime = committedAtWallTime
+        self.observationSeconds = observationSeconds; self.completedMilestones = completedMilestones
+    }
     enum CodingKeys: String, CodingKey, CaseIterable { case candidateID, launchID, committedAtWallTime, observationSeconds, completedMilestones }
     init(from decoder: any Decoder) throws {
         try capabilityClosed(decoder, Set(CodingKeys.allCases.map(\.stringValue)))
@@ -101,6 +105,13 @@ struct CapabilityStoredAttempt: Codable, Sendable {
     let source: String
     let startedAtWallTime: UInt64
     let effectsMayHaveOpened: Bool
+    init(launchID: String, candidateID: String, source: String, startedAtWallTime: UInt64, effectsMayHaveOpened: Bool) {
+        self.launchID = launchID; self.candidateID = candidateID; self.source = source
+        self.startedAtWallTime = startedAtWallTime; self.effectsMayHaveOpened = effectsMayHaveOpened
+    }
+    func recordingEffectsIntent() -> Self {
+        Self(launchID: launchID, candidateID: candidateID, source: source, startedAtWallTime: startedAtWallTime, effectsMayHaveOpened: true)
+    }
     enum CodingKeys: String, CodingKey, CaseIterable { case launchID, candidateID, source, startedAtWallTime, effectsMayHaveOpened }
     init(from decoder: any Decoder) throws {
         try capabilityClosed(decoder, Set(CodingKeys.allCases.map(\.stringValue)))
