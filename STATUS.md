@@ -110,8 +110,19 @@ Observed implementation and evidence:
   an oversized JSON integer that previously printed a traceback on rejection.
   Complete graph discovery, actual build consumption, signed binary embedding and
   provenance remain open. This is not a build attestation or physical-device
-  qualification. See `verification/runtime-identity-integration-2026-10-22.json`
-  and `verification/input-capture-integration-2026-10-22.json`.
+  qualification. A companion emitter now compiles the exact verified descriptor
+  bytes and expected fingerprint into Swift source. The loader revalidates both
+  before returning policy. Nineteen capture/embedding tests pass in both Python
+  modes; the host release consumer runs after deleting its original snapshot and
+  inputs, and the generated source compiles for iOS and Android arm64. Independent
+  review passes eleven tests per mode, a strict Swift6 consumer with a maximum-size
+  descriptor, and eight separately compiled corruption rejections. Root matched
+  the frozen source and output hashes. A collector filename mismatch was corrected
+  with a separate artifact-collection receipt; its original failure is retained.
+  Automatic app build integration, linker-input consumption and signed provenance
+  remain open. See `verification/runtime-identity-integration-2026-10-22.json`,
+  `verification/input-capture-integration-2026-10-22.json` and
+  `verification/runtime-embedding-integration-2026-10-22.json`.
 - The CLI creates source-locked projects, builds/tests host packages, generates and
   runs iOS simulator apps, inventories migration concerns and exports source.
   Local update verification snapshots bounded inputs so signatures and executable
@@ -207,8 +218,11 @@ enabled Linux numeric reference test: f32.ceil returned a signaling NaN without
 quieting it. Commit16727d canonicalizes arithmetic NaNs while preserving exact-bit
 operations and integer conversion traps. The default91 and experimental108 host
 tests pass in both modes, along with all nine explicit Node oracle functions per
-mode. Linux CI qualification of the fix is pending. See
+mode. GitHub run39891654598 at8ab3b7f then passed all three jobs, including both
+Linux float reference modes and the generated simulator consumer. See
 `verification/github-ci-2fda7ab/receipt.json`.
 
 The numeric fix source and local evidence review is recorded in
 `verification/numeric-portability-owner-review-2026-10-22.json`.
+
+Successful repaired CI evidence: `verification/github-ci-8ab3b7f/receipt.json`.

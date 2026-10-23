@@ -1,0 +1,68 @@
+{
+  "schema": 1,
+  "status": "passed scoped compilation and artifact collection after collector correction",
+  "observedAt": "2026-10-23T02:49:56.788558+00:00",
+  "sourceRevision": "ce8f2c921dab12a0e859cb93366cef74277c6ef4",
+  "sourceDigest": "cb382d1635c7193b46eb958fac3dd49dca831b1baa718d5b2efe3bf7a70d8bac",
+  "previousFailedReceipt": {
+    "path": "verification/runtime-embedding-2026-10-22/receipt.json",
+    "sha256": "0d3f91dfffc36e4020cac5d1c194430ff171d2e2bb7ed202ed7b826438173df6",
+    "reason": "iOS uses MixerInstalledRuntime.o; original glob only found Android .swift.o. All 16 commands passed."
+  },
+  "collectorSHA256": "5ba49de5478a10f190f28ba5d47478a8962a06d87512e1004634e868c61ca5ad",
+  "invocation": [
+    "python3",
+    "-B",
+    "verification/tools/collect-runtime-embedding.py",
+    "--name",
+    "2026-10-22"
+  ],
+  "sourceFilesMatchedToGitAndExport": 50,
+  "generatedSourceFilesMatched": 3,
+  "commandOutputsMatched": 32,
+  "testFunctionsPerMode": 19,
+  "commandsRerun": false,
+  "compiledConsumer": {
+    "binarySHA256": "f6b980310eb99e427e9df1e59fe3250071e85da017248cdc01aa35e36e447444",
+    "fingerprint": "1303acf35b605ec3bb89c48233a67279dff385651ea3e650a5407c5e18e09c17",
+    "sourceSnapshotRemovedBeforeBuild": true,
+    "installedPolicyMatches": true
+  },
+  "mobileObjects": {
+    "ios": {
+      "path": "ios/out/Intermediates.noindex/EmbeddedConsumer.build/Debug-iphoneos/EmbeddedIdentity-t.build/Objects-normal/arm64/MixerInstalledRuntime.o",
+      "sha256": "f4cd072d60ff4b7b9ee8e27b93ae13014a3771484c9b0483ad3aa8079e6e8a59",
+      "bytes": 37488,
+      "inspection": {
+        "command": [
+          "/usr/bin/file",
+          "-b",
+          "/Users/andreyyurlov/Documents/dev/mixer/verification/local/runtime-embedding-2026-10-22/ios/out/Intermediates.noindex/EmbeddedConsumer.build/Debug-iphoneos/EmbeddedIdentity-t.build/Objects-normal/arm64/MixerInstalledRuntime.o"
+        ],
+        "exitCode": 0,
+        "stdout": "Mach-O 64-bit object arm64\n",
+        "stderr": ""
+      }
+    },
+    "android": {
+      "path": "android/aarch64-unknown-linux-android28/release/EmbeddedIdentity.build/MixerInstalledRuntime.swift.o",
+      "sha256": "b750df7d87d4674ba9d16958533ab7d47ac05d5ec3fad40d543995f1ededcbd9",
+      "bytes": 42608,
+      "inspection": {
+        "command": [
+          "/usr/bin/file",
+          "-b",
+          "/Users/andreyyurlov/Documents/dev/mixer/verification/local/runtime-embedding-2026-10-22/android/aarch64-unknown-linux-android28/release/EmbeddedIdentity.build/MixerInstalledRuntime.swift.o"
+        ],
+        "exitCode": 0,
+        "stdout": "ELF 64-bit LSB relocatable, ARM aarch64, version 1 (GNU/Linux), with debug_info, not stripped\n",
+        "stderr": ""
+      }
+    }
+  },
+  "limitations": [
+    "Synthetic original declared-input fixture; no complete application graph, compiler label attestation or native linker consumption proof",
+    "Generated source compiled and executed on host; mobile checks compile the source with its dependencies but do not link/install/run an app",
+    "No signed binary/provenance, project-generator integration, physical devices, guest activation, hosted publication or gate closure"
+  ]
+}
