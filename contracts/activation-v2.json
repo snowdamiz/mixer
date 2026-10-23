@@ -1,0 +1,178 @@
+{
+  "schema": 2,
+  "name": "mixer-activation-v2",
+  "authority": "These definitions alone enable no runtime, effects, release or publication. Execution requires an implementing trusted installed binary, matching immutable identity/material, verified signed selection and all specified gates. Proposal/implementation/qualification status is tracked outside these byte-hashed files.",
+  "authoring": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "xhigh"
+  },
+  "contract_format": "bounded protocol reference with closed structural schemas; lexical, cross-field, full executable and authority checks remain mandatory; JSON Schema alone never authorizes execution",
+  "execution_contract": {
+    "path": "contracts/capability-execution-v1.json",
+    "sha256": "898ea22b93a5b0dcd94c3b54f7cc97c41a259cd2285cbacd54bf0bd52ba48c97",
+    "wire_sha256": "052ebe9fbdc20a41307332086767e7903680bc83ba273c696edf9187be6b6439",
+    "native_header_sha256": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+    "grant_descriptor_sha256": "b394ffd165ef28977de9743b1c1a98c419504787f2912e30d419cfb1582e15e1"
+  },
+  "package": {
+    "allowed_dependencies": [
+      "experimental-capability-runtime",
+      "updates",
+      "runtime-identity",
+      "SDK MixerCapabilities"
+    ],
+    "forbidden_colink": [
+      "MixerRuntime",
+      "current MixerActivation target/default Rust archive",
+      "Cargo dynamic library search directory"
+    ],
+    "archive": "one libmixer_vm_capability_experimental.a containing both C families and shared registry; public profiles/old C layouts unchanged"
+  },
+  "installed_policy": {
+    "tuple": {
+      "identity_schema": 2,
+      "release_protocol": 3,
+      "guest_abi": 2,
+      "ui_schema": 1,
+      "base_profile": "mixer-table-memory-v3",
+      "route": "capability-guest-v1"
+    },
+    "factory": "validate identity and immutable canonical role-bound materials; derive policy AND construct concrete adapters from those snapshots, not caller DTOs/objects",
+    "payload": "private updater immutable payload+opaque verified artifact from same pinned identity/verifier; no accepting validator callback exposed by new coordinator",
+    "resources": "only min signed/installed base ceilings; capability quotas identity-bound; memory is linear-memory-only, no totalRSS claim",
+    "startup": "installed exact defined no-argument export, once, effects off; exact defined void wake fixed by contract; no start section or release-selected entry",
+    "adapter_initialization": "only after identity/material and complete payload validation; trusted private storage init may perform filesystem setup, distinguished from guest effect dispatch"
+  },
+  "api_prerequisites": [
+    {
+      "name": "bounded-same-config-validate-only",
+      "requirements": [
+        "same module/startup/effective limits/context as construction",
+        "all bodies/imports/wake/memory shape validated",
+        "no instance/mailbox/adapters/export/effects",
+        "bounded admission before queued Data captures; reject busy/cancelled/late work",
+        "construction revalidates matching tuple; validation result cannot retarget immutable bytes"
+      ]
+    },
+    {
+      "name": "structured-machine-code-classification",
+      "requirements": [
+        "checked native status/report consistency before using fields",
+        "closed stable native code mapping, unknown conservative",
+        "do not classify human text/substrings/description/status2 alone",
+        "bounded relevant function/offset metadata",
+        "separate guest trap, cancel, deadline, panic/quarantine, API/resource, unknown categories"
+      ]
+    },
+    {
+      "name": "zero-page-memory-parity",
+      "requirements": [
+        "floor signed/installed positive bytes downward to exact0..64pages",
+        "matching defined0page modules preserve existing C/v3 semantics",
+        "if selected bridge cannot represent exact0, reject before staging; never round upward",
+        "standalone validate and construction use identical effective limits"
+      ]
+    }
+  ],
+  "lifecycle": {
+    "phases": [
+      "idle",
+      "startingDisabled",
+      "provisionalGuest",
+      "healthyGuest",
+      "stopping",
+      "recoveryRequired",
+      "nativeFallback",
+      "closed"
+    ],
+    "effects_gate": "after-verified-startup-v1",
+    "effects_latch": "effectsEverOpened permanent per-attempt bool, independent of earned health; guest/release cannot set it",
+    "order": [
+      "verify installed descriptor/material, signatures/scope/assignment/limits, exact immutable payload/hash and full capability validation before staging/selection",
+      "reserve bounded owner before queue/capture and record durable startup attempt",
+      "construct same tuple and run installed startup exactly once with effects disabled",
+      "after every await, require same attempt generation/open latch/no cancellation/unexpired signed monotonic startup budget",
+      "publish successful current startup then privately enable effects; never expose raw bridge/development enable on OTA owner",
+      "successful turns may now dispatch signed-and-installed-granted effects while provisional",
+      "only real installed milestones and durable monotonic observation commit health; startup/enable/completion alone never health"
+    ],
+    "startup_disabled_enqueues": "unavailable completion remains permanently non-drainable after enable; no retroactive I/O",
+    "cancel_before_publish": "retire later-created owner; no effects enable; close cannot be undone by late worker/timer",
+    "startup_deadline": "signed minimum with installed1..60000ms, includes selection/validation/construction/startup; reject late completion, cooperative cancel, no hard preemption of decoder/constructor",
+    "post_enable_failure": "stop admission and guest; recoveryRequired, never silent live guest replacement or immediate conflicting native launch; retain exit owners and reconcile effects",
+    "close": "latch attempt closed before awaiting host/native cleanup; preserve real exit/ack ownership and bounded draining metadata; no fabricated release; indefinite hung/poison ownership possible",
+    "close_work": "per owner one coalesced host-close Task plus one separate coalesced native-close dispatch job; both remain inside bounded ownership, no unbounded per-event jobs"
+  },
+  "health": {
+    "milestones": "nonempty installed stable identifiers<=16 plus monotonic observation1..3600seconds; only native embedding reports real completed milestones",
+    "provisional_effects": "permitted only after private verified startup gate; may mutate external state before health; no rollback guarantee",
+    "retained_healthy": "reverify exact private selection under same identity and documented retained-healthy authority, rerun disabled startup each process, then enable after current startup success; no invented current UI/FieldLog proof",
+    "durability_failure": "no healthy return/invented commit; preserve uncertain durable state and stop/fail closed without replay reset"
+  },
+  "recovery": {
+    "before_effects": "candidate and at most one compatible retained healthy startup attempt, then explicit actual compiled native fallback",
+    "after_effects": "recoveryRequired; no automatic live switch; caller reconciles possible committed I/O and unresolved exits",
+    "next_cold_start": "new bounded attempt may choose compatible healthy/native fallback; previous external effects may persist and require data compatibility",
+    "rollback": "new greater signed assignment sequence for older compatible payload; no lowering high-water",
+    "state": "complete installed host/runtime/channel/installation match; old identity directory mismatch rejects without deletion/reinitialization; explicit per-runtime storage or separately reviewed migration",
+    "unknown": "cancellation/native panic/poison/allocation/future codes not deterministic application failure; preserve bounded machine diagnostics, no payload/secret text"
+  },
+  "classification": {
+    "deterministic_guest_traps": [
+      "unreachable",
+      "fuel_exhausted",
+      "memory_out_of_bounds",
+      "table_out_of_bounds",
+      "indirect_call_null",
+      "indirect_call_type_mismatch",
+      "call_depth_exceeded",
+      "operand_stack_exceeded",
+      "integer_divide_by_zero",
+      "integer_overflow",
+      "invalid_conversion_to_integer",
+      "host_call_limit",
+      "host_abort"
+    ],
+    "cancel_native_codes": [
+      "cancelled"
+    ],
+    "deadline_native_codes": [
+      "capability_turn_timeout"
+    ],
+    "panic_quarantine_native_codes": [
+      "internal_panic",
+      "capability_poisoned",
+      "capability_invariant",
+      "session_poisoned"
+    ],
+    "resource_native_codes": [
+      "capability_allocation",
+      "capability_identifier_exhausted"
+    ],
+    "context_required": "native code plus checked outer status and operation/attempt facts; activation local cancelled/deadline overrides resulting VM cancellation as explicit cause",
+    "typed_operation_failures": "permissionDenied/unavailable/deadlineExceeded/ioFailure etc are capability results, not VM deterministic traps",
+    "unknown": "terminal conservative unknownInterruption; do not derive from status2/human text",
+    "api_native_codes": [
+      "invalid_arguments",
+      "session_busy",
+      "session_limit",
+      "capability_state"
+    ]
+  },
+  "preservation": {
+    "activation-v1.json": "a0816bddd38afdfedb4fc2d50e522b0c808e64b640fb91d7991f895dc405989c",
+    "old_entrypoints": "old activation policy still guestABI1 with empty capability hashes/grants; no widened route/profile/default import admission"
+  },
+  "required_tests": [
+    "v1/v2 canonical/signature/vector and all old negative acceptance preservation",
+    "identity2 domain+allfield mutations/canonical malformed/limit boundaries; captured bytes and concrete adapter binding",
+    "v3 Go/Swift independent CBOR/Ed25519 cross vectors, protocol/ABI/route/runtime/material/grant mismatch and replay",
+    "real Wasm full uncalled/import/start/wake/type/memory/limit rejects and same-config standalone validation proof",
+    "cancel/close/deadline at every await/publish/enable; startup disabled/trap zero dispatch; health not implied by startup or callback",
+    "actual private storage bytes + narrowed grants; deniedHTTP no adapter; no TLS bypass; native equalbits/lateexit/closed ack/count/rate/deadline queue races",
+    "signed durable v3 recovery, corruption/fault/reopen/old-store mismatch/newsequence rollback, no silent live replacement after effects",
+    "onearchive C family and16pool proof; typed classifier unknown/status2/text imitation tests"
+  ],
+  "kind": "immutable_contract_definition",
+  "qualification_boundary": "Contract bytes are not proof of implementation, validation, native I/O, actual health, full Swift/UI/FieldLog, complete build graph/consumption/embedding, published packaging, physical lifecycle/performance, signing/store/hosted/GA qualification. Those require separate accountable evidence."
+}

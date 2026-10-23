@@ -424,4 +424,22 @@ all payload refusal/cleanup assertions and passing host debug/release. These are
 caller-thread observations, not total heap or cross-thread ownership accounting.
 Independent source review found no blocking defect; the production VM is unchanged.
 See `verification/github-ci-1ab4d4e/receipt.json` and
-`verification/capability-allocation-fixture-review/receipt.json`. Linux rerun pending.
+`verification/capability-allocation-fixture-review/receipt.json`. The next checkpoint confirms the Linux rerun.
+
+
+GitHub run39911306920 at2f6b393 passes all three jobs, including the repaired
+caller-thread allocation fixture in Linux debug/release, the remaining VM/reference
+suites and public C clients, archive builder, Swift integration and generated
+simulator consumer. See `verification/github-ci-2f6b393/receipt.json`. This run
+precedes641b844 and its new Swift bridge debug/release/TSan/public-consumer CI step.
+
+
+Four additive contracts now define capability execution through identity2,
+release3 and guest ABI2 over the unchanged table-memory-v3 grammar. Root matched
+241 static checks in normal and optimized Python,79 independent consistency
+checks,35 implementation bindings and eight unchanged old contract files before
+freezing the definitions for implementation. Static checks confer no execution
+or release authority. Schema2 capture/embedding, protocol3 verification, bounded
+complete validation/typed failures, concrete material binding and separate signed
+activation remain implementation work. See
+`verification/capability-authority-contract-freeze-2026-10-23.json`.

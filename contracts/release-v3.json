@@ -1,0 +1,252 @@
+{
+  "$id": "mixer:release-v3",
+  "title": "Mixer capability guest release protocol v3",
+  "canonicalization": {
+    "standard": "RFC8949 section 4.2.1 core deterministic CBOR",
+    "map_order": "bytewise lexicographic order of encoded keys",
+    "data_model": "text keys and values, unsigned integers, arrays, maps and booleans; all declared struct fields included, no nulls or omitted fields",
+    "artifact_signature": "Ed25519(mixer.artifact.v3 followed by one NUL byte followed by canonical CBOR manifest)",
+    "assignment_signature": "Ed25519(mixer.assignment.v3 followed by one NUL byte followed by canonical CBOR assignment)",
+    "artifact_identity": "lowercase SHA256 hex of canonical CBOR manifest",
+    "signature_transport": "RFC4648 canonical padded standard base64 text encoding exactly 64 bytes; numeric arrays, CR/LF, nonzero pad bits and missing padding reject",
+    "unknown_duplicate_trailing_json_fields": "reject"
+  },
+  "negotiation": "Explicit installed identity2; registered host and manifest schema/protocol3, guestABI2/UI1; assignment schema3. Capability route and exact execution contract fixed by identity; no ranges, probing, implicit upgrade/downgrade or release-selected import policy. Old v1/v2 validation and signature bytes remain unchanged.",
+  "manifest_fields": {
+    "schema": 3,
+    "scope": {
+      "organization": "identifier",
+      "project": "identifier",
+      "app": "identifier",
+      "environment": "identifier",
+      "platform": "ios or android"
+    },
+    "release_id": "identifier",
+    "source_commit": "40 or 64 lowercase hex",
+    "provenance_id": "identifier",
+    "runtime": "64 lowercase hex exact installed runtime fingerprint",
+    "protocol": 3,
+    "guest_abi": 2,
+    "ui_schema": 1,
+    "capability_hashes": "explicit map of zero..two known schema ids to exact hashes; exactly equal immutable installed identity map",
+    "state_min": "uint64 inclusive",
+    "state_max": "uint64 inclusive",
+    "payload_sha256": "64 lowercase hex",
+    "compressed_bytes": "unsigned integer1..min(installed identity maximum4194304, unchanged wire safety limit16777216)",
+    "expanded_bytes": "exactly compressed_bytes, no compression; same limits",
+    "compression": "none",
+    "asset_hashes": "empty map only; separate assets fail closed until verified extraction exists",
+    "source_map_sha256": "64 lowercase hex reference only, not executed/fetched by this contract",
+    "limits": {
+      "memory_bytes": "positive uint64",
+      "fuel": "positive uint64",
+      "startup_milliseconds": "positive uint64"
+    },
+    "key_id": "identifier pinned artifact authority",
+    "created_at_unix": "positive uint64 audit time, not replay authority",
+    "capability_grants": {
+      "schema": 1,
+      "schema_sha256": "b394ffd165ef28977de9743b1c1a98c419504787f2912e30d419cfb1582e15e1",
+      "entries": "0..2 closed grant entries; every array explicit, strictly sorted unique ASCII, and every present entry binds its signed capability_hashes schema hash"
+    }
+  },
+  "assignment_fields": {
+    "schema": 3,
+    "scope": "same scope object as manifest",
+    "channel": "identifier",
+    "cohort": "sha256-v1",
+    "rollout_basis_points": "uint64 0..10000",
+    "sequence": "positive uint64 monotonically increasing within app/environment/platform/runtime/channel",
+    "release_id": "exact manifest release_id",
+    "artifact_sha256": "SHA256 of canonical CBOR manifest",
+    "runtime": "exact manifest runtime",
+    "key_id": "identifier pinned assignment authority",
+    "created_at_unix": "positive uint64 audit time"
+  },
+  "capability_grant_descriptor": {
+    "schema": 1,
+    "object_fields": [
+      "entries",
+      "schema",
+      "schema_sha256"
+    ],
+    "entry_fields": [
+      "capability_id",
+      "methods",
+      "namespaces",
+      "origins",
+      "permissions",
+      "schema_sha256"
+    ],
+    "maximum_entries": 2,
+    "entry_order": "strict ascending ASCII capability_id; reject duplicates",
+    "set_order": "strict ascending ASCII strings; reject duplicates before set conversion",
+    "missing_entry": "deny; installed schema hash alone grants no authority",
+    "binding": "each present entry equals its signed capability_hashes entry and the known schema hash",
+    "origins": {
+      "scheme": "https",
+      "exact_origin_only": true,
+      "ascii_only": true,
+      "maximum_host_bytes": 253,
+      "maximum_label_bytes": 63,
+      "host_rule": "lowercase DNS labels a-z 0-9 hyphen; nonempty labels; no leading or trailing hyphen",
+      "port_rule": "absent or canonical decimal 1..65535 excluding 443; no leading zeros",
+      "forbidden": [
+        "userinfo",
+        "path",
+        "query",
+        "fragment",
+        "IPv6",
+        "uppercase host",
+        "percent escapes",
+        "trailing dot"
+      ]
+    },
+    "capabilities": {
+      "network.http.v1": {
+        "schema_sha256": "fa1549c0a1e2e6b3bf4a83af1a6d37730bbefc8cddc3ffbe3c807d5e7af503f3",
+        "permissions": [
+          "network.https"
+        ],
+        "maximum_permissions": 1,
+        "maximum_origins": 32,
+        "maximum_methods": 6,
+        "allowed_methods": [
+          "DELETE",
+          "GET",
+          "HEAD",
+          "PATCH",
+          "POST",
+          "PUT"
+        ],
+        "maximum_namespaces": 0
+      },
+      "storage.keyValue.v1": {
+        "schema_sha256": "4a311222c978ddd0982e8dfbcf3d4864b856a80bcc1efb3b725adede7f8e22fd",
+        "permissions": [
+          "storage.appPrivate"
+        ],
+        "maximum_permissions": 1,
+        "maximum_origins": 0,
+        "maximum_methods": 0,
+        "maximum_namespaces": 32,
+        "namespace_rule": "case-sensitive ASCII A-Z a-z 0-9 underscore hyphen; length 1..64"
+      }
+    }
+  },
+  "capability_grant_descriptor_sha256": "b394ffd165ef28977de9743b1c1a98c419504787f2912e30d419cfb1582e15e1",
+  "capability_grant_descriptor_hash": "lowercase SHA256 of RFC8949 core deterministic CBOR of capability_grant_descriptor; bytewise encoded-key ordering; descriptor hash excludes this parent document",
+  "capability_grant_entry_fields": {
+    "capability_id": "known capability identifier, unique entry strictly sorted by ASCII",
+    "schema_sha256": "exact known schema hash and matching signed capability_hashes entry",
+    "permissions": "explicit strictly sorted unique ASCII array; empty denies; subset of the family permission",
+    "origins": "explicit strictly sorted unique ASCII array; HTTP exact canonical origins only; empty denies HTTP",
+    "methods": "explicit strictly sorted unique ASCII array; HTTP allowed method names only; empty denies HTTP",
+    "namespaces": "explicit strictly sorted unique ASCII array; storage exact identifiers only; empty denies storage"
+  },
+  "authority": "These definitions alone enable no runtime, effects, release or publication. Execution requires an implementing trusted installed binary, matching immutable identity/material, verified signed selection and all specified gates. Proposal/implementation/qualification status is tracked outside these byte-hashed files.",
+  "native_fingerprint": "Installed runtime fingerprint must additionally cover installed grants/configuration, generated bridge and native implementation, compiler/toolchain/platform, dependencies, permissions and custom HTTP implementation. This protocol does not generate or attest that fingerprint.",
+  "identifier": "1..128 ASCII letters, numbers, dot, underscore or hyphen",
+  "cohort": "SHA256 of canonical CBOR map {organization,project,app,environment,channel,installation}; treat digest as unsigned big-endian integer modulo 10000; eligible if less than signed rollout_basis_points. Stable expansion; installation ID is app-private random pseudonym, never account/customer data. Reinstallation generates new ID; account switching retains ID.",
+  "trust": "same pinned Ed25519 root roles/scope/validity and strict canonical signatures; no new signing/root/delegation authority. Retained-healthy offline exception applies only to exact previously committed compatible healthy records via private recovery selection; never relaxed verification of newly offered/staged content.",
+  "bounds": {
+    "maximum_signed_manifest_json_bytes": 65536,
+    "maximum_signed_assignment_json_bytes": 65536,
+    "maximum_payload_bytes": 4194304,
+    "maximum_capability_hashes": 2
+  },
+  "http": {
+    "base": "/v3/orgs/{organization}/projects/{project}",
+    "routes": "same explicit route suffixes/RBAC/request bounds as frozen v1/v2; only separate strict v3 typed wire objects",
+    "selection": "route3, schema/protocol3, registered host3/ABI2/UI1 and exact scope/runtime all agree; no failed-verification fallback; wrong-version offers204/artifacts404, mutations reject",
+    "channels": "same app/environment/platform/runtime/channel high-water namespace; old runtime heads retained; rollback requires fresh greater sequence",
+    "storage": "local schema3 only on first successful v3 write; preserve valid1/2 reads and exact prior signed/audit/response bytes; failed calls do not upgrade; older readers refuse3",
+    "idempotency": "versioned method/path/exactbody bind tenant request; cross-version same-key conflicts; no re-sign or normalize historic bytes",
+    "postgres": "strict schema3 dispatch over existing opaque signed bytes; do not assume SQL migration unnecessary without independent review",
+    "definition_only": "Route/storage semantics require their own implementing service and qualification; this contract does not enable a server or publication."
+  },
+  "authoring": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "xhigh"
+  },
+  "contract_format": "bounded protocol reference with closed structural schemas; lexical, cross-field, full executable and authority checks remain mandatory; JSON Schema alone never authorizes execution",
+  "wire_types": {
+    "manifest_required": [
+      "schema",
+      "scope",
+      "release_id",
+      "source_commit",
+      "provenance_id",
+      "runtime",
+      "protocol",
+      "guest_abi",
+      "ui_schema",
+      "capability_hashes",
+      "state_min",
+      "state_max",
+      "payload_sha256",
+      "compressed_bytes",
+      "expanded_bytes",
+      "compression",
+      "asset_hashes",
+      "source_map_sha256",
+      "limits",
+      "key_id",
+      "created_at_unix",
+      "capability_grants"
+    ],
+    "assignment_required": [
+      "schema",
+      "scope",
+      "channel",
+      "cohort",
+      "rollout_basis_points",
+      "sequence",
+      "release_id",
+      "artifact_sha256",
+      "runtime",
+      "key_id",
+      "created_at_unix"
+    ],
+    "unknown_optional_fields": "none; reject unknown/missing/duplicate decoded keys at every nested object",
+    "numbers": "canonical unsigned base10 UInt64 integer tokens only; no signs, decimal/exponent, strings or bool coercion; then field bounds",
+    "envelopes": {
+      "artifact": [
+        "manifest",
+        "signature"
+      ],
+      "assignment": [
+        "assignment",
+        "signature"
+      ]
+    },
+    "limits_required": [
+      "memory_bytes",
+      "fuel",
+      "startup_milliseconds"
+    ],
+    "limits": "all positive; each<=installed identity; memory and payload<=4194304, fuel<=1000000,startup<=60000; effective pages floor(min signed/installed bytes /65536), never round upward"
+  },
+  "execution_binding": {
+    "execution_contract_path": "contracts/capability-execution-v1.json",
+    "execution_contract_sha256": "898ea22b93a5b0dcd94c3b54f7cc97c41a259cd2285cbacd54bf0bd52ba48c97",
+    "wire_sha256": "052ebe9fbdc20a41307332086767e7903680bc83ba273c696edf9187be6b6439",
+    "native_header_sha256": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+    "grant_schema": 1,
+    "grant_descriptor_sha256": "b394ffd165ef28977de9743b1c1a98c419504787f2912e30d419cfb1582e15e1",
+    "downloaded_execution_selector": "none; exact runtime fingerprint already binds identity route/material/native/bridge/ceilings",
+    "verified_token": "only signature+scope+payload verified artifact exposes opaque grants/limits; assignment eligibility additionally required for cold-start selection; public models/DTOs/sidecars confer none",
+    "effective_permissions": "independent intersection of installed and verified signed permission/origin/method/namespace sets; unknown/missing/empty deny; compatibility hashes never grant",
+    "capability_limits": "installed-only N/reservation/timeout/turn/rate; release cannot widen/select them; signed base limits only narrow",
+    "unsupported": "assets, compression, delegation, new capabilities/WASI/native code, arbitrary plugins or graph discovery fail closed",
+    "zero_page_effective_limit": "positive signed/installed bytes may floor to0pages; exact0 support preferred via reviewed bridge change; if unavailable reject before staging, never round up1"
+  },
+  "preservation": {
+    "release-v1.json": "ff899af876c1bb28b0c65c913702b22af9e7031537f5d37ff36f41bf88e12769",
+    "release-v2.json": "ab4f5d881b1fd0cb91d01bd1da25a0b864690d29936063e0144304bfd275ba4b",
+    "grant_descriptor": "exact existing schema1 object and hash unchanged",
+    "old_verifier_apis": "keep strict protocol1/2 and guestABI1; new v3 context/type explicitly selected once"
+  },
+  "kind": "immutable_contract_definition",
+  "qualification_boundary": "Contract bytes are not proof of implementation, validation, native I/O, actual health, full Swift/UI/FieldLog, complete build graph/consumption/embedding, published packaging, physical lifecycle/performance, signing/store/hosted/GA qualification. Those require separate accountable evidence."
+}

@@ -1,0 +1,387 @@
+{
+  "schema_version": 1,
+  "name": "mixer-capability-execution-v1",
+  "authority": "These definitions alone enable no runtime, effects, release or publication. Execution requires an implementing trusted installed binary, matching immutable identity/material, verified signed selection and all specified gates. Proposal/implementation/qualification status is tracked outside these byte-hashed files.",
+  "authoring": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "xhigh"
+  },
+  "contract_format": "bounded protocol reference with closed structural schemas; lexical, cross-field, full executable and authority checks remain mandatory; JSON Schema alone never authorizes execution",
+  "route": "capability-guest-v1",
+  "selection": {
+    "identity_schema": 2,
+    "release_schema": 3,
+    "release_protocol": 3,
+    "guest_abi": 2,
+    "ui_schema": 1,
+    "base_profile": "mixer-table-memory-v3",
+    "import_context": "ExperimentalCapabilityV1, reachable only through the explicit capability family; no Profile4",
+    "default_routes": "Module::decode, Instance::new, CLI/inventory, streaming, old C/session symbols and old Swift runtime remain Legacy under every Cargo feature combination",
+    "native_feature": "experimental-capability-native",
+    "native_capability_abi": 1,
+    "payload_wrapper_abi": 1,
+    "effects_gate": "after-verified-startup-v1",
+    "instruction_scope": "unchanged v3 grammar and ceilings; no full Swift/WASI admission"
+  },
+  "references": {
+    "wire": {
+      "path": "contracts/guest-capability-transport-v1.json",
+      "sha256": "052ebe9fbdc20a41307332086767e7903680bc83ba273c696edf9187be6b6439",
+      "reuse": "exact six capability signatures, codes, arguments/completions, memory/token/JSON/fuel semantics; historical profile4/development status does not authorize or select this new route"
+    },
+    "native_header": {
+      "path": "vm/include/mixer_vm_capability.h",
+      "sha256": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6"
+    },
+    "legacy_header": {
+      "path": "vm/include/mixer_vm.h",
+      "sha256": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd"
+    },
+    "base_profile": {
+      "path": "vm/profiles/table-memory-v3.json",
+      "sha256": "c46d5527aa1d4ed1e4b282269546a132d75f8f1895640978165db68ec9ed028d"
+    },
+    "capability_schema_file": {
+      "path": "capabilities/schema/v1.json",
+      "sha256": "2b7519e0daea5a1dd25f8d2f93d2dc25c32caa376b8cf21a15e69505c621d77e"
+    },
+    "capability_semantic_sha256": "ca53c3c2ea1d8f08020468cc5d458d86542e0806d6494840557e591342f1154e",
+    "capability_schema_hashes": {
+      "network.http.v1": "fa1549c0a1e2e6b3bf4a83af1a6d37730bbefc8cddc3ffbe3c807d5e7af503f3",
+      "storage.keyValue.v1": "4a311222c978ddd0982e8dfbcf3d4864b856a80bcc1efb3b725adede7f8e22fd"
+    },
+    "grant_schema": 1,
+    "grant_descriptor_sha256": "b394ffd165ef28977de9743b1c1a98c419504787f2912e30d419cfb1582e15e1",
+    "sdk_native_implementation_sha256": "4fcc770e62d39b415e657ce03aa11fa7fb83ee8bfe1a99567716e9b4372d1c59",
+    "reviewed_native_revision": "b25e3b7de2391a80d12e7fd75e60903495bec120"
+  },
+  "imports": {
+    "capability_module": "mixer.capability.v1",
+    "additional_capability_functions": [
+      {
+        "name": "http_request",
+        "parameters": [
+          "i32",
+          "i32",
+          "i32"
+        ],
+        "results": [
+          "i32"
+        ],
+        "operation_tag": 1
+      },
+      {
+        "name": "storage_get",
+        "parameters": [
+          "i32",
+          "i32",
+          "i32"
+        ],
+        "results": [
+          "i32"
+        ],
+        "operation_tag": 2
+      },
+      {
+        "name": "storage_put",
+        "parameters": [
+          "i32",
+          "i32",
+          "i32"
+        ],
+        "results": [
+          "i32"
+        ],
+        "operation_tag": 3
+      },
+      {
+        "name": "storage_delete",
+        "parameters": [
+          "i32",
+          "i32",
+          "i32"
+        ],
+        "results": [
+          "i32"
+        ],
+        "operation_tag": 4
+      },
+      {
+        "name": "cancel",
+        "parameters": [
+          "i64"
+        ],
+        "results": [
+          "i32"
+        ]
+      },
+      {
+        "name": "poll",
+        "parameters": [
+          "i64",
+          "i32",
+          "i32",
+          "i32"
+        ],
+        "results": [
+          "i32"
+        ]
+      }
+    ],
+    "unchanged_legacy_functions": [
+      {
+        "module": "mixer",
+        "name": "checkpoint",
+        "parameters": [],
+        "results": []
+      },
+      {
+        "module": "mixer",
+        "name": "abort",
+        "parameters": [
+          "i32"
+        ],
+        "results": []
+      }
+    ],
+    "unknown": "any other module/name/signature/import kind fails complete validation, including uncalled bodies; no WASI/plugin/selector/native-pointer lookup",
+    "call_shapes": "direct, indirect and exported capability imports return declared i32; exact defined startup/wake cannot be imported functions"
+  },
+  "startup_and_memory": {
+    "startup": "one installed exact UTF8 no-control name1..4096bytes; defined no-argument function, supported optional numeric result; exactly once, effects disabled",
+    "wake": "defined mixer_guest_capability_ready_v1()->(); no arbitrary wake/callback",
+    "start_section": "reject; constructor and validation never execute exports",
+    "memory": "exactly one defined nonshared i32-addressed memory index0; no imported/shared/memory64/multiple memory",
+    "copy": "unsigned nonwrapping checked bounds and nonoverlap before mutation; native snapshots retain no guest pointers",
+    "byte_fuel": "extra ceil(sum of copied bytes/64), including8 token bytes or4 length bytes, before allocation/write/consume; pending and tooSmall length writes charged; dispatch/host-call fuel remains unchanged; exhaustion zeroes remaining fuel and makes no partial copy",
+    "atomicity": "invalid memory/quota/session rejection cannot publish/consume, allocate a request or advance its generation; fixed completion payloads use exact frozen schema hashes"
+  },
+  "ceilings": {
+    "module_bytes": 4194304,
+    "types": 512,
+    "functions_including_imports": 2048,
+    "instructions": 200000,
+    "parameters_plus_locals_per_function": 4096,
+    "globals": 1024,
+    "exports": 4096,
+    "control_depth_including_function": 128,
+    "table_elements_and_initializers": 65536,
+    "element_segments": 4096,
+    "memory_pages": 64,
+    "operand_values_per_frame": 4096,
+    "call_depth": 64,
+    "fuel_per_turn": 1000000,
+    "host_calls_per_turn": 1024,
+    "name_utf8_bytes": 4096,
+    "shared_native_sessions_including_reserved_closing_reclaiming": 16,
+    "swift_pending_live_draining_owners": 16,
+    "maximum_requests": 8,
+    "maximum_arguments_bytes": 524288,
+    "maximum_completion_bytes": 524288,
+    "native_reservation_bytes": 8388608,
+    "request_timeout_milliseconds": 30000,
+    "cooperative_turn_milliseconds": 50,
+    "native_transfer_bytes": 1048576
+  },
+  "narrowing": "installed and signed policy may only narrow existing ceilings; no missing-as-zero or automatic widening; memory bytes cover linear memory, not total process RSS",
+  "reservation": "each accepted request reserves arguments length plus524288completion bytes; argument snapshot+reservation must fit installed native reservation; lower positive quotas may deny all calls",
+  "ownership": {
+    "dispatch": "only a fully successful current guest turn publishes calls; trapping/cancelled/closed turns never start their queued work",
+    "scope": "raw token bits scoped to exact native handle/generation and operation; equal bits in another owner never confer identity",
+    "native_exit": "successful take Call creates one counted exit obligation; only first successful actual/no-I/O ack decrements; terminal/delivery/cancel/drop is not exit",
+    "close": "stop admission, permanent cancel, retained closing ack identity; normal tickets remain ackable after guest close; poison/quarantine denies ack and pins capacity",
+    "registry": "one archive and one shared16pool; never registry lock to ledger/mailbox; final destruction outside Reclaiming lock; no second default archive",
+    "cleanup_exception": "quarantined but unpoisoned cancel/close mayreturn0 for transition only; sticky quarantine/capacity remains; poison returns4",
+    "status": "native0..4, guest import0..7, typed completion failures and VM traps are separate domains; require checked report/status/kind and numeric alias preflight"
+  },
+  "installed_material": {
+    "input": {
+      "maximum_file_bytes": 65536,
+      "maximum_material_files": 5,
+      "maximum_total_material_bytes": 327680,
+      "maximum_container_depth": 8,
+      "maximum_values_per_file": 8192,
+      "json": "one strict UTF8 object; closed mandatory fields; reject duplicate decoded keys, unknown fields, BOM, trailing values, comments, null, malformed UTF8/surrogates and numeric coercion",
+      "canonical_bytes": "sorted ASCII object keys; compact separators; ASCII escaping; unsigned shortest decimal integers; arrays in required order; one final LF; exact re-encoding equality required",
+      "hash": "SHA256 of exact captured canonical file bytes; verify before parse and before object construction; never hash one representation and instantiate another path/DTO",
+      "roles": "exactly one bridge-policy file plus configuration and installed-grant files for each of zero..two installed capability entries; no missing, duplicate or unused role; no path lookup by guest/release; all snapshots immutable for owner lifetime"
+    },
+    "grant_entry_fields": [
+      "capability_id",
+      "methods",
+      "namespaces",
+      "origins",
+      "permissions",
+      "schema_sha256"
+    ],
+    "grant_rules": "exact existing grant schema1 family rules; native installed files grant only an envelope; signed verified grants intersect independently; missing/empty denies",
+    "http_configuration_schema": {
+      "type": "object",
+      "required": [
+        "schema",
+        "implementation",
+        "maximum_concurrent_requests"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": 1
+        },
+        "implementation": {
+          "const": "urlsession-normal-tls-v1"
+        },
+        "maximum_concurrent_requests": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8
+        }
+      }
+    },
+    "storage_configuration_schema": {
+      "type": "object",
+      "required": [
+        "schema",
+        "implementation",
+        "container",
+        "directory_component",
+        "maximum_total_bytes",
+        "maximum_entries"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": 1
+        },
+        "implementation": {
+          "const": "app-private-kv-v1"
+        },
+        "container": {
+          "const": "application-private"
+        },
+        "directory_component": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "maximum_total_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4194304
+        },
+        "maximum_entries": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1024
+        }
+      }
+    },
+    "bridge_policy_schema": {
+      "type": "object",
+      "required": [
+        "schema",
+        "burst",
+        "starts_per_second"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": 1
+        },
+        "burst": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8
+        },
+        "starts_per_second": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 32
+        }
+      }
+    },
+    "configuration_binding": "HTTP concurrency and CapabilityHost maximumRequests equal identity maximum_requests N; host timeout equals identity timeout; storage namespaces derive from same installed grant snapshot; never substitute release namespaces for installed configuration",
+    "empty_storage_namespaces": "empty installed namespaces deny and omit storage adapter; do not call current SDK storage initializer with empty namespaces or fabricate a namespace",
+    "factory": "after full identity/material/payload validation, construct concrete closed adapters from those same immutable bytes; no independently supplied policy/DTO/HTTP closure/session/trust override/storage root",
+    "storage_container": "trusted native application-private container plus checked single component; no per-device absolute root in universal fingerprint; no guest/release path",
+    "host_initialization": "private storage initialization may create/lock files; zero guest dispatch is not zero host filesystem activity",
+    "sdk_binding": "require linked known SDK native identity plus captured actual source/artifact/config identities; a declared digest alone is not proof runtime objects match"
+  },
+  "scheduler": {
+    "timer_milliseconds": 10,
+    "take_records_per_batch": 16,
+    "guest_turns_per_batch": 4,
+    "batch_elapsed_milliseconds": 8,
+    "pending_ordinary_commands": 1,
+    "entry_workers": 8,
+    "semantics": "off-UI serialized bounded pump; coalesced timer/events, round-robin, cancel/expire before admission; no immediate busy retry or unbounded queue; batch budget is not preemption",
+    "host_close_tasks": 1,
+    "native_close_dispatch_jobs": 1,
+    "close_ownership": "one coalesced detached host-close task and one coalesced off-UI native-close dispatch job per owner, counted separately; neither creates a per-callback fanout"
+  },
+  "deadlines": "Rust authoritative deadline never renewed; checked remaining floorR, Swift sampleS before query yields D=S+R; min previous D, argument HTTP timeout and installed timeout; carry noLaterThan across actor queues; expiry/cancel cannot undo admitted external effects",
+  "preservation": {
+    "contracts/activation-v1.json": "a0816bddd38afdfedb4fc2d50e522b0c808e64b640fb91d7991f895dc405989c",
+    "contracts/guest-capability-transport-v1.json": "052ebe9fbdc20a41307332086767e7903680bc83ba273c696edf9187be6b6439",
+    "contracts/release-v1.json": "ff899af876c1bb28b0c65c913702b22af9e7031537f5d37ff36f41bf88e12769",
+    "contracts/release-v2.json": "ab4f5d881b1fd0cb91d01bd1da25a0b864690d29936063e0144304bfd275ba4b",
+    "contracts/runtime-identity-v1.json": "454daf6fdc16955b32a725fd5fa230a4f7cc0c1f3327223bf73d8e6331fcf30c",
+    "contracts/ui-v1.json": "e9983da1c8f5b79dcead9fc7c99172be374ddeba319308615108651cb3931ac5",
+    "contracts/vm-profile-v1.json": "813a54a4e198a73d49afffe7c8d9cf54f6e76bfca80dd6556a439a4bdf1bdf4c",
+    "contracts/vm-session-v1.json": "6921f707b943ab76cdc3dae996ac7448d3c720676f290e259c892afcab1bf41a"
+  },
+  "native_boundary": {
+    "layouts_lp64": {
+      "MixerVmLimits": 32,
+      "MixerVmValue": 16,
+      "MixerVmReport": 352,
+      "MixerVmCapabilityLimitsV1": 32,
+      "MixerVmCapabilityMessageV1": 40,
+      "MixerVmCapabilityResultV1": 24
+    },
+    "fixed_structures": "struct_size/version checked, reserved0; may be unaligned; fields not trusted unless checked outer status and initialized kind/meta agree",
+    "pointer_preflight": "full nonwrapping numeric ranges and aliases including report before any output; all writable overlaps reject without writing; required pointers cannot be null; caller guarantees actual live storage, numeric checks cannot validate dangling pointers",
+    "functions": [
+      "validate",
+      "session_create",
+      "session_startup",
+      "session_enable",
+      "session_invoke",
+      "session_wake",
+      "session_read",
+      "session_write",
+      "session_cancel",
+      "session_close",
+      "take",
+      "post",
+      "ack_exit",
+      "limit_deadline",
+      "expire"
+    ],
+    "symbol_rule": "mixer_vm_capability_ + function + _v1; nondefault native feature only; C has no native I/O/JSON/grant validation/scheduler/Swift continuation",
+    "status_precedence": "stale/consumed identity3 first; existing unconsumed terminal post/deadline0kind1 even afterack; earlyack withoutterminal post/deadline3; duplicate ack retainedidentity0kind2; first ack0kind0; closed registry3, admitted live stop2",
+    "allocation_refusal": "post allocation refusal2 does not imply terminal or exit; preserve state/deadline; new bridge chooses bounded fail-closed stop instead of retry loop",
+    "deadline_query": "remaining0 means terminal/expiry and never extends I/O authority; terminal result0kind1 remaining0; no renewal"
+  },
+  "effective_memory": "floor(min(installed memory_bytes,signed memory_bytes)/65536), exact0..64pages. Matching defined-memory-zero modules may use0. If a selected bridge cannot represent exact0, fail closed before staging; never round up1 or validate/create with different limits.",
+  "kind": "immutable_contract_definition",
+  "qualification_boundary": "Contract bytes are not proof of implementation, validation, native I/O, actual health, full Swift/UI/FieldLog, complete build graph/consumption/embedding, published packaging, physical lifecycle/performance, signing/store/hosted/GA qualification. Those require separate accountable evidence.",
+  "required_primitives": [
+    {
+      "name": "same-config-bounded-validate-only",
+      "required": "complete same-config capability validation before updater staging, no instance/mailbox/adapters/exports; bound admission before capture/queue; revalidate same tuple on construction"
+    },
+    {
+      "name": "structured-machine-code-error-classification",
+      "required": "checked closed native code/status mapping; unknown conservative; never human message/substrings/status2 alone; retain function/offset when meaningful"
+    },
+    {
+      "name": "installed-identity-material-verified-factory-and-activation",
+      "required": "separate package, identity/material-bound concrete factory, v3 authority and ordered startup/effects/health; raw development enable never establishes selection authority"
+    },
+    {
+      "name": "zero-page-same-config-parity",
+      "required": "positive identity/signed byte budgets may floor to0; preserve exact0 for matching defined0page modules, or reject before staging if a selected bridge cannot represent it; never round up or validate/create with different limits"
+    }
+  ]
+}
