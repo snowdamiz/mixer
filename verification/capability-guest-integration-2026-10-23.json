@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "observedAt": "2026-10-23T04:34:43.979635+00:00",
+  "implementationRevision": "cc0ac37abf45c59df7c85f59ebbb038af7c0a251",
+  "independentReviewRevision": "a45392ab604577e863e05f8b830c23e4fa63831a",
+  "implementationSourceManifestSHA256": "1697111c4821879673950c143d8474667286e8632c6d769239ff402f999274ba",
+  "reviewCompilationSourceDigest": "c17feb07ab9f9c75f6786a6a022171a8b357ecc3d38dc0c80a8bfa99fa8011bf",
+  "matched": {
+    "implementationInputs": 77,
+    "implementationLogs": 42,
+    "independentReviewArtifacts": 29
+  },
+  "receipts": {
+    "vm/verification/capability-guest/2026-10-23-host/receipt.json": "2a33b3deb8237e46065004ce41614915d3ac7295547af307777ab5a5f088f8a3",
+    "verification/capability-guest-review/receipt.json": "e1bd282e2740cff411e7f24bd29ef13fd08d70e6ccc64c2c05c5665183d891a2"
+  },
+  "independentTests": {
+    "debug": {
+      "passed": 10,
+      "failed": 0,
+      "ignored": 0
+    },
+    "release": {
+      "passed": 10,
+      "failed": 0,
+      "ignored": 0
+    },
+    "rustfmt": "passed",
+    "clippy": "passed",
+    "enqueue_range_cases": 70,
+    "enqueue_rejections": 61,
+    "poll_range_cases": 12,
+    "concurrent_post_guest_cancel_rounds_per_mode": 32
+  },
+  "rootSourceReview": [
+    "Private import admission and unchanged legacy decode/instantiate routes",
+    "Direct/indirect/exported import result propagation",
+    "Atomic precharged enqueue/poll guest memory transactions and turn publication",
+    "Native port/ticket lifetime, close, expiry and first-terminal behavior"
+  ],
+  "result": "No actionable independent findings; exact frozen Rust-only composition integrated",
+  "limitations": [
+    "Rust-only actual-Wasm composition on macOS arm64; no device or crossbuild qualification",
+    "Dynamic payloads remain trusted opaque bytes; no native I/O, grants, native copies, scheduler, registry, C bridge, executor, activation, publication or GA qualification",
+    "General OOM recovery, no-unwind and mutex poison recovery are not established",
+    "Finite concurrent schedules and normal monotonic wait; no allocation-copy-delay instrumentation",
+    "Final source export excludes the root-owned capability_ffi follow-on; preliminary receipt preserves an unwired file that was never reviewed",
+    "Native C follow-on is being prepared separately and is excluded from this implementation and review"
+  ]
+}

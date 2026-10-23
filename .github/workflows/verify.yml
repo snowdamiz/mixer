@@ -29,6 +29,10 @@ jobs:
         run: |
           python3 capabilities/tools/generate.py --check
           swift test --package-path capabilities
+      - name: Guest transport raw byte corpus
+        run: |
+          python3 capabilities/tools/check-guest-transport-fixtures.py --configuration debug
+          python3 capabilities/tools/check-guest-transport-fixtures.py --configuration release
       - name: Native HTTP, deadlines and exit ownership under Thread Sanitizer
         run: |
           swift test --package-path capabilities \
@@ -74,12 +78,13 @@ jobs:
         run: cargo test --locked --manifest-path vm/Cargo.toml
       - name: Owned VM release tests
         run: cargo test --locked --release --manifest-path vm/Cargo.toml
-      - name: Experimental streaming validator, capability mailbox and explicit reference checks
+      - name: Experimental streaming validator, capability guest and explicit reference checks
         run: |
-          cargo test --locked --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-capability-mailbox
-          cargo test --locked --release --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-capability-mailbox
-          cargo test --locked --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-capability-mailbox -- --ignored
-          cargo test --locked --release --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-capability-mailbox -- --ignored
+          python3 vm/tools/generate-capability-terminals.py
+          cargo test --locked --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-capability-guest
+          cargo test --locked --release --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-capability-guest
+          cargo test --locked --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-capability-guest -- --ignored
+          cargo test --locked --release --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-capability-guest -- --ignored
   services:
     runs-on: ubuntu-24.04
     timeout-minutes: 15

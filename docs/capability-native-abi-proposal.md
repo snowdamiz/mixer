@@ -1,8 +1,9 @@
 # Native capability session ABI follow-on
 
 Status: root integration proposal, 2026-10-23. These are proposed declarations,
-not exported functions or a qualified native ABI. Implement only after the Rust guest
-composition has a frozen, independently reviewed implementation. No existing C
+not exported functions or a qualified native ABI. Integrate native entry points
+only after the Rust guest composition has a frozen, independently reviewed
+implementation. Independent pointer/layout helpers may be prepared earlier. No existing C
 header, session, profile, activation, identity or release contract changes here.
 The [Rust composition](experimental-capability-guest-implementation.md) and
 [transport contract](../contracts/guest-capability-transport-v1.json) define the
@@ -66,12 +67,27 @@ checks, initialize valid out-handle/output structures to their documented zero
 state before processing. Pointer validity remains a trusted native caller duty;
 numeric range checking cannot make dangling pointers safe.
 
+The report's entire byte range participates in preflight. If a required pointer
+is null, an address/length wraps or exceeds its fixed ceiling, or any writable
+range overlaps another participating range, return3 without writing any output,
+including the report. Read-only inputs may overlap each other. Empty ranges do
+not overlap; optional null limits contribute no range. Only after this complete
+preflight may ordinary semantic errors write a report. The legacy `ffi::boundary`
+writes its report unconditionally and cannot serve as this preflight boundary.
+
 `none` has all message fields zero except size/version. `call` has the fixed
 operation, nonzero token, remaining duration and complete argument length.
 `cancel` has operation/token only and no payload. `tooSmall` has required length
 only, does not issue a native lease and does not consume the queued call. A zero
 remaining duration must be handled as expiry before I/O, not a fresh timeout.
 All unused output fields stay zero.
+
+Take capacity is 0..524288 bytes; post length is 1..524288. Startup/export names
+are nonempty UTF-8 of at most4096 bytes. Invoke arguments use the unchanged
+`MixerVmValue` representation and existing locals ceiling, with checked
+count-times-size arithmetic before pointer access. `out-did-invoke` is writable
+uint32 storage returning exactly0 or1. A null pointer is permitted only for an
+optional limits input or an empty byte/value buffer, never a fixed output.
 
 The result kinds describe only successful mailbox protocol handling. Repeated
 post can report `terminal`; repeated exit can report `acknowledged` only while
@@ -80,6 +96,22 @@ rejects. Neither result is a native effect/rollback assertion. Legacy report
 statuses remain0..4: success, validation, execution/terminal, API rejection,
 contained panic/poison. Stale/foreign handles, malformed inputs and operation
 mismatch are API rejection, not a new meaning for status0.
+
+Post or deadline narrowing against an existing terminal reports status0/kind1;
+the latter returns remaining0. Post or narrowing after an early native exit
+acknowledgement reports status3. A repeated ack reports status0/kind2 only when
+the mailbox itself still retains that identity. Stale identities report status3.
+Native payload allocation refusal reports status2 and preserves request state for
+retry/expiry; it neither fabricates a terminal nor asserts native exit. A live
+terminal session reports status2; ordinary access to a closed handle reports3.
+Poison, panic and invariant failure quarantine the session; ordinary malformed or
+stale requests do not. Output kind0 is meaningful only with outer status0.
+
+The native tuple `(session handle, raw token, operation)` is resolved using that
+handle's stored owner-bound ticket. Equal raw bits can exist in different
+sessions. Substituting another valid handle with its own matching tuple cannot
+reveal the caller's original intent; the trusted bridge must preserve its mapping.
+Do not reconstruct Rust tickets from raw bits or claim global token uniqueness.
 
 ## Explicit function family
 
@@ -115,6 +147,14 @@ installed host; draining cancellation messages from a closed guest is unnecessar
 Cancellation and actual native exit remain separate. A caller that never reports
 exit keeps a slot counted instead of allowing unlimited replacement sessions.
 
+Cancel and close use the shared native port's close primitive outside the
+registry lock, without waiting for the instance mutex. The common terminal flag
+and cancellation token stop future admission immediately. The eventual Swift
+bridge must latch its closed activation generation before cancelling registered
+tasks. A take admitted before close can return afterward; late registration must
+observe that latch, perform no I/O and acknowledge its no-I/O exit instead of
+escaping the cancelled task map.
+
 ## Registry and lock requirements
 
 The registry owns one session variant plus a common cancellation/terminal state.
@@ -134,6 +174,32 @@ lock ordering and memory ordering explicitly. Do not query a mailbox while
 holding the registry lock or release a slot from a stale pre-lock usage snapshot.
 In particular, take racing close must commit its exit obligation before dropping
 the transient session lease. Duplicate/stale ack must never decrement twice.
+
+Use a fixed eight-entry native ticket ledger, guarded separately from the guest
+instance. Each entry retains its `DispatchLease` and whether exit was acknowledged;
+the C token alone cannot retain Rust ownership. Native operations serialize ledger
+access before mailbox access; registry code never acquires either lock. A taken
+call installs its ticket and increments the outstanding obligation count before
+releasing its transient session lease. Cancel messages only identify existing
+tickets. A new generation may replace an older ledger entry only after its exit
+was acknowledged. Always ask the mailbox about an ack/post/deadline operation:
+the cached acknowledged flag cannot authorize a token after delivery or close has
+released its underlying request. Decrement only the first successful exit ack.
+
+An armed local unwind guard must set a monotonic session quarantine latch if take
+fails after issuing a mailbox lease but before committing the ledger/count.
+Successful commit disarms the local guard; it never clears shared quarantine.
+This prevents a successful concurrent operation from erasing another failure.
+
+Transient native lease release must synchronize with reclamation. Release its
+extra Arc while holding the registry lock, where the registry's Live/Closing Arc
+still prevents destruction, then examine reclaim eligibility under that lock.
+Final destruction remains outside the lock in Reclaiming state. Alternatively,
+use an explicit active-call count under that lock with the same guarantee.
+`Arc::strong_count` and separate atomic loads alone are not a proof that the
+registry observes a coherent count/quarantine snapshot after another thread's
+unsynchronized Arc drop. Every successful ticket/count update and failure latch
+must precede this synchronized transient-lease release.
 
 Poison is fail-closed. The Rust experiment intentionally has no poisoned mailbox
 recovery. Native wrappers must contain unwind, mark admission terminal and retain
@@ -173,3 +239,12 @@ and the corrected command uses the observed SDK. See
 This preliminary layout check supplies neither Rust parity nor any function,
 pointer, registry, concurrency, linking or bridge behavior from the requirements
 above.
+
+The independent [design review](../verification/capability-native-design-review/README.md)
+identified the report preflight, ticket ledger, synchronized reclamation,
+monotonic quarantine, repeated-ack and late-registration requirements now stated
+above. These are corrections to the proposal; implementation and combined-boundary
+execution/review are still required. A standalone, unwired numeric range helper
+passes four tests per host build mode, including 346112 symmetric alias decisions;
+see `verification/capability-native-preflight/receipt.json`. It dereferences no
+pointer and supplies no actual C entry-point or registry evidence.

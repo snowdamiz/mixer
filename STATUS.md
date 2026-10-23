@@ -220,6 +220,17 @@ scheduler, counted registry retention or activation admission. See
 `vm/verification/capability-mailbox/receipt.json` and
 `verification/capability-foundations-integration-2026-10-22.json`.
 
+The opt-in Rust capability guest now executes the six fixed imports through that
+mailbox, with private admission, transactional memory/fuel accounting, disabled
+startup, coalesced wake and terminal close. Default 91 and combined 162 tests pass
+in both modes, plus nine explicit oracle functions and eight existing C smoke
+runs. Ten independent actual-Wasm tests pass in each mode; root matches all 77
+implementation inputs and 42 command logs at the frozen implementation. Legacy
+profiles, entry points and C symbols remain unchanged. Native callers still must
+retain their tickets through actual cleanup; there is no counted C registry or
+native I/O bridge in this slice. Arc/mutex OOM abort and poisoned-mailbox ack
+failure remain explicit. See `verification/capability-guest-integration-2026-10-23.json`.
+
 The proposed follow-on native capability ABI must share the existing sixteen-session
 ceiling and retain closing sessions until every dispatched native operation exits.
 Its C structure layouts compile on macOS arm64/x86_64 and iOS/Android arm64; only
@@ -292,3 +303,8 @@ exit behavior in macOS tests, Linux stream/mailbox/numeric checks and the genera
 iOS simulator consumer. This predates the new guest value codec and deadline
 repair. See `verification/github-ci-5d25a2b/receipt.json`. The next workflow adds
 Thread Sanitizer coverage for native HTTP, exit ownership and host deadlines.
+
+GitHub run39899331225 at3b1903a passed all three jobs, including 45 capability
+tests, 25 native HTTP/exit/deadline tests under Thread Sanitizer and the generated
+iOS simulator consumer. See `verification/github-ci-3b1903a/receipt.json`. This
+run predates the Rust guest composition and the new full raw-fixture CI step.

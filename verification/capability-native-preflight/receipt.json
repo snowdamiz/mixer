@@ -1,0 +1,85 @@
+{
+  "schema": 1,
+  "observedAt": "2026-10-23T04:28:55.622050+00:00",
+  "source": {
+    "vm/src/capability_ffi/ranges.rs": "1f4adbef4dc181cf60eeffe8f041c508b361154cb4a4f3c1c61dddae706e20be",
+    "verification/capability-native-preflight/verify.py": "1eed7b21deb0241d497d7cb93ae1b0a7b768276d73ed909e7e5b756f284ea474"
+  },
+  "commands": [
+    {
+      "name": "compiler",
+      "command": [
+        "/opt/homebrew/opt/rustup/bin/rustc",
+        "-Vv"
+      ],
+      "exitCode": 0,
+      "log": "verification/capability-native-preflight/compiler.log",
+      "sha256": "352d6857968e80a6357a926ac685b9b07f77c479aaafde33e73a53945e802909"
+    },
+    {
+      "name": "debug-build",
+      "command": [
+        "/opt/homebrew/opt/rustup/bin/rustc",
+        "--edition",
+        "2021",
+        "--test",
+        "-D",
+        "warnings",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/capability-ranges-eqmin8vq/main.rs",
+        "-o",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/capability-ranges-eqmin8vq/debug"
+      ],
+      "exitCode": 0,
+      "log": "verification/capability-native-preflight/debug-build.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "debug-tests",
+      "command": [
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/capability-ranges-eqmin8vq/debug"
+      ],
+      "exitCode": 0,
+      "log": "verification/capability-native-preflight/debug-tests.log",
+      "sha256": "b3276e9626065a787a0c7a3eb651f0fcbd657b5ca340d9f5f2ce1d4dd7ff43ce"
+    },
+    {
+      "name": "release-build",
+      "command": [
+        "/opt/homebrew/opt/rustup/bin/rustc",
+        "--edition",
+        "2021",
+        "--test",
+        "-D",
+        "warnings",
+        "-O",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/capability-ranges-eqmin8vq/main.rs",
+        "-o",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/capability-ranges-eqmin8vq/release"
+      ],
+      "exitCode": 0,
+      "log": "verification/capability-native-preflight/release-build.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "release-tests",
+      "command": [
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/capability-ranges-eqmin8vq/release"
+      ],
+      "exitCode": 0,
+      "log": "verification/capability-native-preflight/release-tests.log",
+      "sha256": "0ee8b765e1f69ea2c34de71c5bbc199c65a723633e15eb8b77c0f758e6794927"
+    }
+  ],
+  "passed": true,
+  "evidence": [
+    "Four tests each in debug/release",
+    "346112 symmetric alias decisions checked against byte-set overlap",
+    "Read-only overlaps allowed; empty ranges stay empty; report is a full writable participant",
+    "Null, isize ceiling, typed multiplication, address wrap and unaligned numeric ranges checked"
+  ],
+  "limitations": [
+    "Helper not yet wired into library or exported C entry points",
+    "Numeric ranges do not prove native pointer validity or ownership",
+    "No actual C buffer mutation, session registry, native I/O, mobile execution or ABI qualification"
+  ]
+}
