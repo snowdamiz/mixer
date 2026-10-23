@@ -1,0 +1,466 @@
+{
+  "schema_version": 1,
+  "observed_at_utc": "2026-10-23T02:59:40.925057+00:00",
+  "executor": "owned reproducible local verification script; independent review pending",
+  "source_revision_before_run": "c2dff1a25b7aa8a1ea445d688871b3d0af59a17c",
+  "source_tree_sha256": "10687012d7bae22cf726067d564d65a26b165d0463193fb9aeb6fc4cbf50100d",
+  "source_manifest": "verification/android-generated-consumer/source-manifest.sha256",
+  "generated_project": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-generated-consumer-6exngeem/Application",
+  "exported_project": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-generated-consumer-6exngeem/ExportedApplication",
+  "commands": [
+    {
+      "name": "cli-host",
+      "command": [
+        "/usr/bin/swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/cli"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "output": "verification/android-generated-consumer/cli-host.log",
+      "output_sha256": "fb29a5fb66d4a8c370673e1b950a31f23b918b72a440c26a9c6895dcf059cd50"
+    },
+    {
+      "name": "runtime-host",
+      "command": [
+        "/usr/bin/swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/engine"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "output": "verification/android-generated-consumer/runtime-host.log",
+      "output_sha256": "fc1bd73569922cca8e4cc234da20735d1d0ed2c9f482aaaa585d20224da72141"
+    },
+    {
+      "name": "create",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/cli/.build/debug/mixer",
+        "create",
+        "GeneratedConsumer",
+        "--directory",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-generated-consumer-6exngeem/Application",
+        "--application",
+        "dev.mixer.generatedconsumer",
+        "--platform",
+        "android"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "output": "verification/android-generated-consumer/create.log",
+      "output_sha256": "d587d9fa64ad8c6364d30d0fbc2f000ca0b046f3d7a9eb23d4b03c17c3caab29"
+    },
+    {
+      "name": "java-compile",
+      "command": [
+        "/opt/homebrew/Cellar/openjdk@25/25.0.4.1/libexec/openjdk.jdk/Contents/Home/bin/javac",
+        "--release",
+        "17",
+        "-Xlint:all",
+        "-Werror",
+        "-d",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-generated-consumer-6exngeem/Application/.mixer/java-contract-tests",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/app/src/dev/mixer/android/Json.java",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/app/src/dev/mixer/android/UiPacket.java",
+        "/Users/andreyyurlov/Documents/dev/mixer/native/android/tests/ContractTests.java"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "output": "verification/android-generated-consumer/java-compile.log",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "java-host",
+      "command": [
+        "/opt/homebrew/Cellar/openjdk@25/25.0.4.1/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "-cp",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-generated-consumer-6exngeem/Application/.mixer/java-contract-tests",
+        "dev.mixer.android.ContractTests"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "output": "verification/android-generated-consumer/java-host.log",
+      "output_sha256": "6e639356bba5e7a99407fac8e86902a64d171ca47483b014d16107f674bba121"
+    },
+    {
+      "name": "generated-host",
+      "command": [
+        "/usr/bin/swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-generated-consumer-6exngeem/Application"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "output": "verification/android-generated-consumer/generated-host.log",
+      "output_sha256": "d0a2a7c98d233f5f0753cfe0bd3ae78a41248873b1cbd75b5bfd9ec7cb7e2589"
+    },
+    {
+      "name": "generated-session-host",
+      "command": [
+        "/usr/bin/swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-generated-consumer-6exngeem/Application/Platforms/Android"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "output": "verification/android-generated-consumer/generated-session-host.log",
+      "output_sha256": "7450c7a3df9348f31f0555a7887feb60fe06a083843d1fe5272a17f3d5aa5800"
+    },
+    {
+      "name": "ios-build",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/cli/.build/debug/mixer",
+        "build",
+        "--platform",
+        "ios",
+        "--directory",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-generated-consumer-6exngeem/Application"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "output": "verification/android-generated-consumer/ios-build.log",
+      "output_sha256": "9c59cc6871ad5915d59aef9a82ebd831550ccfa85786880eaeb646d55b413c02"
+    },
+    {
+      "name": "android-build",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/cli/.build/debug/mixer",
+        "build",
+        "--platform",
+        "android",
+        "--directory",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-generated-consumer-6exngeem/Application"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "output": "verification/android-generated-consumer/android-build.log",
+      "output_sha256": "170736a0f8e06f8cf44d81b9a5f0e2a4df19816ac9b2c8c44765f3008fbf13c8"
+    },
+    {
+      "name": "sdk-drift",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/cli/.build/debug/mixer",
+        "build",
+        "--platform",
+        "android",
+        "--directory",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-generated-consumer-6exngeem/Application"
+      ],
+      "exit_code": 1,
+      "expected_exit_code": 1,
+      "output": "verification/android-generated-consumer/sdk-drift.log",
+      "output_sha256": "068efa8fec7411c49ff8389b251e61198d5e44aee49857d9250c04ffb8a87147"
+    },
+    {
+      "name": "adapter-drift",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/cli/.build/debug/mixer",
+        "build",
+        "--platform",
+        "android",
+        "--directory",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-generated-consumer-6exngeem/Application"
+      ],
+      "exit_code": 1,
+      "expected_exit_code": 1,
+      "output": "verification/android-generated-consumer/adapter-drift.log",
+      "output_sha256": "9fb0eff000466bc9984351d7ecb9796650cb78c52c7bc119a1012ee53ff662a4"
+    },
+    {
+      "name": "unsupported-capability",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/cli/.build/debug/mixer",
+        "build",
+        "--platform",
+        "android",
+        "--directory",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-generated-consumer-6exngeem/Application"
+      ],
+      "exit_code": 1,
+      "expected_exit_code": 1,
+      "output": "verification/android-generated-consumer/unsupported-capability.log",
+      "output_sha256": "e6e801d4b2edae5e04b1c3b0b8e142aaac48bf1039ae4b74e446d9673a1b91a1"
+    },
+    {
+      "name": "unsupported-resource",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/cli/.build/debug/mixer",
+        "build",
+        "--platform",
+        "android",
+        "--directory",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-generated-consumer-6exngeem/Application"
+      ],
+      "exit_code": 1,
+      "expected_exit_code": 1,
+      "output": "verification/android-generated-consumer/unsupported-resource.log",
+      "output_sha256": "874a940ca52c1983312141a0b739e806fd0d3ce235fc97b4ba8c5e4c36ff23f9"
+    },
+    {
+      "name": "toolchain-drift",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/cli/.build/debug/mixer",
+        "build",
+        "--platform",
+        "android",
+        "--directory",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-generated-consumer-6exngeem/Application"
+      ],
+      "exit_code": 1,
+      "expected_exit_code": 1,
+      "output": "verification/android-generated-consumer/toolchain-drift.log",
+      "output_sha256": "defd363ab84dfa6c15a5a370112eda88800d0b53d50d6dc1fd39d2f094199f23"
+    },
+    {
+      "name": "edited-android-build",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/cli/.build/debug/mixer",
+        "build",
+        "--platform",
+        "android",
+        "--directory",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-generated-consumer-6exngeem/Application"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "output": "verification/android-generated-consumer/edited-android-build.log",
+      "output_sha256": "fd4690154719c4801e1cec0a656e3530a06a01bf14a00b2778720b1c9e4d0e2a"
+    },
+    {
+      "name": "edited-feature-binary",
+      "command": [
+        "/usr/bin/strings",
+        "-a",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-generated-consumer-6exngeem/Application/.mixer/android-build/apk/lib/arm64-v8a/libAppAndroid.so"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "output": "verification/android-generated-consumer/edited-feature-binary.log",
+      "output_sha256": "b3254751b8d1d8a76747f69f4694b3558d43fab4be51fc4e24d077f132a05df0"
+    },
+    {
+      "name": "compiler-error",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/cli/.build/debug/mixer",
+        "build",
+        "--platform",
+        "android",
+        "--directory",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-generated-consumer-6exngeem/Application"
+      ],
+      "exit_code": 1,
+      "expected_exit_code": 1,
+      "output": "verification/android-generated-consumer/compiler-error.log",
+      "output_sha256": "cfe41070a26547cdc90095667246b78d641e43d0f44848f163bf61ed13cb9225"
+    },
+    {
+      "name": "source-mutation",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/cli/.build/debug/mixer",
+        "build",
+        "--platform",
+        "android",
+        "--directory",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-generated-consumer-6exngeem/Application"
+      ],
+      "exit_code": 1,
+      "expected_exit_code": 1,
+      "output": "verification/android-generated-consumer/source-mutation.log",
+      "output_sha256": "a0f80c175cd8272207c301cdd71653077a65bbffd01bbc5db74635b403de38f9"
+    },
+    {
+      "name": "final-android-build",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/cli/.build/debug/mixer",
+        "build",
+        "--platform",
+        "android",
+        "--directory",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-generated-consumer-6exngeem/Application"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "output": "verification/android-generated-consumer/final-android-build.log",
+      "output_sha256": "7924fadc6b2f050b12f5ede42885926efb2b737a7b206acbd9ba4faa250f4265"
+    },
+    {
+      "name": "export",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/cli/.build/debug/mixer",
+        "export",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-generated-consumer-6exngeem/ExportedApplication",
+        "--directory",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-generated-consumer-6exngeem/Application"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "output": "verification/android-generated-consumer/export.log",
+      "output_sha256": "f15b96678a5fdc9a1196f00925246e2ef1d5e97bb721af99b28a036a7a5cda69"
+    },
+    {
+      "name": "exported-host",
+      "command": [
+        "/usr/bin/swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-generated-consumer-6exngeem/ExportedApplication"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "output": "verification/android-generated-consumer/exported-host.log",
+      "output_sha256": "6689e49fb72b480378202842bf930a25d3c56f448b55b610d0df10a3efa8afc4"
+    }
+  ],
+  "toolchain": {
+    "schema": 1,
+    "sdk_id": "aarch64-unknown-linux-android28",
+    "abi": "arm64-v8a",
+    "min_api": 28,
+    "target_api": 37,
+    "swift_version": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "javac_version": "javac 25.0.4.1",
+    "java_version": "openjdk 25.0.4.1 2026-08-18\nOpenJDK Runtime Environment Homebrew (build 25.0.4.1)\nOpenJDK 64-Bit Server VM Homebrew (build 25.0.4.1, mixed mode, sharing)",
+    "python_version": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "tools": {
+      "python": {
+        "path": "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+        "sha256": "e401ac7a95cda75dee34a0cfe1e4faf0a6df1a501cf67887f177fb78cd4eb60a"
+      },
+      "swift": {
+        "path": "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift",
+        "sha256": "3d13e20b1504d7d30038fcd2201b9d0a8ead5c09eea752a5da223453b3ae0c6f"
+      },
+      "clang": {
+        "path": "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android28-clang",
+        "sha256": "c0e2e0373d192a8f9339e3148b2c56d41f60286ea5ff6ed3920c767be8090857"
+      },
+      "readelf": {
+        "path": "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-readelf",
+        "sha256": "27ac07f3157f415817a263843824577d7283871fb6e9b280afbc9e8badf6d1d5"
+      },
+      "nm": {
+        "path": "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-nm",
+        "sha256": "0ada73281ce97f8eec87cc3b3ad5f98e774721aca06120606fc5249b412b0d3a"
+      },
+      "java": {
+        "path": "/opt/homebrew/Cellar/openjdk@25/25.0.4.1/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "sha256": "9ef6c1a939343ac850811551a8b88d4b877630ab2c94ac38c541e25ccc8cf0a5"
+      },
+      "javac": {
+        "path": "/opt/homebrew/Cellar/openjdk@25/25.0.4.1/libexec/openjdk.jdk/Contents/Home/bin/javac",
+        "sha256": "e9fb09ca9cb259a164a32c9055931a865943d25c66800996183c86e527ca0688"
+      },
+      "d8": {
+        "path": "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0/d8",
+        "sha256": "b773a721be3d4988dea9660815a9e441b76100e5b0f5c72b5893cfadadc76c6f"
+      },
+      "aapt2": {
+        "path": "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0/aapt2",
+        "sha256": "13a206c0b022ba3b92f21b6f142f3a4b2d0f3bb1ac0bddfa820ee2c6b00c4c99"
+      },
+      "zipalign": {
+        "path": "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0/zipalign",
+        "sha256": "6d99a9d16c7116850414910b04cffd5ba3aaff86db7a6346179d678abe6d25d1"
+      },
+      "dexdump": {
+        "path": "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0/dexdump",
+        "sha256": "0328e326271bcb69350eb32ffc8053eb1e9de9cc245641a78ce322e5c4855c31"
+      }
+    },
+    "metadata": {
+      "ndk": {
+        "path": "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/source.properties",
+        "sha256": "fb5eec1ca5dac09442109cf79e9ce49faecd8b312dbc997e88903a394e14994a"
+      },
+      "platform": {
+        "path": "/opt/homebrew/share/android-commandlinetools/platforms/android-37.0/source.properties",
+        "sha256": "fa89029fc0cee414cb5e44a37cd3033771217eeecb5086577bb6d9b1b03b5b5f"
+      },
+      "build_tools": {
+        "path": "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0/source.properties",
+        "sha256": "fbd87c8567afbc6dc78e140097fcde234f4a61fa7065e85081d43e442ccd3d24"
+      },
+      "jdk": {
+        "path": "/opt/homebrew/Cellar/openjdk@25/25.0.4.1/libexec/openjdk.jdk/Contents/Home/release",
+        "sha256": "243ad32301f0103033f6e398d229018dedd145b5a6534ebca3efefb9e77c743c"
+      },
+      "swift_sdk": {
+        "path": "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/swift-sdk.json",
+        "sha256": "e81f3f2142bce0a795cdec567ad24434db3a7b02c288eb2eef2041d2066111dc"
+      },
+      "swift_toolset": {
+        "path": "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/swift-toolset.json",
+        "sha256": "0f9e3a784a4e60bf4c816460dae0ed64e0a723167af111fc05bac8a010b0e065"
+      }
+    },
+    "distributions": {
+      "swift_toolchain": {
+        "path": "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain",
+        "sha256": "0d79dcd75ec7e2e8467f6572f049f25adde933d6d1a35b64a222079f61752051"
+      },
+      "swift_android_sdk": {
+        "path": "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle",
+        "sha256": "cef2cc34f476b2d209de6fc66acacfa5b34ec737acf3fa4f00de16f26c3eabeb"
+      },
+      "android_platform": {
+        "path": "/opt/homebrew/share/android-commandlinetools/platforms/android-37.0",
+        "sha256": "6a89d699d8cbf8eec88d55bf6fcc79c57bba757695dd955d3f869c5e6ad5597a"
+      },
+      "android_build_tools": {
+        "path": "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0",
+        "sha256": "aa9272b16e099a091cbced96ebb162debfd4ce0520bfb4756bc9ea2a011338f1"
+      },
+      "jdk": {
+        "path": "/opt/homebrew/Cellar/openjdk@25/25.0.4.1/libexec/openjdk.jdk/Contents/Home",
+        "sha256": "6c95d1cd868f04ffb6647890cc558d8fe00a6f5ade4d4562d659ada7687dde10"
+      }
+    },
+    "sdk_search_path": "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks"
+  },
+  "actual_apk": {
+    "apk": "/Users/andreyyurlov/Documents/dev/mixer/verification/local/android-generated-consumer-6exngeem/Application/.mixer/android-build/GeneratedConsumer-unsigned.apk",
+    "apk_sha256": "bd1025394576e981ec9a987f313cea7eda657ec6f68b165414595c6bbd8edad9",
+    "apk_bytes": 27257478,
+    "apk_content_sha256": "955ccbc1de9eb13ee5791408302a065093d5017af92b3125d7a5ba04b36bcd4e"
+  },
+  "baseline_native_sha256": "56f94ef0e22169a39222cb4c0403e1e38aff1dbb5fe9c2d1d822c27790ce3484",
+  "edited_native_sha256": "aae761ee33757c2ac27dffcfe93d6b77796a62ccc7a15a162604385df47afda4",
+  "user_owned_files_preserved": {
+    "Sources/AppFeatures/ProjectFeature.swift": "d476fe4077d41be9a34fd49caa3a726d8463519ae93f1b712c104d840aee31d2",
+    "Platforms/Android/AndroidManifest.xml": "40c3ce541afca6bef135733acaa83e44654268cfd50738ad88988ba3a700b121",
+    "Platforms/Android/Sources/AppAndroid/NativeEntry.swift": "c6a6781abeeed531ebc139ad7ab76ca7470ea4a124a0a3419035fe838084dba2"
+  },
+  "evidence": {
+    "cli_tests": 19,
+    "runtime_tests": 3,
+    "existing_checklist_tests": 5,
+    "java_wire_checks": 34,
+    "shared_app_tests": 4,
+    "generated_app_c_abi_tests": 2,
+    "ios_simulator_cross_build": "passed unsigned; no simulator launch",
+    "android_arm64_cross_build_and_apk_inspection": "passed unsigned; actual AArch64 ELF64 headers checked; no install or device run",
+    "lock_drift_capability_resource_original_compiler_errors_and_concurrent_source_mutation": "rejected",
+    "source_observation": "before/after local mutation check only; no immutable sandbox or build attestation",
+    "user_edits": "recompiled shared feature and preserved native manifest/entry edits",
+    "export": "locked sources exported; host tests passed; independent CI not attempted"
+  },
+  "scope": "Generated application owns its AppModels/AppFeatures reducer/document and native extension entry. Consumes copied owned Java/JNI/runtime through immutable local source locks. Official installed tools only.",
+  "pending": [
+    "independent reproduction/review",
+    "physical Android and iOS (phones disconnected)",
+    "APK signing/installability",
+    "FieldLog D2",
+    "separate-repository published immutable packages",
+    "clean-machine and independent CI export builds",
+    "native capability/resource packaging",
+    "lifecycle/process restoration/persistence",
+    "accessibility/IME/device/ABI matrix",
+    "performance",
+    "store acceptance",
+    "GA"
+  ]
+}

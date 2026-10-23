@@ -72,6 +72,7 @@ public struct ToolchainLock: Codable, Sendable {
     public var swiftVersion: String
     public var generatedBy = "mixer 0.1.0-dev"
     public var qualification = "local-development-only"
+    public var android: AndroidToolchainLock?
     public init(sdkDigest: String, swiftVersion: String) {
         self.sdkDigest = sdkDigest; self.swiftVersion = swiftVersion; sdkDistribution = "bundled-source-snapshot"
     }

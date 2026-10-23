@@ -9,8 +9,13 @@ public struct GeneratedProject: Codable, Sendable {
 }
 
 public enum ProjectGenerator {
-    public static func create(name: String, application: String, destination: URL, sdk: URL) throws -> GeneratedProject {
-        let config = ApplicationConfiguration(name: name, application: application)
+    public static func create(name: String, application: String, destination: URL, sdk: URL, platform: String = "ios", androidAdapter: URL? = nil) throws -> GeneratedProject {
+        guard ["ios", "android"].contains(platform) else { throw MixerFailure("create.platform", "Create supports ios (default) or android (both native hosts).") }
+        var config = ApplicationConfiguration(name: name, application: application)
+        config.targets = platform == "android" ? ["ios", "android"] : ["ios"]
+        // The starter requests no native capabilities. Adding one requires an
+        // implemented native host and a new binary, never a successful stub.
+        config.capabilities = []
         try config.validate()
         let fm = FileManager.default
         guard !fm.fileExists(atPath: destination.path) else { throw MixerFailure("create.exists", "Refusing to overwrite \(destination.path). Choose a new directory.") }
@@ -35,7 +40,13 @@ public enum ProjectGenerator {
         let version = try ProcessRunner.run(["swift", "--version"])
         guard version.succeeded else { throw MixerFailure("create.swift", version.output) }
         try JSONFile.write(config, to: staging.appendingPathComponent("mixer.yml"))
-        try JSONFile.write(ToolchainLock(sdkDigest: digest, swiftVersion: version.output.trimmingCharacters(in: .whitespacesAndNewlines)), to: staging.appendingPathComponent("mixer.lock"))
+        var lock = ToolchainLock(sdkDigest: digest, swiftVersion: version.output.trimmingCharacters(in: .whitespacesAndNewlines))
+        if platform == "android" {
+            guard let androidAdapter else { throw MixerFailure("create.android-adapter", "Supply the owned Mixer Android adapter source distribution.") }
+            let adapterDigest = try AndroidProject.snapshot(adapter: androidAdapter, destination: staging.appendingPathComponent("Generated/MixerAndroid"))
+            lock.android = AndroidToolchainLock(adapterDigest: adapterDigest, toolchain: try AndroidProject.inspectToolchain())
+        }
+        try JSONFile.write(lock, to: staging.appendingPathComponent("mixer.lock"))
         let files = [
             "Package.swift": package(name),
             "Sources/AppModels/Entry.swift": models,
@@ -43,12 +54,13 @@ public enum ProjectGenerator {
             "Sources/NativeServices/README.md": "Native integrations live here. A new native capability requires a new store binary.\n",
             "Tests/AppModelsTests/EntryTests.swift": modelTests,
             "Platforms/iOS/\(name)App.swift": appleApp(name),
-            "Platforms/Android/README.md": "Android host generation and Swift/JNI integration are tracked in W05. This project does not yet contain a qualified Android application.\n",
             "README.md": readme(name),
             ".gitignore": ".build/\n.swiftpm/\n.mixer/\n.DS_Store\n"
         ]
         for (path, contents) in files { try contents.write(to: staging.appendingPathComponent(path), atomically: true, encoding: .utf8) }
         _ = try AppleProject.generate(root: staging)
+        if platform == "android" { try AndroidProject.generate(root: staging) }
+        else { try "No Android host was requested. Create a new project with --platform android for the unsigned local development host.\n".write(to: staging.appendingPathComponent("Platforms/Android/README.md"), atomically: true, encoding: .utf8) }
         // An entire project becomes visible only when construction succeeds.
         try fm.moveItem(at: staging, to: destination)
         return GeneratedProject(path: destination.path, application: application, sdkDigest: digest, nextSteps: ["cd \(destination.path)", "mixer test", "mixer doctor"])
@@ -91,9 +103,17 @@ public enum ProjectGenerator {
     """ + "\n"
 
     private static let features = """
+    import Foundation
     import AppModels
     import MixerUI
+    public struct ProjectFeatureState: Equatable, Sendable {
+        public var entries: [Entry]
+        public var draft: String
+        public init(entries: [Entry] = [], draft: String = "") { self.entries = entries; self.draft = draft }
+    }
+    public enum ProjectFeatureError: Error { case invalidAction, invalidDraft, entryLimit }
     public enum ProjectFeature {
+        // Compatible read-only surface retained for the iOS starter.
         public static func document(entries: [Entry], revision: UInt64 = 0) -> UIDocument {
             UIDocument(schemaVersion: 1, revision: revision, root: UINode(
                 id: "project", kind: .vStack,
@@ -103,6 +123,40 @@ public enum ProjectGenerator {
                 ]
             ))
         }
+        public static func document(state: ProjectFeatureState, revision: UInt64 = 0) -> UIDocument {
+            MixerUI.Navigation("project", title: "Your project") {
+                MixerUI.List("entries") {
+                    MixerUI.Section("editor", title: "Entries") {
+                        MixerUI.Text("progress", "\\(state.entries.filter(\\.completed).count) of \\(state.entries.count) completed")
+                        MixerUI.TextField("draft", "New entry", value: state.draft, action: "draft.change", onSubmit: "entry.add")
+                        MixerUI.Button("add", "Add entry", action: "entry.add")
+                            .disabled(state.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || state.entries.count >= 100)
+                    }
+                    MixerUI.Section("items", title: "Project entries") {
+                        for entry in state.entries {
+                            MixerUI.Toggle("entry.\\(entry.id.uuidString)", entry.title, value: entry.completed, action: "entry.toggle")
+                        }
+                    }
+                }
+            }.document(revision: revision)
+        }
+        public static func handle(_ action: RoutedUIAction, state: inout ProjectFeatureState) throws {
+            switch (action.actionID, action.value) {
+            case ("draft.change", .string(let value)):
+                guard action.nodeID == "draft", value.utf8.count <= 16_384 else { throw ProjectFeatureError.invalidAction }
+                state.draft = value
+            case ("entry.add", .null):
+                guard action.nodeID == "add" || action.nodeID == "draft" else { throw ProjectFeatureError.invalidAction }
+                let title = state.draft.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !title.isEmpty else { throw ProjectFeatureError.invalidDraft }
+                guard state.entries.count < 100 else { throw ProjectFeatureError.entryLimit }
+                state.entries.append(Entry(title: title)); state.draft = ""
+            case ("entry.toggle", .bool(let completed)):
+                guard let index = state.entries.firstIndex(where: { "entry.\\($0.id.uuidString)" == action.nodeID }) else { throw ProjectFeatureError.invalidAction }
+                state.entries[index].completed = completed
+            default: throw ProjectFeatureError.invalidAction
+            }
+        }
     }
     """ + "\n"
 
@@ -111,6 +165,7 @@ public enum ProjectGenerator {
     import Foundation
     @testable import AppModels
     @testable import AppFeatures
+    import MixerUI
     @Test func progressPreservesFraction() {
         #expect(ProjectProgress.fraction([Entry(title: "A", completed: true), Entry(title: "B")]) == 0.5)
         #expect(ProjectProgress.fraction([]) == 0)
@@ -121,6 +176,23 @@ public enum ProjectGenerator {
         #expect(!Entry(title: "  ").isValid)
     }
     @Test func featureBuilds() { #expect(ProjectFeature.document(entries: []).root.id == "project") }
+    @Test func sharedDraftAddToggle() throws {
+        var state = ProjectFeatureState()
+        var reconciler = UIReconciler()
+        func action(_ id: String, _ event: UIEventKind, _ value: UIValue) throws -> RoutedUIAction {
+            let snapshot = try reconciler.currentSnapshot()
+            return try snapshot.route(UIEventEnvelope(revision: snapshot.document.revision,
+                identity: #require(snapshot.identity(for: id)), event: event, value: value))
+        }
+        try reconciler.apply(ProjectFeature.document(state: state, revision: 1))
+        try ProjectFeature.handle(action("draft", .textChange, .string(" Café 東京 ")), state: &state)
+        try reconciler.apply(ProjectFeature.document(state: state, revision: 2))
+        try ProjectFeature.handle(action("add", .activate, .null), state: &state)
+        #expect(state.entries.count == 1); #expect(state.entries[0].title == "Café 東京"); #expect(state.draft.isEmpty)
+        try reconciler.apply(ProjectFeature.document(state: state, revision: 3))
+        try ProjectFeature.handle(action("entry.\\(state.entries[0].id.uuidString)", .valueChange, .bool(true)), state: &state)
+        #expect(state.entries[0].completed)
+    }
     """ + "\n"
 
     private static func appleApp(_ name: String) -> String {
@@ -155,8 +227,10 @@ public enum ProjectGenerator {
         is hashed in mixer.lock and allows offline builds without a cloud account.
         Source edits to that snapshot invalidate the lock until explicitly regenerated.
 
-        The iOS app entry point is in Platforms/iOS. Native project generation,
-        Android UI, and signed OTA delivery are still being qualified. A passing host
+        The iOS app entry point is in Platforms/iOS. An explicit `--platform android`
+        creation also generates a locked native Android host; see Platforms/Android.
+        Android is an unsigned local cross-build, pending device qualification.
+        SDK installation, Android UI, and signed OTA delivery are still being qualified. A passing host
         test is not a mobile release. Do not publish this preview as a qualified SDK.
         """ + "\n"
     }
@@ -169,6 +243,9 @@ public enum ProjectBuild {
         guard lock.schema == 1 else { throw MixerFailure("lock.schema", "Unsupported lock schema") }
         let actual = try SourceDigest.tree(root.appendingPathComponent("Generated/MixerSDK"))
         guard actual == lock.sdkDigest else { throw MixerFailure("lock.sdk-drift", "Bundled SDK source differs from mixer.lock. Restore the original SDK snapshot or explicitly install a new qualified SDK.") }
+        if let android = lock.android {
+            guard try SourceDigest.tree(root.appendingPathComponent("Generated/MixerAndroid")) == android.adapterDigest else { throw MixerFailure("lock.android-drift", "Bundled Android adapter source differs from mixer.lock. Restore the original locked adapter snapshot.") }
+        }
         let version = try ProcessRunner.run(["swift", "--version"])
         guard version.succeeded, version.output.trimmingCharacters(in: .whitespacesAndNewlines) == lock.swiftVersion else { throw MixerFailure("lock.toolchain-drift", "Swift host compiler differs from mixer.lock. Select the pinned toolchain.") }
         return lock
@@ -176,6 +253,7 @@ public enum ProjectBuild {
     public static func run(root: URL, test: Bool, platform: String) throws -> CommandResult {
         _ = try verifyLock(root: root)
         if platform == "ios", !test { return try AppleProject.build(root: root) }
+        if platform == "android", !test { return try AndroidProject.build(root: root) }
         guard platform == "host" else { throw MixerFailure("build.unqualified-target", "\(platform) \(test ? "tests" : "build") requires pending native integration; no platform result is reported as passed. Available: host package build/test, unsigned iOS Simulator build.") }
         return try ProcessRunner.run(["swift", test ? "test" : "build", "--package-path", root.path], at: root)
     }
