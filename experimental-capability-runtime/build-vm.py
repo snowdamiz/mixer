@@ -34,7 +34,22 @@ FEATURE='experimental-capability-native'
 HEADER_HASHES={
     'vm/include/mixer_vm.h':'18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd',
     'vm/include/mixer_vm_capability.h':'9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6',
+    'vm/include/mixer_vm_guest_ui.h':'d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5',
 }
+PUBLIC_C_SYMBOLS=frozenset('''
+mixer_vm_capability_ack_exit_v1 mixer_vm_capability_expire_v1
+mixer_vm_capability_guest_ui_validate_v1 mixer_vm_capability_limit_deadline_v1
+mixer_vm_capability_post_v1 mixer_vm_capability_session_cancel_v1
+mixer_vm_capability_session_close_v1 mixer_vm_capability_session_create_v1
+mixer_vm_capability_session_enable_v1 mixer_vm_capability_session_invoke_v1
+mixer_vm_capability_session_read_v1 mixer_vm_capability_session_startup_v1
+mixer_vm_capability_session_wake_v1 mixer_vm_capability_session_write_v1
+mixer_vm_capability_take_v1 mixer_vm_capability_validate_v1
+mixer_vm_invoke mixer_vm_invoke_numeric_v2 mixer_vm_invoke_table_memory_v3
+mixer_vm_session_cancel_v1 mixer_vm_session_close_v1 mixer_vm_session_create_v1
+mixer_vm_session_invoke_v1 mixer_vm_session_read_v1 mixer_vm_session_write_v1
+mixer_vm_validate mixer_vm_validate_numeric_v2 mixer_vm_validate_table_memory_v3
+'''.split())
 PATHS=['vm/Cargo.toml','vm/Cargo.lock','vm/build.rs','vm/src','vm/include','vm/profiles','vm/tests','vm/tools',
     'contracts/vm-profile-v1.json','contracts/vm-session-v1.json','contracts/guest-capability-transport-v1.json',
     'capabilities/schema/v1.json','capabilities/schema/hashes.json','runtime/Sources/CMixerVM/include/mixer_vm.h']
@@ -52,6 +67,11 @@ REGULAR=os.O_RDONLY|os.O_NOFOLLOW|os.O_CLOEXEC|os.O_NONBLOCK
 class BuildError(Exception):pass
 class ProcessGroupError(BuildError):pass
 def digest(raw):return hashlib.sha256(raw).hexdigest()
+def public_symbols(symbols):
+    names=[line.split()[-1].removeprefix('_') for line in symbols.splitlines() if line.split() and line.split()[-1].removeprefix('_').startswith('mixer_vm_')]
+    if len(names)!=len(PUBLIC_C_SYMBOLS) or set(names)!=PUBLIC_C_SYMBOLS:
+        raise BuildError('archive C symbol family mismatch')
+    return sorted(names)
 def relative(name):
     path=PurePosixPath(name)
     if path.is_absolute() or not path.parts or any(p in ('.','..','.git') for p in path.parts) or '\x00' in name:
@@ -165,7 +185,7 @@ def frozen_inputs(revision):
     try:manifest=tomllib.loads(files['vm/Cargo.toml']['bytes'].decode())
     except (ValueError,UnicodeError) as error:raise BuildError('invalid frozen Cargo manifest') from error
     features=manifest.get('features',{})
-    if features.get(FEATURE)!=['experimental-capability-guest'] or features.get('experimental-capability-guest')!=['experimental-capability-mailbox'] or features.get('default')!=[]:
+    if features.get(FEATURE)!=['experimental-capability-guest'] or features.get('experimental-capability-guest')!=['experimental-capability-mailbox'] or features.get('experimental-capability-mailbox')!=[] or features.get('default')!=[]:
         raise BuildError('explicit native feature chain/defaults mismatch')
     if 'staticlib' not in manifest.get('lib',{}).get('crate-type',[]):raise BuildError('static library target missing')
     if manifest.get('lib',{}).get('path') not in (None,'src/lib.rs'):raise BuildError('external or alternate library source is unsupported')
@@ -399,9 +419,7 @@ def build(args):
             parts=([target] if target else [])+['release','libmixer_vm.a']
             library=cache.joinpath(*parts)
             symbols=run('archive-symbols',[str(nm),'--extern-only','--defined-only',str(library)])
-            names=[line.split()[-1].removeprefix('_') for line in symbols.splitlines() if line.split() and line.split()[-1].removeprefix('_').startswith('mixer_vm_')]
-            if len(names)!=27 or len(set(names))!=27 or sum(n.startswith('mixer_vm_capability_') for n in names)!=15:raise BuildError('archive C symbol family mismatch')
-            receipt['public_C_symbols']=sorted(names);receipt['library']=copy_library(output,cache_fd,parts)
+            receipt['public_C_symbols']=public_symbols(symbols);receipt['library']=copy_library(output,cache_fd,parts)
         for path,expected in HEADER_HASHES.items():
             raw=files[path]['bytes'];output.write('include/'+Path(path).name,raw,0o644)
         receipt['headers']={Path(p).name:{'sha256':h,'path':str(out_path/'include'/Path(p).name)} for p,h in HEADER_HASHES.items()}

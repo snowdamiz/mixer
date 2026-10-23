@@ -19,7 +19,7 @@ import unittest
 BUILDER=Path(__file__).resolve().parents[1]/'build-vm.py'
 spec=importlib.util.spec_from_file_location('experimental_builder',BUILDER)
 b=importlib.util.module_from_spec(spec);spec.loader.exec_module(b)
-PIN='b25e3b7de2391a80d12e7fd75e60903495bec120'
+PIN='1adb25c48a8723f56ed2649712fe5e357920c53e'
 REPO=BUILDER.parents[1]
 
 class BuilderTests(unittest.TestCase):
@@ -65,13 +65,34 @@ class BuilderTests(unittest.TestCase):
         tree=self.git('rev-parse','HEAD^{tree}').decode().strip()
         self.rejected(tree,'not a commit')
     def test_missing_feature_rejected_before_output_even_optimized(self):
-        path=self.repo/'vm/Cargo.toml';path.write_bytes(path.read_bytes().replace(b'experimental-capability-native=["experimental-capability-guest"]',b'experimental-capability-native=[]'))
-        revision=self.commit()
-        for optimized in (False,True):self.rejected(revision,'feature chain',optimized)
+        path=self.repo/'vm/Cargo.toml';original=path.read_bytes()
+        for before,after in ((b'experimental-capability-native=["experimental-capability-guest"]',b'experimental-capability-native=[]'),
+                             (b'experimental-capability-guest=["experimental-capability-mailbox"]',b'experimental-capability-guest=[]'),
+                             (b'experimental-capability-mailbox=[]',b'experimental-capability-mailbox=["experimental-stream-cache"]'),
+                             (b'default=[]',b'default=["experimental-capability-native"]')):
+            path.write_bytes(original.replace(before,after));revision=self.commit()
+            for optimized in (False,True):self.rejected(revision,'feature chain',optimized)
     def test_header_drift_rejected_before_output_even_optimized(self):
         self.write('vm/include/mixer_vm_capability.h',b'wrong ABI')
         revision=self.commit()
         for optimized in (False,True):self.rejected(revision,'header mismatch',optimized)
+    def test_guest_ui_header_missing_or_drift_rejected(self):
+        path=self.repo/'vm/include/mixer_vm_guest_ui.h';original=path.read_bytes()
+        for changed in (None,original+b'/* unreviewed */\n'):
+            if changed is None:path.unlink()
+            else:path.write_bytes(changed)
+            revision=self.commit()
+            for optimized in (False,True):self.rejected(revision,'input is missing' if changed is None else 'header mismatch',optimized)
+    def test_public_symbols_require_exactly_one_of_each_old_and_new_api(self):
+        names=sorted(b.PUBLIC_C_SYMBOLS)
+        self.assertEqual(len(names),28)
+        self.assertEqual(sum(n.startswith('mixer_vm_capability_') for n in names),16)
+        for prefix in ('','_'):
+            rows=['00000000 T '+prefix+name for name in names]
+            self.assertEqual(b.public_symbols('\n'.join(rows)),names)
+            for changed in (rows[:-1],rows+[rows[0]],rows[:-1]+['00000000 T mixer_vm_unreviewed_v1'],
+                            [r for r in rows if not r.endswith('mixer_vm_capability_guest_ui_validate_v1')]):
+                with self.assertRaisesRegex(b.BuildError,'symbol family'):b.public_symbols('\n'.join(changed))
     def test_legacy_header_copy_drift(self):
         self.write('runtime/Sources/CMixerVM/include/mixer_vm.h',b'wrong copy')
         self.rejected(self.commit(),'copies differ',True)

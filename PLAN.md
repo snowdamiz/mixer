@@ -142,3 +142,9 @@ access. Its receipt uses frozen pre-UI dependencies. The bounded exchange,
 fixed bridge composites, signed facade and native presentation remain in progress.
 All three hosted jobs passed for b02b76f and 51aafe8; receipts are retained.
 No physical-device or UI health qualification is inferred from these checks.
+
+Hosted run39948346991 at1adb25c passed VM/services but Swift stopped at the
+old27-symbol archive inventory. The additive UI packager repair checks exactly
+28 reviewed symbols and all three pinned headers; 24 policy tests pass in
+normal and optimized Python. See verification/guest-ui-builder-ci-repair/receipt.json.
+Updated immutable native package and hosted CI qualification remain pending.
