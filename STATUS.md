@@ -630,3 +630,19 @@ This is controlled persisted close/reopen, not physical crash or real UI health
 qualification. Concrete attempt lifecycle and the public coordinator remain under
 integration. All three hosted jobs at7365b85 pass for the preceding control-wake
 checkpoint; see `verification/github-ci-7365b85/receipt.json`.
+
+The private concrete attempt owner now reserves its adapter obligation before
+I/O, constructs only derived concrete adapters off UI, and joins setup return,
+active-method return and actual bridge retirement before releasing capacity.
+Six tests pass in each host mode, including real signed selection, native
+startup/enable, Wasm storage and persisted KV bytes. Nine derived checks hold
+setup/method frames across real bridge retirement and verify partial KV cleanup.
+Independent probes pass in all three host modes, covering join/cancel races and
+eight actual signed/native last-owner-drop cycles per mode with the outer pool
+filled. Root reviewed the source and verified both evidence seals,127 baseline
+inputs,131 derived inputs,49 owner logs and19 artifacts; see
+`verification/capability-concrete-attempt-root-review/receipt.json`.
+This host qualification uses frozen transition candidate2 and does not include
+the new coordinator or its combined cross builds. All three hosted jobs atf5d99d1
+pass for the preceding durable-transition checkpoint; see
+`verification/github-ci-f5d99d1/receipt.json`.

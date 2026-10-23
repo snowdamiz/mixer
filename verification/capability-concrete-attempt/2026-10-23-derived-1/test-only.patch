@@ -1,0 +1,52 @@
+--- base/CapabilityConcreteAttempt.swift
++++ derived/CapabilityConcreteAttempt.swift
+@@ -225,6 +225,7 @@
+             let session = try await construction.create()
+             guard control.installSession(session) else { session.close(); throw concreteAttemptError("stopped") }
+             try control.requireOpen(deadline: true)
++            await ConcreteProbeHooks.afterSetupSession()
+         } catch {
+             if let group { group.closeIfUntransferred() }
+             else if let storage { await storage.close() } // Before group, no cleanup Task exists.
+--- base/CapabilityConcreteAttempt.swift
++++ derived/CapabilityConcreteAttempt.swift
+@@ -77,6 +77,7 @@
+         try c.requireOpen(deadline: true)
+         let session = try c.sessionForMethod()
+         let result = try await session.startup()
++        await ConcreteProbeHooks.afterStartup()
+         try c.requireOpen(deadline: true); return result
+     }
+     private static func enableOwned(_ c: CapabilityConcreteControl) async throws {
+--- base/CapabilityConcreteAttempt.swift
++++ derived/CapabilityConcreteAttempt.swift
+@@ -211,6 +211,7 @@
+                 storage = try AppPrivateKeyValueStore(directory: input.installed.privateContainer.appendingPathComponent(policy.directoryComponent, isDirectory: true),
+                     namespaces: policy.namespaces, maximumTotalBytes: policy.maximumTotalBytes, maximumEntries: policy.maximumEntries)
+             }
++            try ConcreteProbeHooks.afterStorage()
+             try control.requireOpen(deadline: true)
+             let http = try input.consumed.policy.http.map { try URLSessionHTTPTransport(maximumConcurrentRequests: Int($0.maximumConcurrentRequests)) }
+             control.retirement.expectGroup()
+--- base/CapabilityConcreteRetirement.swift
++++ derived/CapabilityConcreteRetirement.swift
+@@ -22,7 +22,7 @@
+     init(obligation: CapabilityAdapterObligation) { state = State(obligation: obligation) }
+ 
+     func expectGroup() { locked { $0.groupExpected = true } }
+-    func recordRetired() { locked { $0.bridgeRetired = true }; completeIfReady() }
++    func recordRetired() { ConcreteProbeHooks.bridgeRetired(); locked { $0.bridgeRetired = true }; completeIfReady() }
+     func setupDidReturn() { locked { $0.setupReturned = true }; completeIfReady() }
+     func beginMethod() throws {
+         try locked { s in
+--- base/CapabilityConcreteRetirement.swift
++++ derived/CapabilityConcreteRetirement.swift
+@@ -43,7 +43,7 @@
+                     s.waiterIssued = true
+                     if s.waitCancelled || Task.isCancelled { return false }
+                     if s.completed { return true }
+-                    s.waiter = continuation; return nil
++                    s.waiter = continuation; ConcreteProbeHooks.waiterInstalled(); return nil
+                 }
+                 if let immediate { continuation.resume(returning: immediate) }
+             }

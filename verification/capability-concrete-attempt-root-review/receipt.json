@@ -1,0 +1,50 @@
+{
+  "status": "root source review and both evidence seals passed",
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "commands": [
+    {
+      "command": [
+        "python3",
+        "verification/capability-concrete-attempt/finalize.py",
+        "--check"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "python3",
+        "verification/capability-concrete-attempt-review/audit.py"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "owner_receipt_sha256": "4af5f7181072ea2a3f324e972d8c1707e92b78b2cfd9533df772b9c127f55c60",
+  "independent_receipt_sha256": "dbfc040c2017a07126c8ca2dfca2d20cb528609689b37f2145bc83580375566f",
+  "production_inputs": {
+    "capability-activation/Sources/MixerCapabilityActivation/CapabilityConcreteAttempt.swift": "039e789a763cd99b2e6eb0295984ab44ac3d11d25def26b1ba48f294132cdbbc",
+    "capability-activation/Sources/MixerCapabilityActivation/CapabilityConcreteRetirement.swift": "e143c347eae335e2b6dd53abd56d0da24dc9729efa72e5a185b79abc2510b8cc"
+  },
+  "owner_tests_per_mode": {
+    "debug": 6,
+    "release": 6,
+    "tsan_exact_replay": 6
+  },
+  "derived_owner_executions": 9,
+  "independent_probe_executions": 6,
+  "independent_per_mode": {
+    "join_permutations": 6,
+    "concurrent_joins": 128,
+    "cancelled_wait_orders": 2,
+    "cancel_finish_races": 128,
+    "actual_signed_native_last_owner_drop_cycles": 8
+  },
+  "scope": "Private concrete attempt construction/stop/retirement only. Root reviewed fixed ownership graph and logical setup/method/bridge join; audited unchanged owner/reviewer receipts and manifests. No additional runtime tests are claimed by this audit.",
+  "limitations": [
+    "Exact owner-supplied module/library products reused and audited, not independently rebuilt.",
+    "Private owner assumes same factory material/Signals, acyclic external terminal consumer, one waiter and stop-before-wait coordinator ordering.",
+    "Frozen transition candidate2/old Signals scope; newer allowFallback/control-wake/coordinator composition remains separate.",
+    "Host synthetic original fixtures; no device, real product UI/FieldLog health, published-package, performance, signing/store/GA qualification.",
+    "TSan excludes Rust/platform internals; logical joins/counters are not Task destruction/total RSS/OOM guarantees.",
+    "Concrete qualification uses immutable transition candidate2; complete f5d99d1+control-wake+coordinator composition and cross-platform compilation remain separate."
+  ]
+}

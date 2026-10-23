@@ -93,6 +93,12 @@ interrupted or failed never-healthy candidate; the identical three probes pass
 in all three host modes. Closing can record failure without selecting a fallback.
 See `verification/capability-recovery-transitions-root-review/receipt.json`.
 Hosted CI at7365b85 passes all three jobs for the preceding control-wake checkpoint.
-Concrete attempt ownership and the signed coordinator are the current lanes;
-combined composition, actual UI health and published consumer qualification remain.
+Private concrete attempt ownership now passes six tests in each host mode, nine
+derived lifecycle checks and independent retirement/last-owner-drop probes. The
+outer slot remains held through setup/method return and actual bridge retirement;
+cancelled waits do not release it. Root verified both evidence seals; see
+`verification/capability-concrete-attempt-root-review/receipt.json`.
+Hosted CI atf5d99d1 passes all three jobs for the preceding durable transitions.
+The signed coordinator is the current lane; combined composition/cross builds,
+actual UI health and published consumer qualification remain.
 Keep the full product plan and physical/published-consumer/GA gates in scope.

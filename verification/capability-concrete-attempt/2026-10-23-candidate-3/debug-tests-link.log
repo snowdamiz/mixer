@@ -1,0 +1,559 @@
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:102:9: error: cannot find 'addTeardownBlock' in scope
+100 |         let root = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-concrete-" + UUID().uuidString)
+101 |         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
+102 |         addTeardownBlock { try FileManager.default.removeItem(at: root) }
+    |         `- error: cannot find 'addTeardownBlock' in scope
+103 |         return try ConcreteFixture(root: root,badInitialData: badInitialData)
+104 |     }
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:114:37: error: cannot find 'XCTUnwrap' in scope
+112 |                 try await store.appendDownload(f.payload,atOffset: 0); try await store.finishDownload()
+113 |                 let prepared = try await store.prepareStartupSelection()
+114 |                 let selection = try XCTUnwrap(prepared)
+    |                                     `- error: cannot find 'XCTUnwrap' in scope
+115 |                 let signals = CapabilityAttemptSignals(generation: selection.generation)
+116 |                 return (store,owner,try await store.consume(selection,signals: signals),signals)
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:125:83: error: cannot find 'XCTAssertTrue' in scope
+123 |     }
+124 |     private func close(_ store: CapabilityRecoveryStore, _ owner: CapabilityAttemptReservation, _ signals: CapabilityAttemptSignals) async {
+125 |         signals.finishNotifications(); owner.beginClosing(); await store.close(); XCTAssertTrue(owner.isReleased)
+    |                                                                                   `- error: cannot find 'XCTAssertTrue' in scope
+126 |     }
+127 |     private func reopen(_ f: ConcreteFixture) async throws {
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:81:9: note: macro 'XCTAssertTrue' unavailable: function like macros not supported
+ 79 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+ 80 | */
+ 81 | #define XCTAssertTrue(expression, ...) \
+    |         `- note: macro 'XCTAssertTrue' unavailable: function like macros not supported
+ 82 |     _XCTPrimitiveAssertTrue(nil, expression, @#expression, __VA_ARGS__)
+ 83 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:133:9: error: cannot find 'XCTAssertFalse' in scope
+131 |         let f = try fixture(), (store,owner,input,signals) = try await selected(f)
+132 |         let attempt = try CapabilityConcreteAttempt(consumed: input,installed: f.installed,reservation: owner,signals: signals)
+133 |         XCTAssertFalse(FileManager.default.fileExists(atPath: f.kvDirectory.path))
+    |         `- error: cannot find 'XCTAssertFalse' in scope
+134 |         XCTAssertThrowsError(try owner.reserveAdapterGroup())
+135 |         let available = 16 - CapabilityAttemptReservation.occupiedSlots
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:90:9: note: macro 'XCTAssertFalse' unavailable: function like macros not supported
+ 88 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+ 89 | */
+ 90 | #define XCTAssertFalse(expression, ...) \
+    |         `- note: macro 'XCTAssertFalse' unavailable: function like macros not supported
+ 91 |     _XCTPrimitiveAssertFalse(nil, expression, @#expression, __VA_ARGS__)
+ 92 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:134:9: error: cannot find 'XCTAssertThrowsError' in scope
+132 |         let attempt = try CapabilityConcreteAttempt(consumed: input,installed: f.installed,reservation: owner,signals: signals)
+133 |         XCTAssertFalse(FileManager.default.fileExists(atPath: f.kvDirectory.path))
+134 |         XCTAssertThrowsError(try owner.reserveAdapterGroup())
+    |         `- error: cannot find 'XCTAssertThrowsError' in scope
+135 |         let available = 16 - CapabilityAttemptReservation.occupiedSlots
+136 |         let others = try (0..<available).map { _ in try CapabilityAttemptReservation.acquire() }
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:137:9: error: cannot find 'XCTAssertEqual' in scope
+135 |         let available = 16 - CapabilityAttemptReservation.occupiedSlots
+136 |         let others = try (0..<available).map { _ in try CapabilityAttemptReservation.acquire() }
+137 |         XCTAssertEqual(CapabilityAttemptReservation.occupiedSlots,16); XCTAssertThrowsError(try CapabilityAttemptReservation.acquire())
+    |         `- error: cannot find 'XCTAssertEqual' in scope
+138 |         let token = attempt.stop(); XCTAssertTrue(token.completed)
+139 |         let retired = await token.wait(); XCTAssertTrue(retired)
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:120:9: note: macro 'XCTAssertEqual' unavailable: function like macros not supported
+118 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+119 | */
+120 | #define XCTAssertEqual(expression1, expression2, ...) \
+    |         `- note: macro 'XCTAssertEqual' unavailable: function like macros not supported
+121 |     _XCTPrimitiveAssertEqual(nil, expression1, @#expression1, expression2, @#expression2, __VA_ARGS__)
+122 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:137:72: error: cannot find 'XCTAssertThrowsError' in scope
+135 |         let available = 16 - CapabilityAttemptReservation.occupiedSlots
+136 |         let others = try (0..<available).map { _ in try CapabilityAttemptReservation.acquire() }
+137 |         XCTAssertEqual(CapabilityAttemptReservation.occupiedSlots,16); XCTAssertThrowsError(try CapabilityAttemptReservation.acquire())
+    |                                                                        `- error: cannot find 'XCTAssertThrowsError' in scope
+138 |         let token = attempt.stop(); XCTAssertTrue(token.completed)
+139 |         let retired = await token.wait(); XCTAssertTrue(retired)
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:138:37: error: cannot find 'XCTAssertTrue' in scope
+136 |         let others = try (0..<available).map { _ in try CapabilityAttemptReservation.acquire() }
+137 |         XCTAssertEqual(CapabilityAttemptReservation.occupiedSlots,16); XCTAssertThrowsError(try CapabilityAttemptReservation.acquire())
+138 |         let token = attempt.stop(); XCTAssertTrue(token.completed)
+    |                                     `- error: cannot find 'XCTAssertTrue' in scope
+139 |         let retired = await token.wait(); XCTAssertTrue(retired)
+140 |         let duplicate = await token.wait(); XCTAssertFalse(duplicate)
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:81:9: note: macro 'XCTAssertTrue' unavailable: function like macros not supported
+ 79 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+ 80 | */
+ 81 | #define XCTAssertTrue(expression, ...) \
+    |         `- note: macro 'XCTAssertTrue' unavailable: function like macros not supported
+ 82 |     _XCTPrimitiveAssertTrue(nil, expression, @#expression, __VA_ARGS__)
+ 83 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:139:43: error: cannot find 'XCTAssertTrue' in scope
+137 |         XCTAssertEqual(CapabilityAttemptReservation.occupiedSlots,16); XCTAssertThrowsError(try CapabilityAttemptReservation.acquire())
+138 |         let token = attempt.stop(); XCTAssertTrue(token.completed)
+139 |         let retired = await token.wait(); XCTAssertTrue(retired)
+    |                                           `- error: cannot find 'XCTAssertTrue' in scope
+140 |         let duplicate = await token.wait(); XCTAssertFalse(duplicate)
+141 |         do { try await attempt.construct(); XCTFail("stopped construction accepted") } catch {}
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:81:9: note: macro 'XCTAssertTrue' unavailable: function like macros not supported
+ 79 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+ 80 | */
+ 81 | #define XCTAssertTrue(expression, ...) \
+    |         `- note: macro 'XCTAssertTrue' unavailable: function like macros not supported
+ 82 |     _XCTPrimitiveAssertTrue(nil, expression, @#expression, __VA_ARGS__)
+ 83 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:140:45: error: cannot find 'XCTAssertFalse' in scope
+138 |         let token = attempt.stop(); XCTAssertTrue(token.completed)
+139 |         let retired = await token.wait(); XCTAssertTrue(retired)
+140 |         let duplicate = await token.wait(); XCTAssertFalse(duplicate)
+    |                                             `- error: cannot find 'XCTAssertFalse' in scope
+141 |         do { try await attempt.construct(); XCTFail("stopped construction accepted") } catch {}
+142 |         XCTAssertFalse(FileManager.default.fileExists(atPath: f.kvDirectory.path))
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:90:9: note: macro 'XCTAssertFalse' unavailable: function like macros not supported
+ 88 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+ 89 | */
+ 90 | #define XCTAssertFalse(expression, ...) \
+    |         `- note: macro 'XCTAssertFalse' unavailable: function like macros not supported
+ 91 |     _XCTPrimitiveAssertFalse(nil, expression, @#expression, __VA_ARGS__)
+ 92 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:141:45: error: cannot find 'XCTFail' in scope
+139 |         let retired = await token.wait(); XCTAssertTrue(retired)
+140 |         let duplicate = await token.wait(); XCTAssertFalse(duplicate)
+141 |         do { try await attempt.construct(); XCTFail("stopped construction accepted") } catch {}
+    |                                             `- error: cannot find 'XCTFail' in scope
+142 |         XCTAssertFalse(FileManager.default.fileExists(atPath: f.kvDirectory.path))
+143 |         let next = try owner.reserveAdapterGroup(); next.retire()
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:45:9: note: macro 'XCTFail' unavailable: function like macros not supported
+ 43 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+ 44 | */
+ 45 | #define XCTFail(...) \
+    |         `- note: macro 'XCTFail' unavailable: function like macros not supported
+ 46 |     _XCTPrimitiveFail(nil, __VA_ARGS__)
+ 47 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:142:9: error: cannot find 'XCTAssertFalse' in scope
+140 |         let duplicate = await token.wait(); XCTAssertFalse(duplicate)
+141 |         do { try await attempt.construct(); XCTFail("stopped construction accepted") } catch {}
+142 |         XCTAssertFalse(FileManager.default.fileExists(atPath: f.kvDirectory.path))
+    |         `- error: cannot find 'XCTAssertFalse' in scope
+143 |         let next = try owner.reserveAdapterGroup(); next.retire()
+144 |         others.forEach { $0.beginClosing() }; await close(store,owner,signals)
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:90:9: note: macro 'XCTAssertFalse' unavailable: function like macros not supported
+ 88 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+ 89 | */
+ 90 | #define XCTAssertFalse(expression, ...) \
+    |         `- note: macro 'XCTAssertFalse' unavailable: function like macros not supported
+ 91 |     _XCTPrimitiveAssertFalse(nil, expression, @#expression, __VA_ARGS__)
+ 92 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:150:45: error: cannot find 'XCTFail' in scope
+148 |         let attempt = try CapabilityConcreteAttempt(consumed: input,installed: f.installed,reservation: owner,signals: signals)
+149 |         try await attempt.construct(); _ = try await attempt.startup()
+150 |         do { try await attempt.construct(); XCTFail("duplicate construction accepted") } catch {}
+    |                                             `- error: cannot find 'XCTFail' in scope
+151 |         try await store.recordEffectsIntent(input,signals: signals)
+152 |         try await attempt.enableEffects(); try await store.confirmEffectsEnabled(input,signals: signals)
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:45:9: note: macro 'XCTFail' unavailable: function like macros not supported
+ 43 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+ 44 | */
+ 45 | #define XCTFail(...) \
+    |         `- note: macro 'XCTFail' unavailable: function like macros not supported
+ 46 |     _XCTPrimitiveFail(nil, __VA_ARGS__)
+ 47 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:157:52: error: cannot find 'XCTAssertTrue' in scope
+155 |             if case .i32(let length)? = try await attempt.invoke("done").value { return length > 0 }; return false
+156 |         }
+157 |         let retired = await attempt.stop().wait(); XCTAssertTrue(retired); XCTAssertFalse(owner.isReleased)
+    |                                                    `- error: cannot find 'XCTAssertTrue' in scope
+158 |         let reader = try AppPrivateKeyValueStore(directory: f.kvDirectory,namespaces: ["material_test"])
+159 |         let value = try await reader.get(.init(namespace: "material_test",key: "concrete")); await reader.close()
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:81:9: note: macro 'XCTAssertTrue' unavailable: function like macros not supported
+ 79 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+ 80 | */
+ 81 | #define XCTAssertTrue(expression, ...) \
+    |         `- note: macro 'XCTAssertTrue' unavailable: function like macros not supported
+ 82 |     _XCTPrimitiveAssertTrue(nil, expression, @#expression, __VA_ARGS__)
+ 83 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:157:76: error: cannot find 'XCTAssertFalse' in scope
+155 |             if case .i32(let length)? = try await attempt.invoke("done").value { return length > 0 }; return false
+156 |         }
+157 |         let retired = await attempt.stop().wait(); XCTAssertTrue(retired); XCTAssertFalse(owner.isReleased)
+    |                                                                            `- error: cannot find 'XCTAssertFalse' in scope
+158 |         let reader = try AppPrivateKeyValueStore(directory: f.kvDirectory,namespaces: ["material_test"])
+159 |         let value = try await reader.get(.init(namespace: "material_test",key: "concrete")); await reader.close()
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:90:9: note: macro 'XCTAssertFalse' unavailable: function like macros not supported
+ 88 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+ 89 | */
+ 90 | #define XCTAssertFalse(expression, ...) \
+    |         `- note: macro 'XCTAssertFalse' unavailable: function like macros not supported
+ 91 |     _XCTPrimitiveAssertFalse(nil, expression, @#expression, __VA_ARGS__)
+ 92 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:160:9: error: cannot find 'XCTAssertTrue' in scope
+158 |         let reader = try AppPrivateKeyValueStore(directory: f.kvDirectory,namespaces: ["material_test"])
+159 |         let value = try await reader.get(.init(namespace: "material_test",key: "concrete")); await reader.close()
+160 |         XCTAssertTrue(value.found); XCTAssertEqual(value.valueBase64,"b2s="); XCTAssertNil(signals.snapshot.firstBridgeFailure)
+    |         `- error: cannot find 'XCTAssertTrue' in scope
+161 |         let next = try owner.reserveAdapterGroup(); next.retire(); await close(store,owner,signals)
+162 |     }
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:81:9: note: macro 'XCTAssertTrue' unavailable: function like macros not supported
+ 79 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+ 80 | */
+ 81 | #define XCTAssertTrue(expression, ...) \
+    |         `- note: macro 'XCTAssertTrue' unavailable: function like macros not supported
+ 82 |     _XCTPrimitiveAssertTrue(nil, expression, @#expression, __VA_ARGS__)
+ 83 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:160:37: error: cannot find 'XCTAssertEqual' in scope
+158 |         let reader = try AppPrivateKeyValueStore(directory: f.kvDirectory,namespaces: ["material_test"])
+159 |         let value = try await reader.get(.init(namespace: "material_test",key: "concrete")); await reader.close()
+160 |         XCTAssertTrue(value.found); XCTAssertEqual(value.valueBase64,"b2s="); XCTAssertNil(signals.snapshot.firstBridgeFailure)
+    |                                     `- error: cannot find 'XCTAssertEqual' in scope
+161 |         let next = try owner.reserveAdapterGroup(); next.retire(); await close(store,owner,signals)
+162 |     }
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:120:9: note: macro 'XCTAssertEqual' unavailable: function like macros not supported
+118 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+119 | */
+120 | #define XCTAssertEqual(expression1, expression2, ...) \
+    |         `- note: macro 'XCTAssertEqual' unavailable: function like macros not supported
+121 |     _XCTPrimitiveAssertEqual(nil, expression1, @#expression1, expression2, @#expression2, __VA_ARGS__)
+122 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:160:79: error: cannot find 'XCTAssertNil' in scope
+158 |         let reader = try AppPrivateKeyValueStore(directory: f.kvDirectory,namespaces: ["material_test"])
+159 |         let value = try await reader.get(.init(namespace: "material_test",key: "concrete")); await reader.close()
+160 |         XCTAssertTrue(value.found); XCTAssertEqual(value.valueBase64,"b2s="); XCTAssertNil(signals.snapshot.firstBridgeFailure)
+    |                                                                               `- error: cannot find 'XCTAssertNil' in scope
+161 |         let next = try owner.reserveAdapterGroup(); next.retire(); await close(store,owner,signals)
+162 |     }
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:54:9: note: macro 'XCTAssertNil' unavailable: function like macros not supported
+ 52 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+ 53 | */
+ 54 | #define XCTAssertNil(expression, ...) \
+    |         `- note: macro 'XCTAssertNil' unavailable: function like macros not supported
+ 55 |     _XCTPrimitiveAssertNil(nil, expression, @#expression, __VA_ARGS__)
+ 56 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:166:45: error: cannot find 'XCTFail' in scope
+164 |         let f = try fixture(badInitialData: true), (store,owner,input,signals) = try await selected(f)
+165 |         let attempt = try CapabilityConcreteAttempt(consumed: input,installed: f.installed,reservation: owner,signals: signals)
+166 |         do { try await attempt.construct(); XCTFail("invalid active data instantiated") }
+    |                                             `- error: cannot find 'XCTFail' in scope
+167 |         catch let error as ExperimentalCapabilityError { XCTAssertEqual(error.failure.kind,.instantiation(.initialDataBounds)) }
+168 |         let retired = await attempt.retirement.wait(); XCTAssertTrue(retired)
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:45:9: note: macro 'XCTFail' unavailable: function like macros not supported
+ 43 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+ 44 | */
+ 45 | #define XCTFail(...) \
+    |         `- note: macro 'XCTFail' unavailable: function like macros not supported
+ 46 |     _XCTPrimitiveFail(nil, __VA_ARGS__)
+ 47 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:167:58: error: cannot find 'XCTAssertEqual' in scope
+165 |         let attempt = try CapabilityConcreteAttempt(consumed: input,installed: f.installed,reservation: owner,signals: signals)
+166 |         do { try await attempt.construct(); XCTFail("invalid active data instantiated") }
+167 |         catch let error as ExperimentalCapabilityError { XCTAssertEqual(error.failure.kind,.instantiation(.initialDataBounds)) }
+    |                                                          `- error: cannot find 'XCTAssertEqual' in scope
+168 |         let retired = await attempt.retirement.wait(); XCTAssertTrue(retired)
+169 |         XCTAssertEqual(signals.snapshot.firstBridgeFailure?.operation,.construction)
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:120:9: note: macro 'XCTAssertEqual' unavailable: function like macros not supported
+118 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+119 | */
+120 | #define XCTAssertEqual(expression1, expression2, ...) \
+    |         `- note: macro 'XCTAssertEqual' unavailable: function like macros not supported
+121 |     _XCTPrimitiveAssertEqual(nil, expression1, @#expression1, expression2, @#expression2, __VA_ARGS__)
+122 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:168:56: error: cannot find 'XCTAssertTrue' in scope
+166 |         do { try await attempt.construct(); XCTFail("invalid active data instantiated") }
+167 |         catch let error as ExperimentalCapabilityError { XCTAssertEqual(error.failure.kind,.instantiation(.initialDataBounds)) }
+168 |         let retired = await attempt.retirement.wait(); XCTAssertTrue(retired)
+    |                                                        `- error: cannot find 'XCTAssertTrue' in scope
+169 |         XCTAssertEqual(signals.snapshot.firstBridgeFailure?.operation,.construction)
+170 |         XCTAssertTrue(FileManager.default.fileExists(atPath: f.kvDirectory.path)); try await reopen(f)
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:81:9: note: macro 'XCTAssertTrue' unavailable: function like macros not supported
+ 79 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+ 80 | */
+ 81 | #define XCTAssertTrue(expression, ...) \
+    |         `- note: macro 'XCTAssertTrue' unavailable: function like macros not supported
+ 82 |     _XCTPrimitiveAssertTrue(nil, expression, @#expression, __VA_ARGS__)
+ 83 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:169:9: error: cannot find 'XCTAssertEqual' in scope
+167 |         catch let error as ExperimentalCapabilityError { XCTAssertEqual(error.failure.kind,.instantiation(.initialDataBounds)) }
+168 |         let retired = await attempt.retirement.wait(); XCTAssertTrue(retired)
+169 |         XCTAssertEqual(signals.snapshot.firstBridgeFailure?.operation,.construction)
+    |         `- error: cannot find 'XCTAssertEqual' in scope
+170 |         XCTAssertTrue(FileManager.default.fileExists(atPath: f.kvDirectory.path)); try await reopen(f)
+171 |         let next = try owner.reserveAdapterGroup(); next.retire(); await close(store,owner,signals)
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:120:9: note: macro 'XCTAssertEqual' unavailable: function like macros not supported
+118 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+119 | */
+120 | #define XCTAssertEqual(expression1, expression2, ...) \
+    |         `- note: macro 'XCTAssertEqual' unavailable: function like macros not supported
+121 |     _XCTPrimitiveAssertEqual(nil, expression1, @#expression1, expression2, @#expression2, __VA_ARGS__)
+122 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:170:9: error: cannot find 'XCTAssertTrue' in scope
+168 |         let retired = await attempt.retirement.wait(); XCTAssertTrue(retired)
+169 |         XCTAssertEqual(signals.snapshot.firstBridgeFailure?.operation,.construction)
+170 |         XCTAssertTrue(FileManager.default.fileExists(atPath: f.kvDirectory.path)); try await reopen(f)
+    |         `- error: cannot find 'XCTAssertTrue' in scope
+171 |         let next = try owner.reserveAdapterGroup(); next.retire(); await close(store,owner,signals)
+172 |     }
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:81:9: note: macro 'XCTAssertTrue' unavailable: function like macros not supported
+ 79 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+ 80 | */
+ 81 | #define XCTAssertTrue(expression, ...) \
+    |         `- note: macro 'XCTAssertTrue' unavailable: function like macros not supported
+ 82 |     _XCTPrimitiveAssertTrue(nil, expression, @#expression, __VA_ARGS__)
+ 83 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:181:42: error: cannot find 'XCTAssertFalse' in scope
+179 |         try await eventually("KV setup not reached") { FileManager.default.fileExists(atPath: f.kvDirectory.path) }
+180 |         pending.cancel(); let token = attempt.stop(cause: .cancelled); token.cancelWait()
+181 |         let waited = await token.wait(); XCTAssertFalse(waited)
+    |                                          `- error: cannot find 'XCTAssertFalse' in scope
+182 |         // Cancellation may win before group creation or after create is queued.
+183 |         // The former can retire inline; neither outcome is inferred from wait's
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:90:9: note: macro 'XCTAssertFalse' unavailable: function like macros not supported
+ 88 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+ 89 | */
+ 90 | #define XCTAssertFalse(expression, ...) \
+    |         `- note: macro 'XCTAssertFalse' unavailable: function like macros not supported
+ 91 |     _XCTPrimitiveAssertFalse(nil, expression, @#expression, __VA_ARGS__)
+ 92 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:185:31: error: cannot find 'XCTAssertThrowsError' in scope
+183 |         // The former can retire inline; neither outcome is inferred from wait's
+184 |         // false result. Derived barriers qualify the exact retained schedules.
+185 |         if !token.completed { XCTAssertThrowsError(try owner.reserveAdapterGroup()) }
+    |                               `- error: cannot find 'XCTAssertThrowsError' in scope
+186 |         owner.beginClosing(); signals.finishNotifications(); await store.close()
+187 |         if !token.completed { XCTAssertFalse(owner.isReleased) }
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:187:31: error: cannot find 'XCTAssertFalse' in scope
+185 |         if !token.completed { XCTAssertThrowsError(try owner.reserveAdapterGroup()) }
+186 |         owner.beginClosing(); signals.finishNotifications(); await store.close()
+187 |         if !token.completed { XCTAssertFalse(owner.isReleased) }
+    |                               `- error: cannot find 'XCTAssertFalse' in scope
+188 |         gate.release(); do { try await pending.value; XCTFail("cancelled create returned success") } catch {}
+189 |         try await eventually("actual cancelled setup did not retire") { token.completed }
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:90:9: note: macro 'XCTAssertFalse' unavailable: function like macros not supported
+ 88 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+ 89 | */
+ 90 | #define XCTAssertFalse(expression, ...) \
+    |         `- note: macro 'XCTAssertFalse' unavailable: function like macros not supported
+ 91 |     _XCTPrimitiveAssertFalse(nil, expression, @#expression, __VA_ARGS__)
+ 92 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:188:55: error: cannot find 'XCTFail' in scope
+186 |         owner.beginClosing(); signals.finishNotifications(); await store.close()
+187 |         if !token.completed { XCTAssertFalse(owner.isReleased) }
+188 |         gate.release(); do { try await pending.value; XCTFail("cancelled create returned success") } catch {}
+    |                                                       `- error: cannot find 'XCTFail' in scope
+189 |         try await eventually("actual cancelled setup did not retire") { token.completed }
+190 |         XCTAssertTrue(owner.isReleased); try await reopen(f)
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:45:9: note: macro 'XCTFail' unavailable: function like macros not supported
+ 43 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+ 44 | */
+ 45 | #define XCTFail(...) \
+    |         `- note: macro 'XCTFail' unavailable: function like macros not supported
+ 46 |     _XCTPrimitiveFail(nil, __VA_ARGS__)
+ 47 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:190:9: error: cannot find 'XCTAssertTrue' in scope
+188 |         gate.release(); do { try await pending.value; XCTFail("cancelled create returned success") } catch {}
+189 |         try await eventually("actual cancelled setup did not retire") { token.completed }
+190 |         XCTAssertTrue(owner.isReleased); try await reopen(f)
+    |         `- error: cannot find 'XCTAssertTrue' in scope
+191 |     }
+192 |     func testExpiredOriginalCutoffSkipsAdaptersAndDoesNotLeakSlot() async throws {
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:81:9: note: macro 'XCTAssertTrue' unavailable: function like macros not supported
+ 79 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+ 80 | */
+ 81 | #define XCTAssertTrue(expression, ...) \
+    |         `- note: macro 'XCTAssertTrue' unavailable: function like macros not supported
+ 82 |     _XCTPrimitiveAssertTrue(nil, expression, @#expression, __VA_ARGS__)
+ 83 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:195:45: error: cannot find 'XCTFail' in scope
+193 |         let f = try fixture(), (store,owner,input,signals) = try await selected(f,environment: .init(wall: { 1000 },monotonic: { 1 }))
+194 |         let attempt = try CapabilityConcreteAttempt(consumed: input,installed: f.installed,reservation: owner,signals: signals)
+195 |         do { try await attempt.construct(); XCTFail("expired startup admitted") }
+    |                                             `- error: cannot find 'XCTFail' in scope
+196 |         catch let error as UpdateError { XCTAssertEqual(error.code,"capability.concrete.deadline") }
+197 |         let retired = await attempt.retirement.wait(); XCTAssertTrue(retired)
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:45:9: note: macro 'XCTFail' unavailable: function like macros not supported
+ 43 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+ 44 | */
+ 45 | #define XCTFail(...) \
+    |         `- note: macro 'XCTFail' unavailable: function like macros not supported
+ 46 |     _XCTPrimitiveFail(nil, __VA_ARGS__)
+ 47 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:196:42: error: cannot find 'XCTAssertEqual' in scope
+194 |         let attempt = try CapabilityConcreteAttempt(consumed: input,installed: f.installed,reservation: owner,signals: signals)
+195 |         do { try await attempt.construct(); XCTFail("expired startup admitted") }
+196 |         catch let error as UpdateError { XCTAssertEqual(error.code,"capability.concrete.deadline") }
+    |                                          `- error: cannot find 'XCTAssertEqual' in scope
+197 |         let retired = await attempt.retirement.wait(); XCTAssertTrue(retired)
+198 |         XCTAssertFalse(FileManager.default.fileExists(atPath: f.kvDirectory.path)); XCTAssertNil(signals.snapshot.firstBridgeFailure)
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:120:9: note: macro 'XCTAssertEqual' unavailable: function like macros not supported
+118 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+119 | */
+120 | #define XCTAssertEqual(expression1, expression2, ...) \
+    |         `- note: macro 'XCTAssertEqual' unavailable: function like macros not supported
+121 |     _XCTPrimitiveAssertEqual(nil, expression1, @#expression1, expression2, @#expression2, __VA_ARGS__)
+122 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:197:56: error: cannot find 'XCTAssertTrue' in scope
+195 |         do { try await attempt.construct(); XCTFail("expired startup admitted") }
+196 |         catch let error as UpdateError { XCTAssertEqual(error.code,"capability.concrete.deadline") }
+197 |         let retired = await attempt.retirement.wait(); XCTAssertTrue(retired)
+    |                                                        `- error: cannot find 'XCTAssertTrue' in scope
+198 |         XCTAssertFalse(FileManager.default.fileExists(atPath: f.kvDirectory.path)); XCTAssertNil(signals.snapshot.firstBridgeFailure)
+199 |         if case .local(.deadline)? = signals.snapshot.firstCause {} else { XCTFail("missing exact local deadline") }
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:81:9: note: macro 'XCTAssertTrue' unavailable: function like macros not supported
+ 79 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+ 80 | */
+ 81 | #define XCTAssertTrue(expression, ...) \
+    |         `- note: macro 'XCTAssertTrue' unavailable: function like macros not supported
+ 82 |     _XCTPrimitiveAssertTrue(nil, expression, @#expression, __VA_ARGS__)
+ 83 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:198:9: error: cannot find 'XCTAssertFalse' in scope
+196 |         catch let error as UpdateError { XCTAssertEqual(error.code,"capability.concrete.deadline") }
+197 |         let retired = await attempt.retirement.wait(); XCTAssertTrue(retired)
+198 |         XCTAssertFalse(FileManager.default.fileExists(atPath: f.kvDirectory.path)); XCTAssertNil(signals.snapshot.firstBridgeFailure)
+    |         `- error: cannot find 'XCTAssertFalse' in scope
+199 |         if case .local(.deadline)? = signals.snapshot.firstCause {} else { XCTFail("missing exact local deadline") }
+200 |         let next = try owner.reserveAdapterGroup(); next.retire(); await close(store,owner,signals)
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:90:9: note: macro 'XCTAssertFalse' unavailable: function like macros not supported
+ 88 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+ 89 | */
+ 90 | #define XCTAssertFalse(expression, ...) \
+    |         `- note: macro 'XCTAssertFalse' unavailable: function like macros not supported
+ 91 |     _XCTPrimitiveAssertFalse(nil, expression, @#expression, __VA_ARGS__)
+ 92 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:198:85: error: cannot find 'XCTAssertNil' in scope
+196 |         catch let error as UpdateError { XCTAssertEqual(error.code,"capability.concrete.deadline") }
+197 |         let retired = await attempt.retirement.wait(); XCTAssertTrue(retired)
+198 |         XCTAssertFalse(FileManager.default.fileExists(atPath: f.kvDirectory.path)); XCTAssertNil(signals.snapshot.firstBridgeFailure)
+    |                                                                                     `- error: cannot find 'XCTAssertNil' in scope
+199 |         if case .local(.deadline)? = signals.snapshot.firstCause {} else { XCTFail("missing exact local deadline") }
+200 |         let next = try owner.reserveAdapterGroup(); next.retire(); await close(store,owner,signals)
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:54:9: note: macro 'XCTAssertNil' unavailable: function like macros not supported
+ 52 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+ 53 | */
+ 54 | #define XCTAssertNil(expression, ...) \
+    |         `- note: macro 'XCTAssertNil' unavailable: function like macros not supported
+ 55 |     _XCTPrimitiveAssertNil(nil, expression, @#expression, __VA_ARGS__)
+ 56 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:199:76: error: cannot find 'XCTFail' in scope
+197 |         let retired = await attempt.retirement.wait(); XCTAssertTrue(retired)
+198 |         XCTAssertFalse(FileManager.default.fileExists(atPath: f.kvDirectory.path)); XCTAssertNil(signals.snapshot.firstBridgeFailure)
+199 |         if case .local(.deadline)? = signals.snapshot.firstCause {} else { XCTFail("missing exact local deadline") }
+    |                                                                            `- error: cannot find 'XCTFail' in scope
+200 |         let next = try owner.reserveAdapterGroup(); next.retire(); await close(store,owner,signals)
+201 |     }
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:45:9: note: macro 'XCTFail' unavailable: function like macros not supported
+ 43 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+ 44 | */
+ 45 | #define XCTFail(...) \
+    |         `- note: macro 'XCTFail' unavailable: function like macros not supported
+ 46 |     _XCTPrimitiveFail(nil, __VA_ARGS__)
+ 47 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:204:9: error: cannot find 'XCTAssertThrowsError' in scope
+202 |     func testGenerationMismatchAndRealPreGroupKVInitializerFailure() async throws {
+203 |         let f = try fixture(), (store,owner,input,signals) = try await selected(f)
+204 |         XCTAssertThrowsError(try CapabilityConcreteAttempt(consumed: input,installed: f.installed,reservation: owner,signals: CapabilityAttemptSignals(generation: signals.generation+1)))
+    |         `- error: cannot find 'XCTAssertThrowsError' in scope
+205 |         try Data([0]).write(to: f.kvDirectory)
+206 |         let attempt = try CapabilityConcreteAttempt(consumed: input,installed: f.installed,reservation: owner,signals: signals)
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:207:45: error: cannot find 'XCTFail' in scope
+205 |         try Data([0]).write(to: f.kvDirectory)
+206 |         let attempt = try CapabilityConcreteAttempt(consumed: input,installed: f.installed,reservation: owner,signals: signals)
+207 |         do { try await attempt.construct(); XCTFail("non-directory KV accepted") } catch {}
+    |                                             `- error: cannot find 'XCTFail' in scope
+208 |         let retired = await attempt.retirement.wait(); XCTAssertTrue(retired)
+209 |         XCTAssertNil(signals.snapshot.firstBridgeFailure)
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:45:9: note: macro 'XCTFail' unavailable: function like macros not supported
+ 43 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+ 44 | */
+ 45 | #define XCTFail(...) \
+    |         `- note: macro 'XCTFail' unavailable: function like macros not supported
+ 46 |     _XCTPrimitiveFail(nil, __VA_ARGS__)
+ 47 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:208:56: error: cannot find 'XCTAssertTrue' in scope
+206 |         let attempt = try CapabilityConcreteAttempt(consumed: input,installed: f.installed,reservation: owner,signals: signals)
+207 |         do { try await attempt.construct(); XCTFail("non-directory KV accepted") } catch {}
+208 |         let retired = await attempt.retirement.wait(); XCTAssertTrue(retired)
+    |                                                        `- error: cannot find 'XCTAssertTrue' in scope
+209 |         XCTAssertNil(signals.snapshot.firstBridgeFailure)
+210 |         let next = try owner.reserveAdapterGroup(); next.retire(); await close(store,owner,signals)
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:81:9: note: macro 'XCTAssertTrue' unavailable: function like macros not supported
+ 79 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+ 80 | */
+ 81 | #define XCTAssertTrue(expression, ...) \
+    |         `- note: macro 'XCTAssertTrue' unavailable: function like macros not supported
+ 82 |     _XCTPrimitiveAssertTrue(nil, expression, @#expression, __VA_ARGS__)
+ 83 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/capability-activation/.build/concrete-2026-10-23-candidate-3/source/capability-activation/Tests/MixerCapabilityActivationTests/ConcreteAttemptTests.swift:209:9: error: cannot find 'XCTAssertNil' in scope
+207 |         do { try await attempt.construct(); XCTFail("non-directory KV accepted") } catch {}
+208 |         let retired = await attempt.retirement.wait(); XCTAssertTrue(retired)
+209 |         XCTAssertNil(signals.snapshot.firstBridgeFailure)
+    |         `- error: cannot find 'XCTAssertNil' in scope
+210 |         let next = try owner.reserveAdapterGroup(); next.retire(); await close(store,owner,signals)
+211 |     }
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:54:9: note: macro 'XCTAssertNil' unavailable: function like macros not supported
+ 52 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+ 53 | */
+ 54 | #define XCTAssertNil(expression, ...) \
+    |         `- note: macro 'XCTAssertNil' unavailable: function like macros not supported
+ 55 |     _XCTPrimitiveAssertNil(nil, expression, @#expression, __VA_ARGS__)
+ 56 | 
