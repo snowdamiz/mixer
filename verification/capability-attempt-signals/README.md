@@ -18,3 +18,11 @@ references across its suspended next(), record local stop before native cancel,
 and explicitly finish/join on every unwind before store close. This component
 creates no Task or execution authority; full consumer ownership and durable
 effects/health composition remain to be tested.
+
+The additive control-wake check is preserved in
+`2026-10-23-control-wake-1/receipt.json`. Eight exact test functions pass in each
+host mode, including a drained control hint followed by terminal delivery, a
+foreign generation rejection, and a terminal handoff re-poke after a busy
+consumer returns. `2026-10-23-control-wake-xctest/receipt.json` separately records
+the actual XCTest branch typecheck. These checks do not run a timer or coordinator;
+the previous independent source review predates this small additive seam.

@@ -56,6 +56,15 @@ final class CapabilityAttemptSignals: CapabilityBridgeTerminalObserver, @uncheck
         lock.unlock()
         if notify { continuation.yield(()) }
     }
+    /// A bounded coordinator-owned observation timer or ordinary-operation tail
+    /// may re-poke the same consumer. This never consumes the first terminal
+    /// notification: the consumer must inspect snapshot before acting on a hint.
+    /// A stopped attempt still accepts a hint so a busy-consumer handoff cannot
+    /// strand its terminal state. Foreign generations cannot schedule work.
+    func recordControlWake(expectedGeneration: UInt64) {
+        guard expectedGeneration == generation else { return }
+        continuation.yield(())
+    }
     var snapshot: CapabilityAttemptSignalSnapshot {
         lock.lock(); defer { lock.unlock() }
         return CapabilityAttemptSignalSnapshot(generation: generation, firstCause: firstCause,

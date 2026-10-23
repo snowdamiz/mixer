@@ -11,6 +11,8 @@ import XCTest
     func testCheckedFailureSurvivesLaterLocalStop() async throws { try await SignalCases.bridgeFirst() }
     func testTerminalNotificationCoalescesUnderContention() async throws { try await SignalCases.coalescing() }
     func testCommitEntryAndStopSerialize() async throws { try await SignalCases.commitRace() }
+    func testControlWakeDoesNotConsumeTerminalNotification() async throws { try await SignalCases.controlThenTerminal() }
+    func testControlWakeGenerationAndTerminalHandoff() async throws { try await SignalCases.controlGenerationAndHandoff() }
 }
 #endif
 
@@ -102,6 +104,38 @@ private enum SignalCases {
             signals.finishNotifications()
         }
     }
+    static func controlThenTerminal() async throws {
+        let signals = CapabilityAttemptSignals(generation: 7)
+        var iterator = signals.notifications.makeAsyncIterator()
+        signals.recordControlWake(expectedGeneration: 7)
+        guard await iterator.next() != nil else { throw Failed(message: "Missing control wake") }
+        try check(!signals.snapshot.stopped, "Control wake stopped the attempt")
+        try signals.requireCommitEntry(expectedGeneration: 7)
+        let first = failure("after-control")
+        signals.recordTerminalFailure(first)
+        signals.finishNotifications()
+        guard await iterator.next() != nil else { throw Failed(message: "Control wake consumed terminal notification") }
+        try check(signals.snapshot.firstBridgeFailure == first, "Terminal facts lost after control wake")
+        guard await iterator.next() == nil else { throw Failed(message: "Unexpected duplicate hint") }
+    }
+    static func controlGenerationAndHandoff() async throws {
+        let foreign = CapabilityAttemptSignals(generation: 7)
+        foreign.recordControlWake(expectedGeneration: 6); foreign.finishNotifications()
+        var wrongCount = 0
+        for await _ in foreign.notifications { wrongCount += 1 }
+        try check(wrongCount == 0 && !foreign.snapshot.stopped, "Foreign generation scheduled work")
+        let signals = CapabilityAttemptSignals(generation: 7)
+        var iterator = signals.notifications.makeAsyncIterator()
+        signals.requestStop(.cancelled)
+        guard await iterator.next() != nil else { throw Failed(message: "Missing initial terminal hint") }
+        // A busy consumer returned after snapshotting; the ordinary operation's
+        // logical tail must be able to wake it after releasing its lease.
+        signals.recordControlWake(expectedGeneration: 7); signals.finishNotifications()
+        guard await iterator.next() != nil else { throw Failed(message: "Stopped handoff was stranded") }
+        guard case .local(.cancelled)? = signals.snapshot.firstCause else { throw Failed(message: "Handoff changed first cause") }
+        try rejects { try signals.requireCommitEntry(expectedGeneration: 7) }
+        guard await iterator.next() == nil else { throw Failed(message: "Unexpected duplicate handoff") }
+    }
 }
 
 #if SIGNALS_STANDALONE
@@ -110,7 +144,8 @@ private enum SignalCases {
         try await SignalCases.commitGate(); try await SignalCases.stickyIntent()
         try await SignalCases.localFirst(); try await SignalCases.bridgeFirst()
         try await SignalCases.coalescing(); try await SignalCases.commitRace()
-        print("PASS 6 signal cases including128 commit races and128 concurrent terminal reports")
+        try await SignalCases.controlThenTerminal(); try await SignalCases.controlGenerationAndHandoff()
+        print("PASS 8 signal cases including128 commit races and128 concurrent terminal reports")
     }
 }
 #endif

@@ -81,7 +81,11 @@ consumer links and independent zero-native-enable/retirement checks. The fixed
 attempt signal latch passes six cases per host mode and independent source review.
 See `verification/capability-enable-deadline/receipt.json` and
 `verification/capability-attempt-signals/final-receipt.json`. CI at08e5c2d exposed
-one fixture type-check complexity issue; a byte-preserving split is implemented
-with follow-up hosted confirmation pending. Durable selection/effects/health
+one fixture type-check complexity issue; a byte-preserving split is confirmed by
+all three hosted jobs atbf5021e. See `verification/github-ci-bf5021e/receipt.json`.
+The latch now also permits generation-bound control wakes without consuming its
+terminal notification; eight cases pass per host mode, plus XCTest typechecking.
+See `verification/capability-attempt-signals/2026-10-23-control-wake-1/receipt.json`.
+Durable selection/effects/health
 transitions and the signed coordinator are the current implementation lanes.
 Keep the full product plan and physical/published-consumer/GA gates in scope.

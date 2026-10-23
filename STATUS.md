@@ -595,10 +595,20 @@ ownership and durable transitions remain future composition requirements.
 
 Hosted run39930585800 at08e5c2d passed VM/services but failed to type-check a long
 store-test fixture expression on pinned Xcode26.3. Splitting it preserves all512
-generated Wasm variants byte for byte; follow-up hosted confirmation is pending.
-See `verification/capability-store-ci-fixture-fix/receipt.json`. Durable selection,
+generated Wasm variants byte for byte. Hosted run39932658048 atbf5021e now passes
+all three jobs, including54 capability-activation tests on the pinned compiler.
+See `verification/capability-store-ci-fixture-fix/receipt.json` and
+`verification/github-ci-bf5021e/receipt.json`. Durable selection,
 effects/health and coordinator integration remain under implementation; their
 unfinished files are excluded from this checkpoint.
 Concrete signed execution, health/recovery and full FieldLog remain in progress.
 Physical checks remain pending while the phones are disconnected; no product or
 GA gate is closed by this checkpoint.
+
+The private signal latch now accepts generation-bound control wakes from one
+coordinator-owned observation timer or an ordinary-operation completion. These
+hints share its bounded stream and never consume the first terminal notification.
+Eight cases pass in debug/release/TSan and the XCTest branch typechecks; see
+`verification/capability-attempt-signals/2026-10-23-control-wake-1/receipt.json`.
+The source-only independent review above applies to the earlier six-case latch.
+Actual timer, consumer and signed coordinator composition remain under development.
