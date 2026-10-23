@@ -1,0 +1,29 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-validation-deadline-repair/.build/isolated-1/source/vm)
+warning: fields `ty`, `mutable`, and `initializer` are never read
+  --> src/experimental/descriptors.rs:21:16
+   |
+20 | pub(crate) struct GlobalView<'a> {
+   |                   ---------- fields in this struct
+21 |     pub(crate) ty: Type,
+   |                ^^
+22 |     pub(crate) mutable: bool,
+   |                ^^^^^^^
+23 |     pub(crate) initializer: &'a [u8],
+   |                ^^^^^^^^^^^
+   |
+   = note: `GlobalView` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `mixer-vm` (lib) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.17s
+     Running tests/swift_reactor_validation_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-validation-deadline-repair/.build/isolated-1/target/debug/deps/swift_reactor_validation_allocations-bae703d66e50eeed)
+
+running 1 test
+Deadline ordinal 2: early expiry at 0 allocations with 0 ms; ordinal coverage not accepted
+Deadline ordinal 2: early expiry at 0 allocations with 0 ms; ordinal coverage not accepted
+Deadline ordinal 2: early expiry at 0 allocations with 0 ms; ordinal coverage not accepted
+Swift validation requested-byte observations: allocation_ordinals=56; requested_peak=18377; retained=6089; internal_peak_reserved=20025; source/metadata/body deadline stages=true; every allocation failure and cancellation ordinal cleaned without allocating; no reallocations; no RSS measurement
+test every_allocation_ordinal_failure_cancellation_deadline_and_cleanup_are_observed ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.23s
+

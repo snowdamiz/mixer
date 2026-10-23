@@ -14,11 +14,16 @@ use swift_reactor_validation_fixture::*;
 
 // Only this synchronous test lane can delay an observed allocation. This is a
 // native test observation, never a clock/policy hook exposed by the validator.
-thread_local! { static DELAY_AT: Cell<usize> = const { Cell::new(0) }; }
+thread_local! {
+    static DELAY_AT: Cell<usize> = const { Cell::new(0) };
+    static DELAY_MS: Cell<u64> = const { Cell::new(0) };
+    static DELAY_REACHED: Cell<bool> = const { Cell::new(false) };
+}
 fn delay() {
     let at = DELAY_AT.with(Cell::get);
     if at != 0 && CALLS.load(SeqCst) + 1 == at {
-        let end = Instant::now() + Duration::from_millis(20);
+        DELAY_REACHED.with(|reached| reached.set(true));
+        let end = Instant::now() + Duration::from_millis(DELAY_MS.with(Cell::get));
         while Instant::now() < end {
             std::hint::spin_loop();
         }
@@ -44,6 +49,61 @@ unsafe impl GlobalAlloc for Observed {
 }
 #[global_allocator]
 static ALLOCATOR: Observed = Observed;
+
+// A busy host can exhaust a real deadline before the selected allocation. Such
+// an attempt proves early cleanup, but cannot count as ordinal coverage. Retry
+// with a bounded larger budget; only the actual delayed ordinal can pass.
+fn deadline_at(
+    bytes: &[u8],
+    cancellation: &Cancellation,
+    ordinal: usize,
+    budgets_ms: &[u64],
+) -> Result<(SwiftValidationFailure, usize), usize> {
+    assert!(ordinal > 0);
+    for (attempt, &deadline_ms) in budgets_ms.iter().enumerate() {
+        let before = LIVE.load(SeqCst);
+        DELAY_MS.with(|delay| delay.set(deadline_ms.checked_add(10).unwrap()));
+        DELAY_REACHED.with(|reached| reached.set(false));
+        DELAY_AT.with(|at| at.set(ordinal));
+        let operation = begin(0, 0, cancellation);
+        let result = validate_swift_reactor(
+            bytes,
+            SwiftValidationBudget {
+                deadline_ms,
+                ..SwiftValidationBudget::default()
+            },
+            cancellation,
+        );
+        operation.finish();
+        DELAY_AT.with(|at| at.set(0));
+        let reached = DELAY_REACHED.with(Cell::get);
+        let calls = CALLS.load(SeqCst);
+        let error = result.err().unwrap();
+        assert_eq!(
+            error.kind,
+            SwiftValidationFailureKind::Deadline,
+            "deadline ordinal {ordinal}, attempt {attempt}, budget {deadline_ms} ms"
+        );
+        assert_eq!(
+            LIVE.load(SeqCst),
+            before,
+            "leak at deadline ordinal {ordinal}, attempt {attempt}"
+        );
+        assert_eq!(REALLOCATIONS.load(SeqCst), 0);
+        if reached {
+            assert_eq!(
+                calls, ordinal,
+                "deadline cleanup allocated at ordinal {ordinal}, attempt {attempt}"
+            );
+            return Ok((error, attempt));
+        }
+        assert!(calls < ordinal, "unobserved delay at ordinal {ordinal}");
+        println!(
+            "Deadline ordinal {ordinal}: early expiry at {calls} allocations with {deadline_ms} ms; ordinal coverage not accepted"
+        );
+    }
+    Err(budgets_ms.len())
+}
 
 #[test]
 fn every_allocation_ordinal_failure_cancellation_deadline_and_cleanup_are_observed() {
@@ -123,36 +183,20 @@ fn every_allocation_ordinal_failure_cancellation_deadline_and_cleanup_are_observ
     // which stage is covered. No validation work or allocation happens in Drop.
     let mut deadline_source = false;
     let mut deadline_metadata = false;
+    // Exercise both retry and exhaustion deterministically through the real
+    // zero-deadline entry path, within this observer's single test lane.
+    let (_, retries) = deadline_at(&bytes, &cancellation, 2, &[0, 10, 40, 160, 640])
+        .expect("the exact ordinal must be reached within the bounded retries");
+    assert!(retries >= 1);
+    assert!(matches!(
+        deadline_at(&bytes, &cancellation, 2, &[0, 0]),
+        Err(2)
+    ));
     for ordinal in 1..=allocations {
-        let before = LIVE.load(SeqCst);
-        DELAY_AT.with(|at| at.set(ordinal));
-        let operation = begin(0, 0, &cancellation);
-        let result = validate_swift_reactor(
-            &bytes,
-            SwiftValidationBudget {
-                deadline_ms: 10,
-                ..SwiftValidationBudget::default()
-            },
-            &cancellation,
-        );
-        operation.finish();
-        DELAY_AT.with(|at| at.set(0));
-        let error = result.err().unwrap();
-        assert_eq!(
-            error.kind,
-            SwiftValidationFailureKind::Deadline,
-            "deadline ordinal {ordinal}"
-        );
-        assert_eq!(
-            CALLS.load(SeqCst),
-            ordinal,
-            "deadline cleanup allocated at ordinal {ordinal}"
-        );
-        assert_eq!(
-            LIVE.load(SeqCst),
-            before,
-            "leak at deadline ordinal {ordinal}"
-        );
+        let (error, _) = deadline_at(&bytes, &cancellation, ordinal, &[10, 40, 160, 640])
+            .unwrap_or_else(|attempts| {
+                panic!("deadline ordinal {ordinal} was not reached after {attempts} attempts")
+            });
         deadline_source |= error.offset == 0 && error.function.is_none();
         deadline_metadata |= error.offset > 0 && error.function.is_none();
         deadline_body |= error.function.is_some();

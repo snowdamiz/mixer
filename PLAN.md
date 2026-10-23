@@ -462,3 +462,25 @@ exact v2 history preserved. Actual cache implementation review, executor contrac
 refinement/implementation and composed temporary layouts remain pending.
 Physical phones, full-target execution, immutable published consumers and all
 external GA requirements remain open.
+
+
+The refined private executor contract now has root acceptance of its algorithm,
+authority, API intent and named accounting rules, after92 artifact/source
+bindings and37 rejected contract mutations. Exact revision1 remains archived;
+see `verification/swift-executor-stage-acceptance.json`. Actual cache acceptance
+must precede a separately assigned compiling type/lifetime/layout prerequisite.
+All20 executor functions,75 assertions and eight concrete layout maps remain
+pending, with no implementation assignment or full-target execution enabled.
+
+
+Hosted `39199ae` now passes all three VM/Swift/services jobs; see
+`verification/github-ci-39199ae/receipt.json`. A test-only deadline repair now
+requires the selected allocation to be reached before counting its deadline
+sample, with bounded retries for earlier real-clock expiry. Isolated Debug and
+Release each preserve all56 allocation/failure/cancellation/deadline positions,
+including deterministic retry and exhaustion coverage. Root audits417 source
+and21 artifact bindings in `verification/swift-validation-deadline-repair/root-review.json`.
+Targeted all-feature Clippy and formatting pass. The original timing failure and
+the first run's pre-existing minimal-feature Clippy warning remain recorded.
+Active cache and Android qualification, physical devices, full-target execution,
+immutable published consumers and every specified GA acceptance remain pending.

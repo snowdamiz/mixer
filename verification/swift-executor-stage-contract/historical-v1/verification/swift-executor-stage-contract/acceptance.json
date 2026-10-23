@@ -1,0 +1,950 @@
+{
+  "schema": "mixer.swift-executor-stage-contract.v1",
+  "proposal_revision": 1,
+  "scope": "artifact-only private executor/composition contract; no implementation or engine execution",
+  "selected_agent": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "xhigh",
+    "fresh_context": true
+  },
+  "baseline_revision": "45852204fbcced037d8e530876b619d9ed1c2ce1",
+  "document": {
+    "path": "docs/swift-executor-stage-contract.md",
+    "sha256": "1a3a64f2ad02a4c909980e146eb9fec9aa0c69943a5727b1a727997e81a1b8a7"
+  },
+  "artifact_only": true,
+  "implementation_authorized": false,
+  "implementation_accepted": false,
+  "target_execution_authorized": false,
+  "target_instantiated": false,
+  "target_initialized": false,
+  "target_invoked": false,
+  "physical_device_runs": false,
+  "ga_gate_state_changes": false,
+  "cache_implementation_accepted": false,
+  "observed_fuel_control_delta_accepted": false,
+  "required_contract_sections": [
+    "C01",
+    "C02",
+    "C03",
+    "C04",
+    "C05",
+    "C06",
+    "C07",
+    "C08",
+    "C09"
+  ],
+  "required_observed_helpers": [
+    "instruction_with_wasi",
+    "charge_fuel_with_wasi",
+    "checked_usage",
+    "work_with_wasi",
+    "drop_reserved_with_wasi",
+    "finish_owned_cleanup"
+  ],
+  "limits": {
+    "tickets": 86,
+    "frames": 64,
+    "values": 16384,
+    "controls": 4096,
+    "memory_pages": 768,
+    "state_bytes": 134217728,
+    "combined_bytes": 268435456,
+    "fuel": 100000000,
+    "execution_work": 1000000000,
+    "host_calls": 32768,
+    "deadline_ms": 30000,
+    "memory_overlap_767_768": 100597760
+  },
+  "cleanup": {
+    "same_header_ticket": true,
+    "prepare_or_enlarge_allowed": false,
+    "admission_allowed": false,
+    "work_allowed": false,
+    "services_allowed": false,
+    "cancel_deadline_checks_allowed": false,
+    "first_failure_immutable": true,
+    "intact_rejection": true,
+    "tail_owns_original_control": true,
+    "completion_returns": "unit",
+    "foundation_counts": {
+      "SwiftRunFailure": 4,
+      "SwiftRunUsage": 4,
+      "ReservationTicket": 6,
+      "WasiUsage": 2
+    }
+  },
+  "measured_layout_map": [
+    {
+      "name": "state_and_owner",
+      "required_types_and_scope": "SwiftExecutionState, SwiftReactorInstance, Option components and exclusive header subtraction",
+      "status": "pending",
+      "target": null,
+      "toolchain": null,
+      "measurements": null,
+      "simultaneous_counts": null
+    },
+    {
+      "name": "arenas",
+      "required_types_and_scope": "Value, Control, SwiftFrame and each Vec/ticket/Option shape",
+      "status": "pending",
+      "target": null,
+      "toolchain": null,
+      "measurements": null,
+      "simultaneous_counts": null
+    },
+    {
+      "name": "construction",
+      "required_types_and_scope": "ExecutionConstructionPhase, partial builder, old/new State/instance/Result/Option moves and nested cache/WASI phase owners",
+      "status": "pending",
+      "target": null,
+      "toolchain": null,
+      "measurements": null,
+      "simultaneous_counts": null
+    },
+    {
+      "name": "operation",
+      "required_types_and_scope": "ExecutionParts, SwiftExecutionOperation, ExecutionOperationPhase, scalar readers, instruction/target, frame/pin guard and return/error shapes",
+      "status": "pending",
+      "target": null,
+      "toolchain": null,
+      "measurements": null,
+      "simultaneous_counts": null
+    },
+    {
+      "name": "growth",
+      "required_types_and_scope": "replacement Vec/ticket, prior/replacement memory owners, range/scalar/failure transfers",
+      "status": "pending",
+      "target": null,
+      "toolchain": null,
+      "measurements": null,
+      "simultaneous_counts": null
+    },
+    {
+      "name": "cleanup",
+      "required_types_and_scope": "whole owner Option, taken/active instance, ExecutionCleanupTail, cache cleanup/result/tail, state/vector/pin transfer and WASI cleanup results",
+      "status": "pending",
+      "target": null,
+      "toolchain": null,
+      "measurements": null,
+      "simultaneous_counts": null
+    },
+    {
+      "name": "foundation_tail",
+      "required_types_and_scope": "final 4 SwiftRunFailure, 4 SwiftRunUsage, 6 ReservationTicket, 2 WasiUsage active-value mapping and actual overlap counts",
+      "status": "pending",
+      "target": null,
+      "toolchain": null,
+      "measurements": null,
+      "simultaneous_counts": null
+    },
+    {
+      "name": "cancellation",
+      "required_types_and_scope": "handle layouts and accepted requested backing attribution checked against allocator observations",
+      "status": "pending",
+      "target": null,
+      "toolchain": null,
+      "measurements": null,
+      "simultaneous_counts": null
+    }
+  ],
+  "required_synthetic_tests": [
+    {
+      "function": "experimental_swift_reactor::execution_tests::swift_executor_authority_and_static_parts",
+      "status": "pending",
+      "profiles": [
+        "debug",
+        "release"
+      ],
+      "contract_sections": [
+        "C01",
+        "C02"
+      ],
+      "assertions": [
+        {
+          "id": "authority_and_static_parts.1",
+          "required": "Complete public validation is the sole authority; same ABI and at least 29 definitions; no raw-byte/legacy/custom-host route."
+        },
+        {
+          "id": "authority_and_static_parts.2",
+          "required": "Static Frozen/Swift ExecutionParts borrow original owners; literal old fields/API/layout and type-bound pin authority preserved."
+        },
+        {
+          "id": "authority_and_static_parts.3",
+          "required": "No full target instantiated, initialized or invoked; no device or GA status change."
+        }
+      ]
+    },
+    {
+      "function": "experimental_swift_reactor::execution_tests::swift_executor_fixed_arenas_and_initialization_limits",
+      "status": "pending",
+      "profiles": [
+        "debug",
+        "release"
+      ],
+      "contract_sections": [
+        "C03",
+        "C04"
+      ],
+      "assertions": [
+        {
+          "id": "fixed_arenas_and_initialization_limits.1",
+          "required": "Exactly six fixed State vector allocations in legacy order; all observed capacities equal requests, zeros allocate nothing."
+        },
+        {
+          "id": "fixed_arenas_and_initialization_limits.2",
+          "required": "Frames/values/controls/pages, State and Combined independently narrowed including zero; no Vec growth or allocation per frame."
+        },
+        {
+          "id": "fixed_arenas_and_initialization_limits.3",
+          "required": "Parameters+locals+operands share value arena and every defined frame function-control counts; peak/current exact."
+        }
+      ]
+    },
+    {
+      "function": "experimental_swift_reactor::execution_tests::swift_executor_retained_initializers_and_ordered_segments",
+      "status": "pending",
+      "profiles": [
+        "debug",
+        "release"
+      ],
+      "contract_sections": [
+        "C04"
+      ],
+      "assertions": [
+        {
+          "id": "retained_initializers_and_ordered_segments.1",
+          "required": "Globals use exact retained constant slice plus first-opcode absolute offset; all numeric types/float bits/end/full consumption checked."
+        },
+        {
+          "id": "retained_initializers_and_ordered_segments.2",
+          "required": "All data ranges then all element ranges preflight before payload effects; zero-length boundary and overflow/out-of-range cursor exact."
+        },
+        {
+          "id": "retained_initializers_and_ordered_segments.3",
+          "required": "Ordered overlapping data/elements preserve last writer; each element u32 LEB/full slice/function index checked without copy or allocation."
+        },
+        {
+          "id": "retained_initializers_and_ordered_segments.4",
+          "required": "Descriptor access leaves validation usage/source unchanged; actual payload offsets include empty slices."
+        }
+      ]
+    },
+    {
+      "function": "experimental_swift_reactor::execution_tests::swift_executor_initialize_once_and_stateful_calls",
+      "status": "pending",
+      "profiles": [
+        "debug",
+        "release"
+      ],
+      "contract_sections": [
+        "C04",
+        "C08"
+      ],
+      "assertions": [
+        {
+          "id": "initialize_once_and_stateful_calls.1",
+          "required": "Exactly one actual initialize marker/effect and empty result precede Ready; Ready has zero frames/values/controls/pins."
+        },
+        {
+          "id": "initialize_once_and_stateful_calls.2",
+          "required": "Every init trap, exit 0/nonzero, resource, allocation, cancel/deadline/WASI failure yields no Ready owner or retry."
+        },
+        {
+          "id": "initialize_once_and_stateful_calls.3",
+          "required": "Two synthetic corpus calls on same owner preserve globals/memory/table/captures and cumulative counters; nonzero result remains actual i32."
+        }
+      ]
+    },
+    {
+      "function": "experimental_swift_reactor::execution_tests::swift_executor_recursive_frame_pins_and_partial_enter",
+      "status": "pending",
+      "profiles": [
+        "debug",
+        "release"
+      ],
+      "contract_sections": [
+        "C05",
+        "C08"
+      ],
+      "assertions": [
+        {
+          "id": "recursive_frame_pins_and_partial_enter.1",
+          "required": "Direct/recursive same-function and distinct calls own one non-Clone pin per defined frame; 64 frames/pins and 65th failure exact."
+        },
+        {
+          "id": "recursive_frame_pins_and_partial_enter.2",
+          "required": "Inject failure immediately after pin acquisition and at each local/control/frame debit; guard releases once and rollback only acquired live debits."
+        },
+        {
+          "id": "recursive_frame_pins_and_partial_enter.3",
+          "required": "Copy selected instruction/br_table target before cache mutation; caller pins survive callee decode/eviction and host dispatch."
+        },
+        {
+          "id": "recursive_frame_pins_and_partial_enter.4",
+          "required": "Return, branch-to-function, trap and import error unwind deepest-first; release rejection returns owned pin for remaining drain."
+        }
+      ]
+    },
+    {
+      "function": "experimental_swift_reactor::execution_tests::swift_executor_indirect_calls_full_structural_signature",
+      "status": "pending",
+      "profiles": [
+        "debug",
+        "release"
+      ],
+      "contract_sections": [
+        "C05",
+        "C06"
+      ],
+      "assertions": [
+        {
+          "id": "indirect_calls_full_structural_signature.1",
+          "required": "Equal distinct type indices with identical complete signatures succeed; every parameter/result mismatch traps before dispatch."
+        },
+        {
+          "id": "indirect_calls_full_structural_signature.2",
+          "required": "Table OOB/null/type mismatch keep distinct traps and exact caller source cursor; imported indirect target has no frame/pin."
+        },
+        {
+          "id": "indirect_calls_full_structural_signature.3",
+          "required": "Full parameter comparison loops have bounded work/checks and correct frame/value/control/pin cleanup."
+        }
+      ]
+    },
+    {
+      "function": "experimental_swift_reactor::execution_tests::swift_executor_all_admitted_operations_and_numeric_capacity",
+      "status": "pending",
+      "profiles": [
+        "debug",
+        "release"
+      ],
+      "contract_sections": [
+        "C05",
+        "C07"
+      ],
+      "assertions": [
+        {
+          "id": "all_admitted_operations_and_numeric_capacity.1",
+          "required": "Exercise every current Operation variant, integer/float/NaN/signed-zero/saturating/conversion trap and load/store width against owned semantics/oracles."
+        },
+        {
+          "id": "all_admitted_operations_and_numeric_capacity.2",
+          "required": "Block/if/loop/end/return/br/br_if/br_table result and height semantics include 379 and function-inclusive 512 depth; aggregate control cap enforced."
+        },
+        {
+          "id": "all_admitted_operations_and_numeric_capacity.3",
+          "required": "Numeric helper proven consumes at least one/emits one before reuse; no hidden Vec capacity growth."
+        },
+        {
+          "id": "all_admitted_operations_and_numeric_capacity.4",
+          "required": "Memory copy overlaps both directions, fill, bounds, size and zero/maximum grow preserve semantics and exact extra fuel."
+        }
+      ]
+    },
+    {
+      "function": "experimental_swift_reactor::execution_tests::swift_executor_actual_wasi_all_descriptors",
+      "status": "pending",
+      "profiles": [
+        "debug",
+        "release"
+      ],
+      "contract_sections": [
+        "C06"
+      ],
+      "assertions": [
+        {
+          "id": "actual_wasi_all_descriptors.1",
+          "required": "All 34 sealed absolute descriptors dispatch actual AccountedWasi; no import string resolver or substitute host callback."
+        },
+        {
+          "id": "actual_wasi_all_descriptors.2",
+          "required": "Actual capture bytes, errno unsigned-i32 result, fd close, default path/poll denial, real OS random/realtime/monotonic observations asserted."
+        },
+        {
+          "id": "actual_wasi_all_descriptors.3",
+          "required": "Explicit grants only; proc_exit 0/nonzero is sticky exact GuestExit without native exit/result; adapter failure retains exact typed cause."
+        },
+        {
+          "id": "actual_wasi_all_descriptors.4",
+          "required": "Exact typed argument slice and disjoint memory use no argument Vec or guest-pointer escape; standalone WASI unchanged."
+        }
+      ]
+    },
+    {
+      "function": "experimental_swift_reactor::execution_tests::swift_executor_host_counter_entry_and_failure_order",
+      "status": "pending",
+      "profiles": [
+        "debug",
+        "release"
+      ],
+      "contract_sections": [
+        "C06",
+        "C07"
+      ],
+      "assertions": [
+        {
+          "id": "host_counter_entry_and_failure_order.1",
+          "required": "Call/CallIndirect instruction charges once before adapter; AccountedWasi wrapper alone advances executor host-entry counter."
+        },
+        {
+          "id": "host_counter_entry_and_failure_order.2",
+          "required": "Executor host cap rejection leaves adapter calls unchanged; adapter validation/budget/grant/range/errno/exit/failure boundaries match actual entered counters."
+        },
+        {
+          "id": "host_counter_entry_and_failure_order.3",
+          "required": "Adapter terminal outcome latches before post-dispatch cancellation/deadline; no duplicate host debit or snapshot arithmetic admission."
+        },
+        {
+          "id": "host_counter_entry_and_failure_order.4",
+          "required": "Caller frame/pin persists on normal errno then is drained on exit/WASI failure."
+        }
+      ]
+    },
+    {
+      "function": "experimental_swift_reactor::execution_tests::swift_executor_lifetime_cumulative_budgets",
+      "status": "pending",
+      "profiles": [
+        "debug",
+        "release"
+      ],
+      "contract_sections": [
+        "C03",
+        "C07"
+      ],
+      "assertions": [
+        {
+          "id": "lifetime_cumulative_budgets.1",
+          "required": "Construction+initialize+both stateful synthetic invokes accumulate cache/execution work, instruction/bulk fuel, host entries and actual WASI work/transfer/calls."
+        },
+        {
+          "id": "lifetime_cumulative_budgets.2",
+          "required": "No success refill/reset; each exact narrowed boundary fails with correct attempted/limit/resource and no next effect."
+        },
+        {
+          "id": "lifetime_cumulative_budgets.3",
+          "required": "Run/WASI earliest deadline is carried once; validation work/peak remain historical and never added to runtime current."
+        }
+      ]
+    },
+    {
+      "function": "experimental_swift_reactor::execution_tests::swift_executor_independent_zero_limits_and_first_exhaustion",
+      "status": "pending",
+      "profiles": [
+        "debug",
+        "release"
+      ],
+      "contract_sections": [
+        "C03",
+        "C07"
+      ],
+      "assertions": [
+        {
+          "id": "independent_zero_limits_and_first_exhaustion.1",
+          "required": "Independently zero/narrow frames/values/controls/memory/fuel/work/host and cache limits retain real exhaustion, not default/InvalidBudget."
+        },
+        {
+          "id": "independent_zero_limits_and_first_exhaustion.2",
+          "required": "Category headroom with insufficient Combined rejects before allocation; source/meta adopted once; source/metadata/pinned subsets never double counted."
+        },
+        {
+          "id": "independent_zero_limits_and_first_exhaustion.3",
+          "required": "Competing failures assert frozen Swift order: prior terminal, pairing, cancellation, deadline, work/admission/live preflight then effects."
+        },
+        {
+          "id": "independent_zero_limits_and_first_exhaustion.4",
+          "required": "Widening/overflow rejected without new allocation; no resource raised to make fixture finish."
+        }
+      ]
+    },
+    {
+      "function": "experimental_swift_reactor::execution_tests::swift_executor_memory_growth_overlap_and_commit",
+      "status": "pending",
+      "profiles": [
+        "debug",
+        "release"
+      ],
+      "contract_sections": [
+        "C03",
+        "C07"
+      ],
+      "assertions": [
+        {
+          "id": "memory_growth_overlap_and_commit.1",
+          "required": "Old/new full memory tickets coexist; exact 767-to-768 overlap 100597760 bytes plus all other categories; cap can fail only Combined."
+        },
+        {
+          "id": "memory_growth_overlap_and_commit.2",
+          "required": "Declared/host limit denial returns -1 and delta zero old pages; allocation/state/combined/cancel/deadline/invariant remains terminal."
+        },
+        {
+          "id": "memory_growth_overlap_and_commit.3",
+          "required": "Zero/copy/final-check faults drop new storage before refund and preserve old precommit storage; after replacement old drop precedes old refund."
+        },
+        {
+          "id": "memory_growth_overlap_and_commit.4",
+          "required": "Live pages and growth work/fuel/capacity snapshots exact with no trap-wide rollback claim."
+        }
+      ]
+    },
+    {
+      "function": "experimental_swift_reactor::execution_tests::swift_executor_every_allocation_ordinal",
+      "status": "pending",
+      "profiles": [
+        "debug",
+        "release"
+      ],
+      "contract_sections": [
+        "C03",
+        "C04",
+        "C08"
+      ],
+      "assertions": [
+        {
+          "id": "every_allocation_ordinal.1",
+          "required": "Measure successful constructor and growth allocation attempts N with fixture/validation/harness outside observer; inject every ordinal 0..N-1."
+        },
+        {
+          "id": "every_allocation_ordinal.2",
+          "required": "Include six State allocations plus integrated cache/WASI construction ordinals by their accepted seams and replacement growth; each observed exactly once."
+        },
+        {
+          "id": "every_allocation_ordinal.3",
+          "required": "Each failure preserves exact first cause/peak, no Ready owner, no leaked pins or acquired State tickets, full valid-owner cleanup zero."
+        },
+        {
+          "id": "every_allocation_ordinal.4",
+          "required": "No unobserved ordinal, zero-test filter or skipped failure counts as coverage."
+        }
+      ]
+    },
+    {
+      "function": "experimental_swift_reactor::execution_tests::swift_executor_requested_capacity_and_ticket_atomicity",
+      "status": "pending",
+      "profiles": [
+        "debug",
+        "release"
+      ],
+      "contract_sections": [
+        "C03",
+        "C08"
+      ],
+      "assertions": [
+        {
+          "id": "requested_capacity_and_ticket_atomicity.1",
+          "required": "Inject each State vector/replacement unexpected capacity; typed requested/observed fields without post-admission of excess."
+        },
+        {
+          "id": "requested_capacity_and_ticket_atomicity.2",
+          "required": "Checked size/alignment/Option/ticket envelope map corresponds to actual target; categories sum Combined; at most 86 authoritative tickets."
+        },
+        {
+          "id": "requested_capacity_and_ticket_atomicity.3",
+          "required": "Partial vectors/aggregate owners drop before refund; failed admission is atomic across category and Combined; lost/corrupt authority retains charge."
+        }
+      ]
+    },
+    {
+      "function": "experimental_swift_reactor::execution_tests::swift_executor_every_work_prefix_and_cancellation_ordinal",
+      "status": "pending",
+      "profiles": [
+        "debug",
+        "release"
+      ],
+      "contract_sections": [
+        "C04",
+        "C05",
+        "C07"
+      ],
+      "assertions": [
+        {
+          "id": "every_work_prefix_and_cancellation_ordinal.1",
+          "required": "Enumerate every observed work/check boundary for init, descriptors/LEBs/segments/local/signature/control movement, instruction/bulk/growth and publication."
+        },
+        {
+          "id": "every_work_prefix_and_cancellation_ordinal.2",
+          "required": "Exhaust each prefix and cancel actual shared token at every check ordinal including last publication; no effects after latch/no work exceeds limit."
+        },
+        {
+          "id": "every_work_prefix_and_cancellation_ordinal.3",
+          "required": "Include partial enter, nested/recursive unwind, import and normal return; no lost pins/live debits or hidden allocation during cleanup."
+        },
+        {
+          "id": "every_work_prefix_and_cancellation_ordinal.4",
+          "required": "Only cfg(test) per-thread hooks; cache and WASI internal ordinals remain their separately accepted coverage obligations."
+        }
+      ]
+    },
+    {
+      "function": "experimental_swift_reactor::execution_tests::swift_executor_deadline_inside_each_execution_loop",
+      "status": "pending",
+      "profiles": [
+        "debug",
+        "release"
+      ],
+      "contract_sections": [
+        "C04",
+        "C07"
+      ],
+      "assertions": [
+        {
+          "id": "deadline_inside_each_execution_loop.1",
+          "required": "Deterministic cfg(test) pause at each real zero/table/global/segment/element-LEB/local/signature/movement/bulk/growth loop boundary expires actual earliest deadline."
+        },
+        {
+          "id": "deadline_inside_each_execution_loop.2",
+          "required": "Inside-loop and final-publication checks demonstrated by cursor and effect marker; sleeps alone are insufficient."
+        },
+        {
+          "id": "deadline_inside_each_execution_loop.3",
+          "required": "Run-before-WASI and WASI-before-run origin/overshoot exact; cancellation+expiry chooses cancellation, prior terminal wins."
+        },
+        {
+          "id": "deadline_inside_each_execution_loop.4",
+          "required": "No production clock setter/callback/preemption claim or retry."
+        }
+      ]
+    },
+    {
+      "function": "experimental_swift_reactor::execution_tests::swift_executor_first_failure_actual_wasi_observations",
+      "status": "pending",
+      "profiles": [
+        "debug",
+        "release"
+      ],
+      "contract_sections": [
+        "C06",
+        "C08"
+      ],
+      "assertions": [
+        {
+          "id": "first_failure_actual_wasi_observations.1",
+          "required": "Perform actual accepted/errno WASI dispatches, then trigger fuel/instruction/work/live/category/Combined/capacity/trap/invariant failures."
+        },
+        {
+          "id": "first_failure_actual_wasi_observations.2",
+          "required": "At first boundary failure.wasi equals actual context usage and differs from earlier snapshot; no unobserved method then patched latch."
+        },
+        {
+          "id": "first_failure_actual_wasi_observations.3",
+          "required": "Foreign/missing context header reports None, same-owner accounting invariant actual counters; pair validation before effects/enlargement."
+        },
+        {
+          "id": "first_failure_actual_wasi_observations.4",
+          "required": "Later failure/cleanup preserves first code/cursor/resource/at_failure; only after_cleanup and independent invariant appended."
+        }
+      ]
+    },
+    {
+      "function": "experimental_swift_reactor::execution_tests::swift_executor_cleanup_tails_phases_and_no_effects",
+      "status": "pending",
+      "profiles": [
+        "debug",
+        "release"
+      ],
+      "contract_sections": [
+        "C03",
+        "C08"
+      ],
+      "assertions": [
+        {
+          "id": "cleanup_tails_phases_and_no_effects.1",
+          "required": "Measure named construction/operation/permanent cleanup envelopes with actual sizes/alignments/offsets and simultaneous active counts; nested previous bounds restore inside-out."
+        },
+        {
+          "id": "cleanup_tails_phases_and_no_effects.2",
+          "required": "One-shot/omitted phases and tails retain conservative charge; all large possible-owner Result/Option and empty slot dropped before same header refund."
+        },
+        {
+          "id": "cleanup_tails_phases_and_no_effects.3",
+          "required": "Intact preflight rejection preserves owner storage/pins/tickets; successful destructive path drains all including release-rejected pins/cache tails/WASI then same control."
+        },
+        {
+          "id": "cleanup_tails_phases_and_no_effects.4",
+          "required": "Cancelled/expired/work-exhausted/terminal and first cleanup-invariant paths allocate/work/check/services zero; all remaining components drained despite error."
+        },
+        {
+          "id": "cleanup_tails_phases_and_no_effects.5",
+          "required": "Final small output/refund maps exactly to foundation 4 failure/4 usage/6 ticket/2 WASI usage allowances; full valid cleanup zero reservations/tickets/live counts."
+        }
+      ]
+    },
+    {
+      "function": "experimental_swift_reactor::execution_tests::swift_executor_frozen_layout_allocation_work_error_parity",
+      "status": "pending",
+      "profiles": [
+        "debug",
+        "release"
+      ],
+      "contract_sections": [
+        "C02",
+        "C07",
+        "C09"
+      ],
+      "assertions": [
+        {
+          "id": "frozen_layout_allocation_work_error_parity.1",
+          "required": "Retain pre-extraction field/layout/alignment/offset and requested allocation counts/bytes for all old proof/cache/frame/control/instance/failure/usage/WASI owners."
+        },
+        {
+          "id": "frozen_layout_allocation_work_error_parity.2",
+          "required": "Replay same fixtures frozen-only and all-features: full work/fuel/host/error/cursor/usage/identity/allocation trace exact, including competing failures."
+        },
+        {
+          "id": "frozen_layout_allocation_work_error_parity.3",
+          "required": "Legacy export scan/argument/float check order, call/return/truncation, bulk fuel, grow denial/partial effects and legacy scratch formula unchanged."
+        },
+        {
+          "id": "frozen_layout_allocation_work_error_parity.4",
+          "required": "All required default/feature/all-feature Debug+Release regressions, external Rust/C/native consumers and scoped lint/fmt pass with source-bound receipts."
+        }
+      ]
+    },
+    {
+      "function": "experimental_swift_reactor::execution_tests::swift_executor_downstream_privacy_and_closed_surface",
+      "status": "pending",
+      "profiles": [
+        "debug",
+        "release"
+      ],
+      "contract_sections": [
+        "C01",
+        "C02",
+        "C09"
+      ],
+      "assertions": [
+        {
+          "id": "downstream_privacy_and_closed_surface.1",
+          "required": "Separate downstream compile-fails forged/Clone/legacy proof conversion, private cache/pin/descriptors/adapters/modes and custom snapshot/host implementations."
+        },
+        {
+          "id": "downstream_privacy_and_closed_surface.2",
+          "required": "No arbitrary export/index, raw bytes authority, mutable memory, injected context, budget refill, source mutation or pin/view escape."
+        },
+        {
+          "id": "downstream_privacy_and_closed_surface.3",
+          "required": "Borrow failures show view cannot cross cache mutation/release and argument/memory borrow cannot escape dispatch; intended compiler diagnostic recorded."
+        },
+        {
+          "id": "downstream_privacy_and_closed_surface.4",
+          "required": "Positive unchanged public Rust/C/native consumers and header/export inventory; no test-only authority in release product."
+        }
+      ]
+    }
+  ],
+  "future_synthetic_command_template": [
+    "cargo",
+    "test",
+    "--manifest-path",
+    "vm/Cargo.toml",
+    "--lib",
+    "--features",
+    "experimental-swift-reactor,experimental-span-execution",
+    "[--release]",
+    "{function}",
+    "--",
+    "--exact",
+    "--nocapture"
+  ],
+  "future_command_status": "pending; not executed by artifact checker",
+  "required_test_selection": "Every exact function must execute at least one test in each profile; zero tests is failure.",
+  "regression_commands": [
+    {
+      "status": "pending",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml"
+      ]
+    },
+    {
+      "status": "pending",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-stream-validation"
+      ]
+    },
+    {
+      "status": "pending",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-function-cache"
+      ]
+    },
+    {
+      "status": "pending",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-span-execution"
+      ]
+    },
+    {
+      "status": "pending",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-swift-wasi"
+      ]
+    },
+    {
+      "status": "pending",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-swift-reactor,experimental-span-execution"
+      ]
+    },
+    {
+      "status": "pending",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--all-features"
+      ]
+    },
+    {
+      "status": "pending",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--release"
+      ]
+    },
+    {
+      "status": "pending",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--release",
+        "--features",
+        "experimental-stream-validation"
+      ]
+    },
+    {
+      "status": "pending",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--release",
+        "--features",
+        "experimental-function-cache"
+      ]
+    },
+    {
+      "status": "pending",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--release",
+        "--features",
+        "experimental-span-execution"
+      ]
+    },
+    {
+      "status": "pending",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--release",
+        "--features",
+        "experimental-swift-wasi"
+      ]
+    },
+    {
+      "status": "pending",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--release",
+        "--features",
+        "experimental-swift-reactor,experimental-span-execution"
+      ]
+    },
+    {
+      "status": "pending",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--release",
+        "--all-features"
+      ]
+    },
+    {
+      "status": "pending",
+      "argv": [
+        "cargo",
+        "clippy",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--lib",
+        "--features",
+        "experimental-swift-reactor,experimental-span-execution",
+        "--",
+        "-D",
+        "warnings"
+      ]
+    },
+    {
+      "status": "pending",
+      "argv": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--",
+        "--check"
+      ]
+    }
+  ],
+  "prerequisites": [
+    "root-reviewed accepted cache implementation and all 18 cache tests",
+    "root-reviewed observed instruction/fuel control delta",
+    "root freeze of private helper signatures and actual simultaneous layout model",
+    "root-assigned executor implementation ownership",
+    "independent implementation review and full synthetic/regression receipts"
+  ],
+  "explicit_pending": [
+    "all 20 executor synthetic tests and fault probes",
+    "all measured layout and allocation maps",
+    "all executor implementation source review",
+    "separate exact-target runner and root approval",
+    "physical iOS/Android",
+    "immutable published separate-repository FieldLog consumer",
+    "native/API/signing, performance/delivery-size, stores/customer/operational/GA gates"
+  ]
+}

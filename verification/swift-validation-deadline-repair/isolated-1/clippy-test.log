@@ -1,0 +1,18 @@
+    Checking mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-validation-deadline-repair/.build/isolated-1/source/vm)
+error: fields `ty`, `mutable`, and `initializer` are never read
+  --> src/experimental/descriptors.rs:21:16
+   |
+20 | pub(crate) struct GlobalView<'a> {
+   |                   ---------- fields in this struct
+21 |     pub(crate) ty: Type,
+   |                ^^
+22 |     pub(crate) mutable: bool,
+   |                ^^^^^^^
+23 |     pub(crate) initializer: &'a [u8],
+   |                ^^^^^^^^^^^
+   |
+   = note: `GlobalView` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis
+   = note: `-D dead-code` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[expect(dead_code)]` or `#[allow(dead_code)]`
+
+error: could not compile `mixer-vm` (lib) due to 1 previous error
