@@ -82,7 +82,14 @@ All 66 SDK tests pass per Debug/Release; an independent 5,153-case corpus and
 This qualifies pure data only. The private Java reader now passes independent review and root acceptance after
 7,990 independent cases across Java and Swift; 89 exact bindings are checked in
 `verification/android-appearance-descriptor-root-review/acceptance.json`. There is
-no Java default theme table. Shared per-node style resolution is a separate lane.
+no Java default theme table. Shared per-node style resolution now has independent
+and root acceptance as pure data: all 86 SDK tests and 29,278 independent cases
+with 350,077 assertions pass per Debug/Release. Root verifies 224 bindings in
+`verification/ui-appearance-resolution-root-review/acceptance.json`. The plan
+resolves all ten current kinds, inherited disabled state, explicit canvas paint,
+logical RTL metrics and bounded text-scale floors. Native consumption remains
+pending; Java resolution and measurements of the unchanged Apple reference are
+active implementation lanes.
 
 Eight unchanged iOS simulator screenshots are retained in
 `verification/apple-appearance-reference/gallery.html`; root accepts the baseline
@@ -108,7 +115,8 @@ assigned under the frozen contract. Actual executor implementation and the exact
 full-target runner still require separate acceptance. No full target is executed.
 All three hosted jobs at `01d8491` pass; see
 `verification/github-ci-01d8491/receipt.json`. The packet checkpoint
-`09dac10` also passes all three jobs. Cache checkpoint `d814055` passes VM/services,
+`09dac10` and ordinary Android checkpoint `958998d` also pass all three jobs.
+See `verification/github-ci-958998d/receipt.json`. Cache checkpoint `d814055` passes VM/services,
 but its Swift bridge test failed to observe a timer tick after a fixed 35ms sleep.
 A test-only bounded observed-tick wait now passes all48 bridge tests per Debug,
 Release and SwiftTSan, plus old/fixed controlled real-queue probes in both modes.

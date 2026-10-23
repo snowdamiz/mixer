@@ -47,7 +47,9 @@ fresh private Android host runner under Swift 6.2.4. See
 `verification/swift-minimal-descriptor-ci-repair/receipt.json` and
 `verification/github-ci-d6c41a0/receipt.json`.
 
-Latest hosted evidence: `09dac10` passes VM/Swift/services. At cache checkpoint
+Latest hosted evidence: `09dac10` and `958998d` pass VM/Swift/services.
+See `verification/github-ci-958998d/receipt.json`. The `0f177ad` checkpoint has
+passed VM/services; Swift remains in progress. At cache checkpoint
 `d814055`, VM/services pass, but the bridge Debug test expected a timer tick after
 35ms and observed none. The test-only bounded observed-condition repair passes48 bridge tests in Debug,
 Release and SwiftTSan, with old/fixed delayed-queue probes in both build modes.
@@ -108,6 +110,15 @@ Observed implementation and evidence:
   bindings in `verification/android-appearance-descriptor-root-review/acceptance.json`.
   This is Java17 host data decoding, without Android ART, bootstrap/resource/font
   capture, widgets, signed authority or visual parity qualification.
+- Pure shared appearance resolution now has independent and root acceptance:
+  all 86 SDK tests pass per Debug/Release, including 20 focused cases, with
+  29,278 independent cases and 350,077 assertions per mode. Root checks 224
+  bindings in `verification/ui-appearance-resolution-root-review/acceptance.json`.
+  All ten current kinds share one descriptor; state decoration, canvas paint,
+  logical RTL metrics and text-scale floors are explicit immutable data. The
+  provisional recipe is not approved as the final iOS design. Java resolution,
+  reference measurements, native style/resource consumption and physical parity
+  remain pending.
 - The fox-branded marketing website is implemented in `website/`, with responsive
   layout, a browser-local release demonstration, docs, private-by-default SEO,
   social/icon exports, and separate FieldLog app-store collateral. The original
