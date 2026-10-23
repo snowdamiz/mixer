@@ -76,10 +76,43 @@ Executed behavior includes:
   Public listener/hostname, duplicate roots/hosts, missing authority and
   production mode are rejected.
 
-Limitations: No PostgreSQL, multi-host transaction isolation, object storage/CDN,
+Limitations of the initial local JSON receipt: No PostgreSQL, multi-host transaction isolation, object storage/CDN,
 external outbox delivery, build workers, billing, hosted operations, compiler
 eligibility integration, executable VM update loading, mobile storage adapters,
 device signing, store distribution, data-migration proof or independent FieldLog
 package consumption was verified here. No physical iOS/Android, dogfood or GA
 gate is passed by these local Go tests. Independent adversarial review and
 device fault matrices remain required.
+
+
+## W11 PostgreSQL substrate follow-up
+
+The subsequent original PostgreSQL adapter is documented in
+[`release/POSTGRES.md`](release/POSTGRES.md). Its schema and HTTP field shapes are
+separate concerns: the signed v1 manifest/assignment protocol was not changed.
+The detailed follow-up receipt is
+[`verification/postgres-2026-10-22.json`](verification/postgres-2026-10-22.json).
+
+Final checks use pinned Go 1.26.4, pgx 5.11.0 and real isolated PostgreSQL 17.11.
+`go test -race -count=1 -json ./...` recorded 60 passed test/subtest events, zero
+failures and zero skips (24 top-level tests/fuzz targets). `go vet ./...`,
+`go mod verify` and the runnable service build passed. The existing complete local
+HTTP/CLI release workflow also passed for both platform scopes.
+
+The dedicated real PostgreSQL runner executes seven database test functions
+plus three commit-interruption subtests, as well as the unit configuration test
+selected by its name filter. It covers two independent service instances,
+concurrent idempotency/sequence conflicts, tenant/RBAC/FORCE RLS, immutable rows,
+uint64 limits, a 16 MiB payload, query deadlines, unsafe-role/schema refusal,
+ledger corruption, exact retry after uncertain publication, actual immediate
+PostgreSQL crash/restart, and dual-platform delivery through an actual loopback
+HTTP listener. The database cluster uses only a private Unix socket, disables TCP
+listening and is deleted after the run. Database crash recovery is real local
+PostgreSQL evidence; injected before/after-commit response faults are controlled
+faults. Neither is a hosted multi-zone, backup restore or mobile/device receipt.
+
+Local config tokens remain bootstrap authority. Identity/account/membership
+lifecycle, SCRAM/TLS deployment, workers/outbox dispatch with leases/fencing,
+object storage/CDN, retention/quotas and operational/independent security review
+remain open. Production startup is still refused. No W11 hosted launch, D0 or GA
+gate is passed by this substrate.

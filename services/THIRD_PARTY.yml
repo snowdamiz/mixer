@@ -6,7 +6,49 @@ dependencies:
     purpose: HTTP, filesystem durability, test tooling, SHA256 and Ed25519 primitives
     distribution_mode: standard library linked into local service executable
     owner: update-release lane
-    review: No third-party Go modules or alternate OTA/runtime engines used.
+    review: General-purpose PostgreSQL driver dependencies below; cryptographic primitives remain Go standard library and no alternate OTA/runtime engine is used.
+  - name: pgx PostgreSQL driver
+    origin: https://github.com/jackc/pgx
+    version: 5.11.0
+    license: MIT
+    purpose: maintained-general-purpose-PostgreSQL-protocol-driver
+    distribution_mode: linked into Go development release service
+    owner: W11-release-storage
+  - name: pgpassfile
+    origin: https://github.com/jackc/pgpassfile
+    version: 1.0.0
+    license: MIT
+    purpose: pgx-transitive-local-PostgreSQL-credential-file-parser
+    distribution_mode: linked into Go development release service
+    owner: W11-release-storage
+  - name: pgservicefile
+    origin: https://github.com/jackc/pgservicefile
+    version: 0.0.0-20240606120523-5a60cdf6a761
+    license: MIT
+    purpose: pgx-transitive-PostgreSQL-service-file-parser
+    distribution_mode: linked into Go development release service
+    owner: W11-release-storage
+  - name: puddle
+    origin: https://github.com/jackc/puddle
+    version: 2.2.2
+    license: MIT
+    purpose: pgx-transitive-bounded-connection-pool
+    distribution_mode: linked into Go development release service
+    owner: W11-release-storage
+  - name: Go x/sync
+    origin: https://go.googlesource.com/sync
+    version: 0.17.0
+    license: BSD-3-Clause
+    purpose: pgx-pool-transitive-concurrency-primitives
+    distribution_mode: linked into Go development release service
+    owner: W11-release-storage
+  - name: Go x/text
+    origin: https://go.googlesource.com/text
+    version: 0.29.0
+    license: BSD-3-Clause
+    purpose: pgx-transitive-text-and-protocol-encoding
+    distribution_mode: linked into Go development release service
+    owner: W11-release-storage
 specifications:
   - origin: https://www.rfc-editor.org/rfc/rfc8949.html
     purpose: Independently implemented restricted deterministic CBOR serialization

@@ -9,7 +9,8 @@ The protocol registry is [`../contracts/release-v1.json`](../contracts/release-v
 ## Run and configuration
 
 Requires Go 1.26.0 or newer. This slice was tested with Go 1.26.4 on macOS arm64.
-It has no third-party modules. From this directory:
+The optional PostgreSQL adapter uses the pinned general-purpose pgx driver;
+cryptographic primitives remain in the Go standard library. From this directory:
 
 ```sh
 go test -race ./...
@@ -130,8 +131,8 @@ local reference; object storage/CDN delivery requires a separate implementation.
 
 ## Local durability and recovery
 
-The service stores a single private JSON snapshot under an advisory process
-lock. Each transaction commits artifact/channel changes, successful idempotency
+The default local backend stores a single private JSON snapshot under an advisory
+process lock. Each transaction commits artifact/channel changes, successful idempotency
 results, append-only audit events and pending local outbox records together.
 Writes use a private temporary file, file fsync, atomic rename and directory
 fsync. A commit error poisons the process's store; callers must restart and retry
@@ -141,6 +142,13 @@ state hashes, direct source IP, correlation ID and audit hash chain. The chain
 detects accidental modification; it is not an external tamper-proof audit log.
 Outbox records are durable pending records only; no dispatcher/delivery success
 is claimed. Local storage is capped at 64 artifacts and has no retention service.
+
+An explicitly selected local PostgreSQL backend supplies normalized durable
+transactions, tenant FORCE RLS, immutable artifact/assignment history and atomic
+idempotency/audit/outbox commits. Its migration owner and runtime credentials are
+separate. Production startup remains disabled. See
+[`release/POSTGRES.md`](release/POSTGRES.md) for configuration, schema/transaction
+contracts, limits and the real isolated PostgreSQL test runner.
 
 The `updater` package uses a separate private locked store. Its installed host,
 channel and installation identity cannot change on reopening. It verifies the

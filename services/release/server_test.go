@@ -368,7 +368,7 @@ func TestDurableCommitCrashAndAuditCorruption(t *testing.T) {
 func TestConfigProductionAndRootRevocation(t *testing.T) {
 	f := testutil.New(t)
 	cfg := config(t, f)
-	for _, bad := range []func(*release.Config){func(c *release.Config) { c.DeveloperMode = false }, func(c *release.Config) { c.Listen = "0.0.0.0:8080" }, func(c *release.Config) { c.Listen = "localhost:8080" }, func(c *release.Config) { c.Tokens = nil }, func(c *release.Config) { c.Roots = append(c.Roots, c.Roots[0]) }, func(c *release.Config) { c.Hosts = append(c.Hosts, c.Hosts[0]) }} {
+	for _, bad := range []func(*release.Config){func(c *release.Config) { c.DeveloperMode = false }, func(c *release.Config) { c.Listen = "0.0.0.0:8080" }, func(c *release.Config) { c.Listen = "localhost:8080" }, func(c *release.Config) { c.Tokens = nil }, func(c *release.Config) { c.Tokens = append(c.Tokens, c.Tokens[0]) }, func(c *release.Config) { c.StorageBackend = "unknown" }, func(c *release.Config) { c.Roots = append(c.Roots, c.Roots[0]) }, func(c *release.Config) { c.Hosts = append(c.Hosts, c.Hosts[0]) }} {
 		c := cfg
 		bad(&c)
 		if release.ValidateConfig(c) == nil {

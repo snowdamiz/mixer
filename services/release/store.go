@@ -1,6 +1,7 @@
 package release
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -124,7 +125,14 @@ func artifactKey(scope protocol.Scope, digest string) string {
 func channelKey(a protocol.Assignment) string {
 	return scopeKey(a.Scope.Organization, a.Scope.Project) + a.Scope.App + "/" + a.Scope.Environment + "/" + a.Scope.Platform + "/" + a.Runtime + "/" + a.Channel
 }
-func (s *store) transaction(key, hash string, event Event, fn func(*database) (Response, error)) (Response, error) {
+func (s *store) transaction(ctx context.Context, who access, role, key, hash string, event Event, fn func(releaseTransaction) (Response, error)) (Response, error) {
+	if e := who.require(role); e != nil {
+		return Response{}, e
+	}
+	if event.Organization != who.Organization || event.Project != who.Project || event.Actor != who.Actor {
+		return Response{}, apiError{403, "scope_denied", "audit scope differs from authenticated storage scope"}
+	}
+	key = who.prefix() + key
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.poisoned {
@@ -137,22 +145,13 @@ func (s *store) transaction(key, hash string, event Event, fn func(*database) (R
 		return old.Response, nil
 	}
 	next := clone(s.state)
-	response, e := fn(&next)
+	response, e := fn(&memoryTransaction{db: &next, who: who})
 	if e != nil {
 		return Response{}, e
 	}
-	// Previous/current are content hashes of the complete domain state. The
-	// referenced immutable artifacts and assignments remain available for audit.
-	before, _ := json.Marshal(struct {
-		Artifacts map[string]Record  `json:"artifacts"`
-		Channels  map[string]Channel `json:"channels"`
-	}{s.state.Artifacts, s.state.Channels})
-	after, _ := json.Marshal(struct {
-		Artifacts map[string]Record  `json:"artifacts"`
-		Channels  map[string]Channel `json:"channels"`
-	}{next.Artifacts, next.Channels})
-	event.Previous = protocol.Hash(before)
-	event.Current = protocol.Hash(after)
+	// JSON encoding sorts map keys; commitments include this tenant only.
+	event.Previous = tenantDomainHash(s.state, who.tenant)
+	event.Current = tenantDomainHash(next, who.tenant)
 	event.ID = uint64(len(next.Audit) + 1)
 	if len(next.Audit) > 0 {
 		event.PreviousHash = next.Audit[len(next.Audit)-1].Hash

@@ -1,6 +1,6 @@
 // Package release implements a bounded local-development control plane. It
-// intentionally refuses production until transactional PostgreSQL, external
-// storage/outbox workers, operational review and isolation are implemented.
+// intentionally refuses production until external delivery/outbox workers,
+// identity, operational review and isolation gates are implemented.
 package release
 
 import (
@@ -30,12 +30,14 @@ type Token struct {
 	Actor        string `json:"actor"`
 }
 type Config struct {
-	DeveloperMode bool            `json:"developer_mode"`
-	Listen        string          `json:"listen"`
-	DataDirectory string          `json:"data_directory"`
-	Tokens        []Token         `json:"tokens"`
-	Roots         []protocol.Root `json:"roots"`
-	Hosts         []protocol.Host `json:"hosts"`
+	DeveloperMode  bool            `json:"developer_mode"`
+	Listen         string          `json:"listen"`
+	DataDirectory  string          `json:"data_directory"`
+	StorageBackend string          `json:"storage_backend,omitempty"`
+	Postgres       *PostgresConfig `json:"postgres,omitempty"`
+	Tokens         []Token         `json:"tokens"`
+	Roots          []protocol.Root `json:"roots"`
+	Hosts          []protocol.Host `json:"hosts"`
 }
 type apiError struct {
 	status        int
@@ -50,7 +52,7 @@ type rate struct {
 }
 type Server struct {
 	cfg       Config
-	db        *store
+	db        releaseStorage
 	limiterMu sync.Mutex
 	rates     map[string]rate
 	inflight  chan struct{}
@@ -59,7 +61,7 @@ type Server struct {
 
 func ValidateConfig(c Config) error {
 	if !c.DeveloperMode {
-		return fmt.Errorf("production mode disabled: PostgreSQL/outbox/isolation and operational gates are not implemented")
+		return fmt.Errorf("production mode disabled: external delivery/outbox, identity/isolation and operational gates remain open")
 	}
 	host, _, e := net.SplitHostPort(c.Listen)
 	if e != nil {
@@ -69,13 +71,24 @@ func ValidateConfig(c Config) error {
 	if ip == nil || !ip.IsLoopback() {
 		return fmt.Errorf("developer mode must listen on literal loopback")
 	}
-	if c.DataDirectory == "" || len(c.Tokens) == 0 || len(c.Hosts) == 0 || len(c.Roots) == 0 {
+	if (c.StorageBackend == "" || c.StorageBackend == "local") && c.DataDirectory == "" {
+		return fmt.Errorf("local data directory required")
+	}
+	if c.StorageBackend != "" && c.StorageBackend != "local" && c.StorageBackend != "postgres" {
+		return fmt.Errorf("unknown storage backend")
+	}
+	if c.StorageBackend == "postgres" && c.Postgres == nil || c.StorageBackend != "postgres" && c.Postgres != nil {
+		return fmt.Errorf("explicit PostgreSQL backend configuration required")
+	}
+	if len(c.Tokens) == 0 || len(c.Hosts) == 0 || len(c.Roots) == 0 {
 		return fmt.Errorf("data directory, scoped tokens, roots and hosts required")
 	}
+	tokenDigests := map[string]bool{}
 	for _, t := range c.Tokens {
-		if !protocol.ValidDigest(t.SHA256) || !protocol.ValidID(t.Actor) || !protocol.ValidID(t.Organization) || !protocol.ValidID(t.Project) || (t.Role != "reader" && t.Role != "editor" && t.Role != "publisher") {
+		if tokenDigests[t.SHA256] || !protocol.ValidDigest(t.SHA256) || !protocol.ValidID(t.Actor) || !protocol.ValidID(t.Organization) || !protocol.ValidID(t.Project) || (t.Role != "reader" && t.Role != "editor" && t.Role != "publisher") {
 			return fmt.Errorf("invalid scoped bearer token configuration")
 		}
+		tokenDigests[t.SHA256] = true
 	}
 	seen := map[string]bool{}
 	for _, r := range c.Roots {
@@ -106,18 +119,19 @@ func NewWithFault(cfg Config, fault durable.Fault) (*Server, error) {
 	if e := ValidateConfig(cfg); e != nil {
 		return nil, e
 	}
-	db, e := openStore(cfg.DataDirectory, fault)
+	var db releaseStorage
+	var e error
+	if cfg.StorageBackend == "postgres" {
+		db, e = openPostgres(*cfg.Postgres, fault)
+	} else {
+		db, e = openStore(cfg.DataDirectory, fault)
+	}
 	if e != nil {
 		return nil, e
 	}
 	return &Server{cfg: cfg, db: db, rates: map[string]rate{}, inflight: make(chan struct{}, 128), now: time.Now}, nil
 }
-func (s *Server) Close() error {
-	s.db.mu.Lock()
-	defer s.db.mu.Unlock()
-	s.db.poisoned = true
-	return s.db.lock.Close()
-}
+func (s *Server) Close() error { return s.db.close() }
 
 // Run gracefully drains in-flight HTTP requests before releasing the store lock.
 func (s *Server) Run(ctx context.Context) error {
@@ -277,7 +291,7 @@ func (s *Server) route(r *http.Request, id, ip string) (Response, error) {
 		return Response{}, e
 	}
 	if r.Method == "GET" {
-		return s.read(r, p, org, project)
+		return s.read(r, p, access{tenant{org, project}, actor.Actor, actor.Role})
 	}
 	key := r.Header.Get("Idempotency-Key")
 	if !protocol.ValidID(key) {
@@ -290,16 +304,14 @@ func (s *Server) route(r *http.Request, id, ip string) (Response, error) {
 	if event.Reason == "" {
 		event.Reason = "local development operation"
 	}
-	return s.mutate(r, p, org, project, key, event)
+	return s.mutate(r, p, access{tenant{org, project}, actor.Actor, actor.Role}, role, key, event)
 }
-func (s *Server) read(r *http.Request, p []string, org, project string) (Response, error) {
-	s.db.mu.Lock()
-	defer s.db.mu.Unlock()
-	if s.db.poisoned {
-		return Response{}, apiError{503, "storage_unavailable", "durable store requires restart"}
-	}
+func (s *Server) read(r *http.Request, p []string, who access) (Response, error) {
 	if len(p) == 7 && p[5] == "artifacts" && protocol.ValidDigest(p[6]) {
-		rec, ok := s.db.state.Artifacts[scopeKey(org, project)+p[6]]
+		rec, ok, e := s.db.artifact(r.Context(), who, p[6])
+		if e != nil {
+			return Response{}, e
+		}
 		if !ok {
 			return Response{}, apiError{404, "not_found", "artifact not found"}
 		}
@@ -314,25 +326,9 @@ func (s *Server) read(r *http.Request, p []string, org, project string) (Respons
 		if e != nil || limit < 1 || limit > 100 {
 			return Response{}, apiError{400, "invalid_limit", "limit must be 1..100"}
 		}
-		events := []Event{}
-		work := []Work{}
-		next := after
-		for _, ev := range s.db.state.Audit {
-			if ev.ID <= after || ev.Organization != org || ev.Project != project {
-				continue
-			}
-			if len(events) >= limit {
-				break
-			}
-			events = append(events, ev)
-			next = ev.ID
-			if p[5] == "outbox" {
-				for _, x := range s.db.state.Outbox {
-					if x.EventID == ev.ID {
-						work = append(work, x)
-					}
-				}
-			}
+		events, work, next, e := s.db.history(r.Context(), who, after, limit)
+		if e != nil {
+			return Response{}, e
 		}
 		if p[5] == "audit" {
 			return response(200, map[string]any{"events": events, "next": next}), nil
@@ -341,17 +337,18 @@ func (s *Server) read(r *http.Request, p []string, org, project string) (Respons
 	}
 	return Response{}, apiError{404, "not_found", "endpoint not found"}
 }
+
 func defaulted(v, fallback string) string {
 	if v == "" {
 		return fallback
 	}
 	return v
 }
-func (s *Server) mutate(r *http.Request, p []string, org, project, key string, event Event) (Response, error) {
-	dedup := scopeKey(org, project) + key
-	commit := func(raw []byte, fn func(*database) (Response, error)) (Response, error) {
+func (s *Server) mutate(r *http.Request, p []string, who access, role, key string, event Event) (Response, error) {
+	org, project := who.Organization, who.Project
+	commit := func(raw []byte, fn func(releaseTransaction) (Response, error)) (Response, error) {
 		hash := protocol.Hash(append([]byte(r.Method+" "+r.URL.Path+"\x00"), raw...))
-		return s.db.transaction(dedup, hash, event, fn)
+		return s.db.transaction(r.Context(), who, role, key, hash, event, fn)
 	}
 	if r.Method == "PUT" && len(p) == 7 && p[5] == "artifacts" && protocol.ValidDigest(p[6]) {
 		var a Artifact
@@ -359,7 +356,7 @@ func (s *Server) mutate(r *http.Request, p []string, org, project, key string, e
 		if e != nil {
 			return Response{}, e
 		}
-		return commit(raw, func(db *database) (Response, error) {
+		return commit(raw, func(db releaseTransaction) (Response, error) {
 			m := a.SignedManifest.Manifest
 			if m.Scope.Organization != org || m.Scope.Project != project {
 				return Response{}, apiError{403, "scope_denied", "signed artifact tenant differs from route"}
@@ -375,17 +372,19 @@ func (s *Server) mutate(r *http.Request, p []string, org, project, key string, e
 			if digest != p[6] {
 				return Response{}, apiError{422, "digest_mismatch", "artifact identity differs from route"}
 			}
-			ak := artifactKey(m.Scope, digest)
-			if old, ok := db.Artifacts[ak]; ok {
-				if protocol.Hash(old.Artifact.Payload) != protocol.Hash(a.Payload) {
+			old, ok, e := db.artifact(digest)
+			if e != nil {
+				return Response{}, e
+			}
+			if ok {
+				if !immutableEqual(old.Artifact, a) {
 					return Response{}, apiError{409, "immutable_conflict", "artifact is immutable"}
 				}
 				return response(200, map[string]any{"artifact_sha256": digest, "immutable": true}), nil
 			}
-			if len(db.Artifacts) >= 64 {
-				return Response{}, apiError{409, "local_capacity", "local development artifact limit reached"}
+			if e := db.saveArtifact(digest, Record{Artifact: a}); e != nil {
+				return Response{}, e
 			}
-			db.Artifacts[ak] = Record{Artifact: a}
 			return response(201, map[string]any{"artifact_sha256": digest, "immutable": true}), nil
 		})
 	}
@@ -397,9 +396,11 @@ func (s *Server) mutate(r *http.Request, p []string, org, project, key string, e
 		if e != nil {
 			return Response{}, e
 		}
-		return commit(raw, func(db *database) (Response, error) {
-			k := scopeKey(org, project) + req.ArtifactSHA256
-			rec, ok := db.Artifacts[k]
+		return commit(raw, func(db releaseTransaction) (Response, error) {
+			rec, ok, e := db.artifact(req.ArtifactSHA256)
+			if e != nil {
+				return Response{}, e
+			}
 			if !ok {
 				return Response{}, apiError{404, "not_found", "artifact not found"}
 			}
@@ -411,7 +412,9 @@ func (s *Server) mutate(r *http.Request, p []string, org, project, key string, e
 				return Response{}, apiError{422, "artifact_invalid", e.Error()}
 			}
 			rec.Validated = true
-			db.Artifacts[k] = rec
+			if e := db.saveArtifact(req.ArtifactSHA256, rec); e != nil {
+				return Response{}, e
+			}
 			return response(200, map[string]any{"artifact_sha256": req.ArtifactSHA256, "protocol_valid": true, "compiler_eligibility_verified": false, "policy_approved": false, "mobile_qualified": false}), nil
 		})
 	}
@@ -423,13 +426,15 @@ func (s *Server) mutate(r *http.Request, p []string, org, project, key string, e
 		if e != nil {
 			return Response{}, e
 		}
-		return commit(raw, func(db *database) (Response, error) {
+		return commit(raw, func(db releaseTransaction) (Response, error) {
 			a := req.SignedAssignment.Assignment
 			if a.Scope.Organization != org || a.Scope.Project != project {
 				return Response{}, apiError{403, "scope_denied", "signed assignment tenant differs from route"}
 			}
-			k := artifactKey(a.Scope, a.ArtifactSHA256)
-			rec, ok := db.Artifacts[k]
+			rec, ok, e := db.artifact(a.ArtifactSHA256)
+			if e != nil {
+				return Response{}, e
+			}
 			if !ok || !rec.Validated {
 				return Response{}, apiError{422, "not_validated", "artifact must be uploaded and validated"}
 			}
@@ -441,7 +446,10 @@ func (s *Server) mutate(r *http.Request, p []string, org, project, key string, e
 				return Response{}, apiError{422, "artifact_invalid", e.Error()}
 			}
 			ck := channelKey(a)
-			old, exists := db.Channels[ck]
+			old, exists, e := db.channel(ck)
+			if e != nil {
+				return Response{}, e
+			}
 			last := old.SignedAssignment.Assignment.Sequence
 			if e = protocol.VerifyAssignmentHeader(req.SignedAssignment, rec.Artifact.SignedManifest.Manifest, s.cfg.Roots, h, p[6], last, uint64(s.now().Unix())); e != nil {
 				return Response{}, apiError{409, "assignment_rejected", e.Error()}
@@ -452,9 +460,13 @@ func (s *Server) mutate(r *http.Request, p []string, org, project, key string, e
 			if p[7] == "rollback" && (!exists || !rec.Published) {
 				return Response{}, apiError{409, "invalid_rollback", "rollback target must have been previously published"}
 			}
-			db.Channels[ck] = Channel{req.SignedAssignment}
+			if e := db.saveChannel(ck, Channel{req.SignedAssignment}); e != nil {
+				return Response{}, e
+			}
 			rec.Published = true
-			db.Artifacts[k] = rec
+			if e := db.saveArtifact(a.ArtifactSHA256, rec); e != nil {
+				return Response{}, e
+			}
 			return response(200, map[string]any{"sequence": a.Sequence, "artifact_sha256": a.ArtifactSHA256, "rollout_basis_points": a.RolloutBasisPoints, "delivery": "local_only"}), nil
 		})
 	}
@@ -467,12 +479,10 @@ func (s *Server) update(r *http.Request) (Response, error) {
 		return Response{}, apiError{400, "invalid_query", "complete valid public delivery scope required"}
 	}
 	a := protocol.Assignment{Scope: scope, Runtime: q.Get("runtime"), Channel: q.Get("channel")}
-	s.db.mu.Lock()
-	defer s.db.mu.Unlock()
-	if s.db.poisoned {
-		return Response{}, apiError{503, "storage_unavailable", "durable store requires restart"}
+	rec, ok, e := s.db.publicChannel(r.Context(), tenant{scope.Organization, scope.Project}, channelKey(a))
+	if e != nil {
+		return Response{}, e
 	}
-	rec, ok := s.db.state.Channels[channelKey(a)]
 	if !ok || !protocol.Eligible(rec.SignedAssignment.Assignment, q.Get("installation")) {
 		return Response{Status: 204}, nil
 	}
@@ -483,12 +493,10 @@ func (s *Server) publicArtifact(r *http.Request, digest string) (Response, error
 	if !protocol.ValidID(org) || !protocol.ValidID(project) || !protocol.ValidDigest(digest) {
 		return Response{}, apiError{400, "invalid_query", "valid artifact identity and tenant scope required"}
 	}
-	s.db.mu.Lock()
-	defer s.db.mu.Unlock()
-	if s.db.poisoned {
-		return Response{}, apiError{503, "storage_unavailable", "durable store requires restart"}
+	rec, ok, e := s.db.publicArtifact(r.Context(), tenant{org, project}, digest)
+	if e != nil {
+		return Response{}, e
 	}
-	rec, ok := s.db.state.Artifacts[scopeKey(org, project)+digest]
 	if !ok || !rec.Published {
 		return Response{}, apiError{404, "not_found", "published artifact not found"}
 	}
