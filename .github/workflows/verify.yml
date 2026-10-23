@@ -146,8 +146,8 @@ jobs:
         env:
           MIXER_ALLOCATOR_NOISE: '1'
         run: |
-          cargo test --locked --manifest-path vm/Cargo.toml --features experimental-span-execution --test span_function_cache_allocations --test span_execution_allocations -- --nocapture
-          cargo test --locked --release --manifest-path vm/Cargo.toml --features experimental-span-execution --test span_function_cache_allocations --test span_execution_allocations -- --nocapture
+          cargo test --locked --manifest-path vm/Cargo.toml --features experimental-span-execution,experimental-capability-native --test span_function_cache_allocations --test span_execution_allocations --test experimental_allocations --test experimental_capability_guest_allocations --test capability_ffi_allocations -- --nocapture
+          cargo test --locked --manifest-path vm/Cargo.toml --features experimental-span-execution,experimental-capability-native --test span_function_cache_allocations --test span_execution_allocations --test experimental_allocations --test experimental_capability_guest_allocations --test capability_ffi_allocations --release -- --nocapture
       # Host callback/Looper simulations only; physical Android stays pending.
       # NDK headers are provided by the GitHub-hosted Android toolchain image.
       - name: Android facade and UI-entry transport host regressions

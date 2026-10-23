@@ -1,0 +1,51 @@
+{
+  "observed_utc": "2026-10-23T17:34:54.939998+00:00",
+  "verdict": "accepted for test-only host instrumentation",
+  "actionable_findings": [],
+  "blockers": [],
+  "reviewed_source_tree_sha256": "fb2d2daabd21c50f813a32cba8d6f3b321201d7853cc2cfb0832b0130c6265de",
+  "assertions_preserved": 69,
+  "measurements_preserved": 17,
+  "independent_contract_assertions_per_run": 43,
+  "independent_contract_runs": 4,
+  "evidence_checks": 137,
+  "review_rationale": [
+    {
+      "topic": "Thread-local requests/faults/sizes/gates",
+      "source": "vm/tests/common/legacy_allocation_observer.rs:20-77",
+      "conclusion": "Only the active synchronous owner contributes requests or consumes faults; alloc/zeroed/realloc all follow the same permission path."
+    },
+    {
+      "topic": "Pointer ownership and cleanup",
+      "source": "vm/tests/common/allocation_observer.rs:120-193",
+      "conclusion": "Unchanged ledger registers owned pointers, retains old entries on denied/failed realloc, transfers tracked ownership across threads, and removes pointer lifetime before free."
+    },
+    {
+      "topic": "Guard and adapter lifecycle",
+      "source": "vm/tests/common/legacy_allocation_observer.rs:80-118,177-219",
+      "conclusion": "Token and background precede ownership, later fixtures remain owned through destruction, a non-Send borrowed operation disarms adapter and underlying ledger state."
+    },
+    {
+      "topic": "Cancellation-helper interaction",
+      "source": "vm/tests/experimental_allocations.rs:141-179",
+      "conclusion": "Existing four gate ordinals remain unchanged; helper cancellation and incidental helper allocations cannot consume a foreground gate or fault."
+    },
+    {
+      "topic": "Guest allocations remain measured",
+      "source": "vm/tests/experimental_capability_guest_allocations.rs:99-255",
+      "conclusion": "Synchronous construction, argument/completion payload allocation, ready delivery and final cleanup remain inside unchanged measurement boundaries; no size-based exclusion was introduced."
+    },
+    {
+      "topic": "Hosted attribution",
+      "source": "verification/remaining-allocator-observers/README.md:1-13",
+      "conclusion": "Exact synthetic delta is explicitly evidence of old observer susceptibility, not identification of hosted allocation source."
+    }
+  ],
+  "limitations": [
+    "Single synchronous owner per test executable; allocation workers require explicit ownership.",
+    "Requested-byte accounting only; no process RSS or portable ABI size guarantee.",
+    "Synthetic exact 900-byte/four-call replay demonstrates observer susceptibility; hosted allocation stack and thread remain unknown.",
+    "Host Debug/Release only. No physical device discovery or runs performed; physical iOS/Android gates remain pending.",
+    "No product engine edits, dependency changes, publication, signing, immutable published consumer, customer, operational, release or GA qualification."
+  ]
+}

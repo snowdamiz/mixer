@@ -5,82 +5,14 @@ use common::{section, u32leb};
 use mixer_vm::{
     experimental_capability as mb, experimental_capability_guest::*, Limits, Profile, Value,
 };
-use std::alloc::{GlobalAlloc, Layout, System};
-use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering::SeqCst};
-struct Probe;
-static TRACK: AtomicBool = AtomicBool::new(false);
-static LIVE: AtomicUsize = AtomicUsize::new(0);
-static PEAK: AtomicUsize = AtomicUsize::new(0);
-static CALLS: AtomicUsize = AtomicUsize::new(0);
-static FAIL: AtomicUsize = AtomicUsize::new(0);
-static FAIL_SIZE: AtomicUsize = AtomicUsize::new(0);
-static SIZES: [AtomicUsize; 128] = [const { AtomicUsize::new(0) }; 128];
-fn permit(size: usize) -> bool {
-    if !TRACK.load(SeqCst) {
-        return true;
-    }
-    let n = CALLS.fetch_add(1, SeqCst);
-    if n < SIZES.len() {
-        SIZES[n].store(size, SeqCst);
-    }
-    n + 1 != FAIL.load(SeqCst) && size != FAIL_SIZE.load(SeqCst)
-}
-fn added(size: usize) {
-    let live = LIVE.fetch_add(size, SeqCst) + size;
-    if TRACK.load(SeqCst) {
-        PEAK.fetch_max(live, SeqCst);
-    }
-}
-unsafe impl GlobalAlloc for Probe {
-    unsafe fn alloc(&self, l: Layout) -> *mut u8 {
-        if !permit(l.size()) {
-            return std::ptr::null_mut();
-        }
-        let p = unsafe { System.alloc(l) };
-        if !p.is_null() {
-            added(l.size());
-        }
-        p
-    }
-    unsafe fn alloc_zeroed(&self, l: Layout) -> *mut u8 {
-        if !permit(l.size()) {
-            return std::ptr::null_mut();
-        }
-        let p = unsafe { System.alloc_zeroed(l) };
-        if !p.is_null() {
-            added(l.size());
-        }
-        p
-    }
-    unsafe fn realloc(&self, p: *mut u8, l: Layout, s: usize) -> *mut u8 {
-        if !permit(s) {
-            return std::ptr::null_mut();
-        }
-        let q = unsafe { System.realloc(p, l, s) };
-        if !q.is_null() {
-            LIVE.fetch_sub(l.size(), SeqCst);
-            added(s);
-        }
-        q
-    }
-    unsafe fn dealloc(&self, p: *mut u8, l: Layout) {
-        unsafe { System.dealloc(p, l) };
-        LIVE.fetch_sub(l.size(), SeqCst);
-    }
-}
+#[path = "common/legacy_allocation_observer.rs"]
+mod allocation_observer;
+use allocation_observer::{Lane, Observed, Operation, CALLS, LIVE, MAX_SLOTS, PEAK, SIZES};
+use std::sync::atomic::Ordering::SeqCst;
 #[global_allocator]
-static ALLOCATOR: Probe = Probe;
-fn begin(fail: usize) -> usize {
-    CALLS.store(0, SeqCst);
-    FAIL.store(fail, SeqCst);
-    FAIL_SIZE.store(0, SeqCst);
-    let base = LIVE.load(SeqCst);
-    PEAK.store(base, SeqCst);
-    TRACK.store(true, SeqCst);
-    base
-}
-fn end(base: usize) -> (usize, usize, usize) {
-    TRACK.store(false, SeqCst);
+static ALLOCATOR: Observed = Observed;
+fn end(operation: Operation<'_>) -> (usize, usize, usize) {
+    let base = operation.finish();
     (
         CALLS.load(SeqCst),
         LIVE.load(SeqCst).saturating_sub(base),
@@ -167,15 +99,16 @@ fn take(p: &CapabilityPort, output: &mut [u8]) -> DispatchLease {
 }
 #[test]
 fn guest_allocations_are_measured_and_payload_failures_are_atomic() {
+    let observer = Lane::new();
     let w = wasm();
     if let Some(size) = std::env::var_os("MIXER_GUEST_ARC_OOM_SIZE") {
-        begin(0);
-        FAIL_SIZE.store(size.to_str().unwrap().parse().unwrap(), SeqCst);
+        let operation = observer.begin(0, 0);
+        allocation_observer::fail_size(size.to_str().unwrap().parse().unwrap());
         let _ = construct(&w);
-        TRACK.store(false, SeqCst);
+        operation.finish();
         return;
     }
-    let base = begin(0);
+    let base = observer.begin(0, 0);
     let mut g = construct(&w);
     let construction = end(base);
     let sizes: Vec<_> = SIZES
@@ -208,7 +141,7 @@ fn guest_allocations_are_measured_and_payload_failures_are_atomic() {
     g.startup().unwrap();
     g.enable_effects().unwrap();
     let p = g.native_port();
-    let base = begin(1);
+    let base = observer.begin(0, 1);
     assert_eq!(
         g.invoke(
             "get",
@@ -220,7 +153,7 @@ fn guest_allocations_are_measured_and_payload_failures_are_atomic() {
     assert_eq!(end(base), (0, 0, 0));
     assert_eq!(token(&g), 0);
     let before = p.usage().unwrap();
-    let base = begin(1);
+    let base = observer.begin(0, 1);
     let failure = g
         .invoke(
             "get",
@@ -245,7 +178,7 @@ fn guest_allocations_are_measured_and_payload_failures_are_atomic() {
     let completion = vec![7; mb::MAX_PAYLOAD_BYTES];
     let mut tokens = [0u64; mb::MAX_REQUESTS];
     let mut tickets: [Option<DispatchLease>; mb::MAX_REQUESTS] = std::array::from_fn(|_| None);
-    let base = begin(0);
+    let base = observer.begin(0, 0);
     for t in &mut tokens {
         assert_eq!(get(&mut g, mb::MAX_PAYLOAD_BYTES), 0);
         *t = token(&g);
@@ -263,11 +196,11 @@ fn guest_allocations_are_measured_and_payload_failures_are_atomic() {
     assert_eq!(p.usage().unwrap().reserved_bytes, mb::MAX_RESERVATION_BYTES);
     println!("eight argument/completion payloads: {occupancy:?}; caller buffers and preexisting owner/VM excluded");
     let before = token(&g);
-    let base = begin(1);
+    let base = observer.begin(0, 1);
     assert_eq!(get(&mut g, 1), 5);
     assert_eq!(end(base), (0, 0, 0));
     assert_eq!(token(&g), before);
-    let base = begin(1);
+    let base = observer.begin(0, 1);
     for (t, ticket) in tokens.into_iter().zip(tickets.iter()) {
         assert_eq!(
             g.invoke(
@@ -298,7 +231,7 @@ fn guest_allocations_are_measured_and_payload_failures_are_atomic() {
     // is deliberately not an exit acknowledgement.
     assert_eq!(get(&mut g, 1024), 0);
     let ticket = take(&p, &mut output);
-    let base = begin(1);
+    let base = observer.begin(0, 1);
     drop(g);
     drop(p);
     assert_eq!(CALLS.load(SeqCst), 0);
@@ -313,5 +246,10 @@ fn guest_allocations_are_measured_and_payload_failures_are_atomic() {
     println!(
         "close/drop/last-ticket-ack allocation calls={}; final owner requested bytes freed={last_owner_freed}",
         after_drop.0,
+    );
+    println!(
+        "observer maximum ownership slots={} capacity=4096 background_noise={}",
+        MAX_SLOTS.load(SeqCst),
+        std::env::var_os("MIXER_ALLOCATOR_NOISE").is_some()
     );
 }

@@ -1,0 +1,27 @@
+CWD: /var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-original-remaining-observers-pmbdsj5i/fault
+COMMAND: cargo test --locked --manifest-path vm/Cargo.toml --features experimental-capability-native experimental-stream-validation --test experimental_capability_guest_allocations --release -- --nocapture
+   Compiling mixer-vm v0.1.0 (/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-original-remaining-observers-pmbdsj5i/fault/vm)
+    Finished `release` profile [optimized] target(s) in 0.57s
+     Running tests/experimental_capability_guest_allocations.rs (/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-original-remaining-observers-pmbdsj5i/target/release/deps/experimental_capability_guest_allocations-fa43286462604f2e)
+
+running 1 test
+constructor requested allocation events=[24, 8, 128, 8, 8, 19, 11, 19, 11, 224, 224, 19, 6, 19, 6, 19, 4, 19, 4, 16, 3, 3, 368, 128, 6, 6, 4, 4, 5, 5, 31, 31, 256, 112, 160, 256, 160, 16, 16, 168, 19, 11, 19, 6, 19, 4, 160, 3, 6, 4, 5, 31, 112, 16, 16, 589824, 24, 1016]; (calls,live,peak)=(58, 592854, 592854); fixture bytes=214
+known Shared Arc OOM abort: status=signal: 6 (SIGABRT); stderr=memory allocation of 1016 bytes failed
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+original fault worker allocated=false;calls_before_guest=1
+
+thread 'guest_allocations_are_measured_and_payload_failures_are_atomic' (53563498) panicked at tests/experimental_capability_guest_allocations.rs:291:10:
+called `Result::unwrap_err()` on an `Ok` value: Some(I32(0))
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test guest_allocations_are_measured_and_payload_failures_are_atomic ... FAILED
+
+failures:
+
+failures:
+    guest_allocations_are_measured_and_payload_failures_are_atomic
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+error: test failed, to rerun pass `--test experimental_capability_guest_allocations`
+
+EXIT: 101

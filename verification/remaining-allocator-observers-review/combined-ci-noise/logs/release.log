@@ -1,0 +1,73 @@
+CWD: /var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/repaired
+COMMAND: ['cargo', 'test', '--locked', '--manifest-path', 'vm/Cargo.toml', '--features', 'experimental-span-execution,experimental-capability-native', '--test', 'span_function_cache_allocations', '--test', 'span_execution_allocations', '--test', 'experimental_allocations', '--test', 'experimental_capability_guest_allocations', '--test', 'capability_ffi_allocations', '--release', '--', '--nocapture']
+ENV: {'PATH': '/opt/homebrew/opt/rustup/bin:/Applications/ChatGPT.app/Contents/Resources/codex-cli/codex-path:/Users/andreyyurlov/.local/bin:/Users/andreyyurlov/.bun/bin:/Users/andreyyurlov/.local/state/fnm_multishells/12356_1792761298575/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Library/Apple/usr/bin:/opt/homebrew/bin:/Users/andreyyurlov/.codex/tmp/arg0/codex-arg0vfC1Qy:/Applications/ChatGPT.app/Contents/Resources/codex-cli/codex-path:/Users/andreyyurlov/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/override:/Users/andreyyurlov/.local/bin:/Users/andreyyurlov/.bun/bin:/Users/andreyyurlov/.local/state/fnm_multishells/11246_1792761103599/bin:/opt/homebrew/sbin:/Users/andreyyurlov/.docker/bin:/Users/andreyyurlov/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/fallback:/Applications/ChatGPT.app/Contents/Resources:/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS:/Users/andreyyurlov/.docker/bin', 'MIXER_ALLOCATOR_NOISE': '1', 'CARGO_TARGET_DIR': '/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-combined-observer-ci-noise-rltpoogp'}
+TIMEOUT_SECONDS: 240
+   Compiling mixer-vm v0.1.0 (/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/repaired/vm)
+    Finished `release` profile [optimized] target(s) in 2.70s
+     Running tests/capability_ffi_allocations.rs (/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-combined-observer-ci-noise-rltpoogp/release/deps/capability_ffi_allocations-45ec584fd550d102)
+
+running 1 test
+native validate-only requested(calls,retained,logical_peak,largest)=(60, 0, 3109, 368);32-page module not instantiated
+native create32pages requested(calls,retained,logical_peak,largest)=(128, 2101738, 2101738, 2097152);includes shared registry first-use overhead if any
+native post allocation refusal=(1, 0, 0, 1024);retry succeeded;no quarantine/terminal/exit fabricated
+observer maximum ownership slots=59 capacity=4096 background_noise=true
+test validation_has_no_instance_memory_and_post_allocation_failure_remains_retryable ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/experimental_allocations.rs (/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-combined-observer-ci-noise-rltpoogp/release/deps/experimental_allocations-75dde7ab39420388)
+
+running 1 test
+all 12 allocation ordinals failed closed, no retained allocation after each failure; four gated source/metadata/body cancellations returned no proof
+observation branch-labels-10: source=51 requested_peak=163 retained=91 allocations=7 total_peak_reserved=1427 metadata_peak_reserved=560 scratch_peak_reserved=816 work=182
+observation branch-labels-200000: source=200047 requested_peak=200159 retained=200087 allocations=7 total_peak_reserved=201423 metadata_peak_reserved=560 scratch_peak_reserved=816 work=1000150
+observation 512-types-each-4096-parameters: source=2099225 requested_peak=5251097 retained=4202533 allocations=33 total_peak_reserved=5252361 metadata_peak_reserved=3152392 scratch_peak_reserved=6888 work=10500655
+observation 200000-instructions: source=200036 requested_peak=200140 retained=200076 allocations=6 total_peak_reserved=201404 metadata_peak_reserved=560 scratch_peak_reserved=808 work=800101
+observation exact-4MiB-source: source=4194304 requested_peak=4194304 retained=4194304 allocations=1 total_peak_reserved=4195568 metadata_peak_reserved=520 scratch_peak_reserved=744 work=8388609
+observation 128-controls: source=416 requested_peak=3528 retained=456 allocations=11 total_peak_reserved=4792 metadata_peak_reserved=560 scratch_peak_reserved=3816 work=1875
+observation 4096-operands: source=12323 requested_peak=18571 retained=12363 allocations=16 total_peak_reserved=19835 metadata_peak_reserved=560 scratch_peak_reserved=6952 work=61532
+observation v3-65536-elements: source=65592 requested_peak=65712 retained=65648 allocations=7 total_peak_reserved=66976 metadata_peak_reserved=576 scratch_peak_reserved=808 work=196767
+observer maximum ownership slots=26 capacity=4096 background_noise=true
+test requested_allocations_failure_drop_and_copy_cancellation ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/experimental_capability_guest_allocations.rs (/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-combined-observer-ci-noise-rltpoogp/release/deps/experimental_capability_guest_allocations-93b2b7f267cd5e51)
+
+running 1 test
+constructor requested allocation events=[24, 8, 128, 8, 8, 19, 11, 19, 11, 224, 224, 19, 6, 19, 6, 19, 4, 19, 4, 16, 3, 3, 368, 128, 6, 6, 4, 4, 5, 5, 31, 31, 256, 112, 160, 256, 160, 16, 16, 168, 19, 11, 19, 6, 19, 4, 160, 3, 6, 4, 5, 31, 112, 16, 16, 589824, 24, 1016]; (calls,live,peak)=(58, 592878, 592878); fixture bytes=214
+known Shared Arc OOM abort: status=signal: 6 (SIGABRT); stderr=memory allocation of 1016 bytes failed
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+fallible argument allocation refusal: (2, 36, 36); subsequent bounded Error String included
+eight argument/completion payloads: (16, 8388608, 8388608); caller buffers and preexisting owner/VM excluded
+ready-poll/ack allocation calls=0; ready payloads copied without staging
+close/drop/last-ticket-ack allocation calls=0; final owner requested bytes freed=1104
+observer maximum ownership slots=229 capacity=4096 background_noise=true
+test guest_allocations_are_measured_and_payload_failures_are_atomic ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/span_execution_allocations.rs (/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-combined-observer-ci-noise-rltpoogp/release/deps/span_execution_allocations-c2c23126298a95a7)
+
+running 1 test
+observer maximum ownership slots=37 capacity=4096 background_noise=true
+owned allocation observations: constructor_allocations=6 initial_invoke_allocations=4 constructor_requested_peak=462872 invoke_requested_peak=131357; every failure/cancellation ordinal cleaned
+test every_allocator_failure_and_cancel_ordinal_is_fallible_and_cleans_owned_pins ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/span_function_cache_allocations.rs (/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-combined-observer-ci-noise-rltpoogp/release/deps/span_function_cache_allocations-8b2e3232a275dd8c)
+
+running 1 test
+cache observation: constructor_allocations=2 decode_allocations=3 constructor_requested_peak=1248 decode_requested_peak=4277 peak_cache_reserved=15605 peak_total_reserved=17419 work=5871
+cache maximum 4096-locals: source=8228 requested_cache_peak=5272 requested_retained_proof=8268 allocations=4 resident=4136 cache_reserved_peak=15352 total_reserved_peak=24140 work=37006
+cache maximum 200000-instructions: source=200036 requested_cache_peak=8001136 requested_retained_proof=200076 allocations=3 resident=8000000 cache_reserved_peak=8011216 total_reserved_peak=8211812 work=1000135
+cache maximum 200000-branch-targets: source=200047 requested_cache_peak=801336 requested_retained_proof=200087 allocations=4 resident=800200 cache_reserved_peak=811416 total_reserved_peak=1012023 work=1000177
+cache maximum 128-controls: source=416 requested_cache_peak=11336 requested_retained_proof=456 allocations=3 resident=10200 cache_reserved_peak=21416 total_reserved_peak=22392 work=2299
+observer maximum ownership slots=17 capacity=4096 background_noise=true
+test every_allocation_ordinal_cancellation_and_requested_peak_cleanup ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+EXIT: 0

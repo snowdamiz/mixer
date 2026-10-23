@@ -3,102 +3,15 @@ mod common;
 use common::*;
 use mixer_vm::experimental::{validate_spans, FailureKind, ValidationBudget};
 use mixer_vm::{Cancellation, Limits, Profile};
-use std::alloc::{GlobalAlloc, Layout, System};
-use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering::SeqCst};
-// Separate single-test process: no other test can contaminate gated observations.
-struct Observed;
-static ACTIVE: AtomicBool = AtomicBool::new(false);
-static LIVE: AtomicUsize = AtomicUsize::new(0);
-static PEAK: AtomicUsize = AtomicUsize::new(0);
-static CALLS: AtomicUsize = AtomicUsize::new(0);
-static REALLOCS: AtomicUsize = AtomicUsize::new(0);
-static FAIL: AtomicUsize = AtomicUsize::new(0);
-static SOURCE_SIZE: AtomicUsize = AtomicUsize::new(0);
-static SOURCE_HITS: AtomicUsize = AtomicUsize::new(0);
-static GATE_CALL: AtomicUsize = AtomicUsize::new(0);
+#[path = "common/legacy_allocation_observer.rs"]
+mod allocation_observer;
+use allocation_observer::{
+    Lane, Observed, CALLS, LIVE, MAX_SLOTS, PEAK, REACHED, REALLOCS, RELEASE, SOURCE_HITS,
+};
+use std::sync::atomic::{AtomicBool, Ordering::SeqCst};
 static READY: AtomicBool = AtomicBool::new(false);
-static GATE: AtomicBool = AtomicBool::new(false);
-static REACHED: AtomicBool = AtomicBool::new(false);
-static RELEASE: AtomicBool = AtomicBool::new(false);
-fn allocation(size: usize) -> bool {
-    if !ACTIVE.load(SeqCst) {
-        return true;
-    }
-    let call = CALLS.fetch_add(1, SeqCst) + 1;
-    if size == SOURCE_SIZE.load(SeqCst) {
-        SOURCE_HITS.fetch_add(1, SeqCst);
-    }
-    if GATE.load(SeqCst) && call == GATE_CALL.load(SeqCst) {
-        REACHED.store(true, SeqCst);
-        while !RELEASE.load(SeqCst) {
-            std::hint::spin_loop();
-        }
-    }
-    call != FAIL.load(SeqCst)
-}
-fn added(bytes: usize) {
-    let n = LIVE.fetch_add(bytes, SeqCst) + bytes;
-    if ACTIVE.load(SeqCst) {
-        PEAK.fetch_max(n, SeqCst);
-    }
-}
-unsafe impl GlobalAlloc for Observed {
-    unsafe fn alloc(&self, l: Layout) -> *mut u8 {
-        if !allocation(l.size()) {
-            return std::ptr::null_mut();
-        }
-        let p = System.alloc(l);
-        if !p.is_null() {
-            added(l.size());
-        }
-        p
-    }
-    unsafe fn alloc_zeroed(&self, l: Layout) -> *mut u8 {
-        if !allocation(l.size()) {
-            return std::ptr::null_mut();
-        }
-        let p = System.alloc_zeroed(l);
-        if !p.is_null() {
-            added(l.size());
-        }
-        p
-    }
-    unsafe fn dealloc(&self, p: *mut u8, l: Layout) {
-        System.dealloc(p, l);
-        LIVE.fetch_sub(l.size(), SeqCst);
-    }
-    unsafe fn realloc(&self, p: *mut u8, l: Layout, n: usize) -> *mut u8 {
-        if ACTIVE.load(SeqCst) {
-            REALLOCS.fetch_add(1, SeqCst);
-        }
-        if !allocation(n) {
-            return std::ptr::null_mut();
-        }
-        let q = System.realloc(p, l, n);
-        if !q.is_null() {
-            LIVE.fetch_sub(l.size(), SeqCst);
-            added(n);
-        }
-        q
-    }
-}
 #[global_allocator]
 static ALLOCATOR: Observed = Observed;
-fn begin(source: usize, fail: usize) -> usize {
-    let baseline = LIVE.load(SeqCst);
-    PEAK.store(baseline, SeqCst);
-    CALLS.store(0, SeqCst);
-    REALLOCS.store(0, SeqCst);
-    SOURCE_SIZE.store(source, SeqCst);
-    SOURCE_HITS.store(0, SeqCst);
-    FAIL.store(fail, SeqCst);
-    ACTIVE.store(true, SeqCst);
-    baseline
-}
-fn end() {
-    ACTIVE.store(false, SeqCst);
-    FAIL.store(0, SeqCst);
-}
 fn large_metadata() -> Vec<u8> {
     let mut m = b"\0asm\x01\0\0\0".to_vec();
     let mut t = u32leb(512);
@@ -120,11 +33,17 @@ fn large_table(labels: u32) -> Vec<u8> {
     code.extend([0x0b, 0x0b]);
     Spec::one(vec![], None, code).bytes()
 }
-fn observe_owned(label: &str, source: &[u8], limits: Limits) -> (usize, usize, usize) {
+fn observe_owned(
+    observer: &Lane,
+    label: &str,
+    source: &[u8],
+    limits: Limits,
+) -> (usize, usize, usize) {
     let cancellation = Cancellation::default();
-    let baseline = begin(source.len(), 0);
+    let operation = observer.begin(source.len(), 0);
+    let baseline = operation.baseline();
     let result = validate_spans(source, limits, ValidationBudget::default(), &cancellation);
-    end();
+    operation.finish();
     let sealed = result.unwrap();
     let actual = PEAK.load(SeqCst) - baseline;
     let calls = CALLS.load(SeqCst);
@@ -151,20 +70,22 @@ fn observe_owned(label: &str, source: &[u8], limits: Limits) -> (usize, usize, u
 }
 #[test]
 fn requested_allocations_failure_drop_and_copy_cancellation() {
+    let observer = Lane::new();
     let mut spec = Spec::one(vec![], None, vec![0x0b]);
     spec.functions[0].locals = vec![mixer_vm::Type::I32; 100];
     spec.memory = Some((1, 1));
     spec.data = vec![(5, vec![0xab; 997])];
     let source = spec.bytes();
     let cancellation = Cancellation::default();
-    let baseline = begin(source.len(), 0);
+    let operation = observer.begin(source.len(), 0);
+    let baseline = operation.baseline();
     let result = validate_spans(
         &source,
         Limits::default(),
         ValidationBudget::default(),
         &cancellation,
     );
-    end();
+    operation.finish();
     let calls = CALLS.load(SeqCst);
     let actual = PEAK.load(SeqCst) - baseline;
     let sealed = result.unwrap();
@@ -174,14 +95,15 @@ fn requested_allocations_failure_drop_and_copy_cancellation() {
     drop(sealed);
     assert_eq!(LIVE.load(SeqCst), baseline);
     for fail in 1..=calls {
-        let baseline = begin(source.len(), fail);
+        let operation = observer.begin(source.len(), fail);
+        let baseline = operation.baseline();
         let result = validate_spans(
             &source,
             Limits::default(),
             ValidationBudget::default(),
             &cancellation,
         );
-        end();
+        operation.finish();
         let error = result.err().expect("injected allocation must fail closed");
         assert_eq!(
             error.kind,
@@ -198,9 +120,10 @@ fn requested_allocations_failure_drop_and_copy_cancellation() {
         module_bytes: source.len() - 1,
         ..Limits::default()
     };
-    let baseline = begin(source.len(), 1);
+    let operation = observer.begin(source.len(), 1);
+    let baseline = operation.baseline();
     let result = validate_spans(&source, narrow, ValidationBudget::default(), &cancellation);
-    end();
+    operation.finish();
     assert_eq!(result.err().unwrap().kind, FailureKind::ResourceExhausted);
     assert_eq!(CALLS.load(SeqCst), 0);
     assert_eq!(LIVE.load(SeqCst), baseline);
@@ -208,9 +131,10 @@ fn requested_allocations_failure_drop_and_copy_cancellation() {
         call_depth: 0,
         ..Limits::default()
     };
-    let baseline = begin(source.len(), 1);
+    let operation = observer.begin(source.len(), 1);
+    let baseline = operation.baseline();
     let result = validate_spans(&source, invalid, ValidationBudget::default(), &cancellation);
-    end();
+    operation.finish();
     assert_eq!(result.err().unwrap().kind, FailureKind::InvalidLimits);
     assert_eq!(CALLS.load(SeqCst), 0);
     assert_eq!(LIVE.load(SeqCst), baseline);
@@ -218,8 +142,7 @@ fn requested_allocations_failure_drop_and_copy_cancellation() {
     // cancels before returning to parser/type traversal, without production hooks.
     for ordinal in [1, 2, 5, calls] {
         let cancellation = Cancellation::default();
-        GATE_CALL.store(ordinal, SeqCst);
-        GATE.store(true, SeqCst);
+        allocation_observer::gate(ordinal);
         READY.store(false, SeqCst);
         REACHED.store(false, SeqCst);
         RELEASE.store(false, SeqCst);
@@ -238,15 +161,15 @@ fn requested_allocations_failure_drop_and_copy_cancellation() {
         while !READY.load(SeqCst) {
             std::hint::spin_loop();
         }
-        begin(source.len(), 0);
+        let operation = observer.begin(source.len(), 0);
         let result = validate_spans(
             &source,
             Limits::default(),
             ValidationBudget::default(),
             &cancellation,
         );
-        end();
-        GATE.store(false, SeqCst);
+        operation.finish();
+        allocation_observer::ungate();
         assert!(
             worker.join().unwrap(),
             "allocation gate {ordinal} was not reached"
@@ -256,28 +179,33 @@ fn requested_allocations_failure_drop_and_copy_cancellation() {
     println!("all {calls} allocation ordinals failed closed, no retained allocation after each failure; four gated source/metadata/body cancellations returned no proof");
     let small = large_table(10);
     let large = large_table(200_000);
-    let (_, _, a) = observe_owned("branch-labels-10", &small, Limits::default());
-    let (_, _, b) = observe_owned("branch-labels-200000", &large, Limits::default());
+    let (_, _, a) = observe_owned(&observer, "branch-labels-10", &small, Limits::default());
+    let (_, _, b) = observe_owned(&observer, "branch-labels-200000", &large, Limits::default());
     assert_eq!(a, b, "branch target count must not allocate labels");
     let source = large_metadata();
-    observe_owned("512-types-each-4096-parameters", &source, Limits::default());
+    observe_owned(
+        &observer,
+        "512-types-each-4096-parameters",
+        &source,
+        Limits::default(),
+    );
     let mut code = vec![1; 199_999];
     code.push(0x0b);
     let source = Spec::one(vec![], None, code).bytes();
-    observe_owned("200000-instructions", &source, Limits::default());
+    observe_owned(&observer, "200000-instructions", &source, Limits::default());
     let mut source = b"\0asm\x01\0\0\0".to_vec();
     let mut custom = vec![0];
     custom.extend(vec![0; 4 * 1024 * 1024 - 14]);
     section(&mut source, 0, custom);
     assert_eq!(source.len(), 4 * 1024 * 1024);
-    observe_owned("exact-4MiB-source", &source, Limits::default());
+    observe_owned(&observer, "exact-4MiB-source", &source, Limits::default());
     let mut code = vec![];
     for _ in 0..127 {
         code.extend([2, 0x40]);
     }
     code.extend(vec![0x0b; 128]);
     let source = Spec::one(vec![], None, code).bytes();
-    observe_owned("128-controls", &source, Limits::default());
+    observe_owned(&observer, "128-controls", &source, Limits::default());
     let mut code = vec![];
     for _ in 0..4096 {
         code.extend([0x41, 0]);
@@ -285,18 +213,24 @@ fn requested_allocations_failure_drop_and_copy_cancellation() {
     code.extend(vec![0x1a; 4096]);
     code.push(0x0b);
     let source = Spec::one(vec![], None, code).bytes();
-    observe_owned("4096-operands", &source, Limits::default());
+    observe_owned(&observer, "4096-operands", &source, Limits::default());
     // Different profiles are measured separately; table data stays encoded.
     let mut s = Spec::one(vec![], None, vec![0x0b]);
     s.table = Some((65_536, 65_536));
     s.elements = vec![(0, vec![0; 65_536])];
     let source = s.bytes();
     observe_owned(
+        &observer,
         "v3-65536-elements",
         &source,
         Limits {
             profile: Profile::TableMemoryV3,
             ..Limits::default()
         },
+    );
+    println!(
+        "observer maximum ownership slots={} capacity=4096 background_noise={}",
+        MAX_SLOTS.load(SeqCst),
+        std::env::var_os("MIXER_ALLOCATOR_NOISE").is_some()
     );
 }

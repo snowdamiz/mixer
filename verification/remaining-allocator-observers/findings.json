@@ -1,0 +1,68 @@
+{
+  "observed_utc": "2026-10-23T17:27:00.307474+00:00",
+  "status": "test-only repair validated locally; root review and hosted integration remain separate",
+  "baseline_revision": "020f909f2a32553b79ba7068a1798c85d97426b4",
+  "tools": {
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "clippy": "clippy 0.1.99 (b940084d7e 2026-09-28)"
+  },
+  "tested_tree_sha256": "fb2d2daabd21c50f813a32cba8d6f3b321201d7853cc2cfb0832b0130c6265de",
+  "exact_overlays": {
+    "vm/tests/experimental_capability_guest_allocations.rs": "f787d2d7e9acbd9ef3563ca02967ad5fe783d72b942a240f41db61fb54d701fa",
+    "vm/tests/capability_ffi_allocations.rs": "3b81e322edf86443a86db0a8cdc2a56816eff598f56c279fc3d53fa34d317f75",
+    "vm/tests/experimental_allocations.rs": "9168c109b08033d7735a1e693fa9a7aa50f1e7f8049560b99d41e93dbcde1e6f",
+    "vm/tests/common/legacy_allocation_observer.rs": "1d06c0964cc5bf06f673c31bffc8cfe6ab854615bb0ccfeb7c05f798c3c0347d"
+  },
+  "checks": [
+    {
+      "name": "debug-baseline",
+      "exit": 0
+    },
+    {
+      "name": "debug-noise",
+      "exit": 0
+    },
+    {
+      "name": "release-baseline",
+      "exit": 0
+    },
+    {
+      "name": "release-noise",
+      "exit": 0
+    },
+    {
+      "name": "clippy",
+      "exit": 0
+    }
+  ],
+  "audit_checks": {
+    "passed": 77,
+    "total": 77
+  },
+  "original_assertions": {
+    "vm/tests/experimental_capability_guest_allocations.rs": 24,
+    "vm/tests/capability_ffi_allocations.rs": 25,
+    "vm/tests/experimental_allocations.rs": 20
+  },
+  "original_baseline_and_repaired_measurements_equal": true,
+  "hosted_tuple_reproduced_synthetically": [
+    20,
+    8389508,
+    8389508
+  ],
+  "correct_guest_payload_occupancy": [
+    16,
+    8388608,
+    8388608
+  ],
+  "hosted_original_stack_attribution": "unknown",
+  "original_global_fault_interference": "background 900-byte request consumes ordinal1; guest invocation unexpectedly succeeds",
+  "limitations": [
+    "single synchronous owner per test executable",
+    "current platform-specific requested bytes only",
+    "no physical phones; explicitly pending per user",
+    "no immutable published package, signing, release, customer, operational or GA qualification",
+    "no product edits, new dependencies, commits or pushes by this lane"
+  ]
+}

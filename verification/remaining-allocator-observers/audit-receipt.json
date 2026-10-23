@@ -1,0 +1,374 @@
+{
+  "observed_utc": "2026-10-23T17:26:47.797164+00:00",
+  "command": "python3 verification/remaining-allocator-observers/audit.py",
+  "python": "3.14.8",
+  "auditor_source_sha256": "2e229d65d290b594c38e1426a11a5d71216a36c110826f9e1f23196dba01c77b",
+  "baseline_revision": "020f909f2a32553b79ba7068a1798c85d97426b4",
+  "snapshot_sha256": "57ec0d73aa2cd4a380137fa43eb79734e484b48c6fdaa1426c1bc2d12f8f929c",
+  "tested_tree_sha256": "fb2d2daabd21c50f813a32cba8d6f3b321201d7853cc2cfb0832b0130c6265de",
+  "tested_file_count": 414,
+  "overlay": {
+    "vm/tests/experimental_capability_guest_allocations.rs": "f787d2d7e9acbd9ef3563ca02967ad5fe783d72b942a240f41db61fb54d701fa",
+    "vm/tests/capability_ffi_allocations.rs": "3b81e322edf86443a86db0a8cdc2a56816eff598f56c279fc3d53fa34d317f75",
+    "vm/tests/experimental_allocations.rs": "9168c109b08033d7735a1e693fa9a7aa50f1e7f8049560b99d41e93dbcde1e6f",
+    "vm/tests/common/legacy_allocation_observer.rs": "1d06c0964cc5bf06f673c31bffc8cfe6ab854615bb0ccfeb7c05f798c3c0347d"
+  },
+  "original_assertion_counts": {
+    "vm/tests/experimental_capability_guest_allocations.rs": 24,
+    "vm/tests/capability_ffi_allocations.rs": 25,
+    "vm/tests/experimental_allocations.rs": 20
+  },
+  "original_measurements": [
+    "native validate-only requested(calls,retained,logical_peak,largest)=(60, 0, 3109, 368);32-page module not instantiated",
+    "native create32pages requested(calls,retained,logical_peak,largest)=(128, 2101738, 2101738, 2097152);includes shared registry first-use overhead if any",
+    "native post allocation refusal=(1, 0, 0, 1024);retry succeeded;no quarantine/terminal/exit fabricated",
+    "all 12 allocation ordinals failed closed, no retained allocation after each failure; four gated source/metadata/body cancellations returned no proof",
+    "observation branch-labels-10: source=51 requested_peak=163 retained=91 allocations=7 total_peak_reserved=1427 metadata_peak_reserved=560 scratch_peak_reserved=816 work=182",
+    "observation branch-labels-200000: source=200047 requested_peak=200159 retained=200087 allocations=7 total_peak_reserved=201423 metadata_peak_reserved=560 scratch_peak_reserved=816 work=1000150",
+    "observation 512-types-each-4096-parameters: source=2099225 requested_peak=5251097 retained=4202533 allocations=33 total_peak_reserved=5252361 metadata_peak_reserved=3152392 scratch_peak_reserved=6888 work=10500655",
+    "observation 200000-instructions: source=200036 requested_peak=200140 retained=200076 allocations=6 total_peak_reserved=201404 metadata_peak_reserved=560 scratch_peak_reserved=808 work=800101",
+    "observation exact-4MiB-source: source=4194304 requested_peak=4194304 retained=4194304 allocations=1 total_peak_reserved=4195568 metadata_peak_reserved=520 scratch_peak_reserved=744 work=8388609",
+    "observation 128-controls: source=416 requested_peak=3528 retained=456 allocations=11 total_peak_reserved=4792 metadata_peak_reserved=560 scratch_peak_reserved=3816 work=1875",
+    "observation 4096-operands: source=12323 requested_peak=18571 retained=12363 allocations=16 total_peak_reserved=19835 metadata_peak_reserved=560 scratch_peak_reserved=6952 work=61532",
+    "observation v3-65536-elements: source=65592 requested_peak=65712 retained=65648 allocations=7 total_peak_reserved=66976 metadata_peak_reserved=576 scratch_peak_reserved=808 work=196767",
+    "constructor requested allocation events=[24, 8, 128, 8, 8, 19, 11, 19, 11, 224, 224, 19, 6, 19, 6, 19, 4, 19, 4, 16, 3, 3, 368, 128, 6, 6, 4, 4, 5, 5, 31, 31, 256, 112, 160, 256, 160, 16, 16, 168, 19, 11, 19, 6, 19, 4, 160, 3, 6, 4, 5, 31, 112, 16, 16, 589824, 24, 1016]; (calls,live,peak)=(58, 592878, 592878); fixture bytes=214",
+    "fallible argument allocation refusal: (2, 36, 36); subsequent bounded Error String included",
+    "eight argument/completion payloads: (16, 8388608, 8388608); caller buffers and preexisting owner/VM excluded",
+    "ready-poll/ack allocation calls=0; ready payloads copied without staging",
+    "close/drop/last-ticket-ack allocation calls=0; final owner requested bytes freed=1104"
+  ],
+  "max_ledger_slots_by_run_in_order_ffi_stream_guest": {
+    "debug-baseline": [
+      59,
+      26,
+      216
+    ],
+    "debug-noise": [
+      59,
+      26,
+      218
+    ],
+    "release-baseline": [
+      59,
+      26,
+      216
+    ],
+    "release-noise": [
+      59,
+      26,
+      218
+    ]
+  },
+  "checks": [
+    {
+      "check": "retained original revision archive",
+      "passed": true
+    },
+    {
+      "check": "baseline git export identity",
+      "passed": true
+    },
+    {
+      "check": "retained tested snapshot digest",
+      "passed": true
+    },
+    {
+      "check": "complete tested snapshot manifest",
+      "passed": true
+    },
+    {
+      "check": "complete tested source digest",
+      "passed": true
+    },
+    {
+      "check": "immutable tested source",
+      "passed": true
+    },
+    {
+      "check": "exactly the four named test overlay paths differ",
+      "passed": true
+    },
+    {
+      "check": "current overlay vm/tests/experimental_capability_guest_allocations.rs",
+      "passed": true
+    },
+    {
+      "check": "current overlay vm/tests/capability_ffi_allocations.rs",
+      "passed": true
+    },
+    {
+      "check": "current overlay vm/tests/experimental_allocations.rs",
+      "passed": true
+    },
+    {
+      "check": "current overlay vm/tests/common/legacy_allocation_observer.rs",
+      "passed": true
+    },
+    {
+      "check": "reviewed pointer ledger unchanged",
+      "passed": true
+    },
+    {
+      "check": "all original assertions unchanged vm/tests/experimental_capability_guest_allocations.rs",
+      "passed": true
+    },
+    {
+      "check": "all original assertions unchanged vm/tests/capability_ffi_allocations.rs",
+      "passed": true
+    },
+    {
+      "check": "all original assertions unchanged vm/tests/experimental_allocations.rs",
+      "passed": true
+    },
+    {
+      "check": "all original measurement categories present",
+      "passed": true
+    },
+    {
+      "check": "original retained snapshot identity original-baseline-debug",
+      "passed": true
+    },
+    {
+      "check": "original command expected exit original-baseline-debug",
+      "passed": true
+    },
+    {
+      "check": "original log identity original-baseline-debug",
+      "passed": true
+    },
+    {
+      "check": "original source stable original-baseline-debug",
+      "passed": true
+    },
+    {
+      "check": "original exact measurements original-baseline-debug",
+      "passed": true
+    },
+    {
+      "check": "original retained snapshot identity original-baseline-release",
+      "passed": true
+    },
+    {
+      "check": "original command expected exit original-baseline-release",
+      "passed": true
+    },
+    {
+      "check": "original log identity original-baseline-release",
+      "passed": true
+    },
+    {
+      "check": "original source stable original-baseline-release",
+      "passed": true
+    },
+    {
+      "check": "original exact measurements original-baseline-release",
+      "passed": true
+    },
+    {
+      "check": "original retained snapshot identity original-live-debug",
+      "passed": true
+    },
+    {
+      "check": "original command expected exit original-live-debug",
+      "passed": true
+    },
+    {
+      "check": "original log identity original-live-debug",
+      "passed": true
+    },
+    {
+      "check": "original source stable original-live-debug",
+      "passed": true
+    },
+    {
+      "check": "original exact synthetic hosted delta original-live-debug",
+      "passed": true
+    },
+    {
+      "check": "original retained snapshot identity original-live-release",
+      "passed": true
+    },
+    {
+      "check": "original command expected exit original-live-release",
+      "passed": true
+    },
+    {
+      "check": "original log identity original-live-release",
+      "passed": true
+    },
+    {
+      "check": "original source stable original-live-release",
+      "passed": true
+    },
+    {
+      "check": "original exact synthetic hosted delta original-live-release",
+      "passed": true
+    },
+    {
+      "check": "original retained snapshot identity original-fault-debug",
+      "passed": true
+    },
+    {
+      "check": "original command expected exit original-fault-debug",
+      "passed": true
+    },
+    {
+      "check": "original log identity original-fault-debug",
+      "passed": true
+    },
+    {
+      "check": "original source stable original-fault-debug",
+      "passed": true
+    },
+    {
+      "check": "original background consumes first fault original-fault-debug",
+      "passed": true
+    },
+    {
+      "check": "original retained snapshot identity original-fault-release",
+      "passed": true
+    },
+    {
+      "check": "original command expected exit original-fault-release",
+      "passed": true
+    },
+    {
+      "check": "original log identity original-fault-release",
+      "passed": true
+    },
+    {
+      "check": "original source stable original-fault-release",
+      "passed": true
+    },
+    {
+      "check": "original background consumes first fault original-fault-release",
+      "passed": true
+    },
+    {
+      "check": "repaired command pass debug-baseline",
+      "passed": true
+    },
+    {
+      "check": "repaired log identity debug-baseline",
+      "passed": true
+    },
+    {
+      "check": "repaired command source stable debug-baseline",
+      "passed": true
+    },
+    {
+      "check": "three successful test processes debug-baseline",
+      "passed": true
+    },
+    {
+      "check": "exact original measurements debug-baseline",
+      "passed": true
+    },
+    {
+      "check": "1016-byte Arc OOM child remains abort debug-baseline",
+      "passed": true
+    },
+    {
+      "check": "bounded ledger observations debug-baseline",
+      "passed": true
+    },
+    {
+      "check": "repaired command pass debug-noise",
+      "passed": true
+    },
+    {
+      "check": "repaired log identity debug-noise",
+      "passed": true
+    },
+    {
+      "check": "repaired command source stable debug-noise",
+      "passed": true
+    },
+    {
+      "check": "three successful test processes debug-noise",
+      "passed": true
+    },
+    {
+      "check": "exact original measurements debug-noise",
+      "passed": true
+    },
+    {
+      "check": "1016-byte Arc OOM child remains abort debug-noise",
+      "passed": true
+    },
+    {
+      "check": "bounded ledger observations debug-noise",
+      "passed": true
+    },
+    {
+      "check": "repaired command pass release-baseline",
+      "passed": true
+    },
+    {
+      "check": "repaired log identity release-baseline",
+      "passed": true
+    },
+    {
+      "check": "repaired command source stable release-baseline",
+      "passed": true
+    },
+    {
+      "check": "three successful test processes release-baseline",
+      "passed": true
+    },
+    {
+      "check": "exact original measurements release-baseline",
+      "passed": true
+    },
+    {
+      "check": "1016-byte Arc OOM child remains abort release-baseline",
+      "passed": true
+    },
+    {
+      "check": "bounded ledger observations release-baseline",
+      "passed": true
+    },
+    {
+      "check": "repaired command pass release-noise",
+      "passed": true
+    },
+    {
+      "check": "repaired log identity release-noise",
+      "passed": true
+    },
+    {
+      "check": "repaired command source stable release-noise",
+      "passed": true
+    },
+    {
+      "check": "three successful test processes release-noise",
+      "passed": true
+    },
+    {
+      "check": "exact original measurements release-noise",
+      "passed": true
+    },
+    {
+      "check": "1016-byte Arc OOM child remains abort release-noise",
+      "passed": true
+    },
+    {
+      "check": "bounded ledger observations release-noise",
+      "passed": true
+    },
+    {
+      "check": "repaired command pass clippy",
+      "passed": true
+    },
+    {
+      "check": "repaired log identity clippy",
+      "passed": true
+    },
+    {
+      "check": "repaired command source stable clippy",
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "scope": "Local host test instrumentation audit. Original hosted CI allocation stack remains unattributed. No physical-device, published-package, release, or GA qualification."
+}

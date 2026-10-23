@@ -1,83 +1,16 @@
 #![cfg(feature = "experimental-capability-native")]
 //! Original isolated allocator probe: no deployment/RSS/physical heap claim.
 use mixer_vm::*;
-use std::{
-    alloc::{GlobalAlloc, Layout, System},
-    ptr,
-    sync::atomic::{AtomicBool, AtomicUsize, Ordering::SeqCst},
-};
+use std::{ptr, sync::atomic::Ordering::SeqCst};
+#[path = "common/legacy_allocation_observer.rs"]
+mod allocation_observer;
 #[path = "capability_ffi/fixture.rs"]
 mod fixture;
-struct Probe;
-static TRACK: AtomicBool = AtomicBool::new(false);
-static LIVE: AtomicUsize = AtomicUsize::new(0);
-static PEAK: AtomicUsize = AtomicUsize::new(0);
-static CALLS: AtomicUsize = AtomicUsize::new(0);
-static FAIL: AtomicUsize = AtomicUsize::new(0);
-static LARGEST: AtomicUsize = AtomicUsize::new(0);
-fn permit(size: usize) -> bool {
-    if !TRACK.load(SeqCst) {
-        return true;
-    }
-    LARGEST.fetch_max(size, SeqCst);
-    CALLS.fetch_add(1, SeqCst) + 1 != FAIL.load(SeqCst)
-}
-fn add(size: usize) {
-    let live = LIVE.fetch_add(size, SeqCst) + size;
-    if TRACK.load(SeqCst) {
-        PEAK.fetch_max(live, SeqCst);
-    }
-}
-unsafe impl GlobalAlloc for Probe {
-    unsafe fn alloc(&self, l: Layout) -> *mut u8 {
-        if !permit(l.size()) {
-            return ptr::null_mut();
-        }
-        let p = unsafe { System.alloc(l) };
-        if !p.is_null() {
-            add(l.size());
-        }
-        p
-    }
-    unsafe fn alloc_zeroed(&self, l: Layout) -> *mut u8 {
-        if !permit(l.size()) {
-            return ptr::null_mut();
-        }
-        let p = unsafe { System.alloc_zeroed(l) };
-        if !p.is_null() {
-            add(l.size());
-        }
-        p
-    }
-    unsafe fn realloc(&self, p: *mut u8, l: Layout, n: usize) -> *mut u8 {
-        if !permit(n) {
-            return ptr::null_mut();
-        }
-        let q = unsafe { System.realloc(p, l, n) };
-        if !q.is_null() {
-            LIVE.fetch_sub(l.size(), SeqCst);
-            add(n);
-        }
-        q
-    }
-    unsafe fn dealloc(&self, p: *mut u8, l: Layout) {
-        unsafe { System.dealloc(p, l) };
-        LIVE.fetch_sub(l.size(), SeqCst);
-    }
-}
+use allocation_observer::{Lane, Observed, Operation, CALLS, LARGEST, LIVE, MAX_SLOTS, PEAK};
 #[global_allocator]
-static ALLOCATOR: Probe = Probe;
-fn begin(fail: usize) -> usize {
-    CALLS.store(0, SeqCst);
-    FAIL.store(fail, SeqCst);
-    LARGEST.store(0, SeqCst);
-    let base = LIVE.load(SeqCst);
-    PEAK.store(base, SeqCst);
-    TRACK.store(true, SeqCst);
-    base
-}
-fn end(base: usize) -> (usize, usize, usize, usize) {
-    TRACK.store(false, SeqCst);
+static ALLOCATOR: Observed = Observed;
+fn end(operation: Operation<'_>) -> (usize, usize, usize, usize) {
+    let base = operation.finish();
     (
         CALLS.load(SeqCst),
         LIVE.load(SeqCst).saturating_sub(base),
@@ -87,10 +20,11 @@ fn end(base: usize) -> (usize, usize, usize, usize) {
 }
 #[test]
 fn validation_has_no_instance_memory_and_post_allocation_failure_remains_retryable() {
+    let observer = Lane::new();
     unsafe {
         let source = fixture::wasm_with_memory(32);
         let mut r = MixerVmReport::default();
-        let base = begin(0);
+        let base = observer.begin(0, 0);
         assert_eq!(
             mixer_vm_capability_validate_v1(
                 source.as_ptr(),
@@ -108,7 +42,7 @@ fn validation_has_no_instance_memory_and_post_allocation_failure_remains_retryab
         assert!(validation.2 < 65536);
         assert!(validation.3 < 65536);
         println!("native validate-only requested(calls,retained,logical_peak,largest)={validation:?};32-page module not instantiated");
-        let base = begin(0);
+        let base = observer.begin(0, 0);
         let mut handle = 0;
         assert_eq!(
             mixer_vm_capability_session_create_v1(
@@ -181,7 +115,7 @@ fn validation_has_no_instance_memory_and_post_allocation_failure_remains_retryab
         );
         let payload = vec![7u8; 1024];
         let mut result = MixerVmCapabilityResultV1::default();
-        let base = begin(1);
+        let base = observer.begin(0, 1);
         assert_eq!(
             mixer_vm_capability_post_v1(
                 handle,
@@ -198,7 +132,7 @@ fn validation_has_no_instance_memory_and_post_allocation_failure_remains_retryab
         assert_eq!(refusal, (1, 0, 0, 1024));
         assert_eq!(r.status, 2);
         assert_eq!(result.kind, 0);
-        let base = begin(0);
+        let base = observer.begin(0, 0);
         assert_eq!(
             mixer_vm_capability_post_v1(
                 handle,
@@ -214,7 +148,7 @@ fn validation_has_no_instance_memory_and_post_allocation_failure_remains_retryab
         assert_eq!(end(base), (1, 1024, 1024, 1024));
         println!("native post allocation refusal={refusal:?};retry succeeded;no quarantine/terminal/exit fabricated");
         assert_eq!(mixer_vm_capability_session_close_v1(handle, &mut r), 0);
-        let base = begin(1);
+        let base = observer.begin(0, 1);
         assert_eq!(
             mixer_vm_capability_ack_exit_v1(handle, message.token, 2, &mut result, &mut r),
             0
@@ -222,7 +156,7 @@ fn validation_has_no_instance_memory_and_post_allocation_failure_remains_retryab
         assert_eq!(end(base).0, 0);
         let mut sentinel = vec![0xa5u8; std::mem::size_of::<MixerVmReport>() + 1];
         let report = sentinel.as_mut_ptr().add(1).cast::<MixerVmReport>();
-        let base = begin(1);
+        let base = observer.begin(0, 1);
         assert_eq!(
             mixer_vm_capability_validate_v1(
                 report.cast(),
@@ -238,4 +172,9 @@ fn validation_has_no_instance_memory_and_post_allocation_failure_remains_retryab
         assert_eq!(end(base), (0, 0, 0, 0));
         assert!(sentinel.iter().all(|b| *b == 0xa5));
     }
+    println!(
+        "observer maximum ownership slots={} capacity=4096 background_noise={}",
+        MAX_SLOTS.load(SeqCst),
+        std::env::var_os("MIXER_ALLOCATOR_NOISE").is_some()
+    );
 }

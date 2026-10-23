@@ -366,3 +366,18 @@ for these newer presentation or observer changes. Hosted d6505ac's Swift job als
 finished successfully; its original VM failure remains retained. Physical phones,
 actual Android signed binding/display, full Swift target execution, immutable
 consumers and GA acceptance remain pending.
+
+
+The three remaining VM allocation probes now use the reviewed pointer ledger
+with thread-local size/fault/gate observations. All 69 original assertions and
+17 measurement lines remain exact. Owner Debug/Release runs pass with and without
+900-byte background noise; independent review passes 43 additional checks in
+four combinations. CI now runs all five affected observer tests under noise;
+those exact combined Debug/Release commands pass ten local test processes.
+Root audited 546 bindings in
+`verification/remaining-allocator-observers-root-review/receipt.json`.
+Original observer replays reproduce the hosted four-call/900-byte tuple and
+fault-ordinal interference; the actual hosted allocation origin is still unknown.
+This changes test instrumentation only. Its hosted recheck, physical devices and
+all specified external qualification remain separate. Presentation checkpoint
+f19a18b has passed VM/services; its Swift job is still running at this observation.

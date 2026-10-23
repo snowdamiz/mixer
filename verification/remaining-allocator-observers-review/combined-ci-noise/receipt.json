@@ -1,0 +1,132 @@
+{
+  "observed_utc": "2026-10-23T17:35:29.078560+00:00",
+  "status": "passed",
+  "command": "PATH=/opt/homebrew/opt/rustup/bin:$PATH python3 verification/remaining-allocator-observers-review/combined-ci-noise/run.py",
+  "baseline_revision": "020f909f2a32553b79ba7068a1798c85d97426b4",
+  "source_tree_sha256": "fb2d2daabd21c50f813a32cba8d6f3b321201d7853cc2cfb0832b0130c6265de",
+  "base_review_seal_sha256": "6a67e18c99bef5c4f2bb2e21606874a02b5c6945046b17d18187d0c3c052ce49",
+  "retained_snapshot_sha256": "d6735b897d016ec0ff7a3032d9b5ef491670d87bac4e3910ec8fd419aae6bc38",
+  "runner_sha256": "e6520c255165f5ad88c344534bce1957246f558d534e3a4eac700c084d244424",
+  "tools": {
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)"
+  },
+  "checks": [
+    {
+      "name": "debug",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-span-execution,experimental-capability-native",
+        "--test",
+        "span_function_cache_allocations",
+        "--test",
+        "span_execution_allocations",
+        "--test",
+        "experimental_allocations",
+        "--test",
+        "experimental_capability_guest_allocations",
+        "--test",
+        "capability_ffi_allocations",
+        "--",
+        "--nocapture"
+      ],
+      "environment": {
+        "PATH": "/opt/homebrew/opt/rustup/bin:/Applications/ChatGPT.app/Contents/Resources/codex-cli/codex-path:/Users/andreyyurlov/.local/bin:/Users/andreyyurlov/.bun/bin:/Users/andreyyurlov/.local/state/fnm_multishells/12356_1792761298575/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Library/Apple/usr/bin:/opt/homebrew/bin:/Users/andreyyurlov/.codex/tmp/arg0/codex-arg0vfC1Qy:/Applications/ChatGPT.app/Contents/Resources/codex-cli/codex-path:/Users/andreyyurlov/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/override:/Users/andreyyurlov/.local/bin:/Users/andreyyurlov/.bun/bin:/Users/andreyyurlov/.local/state/fnm_multishells/11246_1792761103599/bin:/opt/homebrew/sbin:/Users/andreyyurlov/.docker/bin:/Users/andreyyurlov/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/fallback:/Applications/ChatGPT.app/Contents/Resources:/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS:/Users/andreyyurlov/.docker/bin",
+        "MIXER_ALLOCATOR_NOISE": "1",
+        "CARGO_TARGET_DIR": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-combined-observer-ci-noise-rltpoogp"
+      },
+      "timeout_seconds": 240,
+      "exit": 0,
+      "passed_test_processes": 5,
+      "source_before_sha256": "fb2d2daabd21c50f813a32cba8d6f3b321201d7853cc2cfb0832b0130c6265de",
+      "source_after_sha256": "fb2d2daabd21c50f813a32cba8d6f3b321201d7853cc2cfb0832b0130c6265de",
+      "log": "verification/remaining-allocator-observers-review/combined-ci-noise/logs/debug.log",
+      "log_sha256": "5769ac3f6da85854d5fb4a61dbbb46173c86201bbb2d80011f237ae4c0f8f64f"
+    },
+    {
+      "name": "release",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-span-execution,experimental-capability-native",
+        "--test",
+        "span_function_cache_allocations",
+        "--test",
+        "span_execution_allocations",
+        "--test",
+        "experimental_allocations",
+        "--test",
+        "experimental_capability_guest_allocations",
+        "--test",
+        "capability_ffi_allocations",
+        "--release",
+        "--",
+        "--nocapture"
+      ],
+      "environment": {
+        "PATH": "/opt/homebrew/opt/rustup/bin:/Applications/ChatGPT.app/Contents/Resources/codex-cli/codex-path:/Users/andreyyurlov/.local/bin:/Users/andreyyurlov/.bun/bin:/Users/andreyyurlov/.local/state/fnm_multishells/12356_1792761298575/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Library/Apple/usr/bin:/opt/homebrew/bin:/Users/andreyyurlov/.codex/tmp/arg0/codex-arg0vfC1Qy:/Applications/ChatGPT.app/Contents/Resources/codex-cli/codex-path:/Users/andreyyurlov/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/override:/Users/andreyyurlov/.local/bin:/Users/andreyyurlov/.bun/bin:/Users/andreyyurlov/.local/state/fnm_multishells/11246_1792761103599/bin:/opt/homebrew/sbin:/Users/andreyyurlov/.docker/bin:/Users/andreyyurlov/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/fallback:/Applications/ChatGPT.app/Contents/Resources:/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS:/Users/andreyyurlov/.docker/bin",
+        "MIXER_ALLOCATOR_NOISE": "1",
+        "CARGO_TARGET_DIR": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-combined-observer-ci-noise-rltpoogp"
+      },
+      "timeout_seconds": 240,
+      "exit": 0,
+      "passed_test_processes": 5,
+      "source_before_sha256": "fb2d2daabd21c50f813a32cba8d6f3b321201d7853cc2cfb0832b0130c6265de",
+      "source_after_sha256": "fb2d2daabd21c50f813a32cba8d6f3b321201d7853cc2cfb0832b0130c6265de",
+      "log": "verification/remaining-allocator-observers-review/combined-ci-noise/logs/release.log",
+      "log_sha256": "9b3156fda326844f79363b5639efd8166c4d325cde5cb8a9d4e65de3d4adab57"
+    }
+  ],
+  "scope": "Local Mac host execution of exact proposed CI test commands; hosted CI remains separate. No physical device, immutable published consumer, release or GA qualification.",
+  "artifacts": {
+    "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-combined-observer-ci-noise-rltpoogp/debug/deps/capability_ffi_allocations-062c2fac0b636f67": {
+      "sha256": "bff0679a3c56c93e16b791b3adac90c1c0e2b3e5e3533f2a1eaf7ae9e6768a37",
+      "bytes": 2439848
+    },
+    "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-combined-observer-ci-noise-rltpoogp/debug/deps/experimental_allocations-f022d0b40dd3f62a": {
+      "sha256": "7c4bdecb7bbe3c307d352e635b512e084283a04f70e48a3f8329424b7c0f2b2e",
+      "bytes": 1817464
+    },
+    "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-combined-observer-ci-noise-rltpoogp/debug/deps/experimental_capability_guest_allocations-0c2355e9ee7edff1": {
+      "sha256": "69cf4f85576368249d3f6323b492216002d02bb4080f0e78f84dbb72603fb56f",
+      "bytes": 2379944
+    },
+    "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-combined-observer-ci-noise-rltpoogp/debug/deps/span_execution_allocations-dd9eb7aeadb74d20": {
+      "sha256": "3a74871ddacd5bcc368def2bfef6dfdc8cbe9b9a49e202009100e1a62e4a645e",
+      "bytes": 2249576
+    },
+    "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-combined-observer-ci-noise-rltpoogp/debug/deps/span_function_cache_allocations-9133fe887169e65b": {
+      "sha256": "45a1fdb9e9fe87fa652ea60494cf437a358467a20da93c51b29b51d9eff4871b",
+      "bytes": 1938032
+    },
+    "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-combined-observer-ci-noise-rltpoogp/release/deps/capability_ffi_allocations-45ec584fd550d102": {
+      "sha256": "b2c2d098f89af849fa645bd5fc54f2096d38e2d7f96fd8c71fc580185bd69b7b",
+      "bytes": 1259392
+    },
+    "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-combined-observer-ci-noise-rltpoogp/release/deps/experimental_allocations-75dde7ab39420388": {
+      "sha256": "11fc8d91cd1b22ae12e5ee19fc2c2949558cb813a2058aa3241f70a1d55522a0",
+      "bytes": 1172608
+    },
+    "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-combined-observer-ci-noise-rltpoogp/release/deps/experimental_capability_guest_allocations-93b2b7f267cd5e51": {
+      "sha256": "6cafda02ad4dd2ee2dcaaa8ee726a5f60af22769cd78194bde1351c8b88c1cc9",
+      "bytes": 1251600
+    },
+    "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-combined-observer-ci-noise-rltpoogp/release/deps/span_execution_allocations-c2c23126298a95a7": {
+      "sha256": "7aff1471ed3ad7e396aef25bc9f3ef14fc806b41f167e59fb214d710e35cd106",
+      "bytes": 1227968
+    },
+    "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-combined-observer-ci-noise-rltpoogp/release/deps/span_function_cache_allocations-8b2e3232a275dd8c": {
+      "sha256": "487dab1e03ea59c9060bc684184cb9a9e4119c5aaa5a8d0d2344aebcbf91afa1",
+      "bytes": 1169536
+    }
+  }
+}

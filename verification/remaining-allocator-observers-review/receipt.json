@@ -1,0 +1,1148 @@
+{
+  "observed_utc": "2026-10-23T17:33:32.860594+00:00",
+  "status": "passed",
+  "baseline_revision": "020f909f2a32553b79ba7068a1798c85d97426b4",
+  "tools": {
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "python": "Python 3.14.8"
+  },
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "private_source": {
+    "original": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/original",
+    "repaired": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/repaired"
+  },
+  "original_tree_sha256": "6d4d763d98076eb4e8bca6dc950211ca873693a836e0bdec48a1d51735e63b23",
+  "repaired_tree_sha256": "fb2d2daabd21c50f813a32cba8d6f3b321201d7853cc2cfb0832b0130c6265de",
+  "source_file_count": 414,
+  "overlay": {
+    "vm/tests/experimental_capability_guest_allocations.rs": "f787d2d7e9acbd9ef3563ca02967ad5fe783d72b942a240f41db61fb54d701fa",
+    "vm/tests/capability_ffi_allocations.rs": "3b81e322edf86443a86db0a8cdc2a56816eff598f56c279fc3d53fa34d317f75",
+    "vm/tests/experimental_allocations.rs": "9168c109b08033d7735a1e693fa9a7aa50f1e7f8049560b99d41e93dbcde1e6f",
+    "vm/tests/common/legacy_allocation_observer.rs": "1d06c0964cc5bf06f673c31bffc8cfe6ab854615bb0ccfeb7c05f798c3c0347d"
+  },
+  "unchanged_pointer_ledger_sha256": "f5329a0622524507dd6f9b92d8ffea179eccd03422846821a27f71c0fbf5ed6b",
+  "assertion_counts": {
+    "vm/tests/experimental_capability_guest_allocations.rs": 24,
+    "vm/tests/capability_ffi_allocations.rs": 25,
+    "vm/tests/experimental_allocations.rs": 20
+  },
+  "measurement_runs": {
+    "original-debug": [
+      "native validate-only requested(calls,retained,logical_peak,largest)=(60, 0, 3109, 368);32-page module not instantiated",
+      "native create32pages requested(calls,retained,logical_peak,largest)=(128, 2101738, 2101738, 2097152);includes shared registry first-use overhead if any",
+      "native post allocation refusal=(1, 0, 0, 1024);retry succeeded;no quarantine/terminal/exit fabricated",
+      "all 12 allocation ordinals failed closed, no retained allocation after each failure; four gated source/metadata/body cancellations returned no proof",
+      "observation branch-labels-10: source=51 requested_peak=163 retained=91 allocations=7 total_peak_reserved=1427 metadata_peak_reserved=560 scratch_peak_reserved=816 work=182",
+      "observation branch-labels-200000: source=200047 requested_peak=200159 retained=200087 allocations=7 total_peak_reserved=201423 metadata_peak_reserved=560 scratch_peak_reserved=816 work=1000150",
+      "observation 512-types-each-4096-parameters: source=2099225 requested_peak=5251097 retained=4202533 allocations=33 total_peak_reserved=5252361 metadata_peak_reserved=3152392 scratch_peak_reserved=6888 work=10500655",
+      "observation 200000-instructions: source=200036 requested_peak=200140 retained=200076 allocations=6 total_peak_reserved=201404 metadata_peak_reserved=560 scratch_peak_reserved=808 work=800101",
+      "observation exact-4MiB-source: source=4194304 requested_peak=4194304 retained=4194304 allocations=1 total_peak_reserved=4195568 metadata_peak_reserved=520 scratch_peak_reserved=744 work=8388609",
+      "observation 128-controls: source=416 requested_peak=3528 retained=456 allocations=11 total_peak_reserved=4792 metadata_peak_reserved=560 scratch_peak_reserved=3816 work=1875",
+      "observation 4096-operands: source=12323 requested_peak=18571 retained=12363 allocations=16 total_peak_reserved=19835 metadata_peak_reserved=560 scratch_peak_reserved=6952 work=61532",
+      "observation v3-65536-elements: source=65592 requested_peak=65712 retained=65648 allocations=7 total_peak_reserved=66976 metadata_peak_reserved=576 scratch_peak_reserved=808 work=196767",
+      "constructor requested allocation events=[24, 8, 128, 8, 8, 19, 11, 19, 11, 224, 224, 19, 6, 19, 6, 19, 4, 19, 4, 16, 3, 3, 368, 128, 6, 6, 4, 4, 5, 5, 31, 31, 256, 112, 160, 256, 160, 16, 16, 168, 19, 11, 19, 6, 19, 4, 160, 3, 6, 4, 5, 31, 112, 16, 16, 589824, 24, 1016]; (calls,live,peak)=(58, 592878, 592878); fixture bytes=214",
+      "fallible argument allocation refusal: (2, 36, 36); subsequent bounded Error String included",
+      "eight argument/completion payloads: (16, 8388608, 8388608); caller buffers and preexisting owner/VM excluded",
+      "ready-poll/ack allocation calls=0; ready payloads copied without staging",
+      "close/drop/last-ticket-ack allocation calls=0; final owner requested bytes freed=1104"
+    ],
+    "repaired-debug-baseline": [
+      "native validate-only requested(calls,retained,logical_peak,largest)=(60, 0, 3109, 368);32-page module not instantiated",
+      "native create32pages requested(calls,retained,logical_peak,largest)=(128, 2101738, 2101738, 2097152);includes shared registry first-use overhead if any",
+      "native post allocation refusal=(1, 0, 0, 1024);retry succeeded;no quarantine/terminal/exit fabricated",
+      "all 12 allocation ordinals failed closed, no retained allocation after each failure; four gated source/metadata/body cancellations returned no proof",
+      "observation branch-labels-10: source=51 requested_peak=163 retained=91 allocations=7 total_peak_reserved=1427 metadata_peak_reserved=560 scratch_peak_reserved=816 work=182",
+      "observation branch-labels-200000: source=200047 requested_peak=200159 retained=200087 allocations=7 total_peak_reserved=201423 metadata_peak_reserved=560 scratch_peak_reserved=816 work=1000150",
+      "observation 512-types-each-4096-parameters: source=2099225 requested_peak=5251097 retained=4202533 allocations=33 total_peak_reserved=5252361 metadata_peak_reserved=3152392 scratch_peak_reserved=6888 work=10500655",
+      "observation 200000-instructions: source=200036 requested_peak=200140 retained=200076 allocations=6 total_peak_reserved=201404 metadata_peak_reserved=560 scratch_peak_reserved=808 work=800101",
+      "observation exact-4MiB-source: source=4194304 requested_peak=4194304 retained=4194304 allocations=1 total_peak_reserved=4195568 metadata_peak_reserved=520 scratch_peak_reserved=744 work=8388609",
+      "observation 128-controls: source=416 requested_peak=3528 retained=456 allocations=11 total_peak_reserved=4792 metadata_peak_reserved=560 scratch_peak_reserved=3816 work=1875",
+      "observation 4096-operands: source=12323 requested_peak=18571 retained=12363 allocations=16 total_peak_reserved=19835 metadata_peak_reserved=560 scratch_peak_reserved=6952 work=61532",
+      "observation v3-65536-elements: source=65592 requested_peak=65712 retained=65648 allocations=7 total_peak_reserved=66976 metadata_peak_reserved=576 scratch_peak_reserved=808 work=196767",
+      "constructor requested allocation events=[24, 8, 128, 8, 8, 19, 11, 19, 11, 224, 224, 19, 6, 19, 6, 19, 4, 19, 4, 16, 3, 3, 368, 128, 6, 6, 4, 4, 5, 5, 31, 31, 256, 112, 160, 256, 160, 16, 16, 168, 19, 11, 19, 6, 19, 4, 160, 3, 6, 4, 5, 31, 112, 16, 16, 589824, 24, 1016]; (calls,live,peak)=(58, 592878, 592878); fixture bytes=214",
+      "fallible argument allocation refusal: (2, 36, 36); subsequent bounded Error String included",
+      "eight argument/completion payloads: (16, 8388608, 8388608); caller buffers and preexisting owner/VM excluded",
+      "ready-poll/ack allocation calls=0; ready payloads copied without staging",
+      "close/drop/last-ticket-ack allocation calls=0; final owner requested bytes freed=1104"
+    ],
+    "repaired-debug-noise": [
+      "native validate-only requested(calls,retained,logical_peak,largest)=(60, 0, 3109, 368);32-page module not instantiated",
+      "native create32pages requested(calls,retained,logical_peak,largest)=(128, 2101738, 2101738, 2097152);includes shared registry first-use overhead if any",
+      "native post allocation refusal=(1, 0, 0, 1024);retry succeeded;no quarantine/terminal/exit fabricated",
+      "all 12 allocation ordinals failed closed, no retained allocation after each failure; four gated source/metadata/body cancellations returned no proof",
+      "observation branch-labels-10: source=51 requested_peak=163 retained=91 allocations=7 total_peak_reserved=1427 metadata_peak_reserved=560 scratch_peak_reserved=816 work=182",
+      "observation branch-labels-200000: source=200047 requested_peak=200159 retained=200087 allocations=7 total_peak_reserved=201423 metadata_peak_reserved=560 scratch_peak_reserved=816 work=1000150",
+      "observation 512-types-each-4096-parameters: source=2099225 requested_peak=5251097 retained=4202533 allocations=33 total_peak_reserved=5252361 metadata_peak_reserved=3152392 scratch_peak_reserved=6888 work=10500655",
+      "observation 200000-instructions: source=200036 requested_peak=200140 retained=200076 allocations=6 total_peak_reserved=201404 metadata_peak_reserved=560 scratch_peak_reserved=808 work=800101",
+      "observation exact-4MiB-source: source=4194304 requested_peak=4194304 retained=4194304 allocations=1 total_peak_reserved=4195568 metadata_peak_reserved=520 scratch_peak_reserved=744 work=8388609",
+      "observation 128-controls: source=416 requested_peak=3528 retained=456 allocations=11 total_peak_reserved=4792 metadata_peak_reserved=560 scratch_peak_reserved=3816 work=1875",
+      "observation 4096-operands: source=12323 requested_peak=18571 retained=12363 allocations=16 total_peak_reserved=19835 metadata_peak_reserved=560 scratch_peak_reserved=6952 work=61532",
+      "observation v3-65536-elements: source=65592 requested_peak=65712 retained=65648 allocations=7 total_peak_reserved=66976 metadata_peak_reserved=576 scratch_peak_reserved=808 work=196767",
+      "constructor requested allocation events=[24, 8, 128, 8, 8, 19, 11, 19, 11, 224, 224, 19, 6, 19, 6, 19, 4, 19, 4, 16, 3, 3, 368, 128, 6, 6, 4, 4, 5, 5, 31, 31, 256, 112, 160, 256, 160, 16, 16, 168, 19, 11, 19, 6, 19, 4, 160, 3, 6, 4, 5, 31, 112, 16, 16, 589824, 24, 1016]; (calls,live,peak)=(58, 592878, 592878); fixture bytes=214",
+      "fallible argument allocation refusal: (2, 36, 36); subsequent bounded Error String included",
+      "eight argument/completion payloads: (16, 8388608, 8388608); caller buffers and preexisting owner/VM excluded",
+      "ready-poll/ack allocation calls=0; ready payloads copied without staging",
+      "close/drop/last-ticket-ack allocation calls=0; final owner requested bytes freed=1104"
+    ],
+    "original-release": [
+      "native validate-only requested(calls,retained,logical_peak,largest)=(60, 0, 3109, 368);32-page module not instantiated",
+      "native create32pages requested(calls,retained,logical_peak,largest)=(128, 2101738, 2101738, 2097152);includes shared registry first-use overhead if any",
+      "native post allocation refusal=(1, 0, 0, 1024);retry succeeded;no quarantine/terminal/exit fabricated",
+      "all 12 allocation ordinals failed closed, no retained allocation after each failure; four gated source/metadata/body cancellations returned no proof",
+      "observation branch-labels-10: source=51 requested_peak=163 retained=91 allocations=7 total_peak_reserved=1427 metadata_peak_reserved=560 scratch_peak_reserved=816 work=182",
+      "observation branch-labels-200000: source=200047 requested_peak=200159 retained=200087 allocations=7 total_peak_reserved=201423 metadata_peak_reserved=560 scratch_peak_reserved=816 work=1000150",
+      "observation 512-types-each-4096-parameters: source=2099225 requested_peak=5251097 retained=4202533 allocations=33 total_peak_reserved=5252361 metadata_peak_reserved=3152392 scratch_peak_reserved=6888 work=10500655",
+      "observation 200000-instructions: source=200036 requested_peak=200140 retained=200076 allocations=6 total_peak_reserved=201404 metadata_peak_reserved=560 scratch_peak_reserved=808 work=800101",
+      "observation exact-4MiB-source: source=4194304 requested_peak=4194304 retained=4194304 allocations=1 total_peak_reserved=4195568 metadata_peak_reserved=520 scratch_peak_reserved=744 work=8388609",
+      "observation 128-controls: source=416 requested_peak=3528 retained=456 allocations=11 total_peak_reserved=4792 metadata_peak_reserved=560 scratch_peak_reserved=3816 work=1875",
+      "observation 4096-operands: source=12323 requested_peak=18571 retained=12363 allocations=16 total_peak_reserved=19835 metadata_peak_reserved=560 scratch_peak_reserved=6952 work=61532",
+      "observation v3-65536-elements: source=65592 requested_peak=65712 retained=65648 allocations=7 total_peak_reserved=66976 metadata_peak_reserved=576 scratch_peak_reserved=808 work=196767",
+      "constructor requested allocation events=[24, 8, 128, 8, 8, 19, 11, 19, 11, 224, 224, 19, 6, 19, 6, 19, 4, 19, 4, 16, 3, 3, 368, 128, 6, 6, 4, 4, 5, 5, 31, 31, 256, 112, 160, 256, 160, 16, 16, 168, 19, 11, 19, 6, 19, 4, 160, 3, 6, 4, 5, 31, 112, 16, 16, 589824, 24, 1016]; (calls,live,peak)=(58, 592878, 592878); fixture bytes=214",
+      "fallible argument allocation refusal: (2, 36, 36); subsequent bounded Error String included",
+      "eight argument/completion payloads: (16, 8388608, 8388608); caller buffers and preexisting owner/VM excluded",
+      "ready-poll/ack allocation calls=0; ready payloads copied without staging",
+      "close/drop/last-ticket-ack allocation calls=0; final owner requested bytes freed=1104"
+    ],
+    "repaired-release-baseline": [
+      "native validate-only requested(calls,retained,logical_peak,largest)=(60, 0, 3109, 368);32-page module not instantiated",
+      "native create32pages requested(calls,retained,logical_peak,largest)=(128, 2101738, 2101738, 2097152);includes shared registry first-use overhead if any",
+      "native post allocation refusal=(1, 0, 0, 1024);retry succeeded;no quarantine/terminal/exit fabricated",
+      "all 12 allocation ordinals failed closed, no retained allocation after each failure; four gated source/metadata/body cancellations returned no proof",
+      "observation branch-labels-10: source=51 requested_peak=163 retained=91 allocations=7 total_peak_reserved=1427 metadata_peak_reserved=560 scratch_peak_reserved=816 work=182",
+      "observation branch-labels-200000: source=200047 requested_peak=200159 retained=200087 allocations=7 total_peak_reserved=201423 metadata_peak_reserved=560 scratch_peak_reserved=816 work=1000150",
+      "observation 512-types-each-4096-parameters: source=2099225 requested_peak=5251097 retained=4202533 allocations=33 total_peak_reserved=5252361 metadata_peak_reserved=3152392 scratch_peak_reserved=6888 work=10500655",
+      "observation 200000-instructions: source=200036 requested_peak=200140 retained=200076 allocations=6 total_peak_reserved=201404 metadata_peak_reserved=560 scratch_peak_reserved=808 work=800101",
+      "observation exact-4MiB-source: source=4194304 requested_peak=4194304 retained=4194304 allocations=1 total_peak_reserved=4195568 metadata_peak_reserved=520 scratch_peak_reserved=744 work=8388609",
+      "observation 128-controls: source=416 requested_peak=3528 retained=456 allocations=11 total_peak_reserved=4792 metadata_peak_reserved=560 scratch_peak_reserved=3816 work=1875",
+      "observation 4096-operands: source=12323 requested_peak=18571 retained=12363 allocations=16 total_peak_reserved=19835 metadata_peak_reserved=560 scratch_peak_reserved=6952 work=61532",
+      "observation v3-65536-elements: source=65592 requested_peak=65712 retained=65648 allocations=7 total_peak_reserved=66976 metadata_peak_reserved=576 scratch_peak_reserved=808 work=196767",
+      "constructor requested allocation events=[24, 8, 128, 8, 8, 19, 11, 19, 11, 224, 224, 19, 6, 19, 6, 19, 4, 19, 4, 16, 3, 3, 368, 128, 6, 6, 4, 4, 5, 5, 31, 31, 256, 112, 160, 256, 160, 16, 16, 168, 19, 11, 19, 6, 19, 4, 160, 3, 6, 4, 5, 31, 112, 16, 16, 589824, 24, 1016]; (calls,live,peak)=(58, 592878, 592878); fixture bytes=214",
+      "fallible argument allocation refusal: (2, 36, 36); subsequent bounded Error String included",
+      "eight argument/completion payloads: (16, 8388608, 8388608); caller buffers and preexisting owner/VM excluded",
+      "ready-poll/ack allocation calls=0; ready payloads copied without staging",
+      "close/drop/last-ticket-ack allocation calls=0; final owner requested bytes freed=1104"
+    ],
+    "repaired-release-noise": [
+      "native validate-only requested(calls,retained,logical_peak,largest)=(60, 0, 3109, 368);32-page module not instantiated",
+      "native create32pages requested(calls,retained,logical_peak,largest)=(128, 2101738, 2101738, 2097152);includes shared registry first-use overhead if any",
+      "native post allocation refusal=(1, 0, 0, 1024);retry succeeded;no quarantine/terminal/exit fabricated",
+      "all 12 allocation ordinals failed closed, no retained allocation after each failure; four gated source/metadata/body cancellations returned no proof",
+      "observation branch-labels-10: source=51 requested_peak=163 retained=91 allocations=7 total_peak_reserved=1427 metadata_peak_reserved=560 scratch_peak_reserved=816 work=182",
+      "observation branch-labels-200000: source=200047 requested_peak=200159 retained=200087 allocations=7 total_peak_reserved=201423 metadata_peak_reserved=560 scratch_peak_reserved=816 work=1000150",
+      "observation 512-types-each-4096-parameters: source=2099225 requested_peak=5251097 retained=4202533 allocations=33 total_peak_reserved=5252361 metadata_peak_reserved=3152392 scratch_peak_reserved=6888 work=10500655",
+      "observation 200000-instructions: source=200036 requested_peak=200140 retained=200076 allocations=6 total_peak_reserved=201404 metadata_peak_reserved=560 scratch_peak_reserved=808 work=800101",
+      "observation exact-4MiB-source: source=4194304 requested_peak=4194304 retained=4194304 allocations=1 total_peak_reserved=4195568 metadata_peak_reserved=520 scratch_peak_reserved=744 work=8388609",
+      "observation 128-controls: source=416 requested_peak=3528 retained=456 allocations=11 total_peak_reserved=4792 metadata_peak_reserved=560 scratch_peak_reserved=3816 work=1875",
+      "observation 4096-operands: source=12323 requested_peak=18571 retained=12363 allocations=16 total_peak_reserved=19835 metadata_peak_reserved=560 scratch_peak_reserved=6952 work=61532",
+      "observation v3-65536-elements: source=65592 requested_peak=65712 retained=65648 allocations=7 total_peak_reserved=66976 metadata_peak_reserved=576 scratch_peak_reserved=808 work=196767",
+      "constructor requested allocation events=[24, 8, 128, 8, 8, 19, 11, 19, 11, 224, 224, 19, 6, 19, 6, 19, 4, 19, 4, 16, 3, 3, 368, 128, 6, 6, 4, 4, 5, 5, 31, 31, 256, 112, 160, 256, 160, 16, 16, 168, 19, 11, 19, 6, 19, 4, 160, 3, 6, 4, 5, 31, 112, 16, 16, 589824, 24, 1016]; (calls,live,peak)=(58, 592878, 592878); fixture bytes=214",
+      "fallible argument allocation refusal: (2, 36, 36); subsequent bounded Error String included",
+      "eight argument/completion payloads: (16, 8388608, 8388608); caller buffers and preexisting owner/VM excluded",
+      "ready-poll/ack allocation calls=0; ready payloads copied without staging",
+      "close/drop/last-ticket-ack allocation calls=0; final owner requested bytes freed=1104"
+    ]
+  },
+  "max_slots_in_order_ffi_stream_guest": {
+    "repaired-debug-baseline": [
+      59,
+      26,
+      227
+    ],
+    "repaired-debug-noise": [
+      59,
+      26,
+      229
+    ],
+    "repaired-release-baseline": [
+      59,
+      26,
+      227
+    ],
+    "repaired-release-noise": [
+      59,
+      26,
+      229
+    ]
+  },
+  "derived_runs": {
+    "derived-debug-baseline": {
+      "binary_sha256": "d1c380733abf38ac98961bf6d548dbccfcdc39a2e522ae96da199a08d626735f",
+      "checks": 43
+    },
+    "derived-debug-noise": {
+      "binary_sha256": "d1c380733abf38ac98961bf6d548dbccfcdc39a2e522ae96da199a08d626735f",
+      "checks": 43
+    },
+    "derived-release-baseline": {
+      "binary_sha256": "ee82ff440d270a323cca582f077dbc26711709be4b48ba5374113f1764b672e6",
+      "checks": 43
+    },
+    "derived-release-noise": {
+      "binary_sha256": "ee82ff440d270a323cca582f077dbc26711709be4b48ba5374113f1764b672e6",
+      "checks": 43
+    }
+  },
+  "owner_evidence_bindings": {
+    "README.md": "512a7412b8b7e47c3857b3e991ac496248b26f1412d32edd9e89db83ff62cc2e",
+    "audit-receipt.json": "c9daafcf5b03c5658f15e998598a0641b99cf890a38555e1f3656d67d486cdd1",
+    "audit.py": "2e229d65d290b594c38e1426a11a5d71216a36c110826f9e1f23196dba01c77b",
+    "findings.json": "4362b17dd82b49e33b611d21b28bfb69c84522576fe79010f035259c72c458fc",
+    "intermediate-adapter-lifetime-probe/logs/clippy.log": "1d403662425843d0a3e39d18f7773ffd75f66dccf4ebc0a60bcf5ea266abc97c",
+    "intermediate-adapter-lifetime-probe/logs/debug-baseline.log": "a3b1257695b30e6aeac154960588633c7b980d61dddaa650a689824ec8a7137f",
+    "intermediate-adapter-lifetime-probe/logs/debug-noise.log": "312fcf1a0c4450feacd5d473dab23096e2f99c54f58be77ad59a031ce4b3480d",
+    "intermediate-adapter-lifetime-probe/logs/release-baseline.log": "76e0e8cd2710131ce5dbf13d930f8330d11e8efc6069326e75c57f4e2257b583",
+    "intermediate-adapter-lifetime-probe/logs/release-noise.log": "50fa5b229b43bc5c74055e6d22a035cc0a0cd83850d2655c815c7f1bc9f23d51",
+    "intermediate-adapter-lifetime-probe/receipt.json": "9b6f49eee470cb75ff7e78b704bc6a8556d547514dd305db0f5f8bf11108ea30",
+    "intermediate-adapter-lifetime-probe/tested-vm-snapshot.tar": "e051ef64786214b0d780fec8f8be1f1f82989632eab80e4038e50c7e0b463114",
+    "logs/clippy.log": "3eaefa0afde90540bcdb03157e76d29cbe500d538ec8fab0a7ece45249eb723f",
+    "logs/debug-baseline.log": "dbeace0689fa6dab487de66ed98e5cfe03e3307ae7b22cf637a691e74ffb9dcb",
+    "logs/debug-noise.log": "9abceedd1f598565eae333ae86272e2f8ab7df51bc47f8ce4d83380640fbea17",
+    "logs/original-baseline-debug.log": "5110c26f42ffcebdc655912489189a2ab4d662ca653b345df103241aac6f4068",
+    "logs/original-baseline-release.log": "4f2cabc614bd108fffbbefa441148b5c75a916608ad1dce00590ce7990f9291c",
+    "logs/original-fault-debug.log": "340970478d88f34f16cddb49d0bd78c7782038440f4111562df137f8566b532c",
+    "logs/original-fault-release.log": "de6d35a9bd573502bd2e2277698e7dbaacea94e91761f827aa033b5221b0390b",
+    "logs/original-live-debug.log": "a12846bd690595d9366f57889f8f1f1d42a89dc82f89fe8ebdc4a4aa14202514",
+    "logs/original-live-release.log": "fba91d1287ff1aafe079983ad1df7b40a2a82fefcc83cfb7b3257817879c2b41",
+    "logs/release-baseline.log": "402f271b164b0eeecc7b302fb7b27c91731079408eb9abab21b21e3399961e85",
+    "logs/release-noise.log": "7d91c517b81927875bcc7739694cd97681eec7e734272f8c4a575670a3af0268",
+    "original/allocation_observer.rs": "f5329a0622524507dd6f9b92d8ffea179eccd03422846821a27f71c0fbf5ed6b",
+    "original/baseline-tested-vm-snapshot.tar": "518a35832fa6bfb2f367ef5dcf4194c3ef692ff0a5f299e84fba5e746aeb1464",
+    "original/baseline-vm-snapshot.tar": "c513de0342ffe758a04d448c33e91e4b6296af2cd55aad8c3899d6ea0a111329",
+    "original/capability_ffi_allocations.rs": "b419f52b49e75337bf6cd1d45a2123ba2d5535f31b4ba3b9294bcac60d51d396",
+    "original/ci-vm.log": "c3b3b6b7fd64397161b9feb3b40216a5519bd7f4ee4de4b28a8010bf1711a2d0",
+    "original/experimental_allocations.rs": "1c7a7fbd8bb10781a06fdebe68e87ac5911733999de25a11855cbf1efb4af6b8",
+    "original/experimental_capability_guest_allocations.rs": "807b4a95c09a7ec14344de48fa9f422ca021905e6b60daa95685fdfe17d20915",
+    "original/fault-tested-vm-snapshot.tar": "bdf9ed27d31d348790494df67127cce3984ba8aa5f49031f66ce9e4c8466fae6",
+    "original/live-tested-vm-snapshot.tar": "a2e4898f5bd03ccb91f6bd18d5fc7a6e0398de211be0144ad6ab50fcdfe50ffb",
+    "original/noisy-fault-experimental_capability_guest_allocations.rs": "551ce7ec90a45d90710cd587f7b390e365d5053e7ed7b0d9ea021860ccaa28ed",
+    "original/noisy-live-experimental_capability_guest_allocations.rs": "3c4bd57c8e039d2ebfa315db50c4dd7e1ba9479e04dd1a58a03000ce60726376",
+    "original/receipt.json": "0ca53b5a598ad058c9bdb334fd16a8f921fbcd0c0f8471cff5c45cdaf0ddd8b5",
+    "original-replay-receipt.json": "0b457bd7b760268d01d95d6d71e75c24910dc8b3d1afc767a836c8912f1c8615",
+    "receipt.json": "901417f81c1775e4e2a98ec7c5874c485af312be432f9bd506eeb05e6702d7af",
+    "reproduce_original.py": "030013cf9daef909510d13e1bbfc15b2fe6172994b6f4ea036fd6c1d41237762",
+    "run_checks.py": "18126ba3647484f702729a1a21f37b41f3440769457d4d490a356d84f4cd516d",
+    "tested-vm-snapshot.tar": "57ec0d73aa2cd4a380137fa43eb79734e484b48c6fdaa1426c1bc2d12f8f929c",
+    "evidence-manifest.json": "39f8b37fba2460c23f8f75482f4080d88c526f8a1ced81c30f9e8b89879b0829"
+  },
+  "commands": [
+    {
+      "name": "original-debug",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-capability-native experimental-stream-validation",
+        "--test",
+        "experimental_capability_guest_allocations",
+        "--test",
+        "capability_ffi_allocations",
+        "--test",
+        "experimental_allocations",
+        "--",
+        "--nocapture"
+      ],
+      "cwd": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/original",
+      "noise": false,
+      "timeout_seconds": 240,
+      "exit": 0,
+      "source_tree_sha256": "6d4d763d98076eb4e8bca6dc950211ca873693a836e0bdec48a1d51735e63b23",
+      "source_stable": true,
+      "log": "verification/remaining-allocator-observers-review/logs/original-debug.log",
+      "log_sha256": "65c71b930aa1f83e05f08c277f346ff8a5a590594c85b8f1def6f48ea6a81b17"
+    },
+    {
+      "name": "repaired-debug-baseline",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-capability-native experimental-stream-validation",
+        "--test",
+        "experimental_capability_guest_allocations",
+        "--test",
+        "capability_ffi_allocations",
+        "--test",
+        "experimental_allocations",
+        "--",
+        "--nocapture"
+      ],
+      "cwd": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/repaired",
+      "noise": false,
+      "timeout_seconds": 240,
+      "exit": 0,
+      "source_tree_sha256": "fb2d2daabd21c50f813a32cba8d6f3b321201d7853cc2cfb0832b0130c6265de",
+      "source_stable": true,
+      "log": "verification/remaining-allocator-observers-review/logs/repaired-debug-baseline.log",
+      "log_sha256": "620cba3b4a85a409ad5cfc81d00d8a7ae105dd02e4ef13b5297217ec428a26a7"
+    },
+    {
+      "name": "repaired-debug-noise",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-capability-native experimental-stream-validation",
+        "--test",
+        "experimental_capability_guest_allocations",
+        "--test",
+        "capability_ffi_allocations",
+        "--test",
+        "experimental_allocations",
+        "--",
+        "--nocapture"
+      ],
+      "cwd": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/repaired",
+      "noise": true,
+      "timeout_seconds": 240,
+      "exit": 0,
+      "source_tree_sha256": "fb2d2daabd21c50f813a32cba8d6f3b321201d7853cc2cfb0832b0130c6265de",
+      "source_stable": true,
+      "log": "verification/remaining-allocator-observers-review/logs/repaired-debug-noise.log",
+      "log_sha256": "01b01336d49ac293f478ae1b99557da59e7485e0177eb8c85f14434c73502f0c"
+    },
+    {
+      "name": "compile-derived-debug",
+      "command": [
+        "rustc",
+        "--edition=2021",
+        "--test",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/remaining-allocator-observers-review/derived.rs",
+        "--extern",
+        "mixer_vm=/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/target-repaired/debug/deps/libmixer_vm.rlib",
+        "-L",
+        "dependency=/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/target-repaired/debug/deps",
+        "-C",
+        "opt-level=0",
+        "-C",
+        "overflow-checks=yes",
+        "-o",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/derived-debug"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/remaining-allocator-observers-review",
+      "noise": false,
+      "timeout_seconds": 240,
+      "exit": 0,
+      "source_tree_sha256": "fb2d2daabd21c50f813a32cba8d6f3b321201d7853cc2cfb0832b0130c6265de",
+      "source_stable": true,
+      "log": "verification/remaining-allocator-observers-review/logs/compile-derived-debug.log",
+      "log_sha256": "eeb797fa66e5326788ea7aef09d375fa8d43fb183c3dcf99184f1d5ef6998e91"
+    },
+    {
+      "name": "derived-debug-baseline",
+      "command": [
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/derived-debug",
+        "--nocapture"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/remaining-allocator-observers-review",
+      "noise": false,
+      "timeout_seconds": 45,
+      "exit": 0,
+      "source_tree_sha256": "fb2d2daabd21c50f813a32cba8d6f3b321201d7853cc2cfb0832b0130c6265de",
+      "source_stable": true,
+      "log": "verification/remaining-allocator-observers-review/logs/derived-debug-baseline.log",
+      "log_sha256": "44e1eea204af804848dac87cfc8cfd07e3674604f2c19f7ca47435fef908f404"
+    },
+    {
+      "name": "derived-debug-noise",
+      "command": [
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/derived-debug",
+        "--nocapture"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/remaining-allocator-observers-review",
+      "noise": true,
+      "timeout_seconds": 45,
+      "exit": 0,
+      "source_tree_sha256": "fb2d2daabd21c50f813a32cba8d6f3b321201d7853cc2cfb0832b0130c6265de",
+      "source_stable": true,
+      "log": "verification/remaining-allocator-observers-review/logs/derived-debug-noise.log",
+      "log_sha256": "bb6aaf7dfbc4eb1c1ff10551e695f7b8e258a8e6e2766e416851c1529835f580"
+    },
+    {
+      "name": "original-release",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-capability-native experimental-stream-validation",
+        "--test",
+        "experimental_capability_guest_allocations",
+        "--test",
+        "capability_ffi_allocations",
+        "--test",
+        "experimental_allocations",
+        "--release",
+        "--",
+        "--nocapture"
+      ],
+      "cwd": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/original",
+      "noise": false,
+      "timeout_seconds": 240,
+      "exit": 0,
+      "source_tree_sha256": "6d4d763d98076eb4e8bca6dc950211ca873693a836e0bdec48a1d51735e63b23",
+      "source_stable": true,
+      "log": "verification/remaining-allocator-observers-review/logs/original-release.log",
+      "log_sha256": "34e8147c8d8e2d2cda8bdb9c10a2eb38db179b041e34692d37df825731260a24"
+    },
+    {
+      "name": "repaired-release-baseline",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-capability-native experimental-stream-validation",
+        "--test",
+        "experimental_capability_guest_allocations",
+        "--test",
+        "capability_ffi_allocations",
+        "--test",
+        "experimental_allocations",
+        "--release",
+        "--",
+        "--nocapture"
+      ],
+      "cwd": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/repaired",
+      "noise": false,
+      "timeout_seconds": 240,
+      "exit": 0,
+      "source_tree_sha256": "fb2d2daabd21c50f813a32cba8d6f3b321201d7853cc2cfb0832b0130c6265de",
+      "source_stable": true,
+      "log": "verification/remaining-allocator-observers-review/logs/repaired-release-baseline.log",
+      "log_sha256": "b7581c0f306b66aa04e1cad818277b4a1d52dd3c79f5353a0a6fb916ce1fbe44"
+    },
+    {
+      "name": "repaired-release-noise",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--features",
+        "experimental-capability-native experimental-stream-validation",
+        "--test",
+        "experimental_capability_guest_allocations",
+        "--test",
+        "capability_ffi_allocations",
+        "--test",
+        "experimental_allocations",
+        "--release",
+        "--",
+        "--nocapture"
+      ],
+      "cwd": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/repaired",
+      "noise": true,
+      "timeout_seconds": 240,
+      "exit": 0,
+      "source_tree_sha256": "fb2d2daabd21c50f813a32cba8d6f3b321201d7853cc2cfb0832b0130c6265de",
+      "source_stable": true,
+      "log": "verification/remaining-allocator-observers-review/logs/repaired-release-noise.log",
+      "log_sha256": "f7d154f6a3f5c5854c0030d235afb14cf39592c8e9003f5583c7b6acdb885496"
+    },
+    {
+      "name": "compile-derived-release",
+      "command": [
+        "rustc",
+        "--edition=2021",
+        "--test",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/remaining-allocator-observers-review/derived.rs",
+        "--extern",
+        "mixer_vm=/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/target-repaired/release/deps/libmixer_vm.rlib",
+        "-L",
+        "dependency=/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/target-repaired/release/deps",
+        "-C",
+        "opt-level=3",
+        "-C",
+        "overflow-checks=yes",
+        "-o",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/derived-release"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/remaining-allocator-observers-review",
+      "noise": false,
+      "timeout_seconds": 240,
+      "exit": 0,
+      "source_tree_sha256": "fb2d2daabd21c50f813a32cba8d6f3b321201d7853cc2cfb0832b0130c6265de",
+      "source_stable": true,
+      "log": "verification/remaining-allocator-observers-review/logs/compile-derived-release.log",
+      "log_sha256": "934acaf03594d4dc71b9ce7865a9b6625e6a01b3806382f3fa492dcf3b9a5ec8"
+    },
+    {
+      "name": "derived-release-baseline",
+      "command": [
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/derived-release",
+        "--nocapture"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/remaining-allocator-observers-review",
+      "noise": false,
+      "timeout_seconds": 45,
+      "exit": 0,
+      "source_tree_sha256": "fb2d2daabd21c50f813a32cba8d6f3b321201d7853cc2cfb0832b0130c6265de",
+      "source_stable": true,
+      "log": "verification/remaining-allocator-observers-review/logs/derived-release-baseline.log",
+      "log_sha256": "ad5e332df040cfa8253303278ac2ff8a90d60f2cb2346ff1d096ff6a97d4e4e7"
+    },
+    {
+      "name": "derived-release-noise",
+      "command": [
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/derived-release",
+        "--nocapture"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/remaining-allocator-observers-review",
+      "noise": true,
+      "timeout_seconds": 45,
+      "exit": 0,
+      "source_tree_sha256": "fb2d2daabd21c50f813a32cba8d6f3b321201d7853cc2cfb0832b0130c6265de",
+      "source_stable": true,
+      "log": "verification/remaining-allocator-observers-review/logs/derived-release-noise.log",
+      "log_sha256": "0a228c77cf2aa2cde01bc9862baa424807df092133014995e60e9f8c3b7ffece"
+    }
+  ],
+  "checks": [
+    {
+      "name": "owner evidence identity: README.md",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: audit-receipt.json",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: audit.py",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: findings.json",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: intermediate-adapter-lifetime-probe/logs/clippy.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: intermediate-adapter-lifetime-probe/logs/debug-baseline.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: intermediate-adapter-lifetime-probe/logs/debug-noise.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: intermediate-adapter-lifetime-probe/logs/release-baseline.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: intermediate-adapter-lifetime-probe/logs/release-noise.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: intermediate-adapter-lifetime-probe/receipt.json",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: intermediate-adapter-lifetime-probe/tested-vm-snapshot.tar",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: logs/clippy.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: logs/debug-baseline.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: logs/debug-noise.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: logs/original-baseline-debug.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: logs/original-baseline-release.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: logs/original-fault-debug.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: logs/original-fault-release.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: logs/original-live-debug.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: logs/original-live-release.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: logs/release-baseline.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: logs/release-noise.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: original/allocation_observer.rs",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: original/baseline-tested-vm-snapshot.tar",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: original/baseline-vm-snapshot.tar",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: original/capability_ffi_allocations.rs",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: original/ci-vm.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: original/experimental_allocations.rs",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: original/experimental_capability_guest_allocations.rs",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: original/fault-tested-vm-snapshot.tar",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: original/live-tested-vm-snapshot.tar",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: original/noisy-fault-experimental_capability_guest_allocations.rs",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: original/noisy-live-experimental_capability_guest_allocations.rs",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: original/receipt.json",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: original-replay-receipt.json",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: receipt.json",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: reproduce_original.py",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: run_checks.py",
+      "passed": true
+    },
+    {
+      "name": "owner evidence identity: tested-vm-snapshot.tar",
+      "passed": true
+    },
+    {
+      "name": "owner original archive equals exact baseline git export",
+      "passed": true
+    },
+    {
+      "name": "current overlay equals reviewed owner source: vm/tests/experimental_capability_guest_allocations.rs",
+      "passed": true
+    },
+    {
+      "name": "current overlay equals reviewed owner source: vm/tests/capability_ffi_allocations.rs",
+      "passed": true
+    },
+    {
+      "name": "current overlay equals reviewed owner source: vm/tests/experimental_allocations.rs",
+      "passed": true
+    },
+    {
+      "name": "current overlay equals reviewed owner source: vm/tests/common/legacy_allocation_observer.rs",
+      "passed": true
+    },
+    {
+      "name": "exactly the four named test overlays differ",
+      "passed": true
+    },
+    {
+      "name": "independent repaired manifest equals owner tested tree",
+      "passed": true
+    },
+    {
+      "name": "common pointer ownership implementation unchanged",
+      "passed": true
+    },
+    {
+      "name": "literal assertion invocations unchanged: vm/tests/experimental_capability_guest_allocations.rs",
+      "passed": true
+    },
+    {
+      "name": "literal assertion invocations unchanged: vm/tests/capability_ffi_allocations.rs",
+      "passed": true
+    },
+    {
+      "name": "literal assertion invocations unchanged: vm/tests/experimental_allocations.rs",
+      "passed": true
+    },
+    {
+      "name": "all 69 original assertions preserved",
+      "passed": true
+    },
+    {
+      "name": "immutable source throughout original-debug",
+      "passed": true
+    },
+    {
+      "name": "command passed: original-debug",
+      "passed": true
+    },
+    {
+      "name": "original 17 measurement lines preserved: debug",
+      "passed": true
+    },
+    {
+      "name": "immutable source throughout repaired-debug-baseline",
+      "passed": true
+    },
+    {
+      "name": "command passed: repaired-debug-baseline",
+      "passed": true
+    },
+    {
+      "name": "exact original measurements: repaired-debug-baseline",
+      "passed": true
+    },
+    {
+      "name": "three original test functions pass: repaired-debug-baseline",
+      "passed": true
+    },
+    {
+      "name": "guest Shared Arc OOM still aborts: repaired-debug-baseline",
+      "passed": true
+    },
+    {
+      "name": "bounded pointer ledger in all three tests: repaired-debug-baseline",
+      "passed": true
+    },
+    {
+      "name": "immutable source throughout repaired-debug-noise",
+      "passed": true
+    },
+    {
+      "name": "command passed: repaired-debug-noise",
+      "passed": true
+    },
+    {
+      "name": "exact original measurements: repaired-debug-noise",
+      "passed": true
+    },
+    {
+      "name": "three original test functions pass: repaired-debug-noise",
+      "passed": true
+    },
+    {
+      "name": "guest Shared Arc OOM still aborts: repaired-debug-noise",
+      "passed": true
+    },
+    {
+      "name": "bounded pointer ledger in all three tests: repaired-debug-noise",
+      "passed": true
+    },
+    {
+      "name": "exactly one independently built library: debug",
+      "passed": true
+    },
+    {
+      "name": "command passed: compile-derived-debug",
+      "passed": true
+    },
+    {
+      "name": "command passed: derived-debug-baseline",
+      "passed": true
+    },
+    {
+      "name": "independent derived contract checks execute: derived-debug-baseline",
+      "passed": true
+    },
+    {
+      "name": "command passed: derived-debug-noise",
+      "passed": true
+    },
+    {
+      "name": "independent derived contract checks execute: derived-debug-noise",
+      "passed": true
+    },
+    {
+      "name": "immutable source throughout original-release",
+      "passed": true
+    },
+    {
+      "name": "command passed: original-release",
+      "passed": true
+    },
+    {
+      "name": "original 17 measurement lines preserved: release",
+      "passed": true
+    },
+    {
+      "name": "immutable source throughout repaired-release-baseline",
+      "passed": true
+    },
+    {
+      "name": "command passed: repaired-release-baseline",
+      "passed": true
+    },
+    {
+      "name": "exact original measurements: repaired-release-baseline",
+      "passed": true
+    },
+    {
+      "name": "three original test functions pass: repaired-release-baseline",
+      "passed": true
+    },
+    {
+      "name": "guest Shared Arc OOM still aborts: repaired-release-baseline",
+      "passed": true
+    },
+    {
+      "name": "bounded pointer ledger in all three tests: repaired-release-baseline",
+      "passed": true
+    },
+    {
+      "name": "immutable source throughout repaired-release-noise",
+      "passed": true
+    },
+    {
+      "name": "command passed: repaired-release-noise",
+      "passed": true
+    },
+    {
+      "name": "exact original measurements: repaired-release-noise",
+      "passed": true
+    },
+    {
+      "name": "three original test functions pass: repaired-release-noise",
+      "passed": true
+    },
+    {
+      "name": "guest Shared Arc OOM still aborts: repaired-release-noise",
+      "passed": true
+    },
+    {
+      "name": "bounded pointer ledger in all three tests: repaired-release-noise",
+      "passed": true
+    },
+    {
+      "name": "exactly one independently built library: release",
+      "passed": true
+    },
+    {
+      "name": "command passed: compile-derived-release",
+      "passed": true
+    },
+    {
+      "name": "command passed: derived-release-baseline",
+      "passed": true
+    },
+    {
+      "name": "independent derived contract checks execute: derived-release-baseline",
+      "passed": true
+    },
+    {
+      "name": "command passed: derived-release-noise",
+      "passed": true
+    },
+    {
+      "name": "independent derived contract checks execute: derived-release-noise",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: README.md",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: audit-receipt.json",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: audit.py",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: findings.json",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: intermediate-adapter-lifetime-probe/logs/clippy.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: intermediate-adapter-lifetime-probe/logs/debug-baseline.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: intermediate-adapter-lifetime-probe/logs/debug-noise.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: intermediate-adapter-lifetime-probe/logs/release-baseline.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: intermediate-adapter-lifetime-probe/logs/release-noise.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: intermediate-adapter-lifetime-probe/receipt.json",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: intermediate-adapter-lifetime-probe/tested-vm-snapshot.tar",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: logs/clippy.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: logs/debug-baseline.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: logs/debug-noise.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: logs/original-baseline-debug.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: logs/original-baseline-release.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: logs/original-fault-debug.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: logs/original-fault-release.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: logs/original-live-debug.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: logs/original-live-release.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: logs/release-baseline.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: logs/release-noise.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: original/allocation_observer.rs",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: original/baseline-tested-vm-snapshot.tar",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: original/baseline-vm-snapshot.tar",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: original/capability_ffi_allocations.rs",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: original/ci-vm.log",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: original/experimental_allocations.rs",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: original/experimental_capability_guest_allocations.rs",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: original/fault-tested-vm-snapshot.tar",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: original/live-tested-vm-snapshot.tar",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: original/noisy-fault-experimental_capability_guest_allocations.rs",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: original/noisy-live-experimental_capability_guest_allocations.rs",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: original/receipt.json",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: original-replay-receipt.json",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: receipt.json",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: reproduce_original.py",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: run_checks.py",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: tested-vm-snapshot.tar",
+      "passed": true
+    },
+    {
+      "name": "owner evidence remained stable: evidence-manifest.json",
+      "passed": true
+    },
+    {
+      "name": "live reviewed source remained stable: vm/tests/experimental_capability_guest_allocations.rs",
+      "passed": true
+    },
+    {
+      "name": "live reviewed source remained stable: vm/tests/capability_ffi_allocations.rs",
+      "passed": true
+    },
+    {
+      "name": "live reviewed source remained stable: vm/tests/experimental_allocations.rs",
+      "passed": true
+    },
+    {
+      "name": "live reviewed source remained stable: vm/tests/common/legacy_allocation_observer.rs",
+      "passed": true
+    }
+  ],
+  "limitations": [
+    "Single synchronous owner per test executable; allocation workers require explicit ownership.",
+    "Requested-byte accounting only; no process RSS or portable ABI size guarantee.",
+    "Synthetic exact 900-byte/four-call replay demonstrates observer susceptibility; hosted allocation stack and thread remain unknown.",
+    "Host Debug/Release only. No physical device discovery or runs performed; physical iOS/Android gates remain pending.",
+    "No product engine edits, dependency changes, publication, signing, immutable published consumer, customer, operational, release or GA qualification."
+  ],
+  "artifacts": {
+    "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/target-original/debug/deps/capability_ffi_allocations-2d6485df37cfd91c": {
+      "sha256": "fa862a23410e7372a1f4b5a310b782c49695933f7ce3b3c1b2426fbdf977f92a",
+      "bytes": 2252472
+    },
+    "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/target-original/debug/deps/experimental_allocations-36270f8da03b0f1f": {
+      "sha256": "ecc3bf6a54c99f5cb1c6dacc29efa7894b6b1e9345ee4f5934fca4d1409fa856",
+      "bytes": 1704904
+    },
+    "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/target-original/debug/deps/experimental_capability_guest_allocations-2737bfcfe25dfb79": {
+      "sha256": "2a09ac2261a1472837d18b3628f05eb360b9da4f0bd355eeb34796c9bf079a5e",
+      "bytes": 2217832
+    },
+    "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/target-repaired/debug/deps/capability_ffi_allocations-2d6485df37cfd91c": {
+      "sha256": "a76b7222d89c0c850ca503343714fba4157cf051bc58295e9407eb85c57a6ca9",
+      "bytes": 2443352
+    },
+    "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/target-repaired/debug/deps/experimental_allocations-36270f8da03b0f1f": {
+      "sha256": "8b1644bc2696cc1f0d19c933ec0971da1e2775b9fb11e89a29ac6dc04efea352",
+      "bytes": 1819976
+    },
+    "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/target-repaired/debug/deps/experimental_capability_guest_allocations-2737bfcfe25dfb79": {
+      "sha256": "aeda7b47a4a0340e2bf44eaed4fcbfe68260c1281abcfe2ab8a1866d82d539b2",
+      "bytes": 2383576
+    },
+    "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/target-repaired/debug/deps/libmixer_vm.rlib": {
+      "sha256": "89fd0aa72575e470bda8f0b1c4c9db67b6714b6cb82a249b39bdd78d1f171aee",
+      "bytes": 9206400
+    },
+    "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/target-original/release/deps/capability_ffi_allocations-eaa0246308313f2a": {
+      "sha256": "59e6f2e3c7b4e65487793a9e6e163d094648da2069a3c54c2d8b8aeeb323aa56",
+      "bytes": 1189008
+    },
+    "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/target-original/release/deps/experimental_allocations-cf26c2277e6c9fef": {
+      "sha256": "e3d0a67e374ecd4c234c3ce693db40eae9f095ddcf1a7627f77b19daee39a0bf",
+      "bytes": 1083968
+    },
+    "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/target-original/release/deps/experimental_capability_guest_allocations-fa43286462604f2e": {
+      "sha256": "70068460361e34036000ec707db88dfa676ec0650301f4a7e22b271f900c59bd",
+      "bytes": 1172512
+    },
+    "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/target-repaired/release/deps/capability_ffi_allocations-eaa0246308313f2a": {
+      "sha256": "866c2e8a2c974fd96cdb4049038aea00fda4e4be1a7ec0a09df1a02b8ba92001",
+      "bytes": 1258464
+    },
+    "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/target-repaired/release/deps/experimental_allocations-cf26c2277e6c9fef": {
+      "sha256": "28be3cec2d5e998470c15b69944b1defb56145adf62fa5c55c90e7bc390fa980",
+      "bytes": 1172480
+    },
+    "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/target-repaired/release/deps/experimental_capability_guest_allocations-fa43286462604f2e": {
+      "sha256": "d3eae0e5223b8d19123eeb39a686385f3ee860d5129a896bcd569a1919f71f46",
+      "bytes": 1250768
+    },
+    "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/target-repaired/release/deps/libmixer_vm.rlib": {
+      "sha256": "be7304566be96cb2cb0495fab9e2087222136050f681bfabf22b65d6c62c7b58",
+      "bytes": 1515016
+    },
+    "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/derived-debug": {
+      "sha256": "d1c380733abf38ac98961bf6d548dbccfcdc39a2e522ae96da199a08d626735f",
+      "bytes": 1281648
+    },
+    "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-independent-observer-review-mmy032_x/derived-release": {
+      "sha256": "ee82ff440d270a323cca582f077dbc26711709be4b48ba5374113f1764b672e6",
+      "bytes": 1115296
+    }
+  },
+  "review_harness": {
+    "derived_source_sha256": "6068618920a227569112522fb0baf93d01e8b1ecbc64f595dbd1371173ddd4f1",
+    "runner_source_sha256": "90924d3ac75433501216ea44ffe87ebc0344a4fa6a7550ebbffaf0791e2859d2",
+    "retained_probe_support": {
+      "legacy_allocation_observer.rs": "1d06c0964cc5bf06f673c31bffc8cfe6ab854615bb0ccfeb7c05f798c3c0347d",
+      "allocation_observer.rs": "f5329a0622524507dd6f9b92d8ffea179eccd03422846821a27f71c0fbf5ed6b"
+    },
+    "standalone_derived_compile_warning": "Unused MAX_SLOTS re-export from unchanged observer adapter; no independent warnings-denied lint claim."
+  },
+  "worktree_revision_observed_at_receipt": "f19a18bac08f61e906acab60dcf3779b36e02ded"
+}

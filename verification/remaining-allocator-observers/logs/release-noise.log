@@ -1,0 +1,48 @@
+CWD: /var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-remaining-observers-s8wvfsky/source
+COMMAND: MIXER_ALLOCATOR_NOISE=1 cargo test --locked --manifest-path vm/Cargo.toml --features experimental-capability-native experimental-stream-validation --test experimental_capability_guest_allocations --test capability_ffi_allocations --test experimental_allocations --release -- --nocapture
+    Finished `release` profile [optimized] target(s) in 0.00s
+     Running tests/capability_ffi_allocations.rs (/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-remaining-observers-s8wvfsky/target/release/deps/capability_ffi_allocations-eaa0246308313f2a)
+
+running 1 test
+native validate-only requested(calls,retained,logical_peak,largest)=(60, 0, 3109, 368);32-page module not instantiated
+native create32pages requested(calls,retained,logical_peak,largest)=(128, 2101738, 2101738, 2097152);includes shared registry first-use overhead if any
+native post allocation refusal=(1, 0, 0, 1024);retry succeeded;no quarantine/terminal/exit fabricated
+observer maximum ownership slots=59 capacity=4096 background_noise=true
+test validation_has_no_instance_memory_and_post_allocation_failure_remains_retryable ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/experimental_allocations.rs (/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-remaining-observers-s8wvfsky/target/release/deps/experimental_allocations-cf26c2277e6c9fef)
+
+running 1 test
+all 12 allocation ordinals failed closed, no retained allocation after each failure; four gated source/metadata/body cancellations returned no proof
+observation branch-labels-10: source=51 requested_peak=163 retained=91 allocations=7 total_peak_reserved=1427 metadata_peak_reserved=560 scratch_peak_reserved=816 work=182
+observation branch-labels-200000: source=200047 requested_peak=200159 retained=200087 allocations=7 total_peak_reserved=201423 metadata_peak_reserved=560 scratch_peak_reserved=816 work=1000150
+observation 512-types-each-4096-parameters: source=2099225 requested_peak=5251097 retained=4202533 allocations=33 total_peak_reserved=5252361 metadata_peak_reserved=3152392 scratch_peak_reserved=6888 work=10500655
+observation 200000-instructions: source=200036 requested_peak=200140 retained=200076 allocations=6 total_peak_reserved=201404 metadata_peak_reserved=560 scratch_peak_reserved=808 work=800101
+observation exact-4MiB-source: source=4194304 requested_peak=4194304 retained=4194304 allocations=1 total_peak_reserved=4195568 metadata_peak_reserved=520 scratch_peak_reserved=744 work=8388609
+observation 128-controls: source=416 requested_peak=3528 retained=456 allocations=11 total_peak_reserved=4792 metadata_peak_reserved=560 scratch_peak_reserved=3816 work=1875
+observation 4096-operands: source=12323 requested_peak=18571 retained=12363 allocations=16 total_peak_reserved=19835 metadata_peak_reserved=560 scratch_peak_reserved=6952 work=61532
+observation v3-65536-elements: source=65592 requested_peak=65712 retained=65648 allocations=7 total_peak_reserved=66976 metadata_peak_reserved=576 scratch_peak_reserved=808 work=196767
+observer maximum ownership slots=26 capacity=4096 background_noise=true
+test requested_allocations_failure_drop_and_copy_cancellation ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/experimental_capability_guest_allocations.rs (/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-remaining-observers-s8wvfsky/target/release/deps/experimental_capability_guest_allocations-fa43286462604f2e)
+
+running 1 test
+constructor requested allocation events=[24, 8, 128, 8, 8, 19, 11, 19, 11, 224, 224, 19, 6, 19, 6, 19, 4, 19, 4, 16, 3, 3, 368, 128, 6, 6, 4, 4, 5, 5, 31, 31, 256, 112, 160, 256, 160, 16, 16, 168, 19, 11, 19, 6, 19, 4, 160, 3, 6, 4, 5, 31, 112, 16, 16, 589824, 24, 1016]; (calls,live,peak)=(58, 592878, 592878); fixture bytes=214
+known Shared Arc OOM abort: status=signal: 6 (SIGABRT); stderr=memory allocation of 1016 bytes failed
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+fallible argument allocation refusal: (2, 36, 36); subsequent bounded Error String included
+eight argument/completion payloads: (16, 8388608, 8388608); caller buffers and preexisting owner/VM excluded
+ready-poll/ack allocation calls=0; ready payloads copied without staging
+close/drop/last-ticket-ack allocation calls=0; final owner requested bytes freed=1104
+observer maximum ownership slots=218 capacity=4096 background_noise=true
+test guest_allocations_are_measured_and_payload_failures_are_atomic ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+
+EXIT: 0
