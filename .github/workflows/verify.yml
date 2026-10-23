@@ -38,6 +38,7 @@ jobs:
           swift test --package-path cli
           python3 runtime-identity/tools/vectors.py --check
           swift test --package-path runtime-identity
+          python3 -B -m unittest discover -s runtime-identity/build-tools/tests -v
       - name: Statically linked owned VM and signed startup
         run: |
           python3 -m unittest discover -s runtime/build-tests -v

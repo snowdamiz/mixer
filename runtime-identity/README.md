@@ -31,6 +31,12 @@ Distribution, actual signed-binary embedding, complete graph collection, artifac
 publication and independent release/security review remain open. This module is
 not part of the root public SDK package yet. No physical-device check is implied.
 
+The optional [local input capture tool](build-tools/README.md) copies declared
+files into a private snapshot and computes every descriptor digest from those
+copied bytes. It also verifies snapshots against an expected fingerprint. Native
+build generators still need complete graph discovery and must consume the captured
+objects; file capture alone does not attest an application build.
+
 The wire contract is `../contracts/runtime-identity-v1.json`. The command-line
 tool opens the descriptor nonblocking with final-symlink rejection, checks the
 opened descriptor's regular-file type/size, then reads within the byte bound. It
