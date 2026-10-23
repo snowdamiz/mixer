@@ -1,0 +1,213 @@
+{
+  "schema_version": 1,
+  "status": "original allocation-lifetime regression passed in debug and release",
+  "revision": "64123c509e861ddd522631b293eadebdaca11341",
+  "reviewer_selection": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "xhigh"
+  },
+  "independent_of_session_implementation": true,
+  "scope": "host allocation-lifetime adversarial review; no device or full Swift qualification",
+  "expected": "pass",
+  "commands": [
+    {
+      "name": "revision",
+      "command": [
+        "/opt/homebrew/bin/git",
+        "rev-parse",
+        "--verify",
+        "--end-of-options",
+        "64123c509e861ddd522631b293eadebdaca11341^{commit}"
+      ],
+      "executable": {
+        "path": "/opt/homebrew/bin/git",
+        "resolvedPath": "/opt/homebrew/Cellar/git/2.56.0/bin/git",
+        "bytes": 3758960,
+        "sha256": "92229f2456a49561ac5d614bbed775224e2fc32a8eca22ac41aeb3ce47d7899c"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "elapsedSeconds": 0.031,
+      "stdout": {
+        "path": "revision.stdout",
+        "bytes": 41,
+        "sha256": "2bc3a98bb0e79127b3db3260bad390bce77b58f806f1e38022360cbb9028e431"
+      },
+      "stderr": {
+        "path": "revision.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "export",
+      "command": [
+        "/opt/homebrew/bin/git",
+        "archive",
+        "--format=tar",
+        "--output=/Users/andreyyurlov/Documents/dev/mixer/compiler/experiments/profile-budget/local/session-review-64123c509e861ddd522631b293eadebdaca11341/source.tar",
+        "64123c509e861ddd522631b293eadebdaca11341",
+        "vm",
+        "contracts"
+      ],
+      "executable": {
+        "path": "/opt/homebrew/bin/git",
+        "resolvedPath": "/opt/homebrew/Cellar/git/2.56.0/bin/git",
+        "bytes": 3758960,
+        "sha256": "92229f2456a49561ac5d614bbed775224e2fc32a8eca22ac41aeb3ce47d7899c"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "elapsedSeconds": 0.03,
+      "stdout": {
+        "path": "export.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "export.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "version-cargo",
+      "command": [
+        "/opt/homebrew/opt/rustup/bin/cargo",
+        "--version"
+      ],
+      "executable": {
+        "path": "/opt/homebrew/opt/rustup/bin/cargo",
+        "resolvedPath": "/opt/homebrew/Cellar/rustup/1.29.1/bin/cargo",
+        "bytes": 158,
+        "sha256": "75e0018c511565343732515b14c819119cd707bb30ed34b685fb13117861f15b"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "elapsedSeconds": 0.052,
+      "stdout": {
+        "path": "version-cargo.stdout",
+        "bytes": 36,
+        "sha256": "1f88eaf7fe1aaec83184752cf4c944cd22f00184136ff36a3e4c318cc60ef566"
+      },
+      "stderr": {
+        "path": "version-cargo.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "version-rustc",
+      "command": [
+        "/opt/homebrew/opt/rustup/bin/rustc",
+        "--version"
+      ],
+      "executable": {
+        "path": "/opt/homebrew/opt/rustup/bin/rustc",
+        "resolvedPath": "/opt/homebrew/Cellar/rustup/1.29.1/bin/rustc",
+        "bytes": 158,
+        "sha256": "53d84580eddd2f4a3c1ef16c3d14d0522f1852c39690eb20a506d04d30c621e5"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "elapsedSeconds": 0.052,
+      "stdout": {
+        "path": "version-rustc.stdout",
+        "bytes": 36,
+        "sha256": "8dc912acd5bfeafc70b01b1d2a2afb0844afa02f5dba2f1ae8d5c212d005afb6"
+      },
+      "stderr": {
+        "path": "version-rustc.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "debug-repro",
+      "command": [
+        "/opt/homebrew/opt/rustup/bin/cargo",
+        "test",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/compiler/experiments/profile-budget/local/session-review-64123c509e861ddd522631b293eadebdaca11341/source/vm/Cargo.toml",
+        "--target-dir",
+        "/Users/andreyyurlov/Documents/dev/mixer/compiler/experiments/profile-budget/local/session-review-64123c509e861ddd522631b293eadebdaca11341/target",
+        "--test",
+        "independent_session_lifetime",
+        "--",
+        "--nocapture"
+      ],
+      "executable": {
+        "path": "/opt/homebrew/opt/rustup/bin/cargo",
+        "resolvedPath": "/opt/homebrew/Cellar/rustup/1.29.1/bin/cargo",
+        "bytes": 158,
+        "sha256": "75e0018c511565343732515b14c819119cd707bb30ed34b685fb13117861f15b"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "elapsedSeconds": 1.168,
+      "stdout": {
+        "path": "debug-repro.stdout",
+        "bytes": 182,
+        "sha256": "b5dc8556a5bb816b16534807988f7bc0a4e33755606886a665771fac842b1272"
+      },
+      "stderr": {
+        "path": "debug-repro.stderr",
+        "bytes": 467,
+        "sha256": "7fe4d703651cf9f6b0511145146a0f483eddbb413ffe01d64707e699d7a47a78"
+      }
+    },
+    {
+      "name": "release-repro",
+      "command": [
+        "/opt/homebrew/opt/rustup/bin/cargo",
+        "test",
+        "--release",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/compiler/experiments/profile-budget/local/session-review-64123c509e861ddd522631b293eadebdaca11341/source/vm/Cargo.toml",
+        "--target-dir",
+        "/Users/andreyyurlov/Documents/dev/mixer/compiler/experiments/profile-budget/local/session-review-64123c509e861ddd522631b293eadebdaca11341/target",
+        "--test",
+        "independent_session_lifetime",
+        "--",
+        "--nocapture"
+      ],
+      "executable": {
+        "path": "/opt/homebrew/opt/rustup/bin/cargo",
+        "resolvedPath": "/opt/homebrew/Cellar/rustup/1.29.1/bin/cargo",
+        "bytes": 158,
+        "sha256": "75e0018c511565343732515b14c819119cd707bb30ed34b685fb13117861f15b"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "elapsedSeconds": 1.413,
+      "stdout": {
+        "path": "release-repro.stdout",
+        "bytes": 182,
+        "sha256": "b5dc8556a5bb816b16534807988f7bc0a4e33755606886a665771fac842b1272"
+      },
+      "stderr": {
+        "path": "release-repro.stderr",
+        "bytes": 458,
+        "sha256": "668679dd6ec7e89e276b6b034eb4b7be28a3f49c85b00ba61c0e665c8922fe64"
+      }
+    }
+  ],
+  "source_rule": "git archive frozen production source; add only this original independent integration test under a new name; no existing source edits",
+  "source_archive_sha256": "6547c3562bd8918650f7c3bea38817601724c53ab031261b0e48a879d7329280",
+  "test_sha256": "b400bd03338122e4ee0df1850c8923bfc2115c03f7c85e90dd5c68828ad6f94d",
+  "tool_versions": {
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)"
+  },
+  "source_manifest": {
+    "compiler/experiments/profile-budget/session-review/reproduce.py": "bfcadc85e0c31a381b49c710834107f1525d11e3ede40163130bf05c8a4c7816",
+    "compiler/experiments/profile-budget/session-review/review_session_lifetime.rs": "b400bd03338122e4ee0df1850c8923bfc2115c03f7c85e90dd5c68828ad6f94d",
+    "compiler/qualification_support.py": "e4d862f7671e94da0a0181313022d195b62cb592eed69f1c491ca0c11dd537c4"
+  }
+}
