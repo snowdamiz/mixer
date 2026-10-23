@@ -1,0 +1,487 @@
+// Original review probes. The runner copies this file into a private immutable
+// source export and removes the implementation lane's tests from that export.
+// All signing material is deterministic PUBLIC TEST material, not credentials.
+package release
+
+import (
+	"bytes"
+	"context"
+	"crypto/ed25519"
+	"crypto/sha256"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"net/http/httptest"
+	"net/url"
+	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
+	"sync"
+	"testing"
+
+	"mixer/services/protocol"
+)
+
+type reviewFixture struct {
+	scope                      protocol.Scope
+	hosts                      []protocol.Host
+	roots                      []protocol.Root
+	artifactKey, assignmentKey ed25519.PrivateKey
+}
+
+func reviewNewFixture(name string) reviewFixture {
+	seedA := sha256.Sum256([]byte("PUBLIC TEST independent artifact " + name))
+	seedB := sha256.Sum256([]byte("PUBLIC TEST independent assignment " + name))
+	f := reviewFixture{scope: protocol.Scope{Organization: "org-" + name, Project: "project", App: "FieldLog", Environment: "review", Platform: "ios"}, artifactKey: ed25519.NewKeyFromSeed(seedA[:]), assignmentKey: ed25519.NewKeyFromSeed(seedB[:])}
+	for _, version := range []uint64{1, 2} {
+		f.hosts = append(f.hosts, protocol.Host{Scope: f.scope, Runtime: protocol.Hash([]byte(fmt.Sprint("independent runtime ", version))), Protocol: version, GuestABI: 1, UISchema: 1, CapabilityHashes: map[string]string{protocol.HTTPGrantID: protocol.HTTPGrantSHA256, protocol.StorageGrantID: protocol.StorageGrantSHA256}, StateVersion: 1, MaxPayloadBytes: 4096, Limits: protocol.Limits{MemoryBytes: 65536, Fuel: 1000, StartupMilliseconds: 250}})
+	}
+	f.roots = []protocol.Root{{KeyID: "review-artifact-" + name, PublicKey: f.artifactKey.Public().(ed25519.PublicKey), Scope: f.scope, Artifact: true}, {KeyID: "review-assignment-" + name, PublicKey: f.assignmentKey.Public().(ed25519.PublicKey), Scope: f.scope, Assignment: true}}
+	return f
+}
+
+func (f reviewFixture) record(t *testing.T, version uint64, label string) Record {
+	t.Helper()
+	payload := []byte("NONEXECUTABLE PUBLIC TEST independent payload " + label)
+	h := f.hosts[version-1]
+	m := protocol.Manifest{Schema: 1, Scope: f.scope, ReleaseID: label, SourceCommit: strings.Repeat("a", 40), ProvenanceID: "independent-review", Runtime: h.Runtime, Protocol: 1, GuestABI: 1, UISchema: 1, CapabilityHashes: h.CapabilityHashes, StateMin: 1, StateMax: 1, PayloadSHA256: protocol.Hash(payload), CompressedBytes: uint64(len(payload)), ExpandedBytes: uint64(len(payload)), Compression: "none", AssetHashes: map[string]string{}, SourceMapSHA256: protocol.Hash([]byte("original source map")), Limits: h.Limits, KeyID: f.roots[0].KeyID, CreatedAtUnix: 1}
+	if version == 1 {
+		s, e := protocol.SignManifest(m, f.artifactKey)
+		if e != nil {
+			t.Fatal(e)
+		}
+		return Record{Artifact: Artifact{SignedManifest: s, Payload: payload}}
+	}
+	m2 := protocol.ManifestV2{Schema: 2, Scope: m.Scope, ReleaseID: m.ReleaseID, SourceCommit: m.SourceCommit, ProvenanceID: m.ProvenanceID, Runtime: h.Runtime, Protocol: 2, GuestABI: 1, UISchema: 1, CapabilityHashes: m.CapabilityHashes, StateMin: m.StateMin, StateMax: m.StateMax, PayloadSHA256: m.PayloadSHA256, CompressedBytes: m.CompressedBytes, ExpandedBytes: m.ExpandedBytes, Compression: m.Compression, AssetHashes: m.AssetHashes, SourceMapSHA256: m.SourceMapSHA256, Limits: m.Limits, KeyID: m.KeyID, CreatedAtUnix: m.CreatedAtUnix, CapabilityGrants: protocol.CapabilityGrants{Schema: 1, SchemaSHA256: protocol.GrantSchemaSHA256, Entries: []protocol.CapabilityGrant{{CapabilityID: protocol.HTTPGrantID, SchemaSHA256: protocol.HTTPGrantSHA256, Permissions: []string{"network.https"}, Origins: []string{"https://review.example.test"}, Methods: []string{"GET"}, Namespaces: []string{}}, {CapabilityID: protocol.StorageGrantID, SchemaSHA256: protocol.StorageGrantSHA256, Permissions: []string{"storage.appPrivate"}, Origins: []string{}, Methods: []string{}, Namespaces: []string{"Drafts", "drafts"}}}}}
+	s, e := protocol.SignManifestV2(m2, f.artifactKey)
+	if e != nil {
+		t.Fatal(e)
+	}
+	return Record{Version2: &ArtifactV2{SignedManifest: s, Payload: payload}}
+}
+
+func (f reviewFixture) assigned(t *testing.T, r Record, sequence, rollout uint64) Channel {
+	t.Helper()
+	digest, e := r.digest()
+	if e != nil {
+		t.Fatal(e)
+	}
+	a := protocol.Assignment{Schema: r.version(), Scope: f.scope, Channel: "beta", Cohort: "sha256-v1", RolloutBasisPoints: rollout, Sequence: sequence, ReleaseID: r.releaseID(), ArtifactSHA256: digest, Runtime: r.runtime(), KeyID: f.roots[1].KeyID, CreatedAtUnix: 1}
+	if r.version() == 2 {
+		s, e := protocol.SignAssignmentV2(protocol.AssignmentV2(a), f.assignmentKey)
+		if e != nil {
+			t.Fatal(e)
+		}
+		return Channel{Version2: &s}
+	}
+	s, e := protocol.SignAssignment(a, f.assignmentKey)
+	if e != nil {
+		t.Fatal(e)
+	}
+	return Channel{SignedAssignment: s}
+}
+
+func reviewConfig(t *testing.T, fixtures ...reviewFixture) Config {
+	t.Helper()
+	c := Config{DeveloperMode: true, Listen: "127.0.0.1:0", DataDirectory: t.TempDir()}
+	for _, f := range fixtures {
+		c.Hosts = append(c.Hosts, f.hosts...)
+		c.Roots = append(c.Roots, f.roots...)
+		for _, role := range []string{"reader", "editor", "publisher"} {
+			c.Tokens = append(c.Tokens, Token{SHA256: protocol.Hash([]byte(f.scope.Organization + "-" + role)), Role: role, Organization: f.scope.Organization, Project: f.scope.Project, Actor: "independent-" + role})
+		}
+	}
+	return c
+}
+
+func reviewJSON(t *testing.T, value any) []byte {
+	t.Helper()
+	b, e := json.Marshal(value)
+	if e != nil {
+		t.Fatal(e)
+	}
+	return b
+}
+func reviewRequest(t *testing.T, s *Server, method, path, actor, key string, value any, want int) []byte {
+	t.Helper()
+	var body []byte
+	if value != nil {
+		if raw, ok := value.([]byte); ok {
+			body = raw
+		} else {
+			body = reviewJSON(t, value)
+		}
+	}
+	r := httptest.NewRequest(method, path, bytes.NewReader(body))
+	r.RemoteAddr = "127.0.0.1:30000"
+	r.Header.Set("Content-Type", "application/json")
+	if actor != "" {
+		r.Header.Set("Authorization", "Bearer "+actor)
+	}
+	if key != "" {
+		r.Header.Set("Idempotency-Key", key)
+	}
+	w := httptest.NewRecorder()
+	s.ServeHTTP(w, r)
+	if w.Code != want {
+		t.Fatalf("%s %s: got %d want %d: %s", method, path, w.Code, want, w.Body.String())
+	}
+	return w.Body.Bytes()
+}
+func reviewBase(f reviewFixture, version uint64) string {
+	return fmt.Sprintf("/v%d/orgs/%s/projects/%s", version, f.scope.Organization, f.scope.Project)
+}
+func reviewUpload(t *testing.T, s *Server, f reviewFixture, r Record, key string) {
+	t.Helper()
+	digest, _ := r.digest()
+	actor := f.scope.Organization + "-publisher"
+	base := reviewBase(f, r.version())
+	reviewRequest(t, s, "PUT", base+"/artifacts/"+digest, actor, key+"-upload", r.wire(), 201)
+	reviewRequest(t, s, "POST", base+"/releases/validate", actor, key+"-validate", map[string]string{"artifact_sha256": digest}, 200)
+}
+func reviewPublish(t *testing.T, s *Server, f reviewFixture, r Record, sequence, rollout uint64, action, key string, want int) []byte {
+	t.Helper()
+	c := f.assigned(t, r, sequence, rollout)
+	return reviewRequest(t, s, "POST", reviewBase(f, r.version())+"/channels/beta/"+action, f.scope.Organization+"-publisher", key, map[string]any{"signed_assignment": c.wire()}, want)
+}
+func reviewSnapshot(t *testing.T, c Config) []byte {
+	t.Helper()
+	b, e := os.ReadFile(filepath.Join(c.DataDirectory, "release.json"))
+	if e != nil {
+		t.Fatal(e)
+	}
+	return b
+}
+func reviewOffer(f reviewFixture, version uint64) string {
+	q := url.Values{"organization": {f.scope.Organization}, "project": {f.scope.Project}, "app": {f.scope.App}, "environment": {f.scope.Environment}, "platform": {f.scope.Platform}, "runtime": {f.hosts[version-1].Runtime}, "channel": {"beta"}, "installation": {"original-installation"}}
+	return fmt.Sprintf("/v%d/updates?%s", version, q.Encode())
+}
+
+func TestReviewV2TransactionAbortDoesNotUpgradeOrConsumeKey(t *testing.T) {
+	f := reviewNewFixture("a")
+	cfg := reviewConfig(t, f)
+	s, e := New(cfg)
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer s.Close()
+	before := reviewSnapshot(t, cfg)
+	r := f.record(t, 2, "abort-two-phase")
+	digest, _ := r.digest()
+	who := access{tenant: tenant{f.scope.Organization, f.scope.Project}, Actor: "independent-publisher", Role: "publisher"}
+	event := Event{Organization: who.Organization, Project: who.Project, Actor: who.Actor, Action: "original-aborted-transaction", RequestID: "review-abort"}
+	_, e = s.db.transaction(context.Background(), who, "publisher", "original-key", protocol.Hash([]byte("original request")), event, func(tx releaseTransaction) (Response, error) {
+		if err := tx.saveArtifact(digest, r); err != nil {
+			t.Fatal(err)
+		}
+		if tx.(*memoryTransaction).db.Schema != 2 {
+			t.Fatal("probe failed to stage schema2")
+		}
+		return Response{}, errors.New("original forced callback abort after staged v2 artifact")
+	})
+	if e == nil || !bytes.Equal(before, reviewSnapshot(t, cfg)) || s.db.(*store).state.Schema != 1 {
+		t.Fatal("callback abort leaked schema, artifact, history, dedup or disk change")
+	}
+	reviewRequest(t, s, "PUT", reviewBase(f, 2)+"/artifacts/"+digest, f.scope.Organization+"-publisher", "original-key", r.wire(), 201)
+	if state := s.db.(*store).state; state.Schema != 2 || len(state.Audit) != 1 || len(state.Outbox) != 1 || len(state.Idempotency) != 1 {
+		t.Fatal("aborted callback consumed key or split successful transaction")
+	}
+}
+
+func TestReviewVersionConfusionAndTenantFailuresPreserveSchema1(t *testing.T) {
+	a, b := reviewNewFixture("a"), reviewNewFixture("b")
+	cfg := reviewConfig(t, a, b)
+	s, e := New(cfg)
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer s.Close()
+	r1, r2 := a.record(t, 1, "legacy"), a.record(t, 2, "next")
+	digest1, _ := r1.digest()
+	digest2, _ := r2.digest()
+	before := reviewSnapshot(t, cfg)
+	for _, probe := range []struct {
+		name, method, path, actor string
+		body                      any
+		status                    int
+	}{
+		{"v2-at-v1", "PUT", reviewBase(a, 1) + "/artifacts/" + digest2, "org-a-publisher", r2.wire(), 400},
+		{"v1-at-v2", "PUT", reviewBase(a, 2) + "/artifacts/" + digest1, "org-a-publisher", r1.wire(), 400},
+		{"other-token", "PUT", reviewBase(a, 2) + "/artifacts/" + digest2, "org-b-publisher", r2.wire(), 403},
+		{"signed-other-tenant", "PUT", reviewBase(b, 2) + "/artifacts/" + digest2, "org-b-publisher", r2.wire(), 403},
+		{"reader-write", "PUT", reviewBase(a, 2) + "/artifacts/" + digest2, "org-a-reader", r2.wire(), 403},
+		{"unknown-family", "PUT", "/v3/orgs/org-a/projects/project/artifacts/" + digest2, "org-a-publisher", r2.wire(), 404},
+		{"case-family", "PUT", "/V2/orgs/org-a/projects/project/artifacts/" + digest2, "org-a-publisher", r2.wire(), 404},
+		{"query-family", "PUT", reviewBase(a, 1) + "/artifacts/" + digest2 + "?protocol=2", "org-a-publisher", r2.wire(), 400},
+	} {
+		t.Run(probe.name, func(t *testing.T) {
+			reviewRequest(t, s, probe.method, probe.path, probe.actor, probe.name, probe.body, probe.status)
+			if !bytes.Equal(before, reviewSnapshot(t, cfg)) {
+				t.Fatal("rejected request mutated durable schema1")
+			}
+		})
+	}
+}
+
+func TestReviewVersionedDecodeIsClosedAndReceiverAtomic(t *testing.T) {
+	f := reviewNewFixture("a")
+	legacy := f.record(t, 1, "decode-legacy")
+	current := f.record(t, 2, "decode-current")
+	encoded := reviewJSON(t, current)
+	var fields map[string]json.RawMessage
+	if e := json.Unmarshal(encoded, &fields); e != nil {
+		t.Fatal(e)
+	}
+	cases := map[string][]byte{"null": []byte("null"), "array": []byte("[]"), "trailing": append(append([]byte{}, encoded...), []byte(" {}")...), "duplicate": bytes.Replace(encoded, []byte(`"protocol":2`), []byte(`"protocol":2,"protocol":2`), 1)}
+	for _, mutation := range []string{"tag-string", "tag-floating", "tag-negative", "tag-unknown", "tag-case", "artifact-null", "missing-state", "mixed", "unknown-field"} {
+		copy := map[string]json.RawMessage{}
+		for k, v := range fields {
+			copy[k] = v
+		}
+		switch mutation {
+		case "tag-string":
+			copy["protocol"] = []byte(`"2"`)
+		case "tag-floating":
+			copy["protocol"] = []byte(`2.0`)
+		case "tag-negative":
+			copy["protocol"] = []byte(`-2`)
+		case "tag-unknown":
+			copy["protocol"] = []byte(`3`)
+		case "tag-case":
+			delete(copy, "protocol")
+			copy["Protocol"] = []byte(`2`)
+		case "artifact-null":
+			copy["artifact_v2"] = []byte(`null`)
+		case "missing-state":
+			delete(copy, "validated")
+		case "mixed":
+			copy["artifact"] = reviewJSON(t, legacy.Artifact)
+		case "unknown-field":
+			copy["future"] = []byte(`true`)
+		}
+		cases[mutation] = reviewJSON(t, copy)
+	}
+	for name, bad := range cases {
+		t.Run(name, func(t *testing.T) {
+			receiver := legacy
+			before := reviewJSON(t, receiver)
+			if e := json.Unmarshal(bad, &receiver); e == nil {
+				t.Fatal("ambiguous storage record accepted")
+			}
+			if !bytes.Equal(before, reviewJSON(t, receiver)) {
+				t.Fatal("failed storage decode mutated existing receiver")
+			}
+		})
+	}
+	c := f.assigned(t, current, 1, 10000)
+	original := reviewJSON(t, c)
+	for _, bad := range [][]byte{[]byte(`{}`), bytes.Replace(original, []byte(`"protocol":2`), []byte(`"protocol":1`), 1), bytes.Replace(original, []byte(`"schema":2`), []byte(`"schema":1`), 1), bytes.Replace(original, []byte(`"protocol":2`), []byte(`"protocol":2,"signed_assignment":{}`), 1)} {
+		receiver := c
+		if e := json.Unmarshal(bad, &receiver); e == nil || !bytes.Equal(original, reviewJSON(t, receiver)) {
+			t.Fatal("channel decoder accepted mixed schema or changed receiver")
+		}
+	}
+}
+
+func TestReviewStoredSignedByteDispatchCannotProbeOtherVersion(t *testing.T) {
+	f := reviewNewFixture("a")
+	r1, r2 := f.record(t, 1, "dispatch-v1"), f.record(t, 2, "dispatch-v2")
+	for _, r := range []Record{r1, r2} {
+		raw := reviewJSON(t, r.signedManifest())
+		got, e := decodeStoredArtifact(raw, r.payload())
+		if e != nil || got.version() != r.version() || !immutableEqual(got, r) {
+			t.Fatal("valid signed stored bytes lost identity", e)
+		}
+	}
+	raw := reviewJSON(t, r2.signedManifest())
+	for name, bad := range map[string][]byte{"pretend-v1": bytes.Replace(raw, []byte(`"schema":2`), []byte(`"schema":1`), 1), "string": bytes.Replace(raw, []byte(`"schema":2`), []byte(`"schema":"2"`), 1), "float": bytes.Replace(raw, []byte(`"schema":2`), []byte(`"schema":2.0`), 1), "missing": bytes.Replace(raw, []byte(`"schema":2,`), nil, 1), "unknown": bytes.Replace(raw, []byte(`"schema":2`), []byte(`"schema":18446744073709551615`), 1), "extra-envelope": bytes.Replace(raw, []byte(`{"manifest":`), []byte(`{"protocol":2,"manifest":`), 1)} {
+		t.Run(name, func(t *testing.T) {
+			if _, e := decodeStoredArtifact(bad, r2.payload()); e == nil {
+				t.Fatal("stored dispatch accepted ambiguous schema")
+			}
+		})
+	}
+	c1, c2 := f.assigned(t, r1, 1, 10000), f.assigned(t, r2, 1, 10000)
+	for _, c := range []Channel{c1, c2} {
+		raw := reviewJSON(t, c.wire())
+		got, e := decodeStoredChannel(raw)
+		if e != nil || got.version() != c.version() {
+			t.Fatal("valid stored assignment failed", e)
+		}
+	}
+}
+
+func TestReviewRollbackReplayAndV1BytesSurviveV2Restart(t *testing.T) {
+	f := reviewNewFixture("a")
+	cfg := reviewConfig(t, f)
+	s, e := New(cfg)
+	if e != nil {
+		t.Fatal(e)
+	}
+	r1 := f.record(t, 1, "durable-legacy")
+	reviewUpload(t, s, f, r1, "legacy")
+	reviewPublish(t, s, f, r1, 8, 10000, "publish", "legacy-publish", 200)
+	d1, _ := r1.digest()
+	wirePath := "/v1/artifacts/" + d1 + "?organization=org-a&project=project"
+	wire := reviewRequest(t, s, "GET", wirePath, "", "", nil, 200)
+	offer := reviewRequest(t, s, "GET", reviewOffer(f, 1), "", "", nil, 200)
+	oldAudit := reviewJSON(t, s.db.(*store).state.Audit)
+	r2, r3 := f.record(t, 2, "first-v2"), f.record(t, 2, "second-v2")
+	reviewUpload(t, s, f, r2, "first")
+	reviewUpload(t, s, f, r3, "second")
+	reviewPublish(t, s, f, r2, 1, 10000, "publish", "first-publish", 200)
+	before := reviewSnapshot(t, cfg)
+	reviewPublish(t, s, f, r3, 2, 10000, "rollback", "never-published-target", 409)
+	if !bytes.Equal(before, reviewSnapshot(t, cfg)) {
+		t.Fatal("rejected rollback changed history")
+	}
+	reviewPublish(t, s, f, r3, 2, 10000, "publish", "second-publish", 200)
+	reviewPublish(t, s, f, r2, 1, 10000, "rollback", "replayed-rollback", 409)
+	rollback := reviewPublish(t, s, f, r2, 3, 10000, "rollback", "valid-rollback", 200)
+	d2, _ := r2.digest()
+	reviewRequest(t, s, "GET", "/v1/artifacts/"+d2+"?organization=org-a&project=project", "", "", nil, 404)
+	reviewRequest(t, s, "GET", strings.Replace(reviewOffer(f, 2), "/v2/", "/v1/", 1), "", "", nil, 204)
+	if e := s.Close(); e != nil {
+		t.Fatal(e)
+	}
+	s, e = New(cfg)
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer s.Close()
+	if !bytes.Equal(rollback, reviewPublish(t, s, f, r2, 3, 10000, "rollback", "valid-rollback", 200)) {
+		t.Fatal("restart changed idempotent rollback response")
+	}
+	reviewPublish(t, s, f, r2, 3, 10000, "rollback", "distinct-replay", 409)
+	if !bytes.Equal(wire, reviewRequest(t, s, "GET", wirePath, "", "", nil, 200)) || !bytes.Equal(offer, reviewRequest(t, s, "GET", reviewOffer(f, 1), "", "", nil, 200)) || !bytes.Equal(oldAudit, reviewJSON(t, s.db.(*store).state.Audit[:3])) {
+		t.Fatal("v2 transaction/restart changed v1 bytes or old audit events")
+	}
+}
+
+func TestReviewSharedCapacityRejectsV2WithoutUpgradingLegacyStore(t *testing.T) {
+	f := reviewNewFixture("a")
+	cfg := reviewConfig(t, f)
+	s, e := New(cfg)
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer s.Close()
+	who := access{tenant: tenant{f.scope.Organization, f.scope.Project}, Actor: "independent-publisher", Role: "publisher"}
+	for i := 0; i < 64; i++ {
+		r := f.record(t, 1, "capacity-"+strconv.Itoa(i))
+		d, _ := r.digest()
+		ev := Event{Organization: who.Organization, Project: who.Project, Actor: who.Actor, Action: "independent-capacity"}
+		_, e = s.db.transaction(context.Background(), who, "editor", fmt.Sprint("capacity-", i), protocol.Hash([]byte(fmt.Sprint(i))), ev, func(tx releaseTransaction) (Response, error) {
+			return response(201, map[string]bool{"ok": true}), tx.saveArtifact(d, r)
+		})
+		if e != nil {
+			t.Fatal(e)
+		}
+	}
+	before := reviewSnapshot(t, cfg)
+	r := f.record(t, 2, "capacity-v2-overflow")
+	d, _ := r.digest()
+	reviewRequest(t, s, "PUT", reviewBase(f, 2)+"/artifacts/"+d, "org-a-publisher", "capacity-overflow", r.wire(), 409)
+	if s.db.(*store).state.Schema != 1 || !bytes.Equal(before, reviewSnapshot(t, cfg)) {
+		t.Fatal("capacity failure escaped v2 schema upgrade")
+	}
+}
+
+func TestReviewConcurrentSameSequenceCreatesOneDurablePublication(t *testing.T) {
+	f := reviewNewFixture("a")
+	cfg := reviewConfig(t, f)
+	s, e := New(cfg)
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer s.Close()
+	r := f.record(t, 2, "sequence-race")
+	reviewUpload(t, s, f, r, "race")
+	assigned := f.assigned(t, r, 9, 10000)
+	raw := reviewJSON(t, map[string]any{"signed_assignment": assigned.wire()})
+	var wg sync.WaitGroup
+	codes := make(chan int, 8)
+	for i := 0; i < 8; i++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			req := httptest.NewRequest("POST", reviewBase(f, 2)+"/channels/beta/publish", bytes.NewReader(raw))
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Authorization", "Bearer org-a-publisher")
+			req.Header.Set("Idempotency-Key", fmt.Sprint("race-", i))
+			w := httptest.NewRecorder()
+			s.ServeHTTP(w, req)
+			codes <- w.Code
+		}(i)
+	}
+	wg.Wait()
+	close(codes)
+	counts := map[int]int{}
+	for c := range codes {
+		counts[c]++
+	}
+	if counts[200] != 1 || counts[409] != 7 {
+		t.Fatal("sequence race not serialized", counts)
+	}
+	state := s.db.(*store).state
+	if len(state.Channels) != 1 || len(state.Audit) != 3 || len(state.Outbox) != 3 || len(state.Idempotency) != 3 {
+		t.Fatal("losing sequence contender changed durable effects")
+	}
+}
+
+func TestReviewRuntimeRegistrationRejectsAmbiguousProtocolAndUpgrader(t *testing.T) {
+	f := reviewNewFixture("a")
+	cfg := reviewConfig(t, f)
+	duplicate := cfg.Hosts[0]
+	duplicate.Protocol = 2
+	cfg.Hosts = append(cfg.Hosts, duplicate)
+	if ValidateConfig(cfg) == nil {
+		t.Fatal("same scope/runtime accepted v1 and v2")
+	}
+	// Rejected publish must not change schema1 even if an editor has uploaded a
+	// valid v1 artifact: route protocol cannot reinterpret the validated record.
+	cfg = reviewConfig(t, f)
+	s, e := New(cfg)
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer s.Close()
+	r := f.record(t, 1, "route-binding")
+	reviewUpload(t, s, f, r, "route")
+	before := reviewSnapshot(t, cfg)
+	digest, _ := r.digest()
+	reviewRequest(t, s, "POST", reviewBase(f, 2)+"/releases/validate", "org-a-publisher", "route-version", map[string]string{"artifact_sha256": digest}, 422)
+	if !bytes.Equal(before, reviewSnapshot(t, cfg)) {
+		t.Fatal("cross-version validation upgraded or mutated legacy state")
+	}
+}
+
+func TestReviewTenantAndVersionIdempotencyIsolation(t *testing.T) {
+	a, b := reviewNewFixture("a"), reviewNewFixture("b")
+	cfg := reviewConfig(t, a, b)
+	s, e := New(cfg)
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer s.Close()
+	r1, r2, other := a.record(t, 1, "dedup-v1"), a.record(t, 2, "dedup-v2"), b.record(t, 2, "dedup-other")
+	d1, _ := r1.digest()
+	d2, _ := r2.digest()
+	db, _ := other.digest()
+	first := reviewRequest(t, s, "PUT", reviewBase(a, 1)+"/artifacts/"+d1, "org-a-publisher", "shared-key", r1.wire(), 201)
+	before := reviewSnapshot(t, cfg)
+	reviewRequest(t, s, "PUT", reviewBase(a, 2)+"/artifacts/"+d2, "org-a-publisher", "shared-key", r2.wire(), 409)
+	if !bytes.Equal(before, reviewSnapshot(t, cfg)) || s.db.(*store).state.Schema != 1 {
+		t.Fatal("cross-version idempotency collision changed durable state")
+	}
+	if !bytes.Equal(first, reviewRequest(t, s, "PUT", reviewBase(a, 1)+"/artifacts/"+d1, "org-a-editor", "shared-key", r1.wire(), 201)) {
+		t.Fatal("shared tenant retry lost original response")
+	}
+	reviewRequest(t, s, "PUT", reviewBase(b, 2)+"/artifacts/"+db, "org-b-publisher", "shared-key", other.wire(), 201)
+	reviewRequest(t, s, "GET", reviewBase(b, 1)+"/artifacts/"+d1, "org-b-reader", "", nil, 404)
+	reviewRequest(t, s, "GET", "/v2/artifacts/"+db+"?organization=org-a&project=project", "", "", nil, 404)
+	if len(s.db.(*store).state.Artifacts) != 2 || len(s.db.(*store).state.Idempotency) != 2 || len(s.db.(*store).state.Audit) != 2 {
+		t.Fatal("tenant idempotency namespaces collided")
+	}
+}
