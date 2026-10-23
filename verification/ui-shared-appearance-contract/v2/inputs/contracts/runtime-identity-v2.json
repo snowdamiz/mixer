@@ -1,0 +1,533 @@
+{
+  "schema": 2,
+  "name": "mixer-runtime-identity-v2",
+  "authority": {
+    "input": "compiled trusted native build material, never a downloaded descriptor or independently supplied native objects",
+    "factory": "same immutable descriptor derives verifier host AND full execution/material/concrete adapters; exact fingerprint only",
+    "proof": "Hash equality proves equal declared descriptors, not accurate graph, compiler truth, build consumption or signed provenance",
+    "capture": "every digest has one explicit actual file/collection binding; consume private immutable snapshots, not original paths; completeness and actual build consumption require separate evidence",
+    "embedding": "explicit schema2 emitter/parser only; schema1 entrypoints remain strict; no descriptor path fallback",
+    "circularity": "engine, bridge, fallback and link identities refer to pre-embedding inputs; never include the final identity-bearing source/binary hash back into its own descriptor; final signed binary is bound by separate build attestation",
+    "release": "signed verified grants only narrow installed sets and base resource limits; no native implementation/path/startup/effects-gate selector",
+    "definition": "This descriptor confers no authority without implementing installed factory and verified selection; status and qualification are external to its byte-hashed definition"
+  },
+  "authoring": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "xhigh"
+  },
+  "contract_format": "bounded protocol reference with closed structural schemas; lexical, cross-field, full executable and authority checks remain mandatory; JSON Schema alone never authorizes execution",
+  "domain": "mixer.runtime.identity.v2\\0",
+  "domain_bytes": "UTF8 literal mixer.runtime.identity.v2 followed by exactly one NUL, not two literal backslash/zero bytes",
+  "hash": "SHA256(domain bytes || restricted deterministic CBOR entire descriptor)",
+  "canonicalization": "RFC8949 restricted data model reused from release-v1: unsigned integers, booleans, text, arrays and maps with encoded keys lexicographically sorted; preferred shortest integers/lengths; no null/floats/tags/indefinite lengths. Hash covers the entire descriptor.",
+  "input": {
+    "format": "strict JSON; closed field sets at every object; every listed field mandatory",
+    "maximumBytes": 131072,
+    "maximumCanonicalBytes": 131072,
+    "duplicateKeys": "reject including equivalent escaped key spellings",
+    "numbers": "unsigned base10 integer tokens only; uint64 range; no decimal/exponent/negative/bool coercion",
+    "strings": "Identifiers ASCII [A-Za-z0-9_.-], 1..128 bytes; labels printable ASCII1..256 without boundary spaces; startup export exact UTF-8 1..4096 bytes with no U+0000..001F/U+007F; no Unicode normalization",
+    "digests": "64 lowercase hex SHA256 of named immutable build input bytes; empty sets hash their explicit serialized representation, never omit a digest"
+  },
+  "descriptor_schema": {
+    "type": "object",
+    "required": [
+      "schema",
+      "application",
+      "platform",
+      "engine",
+      "toolchain",
+      "dependencies",
+      "capabilities",
+      "build",
+      "execution",
+      "capability_execution"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "schema": {
+        "const": 2
+      },
+      "application": {
+        "type": "object",
+        "required": [
+          "organization",
+          "project",
+          "app",
+          "environment",
+          "bundle_id"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "organization": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9_.-]+$"
+          },
+          "project": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9_.-]+$"
+          },
+          "app": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9_.-]+$"
+          },
+          "environment": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9_.-]+$"
+          },
+          "bundle_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9_.-]+$"
+          }
+        }
+      },
+      "platform": {
+        "type": "object",
+        "required": [
+          "os",
+          "architecture",
+          "environment",
+          "minimum_os",
+          "target"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "os": {
+            "enum": [
+              "ios",
+              "android"
+            ]
+          },
+          "architecture": {
+            "enum": [
+              "arm64",
+              "x86_64"
+            ]
+          },
+          "environment": {
+            "enum": [
+              "device",
+              "simulator"
+            ]
+          },
+          "minimum_os": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9_.-]+$"
+          },
+          "target": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9_.-]+$"
+          }
+        }
+      },
+      "engine": {
+        "type": "object",
+        "required": [
+          "version",
+          "source_sha256",
+          "artifact_sha256",
+          "profile",
+          "guest_abi",
+          "ui_schema",
+          "ui_contract_sha256",
+          "capability_contract_sha256"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256,
+            "pattern": "^[!-~](?:[ -~]*[!-~])?$"
+          },
+          "source_sha256": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 64,
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "artifact_sha256": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 64,
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "profile": {
+            "const": "mixer-table-memory-v3"
+          },
+          "guest_abi": {
+            "const": 2
+          },
+          "ui_schema": {
+            "const": 1
+          },
+          "ui_contract_sha256": {
+            "const": "e9983da1c8f5b79dcead9fc7c99172be374ddeba319308615108651cb3931ac5"
+          },
+          "capability_contract_sha256": {
+            "const": "ca53c3c2ea1d8f08020468cc5d458d86542e0806d6494840557e591342f1154e"
+          }
+        }
+      },
+      "toolchain": {
+        "type": "object",
+        "required": [
+          "compiler_version",
+          "compiler_sha256",
+          "sdk_version",
+          "sdk_sha256",
+          "build_tools_sha256"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "compiler_version": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256,
+            "pattern": "^[!-~](?:[ -~]*[!-~])?$"
+          },
+          "compiler_sha256": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 64,
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "sdk_version": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256,
+            "pattern": "^[!-~](?:[ -~]*[!-~])?$"
+          },
+          "sdk_sha256": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 64,
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "build_tools_sha256": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 64,
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      },
+      "dependencies": {
+        "type": "array",
+        "minItems": 0,
+        "maxItems": 128,
+        "items": {
+          "type": "object",
+          "required": [
+            "id",
+            "version",
+            "artifact_sha256"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_.-]+$"
+            },
+            "version": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256,
+              "pattern": "^[!-~](?:[ -~]*[!-~])?$"
+            },
+            "artifact_sha256": {
+              "type": "string",
+              "minLength": 64,
+              "maxLength": 64,
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        }
+      },
+      "capabilities": {
+        "type": "array",
+        "minItems": 0,
+        "maxItems": 2,
+        "items": {
+          "type": "object",
+          "required": [
+            "id",
+            "schema_sha256",
+            "native_sha256",
+            "configuration_sha256",
+            "grants_sha256"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "enum": [
+                "network.http.v1",
+                "storage.keyValue.v1"
+              ]
+            },
+            "schema_sha256": {
+              "type": "string",
+              "minLength": 64,
+              "maxLength": 64,
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "native_sha256": {
+              "type": "string",
+              "minLength": 64,
+              "maxLength": 64,
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "configuration_sha256": {
+              "type": "string",
+              "minLength": 64,
+              "maxLength": 64,
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "grants_sha256": {
+              "type": "string",
+              "minLength": 64,
+              "maxLength": 64,
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        }
+      },
+      "build": {
+        "type": "object",
+        "required": [
+          "configuration",
+          "settings_sha256",
+          "generated_bridge_sha256",
+          "link_inputs_sha256",
+          "native_fallback_sha256",
+          "permissions_sha256",
+          "entitlements_sha256",
+          "trust_roots_sha256",
+          "resource_policy_sha256"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "configuration": {
+            "enum": [
+              "debug",
+              "release"
+            ]
+          },
+          "settings_sha256": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 64,
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "generated_bridge_sha256": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 64,
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "link_inputs_sha256": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 64,
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "native_fallback_sha256": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 64,
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "permissions_sha256": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 64,
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "entitlements_sha256": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 64,
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "trust_roots_sha256": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 64,
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "resource_policy_sha256": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 64,
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      },
+      "execution": {
+        "type": "object",
+        "required": [
+          "startup_export",
+          "startup_ms",
+          "max_payload_bytes",
+          "memory_bytes",
+          "fuel",
+          "operand_stack",
+          "call_depth",
+          "host_calls",
+          "state_schema",
+          "protocol"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "startup_export": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          },
+          "startup_ms": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 60000
+          },
+          "max_payload_bytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4194304
+          },
+          "memory_bytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4194304
+          },
+          "fuel": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000000
+          },
+          "operand_stack": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4096
+          },
+          "call_depth": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 64
+          },
+          "host_calls": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1024
+          },
+          "state_schema": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 18446744073709551615
+          },
+          "protocol": {
+            "const": 3
+          }
+        }
+      },
+      "capability_execution": {
+        "type": "object",
+        "required": [
+          "route",
+          "contract_sha256",
+          "transport_sha256",
+          "native_header_sha256",
+          "maximum_requests",
+          "reservation_bytes",
+          "timeout_milliseconds",
+          "turn_milliseconds",
+          "bridge_policy_sha256"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "route": {
+            "const": "capability-guest-v1"
+          },
+          "contract_sha256": {
+            "const": "898ea22b93a5b0dcd94c3b54f7cc97c41a259cd2285cbacd54bf0bd52ba48c97"
+          },
+          "transport_sha256": {
+            "const": "052ebe9fbdc20a41307332086767e7903680bc83ba273c696edf9187be6b6439"
+          },
+          "native_header_sha256": {
+            "const": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6"
+          },
+          "maximum_requests": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 8
+          },
+          "reservation_bytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 8388608
+          },
+          "timeout_milliseconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 30000
+          },
+          "turn_milliseconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          },
+          "bridge_policy_sha256": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 64,
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      }
+    }
+  },
+  "semantic_checks": {
+    "platform": {
+      "ios": "arm64 device; arm64/x86_64 simulator; minimum major>=17 and canonical 2 or 3 numeric dotted components; exact ARCH-apple-iosMINIMUM[-simulator] target",
+      "android": "arm64/x86_64 device or simulator; canonical unsigned API>=28; target aarch64 or x86_64-unknown-linux-androidAPI"
+    },
+    "order": "dependencies and capabilities strictly ascending unique ASCII id; reject duplicates before map construction",
+    "capability_schema_binding": {
+      "network.http.v1": "fa1549c0a1e2e6b3bf4a83af1a6d37730bbefc8cddc3ffbe3c807d5e7af503f3",
+      "storage.keyValue.v1": "4a311222c978ddd0982e8dfbcf3d4864b856a80bcc1efb3b725adede7f8e22fd"
+    },
+    "material": "exact canonical captured bytes and roles in capability-execution-v1.installed_material; config/grant digests per entry and bridge_policy_sha256 bind factory inputs",
+    "contract_binding": "contract/transport/header fields exactly match referenced frozen execution contract and actual selected headers; UI and semantic capability hashes are known constants",
+    "startup": "UTF8 byte count1..4096; no U+0000..001F/U+007F; no normalization; exact defined no-argument startup with supported optional numeric result",
+    "engine_binding": "source/artifact/link/dependency digests bind actual native-feature archive, bridge SDK and pre-embedding inputs; header/source versions are not inferred from a caller label",
+    "minimums": "all listed fields mandatory, no optional defaults; positive memory may floor to0pages under signed narrowing; never round upward",
+    "tuple": "identity2/protocol3/guestABI2/UI1/table-memory-v3/capability-guest-v1 only",
+    "zero_page_effective_limit": "effective positive byte budget can floor to0; separately reviewed same-config validation/create must support exact0 or reject before staging, never round up"
+  },
+  "preservation": {
+    "runtime-identity-v1.json": "454daf6fdc16955b32a725fd5fa230a4f7cc0c1f3327223bf73d8e6331fcf30c",
+    "old_apis": "RuntimeIdentity(json:) and old inspect/embed modes retain schema1 rejection/acceptance; new explicit version entrypoint; no try-v1-then-v2 fallback"
+  },
+  "execution_contract": {
+    "path": "contracts/capability-execution-v1.json",
+    "sha256": "898ea22b93a5b0dcd94c3b54f7cc97c41a259cd2285cbacd54bf0bd52ba48c97"
+  },
+  "kind": "immutable_contract_definition",
+  "qualification_boundary": "Contract bytes are not proof of implementation, validation, native I/O, actual health, full Swift/UI/FieldLog, complete build graph/consumption/embedding, published packaging, physical lifecycle/performance, signing/store/hosted/GA qualification. Those require separate accountable evidence."
+}

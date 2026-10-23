@@ -63,4 +63,47 @@ struct RuntimeTests {
         #expect(registry.exchange(handle, 0, nil, 0, nil, 0, nil) == 1)
         #expect(registry.exchange(0, 0, nil, 0, nil, 0, &required) == 2)
     }
+
+    @Test func escapedPacketLimitPreservesStateRevisionAndIdentityUntilAValidUpdate() throws {
+        let makeDocument: @Sendable (State, UInt64) -> UIDocument = { state, revision in
+            VStack("root") {
+                TextField("field", "Title", value: state.value, action: "edit")
+                for index in 0..<11 {
+                    Text("text.\(index)", state.value == "overflow" ? String(repeating: "\0", count: 16_384) : "")
+                }
+            }.document(revision: revision)
+        }
+        let reduce: @Sendable (inout State, RoutedUIAction) throws -> Void = { state, action in
+            guard case .string(let value) = action.value else { throw AndroidDocumentError.invalidEvent }
+            state.value = value
+        }
+        do {
+            _ = try AndroidDocumentSession(state: State(value: "overflow"), document: makeDocument, reduce: reduce)
+            Issue.record("Oversized initial escaped packet was accepted")
+        } catch AndroidDocumentError.outputLimit { }
+
+        var engine = try AndroidDocumentSession(state: State(), document: makeDocument, reduce: reduce)
+        let first = try engine.render()
+        let object = try #require(JSONSerialization.jsonObject(with: first) as? [String: Any])
+        let identities = try JSONDecoder().decode([UINodeIdentity].self,
+            from: JSONSerialization.data(withJSONObject: #require(object["identities"])))
+        let identity = try #require(identities.first { $0.id == "field" })
+        let rejected = try JSONEncoder().encode(UIEventEnvelope(revision: 1, identity: identity,
+            event: .textChange, value: .string("overflow")))
+        do {
+            _ = try engine.dispatch(rejected)
+            Issue.record("Oversized update escaped packet was accepted")
+        } catch AndroidDocumentError.outputLimit { }
+        #expect(engine.state == State())
+        #expect(engine.revision == 1)
+        #expect(try engine.render() == first)
+        let accepted = try JSONEncoder().encode(UIEventEnvelope(revision: 1, identity: identity,
+            event: .textChange, value: .string("é\0漢字🏗️")))
+        let second = try engine.dispatch(accepted)
+        #expect(engine.state.value == "é\0漢字🏗️" && engine.revision == 2)
+        let secondObject = try #require(JSONSerialization.jsonObject(with: second) as? [String: Any])
+        let secondIdentities = try JSONDecoder().decode([UINodeIdentity].self,
+            from: JSONSerialization.data(withJSONObject: #require(secondObject["identities"])))
+        #expect(secondIdentities.first { $0.id == "field" } == identity)
+    }
 }

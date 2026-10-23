@@ -67,18 +67,9 @@ public struct ChecklistEngine: Sendable {
     return output
   }
   private static func encode(_ snapshot: UIRenderSnapshot) throws -> Data {
-    var nodes = [snapshot.document.root]
-    var identities: [UINodeIdentity] = []
-    while let node = nodes.popLast() {
-      identities.append(snapshot.identity(for: node.id)!)
-      nodes.append(contentsOf: node.children.reversed())
-    }
-    let packet = RenderPacket(schemaVersion: 1, document: snapshot.document, identities: identities)
-    let encoder = JSONEncoder()
-    encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
-    let data = try encoder.encode(packet)
-    guard data.count <= 1_048_576 else { throw AndroidBridgeError.outputLimit }
-    return data
+    do { return try snapshot.encodeNativePacketV1() }
+    catch UINativePacketEncodingError.outputLimit { throw AndroidBridgeError.outputLimit }
+    catch UINativePacketEncodingError.missingIdentity { throw AndroidBridgeError.invalidEvent }
   }
   private static func document(_ state: ChecklistState, revision: UInt64) -> MixerUI.UIDocument {
     MixerUI.Navigation("screen", title: "Mixer · Android") {

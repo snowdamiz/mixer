@@ -68,8 +68,21 @@ passes 51 SDK tests per Debug/Release, 16 production-Java decoder assertions,
 three public Swift/Java event round trips and official iOS/Android module builds.
 The validator admits node count/depth before queuing children. The encoder emits
 one identity record per node from the same immutable snapshot and measures all
-escaped bytes before allocating the bounded output buffer. Ordinary Android
-engine adoption, native JNI/rendering and shared appearance remain separate.
+escaped bytes before allocating the bounded output buffer. Both ordinary Android
+engines now adopt it with transactional error preservation; nine tests per mode,
+34 Java contract checks, two public consumers and an actual Android shared-library
+build pass. See `verification/ui-native-packet-android/candidate-2/receipt.json`.
+Native JNI/rendering and shared appearance remain separate.
+
+The concrete shared appearance foundation contract is accepted in
+`verification/ui-shared-appearance-root-review/acceptance.json`: closed values and
+canonical codec, one 1,906-byte default and checked fixed-point metrics. Fifty
+design-shape tests pass per normal/optimized Python and typed declarations compile;
+this is design evidence only. The assigned SDK lane owns new values/codec/math/
+default sources and focused tests. Native style resolution, Apple reference
+capture, Android widget styling, actual resource packaging/linked index and private
+signed capture remain separately required. No default Android styling is permitted
+as a substitute for the shared app design.
 
 The independent cache review accepts the candidate's selected temporary-memory
 maps within the unchanged shared foundation. Complete stage acceptance still

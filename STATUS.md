@@ -11,8 +11,9 @@ open. Implemented slices do not replace their complete acceptance requirements.
 The updated section 8.3 requires shared-theme design parity on iOS and Android,
 with platform-specific app appearance only when explicitly declared. Current Apple
 and Android adapters still use platform defaults and do not meet this requirement.
-Shared appearance contracts, both renderers and FieldLog reference screens need
-implementation and review. Native accessibility, navigation, text input and
+The shared appearance foundation contract now has root acceptance; its codec,
+both renderers and FieldLog reference screens need implementation and review.
+Native accessibility, navigation, text input and
 system-owned surfaces remain native. Prior interaction/device receipts are not
 design-parity evidence; physical side-by-side review remains pending while phones
 are disconnected. See `verification/ui-design-parity-plan-update/receipt.json`.
@@ -56,8 +57,18 @@ Observed implementation and evidence:
   probe functions per old/repaired candidate and build mode verify the original
   8,992-entry pending queue becomes at most 3,997 in the standard comb test. Root
   audits 158 bindings; see `verification/ui-native-packet-root-review/acceptance.json`.
-  Ordinary Android engine adoption, widget/JNI behavior, signed health, shared
-  styling and physical visual parity remain pending for this slice.
+  Both ordinary Android engines now consume it: nine tests per mode, 34 existing
+  Java wire checks, two public engine consumers and an official Android AArch64
+  shared-library build pass. See
+  `verification/ui-native-packet-android/candidate-2/receipt.json`. Widget/JNI
+  behavior, signed health, shared styling and physical visual parity remain pending.
+- The shared appearance foundation contract fixes one canonical 1,906-byte default,
+  concrete typed values, closed codec and integer sizing rules. Root verifies 46
+  source/artifact bindings, 50 descriptor-shape tests in both Python modes and typed
+  declarations. See `verification/ui-shared-appearance-root-review/acceptance.json`.
+  The assigned Swift foundation implementation is in progress; no current renderer
+  consumes the proposed theme yet. Native resource capture, packaging and private
+  signed consumption require their own implementation and evidence.
 - The fox-branded marketing website is implemented in `website/`, with responsive
   layout, a browser-local release demonstration, docs, private-by-default SEO,
   social/icon exports, and separate FieldLog app-store collateral. The original

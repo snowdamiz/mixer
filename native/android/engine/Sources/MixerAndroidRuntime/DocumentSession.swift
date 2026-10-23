@@ -49,21 +49,10 @@ public struct AndroidDocumentSession<State: Sendable>: AndroidApplicationEngine 
         state = candidate; revision += 1; reconciler = next
         return result
     }
-    private struct Packet: Encodable {
-        let schemaVersion = 1
-        let document: MixerUI.UIDocument
-        let identities: [UINodeIdentity]
-    }
     private static func encode(_ snapshot: UIRenderSnapshot) throws -> Data {
-        var nodes = [snapshot.document.root], identities: [UINodeIdentity] = []
-        while let node = nodes.popLast() {
-            guard let identity = snapshot.identity(for: node.id) else { throw AndroidDocumentError.invalidEvent }
-            identities.append(identity); nodes.append(contentsOf: node.children.reversed())
-        }
-        let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
-        let bytes = try encoder.encode(Packet(document: snapshot.document, identities: identities))
-        guard bytes.count <= 1_048_576 else { throw AndroidDocumentError.outputLimit }
-        return bytes
+        do { return try snapshot.encodeNativePacketV1() }
+        catch UINativePacketEncodingError.outputLimit { throw AndroidDocumentError.outputLimit }
+        catch UINativePacketEncodingError.missingIdentity { throw AndroidDocumentError.invalidEvent }
     }
     /// These restrictions mirror android-profile-v1 and its owned Java decoder.
     /// Complete property/schema validation remains UIReconciler's responsibility.
