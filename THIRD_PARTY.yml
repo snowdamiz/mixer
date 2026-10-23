@@ -5,7 +5,7 @@ dependencies:
     origin: https://github.com/swiftlang/swift
     version: 6.3.3-cross-target-and-Xcode-6.4-Apple
     license: Apache-2.0-with-Runtime-Library-Exception
-    purpose: official-language-compilation-and-runtime
+    purpose: official-language-compilation-runtime-and-FoundationNetworking-native-HTTP-TLS
     distribution: toolchain-external-runtime-linked-in-apps
     owner: compiler
   - name: Rust compiler and standard library
@@ -26,7 +26,7 @@ dependencies:
     origin: https://developer.apple.com
     version: Xcode-27.1
     license: Apple-SDK-agreements
-    purpose: native-UI-and-established-cryptography
+    purpose: native-UI-established-cryptography-and-URLSession-system-HTTP-TLS
     distribution: system-frameworks-not-vendored
     owner: apple
   - name: Android SDK and NDK
@@ -36,6 +36,16 @@ dependencies:
     purpose: native-Android-toolchain-and-libcxx
     distribution: tooling-external-libcxx-shared-library-in-app
     owner: android
+  - name: Official Swift Android SDK networking components
+    origin: https://www.swift.org/install/android/
+    version: Swift-6.3.3-Android-SDK-SBOM
+    license: SDK-component-declarations-and-upstream-notices-review-pending
+    purpose: FoundationNetworking-native-HTTP-and-TLS-backend
+    distribution: official-libFoundationNetworking-and-its-runtime-dependencies-when-linked
+    owner: android-networking
+    inventory_receipt: verification/android-networking-inventory-2026-10-22.json
+    reported_components: curl-8.9.1-and-BoringSSL-fips-20220613
+    qualification: local-binary-and-SDK-SBOM-inventory-only-not-redistribution-or-security-approval
   - name: Node.js V8 and WASI
     origin: https://nodejs.org
     version: local-development-runtime

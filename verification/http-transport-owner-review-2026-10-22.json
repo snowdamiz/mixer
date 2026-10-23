@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "observedAt": "2026-10-23T01:21:32.458353+00:00",
+  "reviewedCommit": "5a227b01cba2f69c4228616f045822a24eb2c3ee",
+  "reviewType": "Root source review and immutable evidence integrity; no repeat of already passing complete implementer suites",
+  "sourceDigest": "1b004fc3d0eee04a1bb1338aacc4edfc0eb68adccb4c96694a5d87039dd1e257",
+  "checkedSourceFiles": 46,
+  "checkedCommandOutputs": 14,
+  "receipt": "capabilities/verification/http-transport/receipt.json",
+  "receiptSHA256": "8f8ff052cdeaf4c8d8558cb171f5dfb082a03754700edcf663296ad04bbafd89",
+  "nativeImplementationSHA256": "14f7257965a5d468d8901e5456253298346025ccdfba0a5d70554cea0c7ba305",
+  "findings": [
+    {
+      "id": "HTTP-01",
+      "status": "fixed-and-negative-regression-verified",
+      "description": "A delayed watchdog could permit late completion. Final code computes an entry-time absolute monotonic deadline, checks admission/receive paths, and rechecks under the terminal-result lock before accepting success.",
+      "evidence": "Deterministic held-watchdog test passes final source; isolated removal of final success guard exits 1 as expected."
+    }
+  ],
+  "reviewed": [
+    "Untrusted typed request bounds before lease and I/O",
+    "Cancellation, start and invalidation ownership; lease survives terminal continuation until native invalidation",
+    "Streamed retained-response bounds and content length consistency",
+    "System TLS, redirect and ambient cookie/credential/cache policy",
+    "Final atomic deadline check and deterministic mutation",
+    "iOS compilation and Android explicit SDK network library linkage evidence"
+  ],
+  "limitations": [
+    "Scoped source/integrity review, not independent security audit or full network protocol conformance",
+    "Native system allocations and OS retransmission are outside retained-body/request-count bounds",
+    "Actual macOS TLS evidence only proves untrusted-certificate rejection; successful production TLS and Android trust/store packaging remain open",
+    "Phones unavailable; no device, APK, guest import, FieldLog networking or W06/GA qualification"
+  ]
+}

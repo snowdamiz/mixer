@@ -43,9 +43,15 @@ Observed implementation and evidence:
   strict cross-language codecs, grant intersection, bounded ownership and cancellation.
   Real app-private storage checks quotas on both mutation and reopen. Thirteen host
   tests and codec comparisons pass; official iOS/Android/WASI compilation is qualified
-  separately. HTTP currently exposes an installed transport hook. Signed release-v2
-  grants now pass 115 cross-language cases and native-policy parity. Guest imports,
-  bundled networking, physical behavior and FieldLog adoption remain open.
+  separately. The opt-in native URLSession transport now adds streamed response
+  bounds, ordinary system TLS, redirect rejection, cancellation and monotonic
+  deadlines. Twenty-four capability tests, 23 SDK tests, eleven transport tests
+  under Thread Sanitizer, actual local untrusted-TLS rejection and cross-builds
+  pass. Root reviewed the source and matched the immutable receipt, including a
+  negative deadline-regression mutation. Signed release-v2 grants pass 115
+  cross-language cases and native-policy parity. Guest imports, Android networking
+  packaging/trust behavior, physical behavior and FieldLog plugin adoption remain open.
+  See `verification/http-transport-owner-review-2026-10-22.json`.
   See `capabilities/verification/receipt.json` and
   `verification/independent-capabilities-2026-10-22.json`.
 - The Go development service verifies canonical signed artifacts and separately
@@ -94,6 +100,10 @@ Observed implementation and evidence:
   models and native SwiftUI controls remain compatible. This is initial external
   package consumption, not full MixerUI/guest adoption or D1 acceptance; physical
   regression is pending. See `verification/fieldlog-public-sdk-2026-10-22.json`.
+  The same task-feature source, models and public MixerCore dependency also compile
+  to Android arm64 and Wasm objects with the official SDKs. These checks do not
+  execute an Android app or Wasm guest; see
+  `verification/fieldlog-shared-feature-cross-2026-10-22.json`.
 - Actual FieldLog models at baseline `1587d2d` produce matching observations
   on macOS, the physical Pixel and the full Swift Wasm SDK in a development oracle:
   1,000 tasks, 50% progress, ordering, Unicode draft restoration, entry commit and
@@ -107,7 +117,14 @@ Observed implementation and evidence:
   process peak RSS. Applying measured layouts to the full corpus estimates at least
   341,333,936 bytes for eager decoding and initial memory; that is arithmetic,
   not an observed full-corpus execution or RSS measurement. Production memory
-  architecture and ceilings remain unqualified.
+  architecture and ceilings remain unqualified. A new sequential body diagnostic
+  inventories all 79,837 functions: 79,831 decode structurally and six exceed the
+  unchanged control-depth ceiling. Source, diagnostic index and one decoded body
+  peak at 55,910,263 directly requested bytes; diagnostic process peak RSS is
+  60,276,736 bytes. These are diagnostic measurements, not full module validation
+  or execution. A separately gated streaming-validator experiment will test complete
+  validation under the existing profiles. See
+  `verification/function-diagnostics-owner-review-2026-10-22.json`.
 
 Official Swift 6.3.3 Android/Wasm SDKs are installed and compiler probes have run
 on a physical Pixel and in a development-only Node WASI oracle. Xcode 27.1 / Swift
@@ -133,4 +150,5 @@ simulator consumer. This covers the listed host CI suite, not physical devices,
 PostgreSQL integration or full release gates. The expanded run39880996716 at
 d8c6965 also passed all three jobs, including the public SDK, capabilities, native
 VM wrapper, activation and generated simulator consumer. See
-`verification/github-ci-d8c6965.json`.
+`verification/github-ci-d8c6965.json`. Run39881858217 at c99ed79 also passed
+all three jobs; see `verification/github-ci-c99ed79.json`.

@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "observedAt": "2026-10-23T01:21:32.554325+00:00",
+  "reviewedCommit": "205084b5f0642878fe251f6482d90eaf09c1d8c3",
+  "scope": "Diagnostic design/evidence review and independent repeat of five summary-integrity tests; not full decoder validation/execution",
+  "receipt": "compiler/experiments/profile-budget/functions/evidence/2026-10-22-qualified/receipt.json",
+  "receiptSHA256": "3a7c63efd9679e61a87b3a60ee7d7449c58be5bf991c04d74ba3974e8494fd4c",
+  "sourceDigest": "a46eee638d8290bd55477169e170f48ee5d94273d0b47de7f56a28f4d70c0f79",
+  "checkedSourceFiles": 5,
+  "checkedCommandOutputs": 18,
+  "artifactSHA256": "19ac88f26f0daf34b64acb3c5b895fc79b52701368fc4c532ac8ede5844fee75",
+  "checkedCSVRawSHA256": "3b26569463fcbd082ea24e6cb55c20e2f260caa327b1a02bcbf7b1262a5d78c2",
+  "summaryIntegrityTests": {
+    "command": [
+      "python3",
+      "-B",
+      "compiler/experiments/profile-budget/functions/test_summary.py"
+    ],
+    "exitCode": 0,
+    "output": ".....\n----------------------------------------------------------------------\nRan 5 tests in 0.003s\n\nOK\n"
+  },
+  "observed": {
+    "functions": 79837,
+    "successfulBodies": 79831,
+    "rejectedBodies": 6,
+    "maximumExplicitBlockNesting": 378,
+    "maximumSourceIndexOneBodyRequestedBytes": 55910263,
+    "diagnosticProcessPeakRSSBytes": 60276736
+  },
+  "conclusion": "Evidence matches committed diagnostic implementation; existing profile rejection remains correct. Proceed with separately bounded experimental complete streaming validator under unchanged ceilings.",
+  "limitations": [
+    "Per-body structural decoding is not complete module/type validation",
+    "Direct requested allocations exclude allocator bookkeeping; diagnostic RSS is not VM/app RSS",
+    "Sequential capacity sums are arithmetic, not simultaneously measured allocations",
+    "No source semantics removed, full Swift admission, cache contract, production profile expansion or device qualification"
+  ]
+}
