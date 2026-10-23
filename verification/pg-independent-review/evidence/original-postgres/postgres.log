@@ -1,0 +1,44 @@
+2026-10-22 20:43:42.098 EDT [7599] LOG:  starting PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit
+2026-10-22 20:43:42.098 EDT [7599] LOG:  listening on Unix socket "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pg-8qts_yy1/socket/.s.PGSQL.5432"
+2026-10-22 20:43:42.103 EDT [7603] LOG:  database system was shut down at 2026-10-22 20:43:42 EDT
+2026-10-22 20:43:42.108 EDT [7599] LOG:  database system is ready to accept connections
+2026-10-22 20:43:43.960 EDT [7643] ERROR:  must be owner of table artifacts
+2026-10-22 20:43:43.960 EDT [7643] STATEMENT:  ALTER TABLE mixer_release.artifacts DISABLE ROW LEVEL SECURITY
+2026-10-22 20:43:43.960 EDT [7643] ERROR:  must be owner of schema mixer_release
+2026-10-22 20:43:43.960 EDT [7643] STATEMENT:  ALTER SCHEMA mixer_release OWNER TO mixer_test_runtime
+2026-10-22 20:43:43.960 EDT [7643] ERROR:  must be owner of function mixer_release.in_scope
+2026-10-22 20:43:43.960 EDT [7643] STATEMENT:  ALTER FUNCTION mixer_release.in_scope(text,text) SET mixer.organization='org-a'
+2026-10-22 20:43:44.431 EDT [7663] ERROR:  immutable release record
+2026-10-22 20:43:44.431 EDT [7663] CONTEXT:  PL/pgSQL function mixer_release.immutable() line 2 at RAISE
+2026-10-22 20:43:44.431 EDT [7663] STATEMENT:  DELETE FROM mixer_release.artifacts
+2026-10-22 20:43:44.431 EDT [7663] ERROR:  immutable release record
+2026-10-22 20:43:44.431 EDT [7663] CONTEXT:  PL/pgSQL function mixer_release.immutable() line 2 at RAISE
+2026-10-22 20:43:44.431 EDT [7663] STATEMENT:  DELETE FROM mixer_release.assignments
+2026-10-22 20:43:44.431 EDT [7663] ERROR:  immutable release record
+2026-10-22 20:43:44.431 EDT [7663] CONTEXT:  PL/pgSQL function mixer_release.immutable() line 2 at RAISE
+2026-10-22 20:43:44.431 EDT [7663] STATEMENT:  DELETE FROM mixer_release.idempotency
+2026-10-22 20:43:44.432 EDT [7663] ERROR:  immutable release record
+2026-10-22 20:43:44.432 EDT [7663] CONTEXT:  PL/pgSQL function mixer_release.immutable() line 2 at RAISE
+2026-10-22 20:43:44.432 EDT [7663] STATEMENT:  DELETE FROM mixer_release.audit_events
+2026-10-22 20:43:44.432 EDT [7663] ERROR:  immutable release record
+2026-10-22 20:43:44.432 EDT [7663] CONTEXT:  PL/pgSQL function mixer_release.immutable() line 2 at RAISE
+2026-10-22 20:43:44.432 EDT [7663] STATEMENT:  DELETE FROM mixer_release.outbox
+2026-10-22 20:43:44.511 EDT [7672] ERROR:  permission denied to grant role "role_0a1c7998b0702059"
+2026-10-22 20:43:44.511 EDT [7672] DETAIL:  Only roles with the ADMIN option on role "role_0a1c7998b0702059" may grant this role.
+2026-10-22 20:43:44.511 EDT [7672] STATEMENT:  GRANT "role_0a1c7998b0702059" TO mixer_test_runtime WITH SET TRUE
+2026-10-22 20:43:44.511 EDT [7669] WARNING:  role "mixer_test_runtime" has not been granted membership in role "role_0a1c7998b0702059_mid" by role "mixer_migration_owner"
+2026-10-22 20:43:44.589 EDT [7677] ERROR:  permission denied to grant role "role_b7374606f8dcfc28"
+2026-10-22 20:43:44.589 EDT [7677] DETAIL:  Only roles with the ADMIN option on role "role_b7374606f8dcfc28" may grant this role.
+2026-10-22 20:43:44.589 EDT [7677] STATEMENT:  GRANT "role_b7374606f8dcfc28" TO mixer_test_runtime WITH SET TRUE
+2026-10-22 20:43:44.589 EDT [7674] WARNING:  role "mixer_test_runtime" has not been granted membership in role "role_b7374606f8dcfc28_mid" by role "mixer_migration_owner"
+2026-10-22 20:43:44.663 EDT [7682] ERROR:  permission denied to grant role "role_d35f2414bafa2250"
+2026-10-22 20:43:44.663 EDT [7682] DETAIL:  Only roles with the ADMIN option on role "role_d35f2414bafa2250" may grant this role.
+2026-10-22 20:43:44.663 EDT [7682] STATEMENT:  GRANT "role_d35f2414bafa2250" TO mixer_test_runtime WITH SET TRUE
+2026-10-22 20:43:44.663 EDT [7679] WARNING:  role "mixer_test_runtime" has not been granted membership in role "role_d35f2414bafa2250_mid" by role "mixer_migration_owner"
+2026-10-22 20:43:44.746 EDT [7684] ERROR:  dependent privileges exist
+2026-10-22 20:43:44.746 EDT [7684] HINT:  Use CASCADE to revoke them too.
+2026-10-22 20:43:44.746 EDT [7684] STATEMENT:  REVOKE "role_c6198069b3b2da0c", "role_c6198069b3b2da0c_mid" FROM mixer_test_runtime
+2026-10-22 20:43:44.824 EDT [7689] WARNING:  role "mixer_test_runtime" has not been granted membership in role "role_3c99a8d643970025" by role "mixer_migration_owner"
+2026-10-22 20:43:44.899 EDT [7695] WARNING:  role "mixer_test_runtime" has not been granted membership in role "role_cb3b7f4002571827" by role "mixer_migration_owner"
+2026-10-22 20:43:44.980 EDT [7599] LOG:  received immediate shutdown request
+2026-10-22 20:43:44.983 EDT [7599] LOG:  database system is shut down

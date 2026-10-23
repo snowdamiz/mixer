@@ -1,0 +1,57 @@
+=== RUN   TestPostgresReviewRejectsRuntimeSchemaOwnership
+    review_postgres_test.go:22: PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit; verified private data directory and disabled TCP listener
+    review_postgres_test.go:41: startup accepted a runtime schema owner able to DROP every release/audit/idempotency/outbox table despite not owning those tables
+--- FAIL: TestPostgresReviewRejectsRuntimeSchemaOwnership (0.09s)
+=== RUN   TestPostgresReviewRejectsUnknownMigrationVersion
+    review_postgres_test.go:45: PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit; verified private data directory and disabled TCP listener
+    review_postgres_test.go:54: runtime startup accepted schema migration version2 with the version1 checksum
+    review_postgres_test.go:58: migration retry accepted schema migration version2 with the version1 checksum
+--- FAIL: TestPostgresReviewRejectsUnknownMigrationVersion (0.08s)
+=== RUN   TestPostgresReviewRejectsRuntimeGuardFunctionOwnership
+    review_postgres_test.go:63: PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit; verified private data directory and disabled TCP listener
+    review_postgres_test.go:97: startup accepted a runtime guard-function owner able to remove the installed trigger and lower committed sequence5 to1 without CREATE schema or table-owner rights
+--- FAIL: TestPostgresReviewRejectsRuntimeGuardFunctionOwnership (0.12s)
+=== RUN   TestPostgresReviewDatabaseOwnershipAloneDoesNotOverrideInstalledRLS
+    review_postgres_test.go:101: PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit; verified private data directory and disabled TCP listener
+--- PASS: TestPostgresReviewDatabaseOwnershipAloneDoesNotOverrideInstalledRLS (0.12s)
+=== RUN   TestPostgresReviewUncertainCommitRetryWithoutRestart
+    review_postgres_test.go:142: PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit; verified private data directory and disabled TCP listener
+--- PASS: TestPostgresReviewUncertainCommitRetryWithoutRestart (0.11s)
+=== RUN   TestPostgresReviewTenantSettingsResetAcrossEveryTable
+    review_postgres_test.go:182: PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit; verified private data directory and disabled TCP listener
+--- PASS: TestPostgresReviewTenantSettingsResetAcrossEveryTable (0.13s)
+=== RUN   TestPostgresReviewCancelledLockWaitReservesNothing
+    review_postgres_test.go:244: PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit; verified private data directory and disabled TCP listener
+--- PASS: TestPostgresReviewCancelledLockWaitReservesNothing (0.14s)
+=== RUN   TestPostgresReviewEveryAppendOnlyFamilyDeniesMutation
+    review_postgres_test.go:283: PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit; verified private data directory and disabled TCP listener
+--- PASS: TestPostgresReviewEveryAppendOnlyFamilyDeniesMutation (0.10s)
+=== RUN   TestPostgresReviewRoleMembershipSemantics
+=== RUN   TestPostgresReviewRoleMembershipSemantics/inherit
+    review_roles_test.go:17: PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit; verified private data directory and disabled TCP listener
+    review_roles_test.go:68: mode=inherit MEMBER=true USAGE=true SET=false canGrantSelfSET=false
+=== RUN   TestPostgresReviewRoleMembershipSemantics/set
+    review_roles_test.go:17: PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit; verified private data directory and disabled TCP listener
+    review_roles_test.go:68: mode=set MEMBER=true USAGE=false SET=true canGrantSelfSET=false
+=== RUN   TestPostgresReviewRoleMembershipSemantics/inert
+    review_roles_test.go:17: PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit; verified private data directory and disabled TCP listener
+    review_roles_test.go:68: mode=inert MEMBER=true USAGE=false SET=false canGrantSelfSET=false
+=== RUN   TestPostgresReviewRoleMembershipSemantics/admin
+    review_roles_test.go:17: PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit; verified private data directory and disabled TCP listener
+    review_roles_test.go:68: mode=admin MEMBER=true USAGE=false SET=false canGrantSelfSET=true
+=== RUN   TestPostgresReviewRoleMembershipSemantics/inherited-admin
+    review_roles_test.go:17: PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit; verified private data directory and disabled TCP listener
+    review_roles_test.go:68: mode=inherited-admin MEMBER=true USAGE=false SET=false canGrantSelfSET=true
+=== RUN   TestPostgresReviewRoleMembershipSemantics/set-admin
+    review_roles_test.go:17: PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit; verified private data directory and disabled TCP listener
+    review_roles_test.go:68: mode=set-admin MEMBER=true USAGE=false SET=false canGrantSelfSET=true
+--- PASS: TestPostgresReviewRoleMembershipSemantics (0.46s)
+    --- PASS: TestPostgresReviewRoleMembershipSemantics/inherit (0.08s)
+    --- PASS: TestPostgresReviewRoleMembershipSemantics/set (0.08s)
+    --- PASS: TestPostgresReviewRoleMembershipSemantics/inert (0.07s)
+    --- PASS: TestPostgresReviewRoleMembershipSemantics/admin (0.08s)
+    --- PASS: TestPostgresReviewRoleMembershipSemantics/inherited-admin (0.08s)
+    --- PASS: TestPostgresReviewRoleMembershipSemantics/set-admin (0.07s)
+FAIL
+FAIL	mixer/services/release	1.546s
+FAIL

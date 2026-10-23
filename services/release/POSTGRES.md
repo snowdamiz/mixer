@@ -48,13 +48,27 @@ MIXER_SERVICE_CONFIG=/absolute/private/developer.json \
 
 The reviewed original migration is `migrations/001_release.sql`. A transactional
 migration lock and exact checksum make retries safe; unknown schema versions or
-modified checksums fail closed. Initial group-role creation requires migration
+modified checksums fail closed. Startup and migration retry require the explicit
+version1 marker as well as its checksum; the checksum alone cannot authorize an
+unknown version. Initial group-role creation requires migration
 owner CREATEROLE authority, or an operator can precreate the reviewed
 `mixer_release_runtime` NOLOGIN group. The service never creates a login or grants
 membership to a runtime credential. An operator provisions a distinct runtime
 login with inherited membership in that group and without superuser, BYPASSRLS,
-CREATEROLE, CREATEDB, or membership in any table-owner role. Runtime startup rejects
-migration-owner credentials and unsafe inherited authority.
+CREATEROLE, CREATEDB, or usable ownership of any release schema/table/function.
+Runtime startup rejects direct, inherited, `SET ROLE` and administratively
+obtainable owner authority. On PostgreSQL16+, membership with `INHERIT FALSE`,
+`SET FALSE` and no usable `ADMIN OPTION` path is preserved. Before16, membership
+permits `SET ROLE` and is checked accordingly. Startup requires inherited usage
+of the runtime group. Schema ownership can drop contained immutable records even
+if another role owns the tables; guard-function ownership can remove a trigger
+and defeat monotonic updates. The administrator-role closure includes authority
+inherited or assumed through other roles, rather than checking direct grants only.
+
+Database ownership alone is not treated as ownership of those installed objects:
+the PostgreSQL17.11 probe retained FORCE RLS and denied their alteration. This
+does not qualify database administration as a production security boundary;
+database credentials and administration remain trusted.
 
 Switching from the local JSON backend does not copy its state into PostgreSQL.
 Select a fresh reviewed database explicitly. No destructive migration, remote

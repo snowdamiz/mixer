@@ -1,0 +1,450 @@
+{
+  "schema": 1,
+  "createdAt": "2026-10-23T00:45:41.198578+00:00",
+  "status": "independent-findings-reproduced-and-owned-fixes-tested",
+  "reviewer": {
+    "model": "gpt-6.1-sol",
+    "reasoningEffort": "xhigh",
+    "baselineReviewIndependent": true,
+    "fixesImplementedByReviewer": true,
+    "ownerIndependentFixedReviewPending": true
+  },
+  "baseCommit": "b70a8774c13763ceced909d925a539e1f149381c",
+  "repositoryTree": "0f62257a97af48e7d6211e29cf3761e8b09fd0c4",
+  "servicesGitTree": "0f4172c77ecb6b758cfea9969f59e4a1fb178da4",
+  "originalReceiptSourceDigestVerified": "a6700d77c38a52bab5ddfe8f2c53cc62e6799fd2acc50476662425a676f453d5",
+  "fixedSnapshotDigest": {
+    "algorithm": "SHA256 canonical JSON fixedOverlayAndTests entry list from run-receipt.json, sorted keys and compact separators",
+    "sha256": "4d842117d696ecd310e3bdc41501c17f5d6fdf180d370bd34ca71db82a8727d2"
+  },
+  "checksPassed": true,
+  "sourceUnchangedDuringChecks": true,
+  "privateClustersRemoved": true,
+  "counts": {
+    "unitTopLevel": 24,
+    "unitPassEvents": 60,
+    "realDatabaseFunctions": 19,
+    "selectedNonDatabaseFunctions": 1,
+    "databaseSubtests": 37
+  },
+  "findings": [
+    {
+      "id": "PG-01",
+      "severity": "P2",
+      "status": "fixed; independent owner fixed-source review pending",
+      "test": "TestPostgresReviewRejectsRuntimeSchemaOwnership"
+    },
+    {
+      "id": "PG-02",
+      "severity": "P2",
+      "status": "fixed; independent owner fixed-source review pending",
+      "test": "TestPostgresReviewRejectsRuntimeGuardFunctionOwnership"
+    },
+    {
+      "id": "PG-03",
+      "severity": "P2",
+      "status": "fixed; independent owner fixed-source review pending",
+      "test": "TestPostgresReviewRejectsUnknownMigrationVersion"
+    }
+  ],
+  "originalNegativeTests": {
+    "exitCode": 1,
+    "expectedFailures": [
+      "TestPostgresReviewRejectsRuntimeGuardFunctionOwnership",
+      "TestPostgresReviewRejectsRuntimeSchemaOwnership",
+      "TestPostgresReviewRejectsUnknownMigrationVersion"
+    ],
+    "observedFailures": [
+      "TestPostgresReviewRejectsRuntimeGuardFunctionOwnership",
+      "TestPostgresReviewRejectsRuntimeSchemaOwnership",
+      "TestPostgresReviewRejectsUnknownMigrationVersion"
+    ]
+  },
+  "environment": {
+    "host": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "go": "go version go1.26.4 darwin/arm64",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)"
+  },
+  "evidenceFiles": [
+    {
+      "path": "evidence/baseline-postgres/go-root.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/baseline-postgres/go-root.stdout",
+      "bytes": 52,
+      "sha256": "5f741db0a647cec48db44a1b2940aedb0893e7f19e18ffd603da5f1e6986ba04"
+    },
+    {
+      "path": "evidence/baseline-postgres/go-version.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/baseline-postgres/go-version.stdout",
+      "bytes": 33,
+      "sha256": "36849436282e424cf1142184057f25a7bd6845d03b16fedbb1071bc6722524c4"
+    },
+    {
+      "path": "evidence/baseline-postgres/initialize.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/baseline-postgres/initialize.stdout",
+      "bytes": 931,
+      "sha256": "5100df43f76fd90a0cba904542b2fce414a54addd912ac9c5066f1a4371ae860"
+    },
+    {
+      "path": "evidence/baseline-postgres/postgres-version.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/baseline-postgres/postgres-version.stdout",
+      "bytes": 39,
+      "sha256": "1fb2f20d9f998fb585cf5edb1878e8381f2e78c75597c8a18a19e50178f621b2"
+    },
+    {
+      "path": "evidence/baseline-postgres/postgres.log",
+      "bytes": 3475,
+      "sha256": "b6fd50be9648d839a70621b008bbc5675e06afcb1f9d01f2f3fc835b7e1f9eee"
+    },
+    {
+      "path": "evidence/baseline-postgres/psql-version.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/baseline-postgres/psql-version.stdout",
+      "bytes": 35,
+      "sha256": "58ef21a3c0982fb44cd078785174fb495d951ea7b4384793dcf5a5985451bd2d"
+    },
+    {
+      "path": "evidence/baseline-postgres/real-postgres-tests.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/baseline-postgres/real-postgres-tests.stdout",
+      "bytes": 3557,
+      "sha256": "4e9bb6236d37831c9cca4b03666ce927a01aa888341b162497b90cc7604da060"
+    },
+    {
+      "path": "evidence/baseline-postgres/receipt.json",
+      "bytes": 9847,
+      "sha256": "61bf62cc7831be5c3e9abd776ee0ee02384b8b0bc909d6a78351257f6611c4b5"
+    },
+    {
+      "path": "evidence/baseline-postgres/start.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/baseline-postgres/start.stdout",
+      "bytes": 52,
+      "sha256": "66afd0411ccc09366e99fdd99b85f21899c8d2d064f5835126859618802153ad"
+    },
+    {
+      "path": "evidence/baseline-postgres/stop.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/baseline-postgres/stop.stdout",
+      "bytes": 56,
+      "sha256": "ca19178a35ab4153b75b494963b66ce8243e1b94c173107c87b44d09db23652d"
+    },
+    {
+      "path": "evidence/baseline-postgres.log",
+      "bytes": 9847,
+      "sha256": "61bf62cc7831be5c3e9abd776ee0ee02384b8b0bc909d6a78351257f6611c4b5"
+    },
+    {
+      "path": "evidence/baseline-unit.log",
+      "bytes": 47729,
+      "sha256": "840fad18937518d3e173260c9b6b5703f973f6562c373bf412935f125d9522aa"
+    },
+    {
+      "path": "evidence/baseline-vet.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/fixed-postgres/go-root.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/fixed-postgres/go-root.stdout",
+      "bytes": 52,
+      "sha256": "5f741db0a647cec48db44a1b2940aedb0893e7f19e18ffd603da5f1e6986ba04"
+    },
+    {
+      "path": "evidence/fixed-postgres/go-version.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/fixed-postgres/go-version.stdout",
+      "bytes": 33,
+      "sha256": "36849436282e424cf1142184057f25a7bd6845d03b16fedbb1071bc6722524c4"
+    },
+    {
+      "path": "evidence/fixed-postgres/initialize.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/fixed-postgres/initialize.stdout",
+      "bytes": 931,
+      "sha256": "1451715125c41fb3aa39ad931f75f8a4a50d46c426c24c0637982394ca26d6ad"
+    },
+    {
+      "path": "evidence/fixed-postgres/postgres-version.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/fixed-postgres/postgres-version.stdout",
+      "bytes": 39,
+      "sha256": "1fb2f20d9f998fb585cf5edb1878e8381f2e78c75597c8a18a19e50178f621b2"
+    },
+    {
+      "path": "evidence/fixed-postgres/postgres.log",
+      "bytes": 12328,
+      "sha256": "83bca26b3d9e317fd6f18f4c9206c535b5aa4076ad4a5b58d85aaddc0c67c7a9"
+    },
+    {
+      "path": "evidence/fixed-postgres/psql-version.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/fixed-postgres/psql-version.stdout",
+      "bytes": 35,
+      "sha256": "58ef21a3c0982fb44cd078785174fb495d951ea7b4384793dcf5a5985451bd2d"
+    },
+    {
+      "path": "evidence/fixed-postgres/real-postgres-tests.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/fixed-postgres/real-postgres-tests.stdout",
+      "bytes": 22185,
+      "sha256": "ef1264eebf04ce57888bcea6b89df8041083cd602d29febc1d3adce0a51f23b3"
+    },
+    {
+      "path": "evidence/fixed-postgres/receipt.json",
+      "bytes": 10182,
+      "sha256": "a8396039aea001a517869378f7fad91774cacb97dc57b4adf0a3b9427f84dc9c"
+    },
+    {
+      "path": "evidence/fixed-postgres/start.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/fixed-postgres/start.stdout",
+      "bytes": 52,
+      "sha256": "66afd0411ccc09366e99fdd99b85f21899c8d2d064f5835126859618802153ad"
+    },
+    {
+      "path": "evidence/fixed-postgres/stop.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/fixed-postgres/stop.stdout",
+      "bytes": 56,
+      "sha256": "ca19178a35ab4153b75b494963b66ce8243e1b94c173107c87b44d09db23652d"
+    },
+    {
+      "path": "evidence/fixed-postgres.log",
+      "bytes": 10182,
+      "sha256": "a8396039aea001a517869378f7fad91774cacb97dc57b4adf0a3b9427f84dc9c"
+    },
+    {
+      "path": "evidence/fixed-unit.log",
+      "bytes": 47732,
+      "sha256": "fff767a19dd2979b50050f655f1acb7d1ada4f20d30b04e91cbbbd6cbf6e4809"
+    },
+    {
+      "path": "evidence/fixed-vet.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/modules.log",
+      "bytes": 21,
+      "sha256": "b4537ed75f533f993f371954de47e42a793b8e5b0587577de7e27fb3e50696bd"
+    },
+    {
+      "path": "evidence/original-adversarial.log",
+      "bytes": 940,
+      "sha256": "e3298eea62fd1e3704932401d633652a5d368bfa02b8ed06ba96c2f0d7be033a"
+    },
+    {
+      "path": "evidence/original-postgres/go-root.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/original-postgres/go-root.stdout",
+      "bytes": 52,
+      "sha256": "5f741db0a647cec48db44a1b2940aedb0893e7f19e18ffd603da5f1e6986ba04"
+    },
+    {
+      "path": "evidence/original-postgres/go-version.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/original-postgres/go-version.stdout",
+      "bytes": 33,
+      "sha256": "36849436282e424cf1142184057f25a7bd6845d03b16fedbb1071bc6722524c4"
+    },
+    {
+      "path": "evidence/original-postgres/initialize.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/original-postgres/initialize.stdout",
+      "bytes": 931,
+      "sha256": "48451f0a6d74da4014aa1cf47b5d493f08ea0852dd1d5d3fd0f81fe9c08c0312"
+    },
+    {
+      "path": "evidence/original-postgres/postgres-version.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/original-postgres/postgres-version.stdout",
+      "bytes": 39,
+      "sha256": "1fb2f20d9f998fb585cf5edb1878e8381f2e78c75597c8a18a19e50178f621b2"
+    },
+    {
+      "path": "evidence/original-postgres/postgres.log",
+      "bytes": 4686,
+      "sha256": "5eba953cbcc14b9ca1421df172690561682b77aec1c5a8df00e19fee9ca15e83"
+    },
+    {
+      "path": "evidence/original-postgres/psql-version.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/original-postgres/psql-version.stdout",
+      "bytes": 35,
+      "sha256": "58ef21a3c0982fb44cd078785174fb495d951ea7b4384793dcf5a5985451bd2d"
+    },
+    {
+      "path": "evidence/original-postgres/real-postgres-tests.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/original-postgres/real-postgres-tests.stdout",
+      "bytes": 6242,
+      "sha256": "5175bdd5252867c6edccf2d15ce6182f2683fa9aa3fbda578bb628a713273dcd"
+    },
+    {
+      "path": "evidence/original-postgres/receipt.json",
+      "bytes": 9447,
+      "sha256": "347099390f0c7ba6c5c45b741aa8dc75e34234b1b3de6b8dc7ef66a32a397ff3"
+    },
+    {
+      "path": "evidence/original-postgres/start.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/original-postgres/start.stdout",
+      "bytes": 52,
+      "sha256": "66afd0411ccc09366e99fdd99b85f21899c8d2d064f5835126859618802153ad"
+    },
+    {
+      "path": "evidence/original-postgres/stop.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/original-postgres/stop.stdout",
+      "bytes": 56,
+      "sha256": "ca19178a35ab4153b75b494963b66ce8243e1b94c173107c87b44d09db23652d"
+    },
+    {
+      "path": "evidence/run-receipt.json",
+      "bytes": 16585,
+      "sha256": "a9e79686d4886633bd880fcd86a7915557d1e257e3cddde830329f47f3f1fd7c"
+    },
+    {
+      "path": "evidence/service-build.log",
+      "bytes": 11,
+      "sha256": "16e3edbe92d848d09637b5ec0801d01a735a0deb44c99bc4c374f0865de6acd8"
+    },
+    {
+      "path": "evidence/versions.log",
+      "bytes": 33,
+      "sha256": "36849436282e424cf1142184057f25a7bd6845d03b16fedbb1071bc6722524c4"
+    }
+  ],
+  "limitations": [
+    "Local PostgreSQL17.11 only; PostgreSQL14/15/16/18 target matrix pending",
+    "Private Unix-socket trust authentication only; no hosted auth/TLS/SCRAM qualification",
+    "No backup/restore, managed failover, dispatcher, operational RPO/RTO, external audit or GA acceptance",
+    "Fixes require an independent owner review; signed schema2 protocol composition is a separate lane"
+  ],
+  "physicalDevices": false,
+  "productionDatabaseUsed": false,
+  "pushed": false,
+  "engineOrCustomerAcceptance": false,
+  "reviewInputs": [
+    {
+      "path": "verification/pg-independent-review/verify.py",
+      "sha256": "92cb512a9da4fd88b9e6e79e4799afc660203147d1cf4ccccfc69e32b97527fb"
+    },
+    {
+      "path": "verification/pg-independent-review/review_postgres_test.go",
+      "sha256": "60f6e5faaf253a8901b592b0ad09eb8f77af27b9e14a5976eb70a2a9b7cb5909"
+    },
+    {
+      "path": "verification/pg-independent-review/review_roles_test.go",
+      "sha256": "5d02ae6c74f8336f12b1f9b88df4500b4af436329b965b9baf7482fb10ffbe79"
+    }
+  ],
+  "primarySources": [
+    "https://www.postgresql.org/docs/17/sql-dropschema.html",
+    "https://www.postgresql.org/docs/17/role-membership.html",
+    "https://www.postgresql.org/docs/17/functions-info.html",
+    "https://www.postgresql.org/docs/14/role-membership.html"
+  ],
+  "serviceBuild": {
+    "command": [
+      "go",
+      "build",
+      "-trimpath",
+      "-o",
+      "/Users/andreyyurlov/Documents/dev/mixer/verification/pg-independent-review/.build/final-qualified/mixer-service",
+      "./cmd/mixer-service"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/pg-independent-review/.build/final-qualified/fixed/services",
+    "environment": {
+      "GOTOOLCHAIN": "go1.26.4"
+    },
+    "exitCode": 0,
+    "bytes": 15074706,
+    "sha256": "704778905fec9fa306873f057b2c49347d68b0ff53de375a0278ed9366e0cdfe",
+    "scope": "host build from frozen fixed services export; no signed publication/activation",
+    "output": "evidence/service-build.log"
+  },
+  "ruledOutProbes": [
+    "logs/ruled-out-function-custom-guc.stdout",
+    "logs/ruled-out-function-temp.stdout",
+    "logs/ruled-out-function-replace.stdout"
+  ]
+}

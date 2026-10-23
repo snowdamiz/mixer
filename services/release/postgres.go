@@ -122,9 +122,9 @@ func MigratePostgres(ctx context.Context, c PostgresConfig) error {
 	migration, _ := migrations.ReadFile("migrations/001_release.sql")
 	checksum := protocol.Hash(migration)
 	if existing != nil {
-		var count int
+		var count, version int
 		var hash string
-		if e = tx.QueryRow(ctx, "SELECT count(*),coalesce(min(checksum),'') FROM mixer_release.schema_migrations").Scan(&count, &hash); e != nil || count != 1 || hash != checksum {
+		if e = tx.QueryRow(ctx, "SELECT count(*),coalesce(min(version),0),coalesce(min(checksum),'') FROM mixer_release.schema_migrations").Scan(&count, &version, &hash); e != nil || count != 1 || version != 1 || hash != checksum {
 			return fmt.Errorf("PostgreSQL migration version/checksum mismatch")
 		}
 	} else {
@@ -161,10 +161,40 @@ func openPostgres(c PostgresConfig, fault durable.Fault) (*postgresStore, error)
 		}
 	}()
 	var unsafe, member, owner bool
-	e = pool.QueryRow(ctx, `SELECT
- EXISTS(SELECT 1 FROM pg_roles r WHERE (r.rolsuper OR r.rolbypassrls OR r.rolcreaterole OR r.rolcreatedb) AND pg_has_role(current_user,r.oid,'member')),
- pg_has_role(current_user,'mixer_release_runtime','member'),
- EXISTS(SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='mixer_release' AND pg_has_role(current_user,c.relowner,'member'))`).Scan(&unsafe, &member, &owner)
+	// MEMBER alone is too broad on PostgreSQL16+: an INHERIT/SET-disabled
+	// membership need not confer authority. ADMIN OPTION can enable it again,
+	// including through inherited/assumable administrator roles and admin chains.
+	// Before16 every membership permits SET ROLE, so MEMBER is the correct test.
+	e = pool.QueryRow(ctx, `WITH RECURSIVE
+ settings AS (SELECT CASE WHEN current_setting('server_version_num')::integer>=160000 THEN 'SET' ELSE 'MEMBER' END AS assume_privilege),
+ role_access AS (
+  SELECT r.oid,pg_has_role(current_user,r.oid,'USAGE') AS inherited,
+   pg_has_role(current_user,r.oid,(SELECT assume_privilege FROM settings)) AS assumable
+  FROM pg_roles r
+ ),
+ admin_roles(oid) AS (
+  SELECT m.roleid FROM pg_auth_members m JOIN role_access a ON a.oid=m.member
+   WHERE m.admin_option AND (a.inherited OR a.assumable)
+  UNION
+  SELECT m.roleid FROM admin_roles a JOIN pg_roles r
+   ON pg_has_role(a.oid,r.oid,'USAGE') OR pg_has_role(a.oid,r.oid,(SELECT assume_privilege FROM settings))
+   JOIN pg_auth_members m ON m.member=r.oid AND m.admin_option
+ ),
+ effective_access AS (
+  SELECT r.oid,
+   r.inherited OR r.assumable OR EXISTS(SELECT 1 FROM admin_roles a WHERE pg_has_role(a.oid,r.oid,'USAGE') OR pg_has_role(a.oid,r.oid,(SELECT assume_privilege FROM settings))) AS usable,
+   r.assumable OR EXISTS(SELECT 1 FROM admin_roles a WHERE pg_has_role(a.oid,r.oid,(SELECT assume_privilege FROM settings))) AS assumable
+  FROM role_access r
+ ),
+ release_owners(oid) AS (
+  SELECT c.relowner FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='mixer_release'
+  UNION SELECT n.nspowner FROM pg_namespace n WHERE n.nspname='mixer_release'
+  UNION SELECT p.proowner FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='mixer_release'
+ )
+ SELECT
+ EXISTS(SELECT 1 FROM pg_roles r JOIN effective_access a ON a.oid=r.oid WHERE (r.rolsuper OR r.rolbypassrls OR r.rolcreaterole OR r.rolcreatedb) AND a.assumable),
+ pg_has_role(current_user,'mixer_release_runtime','USAGE'),
+ EXISTS(SELECT 1 FROM release_owners o JOIN effective_access a ON a.oid=o.oid WHERE a.usable)`).Scan(&unsafe, &member, &owner)
 	if e != nil {
 		return nil, storageError()
 	}
@@ -184,12 +214,12 @@ func openPostgres(c PostgresConfig, fault durable.Fault) (*postgresStore, error)
 		return nil, fmt.Errorf("PostgreSQL schema/RLS or durable-write prerequisites missing")
 	}
 	migration, _ := migrations.ReadFile("migrations/001_release.sql")
-	var count int
+	var count, migrationVersion int
 	var checksum string
-	if e = pool.QueryRow(ctx, "SELECT count(*),coalesce(min(checksum),'') FROM mixer_release.schema_migrations").Scan(&count, &checksum); e != nil {
+	if e = pool.QueryRow(ctx, "SELECT count(*),coalesce(min(version),0),coalesce(min(checksum),'') FROM mixer_release.schema_migrations").Scan(&count, &migrationVersion, &checksum); e != nil {
 		return nil, storageError()
 	}
-	if count != 1 || checksum != protocol.Hash(migration) {
+	if count != 1 || migrationVersion != 1 || checksum != protocol.Hash(migration) {
 		return nil, fmt.Errorf("PostgreSQL migration version/checksum mismatch")
 	}
 	success = true
