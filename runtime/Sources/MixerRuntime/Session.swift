@@ -66,6 +66,24 @@ public struct VMFailure: Error, Sendable, Equatable, CustomStringConvertible {
     }
 }
 
+/// Validates the complete module against the explicitly installed profile and
+/// limits. It does not instantiate memory, reserve a session or execute an export.
+public enum VMValidator {
+    public static func validate(_ module: Data, profile: VMProfile, limits: VMLimits = VMLimits()) throws {
+        var nativeLimits = limits.cValue
+        var report = MixerVmReport()
+        let status = module.withUnsafeBytes { input in
+            let bytes = input.bindMemory(to: UInt8.self).baseAddress
+            switch profile {
+            case .integerV1: return mixer_vm_validate(bytes, input.count, &nativeLimits, &report)
+            case .numericV2: return mixer_vm_validate_numeric_v2(bytes, input.count, &nativeLimits, &report)
+            case .tableMemoryV3: return mixer_vm_validate_table_memory_v3(bytes, input.count, &nativeLimits, &report)
+            }
+        }
+        try VMSession.check(status, report)
+    }
+}
+
 /// A process-local owned VM instance. Invoke/read/write are synchronous: run guest
 /// work on a feature executor, never an unbounded loop on the UI executor. Concurrent
 /// operations fail with session_busy; cancel/close are safe from another thread.
@@ -171,7 +189,7 @@ public final class VMSession: @unchecked Sendable {
         guard handle != 0 else { return nil }
         let result = handle; handle = 0; return result
     }
-    private static func check(_ status: UInt32, _ report: MixerVmReport) throws {
+    fileprivate static func check(_ status: UInt32, _ report: MixerVmReport) throws {
         guard report.abi_version == 1, report.status == status, report.reserved == 0 else {
             throw VMFailure("invalid_vm_report", "Installed VM ABI/report mismatch", status: 4)
         }

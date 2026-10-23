@@ -101,5 +101,7 @@ cross-compiler and simulator evidence. Periodic source/evidence commits and push
 to `snowdamiz/mixer` are authorized and recorded in PLAN.md. The initial GitHub
 run passed Rust and Go checks and the 23 Swift SDK tests, then rejected the CLI
 because the runner supplied Swift 6.1 while the package requires 6.2. CI now selects
-and verifies Xcode26.3/Swift6.2 explicitly, with updater tests added. Local equivalent
-checks pass; the next hosted run remains pending and is not yet a clean CI result.
+and verifies Xcode26.3/Swift6.2 explicitly, with updater tests added. Hosted run
+39877689050 at commit17134eb passed all three jobs, including the generated iOS
+simulator consumer. This covers the listed host CI suite, not physical devices,
+PostgreSQL integration or full release gates. See `verification/github-ci-17134eb.json`.

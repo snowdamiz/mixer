@@ -16,6 +16,28 @@ struct SessionTests {
         catch { Issue.record("Unexpected error: \(error)") }
     }
 
+    @Test func completeValidationHonorsProfileAndLimitsWithoutTakingSessionCapacity() throws {
+        var sessions: [VMSession] = []
+        defer { for session in sessions { try? session.close() } }
+        for _ in 0..<16 { sessions.append(try VMSession(module: Self.counter, profile: .integerV1)) }
+        for profile in VMProfile.allCases {
+            try VMValidator.validate(Self.counter, profile: profile)
+            expectFailure("invalid_limits") {
+                try VMValidator.validate(Self.counter, profile: profile, limits: VMLimits(memoryPages: 65))
+            }
+            do { try VMValidator.validate(Self.counter, profile: profile, limits: VMLimits(memoryPages: 0)); Issue.record("Accepted memory beyond signed limit") }
+            catch let failure as VMFailure { #expect(failure.status == 1) }
+        }
+        let float = Data([0,97,115,109,1,0,0,0,1,6,1,96,1,0x7d,1,0x7d,
+            3,2,1,0,7,7,1,3,114,117,110,0,0,10,6,1,4,0,32,0,11])
+        try VMValidator.validate(float, profile: .numericV2)
+        do { try VMValidator.validate(float, profile: .integerV1); Issue.record("Accepted uninstalled numeric profile") }
+        catch let failure as VMFailure { #expect(failure.status == 1) }
+        var invalid = Self.counter; invalid[invalid.count-1] = 0xff
+        do { try VMValidator.validate(invalid, profile: .integerV1); Issue.record("Accepted malformed final instruction") }
+        catch let failure as VMFailure { #expect(failure.status == 1) }
+    }
+
     @Test func stateAndMemoryPersistWithoutBorrowingSource() throws {
         var bytes = Self.counter
         let session = try VMSession(module: bytes, profile: .integerV1)

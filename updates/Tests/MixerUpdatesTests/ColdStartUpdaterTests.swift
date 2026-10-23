@@ -112,6 +112,9 @@ private func storeRejects(_ code: String? = nil, _ operation: () async throws ->
     try await f.stage(offer, on: store)
     let selected = try await store.selectAtColdStart(now: f.now)
     #expect(selected.source == .provisional && selected.payload == offer.payload)
+    #expect(selected.verifiedArtifact?.artifactSHA256 == offer.digest)
+    #expect(selected.verifiedArtifact?.payloadSHA256 == ReleaseVerifier.sha256(offer.payload))
+    #expect(selected.verifiedArtifact?.payloadBytes == UInt64(offer.payload.count))
     let launch = try #require(selected.launchID)
     await storeRejects("startup.session") { _ = try await store.selectAtColdStart(now: f.now) }
     await storeRejects("health.incomplete") { try await store.markHealthy(launchID: launch, now: UInt64.max, completedMilestones: ["feature_started", "first_screen"]) }
@@ -125,6 +128,8 @@ private func storeRejects(_ code: String? = nil, _ operation: () async throws ->
     let reopened = try f.open()
     let healthy = try await reopened.selectAtColdStart(now: UInt64.max)
     #expect(healthy.source == .healthy && healthy.payload == offer.payload && healthy.launchID == nil)
+    #expect(healthy.verifiedArtifact?.artifactSHA256 == offer.digest)
+    #expect(healthy.verifiedArtifact?.manifest == selected.verifiedArtifact?.manifest)
     await reopened.close()
 }
 
@@ -159,7 +164,9 @@ private func storeRejects(_ code: String? = nil, _ operation: () async throws ->
     try await store.appendDownload(offer.payload, atOffset: 0, now: f.now)
     await storeRejects("test.profile") { try await store.finishDownload(now: f.now) }
     #expect(await store.snapshot().staged == nil)
-    #expect(try await store.selectAtColdStart(now: f.now).source == .nativeFallback)
+    let fallback = try await store.selectAtColdStart(now: f.now)
+    #expect(fallback.source == .nativeFallback)
+    #expect(fallback.verifiedArtifact == nil && fallback.payload == nil)
     await store.close()
 }
 

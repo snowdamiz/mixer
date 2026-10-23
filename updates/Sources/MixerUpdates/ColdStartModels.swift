@@ -36,6 +36,11 @@ public struct ColdStartSelection: Sendable {
     /// The exact private-file snapshot verified before selection. Paths never grant
     /// authority. The caller executes these values only through its installed engine.
     public let payload: Data?
+    /// Signed metadata verified against the same immutable payload and installed
+    /// configuration. Retain this to enforce signed limits at activation; an
+    /// unsigned sidecar or reconstructed manifest cannot supply execution policy.
+    /// Nil only when selection uses the embedded native implementation.
+    public let verifiedArtifact: VerifiedArtifact?
     public let launchID: String?
 }
 

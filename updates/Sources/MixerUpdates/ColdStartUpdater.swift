@@ -155,7 +155,8 @@ public actor ColdStartUpdater {
         try commit()
         monotonicStart = configuration.monotonicNanoseconds()
         return ColdStartSelection(source: .provisional, artifactSHA256: digest,
-            payloadSHA256: cached.artifact.payloadSHA256, payload: cached.payload, launchID: launch)
+            payloadSHA256: cached.artifact.payloadSHA256, payload: cached.payload,
+            verifiedArtifact: cached.artifact, launchID: launch)
     }
 
     public func markHealthy(launchID: String, now: UInt64, completedMilestones: Set<String>) throws {
@@ -244,10 +245,12 @@ public actor ColdStartUpdater {
         for digest in [state.healthy, state.previousHealthy].compactMap({ $0 }) {
             if let candidate = state.candidates[digest], let cached = try? checkedPayload(candidate, using: healthyVerifier, now: 0) {
                 return ColdStartSelection(source: .healthy, artifactSHA256: digest,
-                    payloadSHA256: cached.artifact.payloadSHA256, payload: cached.payload, launchID: nil)
+                    payloadSHA256: cached.artifact.payloadSHA256, payload: cached.payload,
+                    verifiedArtifact: cached.artifact, launchID: nil)
             }
         }
-        return ColdStartSelection(source: .nativeFallback, artifactSHA256: nil, payloadSHA256: nil, payload: nil, launchID: nil)
+        return ColdStartSelection(source: .nativeFallback, artifactSHA256: nil, payloadSHA256: nil,
+            payload: nil, verifiedArtifact: nil, launchID: nil)
     }
 
     @discardableResult
