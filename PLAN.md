@@ -202,3 +202,14 @@ also pass. Evidence: verification/guest-ui-teardown-repair/receipt.json.
 The pinned hosted recheck and current-repair visible native flow remain pending;
 previous signed Mac evidence stays tied to its original runtime binary. No
 physical/device, full Swift/size, published consumer or GA gate is closed.
+
+Exact full-reactor diagnostics now cover all 79,832 defined bodies and preserve
+the original command-artifact inventory. Six bodies exceed the current control
+ceiling; the maximum is 379 including the function frame. Parameters plus locals
+peak at181; scalar-arity operand-height inventory peaks at67 and is not complete
+type validation. Root audited150 current source/tool/output/artifact bindings.
+A mutable diagnostic executable binding was found and repaired by retaining the
+tool before replaying the full trace; historical evidence is preserved. See
+`verification/swift-reactor-diagnostics-root-review/audit.json`. The reference
+executes initialization once and all11 corpus observations twice; owned full
+Swift execution and the3MiB compressed-size gate remain unqualified.

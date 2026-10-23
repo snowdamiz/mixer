@@ -1,5 +1,99 @@
 # Actual FieldLog per-function diagnostics
 
+## Pinned reactor extension, 2026-10-23
+
+The original diagnostic now has an explicit `--input reactor` mode for the exact
+unchanged full-Swift reactor, while an omitted `--input` still selects the same
+original command artifact, bytes, hash and linker map as before. `--artifact PATH`
+only relocates the selected immutable bytes; it never changes the selected pin.
+An optional `--artifact-sha256` must equal that selected built-in pin. A wrong
+hash, missing/directory path, changed length/content or changed map fails before
+a compiler or body diagnostic starts. Neither mode authorizes a module.
+
+```sh
+python3 -B compiler/experiments/profile-budget/functions/run.py --name FRESH_COMMAND_LABEL
+python3 -B compiler/experiments/profile-budget/functions/run.py --input reactor \
+  --artifact-sha256 24d85729a659ff3e5fc6f0517709afbb68b371a41829e90785dabd48e0620994 \
+  --name FRESH_REACTOR_LABEL
+```
+
+The [final reactor receipt](../../../../verification/swift-reactor-function-diagnostics/2026-10-23-reactor-final-v2/receipt.json)
+and [statistics](../../../../verification/swift-reactor-function-diagnostics/2026-10-23-reactor-final-v2/statistics.json)
+bind 53,777,114 bytes at that SHA-256 to reactor linker map SHA-256
+`4a0b71f0b462798fef168824952d2a74d2a3956425e5380667eb9e85bde48746`.
+The [command compatibility replay](evidence/2026-10-23-command-compatibility-v2/receipt.json)
+uses the original default without a new input flag. Each run records current
+mixer revision/dirty paths, the frozen VM revision, source/tree digests, exact
+commands and outputs, tool/binary identities and source/archive preservation.
+Builds use only the original no-dependency frozen diagnostic crate, offline,
+with one reused diagnostic target directory. Each exact executable is copied to
+its run's retained `local/functions-*/tools/` before target reuse, so its receipt
+does not depend on a subsequently overwritten Cargo output. There are no guest rebuilds,
+downloads, new dependencies, devices, publication or changed executable limits.
+
+| Exact reactor static observation | Value |
+| --- | ---: |
+| Defined bodies inventoried / decoded under existing body ceilings | 79,832 / 79,826 |
+| Raw instructions / function-body wire bytes | 6,505,659 / 15,635,455 |
+| Maximum explicit control nesting / including function | 378 / 379 |
+| Maximum declared locals / parameters plus locals | 176 / 181 |
+| Maximum signature parameters | 69 |
+| Maximum static abstract operand slots per function | 67 |
+| Locals/operand inventories above existing 4,096 ceiling | 0 / 0 |
+| Memory minimum pages / declared maximum | 584 / absent |
+| Table minimum / maximum | 46,713 / 46,713 |
+
+Exactly six bodies retain `limit: control nesting exceeds profile`; all unobserved
+decoded shapes remain blank. Function IDs include the 34 imports:
+
+| Function | Explicit controls | Including function | Static operand slots | Exact map attribution |
+| --- | ---: | ---: | ---: | --- |
+| 24,208 | 353 | 354 | 10 | Swift Demangle NodePrinter `print` |
+| 24,280 | 378 | 379 | 7 | Swift Demangle Remangler `mangle` |
+| 33,106 | 182 | 183 | 3 | Unicode RegexParser `Script.rawValue` |
+| 33,107 | 343 | 344 | 3 | Unicode RegexParser `Block.rawValue` |
+| 53,196 | 205 | 206 | 9 | Foundation Gregorian calendar `_ordinality` |
+| 68,133 | 155 | 156 | 6 | Foundation ICU calendar `_locked_ordinality` |
+
+Map attribution checks ordinal, exact body plus length-prefix size and the same
+five-byte offset relation for **every** reactor body. The maximum operand height
+occurs in Swift `UInt8.SIMD64Storage` helpers, even though the emitted Wasm remains
+scalar instructions; names do not imply a Wasm SIMD instruction requirement.
+Full symbols and archive paths are retained in function-attribution JSON. Nothing
+here justifies removing any of those language/library functions.
+
+The new third, independently authored pass inventories scalar arity, structured
+control labels/results and polymorphic unreachable stack heights directly from
+each original body. It includes values retained below the current control frame
+and uses signature parameter/result counts for direct/indirect calls. Its fixed
+1,024-control diagnostic array and scalar 1,048,576-height ceiling are inventory
+limits, not executable ceilings. It neither stores operand types nor compares
+their types. A deliberately wrong f64/i32 body can pass arity inventory while
+the frozen type validator rejects it. Thus 67 is an exact observation of this
+abstract per-body height pass, not a type-validation receipt, dynamic call depth,
+whole-call-chain stack size, runtime frame allocation or admission authority.
+
+The existing constant-space instruction/control pass and unchanged frozen
+one-body decoder remain separate. The new pass works on the six rejected bodies
+without decoding or admitting them. It allocates no heap on a successful body;
+its fixed stack scratch is outside the existing requested-heap counters. Existing
+allocation observations remain labeled as allocator requests, not RSS bounds.
+
+Ten Python tests cover pins/default/path/content/map identity, complete selected
+function/instruction/wire/source totals, missing rows, rejected-shape nullability,
+raw-height integrity and exact all-body map attribution. Eleven Rust tests cover
+the original decoder limits plus scalar/call/indirect/local/branch/table/loop/
+return/control/unreachable height behavior, retained outer values, deep bodies,
+type-versus-arity distinction and the exact 4,096/4,097 operand acceptance
+boundary of the frozen validator. Receipts remain `authorization=false` and
+`valid=false`; full module validation/execution, new resource values, native
+services, device/RSS/performance, source debugging, immutable consumer delivery,
+OTA and all GA gates stay open. Historical observations below retain their
+original command-artifact identities and are not silently rewritten as reactor
+results.
+
+## Original command-artifact investigation
+
 The pinned full Swift candidate has six functions that exceed the unchanged control-nesting ceiling. This experiment does not admit that module. It inventories every function, diagnostically decodes one body at a time under the existing body ceilings, releases that body, and measures its allocations. No complete Module decoding/type validation, instantiation, imports or execution occurs.
 
 The final [receipt](evidence/2026-10-22-qualified/receipt.json), [statistics](evidence/2026-10-22-qualified/statistics.json), [all-function CSV](evidence/2026-10-22-qualified/functions.csv.gz) and [link-map attribution](evidence/2026-10-22-qualified/function-attribution.json) distinguish direct observations, arithmetic and conservative estimates. Frozen integer-v1/numeric-v2/table-memory-v3 acceptance and public C ABI remain unchanged. No code-cache size or larger resource profile is approved.

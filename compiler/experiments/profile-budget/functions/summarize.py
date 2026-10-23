@@ -3,7 +3,7 @@ import csv
 import math
 import re
 
-COLUMNS = 'function,defined,type_index,body_offset,wire_bytes,local_groups,declared_locals,parameters,raw_instructions,raw_branch_targets,raw_branch_tables,raw_max_block_nesting,raw_immediate_bytes,raw_code_wire_bytes,status,error_offset,error_message_utf8_hex,instructions,instruction_capacity_bytes,branch_targets,branch_capacity_bytes,locals_capacity_bytes,max_block_nesting,retained_requested_above_baseline,peak_requested_above_baseline,peak_live_allocations_above_baseline,maximum_live_allocation_count'.split(',')
+COLUMNS = 'function,defined,type_index,body_offset,wire_bytes,local_groups,declared_locals,parameters,raw_instructions,raw_branch_targets,raw_branch_tables,raw_max_block_nesting,raw_immediate_bytes,raw_code_wire_bytes,raw_max_operand_height,status,error_offset,error_message_utf8_hex,instructions,instruction_capacity_bytes,branch_targets,branch_capacity_bytes,locals_capacity_bytes,max_block_nesting,retained_requested_above_baseline,peak_requested_above_baseline,peak_live_allocations_above_baseline,maximum_live_allocation_count'.split(',')
 SHAPE = ['instructions', 'instruction_capacity_bytes', 'branch_targets', 'branch_capacity_bytes', 'locals_capacity_bytes', 'max_block_nesting']
 
 
@@ -40,6 +40,8 @@ def summarize(path, observed):
                 raise ValueError('rejected body must not report fake zero shape')
             value['error_message'] = bytes.fromhex(value['error_message_utf8_hex']).decode('utf8') if value['error_message_utf8_hex'] else None
             if value['raw_code_wire_bytes'] != value['raw_instructions'] + value['raw_immediate_bytes']: raise ValueError('raw instruction/immediate bytes disagree')
+            if value['raw_max_operand_height'] is None or value['raw_max_operand_height'] > value['raw_instructions']:
+                raise ValueError('invalid static operand-height inventory')
             # Conditional bound for this IR's payload capacity, not total heap/RSS:
             # one byte per instruction minimum; geometric push allocation;
             # br_table label capacities <=16*wire bytes; locals geometric extend.
@@ -57,11 +59,16 @@ def summarize(path, observed):
     if len(good) != observed['successful_bodies']:
         raise ValueError('decoder success count disagreement')
     layout = observed['layout']
-    return {'authorization': False, 'scope': 'all functions inventoried; only successful per-body decodes have measured IR shapes; no module type validation or execution',
+    return {'authorization': False, 'valid': False, 'scope': 'all functions inventoried; scalar-arity/control operand heights are diagnostic, not operand type validation; only successful per-body decodes have measured IR shapes; no module type validation or execution',
             'function_count': len(rows), 'decoded_count': len(good), 'rejections': bad,
             'wire_body_bytes': sum(row['wire_bytes'] for row in rows),
             'raw_instruction_count': sum(row['raw_instructions'] for row in rows),
             'raw_maximum_block_nesting': max(row['raw_max_block_nesting'] for row in rows),
+            'static_maximum_operand_height': max(row['raw_max_operand_height'] for row in rows),
+            'static_maximum_declared_locals': max(row['declared_locals'] for row in rows),
+            'static_maximum_parameters_plus_locals': max(row['parameters'] + row['declared_locals'] for row in rows),
+            'largest_static_operand_heights': sorted(rows, key=lambda row: (-row['raw_max_operand_height'], row['function']))[:20],
+            'operand_height_scope': 'per-function abstract stack slots using scalar arity, control label/result heights and unreachable polymorphism; includes retained operands below current control height; no type comparison or dynamic/caller/recursion stack measurement',
             'raw_branch_target_count': sum(row['raw_branch_targets'] for row in rows),
             'raw_branch_table_count': sum(row['raw_branch_tables'] for row in rows),
             'raw_immediate_wire_bytes': sum(row['raw_immediate_bytes'] for row in rows),
@@ -86,19 +93,20 @@ def summarize(path, observed):
                 'decoder_control_vector_capacity_bytes': 128 * layout['decoder_control'],
                 'actual_metadata_local_count_based_capacity_upper_estimate': max(8, 2 * observed['maximum_parameters_plus_locals']),
                 'raw_control_inventory_if_future_ceiling_changed': {
-                    'scope': 'hypothetical capacity arithmetic only; existing ceiling remains128 and six bodies reject',
+                    'scope': 'hypothetical capacity arithmetic only; existing ceiling remains128 and rejected bodies remain rejected',
                     'required_control_depth_floor_including_function': max(row['raw_max_block_nesting'] for row in rows) + 1,
                     'current_control_vector_growth_capacity_to_cover_raw_depth': (1 << max(row['raw_max_block_nesting'] for row in rows).bit_length()),
                     'hypothetical_validator_control_capacity_bytes': (1 << max(row['raw_max_block_nesting'] for row in rows).bit_length()) * layout['validator_control'],
                     'hypothetical_decoder_control_capacity_bytes': (1 << (max(row['raw_max_block_nesting'] for row in rows) - 1).bit_length()) * layout['decoder_control']},
                 'excludes': ['decoded code and branch payloads', 'diagnostic index/source', 'error formatting and other validation metadata', 'allocator internal metadata/transient realloc copies', 'guest runtime frames/memory', 'future streaming validator implementation']},
             'raw_control_nesting_over_existing_body_ceiling': [{'function': row['function'], 'nested_blocks': row['raw_max_block_nesting'], 'including_function': row['raw_max_block_nesting'] + 1} for row in rows if row['raw_max_block_nesting'] >= 128],
-            'parameters_plus_locals_over_existing_ceiling': [{'function': row['function'], 'count': row['parameters'] + row['declared_locals']} for row in rows if row['parameters'] + row['declared_locals'] > 4096]}
+            'parameters_plus_locals_over_existing_ceiling': [{'function': row['function'], 'count': row['parameters'] + row['declared_locals']} for row in rows if row['parameters'] + row['declared_locals'] > 4096],
+            'static_operand_heights_over_existing_ceiling': [{'function': row['function'], 'count': row['raw_max_operand_height']} for row in rows if row['raw_max_operand_height'] > 4096]}
 
 
 def attribute(csv_path, map_path, statistics):
     """Require an exact all-function map-to-wire relation before naming samples."""
-    selected = {row['function'] for key in ('rejections', 'largest_wire_bodies', 'largest_measured_payloads', 'largest_conditional_payload_bounds') for row in statistics[key]}
+    selected = {row['function'] for key in ('rejections', 'largest_wire_bodies', 'largest_measured_payloads', 'largest_conditional_payload_bounds', 'largest_static_operand_heights') for row in statistics[key]}
     pattern = re.compile(r'\s*(-|[0-9a-f]+)\s+([0-9a-f]+)\s+([0-9a-f]+)( +)(.*)')
     def inputs():
         group = None

@@ -15,11 +15,13 @@ class EvidenceTests(unittest.TestCase):
                 'validator_control': 16, 'validator_state': 72, 'validator_operand': 1, 'decoder_control': 24}}
         base = {key: 0 for key in COLUMNS}
         first = dict(base, function=0, defined=0, body_offset=16, wire_bytes=4, raw_instructions=2,
+            raw_max_operand_height=1,
             raw_immediate_bytes=1, raw_code_wire_bytes=3, status='decoded', error_offset='', error_message_utf8_hex='',
             instructions=2, instruction_capacity_bytes=160, retained_requested_above_baseline=272,
             peak_requested_above_baseline=300, peak_live_allocations_above_baseline=2, maximum_live_allocation_count=50)
         second = dict(base, function=1, defined=1, body_offset=64, wire_bytes=610, local_groups=1,
             declared_locals=5, parameters=3, raw_instructions=300, raw_immediate_bytes=300,
+            raw_max_operand_height=7,
             raw_code_wire_bytes=600, raw_max_block_nesting=140, status='limit', error_offset=320,
             error_message_utf8_hex='control nesting exceeds profile'.encode().hex(),
             retained_requested_above_baseline=100, peak_requested_above_baseline=1000,
@@ -40,6 +42,9 @@ class EvidenceTests(unittest.TestCase):
         self.assertEqual(result['rejections'][0]['error_message'], 'control nesting exceeds profile')
         self.assertEqual(result['raw_control_nesting_over_existing_body_ceiling'][0]['including_function'], 141)
         self.assertFalse(result['authorization'])
+        self.assertFalse(result['valid'])
+        self.assertEqual(result['static_maximum_operand_height'], 7)
+        self.assertEqual(result['static_maximum_parameters_plus_locals'], 8)
 
     def test_fake_zero_shape_and_incomplete_rows_are_rejected(self):
         self.rows[1]['instructions'] = 0; self.write()
@@ -48,7 +53,7 @@ class EvidenceTests(unittest.TestCase):
         with self.assertRaises(ValueError): summarize(self.path, self.observed)
 
     def test_count_span_and_payload_disagreements_reject(self):
-        for field, invalid in [('function', 8), ('body_offset', 1000), ('instruction_capacity_bytes', 100000), ('raw_code_wire_bytes', 9)]:
+        for field, invalid in [('function', 8), ('body_offset', 1000), ('instruction_capacity_bytes', 100000), ('raw_code_wire_bytes', 9), ('raw_max_operand_height', 3)]:
             original = self.rows[0][field]; self.rows[0][field] = invalid; self.write()
             with self.subTest(field=field), self.assertRaises(ValueError): summarize(self.path, self.observed)
             self.rows[0][field] = original
