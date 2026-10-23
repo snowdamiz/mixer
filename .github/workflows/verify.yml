@@ -29,6 +29,11 @@ jobs:
         run: |
           python3 capabilities/tools/generate.py --check
           swift test --package-path capabilities
+      - name: Native HTTP, deadlines and exit ownership under Thread Sanitizer
+        run: |
+          swift test --package-path capabilities \
+            --scratch-path "$RUNNER_TEMP/capability-tsan" --sanitize thread \
+            --filter 'NativeCapabilityExitTests|NativeHTTPTransportTests|CapabilityHostDeadlineTests'
       - name: Swift SDK, update verifier and CLI
         run: |
           swift --version

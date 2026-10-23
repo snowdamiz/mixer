@@ -74,6 +74,17 @@ Observed implementation and evidence:
   This proves the documented owned-adapter cleanup boundary, not process-wide
   quiescence, OS socket/RSS reclamation, rollback or guest integration. See
   `verification/capability-foundations-integration-2026-10-22.json`.
+  The development guest transport contract now has a generated strict Swift value
+  codec. All 90 byte fixtures pass in debug and release, including the 23 cases
+  previously awaiting a wrapper implementation; ten independent public-API tests
+  pass per mode. Review also reproduces deterministic first generation and matches
+  unchanged legacy contracts/codecs. A separate review found that delayed watchdog
+  scheduling could permit a late success. The repaired host captures an absolute
+  deadline before work, checks it before dispatch and result selection, and preserves
+  the installed native-exit join. The exact repair passes 45 debug/release tests,
+  25 Thread Sanitizer tests and iOS/Android/WASI compilation. See
+  `verification/guest-codec-deadline-integration-2026-10-23.json`. These are value
+  codec and native host results; actual guest-to-I/O integration remains open.
   See `capabilities/verification/receipt.json` and
   `verification/independent-capabilities-2026-10-22.json`.
 - The Go development service verifies canonical signed artifacts and separately
@@ -209,6 +220,13 @@ scheduler, counted registry retention or activation admission. See
 `vm/verification/capability-mailbox/receipt.json` and
 `verification/capability-foundations-integration-2026-10-22.json`.
 
+The proposed follow-on native capability ABI must share the existing sixteen-session
+ceiling and retain closing sessions until every dispatched native operation exits.
+Its C structure layouts compile on macOS arm64/x86_64 and iOS/Android arm64; only
+the host assertion program executes. This is a design/layout check, without
+implemented functions, Rust layout parity or a native bridge. See
+`docs/capability-native-abi-proposal.md`.
+
 Official Swift 6.3.3 Android/Wasm SDKs are installed and compiler probes have run
 on a physical Pixel and in a development-only Node WASI oracle. Xcode 27.1 / Swift
 6.4 builds Apple targets. Cross compilation uses Xcode 26.6's matching macOS SDK
@@ -268,3 +286,9 @@ combined stream/mailbox checks and numeric reference oracles in both modes,
 Android runtime host tests and build-staging regressions, and the generated iOS
 simulator build. This run predates the installed native exit change and does not
 build an Android APK on CI. See `verification/github-ci-8e76cfd/receipt.json`.
+
+GitHub run39896049407 at5d25a2b passed all three jobs, including installed native
+exit behavior in macOS tests, Linux stream/mailbox/numeric checks and the generated
+iOS simulator consumer. This predates the new guest value codec and deadline
+repair. See `verification/github-ci-5d25a2b/receipt.json`. The next workflow adds
+Thread Sanitizer coverage for native HTTP, exit ownership and host deadlines.
