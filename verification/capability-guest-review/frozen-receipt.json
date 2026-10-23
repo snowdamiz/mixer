@@ -1,0 +1,154 @@
+{
+  "schema": 1,
+  "status": "independent_frozen_tests_passed",
+  "reviewed_revision": "cc0ac37abf45c59df7c85f59ebbb038af7c0a251",
+  "started_utc": "2026-10-23T04:31:06.294177+00:00",
+  "commands": [
+    {
+      "name": "version-rustc",
+      "argv": [
+        "rustc",
+        "-Vv"
+      ],
+      "exit_code": 0,
+      "seconds": 0.046234,
+      "log": "verification/capability-guest-review/frozen-version-rustc.log",
+      "log_sha256": "352d6857968e80a6357a926ac685b9b07f77c479aaafde33e73a53945e802909"
+    },
+    {
+      "name": "version-cargo",
+      "argv": [
+        "cargo",
+        "-V"
+      ],
+      "exit_code": 0,
+      "seconds": 0.050175,
+      "log": "verification/capability-guest-review/frozen-version-cargo.log",
+      "log_sha256": "1f88eaf7fe1aaec83184752cf4c944cd22f00184136ff36a3e4c318cc60ef566"
+    },
+    {
+      "name": "version-host",
+      "argv": [
+        "uname",
+        "-a"
+      ],
+      "exit_code": 0,
+      "seconds": 0.003122,
+      "log": "verification/capability-guest-review/frozen-version-host.log",
+      "log_sha256": "10c12b8125890b3768695048cf390858bb6f17cf67c1f5747e582c221c2932f0"
+    },
+    {
+      "name": "format",
+      "argv": [
+        "rustfmt",
+        "--edition",
+        "2021",
+        "--check",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-guest-review/adversarial.rs"
+      ],
+      "exit_code": 0,
+      "seconds": 0.042211,
+      "log": "verification/capability-guest-review/frozen-format.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-guest-review/harness/Cargo.toml",
+        "--test",
+        "adversarial",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "seconds": 0.656836,
+      "log": "verification/capability-guest-review/frozen-debug.log",
+      "log_sha256": "632e3266d519cc028565cf73b07e5b45f42b4532a88940e78b56abf0b11d8609"
+    },
+    {
+      "name": "release",
+      "argv": [
+        "cargo",
+        "test",
+        "--release",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-guest-review/harness/Cargo.toml",
+        "--test",
+        "adversarial",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "seconds": 0.869945,
+      "log": "verification/capability-guest-review/frozen-release.log",
+      "log_sha256": "31e773f5e5862ea607c3eb8bdb4db39c9f3c1bd47ed04297df92d02b01dcd45f"
+    },
+    {
+      "name": "clippy",
+      "argv": [
+        "cargo",
+        "clippy",
+        "--manifest-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-guest-review/harness/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "seconds": 0.219547,
+      "log": "verification/capability-guest-review/frozen-clippy.log",
+      "log_sha256": "394d94adca136ae85cdb37dd782678f5460891c8a6474752dc5d4c5e301b8ab2"
+    }
+  ],
+  "sources": {
+    "vm/Cargo.lock": "d877b303c72f7d7bfd9e3d7535b8eb10db3fb63be118b3281cdcc0db21ef0f96",
+    "vm/Cargo.toml": "82ed19434a2395dab143d3efdbc777992d3d8c4e6c15ff256cf1426a90b44fa0",
+    "vm/src/decode.rs": "bdce49fdd3f03434ff1afb5ae7a3a8ce4657ae55b0b550f03d89ed2bf749947e",
+    "vm/src/execute.rs": "58eb56f6036de38f383867e88c505f5a738bf9430cc203ab3ad7dc089177ec9a",
+    "vm/src/experimental/account.rs": "e33ee76cb44d67c3edf0a9c2ad5c6e08e2938dd4fad206f1d53886a2b7d7d983",
+    "vm/src/experimental/metadata.rs": "387c4e954d2f9b37ae81cd65d1fb46166d9d965038a2b206b852c93186a907f1",
+    "vm/src/experimental/mod.rs": "ec40c7e104b367d41eb504d87197caca3550e77a12d1351ef724103d99574531",
+    "vm/src/experimental/reader.rs": "21f3dee08519c5ae7261e213532e379430bb7d3ed7ee2bb83e66d45af34cce83",
+    "vm/src/experimental/validate.rs": "06c3b9f0e8e66955355679584d09577a8c0f8250c20deef1aab6878131dde584",
+    "vm/src/experimental_capability/guest.rs": "b00dda244d5975c8ea41573e7580d669e8a207f0e4d219db314ca47d05425486",
+    "vm/src/experimental_capability/mod.rs": "b48db52c6d7bec7fa593075711e9c0f6b7460a56725463bdc36daa6b5ceb84bb",
+    "vm/src/experimental_capability/tests.rs": "c23bfc4a2dfb036e88730def56502b81588afeca19429eb2087d069703db2ef8",
+    "vm/src/experimental_capability_guest/fixed.rs": "d57d49bd77691540a42fd4ad1eb93097570fa26c994fcd83a5f0bbfd6792f135",
+    "vm/src/experimental_capability_guest/generated/http_request-cancelled.json": "fbe9435474203552d4671b71eb39ac715a2bb29b4ca9f92fdaaa7f793a5616dd",
+    "vm/src/experimental_capability_guest/generated/http_request-deadlineExceeded.json": "62c2298f217c0776aa99b30c5a10e1ecb41eb3619c13185af6716ca4edb11084",
+    "vm/src/experimental_capability_guest/generated/http_request-unavailable.json": "fade6194a443035ed32bb08652e331ecdb77f4c04cf868292f7b6f55b634884a",
+    "vm/src/experimental_capability_guest/generated/storage_delete-cancelled.json": "64cc28485fb8686dfc4d2056e7b8cc6988b150b06713e83fc3304dcd4d51a8e3",
+    "vm/src/experimental_capability_guest/generated/storage_delete-deadlineExceeded.json": "fdb28708bbf0d3d76e7ab6ac1aeb411c2fbc0046199a27923804069a60128648",
+    "vm/src/experimental_capability_guest/generated/storage_delete-unavailable.json": "082b9eb6f242d29e03d1ceafc4c590eabc6e6f617f554899fd68e9b3102b16d0",
+    "vm/src/experimental_capability_guest/generated/storage_get-cancelled.json": "391c14fcab3f3c380610787bd8eacafeb3491826b332267a906c792c557c3ab1",
+    "vm/src/experimental_capability_guest/generated/storage_get-deadlineExceeded.json": "8b5560b8420cfd8aeddd8ed972226ea74c59a63141af76c658636832c8160ce9",
+    "vm/src/experimental_capability_guest/generated/storage_get-unavailable.json": "6c17aa4ff7a2e9b05aa49e1d5f8830e2198127ca4e7d1254b8c6fb9d5332420d",
+    "vm/src/experimental_capability_guest/generated/storage_put-cancelled.json": "661a1a78669100e0371ad6f081beaf993cce441cbdaa4a7152aedaa7a41865eb",
+    "vm/src/experimental_capability_guest/generated/storage_put-deadlineExceeded.json": "eabf694da8b2f1dbfd00e98c0614b41a1d403a729fc59d24b49909657015a663",
+    "vm/src/experimental_capability_guest/generated/storage_put-unavailable.json": "4377c1508d64036ce7ce3b06bdf16cb3313ef253e1a33448c50182ed20a44ae2",
+    "vm/src/experimental_capability_guest/mod.rs": "c5d1e5e081d7a7d8bb1dad75beb60c87ce7636d61cbc9656fbc15fed205ff8d5",
+    "vm/src/ffi.rs": "fc6fcd076ff4e42c60e04f19b0b94bd3b630dfabad03fb73193dedfafe5593e6",
+    "vm/src/float.rs": "db8057f709115016eae689efbd1fdd47b2b1ddee371d45159a0160c8ccc4b711",
+    "vm/src/inspect.rs": "e8082d1b774b2dc254033ddb6e8b9fc94758dfcd0bb5e114835421210ab9eb65",
+    "vm/src/lib.rs": "7cac97ca43c941ae74ed30064a16dc4944f97fa1790660caaca1f65c89986706",
+    "vm/src/main.rs": "89ebba469fcca3885cf15743e6a80c5f82137c93c617a52418e3fb5a68155a5e",
+    "vm/src/session.rs": "75fccc10f123b3761c5814018045df3efc7a74889f1f581b81f410b49fc33af3",
+    "vm/src/validate.rs": "808f16ca2f637541e11138754c54fd159c49722ac9f066202a9afccf0f8774c3"
+  },
+  "source_digest": "c17feb07ab9f9c75f6786a6a022171a8b357ecc3d38dc0c80a8bfa99fa8011bf",
+  "environment": {
+    "CARGO_TARGET_DIR": "/Users/andreyyurlov/Documents/dev/mixer/.build/capability-guest-review/target",
+    "CARGO_INCREMENTAL": "0",
+    "PATH_prefix": "/opt/homebrew/opt/rustup/bin"
+  },
+  "test_sha256": "a03bf7d465ec6b3db01c4cf744f6e03bc605d2b954606ec3384e2e13ce0912fd",
+  "driver_sha256": "3a63283e503ff4574398ff249157e8e3edc71435f82075c85b3186d947d353e1",
+  "frozen_export_unchanged": true,
+  "completed_utc": "2026-10-23T04:31:08.561899+00:00"
+}

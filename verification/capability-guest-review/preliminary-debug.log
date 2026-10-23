@@ -1,0 +1,42 @@
+     Locking 1 package to highest compatible version
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/.build/capability-guest-review/source/vm)
+   Compiling capability-guest-independent-review v0.0.0 (/Users/andreyyurlov/Documents/dev/mixer/.build/capability-guest-review/harness)
+warning: unused import: `Type`
+ --> tests/adversarial.rs:9:30
+  |
+9 |     Limits, Module, Profile, Type, Value,
+  |                              ^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `capability-guest-independent-review` (test "adversarial") generated 1 warning (run `cargo fix --test "adversarial" -p capability-guest-independent-review` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.25s
+     Running tests/adversarial.rs (.build/capability-guest-review/target/debug/deps/adversarial-6b1649e5a329a3a1)
+
+running 8 tests
+test active_wasm_turn_cannot_drain_then_external_cancel_discards_it ... 
+thread 'active_wasm_turn_cannot_drain_then_external_cancel_discards_it' (51057915) panicked at tests/adversarial.rs:229:6:
+called `Result::unwrap()` on an `Err` value: Error { code: "invalid_limits", message: "limits may only narrow the published profile ceilings", function: None, offset: 0 }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+test byte_fuel_boundary_controls_token_and_payload_transaction_visibility ... 
+thread 'byte_fuel_boundary_controls_token_and_payload_transaction_visibility' (51057916) panicked at tests/adversarial.rs:497:35:
+called `Result::unwrap_err()` on an `Ok` value: Some(I32(3))
+FAILED
+test full_validation_and_legacy_api_rejection_do_not_depend_on_execution_reachability ... ok
+test import_values_survive_three_entry_shapes_and_indirect_stack_arithmetic ... ok
+test poll_range_matrix_cannot_consume_or_partially_write_a_ready_payload ... ok
+test startup_disabled_requests_are_unavailable_and_wake_consumes_only_fixed_entry ... ok
+test trap_close_cancel_and_foreign_tickets_preserve_distinct_ownership_obligations ... ok
+test unsigned_range_and_overlap_matrix_preserves_every_byte_on_rejection ... independent enqueue matrix=70 cases; rejection count=61; u64 oracle for all i32 bit-pattern ranges
+ok
+
+failures:
+
+failures:
+    active_wasm_turn_cannot_drain_then_external_cancel_discards_it
+    byte_fuel_boundary_controls_token_and_payload_transaction_visibility
+
+test result: FAILED. 6 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+error: test failed, to rerun pass `--test adversarial`

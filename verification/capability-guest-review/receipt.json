@@ -1,0 +1,83 @@
+{
+  "schema": 1,
+  "status": "no_actionable_defect_found_in_documented_rust_scope",
+  "created_utc": "2026-10-23T04:32:28.578547+00:00",
+  "reviewed_revision": "cc0ac37abf45c59df7c85f59ebbb038af7c0a251",
+  "implementation_manifest_sha256": "1697111c4821879673950c143d8474667286e8632c6d769239ff402f999274ba",
+  "compilation_source_digest": "c17feb07ab9f9c75f6786a6a022171a8b357ecc3d38dc0c80a8bfa99fa8011bf",
+  "independent_tests": {
+    "debug": {
+      "passed": 10,
+      "failed": 0,
+      "ignored": 0
+    },
+    "release": {
+      "passed": 10,
+      "failed": 0,
+      "ignored": 0
+    },
+    "rustfmt": "passed",
+    "clippy": "passed",
+    "enqueue_range_cases": 70,
+    "enqueue_rejections": 61,
+    "poll_range_cases": 12,
+    "concurrent_post_guest_cancel_rounds_per_mode": 32
+  },
+  "input_identity_audit": {
+    "command": [
+      "python3",
+      "-B",
+      "verification/capability-guest-review/audit_inputs.py"
+    ],
+    "exit_code": 0,
+    "stdout": "Independently verified 77 frozen inputs, 42 implementation log hashes, 10 unchanged files, 4 unchanged field definitions, 12 exact fixed payloads, empty default features\nActual implementation logs: 42\n",
+    "implementation_input_count": 77,
+    "implementation_command_log_count": 42,
+    "author_commands_independently_rerun": false
+  },
+  "findings": [],
+  "limitations": [
+    "Rust-only actual-Wasm composition on macOS arm64; no device or crossbuild qualification",
+    "Dynamic payloads remain trusted opaque bytes; no native I/O, grants, native copies, scheduler, registry, C bridge, executor, activation, publication or GA qualification",
+    "General OOM recovery, no-unwind and mutex poison recovery are not established",
+    "Finite concurrent schedules and normal monotonic wait; no allocation-copy-delay instrumentation",
+    "Final source export excludes the root-owned capability_ffi follow-on; preliminary receipt preserves an unwired file that was never reviewed"
+  ],
+  "initial_experiments": {
+    "receipt": "initial-harness-receipt.json",
+    "source": "initial-harness-adversarial.rs",
+    "output": "preliminary-debug.log",
+    "result": "6 passed, 2 failed due to above-ceiling fuel and argument/token overlap in original review fixtures; preserved and corrected without production changes"
+  },
+  "artifacts": {
+    "README.md": "99d20e7dba7bc0d47b242c75e3786f0ca12cf693681093aedfcf9928e2573707",
+    "adversarial.rs": "a03bf7d465ec6b3db01c4cf744f6e03bc605d2b954606ec3384e2e13ce0912fd",
+    "audit_inputs.py": "212db86c4ec8cfe7de915b24bf7d4b9827b8029e50860a7969ef8e7ac3e32f18",
+    "frozen-clippy.log": "394d94adca136ae85cdb37dd782678f5460891c8a6474752dc5d4c5e301b8ab2",
+    "frozen-clippy.previous-1.log": "7497535d9a90be8bd84c6ef90578015f05e32784ed7b2a614529c40bc95ccd99",
+    "frozen-clippy.previous-2.log": "a82a498be0fd00b27cc24b10a79a067f086bda1330fb41854150a0b78eecbf9a",
+    "frozen-debug.log": "632e3266d519cc028565cf73b07e5b45f42b4532a88940e78b56abf0b11d8609",
+    "frozen-debug.previous-1.log": "f238cc1aaf062696e813c44113ff226665fd8e4852c428f3b91916bc7b9b5579",
+    "frozen-debug.previous-2.log": "6c0f27f85a13f175f45385f56a5acf32bf89836613c9984da7304de2ae70894a",
+    "frozen-format.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "frozen-receipt.json": "fcc1b3f45a5aaab79d9560dd28b83d7e57ee68535db034b72b6c4e10a53fd498",
+    "frozen-release.log": "31e773f5e5862ea607c3eb8bdb4db39c9f3c1bd47ed04297df92d02b01dcd45f",
+    "frozen-release.previous-1.log": "25a3cdd7152c28b50371dd40f8b045d8e44e367662e601955398148dcf71721c",
+    "frozen-release.previous-2.log": "1284828afdbd302ea26eea2b02e7413b78b9c5c2129d159ef7ee2c4a41e33d05",
+    "frozen-source-manifest.sha256": "c17feb07ab9f9c75f6786a6a022171a8b357ecc3d38dc0c80a8bfa99fa8011bf",
+    "frozen-version-cargo.log": "1f88eaf7fe1aaec83184752cf4c944cd22f00184136ff36a3e4c318cc60ef566",
+    "frozen-version-host.log": "10c12b8125890b3768695048cf390858bb6f17cf67c1f5747e582c221c2932f0",
+    "frozen-version-rustc.log": "352d6857968e80a6357a926ac685b9b07f77c479aaafde33e73a53945e802909",
+    "initial-harness-adversarial.rs": "fa0090abea32c5b24782cd63b05952853b553ee16dfce4b62250aaf236eaf588",
+    "initial-harness-receipt.json": "d52b62a04fdfe9aaa7fe19bd8e984fc6b0f89c39fc17be2006f88667d0f38b7c",
+    "input-audit.json": "9100bd44e84e7e937c8daed7efdf8bcb97a902f41b5b72e91105dc5d25cb6c32",
+    "preliminary-debug.log": "8a88a1ca98ab7b8240200f3e5e8f426fe2fdb8bd6b2546e650592901635fd8fa",
+    "preliminary-format.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "preliminary-receipt.json": "d52b62a04fdfe9aaa7fe19bd8e984fc6b0f89c39fc17be2006f88667d0f38b7c",
+    "preliminary-source-manifest.sha256": "4f02d947a02bc782a201edc9ec37c6696b7d4679d764109c59746f3bacbe240e",
+    "preliminary-version-cargo.log": "1f88eaf7fe1aaec83184752cf4c944cd22f00184136ff36a3e4c318cc60ef566",
+    "preliminary-version-host.log": "10c12b8125890b3768695048cf390858bb6f17cf67c1f5747e582c221c2932f0",
+    "preliminary-version-rustc.log": "352d6857968e80a6357a926ac685b9b07f77c479aaafde33e73a53945e802909",
+    "verify.py": "3a63283e503ff4574398ff249157e8e3edc71435f82075c85b3186d947d353e1"
+  }
+}
