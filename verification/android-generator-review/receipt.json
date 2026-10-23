@@ -1,0 +1,271 @@
+{
+  "schema": 1,
+  "status": "passed scoped independent local Android generator review after repaired staging containment",
+  "reviewed_source_revision": "b588481e21c521e264826a5c442901b8157fc112",
+  "initial_source_revision": "b4f13ec9a78b882380a6cfba0a9607990ca9babe",
+  "source_snapshots_unchanged_after_execution": true,
+  "source_freezes": {
+    "freeze.json": {
+      "revision": "b4f13ec9a78b882380a6cfba0a9607990ca9babe",
+      "git_tree": "700cdb70af5fde158dd7ae05a6fd909cb2c2f3bc",
+      "command": [
+        "git",
+        "archive",
+        "--format=tar",
+        "b4f13ec9a78b882380a6cfba0a9607990ca9babe",
+        "cli",
+        "sdk",
+        "updates",
+        "native/android"
+      ],
+      "archive_sha256": "38143e9b577594f56723b13d8b03895741264ef7aff8a5226df79ae7c8054a91",
+      "source_manifest_sha256": "da69cb8af540432d5f5509453304d31b49ae93319939bd130e7a080ea68fc601",
+      "source_files": 153,
+      "scope": "Independent committed source copy; no live mutable implementation files used for review execution."
+    },
+    "freeze-repair.json": {
+      "revision": "b588481e21c521e264826a5c442901b8157fc112",
+      "git_tree": "a910a311d75b2aa0197a703d820bb80a99da584a",
+      "command": [
+        "git",
+        "archive",
+        "--format=tar",
+        "b588481e21c521e264826a5c442901b8157fc112",
+        "cli",
+        "sdk",
+        "updates",
+        "native/android"
+      ],
+      "archive_sha256": "b7d430ddd335fba86483dfeb2081427e078c27d6212b7e9fbd2b961fe91fc9dd",
+      "source_manifest_sha256": "1a258de37711a3335cbf8c581f838982f92c754fd3e0ccd1d2d4ccbaea10d883",
+      "source_files": 154,
+      "scope": "Independent committed source copy; no live mutable implementation files used for review execution."
+    }
+  },
+  "tools": {
+    "swift": {
+      "command": [
+        "/usr/bin/swift",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "swift-driver version: 1.168.6 Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.0.0\n"
+    },
+    "python": {
+      "command": [
+        "python3",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "Python 3.14.8\n"
+    },
+    "git": {
+      "command": [
+        "git",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "git version 2.56.0\n"
+    }
+  },
+  "commands": [
+    {
+      "command": [
+        "/usr/bin/swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-generator-review/.local/source/cli"
+      ],
+      "exit_code": 0,
+      "output": "cli-frozen-tests.log",
+      "output_sha256": "b306aec62dbbca705a45f0d2caaa81cbcebacd394ed66928a07c70e3aa3bf333"
+    },
+    {
+      "command": [
+        "/usr/bin/swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-generator-review/.local/source/native/android/engine"
+      ],
+      "exit_code": 0,
+      "output": "engine-frozen-tests.log",
+      "output_sha256": "ae60ba9b948e55ed71a113c09ee7bc373adb114af172f02a674798ad6f6a68f4"
+    },
+    {
+      "command": [
+        "/usr/bin/swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-generator-review/.local/harness"
+      ],
+      "exit_code": 1,
+      "output": "runtime-probe-attempt-1.log",
+      "scope": "Retained harness decoder mistake; source attempts/RuntimeProbe.attempt1.swift",
+      "output_sha256": "093e73238708c17d4e34423ed4b560d281470e8f2166e2eb0ed0c404f45f5d9a"
+    },
+    {
+      "command": [
+        "/usr/bin/swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-generator-review/.local/harness"
+      ],
+      "exit_code": 0,
+      "output": "runtime-probe-attempt-2.log",
+      "output_sha256": "e54ea0425bb3dc84218b0b7eeb858be5dddb73fa6e99783d4c6b8e7cf7d27a56"
+    },
+    {
+      "command": [
+        "/usr/bin/swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-generator-review/.local/source-repair/cli"
+      ],
+      "exit_code": 0,
+      "output": "cli-repaired-frozen-tests.log",
+      "output_sha256": "30ba45341b71242c8ed4291898ca4befde4509a07193635e0c0f2aa595222e75"
+    },
+    {
+      "command": [
+        "python3",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-generator-review/driver_probe.py"
+      ],
+      "exit_code": 0,
+      "output": "driver-probe-run.log",
+      "scope": "Recorded original negative cases and confirmed staging finding",
+      "output_sha256": "39cef0edef2bdd72e4ff5f7211ec20291ad0459a27e37119fd9e9b25159d7f33"
+    },
+    {
+      "command": [
+        "python3",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-generator-review/staging_leaf_probe.py",
+        "original",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-generator-review/.local/source/cli/Sources/MixerBuild/Resources/android-build.py"
+      ],
+      "exit_code": 0,
+      "output": "staging-leaf-original-run.log",
+      "output_sha256": "ae383c97e7d8a39529066e8bc1aaf27188bc00b2fef349f0d77198a3bb0bfa46"
+    },
+    {
+      "command": [
+        "python3",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-generator-review/staging_fix_replay.py"
+      ],
+      "exit_code": 0,
+      "output": "staging-fix-replay-run.log",
+      "output_sha256": "ec93bc1ca90695c2ff333a05290908f90799da860d84866414775c118baf21ed"
+    },
+    {
+      "command": [
+        "python3",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-generator-review/.local/source-repair/cli/build-tests/test_android_staging.py"
+      ],
+      "exit_code": 0,
+      "output": "staging-regressions-normal.log",
+      "output_sha256": "ec7e331b8549fb49ad8037f66df521d78fb99bebb9ce8d4e62fcb940dc28571e"
+    },
+    {
+      "command": [
+        "python3",
+        "-O",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-generator-review/.local/source-repair/cli/build-tests/test_android_staging.py"
+      ],
+      "exit_code": 0,
+      "output": "staging-regressions-optimized.log",
+      "output_sha256": "09049d05fbd935f70d7ba8c7d38f2bcbc0fe878f96bedb142a76918f0949b8d2"
+    },
+    {
+      "command": [
+        "python3",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-generator-review/consumer_probe.py"
+      ],
+      "exit_code": 0,
+      "output": "consumer-probe-run.log",
+      "output_sha256": "40f29750961cfa2eb97aa972b942541f4cbaa9b6c0878dc4d8dca97fe1c2b9b8"
+    },
+    {
+      "command": [
+        "python3",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-generator-review/source_and_tool_probe.py"
+      ],
+      "exit_code": 0,
+      "output": "source-and-tool-probe-run.log",
+      "output_sha256": "3d4a335913b9de670ea7dbbd2daeb11d415c16eeae9b65f93922852becde243f"
+    },
+    {
+      "command": [
+        "python3",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-generator-review/audit_artifact.py"
+      ],
+      "exit_code": 0,
+      "output": "artifact-audit-run.log",
+      "output_sha256": "37d6dfab4a0508f1d304d71d1365daf3a3af83a4fec1b1ae70c6a4d4190a45c3"
+    },
+    {
+      "command": [
+        "python3",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-generator-review/audit_final_artifact.py"
+      ],
+      "exit_code": 0,
+      "output": "final-artifact-audit-run.log",
+      "output_sha256": "4fb271d9d2179722486310e5444ec0e6ab5825c72ea1ed0519070253ab5ade7a"
+    }
+  ],
+  "test_results": {
+    "frozen_cli_initial": 19,
+    "frozen_cli_repaired": 19,
+    "frozen_reusable_runtime": 3,
+    "frozen_existing_engine": 5,
+    "independent_runtime": 6,
+    "independent_generated_shared_host": 4,
+    "independent_generated_actual_C_ABI": 1,
+    "permanent_staging_normal": 9,
+    "permanent_staging_optimized": 9,
+    "independent_staging_fix_cases": 9,
+    "final_pinned_official_artifact_commands": 22
+  },
+  "finding": {
+    "priority": "P1",
+    "title": "Staging links could mutate files outside project output before rejected build",
+    "original_reproductions": [
+      ".mixer directory symlink",
+      "android-build directory symlink",
+      "build-input.json.tmp file symlink",
+      "build-input.json.tmp hardlink"
+    ],
+    "fixed_revision": "b588481e21c521e264826a5c442901b8157fc112",
+    "state": "resolved",
+    "replay": "staging-fix-replay.json"
+  },
+  "final_artifact_audit": "final-artifact-audit.json",
+  "final_artifact": {
+    "name": "actual-fixed-driver-rebuilt-apk",
+    "apk_sha256": "a170142c2d91f6475d20e6545f3ab509011b950bb41b16e5945cbd2fe92f8fe3",
+    "apk_bytes": 27257525,
+    "apk_content_sha256": "179f7855b676c64d2e14c1e333199ef1f5640bbcd16f3f76fb36fe2b01ed90ac",
+    "entries": 21,
+    "libraries": 18,
+    "unsigned": true
+  },
+  "review_evidence_manifest": "review-evidence.sha256",
+  "review_evidence_manifest_sha256": "b8d02e86c89a044af9f76824670bd3b6ae05278b3802b1083355bb60c1ccb82c",
+  "review_evidence_files": 116,
+  "scope": "Independent frozen source generation/runtime/negative probes and actual unsigned APK evidence/tool audit. Real cross-build and cached rebuild were audited; duplicate full cross-build not run.",
+  "limitations": [
+    "Trusted value-state callbacks are synchronous, non-reentrant and free of external effects; Sendable does not isolate reference graphs",
+    "Local staging preflight and before/after source observations are not concurrent same-user filesystem isolation or arbitrary package-code sandboxing"
+  ],
+  "pending": [
+    "physical iOS/Android (phones disconnected)",
+    "production signing/installability",
+    "native resources/capabilities",
+    "persistence/process restoration/navigation",
+    "device UI/IME/accessibility/performance",
+    "independent clean CI APK builds",
+    "published immutable separate-repository packages",
+    "external FieldLog D2",
+    "store acceptance",
+    "GA"
+  ],
+  "observed_at_utc": "2026-10-23T03:22:11.774712+00:00"
+}

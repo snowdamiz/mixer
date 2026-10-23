@@ -1,0 +1,109 @@
+{
+  "revision": "b4f13ec9a78b882380a6cfba0a9607990ca9babe",
+  "commands": [
+    {
+      "name": "create",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-generator-review/.local/source/cli/.build/debug/mixer",
+        "create",
+        "IndependentConsumer",
+        "--platform",
+        "android",
+        "--directory",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-generator-review/.local/independent-consumer",
+        "--application",
+        "dev.mixer.independentreview",
+        "--sdk-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-generator-review/.local/source/sdk",
+        "--android-adapter-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-generator-review/.local/source/native/android"
+      ],
+      "exit_code": 0,
+      "output": "consumer-create.log",
+      "output_sha256": "639effbea17b42399538bb5e36e3f1d15b40894ccb64521d8dc34e1574da8348"
+    },
+    {
+      "name": "host-tests",
+      "command": [
+        "/usr/bin/swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-generator-review/.local/independent-consumer"
+      ],
+      "exit_code": 0,
+      "output": "consumer-host-tests.log",
+      "output_sha256": "6f0e0edecd7e44f95e12476a6a9aca1a7e12b60ab57d715a99831694c34e236b"
+    },
+    {
+      "name": "actual-abi-probe",
+      "command": [
+        "/usr/bin/swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-generator-review/.local/independent-consumer/Platforms/Android",
+        "--filter",
+        "IndependentConsumerProbe"
+      ],
+      "exit_code": 0,
+      "output": "consumer-actual-abi-probe.log",
+      "output_sha256": "26e2c261487db3ba5056a05453d451223bced5b6bb6057134216356326d4df9f"
+    },
+    {
+      "name": "sdk-drift",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-generator-review/.local/source/cli/.build/debug/mixer",
+        "build",
+        "--platform",
+        "android",
+        "--directory",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-generator-review/.local/independent-consumer"
+      ],
+      "exit_code": 1,
+      "output": "consumer-sdk-drift.log",
+      "output_sha256": "068efa8fec7411c49ff8389b251e61198d5e44aee49857d9250c04ffb8a87147"
+    },
+    {
+      "name": "adapter-drift",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-generator-review/.local/source/cli/.build/debug/mixer",
+        "build",
+        "--platform",
+        "android",
+        "--directory",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-generator-review/.local/independent-consumer"
+      ],
+      "exit_code": 1,
+      "output": "consumer-adapter-drift.log",
+      "output_sha256": "9fb0eff000466bc9984351d7ecb9796650cb78c52c7bc119a1012ee53ff662a4"
+    },
+    {
+      "name": "unsupported-capability",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-generator-review/.local/source/cli/.build/debug/mixer",
+        "build",
+        "--platform",
+        "android",
+        "--directory",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-generator-review/.local/independent-consumer"
+      ],
+      "exit_code": 1,
+      "output": "consumer-unsupported-capability.log",
+      "output_sha256": "e6e801d4b2edae5e04b1c3b0b8e142aaac48bf1039ae4b74e446d9673a1b91a1"
+    },
+    {
+      "name": "unsupported-resource",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-generator-review/.local/source/cli/.build/debug/mixer",
+        "build",
+        "--platform",
+        "android",
+        "--directory",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-generator-review/.local/independent-consumer"
+      ],
+      "exit_code": 1,
+      "output": "consumer-unsupported-resource.log",
+      "output_sha256": "874a940ca52c1983312141a0b739e806fd0d3ce235fc97b4ba8c5e4c36ff23f9"
+    }
+  ],
+  "scope": "Independent app creation and host tests of actual shared AppFeatures/AppModels/C ABI; no Android/device qualification."
+}
