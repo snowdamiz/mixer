@@ -11,6 +11,7 @@ public final class URLSessionHTTPTransport: BoundedHTTPServing, @unchecked Senda
     private let leases: HTTPTransportLeases
     private let protocolClasses: [AnyClass]?
     private let clock: HTTPTransportClock
+    private let beforeInvalidation: (@Sendable () -> Void)?
 
     public convenience init(maximumConcurrentRequests: Int = 64) throws {
         try self.init(maximumConcurrentRequests: maximumConcurrentRequests, protocolClasses: nil)
@@ -18,14 +19,25 @@ public final class URLSessionHTTPTransport: BoundedHTTPServing, @unchecked Senda
 
     // Native test seam only. Public callers cannot supply a session, delegate,
     // credential store, URL protocol, certificate or trust-evaluation override.
-    init(maximumConcurrentRequests: Int, protocolClasses: [AnyClass]?, clock: HTTPTransportClock = .continuous) throws {
+    init(maximumConcurrentRequests: Int, protocolClasses: [AnyClass]?, clock: HTTPTransportClock = .continuous,
+         beforeInvalidation: (@Sendable () -> Void)? = nil) throws {
         guard (1...256).contains(maximumConcurrentRequests) else { throw CapabilityWireError.invalid("HTTP concurrency") }
         leases = HTTPTransportLeases(capacity: maximumConcurrentRequests)
         self.protocolClasses = protocolClasses
         self.clock = clock
+        self.beforeInvalidation = beforeInvalidation
     }
 
     public func request(_ arguments: HTTPRequestArguments) async throws -> HTTPResponse {
+        try await request(arguments, didExit: nil)
+    }
+
+    // Only the closed installed adapter path can observe this transport's native
+    // exit. Preflight failures have no session; after adoption only the exchange
+    // may resolve the obligation, independently of the awaiting task/host.
+    func request(_ arguments: HTTPRequestArguments, didExit: (@Sendable () -> Void)?) async throws -> HTTPResponse {
+        var adopted = false
+        defer { if !adopted { didExit?() } }
         let deadline = clock.now().advanced(by: .milliseconds(Int64(arguments.timeoutMilliseconds)))
         guard arguments.url.utf8.prefix(4097).count <= 4096, arguments.method.utf8.prefix(7).count <= 6,
               arguments.bodyBase64.utf8.prefix(87385).count <= 87384, arguments.headers.count <= 32,
@@ -51,7 +63,9 @@ public final class URLSessionHTTPTransport: BoundedHTTPServing, @unchecked Senda
         if request.value(forHTTPHeaderField: "User-Agent") == nil { request.setValue("MixerCapabilitiesHTTP/1", forHTTPHeaderField: "User-Agent") }
         if !arguments.bodyBase64.isEmpty { request.httpBody = Data(base64Encoded: arguments.bodyBase64)! }
         let exchange = HTTPTransportExchange(request: request, deadline: deadline, clock: clock,
-                                             configuration: configuration(timeoutMilliseconds: arguments.timeoutMilliseconds), leases: leases)
+                                             configuration: configuration(timeoutMilliseconds: arguments.timeoutMilliseconds), leases: leases,
+                                             didExit: didExit, beforeInvalidation: beforeInvalidation)
+        adopted = true
         return try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { exchange.start($0) }
         } onCancel: {
@@ -117,6 +131,8 @@ private final class HTTPTransportExchange: NSObject, URLSessionDataDelegate, @un
     private let clock: HTTPTransportClock
     private let configuration: URLSessionConfiguration
     private let leases: HTTPTransportLeases
+    private let didExit: (@Sendable () -> Void)?
+    private let beforeInvalidation: (@Sendable () -> Void)?
     private var session: URLSession?
     private var task: URLSessionDataTask?
     private var timer: Task<Void, Never>?
@@ -127,9 +143,11 @@ private final class HTTPTransportExchange: NSObject, URLSessionDataDelegate, @un
     private var expectedBytes: Int?
     private var body = Data()
 
-    init(request: URLRequest, deadline: ContinuousClock.Instant, clock: HTTPTransportClock, configuration: URLSessionConfiguration, leases: HTTPTransportLeases) {
+    init(request: URLRequest, deadline: ContinuousClock.Instant, clock: HTTPTransportClock, configuration: URLSessionConfiguration, leases: HTTPTransportLeases,
+         didExit: (@Sendable () -> Void)?, beforeInvalidation: (@Sendable () -> Void)?) {
         self.request = request; self.deadline = deadline; self.clock = clock
         self.configuration = configuration; self.leases = leases
+        self.didExit = didExit; self.beforeInvalidation = beforeInvalidation
     }
 
     func start(_ continuation: CheckedContinuation<HTTPResponse, any Error>) {
@@ -139,6 +157,7 @@ private final class HTTPTransportExchange: NSObject, URLSessionDataDelegate, @un
             released = true
             lock.unlock()
             leases.release()
+            didExit?()
             continuation.resume(with: terminal)
             return
         }
@@ -284,13 +303,14 @@ private final class HTTPTransportExchange: NSObject, URLSessionDataDelegate, @un
     }
 
     func urlSession(_ session: URLSession, didBecomeInvalidWithError error: (any Error)?) {
+        beforeInvalidation?()
         lock.lock()
         self.session = nil; task = nil
         let release = !released; released = true
         let unfinished = terminal == nil
         lock.unlock()
         if unfinished { fail(.ioFailure) }
-        if release { leases.release() }
+        if release { leases.release(); didExit?() }
     }
 }
 #endif

@@ -65,11 +65,17 @@ public actor CapabilityHost {
         var terminal = false
         var work: Task<Void, Never>?
         var timer: Task<Void, Never>?
+        #if !os(WASI)
+        var exitLease: CapabilityExitLease?
+        #endif
     }
     private let session = UUID().uuidString.lowercased()
     private let policy: CapabilityPolicy
     private let http: HTTPTransport?
     private let storage: (any AppPrivateKeyValueServing)?
+    #if !os(WASI)
+    private let installedAdapters: InstalledCapabilityAdapters?
+    #endif
     private let capacity: Int
     private let generationLimit: UInt32
     private let defaultTimeoutMilliseconds: UInt32
@@ -80,7 +86,33 @@ public actor CapabilityHost {
         guard (1...256).contains(maximumRequests), maximumGenerationsPerSlot > 0, (1...30000).contains(timeoutMilliseconds) else { throw CapabilityWireError.invalid("host limits") }
         self.policy = policy; capacity = maximumRequests; generationLimit = maximumGenerationsPerSlot
         defaultTimeoutMilliseconds = timeoutMilliseconds; self.http = http; self.storage = storage
+        #if !os(WASI)
+        installedAdapters = nil
+        #endif
     }
+    #if !os(WASI)
+    /// Explicit concrete adapters whose per-request exit can be observed. The
+    /// legacy closure/service initializer cannot attest underlying native exit.
+    public init(policy: CapabilityPolicy, maximumRequests: Int = 64, maximumGenerationsPerSlot: UInt32 = .max,
+                timeoutMilliseconds: UInt32 = 30000, installedAdapters: InstalledCapabilityAdapters) throws {
+        guard (1...256).contains(maximumRequests), maximumGenerationsPerSlot > 0, (1...30000).contains(timeoutMilliseconds) else { throw CapabilityWireError.invalid("host limits") }
+        self.policy = policy; capacity = maximumRequests; generationLimit = maximumGenerationsPerSlot
+        defaultTimeoutMilliseconds = timeoutMilliseconds; http = nil; storage = nil
+        self.installedAdapters = installedAdapters
+    }
+
+    /// Accepts only a call on an installed-adapter host. A throw accepts neither
+    /// work nor an observer. Once accepted, didExit runs once after both dispatch
+    /// return and adapter cleanup, including no-I/O failures, close and deinit.
+    /// It may run synchronously on the current executor and must return promptly.
+    /// This is not a durable-effect rollback or total OS-resource destruction ack.
+    public func submitObserved(_ bytes: Data, deliver: @escaping Delivery,
+                               didExit: @escaping @Sendable () -> Void) throws {
+        guard !closed, installedAdapters != nil else { throw CapabilityWireError.invalid("observed host unavailable") }
+        guard case .call(let call) = try CapabilityCodec.decodeInbound(bytes) else { throw CapabilityWireError.invalid("observed call required") }
+        try accept(call, deliver: deliver, didExit: didExit)
+    }
+    #endif
     deinit { for slot in slots { slot.work?.cancel(); slot.timer?.cancel() } }
     public func issueRequestID() throws -> CapabilityRequestID {
         guard !closed else { throw CapabilityWireError.invalid("host closed") }
@@ -102,32 +134,62 @@ public actor CapabilityHost {
                   call.operation.operationID == cancellation.operationID else { throw CapabilityWireError.invalid("cancellation owner") }
             terminal(index, outcome: .failure(.cancelled)); slots[index].work?.cancel()
         case .call(let call):
-            let index = try index(call.identity)
-            guard slots[index].reserved, slots[index].call == nil else { throw CapabilityWireError.invalid("duplicate call") }
-            slots[index].reserved = false; slots[index].call = call; slots[index].delivery = deliver
-            guard policy.permits(call.operation) else { terminal(index, outcome: .failure(.permissionDenied)); release(index); return }
-            let http = self.http, storage = self.storage
-            slots[index].work = Task.detached { [weak self] in
-                let outcome: CapabilityOutcome
-                do {
-                    try Task.checkCancellation()
-                    let result = try await GeneratedCapabilityDispatch.invoke(call.operation, http: http, storage: storage)
-                    if case .http(let response) = result, (300...399).contains(response.status) { throw CapabilityFailure.redirectDenied }
-                    // Reuse the same strict result path for native callbacks.
-                    _ = try CapabilityCodec.encodeCompletion(CapabilityCompletion(call: call, outcome: .success(result)))
-                    outcome = .success(result)
-                } catch let failure as CapabilityFailure { outcome = .failure(failure) }
-                catch is CancellationError { outcome = .failure(.cancelled) }
-                catch is CapabilityWireError { outcome = .failure(.invalidResponse) }
-                catch { outcome = .failure(.ioFailure) }
-                await self?.complete(call.identity, outcome: outcome)
-            }
-            let timeout: UInt32
-            if case .http(let request) = call.operation { timeout = min(request.timeoutMilliseconds, defaultTimeoutMilliseconds) } else { timeout = defaultTimeoutMilliseconds }
-            slots[index].timer = Task.detached { [weak self] in
-                do { try await Task.sleep(nanoseconds: UInt64(timeout) * 1_000_000) } catch { return }
-                await self?.deadline(call.identity)
-            }
+            try accept(call, deliver: deliver, didExit: nil)
+        }
+    }
+    private func accept(_ call: CapabilityCall, deliver: @escaping Delivery, didExit: (@Sendable () -> Void)?) throws {
+        let index = try index(call.identity)
+        guard slots[index].reserved, slots[index].call == nil else { throw CapabilityWireError.invalid("duplicate call") }
+        slots[index].reserved = false; slots[index].call = call; slots[index].delivery = deliver
+        let http = self.http, storage = self.storage
+        let invoke: @Sendable () async throws -> CapabilityResult
+        let returned: @Sendable () -> Void
+        #if !os(WASI)
+        let lease = installedAdapters.map { _ in CapabilityExitLease { [weak self] lease in
+            didExit?()
+            Task.detached { [weak self] in await self?.adapterExited(call.identity, lease: lease) }
+        } }
+        slots[index].exitLease = lease
+        if let installedAdapters, let lease {
+            invoke = { try await installedAdapters.invoke(call.operation, lease: lease) }
+            returned = { lease.invocationReturned() }
+        } else {
+            invoke = { try Task.checkCancellation(); return try await GeneratedCapabilityDispatch.invoke(call.operation, http: http, storage: storage) }
+            returned = {}
+        }
+        #else
+        invoke = { try Task.checkCancellation(); return try await GeneratedCapabilityDispatch.invoke(call.operation, http: http, storage: storage) }
+        returned = {}
+        #endif
+        guard policy.permits(call.operation) else {
+            terminal(index, outcome: .failure(.permissionDenied))
+            #if !os(WASI)
+            if let lease { lease.adapterExited(); lease.invocationReturned() } else { release(index) }
+            #else
+            release(index)
+            #endif
+            return
+        }
+        slots[index].work = Task.detached { [weak self] in
+            defer { returned() }
+            let outcome: CapabilityOutcome
+            do {
+                let result = try await invoke()
+                if case .http(let response) = result, (300...399).contains(response.status) { throw CapabilityFailure.redirectDenied }
+                // Reuse the same strict result path for native callbacks.
+                _ = try CapabilityCodec.encodeCompletion(CapabilityCompletion(call: call, outcome: .success(result)))
+                outcome = .success(result)
+            } catch let failure as CapabilityFailure { outcome = .failure(failure) }
+            catch is CancellationError { outcome = .failure(.cancelled) }
+            catch is CapabilityWireError { outcome = .failure(.invalidResponse) }
+            catch { outcome = .failure(.ioFailure) }
+            await self?.complete(call.identity, outcome: outcome)
+        }
+        let timeout: UInt32
+        if case .http(let request) = call.operation { timeout = min(request.timeoutMilliseconds, defaultTimeoutMilliseconds) } else { timeout = defaultTimeoutMilliseconds }
+        slots[index].timer = Task.detached { [weak self] in
+            do { try await Task.sleep(nanoseconds: UInt64(timeout) * 1_000_000) } catch { return }
+            await self?.deadline(call.identity)
         }
     }
     public func close() {
@@ -146,16 +208,31 @@ public actor CapabilityHost {
         // Every stored call was decoded and validated; fixed failures always encode.
         if let bytes = try? CapabilityCodec.encodeCompletion(CapabilityCompletion(call: call, outcome: outcome)) { delivery(bytes) }
     }
-    private func release(_ index: Int) { slots[index].work = nil; slots[index].timer?.cancel(); slots[index].timer = nil; slots[index].call = nil; slots[index].delivery = nil; slots[index].reserved = false; slots[index].terminal = false }
+    private func release(_ index: Int) {
+        slots[index].work = nil; slots[index].timer?.cancel(); slots[index].timer = nil; slots[index].call = nil; slots[index].delivery = nil; slots[index].reserved = false; slots[index].terminal = false
+        #if !os(WASI)
+        slots[index].exitLease = nil
+        #endif
+    }
     private func complete(_ id: CapabilityRequestID, outcome: CapabilityOutcome) {
         guard !closed, let index = try? index(id), slots[index].call != nil else { return }
-        terminal(index, outcome: outcome); release(index)
+        terminal(index, outcome: outcome)
+        #if !os(WASI)
+        if slots[index].exitLease != nil { return }
+        #endif
+        release(index)
     }
+    #if !os(WASI)
+    private func adapterExited(_ id: CapabilityRequestID, lease: CapabilityExitLease) {
+        guard !closed, let index = try? index(id), slots[index].exitLease === lease else { return }
+        release(index)
+    }
+    #endif
     private func deadline(_ id: CapabilityRequestID) {
         guard !closed, let index = try? index(id), slots[index].call != nil else { return }
         terminal(index, outcome: .failure(.deadlineExceeded)); slots[index].work?.cancel()
-        // Keep its slot leased until the installed callback acknowledges exit.
-        // An adapter ignoring cancellation cannot create unbounded native tasks.
+        // The installed path joins invocation return with adapter resource exit.
+        // Legacy closures retain their slot until dispatch returns only.
     }
 }
 
