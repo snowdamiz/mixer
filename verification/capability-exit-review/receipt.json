@@ -1,0 +1,213 @@
+{
+  "schema": 1,
+  "status": "passed scoped independent installed native capability exit review",
+  "revision": "3d4b88dd2eea3e26ce7ea87b3f78cb11631b410a",
+  "source_freeze": {
+    "revision": "3d4b88dd2eea3e26ce7ea87b3f78cb11631b410a",
+    "git_tree": "a2c73da2c100537810cdb5c4f919a539643ce5eb",
+    "command": [
+      "git",
+      "archive",
+      "--format=tar",
+      "3d4b88dd2eea3e26ce7ea87b3f78cb11631b410a",
+      "sdk",
+      "capabilities",
+      "docs/capability-exit-observation-proposal.md"
+    ],
+    "archive_sha256": "eff2c2e4400f6e4b21795f34923e4f98ba173c65701dd8ef44decc87826c1bb7",
+    "manifest_sha256": "713b5c229991fce0759797198b322dd498518954e8bd71522fc278e94ff376c1",
+    "files": 105
+  },
+  "qualified_source_digest": "24e6c520347a54fd31e74fdc6db185da6982f412e6068d078e9a64686da4dcc7",
+  "frozen_source_unchanged_after_execution": true,
+  "tools": {
+    "swift": {
+      "command": [
+        "/usr/bin/swift",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "swift-driver version: 1.168.6 Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.0.0\n"
+    },
+    "xcode": {
+      "command": [
+        "/usr/bin/xcodebuild",
+        "-version"
+      ],
+      "exit_code": 0,
+      "output": "Xcode 27.1\nBuild version 27A9275\n"
+    },
+    "git": {
+      "command": [
+        "git",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "git version 2.56.0\n"
+    },
+    "python": {
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "Python 3.14.8\n"
+    },
+    "developer_directory": {
+      "command": [
+        "/usr/bin/xcode-select",
+        "-p"
+      ],
+      "exit_code": 0,
+      "output": "/Applications/Xcode.app/Contents/Developer\n"
+    }
+  },
+  "commands": [
+    {
+      "command": [
+        "/usr/bin/swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-exit-review/.local/source/capabilities",
+        "--scratch-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-exit-review/.local/debug"
+      ],
+      "exit_code": 0,
+      "output": "frozen-debug.log",
+      "tests": 37,
+      "output_sha256": "02497712657b67a0d3c30402e9cc5df8e55c424d3520d5214609e37e2a43996d"
+    },
+    {
+      "command": [
+        "/usr/bin/swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-exit-review/.local/source/capabilities",
+        "-c",
+        "release",
+        "--scratch-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-exit-review/.local/release"
+      ],
+      "exit_code": 0,
+      "output": "frozen-release.log",
+      "tests": 37,
+      "output_sha256": "c92c6471edaf8cfc0a2f86f33399742b160a849df35f62a78e90b8968f5083d8"
+    },
+    {
+      "command": [
+        "/usr/bin/swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-exit-review/.local/probe"
+      ],
+      "exit_code": 0,
+      "output": "independent-debug-attempt-1.log",
+      "tests": 6,
+      "output_sha256": "b7cef267255b90b1041188357544f0ca47acc566480fa1031cb640854b828d6f"
+    },
+    {
+      "command": [
+        "/usr/bin/swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-exit-review/.local/probe",
+        "-c",
+        "release"
+      ],
+      "exit_code": 0,
+      "output": "independent-release.log",
+      "tests": 6,
+      "output_sha256": "0838b400554a27aea52ec0ecd78fbca34b48110c92c880927ca112e3eedc3a79"
+    },
+    {
+      "command": [
+        "/usr/bin/swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-exit-review/.local/probe",
+        "--scratch-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-exit-review/.local/independent-tsan",
+        "--sanitize",
+        "thread"
+      ],
+      "exit_code": 0,
+      "output": "independent-tsan.log",
+      "tests": 6,
+      "output_sha256": "3ecddaee5af07a3f95cf1d29d2de4c9bf655c6986fd617d94665e9b191b2c57d"
+    },
+    {
+      "command": [
+        "/usr/bin/swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-exit-review/.local/source/capabilities",
+        "--scratch-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-exit-review/.local/implementation-tsan",
+        "--sanitize",
+        "thread",
+        "--filter",
+        "NativeCapabilityExitTests|NativeHTTPTransportTests"
+      ],
+      "exit_code": 0,
+      "output": "implementation-tsan.log",
+      "tests": 24,
+      "output_sha256": "aa5e0bc5a189e46a85bdb0d758182fd9be3ada73e15bf1278680d064a983f3ea"
+    },
+    {
+      "command": [
+        "/usr/bin/swift",
+        "build",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-exit-review/.local/negative"
+      ],
+      "exit_code": 1,
+      "expected_exit_code": 1,
+      "output": "public-substitution-rejected.log",
+      "scope": "Intentional external-client compile rejection; custom protocol conformers cannot replace concrete installed adapters",
+      "output_sha256": "e03f198a0e9a0b39ba7f35f8aa376af46b0514b3fdbec4113b7dfba2d0df27b7"
+    },
+    {
+      "command": [
+        "python3",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-exit-review/audit.py"
+      ],
+      "exit_code": 0,
+      "output": "evidence-audit-run.log",
+      "output_sha256": "98073d60bb7f2c59e71d28a649c3986221d8d0fd1aa2daf5469d933d567cee19"
+    }
+  ],
+  "independent_tests": {
+    "source": "IndependentExitProbe.swift",
+    "source_sha256": "3b1b2f10a90a27b3fef6168ed74c08a3e229072d180597369cac4145a5ba1a17",
+    "debug": 6,
+    "release": 6,
+    "thread_sanitizer": 6
+  },
+  "implementation_tests_replayed": {
+    "debug": 37,
+    "release": 37,
+    "native_http_exit_thread_sanitizer": 24
+  },
+  "evidence_audit": "evidence-audit.json",
+  "findings": [],
+  "review_evidence_manifest": "review-evidence.sha256",
+  "review_evidence_manifest_sha256": "4f5da2cc8d312238694113e42c16a78893a8418d40be2b09c7409d60626f6faf",
+  "review_evidence_files": 23,
+  "scope": "Independent frozen-source tests, lifetime/ordering/reentrancy/admission/static trust review, intentional compiler rejection and existing cross-build/codec evidence audit. No live mutable product sources used for test execution.",
+  "limitations": [
+    "URLProtocol fixtures bypass real TLS/network parsing",
+    "ThreadSanitizer covers owned code only, system frameworks opaque",
+    "Exit proves documented per-operation native cleanup and invocation return, not kernel/socket/RSS/global quiescence or stack unwinding",
+    "Storage terminal cancellation is not durable mutation rollback",
+    "Installed adapter construction alone does not bind release identity/configuration/grants"
+  ],
+  "pending": [
+    "physical iOS/Android lifecycle/trust/runtime packaging (phones disconnected)",
+    "immutable separate-repository package/FieldLog consumption",
+    "guest/Rust/C mailbox integration",
+    "global process/session quota and no-unwind proof",
+    "activation/OTA qualification",
+    "signing/stores/accountable GA review"
+  ],
+  "observed_at_utc": "2026-10-23T03:34:06.822802+00:00"
+}

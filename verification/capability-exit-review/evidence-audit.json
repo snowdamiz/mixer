@@ -1,0 +1,254 @@
+{
+  "revision": "3d4b88dd2eea3e26ce7ea87b3f78cb11631b410a",
+  "qualified_source_files": 49,
+  "qualified_source_digest": "24e6c520347a54fd31e74fdc6db185da6982f412e6068d078e9a64686da4dcc7",
+  "receipt_sha256": "abad353f6b1be62a4ab9111a253c37a7cb0e5a5e485dd9ccf34e9e1f8f193e89",
+  "qualification_commands_audited": [
+    {
+      "name": "generated-check",
+      "command": [
+        "python3",
+        "capabilities/tools/generate.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "output_sha256": "3444cfd96b0e692b7071d9b58fe1d44e2301a492c41909870915fbbb87bb79f3",
+      "scope": "owned generator covers new helpers; generated models/dispatch remain unchanged; wire hashes preserved"
+    },
+    {
+      "name": "capability-debug-tests",
+      "command": [
+        "swift",
+        "test",
+        "--package-path",
+        "capabilities",
+        "--scratch-path",
+        "capabilities/.build/exit-debug"
+      ],
+      "exit_code": 0,
+      "output_sha256": "0e1b450a989e47e18df0f383ac2753fed00f9ec63dbe35d225d5d1e9c1e42406",
+      "scope": "macOS complete capability tests including 13 native exit tests and existing HTTP/codec/storage behavior"
+    },
+    {
+      "name": "capability-release-tests",
+      "command": [
+        "swift",
+        "test",
+        "--package-path",
+        "capabilities",
+        "-c",
+        "release",
+        "--scratch-path",
+        "capabilities/.build/exit-release"
+      ],
+      "exit_code": 0,
+      "output_sha256": "2f06f017bafdf323eb38bb876c2ada15a5b1b2ee3484125f174308dbbbf8b77d",
+      "scope": "macOS optimized complete capability suite; observed request success/cancel/close races"
+    },
+    {
+      "name": "sdk-parity-tests",
+      "command": [
+        "swift",
+        "test",
+        "--package-path",
+        "sdk"
+      ],
+      "exit_code": 0,
+      "output_sha256": "b59e148a57870e83f44ca42e1d9b2e06d95800a62a70042ea92b899b3a9be4b5",
+      "scope": "existing Core/UI/Apple SDK tests; no physical-device evidence"
+    },
+    {
+      "name": "ios-build",
+      "command": [
+        "swift",
+        "build",
+        "--package-path",
+        "sdk",
+        "--target",
+        "MixerCapabilities",
+        "--triple",
+        "arm64-apple-ios17.0",
+        "--sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS27.1.sdk",
+        "--scratch-path",
+        "capabilities/.build/http-ios",
+        "-Xswiftc",
+        "-warnings-as-errors"
+      ],
+      "exit_code": 0,
+      "output_sha256": "74765fe3f38731ef365e3cf3bb7eb8561e01509c748bbbf0a95d1626dc7b7565",
+      "scope": "official iOS arm64 SDK target compilation only; warnings treated as errors; no signing/device run"
+    },
+    {
+      "name": "android-build",
+      "command": [
+        "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift",
+        "build",
+        "--package-path",
+        "capabilities",
+        "--swift-sdks-path",
+        "/Users/andreyyurlov/.swiftpm/swift-sdks",
+        "--swift-sdk",
+        "aarch64-unknown-linux-android28",
+        "--static-swift-stdlib",
+        "-c",
+        "release",
+        "--product",
+        "capability-probe",
+        "--scratch-path",
+        "capabilities/.build/http-android",
+        "-Xlinker",
+        "-lssl",
+        "-Xlinker",
+        "-lcrypto",
+        "-Xlinker",
+        "-lz"
+      ],
+      "exit_code": 0,
+      "output_sha256": "d50966467237c253d48e6cbcf3cb07216a62734d4ffc96dcd1a8fb2e6b7d3b2b",
+      "scope": "official Android SDK aarch64 API28 static probe cross-compile with explicit SDK curl SSL/crypto/zlib dependencies; no APK/runtime receipt"
+    },
+    {
+      "name": "android-test-build",
+      "command": [
+        "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift",
+        "build",
+        "--package-path",
+        "capabilities",
+        "--swift-sdks-path",
+        "/Users/andreyyurlov/.swiftpm/swift-sdks",
+        "--swift-sdk",
+        "aarch64-unknown-linux-android28",
+        "-c",
+        "release",
+        "--build-tests",
+        "-Xswiftc",
+        "-enable-testing",
+        "--scratch-path",
+        "capabilities/.build/http-android-tests"
+      ],
+      "exit_code": 0,
+      "output_sha256": "0a27183af9430bef55a8705a87a32cbf8af2e4c681bf47d604baed7f05473353",
+      "scope": "official Android SDK dynamic Swift Testing runner and native exit tests compile only; not executed"
+    },
+    {
+      "name": "wasi-build",
+      "command": [
+        "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift",
+        "build",
+        "--package-path",
+        "sdk",
+        "--swift-sdks-path",
+        "/Users/andreyyurlov/.swiftpm/swift-sdks",
+        "--swift-sdk",
+        "swift-6.3.3-RELEASE_wasm",
+        "--triple",
+        "wasm32-unknown-wasip1",
+        "-c",
+        "release",
+        "--target",
+        "MixerCapabilities",
+        "--scratch-path",
+        "capabilities/.build/http-wasm"
+      ],
+      "exit_code": 0,
+      "output_sha256": "00e2913b8252596d041dc9a4751ce36f0b58cf127efb8bfb497fb318affbd45b",
+      "scope": "official WASI guest module compile preserving legacy path; concrete installed adapters/lease excluded; not linked/executed"
+    },
+    {
+      "name": "thread-sanitizer",
+      "command": [
+        "swift",
+        "test",
+        "--package-path",
+        "capabilities",
+        "--scratch-path",
+        "capabilities/.build/exit-tsan",
+        "--sanitize",
+        "thread",
+        "--filter",
+        "NativeCapabilityExitTests|NativeHTTPTransportTests"
+      ],
+      "exit_code": 0,
+      "output_sha256": "02bc00df1db8deb46907710ec272e2288446cc325ba81ec996edafaf25a5c989",
+      "scope": "macOS native HTTP and exit-observation suites; owned code instrumented; system frameworks uninstrumented; concurrent duplicate lease and close/cancel races"
+    },
+    {
+      "name": "java-build",
+      "command": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/javac",
+        "--release",
+        "8",
+        "-Xlint:all,-options",
+        "-Werror",
+        "-d",
+        "capabilities/.build/java",
+        "capabilities/java/mixer/capabilities/CapabilityCodec.java",
+        "capabilities/java/mixer/capabilities/CapabilityJSON.java",
+        "capabilities/java/mixer/capabilities/CapabilityModels.java",
+        "capabilities/java/mixer/capabilities/CapabilityNativeIdentity.java",
+        "capabilities/java/mixer/capabilities/CapabilityProbe.java",
+        "capabilities/Tests/Java/CapabilityCodecTests.java"
+      ],
+      "exit_code": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "scope": "Java8 codec compilation including regenerated native source identity"
+    },
+    {
+      "name": "java-tests",
+      "command": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "-cp",
+        "capabilities/.build/java",
+        "mixer.capabilities.CapabilityCodecTests"
+      ],
+      "exit_code": 0,
+      "output_sha256": "4775c09033435d2db396cdbfbfc70fd64a681da7f3339c999de6f20de37740f4",
+      "scope": "unchanged Java codec/ownership regression parity"
+    },
+    {
+      "name": "codec-differential",
+      "command": [
+        "python3",
+        "capabilities/tools/codec-differential.py"
+      ],
+      "exit_code": 0,
+      "output_sha256": "3a4c600dac51cc6ba1f7416e77ebc07b00ef736d87f928d7eca2e8bf3454416e",
+      "scope": "owned Swift/Java strict codec differential parity; schema v1 unchanged"
+    }
+  ],
+  "unchanged_wire_codec_dispatch_files": [
+    "sdk/Sources/MixerCapabilities/GeneratedHostAdapters.swift",
+    "sdk/Sources/MixerCapabilities/GeneratedGuestAdapters.swift",
+    "sdk/Sources/MixerCapabilities/GeneratedModels.swift",
+    "capabilities/schema/v1.json",
+    "capabilities/java/mixer/capabilities/CapabilityCodec.java",
+    "capabilities/java/mixer/capabilities/CapabilityJSON.java",
+    "capabilities/java/mixer/capabilities/CapabilityModels.java",
+    "capabilities/plugins/network.http.v1.json",
+    "capabilities/plugins/storage.keyValue.v1.json"
+  ],
+  "previous_native_identity": "14f7257965a5d468d8901e5456253298346025ccdfba0a5d70554cea0c7ba305",
+  "current_native_identity": "9e66695878568cbb0859d13cc6505ffd45b1471365af4d236fb9601efc0f6ed2",
+  "generator_check": {
+    "command": [
+      "python3",
+      "capabilities/tools/generate.py",
+      "--check"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/capability-exit-review/.local/source",
+    "exit_code": 0,
+    "output": "generated-check.log",
+    "output_sha256": "3444cfd96b0e692b7071d9b58fe1d44e2301a492c41909870915fbbb87bb79f3"
+  },
+  "environment": {
+    "host": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "swift": "swift-driver version: 1.168.6 Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.0.0",
+    "xcode": "Xcode 27.1\nBuild version 27A9275",
+    "androidSwift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "androidManifestHostXcode": "Xcode 26.6\nBuild version 17F113",
+    "javac": "javac 25.0.4.1"
+  },
+  "scope": "Committed-source and command-log integrity audit; iOS/Android/WASI cross-builds and codec differential were audited rather than repeated. Cross-compilation is not device execution."
+}
