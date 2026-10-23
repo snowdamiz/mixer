@@ -55,7 +55,11 @@ def decode(data):
     try:
         value = json.loads(data.decode("utf-8"), object_pairs_hook=pairs,
                            parse_constant=lambda _: (_ for _ in ()).throw(CaptureError("nonfinite JSON")))
-    except (UnicodeError, json.JSONDecodeError, RecursionError) as error:
+    except CaptureError:
+        raise
+    except (ValueError, RecursionError) as error:
+        # JSONDecodeError and UnicodeDecodeError are ValueErrors. Python's
+        # bounded integer parser also raises plain ValueError for long tokens.
         raise CaptureError("invalid JSON") from error
     # A bounded file can still encode excessive nested values. Reject before any
     # recursive descriptor traversal. The public Swift validator is authoritative.

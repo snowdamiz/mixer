@@ -223,6 +223,12 @@ class CaptureTests(unittest.TestCase):
         duplicate = subprocess.run(command, capture_output=True, text=True, timeout=30)
         self.assertEqual(duplicate.returncode, 1)
         self.assertNotIn("Traceback", duplicate.stderr)
+        self.bindings_path.write_bytes(b'{"schema":' + b"1" * 5000 + b',"bindings":[]}')
+        command[command.index("--output") + 1] = str(self.root / "invalid")
+        invalid = subprocess.run(command, capture_output=True, text=True, timeout=30)
+        self.assertEqual(invalid.returncode, 1)
+        self.assertNotIn("Traceback", invalid.stderr)
+        self.assertFalse((self.root / "invalid").exists())
 
 
 if __name__ == "__main__":
