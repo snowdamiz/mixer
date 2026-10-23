@@ -77,3 +77,10 @@ startup, before producing the expected flood. This run did not reach archive
 staging or C clients. The failure is retained in
 `verification/github-ci-eb5dd05/receipt.json`; a test-only readiness barrier
 separates process startup from the tested cleanup deadline.
+
+Run39908555619 at bd24e7c passes both builder suites and stages the archive, then
+reveals a missing explicit SDK in the CI C-consumer recipe (`assert.h` unavailable).
+Both C commands now use clang and macOS SDK selected through xcrun under the pinned
+DEVELOPER_DIR, with `-isysroot`, matching the qualified local recipe. The local
+27-check smoke and 52-check shared-registry clients pass with these commands;
+the hosted rerun remains pending.

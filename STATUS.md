@@ -380,3 +380,12 @@ exact timeout/overflow/exit assertions and checks that descendant writes stop.
 Root reviewed the new fixture and matched both logs and source snapshots; the
 production builder remains byte-identical. See
 `verification/capability-builder-review/ci-fixture-fix.json`. Hosted rerun pending.
+
+
+GitHub run39908555619 at bd24e7c passes both 22-function builder suites and builds
+an archive from the same 81 frozen native inputs. It then fails C smoke compilation
+because the CI command used an unqualified compiler without an explicit macOS SDK.
+The workflow now selects clang and SDK with xcrun and passes `-isysroot`; both
+corrected C recipes compile and execute locally (27 smoke/52 mixed checks).
+See `verification/github-ci-bd24e7c/receipt.json` and
+`verification/capability-builder-review/ci-apple-sdk-fix.json`. Hosted rerun pending.

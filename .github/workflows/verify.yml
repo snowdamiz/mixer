@@ -68,13 +68,15 @@ jobs:
           python3 experimental-capability-runtime/build-vm.py \
             --revision "$GITHUB_SHA" --target host --output "$RUNNER_TEMP/capability-vm"
           cat "$RUNNER_TEMP/capability-vm/receipt.json"
-          cc -std=c11 -Wall -Wextra -Werror -mmacosx-version-min=14.0 \
+          capability_clang="$(xcrun --sdk macosx --find clang)"
+          capability_sdk="$(xcrun --sdk macosx --show-sdk-path)"
+          "$capability_clang" -isysroot "$capability_sdk" -std=c11 -Wall -Wextra -Werror -mmacosx-version-min=14.0 \
             -I"$RUNNER_TEMP/capability-vm/include" \
             "$RUNNER_TEMP/capability-vm/source/vm/tests/capability_ffi_smoke.c" \
             "$RUNNER_TEMP/capability-vm/lib/libmixer_vm_capability_experimental.a" \
             -lpthread -ldl -lm -o "$RUNNER_TEMP/capability-vm-smoke"
           "$RUNNER_TEMP/capability-vm-smoke"
-          cc -std=c11 -Wall -Wextra -Werror -mmacosx-version-min=14.0 \
+          "$capability_clang" -isysroot "$capability_sdk" -std=c11 -Wall -Wextra -Werror -mmacosx-version-min=14.0 \
             -I"$RUNNER_TEMP/capability-vm/include" \
             experimental-capability-runtime/build-tests/mixed_registry.c \
             "$RUNNER_TEMP/capability-vm/lib/libmixer_vm_capability_experimental.a" \

@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "sourceRevision": "bd24e7c8058788f39407b8ec27ed11ec221df252",
+  "runId": 39908555619,
+  "url": "https://github.com/snowdamiz/mixer/actions/runs/39908555619",
+  "observedAt": "2026-10-23T06:05:52.841165+00:00",
+  "conclusion": "failure",
+  "jobs": [
+    {
+      "id": 120265995243,
+      "name": "swift",
+      "conclusion": "failure"
+    },
+    {
+      "id": 120265995286,
+      "name": "services",
+      "conclusion": "success"
+    },
+    {
+      "id": 120265995589,
+      "name": "vm",
+      "conclusion": "success"
+    }
+  ],
+  "passed": {
+    "normal_builder_functions": 22,
+    "optimized_builder_functions": 22,
+    "actual_host_builder": "completed,81 frozen sources/27 symbols/matching headers reported",
+    "reported_archive_sha256": "3b6c7062b7a97032aad484d84b74408c33595f72a6cf2f671e752783782f8957",
+    "reported_rustc": "1.98.1",
+    "reported_source_manifest_sha256": "47ecc06679f61be0da8a53839830be72876889bb90c9a8e5834c8661f9312aa6"
+  },
+  "failure": {
+    "job": "swift",
+    "step": "Isolated experimental capability archive and shared registry",
+    "command": "Unqualified cc invocation without explicit -isysroot for public C smoke",
+    "diagnostic": "fatal error: 'assert.h' file not found",
+    "scope": "Archive built, but C smoke compilation failed; no hosted experimental C execution and generated consumer skipped."
+  },
+  "outputs": {
+    "jobs.json": "5fc14e18bdc9e9d2a33a5d2621835163945d44d67ed29f489e263eb83633df77",
+    "run.json": "5d16a5f88db089e539d102744e34b27ddf70631d6bc0f59fc08030751f7f6dfb",
+    "swift-job.log": "4ee8bfbd275c473e3545459558316ec6268b7986bbb5f027451c88b039690742"
+  },
+  "followup": "Select clang and macOS SDK through xcrun under pinned DEVELOPER_DIR; pass explicit -isysroot to both C consumers, matching local archive qualification."
+}
