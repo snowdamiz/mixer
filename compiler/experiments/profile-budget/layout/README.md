@@ -74,6 +74,8 @@ The combined fixture is 3,445,782 source bytes, 199,999 instructions, 3,145,728 
 
 ## Retained sessions and aggregate memory
 
+The opaque C ABI session rows in the original receipt use zero sentinels for internal Module shape fields that the probe did not observe. Those values are not measured zero instructions/data/memory; source sizes and allocator counters are observed. The independently measured `combined` case describes the same fixture's internal shape.
+
 The session cases use the actual frozen public `mixer_vm_session_create_v1` and close APIs, sequentially creating one or sixteen independent combined-fixture instances. Each create succeeds within the unchanged 4 MiB source, 200,000 instruction, 64-page memory and 16-session ceilings. They measure retained instances, not concurrent execution or in-flight close races; the separate [session review](../session-review/README.md) tests the latter.
 
 With the caller source dropped, one session retains 17,827,670 requested bytes above baseline; sixteen retain 285,241,760. Creation maximums, while caller source is still alive, are 21,273,452 and 288,687,542 respectively. The sixteen-session process RSS maximum is directly observed as 256,851,968 bytes, not a sixteenfold RSS extrapolation. Closing every session leaves one allocation of 64 bytes above baseline in both cases. This experiment does not attribute that residual allocation or claim exact return to baseline. It does establish that the large per-session payload allocations are no longer live according to the allocator counter.

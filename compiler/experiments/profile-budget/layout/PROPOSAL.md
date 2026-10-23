@@ -21,7 +21,7 @@ The following are measured floors or existing ceilings, not approved full Swift 
 | Static body instructions | 200,000 | 6,505,962 | Validation-work ceiling independent of retained decoded cache |
 | Types | 512 | 493 | Retain ceiling unless evidence requires otherwise; also bound aggregate parameter/result storage |
 | Globals | Decoder ceiling 1,024 | 5,271 | Explicit new global ceiling and total retained/runtime allocation accounting |
-| Table entries | 65,536, v3 only | 46,700 | Retain ceiling; immutable element metadata and per-instance table copies still count |
+| Table entries | 65,536, v3 only | 46,714 | Retain ceiling; immutable element metadata and per-instance table copies still count |
 | Initial linear memory | 64 pages / 4,194,304 bytes | 584 pages / 38,273,024 bytes | Separate admission and maximum-growth ceiling, without assuming final corpus pages are a peak |
 | Observed memory after Node model corpus | No owned full Swift observation | 625 pages / 40,960,000 bytes | Owned execution and representative workload needed before choosing maximum |
 | Largest function body wire bytes | Bounded by whole-module ceiling | 61,994 | Measure decoded entry including capacities and variable payloads; wire bytes alone cannot admit cache entries |
