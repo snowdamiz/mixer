@@ -5,8 +5,8 @@ use crate::experimental_swift_reactor::allocation_tests::{
     measure, measure_extended, AllocationStats,
 };
 use crate::experimental_swift_reactor::control::{
-    foundation_construction_bytes, AdoptedProof, SwiftCleanupInvariant, SwiftDeadlineOrigin,
-    SwiftRunBudget, SwiftRunResource, SwiftRunStage, SwiftRunUsage,
+    foundation_construction_bytes, AdoptedProof, Live, SwiftCleanupInvariant, SwiftDeadlineOrigin,
+    SwiftRunBudget, SwiftRunResource, SwiftRunStage, SwiftRunUsage, Work,
 };
 use crate::experimental_swift_reactor::{
     validate_swift_reactor, SwiftValidationBudget, ValidatedSwiftReactor,
@@ -150,6 +150,179 @@ fn empty(usage: SwiftRunUsage) {
 fn no_alloc(stats: AllocationStats) {
     assert_eq!(stats.allocations, 0);
     assert_eq!(stats.reallocations, 0);
+}
+
+#[test]
+fn cache_control_boundaries_retain_actual_dispatch_observations() {
+    for point in 0..10 {
+        let budget = SwiftRunBudget::default();
+        let (mut control, proof) = adopt(budget);
+        let mut owner = construct(&mut control, grants(), small()).unwrap();
+        let initial = owner.usage();
+        let mut memory = [0u8; 8];
+        for _ in 0..2 {
+            owner
+                .dispatch(
+                    &mut control,
+                    WasiFunction::ArgsSizesGet,
+                    &[i(0), i(4)],
+                    &mut memory,
+                    cursor(),
+                )
+                .unwrap();
+        }
+        let observed = owner.checked_usage(&mut control, cursor()).unwrap();
+        assert_eq!(observed, owner.usage());
+        assert_eq!(observed.calls, 2);
+        assert!(observed.work > initial.work && observed.transfer_bytes > initial.transfer_bytes);
+        let before = control.usage(Some(observed));
+        let ((failure, expected), stats) = measure(|| {
+            let wasi = Some(owner.checked_usage(&mut control, cursor()).unwrap());
+            let result = match point {
+                0 => (
+                    control
+                        .work_with_wasi(Work::Cache, budget.cache_work + 1, cursor(), wasi)
+                        .unwrap_err(),
+                    SwiftRunFailureKind::WorkExhausted,
+                ),
+                1 => (
+                    control
+                        .admit_with_wasi(
+                            SwiftReservationCategory::Cache,
+                            budget.cache_bytes + 1,
+                            cursor(),
+                            wasi,
+                        )
+                        .unwrap_err(),
+                    SwiftRunFailureKind::CategoryExhausted,
+                ),
+                2 => (
+                    control
+                        .admit_with_wasi(
+                            SwiftReservationCategory::Shared,
+                            budget.combined_bytes - before.reservations.combined.current + 1,
+                            cursor(),
+                            wasi,
+                        )
+                        .unwrap_err(),
+                    SwiftRunFailureKind::CombinedExhausted,
+                ),
+                3 => (
+                    control
+                        .admit_cache_entry_with_wasi(budget.cache_entry_bytes + 1, cursor(), wasi)
+                        .unwrap_err(),
+                    SwiftRunFailureKind::ResourceExhausted,
+                ),
+                4 => (
+                    control
+                        .enlarge_construction_with_wasi(budget.combined_bytes, cursor(), wasi)
+                        .unwrap_err(),
+                    SwiftRunFailureKind::CombinedExhausted,
+                ),
+                5 => (
+                    control
+                        .exact_capacity_with_wasi(1, 2, cursor(), wasi)
+                        .unwrap_err(),
+                    SwiftRunFailureKind::Allocation,
+                ),
+                6 => (
+                    control
+                        .add_live_with_wasi(
+                            Live::CacheEntries,
+                            budget.cache_entries + 1,
+                            cursor(),
+                            wasi,
+                        )
+                        .unwrap_err(),
+                    SwiftRunFailureKind::ResourceExhausted,
+                ),
+                7 => (
+                    control
+                        .remove_live_with_wasi(Live::ActivePins, 1, wasi)
+                        .unwrap_err(),
+                    SwiftRunFailureKind::Invariant,
+                ),
+                8 => (
+                    control
+                        .end_construction_phase_with_wasi((), 0, wasi)
+                        .unwrap_err(),
+                    SwiftRunFailureKind::Invariant,
+                ),
+                9 => {
+                    control.cancellation().cancel();
+                    (
+                        control
+                            .work_with_wasi(Work::Cache, 1, cursor(), wasi)
+                            .unwrap_err(),
+                        SwiftRunFailureKind::Cancelled,
+                    )
+                }
+                _ => unreachable!(),
+            };
+            result
+        });
+        no_alloc(stats);
+        assert_eq!(failure.kind, expected, "boundary {point}");
+        assert_eq!(failure.at_failure.wasi, Some(observed), "boundary {point}");
+        let after = control.usage(Some(observed));
+        assert_eq!(after.reservations, before.reservations);
+        assert_eq!(after.live, before.live);
+        assert_eq!(after.cache_work, before.cache_work);
+        assert_eq!(after.host_calls, before.host_calls);
+        // Borrowed preflight remains usable for terminal cleanup; it does not
+        // perform a cancellation/work check or replace the first failure.
+        assert_eq!(
+            owner.checked_usage(&mut control, cursor()).unwrap(),
+            observed
+        );
+        assert_eq!(
+            control
+                .work_with_wasi(Work::Cache, 0, cursor(), Some(WasiUsage::default()))
+                .unwrap_err(),
+            failure
+        );
+        owner.cleanup(&mut control).unwrap();
+        control.drop_proof_with_wasi(proof, Some(observed)).unwrap();
+        assert_eq!(control.check(cursor()).unwrap_err(), failure);
+        let final_usage = control.finish_owned_cleanup(Some(observed));
+        assert_eq!(final_usage.reservations.combined.current, 0);
+        assert_eq!(final_usage.reservations.live_tickets, 0);
+    }
+}
+
+#[test]
+fn borrowed_wasi_pairing_rejects_foreign_identity_without_mixed_observations() {
+    let (mut control, proof) = adopt(SwiftRunBudget::default());
+    let mut owner = construct(&mut control, grants(), small()).unwrap();
+    owner
+        .dispatch(
+            &mut control,
+            WasiFunction::ArgsSizesGet,
+            &[i(0), i(4)],
+            &mut [0u8; 8],
+            cursor(),
+        )
+        .unwrap();
+    let observed = owner.usage();
+    let (mut other, other_proof) = adopt(SwiftRunBudget::default());
+    let before = control.usage(Some(observed)).reservations;
+    let other_before = other.usage(None).reservations;
+    let (failure, stats) = measure(|| owner.checked_usage(&mut other, cursor()).unwrap_err());
+    no_alloc(stats);
+    assert_eq!(stats.deallocations, 0);
+    assert_eq!(failure.code, "swift_run_reservation_owner");
+    assert_eq!(failure.at_failure.wasi, None);
+    assert_eq!(other.usage(None).reservations, other_before);
+    assert_eq!(control.usage(Some(observed)).reservations, before);
+    assert_eq!(
+        owner.checked_usage(&mut control, cursor()).unwrap(),
+        observed
+    );
+    empty(clean(control, proof, owner));
+    other.drop_proof(other_proof).unwrap();
+    let drained = other.finish_owned_cleanup(None);
+    assert_eq!(drained.reservations.combined.current, 0);
+    assert_eq!(drained.reservations.live_tickets, 0);
 }
 fn i(value: u32) -> Value {
     Value::I32(value as i32)

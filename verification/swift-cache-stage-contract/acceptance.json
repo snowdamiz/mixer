@@ -1,0 +1,355 @@
+{
+  "schema": "mixer-swift-cache-stage-contract-v2",
+  "status": "proposed_contract_implementation_pending",
+  "contract": "docs/swift-cache-stage-contract.md",
+  "root_freeze_required": true,
+  "target_execution_authorized": false,
+  "device_runs_authorized": false,
+  "foundation": "020f909",
+  "features": "experimental-swift-reactor,experimental-span-execution",
+  "test_module": "experimental_swift_reactor::cache_tests",
+  "fixed_inventory": {
+    "runtime_ticket_maximum": 86,
+    "proof_tickets": 2,
+    "cache_fixed_buffer_tickets": 3,
+    "cache_header_tickets": 1,
+    "resident_or_incoming_entry_tickets": 64,
+    "swift_patch_capacity": 512,
+    "legacy_patch_capacity": 128,
+    "parameters_per_signature": 128,
+    "parameters_plus_declared_locals": 256,
+    "function_inclusive_controls": 512,
+    "legacy_layout_changes": 0
+  },
+  "fixture_contract": {
+    "authority": "public validate_swift_reactor with unchanged complete policy",
+    "imports": 34,
+    "minimum_definitions": 29,
+    "memory_minimum": 584,
+    "memory_declared_maximum": null,
+    "memory_host_maximum": 768,
+    "table_minimum": 46713,
+    "table_declared_maximum": 46713,
+    "initialize_index": 35,
+    "corpus_index": 62,
+    "exports": [
+      "memory",
+      "_initialize",
+      "mixer_fieldlog_corpus_v1"
+    ],
+    "instantiation_permitted_by_this_cache_suite": false,
+    "source": "original project-authored byte fixtures only",
+    "table_host_maximum": 46713
+  },
+  "tests": [
+    {
+      "name": "same_abi_descriptors_and_authority",
+      "status": "pending",
+      "assertions": [
+        "Complete validator accepts each original fixture; exact imports, signatures, memory/table and exports observed",
+        "Descriptors borrow the original source address/extent and preserve absolute index/type/offset; import function lookup rejects",
+        "No extra source/metadata allocation or proof ticket appears when AdoptedProof moves into cache",
+        "Table host_maximum is effective metadata 46713, not policy 65536; memory host_maximum 768",
+        "Initializer offset is O(1) checked absolute first opcode, absent index None; exact retained source slice includes end without changing GlobalView"
+      ]
+    },
+    {
+      "name": "decoder_opcode_and_count_build_parity",
+      "status": "pending",
+      "assertions": [
+        "All admitted scalar/float/saturating/table/bulk-memory instruction shapes and LEB/branch immediates match owned frozen IR where policies overlap",
+        "Both passes agree on defined locals/instructions/targets and sealed parameter count; absolute offsets retained",
+        "Test-only internal count mismatch fails DecoderMismatch before publication and is not treated as public proof evidence"
+      ]
+    },
+    {
+      "name": "parameters_and_function_inclusive_depth",
+      "status": "pending",
+      "assertions": [
+        "128 parameters plus 128 declared locals succeeds; 129 parameters and 257 parameter-plus-locals fail complete validation",
+        "379 and 512 function-inclusive depth accepted, 513 rejected by complete validation",
+        "Both decoder passes enforce totals; decoded locals length/bytes exclude parameters and no private policy relaxes these assertions"
+      ]
+    },
+    {
+      "name": "permanent_patch_arena_exact_requests",
+      "status": "pending",
+      "assertions": [
+        "Exactly one 512-Patch allocation during cache construction; no patch allocation on any miss/pass",
+        "Slots, pins and all three decoded vectors have requested==observed capacity; zero-size vectors allocate nothing",
+        "Patch reset initializes/checks all slots in both passes; exact extra Swift credits are recorded; legacy 128-Patch layout/work unchanged"
+      ]
+    },
+    {
+      "name": "entry_and_combined_admission_precedes_allocation",
+      "status": "pending",
+      "assertions": [
+        "Source/meta adopted once and all cache headers/buffers/ticket handles included; category sums equal combined current",
+        "Entry 3-vector aggregate admitted before first vector allocation; entry ceiling and combined exhaustion retain exact first resource",
+        "Existing pinned/resident entries and permanent arena remain live during incoming construction; no pinned/source double count and <=86 tickets",
+        "Same cache header ticket permanently includes checked cleanup named-object envelope; actual sizes/alignments/simultaneous counts recorded and no new ticket"
+      ]
+    },
+    {
+      "name": "zero_limits_and_exact_narrowing",
+      "status": "pending",
+      "assertions": [
+        "Each Swift zero cache/work/entry/pin limit is real exhaustion rather than invalid budget or implicit default",
+        "Narrow cache entries/pins to 0/1/64 and all byte ceilings independently; >maximum rejected by foundation",
+        "Legacy zero entries/pins retain original InvalidBudget and precedence"
+      ]
+    },
+    {
+      "name": "pins_hits_lru_and_eviction",
+      "status": "pending",
+      "assertions": [
+        "Hit/miss/decode/eviction snapshots, deterministic LRU tie order and last-pin pinned-byte transition exact",
+        "64 simultaneous distinct pins plus recursive same-function pins; 65th fails and all-pinned path preserves residents",
+        "Planning failure evicts nothing; build failure after committed eviction reports removed victims; incoming entry included in 64 slots"
+      ]
+    },
+    {
+      "name": "foreign_stale_nonce_and_control_ownership",
+      "status": "pending",
+      "assertions": [
+        "Wrong cache/control pair fails before work/allocation/mutation/refund; original owner can still drain",
+        "Foreign adopted proof rejects before preparation enlargement or construction effects after checking both sealed tickets; owned failure returns proof intact to original control",
+        "Foreign pin precedes stale nonce/entry checks; nonce/owner exhaustion uses test-only seeds and never issues duplicate authority",
+        "Release succeeds under cancellation and exhausted work; failed release returns owned pin for cleanup",
+        "Foreign owned-slot cleanup leaves exact Some(cache) in caller slot with unchanged vectors/pins/refunds/allocations and both reservation ledgers; handle failure then reuse slot with original control",
+        "Foreign optional WASI with different actual counters rejects preflight with wasi None and intact owner; missing header also contributes None; same-owner ledger invariant retains actual usage"
+      ]
+    },
+    {
+      "name": "construction_and_operation_phase_boundaries",
+      "status": "pending",
+      "assertions": [
+        "Prepare enlarges before phase/builder/cache/Result/borrowed operation wrappers coexist; caller completes only after construct or pin/decode returns and named temporaries drop",
+        "One-shot repeated construct returns its supplied proof intact and allocates nothing; omitted completion conservatively retains enlarged charge",
+        "Nested phases restore exact previous bound in reverse order rather than foundation; output transfer peaks and same-control borrowing verified",
+        "Complete all ordinary phases before cleanup; permanent header cleanup envelope remains fully reserved; cleanup never prepares/enlarges a phase",
+        "Freeze cleanup return/rejection wrapper and transfer accounting before whole-cache implementation; no disappearing charge across return"
+      ]
+    },
+    {
+      "name": "every_constructor_allocation_ordinal",
+      "status": "pending",
+      "assertions": [
+        "Measure successful cache-only construction allocation attempts N, then inject each ordinal 0..N-1 with fixtures/proof/control outside scope",
+        "Each failure observed exactly once, no Ready cache, zero leaked owned bytes/tickets after actual cleanup, source/meta/refund order verified",
+        "Partial slots/pins/patch/header initialization and every acquired ticket covered; no unobserved ordinal accepted"
+      ]
+    },
+    {
+      "name": "every_miss_allocation_ordinal_and_capacity_fault",
+      "status": "pending",
+      "assertions": [
+        "Measure each unique 0/1/3-vector miss shape, inject all allocation ordinals including after eviction and first/second/third vector",
+        "Unexpected observed capacities fail typed allocation with requested/observed fields; no post-allocation excess admission",
+        "Drop partial payloads before refund; no pin/live entry escapes and hit/release/cleanup allocate nothing"
+      ]
+    },
+    {
+      "name": "every_work_prefix_and_cancellation_boundary",
+      "status": "pending",
+      "assertions": [
+        "Enumerate all observed work/check ordinals for construction, hit, miss scan/build/reset, LRU planning and publication with thread-local cfg(test) hooks",
+        "Exhaust work at every prefix and cancel actual shared token at every check ordinal, including final publication boundary",
+        "No effects after terminal latch, work never exceeds budget; before-eviction and after-eviction expectations distinguished; no unbounded retry"
+      ]
+    },
+    {
+      "name": "deadline_inside_decode_and_reset",
+      "status": "pending",
+      "assertions": [
+        "Actual earliest carried deadline expires in each scan/build/reset loop using deterministic test-only pause at real check boundary",
+        "Selected Run/Wasi origin and overshoot retained; cancelled+expired precedence is cancellation; existing terminal cause wins both",
+        "No production clock hook; tests identify loop/cursor and demonstrate final check before publication"
+      ]
+    },
+    {
+      "name": "first_cause_retains_actual_wasi_usage",
+      "status": "pending",
+      "assertions": [
+        "Create actual AccountedWasi, perform real accepted/errno adapter dispatch, then cache work/entry/category/combined/capacity failures",
+        "At first failure wasi equals context.usage at that boundary and differs from an earlier snapshot; copied counters never admit resources",
+        "Borrow prevents simultaneous dispatch; later checks/faults/cleanup preserve original code/cursor/at_failure and only append after_cleanup",
+        "checked_usage first uses pure exact nonzero reservation_owner_matches, then full check_reservation_owner with belongs.then(actual usage); no work/admission/time/cancel checks",
+        "Foreign/missing WASI header first invariant has wasi None; same-owner accounting first invariant has actual dispatch counters; prior latched cause unchanged; existing dispatch untouched"
+      ]
+    },
+    {
+      "name": "component_cleanup_and_first_cleanup_invariant",
+      "status": "pending",
+      "assertions": [
+        "Consume cache with multiple residents and live/recursive pins; drain all vectors then source proof before respective refunds",
+        "Under cancellation/deadline/exhausted work cleanup uses zero allocation/work/services and preserves live WASI/control charges",
+        "First cleanup invariant receives actual WASI observation; later cleanup errors never replace first cause; final whole-owner cleanup combined/tickets zero",
+        "After earlier operation phase completion, cancelled/expired/work-exhausted/terminal cleanup and intact preflight rejection require no admission or construction enlargement",
+        "Pre-reserved same-header envelope covers chosen Result/tail/Option/cache/entry/vector/ticket/borrowed/failure/usage transfers; tail retains same header until caller drops empty slot and large wrappers, complete returns unit and named foundation count mapping is recorded",
+        "Rejected WASI/cache pairing leaves caller slot Some(cache) with no owner effects; after successful preflight later invariant drains everything and returns tail with caller slot None",
+        "Omitting tail completion retains full header charge; tail exclusive control borrow prevents substitution; no returned large Result/Option survives refund",
+        "Explicit final completion/refund/output active-value mapping fits foundation 4 failure/4 usage/6 ticket/2 WASI usage counts; no presumed slack or duplicate allowance"
+      ]
+    },
+    {
+      "name": "sticky_failure_has_no_new_effects",
+      "status": "pending",
+      "assertions": [
+        "After each terminal kind, repeated pin/cache operation returns the same copied first cause without decode/service/allocation/work",
+        "Failure after acquiring live pin/entry counters drains exactly once with no underflow or unpinned authority escape",
+        "First-failure and after-cleanup reservation/peak snapshots are distinct and accurate"
+      ]
+    },
+    {
+      "name": "frozen_layout_allocation_work_error_snapshots",
+      "status": "pending",
+      "assertions": [
+        "Retain pre-extraction size/alignment/offset and requested allocation counts/bytes for all legacy cache/pin/slot/decoded/meter/pass owners",
+        "Replay identical old-route fixtures in frozen-only and all-feature builds; full usage/work/error/code/cursor/identity baselines equal",
+        "Include invalid budgets, cancellation+invalid function, scratch capacity+cancel, work+pin exhaustion, all-pinned/entry/nonce/capacity and eviction/build failures"
+      ]
+    },
+    {
+      "name": "external_surface_and_borrow_privacy",
+      "status": "pending",
+      "assertions": [
+        "Separate downstream crate compile-fails forged/Clone/legacy conversion, private descriptors/SnapshotView/CacheParts/custom mode, Swift cache/pin constructors and mutable source",
+        "View cannot survive mutation/release; adopted proof cannot be reused after cache consumption; no arbitrary export/raw memory/host injection surface",
+        "Positive old public Rust/C/native consumers and unchanged header/export inventory pass; negative snippets fail for intended privacy/borrow reason"
+      ]
+    }
+  ],
+  "regression_commands": [
+    [
+      "cargo",
+      "test",
+      "--manifest-path",
+      "vm/Cargo.toml"
+    ],
+    [
+      "cargo",
+      "test",
+      "--manifest-path",
+      "vm/Cargo.toml",
+      "--release"
+    ],
+    [
+      "cargo",
+      "test",
+      "--manifest-path",
+      "vm/Cargo.toml",
+      "--features",
+      "experimental-stream-validation,experimental-function-cache,experimental-span-execution,experimental-swift-wasi"
+    ],
+    [
+      "cargo",
+      "test",
+      "--manifest-path",
+      "vm/Cargo.toml",
+      "--release",
+      "--features",
+      "experimental-stream-validation,experimental-function-cache,experimental-span-execution,experimental-swift-wasi"
+    ],
+    [
+      "cargo",
+      "test",
+      "--manifest-path",
+      "vm/Cargo.toml",
+      "--all-features"
+    ],
+    [
+      "cargo",
+      "test",
+      "--manifest-path",
+      "vm/Cargo.toml",
+      "--release",
+      "--all-features"
+    ],
+    [
+      "cargo",
+      "clippy",
+      "--manifest-path",
+      "vm/Cargo.toml",
+      "--lib",
+      "--features",
+      "experimental-swift-reactor,experimental-span-execution",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    [
+      "cargo",
+      "fmt",
+      "--manifest-path",
+      "vm/Cargo.toml",
+      "--",
+      "--check"
+    ]
+  ],
+  "explicit_pending": [
+    "Root descriptor/control contract acceptance",
+    "Cache implementation and all named tests",
+    "Independent source review and source-bound receipts",
+    "Executor integration",
+    "Separate root exact-target authorization",
+    "Physical iOS/Android",
+    "Immutable published consumer",
+    "Size/performance and GA gates"
+  ],
+  "proposal_revision": 2,
+  "root_freeze": "pending",
+  "whole_cache_implementation_authorized": false,
+  "historical_v1_manifest_sha256": "6ee5555d406b76bc88fb7670bf0723ac769713537c7e6e23b78269cb7fb3dac9",
+  "accepted_review_findings": [
+    "R1",
+    "R2",
+    "R3"
+  ],
+  "independent_review": "verification/swift-cache-contract-review/review.md",
+  "independent_review_sha256": "a8057c2cbbb7d29ba6145b621f7c71ff5c0ea2fd6fb0ee7fa54cd3d6c112e050",
+  "descriptor_contract": {
+    "global_initializer_offset_accessor": "execution_global_initializer_offset(usize)->Option<usize>",
+    "global_initializer_offset_semantics": "O(1) checked absolute first opcode in retained source; None if index absent; no GlobalView layout change",
+    "table_host_maximum_semantics": "effective metadata maximum, not independent policy ceiling"
+  },
+  "cleanup_contract": {
+    "consuming_api": "borrowed caller-owned Option<SwiftFunctionCache>; direct control and immutable optional WASI borrows",
+    "preflight_rejection": "leave caller Option Some(cache) intact with zero owner effects",
+    "post_preflight_error": "drain all storage; return successful same-header tail carrying first failure; caller Option None",
+    "permanent_cleanup_envelope": "same exclusive cache header ticket",
+    "cleanup_ticket_count": 0,
+    "cleanup_admission_allowed": false,
+    "cleanup_work_allowed": false,
+    "cleanup_cancel_deadline_checks_allowed": false,
+    "temporary_sizes_and_simultaneous_counts": "implementation acceptance pending"
+  },
+  "observation_contract": {
+    "pairing_helper": "AccountedWasi::checked_usage",
+    "identity_helper": "RuntimeControl::reservation_owner_matches",
+    "identity_predicate": "exact nonzero identity only; pure bool",
+    "validation_order": [
+      "optional WASI header/control",
+      "actual adopted proof tickets or intact cache header",
+      "ordinary work/admission phase only"
+    ],
+    "foreign_or_missing_header_usage": "None",
+    "same_owner_ledger_invariant_usage": "actual current WasiUsage",
+    "pairing_admission_work_cancel_deadline_checks_allowed": false,
+    "existing_dispatch_changes": false
+  },
+  "cleanup_tail_contract": {
+    "reservation": "same original cache header ticket until caller completion",
+    "completion_returns": "unit; copied outcome argument receives first failure",
+    "empty_slot_and_large_result_dropped_before_refund": true,
+    "omitted_completion": "conservatively retain header charge",
+    "control_substitution": "excluded by exclusive borrowed control",
+    "foundation_named_counts": {
+      "SwiftRunFailure": 4,
+      "SwiftRunUsage": 4,
+      "ReservationTicket": 6,
+      "WasiUsage": 2
+    },
+    "actual_simultaneous_layout_evidence": "pending"
+  }
+}

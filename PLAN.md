@@ -408,3 +408,25 @@ privacy negatives and byte-identical old-route behavior. Earlier owner receipts
 are historical and do not qualify the final cleanup repair. This private slice
 creates no Swift execution route. Cache/executor composition, bounded full-target
 execution, delivery size, physical devices, published consumers and GA remain open.
+
+
+Private Swift execution descriptors now borrow the retained validated proof without
+allocation or public authority. Observed control paths retain actual paired WASI
+counters, validate both original proof tickets, and preserve legacy owner layouts.
+Root combined Debug/Release each pass 318 tests plus nine reference checks, scoped
+Clippy and full formatting. Independent review passes seven additional probes per
+mode, 103 original library tests per mode, 37 legacy regressions and privacy checks.
+Root audited 3,682 bindings in
+`verification/swift-cache-prerequisites-root-review/receipt.json`.
+The refined cache contract preserves rejected cleanup owners and keeps its same
+header reservation through cleanup return. Root now authorizes bounded private
+cache implementation in `verification/swift-cache-stage-acceptance.json`; its 18
+named tests, concrete temporary-memory layouts, independent implementation review,
+executor and bounded full-target runner remain pending. No cache execution or GA
+qualification follows from this prerequisite checkpoint.
+
+Hosted 8d809df and bd8a896 both pass all three VM/Swift/services jobs. This confirms
+the pinned Swift6.2.4 actor-helper repair and the accounted WASI checkpoint.
+Historical failed runs remain retained. Android binding implementation/review is
+ongoing; physical phones, immutable separately published FieldLog packages,
+full-target performance/delivery-size and all specified external gates remain open.

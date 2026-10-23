@@ -1,7 +1,7 @@
 //! Closed borrowed policies. Frozen validation never materializes widened Limits.
 use crate::{Limits, Profile};
 
-pub(super) enum Policy<'a> {
+pub(crate) enum Policy<'a> {
     Frozen(&'a Limits),
     #[cfg(feature = "experimental-swift-reactor")]
     SwiftReactorExperimentV1,

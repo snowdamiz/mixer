@@ -123,6 +123,32 @@ impl AccountedWasi {
     pub(crate) fn usage(&self) -> WasiUsage {
         self.context.usage()
     }
+
+    /// Attribute observations only after pairing this actual owner with the
+    /// control. This borrows without work/admission/cancellation so terminal
+    /// cleanup can use it. Same-owner ledger faults retain actual context data;
+    /// a foreign owner cannot populate another runtime's WASI diagnostics.
+    pub(crate) fn checked_usage(
+        &self,
+        control: &mut RuntimeControl,
+        cursor: Cursor,
+    ) -> Result<WasiUsage, SwiftRunFailure> {
+        let Some(header) = self.header.as_ref() else {
+            return Err(control.fail(
+                cursor,
+                Fault::new(
+                    SwiftRunFailureKind::Invariant,
+                    "swift_run_wasi_missing_header",
+                ),
+                None,
+            ));
+        };
+        let observation = control
+            .reservation_owner_matches(header)
+            .then(|| self.context.usage());
+        control.check_reservation_owner(header, cursor, observation)?;
+        Ok(self.context.usage())
+    }
     pub(crate) fn stdout(&self) -> &[u8] {
         self.context.stdout()
     }

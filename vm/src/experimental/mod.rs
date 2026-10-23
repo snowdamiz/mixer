@@ -1,7 +1,7 @@
 //! Sealed complete validation; optional Rust-only cache and execution experiments.
 mod account;
 mod metadata;
-mod policy;
+pub(crate) mod policy;
 mod reader;
 #[cfg(feature = "experimental-swift-reactor")]
 pub(crate) mod swift;
@@ -10,10 +10,15 @@ mod validate;
 #[cfg(feature = "experimental-function-cache")]
 pub mod cache;
 
-#[cfg(feature = "experimental-span-execution")]
-mod descriptors;
+#[cfg(any(
+    feature = "experimental-span-execution",
+    feature = "experimental-swift-reactor"
+))]
+pub(crate) mod descriptors;
 #[cfg(feature = "experimental-span-execution")]
 pub mod execution;
+#[cfg(all(test, feature = "experimental-swift-reactor"))]
+mod swift_descriptor_tests;
 
 use crate::{Cancellation, Limits, Profile};
 use account::{Buffer, Cursor, Meter, MeterControl};

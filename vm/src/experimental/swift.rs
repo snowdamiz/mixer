@@ -1,4 +1,8 @@
 //! Implementation stays inside the private validator boundary.
+use super::descriptors::{
+    FunctionSpanView, GlobalView, MemoryExecutionView, SegmentExecutionView, SignatureView,
+    TableExecutionView,
+};
 use super::*;
 use crate::experimental_wasi::WasiFunction;
 use crate::Type;
@@ -196,6 +200,108 @@ impl ValidatedSwiftReactor {
             count: segment.count,
             encoded_payload: segment.payload.slice(&self.source),
         }
+    }
+}
+
+// These borrows preserve the sealed owner and its original metadata/source.
+// They are not a second validation or execution authority. Consumers charge
+// their own bounded work before scans; individual descriptor lookups allocate
+// nothing and do not change validation usage.
+#[allow(dead_code)] // Prerequisite for the later private execution/cache stage.
+impl ValidatedSwiftReactor {
+    pub(crate) fn execution_signature(&self, absolute: u32) -> Option<SignatureView<'_>> {
+        let signature = self.metadata.signature(absolute)?;
+        Some(SignatureView {
+            params: self.metadata.params(signature),
+            result: signature.result,
+        })
+    }
+
+    pub(crate) fn execution_type(&self, type_index: u32) -> Option<SignatureView<'_>> {
+        let signature = *self.metadata.signatures.get(type_index as usize)?;
+        Some(SignatureView {
+            params: self.metadata.params(signature),
+            result: signature.result,
+        })
+    }
+
+    pub(crate) fn execution_function(&self, absolute: u32) -> Option<FunctionSpanView<'_>> {
+        let defined = absolute.checked_sub(self.imports.len() as u32)?;
+        let function = self.metadata.functions.get(defined as usize)?;
+        Some(FunctionSpanView {
+            absolute_index: absolute,
+            type_index: function.type_index,
+            body_offset: function.body.offset as usize,
+            body: function.body.slice(&self.source),
+        })
+    }
+
+    pub(crate) fn execution_global_count(&self) -> usize {
+        self.metadata.globals.len()
+    }
+
+    pub(crate) fn execution_global(&self, index: usize) -> Option<GlobalView<'_>> {
+        let global = self.metadata.globals.get(index)?;
+        Some(GlobalView {
+            ty: global.ty,
+            mutable: global.mutable,
+            initializer: global.initializer.slice(&self.source),
+        })
+    }
+
+    pub(crate) fn execution_global_initializer_offset(&self, index: usize) -> Option<usize> {
+        Some(self.metadata.globals.get(index)?.initializer.offset as usize)
+    }
+
+    pub(crate) fn execution_data_count(&self) -> usize {
+        self.metadata.data.len()
+    }
+
+    pub(crate) fn execution_data(&self, index: usize) -> Option<SegmentExecutionView<'_>> {
+        Some(self.execution_segment(self.metadata.data.get(index)?))
+    }
+
+    pub(crate) fn execution_element_count(&self) -> usize {
+        self.metadata.elements.len()
+    }
+
+    pub(crate) fn execution_element(&self, index: usize) -> Option<SegmentExecutionView<'_>> {
+        Some(self.execution_segment(self.metadata.elements.get(index)?))
+    }
+
+    fn execution_segment(&self, segment: &metadata::Segment) -> SegmentExecutionView<'_> {
+        SegmentExecutionView {
+            destination: segment.destination,
+            count: segment.count,
+            payload_offset: segment.payload.offset as usize,
+            encoded_payload: segment.payload.slice(&self.source),
+        }
+    }
+
+    pub(crate) fn execution_memory(&self) -> Option<MemoryExecutionView> {
+        let (minimum, host_maximum) = self.metadata.memory?;
+        Some(MemoryExecutionView {
+            minimum,
+            declared_maximum: self.metadata.declarations.memory_maximum,
+            host_maximum,
+        })
+    }
+
+    pub(crate) fn execution_table(&self) -> Option<TableExecutionView> {
+        let (minimum, host_maximum) = self.metadata.table?;
+        Some(TableExecutionView {
+            minimum,
+            declared_maximum: self.metadata.declarations.table_maximum,
+            host_maximum,
+        })
+    }
+
+    pub(crate) fn execution_imports(&self) -> &[WasiFunction; 34] {
+        &self.imports
+    }
+
+    pub(crate) fn decode_policy(&self) -> &policy::Policy<'static> {
+        &self.policy
     }
 }
 

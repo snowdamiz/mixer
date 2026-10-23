@@ -729,6 +729,7 @@ impl RuntimeControl {
         category: SwiftReservationCategory,
         bytes: usize,
         cursor: Cursor,
+        wasi: Option<WasiUsage>,
     ) -> Result<(usize, usize), SwiftRunFailure> {
         let category_next = self
             .reservations
@@ -753,7 +754,7 @@ impl RuntimeControl {
                     category_next.map_or(u64::MAX, |n| n as u64),
                     limit as u64,
                 ),
-                None,
+                wasi,
             ));
         }
         let combined_next = self.reservations.combined.current.checked_add(bytes);
@@ -769,7 +770,7 @@ impl RuntimeControl {
                     combined_next.map_or(u64::MAX, |n| n as u64),
                     self.budget.combined_bytes as u64,
                 ),
-                None,
+                wasi,
             ));
         }
         Ok((category_next.unwrap(), combined_next.unwrap()))
@@ -792,7 +793,17 @@ impl RuntimeControl {
         bytes: usize,
         cursor: Cursor,
     ) -> Result<ReservationTicket, SwiftRunFailure> {
-        self.check(cursor)?;
+        self.admit_with_wasi(category, bytes, cursor, None)
+    }
+
+    pub(crate) fn admit_with_wasi(
+        &mut self,
+        category: SwiftReservationCategory,
+        bytes: usize,
+        cursor: Cursor,
+        wasi: Option<WasiUsage>,
+    ) -> Result<ReservationTicket, SwiftRunFailure> {
+        self.check_with_wasi(cursor, wasi)?;
         if self.reservations.live_tickets >= MAX_RESERVATION_TICKETS {
             return Err(self.fail(
                 cursor,
@@ -805,10 +816,10 @@ impl RuntimeControl {
                     self.reservations.live_tickets as u64 + 1,
                     MAX_RESERVATION_TICKETS as u64,
                 ),
-                None,
+                wasi,
             ));
         }
-        let (category_next, combined_next) = self.preflight_bytes(category, bytes, cursor)?;
+        let (category_next, combined_next) = self.preflight_bytes(category, bytes, cursor, wasi)?;
         self.commit_bytes(category, category_next, combined_next);
         self.reservations.live_tickets += 1;
         self.reservations.peak_tickets = self
@@ -829,7 +840,16 @@ impl RuntimeControl {
         bytes: usize,
         cursor: Cursor,
     ) -> Result<ReservationTicket, SwiftRunFailure> {
-        self.check(cursor)?;
+        self.admit_cache_entry_with_wasi(bytes, cursor, None)
+    }
+
+    pub(crate) fn admit_cache_entry_with_wasi(
+        &mut self,
+        bytes: usize,
+        cursor: Cursor,
+        wasi: Option<WasiUsage>,
+    ) -> Result<ReservationTicket, SwiftRunFailure> {
+        self.check_with_wasi(cursor, wasi)?;
         if bytes > self.budget.cache_entry_bytes {
             return Err(self.fail(
                 cursor,
@@ -842,10 +862,10 @@ impl RuntimeControl {
                     bytes as u64,
                     self.budget.cache_entry_bytes as u64,
                 ),
-                None,
+                wasi,
             ));
         }
-        self.admit(SwiftReservationCategory::Cache, bytes, cursor)
+        self.admit_with_wasi(SwiftReservationCategory::Cache, bytes, cursor, wasi)
     }
 
     /// Grow the one construction ticket BEFORE entering a larger phase. It is
@@ -855,7 +875,16 @@ impl RuntimeControl {
         bytes: usize,
         cursor: Cursor,
     ) -> Result<(), SwiftRunFailure> {
-        self.check(cursor)?;
+        self.enlarge_construction_with_wasi(bytes, cursor, None)
+    }
+
+    pub(crate) fn enlarge_construction_with_wasi(
+        &mut self,
+        bytes: usize,
+        cursor: Cursor,
+        wasi: Option<WasiUsage>,
+    ) -> Result<(), SwiftRunFailure> {
+        self.check_with_wasi(cursor, wasi)?;
         let old = self
             .construction
             .as_ref()
@@ -867,7 +896,7 @@ impl RuntimeControl {
                         SwiftRunFailureKind::Invariant,
                         "swift_run_missing_construction",
                     ),
-                    None,
+                    wasi,
                 )
             })?;
         if bytes < old {
@@ -877,11 +906,15 @@ impl RuntimeControl {
                     SwiftRunFailureKind::Invariant,
                     "swift_run_construction_shrink_before_drop",
                 ),
-                None,
+                wasi,
             ));
         }
-        let (category_next, combined_next) =
-            self.preflight_bytes(SwiftReservationCategory::Construction, bytes - old, cursor)?;
+        let (category_next, combined_next) = self.preflight_bytes(
+            SwiftReservationCategory::Construction,
+            bytes - old,
+            cursor,
+            wasi,
+        )?;
         self.commit_bytes(
             SwiftReservationCategory::Construction,
             category_next,
@@ -898,24 +931,36 @@ impl RuntimeControl {
         storage: T,
         bytes: usize,
     ) -> Result<(), SwiftRunFailure> {
+        self.end_construction_phase_with_wasi(storage, bytes, None)
+    }
+
+    pub(crate) fn end_construction_phase_with_wasi<T>(
+        &mut self,
+        storage: T,
+        bytes: usize,
+        wasi: Option<WasiUsage>,
+    ) -> Result<(), SwiftRunFailure> {
         drop(storage);
         let Some(ticket) = self.construction.as_ref() else {
-            return Err(self.cleanup_fault(
+            return Err(self.cleanup_fault_with_wasi(
                 SwiftCleanupInvariant::MissingConstruction,
                 "swift_run_missing_construction",
+                wasi,
             ));
         };
         if ticket.owner != self.owner || ticket.category != SwiftReservationCategory::Construction {
-            return Err(self.cleanup_fault(
+            return Err(self.cleanup_fault_with_wasi(
                 SwiftCleanupInvariant::ReservationOwner,
                 "swift_run_construction_owner",
+                wasi,
             ));
         }
         let floor = foundation_construction_bytes().unwrap_or(usize::MAX);
         if bytes < floor || bytes > ticket.bytes {
-            return Err(self.cleanup_fault(
+            return Err(self.cleanup_fault_with_wasi(
                 SwiftCleanupInvariant::ConstructionBound,
                 "swift_run_construction_phase_bound",
+                wasi,
             ));
         }
         let difference = ticket.bytes - bytes;
@@ -926,9 +971,10 @@ impl RuntimeControl {
             .checked_sub(difference);
         let combined = self.reservations.combined.current.checked_sub(difference);
         let (Some(category), Some(combined)) = (category, combined) else {
-            return Err(self.cleanup_fault(
+            return Err(self.cleanup_fault_with_wasi(
                 SwiftCleanupInvariant::ReservationUnderflow,
                 "swift_run_release_underflow",
+                wasi,
             ));
         };
         self.reservations.construction.current = category;
@@ -959,18 +1005,42 @@ impl RuntimeControl {
         self.refund_with_wasi(ticket, wasi)
     }
     pub(crate) fn drop_proof(&mut self, adopted: AdoptedProof) -> Result<(), SwiftRunFailure> {
+        self.drop_proof_with_wasi(adopted, None)
+    }
+
+    pub(crate) fn drop_proof_with_wasi(
+        &mut self,
+        adopted: AdoptedProof,
+        wasi: Option<WasiUsage>,
+    ) -> Result<(), SwiftRunFailure> {
         let AdoptedProof {
             proof,
             source,
             metadata,
         } = adopted;
         drop(proof);
-        let source_result = self.refund(source);
-        let metadata_result = self.refund(metadata);
+        let source_result = self.refund_with_wasi(source, wasi);
+        let metadata_result = self.refund_with_wasi(metadata, wasi);
         source_result.and(metadata_result)
     }
     /// Check an internal component/control pairing before it can perform work.
     /// This borrows its sealed ticket and neither admits nor refunds storage.
+    pub(crate) fn check_adopted_owner(
+        &mut self,
+        adopted: &AdoptedProof,
+        cursor: Cursor,
+        wasi: Option<WasiUsage>,
+    ) -> Result<(), SwiftRunFailure> {
+        self.check_reservation_owner(&adopted.source, cursor, wasi)?;
+        self.check_reservation_owner(&adopted.metadata, cursor, wasi)
+    }
+
+    /// Identity alone lets a component attribute its diagnostic observation.
+    /// It does not establish live accounting or authorize any effect/refund.
+    pub(crate) fn reservation_owner_matches(&self, ticket: &ReservationTicket) -> bool {
+        ticket.owner != 0 && ticket.owner == self.owner
+    }
+
     pub(crate) fn check_reservation_owner(
         &mut self,
         ticket: &ReservationTicket,
@@ -1048,7 +1118,17 @@ impl RuntimeControl {
         observed: usize,
         cursor: Cursor,
     ) -> Result<(), SwiftRunFailure> {
-        self.check(cursor)?;
+        self.exact_capacity_with_wasi(requested, observed, cursor, None)
+    }
+
+    pub(crate) fn exact_capacity_with_wasi(
+        &mut self,
+        requested: usize,
+        observed: usize,
+        cursor: Cursor,
+        wasi: Option<WasiUsage>,
+    ) -> Result<(), SwiftRunFailure> {
+        self.check_with_wasi(cursor, wasi)?;
         if requested != observed {
             let mut fault = Fault::new(
                 SwiftRunFailureKind::Allocation,
@@ -1060,7 +1140,7 @@ impl RuntimeControl {
                 requested as u64,
             );
             fault.observed_capacity = Some(observed);
-            return Err(self.fail(cursor, fault, None));
+            return Err(self.fail(cursor, fault, wasi));
         }
         Ok(())
     }
@@ -1071,7 +1151,17 @@ impl RuntimeControl {
         credits: u64,
         cursor: Cursor,
     ) -> Result<(), SwiftRunFailure> {
-        self.check(cursor)?;
+        self.work_with_wasi(component, credits, cursor, None)
+    }
+
+    pub(crate) fn work_with_wasi(
+        &mut self,
+        component: Work,
+        credits: u64,
+        cursor: Cursor,
+        wasi: Option<WasiUsage>,
+    ) -> Result<(), SwiftRunFailure> {
+        self.check_with_wasi(cursor, wasi)?;
         let (used, limit, resource) = match component {
             Work::Cache => (
                 self.cache_work,
@@ -1092,7 +1182,7 @@ impl RuntimeControl {
                     used.saturating_add(credits),
                     limit,
                 ),
-                None,
+                wasi,
             ));
         };
         match component {
@@ -1226,7 +1316,17 @@ impl RuntimeControl {
         amount: usize,
         cursor: Cursor,
     ) -> Result<(), SwiftRunFailure> {
-        self.check(cursor)?;
+        self.add_live_with_wasi(resource, amount, cursor, None)
+    }
+
+    pub(crate) fn add_live_with_wasi(
+        &mut self,
+        resource: Live,
+        amount: usize,
+        cursor: Cursor,
+        wasi: Option<WasiUsage>,
+    ) -> Result<(), SwiftRunFailure> {
+        self.check_with_wasi(cursor, wasi)?;
         let (usage, limit, diagnostic, kind) = self.live_parts(resource);
         let next = usage.current.checked_add(amount);
         let Some(next) = next.filter(|next| *next <= limit) else {
@@ -1237,7 +1337,7 @@ impl RuntimeControl {
                     next.map_or(u64::MAX, |n| n as u64),
                     limit as u64,
                 ),
-                None,
+                wasi,
             ));
         };
         let usage = self.live_mut(resource);
@@ -1251,11 +1351,21 @@ impl RuntimeControl {
         resource: Live,
         amount: usize,
     ) -> Result<(), SwiftRunFailure> {
+        self.remove_live_with_wasi(resource, amount, None)
+    }
+
+    pub(crate) fn remove_live_with_wasi(
+        &mut self,
+        resource: Live,
+        amount: usize,
+        wasi: Option<WasiUsage>,
+    ) -> Result<(), SwiftRunFailure> {
         let (usage, _, _, _) = self.live_parts(resource);
         let Some(next) = usage.current.checked_sub(amount) else {
-            return Err(self.cleanup_fault(
+            return Err(self.cleanup_fault_with_wasi(
                 SwiftCleanupInvariant::LiveUnderflow,
                 "swift_run_live_underflow",
+                wasi,
             ));
         };
         self.live_mut(resource).current = next;

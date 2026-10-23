@@ -1261,3 +1261,80 @@ fn component_owner_check_neither_transfers_nor_refunds_foreign_storage() {
     assert_empty(clean(control, adopted));
     assert_empty(clean(other, other_proof));
 }
+
+#[test]
+fn adopted_preflight_checks_both_original_tickets_without_consuming_authority() {
+    let (mut control, mut adopted) = adopt(SwiftRunBudget::default());
+    let (mut other, mut other_proof) = adopt(SwiftRunBudget::default());
+    let at = cursor(SwiftRunStage::Cache);
+    let original = control.reservations;
+    let foreign = other.reservations;
+    control.check_adopted_owner(&adopted, at, None).unwrap();
+    // Test-only corruption: the valid source ticket must not hide a foreign
+    // metadata ticket. Both real owners remain intact and can be restored.
+    std::mem::swap(&mut adopted.metadata, &mut other_proof.metadata);
+    let (failure, stats) = super::super::allocation_tests::measure(|| {
+        control.check_adopted_owner(&adopted, at, None).unwrap_err()
+    });
+    no_allocations(stats);
+    assert_eq!(stats.deallocations, 0);
+    assert_eq!(failure.code, "swift_run_reservation_owner");
+    assert_eq!(control.reservations, original);
+    assert_eq!(other.reservations, foreign);
+    std::mem::swap(&mut adopted.metadata, &mut other_proof.metadata);
+    control.check_adopted_owner(&adopted, at, None).unwrap();
+    other.check_adopted_owner(&other_proof, at, None).unwrap();
+    let failure = other.check_adopted_owner(&adopted, at, None).unwrap_err();
+    assert_eq!(failure.code, "swift_run_reservation_owner");
+    assert_eq!(other.reservations, foreign);
+    assert_empty(clean(control, adopted));
+    assert_empty(clean(other, other_proof));
+}
+
+#[test]
+fn checked_actual_wasi_pairing_preserves_same_owner_ledger_fault_observation() {
+    use crate::experimental_wasi::accounted::AccountedWasi;
+    use crate::experimental_wasi::{WasiBudget, WasiGrants};
+    let (mut control, adopted) = adopt(SwiftRunBudget::default());
+    let at = cursor(SwiftRunStage::Cache);
+    let mut phase = AccountedWasi::prepare(&mut control, at).unwrap();
+    let mut owner = phase
+        .construct(
+            WasiGrants::default(),
+            WasiBudget::default(),
+            Instant::now(),
+            at,
+        )
+        .unwrap();
+    phase.complete().unwrap();
+    owner
+        .dispatch(
+            &mut control,
+            WasiFunction::ArgsSizesGet,
+            &[crate::Value::I32(0), crate::Value::I32(4)],
+            &mut [0u8; 8],
+            at,
+        )
+        .unwrap();
+    let observation = owner.usage();
+    assert_eq!(observation.calls, 1);
+    let before = control.reservations;
+    // Test-only damaged accounting does not change the actual header identity.
+    // The first invariant must therefore retain this real owner's counters.
+    control.reservations.wasi.current = 0;
+    let (failure, stats) = super::super::allocation_tests::measure(|| {
+        owner.checked_usage(&mut control, at).unwrap_err()
+    });
+    no_allocations(stats);
+    assert_eq!(stats.deallocations, 0);
+    assert_eq!(failure.code, "swift_run_reservation_underflow");
+    assert_eq!(failure.at_failure.wasi, Some(observation));
+    control.reservations = before;
+    assert_eq!(owner.checked_usage(&mut control, at).unwrap(), observation);
+    owner.cleanup(&mut control).unwrap();
+    control
+        .drop_proof_with_wasi(adopted, Some(observation))
+        .unwrap();
+    assert_eq!(control.check(at).unwrap_err(), failure);
+    assert_empty(control.finish_owned_cleanup(Some(observation)));
+}

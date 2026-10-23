@@ -1,26 +1,69 @@
 //! Private views into one sealed source/metadata owner, never independent proof.
+#[cfg(feature = "experimental-span-execution")]
 use super::ValidatedSpans;
 use crate::Type;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(super) struct SignatureView<'a> {
-    pub params: &'a [Type],
-    pub result: Option<Type>,
+pub(crate) struct SignatureView<'a> {
+    pub(crate) params: &'a [Type],
+    pub(crate) result: Option<Type>,
 }
 
 #[derive(Clone, Copy)]
+#[cfg(feature = "experimental-span-execution")]
 pub(super) struct ImportView<'a> {
     pub module: &'a [u8],
     pub name: &'a [u8],
 }
 
 #[derive(Clone, Copy)]
-pub(super) struct GlobalView<'a> {
-    pub ty: Type,
-    pub mutable: bool,
-    pub initializer: &'a [u8],
+pub(crate) struct GlobalView<'a> {
+    pub(crate) ty: Type,
+    pub(crate) mutable: bool,
+    pub(crate) initializer: &'a [u8],
 }
 
+/// Borrowed code span; the function index includes the sealed imports.
+#[cfg(feature = "experimental-swift-reactor")]
+#[allow(dead_code)] // Consumed by the later private execution/cache stage.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) struct FunctionSpanView<'a> {
+    pub(crate) absolute_index: u32,
+    pub(crate) type_index: u32,
+    pub(crate) body_offset: usize,
+    pub(crate) body: &'a [u8],
+}
+
+/// Encoded initializer bytes, retaining source order and the absolute cursor.
+#[cfg(feature = "experimental-swift-reactor")]
+#[allow(dead_code)] // Consumed by the later private execution stage.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) struct SegmentExecutionView<'a> {
+    pub(crate) destination: u32,
+    pub(crate) count: u32,
+    pub(crate) payload_offset: usize,
+    pub(crate) encoded_payload: &'a [u8],
+}
+
+#[cfg(feature = "experimental-swift-reactor")]
+#[allow(dead_code)] // Consumed by the later private execution stage.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) struct MemoryExecutionView {
+    pub(crate) minimum: u32,
+    pub(crate) declared_maximum: Option<u32>,
+    pub(crate) host_maximum: u32,
+}
+
+#[cfg(feature = "experimental-swift-reactor")]
+#[allow(dead_code)] // Consumed by the later private execution stage.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) struct TableExecutionView {
+    pub(crate) minimum: u32,
+    pub(crate) declared_maximum: Option<u32>,
+    pub(crate) host_maximum: u32,
+}
+
+#[cfg(feature = "experimental-span-execution")]
 impl ValidatedSpans {
     pub(super) fn execution_signature(&self, function: u32) -> Option<SignatureView<'_>> {
         let signature = self.metadata.signature(function)?;
