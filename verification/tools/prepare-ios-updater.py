@@ -104,7 +104,8 @@ extension Bundle { static var module: Bundle { Bundle(for: FixtureBundleAnchor.s
     if a.package != 'updates':
         pbx = pbx.replace('productName = MixerUpdates;', f'productName = {product};')
         pbx = pbx.replace('dev.mixer.updaterqualification', f'dev.mixer.{a.package}qualification')
-        pbx = pbx.replace('files = (A00000000000000000000018);', 'files = ();')
+        if not (tests / 'Fixtures').is_dir():
+            pbx = pbx.replace('files = (A00000000000000000000018);', 'files = ();')
         pbx = pbx.replace('SWIFT_VERSION = 6.0;', 'SWIFT_VERSION = 6.0; LIBRARY_SEARCH_PATHS = "$(SRCROOT)/lib";')
     (project / 'project.pbxproj').write_text(pbx)
     scheme = project / 'xcshareddata/xcschemes/UpdaterHost.xcscheme'

@@ -32,7 +32,9 @@ publication and independent release/security review remain open. This module is
 not part of the root public SDK package yet. No physical-device check is implied.
 
 The wire contract is `../contracts/runtime-identity-v1.json`. The command-line
-tool reads a bounded regular descriptor file and prints its fingerprint and host
+tool opens the descriptor nonblocking with final-symlink rejection, checks the
+opened descriptor's regular-file type/size, then reads within the byte bound. It
+prints its fingerprint and host
 configuration. It never stages a release or changes installed authority.
 
 ```sh

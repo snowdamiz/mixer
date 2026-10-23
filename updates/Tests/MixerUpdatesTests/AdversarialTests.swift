@@ -123,6 +123,10 @@ private func signed(_ value: CanonicalValue, field: String, domain: String, key:
     expectUpdateError("file.kind") { _ = try UpdateInputFile.read(directory, maximumBytes: 128) }
     expectUpdateError("file.limit") { _ = try UpdateInputFile.read(file, maximumBytes: 0) }
     expectUpdateError("file.limit") { _ = try UpdateInputFile.read(file, maximumBytes: Int.max) }
+    let symlink = directory.appendingPathComponent("linked-input")
+    try FileManager.default.createSymbolicLink(at: symlink, withDestinationURL: file)
+    expectUpdateError("file.kind") { _ = try UpdateInputFile.read(symlink, maximumBytes: 128) }
+    expectUpdateError("file.kind") { _ = try UpdateInputFile.read(URL(string: "https://example.test/input")!, maximumBytes: 128) }
     // Exercise the actual bounded reader independently of the early stat check,
     // as if a file grew between checking metadata and opening its current contents.
     try Data(repeating: 0x41, count: 129).write(to: file)
