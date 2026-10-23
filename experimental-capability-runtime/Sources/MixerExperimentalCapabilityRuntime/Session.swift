@@ -143,6 +143,13 @@ public final class ExperimentalCapabilitySession: @unchecked Sendable {
     public func startup() async throws -> ExperimentalCapabilityInvocation { try await owner.startup() }
     /// Development-only transition after startup, never verified activation.
     public func enableEffects() async throws { try await owner.enable() }
+    /// Trusted coordinator seam: carries its exact DispatchTime uptime startup
+    /// cutoff to the guest worker. This is a sampled cooperative pre-C check,
+    /// not a hard real-time guarantee or signed execution authority.
+    @_spi(CapabilityLifecycle)
+    public func enableOwnedEffects(noLaterThanUptimeNanoseconds cutoff: UInt64) async throws {
+        try await owner.enableOwned(noLaterThanUptimeNanoseconds: cutoff)
+    }
     public func invoke(_ export: String, arguments: [ExperimentalVMValue] = []) async throws -> ExperimentalCapabilityInvocation {
         guard !export.isEmpty, export.utf8.prefix(4097).count <= 4096, arguments.count <= 4096 else {
             throw ExperimentalCapabilityError("invalid_invoke_arguments")

@@ -1,0 +1,59 @@
+{
+  "status": "independent final source review: no actionable producer findings; coordinator composition remains pending",
+  "reviewedAt": "2026-10-23T09:22:14.942850+00:00",
+  "sourceSHA256": {
+    "capability-activation/Sources/MixerCapabilityActivation/CapabilityAttemptSignals.swift": "f9d102994ad49b13645937a4fb9e2dc4215c464cfb738cff72e073b56f03c1de",
+    "docs/capability-durable-updater-api-design.md": "f5a8c7bf2ae7f597da56061870a926181ae3a8ecfe877d70033bb0787d37f08b",
+    "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Lifecycle.swift": "6b019511bfe232e9a15ff21f4b0b41b6565d6413677f76588ccfc9962768d7c5",
+    "capability-activation/Tests/MixerCapabilityActivationTests/CapabilityAttemptSignalsTests.swift": "8593be1f004e2d2a5ece446ee5c7edcc61479feada3bb71c1c765bb2fbb6710b"
+  },
+  "findings": [],
+  "sourceObservations": [
+    "No Task/Task.detached creation or caller-supplied callback/owner is stored by the producer",
+    "One NSLock serializes first-cause capture, first bridge detail, generation checks and effects-intent commit entry",
+    "First observed local/bridge cause and first bridge details are immutable independently; resulting VM cancellation cannot replace an already recorded local cause",
+    "Expected generation must exactly equal immutable nonzero attempt generation; supplying current owner generation and retiring old latch remain coordinator responsibilities",
+    "Effects intent is single-use and sticky even when later transaction outcome is uncertain; it does not claim native enable or I/O",
+    "One buffered Void event and notificationSent coalesce reports; consumers must use snapshot for authoritative current state",
+    "Commit-entry lock is released before I/O, matching allowed actual/uncertain commit when a stop occurs after entry; store must recheck latch before returning healthy",
+    "finishNotifications only finishes the stream; it does not stop the attempt, release reservations or establish native drain"
+  ],
+  "futureIntegrationRequirements": [
+    "Exactly one counted notification consumer and iterator per attempt, created only after the whole-attempt bound; AsyncStream buffer1 does not limit arbitrary multiple iterator waiters",
+    "Consumer must not strongly capture coordinator/attempt/session/group/reservation resources across next(); a suspended stream continuation can form an indirect ownership path through its consuming Task",
+    "Record local stop before native cancel/close so a resulting checked VM cancelled callback cannot win firstCause incorrectly",
+    "Explicitly finish and join the consumer on every shutdown/unwind, including no-event setup/constructor failure, before store close; do not require eventual native drain to finish notifications",
+    "Treat notification as an edge hint: finish can race/drop a pending yield; read authoritative snapshot at publication/enable/health/close boundaries",
+    "Do not finish notification observation while a still-active attempt can return healthy; late failure remains latched even when notification delivery is terminated",
+    "The next private transition/coordinator candidate must qualify these ownership and ordering requirements; this producer alone is not composition evidence",
+    "Root proposes weak worker box plus inner owner-use function returning before next(); implementation and qualification remain future work"
+  ],
+  "supportingPlatformSources": [
+    {
+      "url": "https://github.com/swiftlang/swift/blob/swift-6.3.3-RELEASE/stdlib/public/Concurrency/AsyncStream.swift",
+      "reviewedLines": "173-197,249-253,343-388",
+      "observation": "Continuation yield/finish use storage; buffering limits values, operations are serialized, iterator ownership and finish/cancel matter"
+    },
+    {
+      "url": "https://github.com/swiftlang/swift/blob/swift-6.3.3-RELEASE/stdlib/public/Concurrency/AsyncStreamBuffer.swift",
+      "reviewedLines": "53-60,197-242",
+      "observation": "Storage keeps pending next continuations and resumes them on finish; indirect consuming-Task ownership risk is an inference for the future consumer"
+    }
+  ],
+  "limitations": [
+    "Source review only: no build, executable probe, TSan or package graph performed by this lane",
+    "Root-owned tests were inspected but no test execution result is claimed here",
+    "No notification consumer/private coordinator is implemented in the reviewed file; ownership integration cannot yet be qualified",
+    "No durable effects/health transition, real native execution, device, activation, publication or GA qualification"
+  ],
+  "draftReceiptSHA256": "a8a8a61e5aba89236c29c6ea9d24577c1c8ddb2291b365f8288439157ce1d835",
+  "commentOnlyRevisionVerified": true,
+  "documentedIntegrationRequirementsConfirmed": [
+    "Single counted iterator per attempt",
+    "No strong coordinator/attempt/group/session references across next()",
+    "Finish and join on every unwind independently of native drain",
+    "Snapshot authoritative if finish races yield",
+    "Local stop recorded before native cancel"
+  ],
+  "commentOnlyPatchSHA256": "2004df7e33a19fa5912eba7a4e458549df680d52b3535f23ee8099c4e5b1ee12"
+}

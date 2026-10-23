@@ -1,0 +1,21 @@
+{
+  "status": "six producer cases pass debug/release/Swift TSan; XCTest branch typechecks; independent source review has no findings",
+  "inputs": {
+    "capability-activation/Sources/MixerCapabilityActivation/CapabilityAttemptSignals.swift": "f9d102994ad49b13645937a4fb9e2dc4215c464cfb738cff72e073b56f03c1de",
+    "capability-activation/Tests/MixerCapabilityActivationTests/CapabilityAttemptSignalsTests.swift": "8593be1f004e2d2a5ece446ee5c7edcc61479feada3bb71c1c765bb2fbb6710b"
+  },
+  "producer_receipt_sha256": "ae977ee29c134f97b674bb85985a8f8b0577afbe451e946880756e4a90ebcb91",
+  "xctest_branch_receipt_sha256": "5c5248b8ab91979e52c0bd5a367b7be8f5e4f9de5e7556dad1c3e0e5260d7448",
+  "source_review_sha256": "347560704e338ee03bc5621e1e62e644a34afc88e490abac03317e466e9d6ab0",
+  "seal_source_sha256": "064cfe57f41275d256c050156de6d6e7d5ac01495418ce84e1da00d2446aae06",
+  "scope": "Internal fixed failure/effects latch, not a coordinator or durable transition.128 commit races and128 concurrent terminal reports per mode.",
+  "limitations": [
+    "Test-only typed failure values exercise the latch, not native failure classification.",
+    "TSan covers these Swift tests and available instrumented dependencies; not Rust/system internals.",
+    "The AsyncStream consumer and signed transition composition remain unimplemented/unqualified.",
+    "Base bridge full runtime35 tests passed; its unrelated standalone fixture failure and repaired cross consumer are recorded separately.",
+    "Independent review is source-only. Single counted consumer, acyclic ownership, finish/join and publication ordering remain coordinator requirements.",
+    "Initial standalone XCTest typecheck omitted platform framework path; corrected search path passes without source edits.",
+    "No complete package/device/hosted/GA qualification inferred from these direct compiler runs."
+  ]
+}

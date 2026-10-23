@@ -1,0 +1,15 @@
+/Users/andreyyurlov/Documents/dev/mixer/verification/capability-enable-deadline-review/.build/targeted/default-import.swift:3:23: error: 'enableOwnedEffects' is inaccessible due to '@_spi' protection level
+1 | import MixerExperimentalCapabilityRuntime
+2 | func unavailable(_ session: ExperimentalCapabilitySession) async throws {
+3 |     try await session.enableOwnedEffects(noLaterThanUptimeNanoseconds: 0)
+  |                       `- error: 'enableOwnedEffects' is inaccessible due to '@_spi' protection level
+4 | }
+5 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Session.swift:150:17: note: 'enableOwnedEffects(noLaterThanUptimeNanoseconds:)' declared here
+148 |     /// not a hard real-time guarantee or signed execution authority.
+149 |     @_spi(CapabilityLifecycle)
+150 |     public func enableOwnedEffects(noLaterThanUptimeNanoseconds cutoff: UInt64) async throws {
+    |                 `- note: 'enableOwnedEffects(noLaterThanUptimeNanoseconds:)' declared here
+151 |         try await owner.enableOwned(noLaterThanUptimeNanoseconds: cutoff)
+152 |     }

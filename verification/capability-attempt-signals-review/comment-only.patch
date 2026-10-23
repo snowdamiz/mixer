@@ -1,0 +1,19 @@
+--- draft/CapabilityAttemptSignals.swift
++++ final/CapabilityAttemptSignals.swift
+@@ -17,8 +17,14 @@
+ 
+ /// One dedicated data-only sink per counted attempt. It has no strong reference
+ /// to an adapter group, construction, session, actor, reservation or cleanup job.
+-/// Its single buffered notification schedules no Task. The coordinator owns one
+-/// notification consumer and joins its logical return before closing its store.
++/// Its single buffered notification schedules no Task. The trusted coordinator
++/// owns exactly one counted iterator: the buffer limit does not bound additional
++/// iterator waiters. That consumer must not strongly retain coordinator/attempt/
++/// group/session resources across next(), since a suspended stream continuation
++/// could otherwise provide an ownership back-edge. Every unwind/close explicitly
++/// finishes and joins the consumer before store close, independently of native
++/// drain. Notifications are hints; snapshot is authoritative even when finish
++/// races a pending yield. Local stop is recorded before native cancel/close.
+ final class CapabilityAttemptSignals: CapabilityBridgeTerminalObserver, @unchecked Sendable {
+     let generation: UInt64
+     let notifications: AsyncStream<Void>

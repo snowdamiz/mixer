@@ -76,6 +76,12 @@ Counted recovery storage now passes41 debug/release tests,18 new TSan tests and2
 independent probes after repairing both owner-retirement races. Root audited the
 frozen foundation; see `verification/capability-durable-store-root-review/receipt.json`.
 Hosted CI at4a413b4 passes all three jobs for the preceding lifecycle/policy slice.
-Startup cutoff at owned enable, durable selection/effects/health transitions and
-the signed coordinator are the current implementation lanes.
+Owned enable's worker cutoff now passes35 tests per host mode, repaired cross
+consumer links and independent zero-native-enable/retirement checks. The fixed
+attempt signal latch passes six cases per host mode and independent source review.
+See `verification/capability-enable-deadline/receipt.json` and
+`verification/capability-attempt-signals/final-receipt.json`. CI at08e5c2d exposed
+one fixture type-check complexity issue; a byte-preserving split is implemented
+with follow-up hosted confirmation pending. Durable selection/effects/health
+transitions and the signed coordinator are the current implementation lanes.
 Keep the full product plan and physical/published-consumer/GA gates in scope.

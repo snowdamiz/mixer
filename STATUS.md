@@ -578,8 +578,27 @@ uses frozen3bdf5cd dependencies; composition with later lifecycle/policy code is
 still pending. Hosted run39928599118 at4a413b4 passes all three jobs for the prior
 lifecycle/policy checkpoint; see `verification/github-ci-4a413b4/receipt.json`.
 
-Startup cutoff at owned enable and coordinator integration remain under
-implementation and their unfinished files are excluded from this checkpoint.
+Owned enable now carries its original uptime cutoff through the guest queue and
+rejects expiry before native enable with ordinary cleanup. All35 bridge tests
+pass in debug/release/TSan. After correcting only a new consumer's missing Wasm
+ABI elements, eight consumers link across four targets and two host consumers
+run. Independent review adds14 public and28 derived checks per debug/release mode,
+including zero native enable calls after queued expiry and complete permit reuse.
+See `verification/capability-enable-deadline/receipt.json`. This remains a sampled
+cooperative check, not a hard real-time guarantee.
+
+The fixed private attempt latch passes six cases per debug/release/TSan mode,
+including128 stop/commit races and128 concurrent terminal reports. Its XCTest
+branch typechecks and independent source review has no actionable finding; see
+`verification/capability-attempt-signals/final-receipt.json`. Counted consumer
+ownership and durable transitions remain future composition requirements.
+
+Hosted run39930585800 at08e5c2d passed VM/services but failed to type-check a long
+store-test fixture expression on pinned Xcode26.3. Splitting it preserves all512
+generated Wasm variants byte for byte; follow-up hosted confirmation is pending.
+See `verification/capability-store-ci-fixture-fix/receipt.json`. Durable selection,
+effects/health and coordinator integration remain under implementation; their
+unfinished files are excluded from this checkpoint.
 Concrete signed execution, health/recovery and full FieldLog remain in progress.
 Physical checks remain pending while the phones are disconnected; no product or
 GA gate is closed by this checkpoint.

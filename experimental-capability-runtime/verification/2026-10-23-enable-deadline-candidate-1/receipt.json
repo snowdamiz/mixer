@@ -1,0 +1,832 @@
+{
+  "status": "failed_check_preserved",
+  "startedAt": "2026-10-23T09:10:27.969912+00:00",
+  "repositoryHeadAtRun": "4a413b44ee1442975751bd629f523812a0ae0115",
+  "source": {
+    "docs/capability-durable-updater-api-design.md": "f5a8c7bf2ae7f597da56061870a926181ae3a8ecfe877d70033bb0787d37f08b",
+    "docs/experimental-capability-bridge-design.md": "a8858acb7be79420c0d12d4258572f2502fd933fdae91c2a3eb5c6827b8c2d6e",
+    "docs/experimental-capability-validation-api-design.md": "07b12989a299c3b5cf7f74e6c731e4cdc630e326aace56384d4dda93fd4f7a13",
+    "experimental-capability-runtime/Package.swift": "771ee5ac6cae9ac30c5769700bffb7db5df51dbbf1e1ec399f472ba57f8ad43f",
+    "experimental-capability-runtime/README.md": "57106be53d1cc1a2441c328e786de4e457ebe6f570650670bc3efe0f1e4ee15d",
+    "experimental-capability-runtime/Sources/CMixerVMCapability/bridge.c": "c8ec5809fbde5cec858873b0219011e10879d0f34f3fdf9b96928844d69b7c43",
+    "experimental-capability-runtime/Sources/CMixerVMCapability/include/MixerVMCapability.h": "c5d42881e2ce1b66ccc14e3b0892d1d4fe70be1de32951d5f06c3500ab36c4f5",
+    "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Failure.swift": "c5ecbe9272178a97ceab0d33b383d9f375e4b0971e8294d7813d2e1574d3ee19",
+    "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Lifecycle.swift": "6b019511bfe232e9a15ff21f4b0b41b6565d6413677f76588ccfc9962768d7c5",
+    "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Native.swift": "b0172ff0d8f918f40298433e64a18951268c2c48808f3cd9ded45b6fda6ebf30",
+    "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Ownership.swift": "7d56c5c66ab859ee2040ab3cb099d89957c6c29b4455d1aba91ad7123187715e",
+    "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Session.swift": "333069f2028297eca374ddadb08248099b3c89e62d61577bc4be93db064c563c",
+    "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Types.swift": "ad4a30248e43d48584611f49ceb151827ae6f2b8c168d257263f2ef4ef2d9b83",
+    "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Validation.swift": "f68efe8e60d66dd55baaebfdfb20db9a5924a9698da9dfc82b2e08f985c40705",
+    "experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/ConstructionTests.swift": "a2c4830360b58ba1c5d2f5cd89d21c084d3a5e2c9e4c16a68930630466b2d51b",
+    "experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/FailureTests.swift": "d9c6ee2d8502f9121674608f9b8928a316d9f514cd50bd8ab7873cacfcb54d9c",
+    "experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/GuestProgram.swift": "a0805e2b39d3b5efbd4b5fe4065de143f4838cde00513b0cb15a923119025884",
+    "experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/HTTPTests.swift": "7fedf534a0f309c575b9f1b0c02e08bc99034ef1200ba83d89dfdb3ffa49eee4",
+    "experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/LifecycleTests.swift": "c1e773df9ae7ff31fb05784e16c63d6a5a3574a84bdef24e27d36ba57622c4cf",
+    "experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/MeasurementTests.swift": "d787871787b3afc4530f3ff3a236badf146763b170dcdb8f4f899dd898c76f7e",
+    "experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/OwnedEnableDeadlineTests.swift": "4d7d04a4831e770c81c92feec289ba26a55d09ebaa60426d6f74e68308f05c66",
+    "experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/OwnedLifecycleTests.swift": "c12654328ef5c9bfebee098ddb8e8886eaa0fe8b8310ce85f02a2e058c8212d5",
+    "experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/StorageTests.swift": "0779ab1ac40535ddd6ed31bfd8955999c7e640dca63b611d5be0c03cf2a1afe3",
+    "experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/ValidationGuest.swift": "daa9570dce03eccac3c527fdf71035fb22f5656b124f12194395e2b463276f50",
+    "experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/ValidationTests.swift": "c3134f0a4310f8498d022363c52dcbf8b48efec74decccc23e1d7d85c5e217c0",
+    "experimental-capability-runtime/verification/CrossProbe/Package.swift": "35a942fcd543da50e175e504b248cf8dad08762f56e00c270ecb8358364a4231",
+    "experimental-capability-runtime/verification/CrossProbe/Sources/bridge-cross-probe/main.swift": "9a06facffeaab31285396c8caa622ff0b13df8497b607b5a2800d41156a1a2b9",
+    "experimental-capability-runtime/verification/CrossProbe/Sources/bridge-lifecycle-probe/main.swift": "905072822db2100a7fbaf2a21b752a88ea2e6513399cc0dd3c2e6630817a68d6",
+    "experimental-capability-runtime/verification/ValidationProbe/ProbeHooks.swift": "117f71317f093a27e2a22100319a0190fed8b722afb2960bbc39d3ac8287c9c9",
+    "experimental-capability-runtime/verification/ValidationProbe/ProbeTests.swift": "682ea38e751670c615ed0d655f5e8f4fd9b1a1fa4e2e095a9ec4c1aba0ac7aca",
+    "experimental-capability-runtime/verification/validation-probes.py": "4f0b4a0995514c499a20d3f23f079f63af09da3a1caa7561bd322a532842656c",
+    "experimental-capability-runtime/verification/verify.py": "e1f6f8ccf1ac0fcc53ce73e893e048d3ba5edcc2938c091f143752aab682f4a9",
+    "experimental-capability-runtime/verification/with-loopback.py": "0e8b258c4dd9592fbadc5eee784142943148bcfdf288d2405299657d539f594e",
+    "sdk/Package.swift": "46142dce793b107bdc2f46a38f51900d80b27e5365baa836f59edeafd7098105",
+    "sdk/README.md": "dbb153cd83f544864f65b64d81c52cc0dcb2a2b0392ea6869b1436387251624d",
+    "sdk/Sources/MixerApple/MixerNativeView.swift": "72ee0d83a4e6b8019ef541abcff31e6e1668f2fe692b2b8cdc6c8febe52d9120",
+    "sdk/Sources/MixerCapabilities/AppPrivateKeyValueStore.swift": "a2f5378900f257e4f2806fd3568a683d9808f15debcb186be94dfb9aa44f3be7",
+    "sdk/Sources/MixerCapabilities/CapabilityExitLease.swift": "f155677aa105f4238e115f49456c1f97b4bd52b7dee938d203c66006e972b383",
+    "sdk/Sources/MixerCapabilities/GeneratedGuestAdapters.swift": "eb0d26e832ccaeacfd1c79b60ec51fa3ba60706de3668def7571be0ec95b91be",
+    "sdk/Sources/MixerCapabilities/GeneratedGuestTransport.swift": "c8dfdcf51ba216129ee9d305b13c17c55d31a48abc63d728484c67cadfab0ed7",
+    "sdk/Sources/MixerCapabilities/GeneratedHostAdapters.swift": "cc0d4fb317684bf3b848d914e67201b21acda717a29a79e4531baaae69690d41",
+    "sdk/Sources/MixerCapabilities/GeneratedIdentity.swift": "3820721e360333795e44912f5c192414a77ea777c7e24a874cd722d5a5f0c723",
+    "sdk/Sources/MixerCapabilities/GeneratedModels.swift": "8f8533f45bcd195212e589c23349309870577b3e72ea0b3b75d2538bfba8056f",
+    "sdk/Sources/MixerCapabilities/GuestClient.swift": "529c03e57861f2d33b3358c6ecfeba4b1b01dbd751e3a004c48ba25a77aada3e",
+    "sdk/Sources/MixerCapabilities/Host.swift": "e49591ca89c1ce7b14178a062cfe22dd016066d4e9e51383e498734f665aa4bb",
+    "sdk/Sources/MixerCapabilities/InstalledCapabilityAdapters.swift": "f5926ddd09bd705ec487068a1ea966feac89977924bb2dd975dd2927ed55fa9d",
+    "sdk/Sources/MixerCapabilities/NativeIO/include/MixerCapabilityIO.h": "a56788d09419a0a437f0ba26fbc1934005da4c7a343d0c72ae72f6e637519d3b",
+    "sdk/Sources/MixerCapabilities/NativeIO/lock.c": "984b40388c210fd12414dc6afac3fbee2316b9b3baaf594a0fb6fba4a0151f4e",
+    "sdk/Sources/MixerCapabilities/URLSessionHTTPTransport.swift": "0dd09dbedf42988c151a5b00a2d218f30b79ed27d78f37cff305aec6cb9f881a",
+    "sdk/Sources/MixerCapabilities/Wire.swift": "6628b5fb2f4ef70e58ea80af01e4ff2969d71da0ff13253081d196a082b3de89",
+    "sdk/Sources/MixerCore/FeatureStore.swift": "3fb26a1b1ce6a8863ea53d0c5751b3229ddad1113b486cb2c430d1d0dbcb385f",
+    "sdk/Sources/MixerCore/JSONInputGuard.swift": "c01ae7ad973dcfc40d2b4ecef3fb8091d1c94484410621f28e77096e952de07c",
+    "sdk/Sources/MixerCore/Lifecycle.swift": "67d6dc636bb36ce765e5a0c4ee9db93d61ce7b17938e3d9a1a0ff84020927a91",
+    "sdk/Sources/MixerCore/Navigation.swift": "6197c48eeb03aa6eeb94c3ca9a674c451deb83df9f662177014f70b866ef94d2",
+    "sdk/Sources/MixerCore/Resources.swift": "2e9cd272144237f9fc76c3c7e46add88f43395a60ed83db24f5cd454ae7b7dca",
+    "sdk/Sources/MixerGuest/GuestUICodec.swift": "99a16418a1e2acf7f232c8032cb92d40b0abdf6bedfe61366a0705344f0c5252",
+    "sdk/Sources/MixerUI/Authoring.swift": "9af3f4621930c92e9a5947132e1ed1c232ea81a3c9168bc57d9aa540dd96f954",
+    "sdk/Sources/MixerUI/Protocol.swift": "542c5076b4146f0229c89cec70848b42c0434637724f3ca9c42e1d45e2d55d42",
+    "sdk/Sources/MixerUI/Reconciliation.swift": "c00a6e70b7550d0e5247b1b0bb5683f97b7fc93dbf42fe0363b4c4ceb7498403",
+    "sdk/Sources/MixerUI/Validation.swift": "bcb612d78434e2c88b349209e6794e777572780decae3d3a70dda837827fbbde",
+    "sdk/Tests/MixerAppleTests/AppleTests.swift": "838338c9e5992c14ff9483d93e4e40e40c7e712be62b13ea5ec35354bd41148b",
+    "sdk/Tests/MixerCoreTests/CoreTests.swift": "0cad203104b3086ea3d224e4eddb6ca5818a62823d71d74029f555e32002ba88",
+    "sdk/Tests/MixerCoreTests/JSONInputGuardTests.swift": "e71c4fa50c1ebc776d4d7cbe6b531bc9f3c0e95e42037bde9f0537a52654b543",
+    "sdk/Tests/MixerUITests/RawJSONTests.swift": "2707e74b7d14cac958ab5a24130cce8f243fbf1d88369f938b8853c9b54d5df5",
+    "sdk/Tests/MixerUITests/UITests.swift": "094b87c89d1dbced075816a06c4c3c117f84f61eb052365e3b5cb4059c8d665c",
+    "sdk/verification/current/ios-build.log": "7d72476f0e4f3ccc94f5ff323f7a7c644537592f699c94c1c4f787ace0d88429",
+    "sdk/verification/current/receipt.json": "c6514c570050bcfc43c24e1950e3586ffb879bf4795c590bb6d6807266b6aee0",
+    "sdk/verification/current/swift-test.log": "5dce274603331bcc99ba9fa0e9333be528a92b1c3d6fe1bc189fdc8220bcec3f",
+    "sdk/verification/verify.py": "40e01a7f45ec31418c61b8da8328c7fb0d5a64b5109ce3d93a2be288223f828b",
+    "verification/capability-bridge-lifecycle/Probe/Hooks.swift": "4151f4ff0aabb8f219233283af1bd7b9d08df6197abfd93f6c05384261ff8390",
+    "verification/capability-bridge-lifecycle/Probe/Tests.swift": "a7d76af06ad1339e14fdb7de7d1b4074bc380f9e52aff9ec7dbd5210ef1dc387",
+    "verification/capability-bridge-lifecycle/probes.py": "7196cfa218f6344ea4386e20b3dd96937a3b76ef715257b41637d9b2bdb6cf8d"
+  },
+  "sourceManifestSHA256": "9e754a25364c5751e209be1f6f535300d435fee01328e0cbaf87ee097bd4940f",
+  "frozenSourceExport": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source",
+  "nativeRevision": "b25e3b7de2391a80d12e7fd75e60903495bec120",
+  "nativeArtifacts": {
+    "host": {
+      "host/include/mixer_vm.h": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+      "host/include/mixer_vm_capability.h": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+      "host/lib/libmixer_vm_capability_experimental.a": "a015ff65980422dd0b9c5cad2e28741d1e5ba478e0f657dcaedf75477d553b72",
+      "host/receipt.json": "92c88a98c81955a8139f6f583ed64e48dfb4c51a2ece42bec15ac2b2ef7fde4a"
+    },
+    "ios": {
+      "ios/include/mixer_vm.h": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+      "ios/include/mixer_vm_capability.h": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+      "ios/lib/libmixer_vm_capability_experimental.a": "0e74a76241a5fc3417d7ebc6ec6d013e25c1f6c37f5b543c3745135b911077f2",
+      "ios/receipt.json": "07d20c3d63127c957cd9b77183476b32150ea3792070ff2a39c743e8fa63c352"
+    },
+    "ios-simulator": {
+      "ios-simulator/include/mixer_vm.h": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+      "ios-simulator/include/mixer_vm_capability.h": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+      "ios-simulator/lib/libmixer_vm_capability_experimental.a": "de2563672a9d4fdefa043fc4ec5a1ad7cb51bc418694d6173742e07100e54122",
+      "ios-simulator/receipt.json": "6671dfb5250edf5a1291d21bf7ccf9ff62377635f0ee23317ac2b1cd4b6a8869"
+    },
+    "android": {
+      "android/include/mixer_vm.h": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+      "android/include/mixer_vm_capability.h": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+      "android/lib/libmixer_vm_capability_experimental.a": "74d06f044320f6a095fb35990a74c325024046208ee014edc79d2dccdf120eea",
+      "android/receipt.json": "be4872fe333854f70cba0df34e883fdfb63e8eff28e1e80c5916bb28d2687800"
+    }
+  },
+  "stageRoot": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v3",
+  "commands": [
+    {
+      "name": "swift-version",
+      "command": [
+        "swift",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "scope": "",
+      "exitCode": 0,
+      "elapsedSeconds": 0.10270591697189957,
+      "log": "swift-version.log",
+      "logSHA256": "30bb0d72a580e8e936ab32e24cab2876f82fa6b06d66fef876fe21a47e828acc"
+    },
+    {
+      "name": "xcode-version",
+      "command": [
+        "xcodebuild",
+        "-version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "scope": "",
+      "exitCode": 0,
+      "elapsedSeconds": 0.08760154095944017,
+      "log": "xcode-version.log",
+      "logSHA256": "ee3fe26035862d2b9653c1a570be3eca4ee5be2815f0ce99ff2d8ffa3399e4c8"
+    },
+    {
+      "name": "official-swift-version",
+      "command": [
+        "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode_26.6.app/Contents/Developer"
+      },
+      "scope": "",
+      "exitCode": 0,
+      "elapsedSeconds": 0.07571845804341137,
+      "log": "official-swift-version.log",
+      "logSHA256": "f7c8e3e54412f67bf6632e8c6744533677d8d65acd8ce3004b0f3b9806e8aa48"
+    },
+    {
+      "name": "host-version",
+      "command": [
+        "uname",
+        "-a"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "scope": "",
+      "exitCode": 0,
+      "elapsedSeconds": 0.0030190000543370843,
+      "log": "host-version.log",
+      "logSHA256": "10c12b8125890b3768695048cf390858bb6f17cf67c1f5747e582c221c2932f0"
+    },
+    {
+      "name": "python-version",
+      "command": [
+        "python3",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "scope": "",
+      "exitCode": 0,
+      "elapsedSeconds": 0.008747417014092207,
+      "log": "python-version.log",
+      "logSHA256": "f615dc9512de8b165e2b595e5cdc608a3ba7927ae92f959c5b42ec3d58e2ffa8"
+    },
+    {
+      "name": "bridge-debug",
+      "command": [
+        "python3",
+        "-B",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source/experimental-capability-runtime/verification/with-loopback.py",
+        "--output",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/verification/2026-10-23-enable-deadline-candidate-1/debug-loopback",
+        "--",
+        "swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source/experimental-capability-runtime",
+        "--scratch-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/debug",
+        "-Xcc",
+        "-I/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v3/host/include",
+        "-Xlinker",
+        "-L/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v3/host/lib",
+        "-Xswiftc",
+        "-warnings-as-errors",
+        "-Xswiftc",
+        "-DMIXER_EXPERIMENTAL_LOCAL_TLS_TEST"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "scope": "Full original real-Wasm/concrete-adapter suite with actual normal-trust loopbackTLS failure",
+      "exitCode": 0,
+      "elapsedSeconds": 8.798104166984558,
+      "log": "bridge-debug.log",
+      "logSHA256": "651739ca37a9b6ee9f17ad872197c59a66f103d3b82593439ea6988ac5f568ac",
+      "passedTests": [
+        35
+      ],
+      "measurements": [
+        {
+          "before": {
+            "allocatorAllocatedBytes": 46137344,
+            "allocatorInUseBytes": 1101728,
+            "allocatorMaximumInUseBytes": 0,
+            "processCPUMicroseconds": 83456,
+            "processMaximumRSSBytes": 55164928
+          },
+          "drained": {
+            "allocatorAllocatedBytes": 62914560,
+            "allocatorInUseBytes": 1133584,
+            "allocatorMaximumInUseBytes": 0,
+            "processCPUMicroseconds": 85127,
+            "processMaximumRSSBytes": 64471040
+          },
+          "idle": {
+            "allocatorAllocatedBytes": 62914560,
+            "allocatorInUseBytes": 22250512,
+            "allocatorMaximumInUseBytes": 0,
+            "processCPUMicroseconds": 84652,
+            "processMaximumRSSBytes": 64471040
+          },
+          "idleCPUMicroseconds": 181,
+          "idleTimerTicks": 0,
+          "idleWallSeconds": 0.265129667,
+          "live16": {
+            "allocatorAllocatedBytes": 62914560,
+            "allocatorInUseBytes": 22250512,
+            "allocatorMaximumInUseBytes": 0,
+            "processCPUMicroseconds": 84471,
+            "processMaximumRSSBytes": 64471040
+          },
+          "scope": "macOS process-wide observational allocator/RSS/CPU,16 idle owners; no hard RSS/no-abort/recovery claim"
+        }
+      ],
+      "expectedTests": 35,
+      "testCountsMatch": true
+    },
+    {
+      "name": "bridge-release",
+      "command": [
+        "python3",
+        "-B",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source/experimental-capability-runtime/verification/with-loopback.py",
+        "--output",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/verification/2026-10-23-enable-deadline-candidate-1/release-loopback",
+        "--",
+        "swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source/experimental-capability-runtime",
+        "--scratch-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/release",
+        "-c",
+        "release",
+        "-Xcc",
+        "-I/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v3/host/include",
+        "-Xlinker",
+        "-L/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v3/host/lib",
+        "-Xswiftc",
+        "-warnings-as-errors",
+        "-Xswiftc",
+        "-DMIXER_EXPERIMENTAL_LOCAL_TLS_TEST"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "scope": "Full original real-Wasm/concrete-adapter suite with actual normal-trust loopbackTLS failure",
+      "exitCode": 0,
+      "elapsedSeconds": 17.61844154202845,
+      "log": "bridge-release.log",
+      "logSHA256": "dfe7d3eb67612d272aaec5e2cbd7214e33d2e7d97f19e495bd72df3b326eb326",
+      "passedTests": [
+        35
+      ],
+      "measurements": [
+        {
+          "before": {
+            "allocatorAllocatedBytes": 25165824,
+            "allocatorInUseBytes": 1073856,
+            "allocatorMaximumInUseBytes": 0,
+            "processCPUMicroseconds": 68956,
+            "processMaximumRSSBytes": 69222400
+          },
+          "drained": {
+            "allocatorAllocatedBytes": 41943040,
+            "allocatorInUseBytes": 1104688,
+            "allocatorMaximumInUseBytes": 0,
+            "processCPUMicroseconds": 70358,
+            "processMaximumRSSBytes": 78544896
+          },
+          "idle": {
+            "allocatorAllocatedBytes": 41943040,
+            "allocatorInUseBytes": 22222640,
+            "allocatorMaximumInUseBytes": 0,
+            "processCPUMicroseconds": 70101,
+            "processMaximumRSSBytes": 78544896
+          },
+          "idleCPUMicroseconds": 115,
+          "idleTimerTicks": 0,
+          "idleWallSeconds": 0.265303333,
+          "live16": {
+            "allocatorAllocatedBytes": 41943040,
+            "allocatorInUseBytes": 22222640,
+            "allocatorMaximumInUseBytes": 0,
+            "processCPUMicroseconds": 69986,
+            "processMaximumRSSBytes": 78544896
+          },
+          "scope": "macOS process-wide observational allocator/RSS/CPU,16 idle owners; no hard RSS/no-abort/recovery claim"
+        }
+      ],
+      "expectedTests": 35,
+      "testCountsMatch": true
+    },
+    {
+      "name": "bridge-tsan",
+      "command": [
+        "python3",
+        "-B",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source/experimental-capability-runtime/verification/with-loopback.py",
+        "--output",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/verification/2026-10-23-enable-deadline-candidate-1/tsan-loopback",
+        "--",
+        "swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source/experimental-capability-runtime",
+        "--scratch-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/tsan",
+        "--sanitize",
+        "thread",
+        "-Xcc",
+        "-I/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v3/host/include",
+        "-Xlinker",
+        "-L/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v3/host/lib",
+        "-Xswiftc",
+        "-warnings-as-errors",
+        "-Xswiftc",
+        "-DMIXER_EXPERIMENTAL_LOCAL_TLS_TEST"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "scope": "Full original real-Wasm/concrete-adapter suite with actual normal-trust loopbackTLS failure",
+      "exitCode": 0,
+      "elapsedSeconds": 12.524428708013147,
+      "log": "bridge-tsan.log",
+      "logSHA256": "dd7f1e267fa316281d1c76e59f9dacb6b0a2146e1e1eb6b89b3f8fe0f1fea982",
+      "passedTests": [
+        35
+      ],
+      "measurements": [
+        {
+          "before": {
+            "allocatorAllocatedBytes": 4194304,
+            "allocatorInUseBytes": 0,
+            "allocatorMaximumInUseBytes": 0,
+            "processCPUMicroseconds": 271797,
+            "processMaximumRSSBytes": 309952512
+          },
+          "drained": {
+            "allocatorAllocatedBytes": 4194304,
+            "allocatorInUseBytes": 0,
+            "allocatorMaximumInUseBytes": 0,
+            "processCPUMicroseconds": 277775,
+            "processMaximumRSSBytes": 309952512
+          },
+          "idle": {
+            "allocatorAllocatedBytes": 4194304,
+            "allocatorInUseBytes": 0,
+            "allocatorMaximumInUseBytes": 0,
+            "processCPUMicroseconds": 274481,
+            "processMaximumRSSBytes": 309952512
+          },
+          "idleCPUMicroseconds": 127,
+          "idleTimerTicks": 0,
+          "idleWallSeconds": 0.250219375,
+          "live16": {
+            "allocatorAllocatedBytes": 4194304,
+            "allocatorInUseBytes": 0,
+            "allocatorMaximumInUseBytes": 0,
+            "processCPUMicroseconds": 274354,
+            "processMaximumRSSBytes": 309952512
+          },
+          "scope": "macOS process-wide observational allocator/RSS/CPU,16 idle owners; no hard RSS/no-abort/recovery claim"
+        }
+      ],
+      "expectedTests": 35,
+      "testCountsMatch": true
+    },
+    {
+      "name": "measurement-filtered",
+      "command": [
+        "swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source/experimental-capability-runtime",
+        "--scratch-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/debug",
+        "--filter",
+        "observationsSeparateLogicalPayloadFromAllocatorAndIdleCPU",
+        "-Xcc",
+        "-I/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v3/host/include",
+        "-Xlinker",
+        "-L/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v3/host/lib",
+        "-Xswiftc",
+        "-warnings-as-errors",
+        "-Xswiftc",
+        "-DMIXER_EXPERIMENTAL_LOCAL_TLS_TEST"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "scope": "Separate filtered process: observational16-idle-owner allocator/RSS/CPU and timer ticks",
+      "exitCode": 0,
+      "elapsedSeconds": 1.5371353341033682,
+      "log": "measurement-filtered.log",
+      "logSHA256": "75bab01a25c30739254a1e3892894d16976fb3f4fa31e4fd20712eaebceee609",
+      "passedTests": [
+        1
+      ],
+      "measurements": [
+        {
+          "before": {
+            "allocatorAllocatedBytes": 25165824,
+            "allocatorInUseBytes": 514480,
+            "allocatorMaximumInUseBytes": 0,
+            "processCPUMicroseconds": 40626,
+            "processMaximumRSSBytes": 38223872
+          },
+          "drained": {
+            "allocatorAllocatedBytes": 46137344,
+            "allocatorInUseBytes": 567120,
+            "allocatorMaximumInUseBytes": 0,
+            "processCPUMicroseconds": 42675,
+            "processMaximumRSSBytes": 50282496
+          },
+          "idle": {
+            "allocatorAllocatedBytes": 46137344,
+            "allocatorInUseBytes": 21683552,
+            "allocatorMaximumInUseBytes": 0,
+            "processCPUMicroseconds": 42169,
+            "processMaximumRSSBytes": 50102272
+          },
+          "idleCPUMicroseconds": 143,
+          "idleTimerTicks": 0,
+          "idleWallSeconds": 0.251084792,
+          "live16": {
+            "allocatorAllocatedBytes": 46137344,
+            "allocatorInUseBytes": 21683440,
+            "allocatorMaximumInUseBytes": 0,
+            "processCPUMicroseconds": 42026,
+            "processMaximumRSSBytes": 50102272
+          },
+          "scope": "macOS process-wide observational allocator/RSS/CPU,16 idle owners; no hard RSS/no-abort/recovery claim"
+        }
+      ],
+      "expectedTests": 1,
+      "testCountsMatch": true
+    },
+    {
+      "name": "public-host-link",
+      "command": [
+        "swift",
+        "build",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source/experimental-capability-runtime/verification/CrossProbe",
+        "--scratch-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/probe-host",
+        "-Xcc",
+        "-I/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v3/host/include",
+        "-Xlinker",
+        "-L/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v3/host/lib",
+        "-Xswiftc",
+        "-warnings-as-errors"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "scope": "Public API consumer compile/link; no guest happy-path claim",
+      "exitCode": 0,
+      "elapsedSeconds": 5.8168309580069035,
+      "log": "public-host-link.log",
+      "logSHA256": "1475eaecb2ed4982174563176e5321a22d9bd7357c8f3395a5eb167b8a92bc3d"
+    },
+    {
+      "name": "ios-public-link",
+      "command": [
+        "swift",
+        "build",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source/experimental-capability-runtime/verification/CrossProbe",
+        "--scratch-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/ios",
+        "--triple",
+        "arm64-apple-ios17.0",
+        "--sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS27.1.sdk",
+        "-Xcc",
+        "-I/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v3/ios/include",
+        "-Xlinker",
+        "-L/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v3/ios/lib",
+        "-Xswiftc",
+        "-warnings-as-errors"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "scope": "Official Apple Swift public API consumer compile/link only",
+      "exitCode": 0,
+      "elapsedSeconds": 3.9461588750127703,
+      "log": "ios-public-link.log",
+      "logSHA256": "401938a15eb939134695c435ea85dcb5fb07fd18ba374b2c06c3e3f7707d88a3"
+    },
+    {
+      "name": "ios-simulator-public-link",
+      "command": [
+        "swift",
+        "build",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source/experimental-capability-runtime/verification/CrossProbe",
+        "--scratch-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/ios-simulator",
+        "--triple",
+        "arm64-apple-ios17.0-simulator",
+        "--sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk",
+        "-Xcc",
+        "-I/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v3/ios-simulator/include",
+        "-Xlinker",
+        "-L/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v3/ios-simulator/lib",
+        "-Xswiftc",
+        "-warnings-as-errors"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "scope": "Official Apple Swift public API consumer compile/link only",
+      "exitCode": 0,
+      "elapsedSeconds": 4.464266415918246,
+      "log": "ios-simulator-public-link.log",
+      "logSHA256": "63fe36a6c3ff8d255819674aec7b0d2503d4ea142592db73dcce5085bf17eeb3"
+    },
+    {
+      "name": "android-public-link",
+      "command": [
+        "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift",
+        "build",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source/experimental-capability-runtime/verification/CrossProbe",
+        "--scratch-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/android",
+        "--swift-sdks-path",
+        "/Users/andreyyurlov/.swiftpm/swift-sdks",
+        "--swift-sdk",
+        "aarch64-unknown-linux-android28",
+        "--static-swift-stdlib",
+        "-c",
+        "release",
+        "-Xcc",
+        "-I/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v3/android/include",
+        "-Xlinker",
+        "-L/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/build-verification/local/qualified-final-v3/android/lib",
+        "-Xswiftc",
+        "-warnings-as-errors",
+        "-Xlinker",
+        "-lssl",
+        "-Xlinker",
+        "-lcrypto",
+        "-Xlinker",
+        "-lz"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode_26.6.app/Contents/Developer"
+      },
+      "scope": "Official Swift Android API28 aarch64 static public API consumer compile/link only",
+      "exitCode": 0,
+      "elapsedSeconds": 8.401329583954066,
+      "log": "android-public-link.log",
+      "logSHA256": "0c7248f9d8ad9022c51089d75fa901d9a40c01d6e2db0ed13c51f1a6444a17e2"
+    },
+    {
+      "name": "host-binary-file",
+      "command": [
+        "file",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/probe-host/out/Products/Debug/bridge-cross-probe"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "scope": "Identify actual linked public/SPI Swift consumer",
+      "exitCode": 0,
+      "elapsedSeconds": 0.00547974999062717,
+      "log": "host-binary-file.log",
+      "logSHA256": "dbaa30ba3f0c70c17ee7f0f13634be374d3aa7e14ea886d73903f5d949439d72"
+    },
+    {
+      "name": "host-consumer-run",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/probe-host/out/Products/Debug/bridge-cross-probe"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "scope": "Execute public validate/construct rejection or lifecycle SPI constructor cleanup; not guest-effect authority",
+      "exitCode": 0,
+      "elapsedSeconds": 0.08201083308085799,
+      "log": "host-consumer-run.log",
+      "logSHA256": "4d69ddc546092b244bf5e3f6f9637a31d6532f201b7627ef8e5a820b6b283a51"
+    },
+    {
+      "name": "ios-binary-file",
+      "command": [
+        "file",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/ios/out/Products/Debug-iphoneos/bridge-cross-probe"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "scope": "Identify actual linked public/SPI Swift consumer",
+      "exitCode": 0,
+      "elapsedSeconds": 0.0034235829953104258,
+      "log": "ios-binary-file.log",
+      "logSHA256": "aef8c4398f05a2acb61dd065fef699ed9f3f5b1ec6fcb4efc921dd7b558f2ffa"
+    },
+    {
+      "name": "ios-simulator-binary-file",
+      "command": [
+        "file",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/ios-simulator/out/Products/Debug-iphonesimulator/bridge-cross-probe"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "scope": "Identify actual linked public/SPI Swift consumer",
+      "exitCode": 0,
+      "elapsedSeconds": 0.0032669580541551113,
+      "log": "ios-simulator-binary-file.log",
+      "logSHA256": "3d5ad0f7b7c20f8cd5899ec6bcc82d4655d9fd6131fbc0b80080dd9ac9c08c28"
+    },
+    {
+      "name": "android-binary-file",
+      "command": [
+        "file",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/android/aarch64-unknown-linux-android28/release/bridge-cross-probe"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "scope": "Identify actual linked public/SPI Swift consumer",
+      "exitCode": 0,
+      "elapsedSeconds": 0.0036094998940825462,
+      "log": "android-binary-file.log",
+      "logSHA256": "1fab6d75554e968a6938c39982c15f59ee97daa1ba9f9098bf4af431e0bd11d7"
+    },
+    {
+      "name": "host-lifecycle-binary-file",
+      "command": [
+        "file",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/probe-host/out/Products/Debug/bridge-lifecycle-probe"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "scope": "Identify actual linked public/SPI Swift consumer",
+      "exitCode": 0,
+      "elapsedSeconds": 0.003390457946807146,
+      "log": "host-lifecycle-binary-file.log",
+      "logSHA256": "755451268ef8bd4854adcf4eb0f6147227d7acd841c438b064ca581020810a41"
+    },
+    {
+      "name": "host-lifecycle-consumer-run",
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/probe-host/out/Products/Debug/bridge-lifecycle-probe"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "scope": "Execute public validate/construct rejection or lifecycle SPI constructor cleanup; not guest-effect authority",
+      "exitCode": -5,
+      "elapsedSeconds": 0.14149587496649474,
+      "log": "host-lifecycle-consumer-run.log",
+      "logSHA256": "528f4c5fcc23073d7038e16575b0158bc21f641a4b5d73ffb3c8571efd267e03"
+    },
+    {
+      "name": "ios-lifecycle-binary-file",
+      "command": [
+        "file",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/ios/out/Products/Debug-iphoneos/bridge-lifecycle-probe"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "scope": "Identify actual linked public/SPI Swift consumer",
+      "exitCode": 0,
+      "elapsedSeconds": 0.003597124945372343,
+      "log": "ios-lifecycle-binary-file.log",
+      "logSHA256": "38d2533d277ab4888bb8b43f898812c2ed423b777f6acc8ce6100ebf5ece7fd1"
+    },
+    {
+      "name": "ios-simulator-lifecycle-binary-file",
+      "command": [
+        "file",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/ios-simulator/out/Products/Debug-iphonesimulator/bridge-lifecycle-probe"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "scope": "Identify actual linked public/SPI Swift consumer",
+      "exitCode": 0,
+      "elapsedSeconds": 0.0034112080466002226,
+      "log": "ios-simulator-lifecycle-binary-file.log",
+      "logSHA256": "0644650db558dace6db56000649dc4e3b44c202b528746334de3a05272608871"
+    },
+    {
+      "name": "android-lifecycle-binary-file",
+      "command": [
+        "file",
+        "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/android/aarch64-unknown-linux-android28/release/bridge-lifecycle-probe"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/source",
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      },
+      "scope": "Identify actual linked public/SPI Swift consumer",
+      "exitCode": 0,
+      "elapsedSeconds": 0.003829707973636687,
+      "log": "android-lifecycle-binary-file.log",
+      "logSHA256": "7f10564ddcb4576531dd1faf16cc83ab9fcbc74e723319b844773a282b0d9e5b"
+    }
+  ],
+  "scope": "Implementer lifecycle SPI, additive validation and existing Swift bridge qualification; real native admission, concrete storage and normal-trust TLS failure; separate package/single experimental archive",
+  "limitations": [
+    "No devices or platform execution; cross compile/link only",
+    "Rust archive/system frameworks are not Swift TSan instrumented",
+    "Logical byte/worker counters exclude allocator backing, DTOs and Task/runtime/framework lifetime",
+    "Process allocator/RSS/CPU observations are not hard bounds, no-OOM/no-abort or reclamation proof",
+    "Cooperative batch/VM cutoff can overrun within one admitted operation",
+    "No verified activation, release, identity, publication or GA claim",
+    "Validation cancellation has no C interrupt or latency guarantee; queued cancellation test controls the private serial queue, not native execution",
+    "Local Xcode27.1/Swift6.3.3 only; pinnedCI Xcode26.3 is not installed",
+    "Independent review is separately owned; this receipt is implementer evidence"
+  ],
+  "linkedConsumers": {
+    "host": {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/probe-host/out/Products/Debug/bridge-cross-probe",
+      "sha256": "27221775bc230f5fa31295fc1b7a6abfe54fbe471efbf1f5de750bc4955f85cd",
+      "bytes": 3570672
+    },
+    "ios": {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/ios/out/Products/Debug-iphoneos/bridge-cross-probe",
+      "sha256": "11ecfb2eace934ef7c000a885e0e047e731abb556d6e1d7cf48237b3bb5df8ab",
+      "bytes": 3559624
+    },
+    "ios-simulator": {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/ios-simulator/out/Products/Debug-iphonesimulator/bridge-cross-probe",
+      "sha256": "59dd53d80f6ed80b2039b5f629b58e275d7dbdee9473890ba45fa0dd775ab1c2",
+      "bytes": 3551280
+    },
+    "android": {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/android/aarch64-unknown-linux-android28/release/bridge-cross-probe",
+      "sha256": "c9580915b2cb1cf5f6584a3e81a6643f1b3a9f3c226410c28838b5177c9747dc",
+      "bytes": 90095360
+    },
+    "host-lifecycle": {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/probe-host/out/Products/Debug/bridge-lifecycle-probe",
+      "sha256": "cab87a3e8be4dda207ada507c86340a3f784023fe0466bae6786ecf33bcc36be",
+      "bytes": 3616608
+    },
+    "ios-lifecycle": {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/ios/out/Products/Debug-iphoneos/bridge-lifecycle-probe",
+      "sha256": "43f4715182c86c2a7c45bea294c8a02e5e978e36c40406288722c9fd2fa0d3e0",
+      "bytes": 3589072
+    },
+    "ios-simulator-lifecycle": {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/ios-simulator/out/Products/Debug-iphonesimulator/bridge-lifecycle-probe",
+      "sha256": "7d75b6511862f1977ab6b73115b3004876b8eaa23ca8a7caccf15a6867adf68b",
+      "bytes": 3580800
+    },
+    "android-lifecycle": {
+      "path": "/Users/andreyyurlov/Documents/dev/mixer/experimental-capability-runtime/.build/qualification-2026-10-23-enable-deadline-candidate-1/android/aarch64-unknown-linux-android28/release/bridge-lifecycle-probe",
+      "sha256": "42e9dabf22af20246929a1e62ce874d7b6b35a7e43fea175d8077a53b4fd2ea5",
+      "bytes": 90137784
+    }
+  },
+  "sourceUnchangedDuringRun": true,
+  "exportUnchangedDuringRun": true,
+  "nativeArtifactsUnchangedDuringRun": true,
+  "completedAt": "2026-10-23T09:11:23.640997+00:00"
+}

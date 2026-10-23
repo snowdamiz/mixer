@@ -185,7 +185,8 @@ final class NativeExitOwner: @unchecked Sendable {
         // only that checked status, never malformed metadata or retained ack.
         closed && (error as? ExperimentalCapabilityError)?.nativeStatus == 3
     }
-    func command<Value: Sendable>(turn: Bool = false, _ body: @escaping @Sendable () throws -> Value) async throws -> Value {
+    func command<Value: Sendable>(turn: Bool = false, enableCutoff: UInt64? = nil,
+                                  _ body: @escaping @Sendable () throws -> Value) async throws -> Value {
         try await withCheckedThrowingContinuation { continuation in
             let accepted = control.withLock { state in
                 guard !state.status.closed, !state.commandBusy else { return false }
@@ -194,6 +195,16 @@ final class NativeExitOwner: @unchecked Sendable {
                     guard !closed else {
                         control.withLock { $0.commandBusy = false }
                         continuation.resume(throwing: ExperimentalCapabilityError("closed")); return
+                    }
+                    // Owned enable carries the original startup clock through
+                    // this queue. Sample immediately before C work; queue delay
+                    // must not renew it. This local expiry is ordinary shutdown,
+                    // outside the native-error catch that quarantines bad reports.
+                    if let enableCutoff, DispatchTime.now().uptimeNanoseconds >= enableCutoff {
+                        let error = ExperimentalCapabilityError("startup_deadline", operation: .enableEffects, kind: .deadlineExceeded)
+                        stop(error.code, detail: error.failure)
+                        control.withLock { $0.commandBusy = false }
+                        continuation.resume(throwing: error); return
                     }
                     do {
                         let value = try body()
@@ -220,8 +231,14 @@ final class NativeExitOwner: @unchecked Sendable {
             let result = try native.startup(); started = true; return result
         }
     }
-    func enable() async throws {
-        try await command { [self] in
+    func enableOwned(noLaterThanUptimeNanoseconds cutoff: UInt64) async throws {
+        guard lifecycle != nil else {
+            throw ExperimentalCapabilityError("owned_session_required", operation: .enableEffects, kind: .callerAPI(.invalidLifecycleState))
+        }
+        try await enable(cutoff: cutoff)
+    }
+    func enable(cutoff: UInt64? = nil) async throws {
+        try await command(enableCutoff: cutoff) { [self] in
             try native.enable()
             if !closed { effectsOpen = true }
         }

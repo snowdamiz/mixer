@@ -1,0 +1,31 @@
+--- base/Native.swift
++++ derived/Native.swift
+@@ -68,6 +68,7 @@
+         try check(status, report, operation: .startup); return try Self.invocation(report, operation: .startup)
+     }
+     func enable() throws {
++        EnableReviewHooks.beforeNativeEnable()
+         var report = MixerVmReport(); try check(mixer_vm_capability_session_enable_v1(handle, &report), report, operation: .enableEffects)
+     }
+     func invoke(_ export: String, arguments: [ExperimentalVMValue]) throws -> ExperimentalCapabilityInvocation {
+--- base/Ownership.swift
++++ derived/Ownership.swift
+@@ -222,7 +222,7 @@
+                 }
+                 return true
+             }
+-            if accepted { signal() }
++            if accepted { EnableReviewHooks.commandAdmitted(); signal() }
+             else { continuation.resume(throwing: ExperimentalCapabilityError(closed ? "closed" : "command_busy")) }
+         }
+     }
+--- base/Lifecycle.swift
++++ derived/Lifecycle.swift
+@@ -103,6 +103,7 @@
+         }
+         guard begin else { return }
+         Task.detached { [self, host, nativeOwner] in
++            EnableReviewHooks.cleanupEntered()
+             if let host { await host.close() }
+             let storage = state.withLock { $0.storage }
+             if let storage { await storage.close() }

@@ -88,7 +88,7 @@ loopback = ["python3", "-B", str(package / "verification/with-loopback.py")]
 for mode, extra in [("debug", []), ("release", ["-c", "release"]), ("tsan", ["--sanitize", "thread"])]:
     command = loopback + ["--output", str(OUT / (mode + "-loopback")), "--", "swift", "test", "--package-path", str(package), "--scratch-path", str(SCRATCH / mode)] + extra + flags("host") + ["-Xswiftc", "-DMIXER_EXPERIMENTAL_LOCAL_TLS_TEST"]
     record = run("bridge-" + mode, command, scope="Full original real-Wasm/concrete-adapter suite with actual normal-trust loopbackTLS failure")
-    record["expectedTests"] = 32; record["testCountsMatch"] = record.get("passedTests") == [32]
+    record["expectedTests"] = 35; record["testCountsMatch"] = record.get("passedTests") == [35]
     receipt["commands"].append(record); save()
 record = run("measurement-filtered", ["swift", "test", "--package-path", str(package), "--scratch-path", str(SCRATCH / "debug"), "--filter", "observationsSeparateLogicalPayloadFromAllocatorAndIdleCPU"] + flags("host") + ["-Xswiftc", "-DMIXER_EXPERIMENTAL_LOCAL_TLS_TEST"], scope="Separate filtered process: observational16-idle-owner allocator/RSS/CPU and timer ticks")
 record["expectedTests"] = 1; record["testCountsMatch"] = record.get("passedTests") == [1]

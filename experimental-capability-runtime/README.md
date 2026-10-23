@@ -91,6 +91,15 @@ The SPI adds no service/validator closures, execution proof or outer coordinator
 SDK close completion and logical worker return do not prove Task destruction or
 general OS/allocator recovery.
 
+The owned-only `enableOwnedEffects(noLaterThanUptimeNanoseconds:)` SPI carries a
+DispatchTime uptime cutoff into the existing single guest command slot. At worker
+entry, an expired cutoff records a deadline terminal failure and starts ordinary
+cleanup before calling native enable; it does not quarantine the owner. The
+sampled check is cooperative, so scheduler delay after the check can still cross
+the cutoff. The caller must durably record effects intent before this call and
+conservatively retain that intent if enable fails. The development
+`enableEffects()` API keeps its existing behavior.
+
 A single serial off-UI pump checks the installed batch budget before transfer,
 codec and turn phases, processes at most four turns or eight milliseconds before
 yielding, and retains incomplete phases. Individual C/codec operations can
