@@ -264,6 +264,40 @@ impl CapabilityGuest {
     ) -> Result<(), Error> {
         Self::validated(wasm, vm, mailbox, guest, startup).map(|_| ())
     }
+    /// Complete capability validation followed by the fixed guest-UI signatures.
+    /// The returned validated module is inspected directly, never instantiated or
+    /// decoded a second time. This path has no mailbox or registry interaction.
+    #[cfg(feature = "experimental-capability-native")]
+    pub(crate) fn validate_guest_ui_only(
+        wasm: &[u8],
+        vm: &Limits,
+        mailbox: &mb::Limits,
+        guest: GuestLimits,
+    ) -> Result<(), Error> {
+        const START: &str = "mixer_guest_ui_start_v1";
+        const EVENT: &str = "mixer_guest_ui_event_v1";
+        let (module, _, _) = Self::validated(wasm, vm, mailbox, guest, START)?;
+        for (name, params, result) in [
+            (START, &[][..], Some(Type::I32)),
+            (EVENT, &[Type::I32][..], Some(Type::I32)),
+            (WAKE_EXPORT, &[][..], None),
+        ] {
+            let valid = module.exports.get(name).is_some_and(|&(kind, index)| {
+                kind == 0
+                    && index as usize >= module.imports.len()
+                    && module.signature(index).is_some_and(|signature| {
+                        signature.params == params && signature.result == result
+                    })
+            });
+            if !valid {
+                return Err(error(
+                    "capability_export",
+                    "required guest UI export must be a defined function with the exact signature",
+                ));
+            }
+        }
+        Ok(())
+    }
     #[cfg(feature = "experimental-capability-native")]
     pub(crate) fn write_memory(&mut self, offset: u32, source: &[u8]) -> Result<(), Error> {
         self.live()?;

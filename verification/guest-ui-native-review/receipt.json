@@ -1,0 +1,283 @@
+{
+  "schema": 1,
+  "started_utc": "2026-10-23T11:41:04.173557+00:00",
+  "scope": "Independent macOS host review of native guest-UI validate-only source and retained selected Release archive.",
+  "commands": [
+    {
+      "label": "source-revision",
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_status": 0,
+      "log": "verification/guest-ui-native-review/source-revision.log",
+      "log_sha256": "61a9bb0f3d9f2ab9efd42f2a5e2dc2f1315599e71d9a661ae9eeafef2b6c6d0e"
+    },
+    {
+      "label": "source-status",
+      "argv": [
+        "git",
+        "status",
+        "--short"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_status": 0,
+      "log": "verification/guest-ui-native-review/source-status.log",
+      "log_sha256": "19b67eb4a4d816012eb4a31049caa859142d51adfa918c474dcf5865035b54ec"
+    },
+    {
+      "label": "native-diff",
+      "argv": [
+        "git",
+        "diff",
+        "--",
+        "vm/src/capability_ffi/api.rs",
+        "vm/src/capability_ffi/exports.rs",
+        "vm/src/capability_ffi/preflight.rs",
+        "vm/src/experimental_capability_guest/mod.rs"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_status": 0,
+      "log": "verification/guest-ui-native-review/native-diff.log",
+      "log_sha256": "a87769ef43c9ce663646f7019c0fc719b75814b8c8363bb5dc0919e4bcec1c83"
+    },
+    {
+      "label": "clang-version",
+      "argv": [
+        "clang",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_status": 0,
+      "log": "verification/guest-ui-native-review/clang-version.log",
+      "log_sha256": "4e8a77bcb032deb6591b0db384ff9808d01d9030f00e2d877394df88a12a2536"
+    },
+    {
+      "label": "rustc-version",
+      "argv": [
+        "/opt/homebrew/opt/rustup/bin/rustc",
+        "-Vv"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_status": 0,
+      "log": "verification/guest-ui-native-review/rustc-version.log",
+      "log_sha256": "352d6857968e80a6357a926ac685b9b07f77c479aaafde33e73a53945e802909"
+    },
+    {
+      "label": "cargo-version",
+      "argv": [
+        "/opt/homebrew/opt/rustup/bin/cargo",
+        "-V"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_status": 0,
+      "log": "verification/guest-ui-native-review/cargo-version.log",
+      "log_sha256": "1f88eaf7fe1aaec83184752cf4c944cd22f00184136ff36a3e4c318cc60ef566"
+    },
+    {
+      "label": "host-version",
+      "argv": [
+        "uname",
+        "-a"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_status": 0,
+      "log": "verification/guest-ui-native-review/host-version.log",
+      "log_sha256": "10c12b8125890b3768695048cf390858bb6f17cf67c1f5747e582c221c2932f0"
+    },
+    {
+      "label": "public-probe-build",
+      "argv": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/include",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-native-review/public_probe.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/release/libmixer_vm.a",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-native-review/public-probe"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_status": 0,
+      "log": "verification/guest-ui-native-review/public-probe-build.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "public-probe-run",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-native-review/public-probe"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_status": 0,
+      "log": "verification/guest-ui-native-review/public-probe-run.log",
+      "log_sha256": "0af45dccc898e15c2112c8cf896c041e3c245ec394ec94d7c1f45c2e6ef0035f"
+    },
+    {
+      "label": "public-probe-symbols",
+      "argv": [
+        "nm",
+        "-gU",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-native-review/public-probe"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_status": 0,
+      "log": "verification/guest-ui-native-review/public-probe-symbols.log",
+      "log_sha256": "fe4603a6940642208bb2bf735e863302865ace341440aee825d32b217895b144"
+    }
+  ],
+  "checked_hashes": {
+    "verification/guest-ui-native/receipt.json": "96db9cca2bcf850cd5de54e59b1f96298a0645d1d4a6c13186d5e662e49c2e06",
+    "verification/guest-ui-native/supplemental-receipt.json": "6332431cef0e815c3437e003ce9193194be72ac1da238449590cea6c56b85614",
+    "vm/target/stream-validation-verification/release/libmixer_vm.a": "5358e39b9efb0561d185c4c22152df057a78a2ca43c582e7b5493e5877fe23e4",
+    "verification/guest-ui-native/source-manifest.json": "2434d70e54d0750a4fe1e135338a53ac60fe61d6be7d46128b8faaf3aec4f810",
+    "verification/guest-ui-native/native_client.c": "690eddf43bfe00787bcb18a684078e555bdd3a43d10cf4c12ef7d49afa18a24b",
+    "verification/guest-ui-native/run_verification.py": "701b8d0721e7bc9c600a8de56d6f6f2c406cf7089a0a33e39eed159f04dcf277",
+    "vm/Cargo.lock": "d877b303c72f7d7bfd9e3d7535b8eb10db3fb63be118b3281cdcc0db21ef0f96",
+    "vm/Cargo.toml": "545810c4dd52fa177a8c5e651d266922939edcf965e357fdcece5a3b33150867",
+    "vm/include/mixer_vm.h": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+    "vm/include/mixer_vm_capability.h": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+    "vm/include/mixer_vm_guest_ui.h": "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5",
+    "vm/src/capability_ffi/api.rs": "d8ed4930654a4d44b63c2fe82ff1d450f3a82749e60edadb89cb4ed895fe11f8",
+    "vm/src/capability_ffi/error.rs": "7d8f97fe6dd6bdafa403990b41237c966bec2b7c95b1b176d7c1a3ca1b3df38a",
+    "vm/src/capability_ffi/exports.rs": "6123c20dcb6f48102e2c4ceff2a2f71de4d32417d88f11668c95ea2b86c9fb62",
+    "vm/src/capability_ffi/mod.rs": "0d48990765d8e22f0557b207749e6e293081d5c942e7d5e05653b4a14052cf52",
+    "vm/src/capability_ffi/preflight.rs": "05e8952e0963c4d430e5d4a1bd327e4b9e8a387433fcff5cf352704dd522e914",
+    "vm/src/capability_ffi/ranges.rs": "1f4adbef4dc181cf60eeffe8f041c508b361154cb4a4f3c1c61dddae706e20be",
+    "vm/src/capability_ffi/session.rs": "b23e74c27be471b24e2810f47151e367b5e4d98137dbff839424b4cf952b7649",
+    "vm/src/capability_ffi/types.rs": "dc0269a9d0bf8b6641bf31d84945962d6a1f15e87e3ac8731af8e1fc805df61f",
+    "vm/src/decode.rs": "bdce49fdd3f03434ff1afb5ae7a3a8ce4657ae55b0b550f03d89ed2bf749947e",
+    "vm/src/execute.rs": "58eb56f6036de38f383867e88c505f5a738bf9430cc203ab3ad7dc089177ec9a",
+    "vm/src/experimental/account.rs": "e33ee76cb44d67c3edf0a9c2ad5c6e08e2938dd4fad206f1d53886a2b7d7d983",
+    "vm/src/experimental/cache/decode.rs": "d5ec3a33297c1dc38f8834e70ea13e525244e868aeac997d955a50d418fd3ae1",
+    "vm/src/experimental/cache/mod.rs": "464bc9bf0fc5415fd30632953cf7bb6e300a808f9fd9313832a24e78403d3135",
+    "vm/src/experimental/cache/tests.rs": "6531b53842c8801e88889fd7b72ccf4fdcd420c76caf272ad7e4c1ca5c67eecd",
+    "vm/src/experimental/metadata.rs": "387c4e954d2f9b37ae81cd65d1fb46166d9d965038a2b206b852c93186a907f1",
+    "vm/src/experimental/mod.rs": "8750078ad79c430ed5e8418e9706e9d07d8ceaac328021c5ea39c2caf4e15b1b",
+    "vm/src/experimental/reader.rs": "21f3dee08519c5ae7261e213532e379430bb7d3ed7ee2bb83e66d45af34cce83",
+    "vm/src/experimental/validate.rs": "06c3b9f0e8e66955355679584d09577a8c0f8250c20deef1aab6878131dde584",
+    "vm/src/experimental_capability/guest.rs": "b00dda244d5975c8ea41573e7580d669e8a207f0e4d219db314ca47d05425486",
+    "vm/src/experimental_capability/mod.rs": "b48db52c6d7bec7fa593075711e9c0f6b7460a56725463bdc36daa6b5ceb84bb",
+    "vm/src/experimental_capability/tests.rs": "c23bfc4a2dfb036e88730def56502b81588afeca19429eb2087d069703db2ef8",
+    "vm/src/experimental_capability_guest/fixed.rs": "d57d49bd77691540a42fd4ad1eb93097570fa26c994fcd83a5f0bbfd6792f135",
+    "vm/src/experimental_capability_guest/mod.rs": "9ba8fb532ed9c9d5f0e63a0ceac22e280610eb6e1e8f194f884c497e68849d91",
+    "vm/src/ffi.rs": "fc6fcd076ff4e42c60e04f19b0b94bd3b630dfabad03fb73193dedfafe5593e6",
+    "vm/src/float.rs": "db8057f709115016eae689efbd1fdd47b2b1ddee371d45159a0160c8ccc4b711",
+    "vm/src/inspect.rs": "e8082d1b774b2dc254033ddb6e8b9fc94758dfcd0bb5e114835421210ab9eb65",
+    "vm/src/lib.rs": "267120b3add89245d4293f45982c31a0981aa61d20ae57fd9ae6d9cadebad413",
+    "vm/src/main.rs": "89ebba469fcca3885cf15743e6a80c5f82137c93c617a52418e3fb5a68155a5e",
+    "vm/src/session.rs": "ce446d2bb18a0aabe9750707901a4f6eb5e6dbfeb9494ce955ce2f3e44b591b8",
+    "vm/src/validate.rs": "808f16ca2f637541e11138754c54fd159c49722ac9f066202a9afccf0f8774c3",
+    "vm/tests/capability_ffi/fixture.rs": "ea03a5cebc8730c3bd502cf8cc566b55698793cec233629f31260bd907f0aa78",
+    "vm/tests/capability_ffi/internal.rs": "6ac67996fe751e162b7eaba8e7702e61664ea883cde3796c301aaa921d90751f",
+    "vm/tests/capability_ffi/ledger.rs": "9dd4ee7800a0c1c98b3292c2c6dca0b6b380031f05a5344ce6de3e333e96b086",
+    "vm/tests/capability_ffi_allocations.rs": "b419f52b49e75337bf6cd1d45a2123ba2d5535f31b4ba3b9294bcac60d51d396",
+    "vm/tests/capability_ffi_public.rs": "216020e4d8199a680f80fbf86e61b4c94770638e15cdc1b3a653840ae5831a6e",
+    "vm/tests/capability_registry.rs": "edaad6e2f097eb14d732754afaefc1a8ed6351ec2715196db4b6adf75102c7c4",
+    "vm/tests/cli.rs": "dea855d0f60d927bf6e1701165f29b79d62a0080695869c7c0ec56dd5f4af418",
+    "vm/tests/common/mod.rs": "0ad900f4dbd88f1ca6152d8e6a18e3d0f8fbf2d0db6d40c2af0abdc0f1c67e21",
+    "vm/tests/differential.rs": "5736545020fde2a2b69d3eaad07c04786acd4c74e9471dc392fe18b9ac71c853",
+    "vm/tests/experimental_allocations.rs": "1c7a7fbd8bb10781a06fdebe68e87ac5911733999de25a11855cbf1efb4af6b8",
+    "vm/tests/experimental_capability_allocations.rs": "d30bbf680b6605598f2b088db4f8d0f39476193af83f8a20dce6307ca38146ac",
+    "vm/tests/experimental_capability_guest.rs": "c5a52f9d38dc96afbe3f98200a8a8e78e1cf1824c08a1056efb2080bf954fb80",
+    "vm/tests/experimental_capability_guest_allocations.rs": "807b4a95c09a7ec14344de48fa9f422ca021905e6b60daa95685fdfe17d20915",
+    "vm/tests/experimental_capability_mailbox.rs": "ba1ea55a15472c8088af10347f87fd391c56eb19b307da6e57a479f6524b19f5",
+    "vm/tests/experimental_guest_ui_allocations.rs": "272efe0f0a81792686d3ba05ac0a2a4e3452d487773134e6b4c8cc51b3c6afbc",
+    "vm/tests/experimental_guest_ui_validation.rs": "9cd72b97a9b6d31d936809c3a401af4b1d130f8a7bb366a5af4ad9b2048ba8eb",
+    "vm/tests/experimental_oracle.rs": "622dfecbc743c209d1db2b1484523f0387aa3dceadc11d62a51c35cd74f62ef5",
+    "vm/tests/experimental_stream.rs": "bb20a73209d3d540e531b3007e99563ac6b4a1e79a2355b51f333df29b480009",
+    "vm/tests/float.rs": "b2545ad07317b889dd485377732d459434ff83a8c2a8b12decfebae6b7c1ec82",
+    "vm/tests/float_differential.rs": "0dd30f053dbd2317ea42967ec5f25982029405e7fb0b9f0d7467070798bfc405",
+    "vm/tests/guest_ui/fixture.rs": "821cee513c0322510f2e0cb2b7d76ce248f0c3537fc8dd839f05a60204452510",
+    "vm/tests/interpreter.rs": "668ac57130a12319ee033c2b7861b107dc7f61ed06c3d2baf82053d2ac7d4870",
+    "vm/tests/review_boundaries.rs": "17258beaf740c45cbf5357fc73bd5d0a9fa7db6c3fdfffb729872466f98cc57b",
+    "vm/tests/review_session_lifetime.rs": "b400bd03338122e4ee0df1850c8923bfc2115c03f7c85e90dd5c68828ad6f94d",
+    "vm/tests/sessions.rs": "10122ece4a6e436e6129cee678d4a6c097bc18ba009edbddeb224105f2bb51c5",
+    "vm/tests/span_function_cache.rs": "e5b204c7c88aafdc5d01993eca4c85442304b193c6f848d1a38978f67246ea8e",
+    "vm/tests/span_function_cache_allocations.rs": "cb4aed1d15db28d9e2f2085c30819ab149e877ac45b0e0dca6de27f2465ff12b",
+    "vm/tests/table_memory.rs": "6e4c2d2f2493714ebc976a3141a2c46dd60413f866724accea4b28f4efdb6946",
+    "vm/tests/table_memory_differential.rs": "edeae488922136b28572199adc7c885c4b55f9fad7157bd4edbd4819f651c62c",
+    "verification/guest-ui-native/rustc-version.log": "352d6857968e80a6357a926ac685b9b07f77c479aaafde33e73a53945e802909",
+    "verification/guest-ui-native/cargo-version.log": "1f88eaf7fe1aaec83184752cf4c944cd22f00184136ff36a3e4c318cc60ef566",
+    "verification/guest-ui-native/clang-version.log": "4e8a77bcb032deb6591b0db384ff9808d01d9030f00e2d877394df88a12a2536",
+    "verification/guest-ui-native/host-version.log": "10c12b8125890b3768695048cf390858bb6f17cf67c1f5747e582c221c2932f0",
+    "verification/guest-ui-native/debug-rust-tests.log": "3b2ae3befcc52f256ff4c262ef41271927f4e7536a4d760f16a8f0377aece1c9",
+    "verification/guest-ui-native/debug-archive-build.log": "23b9a21bbaf189889e08dc27ed8eba521021280c5852db22205f721db08b2c7c",
+    "verification/guest-ui-native/debug-c-build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/guest-ui-native/debug-c-run.log": "29369b0b051e2f2c9e8350ec76e86fe6a28efe0f54258feb0377a770bb1179cb",
+    "verification/guest-ui-native/debug-symbols.log": "2364c9c88b0deaa24410d1e82df2b5740440e65cae64becfa79b87af8704627d",
+    "verification/guest-ui-native/release-rust-tests.log": "1116006c964e7414124b763f03e845d441e66f5bae299c5a3ec45140609df0ae",
+    "verification/guest-ui-native/release-archive-build.log": "376a48f02bf305a0c383aa68e8f2d8c5df3ec64cbee6a09491a649aa453baba9",
+    "verification/guest-ui-native/release-c-build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/guest-ui-native/release-c-run.log": "29369b0b051e2f2c9e8350ec76e86fe6a28efe0f54258feb0377a770bb1179cb",
+    "verification/guest-ui-native/release-symbols.log": "b51acd0be2ec4f448c98c6715e3a8193c2ba6318364b53333c1ee1199ca2f0c5",
+    "verification/guest-ui-native/debug-native-only-focused.log": "2637bd3039ab7a4640876043325fee084fda3562900f14a2673b6f25fc978ab3",
+    "verification/guest-ui-native/debug-default-regression.log": "2c718a1cedba8060b07e1a501fe7b09fa1f842de985ca27b316bdde2b392903f",
+    "verification/guest-ui-native/release-native-only-focused.log": "e13fd6c4f4f4e31025a345820b807d82e534777ed98ad6e6cfa5d7bbec652d54",
+    "verification/guest-ui-native/release-default-regression.log": "cb4c5f579cf088184185e8ddbe4f9734749148bf52acbc907eb6e722585c45ee",
+    "verification/guest-ui-native/fixture-capture-build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/guest-ui-native/fixture-capture-run.log": "1280250da412e0eae3386eaaf8d8e3c5397f9d74c0fe05360b928420804f1268",
+    "verification/guest-ui-native/default-symbol-compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/guest-ui-native/default-symbol-gating.log": "403049ecaeea746c5290b6acc4e43d9d48228515d405c0303c5d1c44cfaf623d",
+    "verification/guest-ui-native/guest-only-symbol-compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/guest-ui-native/guest-only-symbol-gating.log": "aae6c7c77d06e3fec5bbdfbec37568aaaf8caddf3a9d0ba750e923ebf105016b",
+    "vm/target/stream-validation-verification/debug/libmixer_vm.a": "101899244d9764079a2dd8afff5995acda8a9fedcc5b7ff2d0c5eb357a9e6b57",
+    "vm/target/stream-validation-verification/debug/guest-ui-native-client": "7214a5b36ace6ade1e0e5a8070267c3b01740d1dd771f61086caeae6d2879a6a",
+    "vm/target/stream-validation-verification/release/guest-ui-native-client": "c93f94c10b927a29005fee0c6ddd34623785924386d9742454a163def8959e2b",
+    "contracts/guest-ui-event-v1.json": "34180d46e20e403c9cd3f3aa1584a7b6d0e67e94900267c7aa51c87116566024",
+    "contracts/activation-v1.json": "a0816bddd38afdfedb4fc2d50e522b0c808e64b640fb91d7991f895dc405989c",
+    "contracts/activation-v2.json": "e72c75d69e089cc3a23e09cc2f65e1902d9fc8f0bee401555507ec36d5e224d4",
+    "contracts/capability-execution-v1.json": "898ea22b93a5b0dcd94c3b54f7cc97c41a259cd2285cbacd54bf0bd52ba48c97",
+    "contracts/guest-capability-transport-v1.json": "052ebe9fbdc20a41307332086767e7903680bc83ba273c696edf9187be6b6439",
+    "contracts/release-v1.json": "ff899af876c1bb28b0c65c913702b22af9e7031537f5d37ff36f41bf88e12769",
+    "contracts/release-v2.json": "ab4f5d881b1fd0cb91d01bd1da25a0b864690d29936063e0144304bfd275ba4b",
+    "contracts/release-v3.json": "935c2311fb32a72d4b1e49ce55fd1c63f9f8448386a7076db48550767f6212f0",
+    "contracts/runtime-identity-v1.json": "454daf6fdc16955b32a725fd5fa230a4f7cc0c1f3327223bf73d8e6331fcf30c",
+    "contracts/runtime-identity-v2.json": "d66c44d49f79325a643516f33bd19ba882ef711a5139afb54499b39931ba48b8",
+    "contracts/ui-v1.json": "e9983da1c8f5b79dcead9fc7c99172be374ddeba319308615108651cb3931ac5",
+    "contracts/vm-profile-v1.json": "813a54a4e198a73d49afffe7c8d9cf54f6e76bfca80dd6556a439a4bdf1bdf4c",
+    "contracts/vm-session-v1.json": "6921f707b943ab76cdc3dae996ac7448d3c720676f290e259c892afcab1bf41a",
+    "verification/guest-ui-native/attempt-1/receipt.json": "149afea322cafa293489e3926b14559493519dfec6afba6f95f5ac1b40b39bca",
+    "verification/guest-ui-native/fixture-manifest.json": "9b199495f5dab3c30c74e1239ac5b4d4b7218284eab3f8648f2483d929285c1d",
+    "verification/guest-ui-native/capture_fixture.rs": "99e36a61500b8078550d360d12f84d8a7dbe0fe021ce69961e0c5e137753c6ec",
+    "verification/guest-ui-native-review/audit.py": "b27899baf77eead15d795cb2c166aa82d5222d4a026591cfdc644a70139d141e",
+    "verification/guest-ui-native-review/public_probe.c": "8fe569c497457ea30f73641692d257b4c621668c350431ebdb92829c4de80750",
+    "AGENTS.md": "258d0dfea89e2da9afea3715c3e086f2bc62c8350b841a575803e57e57f5378d",
+    "docs/guest-ui-event-integration-design.md": "7b7b3a8a70757349330b1f7d898be4db297b888b9cf606464e210494905a44f4",
+    "verification/guest-ui-native/symbol-gating.json": "2bf70eebe4a9bb9b5a2963f4999d0729abe03a136954ed22cb745bb4620f082c"
+  },
+  "limitations": [
+    "No native archive or giant full feature graph rebuilt in this review.",
+    "Owner Debug/Release/native-only/default tests and allocation counts are audited retained evidence, not independently rerun tests.",
+    "Public C probes establish host behavior only; no Swift/UI content, devices, publication, signing/store/customer or GA qualification.",
+    "Allocation instrumentation describes caller-thread requested sizes; it is not heap/RSS, OOM containment or device evidence.",
+    "Direct-object default/guest-only symbol checks do not establish rebuilt package archive symbol inventories."
+  ],
+  "owner_test_totals_per_profile": {
+    "debug": {
+      "combined_native": 79,
+      "native_only_guest_ui": 6,
+      "default_regression": 49
+    },
+    "release": {
+      "combined_native": 79,
+      "native_only_guest_ui": 6,
+      "default_regression": 49
+    }
+  },
+  "owner_primary_source_revision": "51aafe85e9e3a16dc6cc4f0cce298d92b4be5de3",
+  "owner_source_manifest_sha256": "2434d70e54d0750a4fe1e135338a53ac60fe61d6be7d46128b8faaf3aec4f810",
+  "source_revision": "51aafe85e9e3a16dc6cc4f0cce298d92b4be5de3",
+  "artifacts": {
+    "probe": "verification/guest-ui-native-review/public-probe",
+    "probe_sha256": "35cdf443df9b6e603f9ec0d786a1b8f39b9236a4cf9aee752ae6299f9fd083d7",
+    "archive": "vm/target/stream-validation-verification/release/libmixer_vm.a",
+    "archive_sha256": "5358e39b9efb0561d185c4c22152df057a78a2ca43c582e7b5493e5877fe23e4"
+  },
+  "completed_utc": "2026-10-23T11:41:04.455344+00:00",
+  "result": "passed"
+}

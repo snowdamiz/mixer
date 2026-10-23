@@ -1,0 +1,165 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (target/stream-validation-verification/debug/deps/mixer_vm-4aa582340fd84379)
+
+running 39 tests
+test capability_ffi::ranges::tests::rejects_null_nonempty_lengths_and_address_wrap_before_use ... ok
+test capability_ffi::ranges::tests::typed_arrays_check_count_and_byte_multiplication ... ok
+test capability_ffi::tests::all_preflight_plans_reject_report_aliases_without_accessing_storage ... ok
+test capability_ffi::tests::optional_limits_and_empty_buffers_are_numeric_empty_ranges ... ok
+test capability_ffi::tests::create_preflight_covers_every_input_output_alias_pair ... ok
+test capability_ffi::tests::fixed_lp64_layouts_match_every_frozen_offset ... ok
+test capability_ffi::ranges::tests::report_is_a_participating_write_range_and_empty_ranges_are_disjoint ... ok
+test experimental_capability::tests::deadline_narrowing_is_relative_to_enqueue_and_late_success_cannot_win ... ok
+test experimental_capability::tests::every_success_path_rechecks_private_clock_and_first_terminal_is_immutable ... ok
+test experimental_capability::tests::generations_retire_without_wrap_and_invalid_id_forms_reject ... ok
+
+thread 'experimental_capability::tests::poisoned_mutex_rejects_reuse_instead_of_recovering_untrusted_state' (52451685) panicked at src/experimental_capability/tests.rs:184:9:
+test mailbox poison
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test experimental_capability::tests::owner_and_turn_identifiers_exhaust_without_aliasing ... ok
+test experimental::cache::tests::scalar_statistics_never_wrap_or_leak_construction ... ok
+test experimental::cache::tests::stale_token_nonce_and_owner_exhaustion_fail_closed ... ok
+capability guest layout: guest=640 shared=1000 port=8 ticket=32 mailbox=984 vm_limits=96 guest_limits=4
+test experimental_capability::tests::wrong_lease_operation_and_cross_owner_reject_without_native_release ... ok
+test experimental_capability_guest::tests::fixed_layout_observation_and_static_payload_bounds ... ok
+test experimental_capability_guest::tests::privileged_decoded_module_cannot_bypass_public_instance_constructor ... ok
+
+thread 'experimental_capability_guest::tests::poison_is_terminal_and_ack_failure_is_not_called_reclamation' (52451688) panicked at src/experimental_capability/guest.rs:163:13:
+original mailbox poison fixture
+
+thread 'capability_ffi::session::tests::poisoned_ledger_pins_capacity_without_fabricated_ack' (52451670) panicked at src/capability_ffi/../../tests/capability_ffi/ledger.rs:207:9:
+native ledger poison fixture
+test capability_ffi::session::tests::normal_stale_busy_and_bounds_errors_never_quarantine ... ok
+test capability_ffi::session::tests::quarantined_unpoisoned_close_success_never_clears_reclamation_latch ... ok
+test capability_ffi::session::tests::ledger_counts_only_call_and_first_successful_actual_exit ... ok
+test capability_ffi::session::tests::conflicting_unacknowledged_replacement_is_terminal_invariant ... ok
+
+thread 'ffi::tests::panic_is_contained' (52451694) panicked at src/ffi.rs:385:42:
+test contained panic
+test capability_ffi::session::tests::terminal_post_and_deadline_map_to_terminal_without_acknowledging ... ok
+test experimental_capability::tests::poisoned_mutex_rejects_reuse_instead_of_recovering_untrusted_state ... ok
+test ffi::tests::null_inputs_fail_without_unwind ... ok
+test experimental_capability_guest::tests::ticket_keeps_shared_owner_after_guest_and_ports_drop ... ok
+
+thread 'capability_ffi::session::tests::uncommitted_take_and_unwind_latches_cannot_be_cleared_by_success' (52451673) panicked at src/capability_ffi/../../tests/capability_ffi/ledger.rs:165:9:
+original native operation unwind
+
+thread 'session::tests::panic_poison_prevents_state_reuse_without_poisoning_registry' (52451699) panicked at src/session.rs:698:17:
+test panic during a session operation
+test capability_ffi::session::tests::acknowledged_old_entry_replaced_only_after_new_mailbox_generation ... ok
+
+thread 'session::tests::unwound_creation_releases_unpublished_reservation' (52451700) panicked at src/session.rs:726:17:
+test creation failure before publication
+test ffi::tests::panic_is_contained ... ok
+test session::tests::closed_in_flight_and_reserved_slots_still_count_against_cap ... ok
+test experimental_capability_guest::tests::raw_generation_max_retires_without_wrapping_and_turn_exhaustion_traps ... ok
+test session::tests::generation_exhaustion_permanently_retires_slot ... ok
+test session::tests::busy_session_and_cross_thread_stop_are_nonblocking ... ok
+test experimental_capability_guest::tests::poison_is_terminal_and_ack_failure_is_not_called_reclamation ... ok
+test capability_ffi::session::tests::poisoned_ledger_pins_capacity_without_fabricated_ack ... ok
+test session::tests::unwound_creation_releases_unpublished_reservation ... ok
+
+thread 'experimental_capability_guest::tests::unfinished_turn_guard_preserves_original_unwind_and_ackable_lease' (52451692) panicked at src/experimental_capability_guest/mod.rs:794:13:
+original guest unwind payload
+test capability_ffi::session::tests::uncommitted_take_and_unwind_latches_cannot_be_cleared_by_success ... ok
+test session::tests::panic_poison_prevents_state_reuse_without_poisoning_registry ... ok
+test capability_ffi::session::tests::cancel_control_is_existing_ticket_and_no_new_obligation ... ok
+test experimental_capability_guest::tests::unfinished_turn_guard_preserves_original_unwind_and_ackable_lease ... ok
+test experimental::cache::tests::frozen_ir_parity_for_all_supported_opcode_shapes ... ok
+test capability_ffi::ranges::tests::every_writable_alias_is_rejected_and_read_only_overlap_is_allowed ... ok
+
+test result: ok. 39 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/capability_ffi_allocations.rs (target/stream-validation-verification/debug/deps/capability_ffi_allocations-90ad3fe84a5d11ef)
+
+running 1 test
+native validate-only requested(calls,retained,logical_peak,largest)=(60, 0, 3109, 368);32-page module not instantiated
+native create32pages requested(calls,retained,logical_peak,largest)=(128, 2101738, 2101738, 2097152);includes shared registry first-use overhead if any
+native post allocation refusal=(1, 0, 0, 1024);retry succeeded;no quarantine/terminal/exit fabricated
+test validation_has_no_instance_memory_and_post_allocation_failure_remains_retryable ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/capability_ffi_public.rs (target/stream-validation-verification/debug/deps/capability_ffi_public-18a173e84d0b9e2e)
+
+running 4 tests
+test public_actual_wasm_startup_memory_dispatch_terminal_and_exit_roundtrip ... ok
+test required_outputs_and_report_aliases_reject_without_any_mutation ... ok
+test invalid_limit_fields_and_names_reject_before_publishing_handle ... ok
+test unaligned_limits_handle_report_message_and_result_storage_work ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/capability_registry.rs (target/stream-validation-verification/debug/deps/capability_registry-735dfe9e99e5ea83)
+
+running 1 test
+test mixed_pool_retains_closed_native_work_and_final_destructor_then_retires_handle ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/experimental_capability_guest.rs (target/stream-validation-verification/debug/deps/experimental_capability_guest-1573c410dbf2f069)
+
+running 27 tests
+test host_call_ceiling_is_independent_and_failed_import_writes_nothing ... ok
+test legacy_validators_and_c_routes_still_reject_capability_imports ... ok
+test early_exit_cannot_post_or_release_pending_guest_delivery ... ok
+test coalesced_wake_executes_only_after_turn_and_uses_fixed_export ... ok
+test exact_import_memory_startup_and_wake_validation ... ok
+test close_and_drop_retain_native_exit_obligations ... ok
+test indirect_null_and_wrong_signature_trap_before_capability_mutation ... ok
+test direct_indirect_and_exported_import_return_paths_agree ... ok
+test poll_pending_small_ready_and_repeat_are_atomic ... ok
+test byte_fuel_is_charged_before_token_or_length_writes ... ok
+test malformed_raw_tokens_cannot_select_other_owner_or_generation ... ok
+test quotas_do_not_write_or_advance_and_generation_reuse_is_stale ... ok
+test actual_turn_blocks_native_take_until_success_or_external_cancel ... ok
+test uncalled_malformed_body_and_imported_void_wake_fail_full_validation ... ok
+test all_four_typed_enqueue_imports_return_i32_and_fix_operation ... ok
+test startup_is_explicit_disabled_and_enable_never_retroactively_dispatches ... ok
+test successful_turn_publication_and_trapping_turn_discard ... ok
+test cooperative_turn_timeout_closes_infinite_wasm_turn ... ok
+test taken_cancellation_controls_do_not_create_exit_acknowledgements ... ok
+test whole_guest_cancellation_is_distinct_and_permanent ... ok
+test snapshots_survive_guest_memory_mutation_and_growth ... ok
+test ready_poll_byte_fuel_traps_before_any_output_and_keeps_native_lease_ackable ... ok
+test reservation_exact_boundary_accepts_and_one_byte_short_rejects_atomically ... ok
+test invalid_guest_ranges_never_write_or_issue_request ... ok
+test poll_invalid_full_capacity_overlap_and_zero_capacity_edge ... ok
+test maximum_payload_length_and_full_mailbox_reservation_are_bounded ... ok
+test generated_builtin_failures_have_exact_lengths_bytes_and_hashes ... ok
+
+test result: ok. 27 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/experimental_capability_guest_allocations.rs (target/stream-validation-verification/debug/deps/experimental_capability_guest_allocations-e965317379d0b234)
+
+running 1 test
+constructor requested allocation events=[24, 8, 128, 8, 8, 19, 11, 19, 11, 224, 224, 19, 6, 19, 6, 19, 4, 19, 4, 16, 3, 3, 368, 128, 6, 6, 4, 4, 5, 5, 31, 31, 256, 112, 160, 256, 160, 16, 16, 168, 19, 11, 19, 6, 19, 4, 160, 3, 6, 4, 5, 31, 112, 16, 16, 589824, 24, 1016]; (calls,live,peak)=(58, 592878, 592878); fixture bytes=214
+known Shared Arc OOM abort: status=signal: 6 (SIGABRT); stderr=memory allocation of 1016 bytes failed
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+fallible argument allocation refusal: (2, 36, 36); subsequent bounded Error String included
+eight argument/completion payloads: (16, 8388608, 8388608); caller buffers and preexisting owner/VM excluded
+ready-poll/ack allocation calls=0; ready payloads copied without staging
+close/drop/last-ticket-ack allocation calls=0; final owner requested bytes freed=1104
+test guest_allocations_are_measured_and_payload_failures_are_atomic ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/experimental_guest_ui_allocations.rs (target/stream-validation-verification/debug/deps/experimental_guest_ui_allocations-319b9ed248df6e26)
+
+running 1 test
+guest-UI native validation requested counts=Counts { enabled: true, calls: 47, live: 0, peak: 2806, largest: 368 }; construction positive-control=Counts { enabled: true, calls: 105, live: 2101572, peak: 2101572, largest: 2097152 }; caller-thread requested allocation sizes only, no heap/RSS claim
+test validation_has_no_instance_memory_or_retained_owner_and_creation_probe_detects_memory ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/experimental_guest_ui_validation.rs (target/stream-validation-verification/debug/deps/experimental_guest_ui_validation-acbfdad55ec58d18)
+
+running 5 tests
+test exact_defined_exports_and_legacy_validation_preserved ... ok
+test numeric_preflight_covers_every_pointer_before_any_write_and_accepts_unaligned ... ok
+test validation_does_not_consume_or_require_registry_slots ... ok
+test same_limits_and_exact_zero_defined_memory_fail_closed ... ok
+test complete_validation_precedes_export_checks_without_running_startup ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

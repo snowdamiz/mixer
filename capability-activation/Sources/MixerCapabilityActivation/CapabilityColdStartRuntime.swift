@@ -12,6 +12,7 @@ public final class CapabilityColdStartRuntime: Sendable {
     }
     static func openOwned(configuration: CapabilityColdStartConfiguration, installed: InstalledMaterial,
                           environment: CapabilityRecoveryEnvironment) async throws -> CapabilityColdStartRuntime {
+        try CapabilityInstalledExecutionMode.requireCapabilityOnly(installed.identity)
         let checked = try configuration.checked()
         let reservation = try CapabilityAttemptReservation.acquire() // Before actor/I/O/captured owner allocation.
         let core: CapabilityColdStartCloseCore

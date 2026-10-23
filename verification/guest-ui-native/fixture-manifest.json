@@ -1,0 +1,107 @@
+{
+  "schema": 1,
+  "builder": "vm/tests/guest_ui/fixture.rs",
+  "builder_sha256": "821cee513c0322510f2e0cb2b7d76ce248f0c3537fc8dd839f05a60204452510",
+  "capture_source_sha256": "99e36a61500b8078550d360d12f84d8a7dbe0fe021ce69961e0c5e137753c6ec",
+  "fixtures": {
+    "valid": {
+      "bytes": 216,
+      "sha256": "d18a6f9843b0e97789e04dabca69c16e795eb277524ca5f54c3557390338b36c"
+    },
+    "zero_pages": {
+      "bytes": 216,
+      "sha256": "ce723a6fdc6b33b10db2b177b1cdebe263f1112558a2eaf800afb6fef3382552"
+    },
+    "allocation_32pages": {
+      "bytes": 216,
+      "sha256": "ad5ea0eea486e8acd1b8a1180ae2fdd564bd9e075acd80f4906d1e272f16def0"
+    },
+    "startup_would_trap": {
+      "bytes": 215,
+      "sha256": "b4e866677771f124cc52de26ed97a41f7daf2ab284059ec8b0c490e2c0251572"
+    },
+    "forbidden_start_section": {
+      "bytes": 219,
+      "sha256": "aad906696155485881f2750ca3de820df3c53adc639b5485d2c477966ecd55b3"
+    },
+    "unknown_import_missing_event": {
+      "bytes": 186,
+      "sha256": "75ae9027947ac2d0ba0f2f8321b951b9e242e6e0776364feee1df924504d4c1f"
+    },
+    "malformed_uncalled_missing_event": {
+      "bytes": 195,
+      "sha256": "06c4a481c0bbfe0d83cf4aafdc4bd274c63cfeb44fd571baf6717566880b386e"
+    },
+    "unsupported_uncalled": {
+      "bytes": 221,
+      "sha256": "5ccb91ed24e02eabf4b563cdb307eeeb7595f1ea78250e20782b95eade997ee4"
+    },
+    "missing_0": {
+      "bytes": 190,
+      "sha256": "bea22a7c4bb3b80cefbda7c77e4df7c2246701cfa6e36981245ef9868dbda79f"
+    },
+    "memory_export_0": {
+      "bytes": 216,
+      "sha256": "520e81113beb34dad70b59765535c3267476b4a1743aec783306e34c0db8319a"
+    },
+    "imported_0": {
+      "bytes": 216,
+      "sha256": "e31e87256e043691ea5744edff591fd86e576d314675be1a6d5fcdb386343aa6"
+    },
+    "missing_1": {
+      "bytes": 190,
+      "sha256": "a8b723820ba6c4a25085529ba9980ae031c06a00bf0b19072f1669e666f7a6be"
+    },
+    "memory_export_1": {
+      "bytes": 216,
+      "sha256": "bbc39c40690abd4a1e8ecd5c75663c67b4b4c6fb589167337013d0d0a2e3aece"
+    },
+    "imported_1": {
+      "bytes": 216,
+      "sha256": "f89f5eb9238a56ab2725a859f5b4bd871dd1262aff4e7e9e2a8f6fe2483422ee"
+    },
+    "missing_2": {
+      "bytes": 182,
+      "sha256": "666818b1415f39246896c61ebe8990f55e707e9bf14f0a1802d44a7d23d37fa9"
+    },
+    "memory_export_2": {
+      "bytes": 216,
+      "sha256": "a362b7deaa447c1af60a0fdb96fcada3befbd17e796cf8e01aa7e33e5b1b7794"
+    },
+    "imported_2": {
+      "bytes": 216,
+      "sha256": "96ff00223040b82e62916d3cb40e245a187f3cb5d43e8b45f5ce965a43144f52"
+    }
+  },
+  "inventory": {
+    "types": [
+      "()->i32",
+      "(i32)->i32",
+      "()->()",
+      "()->i64",
+      "(i64)->i32",
+      "(i32)->()",
+      "(i32,i32,i32)->i32"
+    ],
+    "approved_unused_imports": [
+      "mixer.checkpoint:()->()",
+      "mixer.capability.v1.storage_get:(i32,i32,i32)->i32"
+    ],
+    "base_defined_instructions": [
+      "local declaration count0",
+      "i32.const0",
+      "local.get0",
+      "end"
+    ],
+    "negative_deliberate_additions": [
+      "unreachable startup (valid static code; would trap if run)",
+      "i64.const0 in uncalled i32 function (type error)",
+      "0xfd unsupported opcode in uncalled body",
+      "section8 start",
+      "unknown capability import",
+      "wrong required exports/signatures"
+    ],
+    "memory": "One defined nonshared memory, base min=max1page; variants exact0 and32pages."
+  },
+  "reviewer": "Pending root review; independently authored fixture source, no external competitor source or VM builder."
+}

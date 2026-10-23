@@ -131,3 +131,14 @@ after 55 independent static checks and C/C++ declaration/layout checks; see
 validator, bounded SDK exchange, bridge composites and signed native presentation
 in that order. Contract review alone qualifies no UI execution or health.
 Keep the full product plan and physical/published-consumer/GA gates in scope.
+
+The additive native guest-UI validator now passes 79 combined native tests,
+six focused tests, 49 default regressions and 16 public C checks per host mode.
+An independent retained-Release public C probe passes 135 checks; root source
+and evidence review is recorded in `verification/guest-ui-native-root-review.json`.
+The installed-mode gate passes 12 scoped functions in Debug, Release and TSan,
+including capability-only rejection before a full reservation pool or filesystem
+access. Its receipt uses frozen pre-UI dependencies. The bounded exchange,
+fixed bridge composites, signed facade and native presentation remain in progress.
+All three hosted jobs passed for b02b76f and 51aafe8; receipts are retained.
+No physical-device or UI health qualification is inferred from these checks.

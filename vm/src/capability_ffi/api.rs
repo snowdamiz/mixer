@@ -149,6 +149,28 @@ pub(super) unsafe fn validate(
         })
     }
 }
+pub(super) unsafe fn guest_ui_validate(
+    module: *const u8,
+    n: usize,
+    vm: *const MixerVmLimits,
+    cap: *const MixerVmCapabilityLimitsV1,
+    out: *mut MixerVmReport,
+) -> u32 {
+    if p::guest_ui_validate(module, n, vm, cap, out).is_err() {
+        return 3;
+    }
+    unsafe {
+        boundary(out, || {
+            let (vm, mb, guest) = limits(vm, cap)?;
+            Ok(
+                match CapabilityGuest::validate_guest_ui_only(input(module, n), &vm, &mb, guest) {
+                    Ok(()) => MixerVmReport::default(),
+                    Err(e) => error::vm(e, 1),
+                },
+            )
+        })
+    }
+}
 #[allow(clippy::too_many_arguments)]
 pub(super) unsafe fn create<R: Registry>(
     registry: &R,

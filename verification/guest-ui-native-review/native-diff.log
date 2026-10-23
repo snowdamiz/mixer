@@ -1,0 +1,126 @@
+diff --git a/vm/src/capability_ffi/api.rs b/vm/src/capability_ffi/api.rs
+index 1e3e1ee..ac4a0d5 100644
+--- a/vm/src/capability_ffi/api.rs
++++ b/vm/src/capability_ffi/api.rs
+@@ -149,6 +149,28 @@ pub(super) unsafe fn validate(
+         })
+     }
+ }
++pub(super) unsafe fn guest_ui_validate(
++    module: *const u8,
++    n: usize,
++    vm: *const MixerVmLimits,
++    cap: *const MixerVmCapabilityLimitsV1,
++    out: *mut MixerVmReport,
++) -> u32 {
++    if p::guest_ui_validate(module, n, vm, cap, out).is_err() {
++        return 3;
++    }
++    unsafe {
++        boundary(out, || {
++            let (vm, mb, guest) = limits(vm, cap)?;
++            Ok(
++                match CapabilityGuest::validate_guest_ui_only(input(module, n), &vm, &mb, guest) {
++                    Ok(()) => MixerVmReport::default(),
++                    Err(e) => error::vm(e, 1),
++                },
++            )
++        })
++    }
++}
+ #[allow(clippy::too_many_arguments)]
+ pub(super) unsafe fn create<R: Registry>(
+     registry: &R,
+diff --git a/vm/src/capability_ffi/exports.rs b/vm/src/capability_ffi/exports.rs
+index 0076c7d..c808a85 100644
+--- a/vm/src/capability_ffi/exports.rs
++++ b/vm/src/capability_ffi/exports.rs
+@@ -19,6 +19,18 @@ pub unsafe extern "C" fn mixer_vm_capability_validate_v1(
+     unsafe { api::validate(module, n, startup, startup_len, vm, cap, out) }
+ }
+ /// # Safety
++/// Every pointer obeys the complete storage and lifetime contract in mixer_vm_guest_ui.h.
++#[no_mangle]
++pub unsafe extern "C" fn mixer_vm_capability_guest_ui_validate_v1(
++    module: *const u8,
++    n: usize,
++    vm: *const MixerVmLimits,
++    cap: *const MixerVmCapabilityLimitsV1,
++    out: *mut MixerVmReport,
++) -> u32 {
++    unsafe { api::guest_ui_validate(module, n, vm, cap, out) }
++}
++/// # Safety
+ /// Every pointer obeys the complete storage and lifetime contract in mixer_vm_capability.h.
+ #[no_mangle]
+ pub unsafe extern "C" fn mixer_vm_capability_session_create_v1(
+diff --git a/vm/src/capability_ffi/preflight.rs b/vm/src/capability_ffi/preflight.rs
+index ecc570d..88698f0 100644
+--- a/vm/src/capability_ffi/preflight.rs
++++ b/vm/src/capability_ffi/preflight.rs
+@@ -47,6 +47,20 @@ pub(super) fn validate(
+         write(out),
+     ])
+ }
++pub(super) fn guest_ui_validate(
++    module: *const u8,
++    n: usize,
++    vm: *const MixerVmLimits,
++    cap: *const MixerVmCapabilityLimitsV1,
++    out: *mut MixerVmReport,
++) -> Result<(), Invalid> {
++    preflight([
++        Range::bytes(module as usize, n, MODULE_CAP, Access::Read),
++        optional(vm),
++        optional(cap),
++        write(out),
++    ])
++}
+ #[allow(clippy::too_many_arguments)]
+ pub(super) fn create(
+     module: *const u8,
+diff --git a/vm/src/experimental_capability_guest/mod.rs b/vm/src/experimental_capability_guest/mod.rs
+index 0733b97..188f7ce 100644
+--- a/vm/src/experimental_capability_guest/mod.rs
++++ b/vm/src/experimental_capability_guest/mod.rs
+@@ -264,6 +264,40 @@ impl CapabilityGuest {
+     ) -> Result<(), Error> {
+         Self::validated(wasm, vm, mailbox, guest, startup).map(|_| ())
+     }
++    /// Complete capability validation followed by the fixed guest-UI signatures.
++    /// The returned validated module is inspected directly, never instantiated or
++    /// decoded a second time. This path has no mailbox or registry interaction.
++    #[cfg(feature = "experimental-capability-native")]
++    pub(crate) fn validate_guest_ui_only(
++        wasm: &[u8],
++        vm: &Limits,
++        mailbox: &mb::Limits,
++        guest: GuestLimits,
++    ) -> Result<(), Error> {
++        const START: &str = "mixer_guest_ui_start_v1";
++        const EVENT: &str = "mixer_guest_ui_event_v1";
++        let (module, _, _) = Self::validated(wasm, vm, mailbox, guest, START)?;
++        for (name, params, result) in [
++            (START, &[][..], Some(Type::I32)),
++            (EVENT, &[Type::I32][..], Some(Type::I32)),
++            (WAKE_EXPORT, &[][..], None),
++        ] {
++            let valid = module.exports.get(name).is_some_and(|&(kind, index)| {
++                kind == 0
++                    && index as usize >= module.imports.len()
++                    && module.signature(index).is_some_and(|signature| {
++                        signature.params == params && signature.result == result
++                    })
++            });
++            if !valid {
++                return Err(error(
++                    "capability_export",
++                    "required guest UI export must be a defined function with the exact signature",
++                ));
++            }
++        }
++        Ok(())
++    }
+     #[cfg(feature = "experimental-capability-native")]
+     pub(crate) fn write_memory(&mut self, offset: u32, source: &[u8]) -> Result<(), Error> {
+         self.live()?;

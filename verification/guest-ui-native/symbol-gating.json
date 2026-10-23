@@ -1,0 +1,78 @@
+{
+  "schema": 1,
+  "scope": "Direct rustc current-source host object exports with default and guest-only feature sets; no default/native archive replacement. Combined archive C link checks recorded separately.",
+  "source_manifest_sha256": "2434d70e54d0750a4fe1e135338a53ac60fe61d6be7d46128b8faaf3aec4f810",
+  "commands": [
+    {
+      "argv": [
+        "rustc",
+        "--edition",
+        "2021",
+        "--crate-name",
+        "mixer_vm",
+        "--crate-type",
+        "lib",
+        "--emit",
+        "obj",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/src/lib.rs",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/debug/guest-ui-symbol-gating-default.o"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_status": 0,
+      "log": "verification/guest-ui-native/default-symbol-compile.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "argv": [
+        "nm",
+        "-gU",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/debug/guest-ui-symbol-gating-default.o"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_status": 0,
+      "log": "verification/guest-ui-native/default-symbol-gating.log",
+      "log_sha256": "403049ecaeea746c5290b6acc4e43d9d48228515d405c0303c5d1c44cfaf623d"
+    },
+    {
+      "argv": [
+        "rustc",
+        "--edition",
+        "2021",
+        "--crate-name",
+        "mixer_vm",
+        "--crate-type",
+        "lib",
+        "--emit",
+        "obj",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/src/lib.rs",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/debug/guest-ui-symbol-gating-guest-only.o",
+        "--cfg",
+        "feature=\"experimental-capability-mailbox\"",
+        "--cfg",
+        "feature=\"experimental-capability-guest\""
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_status": 0,
+      "log": "verification/guest-ui-native/guest-only-symbol-compile.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "argv": [
+        "nm",
+        "-gU",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/debug/guest-ui-symbol-gating-guest-only.o"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_status": 0,
+      "log": "verification/guest-ui-native/guest-only-symbol-gating.log",
+      "log_sha256": "aae6c7c77d06e3fec5bbdfbec37568aaaf8caddf3a9d0ba750e923ebf105016b"
+    }
+  ],
+  "selected_archives_unchanged": {
+    "debug": "101899244d9764079a2dd8afff5995acda8a9fedcc5b7ff2d0c5eb357a9e6b57",
+    "release": "5358e39b9efb0561d185c4c22152df057a78a2ca43c582e7b5493e5877fe23e4"
+  },
+  "result": "passed"
+}

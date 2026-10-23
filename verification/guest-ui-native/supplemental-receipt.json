@@ -1,0 +1,106 @@
+{
+  "schema": 1,
+  "commands": [
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--features",
+        "experimental-capability-native",
+        "--test",
+        "experimental_guest_ui_validation",
+        "--test",
+        "experimental_guest_ui_allocations",
+        "--",
+        "--nocapture"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/vm",
+      "exit_status": 0,
+      "log": "verification/guest-ui-native/debug-native-only-focused.log",
+      "log_sha256": "2637bd3039ab7a4640876043325fee084fda3562900f14a2673b6f25fc978ab3"
+    },
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--no-default-features",
+        "--lib",
+        "--test",
+        "interpreter",
+        "--test",
+        "sessions"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/vm",
+      "exit_status": 0,
+      "log": "verification/guest-ui-native/debug-default-regression.log",
+      "log_sha256": "2c718a1cedba8060b07e1a501fe7b09fa1f842de985ca27b316bdde2b392903f"
+    },
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--release",
+        "--features",
+        "experimental-capability-native",
+        "--test",
+        "experimental_guest_ui_validation",
+        "--test",
+        "experimental_guest_ui_allocations",
+        "--",
+        "--nocapture"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/vm",
+      "exit_status": 0,
+      "log": "verification/guest-ui-native/release-native-only-focused.log",
+      "log_sha256": "e13fd6c4f4f4e31025a345820b807d82e534777ed98ad6e6cfa5d7bbec652d54"
+    },
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--release",
+        "--no-default-features",
+        "--lib",
+        "--test",
+        "interpreter",
+        "--test",
+        "sessions"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/vm",
+      "exit_status": 0,
+      "log": "verification/guest-ui-native/release-default-regression.log",
+      "log_sha256": "cb4c5f579cf088184185e8ddbe4f9734749148bf52acbc907eb6e722585c45ee"
+    },
+    {
+      "argv": [
+        "rustc",
+        "--edition",
+        "2021",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-native/capture_fixture.rs",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/debug/guest-ui-fixture-capture"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/vm",
+      "exit_status": 0,
+      "log": "verification/guest-ui-native/fixture-capture-build.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/debug/guest-ui-fixture-capture"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/vm",
+      "exit_status": 0,
+      "log": "verification/guest-ui-native/fixture-capture-run.log",
+      "log_sha256": "1280250da412e0eae3386eaaf8d8e3c5397f9d74c0fe05360b928420804f1268"
+    }
+  ],
+  "scope": "Host native-only feature wiring and unchanged default regression; fixture encoding capture.",
+  "fixture_manifest_sha256": "9b199495f5dab3c30c74e1239ac5b4d4b7218284eab3f8648f2483d929285c1d",
+  "selected_archives_unchanged": {
+    "debug": "101899244d9764079a2dd8afff5995acda8a9fedcc5b7ff2d0c5eb357a9e6b57",
+    "release": "5358e39b9efb0561d185c4c22152df057a78a2ca43c582e7b5493e5877fe23e4"
+  },
+  "source_manifest_sha256": "2434d70e54d0750a4fe1e135338a53ac60fe61d6be7d46128b8faaf3aec4f810",
+  "result": "passed"
+}

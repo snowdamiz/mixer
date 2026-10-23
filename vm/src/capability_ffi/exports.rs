@@ -19,6 +19,18 @@ pub unsafe extern "C" fn mixer_vm_capability_validate_v1(
     unsafe { api::validate(module, n, startup, startup_len, vm, cap, out) }
 }
 /// # Safety
+/// Every pointer obeys the complete storage and lifetime contract in mixer_vm_guest_ui.h.
+#[no_mangle]
+pub unsafe extern "C" fn mixer_vm_capability_guest_ui_validate_v1(
+    module: *const u8,
+    n: usize,
+    vm: *const MixerVmLimits,
+    cap: *const MixerVmCapabilityLimitsV1,
+    out: *mut MixerVmReport,
+) -> u32 {
+    unsafe { api::guest_ui_validate(module, n, vm, cap, out) }
+}
+/// # Safety
 /// Every pointer obeys the complete storage and lifetime contract in mixer_vm_capability.h.
 #[no_mangle]
 pub unsafe extern "C" fn mixer_vm_capability_session_create_v1(

@@ -47,6 +47,20 @@ pub(super) fn validate(
         write(out),
     ])
 }
+pub(super) fn guest_ui_validate(
+    module: *const u8,
+    n: usize,
+    vm: *const MixerVmLimits,
+    cap: *const MixerVmCapabilityLimitsV1,
+    out: *mut MixerVmReport,
+) -> Result<(), Invalid> {
+    preflight([
+        Range::bytes(module as usize, n, MODULE_CAP, Access::Read),
+        optional(vm),
+        optional(cap),
+        write(out),
+    ])
+}
 #[allow(clippy::too_many_arguments)]
 pub(super) fn create(
     module: *const u8,

@@ -1,0 +1,157 @@
+{
+  "schema": 1,
+  "started_utc": "2026-10-23T11:30:17.520384+00:00",
+  "source_revision": "51aafe85e9e3a16dc6cc4f0cce298d92b4be5de3",
+  "source_manifest_sha256": "81d8ad6b25e62d72eaf686ac43c206f3f582aba91fbdf28bf000aef693603792",
+  "scope": "macOS host native validate-only ABI. No Swift/UI, device, release or GA qualification.",
+  "commands": [
+    {
+      "label": "rustc-version",
+      "argv": [
+        "rustc",
+        "-Vv"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/vm",
+      "exit_status": 0,
+      "log": "verification/guest-ui-native/rustc-version.log",
+      "log_sha256": "352d6857968e80a6357a926ac685b9b07f77c479aaafde33e73a53945e802909"
+    },
+    {
+      "label": "cargo-version",
+      "argv": [
+        "cargo",
+        "-V"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/vm",
+      "exit_status": 0,
+      "log": "verification/guest-ui-native/cargo-version.log",
+      "log_sha256": "1f88eaf7fe1aaec83184752cf4c944cd22f00184136ff36a3e4c318cc60ef566"
+    },
+    {
+      "label": "clang-version",
+      "argv": [
+        "clang",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/vm",
+      "exit_status": 0,
+      "log": "verification/guest-ui-native/clang-version.log",
+      "log_sha256": "4e8a77bcb032deb6591b0db384ff9808d01d9030f00e2d877394df88a12a2536"
+    },
+    {
+      "label": "host-version",
+      "argv": [
+        "uname",
+        "-a"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/vm",
+      "exit_status": 0,
+      "log": "verification/guest-ui-native/host-version.log",
+      "log_sha256": "10c12b8125890b3768695048cf390858bb6f17cf67c1f5747e582c221c2932f0"
+    },
+    {
+      "label": "debug-rust-tests",
+      "argv": [
+        "cargo",
+        "test",
+        "--features",
+        "experimental-stream-validation,experimental-function-cache,experimental-capability-native",
+        "--lib",
+        "--test",
+        "experimental_guest_ui_validation",
+        "--test",
+        "experimental_guest_ui_allocations",
+        "--test",
+        "capability_ffi_public",
+        "--test",
+        "capability_ffi_allocations",
+        "--test",
+        "capability_registry",
+        "--test",
+        "experimental_capability_guest",
+        "--test",
+        "experimental_capability_guest_allocations",
+        "--",
+        "--nocapture"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/vm",
+      "exit_status": 0,
+      "log": "verification/guest-ui-native/debug-rust-tests.log",
+      "log_sha256": "f1e79ad9e36f463ec085dcec274cddd704f32daa25c2c7829c0bb8503eed0723"
+    },
+    {
+      "label": "debug-archive-build",
+      "argv": [
+        "cargo",
+        "build",
+        "--features",
+        "experimental-stream-validation,experimental-function-cache,experimental-capability-native",
+        "--lib"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/vm",
+      "exit_status": 0,
+      "log": "verification/guest-ui-native/debug-archive-build.log",
+      "log_sha256": "23b9a21bbaf189889e08dc27ed8eba521021280c5852db22205f721db08b2c7c"
+    },
+    {
+      "label": "debug-c-build",
+      "argv": [
+        "clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/include",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/guest-ui-native/native_client.c",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/debug/libmixer_vm.a",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/debug/guest-ui-native-client"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/vm",
+      "exit_status": 0,
+      "log": "verification/guest-ui-native/debug-c-build.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "debug-c-run",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/debug/guest-ui-native-client"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/vm",
+      "exit_status": 0,
+      "log": "verification/guest-ui-native/debug-c-run.log",
+      "log_sha256": "29369b0b051e2f2c9e8350ec76e86fe6a28efe0f54258feb0377a770bb1179cb"
+    },
+    {
+      "label": "debug-symbols",
+      "argv": [
+        "nm",
+        "-gU",
+        "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/debug/libmixer_vm.a"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/vm",
+      "exit_status": 1,
+      "log": "verification/guest-ui-native/debug-symbols.log",
+      "log_sha256": "41a2f575f5735fa4d785725f6b06ec80e9e44a8c8d85d1d2cead77ba5f474281"
+    }
+  ],
+  "first_failure": {
+    "label": "debug-symbols",
+    "argv": [
+      "nm",
+      "-gU",
+      "/Users/andreyyurlov/Documents/dev/mixer/vm/target/stream-validation-verification/debug/libmixer_vm.a"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer/vm",
+    "exit_status": 1,
+    "log": "verification/guest-ui-native/debug-symbols.log",
+    "log_sha256": "41a2f575f5735fa4d785725f6b06ec80e9e44a8c8d85d1d2cead77ba5f474281"
+  },
+  "limitations": [
+    "Allocation probe measures caller-thread requested sizes, not heap/RSS.",
+    "Existing core allocator abort boundaries remain.",
+    "Phones disconnected; no new physical-device checks attempted.",
+    "Native ABI cannot validate runtime UI header/document content."
+  ]
+}
