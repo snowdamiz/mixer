@@ -109,8 +109,15 @@ the twelve coordinated text profiles and a nearest-anchor policy that rejects
 unsupported sizes. All 89 SDK tests pass per Debug/Release; 72 public role metrics
 match retained measurements, 3,502 selection outcomes pass per mode, and public
 iOS/Android modules compile. See `verification/ui-shared-text-profiles/acceptance.json`.
-A new versioned measured recipe contract is in preparation; actual renderer
-consumption, interaction and physical design parity remain pending.
+The separate measuredShared2 V2 implementation contract is now frozen with
+92 root bindings and13 executable design checks per normal/optimized mode.
+The first implementation slice supplies closed group/switch geometry and bounded
+density conversion. All94 SDK tests pass per Debug/Release;1,058 public outputs
+per mode match the frozen contract, and iOS/officialAndroid modules compile.
+See `verification/ui-measured-appearance-v2-root-review/acceptance.json` and
+`verification/ui-appearance-geometry-v2/acceptance.json` (148 bindings). V1 remains
+unchanged. V2 codec work is active; actual native consumption, interaction, signed
+V2 installation and physical design parity remain pending.
 
 Eight unchanged iOS simulator screenshots are retained in
 `verification/apple-appearance-reference/gallery.html`; root accepts the baseline

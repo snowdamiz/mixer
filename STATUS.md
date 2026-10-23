@@ -49,12 +49,14 @@ fresh private Android host runner under Swift 6.2.4. See
 `verification/github-ci-d6c41a0/receipt.json`.
 
 Latest hosted evidence: `09dac10`, `958998d`, `0f177ad` and `5988e4a` pass all three
-VM/Swift/services jobs. `7c2baeb` also passes all three jobs. The earlier
+VM/Swift/services jobs. `7c2baeb`, `aa87c6e`, `d40c540` and `542e040` also pass all three jobs. The earlier
 `c687e69` run failed TSan `fault-leave` with an observation deadline; a test-only
 precondition repair now has scoped root acceptance with 1,157 exact bindings,
 117 fresh scenario passes, six independent actual Swift/C scheduling probes and
 three fixture replays. See `verification/android-fault-leave-ci-root-review/acceptance.json`.
-Repaired hosted verification remains pending; the failed receipt is retained.
+The repaired `d40c540` checkpoint passes all three hosted jobs, including the
+fresh host scenarios. See `verification/github-ci-d40c540/receipt.json`; the
+failed receipt is retained.
 The earlier `d814055` fixed-35ms polling failure remains
 recorded; the repaired observed-tick test now passes hosted Swift 6.2.4 as well as
 local Debug/Release/TSan. See `verification/github-ci-0f177ad/receipt.json`.
@@ -78,7 +80,12 @@ Observed implementation and evidence:
   byte-identical parent PNGs. Shared authored group/switch curves still differ
   from native rasters and are not accepted as exact native paths. RTL switch
   thumb direction, per-state paints and contextual spacing are retained as
-  bounded observations; the next measured recipe contract is being prepared.
+  bounded observations. The V2 implementation contract now has root freeze with
+  92 bindings and13 design checks per normal/optimized mode. Shared authored
+  geometry passes all94 SDK tests per Debug/Release,1,058 public contract outputs
+  per mode and iOS/officialAndroid module checks. Root verifies148 bindings in
+  `verification/ui-appearance-geometry-v2/acceptance.json`. Codec implementation
+  is active; renderers, native resources/support and signed V2 remain pending.
 
 - Java shared appearance resolution now has independent and root acceptance as
   immutable data. Root checks 183 bindings across both corpora and all four
@@ -92,9 +99,12 @@ Observed implementation and evidence:
   preference normalization and final geometry remain unapproved; both native
   renderers still need the measured shared recipe.
 - Private constructor behavior passes bounded host probes, but its preflight
-  accounting remains unaccepted: independent review found missing Option/Result
-  whole values and closure receiver terms. Additive correction is in progress.
-  No full Swift target is instantiated or invoked.
+  accounting remains unaccepted. Positive typed additions and a deferred failure
+  completion API are implemented. Root found stale working-directory defaults in
+  candidate2 producer checks and a newly exposed category-first test expectation;
+  both receipts/failure are preserved and actual candidate3 qualification is
+  required. Independent source/lifetime review is ongoing. No full Swift target
+  is instantiated or invoked.
 
 - The unchanged Apple design is measured in 24 simulator captures across 12
   Debug/Release profiles. Root verifies 385 bindings and independently decodes all
