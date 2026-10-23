@@ -336,3 +336,12 @@ tests and31 native HTTP/exit/deadline tests under Thread Sanitizer, both raw90
 fixture modes and the generated simulator consumer. See
 `verification/github-ci-bec5731/receipt.json`. This predates the native C layer
 and its expanded Linux public-client checks.
+
+GitHub run39903653915 at b25e3b7 passed all three jobs. The expanded Linux job
+executes both public native C clients: 27 smoke checks and 4,589 independent
+assertions, including 48 take/close and 48 acknowledgement/close races. Default
+and combined experimental VM checks, explicit reference tests, 51 Swift capability
+tests, 31 native Thread Sanitizer tests and the generated simulator consumer also
+pass. See `verification/github-ci-b25e3b7/receipt.json`. This qualifies the listed
+host CI execution; the Swift guest-to-I/O bridge and new physical-device checks
+remain pending.

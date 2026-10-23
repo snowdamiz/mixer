@@ -51,3 +51,14 @@ These jobs cover host package behavior and an unsigned generated simulator build
 They do not qualify physical devices, OTA deployment, PostgreSQL integration or
 production operations. PostgreSQL's real-database
 qualification stays in its explicit local harness; CI installs no database.
+
+The current Linux VM job also enables `experimental-capability-native` together
+with the streaming validator for debug/release and explicit reference tests.
+It separately builds the native-only static archive, links the original public
+C smoke and independent adversarial client with C11/pthreads, and executes both.
+Run39903653915 at b25e3b7 passed 27 smoke checks and 4,589 independent assertions,
+including 48 take/close and 48 acknowledgement/close races. The Swift job now
+checks all 90 raw guest transport fixtures in debug/release and runs native HTTP,
+exit, deadline and carried-deadline tests under Thread Sanitizer. This does not
+execute the pending Swift guest-to-I/O bridge. Exact logs and job identities are
+in `verification/github-ci-b25e3b7/receipt.json`.
