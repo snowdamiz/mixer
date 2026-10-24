@@ -1,5 +1,10 @@
 # Implementation status
 
+Implementation paused at the user's request after the pushed Phoenix foundation.
+See [pause and resume handoff](docs/implementation-pause-2026-10-24.md). Private
+frame source/evidence is preserved pending root acceptance; the next hosted
+identity implementation has not started. The full product scope remains open.
+
 Product status: **in development; no GA or dogfood gate passed**.
 
 Hosted-stack specification updated October 24: Elixir/Phoenix (Plug/Bandit),

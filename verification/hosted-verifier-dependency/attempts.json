@@ -1,0 +1,30 @@
+[
+  {
+    "command": "cp ../qualification_test.exs test/qualification_test.exs && mix test --trace",
+    "cwd": "verification/hosted-verifier-dependency/scratch",
+    "exit_code": 1,
+    "observed": "Dependencies compiled with OTP29 deprecated-catch warnings. Mix refused tests because test/test_helper.exs was absent.",
+    "correction": "Added test/test_helper.exs; ExUnit starts in the retained qualification source.",
+    "retention": "Summary transcribed from executed tool output; full initial raw output was not separately archived."
+  },
+  {
+    "command": "cp ../qualification_test.exs test/qualification_test.exs && mix test --trace",
+    "cwd": "verification/hosted-verifier-dependency/scratch",
+    "exit_code": 2,
+    "observed": "17/18 passed. An observation expected ordinary Jason map decoding to retain last duplicate sub; actual value was first.",
+    "correction": "Corrected observation to first. Ordered-object duplicate rejection assertions already passed.",
+    "retention": "Summary transcribed from executed tool output; full initial raw output was not separately archived."
+  },
+  {
+    "command": "cp ../qualification_test.exs test/qualification_test.exs && mix test --trace --seed 0",
+    "cwd": "verification/hosted-verifier-dependency/scratch",
+    "exit_code": 0,
+    "observed": "20 passed after correction and atomic/duplicate JWKS cases."
+  },
+  {
+    "command": "cp ../qualification_test.exs test/qualification_test.exs && mix test --trace --seed 0",
+    "cwd": "verification/hosted-verifier-dependency/scratch",
+    "exit_code": 0,
+    "observed": "21 passed after adding genuinely signed RSA 1024/4096 and conflicting duplicate protected alg cases. Sealed collector subsequently reran exact retained source with 21 passes."
+  }
+]

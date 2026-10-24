@@ -1,5 +1,10 @@
 # Execution index
 
+Implementation paused at the user's request after the pushed Phoenix foundation.
+See [pause and resume handoff](docs/implementation-pause-2026-10-24.md). Private
+frame source/evidence is preserved pending root acceptance; the next hosted
+identity implementation has not started. The full product scope remains open.
+
 The complete specification is [mixer-product-plan.md](mixer-product-plan.md).
 All W01–W18 packages, G01–G38 launch gates, and D0–D8 dogfood milestones remain
 in scope. No internal slice substitutes for those completion requirements.
