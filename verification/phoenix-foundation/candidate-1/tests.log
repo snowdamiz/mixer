@@ -1,0 +1,1361 @@
+Running ExUnit with seed: 794248, max_cases: 1
+
+
+MixerHosted.RuntimeConfigTest [test/runtime_config_test.exs]
+  * test API cannot process jobs and uses bounded verified TLS connections [L#16]  * test API cannot process jobs and uses bounded verified TLS connections (35.4ms) [L#16]
+  * test processor has separate bounded queues and no HTTP endpoint [L#42]  * test processor has separate bounded queues and no HTTP endpoint (2.1ms) [L#42]
+  * test queue bounds cannot be widened or interpreted as arbitrary atoms [L#84]  * test queue bounds cannot be widened or interpreted as arbitrary atoms (1.3ms) [L#84]
+  * test required configuration fails closed without leaking values [L#57]  * test required configuration fails closed without leaking values (0.4ms) [L#57]
+
+MixerHosted.FoundationIntegrationTest [test/foundation_integration_test.exs]
+
+00:58:27.920 [info] == Running 20261024000000 MixerHosted.Repo.Migrations.AddOban.up/0
+
+00:58:27.927 [info] execute "DO $$\nBEGIN\nIF NOT EXISTS (SELECT 1 FROM pg_type\n               WHERE typname = 'oban_job_state'\n                 AND typnamespace = 'public'::regnamespace::oid) THEN\n    CREATE TYPE \"public\".oban_job_state AS ENUM (\n      'available',\n      'suspended',\n      'scheduled',\n      'executing',\n      'retryable',\n      'completed',\n      'discarded',\n      'cancelled'\n    );\n  END IF;\nEND$$;\n"
+
+00:58:27.929 [info] create table if not exists public.oban_jobs
+
+00:58:27.930 [info] create index if not exists public.oban_jobs_queue_index
+
+00:58:27.931 [info] create index if not exists public.oban_jobs_state_index
+
+00:58:27.931 [info] create index if not exists public.oban_jobs_scheduled_at_index
+
+00:58:27.931 [info] execute "CREATE OR REPLACE FUNCTION \"public\".oban_jobs_notify() RETURNS trigger AS $$\nDECLARE\n  channel text;\n  notice json;\nBEGIN\n  IF (TG_OP = 'INSERT') THEN\n    channel = 'public.oban_insert';\n    notice = json_build_object('queue', NEW.queue, 'state', NEW.state);\n\n    -- No point triggering for a job that isn't scheduled to run now\n    IF NEW.scheduled_at IS NOT NULL AND NEW.scheduled_at > now() AT TIME ZONE 'utc' THEN\n      RETURN null;\n    END IF;\n  ELSE\n    channel = 'public.oban_update';\n    notice = json_build_object('queue', NEW.queue, 'new_state', NEW.state, 'old_state', OLD.state);\n  END IF;\n\n  PERFORM pg_notify(channel, notice::text);\n\n  RETURN NULL;\nEND;\n$$ LANGUAGE plpgsql;\n"
+
+00:58:27.932 [info] execute "DROP TRIGGER IF EXISTS oban_notify ON \"public\".oban_jobs"
+
+00:58:27.932 [info] trigger "oban_notify" for relation "public.oban_jobs" does not exist, skipping
+
+00:58:27.932 [info] execute "CREATE TRIGGER oban_notify\nAFTER INSERT OR UPDATE OF state ON \"public\".oban_jobs\nFOR EACH ROW EXECUTE PROCEDURE \"public\".oban_jobs_notify();\n"
+
+00:58:27.932 [info] drop index if exists public.oban_jobs_scheduled_at_index
+
+00:58:27.932 [info] create index public.oban_jobs_scheduled_at_index
+
+00:58:27.933 [info] create check constraint worker_length on table public.oban_jobs
+
+00:58:27.933 [info] create check constraint queue_length on table public.oban_jobs
+
+00:58:27.933 [info] execute "CREATE OR REPLACE FUNCTION \"public\".oban_wrap_id(value bigint) RETURNS int AS $$\nBEGIN\n  RETURN (CASE WHEN value > 2147483647 THEN mod(value, 2147483647) ELSE value END)::int;\nEND;\n$$ LANGUAGE plpgsql IMMUTABLE;\n"
+
+00:58:27.933 [info] alter table public.oban_jobs
+
+00:58:27.934 [info] execute "DROP FUNCTION IF EXISTS \"public\".oban_wrap_id(value bigint)"
+
+00:58:27.934 [info] drop index if exists public.oban_jobs_scheduled_at_index
+
+00:58:27.934 [info] drop index if exists public.oban_jobs_queue_index
+
+00:58:27.934 [info] drop index if exists public.oban_jobs_state_index
+
+00:58:27.934 [info] create index if not exists public.oban_jobs_queue_state_scheduled_at_id_index
+
+00:58:27.934 [info] create index if not exists public.oban_jobs_attempted_at_id_index
+
+00:58:27.935 [info] alter table public.oban_jobs
+
+00:58:27.935 [info] alter table public.oban_jobs
+
+00:58:27.935 [info] drop index if exists public.oban_jobs_queue_state_scheduled_at_id_index
+
+00:58:27.935 [info] create index if not exists public.oban_jobs_state_queue_priority_scheduled_at_id_index
+
+00:58:27.935 [info] execute "CREATE OR REPLACE FUNCTION \"public\".oban_jobs_notify() RETURNS trigger AS $$\nDECLARE\n  channel text;\n  notice json;\nBEGIN\n  IF NEW.state = 'available' THEN\n    channel = 'public.oban_insert';\n    notice = json_build_object('queue', NEW.queue);\n\n    PERFORM pg_notify(channel, notice::text);\n  END IF;\n\n  RETURN NULL;\nEND;\n$$ LANGUAGE plpgsql;\n"
+
+00:58:27.936 [info] execute "DROP TRIGGER IF EXISTS oban_notify ON \"public\".oban_jobs"
+
+00:58:27.936 [info] execute "CREATE TRIGGER oban_notify\nAFTER INSERT ON \"public\".oban_jobs\nFOR EACH ROW EXECUTE PROCEDURE \"public\".oban_jobs_notify();\n"
+
+00:58:27.936 [info] alter table public.oban_jobs
+
+00:58:27.937 [info] execute "ALTER TYPE \"public\".oban_job_state ADD VALUE IF NOT EXISTS 'cancelled'"
+
+00:58:27.937 [info] enum label "cancelled" already exists, skipping
+
+00:58:27.937 [info] create index if not exists public.oban_jobs_state_queue_priority_scheduled_at_id_index
+
+00:58:27.938 [info] relation "oban_jobs_state_queue_priority_scheduled_at_id_index" already exists, skipping
+
+00:58:27.938 [info] alter table public.oban_jobs
+
+00:58:27.938 [info] create check constraint priority_range on table public.oban_jobs
+
+00:58:27.938 [info] create check constraint positive_max_attempts on table public.oban_jobs
+
+00:58:27.938 [info] create check constraint attempt_range on table public.oban_jobs
+
+00:58:27.938 [info] drop index if exists public.oban_jobs_args_vector
+
+00:58:27.939 [info] index "oban_jobs_args_vector" does not exist, skipping
+
+00:58:27.939 [info] drop index if exists public.oban_jobs_worker_gist
+
+00:58:27.939 [info] index "oban_jobs_worker_gist" does not exist, skipping
+
+00:58:27.939 [info] drop index if exists public.oban_jobs_attempted_at_id_index
+
+00:58:27.939 [info] create index if not exists public.oban_jobs_args_index
+
+00:58:27.939 [info] create index if not exists public.oban_jobs_meta_index
+
+00:58:27.940 [info] create table if not exists public.oban_peers
+
+00:58:27.940 [info] execute "ALTER TABLE \"public\".oban_peers SET UNLOGGED"
+
+00:58:27.941 [info] drop constraint priority_range from table public.oban_jobs
+
+00:58:27.941 [info] create check constraint non_negative_priority on table public.oban_jobs
+
+00:58:27.942 [info] execute "DROP TRIGGER IF EXISTS oban_notify ON \"public\".oban_jobs"
+
+00:58:27.942 [info] execute "DROP FUNCTION IF EXISTS \"public\".oban_jobs_notify()"
+
+00:58:27.942 [info] create index if not exists public.oban_jobs_state_cancelled_at_index
+
+00:58:27.942 [info] create index if not exists public.oban_jobs_state_discarded_at_index
+
+00:58:27.942 [info] execute "ALTER TYPE \"public\".oban_job_state ADD VALUE IF NOT EXISTS 'suspended' BEFORE 'scheduled'\n"
+
+00:58:27.942 [info] enum label "suspended" already exists, skipping
+
+00:58:27.942 [info] execute "COMMENT ON TABLE \"public\".oban_jobs IS '14'"
+
+00:58:27.943 [info] == Migrated 20261024000000 in 0.0s
+
+00:58:27.954 [info] Migrations already up
+
+00:58:27.955 [debug] QUERY OK db=0.6ms idle=0.4ms
+CREATE TABLE foundation_probe (id text PRIMARY KEY, effect boolean NOT NULL DEFAULT false) []
+  * test real Bandit serves liveness, hides unknown routes, and never dispatches API jobs [L#65]
+00:58:27.979 [info] Running MixerHostedWeb.Endpoint with Bandit 1.13.1 at 127.0.0.1:61386 (http)
+
+00:58:27.979 [info] Access MixerHostedWeb.Endpoint at http://localhost:0
+
+00:58:27.982 [debug] QUERY OK db=3.0ms queue=0.1ms idle=16.8ms
+TRUNCATE foundation_probe, oban_jobs []
+
+00:58:27.999 [debug] Processing with MixerHostedWeb.HealthController.live/2
+  Parameters: %{}
+  Pipelines: []
+
+00:58:28.007 [debug] Converted error Phoenix.Router.NoRouteError to 404 response
+
+00:58:28.010 [debug] %Postgrex.Query{ref: nil, name: "ecto_insert_oban_jobs_0", statement: "INSERT INTO \"public\".\"oban_jobs\" (\"args\",\"meta\",\"state\",\"max_attempts\",\"queue\",\"worker\",\"errors\",\"tags\",\"attempt\") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING \"id\"", param_oids: nil, param_formats: nil, param_types: nil, columns: nil, result_oids: nil, result_formats: nil, result_types: nil, types: nil, cache: :statement} uses unknown oid(s) 16391forcing us to reload type information from the database. This is expected behaviour whenever you migrate your database.
+
+00:58:28.016 [debug] QUERY OK source="oban_jobs" db=0.1ms queue=0.2ms idle=2.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [1]
+
+00:58:28.016 [debug] QUERY OK db=0.1ms queue=0.1ms idle=2.8ms
+SELECT count(*) FROM foundation_probe []
+
+00:58:28.021 [notice] Application mixer_hosted exited: :stopped
+  * test real Bandit serves liveness, hides unknown routes, and never dispatches API jobs (57.6ms) [L#65]
+  * test Ecto Multi commits a domain fixture and a persisted job together [L#87]
+00:58:28.025 [info] Running MixerHostedWeb.Endpoint with Bandit 1.13.1 at 127.0.0.1:61393 (http)
+
+00:58:28.025 [info] Access MixerHostedWeb.Endpoint at http://localhost:0
+
+00:58:28.028 [debug] QUERY OK db=2.8ms queue=0.2ms idle=0.4ms
+TRUNCATE foundation_probe, oban_jobs []
+
+00:58:28.029 [debug] QUERY OK db=0.1ms idle=3.3ms
+begin []
+
+00:58:28.029 [debug] QUERY OK db=0.2ms
+INSERT INTO foundation_probe (id) VALUES ($1) ["commit"]
+
+00:58:28.030 [debug] QUERY OK db=0.1ms
+commit []
+
+00:58:28.031 [debug] QUERY OK source="oban_jobs" db=0.3ms queue=0.1ms idle=2.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [2]
+
+00:58:28.031 [debug] QUERY OK db=0.1ms idle=0.6ms
+SELECT effect FROM foundation_probe WHERE id = 'commit' []
+
+00:58:28.036 [notice] Application mixer_hosted exited: :stopped
+  * test Ecto Multi commits a domain fixture and a persisted job together (9.0ms) [L#87]
+  * test processor completes a delayed job without any HTTP endpoint or request [L#116]
+00:58:28.039 [info] Running MixerHostedWeb.Endpoint with Bandit 1.13.1 at 127.0.0.1:61399 (http)
+
+00:58:28.039 [info] Access MixerHostedWeb.Endpoint at http://localhost:0
+
+00:58:28.042 [debug] QUERY OK db=2.7ms queue=0.1ms idle=0.7ms
+TRUNCATE foundation_probe, oban_jobs []
+
+00:58:28.047 [notice] Application mixer_hosted exited: :stopped
+
+00:58:28.053 [debug] QUERY OK source="oban_jobs" db=0.3ms queue=0.2ms idle=0.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.074 [debug] QUERY OK source="oban_jobs" db=0.4ms idle=21.0ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.095 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.4ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.116 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.5ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.137 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.158 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.179 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.200 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.221 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.242 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.263 [debug] QUERY OK source="oban_jobs" db=0.3ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.284 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.305 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.326 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.347 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.368 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.389 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.419 [debug] QUERY OK source="oban_jobs" db=5.8ms idle=44.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.440 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=50.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.461 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.1ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.482 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.503 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.524 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.545 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.1ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.566 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.587 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.3ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.608 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.629 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.650 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.671 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.692 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.713 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.734 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.755 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.776 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.797 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.818 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.839 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.860 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.881 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.902 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.923 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.944 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.965 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:28.986 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.007 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.028 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.049 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.070 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=7.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.091 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=28.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.112 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.133 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.154 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.175 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.196 [debug] QUERY OK source="oban_jobs" db=0.4ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.217 [debug] QUERY OK source="oban_jobs" db=0.5ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.238 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.5ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.259 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.4ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.280 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.301 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.322 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.343 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.364 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.385 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.406 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.427 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.448 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.469 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.490 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.511 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.532 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.566 [debug] QUERY OK source="oban_jobs" db=5.7ms idle=48.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.587 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=54.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.609 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.629 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.651 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.1ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.672 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.693 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=42.0ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.715 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.736 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.757 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.778 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.799 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.820 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.841 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.862 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.884 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.4ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.905 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=43.0ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.926 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.947 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.5ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.968 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.4ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:29.989 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.010 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.031 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.052 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.3ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.073 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=10.1ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.094 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=30.5ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.115 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.136 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.157 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.178 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.199 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.220 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.242 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=42.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.264 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=43.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.285 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.307 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.5ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.328 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.349 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.370 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.391 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.412 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.433 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.454 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.476 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.498 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=43.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.519 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.540 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.561 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.583 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.604 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.625 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.646 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.668 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.689 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.710 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.732 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.753 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=42.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.774 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.795 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.817 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=42.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.839 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=43.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.860 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.881 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.903 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.924 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.945 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.966 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:30.987 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.008 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.5ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.029 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.050 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.071 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=6.5ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.092 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=27.3ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.113 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.134 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.155 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.176 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.197 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.218 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.239 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.261 [debug] QUERY OK source="oban_jobs" db=0.5ms idle=42.0ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.282 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.303 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=42.0ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.324 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.345 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.367 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=42.3ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.388 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.410 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=42.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.431 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=42.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.452 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=42.0ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.473 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.494 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.515 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.537 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=42.3ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.558 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.579 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.1ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.600 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.622 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.643 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=42.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.664 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.685 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.706 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.727 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.748 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.769 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=42.0ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.790 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.811 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.5ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.832 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.853 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.875 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.5ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.896 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.917 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.938 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.959 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:31.981 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.3ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.001 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.022 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.2ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.043 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.064 [debug] QUERY OK source="oban_jobs" db=0.0ms idle=2.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.085 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=20.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.106 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=40.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.127 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.148 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.169 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.190 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.211 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.232 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.253 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.274 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.295 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.316 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.337 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.358 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.379 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.400 [debug] QUERY OK source="oban_jobs" db=0.3ms idle=41.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.421 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=42.0ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.442 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.5ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.463 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.5ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.484 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.505 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.526 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.547 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.568 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.589 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.610 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.631 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.652 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.673 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.694 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.715 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.736 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.757 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.778 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.799 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.820 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.841 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.862 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.883 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=20.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.904 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=32.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.925 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.946 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.967 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:32.988 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.009 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.030 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.051 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.0ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.072 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=9.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.093 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=27.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.114 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.135 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.156 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.177 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.198 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.219 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.0ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.240 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.261 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.282 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.303 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.324 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.345 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.366 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.387 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.408 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.429 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.450 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.471 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.492 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.513 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.534 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.555 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.576 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.597 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.618 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.639 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.660 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.681 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.702 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.723 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.744 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.765 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.786 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.807 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.828 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.849 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.870 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.891 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.912 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.933 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.954 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.975 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:33.996 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.017 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.038 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.059 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.080 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=12.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.101 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=33.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.133 [debug] QUERY OK source="oban_jobs" db=6.3ms idle=47.1ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.154 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=52.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.175 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.3ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.196 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.217 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.238 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.259 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.280 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.301 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.322 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.343 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.364 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.385 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.406 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.427 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.448 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.469 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.490 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.511 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.532 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.553 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.574 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.595 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.616 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.637 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.658 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.679 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.700 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.721 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.742 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.763 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.784 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.805 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.826 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.847 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.869 [debug] QUERY OK source="oban_jobs" db=0.7ms idle=42.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.890 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=43.1ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.911 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.3ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.932 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.3ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.953 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.974 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:34.995 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.016 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.037 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.058 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.079 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=11.4ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.100 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=31.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.121 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.153 [debug] QUERY OK source="oban_jobs" db=9.7ms idle=43.5ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.175 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=53.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.196 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.217 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.238 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.259 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.280 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.301 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.322 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.343 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.364 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.385 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.406 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.427 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.448 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.469 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.490 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.511 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.532 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.554 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.4ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.575 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=43.0ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.596 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=42.1ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.617 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.5ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.638 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.659 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.680 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.701 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.722 [debug] QUERY OK source="oban_jobs" db=0.2ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.743 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.764 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.785 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.806 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.827 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.848 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.869 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.890 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.9ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.911 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.6ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.932 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.953 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.974 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:35.995 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:36.016 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:36.037 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.7ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:36.058 [debug] QUERY OK source="oban_jobs" db=0.1ms idle=41.8ms
+SELECT o0."id", o0."state", o0."queue", o0."worker", o0."args", o0."meta", o0."tags", o0."errors", o0."attempt", o0."attempted_by", o0."max_attempts", o0."priority", o0."attempted_at", o0."cancelled_at", o0."completed_at", o0."discarded_at", o0."inserted_at", o0."scheduled_at" FROM "oban_jobs" AS o0 WHERE (o0."id" = $1) [3]
+
+00:58:36.064 [notice] Application mixer_hosted exited: :stopped
+  * test processor completes a delayed job without any HTTP endpoint or request (8022.5ms) [L#116]
+
+00:58:36.067 [info] Running MixerHostedWeb.Endpoint with Bandit 1.13.1 at 127.0.0.1:61428 (http)
+
+00:58:36.067 [info] Access MixerHostedWeb.Endpoint at http://localhost:0
+
+  1) test processor completes a delayed job without any HTTP endpoint or request (MixerHosted.FoundationIntegrationTest)
+     test/foundation_integration_test.exs:116
+     job did not complete before deadline
+     code: eventually(fn -> Repo.get!(Oban.Job, job.id).state == "completed" end)
+     stacktrace:
+       test/foundation_integration_test.exs:137: MixerHosted.FoundationIntegrationTest.poll/2
+       test/foundation_integration_test.exs:124: (test)
+
+  * test Ecto Multi rolls back the already inserted job and domain fixture [L#102]
+00:58:36.070 [debug] QUERY OK db=3.2ms queue=0.2ms idle=0.0ms
+TRUNCATE foundation_probe, oban_jobs []
+  * test Ecto Multi rolls back the already inserted job and domain fixture (6.6ms) [L#102]
+
+00:58:36.076 [notice] Application mixer_hosted exited: :stopped
+
+  2) test Ecto Multi rolls back the already inserted job and domain fixture (MixerHosted.FoundationIntegrationTest)
+     test/foundation_integration_test.exs:102
+     match (=) failed
+     code:  assert {:error, :reject, :forced_fixture_failure, %{job: _}} = Repo.transaction(multi)
+     left:  {:error, :reject, :forced_fixture_failure, %{job: _}}
+     right: {:error, :reject, :forced_fixture_failure, %{}}
+     stacktrace:
+       test/foundation_integration_test.exs:111: (test)
+
+
+Finished in 8.2 seconds (0.07s async, 8.2s sync)
+
+Result: 6/8 passed
+Failed: 2 tests

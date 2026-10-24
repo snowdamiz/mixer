@@ -1,0 +1,143 @@
+{
+  "schema": 1,
+  "status": "failed",
+  "source_tree_sha256": "a3a987e21bd2723ce01db77387c6b48332a34a980a1fb304274483e94afbf83a",
+  "source_archive_sha256": "ee1f1024d28d07c1dbbd9cf581cf898ac62c032cfaeec035b722f4d749649001",
+  "source_revision": "bb897e9eb706ed787d287e7ba6f848ee43eba423",
+  "independent_probe_sha256": "87a31ffa8abcf72bf17f9f309a7388ee5d36553c3b2150207b3a63a1d2644f59",
+  "commands": [
+    {
+      "name": "elixir-version",
+      "argv": [
+        "elixir",
+        "--version"
+      ],
+      "cwd": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-foundation-independent-review-psz6j1kh/source",
+      "started_at_utc": "2026-10-24T05:03:08.370519+00:00",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "output": "verification/phoenix-foundation-review/commands/elixir-version.log",
+      "sha256": "44fe1d5e597ef84e0b6859be8ef275ca7da40d28005c64ea6a103835caa29081"
+    },
+    {
+      "name": "postgres-version",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/postgres",
+        "--version"
+      ],
+      "cwd": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-foundation-independent-review-psz6j1kh/source",
+      "started_at_utc": "2026-10-24T05:03:08.507646+00:00",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "output": "verification/phoenix-foundation-review/commands/postgres-version.log",
+      "sha256": "1fb2f20d9f998fb585cf5edb1878e8381f2e78c75597c8a18a19e50178f621b2"
+    },
+    {
+      "name": "initdb",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/initdb",
+        "-D",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-foundation-independent-review-psz6j1kh/data",
+        "-U",
+        "mixer_fixture",
+        "--auth-local=trust",
+        "--auth-host=trust",
+        "--no-locale",
+        "-E",
+        "UTF8"
+      ],
+      "cwd": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-foundation-independent-review-psz6j1kh/source",
+      "started_at_utc": "2026-10-24T05:03:08.517442+00:00",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "output": "verification/phoenix-foundation-review/commands/initdb.log",
+      "sha256": "5c5fd3cbfa3fd93755da37d2e004cb63116539d0ae4798b247a0edee0fe41bbb"
+    },
+    {
+      "name": "postgres-start",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/pg_ctl",
+        "-D",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-foundation-independent-review-psz6j1kh/data",
+        "-l",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/phoenix-foundation-review/commands/postgres.log",
+        "-o",
+        "-h 127.0.0.1 -p 61999 -k ''",
+        "-w",
+        "start"
+      ],
+      "cwd": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-foundation-independent-review-psz6j1kh/source",
+      "started_at_utc": "2026-10-24T05:03:08.860876+00:00",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "output": "verification/phoenix-foundation-review/commands/postgres-start.log",
+      "sha256": "66afd0411ccc09366e99fdd99b85f21899c8d2d064f5835126859618802153ad"
+    },
+    {
+      "name": "createdb",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/createdb",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "61999",
+        "-U",
+        "mixer_fixture",
+        "mixer_foundation_test"
+      ],
+      "cwd": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-foundation-independent-review-psz6j1kh/source",
+      "started_at_utc": "2026-10-24T05:03:08.978933+00:00",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "output": "verification/phoenix-foundation-review/commands/createdb.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "adversarial-tests",
+      "argv": [
+        "mix",
+        "test",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/phoenix-foundation-review/probes/foundation_adversarial_test.exs",
+        "--warnings-as-errors",
+        "--trace",
+        "--seed",
+        "0"
+      ],
+      "cwd": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-foundation-independent-review-psz6j1kh/source",
+      "started_at_utc": "2026-10-24T05:03:09.036951+00:00",
+      "exit_code": 2,
+      "expected_exit_code": 0,
+      "output": "verification/phoenix-foundation-review/commands/adversarial-tests.log",
+      "sha256": "7e120e71bc6e234097c0eeb92d2be6356971a90b5c5c647d830d4b6ffdcae4a7"
+    },
+    {
+      "name": "postgres-stop",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/pg_ctl",
+        "-D",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-foundation-independent-review-psz6j1kh/data",
+        "-m",
+        "fast",
+        "-w",
+        "stop"
+      ],
+      "cwd": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-foundation-independent-review-psz6j1kh/source",
+      "started_at_utc": "2026-10-24T05:03:16.785760+00:00",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "output": "verification/phoenix-foundation-review/commands/postgres-stop.log",
+      "sha256": "ca19178a35ab4153b75b494963b66ce8243e1b94c173107c87b44d09db23652d"
+    }
+  ],
+  "cleanup": {
+    "postgres_stopped": true,
+    "frozen_source_unchanged": true,
+    "scratch_removed": true
+  },
+  "scope": "Independent frozen candidate-2 foundation review only: actual local HTTP/PostgreSQL, no auth/domain integration or hosted-provider qualification.",
+  "limitations": [
+    "Local disposable PostgreSQL fixture uses synthetic trust/nonTLS credentials; no Neon/TLS handshake was exercised.",
+    "Reuses the pinned locally present dependency source; isolated build/output directory, no dependency resolution or product edits.",
+    "No native/UI/device/simulator/emulator use; no production deployment, external messaging or credential changes."
+  ]
+}

@@ -83,9 +83,20 @@ documented busy rejection, with an eight-second deadline. Debug/Release/TSan
 qualification passes 24 unchanged fixture tests and 12 controlled repaired checks;
 three controlled original calls fail at the actual busy guard as expected. Root
 audited the source and verified the saved archive/log bindings; it did not rerun
-the cleaned test binaries. Hosted revalidation is pending. See
+the cleaned test binaries. Hosted revalidation now passes all three jobs at
+4546513 and b15ff7a, including installed milestones, Android host binding and the
+generated consumer. These remain host/cross-build checks. See
+`verification/github-ci-4546513/receipt.json`,
+`verification/github-ci-b15ff7a/receipt.json`,
 `verification/github-ci-6bee951/receipt.json` and
 `verification/cold-start-milestone-ci-repair/root-acceptance.json`.
+
+The new Phoenix foundation in `hosted/` passes eight local host tests plus a
+production release build and fail-closed missing-config boot. Real Bandit HTTP,
+API/processor separation, PostgreSQL transaction commit/rollback and delayed
+Oban execution are exercised. The only route is process liveness; identity,
+product release operations, Neon TLS, Cloudflare and production readiness remain
+pending. See `docs/phoenix-foundation.md`. The Go reference remains intact.
 
 The release server now owns a configuration snapshot before validation/storage
 open. Independent probes reproduced caller mutations changing token permissions,

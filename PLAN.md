@@ -19,6 +19,17 @@ This documentation decision implements no hosted migration or deployment and
 passes no gate. W11/W12/W14/W16 retain the new deliverables and pending checks;
 see `verification/hosted-stack-plan-update-2026-10-24/receipt.json`.
 
+The first Phoenix foundation is implemented under `hosted/`: pinned framework
+packages, explicit API/processor roles, direct verified-TLS database settings,
+bounded pools/queues, liveness-only HTTP and Oban schema migration. Eight actual
+host tests and packaged release startup rejection pass; identity, domain release
+routes and selected-cloud qualification remain open. See
+`docs/phoenix-foundation.md` and `verification/phoenix-foundation/candidate-5/receipt.json`.
+The coordinated next identity/artifact seam is documented in
+`docs/hosted-identity-contract.md`; its declaration tests are not authentication.
+Recent hosted CI at 4546513 and b15ff7a passes Swift, VM and Go service jobs,
+resolving the prior milestone busy-admission revalidation. No GA gate is closed.
+
 Section 8.3 requires the same shared app design on iOS and Android. Shared theme
 values control layout, typography scale, colors, iconography, spacing and component
 appearance; platform-specific app appearance requires an explicit declaration.
