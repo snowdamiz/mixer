@@ -151,7 +151,10 @@ Output/work bounds reject unsupported values and oversized structures. Root
 verifies 186 isolated source inputs, 32 hosted inputs including the shared
 fixture, and 34 evidence bindings. The temporary database and source checkout
 were cleaned up. See `verification/hosted-artifact-cbor/acceptance.json`.
-Linux CI for this forthcoming slice is pending. This is encoding only, with no
+Commit `68910a1` now also passes Linux hosted CI with 35 tests and release
+checks. Root matches all 32 hosted/fixture inputs and the downloaded artifact
+digest to that commit; see `verification/github-ci-68910a1-phoenix/receipt.json`.
+This is encoding only, with no
 new authenticated route, signature/root admission, membership/persistence,
 provider, audit or cloud qualification. No gate is closed.
 
