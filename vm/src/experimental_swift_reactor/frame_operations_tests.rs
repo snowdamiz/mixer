@@ -12,17 +12,17 @@ use std::cell::{Cell, RefCell};
 
 #[derive(Clone, Copy)]
 pub(super) struct Hooks {
-    reject_cache_completion: bool,
-    cancel_local: Option<usize>,
-    predebit_resource: Option<u8>,
-    predebit_ordinal: usize,
-    predebit_seen: usize,
-    release_mask: u64,
-    release_seen: usize,
-    release_order: [u32; 64],
-    reject_outer_restore: bool,
-    push_fault: u8,
-    push_room_reject: bool,
+    pub(super) reject_cache_completion: bool,
+    pub(super) cancel_local: Option<usize>,
+    pub(super) predebit_resource: Option<u8>,
+    pub(super) predebit_ordinal: usize,
+    pub(super) predebit_seen: usize,
+    pub(super) release_mask: u64,
+    pub(super) release_seen: usize,
+    pub(super) release_order: [u32; 64],
+    pub(super) reject_outer_restore: bool,
+    pub(super) push_fault: u8,
+    pub(super) push_room_reject: bool,
 }
 impl Default for Hooks {
     fn default() -> Self {
@@ -48,7 +48,7 @@ thread_local! {
     static FOREIGN_HEADER: RefCell<Option<ReservationTicket>> = const { RefCell::new(None) };
     static ORIGINAL_HEADER: RefCell<Option<ReservationTicket>> = const { RefCell::new(None) };
 }
-fn hooks(hooks: Hooks) {
+pub(super) fn hooks(hooks: Hooks) {
     HOOKS.with(|slot| slot.set(hooks));
 }
 pub(super) fn before_cache_completion(phase: &mut CacheOperationPhase<'_>) {
@@ -181,7 +181,7 @@ pub(super) fn after_result_push(control: &mut RuntimeControl, old: Option<(u8, u
         _ => {}
     }
 }
-fn cursor() -> Cursor {
+pub(super) fn cursor() -> Cursor {
     Cursor {
         stage: SwiftRunStage::Invocation,
         function: Some(34),
@@ -353,7 +353,7 @@ fn owner_with(function: &Function, budget: SwiftRunBudget) -> SwiftReactorInstan
     )
     .unwrap()
 }
-fn owner() -> SwiftReactorInstance {
+pub(super) fn owner() -> SwiftReactorInstance {
     owner_with(&Function::empty(), SwiftRunBudget::default())
 }
 fn complete<'a>(
@@ -377,7 +377,7 @@ fn complete_ok<'a>(
         FrameCompletion::Completed
     ));
 }
-fn install_foreign(foreign: &mut SwiftReactorInstance) {
+pub(super) fn install_foreign(foreign: &mut SwiftReactorInstance) {
     let ticket = super::super::super::cache::inspection::replace_header(
         foreign.cache.as_mut().unwrap(),
         None,
@@ -387,7 +387,7 @@ fn install_foreign(foreign: &mut SwiftReactorInstance) {
         *slot.borrow_mut() = ticket;
     });
 }
-fn restore_foreign(foreign: &mut SwiftReactorInstance) {
+pub(super) fn restore_foreign(foreign: &mut SwiftReactorInstance) {
     let ticket = FOREIGN_HEADER.with(|slot| slot.borrow_mut().take());
     assert!(super::super::super::cache::inspection::replace_header(
         foreign.cache.as_mut().unwrap(),
@@ -397,7 +397,7 @@ fn restore_foreign(foreign: &mut SwiftReactorInstance) {
     ORIGINAL_HEADER.with(|slot| assert!(slot.borrow().is_none()));
     hooks(Hooks::default());
 }
-fn retire(owner: SwiftReactorInstance) {
+pub(super) fn retire(owner: SwiftReactorInstance) {
     hooks(Hooks::default());
     let mut owned = Some(owner);
     let mut returned = Some(SwiftReactorInstance::cleanup_owned(&mut owned));
@@ -416,7 +416,7 @@ fn retire(owner: SwiftReactorInstance) {
         0
     );
 }
-fn drain_complete(owner: &mut SwiftReactorInstance) {
+pub(super) fn drain_complete(owner: &mut SwiftReactorInstance) {
     let mut returned = Some(owner.resume_frame_cleanup());
     let mut phase = returned.take().unwrap().unwrap();
     let report = phase.drain();
@@ -425,7 +425,7 @@ fn drain_complete(owner: &mut SwiftReactorInstance) {
     assert!(!report.live_unreconciled);
     complete_ok(phase, returned);
 }
-fn pin_ids(phase: &FrameOperationPhase<'_>) -> Vec<(u32, u64, usize, u64)> {
+pub(super) fn pin_ids(phase: &FrameOperationPhase<'_>) -> Vec<(u32, u64, usize, u64)> {
     phase
         .phase
         .parts
@@ -1550,14 +1550,14 @@ fn af22_frozen_accounting_and_value_phase_reservations_stay_distinct() {
     }
     assert_eq!(
         FRAME_OPERATION_BYTES,
-        Some(ACTIVE_BYTES + 119576 + control_operations::ACTIVE_BYTES)
+        Some(ACTIVE_BYTES + 119576 + control_operations::ACTIVE_BYTES + memory_operations::ACTIVE_BYTES)
     );
     assert_eq!(FROZEN_ACTIVE_BYTES, 240776);
     println!("AF_LAYOUT permanent={} frozen_permanent={} active={} frozen_active={} frame={} value={} state={}",PERMANENT_BYTES,FROZEN_PERMANENT_BYTES,ACTIVE_BYTES,FROZEN_ACTIVE_BYTES,FRAME_OPERATION_BYTES.unwrap(),value_operations::VALUE_OPERATION_BYTES.unwrap(),size_of::<SwiftExecutionState>());
 }
 
 #[path = "control_operations_tests.rs"]
-mod control_tests;
+pub(super) mod control_tests;
 
 // Root-authorized one-shot after-pop fault. No shadow state, synthetic Err or
 // direct ledger write: the primitive's original following removal must fail.

@@ -21,7 +21,7 @@
 use super::cache::{CacheFailure, CacheUsage, ControlKind, FunctionCache, FunctionPin, Operation};
 use crate::{Cancellation, Value};
 #[allow(unused_imports)]
-use borrowed::{control_record, frozen_control_leaf, shared_control_methods};
+use borrowed::{control_record, frozen_control_leaf, shared_control_methods, frozen_memory_leaf};
 #[cfg(feature = "experimental-span-execution")]
 use std::mem::size_of;
 
@@ -1045,17 +1045,7 @@ impl SpanInstance {
         self.observe();
         result.map_err(|code| self.trap(code))
     }
-    fn range(
-        &self,
-        address: usize,
-        len: usize,
-    ) -> Result<std::ops::Range<usize>, ExecutionFailure> {
-        let end = address
-            .checked_add(len)
-            .filter(|end| *end <= self.memory.len())
-            .ok_or_else(|| self.trap("memory_out_of_bounds"))?;
-        Ok(address..end)
-    }
+    borrowed::shared_memory_methods!(self, ExecutionFailure, frozen_memory_leaf, (), range, load, store);
     fn bulk(&mut self, len: usize) -> Result<(), ExecutionFailure> {
         self.charge(len.div_ceil(64) as u64, false)?;
         self.work(len)
@@ -1146,54 +1136,8 @@ impl SpanInstance {
         self.usage.memory_pages = next;
         self.push(Value::I32(old as i32))
     }
-    fn load(&mut self, opcode: u8, offset: u32) -> Result<(), ExecutionFailure> {
-        let address = self.pop32()? as u32 as usize;
-        let width = width(opcode);
-        let start = address
-            .checked_add(offset as usize)
-            .ok_or_else(|| self.trap("memory_out_of_bounds"))?;
-        let range = self.range(start, width)?;
-        self.work(width)?;
-        let mut padded = [0; 8];
-        padded[..width].copy_from_slice(&self.memory[range]);
-        let x = u64::from_le_bytes(padded);
-        let value = match opcode {
-            0x28 => Value::I32(x as i32),
-            0x29 => Value::I64(x as i64),
-            0x2a => Value::F32(x as u32),
-            0x2b => Value::F64(x),
-            0x2c => Value::I32(x as i8 as i32),
-            0x2d => Value::I32(x as u8 as i32),
-            0x2e => Value::I32(x as i16 as i32),
-            0x2f => Value::I32(x as u16 as i32),
-            0x30 => Value::I64(x as i8 as i64),
-            0x31 => Value::I64(x as u8 as i64),
-            0x32 => Value::I64(x as i16 as i64),
-            0x33 => Value::I64(x as u16 as i64),
-            0x34 => Value::I64(x as i32 as i64),
-            0x35 => Value::I64(x as u32 as i64),
-            _ => return Err(self.invariant()),
-        };
-        self.push(value)
-    }
-    fn store(&mut self, opcode: u8, offset: u32) -> Result<(), ExecutionFailure> {
-        let value = self.pop()?;
-        let address = self.pop32()? as u32 as usize;
-        let width = width(opcode);
-        let start = address
-            .checked_add(offset as usize)
-            .ok_or_else(|| self.trap("memory_out_of_bounds"))?;
-        let range = self.range(start, width)?;
-        self.work(width)?;
-        let bits = match value {
-            Value::I32(x) => x as u32 as u64,
-            Value::I64(x) => x as u64,
-            Value::F32(x) => x as u64,
-            Value::F64(x) => x,
-        };
-        self.memory[range].copy_from_slice(&bits.to_le_bytes()[..width]);
-        Ok(())
-    }
+
+
 }
 #[cfg(feature = "experimental-span-execution")]
 impl Drop for SpanInstance {
@@ -1202,7 +1146,7 @@ impl Drop for SpanInstance {
     }
 }
 #[cfg_attr(not(feature = "experimental-span-execution"), allow(dead_code))]
-fn width(op: u8) -> usize {
+pub(crate) fn width(op: u8) -> usize {
     match op {
         0x28 | 0x2a | 0x34 | 0x35 | 0x36 | 0x38 | 0x3e => 4,
         0x29 | 0x2b | 0x37 | 0x39 => 8,

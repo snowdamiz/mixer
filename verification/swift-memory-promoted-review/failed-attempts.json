@@ -1,0 +1,28 @@
+{
+  "inspectionOnlyFailures": [
+    {
+      "command": "cat verification/swift-memory-promoted-correction/frozen-source-equivalence.json",
+      "exitCode": 1,
+      "resolution": "The packet uses frozen-runtime-reuse.json; inspected and bound the actual file. No source or command qualification changed.",
+      "stderr": "No such file or directory"
+    }
+  ],
+  "producerFailuresRetained": "inputs/producer/failed-attempts.json",
+  "qualificationCompilerOrRuntimeFailures": [],
+  "reviewAuditDraftFailures": [
+    {
+      "command": "reuse-audit-draft-v1",
+      "reason": "The independent draft included the pub visibility prefix in six method hashes; baseline and candidate method text agreed, but the producer hash convention begins at fn. The corrected parser begins at fn and reproduces all 39 frozen hashes. No candidate implementation changed.",
+      "script": "failed-attempts/reuse_audit_v1.py"
+    }
+  ],
+  "reviewCheckerDraftFailures": [
+    {
+      "command": "optional-live-checker-draft-v1",
+      "reason": "The optional live-baseline draft scanned all vm files, including historical docs/evidence outside the defined Cargo.toml/Cargo.lock/src/tests/include source closure. All 121 baseline source files matched. Corrected the optional checker to use the canonical source-closure scope. No source changed.",
+      "receipt": "failed-attempts/verify-v1-receipt.json",
+      "script": "failed-attempts/verify_v1.py",
+      "seal": "failed-attempts/verify-v1-seal.json"
+    }
+  ]
+}

@@ -1,0 +1,189 @@
+{
+  "schema": 1,
+  "purpose": "Review guidance for complete raw validation before any lossy normalization; this is not an implementation patch or accepted new baseline.",
+  "root_keys": [
+    "legacy",
+    "enforcement",
+    "fresh_session"
+  ],
+  "enforcement_groups": {
+    "relations": {
+      "oid": "positive_oid",
+      "identity": "nonempty_text",
+      "kind": "relation_kind",
+      "persistence": "persistence",
+      "replica_identity": "replica_identity"
+    },
+    "constraints": {
+      "oid": "positive_oid",
+      "identity": "nonempty_text",
+      "relation": "nonempty_text",
+      "type": "constraint_type",
+      "validated": "boolean",
+      "deferrable": "boolean",
+      "initially_deferred": "boolean",
+      "no_inherit": "boolean",
+      "local": "boolean",
+      "inheritance_count": "nonnegative_int16",
+      "parent_oid": "optional_oid",
+      "parent_identity": "nullable_nonempty_text",
+      "definition": "nonempty_text"
+    },
+    "indexes": {
+      "oid": "positive_oid",
+      "identity": "nonempty_text",
+      "relation": "nonempty_text",
+      "valid": "boolean",
+      "ready": "boolean",
+      "live": "boolean",
+      "immediate": "boolean",
+      "unique": "boolean",
+      "primary": "boolean",
+      "exclusion": "boolean",
+      "nulls_not_distinct": "boolean",
+      "definition": "nonempty_text"
+    },
+    "triggers": {
+      "oid": "positive_oid",
+      "name": "identifier",
+      "relation_oid": "positive_oid",
+      "relation": "nonempty_text",
+      "function_oid": "positive_oid",
+      "function_identity": "nonempty_text",
+      "enabled": "trigger_enable_mode",
+      "internal": "boolean",
+      "event_timing_bits": "nonnegative_int16",
+      "deferrable": "boolean",
+      "initially_deferred": "boolean",
+      "constraint_oid": "optional_oid",
+      "constraint_identity": "nullable_nonempty_text",
+      "referenced_relation_oid": "optional_oid",
+      "referenced_relation": "nullable_nonempty_text",
+      "constraint_index_oid": "optional_oid",
+      "constraint_index": "nullable_nonempty_text",
+      "parent_oid": "optional_oid",
+      "parent_identity": "nullable_trigger_parent",
+      "argument_count": "nonnegative_int16",
+      "argument_hex": "even_hex_text",
+      "columns": "int2vector_text",
+      "when": "nullable_nonempty_text",
+      "old_table": "nullable_identifier",
+      "new_table": "nullable_identifier",
+      "definition": "nonempty_text"
+    },
+    "parameter_acl": {
+      "oid": "positive_oid",
+      "parameter": "nonempty_text",
+      "acl": "nullable_nonempty_text",
+      "entries": "nullable_parameter_acl_entries"
+    },
+    "parameter_effective": {
+      "subject": "nonempty_text",
+      "parameter": "nonempty_text",
+      "context": "nullable_nonempty_text",
+      "registered": "boolean",
+      "selected_set": "boolean",
+      "set": "boolean",
+      "alter_system": "boolean"
+    },
+    "parameter_public": {
+      "parameter": "nonempty_text",
+      "context": "nullable_nonempty_text",
+      "registered": "boolean",
+      "selected_set": "boolean",
+      "set": "boolean",
+      "alter_system": "boolean"
+    },
+    "role_config": {
+      "role": "nonempty_text",
+      "config": "nullable_config_array"
+    },
+    "startup_defaults": {
+      "database_oid": "optional_oid",
+      "database": "nullable_nonempty_text",
+      "role_oid": "optional_oid",
+      "role": "nullable_nonempty_text",
+      "config": "nullable_config_array"
+    }
+  },
+  "domain_definitions": {
+    "positive_oid": "JSON integer with Python type int, excluding bool; 1 through 4294967295 inclusive. Zero is InvalidOid and cannot identify an actual row, relation or function.",
+    "optional_oid": "JSON integer with Python type int, excluding bool; 0 through 4294967295 inclusive. Zero denotes absent association or all databases/roles only in the corresponding documented field.",
+    "boolean": "Only JSON true/false. Integers 0/1 and null are not booleans.",
+    "nonempty_text": "JSON string with at least one character, including qualified/quoted SQL identities where emitted. Never null, array, object, bool or numeric.",
+    "identifier": "Nonempty JSON string emitted from PostgreSQL name field; installed PG17 name payload limit is 63 bytes. Portable internal names may differ but must retain their valid raw type.",
+    "nullable_identifier": "null or identifier.",
+    "nullable_nonempty_text": "null or nonempty_text; preserve null rather than replacing it with empty text.",
+    "nonnegative_int16": "JSON integer, excluding bool, in 0 through 32767. Trigger event bitmask is additionally limited by the PostgreSQL trigger macros and valid timing/event combinations; exact selected semantics remain required.",
+    "relation_kind": "Nonempty one-character PostgreSQL relation-kind string; selected required value is r.",
+    "persistence": "One of p, u, t; selected required value is p.",
+    "replica_identity": "One of d, n, f, i; selected required value is d.",
+    "constraint_type": "Nonempty one-character PostgreSQL constraint-type string; exact selected value remains required.",
+    "trigger_enable_mode": "One of O, D, R, A; selected required value is O.",
+    "even_hex_text": "JSON string with an even number of lowercase hex digits; empty string is valid for no arguments. Never null.",
+    "int2vector_text": "JSON string encoding attribute numbers; empty string is valid for all-column/non-column-specific trigger. Never null.",
+    "nullable_trigger_parent": "null or an object with exactly relation:nonempty_text and name:identifier.",
+    "nullable_parameter_acl_entries": "null or array of exact objects grantor:nonempty_text, grantee:nonempty_text, privilege:SET|ALTER SYSTEM, grantable:boolean. Preserve every entry and multiplicity.",
+    "nullable_config_array": "null or array of nonempty JSON strings representing PostgreSQL name=value settings. Preserve every entry and multiplicity."
+  },
+  "fresh_session": {
+    "session_user": "nonempty_text",
+    "current_user": "nonempty_text",
+    "role": "nonempty_text",
+    "database": "nonempty_text",
+    "session_replication_role": "nonempty_text",
+    "row_security": "nonempty_text",
+    "default_transaction_isolation": "nonempty_text",
+    "transaction_isolation": "nonempty_text",
+    "transaction_read_only": "nonempty_text"
+  },
+  "legacy": "Exact frozen legacy object and all retained values must remain equal after only documented membership-list ordering; no legacy SQL or value selection change is requested.",
+  "shape_rules": [
+    "Every listed object has exactly the listed required keys; arrays contain objects of the corresponding exact shape. Unknown, missing and duplicate JSON keys reject.",
+    "All list entries and multiplicities remain present. A row OID is positive and unique within its collected group before OID removal.",
+    "Trigger relation_oid/function_oid are positive. constraint_oid, referenced_relation_oid, constraint_index_oid and parent_oid are zero exactly when corresponding identity is null; nonzero references require resolved identities.",
+    "Constraint parent_oid is zero exactly when parent_identity is null. Startup database_oid/role_oid zero means wildcard *; positive entries require a resolved database/role name.",
+    "Registered settings have actual text context. Unregistered parameter ACL names have context null and registered=false; selected_set must remain true.",
+    "All malformed type and range validation occurs before deleting internal name/definition or OID transport fields. Retained non-null strings cannot turn into null, objects or lists; booleans cannot become integers.",
+    "Valid OID changes, internal generated-name changes and harmless internal DDL formatting changes must remain portable after validated semantic normalization.",
+    "Raw nullable ACL/default fields reflect SQL output possibility; any unselected actual entry still fails exact comparison with the separate frozen manifest."
+  ],
+  "platform_headers": [
+    {
+      "path": "/opt/homebrew/include/postgresql@17/server/postgres_ext.h",
+      "copy": "platform-catalog-types/postgres_ext.h",
+      "bytes": 2238,
+      "sha256": "e65b7fc71d65af63efdb9d255f6e1657969cb16335c27d667e9c8998ca29bdff"
+    },
+    {
+      "path": "/opt/homebrew/include/postgresql@17/server/catalog/pg_constraint.h",
+      "copy": "platform-catalog-types/catalog/pg_constraint.h",
+      "bytes": 9909,
+      "sha256": "91bffa9b3a2af132211ab6a710b2e6cd6b59220b17b4c785dbdb776e79d6aa05"
+    },
+    {
+      "path": "/opt/homebrew/include/postgresql@17/server/catalog/pg_trigger.h",
+      "copy": "platform-catalog-types/catalog/pg_trigger.h",
+      "bytes": 6289,
+      "sha256": "2a6dc488caf665947f578fd67e18a02f4befed9855a54d9fd48c57f4e9c1b745"
+    },
+    {
+      "path": "/opt/homebrew/include/postgresql@17/server/catalog/pg_parameter_acl.h",
+      "copy": "platform-catalog-types/catalog/pg_parameter_acl.h",
+      "bytes": 2039,
+      "sha256": "95727620649f8fbae7552e2d3d4687ab33a46b76870b5ebbc7b656a72470ca50"
+    },
+    {
+      "path": "/opt/homebrew/include/postgresql@17/server/catalog/pg_db_role_setting.h",
+      "copy": "platform-catalog-types/catalog/pg_db_role_setting.h",
+      "bytes": 2079,
+      "sha256": "bab9f0eb5cbc64efd4bb4d7547dababcb9ae4c593040ad6214f476f5c7febdf1"
+    },
+    {
+      "path": "/opt/homebrew/include/postgresql@17/server/pg_config_manual.h",
+      "copy": "platform-catalog-types/pg_config_manual.h",
+      "bytes": 14227,
+      "sha256": "87a433f71593c3dfd37029db9fd9a013cbee61058ee64de8d41ec148945724b3"
+    }
+  ]
+}

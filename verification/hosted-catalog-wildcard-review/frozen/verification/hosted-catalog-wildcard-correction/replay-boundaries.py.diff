@@ -1,0 +1,20 @@
+--- inputs/producer/boundary-tests.py
++++ replay-boundaries.py
+@@ -127,7 +127,7 @@
+             probe('duplicate raw OID ' + group, lambda x,g=group:x['enforcement'][g].append(copy.deepcopy(x['enforcement'][g][0])))
+     for field in ['database','role']:
+         for oid, identity in [(0,None),(0,'named'),(1,None),(1,'*')]:
+-            probe('startup wildcard association ' + field + ' ' + repr((oid,identity)), lambda x,f=field,o=oid,v=identity:x['enforcement']['startup_defaults'][0].update({f+'_oid':o,f:v}))
++            probe('startup wildcard association ' + field + ' ' + repr((oid,identity)), lambda x,f=field,o=oid,v=identity:x['enforcement']['startup_defaults'][0].update({f+'_oid':o,f:v}), raw_valid=(oid == 1 and identity == '*'))
+     for group in ['parameter_effective','parameter_public']:
+         probe('registered context absent ' + group, lambda x,g=group:x['enforcement'][g][0].update(context=None))
+         probe('unregistered context resolved ' + group, lambda x,g=group:x['enforcement'][g][0].update(registered=False,selected_set=True))
+@@ -199,7 +199,7 @@
+             if 'oid' in row:
+                 row['oid']=4294967294
+             x['enforcement'][g].append(row)
+-        probe('semantic duplicate retained '+group,duplicate,True)
++        probe('semantic duplicate retained '+group,duplicate,group != 'triggers')
+     # Legacy raw nested structure is also checked before normalization.
+     for change,label in [(lambda x:x['legacy'].update(extra=0),'unknown legacy key'),
+         (lambda x:x['legacy']['tables'][0]['columns'][0].update(extra=0),'unknown legacy column key'),

@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "finding": "ACSR02",
+  "scope": "model-only impossible catalog uniqueness admission; no ordinary-runtime bypass",
+  "source_digest": "7e2a24ec2aad45d07d2dd8a5d581fa8df5966e841981d20b27c75acd1de74b40",
+  "input_sha256": "687b2ed91c14e70abe5a6dda4587711b783e4174b18283c821a9f875c090ef48",
+  "header_sha256": "2a6dc488caf665947f578fd67e18a02f4befed9855a54d9fd48c57f4e9c1b745",
+  "header_unique_index": "DECLARE_UNIQUE_INDEX(pg_trigger_tgrelid_tgname_index, 2701, TriggerRelidNameIndexId, pg_trigger, btree(tgrelid oid_ops, tgname name_ops));",
+  "observations": [
+    {
+      "mode": "internal/internal same relation",
+      "mutated_oid": 16757,
+      "peer_oid": 16758,
+      "relation_oid": 16730,
+      "peer_relation_oid": 16730,
+      "relation": "mixer_authz.applications",
+      "old_name": "RI_ConstraintTrigger_a_16757",
+      "new_name": "RI_ConstraintTrigger_a_16758",
+      "raw_admitted": true,
+      "selected_admitted": true,
+      "input_unchanged": true,
+      "violates_retained_pg_trigger_unique_key": true,
+      "finding_observation_not_security_pass": true
+    },
+    {
+      "mode": "internal/external same relation",
+      "mutated_oid": 16757,
+      "peer_oid": 16870,
+      "relation_oid": 16730,
+      "peer_relation_oid": 16730,
+      "relation": "mixer_authz.applications",
+      "old_name": "RI_ConstraintTrigger_a_16757",
+      "new_name": "lifecycle_guard",
+      "raw_admitted": true,
+      "selected_admitted": true,
+      "input_unchanged": true,
+      "violates_retained_pg_trigger_unique_key": true,
+      "finding_observation_not_security_pass": true
+    },
+    {
+      "mode": "same name different relations portable",
+      "mutated_oid": 16757,
+      "peer_oid": 16713,
+      "relation_oid": 16730,
+      "peer_relation_oid": 16698,
+      "relation": "mixer_authz.applications",
+      "old_name": "RI_ConstraintTrigger_a_16757",
+      "new_name": "RI_ConstraintTrigger_c_16713",
+      "raw_admitted": true,
+      "selected_admitted": true,
+      "input_unchanged": true,
+      "violates_retained_pg_trigger_unique_key": false,
+      "finding_observation_not_security_pass": false
+    }
+  ],
+  "malformed_admission_observations": 2,
+  "valid_portability_control": 1
+}

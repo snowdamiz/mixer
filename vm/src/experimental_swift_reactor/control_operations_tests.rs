@@ -241,7 +241,7 @@ fn body_fixture(body: &[u8], result: bool, locals: &[Type]) -> Vec<u8> {
     }
     unreachable!()
 }
-fn body_owner(
+pub(in crate::experimental_swift_reactor::execution::frame_operations) fn body_owner(
     body: &[u8],
     result: bool,
     locals: &[Type],

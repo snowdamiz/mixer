@@ -1,0 +1,20 @@
+[
+  {
+    "script": "replay-boundaries.py",
+    "before": "update({f+'_oid':o,f:v}))",
+    "after": "update({f+'_oid':o,f:v}), raw_valid=(oid == 1 and identity == '*'))",
+    "reason": "ACSR01: two positive-OID literal-star startup rows are valid unselected raw shapes"
+  },
+  {
+    "script": "replay-boundaries.py",
+    "before": "probe('semantic duplicate retained '+group,duplicate,True)",
+    "after": "probe('semantic duplicate retained '+group,duplicate,group != 'triggers')",
+    "reason": "ACSR02: cloned trigger retains the same raw relation/name pair and is impossible even with a fresh row OID"
+  },
+  {
+    "script": "replay-extra-probes.py",
+    "before": "probe('extra semantic row retained '+group,dup,True)",
+    "after": "probe('extra semantic row retained '+group,dup,group != 'triggers')",
+    "reason": "ACSR02: independent extra cloned trigger must now reject raw validation"
+  }
+]

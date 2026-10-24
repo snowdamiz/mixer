@@ -1,0 +1,107 @@
+{
+  "tests": [
+    {
+      "name": "fresh selected baseline with portable generated names",
+      "passed": true,
+      "seconds": 0.0608575000660494,
+      "observation": {
+        "fresh_OIDs_and_internal_names": true,
+        "selected_manifest_unchanged": true,
+        "libpq_version": 170011
+      }
+    },
+    {
+      "name": "legal quoted role and database wildcard collisions",
+      "passed": true,
+      "seconds": 0.30038233392406255,
+      "observation": {
+        "actual_startup_rows": [
+          {
+            "role": "*",
+            "config": [
+              "application_name=wildcard_global"
+            ],
+            "database": "*",
+            "role_oid": 17096,
+            "database_oid": 0
+          },
+          {
+            "role": "*",
+            "config": [
+              "application_name=wildcard_scoped"
+            ],
+            "database": "authority_contract",
+            "role_oid": 17096,
+            "database_oid": 16384
+          },
+          {
+            "role": "*",
+            "config": [
+              "application_name=wildcard_database"
+            ],
+            "database": "*",
+            "role_oid": 0,
+            "database_oid": 17095
+          },
+          {
+            "role": "*",
+            "config": [
+              "application_name=wildcard_both"
+            ],
+            "database": "*",
+            "role_oid": 17096,
+            "database_oid": 17095
+          }
+        ],
+        "raw_all_valid": true,
+        "all_added_roles_defaults_fail_selected_comparison": true,
+        "scope": "legal ordinary SQL observations of unselected shapes; no selected-safe behavior change"
+      }
+    },
+    {
+      "name": "ordinary catalog drift still rejects",
+      "passed": true,
+      "seconds": 0.18473450001329184,
+      "observation": {
+        "ordinary_trigger_and_role_default_drift_rejected": true
+      }
+    },
+    {
+      "name": "PostgreSQL enforces duplicate trigger names with portable controls",
+      "passed": true,
+      "seconds": 0.2492595419753343,
+      "observation": {
+        "actual_duplicate_name_rejections": [
+          {
+            "mode": "internal/internal",
+            "sqlstate": "42710",
+            "error": "42710: ERROR:  trigger \"RI_ConstraintTrigger_a_16968\" for relation \"applications\" already exists\n"
+          },
+          {
+            "mode": "internal/external",
+            "sqlstate": "42710",
+            "error": "42710: ERROR:  trigger \"lifecycle_guard\" for relation \"applications\" already exists\n"
+          },
+          {
+            "mode": "external/external",
+            "sqlstate": "42710",
+            "error": "42710: ERROR:  trigger \"lifecycle_guard\" for relation \"applications\" already exists\n"
+          }
+        ],
+        "portable_name_controls": 2,
+        "raw_pair_constraint": "UNIQUE(tgrelid,tgname)",
+        "actual_database_bypass_demonstrated": false
+      }
+    },
+    {
+      "name": "final selected safe state",
+      "passed": true,
+      "seconds": 0.04115333303343505,
+      "observation": {
+        "selected_safe": true
+      }
+    }
+  ],
+  "passed": 5,
+  "total": 5
+}

@@ -1,0 +1,11 @@
+--- inputs/review/extra-probes.py
++++ replay-extra-probes.py
+@@ -33,7 +33,7 @@
+     if rows:
+         def dup(x,g=group):
+             row=copy.deepcopy(x['enforcement'][g][0]);row.update(oid=4294967295) if 'oid' in row else None;x['enforcement'][g].append(row)
+-        probe('extra semantic row retained '+group,dup,True)
++        probe('extra semantic row retained '+group,dup,group != 'triggers')
+         if 'oid' in rows[0]:probe('duplicate transport oid rejected '+group,lambda x,g=group:x['enforcement'][g].append(copy.deepcopy(x['enforcement'][g][0])),False)
+ transport=[]
+ for label,value in [('escaped duplicate','{"name":1,"na\\u006de":2}'),('deep duplicate','{"x":[{"a":{"k":1,"k":2}}]}'),('trailing comma','{"x":1,}'),('leading zero','{"x":01}'),('leading plus','{"x":+1}'),('truncated','{"x":'),('literal control','{"x":"\x01"}')]:

@@ -1756,3 +1756,16 @@ passes 105 tests with two explicit Linux-only skips; release checks pass.
 Independent review adds 546 key replacements and exact original/corrected byte
 parity. See `docs/hosted-audit-codec-acceptance.md`. Current-authority/domain SQL,
 authenticated HTTP, provider and GA qualification remain open.
+
+Checkpoint `9f314ebb` is pushed. Its Phoenix/Linux CI passes 105 tests with two
+explicit namespace skips and all release checks; all 66 archived inputs match
+the commit. Engine CI subsequently passed all three jobs; see verification/github-ci-9f314ebb-engine/receipt.json. The memory promotion correction now
+passes 563 bindings, 4,800 fields, 64 MM selections and 184 prior regressions.
+The catalog domain correction passes 96 bindings, all selected model matrices
+and five fresh targeted PostgreSQL cases. Both corrections are frozen under
+fresh independent review. Live VM and catalog integration remain pending.
+
+
+Private original-owner Load/Store is now independently reviewed, root accepted and integrated. MR01 resolves eight omitted unit promoted positions (64 bytes), retaining all 4,792 prior positions for 4,800 total. Root verifies 1,269 upstream and 22 integration bindings; fresh normalized-source Release runs pass 62 focused tests and 16 Frozen integration tests, plus Swift CI Clippy with warnings denied. Producer64 memory/184 prior selections and reviewer12 focused selections remain separately bound. Integrated123-file closure17f9ea5b93fbc0b5bd51df8484e30e0cbe420eac646730da7d330c4b4ecde9ff. Full dispatch/Ready/public/native/FieldLog/GA and G08 absent-cursor diagnostics remain open. See `docs/swift-memory-integration-checkpoint.md`. The next isolated lane implements shared copy/fill/MemorySize; growth and later execution joins remain pending.
+
+Pure audit codec is integrated and 9f314ebb Phoenix CI passes105 tests with2 explicit namespace skips, release checks and66 exact committed inputs. Catalog raw-domain correction now has independent and root prerequisite acceptance:96 producer/147 review bindings,245 root-bound inputs,133 additional model cases and5 fresh targeted PostgreSQL cases. ACSR01/02 resolved within isolated raw-domain contract; no actual ordinary-runtime bypass inferred. Actual hosted catalog inspector implementation is underway in isolation. Authority-driver independent review remains interrupted after automated safety flag; corrected driver acceptance remains pending. No combined authority/domain migration, authenticated HTTP, provider, native or GA acceptance. 9f314ebb engine CI now passes all three VM, Swift and services jobs. See `docs/hosted-catalog-acceptance.md`.

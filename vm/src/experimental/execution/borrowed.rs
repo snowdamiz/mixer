@@ -361,3 +361,82 @@ $finished = true
 }
 #[allow(unused_imports)]
 pub(crate) use shared_control_arm;
+
+#[allow(unused_macros)]
+macro_rules! shared_memory_methods {
+    ($this:ident, $failure:ty, $leaf:ident, ($($mutable:tt)*), $range:ident, $load:ident, $store:ident) => {
+fn $range(
+        &$($mutable)* $this,
+        address: usize,
+        len: usize,
+    ) -> Result<std::ops::Range<usize>, $failure> {
+        let end = address
+            .checked_add(len)
+            .filter(|end| *end <= $leaf!(memory $this).len())
+            .ok_or_else(|| $leaf!(trap $this))?;
+        Ok(address..end)
+    }
+fn $load(&mut $this, opcode: u8, offset: u32) -> Result<(), $failure> {
+        let address = $leaf!(pop32 $this)? as u32 as usize;
+        let width = width(opcode);
+        let start = address
+            .checked_add(offset as usize)
+            .ok_or_else(|| $leaf!(trap $this))?;
+        let range = $this.$range(start, width)?;
+        $this.work(width)?;
+        let mut padded = [0; 8];
+        padded[..width].copy_from_slice(&$leaf!(memory $this)[range]);
+        let x = u64::from_le_bytes(padded);
+        let value = match opcode {
+            0x28 => Value::I32(x as i32),
+            0x29 => Value::I64(x as i64),
+            0x2a => Value::F32(x as u32),
+            0x2b => Value::F64(x),
+            0x2c => Value::I32(x as i8 as i32),
+            0x2d => Value::I32(x as u8 as i32),
+            0x2e => Value::I32(x as i16 as i32),
+            0x2f => Value::I32(x as u16 as i32),
+            0x30 => Value::I64(x as i8 as i64),
+            0x31 => Value::I64(x as u8 as i64),
+            0x32 => Value::I64(x as i16 as i64),
+            0x33 => Value::I64(x as u16 as i64),
+            0x34 => Value::I64(x as i32 as i64),
+            0x35 => Value::I64(x as u32 as i64),
+            _ => return Err($leaf!(invariant $this)),
+        };
+        $leaf!(push $this, value)
+    }
+fn $store(&mut $this, opcode: u8, offset: u32) -> Result<(), $failure> {
+        let value = $leaf!(pop $this)?;
+        let address = $leaf!(pop32 $this)? as u32 as usize;
+        let width = width(opcode);
+        let start = address
+            .checked_add(offset as usize)
+            .ok_or_else(|| $leaf!(trap $this))?;
+        let range = $this.$range(start, width)?;
+        $this.work(width)?;
+        let bits = match value {
+            Value::I32(x) => x as u32 as u64,
+            Value::I64(x) => x as u64,
+            Value::F32(x) => x as u64,
+            Value::F64(x) => x,
+        };
+        $leaf!(memory $this)[range].copy_from_slice(&bits.to_le_bytes()[..width]);
+        Ok(())
+    }
+    };
+}
+#[allow(unused_imports)]
+pub(crate) use shared_memory_methods;
+
+#[allow(unused_macros)]
+macro_rules! frozen_memory_leaf {
+ (pop $s:ident) => { $s.pop() };
+ (pop32 $s:ident) => { $s.pop32() };
+ (push $s:ident, $v:expr) => { $s.push($v) };
+ (memory $s:ident) => { $s.memory };
+ (invariant $s:ident) => { $s.invariant() };
+ (trap $s:ident) => { $s.trap("memory_out_of_bounds") };
+}
+#[allow(unused_imports)]
+pub(super) use frozen_memory_leaf;

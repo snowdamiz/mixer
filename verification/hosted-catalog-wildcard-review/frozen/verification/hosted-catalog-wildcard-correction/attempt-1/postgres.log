@@ -1,0 +1,12 @@
+2026-10-24 06:10:54.392 EDT [93856] LOG:  starting PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit
+2026-10-24 06:10:54.392 EDT [93856] LOG:  listening on Unix socket "/private/tmp/mixer-catalog-wildcard-r7crtx26/socket/.s.PGSQL.5432"
+2026-10-24 06:10:54.395 EDT [93863] LOG:  database system was shut down at 2026-10-24 06:10:54 EDT
+2026-10-24 06:10:54.398 EDT [93856] LOG:  database system is ready to accept connections
+2026-10-24 06:10:55.303 EDT [93931] ERROR:  trigger "RI_ConstraintTrigger_a_16896" for relation "applications" already exists
+2026-10-24 06:10:55.303 EDT [93931] STATEMENT:  ALTER TRIGGER "RI_ConstraintTrigger_a_16895" ON mixer_authz.applications RENAME TO "RI_ConstraintTrigger_a_16896"
+2026-10-24 06:10:55.347 EDT [93931] ERROR:  trigger "lifecycle_guard" for relation "applications" already exists
+2026-10-24 06:10:55.347 EDT [93931] STATEMENT:  ALTER TRIGGER "RI_ConstraintTrigger_a_16895" ON mixer_authz.applications RENAME TO "lifecycle_guard"
+2026-10-24 06:10:55.390 EDT [93931] ERROR:  trigger "lifecycle_guard" for relation "applications" already exists
+2026-10-24 06:10:55.390 EDT [93931] STATEMENT:  CREATE TRIGGER lifecycle_guard BEFORE UPDATE ON mixer_authz.applications FOR EACH ROW EXECUTE FUNCTION mixer_authz.guard_lifecycle()
+2026-10-24 06:10:55.597 EDT [93856] LOG:  received immediate shutdown request
+2026-10-24 06:10:55.599 EDT [93856] LOG:  database system is shut down

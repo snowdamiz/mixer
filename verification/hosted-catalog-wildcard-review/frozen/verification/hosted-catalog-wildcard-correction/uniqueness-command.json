@@ -1,0 +1,18 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-catalog-wildcard-correction/replay-name-uniqueness.py",
+    "--out",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-catalog-wildcard-correction/name-uniqueness-results.json"
+  ],
+  "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+  "started_utc": "2026-10-24T10:12:13.611009+00:00",
+  "script_sha256": "8fa5ae7b6c548bb5b012aa6259d3fcee1790415f27e86e6968f463de31312229",
+  "exit_code": 0,
+  "stdout": "{\n  \"schema\": 1,\n  \"finding\": \"ACSR02\",\n  \"scope\": \"frozen review model replay; two required malformed rejections and one selected portability admission; no ordinary-runtime bypass\",\n  \"source_digest\": \"3760cbfe5bb28407ce58d678eef22b064a960126d659df031cf11007b789d6d8\",\n  \"input_sha256\": \"687b2ed91c14e70abe5a6dda4587711b783e4174b18283c821a9f875c090ef48\",\n  \"header_sha256\": \"2a6dc488caf665947f578fd67e18a02f4befed9855a54d9fd48c57f4e9c1b745\",\n  \"header_unique_index\": \"DECLARE_UNIQUE_INDEX(pg_trigger_tgrelid_tgname_index, 2701, TriggerRelidNameIndexId, pg_trigger, btree(tgrelid oid_ops, tgname name_ops));\",\n  \"observations\": [\n    {\n      \"mode\": \"internal/internal same relation\",\n      \"mutated_oid\": 16757,\n      \"peer_oid\": 16758,\n      \"relation_oid\": 16730,\n      \"peer_relation_oid\": 16730,\n      \"relation\": \"mixer_authz.applications\",\n      \"old_name\": \"RI_ConstraintTrigger_a_16757\",\n      \"new_name\": \"RI_ConstraintTrigger_a_16758\",\n      \"raw_admitted\": false,\n      \"selected_admitted\": false,\n      \"raw_error\": \"malformed raw value: triggers[1] duplicate relation/name\",\n      \"selected_error\": \"malformed raw value: triggers[1] duplicate relation/name\",\n      \"expected_admitted\": false,\n      \"input_unchanged\": true,\n      \"violates_retained_pg_trigger_unique_key\": true,\n      \"finding_observation_not_security_pass\": true\n    },\n    {\n      \"mode\": \"internal/external same relation\",\n      \"mutated_oid\": 16757,\n      \"peer_oid\": 16870,\n      \"relation_oid\": 16730,\n      \"peer_relation_oid\": 16730,\n      \"relation\": \"mixer_authz.applications\",\n      \"old_name\": \"RI_ConstraintTrigger_a_16757\",\n      \"new_name\": \"lifecycle_guard\",\n      \"raw_admitted\": false,\n      \"selected_admitted\": false,\n      \"raw_error\": \"malformed raw value: triggers[4] duplicate relation/name\",\n      \"selected_error\": \"malformed raw value: triggers[4] duplicate relation/name\",\n      \"expected_admitted\": false,\n      \"input_unchanged\": true,\n      \"violates_retained_pg_trigger_unique_key\": true,\n      \"finding_observation_not_security_pass\": true\n    },\n    {\n      \"mode\": \"same name different relations portable\",\n      \"mutated_oid\": 16757,\n      \"peer_oid\": 16713,\n      \"relation_oid\": 16730,\n      \"peer_relation_oid\": 16698,\n      \"relation\": \"mixer_authz.applications\",\n      \"old_name\": \"RI_ConstraintTrigger_a_16757\",\n      \"new_name\": \"RI_ConstraintTrigger_c_16713\",\n      \"raw_admitted\": true,\n      \"selected_admitted\": true,\n      \"raw_error\": null,\n      \"selected_error\": null,\n      \"expected_admitted\": true,\n      \"input_unchanged\": true,\n      \"violates_retained_pg_trigger_unique_key\": false,\n      \"finding_observation_not_security_pass\": false\n    }\n  ],\n  \"historical_malformed_now_rejected\": 2,\n  \"valid_portability_control\": 1\n}\n",
+  "stderr": "",
+  "stdout_sha256": "8ffa457c757516658ccf67f657bd286e450d41cd45f4cc71a538adb9046dcad7",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "seconds": 0.060450749937444925
+}

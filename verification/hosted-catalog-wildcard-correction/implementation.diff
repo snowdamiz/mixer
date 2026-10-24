@@ -1,0 +1,30 @@
+--- predecessor/raw_validation.py
++++ candidate/raw_validation.py
+@@ -164,6 +164,7 @@
+         if type(rows) is not list:
+             reject(group + ' array')
+         seen_oids = set()
++        seen_trigger_names = set()
+         for i, row in enumerate(rows):
+             at = group + '[' + str(i) + ']'
+             keys(row, fields, at)
+@@ -176,6 +177,10 @@
+             if group in ('constraints', 'triggers'):
+                 association(row, 'parent_oid', 'parent_identity', at)
+             if group == 'triggers':
++                key = (row['relation_oid'], row['name'])
++                if key in seen_trigger_names:
++                    reject(at + ' duplicate relation/name')
++                seen_trigger_names.add(key)
+                 for oid_field, identity in [('constraint_oid', 'constraint_identity'),
+                                             ('referenced_relation_oid', 'referenced_relation'),
+                                             ('constraint_index_oid', 'constraint_index')]:
+@@ -187,7 +192,7 @@
+                     reject(at + ' argument count/terminator')
+             if group == 'startup_defaults':
+                 for field in ('database', 'role'):
+-                    if row[field] is None or (row[field + '_oid'] == 0) != (row[field] == '*'):
++                    if row[field] is None or (row[field + '_oid'] == 0 and row[field] != '*'):
+                         reject(at + ' wildcard association ' + field)
+             if group in ('parameter_effective', 'parameter_public'):
+                 if row['registered'] != (row['context'] is not None):

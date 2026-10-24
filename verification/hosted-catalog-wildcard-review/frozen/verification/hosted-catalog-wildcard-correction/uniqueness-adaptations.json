@@ -1,0 +1,32 @@
+[
+  {
+    "before": "ATTEMPT=HERE/'attempt-1'",
+    "after": "ATTEMPT=HERE",
+    "reason": "Harness path only: candidate and copied inputs are at this packet root."
+  },
+  {
+    "before": "before=canonical(x);validate_raw(x);validate(x,expected);assert canonical(x)==before",
+    "after": "before=canonical(x)\n        def outcome(fn):\n            try:fn();return True,None\n            except ValueError as exc:return False,str(exc)\n        raw_admitted,raw_error=outcome(lambda:validate_raw(x));selected_admitted,selected_error=outcome(lambda:validate(x,expected))\n        expected_admitted=a['relation_oid']!=b['relation_oid']\n        assert raw_admitted==selected_admitted==expected_admitted\n        assert canonical(x)==before",
+    "reason": "ACSR02: two identical relation/name pairs must now reject; different relations remain admitted."
+  },
+  {
+    "before": "'raw_admitted':True,'selected_admitted':True",
+    "after": "'raw_admitted':raw_admitted,'selected_admitted':selected_admitted,'raw_error':raw_error,'selected_error':selected_error,'expected_admitted':expected_admitted",
+    "reason": "Report actual corrected outcomes."
+  },
+  {
+    "before": "'malformed_admission_observations':2",
+    "after": "'historical_malformed_now_rejected':2",
+    "reason": "The original two admissions are preserved in inputs/review; this replay requires rejection."
+  },
+  {
+    "before": "'source_digest':'7e2a24ec2aad45d07d2dd8a5d581fa8df5966e841981d20b27c75acd1de74b40'",
+    "after": "'source_digest':'3760cbfe5bb28407ce58d678eef22b064a960126d659df031cf11007b789d6d8'",
+    "reason": "Bind the corrected candidate rather than mislabeling it as predecessor source."
+  },
+  {
+    "before": "'scope':'model-only impossible catalog uniqueness admission; no ordinary-runtime bypass'",
+    "after": "'scope':'frozen review model replay; two required malformed rejections and one selected portability admission; no ordinary-runtime bypass'",
+    "reason": "Report correction scope honestly."
+  }
+]

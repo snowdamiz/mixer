@@ -1,0 +1,88 @@
+{
+  "schema": 1,
+  "status": "independent-review-frozen-with-ACSR01-ACSR02",
+  "observed_utc": "2026-10-24T10:00:45.332779+00:00",
+  "candidate_source_digest": "7e2a24ec2aad45d07d2dd8a5d581fa8df5966e841981d20b27c75acd1de74b40",
+  "producer_receipt_sha256": "49ecbed394b965f68f50e242da0103005d3e86fee23a42955fc5530b982f2e22",
+  "producer_bindings_verified": 277,
+  "expected_manifest_sha256": "78c0c8a56c6d358eda1e8a183176d5fe7b7e67e9427bdeb4aa1bb308dfaa8e6e",
+  "runtime_attempt": "attempt-1",
+  "attempt_receipt_sha256": "76b1f6523feaa7f7ee30c58118be50b66958e9d9550a04fa34728f0d33a4f5e2",
+  "fresh_models": {
+    "original126": {
+      "rejected": 108,
+      "portable_admitted": 18,
+      "old_malformed_now_rejected": 21
+    },
+    "added_shape": 1083,
+    "transport": 8,
+    "selected_portability": 3,
+    "independently_authored_extra": 136,
+    "all_passed": true
+  },
+  "fresh_actual_postgresql": {
+    "clusters": 1,
+    "oid_padding_tables": 89,
+    "ordinary_cases": 19,
+    "safe_comparisons": 23,
+    "drift_rejections": 15,
+    "independent_valid_unselected_domain_finding_reproduction": 1,
+    "all_explicit_oracles_passed": true
+  },
+  "reused_from_byte_bound_producer_execution_not_freshly_rerun": {
+    "original": 128,
+    "prior_controls": 43,
+    "historical_observations_not_security_passes": 5,
+    "catalog_corrections": 67
+  },
+  "findings": [
+    {
+      "id": "ACSR01",
+      "severity": "P2 raw-domain precision",
+      "file": "verification/hosted-authority-catalog-shape-correction/candidate/raw_validation.py",
+      "line": 190,
+      "observation": "A legal quoted asterisk role has positive role_oid but falsely rejects as wildcard. Same predicate covers database.",
+      "scope": "valid unselected raw shape; separate exact comparison already rejects additional reachable role/default; no selected-safe availability regression or malformed selected admission shown",
+      "actual_role_oid": 17807,
+      "correction": "zero OID implies wildcard marker; positive OID permits any valid resolved actual name, including *",
+      "root_disposition": "pending"
+    },
+    {
+      "id": "ACSR02",
+      "severity": "P2 raw-model malformed admission",
+      "file": "verification/hosted-authority-catalog-shape-correction/candidate/raw_validation.py",
+      "line": 161,
+      "observation": "Distinct triggers on the same relation can share an identical name and pass both raw and selected validation because internal names are subsequently discarded. Violates retained PG17 UNIQUE(tgrelid,tgname).",
+      "scope": "two impossible-catalog model admissions; no actual SQL or ordinary-runtime bypass demonstrated",
+      "correction": "Check (relation_oid,name) uniqueness across all trigger rows before internal name deletion; preserve same-name portability on different relations.",
+      "root_disposition": "pending"
+    }
+  ],
+  "source_delta_confirmed": "new raw_validation.py plus import/call before normalization; all SQL and original assertions unchanged",
+  "candidate_selection_recommendation": "Original ACR01 primitive admissions corrected; resolve ACSR01 wildcard false rejection and ACSR02 discarded trigger-name uniqueness before root selection.",
+  "failed_review_execution_attempts": 0,
+  "cleanup": {
+    "owned_cluster_stopped": true,
+    "owned_scratch_removed": true,
+    "tcp_listener_opened": false,
+    "other_processes_touched": false,
+    "native_or_phone_runs": false
+  },
+  "root_acceptance": false,
+  "ga_acceptance": false,
+  "product_startup_inspector": false,
+  "limits": [
+    "Point-in-time only, no concurrent privileged DDL protection.",
+    "No full product startup, combined domain schema, HTTP/provider, production operational or GA qualification.",
+    "No native/physical phone runs. Physical phones remain disconnected and final acceptance pending.",
+    "Original runtime matrices are reused counts, not fresh execution by this review.",
+    "Index live=false remains model evidence only.",
+    "No producer/live source, trackers or dependencies changed; no commit or push."
+  ],
+  "late_header_uniqueness_observations": {
+    "malformed_selected_admissions_not_security_passes": 2,
+    "valid_different_relation_portability_control": 1,
+    "probe": "name-uniqueness-observations.json"
+  },
+  "preliminary_106_binding_seal": "preliminary-106-binding-review/"
+}
