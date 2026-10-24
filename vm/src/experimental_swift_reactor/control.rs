@@ -471,7 +471,7 @@ pub(super) const FOUNDATION_FINAL_BOUNDARY_BYTES: usize = {
 // The public spelling remains a function that copies the precomputed Option.
 // No runtime temporary array, IntoIter or try_fold is created by this formula.
 const FOUNDATION_CONSTRUCTION_BYTES: Option<usize> = {
-    let terms: [(usize, usize); 8] = [
+    let terms: [(usize, usize); 9] = [
         (3, size_of::<ValidatedSwiftReactor>()),
         (3, size_of::<RuntimeControl>()),
         (3, size_of::<AdoptedProof>()),
@@ -480,6 +480,9 @@ const FOUNDATION_CONSTRUCTION_BYTES: Option<usize> = {
         (6, size_of::<ReservationTicket>()),
         (6, size_of::<Option<WasiUsage>>()),
         (1, FOUNDATION_FINAL_BOUNDARY_BYTES),
+        // Composed constructor inputs and provenance/admission borrows exist
+        // before its outer enlargement, so they belong in the initial floor.
+        (1, super::execution::CONSTRUCTION_BOOTSTRAP_BYTES),
     ];
     let mut sum = Some(0usize);
     let mut index = 0usize;

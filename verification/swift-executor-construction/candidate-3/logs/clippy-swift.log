@@ -1,0 +1,87 @@
+    Checking mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction/candidate-3/build/source/vm)
+error: large size difference between variants
+   --> src/experimental_swift_reactor/execution.rs:148:1
+    |
+148 | / pub(crate) enum ConstructionFailure {
+149 | |     Rejected(SwiftRunFailure),
+    | |     ------------------------- the second-largest variant contains at least 1096 bytes
+150 | |     Cleanup(ConstructionCleanupTail),
+    | |     -------------------------------- the largest variant contains at least 2960 bytes
+151 | | }
+    | |_^ the entire enum is at least 2960 bytes
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#large_enum_variant
+    = note: `-D clippy::large-enum-variant` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::large_enum_variant)]`
+help: consider boxing the large fields or introducing indirection in some other way to reduce the total size of the enum
+    |
+150 -     Cleanup(ConstructionCleanupTail),
+150 +     Cleanup(Box<ConstructionCleanupTail>),
+    |
+
+error: very complex type used. Consider factoring parts into `type` definitions
+    --> src/experimental_swift_reactor/execution.rs:2053:16
+     |
+2053 |       class_124: [(
+     |  ________________^
+2054 | |         Option<(RuntimeControl, AdoptedProof)>,
+2055 | |         Option<Result<SwiftReactorInstance, ConstructionFailure>>,
+2056 | |     ); 1],
+     | |_________^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#type_complexity
+     = note: `-D clippy::type-complexity` implied by `-D warnings`
+     = help: to override `-D warnings` add `#[allow(clippy::type_complexity)]`
+
+error: very complex type used. Consider factoring parts into `type` definitions
+    --> src/experimental_swift_reactor/execution.rs:2179:15
+     |
+2179 |       class_70: [(
+     |  _______________^
+2180 | |         Option<(RuntimeControl, AdoptedProof)>,
+2181 | |         Option<Result<SwiftReactorInstance, ConstructionFailure>>,
+2182 | |     ); 3],
+     | |_________^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#type_complexity
+
+error: very complex type used. Consider factoring parts into `type` definitions
+    --> src/experimental_swift_reactor/execution.rs:2530:16
+     |
+2530 |       class_234: [(
+     |  ________________^
+2531 | |         std::option::Option<crate::experimental_swift_reactor::execution::SwiftReactorInstance>,
+2532 | |         std::option::Option<
+2533 | |             std::result::Result<
+...    |
+2537 | |         >,
+2538 | |     ); 2],
+     | |_________^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#type_complexity
+
+error: very complex type used. Consider factoring parts into `type` definitions
+    --> src/experimental_swift_reactor/execution.rs:2862:16
+     |
+2862 |       class_115: [(
+     |  ________________^
+2863 | |         Option<(RuntimeControl, AdoptedProof)>,
+2864 | |         Option<Result<SwiftReactorInstance, ConstructionFailure>>,
+2865 | |     ); 1],
+     | |_________^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#type_complexity
+
+error: very complex type used. Consider factoring parts into `type` definitions
+    --> src/experimental_swift_reactor/execution.rs:2903:15
+     |
+2903 |       class_23: [(
+     |  _______________^
+2904 | |         Option<(RuntimeControl, AdoptedProof)>,
+2905 | |         Option<Result<SwiftReactorInstance, ConstructionFailure>>,
+2906 | |     ); 2],
+     | |_________^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#type_complexity
+
+error: could not compile `mixer-vm` (lib) due to 6 previous errors

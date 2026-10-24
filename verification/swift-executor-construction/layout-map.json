@@ -1,0 +1,4274 @@
+{
+  "schema": "mixer.swift-construction-layout-map.v1",
+  "scope": "Candidate actual chosen object layouts; counts await independent root call-chain review.",
+  "configurations": {
+    "production-debug": {
+      "types": {
+        "SwiftExecutionState": {
+          "size": 312,
+          "align": 8,
+          "fields": {
+            "memory": {
+              "type": "Vec<u8>",
+              "offset": 0,
+              "size": 24,
+              "align": 8
+            },
+            "table": {
+              "type": "Vec<Option<u32>>",
+              "offset": 24,
+              "size": 24,
+              "align": 8
+            },
+            "globals": {
+              "type": "Vec<Value>",
+              "offset": 48,
+              "size": 24,
+              "align": 8
+            },
+            "values": {
+              "type": "Vec<Value>",
+              "offset": 72,
+              "size": 24,
+              "align": 8
+            },
+            "controls": {
+              "type": "Vec<Control>",
+              "offset": 96,
+              "size": 24,
+              "align": 8
+            },
+            "frames": {
+              "type": "Vec<SwiftFrame>",
+              "offset": 120,
+              "size": 24,
+              "align": 8
+            },
+            "buffers": {
+              "type": "[Option<ReservationTicket>; 6]",
+              "offset": 144,
+              "size": 144,
+              "align": 8
+            },
+            "execution_header": {
+              "type": "Option<ReservationTicket>",
+              "offset": 288,
+              "size": 24,
+              "align": 8
+            }
+          }
+        },
+        "SwiftReactorInstance": {
+          "size": 4480,
+          "align": 8,
+          "fields": {
+            "control": {
+              "type": "Option<RuntimeControl>",
+              "offset": 0,
+              "size": 1720,
+              "align": 8
+            },
+            "cache": {
+              "type": "Option<SwiftFunctionCache>",
+              "offset": 1720,
+              "size": 992,
+              "align": 8
+            },
+            "wasi": {
+              "type": "Option<AccountedWasi>",
+              "offset": 2712,
+              "size": 1448,
+              "align": 8
+            },
+            "state": {
+              "type": "Option<SwiftExecutionState>",
+              "offset": 4160,
+              "size": 312,
+              "align": 8
+            },
+            "lifecycle": {
+              "type": "Lifecycle",
+              "offset": 4472,
+              "size": 1,
+              "align": 1
+            }
+          }
+        },
+        "SwiftFrame": {
+          "size": 64,
+          "align": 8,
+          "fields": {
+            "function": {
+              "type": "u32",
+              "offset": 56,
+              "size": 4,
+              "align": 4
+            },
+            "pc": {
+              "type": "usize",
+              "offset": 0,
+              "size": 8,
+              "align": 8
+            },
+            "base": {
+              "type": "usize",
+              "offset": 8,
+              "size": 8,
+              "align": 8
+            },
+            "operands": {
+              "type": "usize",
+              "offset": 16,
+              "size": 8,
+              "align": 8
+            },
+            "controls": {
+              "type": "usize",
+              "offset": 24,
+              "size": 8,
+              "align": 8
+            },
+            "result": {
+              "type": "bool",
+              "offset": 60,
+              "size": 1,
+              "align": 1
+            },
+            "pin": {
+              "type": "SwiftFunctionPin",
+              "offset": 32,
+              "size": 24,
+              "align": 8
+            }
+          }
+        },
+        "ExecutionConstructionPhase": {
+          "size": 72,
+          "align": 8,
+          "fields": {
+            "control": {
+              "type": "&'static mut RuntimeControl",
+              "offset": 32,
+              "size": 8,
+              "align": 8
+            },
+            "cache": {
+              "type": "&'static SwiftFunctionCache",
+              "offset": 40,
+              "size": 8,
+              "align": 8
+            },
+            "wasi": {
+              "type": "&'static AccountedWasi",
+              "offset": 48,
+              "size": 8,
+              "align": 8
+            },
+            "cursor": {
+              "type": "Cursor",
+              "offset": 0,
+              "size": 32,
+              "align": 8
+            },
+            "previous_bound": {
+              "type": "usize",
+              "offset": 56,
+              "size": 8,
+              "align": 8
+            },
+            "constructed": {
+              "type": "bool",
+              "offset": 64,
+              "size": 1,
+              "align": 1
+            }
+          }
+        },
+        "ExecutionOperationPhase": {
+          "size": 112,
+          "align": 8,
+          "fields": {
+            "parts": {
+              "type": "ExecutionParts<'static, SwiftMode>",
+              "offset": 48,
+              "size": 56,
+              "align": 8
+            },
+            "operation": {
+              "type": "SwiftExecutionOperation<'static>",
+              "offset": 0,
+              "size": 48,
+              "align": 8
+            },
+            "previous_bound": {
+              "type": "usize",
+              "offset": 104,
+              "size": 8,
+              "align": 8
+            }
+          }
+        },
+        "PartialState": {
+          "size": 320,
+          "align": 8,
+          "fields": {
+            "state": {
+              "type": "SwiftExecutionState",
+              "offset": 0,
+              "size": 312,
+              "align": 8
+            },
+            "next_arena": {
+              "type": "usize",
+              "offset": 312,
+              "size": 8,
+              "align": 8
+            }
+          }
+        },
+        "PartialInstance": {
+          "size": 4472,
+          "align": 8,
+          "fields": {
+            "control": {
+              "type": "Option<RuntimeControl>",
+              "offset": 0,
+              "size": 1720,
+              "align": 8
+            },
+            "cache": {
+              "type": "Option<SwiftFunctionCache>",
+              "offset": 1720,
+              "size": 992,
+              "align": 8
+            },
+            "wasi": {
+              "type": "Option<AccountedWasi>",
+              "offset": 2712,
+              "size": 1448,
+              "align": 8
+            },
+            "state": {
+              "type": "Option<SwiftExecutionState>",
+              "offset": 4160,
+              "size": 312,
+              "align": 8
+            }
+          }
+        },
+        "ExecutionCleanupTail": {
+          "size": 2952,
+          "align": 8,
+          "fields": {
+            "control": {
+              "type": "RuntimeControl",
+              "offset": 112,
+              "size": 1720,
+              "align": 8
+            },
+            "header": {
+              "type": "Option<ReservationTicket>",
+              "offset": 2928,
+              "size": 24,
+              "align": 8
+            },
+            "final_wasi": {
+              "type": "Option<WasiUsage>",
+              "offset": 0,
+              "size": 112,
+              "align": 8
+            },
+            "failure": {
+              "type": "Option<SwiftRunFailure>",
+              "offset": 1832,
+              "size": 1096,
+              "align": 8
+            }
+          }
+        },
+        "HeaderCompletionParts": {
+          "size": 1856,
+          "align": 8,
+          "fields": {
+            "control": {
+              "type": "RuntimeControl",
+              "offset": 112,
+              "size": 1720,
+              "align": 8
+            },
+            "header": {
+              "type": "Option<ReservationTicket>",
+              "offset": 1832,
+              "size": 24,
+              "align": 8
+            },
+            "final_wasi": {
+              "type": "Option<WasiUsage>",
+              "offset": 0,
+              "size": 112,
+              "align": 8
+            }
+          }
+        },
+        "ScalarReader": {
+          "size": 32,
+          "align": 8,
+          "fields": {
+            "bytes": {
+              "type": "&'static [u8]",
+              "offset": 0,
+              "size": 16,
+              "align": 8
+            },
+            "at": {
+              "type": "usize",
+              "offset": 16,
+              "size": 8,
+              "align": 8
+            },
+            "absolute_offset": {
+              "type": "usize",
+              "offset": 24,
+              "size": 8,
+              "align": 8
+            }
+          }
+        },
+        "ConstructionDescriptors": {
+          "size": 384,
+          "align": 8,
+          "fields": {
+            "memory": {
+              "type": "Option<MemoryExecutionView>",
+              "offset": 72,
+              "size": 16,
+              "align": 4
+            },
+            "table": {
+              "type": "Option<TableExecutionView>",
+              "offset": 88,
+              "size": 16,
+              "align": 4
+            },
+            "global": {
+              "type": "Option<GlobalView<'static>>",
+              "offset": 104,
+              "size": 24,
+              "align": 8
+            },
+            "segment": {
+              "type": "Option<SegmentExecutionView<'static>>",
+              "offset": 128,
+              "size": 32,
+              "align": 8
+            },
+            "initializer_offset": {
+              "type": "Option<usize>",
+              "offset": 0,
+              "size": 16,
+              "align": 8
+            },
+            "capacities": {
+              "type": "[usize; 6]",
+              "offset": 160,
+              "size": 48,
+              "align": 8
+            },
+            "requests": {
+              "type": "Option<[usize; 6]>",
+              "offset": 16,
+              "size": 56,
+              "align": 8
+            },
+            "budget": {
+              "type": "SwiftRunBudget",
+              "offset": 208,
+              "size": 136,
+              "align": 8
+            },
+            "target_type": {
+              "type": "Type",
+              "offset": 380,
+              "size": 1,
+              "align": 1
+            },
+            "opcode": {
+              "type": "u8",
+              "offset": 381,
+              "size": 1,
+              "align": 1
+            },
+            "byte": {
+              "type": "u8",
+              "offset": 382,
+              "size": 1,
+              "align": 1
+            },
+            "bits": {
+              "type": "u64",
+              "offset": 344,
+              "size": 8,
+              "align": 8
+            },
+            "shift": {
+              "type": "u32",
+              "offset": 368,
+              "size": 4,
+              "align": 4
+            },
+            "width": {
+              "type": "u32",
+              "offset": 372,
+              "size": 4,
+              "align": 4
+            },
+            "signed": {
+              "type": "i64",
+              "offset": 352,
+              "size": 8,
+              "align": 8
+            },
+            "float32": {
+              "type": "[u8; 4]",
+              "offset": 376,
+              "size": 4,
+              "align": 1
+            },
+            "float64": {
+              "type": "[u8; 8]",
+              "offset": 360,
+              "size": 8,
+              "align": 1
+            }
+          }
+        },
+        "ConstructionTransfers": {
+          "size": 11296,
+          "align": 8,
+          "fields": {
+            "pair": {
+              "type": "Option<(RuntimeControl, AdoptedProof)>",
+              "offset": 8784,
+              "size": 2432,
+              "align": 8
+            },
+            "owned_slot": {
+              "type": "&'static mut Option<(RuntimeControl, AdoptedProof)>",
+              "offset": 11232,
+              "size": 8,
+              "align": 8
+            },
+            "grants": {
+              "type": "WasiGrants",
+              "offset": 11288,
+              "size": 5,
+              "align": 1
+            },
+            "wasi_budget": {
+              "type": "WasiBudget",
+              "offset": 11240,
+              "size": 48,
+              "align": 8
+            },
+            "started": {
+              "type": "Instant",
+              "offset": 11216,
+              "size": 16,
+              "align": 8
+            },
+            "state_phase": {
+              "type": "Result<ExecutionConstructionPhase<'static>, SwiftRunFailure>",
+              "offset": 16,
+              "size": 1096,
+              "align": 8
+            },
+            "cache_phase": {
+              "type": "Result<CacheConstructionPhase<'static>, SwiftRunFailure>",
+              "offset": 1112,
+              "size": 1096,
+              "align": 8
+            },
+            "wasi_phase": {
+              "type": "Result<WasiConstructionPhase<'static>, SwiftRunFailure>",
+              "offset": 2208,
+              "size": 1096,
+              "align": 8
+            },
+            "reserve": {
+              "type": "Result<ReservationTicket, SwiftRunFailure>",
+              "offset": 3304,
+              "size": 1096,
+              "align": 8
+            },
+            "allocate": {
+              "type": "Result<Vec<Value>, SwiftRunFailure>",
+              "offset": 4400,
+              "size": 1096,
+              "align": 8
+            },
+            "initialized": {
+              "type": "Result<(), SwiftRunFailure>",
+              "offset": 5496,
+              "size": 1096,
+              "align": 8
+            },
+            "constant": {
+              "type": "Result<Value, SwiftRunFailure>",
+              "offset": 6592,
+              "size": 1096,
+              "align": 8
+            },
+            "scalar": {
+              "type": "Result<u64, SwiftRunFailure>",
+              "offset": 7688,
+              "size": 1096,
+              "align": 8
+            },
+            "end": {
+              "type": "Option<usize>",
+              "offset": 0,
+              "size": 16,
+              "align": 8
+            }
+          }
+        },
+        "ConstructionBorrowChain": {
+          "size": 888,
+          "align": 8,
+          "fields": {
+            "control": {
+              "type": "[&'static mut RuntimeControl; 6]",
+              "offset": 480,
+              "size": 48,
+              "align": 8
+            },
+            "state": {
+              "type": "[&'static mut SwiftExecutionState; 3]",
+              "offset": 528,
+              "size": 24,
+              "align": 8
+            },
+            "cache": {
+              "type": "[&'static SwiftFunctionCache; 4]",
+              "offset": 552,
+              "size": 32,
+              "align": 8
+            },
+            "wasi": {
+              "type": "[&'static AccountedWasi; 6]",
+              "offset": 584,
+              "size": 48,
+              "align": 8
+            },
+            "phase": {
+              "type": "[&'static mut ExecutionConstructionPhase<'static>; 3]",
+              "offset": 632,
+              "size": 24,
+              "align": 8
+            },
+            "reader": {
+              "type": "[&'static mut ScalarReader<'static>; 3]",
+              "offset": 656,
+              "size": 24,
+              "align": 8
+            },
+            "vector": {
+              "type": "[&'static mut Vec<Value>; 2]",
+              "offset": 680,
+              "size": 16,
+              "align": 8
+            },
+            "slice": {
+              "type": "[&'static [u8]; 4]",
+              "offset": 696,
+              "size": 64,
+              "align": 8
+            },
+            "mutable_slice": {
+              "type": "[&'static mut [u8]; 2]",
+              "offset": 760,
+              "size": 32,
+              "align": 8
+            },
+            "index": {
+              "type": "[usize; 12]",
+              "offset": 792,
+              "size": 96,
+              "align": 8
+            },
+            "cursor": {
+              "type": "[Cursor; 4]",
+              "offset": 0,
+              "size": 128,
+              "align": 8
+            },
+            "observation": {
+              "type": "[Option<WasiUsage>; 2]",
+              "offset": 128,
+              "size": 224,
+              "align": 8
+            },
+            "fault": {
+              "type": "[Fault; 2]",
+              "offset": 352,
+              "size": 128,
+              "align": 8
+            }
+          }
+        },
+        "ConstructionIterationInventory": {
+          "size": 4648,
+          "align": 8,
+          "fields": {
+            "global_range": {
+              "type": "std::ops::Range<usize>",
+              "offset": 4576,
+              "size": 16,
+              "align": 8
+            },
+            "table_range": {
+              "type": "std::ops::Range<u32>",
+              "offset": 4592,
+              "size": 8,
+              "align": 4
+            },
+            "descriptor_range": {
+              "type": "std::ops::Range<usize>",
+              "offset": 4600,
+              "size": 16,
+              "align": 8
+            },
+            "element_range": {
+              "type": "std::ops::Range<usize>",
+              "offset": 4616,
+              "size": 16,
+              "align": 8
+            },
+            "leb_range": {
+              "type": "std::ops::Range<u32>",
+              "offset": 4632,
+              "size": 8,
+              "align": 4
+            },
+            "leb_steps": {
+              "type": "std::iter::StepBy<std::ops::Range<u32>>",
+              "offset": 4424,
+              "size": 24,
+              "align": 8
+            },
+            "float_iter": {
+              "type": "std::slice::IterMut<'static, u8>",
+              "offset": 4472,
+              "size": 16,
+              "align": 8
+            },
+            "float_item": {
+              "type": "Option<&'static mut u8>",
+              "offset": 4640,
+              "size": 8,
+              "align": 8
+            },
+            "descriptor_item": {
+              "type": "Option<usize>",
+              "offset": 0,
+              "size": 16,
+              "align": 8
+            },
+            "table_item": {
+              "type": "Option<u32>",
+              "offset": 4416,
+              "size": 8,
+              "align": 4
+            },
+            "borrowed_segment": {
+              "type": "SegmentExecutionView<'static>",
+              "offset": 4488,
+              "size": 32,
+              "align": 8
+            },
+            "borrowed_global": {
+              "type": "GlobalView<'static>",
+              "offset": 4448,
+              "size": 24,
+              "align": 8
+            },
+            "typed_result": {
+              "type": "Result<Value, SwiftRunFailure>",
+              "offset": 16,
+              "size": 1096,
+              "align": 8
+            },
+            "signed_result": {
+              "type": "Result<i64, SwiftRunFailure>",
+              "offset": 1112,
+              "size": 1096,
+              "align": 8
+            },
+            "unsigned_result": {
+              "type": "Result<u32, SwiftRunFailure>",
+              "offset": 2208,
+              "size": 1096,
+              "align": 8
+            },
+            "byte_result": {
+              "type": "Result<u8, SwiftRunFailure>",
+              "offset": 3304,
+              "size": 1096,
+              "align": 8
+            },
+            "error": {
+              "type": "Option<std::collections::TryReserveError>",
+              "offset": 4400,
+              "size": 16,
+              "align": 8
+            },
+            "error_callback": {
+              "type": "( &'static mut ExecutionConstructionPhase<'static>, &'static usize, )",
+              "offset": 4520,
+              "size": 16,
+              "align": 8
+            },
+            "descriptor_callback": {
+              "type": "&'static mut ExecutionConstructionPhase<'static>",
+              "offset": 4536,
+              "size": 8,
+              "align": 8
+            },
+            "reader_callback": {
+              "type": "( &'static ScalarReader<'static>, &'static mut RuntimeControl, &'static AccountedWasi, &'static Cursor, )",
+              "offset": 4544,
+              "size": 32,
+              "align": 8
+            }
+          }
+        },
+        "ConstructionBootstrapInventory": {
+          "size": 2216,
+          "align": 8,
+          "fields": {
+            "pair_slot": {
+              "type": "[&'static mut Option<(RuntimeControl, AdoptedProof)>; 2]",
+              "offset": 1712,
+              "size": 16,
+              "align": 8
+            },
+            "control": {
+              "type": "[&'static mut RuntimeControl; 8]",
+              "offset": 1728,
+              "size": 64,
+              "align": 8
+            },
+            "adopted": {
+              "type": "[&'static AdoptedProof; 3]",
+              "offset": 1792,
+              "size": 24,
+              "align": 8
+            },
+            "cache": {
+              "type": "[&'static SwiftFunctionCache; 4]",
+              "offset": 1816,
+              "size": 32,
+              "align": 8
+            },
+            "wasi": {
+              "type": "[&'static AccountedWasi; 4]",
+              "offset": 1848,
+              "size": 32,
+              "align": 8
+            },
+            "cursor": {
+              "type": "[Cursor; 5]",
+              "offset": 0,
+              "size": 160,
+              "align": 8
+            },
+            "grants": {
+              "type": "[WasiGrants; 3]",
+              "offset": 2200,
+              "size": 15,
+              "align": 1
+            },
+            "budget": {
+              "type": "[WasiBudget; 3]",
+              "offset": 1944,
+              "size": 144,
+              "align": 8
+            },
+            "started": {
+              "type": "[Instant; 3]",
+              "offset": 1616,
+              "size": 48,
+              "align": 8
+            },
+            "cache_control": {
+              "type": "CacheControl<'static>",
+              "offset": 160,
+              "size": 48,
+              "align": 8
+            },
+            "header_option": {
+              "type": "[Option<&'static ReservationTicket>; 3]",
+              "offset": 2088,
+              "size": 24,
+              "align": 8
+            },
+            "header": {
+              "type": "[&'static ReservationTicket; 5]",
+              "offset": 1880,
+              "size": 40,
+              "align": 8
+            },
+            "observation": {
+              "type": "[Option<WasiUsage>; 3]",
+              "offset": 208,
+              "size": 336,
+              "align": 8
+            },
+            "snapshot_return": {
+              "type": "[SwiftRunUsage; 2]",
+              "offset": 544,
+              "size": 1008,
+              "align": 8
+            },
+            "previous_bound": {
+              "type": "[usize; 4]",
+              "offset": 2112,
+              "size": 32,
+              "align": 8
+            },
+            "checked_bound": {
+              "type": "[Option<usize>; 2]",
+              "offset": 1552,
+              "size": 32,
+              "align": 8
+            },
+            "owner_verdict": {
+              "type": "[Option<(SwiftCleanupInvariant, &'static str)>; 2]",
+              "offset": 1664,
+              "size": 48,
+              "align": 8
+            },
+            "ticket_option": {
+              "type": "Option<&'static ReservationTicket>",
+              "offset": 2144,
+              "size": 8,
+              "align": 8
+            },
+            "current": {
+              "type": "usize",
+              "offset": 2152,
+              "size": 8,
+              "align": 8
+            },
+            "requested": {
+              "type": "usize",
+              "offset": 2160,
+              "size": 8,
+              "align": 8
+            },
+            "difference": {
+              "type": "usize",
+              "offset": 2168,
+              "size": 8,
+              "align": 8
+            },
+            "category_next": {
+              "type": "usize",
+              "offset": 2176,
+              "size": 8,
+              "align": 8
+            },
+            "combined_next": {
+              "type": "usize",
+              "offset": 2184,
+              "size": 8,
+              "align": 8
+            },
+            "checked_category": {
+              "type": "Option<usize>",
+              "offset": 1584,
+              "size": 16,
+              "align": 8
+            },
+            "checked_combined": {
+              "type": "Option<usize>",
+              "offset": 1600,
+              "size": 16,
+              "align": 8
+            },
+            "category": {
+              "type": "SwiftReservationCategory",
+              "offset": 2215,
+              "size": 1,
+              "align": 1
+            },
+            "category_usage": {
+              "type": "&'static SwiftReservationUsage",
+              "offset": 1920,
+              "size": 8,
+              "align": 8
+            },
+            "category_mut": {
+              "type": "&'static mut SwiftReservationUsage",
+              "offset": 1928,
+              "size": 8,
+              "align": 8
+            },
+            "reservations": {
+              "type": "&'static mut SwiftReservations",
+              "offset": 1936,
+              "size": 8,
+              "align": 8
+            },
+            "construction_ticket": {
+              "type": "Option<&'static mut ReservationTicket>",
+              "offset": 2192,
+              "size": 8,
+              "align": 8
+            }
+          }
+        },
+        "CleanupPreflightInventory": {
+          "size": 336,
+          "align": 8,
+          "fields": {
+            "owner_option": {
+              "type": "Option<&'static mut SwiftReactorInstance>",
+              "offset": 168,
+              "size": 8,
+              "align": 8
+            },
+            "owner": {
+              "type": "&'static mut SwiftReactorInstance",
+              "offset": 64,
+              "size": 8,
+              "align": 8
+            },
+            "control_option": {
+              "type": "Option<&'static mut RuntimeControl>",
+              "offset": 176,
+              "size": 8,
+              "align": 8
+            },
+            "control": {
+              "type": "&'static mut RuntimeControl",
+              "offset": 72,
+              "size": 8,
+              "align": 8
+            },
+            "wasi_option": {
+              "type": "Option<&'static AccountedWasi>",
+              "offset": 184,
+              "size": 8,
+              "align": 8
+            },
+            "wasi": {
+              "type": "&'static AccountedWasi",
+              "offset": 80,
+              "size": 8,
+              "align": 8
+            },
+            "cache_option": {
+              "type": "Option<&'static SwiftFunctionCache>",
+              "offset": 192,
+              "size": 8,
+              "align": 8
+            },
+            "cache": {
+              "type": "&'static SwiftFunctionCache",
+              "offset": 88,
+              "size": 8,
+              "align": 8
+            },
+            "state_option": {
+              "type": "Option<&'static SwiftExecutionState>",
+              "offset": 200,
+              "size": 8,
+              "align": 8
+            },
+            "state": {
+              "type": "&'static SwiftExecutionState",
+              "offset": 96,
+              "size": 8,
+              "align": 8
+            },
+            "header_option": {
+              "type": "Option<&'static ReservationTicket>",
+              "offset": 208,
+              "size": 8,
+              "align": 8
+            },
+            "header": {
+              "type": "&'static ReservationTicket",
+              "offset": 104,
+              "size": 8,
+              "align": 8
+            },
+            "buffer_iter": {
+              "type": "std::slice::Iter<'static, Option<ReservationTicket>>",
+              "offset": 112,
+              "size": 16,
+              "align": 8
+            },
+            "buffer_item": {
+              "type": "Option<&'static Option<ReservationTicket>>",
+              "offset": 216,
+              "size": 8,
+              "align": 8
+            },
+            "buffer": {
+              "type": "&'static Option<ReservationTicket>",
+              "offset": 128,
+              "size": 8,
+              "align": 8
+            },
+            "buffer_ticket": {
+              "type": "Option<&'static ReservationTicket>",
+              "offset": 224,
+              "size": 8,
+              "align": 8
+            },
+            "cache_usage": {
+              "type": "super::cache::SwiftCacheUsage",
+              "offset": 232,
+              "size": 96,
+              "align": 8
+            },
+            "cursor_arguments": {
+              "type": "[Cursor; 2]",
+              "offset": 0,
+              "size": 64,
+              "align": 8
+            },
+            "header_error_callback": {
+              "type": "(&'static mut RuntimeControl, &'static AccountedWasi)",
+              "offset": 136,
+              "size": 16,
+              "align": 8
+            },
+            "buffer_error_callback": {
+              "type": "(&'static mut RuntimeControl, &'static AccountedWasi)",
+              "offset": 152,
+              "size": 16,
+              "align": 8
+            },
+            "nonempty": {
+              "type": "[bool; 4]",
+              "offset": 328,
+              "size": 4,
+              "align": 1
+            }
+          }
+        }
+      },
+      "bounds": {
+        "foundation": 19584,
+        "bootstrap": 2216,
+        "construction": 101960,
+        "header": 50928,
+        "cleanup_original": 50272
+      }
+    },
+    "unit-debug": {
+      "types": {
+        "SwiftExecutionState": {
+          "size": 312,
+          "align": 8,
+          "fields": {
+            "memory": {
+              "type": "Vec<u8>",
+              "offset": 0,
+              "size": 24,
+              "align": 8
+            },
+            "table": {
+              "type": "Vec<Option<u32>>",
+              "offset": 24,
+              "size": 24,
+              "align": 8
+            },
+            "globals": {
+              "type": "Vec<Value>",
+              "offset": 48,
+              "size": 24,
+              "align": 8
+            },
+            "values": {
+              "type": "Vec<Value>",
+              "offset": 72,
+              "size": 24,
+              "align": 8
+            },
+            "controls": {
+              "type": "Vec<Control>",
+              "offset": 96,
+              "size": 24,
+              "align": 8
+            },
+            "frames": {
+              "type": "Vec<SwiftFrame>",
+              "offset": 120,
+              "size": 24,
+              "align": 8
+            },
+            "buffers": {
+              "type": "[Option<ReservationTicket>; 6]",
+              "offset": 144,
+              "size": 144,
+              "align": 8
+            },
+            "execution_header": {
+              "type": "Option<ReservationTicket>",
+              "offset": 288,
+              "size": 24,
+              "align": 8
+            }
+          }
+        },
+        "SwiftReactorInstance": {
+          "size": 4528,
+          "align": 8,
+          "fields": {
+            "control": {
+              "type": "Option<RuntimeControl>",
+              "offset": 0,
+              "size": 1720,
+              "align": 8
+            },
+            "cache": {
+              "type": "Option<SwiftFunctionCache>",
+              "offset": 1720,
+              "size": 992,
+              "align": 8
+            },
+            "wasi": {
+              "type": "Option<AccountedWasi>",
+              "offset": 2712,
+              "size": 1496,
+              "align": 8
+            },
+            "state": {
+              "type": "Option<SwiftExecutionState>",
+              "offset": 4208,
+              "size": 312,
+              "align": 8
+            },
+            "lifecycle": {
+              "type": "Lifecycle",
+              "offset": 4520,
+              "size": 1,
+              "align": 1
+            }
+          }
+        },
+        "SwiftFrame": {
+          "size": 64,
+          "align": 8,
+          "fields": {
+            "function": {
+              "type": "u32",
+              "offset": 56,
+              "size": 4,
+              "align": 4
+            },
+            "pc": {
+              "type": "usize",
+              "offset": 0,
+              "size": 8,
+              "align": 8
+            },
+            "base": {
+              "type": "usize",
+              "offset": 8,
+              "size": 8,
+              "align": 8
+            },
+            "operands": {
+              "type": "usize",
+              "offset": 16,
+              "size": 8,
+              "align": 8
+            },
+            "controls": {
+              "type": "usize",
+              "offset": 24,
+              "size": 8,
+              "align": 8
+            },
+            "result": {
+              "type": "bool",
+              "offset": 60,
+              "size": 1,
+              "align": 1
+            },
+            "pin": {
+              "type": "SwiftFunctionPin",
+              "offset": 32,
+              "size": 24,
+              "align": 8
+            }
+          }
+        },
+        "ExecutionConstructionPhase": {
+          "size": 72,
+          "align": 8,
+          "fields": {
+            "control": {
+              "type": "&'static mut RuntimeControl",
+              "offset": 32,
+              "size": 8,
+              "align": 8
+            },
+            "cache": {
+              "type": "&'static SwiftFunctionCache",
+              "offset": 40,
+              "size": 8,
+              "align": 8
+            },
+            "wasi": {
+              "type": "&'static AccountedWasi",
+              "offset": 48,
+              "size": 8,
+              "align": 8
+            },
+            "cursor": {
+              "type": "Cursor",
+              "offset": 0,
+              "size": 32,
+              "align": 8
+            },
+            "previous_bound": {
+              "type": "usize",
+              "offset": 56,
+              "size": 8,
+              "align": 8
+            },
+            "constructed": {
+              "type": "bool",
+              "offset": 64,
+              "size": 1,
+              "align": 1
+            }
+          }
+        },
+        "ExecutionOperationPhase": {
+          "size": 112,
+          "align": 8,
+          "fields": {
+            "parts": {
+              "type": "ExecutionParts<'static, SwiftMode>",
+              "offset": 48,
+              "size": 56,
+              "align": 8
+            },
+            "operation": {
+              "type": "SwiftExecutionOperation<'static>",
+              "offset": 0,
+              "size": 48,
+              "align": 8
+            },
+            "previous_bound": {
+              "type": "usize",
+              "offset": 104,
+              "size": 8,
+              "align": 8
+            }
+          }
+        },
+        "PartialState": {
+          "size": 320,
+          "align": 8,
+          "fields": {
+            "state": {
+              "type": "SwiftExecutionState",
+              "offset": 0,
+              "size": 312,
+              "align": 8
+            },
+            "next_arena": {
+              "type": "usize",
+              "offset": 312,
+              "size": 8,
+              "align": 8
+            }
+          }
+        },
+        "PartialInstance": {
+          "size": 4520,
+          "align": 8,
+          "fields": {
+            "control": {
+              "type": "Option<RuntimeControl>",
+              "offset": 0,
+              "size": 1720,
+              "align": 8
+            },
+            "cache": {
+              "type": "Option<SwiftFunctionCache>",
+              "offset": 1720,
+              "size": 992,
+              "align": 8
+            },
+            "wasi": {
+              "type": "Option<AccountedWasi>",
+              "offset": 2712,
+              "size": 1496,
+              "align": 8
+            },
+            "state": {
+              "type": "Option<SwiftExecutionState>",
+              "offset": 4208,
+              "size": 312,
+              "align": 8
+            }
+          }
+        },
+        "ExecutionCleanupTail": {
+          "size": 2952,
+          "align": 8,
+          "fields": {
+            "control": {
+              "type": "RuntimeControl",
+              "offset": 112,
+              "size": 1720,
+              "align": 8
+            },
+            "header": {
+              "type": "Option<ReservationTicket>",
+              "offset": 2928,
+              "size": 24,
+              "align": 8
+            },
+            "final_wasi": {
+              "type": "Option<WasiUsage>",
+              "offset": 0,
+              "size": 112,
+              "align": 8
+            },
+            "failure": {
+              "type": "Option<SwiftRunFailure>",
+              "offset": 1832,
+              "size": 1096,
+              "align": 8
+            }
+          }
+        },
+        "HeaderCompletionParts": {
+          "size": 1856,
+          "align": 8,
+          "fields": {
+            "control": {
+              "type": "RuntimeControl",
+              "offset": 112,
+              "size": 1720,
+              "align": 8
+            },
+            "header": {
+              "type": "Option<ReservationTicket>",
+              "offset": 1832,
+              "size": 24,
+              "align": 8
+            },
+            "final_wasi": {
+              "type": "Option<WasiUsage>",
+              "offset": 0,
+              "size": 112,
+              "align": 8
+            }
+          }
+        },
+        "ScalarReader": {
+          "size": 32,
+          "align": 8,
+          "fields": {
+            "bytes": {
+              "type": "&'static [u8]",
+              "offset": 0,
+              "size": 16,
+              "align": 8
+            },
+            "at": {
+              "type": "usize",
+              "offset": 16,
+              "size": 8,
+              "align": 8
+            },
+            "absolute_offset": {
+              "type": "usize",
+              "offset": 24,
+              "size": 8,
+              "align": 8
+            }
+          }
+        },
+        "ConstructionDescriptors": {
+          "size": 384,
+          "align": 8,
+          "fields": {
+            "memory": {
+              "type": "Option<MemoryExecutionView>",
+              "offset": 72,
+              "size": 16,
+              "align": 4
+            },
+            "table": {
+              "type": "Option<TableExecutionView>",
+              "offset": 88,
+              "size": 16,
+              "align": 4
+            },
+            "global": {
+              "type": "Option<GlobalView<'static>>",
+              "offset": 104,
+              "size": 24,
+              "align": 8
+            },
+            "segment": {
+              "type": "Option<SegmentExecutionView<'static>>",
+              "offset": 128,
+              "size": 32,
+              "align": 8
+            },
+            "initializer_offset": {
+              "type": "Option<usize>",
+              "offset": 0,
+              "size": 16,
+              "align": 8
+            },
+            "capacities": {
+              "type": "[usize; 6]",
+              "offset": 160,
+              "size": 48,
+              "align": 8
+            },
+            "requests": {
+              "type": "Option<[usize; 6]>",
+              "offset": 16,
+              "size": 56,
+              "align": 8
+            },
+            "budget": {
+              "type": "SwiftRunBudget",
+              "offset": 208,
+              "size": 136,
+              "align": 8
+            },
+            "target_type": {
+              "type": "Type",
+              "offset": 380,
+              "size": 1,
+              "align": 1
+            },
+            "opcode": {
+              "type": "u8",
+              "offset": 381,
+              "size": 1,
+              "align": 1
+            },
+            "byte": {
+              "type": "u8",
+              "offset": 382,
+              "size": 1,
+              "align": 1
+            },
+            "bits": {
+              "type": "u64",
+              "offset": 344,
+              "size": 8,
+              "align": 8
+            },
+            "shift": {
+              "type": "u32",
+              "offset": 368,
+              "size": 4,
+              "align": 4
+            },
+            "width": {
+              "type": "u32",
+              "offset": 372,
+              "size": 4,
+              "align": 4
+            },
+            "signed": {
+              "type": "i64",
+              "offset": 352,
+              "size": 8,
+              "align": 8
+            },
+            "float32": {
+              "type": "[u8; 4]",
+              "offset": 376,
+              "size": 4,
+              "align": 1
+            },
+            "float64": {
+              "type": "[u8; 8]",
+              "offset": 360,
+              "size": 8,
+              "align": 1
+            }
+          }
+        },
+        "ConstructionTransfers": {
+          "size": 11296,
+          "align": 8,
+          "fields": {
+            "pair": {
+              "type": "Option<(RuntimeControl, AdoptedProof)>",
+              "offset": 8784,
+              "size": 2432,
+              "align": 8
+            },
+            "owned_slot": {
+              "type": "&'static mut Option<(RuntimeControl, AdoptedProof)>",
+              "offset": 11232,
+              "size": 8,
+              "align": 8
+            },
+            "grants": {
+              "type": "WasiGrants",
+              "offset": 11288,
+              "size": 5,
+              "align": 1
+            },
+            "wasi_budget": {
+              "type": "WasiBudget",
+              "offset": 11240,
+              "size": 48,
+              "align": 8
+            },
+            "started": {
+              "type": "Instant",
+              "offset": 11216,
+              "size": 16,
+              "align": 8
+            },
+            "state_phase": {
+              "type": "Result<ExecutionConstructionPhase<'static>, SwiftRunFailure>",
+              "offset": 16,
+              "size": 1096,
+              "align": 8
+            },
+            "cache_phase": {
+              "type": "Result<CacheConstructionPhase<'static>, SwiftRunFailure>",
+              "offset": 1112,
+              "size": 1096,
+              "align": 8
+            },
+            "wasi_phase": {
+              "type": "Result<WasiConstructionPhase<'static>, SwiftRunFailure>",
+              "offset": 2208,
+              "size": 1096,
+              "align": 8
+            },
+            "reserve": {
+              "type": "Result<ReservationTicket, SwiftRunFailure>",
+              "offset": 3304,
+              "size": 1096,
+              "align": 8
+            },
+            "allocate": {
+              "type": "Result<Vec<Value>, SwiftRunFailure>",
+              "offset": 4400,
+              "size": 1096,
+              "align": 8
+            },
+            "initialized": {
+              "type": "Result<(), SwiftRunFailure>",
+              "offset": 5496,
+              "size": 1096,
+              "align": 8
+            },
+            "constant": {
+              "type": "Result<Value, SwiftRunFailure>",
+              "offset": 6592,
+              "size": 1096,
+              "align": 8
+            },
+            "scalar": {
+              "type": "Result<u64, SwiftRunFailure>",
+              "offset": 7688,
+              "size": 1096,
+              "align": 8
+            },
+            "end": {
+              "type": "Option<usize>",
+              "offset": 0,
+              "size": 16,
+              "align": 8
+            }
+          }
+        },
+        "ConstructionBorrowChain": {
+          "size": 888,
+          "align": 8,
+          "fields": {
+            "control": {
+              "type": "[&'static mut RuntimeControl; 6]",
+              "offset": 480,
+              "size": 48,
+              "align": 8
+            },
+            "state": {
+              "type": "[&'static mut SwiftExecutionState; 3]",
+              "offset": 528,
+              "size": 24,
+              "align": 8
+            },
+            "cache": {
+              "type": "[&'static SwiftFunctionCache; 4]",
+              "offset": 552,
+              "size": 32,
+              "align": 8
+            },
+            "wasi": {
+              "type": "[&'static AccountedWasi; 6]",
+              "offset": 584,
+              "size": 48,
+              "align": 8
+            },
+            "phase": {
+              "type": "[&'static mut ExecutionConstructionPhase<'static>; 3]",
+              "offset": 632,
+              "size": 24,
+              "align": 8
+            },
+            "reader": {
+              "type": "[&'static mut ScalarReader<'static>; 3]",
+              "offset": 656,
+              "size": 24,
+              "align": 8
+            },
+            "vector": {
+              "type": "[&'static mut Vec<Value>; 2]",
+              "offset": 680,
+              "size": 16,
+              "align": 8
+            },
+            "slice": {
+              "type": "[&'static [u8]; 4]",
+              "offset": 696,
+              "size": 64,
+              "align": 8
+            },
+            "mutable_slice": {
+              "type": "[&'static mut [u8]; 2]",
+              "offset": 760,
+              "size": 32,
+              "align": 8
+            },
+            "index": {
+              "type": "[usize; 12]",
+              "offset": 792,
+              "size": 96,
+              "align": 8
+            },
+            "cursor": {
+              "type": "[Cursor; 4]",
+              "offset": 0,
+              "size": 128,
+              "align": 8
+            },
+            "observation": {
+              "type": "[Option<WasiUsage>; 2]",
+              "offset": 128,
+              "size": 224,
+              "align": 8
+            },
+            "fault": {
+              "type": "[Fault; 2]",
+              "offset": 352,
+              "size": 128,
+              "align": 8
+            }
+          }
+        },
+        "ConstructionIterationInventory": {
+          "size": 4648,
+          "align": 8,
+          "fields": {
+            "global_range": {
+              "type": "std::ops::Range<usize>",
+              "offset": 4576,
+              "size": 16,
+              "align": 8
+            },
+            "table_range": {
+              "type": "std::ops::Range<u32>",
+              "offset": 4592,
+              "size": 8,
+              "align": 4
+            },
+            "descriptor_range": {
+              "type": "std::ops::Range<usize>",
+              "offset": 4600,
+              "size": 16,
+              "align": 8
+            },
+            "element_range": {
+              "type": "std::ops::Range<usize>",
+              "offset": 4616,
+              "size": 16,
+              "align": 8
+            },
+            "leb_range": {
+              "type": "std::ops::Range<u32>",
+              "offset": 4632,
+              "size": 8,
+              "align": 4
+            },
+            "leb_steps": {
+              "type": "std::iter::StepBy<std::ops::Range<u32>>",
+              "offset": 4424,
+              "size": 24,
+              "align": 8
+            },
+            "float_iter": {
+              "type": "std::slice::IterMut<'static, u8>",
+              "offset": 4472,
+              "size": 16,
+              "align": 8
+            },
+            "float_item": {
+              "type": "Option<&'static mut u8>",
+              "offset": 4640,
+              "size": 8,
+              "align": 8
+            },
+            "descriptor_item": {
+              "type": "Option<usize>",
+              "offset": 0,
+              "size": 16,
+              "align": 8
+            },
+            "table_item": {
+              "type": "Option<u32>",
+              "offset": 4416,
+              "size": 8,
+              "align": 4
+            },
+            "borrowed_segment": {
+              "type": "SegmentExecutionView<'static>",
+              "offset": 4488,
+              "size": 32,
+              "align": 8
+            },
+            "borrowed_global": {
+              "type": "GlobalView<'static>",
+              "offset": 4448,
+              "size": 24,
+              "align": 8
+            },
+            "typed_result": {
+              "type": "Result<Value, SwiftRunFailure>",
+              "offset": 16,
+              "size": 1096,
+              "align": 8
+            },
+            "signed_result": {
+              "type": "Result<i64, SwiftRunFailure>",
+              "offset": 1112,
+              "size": 1096,
+              "align": 8
+            },
+            "unsigned_result": {
+              "type": "Result<u32, SwiftRunFailure>",
+              "offset": 2208,
+              "size": 1096,
+              "align": 8
+            },
+            "byte_result": {
+              "type": "Result<u8, SwiftRunFailure>",
+              "offset": 3304,
+              "size": 1096,
+              "align": 8
+            },
+            "error": {
+              "type": "Option<std::collections::TryReserveError>",
+              "offset": 4400,
+              "size": 16,
+              "align": 8
+            },
+            "error_callback": {
+              "type": "( &'static mut ExecutionConstructionPhase<'static>, &'static usize, )",
+              "offset": 4520,
+              "size": 16,
+              "align": 8
+            },
+            "descriptor_callback": {
+              "type": "&'static mut ExecutionConstructionPhase<'static>",
+              "offset": 4536,
+              "size": 8,
+              "align": 8
+            },
+            "reader_callback": {
+              "type": "( &'static ScalarReader<'static>, &'static mut RuntimeControl, &'static AccountedWasi, &'static Cursor, )",
+              "offset": 4544,
+              "size": 32,
+              "align": 8
+            }
+          }
+        },
+        "ConstructionBootstrapInventory": {
+          "size": 2216,
+          "align": 8,
+          "fields": {
+            "pair_slot": {
+              "type": "[&'static mut Option<(RuntimeControl, AdoptedProof)>; 2]",
+              "offset": 1712,
+              "size": 16,
+              "align": 8
+            },
+            "control": {
+              "type": "[&'static mut RuntimeControl; 8]",
+              "offset": 1728,
+              "size": 64,
+              "align": 8
+            },
+            "adopted": {
+              "type": "[&'static AdoptedProof; 3]",
+              "offset": 1792,
+              "size": 24,
+              "align": 8
+            },
+            "cache": {
+              "type": "[&'static SwiftFunctionCache; 4]",
+              "offset": 1816,
+              "size": 32,
+              "align": 8
+            },
+            "wasi": {
+              "type": "[&'static AccountedWasi; 4]",
+              "offset": 1848,
+              "size": 32,
+              "align": 8
+            },
+            "cursor": {
+              "type": "[Cursor; 5]",
+              "offset": 0,
+              "size": 160,
+              "align": 8
+            },
+            "grants": {
+              "type": "[WasiGrants; 3]",
+              "offset": 2200,
+              "size": 15,
+              "align": 1
+            },
+            "budget": {
+              "type": "[WasiBudget; 3]",
+              "offset": 1944,
+              "size": 144,
+              "align": 8
+            },
+            "started": {
+              "type": "[Instant; 3]",
+              "offset": 1616,
+              "size": 48,
+              "align": 8
+            },
+            "cache_control": {
+              "type": "CacheControl<'static>",
+              "offset": 160,
+              "size": 48,
+              "align": 8
+            },
+            "header_option": {
+              "type": "[Option<&'static ReservationTicket>; 3]",
+              "offset": 2088,
+              "size": 24,
+              "align": 8
+            },
+            "header": {
+              "type": "[&'static ReservationTicket; 5]",
+              "offset": 1880,
+              "size": 40,
+              "align": 8
+            },
+            "observation": {
+              "type": "[Option<WasiUsage>; 3]",
+              "offset": 208,
+              "size": 336,
+              "align": 8
+            },
+            "snapshot_return": {
+              "type": "[SwiftRunUsage; 2]",
+              "offset": 544,
+              "size": 1008,
+              "align": 8
+            },
+            "previous_bound": {
+              "type": "[usize; 4]",
+              "offset": 2112,
+              "size": 32,
+              "align": 8
+            },
+            "checked_bound": {
+              "type": "[Option<usize>; 2]",
+              "offset": 1552,
+              "size": 32,
+              "align": 8
+            },
+            "owner_verdict": {
+              "type": "[Option<(SwiftCleanupInvariant, &'static str)>; 2]",
+              "offset": 1664,
+              "size": 48,
+              "align": 8
+            },
+            "ticket_option": {
+              "type": "Option<&'static ReservationTicket>",
+              "offset": 2144,
+              "size": 8,
+              "align": 8
+            },
+            "current": {
+              "type": "usize",
+              "offset": 2152,
+              "size": 8,
+              "align": 8
+            },
+            "requested": {
+              "type": "usize",
+              "offset": 2160,
+              "size": 8,
+              "align": 8
+            },
+            "difference": {
+              "type": "usize",
+              "offset": 2168,
+              "size": 8,
+              "align": 8
+            },
+            "category_next": {
+              "type": "usize",
+              "offset": 2176,
+              "size": 8,
+              "align": 8
+            },
+            "combined_next": {
+              "type": "usize",
+              "offset": 2184,
+              "size": 8,
+              "align": 8
+            },
+            "checked_category": {
+              "type": "Option<usize>",
+              "offset": 1584,
+              "size": 16,
+              "align": 8
+            },
+            "checked_combined": {
+              "type": "Option<usize>",
+              "offset": 1600,
+              "size": 16,
+              "align": 8
+            },
+            "category": {
+              "type": "SwiftReservationCategory",
+              "offset": 2215,
+              "size": 1,
+              "align": 1
+            },
+            "category_usage": {
+              "type": "&'static SwiftReservationUsage",
+              "offset": 1920,
+              "size": 8,
+              "align": 8
+            },
+            "category_mut": {
+              "type": "&'static mut SwiftReservationUsage",
+              "offset": 1928,
+              "size": 8,
+              "align": 8
+            },
+            "reservations": {
+              "type": "&'static mut SwiftReservations",
+              "offset": 1936,
+              "size": 8,
+              "align": 8
+            },
+            "construction_ticket": {
+              "type": "Option<&'static mut ReservationTicket>",
+              "offset": 2192,
+              "size": 8,
+              "align": 8
+            }
+          }
+        },
+        "CleanupPreflightInventory": {
+          "size": 336,
+          "align": 8,
+          "fields": {
+            "owner_option": {
+              "type": "Option<&'static mut SwiftReactorInstance>",
+              "offset": 168,
+              "size": 8,
+              "align": 8
+            },
+            "owner": {
+              "type": "&'static mut SwiftReactorInstance",
+              "offset": 64,
+              "size": 8,
+              "align": 8
+            },
+            "control_option": {
+              "type": "Option<&'static mut RuntimeControl>",
+              "offset": 176,
+              "size": 8,
+              "align": 8
+            },
+            "control": {
+              "type": "&'static mut RuntimeControl",
+              "offset": 72,
+              "size": 8,
+              "align": 8
+            },
+            "wasi_option": {
+              "type": "Option<&'static AccountedWasi>",
+              "offset": 184,
+              "size": 8,
+              "align": 8
+            },
+            "wasi": {
+              "type": "&'static AccountedWasi",
+              "offset": 80,
+              "size": 8,
+              "align": 8
+            },
+            "cache_option": {
+              "type": "Option<&'static SwiftFunctionCache>",
+              "offset": 192,
+              "size": 8,
+              "align": 8
+            },
+            "cache": {
+              "type": "&'static SwiftFunctionCache",
+              "offset": 88,
+              "size": 8,
+              "align": 8
+            },
+            "state_option": {
+              "type": "Option<&'static SwiftExecutionState>",
+              "offset": 200,
+              "size": 8,
+              "align": 8
+            },
+            "state": {
+              "type": "&'static SwiftExecutionState",
+              "offset": 96,
+              "size": 8,
+              "align": 8
+            },
+            "header_option": {
+              "type": "Option<&'static ReservationTicket>",
+              "offset": 208,
+              "size": 8,
+              "align": 8
+            },
+            "header": {
+              "type": "&'static ReservationTicket",
+              "offset": 104,
+              "size": 8,
+              "align": 8
+            },
+            "buffer_iter": {
+              "type": "std::slice::Iter<'static, Option<ReservationTicket>>",
+              "offset": 112,
+              "size": 16,
+              "align": 8
+            },
+            "buffer_item": {
+              "type": "Option<&'static Option<ReservationTicket>>",
+              "offset": 216,
+              "size": 8,
+              "align": 8
+            },
+            "buffer": {
+              "type": "&'static Option<ReservationTicket>",
+              "offset": 128,
+              "size": 8,
+              "align": 8
+            },
+            "buffer_ticket": {
+              "type": "Option<&'static ReservationTicket>",
+              "offset": 224,
+              "size": 8,
+              "align": 8
+            },
+            "cache_usage": {
+              "type": "super::cache::SwiftCacheUsage",
+              "offset": 232,
+              "size": 96,
+              "align": 8
+            },
+            "cursor_arguments": {
+              "type": "[Cursor; 2]",
+              "offset": 0,
+              "size": 64,
+              "align": 8
+            },
+            "header_error_callback": {
+              "type": "(&'static mut RuntimeControl, &'static AccountedWasi)",
+              "offset": 136,
+              "size": 16,
+              "align": 8
+            },
+            "buffer_error_callback": {
+              "type": "(&'static mut RuntimeControl, &'static AccountedWasi)",
+              "offset": 152,
+              "size": 16,
+              "align": 8
+            },
+            "nonempty": {
+              "type": "[bool; 4]",
+              "offset": 328,
+              "size": 4,
+              "align": 1
+            }
+          }
+        }
+      },
+      "bounds": {
+        "foundation": 19584,
+        "bootstrap": 2216,
+        "construction": 102560,
+        "header": 51168,
+        "cleanup_original": 50512
+      }
+    },
+    "production-release": {
+      "types": {
+        "SwiftExecutionState": {
+          "size": 312,
+          "align": 8,
+          "fields": {
+            "memory": {
+              "type": "Vec<u8>",
+              "offset": 0,
+              "size": 24,
+              "align": 8
+            },
+            "table": {
+              "type": "Vec<Option<u32>>",
+              "offset": 24,
+              "size": 24,
+              "align": 8
+            },
+            "globals": {
+              "type": "Vec<Value>",
+              "offset": 48,
+              "size": 24,
+              "align": 8
+            },
+            "values": {
+              "type": "Vec<Value>",
+              "offset": 72,
+              "size": 24,
+              "align": 8
+            },
+            "controls": {
+              "type": "Vec<Control>",
+              "offset": 96,
+              "size": 24,
+              "align": 8
+            },
+            "frames": {
+              "type": "Vec<SwiftFrame>",
+              "offset": 120,
+              "size": 24,
+              "align": 8
+            },
+            "buffers": {
+              "type": "[Option<ReservationTicket>; 6]",
+              "offset": 144,
+              "size": 144,
+              "align": 8
+            },
+            "execution_header": {
+              "type": "Option<ReservationTicket>",
+              "offset": 288,
+              "size": 24,
+              "align": 8
+            }
+          }
+        },
+        "SwiftReactorInstance": {
+          "size": 4480,
+          "align": 8,
+          "fields": {
+            "control": {
+              "type": "Option<RuntimeControl>",
+              "offset": 0,
+              "size": 1720,
+              "align": 8
+            },
+            "cache": {
+              "type": "Option<SwiftFunctionCache>",
+              "offset": 1720,
+              "size": 992,
+              "align": 8
+            },
+            "wasi": {
+              "type": "Option<AccountedWasi>",
+              "offset": 2712,
+              "size": 1448,
+              "align": 8
+            },
+            "state": {
+              "type": "Option<SwiftExecutionState>",
+              "offset": 4160,
+              "size": 312,
+              "align": 8
+            },
+            "lifecycle": {
+              "type": "Lifecycle",
+              "offset": 4472,
+              "size": 1,
+              "align": 1
+            }
+          }
+        },
+        "SwiftFrame": {
+          "size": 64,
+          "align": 8,
+          "fields": {
+            "function": {
+              "type": "u32",
+              "offset": 56,
+              "size": 4,
+              "align": 4
+            },
+            "pc": {
+              "type": "usize",
+              "offset": 0,
+              "size": 8,
+              "align": 8
+            },
+            "base": {
+              "type": "usize",
+              "offset": 8,
+              "size": 8,
+              "align": 8
+            },
+            "operands": {
+              "type": "usize",
+              "offset": 16,
+              "size": 8,
+              "align": 8
+            },
+            "controls": {
+              "type": "usize",
+              "offset": 24,
+              "size": 8,
+              "align": 8
+            },
+            "result": {
+              "type": "bool",
+              "offset": 60,
+              "size": 1,
+              "align": 1
+            },
+            "pin": {
+              "type": "SwiftFunctionPin",
+              "offset": 32,
+              "size": 24,
+              "align": 8
+            }
+          }
+        },
+        "ExecutionConstructionPhase": {
+          "size": 72,
+          "align": 8,
+          "fields": {
+            "control": {
+              "type": "&'static mut RuntimeControl",
+              "offset": 32,
+              "size": 8,
+              "align": 8
+            },
+            "cache": {
+              "type": "&'static SwiftFunctionCache",
+              "offset": 40,
+              "size": 8,
+              "align": 8
+            },
+            "wasi": {
+              "type": "&'static AccountedWasi",
+              "offset": 48,
+              "size": 8,
+              "align": 8
+            },
+            "cursor": {
+              "type": "Cursor",
+              "offset": 0,
+              "size": 32,
+              "align": 8
+            },
+            "previous_bound": {
+              "type": "usize",
+              "offset": 56,
+              "size": 8,
+              "align": 8
+            },
+            "constructed": {
+              "type": "bool",
+              "offset": 64,
+              "size": 1,
+              "align": 1
+            }
+          }
+        },
+        "ExecutionOperationPhase": {
+          "size": 112,
+          "align": 8,
+          "fields": {
+            "parts": {
+              "type": "ExecutionParts<'static, SwiftMode>",
+              "offset": 48,
+              "size": 56,
+              "align": 8
+            },
+            "operation": {
+              "type": "SwiftExecutionOperation<'static>",
+              "offset": 0,
+              "size": 48,
+              "align": 8
+            },
+            "previous_bound": {
+              "type": "usize",
+              "offset": 104,
+              "size": 8,
+              "align": 8
+            }
+          }
+        },
+        "PartialState": {
+          "size": 320,
+          "align": 8,
+          "fields": {
+            "state": {
+              "type": "SwiftExecutionState",
+              "offset": 0,
+              "size": 312,
+              "align": 8
+            },
+            "next_arena": {
+              "type": "usize",
+              "offset": 312,
+              "size": 8,
+              "align": 8
+            }
+          }
+        },
+        "PartialInstance": {
+          "size": 4472,
+          "align": 8,
+          "fields": {
+            "control": {
+              "type": "Option<RuntimeControl>",
+              "offset": 0,
+              "size": 1720,
+              "align": 8
+            },
+            "cache": {
+              "type": "Option<SwiftFunctionCache>",
+              "offset": 1720,
+              "size": 992,
+              "align": 8
+            },
+            "wasi": {
+              "type": "Option<AccountedWasi>",
+              "offset": 2712,
+              "size": 1448,
+              "align": 8
+            },
+            "state": {
+              "type": "Option<SwiftExecutionState>",
+              "offset": 4160,
+              "size": 312,
+              "align": 8
+            }
+          }
+        },
+        "ExecutionCleanupTail": {
+          "size": 2952,
+          "align": 8,
+          "fields": {
+            "control": {
+              "type": "RuntimeControl",
+              "offset": 112,
+              "size": 1720,
+              "align": 8
+            },
+            "header": {
+              "type": "Option<ReservationTicket>",
+              "offset": 2928,
+              "size": 24,
+              "align": 8
+            },
+            "final_wasi": {
+              "type": "Option<WasiUsage>",
+              "offset": 0,
+              "size": 112,
+              "align": 8
+            },
+            "failure": {
+              "type": "Option<SwiftRunFailure>",
+              "offset": 1832,
+              "size": 1096,
+              "align": 8
+            }
+          }
+        },
+        "HeaderCompletionParts": {
+          "size": 1856,
+          "align": 8,
+          "fields": {
+            "control": {
+              "type": "RuntimeControl",
+              "offset": 112,
+              "size": 1720,
+              "align": 8
+            },
+            "header": {
+              "type": "Option<ReservationTicket>",
+              "offset": 1832,
+              "size": 24,
+              "align": 8
+            },
+            "final_wasi": {
+              "type": "Option<WasiUsage>",
+              "offset": 0,
+              "size": 112,
+              "align": 8
+            }
+          }
+        },
+        "ScalarReader": {
+          "size": 32,
+          "align": 8,
+          "fields": {
+            "bytes": {
+              "type": "&'static [u8]",
+              "offset": 0,
+              "size": 16,
+              "align": 8
+            },
+            "at": {
+              "type": "usize",
+              "offset": 16,
+              "size": 8,
+              "align": 8
+            },
+            "absolute_offset": {
+              "type": "usize",
+              "offset": 24,
+              "size": 8,
+              "align": 8
+            }
+          }
+        },
+        "ConstructionDescriptors": {
+          "size": 384,
+          "align": 8,
+          "fields": {
+            "memory": {
+              "type": "Option<MemoryExecutionView>",
+              "offset": 72,
+              "size": 16,
+              "align": 4
+            },
+            "table": {
+              "type": "Option<TableExecutionView>",
+              "offset": 88,
+              "size": 16,
+              "align": 4
+            },
+            "global": {
+              "type": "Option<GlobalView<'static>>",
+              "offset": 104,
+              "size": 24,
+              "align": 8
+            },
+            "segment": {
+              "type": "Option<SegmentExecutionView<'static>>",
+              "offset": 128,
+              "size": 32,
+              "align": 8
+            },
+            "initializer_offset": {
+              "type": "Option<usize>",
+              "offset": 0,
+              "size": 16,
+              "align": 8
+            },
+            "capacities": {
+              "type": "[usize; 6]",
+              "offset": 160,
+              "size": 48,
+              "align": 8
+            },
+            "requests": {
+              "type": "Option<[usize; 6]>",
+              "offset": 16,
+              "size": 56,
+              "align": 8
+            },
+            "budget": {
+              "type": "SwiftRunBudget",
+              "offset": 208,
+              "size": 136,
+              "align": 8
+            },
+            "target_type": {
+              "type": "Type",
+              "offset": 380,
+              "size": 1,
+              "align": 1
+            },
+            "opcode": {
+              "type": "u8",
+              "offset": 381,
+              "size": 1,
+              "align": 1
+            },
+            "byte": {
+              "type": "u8",
+              "offset": 382,
+              "size": 1,
+              "align": 1
+            },
+            "bits": {
+              "type": "u64",
+              "offset": 344,
+              "size": 8,
+              "align": 8
+            },
+            "shift": {
+              "type": "u32",
+              "offset": 368,
+              "size": 4,
+              "align": 4
+            },
+            "width": {
+              "type": "u32",
+              "offset": 372,
+              "size": 4,
+              "align": 4
+            },
+            "signed": {
+              "type": "i64",
+              "offset": 352,
+              "size": 8,
+              "align": 8
+            },
+            "float32": {
+              "type": "[u8; 4]",
+              "offset": 376,
+              "size": 4,
+              "align": 1
+            },
+            "float64": {
+              "type": "[u8; 8]",
+              "offset": 360,
+              "size": 8,
+              "align": 1
+            }
+          }
+        },
+        "ConstructionTransfers": {
+          "size": 11296,
+          "align": 8,
+          "fields": {
+            "pair": {
+              "type": "Option<(RuntimeControl, AdoptedProof)>",
+              "offset": 8784,
+              "size": 2432,
+              "align": 8
+            },
+            "owned_slot": {
+              "type": "&'static mut Option<(RuntimeControl, AdoptedProof)>",
+              "offset": 11232,
+              "size": 8,
+              "align": 8
+            },
+            "grants": {
+              "type": "WasiGrants",
+              "offset": 11288,
+              "size": 5,
+              "align": 1
+            },
+            "wasi_budget": {
+              "type": "WasiBudget",
+              "offset": 11240,
+              "size": 48,
+              "align": 8
+            },
+            "started": {
+              "type": "Instant",
+              "offset": 11216,
+              "size": 16,
+              "align": 8
+            },
+            "state_phase": {
+              "type": "Result<ExecutionConstructionPhase<'static>, SwiftRunFailure>",
+              "offset": 16,
+              "size": 1096,
+              "align": 8
+            },
+            "cache_phase": {
+              "type": "Result<CacheConstructionPhase<'static>, SwiftRunFailure>",
+              "offset": 1112,
+              "size": 1096,
+              "align": 8
+            },
+            "wasi_phase": {
+              "type": "Result<WasiConstructionPhase<'static>, SwiftRunFailure>",
+              "offset": 2208,
+              "size": 1096,
+              "align": 8
+            },
+            "reserve": {
+              "type": "Result<ReservationTicket, SwiftRunFailure>",
+              "offset": 3304,
+              "size": 1096,
+              "align": 8
+            },
+            "allocate": {
+              "type": "Result<Vec<Value>, SwiftRunFailure>",
+              "offset": 4400,
+              "size": 1096,
+              "align": 8
+            },
+            "initialized": {
+              "type": "Result<(), SwiftRunFailure>",
+              "offset": 5496,
+              "size": 1096,
+              "align": 8
+            },
+            "constant": {
+              "type": "Result<Value, SwiftRunFailure>",
+              "offset": 6592,
+              "size": 1096,
+              "align": 8
+            },
+            "scalar": {
+              "type": "Result<u64, SwiftRunFailure>",
+              "offset": 7688,
+              "size": 1096,
+              "align": 8
+            },
+            "end": {
+              "type": "Option<usize>",
+              "offset": 0,
+              "size": 16,
+              "align": 8
+            }
+          }
+        },
+        "ConstructionBorrowChain": {
+          "size": 888,
+          "align": 8,
+          "fields": {
+            "control": {
+              "type": "[&'static mut RuntimeControl; 6]",
+              "offset": 480,
+              "size": 48,
+              "align": 8
+            },
+            "state": {
+              "type": "[&'static mut SwiftExecutionState; 3]",
+              "offset": 528,
+              "size": 24,
+              "align": 8
+            },
+            "cache": {
+              "type": "[&'static SwiftFunctionCache; 4]",
+              "offset": 552,
+              "size": 32,
+              "align": 8
+            },
+            "wasi": {
+              "type": "[&'static AccountedWasi; 6]",
+              "offset": 584,
+              "size": 48,
+              "align": 8
+            },
+            "phase": {
+              "type": "[&'static mut ExecutionConstructionPhase<'static>; 3]",
+              "offset": 632,
+              "size": 24,
+              "align": 8
+            },
+            "reader": {
+              "type": "[&'static mut ScalarReader<'static>; 3]",
+              "offset": 656,
+              "size": 24,
+              "align": 8
+            },
+            "vector": {
+              "type": "[&'static mut Vec<Value>; 2]",
+              "offset": 680,
+              "size": 16,
+              "align": 8
+            },
+            "slice": {
+              "type": "[&'static [u8]; 4]",
+              "offset": 696,
+              "size": 64,
+              "align": 8
+            },
+            "mutable_slice": {
+              "type": "[&'static mut [u8]; 2]",
+              "offset": 760,
+              "size": 32,
+              "align": 8
+            },
+            "index": {
+              "type": "[usize; 12]",
+              "offset": 792,
+              "size": 96,
+              "align": 8
+            },
+            "cursor": {
+              "type": "[Cursor; 4]",
+              "offset": 0,
+              "size": 128,
+              "align": 8
+            },
+            "observation": {
+              "type": "[Option<WasiUsage>; 2]",
+              "offset": 128,
+              "size": 224,
+              "align": 8
+            },
+            "fault": {
+              "type": "[Fault; 2]",
+              "offset": 352,
+              "size": 128,
+              "align": 8
+            }
+          }
+        },
+        "ConstructionIterationInventory": {
+          "size": 4648,
+          "align": 8,
+          "fields": {
+            "global_range": {
+              "type": "std::ops::Range<usize>",
+              "offset": 4576,
+              "size": 16,
+              "align": 8
+            },
+            "table_range": {
+              "type": "std::ops::Range<u32>",
+              "offset": 4592,
+              "size": 8,
+              "align": 4
+            },
+            "descriptor_range": {
+              "type": "std::ops::Range<usize>",
+              "offset": 4600,
+              "size": 16,
+              "align": 8
+            },
+            "element_range": {
+              "type": "std::ops::Range<usize>",
+              "offset": 4616,
+              "size": 16,
+              "align": 8
+            },
+            "leb_range": {
+              "type": "std::ops::Range<u32>",
+              "offset": 4632,
+              "size": 8,
+              "align": 4
+            },
+            "leb_steps": {
+              "type": "std::iter::StepBy<std::ops::Range<u32>>",
+              "offset": 4424,
+              "size": 24,
+              "align": 8
+            },
+            "float_iter": {
+              "type": "std::slice::IterMut<'static, u8>",
+              "offset": 4472,
+              "size": 16,
+              "align": 8
+            },
+            "float_item": {
+              "type": "Option<&'static mut u8>",
+              "offset": 4640,
+              "size": 8,
+              "align": 8
+            },
+            "descriptor_item": {
+              "type": "Option<usize>",
+              "offset": 0,
+              "size": 16,
+              "align": 8
+            },
+            "table_item": {
+              "type": "Option<u32>",
+              "offset": 4416,
+              "size": 8,
+              "align": 4
+            },
+            "borrowed_segment": {
+              "type": "SegmentExecutionView<'static>",
+              "offset": 4488,
+              "size": 32,
+              "align": 8
+            },
+            "borrowed_global": {
+              "type": "GlobalView<'static>",
+              "offset": 4448,
+              "size": 24,
+              "align": 8
+            },
+            "typed_result": {
+              "type": "Result<Value, SwiftRunFailure>",
+              "offset": 16,
+              "size": 1096,
+              "align": 8
+            },
+            "signed_result": {
+              "type": "Result<i64, SwiftRunFailure>",
+              "offset": 1112,
+              "size": 1096,
+              "align": 8
+            },
+            "unsigned_result": {
+              "type": "Result<u32, SwiftRunFailure>",
+              "offset": 2208,
+              "size": 1096,
+              "align": 8
+            },
+            "byte_result": {
+              "type": "Result<u8, SwiftRunFailure>",
+              "offset": 3304,
+              "size": 1096,
+              "align": 8
+            },
+            "error": {
+              "type": "Option<std::collections::TryReserveError>",
+              "offset": 4400,
+              "size": 16,
+              "align": 8
+            },
+            "error_callback": {
+              "type": "( &'static mut ExecutionConstructionPhase<'static>, &'static usize, )",
+              "offset": 4520,
+              "size": 16,
+              "align": 8
+            },
+            "descriptor_callback": {
+              "type": "&'static mut ExecutionConstructionPhase<'static>",
+              "offset": 4536,
+              "size": 8,
+              "align": 8
+            },
+            "reader_callback": {
+              "type": "( &'static ScalarReader<'static>, &'static mut RuntimeControl, &'static AccountedWasi, &'static Cursor, )",
+              "offset": 4544,
+              "size": 32,
+              "align": 8
+            }
+          }
+        },
+        "ConstructionBootstrapInventory": {
+          "size": 2216,
+          "align": 8,
+          "fields": {
+            "pair_slot": {
+              "type": "[&'static mut Option<(RuntimeControl, AdoptedProof)>; 2]",
+              "offset": 1712,
+              "size": 16,
+              "align": 8
+            },
+            "control": {
+              "type": "[&'static mut RuntimeControl; 8]",
+              "offset": 1728,
+              "size": 64,
+              "align": 8
+            },
+            "adopted": {
+              "type": "[&'static AdoptedProof; 3]",
+              "offset": 1792,
+              "size": 24,
+              "align": 8
+            },
+            "cache": {
+              "type": "[&'static SwiftFunctionCache; 4]",
+              "offset": 1816,
+              "size": 32,
+              "align": 8
+            },
+            "wasi": {
+              "type": "[&'static AccountedWasi; 4]",
+              "offset": 1848,
+              "size": 32,
+              "align": 8
+            },
+            "cursor": {
+              "type": "[Cursor; 5]",
+              "offset": 0,
+              "size": 160,
+              "align": 8
+            },
+            "grants": {
+              "type": "[WasiGrants; 3]",
+              "offset": 2200,
+              "size": 15,
+              "align": 1
+            },
+            "budget": {
+              "type": "[WasiBudget; 3]",
+              "offset": 1944,
+              "size": 144,
+              "align": 8
+            },
+            "started": {
+              "type": "[Instant; 3]",
+              "offset": 1616,
+              "size": 48,
+              "align": 8
+            },
+            "cache_control": {
+              "type": "CacheControl<'static>",
+              "offset": 160,
+              "size": 48,
+              "align": 8
+            },
+            "header_option": {
+              "type": "[Option<&'static ReservationTicket>; 3]",
+              "offset": 2088,
+              "size": 24,
+              "align": 8
+            },
+            "header": {
+              "type": "[&'static ReservationTicket; 5]",
+              "offset": 1880,
+              "size": 40,
+              "align": 8
+            },
+            "observation": {
+              "type": "[Option<WasiUsage>; 3]",
+              "offset": 208,
+              "size": 336,
+              "align": 8
+            },
+            "snapshot_return": {
+              "type": "[SwiftRunUsage; 2]",
+              "offset": 544,
+              "size": 1008,
+              "align": 8
+            },
+            "previous_bound": {
+              "type": "[usize; 4]",
+              "offset": 2112,
+              "size": 32,
+              "align": 8
+            },
+            "checked_bound": {
+              "type": "[Option<usize>; 2]",
+              "offset": 1552,
+              "size": 32,
+              "align": 8
+            },
+            "owner_verdict": {
+              "type": "[Option<(SwiftCleanupInvariant, &'static str)>; 2]",
+              "offset": 1664,
+              "size": 48,
+              "align": 8
+            },
+            "ticket_option": {
+              "type": "Option<&'static ReservationTicket>",
+              "offset": 2144,
+              "size": 8,
+              "align": 8
+            },
+            "current": {
+              "type": "usize",
+              "offset": 2152,
+              "size": 8,
+              "align": 8
+            },
+            "requested": {
+              "type": "usize",
+              "offset": 2160,
+              "size": 8,
+              "align": 8
+            },
+            "difference": {
+              "type": "usize",
+              "offset": 2168,
+              "size": 8,
+              "align": 8
+            },
+            "category_next": {
+              "type": "usize",
+              "offset": 2176,
+              "size": 8,
+              "align": 8
+            },
+            "combined_next": {
+              "type": "usize",
+              "offset": 2184,
+              "size": 8,
+              "align": 8
+            },
+            "checked_category": {
+              "type": "Option<usize>",
+              "offset": 1584,
+              "size": 16,
+              "align": 8
+            },
+            "checked_combined": {
+              "type": "Option<usize>",
+              "offset": 1600,
+              "size": 16,
+              "align": 8
+            },
+            "category": {
+              "type": "SwiftReservationCategory",
+              "offset": 2215,
+              "size": 1,
+              "align": 1
+            },
+            "category_usage": {
+              "type": "&'static SwiftReservationUsage",
+              "offset": 1920,
+              "size": 8,
+              "align": 8
+            },
+            "category_mut": {
+              "type": "&'static mut SwiftReservationUsage",
+              "offset": 1928,
+              "size": 8,
+              "align": 8
+            },
+            "reservations": {
+              "type": "&'static mut SwiftReservations",
+              "offset": 1936,
+              "size": 8,
+              "align": 8
+            },
+            "construction_ticket": {
+              "type": "Option<&'static mut ReservationTicket>",
+              "offset": 2192,
+              "size": 8,
+              "align": 8
+            }
+          }
+        },
+        "CleanupPreflightInventory": {
+          "size": 336,
+          "align": 8,
+          "fields": {
+            "owner_option": {
+              "type": "Option<&'static mut SwiftReactorInstance>",
+              "offset": 168,
+              "size": 8,
+              "align": 8
+            },
+            "owner": {
+              "type": "&'static mut SwiftReactorInstance",
+              "offset": 64,
+              "size": 8,
+              "align": 8
+            },
+            "control_option": {
+              "type": "Option<&'static mut RuntimeControl>",
+              "offset": 176,
+              "size": 8,
+              "align": 8
+            },
+            "control": {
+              "type": "&'static mut RuntimeControl",
+              "offset": 72,
+              "size": 8,
+              "align": 8
+            },
+            "wasi_option": {
+              "type": "Option<&'static AccountedWasi>",
+              "offset": 184,
+              "size": 8,
+              "align": 8
+            },
+            "wasi": {
+              "type": "&'static AccountedWasi",
+              "offset": 80,
+              "size": 8,
+              "align": 8
+            },
+            "cache_option": {
+              "type": "Option<&'static SwiftFunctionCache>",
+              "offset": 192,
+              "size": 8,
+              "align": 8
+            },
+            "cache": {
+              "type": "&'static SwiftFunctionCache",
+              "offset": 88,
+              "size": 8,
+              "align": 8
+            },
+            "state_option": {
+              "type": "Option<&'static SwiftExecutionState>",
+              "offset": 200,
+              "size": 8,
+              "align": 8
+            },
+            "state": {
+              "type": "&'static SwiftExecutionState",
+              "offset": 96,
+              "size": 8,
+              "align": 8
+            },
+            "header_option": {
+              "type": "Option<&'static ReservationTicket>",
+              "offset": 208,
+              "size": 8,
+              "align": 8
+            },
+            "header": {
+              "type": "&'static ReservationTicket",
+              "offset": 104,
+              "size": 8,
+              "align": 8
+            },
+            "buffer_iter": {
+              "type": "std::slice::Iter<'static, Option<ReservationTicket>>",
+              "offset": 112,
+              "size": 16,
+              "align": 8
+            },
+            "buffer_item": {
+              "type": "Option<&'static Option<ReservationTicket>>",
+              "offset": 216,
+              "size": 8,
+              "align": 8
+            },
+            "buffer": {
+              "type": "&'static Option<ReservationTicket>",
+              "offset": 128,
+              "size": 8,
+              "align": 8
+            },
+            "buffer_ticket": {
+              "type": "Option<&'static ReservationTicket>",
+              "offset": 224,
+              "size": 8,
+              "align": 8
+            },
+            "cache_usage": {
+              "type": "super::cache::SwiftCacheUsage",
+              "offset": 232,
+              "size": 96,
+              "align": 8
+            },
+            "cursor_arguments": {
+              "type": "[Cursor; 2]",
+              "offset": 0,
+              "size": 64,
+              "align": 8
+            },
+            "header_error_callback": {
+              "type": "(&'static mut RuntimeControl, &'static AccountedWasi)",
+              "offset": 136,
+              "size": 16,
+              "align": 8
+            },
+            "buffer_error_callback": {
+              "type": "(&'static mut RuntimeControl, &'static AccountedWasi)",
+              "offset": 152,
+              "size": 16,
+              "align": 8
+            },
+            "nonempty": {
+              "type": "[bool; 4]",
+              "offset": 328,
+              "size": 4,
+              "align": 1
+            }
+          }
+        }
+      },
+      "bounds": {
+        "foundation": 19584,
+        "bootstrap": 2216,
+        "construction": 101960,
+        "header": 50928,
+        "cleanup_original": 50272
+      }
+    },
+    "unit-release": {
+      "types": {
+        "SwiftExecutionState": {
+          "size": 312,
+          "align": 8,
+          "fields": {
+            "memory": {
+              "type": "Vec<u8>",
+              "offset": 0,
+              "size": 24,
+              "align": 8
+            },
+            "table": {
+              "type": "Vec<Option<u32>>",
+              "offset": 24,
+              "size": 24,
+              "align": 8
+            },
+            "globals": {
+              "type": "Vec<Value>",
+              "offset": 48,
+              "size": 24,
+              "align": 8
+            },
+            "values": {
+              "type": "Vec<Value>",
+              "offset": 72,
+              "size": 24,
+              "align": 8
+            },
+            "controls": {
+              "type": "Vec<Control>",
+              "offset": 96,
+              "size": 24,
+              "align": 8
+            },
+            "frames": {
+              "type": "Vec<SwiftFrame>",
+              "offset": 120,
+              "size": 24,
+              "align": 8
+            },
+            "buffers": {
+              "type": "[Option<ReservationTicket>; 6]",
+              "offset": 144,
+              "size": 144,
+              "align": 8
+            },
+            "execution_header": {
+              "type": "Option<ReservationTicket>",
+              "offset": 288,
+              "size": 24,
+              "align": 8
+            }
+          }
+        },
+        "SwiftReactorInstance": {
+          "size": 4528,
+          "align": 8,
+          "fields": {
+            "control": {
+              "type": "Option<RuntimeControl>",
+              "offset": 0,
+              "size": 1720,
+              "align": 8
+            },
+            "cache": {
+              "type": "Option<SwiftFunctionCache>",
+              "offset": 1720,
+              "size": 992,
+              "align": 8
+            },
+            "wasi": {
+              "type": "Option<AccountedWasi>",
+              "offset": 2712,
+              "size": 1496,
+              "align": 8
+            },
+            "state": {
+              "type": "Option<SwiftExecutionState>",
+              "offset": 4208,
+              "size": 312,
+              "align": 8
+            },
+            "lifecycle": {
+              "type": "Lifecycle",
+              "offset": 4520,
+              "size": 1,
+              "align": 1
+            }
+          }
+        },
+        "SwiftFrame": {
+          "size": 64,
+          "align": 8,
+          "fields": {
+            "function": {
+              "type": "u32",
+              "offset": 56,
+              "size": 4,
+              "align": 4
+            },
+            "pc": {
+              "type": "usize",
+              "offset": 0,
+              "size": 8,
+              "align": 8
+            },
+            "base": {
+              "type": "usize",
+              "offset": 8,
+              "size": 8,
+              "align": 8
+            },
+            "operands": {
+              "type": "usize",
+              "offset": 16,
+              "size": 8,
+              "align": 8
+            },
+            "controls": {
+              "type": "usize",
+              "offset": 24,
+              "size": 8,
+              "align": 8
+            },
+            "result": {
+              "type": "bool",
+              "offset": 60,
+              "size": 1,
+              "align": 1
+            },
+            "pin": {
+              "type": "SwiftFunctionPin",
+              "offset": 32,
+              "size": 24,
+              "align": 8
+            }
+          }
+        },
+        "ExecutionConstructionPhase": {
+          "size": 72,
+          "align": 8,
+          "fields": {
+            "control": {
+              "type": "&'static mut RuntimeControl",
+              "offset": 32,
+              "size": 8,
+              "align": 8
+            },
+            "cache": {
+              "type": "&'static SwiftFunctionCache",
+              "offset": 40,
+              "size": 8,
+              "align": 8
+            },
+            "wasi": {
+              "type": "&'static AccountedWasi",
+              "offset": 48,
+              "size": 8,
+              "align": 8
+            },
+            "cursor": {
+              "type": "Cursor",
+              "offset": 0,
+              "size": 32,
+              "align": 8
+            },
+            "previous_bound": {
+              "type": "usize",
+              "offset": 56,
+              "size": 8,
+              "align": 8
+            },
+            "constructed": {
+              "type": "bool",
+              "offset": 64,
+              "size": 1,
+              "align": 1
+            }
+          }
+        },
+        "ExecutionOperationPhase": {
+          "size": 112,
+          "align": 8,
+          "fields": {
+            "parts": {
+              "type": "ExecutionParts<'static, SwiftMode>",
+              "offset": 48,
+              "size": 56,
+              "align": 8
+            },
+            "operation": {
+              "type": "SwiftExecutionOperation<'static>",
+              "offset": 0,
+              "size": 48,
+              "align": 8
+            },
+            "previous_bound": {
+              "type": "usize",
+              "offset": 104,
+              "size": 8,
+              "align": 8
+            }
+          }
+        },
+        "PartialState": {
+          "size": 320,
+          "align": 8,
+          "fields": {
+            "state": {
+              "type": "SwiftExecutionState",
+              "offset": 0,
+              "size": 312,
+              "align": 8
+            },
+            "next_arena": {
+              "type": "usize",
+              "offset": 312,
+              "size": 8,
+              "align": 8
+            }
+          }
+        },
+        "PartialInstance": {
+          "size": 4520,
+          "align": 8,
+          "fields": {
+            "control": {
+              "type": "Option<RuntimeControl>",
+              "offset": 0,
+              "size": 1720,
+              "align": 8
+            },
+            "cache": {
+              "type": "Option<SwiftFunctionCache>",
+              "offset": 1720,
+              "size": 992,
+              "align": 8
+            },
+            "wasi": {
+              "type": "Option<AccountedWasi>",
+              "offset": 2712,
+              "size": 1496,
+              "align": 8
+            },
+            "state": {
+              "type": "Option<SwiftExecutionState>",
+              "offset": 4208,
+              "size": 312,
+              "align": 8
+            }
+          }
+        },
+        "ExecutionCleanupTail": {
+          "size": 2952,
+          "align": 8,
+          "fields": {
+            "control": {
+              "type": "RuntimeControl",
+              "offset": 112,
+              "size": 1720,
+              "align": 8
+            },
+            "header": {
+              "type": "Option<ReservationTicket>",
+              "offset": 2928,
+              "size": 24,
+              "align": 8
+            },
+            "final_wasi": {
+              "type": "Option<WasiUsage>",
+              "offset": 0,
+              "size": 112,
+              "align": 8
+            },
+            "failure": {
+              "type": "Option<SwiftRunFailure>",
+              "offset": 1832,
+              "size": 1096,
+              "align": 8
+            }
+          }
+        },
+        "HeaderCompletionParts": {
+          "size": 1856,
+          "align": 8,
+          "fields": {
+            "control": {
+              "type": "RuntimeControl",
+              "offset": 112,
+              "size": 1720,
+              "align": 8
+            },
+            "header": {
+              "type": "Option<ReservationTicket>",
+              "offset": 1832,
+              "size": 24,
+              "align": 8
+            },
+            "final_wasi": {
+              "type": "Option<WasiUsage>",
+              "offset": 0,
+              "size": 112,
+              "align": 8
+            }
+          }
+        },
+        "ScalarReader": {
+          "size": 32,
+          "align": 8,
+          "fields": {
+            "bytes": {
+              "type": "&'static [u8]",
+              "offset": 0,
+              "size": 16,
+              "align": 8
+            },
+            "at": {
+              "type": "usize",
+              "offset": 16,
+              "size": 8,
+              "align": 8
+            },
+            "absolute_offset": {
+              "type": "usize",
+              "offset": 24,
+              "size": 8,
+              "align": 8
+            }
+          }
+        },
+        "ConstructionDescriptors": {
+          "size": 384,
+          "align": 8,
+          "fields": {
+            "memory": {
+              "type": "Option<MemoryExecutionView>",
+              "offset": 72,
+              "size": 16,
+              "align": 4
+            },
+            "table": {
+              "type": "Option<TableExecutionView>",
+              "offset": 88,
+              "size": 16,
+              "align": 4
+            },
+            "global": {
+              "type": "Option<GlobalView<'static>>",
+              "offset": 104,
+              "size": 24,
+              "align": 8
+            },
+            "segment": {
+              "type": "Option<SegmentExecutionView<'static>>",
+              "offset": 128,
+              "size": 32,
+              "align": 8
+            },
+            "initializer_offset": {
+              "type": "Option<usize>",
+              "offset": 0,
+              "size": 16,
+              "align": 8
+            },
+            "capacities": {
+              "type": "[usize; 6]",
+              "offset": 160,
+              "size": 48,
+              "align": 8
+            },
+            "requests": {
+              "type": "Option<[usize; 6]>",
+              "offset": 16,
+              "size": 56,
+              "align": 8
+            },
+            "budget": {
+              "type": "SwiftRunBudget",
+              "offset": 208,
+              "size": 136,
+              "align": 8
+            },
+            "target_type": {
+              "type": "Type",
+              "offset": 380,
+              "size": 1,
+              "align": 1
+            },
+            "opcode": {
+              "type": "u8",
+              "offset": 381,
+              "size": 1,
+              "align": 1
+            },
+            "byte": {
+              "type": "u8",
+              "offset": 382,
+              "size": 1,
+              "align": 1
+            },
+            "bits": {
+              "type": "u64",
+              "offset": 344,
+              "size": 8,
+              "align": 8
+            },
+            "shift": {
+              "type": "u32",
+              "offset": 368,
+              "size": 4,
+              "align": 4
+            },
+            "width": {
+              "type": "u32",
+              "offset": 372,
+              "size": 4,
+              "align": 4
+            },
+            "signed": {
+              "type": "i64",
+              "offset": 352,
+              "size": 8,
+              "align": 8
+            },
+            "float32": {
+              "type": "[u8; 4]",
+              "offset": 376,
+              "size": 4,
+              "align": 1
+            },
+            "float64": {
+              "type": "[u8; 8]",
+              "offset": 360,
+              "size": 8,
+              "align": 1
+            }
+          }
+        },
+        "ConstructionTransfers": {
+          "size": 11296,
+          "align": 8,
+          "fields": {
+            "pair": {
+              "type": "Option<(RuntimeControl, AdoptedProof)>",
+              "offset": 8784,
+              "size": 2432,
+              "align": 8
+            },
+            "owned_slot": {
+              "type": "&'static mut Option<(RuntimeControl, AdoptedProof)>",
+              "offset": 11232,
+              "size": 8,
+              "align": 8
+            },
+            "grants": {
+              "type": "WasiGrants",
+              "offset": 11288,
+              "size": 5,
+              "align": 1
+            },
+            "wasi_budget": {
+              "type": "WasiBudget",
+              "offset": 11240,
+              "size": 48,
+              "align": 8
+            },
+            "started": {
+              "type": "Instant",
+              "offset": 11216,
+              "size": 16,
+              "align": 8
+            },
+            "state_phase": {
+              "type": "Result<ExecutionConstructionPhase<'static>, SwiftRunFailure>",
+              "offset": 16,
+              "size": 1096,
+              "align": 8
+            },
+            "cache_phase": {
+              "type": "Result<CacheConstructionPhase<'static>, SwiftRunFailure>",
+              "offset": 1112,
+              "size": 1096,
+              "align": 8
+            },
+            "wasi_phase": {
+              "type": "Result<WasiConstructionPhase<'static>, SwiftRunFailure>",
+              "offset": 2208,
+              "size": 1096,
+              "align": 8
+            },
+            "reserve": {
+              "type": "Result<ReservationTicket, SwiftRunFailure>",
+              "offset": 3304,
+              "size": 1096,
+              "align": 8
+            },
+            "allocate": {
+              "type": "Result<Vec<Value>, SwiftRunFailure>",
+              "offset": 4400,
+              "size": 1096,
+              "align": 8
+            },
+            "initialized": {
+              "type": "Result<(), SwiftRunFailure>",
+              "offset": 5496,
+              "size": 1096,
+              "align": 8
+            },
+            "constant": {
+              "type": "Result<Value, SwiftRunFailure>",
+              "offset": 6592,
+              "size": 1096,
+              "align": 8
+            },
+            "scalar": {
+              "type": "Result<u64, SwiftRunFailure>",
+              "offset": 7688,
+              "size": 1096,
+              "align": 8
+            },
+            "end": {
+              "type": "Option<usize>",
+              "offset": 0,
+              "size": 16,
+              "align": 8
+            }
+          }
+        },
+        "ConstructionBorrowChain": {
+          "size": 888,
+          "align": 8,
+          "fields": {
+            "control": {
+              "type": "[&'static mut RuntimeControl; 6]",
+              "offset": 480,
+              "size": 48,
+              "align": 8
+            },
+            "state": {
+              "type": "[&'static mut SwiftExecutionState; 3]",
+              "offset": 528,
+              "size": 24,
+              "align": 8
+            },
+            "cache": {
+              "type": "[&'static SwiftFunctionCache; 4]",
+              "offset": 552,
+              "size": 32,
+              "align": 8
+            },
+            "wasi": {
+              "type": "[&'static AccountedWasi; 6]",
+              "offset": 584,
+              "size": 48,
+              "align": 8
+            },
+            "phase": {
+              "type": "[&'static mut ExecutionConstructionPhase<'static>; 3]",
+              "offset": 632,
+              "size": 24,
+              "align": 8
+            },
+            "reader": {
+              "type": "[&'static mut ScalarReader<'static>; 3]",
+              "offset": 656,
+              "size": 24,
+              "align": 8
+            },
+            "vector": {
+              "type": "[&'static mut Vec<Value>; 2]",
+              "offset": 680,
+              "size": 16,
+              "align": 8
+            },
+            "slice": {
+              "type": "[&'static [u8]; 4]",
+              "offset": 696,
+              "size": 64,
+              "align": 8
+            },
+            "mutable_slice": {
+              "type": "[&'static mut [u8]; 2]",
+              "offset": 760,
+              "size": 32,
+              "align": 8
+            },
+            "index": {
+              "type": "[usize; 12]",
+              "offset": 792,
+              "size": 96,
+              "align": 8
+            },
+            "cursor": {
+              "type": "[Cursor; 4]",
+              "offset": 0,
+              "size": 128,
+              "align": 8
+            },
+            "observation": {
+              "type": "[Option<WasiUsage>; 2]",
+              "offset": 128,
+              "size": 224,
+              "align": 8
+            },
+            "fault": {
+              "type": "[Fault; 2]",
+              "offset": 352,
+              "size": 128,
+              "align": 8
+            }
+          }
+        },
+        "ConstructionIterationInventory": {
+          "size": 4648,
+          "align": 8,
+          "fields": {
+            "global_range": {
+              "type": "std::ops::Range<usize>",
+              "offset": 4576,
+              "size": 16,
+              "align": 8
+            },
+            "table_range": {
+              "type": "std::ops::Range<u32>",
+              "offset": 4592,
+              "size": 8,
+              "align": 4
+            },
+            "descriptor_range": {
+              "type": "std::ops::Range<usize>",
+              "offset": 4600,
+              "size": 16,
+              "align": 8
+            },
+            "element_range": {
+              "type": "std::ops::Range<usize>",
+              "offset": 4616,
+              "size": 16,
+              "align": 8
+            },
+            "leb_range": {
+              "type": "std::ops::Range<u32>",
+              "offset": 4632,
+              "size": 8,
+              "align": 4
+            },
+            "leb_steps": {
+              "type": "std::iter::StepBy<std::ops::Range<u32>>",
+              "offset": 4424,
+              "size": 24,
+              "align": 8
+            },
+            "float_iter": {
+              "type": "std::slice::IterMut<'static, u8>",
+              "offset": 4472,
+              "size": 16,
+              "align": 8
+            },
+            "float_item": {
+              "type": "Option<&'static mut u8>",
+              "offset": 4640,
+              "size": 8,
+              "align": 8
+            },
+            "descriptor_item": {
+              "type": "Option<usize>",
+              "offset": 0,
+              "size": 16,
+              "align": 8
+            },
+            "table_item": {
+              "type": "Option<u32>",
+              "offset": 4416,
+              "size": 8,
+              "align": 4
+            },
+            "borrowed_segment": {
+              "type": "SegmentExecutionView<'static>",
+              "offset": 4488,
+              "size": 32,
+              "align": 8
+            },
+            "borrowed_global": {
+              "type": "GlobalView<'static>",
+              "offset": 4448,
+              "size": 24,
+              "align": 8
+            },
+            "typed_result": {
+              "type": "Result<Value, SwiftRunFailure>",
+              "offset": 16,
+              "size": 1096,
+              "align": 8
+            },
+            "signed_result": {
+              "type": "Result<i64, SwiftRunFailure>",
+              "offset": 1112,
+              "size": 1096,
+              "align": 8
+            },
+            "unsigned_result": {
+              "type": "Result<u32, SwiftRunFailure>",
+              "offset": 2208,
+              "size": 1096,
+              "align": 8
+            },
+            "byte_result": {
+              "type": "Result<u8, SwiftRunFailure>",
+              "offset": 3304,
+              "size": 1096,
+              "align": 8
+            },
+            "error": {
+              "type": "Option<std::collections::TryReserveError>",
+              "offset": 4400,
+              "size": 16,
+              "align": 8
+            },
+            "error_callback": {
+              "type": "( &'static mut ExecutionConstructionPhase<'static>, &'static usize, )",
+              "offset": 4520,
+              "size": 16,
+              "align": 8
+            },
+            "descriptor_callback": {
+              "type": "&'static mut ExecutionConstructionPhase<'static>",
+              "offset": 4536,
+              "size": 8,
+              "align": 8
+            },
+            "reader_callback": {
+              "type": "( &'static ScalarReader<'static>, &'static mut RuntimeControl, &'static AccountedWasi, &'static Cursor, )",
+              "offset": 4544,
+              "size": 32,
+              "align": 8
+            }
+          }
+        },
+        "ConstructionBootstrapInventory": {
+          "size": 2216,
+          "align": 8,
+          "fields": {
+            "pair_slot": {
+              "type": "[&'static mut Option<(RuntimeControl, AdoptedProof)>; 2]",
+              "offset": 1712,
+              "size": 16,
+              "align": 8
+            },
+            "control": {
+              "type": "[&'static mut RuntimeControl; 8]",
+              "offset": 1728,
+              "size": 64,
+              "align": 8
+            },
+            "adopted": {
+              "type": "[&'static AdoptedProof; 3]",
+              "offset": 1792,
+              "size": 24,
+              "align": 8
+            },
+            "cache": {
+              "type": "[&'static SwiftFunctionCache; 4]",
+              "offset": 1816,
+              "size": 32,
+              "align": 8
+            },
+            "wasi": {
+              "type": "[&'static AccountedWasi; 4]",
+              "offset": 1848,
+              "size": 32,
+              "align": 8
+            },
+            "cursor": {
+              "type": "[Cursor; 5]",
+              "offset": 0,
+              "size": 160,
+              "align": 8
+            },
+            "grants": {
+              "type": "[WasiGrants; 3]",
+              "offset": 2200,
+              "size": 15,
+              "align": 1
+            },
+            "budget": {
+              "type": "[WasiBudget; 3]",
+              "offset": 1944,
+              "size": 144,
+              "align": 8
+            },
+            "started": {
+              "type": "[Instant; 3]",
+              "offset": 1616,
+              "size": 48,
+              "align": 8
+            },
+            "cache_control": {
+              "type": "CacheControl<'static>",
+              "offset": 160,
+              "size": 48,
+              "align": 8
+            },
+            "header_option": {
+              "type": "[Option<&'static ReservationTicket>; 3]",
+              "offset": 2088,
+              "size": 24,
+              "align": 8
+            },
+            "header": {
+              "type": "[&'static ReservationTicket; 5]",
+              "offset": 1880,
+              "size": 40,
+              "align": 8
+            },
+            "observation": {
+              "type": "[Option<WasiUsage>; 3]",
+              "offset": 208,
+              "size": 336,
+              "align": 8
+            },
+            "snapshot_return": {
+              "type": "[SwiftRunUsage; 2]",
+              "offset": 544,
+              "size": 1008,
+              "align": 8
+            },
+            "previous_bound": {
+              "type": "[usize; 4]",
+              "offset": 2112,
+              "size": 32,
+              "align": 8
+            },
+            "checked_bound": {
+              "type": "[Option<usize>; 2]",
+              "offset": 1552,
+              "size": 32,
+              "align": 8
+            },
+            "owner_verdict": {
+              "type": "[Option<(SwiftCleanupInvariant, &'static str)>; 2]",
+              "offset": 1664,
+              "size": 48,
+              "align": 8
+            },
+            "ticket_option": {
+              "type": "Option<&'static ReservationTicket>",
+              "offset": 2144,
+              "size": 8,
+              "align": 8
+            },
+            "current": {
+              "type": "usize",
+              "offset": 2152,
+              "size": 8,
+              "align": 8
+            },
+            "requested": {
+              "type": "usize",
+              "offset": 2160,
+              "size": 8,
+              "align": 8
+            },
+            "difference": {
+              "type": "usize",
+              "offset": 2168,
+              "size": 8,
+              "align": 8
+            },
+            "category_next": {
+              "type": "usize",
+              "offset": 2176,
+              "size": 8,
+              "align": 8
+            },
+            "combined_next": {
+              "type": "usize",
+              "offset": 2184,
+              "size": 8,
+              "align": 8
+            },
+            "checked_category": {
+              "type": "Option<usize>",
+              "offset": 1584,
+              "size": 16,
+              "align": 8
+            },
+            "checked_combined": {
+              "type": "Option<usize>",
+              "offset": 1600,
+              "size": 16,
+              "align": 8
+            },
+            "category": {
+              "type": "SwiftReservationCategory",
+              "offset": 2215,
+              "size": 1,
+              "align": 1
+            },
+            "category_usage": {
+              "type": "&'static SwiftReservationUsage",
+              "offset": 1920,
+              "size": 8,
+              "align": 8
+            },
+            "category_mut": {
+              "type": "&'static mut SwiftReservationUsage",
+              "offset": 1928,
+              "size": 8,
+              "align": 8
+            },
+            "reservations": {
+              "type": "&'static mut SwiftReservations",
+              "offset": 1936,
+              "size": 8,
+              "align": 8
+            },
+            "construction_ticket": {
+              "type": "Option<&'static mut ReservationTicket>",
+              "offset": 2192,
+              "size": 8,
+              "align": 8
+            }
+          }
+        },
+        "CleanupPreflightInventory": {
+          "size": 336,
+          "align": 8,
+          "fields": {
+            "owner_option": {
+              "type": "Option<&'static mut SwiftReactorInstance>",
+              "offset": 168,
+              "size": 8,
+              "align": 8
+            },
+            "owner": {
+              "type": "&'static mut SwiftReactorInstance",
+              "offset": 64,
+              "size": 8,
+              "align": 8
+            },
+            "control_option": {
+              "type": "Option<&'static mut RuntimeControl>",
+              "offset": 176,
+              "size": 8,
+              "align": 8
+            },
+            "control": {
+              "type": "&'static mut RuntimeControl",
+              "offset": 72,
+              "size": 8,
+              "align": 8
+            },
+            "wasi_option": {
+              "type": "Option<&'static AccountedWasi>",
+              "offset": 184,
+              "size": 8,
+              "align": 8
+            },
+            "wasi": {
+              "type": "&'static AccountedWasi",
+              "offset": 80,
+              "size": 8,
+              "align": 8
+            },
+            "cache_option": {
+              "type": "Option<&'static SwiftFunctionCache>",
+              "offset": 192,
+              "size": 8,
+              "align": 8
+            },
+            "cache": {
+              "type": "&'static SwiftFunctionCache",
+              "offset": 88,
+              "size": 8,
+              "align": 8
+            },
+            "state_option": {
+              "type": "Option<&'static SwiftExecutionState>",
+              "offset": 200,
+              "size": 8,
+              "align": 8
+            },
+            "state": {
+              "type": "&'static SwiftExecutionState",
+              "offset": 96,
+              "size": 8,
+              "align": 8
+            },
+            "header_option": {
+              "type": "Option<&'static ReservationTicket>",
+              "offset": 208,
+              "size": 8,
+              "align": 8
+            },
+            "header": {
+              "type": "&'static ReservationTicket",
+              "offset": 104,
+              "size": 8,
+              "align": 8
+            },
+            "buffer_iter": {
+              "type": "std::slice::Iter<'static, Option<ReservationTicket>>",
+              "offset": 112,
+              "size": 16,
+              "align": 8
+            },
+            "buffer_item": {
+              "type": "Option<&'static Option<ReservationTicket>>",
+              "offset": 216,
+              "size": 8,
+              "align": 8
+            },
+            "buffer": {
+              "type": "&'static Option<ReservationTicket>",
+              "offset": 128,
+              "size": 8,
+              "align": 8
+            },
+            "buffer_ticket": {
+              "type": "Option<&'static ReservationTicket>",
+              "offset": 224,
+              "size": 8,
+              "align": 8
+            },
+            "cache_usage": {
+              "type": "super::cache::SwiftCacheUsage",
+              "offset": 232,
+              "size": 96,
+              "align": 8
+            },
+            "cursor_arguments": {
+              "type": "[Cursor; 2]",
+              "offset": 0,
+              "size": 64,
+              "align": 8
+            },
+            "header_error_callback": {
+              "type": "(&'static mut RuntimeControl, &'static AccountedWasi)",
+              "offset": 136,
+              "size": 16,
+              "align": 8
+            },
+            "buffer_error_callback": {
+              "type": "(&'static mut RuntimeControl, &'static AccountedWasi)",
+              "offset": 152,
+              "size": 16,
+              "align": 8
+            },
+            "nonempty": {
+              "type": "[bool; 4]",
+              "offset": 328,
+              "size": 4,
+              "align": 1
+            }
+          }
+        }
+      },
+      "bounds": {
+        "foundation": 19584,
+        "bootstrap": 2216,
+        "construction": 102560,
+        "header": 51168,
+        "cleanup_original": 50512
+      }
+    }
+  }
+}

@@ -1,0 +1,559 @@
+{
+  "schema": "mixer.swift-executor-construction-producer.v1",
+  "commands": [
+    {
+      "name": "rustc-version",
+      "argv": [
+        "rustc",
+        "-Vv"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction/build/source/vm",
+      "exit_code": 0,
+      "expected": 0,
+      "seconds": 0.238,
+      "log": "verification/swift-executor-construction/logs/rustc-version.log",
+      "sha256": "352d6857968e80a6357a926ac685b9b07f77c479aaafde33e73a53945e802909"
+    },
+    {
+      "name": "cargo-version",
+      "argv": [
+        "cargo",
+        "-V"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction/build/source/vm",
+      "exit_code": 0,
+      "expected": 0,
+      "seconds": 0.049,
+      "log": "verification/swift-executor-construction/logs/cargo-version.log",
+      "sha256": "1f88eaf7fe1aaec83184752cf4c944cd22f00184136ff36a3e4c318cc60ef566"
+    },
+    {
+      "name": "host",
+      "argv": [
+        "uname",
+        "-a"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction/build/source/vm",
+      "exit_code": 0,
+      "expected": 0,
+      "seconds": 0.005,
+      "log": "verification/swift-executor-construction/logs/host.log",
+      "sha256": "abe9ccb86c55e0593f387b3138e08c1d0bed9a04ba0080d7badcbf093fabd539"
+    },
+    {
+      "name": "python-version",
+      "argv": [
+        "python3",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction/build/source/vm",
+      "exit_code": 0,
+      "expected": 0,
+      "seconds": 0.011,
+      "log": "verification/swift-executor-construction/logs/python-version.log",
+      "sha256": "f615dc9512de8b165e2b595e5cdc608a3ba7927ae92f959c5b42ec3d58e2ffa8"
+    },
+    {
+      "name": "construction-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--features",
+        "experimental-swift-reactor",
+        "--lib",
+        "swift_construction_",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction/build/source/vm",
+      "exit_code": 0,
+      "expected": 0,
+      "seconds": 7.585,
+      "log": "verification/swift-executor-construction/logs/construction-debug.log",
+      "sha256": "75c5f8c77c9e7c88070a72c1d720fd6caebad33ce96ae89b2b42803ce789abfd"
+    },
+    {
+      "name": "layout-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--features",
+        "experimental-swift-reactor",
+        "--lib",
+        "swift_executor_layout",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction/build/source/vm",
+      "exit_code": 0,
+      "expected": 0,
+      "seconds": 0.037,
+      "log": "verification/swift-executor-construction/logs/layout-debug.log",
+      "sha256": "998c09fbd4256114a939c7e9cb007e401fc14ad08b803efaa24a79a74745608b"
+    },
+    {
+      "name": "neither-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--lib"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction/build/source/vm",
+      "exit_code": 0,
+      "expected": 0,
+      "seconds": 0.774,
+      "log": "verification/swift-executor-construction/logs/neither-debug.log",
+      "sha256": "e2a67935f703ffc7f159d59a3ce16bb3be31cb9b720abd9faaa3e961c7819446"
+    },
+    {
+      "name": "span-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--features",
+        "experimental-span-execution",
+        "--lib"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction/build/source/vm",
+      "exit_code": 0,
+      "expected": 0,
+      "seconds": 1.223,
+      "log": "verification/swift-executor-construction/logs/span-debug.log",
+      "sha256": "a26eb49c9d17d16d88dd325278259952d2d57e0228e2314c96fb725c56c0e391"
+    },
+    {
+      "name": "swift-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--features",
+        "experimental-swift-reactor",
+        "--lib"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction/build/source/vm",
+      "exit_code": 0,
+      "expected": 0,
+      "seconds": 2.188,
+      "log": "verification/swift-executor-construction/logs/swift-debug.log",
+      "sha256": "42d6423107638defef1a1ea52444f3f1d71d845511539ff6642c128eafe7f327"
+    },
+    {
+      "name": "swift-cache-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--features",
+        "experimental-swift-reactor,experimental-function-cache",
+        "--lib"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction/build/source/vm",
+      "exit_code": 0,
+      "expected": 0,
+      "seconds": 4.418,
+      "log": "verification/swift-executor-construction/logs/swift-cache-debug.log",
+      "sha256": "3af4466ae20300d808b8c09bda3761932bc1111e629c36bad726f1a714de9be2"
+    },
+    {
+      "name": "swift-span-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--features",
+        "experimental-swift-reactor,experimental-span-execution",
+        "--lib"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction/build/source/vm",
+      "exit_code": 0,
+      "expected": 0,
+      "seconds": 4.906,
+      "log": "verification/swift-executor-construction/logs/swift-span-debug.log",
+      "sha256": "1c167f5c6946ad8feed9cb5a699667f2da0566f65e00c44cbdfb5a16111c9bc9"
+    },
+    {
+      "name": "all-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--all-features",
+        "--lib"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction/build/source/vm",
+      "exit_code": 0,
+      "expected": 0,
+      "seconds": 4.967,
+      "log": "verification/swift-executor-construction/logs/all-debug.log",
+      "sha256": "b8a6c931155e53378c617811d99a80ee8c8fe9bd76e401493e5906d8fde5ce43"
+    },
+    {
+      "name": "construction-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--release",
+        "--features",
+        "experimental-swift-reactor",
+        "--lib",
+        "swift_construction_",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction/build/source/vm",
+      "exit_code": 0,
+      "expected": 0,
+      "seconds": 4.05,
+      "log": "verification/swift-executor-construction/logs/construction-release.log",
+      "sha256": "c54e4f59ac4d508e99a3566881d0316aa347313131f25875a7458a7463b3c71a"
+    },
+    {
+      "name": "layout-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--release",
+        "--features",
+        "experimental-swift-reactor",
+        "--lib",
+        "swift_executor_layout",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction/build/source/vm",
+      "exit_code": 0,
+      "expected": 0,
+      "seconds": 0.031,
+      "log": "verification/swift-executor-construction/logs/layout-release.log",
+      "sha256": "6b11d49a2ff7809e93ad881edd03c156584e611b35e5f32cafd2c2691cb6c1b9"
+    },
+    {
+      "name": "neither-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--release",
+        "--lib"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction/build/source/vm",
+      "exit_code": 0,
+      "expected": 0,
+      "seconds": 0.77,
+      "log": "verification/swift-executor-construction/logs/neither-release.log",
+      "sha256": "dac860eaa08e2bde22c555b033b6fe8eb58daeac90fd5c1665b1f661c0aca939"
+    },
+    {
+      "name": "span-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--release",
+        "--features",
+        "experimental-span-execution",
+        "--lib"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction/build/source/vm",
+      "exit_code": 0,
+      "expected": 0,
+      "seconds": 1.188,
+      "log": "verification/swift-executor-construction/logs/span-release.log",
+      "sha256": "ffcaf1e491dfac721dfcfb1c52f9551e434f3c606709955d12620a7d511a7982"
+    },
+    {
+      "name": "swift-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--release",
+        "--features",
+        "experimental-swift-reactor",
+        "--lib"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction/build/source/vm",
+      "exit_code": 0,
+      "expected": 0,
+      "seconds": 2.146,
+      "log": "verification/swift-executor-construction/logs/swift-release.log",
+      "sha256": "25008bc40674aa614b2fd4d91bb207c0191d885385e703d3194b42b38d105fde"
+    },
+    {
+      "name": "swift-cache-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--release",
+        "--features",
+        "experimental-swift-reactor,experimental-function-cache",
+        "--lib"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction/build/source/vm",
+      "exit_code": 0,
+      "expected": 0,
+      "seconds": 4.849,
+      "log": "verification/swift-executor-construction/logs/swift-cache-release.log",
+      "sha256": "59af0bf46621040b1ee89a0cdc426ebafc76f441c5ba7870f3705fbc62940643"
+    },
+    {
+      "name": "swift-span-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--release",
+        "--features",
+        "experimental-swift-reactor,experimental-span-execution",
+        "--lib"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction/build/source/vm",
+      "exit_code": 0,
+      "expected": 0,
+      "seconds": 5.227,
+      "log": "verification/swift-executor-construction/logs/swift-span-release.log",
+      "sha256": "da9324d792a72a524b6e8303bffbf3e22641977ecccb1ebd66f63ac1a168ae8d"
+    },
+    {
+      "name": "all-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--release",
+        "--all-features",
+        "--lib"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction/build/source/vm",
+      "exit_code": 0,
+      "expected": 0,
+      "seconds": 5.48,
+      "log": "verification/swift-executor-construction/logs/all-release.log",
+      "sha256": "ce97c84fcb14960fd0413f10ab93d7235f4bffc1e630cfdbc2e9d87ed320163a"
+    },
+    {
+      "name": "clippy-swift",
+      "argv": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--lib",
+        "--features",
+        "experimental-swift-reactor",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction/build/source/vm",
+      "exit_code": 0,
+      "expected": 0,
+      "seconds": 0.776,
+      "log": "verification/swift-executor-construction/logs/clippy-swift.log",
+      "sha256": "83be79610f8745752a65708041854b54a6c48c7941d4b565c84b180c2955ea73"
+    },
+    {
+      "name": "clippy-all",
+      "argv": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--lib",
+        "--all-features",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction/build/source/vm",
+      "exit_code": 0,
+      "expected": 0,
+      "seconds": 0.841,
+      "log": "verification/swift-executor-construction/logs/clippy-all.log",
+      "sha256": "3f071386acc227869256712311bb028a00030a8d18746b0b4fcf8a87a66188e0"
+    },
+    {
+      "name": "format",
+      "argv": [
+        "rustfmt",
+        "--check",
+        "--edition",
+        "2021",
+        "src/experimental_swift_reactor/execution.rs",
+        "src/experimental_swift_reactor/execution_tests.rs"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction/build/source/vm",
+      "exit_code": 0,
+      "expected": 0,
+      "seconds": 0.061,
+      "log": "verification/swift-executor-construction/logs/format.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "metadata-production-debug",
+      "argv": [
+        "cargo",
+        "run",
+        "--locked",
+        "--features",
+        "experimental-swift-reactor",
+        "--example",
+        "construction_metadata"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction/build/metadata/vm",
+      "exit_code": 101,
+      "expected": 0,
+      "seconds": 0.697,
+      "log": "verification/swift-executor-construction/logs/metadata-production-debug.log",
+      "sha256": "1f9a4e251473b8751db0140be047995f4cd8818ed46ca313dc61400fe65bc28b"
+    },
+    {
+      "name": "metadata2-production-debug",
+      "argv": [
+        "cargo",
+        "run",
+        "--locked",
+        "--features",
+        "experimental-swift-reactor",
+        "--example",
+        "construction_metadata"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction/build/metadata/vm",
+      "exit_code": 0,
+      "expected": 0,
+      "seconds": 1.428,
+      "log": "verification/swift-executor-construction/logs/metadata2-production-debug.log",
+      "sha256": "807d271a431b6aa24da173327a5d93615c67efa36dc549fee304d68b6c66f2be"
+    },
+    {
+      "name": "metadata2-unit-debug",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--features",
+        "experimental-swift-reactor",
+        "--lib",
+        "frozen_construction_metadata",
+        "--",
+        "--nocapture"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction/build/metadata/vm",
+      "exit_code": 0,
+      "expected": 0,
+      "seconds": 2.702,
+      "log": "verification/swift-executor-construction/logs/metadata2-unit-debug.log",
+      "sha256": "3696e6a5ad6ed3ba339f99bc831f10400b20e0beb6b1bd0716aff70fec88c3e6"
+    },
+    {
+      "name": "metadata2-production-release",
+      "argv": [
+        "cargo",
+        "run",
+        "--locked",
+        "--release",
+        "--features",
+        "experimental-swift-reactor",
+        "--example",
+        "construction_metadata"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction/build/metadata/vm",
+      "exit_code": 0,
+      "expected": 0,
+      "seconds": 1.595,
+      "log": "verification/swift-executor-construction/logs/metadata2-production-release.log",
+      "sha256": "e5ec6699d7ca9bd936fd2d819d11e0dd1e904cd2f5971df755de19facdf0a919"
+    },
+    {
+      "name": "metadata2-unit-release",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--release",
+        "--features",
+        "experimental-swift-reactor",
+        "--lib",
+        "frozen_construction_metadata",
+        "--",
+        "--nocapture"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction/build/metadata/vm",
+      "exit_code": 0,
+      "expected": 0,
+      "seconds": 3.705,
+      "log": "verification/swift-executor-construction/logs/metadata2-unit-release.log",
+      "sha256": "b88bef5815ba015bb81aa0393fc78a8fbec0782e7cc49e21a99810418b03e8d0"
+    },
+    {
+      "name": "private-constructor2",
+      "argv": [
+        "cargo",
+        "check",
+        "--locked",
+        "--features",
+        "experimental-swift-reactor",
+        "--example",
+        "construction_privacy"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction/build/metadata/vm",
+      "exit_code": 101,
+      "expected": 1,
+      "seconds": 0.688,
+      "log": "verification/swift-executor-construction/logs/private-constructor2.log",
+      "sha256": "ab5218a4a290d40b2c076c9696f842fd7718a2ee880f96d0f944775958330822"
+    }
+  ],
+  "scope": "Private uninitialized same-ABI synthetic construction and zero-frame cleanup only.",
+  "implementation_acceptance": false,
+  "accounting_acceptance": false,
+  "full_target_instantiated": false,
+  "initialize_or_invoke": false,
+  "physical_device_runs": false,
+  "ga_acceptance": false,
+  "revision": "7c2baeb35704c3c10ba9c691e9b5f34a27ebfd9f",
+  "dirty_state": " M vm/src/experimental_swift_reactor/cache.rs\n M vm/src/experimental_swift_reactor/cache_tests.rs\n M vm/src/experimental_swift_reactor/control.rs\n M vm/src/experimental_swift_reactor/control_tests.rs\n M vm/src/experimental_swift_reactor/execution.rs\n M vm/src/experimental_swift_reactor/execution_tests.rs\n?? docs/android-appearance-resolution-v1.md\n?? docs/apple-appearance-font-profile.md\n?? docs/swift-executor-construction.md\n?? native/android/app/src/dev/mixer/android/AppearanceResolutionV1.java\n?? native/android/tests/AppearanceResolutionTests.java\n?? verification/android-appearance-resolution-independent-review/\n?? verification/android-appearance-resolution-root-review/\n?? verification/android-appearance-resolution/\n?? verification/apple-appearance-font-profile/\n?? verification/apple-appearance-shape-measurement/\n?? verification/apple-appearance-shape-probe/\n?? verification/swift-cache-owner-preflight/\n?? verification/swift-executor-construction/\n",
+  "source_tree_digest": "888315073565b1d489cca1f796438aab8efc682ec49d36766e6b00451e5ae25a",
+  "source_files": 425,
+  "metadata_attempt": 2,
+  "metadata_correction": "First derived metadata probe used undeclared generic lifetime and omitted multiline tuple fields; no engine source or qualification outcome changed. Attempt1 source/probe/log retained. Attempt2 substitutes static lifetimes and parses full tuple declarations.",
+  "construction_test_counts": {
+    "debug": 14,
+    "release": 14
+  },
+  "metadata": "layout-map.json",
+  "limitations": "No full executor acceptance; no every-work/check/deadline/growth/active-frame unwind qualification; no target initialize/invoke, physical stack/RSS/device, published FieldLog, signing/store/GA evidence.",
+  "status": "producer qualification passed; independent review pending",
+  "archive": {
+    "path": "frozen-source.tar.gz",
+    "sha256": "5f49611d4c5ee8617954334dca01f7514d8f36922d76a4303ad6a563ee8a28e2"
+  },
+  "call_map": {
+    "path": "call-map.json",
+    "sha256": "5f6458f62c5b2123207458509129a3e419b7cbaa21d0597f47e322db32d5e884",
+    "status": "candidate115fieldswith2explicitunassignedgroups; independent correction pending"
+  },
+  "artifact_hashes": {
+    ".gitignore": "181314065df2f2fdaf920b1a8b5311daa216a2d6489a06ada5b49cc514d89417",
+    "README.md": "8264aa5195340431e31884a936329db4f1e2956e8f70517ba8ac6f89ffd061c5",
+    "call-map.json": "5f6458f62c5b2123207458509129a3e419b7cbaa21d0597f47e322db32d5e884",
+    "collect.py": "605ab5d9be455d22cdfbab256817e4e0087d3139d722f67aeb88bb184aeeb04a",
+    "frozen-source.tar.gz": "5f49611d4c5ee8617954334dca01f7514d8f36922d76a4303ad6a563ee8a28e2",
+    "historical-metadata-attempt1/metadata-overlay.json": "e52d09bfe6c214a2c5af0e1eaad6d0d74e0fbde11ef39073b2a3fcd11338e792",
+    "historical-metadata-attempt1/metadata-probe.rs": "eccbe146613bf2facd6327e4bbfa36e177c2cfdc84fb33fec68ff118c5444c4a",
+    "layout-map.json": "7a69e635c286fde05904096962e9d2a6dd064b32327bcca510e2c00553ccf5a5",
+    "metadata-overlay.json": "82b59dc477ff9ad8e9b6ee4a7524da8b825d005a911c0155a0001d3e03e75498",
+    "metadata-probe.rs": "fc258680592c11760e3854563b0b81cfbd22190b3b6e24d2990b4d5dc45e9a63",
+    "source-manifest.json": "3998ba71de51efbabfc2bb62cb5bd0770b9fc3ce73658ee48d90855e22b23f66"
+  }
+}

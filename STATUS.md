@@ -38,7 +38,9 @@ bindings; all 50 implementation cases remain pending. See
 cache candidate3 now has scoped independent and root acceptance after its two
 mandatory assertion gaps were closed. The compiling executor layout prerequisite
 and disjoint final foundation correction now have root acceptance. Actual executor
-algorithms and full-target execution remain pending.
+algorithms and full-target execution remain pending. Private Uninitialized
+construction and zero-frame cleanup now have root acceptance with 927 bindings;
+see `docs/swift-executor-construction-acceptance.md`.
 The preceding `3d93137` checkpoint passed all VM/Swift/services CI jobs.
 Hosted `61c5c8b` passed services but its new minimal-feature Clippy check rejected
 unused private descriptor fields after tests passed. A descriptor-only repair
@@ -49,7 +51,10 @@ fresh private Android host runner under Swift 6.2.4. See
 `verification/github-ci-d6c41a0/receipt.json`.
 
 Latest hosted evidence: `09dac10`, `958998d`, `0f177ad` and `5988e4a` pass all three
-VM/Swift/services jobs. `7c2baeb`, `aa87c6e`, `d40c540` and `542e040` also pass all three jobs. The earlier
+VM/Swift/services jobs. `7c2baeb`, `aa87c6e`, `d40c540`, `542e040` and `7855754` also pass all three jobs.
+`26943ac` passes VM/services but fails Swift bridge TSan: publication data races
+and an HTTP native-exit test timeout are under separate investigation/repair.
+See `verification/github-ci-26943ac/receipt.json`. The earlier
 `c687e69` run failed TSan `fault-leave` with an observation deadline; a test-only
 precondition repair now has scoped root acceptance with 1,157 exact bindings,
 117 fresh scenario passes, six independent actual Swift/C scheduling probes and
@@ -65,8 +70,9 @@ The private executor layout prerequisite and final foundation correction are
 accepted within their host scope. Root checks 2,102 bindings; all six feature
 combinations pass per Debug/Release. All-feature suites report 350 passed and
 nine preexisting ignored tests per mode. The foundation is 17,368 bytes, including
-a new explicit 864-byte final-cleanup allowance. No constructor or interpreter
-algorithm is implemented by this prerequisite. Full target execution remains pending.
+a new explicit 864-byte final-cleanup allowance in that historical prerequisite.
+The accepted subsequent constructor raises production foundation to 267,800 bytes
+and adds fully named positive inventories. Full target execution remains pending.
 
 Observed implementation and evidence:
 
@@ -88,7 +94,7 @@ Observed implementation and evidence:
   passes106 SDK tests and5,584 independent schema/roundtrip cases per mode, plus
   public iOS/Android module checks. See
   `verification/ui-appearance-descriptor-v2-root-review/acceptance.json`. Android
-  V2 data implementation is active; renderers, native resources/support and
+  V2 data implementation is under independent review; renderers, native resources/support and
   signed V2 remain pending.
 
 - Java shared appearance resolution now has independent and root acceptance as
@@ -102,13 +108,17 @@ Observed implementation and evidence:
   and control PNGs are byte-identical to the existing reference. Android
   preference normalization and final geometry remain unapproved; both native
   renderers still need the measured shared recipe.
-- Private constructor behavior passes bounded host probes, but its preflight
-  accounting remains unaccepted. Positive typed additions and a deferred failure
-  completion API are implemented. Root found stale working-directory defaults in
-  candidate2 producer checks and a newly exposed category-first test expectation;
-  both receipts/failure are preserved and actual candidate3 qualification is
-  required. Independent source/lifetime review is ongoing. No full Swift target
-  is instantiated or invoked.
+- Private Uninitialized construction and zero-frame cleanup now have root
+  acceptance with 927 bindings. Independent review verifies 615 typed classes and
+  5,004 named positions across eight layouts; 434 derived library/probe executions
+  are separately scoped. Fresh product-only Debug/Release targets pass 366 full
+  host tests each, with nine ignored. Exact library binary lists contain 151 tests
+  and no metadata probe. Candidate2 stale-cwd, candidate3 Clippy and candidate4
+  shared-target contamination evidence is retained; contaminated 367-test claims
+  are superseded. Deferred cleanup retains the original authority through caller
+  return storage. See `verification/swift-executor-construction-root-review/acceptance.json`.
+  Interpreter operations, growth/active-frame unwind and full Swift target
+  initialization/invocation remain pending.
 
 - The unchanged Apple design is measured in 24 simulator captures across 12
   Debug/Release profiles. Root verifies 385 bindings and independently decodes all

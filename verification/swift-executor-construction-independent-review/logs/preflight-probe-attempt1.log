@@ -1,0 +1,88 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction-independent-review/tree/vm)
+error[E0425]: cannot find type `Duration` in this scope
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction-independent-review/tree/vm/../../preflight-supplement.rs:632:15
+    |
+632 |     object_1: Duration,
+    |               ^^^^^^^^ not found in this scope
+    |
+help: consider importing this struct
+   --> src/experimental_swift_reactor/execution.rs:6:1
+    |
+  6 + use std::time::Duration;
+    |
+
+error[E0425]: cannot find type `Duration` in this scope
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction-independent-review/tree/vm/../../preflight-supplement.rs:1239:111
+     |
+1239 | ...(PreflightSupplementMicros,object_1),size_of::<Duration>(),align_of::<Duration>());
+     |                                                   ^^^^^^^^ not found in this scope
+     |
+help: consider importing this struct
+    -->  src/experimental_swift_reactor/execution.rs:6:1
+     |
+   6 + use std::time::Duration;
+     |
+
+error[E0425]: cannot find type `Duration` in this scope
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction-independent-review/tree/vm/../../preflight-supplement.rs:1239:134
+     |
+1239 | ...ros,object_1),size_of::<Duration>(),align_of::<Duration>());
+     |                                                   ^^^^^^^^ not found in this scope
+     |
+help: consider importing this struct
+    -->  src/experimental_swift_reactor/execution.rs:6:1
+     |
+   6 + use std::time::Duration;
+     |
+
+error[E0658]: use of unstable library feature `generic_atomic`
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction-independent-review/tree/vm/../../preflight-supplement.rs:641:24
+    |
+641 |     object_2: &'static std::sync::atomic::Atomic<bool>,
+    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: see issue #130539 <https://github.com/rust-lang/rust/issues/130539> for more information
+
+error[E0658]: use of unstable library feature `generic_atomic`
+   --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction-independent-review/tree/vm/../../preflight-supplement.rs:642:39
+    |
+642 |     object_3: &'static std::sync::Arc<std::sync::atomic::Atomic<bool>>,
+    |                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: see issue #130539 <https://github.com/rust-lang/rust/issues/130539> for more information
+
+error[E0658]: use of unstable library feature `generic_atomic`
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction-independent-review/tree/vm/../../preflight-supplement.rs:1246:126
+     |
+1246 | ...upplementCancelled,object_2),size_of::<&'static std::sync::atomic::Atomic<bool>>(),align_of::<&'static std::sync::atomic::Atomi...
+     |                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: see issue #130539 <https://github.com/rust-lang/rust/issues/130539> for more information
+
+error[E0658]: use of unstable library feature `generic_atomic`
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction-independent-review/tree/vm/../../preflight-supplement.rs:1246:181
+     |
+1246 | ...nc::atomic::Atomic<bool>>(),align_of::<&'static std::sync::atomic::Atomic<bool>>());
+     |                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: see issue #130539 <https://github.com/rust-lang/rust/issues/130539> for more information
+
+error[E0658]: use of unstable library feature `generic_atomic`
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction-independent-review/tree/vm/../../preflight-supplement.rs:1247:141
+     |
+1247 | ...led,object_3),size_of::<&'static std::sync::Arc<std::sync::atomic::Atomic<bool>>>(),align_of::<&'static std::sync::Arc<std::syn...
+     |                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: see issue #130539 <https://github.com/rust-lang/rust/issues/130539> for more information
+
+error[E0658]: use of unstable library feature `generic_atomic`
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction-independent-review/tree/vm/../../preflight-supplement.rs:1247:212
+     |
+1247 | ...ic<bool>>>(),align_of::<&'static std::sync::Arc<std::sync::atomic::Atomic<bool>>>());
+     |                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: see issue #130539 <https://github.com/rust-lang/rust/issues/130539> for more information
+
+Some errors have detailed explanations: E0425, E0658.
+For more information about an error, try `rustc --explain E0425`.
+error: could not compile `mixer-vm` (lib) due to 9 previous errors

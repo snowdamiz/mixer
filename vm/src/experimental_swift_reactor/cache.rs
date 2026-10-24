@@ -1317,6 +1317,23 @@ impl SwiftFunctionCache {
     pub(crate) fn proof(&self) -> &ValidatedSwiftReactor {
         self.adopted.proof()
     }
+    /// Borrow-only provenance preflight for composed construction and cleanup.
+    /// Deliberately performs no ordinary checkpoint, admission, or work debit.
+    /// The caller accounts for these temporary borrows before invoking it.
+    #[allow(dead_code)] // Consumed by the separately qualified private executor.
+    pub(crate) fn check_owner(
+        &self,
+        control: &mut RuntimeControl,
+        wasi: Option<&AccountedWasi>,
+        cursor: Cursor,
+    ) -> Result<(), SwiftRunFailure> {
+        CacheControl {
+            control,
+            wasi,
+            cursor,
+        }
+        .check_header(self)
+    }
     pub(crate) fn usage(&self) -> SwiftCacheUsage {
         self.usage
     }

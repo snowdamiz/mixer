@@ -1,0 +1,21 @@
+{
+  "schema": "mixer.swift-construction-candidate2-api-freeze.v1",
+  "status": "private API implemented; positive accounting supplements and qualification pending",
+  "source_hashes": {
+    "vm/src/experimental_swift_reactor/execution.rs": "663c14a5609096f94758608ece9550e22c16a4d420a03d87abf930e383834ea6",
+    "vm/src/experimental_swift_reactor/execution_tests.rs": "8615969f23ae7562c81802ddc410549e3622d0c1ad187e3ed5c8476323f5d8b2"
+  },
+  "constructor": "construct(&mut Option<(RuntimeControl, AdoptedProof)>, grants, wasi_budget, started, cursor) -> Result<SwiftReactorInstance, ConstructionFailure>",
+  "failure": {
+    "Rejected": "Copied SwiftRunFailure; original caller pair remains Some with foundation charged",
+    "Cleanup": "Must-use non-Clone ConstructionCleanupTail owning existing ExecutionCleanupTail and exact previous_bound"
+  },
+  "completion": "complete<T>(self, storage: T, outcome: &mut Option<SwiftRunFailure>, usage: &mut Option<SwiftRunUsage>) -> ()",
+  "boundary": "After take, component payloads drain before return, while original control/header/outer envelope stay charged. Unit completion first ends all supplied whole Result/Option/pair/partial storage, then restores outer bound, refunds same header and consumes foundation.",
+  "no_new_tickets": true,
+  "stored_owner_fields_unchanged": true,
+  "runtime_activation": false,
+  "full_target_execution": false,
+  "physical_device_runs": false,
+  "ga_acceptance": false
+}

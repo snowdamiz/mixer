@@ -18,6 +18,43 @@ use crate::{Cancellation, Type, Value};
 use std::mem::{align_of, offset_of, size_of};
 use std::time::Instant;
 
+#[derive(Clone, Copy, Default)]
+struct ConstructionHooks {
+    checks: usize,
+    cancel: Option<usize>,
+    capacities: usize,
+    capacity: Option<usize>,
+    bad_restore: bool,
+}
+thread_local! { static CONSTRUCTION_HOOKS: std::cell::Cell<ConstructionHooks> = std::cell::Cell::new(ConstructionHooks::default()); }
+pub(super) fn construction_checkpoint(control: &RuntimeControl, _: Cursor) {
+    CONSTRUCTION_HOOKS.with(|slot| {
+        let mut hooks = slot.get();
+        if hooks.cancel == Some(hooks.checks) {
+            control.cancellation().cancel();
+        }
+        hooks.checks += 1;
+        slot.set(hooks);
+    });
+}
+pub(super) fn construction_capacity(observed: usize) -> usize {
+    CONSTRUCTION_HOOKS.with(|slot| {
+        let mut hooks = slot.get();
+        let corrupt = hooks.capacity == Some(hooks.capacities);
+        hooks.capacities += 1;
+        slot.set(hooks);
+        observed + usize::from(corrupt)
+    })
+}
+pub(super) fn construction_restore_bound(previous: usize) -> usize {
+    CONSTRUCTION_HOOKS.with(|slot| if slot.get().bad_restore { 0 } else { previous })
+}
+#[test]
+fn swift_construction_named_layout_supplement() {
+    print_construction_layouts();
+    assert!(construction_bytes().unwrap() > phase_bytes("construction").unwrap());
+}
+
 #[test]
 fn swift_executor_layout_all_eight_phase_shapes() {
     macro_rules! row {
@@ -422,6 +459,806 @@ fn actual_final_observation(control: &mut RuntimeControl) -> Option<WasiUsage> {
     let observation = wasi.checked_usage(control, cursor).unwrap();
     wasi.cleanup(control).unwrap();
     Some(observation)
+}
+
+fn construction_cursor() -> Cursor {
+    Cursor {
+        stage: SwiftRunStage::Initialization,
+        function: None,
+        offset: None,
+    }
+}
+fn construction_hooks(hooks: ConstructionHooks) {
+    CONSTRUCTION_HOOKS.with(|slot| slot.set(hooks));
+}
+fn construction_fixture() -> Vec<u8> {
+    fn uint(mut value: u32, out: &mut Vec<u8>) {
+        loop {
+            let byte = (value & 127) as u8;
+            value >>= 7;
+            out.push(byte | if value == 0 { 0 } else { 128 });
+            if value == 0 {
+                return;
+            }
+        }
+    }
+    fn section(id: u8, payload: &[u8], out: &mut Vec<u8>) {
+        out.push(id);
+        uint(payload.len() as u32, out);
+        out.extend(payload);
+    }
+    fn uint_at(bytes: &[u8], at: &mut usize) -> usize {
+        let mut value = 0;
+        let mut shift = 0;
+        loop {
+            let byte = bytes[*at];
+            *at += 1;
+            value |= ((byte & 127) as usize) << shift;
+            if byte & 128 == 0 {
+                return value;
+            }
+            shift += 7;
+        }
+    }
+    let original = fixture();
+    let mut out = original[..8].to_vec();
+    let mut at = 8;
+    while at < original.len() {
+        let start = at;
+        let id = original[at];
+        at += 1;
+        let len = uint_at(&original, &mut at);
+        at += len;
+        if id == 7 {
+            let globals = [
+                vec![0x7f, 1, 0x41, 0x7f, 0x0b],
+                vec![0x7e, 0, 0x42, 0x7e, 0x0b],
+                vec![0x7d, 0, 0x43, 0x34, 0x12, 0xc0, 0x7f, 0x0b],
+                vec![0x7c, 0, 0x44, 0, 0, 0, 0, 0, 0, 0, 0x80, 0x0b],
+            ];
+            let mut payload = vec![4];
+            for global in globals {
+                payload.extend(global);
+            }
+            section(6, &payload, &mut out);
+        }
+        if id == 10 {
+            // Retained source order: the later element overwrites the first.
+            section(
+                9,
+                &[2, 0, 0x41, 0, 0x0b, 2, 34, 35, 0, 0x41, 1, 0x0b, 1, 62],
+                &mut out,
+            );
+        }
+        out.extend_from_slice(&original[start..at]);
+    }
+    // Overlap and a zero-length range exactly at the memory boundary.
+    let mut data = vec![
+        3, 0, 0x41, 0, 0x0b, 4, b'a', b'b', b'c', b'd', 0, 0x41, 2, 0x0b, 2, b'X', b'Y', 0, 0x41,
+    ];
+    // Positive signed-LEB of 584*65536, followed by end and zero count.
+    let mut value = 584u32 * 65536;
+    loop {
+        let byte = (value & 127) as u8;
+        value >>= 7;
+        let more = value != 0 || byte & 64 != 0;
+        data.push(byte | if more { 128 } else { 0 });
+        if !more {
+            break;
+        }
+    }
+    data.extend([0x0b, 0]);
+    section(11, &data, &mut out);
+    out
+}
+fn construction_adopt(budget: SwiftRunBudget) -> Option<(RuntimeControl, AdoptedProof)> {
+    construction_adopt_bytes(&construction_fixture(), budget)
+}
+fn construction_adopt_bytes(
+    bytes: &[u8],
+    budget: SwiftRunBudget,
+) -> Option<(RuntimeControl, AdoptedProof)> {
+    let proof = validate_swift_reactor(
+        bytes,
+        SwiftValidationBudget::default(),
+        &Cancellation::default(),
+    )
+    .unwrap();
+    Some(RuntimeControl::adopt(proof, budget, Instant::now(), Cancellation::default()).unwrap())
+}
+fn construction_wasi_budget() -> WasiBudget {
+    WasiBudget {
+        one_transfer_bytes: 64,
+        log_bytes: 64,
+        ..WasiBudget::default()
+    }
+}
+fn construct_owned(
+    pair: &mut Option<(RuntimeControl, AdoptedProof)>,
+) -> Result<SwiftReactorInstance, ConstructionFailure> {
+    SwiftReactorInstance::construct(
+        pair,
+        WasiGrants::default(),
+        construction_wasi_budget(),
+        Instant::now(),
+        construction_cursor(),
+    )
+}
+fn construct_failed(mut pair: Option<(RuntimeControl, AdoptedProof)>) -> SwiftRunFailure {
+    let mut returned = Some(construct_owned(&mut pair));
+    let tail = match returned.take().unwrap() {
+        Err(ConstructionFailure::Cleanup(tail)) => tail,
+        _ => panic!("expected destructive constructor failure"),
+    };
+    assert!(pair.is_none());
+    let mut outcome = None;
+    let mut usage = None;
+    tail.complete((pair, returned), &mut outcome, &mut usage);
+    let mut failure = outcome.expect("constructor latched first failure");
+    failure.after_cleanup = usage;
+    failure
+}
+fn construction_finish(owner: SwiftReactorInstance) -> SwiftRunUsage {
+    let mut owned = Some(owner);
+    let mut returned = Some(SwiftReactorInstance::cleanup_owned(&mut owned));
+    let tail = returned
+        .take()
+        .unwrap()
+        .unwrap_or_else(|e| panic!("cleanup {}", e.code));
+    let mut failure = None;
+    let mut usage = None;
+    tail.complete((owned, returned), &mut failure, &mut usage);
+    let usage = usage.unwrap();
+    assert_eq!(usage.reservations.combined.current, 0);
+    assert_eq!(usage.reservations.live_tickets, 0);
+    assert_eq!(usage.live.memory_pages.current, 0);
+    assert_eq!(usage.live.active_pins.current, 0);
+    assert_eq!(usage.live.cache_entries.current, 0);
+    assert_eq!(usage.cleanup_invariant, None);
+    usage
+}
+
+#[test]
+fn swift_construction_composed_original_proof_six_arenas_and_cleanup() {
+    construction_hooks(ConstructionHooks::default());
+    let mut pair = construction_adopt(SwiftRunBudget::default());
+    let source = pair.as_ref().unwrap().1.proof().source().as_ptr();
+    let validation = pair.as_ref().unwrap().1.proof().usage();
+    let floor = pair
+        .as_ref()
+        .unwrap()
+        .0
+        .usage(None)
+        .reservations
+        .construction
+        .current;
+    let (owner, allocations) = measure(|| construct_owned(&mut pair).unwrap());
+    assert!(pair.is_none());
+    drop(pair);
+    assert!(matches!(owner.lifecycle, Lifecycle::Uninitialized));
+    let state = owner.state.as_ref().unwrap();
+    assert_eq!(state.values.capacity(), 16384);
+    assert_eq!(state.controls.capacity(), 4096);
+    assert_eq!(state.frames.capacity(), 64);
+    assert_eq!(state.memory.capacity(), 584 * 65536);
+    assert_eq!(state.table.capacity(), 46713);
+    assert_eq!(state.globals.capacity(), 4);
+    assert_eq!(
+        state.values.len() + state.controls.len() + state.frames.len(),
+        0
+    );
+    assert_eq!(&state.memory[..5], b"abXY\0");
+    assert!(state.memory[4..].iter().all(|byte| *byte == 0));
+    assert_eq!(&state.table[..3], &[Some(34), Some(62), None]);
+    assert_eq!(
+        state.globals,
+        [
+            Value::I32(-1),
+            Value::I64(-2),
+            Value::F32(0x7fc01234),
+            Value::F64(0x8000000000000000)
+        ]
+    );
+    assert_eq!(
+        owner.cache.as_ref().unwrap().proof().source().as_ptr(),
+        source
+    );
+    assert_eq!(owner.cache.as_ref().unwrap().proof().usage(), validation);
+    let usage = owner
+        .control
+        .as_ref()
+        .unwrap()
+        .usage(owner.wasi.as_ref().map(AccountedWasi::usage));
+    assert_eq!(usage.reservations.construction.current, floor);
+    assert_eq!(usage.live.memory_pages.current, 584);
+    assert_eq!(usage.instructions, 0);
+    assert_eq!(usage.instruction_fuel, 0);
+    assert_eq!(usage.host_calls, 0);
+    assert_eq!(
+        usage.execution_work,
+        (584 * 65536 + 46713 + 4 + 64 + 5 + 6 + 3) as u64
+    );
+    assert_eq!(
+        usage.reservations.retained_source.current,
+        validation.source_bytes
+    );
+    assert_eq!(allocations.allocations, 13);
+    assert_eq!(allocations.reallocations, 0);
+    let (usage, cleanup) = measure(|| construction_finish(owner));
+    assert_eq!(cleanup.allocations + cleanup.reallocations, 0);
+    assert_eq!(cleanup.deallocations, 23); // 13 payloads + 10 adopted/foundation backing allocations.
+    assert!(usage.reservations.combined.peak > usage.reservations.state.peak);
+    println!(
+        "construction allocations {} bytes {} cleanup_deallocations {} peak {}",
+        allocations.allocations,
+        allocations.allocated_bytes,
+        cleanup.deallocations,
+        usage.reservations.combined.peak
+    );
+}
+
+#[test]
+fn swift_construction_every_integrated_allocation_ordinal() {
+    use super::allocation_tests::measure_extended;
+    for ordinal in 0..13 {
+        construction_hooks(ConstructionHooks::default());
+        let pair = construction_adopt(SwiftRunBudget::default());
+        let (failure, stats) = measure_extended(Some(ordinal), || construct_failed(pair));
+        assert_eq!(stats.injected_failures, 1, "ordinal {ordinal}");
+        assert_eq!(stats.attempts, ordinal + 1, "ordinal {ordinal}");
+        assert_eq!(stats.reallocations, 0);
+        assert_eq!(failure.kind, SwiftRunFailureKind::Allocation);
+        let after = failure.after_cleanup.unwrap();
+        assert_eq!(
+            after.reservations.combined.current, 0,
+            "ordinal {ordinal} {}",
+            failure.code
+        );
+        assert_eq!(after.reservations.live_tickets, 0, "ordinal {ordinal}");
+        assert_eq!(after.live.memory_pages.current, 0);
+        assert_eq!(after.cleanup_invariant, None);
+        assert_eq!(
+            stats.deallocations,
+            ordinal + 10,
+            "adopted/foundation backing and prior payloads at {ordinal}"
+        );
+    }
+}
+
+#[test]
+fn swift_construction_each_state_capacity_rejects_without_growth() {
+    for ordinal in 0..6 {
+        construction_hooks(ConstructionHooks {
+            capacity: Some(ordinal),
+            ..ConstructionHooks::default()
+        });
+        let pair = construction_adopt(SwiftRunBudget::default());
+        let (failure, stats) = measure(|| construct_failed(pair));
+        assert_eq!(failure.code, "swift_run_unexpected_capacity");
+        assert_eq!(
+            failure.observed_capacity,
+            Some(failure.attempted as usize + 1)
+        );
+        assert_eq!(failure.resource, Some(SwiftRunResource::ExactCapacity));
+        assert_eq!(stats.attempts, 8 + ordinal);
+        assert_eq!(stats.reallocations, 0);
+        assert_eq!(
+            failure.after_cleanup.unwrap().reservations.combined.current,
+            0
+        );
+    }
+    construction_hooks(ConstructionHooks::default());
+}
+
+#[test]
+fn swift_construction_zero_stack_capacities_and_memory_minimum() {
+    construction_hooks(ConstructionHooks::default());
+    let mut pair = construction_adopt(SwiftRunBudget {
+        frames: 0,
+        values: 0,
+        controls: 0,
+        ..SwiftRunBudget::default()
+    });
+    let (owner, stats) = measure(|| construct_owned(&mut pair).unwrap());
+    drop(pair);
+    let state = owner.state.as_ref().unwrap();
+    assert_eq!(
+        state.frames.capacity() + state.values.capacity() + state.controls.capacity(),
+        0
+    );
+    assert_eq!(stats.allocations, 10);
+    construction_finish(owner);
+    let pair = construction_adopt(SwiftRunBudget {
+        memory_pages: 583,
+        ..SwiftRunBudget::default()
+    });
+    let (failure, stats) = measure(|| construct_failed(pair));
+    assert_eq!(failure.code, "swift_execution_memory_minimum");
+    assert_eq!((failure.attempted, failure.limit), (584, 583));
+    assert_eq!(stats.allocations, 7); // Cache and WASI only; no State allocation.
+    assert_eq!(failure.at_failure.reservations.state.current, 0);
+    assert_eq!(
+        failure.after_cleanup.unwrap().reservations.combined.current,
+        0
+    );
+}
+
+#[test]
+fn swift_construction_terminal_before_take_preserves_owner_and_first_cause() {
+    construction_hooks(ConstructionHooks::default());
+    let mut pair = construction_adopt(SwiftRunBudget::default());
+    let first = pair.as_mut().unwrap().0.fail(
+        construction_cursor(),
+        Fault::new(SwiftRunFailureKind::GuestTrap, "construction_prior"),
+        None,
+    );
+    let (returned, stats) = measure(|| construct_owned(&mut pair));
+    let failure = match returned {
+        Err(ConstructionFailure::Rejected(failure)) => failure,
+        _ => panic!("expected intact-pair rejection"),
+    };
+    drop(returned);
+    assert_eq!(failure, first);
+    assert!(pair.is_some());
+    assert_eq!(
+        stats.allocations + stats.deallocations + stats.reallocations,
+        0
+    );
+    let (mut control, proof) = pair.take().unwrap();
+    control.drop_proof(proof).unwrap();
+    control
+        .end_construction_phase(pair, foundation_construction_bytes().unwrap())
+        .unwrap();
+    let usage = control.finish_owned_cleanup(None);
+    assert_eq!(usage.reservations.combined.current, 0);
+}
+
+#[test]
+fn swift_construction_category_and_combined_admission_precede_allocation() {
+    for (budget, kind, attempts) in [
+        (
+            SwiftRunBudget {
+                state_bytes: 0,
+                ..SwiftRunBudget::default()
+            },
+            SwiftRunFailureKind::CategoryExhausted,
+            7,
+        ),
+        (
+            SwiftRunBudget {
+                combined_bytes: 32 * 1024 * 1024,
+                ..SwiftRunBudget::default()
+            },
+            SwiftRunFailureKind::CombinedExhausted,
+            10,
+        ),
+    ] {
+        construction_hooks(ConstructionHooks::default());
+        let pair = construction_adopt(budget);
+        let (failure, stats) = measure(|| construct_failed(pair));
+        assert_eq!(failure.kind, kind);
+        assert_eq!(stats.attempts, attempts);
+        assert_eq!(stats.reallocations, 0);
+        assert_eq!(
+            failure.after_cleanup.unwrap().reservations.combined.current,
+            0
+        );
+        assert_eq!(failure.after_cleanup.unwrap().reservations.live_tickets, 0);
+    }
+}
+
+#[test]
+fn swift_construction_base_work_prefixes_and_selected_cancellation_boundaries() {
+    let base = (584 * 65536 + 46713 + 4) as u64;
+    for limit in [
+        0,
+        base - 1,
+        base,
+        base + 15,
+        base + 16,
+        base + 63,
+        base + 64,
+        base + 77,
+    ] {
+        construction_hooks(ConstructionHooks::default());
+        let pair = construction_adopt(SwiftRunBudget {
+            execution_work: limit,
+            ..SwiftRunBudget::default()
+        });
+        let failure = construct_failed(pair);
+        assert_eq!(failure.kind, SwiftRunFailureKind::WorkExhausted);
+        assert!(failure.at_failure.execution_work <= limit);
+        assert_eq!(failure.at_failure.live.memory_pages.current, 0);
+        assert!(failure.at_failure.wasi.is_some());
+        assert_eq!(
+            failure.after_cleanup.unwrap().reservations.combined.current,
+            0
+        );
+    }
+    construction_hooks(ConstructionHooks::default());
+    let mut pair = construction_adopt(SwiftRunBudget::default());
+    let owner = construct_owned(&mut pair).unwrap();
+    drop(pair);
+    let count = CONSTRUCTION_HOOKS.with(|slot| slot.get().checks);
+    construction_finish(owner);
+    // Bounded construction-only samples; the frozen all-prefix interpreter
+    // qualification remains pending. These hit allocation/zero/table/final loops.
+    for ordinal in [0, 1, 2, 12, 15, 1000, 10000, count - 2, count - 1] {
+        construction_hooks(ConstructionHooks {
+            cancel: Some(ordinal),
+            ..ConstructionHooks::default()
+        });
+        let pair = construction_adopt(SwiftRunBudget::default());
+        let failure = construct_failed(pair);
+        assert_eq!(
+            failure.kind,
+            SwiftRunFailureKind::Cancelled,
+            "check {ordinal}"
+        );
+        assert_eq!(
+            CONSTRUCTION_HOOKS.with(|slot| slot.get().checks),
+            ordinal + 1
+        );
+        assert_eq!(failure.at_failure.live.memory_pages.current, 0);
+        assert_eq!(
+            failure.after_cleanup.unwrap().reservations.combined.current,
+            0
+        );
+        assert_eq!(failure.after_cleanup.unwrap().reservations.live_tickets, 0);
+    }
+    construction_hooks(ConstructionHooks::default());
+    println!("construction real check boundaries {count}; selected cancellation samples 9");
+}
+
+#[test]
+fn swift_construction_real_wasi_terminal_cleanup_and_intact_foreign_preflight() {
+    construction_hooks(ConstructionHooks::default());
+    let mut first =
+        Some(construct_owned(&mut construction_adopt(SwiftRunBudget::default())).unwrap());
+    {
+        let owner = first.as_mut().unwrap();
+        owner
+            .wasi
+            .as_mut()
+            .unwrap()
+            .dispatch(
+                owner.control.as_mut().unwrap(),
+                WasiFunction::ArgsSizesGet,
+                &[Value::I32(0), Value::I32(4)],
+                &mut [0; 8],
+                construction_cursor(),
+            )
+            .unwrap();
+        let observation = owner.wasi.as_ref().unwrap().usage();
+        assert_eq!(observation.calls, 1);
+        owner.control.as_mut().unwrap().fail(
+            construction_cursor(),
+            Fault::new(SwiftRunFailureKind::GuestTrap, "construction_actual_wasi"),
+            Some(observation),
+        );
+    }
+    let mut second =
+        Some(construct_owned(&mut construction_adopt(SwiftRunBudget::default())).unwrap());
+    std::mem::swap(
+        &mut first.as_mut().unwrap().wasi,
+        &mut second.as_mut().unwrap().wasi,
+    );
+    let before = first
+        .as_ref()
+        .unwrap()
+        .control
+        .as_ref()
+        .unwrap()
+        .usage(None);
+    let (failure, stats) = measure(|| {
+        SwiftReactorInstance::cleanup_owned(&mut first)
+            .err()
+            .unwrap()
+    });
+    assert_eq!(failure.code, "construction_actual_wasi");
+    assert!(first.is_some());
+    let after = first
+        .as_ref()
+        .unwrap()
+        .control
+        .as_ref()
+        .unwrap()
+        .usage(None);
+    assert_eq!(before.reservations, after.reservations);
+    assert_eq!(
+        stats.allocations + stats.reallocations + stats.deallocations,
+        0
+    );
+    std::mem::swap(
+        &mut first.as_mut().unwrap().wasi,
+        &mut second.as_mut().unwrap().wasi,
+    );
+    let mut returned = Some(SwiftReactorInstance::cleanup_owned(&mut first));
+    let tail = returned
+        .take()
+        .unwrap()
+        .unwrap_or_else(|e| panic!("{}", e.code));
+    let mut failure = None;
+    let mut usage = None;
+    let (_, stats) = measure(|| tail.complete((first, returned), &mut failure, &mut usage));
+    assert_eq!(stats.allocations + stats.reallocations, 0);
+    let failure = failure.unwrap();
+    assert_eq!(failure.code, "construction_actual_wasi");
+    assert_eq!(failure.at_failure.wasi.unwrap().calls, 1);
+    assert_eq!(usage.unwrap().wasi.unwrap().calls, 1);
+    assert_eq!(usage.unwrap().reservations.combined.current, 0);
+    construction_finish(second.take().unwrap());
+}
+
+#[test]
+fn swift_construction_cleanup_rejects_nonempty_state_before_take() {
+    construction_hooks(ConstructionHooks::default());
+    let mut owned =
+        Some(construct_owned(&mut construction_adopt(SwiftRunBudget::default())).unwrap());
+    owned
+        .as_mut()
+        .unwrap()
+        .state
+        .as_mut()
+        .unwrap()
+        .values
+        .push(Value::I32(7));
+    let before = owned
+        .as_ref()
+        .unwrap()
+        .control
+        .as_ref()
+        .unwrap()
+        .usage(None)
+        .reservations;
+    let (failure, stats) = measure(|| {
+        SwiftReactorInstance::cleanup_owned(&mut owned)
+            .err()
+            .unwrap()
+    });
+    assert_eq!(failure.code, "swift_execution_cleanup_nonempty");
+    assert!(owned.is_some());
+    assert_eq!(
+        owned.as_ref().unwrap().state.as_ref().unwrap().values,
+        [Value::I32(7)]
+    );
+    assert_eq!(
+        owned
+            .as_ref()
+            .unwrap()
+            .control
+            .as_ref()
+            .unwrap()
+            .usage(None)
+            .reservations,
+        before
+    );
+    assert_eq!(
+        stats.allocations + stats.reallocations + stats.deallocations,
+        0
+    );
+    owned
+        .as_mut()
+        .unwrap()
+        .state
+        .as_mut()
+        .unwrap()
+        .values
+        .clear();
+    construction_finish(owned.take().unwrap());
+}
+
+#[test]
+fn swift_construction_failed_outer_restore_drains_actual_components() {
+    construction_hooks(ConstructionHooks {
+        bad_restore: true,
+        ..ConstructionHooks::default()
+    });
+    let pair = construction_adopt(SwiftRunBudget::default());
+    let (failure, stats) = measure(|| construct_failed(pair));
+    assert_eq!(failure.code, "swift_run_construction_phase_bound");
+    assert_eq!(stats.allocations, 13);
+    assert_eq!(stats.deallocations, 23);
+    let after = failure.after_cleanup.unwrap();
+    assert_eq!(after.reservations.state.current, 0);
+    assert_eq!(after.reservations.cache.current, 0);
+    assert_eq!(after.reservations.wasi.current, 0);
+    assert_eq!(
+        after.reservations.retained_source.current + after.reservations.retained_metadata.current,
+        0
+    );
+    assert_eq!(after.live.memory_pages.current, 0);
+    assert_eq!(after.reservations.live_tickets, 1);
+    assert_eq!(
+        after.reservations.combined.current,
+        foundation_construction_bytes().unwrap() + construction_bytes().unwrap()
+    );
+    assert_eq!(
+        after.cleanup_invariant,
+        Some(SwiftCleanupInvariant::ConstructionBound)
+    );
+    construction_hooks(ConstructionHooks::default());
+}
+
+#[test]
+fn swift_construction_retained_minimum_and_padded_signed_constants() {
+    fn uint(mut n: usize, out: &mut Vec<u8>) {
+        loop {
+            let b = (n & 127) as u8;
+            n >>= 7;
+            out.push(b | if n == 0 { 0 } else { 128 });
+            if n == 0 {
+                return;
+            }
+        }
+    }
+    fn uint_at(bytes: &[u8], at: &mut usize) -> usize {
+        let mut n = 0;
+        let mut shift = 0;
+        loop {
+            let b = bytes[*at];
+            *at += 1;
+            n |= ((b & 127) as usize) << shift;
+            if b & 128 == 0 {
+                return n;
+            }
+            shift += 7;
+        }
+    }
+    construction_hooks(ConstructionHooks::default());
+    let source = construction_fixture();
+    let mut fixture = source[..8].to_vec();
+    let mut at = 8;
+    while at < source.len() {
+        let id = source[at];
+        at += 1;
+        let count = uint_at(&source, &mut at);
+        let end = at + count;
+        fixture.push(id);
+        if id == 6 {
+            let mut globals = vec![8];
+            globals.extend_from_slice(&source[at + 1..end]);
+            globals.extend([0x7f, 0, 0x41, 0x80, 0x80, 0x80, 0x80, 0x78, 0x0b]);
+            globals.extend([0x7e, 0, 0x42]);
+            globals.extend([0x80; 9]);
+            globals.extend([0x7f, 0x0b]);
+            globals.extend([0x7f, 0, 0x41, 0xff, 0xff, 0xff, 0xff, 0x7f, 0x0b]);
+            globals.extend([0x7e, 0, 0x42, 0xfe]);
+            globals.extend([0xff; 8]);
+            globals.extend([0x7f, 0x0b]);
+            uint(globals.len(), &mut fixture);
+            fixture.extend(globals);
+        } else {
+            uint(count, &mut fixture);
+            fixture.extend_from_slice(&source[at..end]);
+        }
+        at = end;
+    }
+    let mut pair = construction_adopt_bytes(&fixture, SwiftRunBudget::default());
+    let owner = construct_owned(&mut pair).unwrap();
+    drop(pair);
+    assert_eq!(
+        &owner.state.as_ref().unwrap().globals[4..],
+        &[
+            Value::I32(i32::MIN),
+            Value::I64(i64::MIN),
+            Value::I32(-1),
+            Value::I64(-2)
+        ]
+    );
+    construction_finish(owner);
+}
+
+#[test]
+fn swift_construction_checked_scalar_rejects_exact_first_byte() {
+    for (bytes, ty, code, offset) in [
+        (&[0xff][..], Type::I32, "swift_execution_scalar_opcode", 900),
+        (
+            &[0x41, 0, 0x0b][..],
+            Type::F32,
+            "swift_execution_scalar_type",
+            900,
+        ),
+        (
+            &[0x41, 0, 0][..],
+            Type::I32,
+            "swift_execution_scalar_end",
+            902,
+        ),
+        (
+            &[0x41, 0, 0x0b, 0][..],
+            Type::I32,
+            "swift_execution_scalar_trailing",
+            903,
+        ),
+        (
+            &[0x44, 0, 0][..],
+            Type::F64,
+            "swift_execution_scalar_eof",
+            903,
+        ),
+        (
+            &[0x41, 0x80, 0x80, 0x80, 0x80, 0x08, 0x0b][..],
+            Type::I32,
+            "swift_execution_scalar_signed",
+            905,
+        ),
+    ] {
+        construction_hooks(ConstructionHooks::default());
+        let mut owner =
+            construct_owned(&mut construction_adopt(SwiftRunBudget::default())).unwrap();
+        let (failure, stats) = measure(|| {
+            scalar_constant_probe(
+                bytes,
+                900,
+                ty,
+                owner.control.as_mut().unwrap(),
+                owner.wasi.as_ref().unwrap(),
+            )
+            .err()
+            .unwrap()
+        });
+        assert_eq!((failure.code, failure.offset), (code, Some(offset)));
+        assert_eq!(stats.allocations + stats.reallocations, 0);
+        construction_finish(owner);
+    }
+}
+
+#[test]
+fn swift_construction_state_phase_is_one_shot_and_restores_exact_outer_bound() {
+    construction_hooks(ConstructionHooks::default());
+    let mut owner = construct_owned(&mut construction_adopt(SwiftRunBudget::default())).unwrap();
+    let floor = owner
+        .control
+        .as_ref()
+        .unwrap()
+        .usage(None)
+        .reservations
+        .construction
+        .current;
+    let mut phase = SwiftExecutionState::prepare(
+        owner.control.as_mut().unwrap(),
+        owner.cache.as_ref().unwrap(),
+        owner.wasi.as_ref().unwrap(),
+        construction_cursor(),
+    )
+    .unwrap();
+    let first = phase
+        .construct()
+        .err()
+        .expect("second State cannot double initial live pages");
+    assert_eq!(first.resource, Some(SwiftRunResource::MemoryPages));
+    assert_eq!((first.attempted, first.limit), (1168, 768));
+    let (second, stats) = measure(|| phase.construct().err().unwrap());
+    assert_eq!(first, second);
+    assert_eq!(
+        stats.allocations + stats.reallocations + stats.deallocations,
+        0
+    );
+    phase.complete(()).unwrap();
+    assert_eq!(
+        owner
+            .control
+            .as_ref()
+            .unwrap()
+            .usage(None)
+            .reservations
+            .construction
+            .current,
+        floor
+    );
+    assert_eq!(
+        owner
+            .control
+            .as_ref()
+            .unwrap()
+            .usage(None)
+            .live
+            .memory_pages
+            .current,
+        584
+    );
+    construction_finish(owner);
 }
 
 #[test]

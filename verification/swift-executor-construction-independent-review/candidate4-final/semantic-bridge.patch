@@ -1,0 +1,48 @@
+--- tested-candidate3/vm/src/experimental_swift_reactor/execution.rs
++++ final-candidate4/vm/src/experimental_swift_reactor/execution.rs
+@@ -145,6 +145,9 @@
+     pub previous_bound: usize,
+ }
+ #[must_use = "A rejected pair stays owned; a cleanup variant must be completed"]
++// Keep the original control and accounting tail inline; boxing would allocate
++// while returning a construction failure and change the measured authority.
++#[allow(clippy::large_enum_variant)]
+ pub(crate) enum ConstructionFailure {
+     Rejected(SwiftRunFailure),
+     Cleanup(ConstructionCleanupTail),
+@@ -1810,6 +1813,8 @@
+ // Class array indices map one-to-one to positive-accounting-map.json bindings.
+ // Every old inventory remains charged. No phase padding or diagnostic slot is reused.
+ #[allow(dead_code)]
++// Retain each exact mapped tuple identity in this const-only inventory.
++#[allow(clippy::type_complexity)]
+ pub(crate) struct ConstructionPositivePreflight {
+     class_0: [bool; 24],
+     class_1: [&'static crate::execute::Cancellation; 3],
+@@ -2058,6 +2063,8 @@
+ pub(crate) const CONSTRUCTION_POSITIVE_PREFLIGHT_BYTES: usize =
+     std::mem::size_of::<ConstructionPositivePreflight>();
+ #[allow(dead_code)]
++// Retain each exact mapped tuple identity in this const-only inventory.
++#[allow(clippy::type_complexity)]
+ pub(crate) struct ConstructionPositiveActive {
+     class_0: [std::result::Result<
+         crate::experimental_swift_reactor::control::ReservationTicket,
+@@ -2653,6 +2660,8 @@
+ pub(crate) const CONSTRUCTION_POSITIVE_ACTIVE_BYTES: usize =
+     std::mem::size_of::<ConstructionPositiveActive>();
+ #[allow(dead_code)]
++// Retain each exact mapped tuple identity in this const-only inventory.
++#[allow(clippy::type_complexity)]
+ pub(crate) struct ConstructionPositiveCleanup {
+     class_0:
+         [std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>; 21],
+@@ -2867,6 +2876,8 @@
+ pub(crate) const CONSTRUCTION_POSITIVE_CLEANUP_BYTES: usize =
+     std::mem::size_of::<ConstructionPositiveCleanup>();
+ #[allow(dead_code)]
++// Retain each exact mapped tuple identity in this const-only inventory.
++#[allow(clippy::type_complexity)]
+ pub(crate) struct ConstructionPositiveFinal {
+     class_0:
+         [std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>; 4],

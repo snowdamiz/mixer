@@ -1,0 +1,2305 @@
+diff --git a/vm/src/experimental_swift_reactor/cache.rs b/vm/src/experimental_swift_reactor/cache.rs
+index f085a09..f3021b6 100644
+--- a/vm/src/experimental_swift_reactor/cache.rs
++++ b/vm/src/experimental_swift_reactor/cache.rs
+@@ -1317,6 +1317,23 @@ impl SwiftFunctionCache {
+     pub(crate) fn proof(&self) -> &ValidatedSwiftReactor {
+         self.adopted.proof()
+     }
++    /// Borrow-only provenance preflight for composed construction and cleanup.
++    /// Deliberately performs no ordinary checkpoint, admission, or work debit.
++    /// The caller accounts for these temporary borrows before invoking it.
++    #[allow(dead_code)] // Consumed by the separately qualified private executor.
++    pub(crate) fn check_owner(
++        &self,
++        control: &mut RuntimeControl,
++        wasi: Option<&AccountedWasi>,
++        cursor: Cursor,
++    ) -> Result<(), SwiftRunFailure> {
++        CacheControl {
++            control,
++            wasi,
++            cursor,
++        }
++        .check_header(self)
++    }
+     pub(crate) fn usage(&self) -> SwiftCacheUsage {
+         self.usage
+     }
+diff --git a/vm/src/experimental_swift_reactor/cache_tests.rs b/vm/src/experimental_swift_reactor/cache_tests.rs
+index b2bbbde..86087c8 100644
+--- a/vm/src/experimental_swift_reactor/cache_tests.rs
++++ b/vm/src/experimental_swift_reactor/cache_tests.rs
+@@ -299,6 +299,87 @@ fn wasi(control: &mut RuntimeControl) -> AccountedWasi {
+     w
+ }
+ #[test]
++fn borrowed_owner_preflight_preserves_storage_and_ignores_ordinary_checks() {
++    let bytes = fixture(0, &[0, 0x0b], 29);
++    for rejected_owner in 0..3 {
++        let (mut control, adopted) = adopt(&bytes, SwiftRunBudget::default());
++        let context = wasi(&mut control);
++        let cache = construct(&mut control, adopted, Some(&context)).unwrap();
++        let (mut other, other_adopted) = adopt(&bytes, SwiftRunBudget::default());
++        let other_context = wasi(&mut other);
++        let other_cache = construct(&mut other, other_adopted, Some(&other_context)).unwrap();
++        let source = cache.proof().source().as_ptr();
++        let identity = cache.identity();
++        let before = control.usage(Some(context.usage()));
++        control.cancellation().cancel();
++        hooks(Hooks::default());
++        let (result, allocations) = measure(|| match rejected_owner {
++            0 => cache.check_owner(&mut control, Some(&context), cache_cursor()),
++            1 => cache.check_owner(&mut control, Some(&other_context), cache_cursor()),
++            _ => other_cache.check_owner(&mut control, Some(&context), cache_cursor()),
++        });
++        assert_eq!(allocations.attempts, 0);
++        assert_eq!(allocations.deallocations, 0);
++        assert_eq!(HOOKS.with(|h| h.get().checks), 0);
++        assert_eq!(cache.proof().source().as_ptr(), source);
++        assert_eq!(cache.identity(), identity);
++        let after = control.usage(Some(context.usage()));
++        assert_eq!(before.reservations, after.reservations);
++        assert_eq!(before.live, after.live);
++        assert_eq!(before.cache_work, after.cache_work);
++        assert_eq!(before.execution_work, after.execution_work);
++        assert_eq!(before.host_calls, after.host_calls);
++        assert_eq!(before.instruction_fuel, after.instruction_fuel);
++        assert_eq!(before.instructions, after.instructions);
++        if rejected_owner == 0 {
++            result.unwrap();
++            let terminal = control.fail(
++                cache_cursor(),
++                Fault::new(SwiftRunFailureKind::GuestTrap, "owner_preflight_prior_trap"),
++                Some(context.usage()),
++            );
++            let (result, allocations) =
++                measure(|| cache.check_owner(&mut control, Some(&context), cache_cursor()));
++            result.unwrap();
++            assert_eq!(allocations.attempts, 0);
++            assert_eq!(HOOKS.with(|h| h.get().checks), 0);
++            assert_eq!(terminal.code, "owner_preflight_prior_trap");
++        } else {
++            let failure = result.unwrap_err();
++            assert_eq!(failure.kind, SwiftRunFailureKind::Invariant);
++            assert_eq!(failure.code, "swift_run_reservation_owner");
++            assert_eq!(
++                failure.at_failure.wasi,
++                if rejected_owner == 1 {
++                    None
++                } else {
++                    Some(context.usage())
++                }
++            );
++        }
++        cleanup(cache, &mut control, Some(&context));
++        context.cleanup(&mut control).unwrap();
++        cleanup(other_cache, &mut other, Some(&other_context));
++        other_context.cleanup(&mut other).unwrap();
++        assert_eq!(
++            control
++                .finish_owned_cleanup(None)
++                .reservations
++                .combined
++                .current,
++            0
++        );
++        assert_eq!(
++            other
++                .finish_owned_cleanup(None)
++                .reservations
++                .combined
++                .current,
++            0
++        );
++    }
++}
++#[test]
+ fn same_abi_descriptors_and_authority() {
+     let bytes = fixture(0, &[0, 0x0b], 100);
+     let p = proof(&bytes);
+@@ -1598,7 +1679,8 @@ fn frozen_layout_allocation_work_error_snapshots() {
+         + 4 * size_of::<SwiftRunUsage>()
+         + 6 * size_of::<ReservationTicket>()
+         + 6 * size_of::<Option<WasiUsage>>()
+-        + FOUNDATION_FINAL_BOUNDARY_BYTES;
++        + FOUNDATION_FINAL_BOUNDARY_BYTES
++        + super::execution::CONSTRUCTION_BOOTSTRAP_BYTES;
+     assert_eq!(foundation_construction_bytes(), Some(named));
+     println!("foundation-tail map failure_count=4 usage_count=4 ticket_count=6 optional_wasi_count=6 optional_wasi_bytes={} final_boundary={} total={named}",size_of::<Option<WasiUsage>>(), FOUNDATION_FINAL_BOUNDARY_BYTES);
+     assert_eq!(
+diff --git a/vm/src/experimental_swift_reactor/control.rs b/vm/src/experimental_swift_reactor/control.rs
+index 8d76c99..a1567f7 100644
+--- a/vm/src/experimental_swift_reactor/control.rs
++++ b/vm/src/experimental_swift_reactor/control.rs
+@@ -471,7 +471,7 @@ pub(super) const FOUNDATION_FINAL_BOUNDARY_BYTES: usize = {
+ // The public spelling remains a function that copies the precomputed Option.
+ // No runtime temporary array, IntoIter or try_fold is created by this formula.
+ const FOUNDATION_CONSTRUCTION_BYTES: Option<usize> = {
+-    let terms: [(usize, usize); 8] = [
++    let terms: [(usize, usize); 9] = [
+         (3, size_of::<ValidatedSwiftReactor>()),
+         (3, size_of::<RuntimeControl>()),
+         (3, size_of::<AdoptedProof>()),
+@@ -480,6 +480,9 @@ const FOUNDATION_CONSTRUCTION_BYTES: Option<usize> = {
+         (6, size_of::<ReservationTicket>()),
+         (6, size_of::<Option<WasiUsage>>()),
+         (1, FOUNDATION_FINAL_BOUNDARY_BYTES),
++        // Composed constructor inputs and provenance/admission borrows exist
++        // before its outer enlargement, so they belong in the initial floor.
++        (1, super::execution::CONSTRUCTION_BOOTSTRAP_BYTES),
+     ];
+     let mut sum = Some(0usize);
+     let mut index = 0usize;
+diff --git a/vm/src/experimental_swift_reactor/control_tests.rs b/vm/src/experimental_swift_reactor/control_tests.rs
+index e5424a1..4545dd0 100644
+--- a/vm/src/experimental_swift_reactor/control_tests.rs
++++ b/vm/src/experimental_swift_reactor/control_tests.rs
+@@ -1189,7 +1189,8 @@ fn optional_observation_chain_is_reserved_before_runtime_work() {
+         + 6 * size_of::<ReservationTicket>()
+         // Isolate observation admission while keeping the separate final-boundary
+         // inventory unchanged in both the historical and current formulas.
+-        + FOUNDATION_FINAL_BOUNDARY_BYTES;
++        + FOUNDATION_FINAL_BOUNDARY_BYTES
++        + super::super::execution::CONSTRUCTION_BOOTSTRAP_BYTES;
+     let historical_floor = non_observation_shapes + historical_observations;
+     let required_floor = non_observation_shapes + observed_chain;
+     assert_eq!(foundation_construction_bytes(), Some(required_floor));
+@@ -1262,8 +1263,16 @@ fn measured_named_layouts_are_recorded_without_allocator_or_rss_claims() {
+ 
+ #[test]
+ fn final_boundary_inventory_is_admitted_before_runtime_work() {
++    assert_inventory_admission(FOUNDATION_FINAL_BOUNDARY_BYTES);
++}
++
++#[test]
++fn construction_bootstrap_is_admitted_before_runtime_work() {
++    assert_inventory_admission(super::super::execution::CONSTRUCTION_BOOTSTRAP_BYTES);
++}
++
++fn assert_inventory_admission(added: usize) {
+     let required = foundation_construction_bytes().unwrap();
+-    let added = FOUNDATION_FINAL_BOUNDARY_BYTES;
+     let previous = required.checked_sub(added).unwrap();
+     assert!(added > 2 * size_of::<usize>());
+     for headroom in [0, added - 1, added] {
+@@ -1305,7 +1314,7 @@ fn final_boundary_inventory_is_admitted_before_runtime_work() {
+         }
+     }
+     println!(
+-        "final-boundary admission previous={previous} additional={added} foundation={required}"
++        "named-inventory admission previous={previous} additional={added} foundation={required}"
+     );
+ }
+ 
+diff --git a/vm/src/experimental_swift_reactor/execution.rs b/vm/src/experimental_swift_reactor/execution.rs
+index f60086c..aaa0c98 100644
+--- a/vm/src/experimental_swift_reactor/execution.rs
++++ b/vm/src/experimental_swift_reactor/execution.rs
+@@ -1,21 +1,26 @@
+-//! Compiling private owner/borrow/layout prerequisite only.
+-//! No constructor, initialize, invoke, or interpreter algorithm is provided.
++//! Private bounded construction of an uninitialized Swift reactor owner.
++//! No initialize, invoke, or interpreter algorithm is provided.
++#![allow(dead_code)] // The constructor remains private, with no activation route.
+ #![allow(clippy::result_large_err)]
+ 
+ use super::cache::{
+-    CacheCleanupTail, CacheConstructionFailure, CacheConstructionPhase, CacheOperationPhase,
+-    SwiftFunctionCache, SwiftFunctionPin, SwiftReleaseFailure,
++    CacheCleanupTail, CacheConstructionFailure, CacheConstructionPhase, CacheControl,
++    CacheOperationPhase, SwiftFunctionCache, SwiftFunctionPin, SwiftReleaseFailure,
+ };
+ use super::control::*;
+ use crate::experimental::cache::{DecodedInstruction, FunctionView, Operation};
+-use crate::experimental::descriptors::{FunctionSpanView, SignatureView};
++use crate::experimental::descriptors::{
++    FunctionSpanView, GlobalView, MemoryExecutionView, SegmentExecutionView, SignatureView,
++    TableExecutionView,
++};
+ use crate::experimental::execution::{borrowed::*, Control};
+ use crate::experimental_wasi::{
+     accounted::{AccountedWasi, WasiConstructionPhase},
+-    WasiUsage,
++    WasiBudget, WasiGrants, WasiUsage,
+ };
+-use crate::Value;
+-use std::mem::size_of;
++use crate::{Type, Value};
++use std::mem::{size_of, take};
++use std::time::Instant;
+ 
+ #[allow(dead_code)] // Chosen private type/layout prerequisite; no executable owner route yet.
+ pub(crate) struct SwiftMode;
+@@ -134,6 +139,59 @@ pub(crate) struct ExecutionCleanupTail {
+     pub final_wasi: Option<WasiUsage>,
+     pub failure: Option<SwiftRunFailure>,
+ }
++#[must_use = "Constructor failure retains authority until caller return storage is supplied for completion"]
++pub(crate) struct ConstructionCleanupTail {
++    pub tail: ExecutionCleanupTail,
++    pub previous_bound: usize,
++}
++#[must_use = "A rejected pair stays owned; a cleanup variant must be completed"]
++pub(crate) enum ConstructionFailure {
++    Rejected(SwiftRunFailure),
++    Cleanup(ConstructionCleanupTail),
++}
++impl std::fmt::Debug for ConstructionFailure {
++    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
++        match self {
++            Self::Rejected(failure) => f.debug_tuple("Rejected").field(failure).finish(),
++            Self::Cleanup(tail) => f.debug_tuple("Cleanup").field(&tail.tail.failure).finish(),
++        }
++    }
++}
++fn drop_construction_return_storage<T>(
++    tail: ConstructionCleanupTail,
++    storage: T,
++) -> (HeaderCompletionParts, usize) {
++    let ConstructionCleanupTail {
++        tail,
++        previous_bound,
++    } = tail;
++    (drop_cleanup_return_storage(tail, storage), previous_bound)
++}
++impl ConstructionCleanupTail {
++    /// No whole possible-instance Result/Option/pair or partial builder may be
++    /// retained by the caller after this consumes its supplied storage.
++    pub(crate) fn complete<T>(
++        self,
++        storage: T,
++        outcome: &mut Option<SwiftRunFailure>,
++        usage: &mut Option<SwiftRunUsage>,
++    ) {
++        let (
++            HeaderCompletionParts {
++                mut control,
++                mut header,
++                final_wasi,
++            },
++            previous_bound,
++        ) = drop_construction_return_storage(self, storage);
++        let _ = control.end_construction_phase_with_wasi((), previous_bound, final_wasi);
++        if let Some(ticket) = header.take() {
++            let _ = control.drop_reserved_with_wasi((), ticket, final_wasi);
++        }
++        *outcome = control.record_cleanup(final_wasi);
++        *usage = Some(control.finish_owned_cleanup(final_wasi));
++    }
++}
+ /// This is the only selected representation at the final header boundary.
+ /// The function frame owning all large return/Option/tail storage ends first.
+ #[allow(dead_code)] // Chosen private type/layout prerequisite; no executable owner route yet.
+@@ -218,7 +276,7 @@ pub(crate) struct LayoutTerm {
+     pub bytes: usize,
+ }
+ #[allow(dead_code)] // Chosen private type/layout prerequisite; no executable owner route yet.
+-pub(crate) fn terms() -> &'static [LayoutTerm] {
++pub(crate) const fn terms() -> &'static [LayoutTerm] {
+     macro_rules! row {
+         ($p:literal,$b:literal,$n:expr,$t:ty) => {
+             LayoutTerm {
+@@ -570,20 +628,60 @@ pub(crate) fn phase_bytes(phase: &str) -> Option<usize> {
+             sum.checked_add(r.count.checked_mul(r.bytes)?)
+         })
+ }
++const fn named_bytes(phase: &str) -> Option<usize> {
++    let rows = terms();
++    let mut total = 0usize;
++    let mut index = 0;
++    while index < rows.len() {
++        let a = rows[index].phase.as_bytes();
++        let b = phase.as_bytes();
++        let mut same = a.len() == b.len();
++        let mut at = 0;
++        while same && at < a.len() {
++            same = a[at] == b[at];
++            at += 1;
++        }
++        if same {
++            let Some(bytes) = rows[index].count.checked_mul(rows[index].bytes) else {
++                return None;
++            };
++            let Some(next) = total.checked_add(bytes) else {
++                return None;
++            };
++            total = next;
++        }
++        index += 1;
++    }
++    Some(total)
++}
+ /// No negative subtraction; count nested payload once and every Option tag or
+ /// containing alignment byte in the exclusive residual. Arena payloads have
+ /// their separate six tickets; all additional cleanup rows use this same header.
+ #[allow(dead_code)] // Chosen private type/layout prerequisite; no executable owner route yet.
+ pub(crate) fn execution_header_bytes() -> Option<usize> {
+-    let nested = size_of::<RuntimeControl>()
+-        .checked_add(size_of::<SwiftFunctionCache>())?
+-        .checked_add(size_of::<AccountedWasi>())?
+-        .checked_add(size_of::<SwiftExecutionState>())?;
+-    size_of::<SwiftReactorInstance>()
+-        .checked_sub(nested)?
+-        .checked_add(size_of::<SwiftExecutionState>())?
+-        .checked_add(phase_bytes("cleanup")?)
++    EXECUTION_HEADER_BYTES
+ }
++const EXECUTION_HEADER_BYTES: Option<usize> = {
++    let nested = size_of::<RuntimeControl>()
++        + size_of::<SwiftFunctionCache>()
++        + size_of::<AccountedWasi>()
++        + size_of::<SwiftExecutionState>();
++    match (
++        size_of::<SwiftReactorInstance>().checked_sub(nested),
++        named_bytes("cleanup"),
++    ) {
++        (Some(residual), Some(cleanup)) => {
++            match residual.checked_add(size_of::<SwiftExecutionState>()) {
++                Some(header) => match header.checked_add(cleanup) {
++                    Some(header) => header.checked_add(size_of::<CleanupPreflightInventory>()),
++                    None => None,
++                },
++                None => None,
++            }
++        }
++        _ => None,
++    }
++};
+ 
+ /// Pure checked arena formula; this does not admit, allocate or instantiate.
+ #[allow(dead_code)] // Chosen private type/layout prerequisite; no executable owner route yet.
+@@ -604,3 +702,1078 @@ pub(crate) fn arena_bytes(
+         globals.checked_mul(size_of::<Value>())?,
+     ])
+ }
++
++const PAGE: usize = 65_536;
++const CHUNK: usize = 4_096;
++
++/// Newly named roles, disjoint from the eight original maps. These inventory
++/// types are never instantiated; their layouts reserve requested object bytes,
++/// not physical stack or allocator overhead. Each repeated position accounts
++/// source/argument/return independently, without borrowing containing padding.
++struct ConstructionDescriptors {
++    memory: Option<MemoryExecutionView>,
++    table: Option<TableExecutionView>,
++    global: Option<GlobalView<'static>>,
++    segment: Option<SegmentExecutionView<'static>>,
++    initializer_offset: Option<usize>,
++    capacities: [usize; 6],
++    requests: Option<[usize; 6]>,
++    budget: SwiftRunBudget,
++    target_type: Type,
++    opcode: u8,
++    byte: u8,
++    bits: u64,
++    shift: u32,
++    width: u32,
++    signed: i64,
++    float32: [u8; 4],
++    float64: [u8; 8],
++}
++struct ConstructionTransfers {
++    pair: Option<(RuntimeControl, AdoptedProof)>,
++    owned_slot: &'static mut Option<(RuntimeControl, AdoptedProof)>,
++    grants: WasiGrants,
++    wasi_budget: WasiBudget,
++    started: Instant,
++    state_phase: Result<ExecutionConstructionPhase<'static>, SwiftRunFailure>,
++    cache_phase: Result<CacheConstructionPhase<'static>, SwiftRunFailure>,
++    wasi_phase: Result<WasiConstructionPhase<'static>, SwiftRunFailure>,
++    reserve: Result<ReservationTicket, SwiftRunFailure>,
++    allocate: Result<Vec<Value>, SwiftRunFailure>,
++    initialized: Result<(), SwiftRunFailure>,
++    constant: Result<Value, SwiftRunFailure>,
++    scalar: Result<u64, SwiftRunFailure>,
++    end: Option<usize>,
++}
++/// Names only execution-owned call/borrow/scalar roles. The nested runtime
++/// control paths have their separately declared bootstrap dependency below.
++struct ConstructionBorrowChain {
++    control: [&'static mut RuntimeControl; 6],
++    state: [&'static mut SwiftExecutionState; 3],
++    cache: [&'static SwiftFunctionCache; 4],
++    wasi: [&'static AccountedWasi; 6],
++    phase: [&'static mut ExecutionConstructionPhase<'static>; 3],
++    reader: [&'static mut ScalarReader<'static>; 3],
++    vector: [&'static mut Vec<Value>; 2],
++    slice: [&'static [u8]; 4],
++    mutable_slice: [&'static mut [u8]; 2],
++    index: [usize; 12],
++    cursor: [Cursor; 4],
++    observation: [Option<WasiUsage>; 2],
++    fault: [Fault; 2],
++}
++struct ConstructionIterationInventory {
++    global_range: std::ops::Range<usize>,
++    table_range: std::ops::Range<u32>,
++    descriptor_range: std::ops::Range<usize>,
++    element_range: std::ops::Range<usize>,
++    leb_range: std::ops::Range<u32>,
++    leb_steps: std::iter::StepBy<std::ops::Range<u32>>,
++    float_iter: std::slice::IterMut<'static, u8>,
++    float_item: Option<&'static mut u8>,
++    descriptor_item: Option<usize>,
++    table_item: Option<u32>,
++    borrowed_segment: SegmentExecutionView<'static>,
++    borrowed_global: GlobalView<'static>,
++    typed_result: Result<Value, SwiftRunFailure>,
++    signed_result: Result<i64, SwiftRunFailure>,
++    unsigned_result: Result<u32, SwiftRunFailure>,
++    byte_result: Result<u8, SwiftRunFailure>,
++    error: Option<std::collections::TryReserveError>,
++    error_callback: (
++        &'static mut ExecutionConstructionPhase<'static>,
++        &'static usize,
++    ),
++    descriptor_callback: &'static mut ExecutionConstructionPhase<'static>,
++    reader_callback: (
++        &'static ScalarReader<'static>,
++        &'static mut RuntimeControl,
++        &'static AccountedWasi,
++        &'static Cursor,
++    ),
++}
++struct CleanupPreflightInventory {
++    owner_option: Option<&'static mut SwiftReactorInstance>,
++    owner: &'static mut SwiftReactorInstance,
++    control_option: Option<&'static mut RuntimeControl>,
++    control: &'static mut RuntimeControl,
++    wasi_option: Option<&'static AccountedWasi>,
++    wasi: &'static AccountedWasi,
++    cache_option: Option<&'static SwiftFunctionCache>,
++    cache: &'static SwiftFunctionCache,
++    state_option: Option<&'static SwiftExecutionState>,
++    state: &'static SwiftExecutionState,
++    header_option: Option<&'static ReservationTicket>,
++    header: &'static ReservationTicket,
++    buffer_iter: std::slice::Iter<'static, Option<ReservationTicket>>,
++    buffer_item: Option<&'static Option<ReservationTicket>>,
++    buffer: &'static Option<ReservationTicket>,
++    buffer_ticket: Option<&'static ReservationTicket>,
++    cache_usage: super::cache::SwiftCacheUsage,
++    cursor_arguments: [Cursor; 2],
++    header_error_callback: (&'static mut RuntimeControl, &'static AccountedWasi),
++    buffer_error_callback: (&'static mut RuntimeControl, &'static AccountedWasi),
++    nonempty: [bool; 4],
++}
++/// This group must be charged by the foundation before a caller enters either
++/// constructor/preparation. The later enlarged phase cannot retroactively cover
++/// its own inputs and provenance/admission call chain. Whole groups are a
++/// conservative maximum; diagnostic/fault transfers already named by foundation
++/// retain those classes and are not reused as smaller borrow slots here.
++pub(super) struct ConstructionBootstrapInventory {
++    pair_slot: [&'static mut Option<(RuntimeControl, AdoptedProof)>; 2],
++    control: [&'static mut RuntimeControl; 8],
++    adopted: [&'static AdoptedProof; 3],
++    cache: [&'static SwiftFunctionCache; 4],
++    wasi: [&'static AccountedWasi; 4],
++    cursor: [Cursor; 5],
++    grants: [WasiGrants; 3],
++    budget: [WasiBudget; 3],
++    started: [Instant; 3],
++    cache_control: CacheControl<'static>,
++    header_option: [Option<&'static ReservationTicket>; 3],
++    header: [&'static ReservationTicket; 5],
++    observation: [Option<WasiUsage>; 3],
++    snapshot_return: [SwiftRunUsage; 2],
++    previous_bound: [usize; 4],
++    checked_bound: [Option<usize>; 2],
++    owner_verdict: [Option<(SwiftCleanupInvariant, &'static str)>; 2],
++    ticket_option: Option<&'static ReservationTicket>,
++    current: usize,
++    requested: usize,
++    difference: usize,
++    category_next: usize,
++    combined_next: usize,
++    checked_category: Option<usize>,
++    checked_combined: Option<usize>,
++    category: SwiftReservationCategory,
++    category_usage: &'static SwiftReservationUsage,
++    category_mut: &'static mut SwiftReservationUsage,
++    reservations: &'static mut SwiftReservations,
++    construction_ticket: Option<&'static mut ReservationTicket>,
++}
++pub(super) const CONSTRUCTION_BOOTSTRAP_BYTES: usize = size_of::<ConstructionBootstrapInventory>();
++#[cfg(test)]
++pub(super) fn print_construction_layouts() {
++    println!("construction bootstrap {}", CONSTRUCTION_BOOTSTRAP_BYTES);
++    println!(
++        "construction descriptors {}",
++        size_of::<ConstructionDescriptors>()
++    );
++    println!(
++        "construction transfers {}",
++        size_of::<ConstructionTransfers>()
++    );
++    println!(
++        "construction borrows {}",
++        size_of::<ConstructionBorrowChain>()
++    );
++    println!("construction total {}", construction_bytes().unwrap());
++    println!(
++        "construction iterations {}",
++        size_of::<ConstructionIterationInventory>()
++    );
++}
++const CONSTRUCTION_BYTES: Option<usize> = match named_bytes("construction") {
++    Some(base) => match base.checked_add(3 * size_of::<ConstructionDescriptors>()) {
++        Some(n) => match n.checked_add(3 * size_of::<ConstructionTransfers>()) {
++            Some(n) => match n.checked_add(size_of::<ConstructionBorrowChain>()) {
++                Some(n) => n.checked_add(3 * size_of::<ConstructionIterationInventory>()),
++                None => None,
++            },
++            None => None,
++        },
++        None => None,
++    },
++    None => None,
++};
++pub(crate) fn construction_bytes() -> Option<usize> {
++    CONSTRUCTION_BYTES
++}
++
++fn construction_failure(
++    control: &mut RuntimeControl,
++    wasi: &AccountedWasi,
++    cursor: Cursor,
++    kind: SwiftRunFailureKind,
++    code: &'static str,
++) -> SwiftRunFailure {
++    control.fail(cursor, Fault::new(kind, code), Some(wasi.usage()))
++}
++fn layout_failure(
++    control: &mut RuntimeControl,
++    wasi: &AccountedWasi,
++    cursor: Cursor,
++) -> SwiftRunFailure {
++    construction_failure(
++        control,
++        wasi,
++        cursor,
++        SwiftRunFailureKind::Invariant,
++        "swift_execution_layout_overflow",
++    )
++}
++fn checked(
++    control: &mut RuntimeControl,
++    wasi: &AccountedWasi,
++    cursor: Cursor,
++) -> Result<(), SwiftRunFailure> {
++    #[cfg(test)]
++    super::execution_tests::construction_checkpoint(control, cursor);
++    control.check_with_wasi(cursor, Some(wasi.usage()))
++}
++fn work(
++    control: &mut RuntimeControl,
++    wasi: &AccountedWasi,
++    cursor: Cursor,
++    credits: usize,
++) -> Result<(), SwiftRunFailure> {
++    checked(control, wasi, cursor)?;
++    control.work_with_wasi(Work::Execution, credits as u64, cursor, Some(wasi.usage()))
++}
++impl SwiftExecutionState {
++    pub(crate) fn prepare<'a>(
++        control: &'a mut RuntimeControl,
++        cache: &'a SwiftFunctionCache,
++        wasi: &'a AccountedWasi,
++        cursor: Cursor,
++    ) -> Result<ExecutionConstructionPhase<'a>, SwiftRunFailure> {
++        // The actual WASI pair wins over cache/ordinary checks. No owner moves.
++        wasi.checked_usage(control, cursor)?;
++        cache.check_owner(control, Some(wasi), cursor)?;
++        checked(control, wasi, cursor)?;
++        if cache.usage().active_pins != 0 {
++            return Err(construction_failure(
++                control,
++                wasi,
++                cursor,
++                SwiftRunFailureKind::Invariant,
++                "swift_execution_preexisting_pins",
++            ));
++        }
++        let previous_bound = control
++            .usage(Some(wasi.usage()))
++            .reservations
++            .construction
++            .current;
++        let bound = construction_bytes()
++            .and_then(|n| previous_bound.checked_add(n))
++            .ok_or_else(|| layout_failure(control, wasi, cursor))?;
++        control.enlarge_construction_with_wasi(bound, cursor, Some(wasi.usage()))?;
++        Ok(ExecutionConstructionPhase {
++            control,
++            cache,
++            wasi,
++            cursor,
++            previous_bound,
++            constructed: false,
++        })
++    }
++    fn empty() -> Self {
++        Self {
++            memory: Vec::new(),
++            table: Vec::new(),
++            globals: Vec::new(),
++            values: Vec::new(),
++            controls: Vec::new(),
++            frames: Vec::new(),
++            buffers: std::array::from_fn(|_| None),
++            execution_header: None,
++        }
++    }
++    /// Only this constructor's unpublished State is accepted. Its last fallible
++    /// action is the page debit, so every failure here has zero State live counts.
++    fn cleanup_unpublished(mut self, control: &mut RuntimeControl, wasi: &AccountedWasi) {
++        self.drop_arenas(control, wasi);
++        if let Some(header) = self.execution_header.take() {
++            let _ = control.drop_reserved_with_wasi(self, header, Some(wasi.usage()));
++        }
++    }
++    fn drop_arenas(&mut self, control: &mut RuntimeControl, wasi: &AccountedWasi) {
++        macro_rules! release {
++            ($field:ident, $index:literal) => {{
++                if let Some(ticket) = self.buffers[$index].take() {
++                    let _ = control.drop_reserved_with_wasi(
++                        take(&mut self.$field),
++                        ticket,
++                        Some(wasi.usage()),
++                    );
++                } else {
++                    drop(take(&mut self.$field));
++                }
++            }};
++        }
++        release!(values, 0);
++        release!(controls, 1);
++        release!(frames, 2);
++        release!(memory, 3);
++        release!(table, 4);
++        release!(globals, 5);
++    }
++}
++impl ExecutionConstructionPhase<'_> {
++    pub(crate) fn construct(&mut self) -> Result<SwiftExecutionState, SwiftRunFailure> {
++        if std::mem::replace(&mut self.constructed, true) {
++            return Err(construction_failure(
++                self.control,
++                self.wasi,
++                self.cursor,
++                SwiftRunFailureKind::Invariant,
++                "swift_execution_construct_once",
++            ));
++        }
++        let mut partial = PartialState {
++            state: SwiftExecutionState::empty(),
++            next_arena: 0,
++        };
++        match self.construct_partial(&mut partial) {
++            Ok(()) => Ok(partial.state),
++            Err(failure) => {
++                partial.state.cleanup_unpublished(self.control, self.wasi);
++                Err(failure)
++            }
++        }
++    }
++    fn construct_partial(&mut self, partial: &mut PartialState) -> Result<(), SwiftRunFailure> {
++        checked(self.control, self.wasi, self.cursor)?;
++        let budget = self.control.budget();
++        let memory = self
++            .cache
++            .proof()
++            .execution_memory()
++            .ok_or_else(|| layout_failure(self.control, self.wasi, self.cursor))?;
++        if memory.minimum > budget.memory_pages {
++            let mut fault = Fault::new(
++                SwiftRunFailureKind::ResourceExhausted,
++                "swift_execution_memory_minimum",
++            );
++            fault.resource = Some(SwiftRunResource::MemoryPages);
++            fault.attempted = memory.minimum as u64;
++            fault.limit = budget.memory_pages as u64;
++            return Err(self
++                .control
++                .fail(self.cursor, fault, Some(self.wasi.usage())));
++        }
++        let table = self
++            .cache
++            .proof()
++            .execution_table()
++            .ok_or_else(|| layout_failure(self.control, self.wasi, self.cursor))?;
++        let globals = self.cache.proof().execution_global_count();
++        let requests = arena_bytes(
++            budget.values,
++            budget.controls,
++            budget.frames,
++            memory.minimum as usize,
++            table.minimum as usize,
++            globals,
++        )
++        .ok_or_else(|| layout_failure(self.control, self.wasi, self.cursor))?;
++        let header = execution_header_bytes()
++            .ok_or_else(|| layout_failure(self.control, self.wasi, self.cursor))?;
++        partial.state.execution_header = Some(self.control.admit_with_wasi(
++            SwiftReservationCategory::State,
++            header,
++            self.cursor,
++            Some(self.wasi.usage()),
++        )?);
++        macro_rules! arena {
++            ($field:ident, $index:literal, $capacity:expr) => {{
++                partial.state.buffers[$index] = Some(self.control.admit_with_wasi(
++                    SwiftReservationCategory::State,
++                    requests[$index],
++                    self.cursor,
++                    Some(self.wasi.usage()),
++                )?);
++                self.reserve(&mut partial.state.$field, $capacity)?;
++                partial.next_arena += 1;
++            }};
++        }
++        arena!(values, 0, budget.values);
++        arena!(controls, 1, budget.controls);
++        arena!(frames, 2, budget.frames);
++        arena!(memory, 3, requests[3]);
++        arena!(table, 4, table.minimum as usize);
++        arena!(globals, 5, globals);
++        let credits = requests[3]
++            .checked_add(table.minimum as usize)
++            .and_then(|n| n.checked_add(globals))
++            .ok_or_else(|| layout_failure(self.control, self.wasi, self.cursor))?;
++        work(self.control, self.wasi, self.cursor, credits)?;
++        while partial.state.memory.len() < requests[3] {
++            checked(self.control, self.wasi, self.cursor)?;
++            let end = (partial.state.memory.len() + CHUNK).min(requests[3]);
++            partial.state.memory.resize(end, 0);
++        }
++        for _ in 0..table.minimum {
++            checked(self.control, self.wasi, self.cursor)?;
++            partial.state.table.push(None);
++        }
++        for index in 0..globals {
++            work(self.control, self.wasi, self.cursor, 16)?;
++            let global = self
++                .cache
++                .proof()
++                .execution_global(index)
++                .ok_or_else(|| layout_failure(self.control, self.wasi, self.cursor))?;
++            let offset = self
++                .cache
++                .proof()
++                .execution_global_initializer_offset(index)
++                .ok_or_else(|| layout_failure(self.control, self.wasi, self.cursor))?;
++            let mut reader = ScalarReader {
++                bytes: global.initializer,
++                at: 0,
++                absolute_offset: offset,
++            };
++            let value = reader.constant(global.ty, self.control, self.wasi, self.cursor)?;
++            partial.state.globals.push(value);
++        }
++        self.initialize_segments(&mut partial.state)?;
++        // Last fallible operation. No publication check/effect follows a failure.
++        self.control.add_live_with_wasi(
++            Live::MemoryPages,
++            memory.minimum as usize,
++            self.cursor,
++            Some(self.wasi.usage()),
++        )
++    }
++    fn reserve<T>(&mut self, values: &mut Vec<T>, requested: usize) -> Result<(), SwiftRunFailure> {
++        checked(self.control, self.wasi, self.cursor)?;
++        values.try_reserve_exact(requested).map_err(|_| {
++            let mut fault = Fault::new(
++                SwiftRunFailureKind::Allocation,
++                "swift_execution_allocation",
++            );
++            fault.attempted = requested as u64;
++            self.control
++                .fail(self.cursor, fault, Some(self.wasi.usage()))
++        })?;
++        #[cfg(test)]
++        let observed = super::execution_tests::construction_capacity(values.capacity());
++        #[cfg(not(test))]
++        let observed = values.capacity();
++        self.control.exact_capacity_with_wasi(
++            requested,
++            observed,
++            self.cursor,
++            Some(self.wasi.usage()),
++        )?;
++        checked(self.control, self.wasi, self.cursor)
++    }
++    fn initialize_segments(
++        &mut self,
++        state: &mut SwiftExecutionState,
++    ) -> Result<(), SwiftRunFailure> {
++        // All ranges, in the specified order, precede the first payload effect.
++        for index in 0..self.cache.proof().execution_data_count() {
++            work(self.control, self.wasi, self.cursor, 1)?;
++            let segment = self
++                .cache
++                .proof()
++                .execution_data(index)
++                .ok_or_else(|| layout_failure(self.control, self.wasi, self.cursor))?;
++            self.range(segment, state.memory.len(), "swift_execution_data_bounds")?;
++            if segment.count as usize != segment.encoded_payload.len() {
++                return Err(self.segment_failure(segment, "swift_execution_data_count"));
++            }
++        }
++        for index in 0..self.cache.proof().execution_element_count() {
++            work(self.control, self.wasi, self.cursor, 1)?;
++            let segment = self
++                .cache
++                .proof()
++                .execution_element(index)
++                .ok_or_else(|| layout_failure(self.control, self.wasi, self.cursor))?;
++            self.range(segment, state.table.len(), "swift_execution_element_bounds")?;
++        }
++        for index in 0..self.cache.proof().execution_data_count() {
++            let segment = self
++                .cache
++                .proof()
++                .execution_data(index)
++                .ok_or_else(|| layout_failure(self.control, self.wasi, self.cursor))?;
++            work(
++                self.control,
++                self.wasi,
++                self.cursor,
++                segment.encoded_payload.len(),
++            )?;
++            let mut copied = 0;
++            while copied < segment.encoded_payload.len() {
++                let cursor = Cursor {
++                    offset: Some(segment.payload_offset + copied),
++                    ..self.cursor
++                };
++                checked(self.control, self.wasi, cursor)?;
++                let end = (copied + CHUNK).min(segment.encoded_payload.len());
++                let destination = segment.destination as usize + copied;
++                state.memory[destination..destination + end - copied]
++                    .copy_from_slice(&segment.encoded_payload[copied..end]);
++                copied = end;
++            }
++            checked(
++                self.control,
++                self.wasi,
++                Cursor {
++                    offset: Some(segment.payload_offset + copied),
++                    ..self.cursor
++                },
++            )?;
++        }
++        for index in 0..self.cache.proof().execution_element_count() {
++            let segment = self
++                .cache
++                .proof()
++                .execution_element(index)
++                .ok_or_else(|| layout_failure(self.control, self.wasi, self.cursor))?;
++            work(
++                self.control,
++                self.wasi,
++                self.cursor,
++                segment.encoded_payload.len(),
++            )?;
++            let mut reader = ScalarReader {
++                bytes: segment.encoded_payload,
++                at: 0,
++                absolute_offset: segment.payload_offset,
++            };
++            for slot in 0..segment.count as usize {
++                let function = reader.unsigned(self.control, self.wasi, self.cursor)?;
++                if self.cache.proof().execution_signature(function).is_none() {
++                    return Err(reader.failure(
++                        self.control,
++                        self.wasi,
++                        self.cursor,
++                        "swift_execution_element_function",
++                    ));
++                }
++                state.table[segment.destination as usize + slot] = Some(function);
++            }
++            reader.end(self.control, self.wasi, self.cursor)?;
++        }
++        checked(self.control, self.wasi, self.cursor)
++    }
++    fn range(
++        &mut self,
++        segment: SegmentExecutionView<'_>,
++        length: usize,
++        code: &'static str,
++    ) -> Result<(), SwiftRunFailure> {
++        if (segment.destination as usize)
++            .checked_add(segment.count as usize)
++            .is_none_or(|end| end > length)
++        {
++            return Err(self.segment_failure(segment, code));
++        }
++        Ok(())
++    }
++    fn segment_failure(
++        &mut self,
++        segment: SegmentExecutionView<'_>,
++        code: &'static str,
++    ) -> SwiftRunFailure {
++        construction_failure(
++            self.control,
++            self.wasi,
++            Cursor {
++                offset: Some(segment.payload_offset),
++                ..self.cursor
++            },
++            SwiftRunFailureKind::GuestTrap,
++            code,
++        )
++    }
++    pub(crate) fn complete<T>(self, returned_phase_storage: T) -> Result<(), SwiftRunFailure> {
++        let Self {
++            control,
++            wasi,
++            previous_bound,
++            ..
++        } = self;
++        control.end_construction_phase_with_wasi(
++            returned_phase_storage,
++            previous_bound,
++            Some(wasi.usage()),
++        )
++    }
++}
++
++impl ScalarReader<'_> {
++    fn failure(
++        &self,
++        control: &mut RuntimeControl,
++        wasi: &AccountedWasi,
++        cursor: Cursor,
++        code: &'static str,
++    ) -> SwiftRunFailure {
++        construction_failure(
++            control,
++            wasi,
++            Cursor {
++                offset: Some(self.absolute_offset + self.at),
++                ..cursor
++            },
++            SwiftRunFailureKind::Invariant,
++            code,
++        )
++    }
++    fn byte(
++        &mut self,
++        control: &mut RuntimeControl,
++        wasi: &AccountedWasi,
++        cursor: Cursor,
++    ) -> Result<u8, SwiftRunFailure> {
++        checked(
++            control,
++            wasi,
++            Cursor {
++                offset: Some(self.absolute_offset + self.at),
++                ..cursor
++            },
++        )?;
++        let byte = self
++            .bytes
++            .get(self.at)
++            .copied()
++            .ok_or_else(|| self.failure(control, wasi, cursor, "swift_execution_scalar_eof"))?;
++        self.at += 1;
++        Ok(byte)
++    }
++    fn unsigned(
++        &mut self,
++        control: &mut RuntimeControl,
++        wasi: &AccountedWasi,
++        cursor: Cursor,
++    ) -> Result<u32, SwiftRunFailure> {
++        let mut bits = 0u32;
++        for shift in (0..35).step_by(7) {
++            let byte = self.byte(control, wasi, cursor)?;
++            if shift == 28 && byte & 0xf0 != 0 {
++                self.at -= 1;
++                return Err(self.failure(control, wasi, cursor, "swift_execution_scalar_u32"));
++            }
++            bits |= ((byte & 0x7f) as u32) << shift;
++            if byte & 0x80 == 0 {
++                return Ok(bits);
++            }
++        }
++        Err(self.failure(control, wasi, cursor, "swift_execution_scalar_u32"))
++    }
++    fn signed(
++        &mut self,
++        width: u32,
++        control: &mut RuntimeControl,
++        wasi: &AccountedWasi,
++        cursor: Cursor,
++    ) -> Result<i64, SwiftRunFailure> {
++        let mut bits = 0u64;
++        let mut shift = 0;
++        loop {
++            let byte = self.byte(control, wasi, cursor)?;
++            let remaining = width - shift;
++            if remaining < 7 {
++                let mask = (0x7f_u8 << remaining) & 0x7f;
++                let sign = byte & (1 << (remaining - 1)) != 0;
++                if byte & 0x80 != 0 || byte & mask != if sign { mask } else { 0 } {
++                    self.at -= 1;
++                    return Err(self.failure(
++                        control,
++                        wasi,
++                        cursor,
++                        "swift_execution_scalar_signed",
++                    ));
++                }
++            }
++            bits |= ((byte & 0x7f) as u64) << shift;
++            shift += 7;
++            if byte & 0x80 == 0 {
++                if shift < 64 && byte & 0x40 != 0 {
++                    bits |= u64::MAX << shift;
++                }
++                return Ok(bits as i64);
++            }
++        }
++    }
++    fn constant(
++        &mut self,
++        ty: Type,
++        control: &mut RuntimeControl,
++        wasi: &AccountedWasi,
++        cursor: Cursor,
++    ) -> Result<Value, SwiftRunFailure> {
++        let value = match self.byte(control, wasi, cursor)? {
++            0x41 => Value::I32(self.signed(32, control, wasi, cursor)? as i32),
++            0x42 => Value::I64(self.signed(64, control, wasi, cursor)?),
++            0x43 => {
++                let mut bytes = [0; 4];
++                for byte in &mut bytes {
++                    *byte = self.byte(control, wasi, cursor)?;
++                }
++                Value::F32(u32::from_le_bytes(bytes))
++            }
++            0x44 => {
++                let mut bytes = [0; 8];
++                for byte in &mut bytes {
++                    *byte = self.byte(control, wasi, cursor)?;
++                }
++                Value::F64(u64::from_le_bytes(bytes))
++            }
++            _ => {
++                self.at -= 1;
++                return Err(self.failure(control, wasi, cursor, "swift_execution_scalar_opcode"));
++            }
++        };
++        if value.ty() != ty {
++            self.at = 0;
++            return Err(self.failure(control, wasi, cursor, "swift_execution_scalar_type"));
++        }
++        if self.byte(control, wasi, cursor)? != 0x0b {
++            self.at -= 1;
++            return Err(self.failure(control, wasi, cursor, "swift_execution_scalar_end"));
++        }
++        self.end(control, wasi, cursor)?;
++        Ok(value)
++    }
++    fn end(
++        &self,
++        control: &mut RuntimeControl,
++        wasi: &AccountedWasi,
++        cursor: Cursor,
++    ) -> Result<(), SwiftRunFailure> {
++        checked(
++            control,
++            wasi,
++            Cursor {
++                offset: Some(self.absolute_offset + self.at),
++                ..cursor
++            },
++        )?;
++        if self.at != self.bytes.len() {
++            return Err(self.failure(control, wasi, cursor, "swift_execution_scalar_trailing"));
++        }
++        Ok(())
++    }
++}
++#[cfg(test)]
++pub(super) fn scalar_constant_probe(
++    bytes: &[u8],
++    absolute_offset: usize,
++    ty: Type,
++    control: &mut RuntimeControl,
++    wasi: &AccountedWasi,
++) -> Result<Value, SwiftRunFailure> {
++    ScalarReader {
++        bytes,
++        at: 0,
++        absolute_offset,
++    }
++    .constant(
++        ty,
++        control,
++        wasi,
++        Cursor {
++            stage: SwiftRunStage::Initialization,
++            function: None,
++            offset: Some(absolute_offset),
++        },
++    )
++}
++
++impl SwiftReactorInstance {
++    /// The caller retains exact ownership if bootstrap provenance/admission
++    /// rejects. Once taken, any failure destroys every acquired component.
++    pub(crate) fn construct(
++        owned: &mut Option<(RuntimeControl, AdoptedProof)>,
++        grants: WasiGrants,
++        wasi_budget: WasiBudget,
++        started: Instant,
++        cursor: Cursor,
++    ) -> Result<Self, ConstructionFailure> {
++        let (control, adopted) = owned
++            .as_mut()
++            .expect("private constructor requires an adopted owner slot");
++        control
++            .check_adopted_owner(adopted, cursor, None)
++            .map_err(ConstructionFailure::Rejected)?;
++        let previous_bound = control.usage(None).reservations.construction.current;
++        let bound = construction_bytes()
++            .and_then(|n| previous_bound.checked_add(n))
++            .ok_or_else(|| {
++                control.fail(
++                    cursor,
++                    Fault::new(
++                        SwiftRunFailureKind::Invariant,
++                        "swift_execution_layout_overflow",
++                    ),
++                    None,
++                )
++            })
++            .map_err(ConstructionFailure::Rejected)?;
++        control
++            .enlarge_construction(bound, cursor)
++            .map_err(ConstructionFailure::Rejected)?;
++        // No owning transfer or partial builder exists before enlargement.
++        let (control, adopted) = owned.take().expect("preflight retained adopted owner");
++        let mut partial = PartialInstance {
++            control: Some(control),
++            cache: None,
++            wasi: None,
++            state: None,
++        };
++        let result = partial.construct(adopted, grants, wasi_budget, started, cursor);
++        if let Err(failure) = result {
++            return Err(ConstructionFailure::Cleanup(
++                partial.cleanup_failed(previous_bound, failure),
++            ));
++        }
++        let mut instance = Self {
++            control: partial.control.take(),
++            cache: partial.cache.take(),
++            wasi: partial.wasi.take(),
++            state: partial.state.take(),
++            lifecycle: Lifecycle::Uninitialized,
++        };
++        // Every partial/ordinary phase has ended before the exact outer restore.
++        #[cfg(test)]
++        let previous_bound = super::execution_tests::construction_restore_bound(previous_bound);
++        if let Err(failure) = instance
++            .control
++            .as_mut()
++            .unwrap()
++            .end_construction_phase_with_wasi(
++                (partial, result),
++                previous_bound,
++                instance.wasi.as_ref().map(AccountedWasi::usage),
++            )
++        {
++            // A restore fault changes no component provenance. Keep the owner
++            // charged while draining those exact components and return only
++            // copied diagnostics. An invalid construction ticket remains charged.
++            return Err(ConstructionFailure::Cleanup(
++                Self::cleanup_after_restore_failure(instance, previous_bound, failure),
++            ));
++        }
++        Ok(instance)
++    }
++    fn cleanup_after_restore_failure(
++        instance: Self,
++        previous_bound: usize,
++        _: SwiftRunFailure,
++    ) -> ConstructionCleanupTail {
++        let mut owned = Some(instance);
++        let mut returned = Some(Self::cleanup_owned(&mut owned));
++        let tail = returned
++            .take()
++            .expect("one cleanup return")
++            .expect("restore cannot change component provenance");
++        drop((owned, returned));
++        ConstructionCleanupTail {
++            tail,
++            previous_bound,
++        }
++    }
++    /// Bounded construction cleanup only. Populated interpreter frames and live
++    /// values/controls are rejected intact until their separate unwind slice.
++    pub(crate) fn cleanup_owned(
++        owned: &mut Option<Self>,
++    ) -> Result<ExecutionCleanupTail, SwiftRunFailure> {
++        {
++            let owner = owned
++                .as_mut()
++                .expect("private cleanup requires an owned slot");
++            let control = owner.control.as_mut().expect("owned control");
++            let wasi = owner.wasi.as_ref().expect("owned WASI");
++            wasi.checked_usage(control, cleanup_cursor())?;
++            owner.cache.as_ref().expect("owned cache").check_owner(
++                control,
++                Some(wasi),
++                cleanup_cursor(),
++            )?;
++            let state = owner.state.as_ref().expect("owned State");
++            let header = state.execution_header.as_ref().ok_or_else(|| {
++                construction_failure(
++                    control,
++                    wasi,
++                    cleanup_cursor(),
++                    SwiftRunFailureKind::Invariant,
++                    "swift_execution_missing_header",
++                )
++            })?;
++            control.check_reservation_owner(header, cleanup_cursor(), Some(wasi.usage()))?;
++            for ticket in &state.buffers {
++                let ticket = ticket.as_ref().ok_or_else(|| {
++                    construction_failure(
++                        control,
++                        wasi,
++                        cleanup_cursor(),
++                        SwiftRunFailureKind::Invariant,
++                        "swift_execution_missing_buffer",
++                    )
++                })?;
++                control.check_reservation_owner(ticket, cleanup_cursor(), Some(wasi.usage()))?;
++            }
++            if !state.frames.is_empty()
++                || !state.values.is_empty()
++                || !state.controls.is_empty()
++                || owner.cache.as_ref().unwrap().usage().active_pins != 0
++            {
++                return Err(construction_failure(
++                    control,
++                    wasi,
++                    cleanup_cursor(),
++                    SwiftRunFailureKind::Invariant,
++                    "swift_execution_cleanup_nonempty",
++                ));
++            }
++        }
++        let mut owner = owned.take().expect("all component provenance retained");
++        owner.lifecycle = Lifecycle::Terminal;
++        let mut control = owner.control.take().unwrap();
++        let wasi = owner.wasi.take().unwrap();
++        let mut state = owner.state.take().unwrap();
++        let pages = state.memory.len() / PAGE;
++        state.drop_arenas(&mut control, &wasi);
++        let _ = control.remove_live_with_wasi(Live::MemoryPages, pages, Some(wasi.usage()));
++        let header = state.execution_header.take();
++        // State and its empty Vec handles end while the one header stays live.
++        drop(state);
++        let mut outcome = None;
++        match SwiftFunctionCache::cleanup(&mut owner.cache, &mut control, Some(&wasi)) {
++            Ok(tail) => tail.complete(owner.cache.take(), &mut outcome),
++            Err(failure) => {
++                outcome = Some(failure);
++            }
++        }
++        let final_wasi = Some(wasi.usage());
++        let _ = wasi.cleanup(&mut control);
++        drop(owner);
++        let failure = control.record_cleanup(final_wasi).or(outcome);
++        Ok(ExecutionCleanupTail {
++            control,
++            header,
++            final_wasi,
++            failure,
++        })
++    }
++}
++fn cleanup_cursor() -> Cursor {
++    Cursor {
++        stage: SwiftRunStage::Cleanup,
++        function: None,
++        offset: None,
++    }
++}
++impl PartialInstance {
++    fn construct(
++        &mut self,
++        adopted: AdoptedProof,
++        grants: WasiGrants,
++        wasi_budget: WasiBudget,
++        started: Instant,
++        cursor: Cursor,
++    ) -> Result<(), SwiftRunFailure> {
++        let control = self.control.as_mut().unwrap();
++        match SwiftFunctionCache::prepare(control, None, &adopted, cursor) {
++            Ok(mut phase) => {
++                let mut returned = Some(phase.construct(adopted));
++                let failure = match returned.take().unwrap() {
++                    Ok(cache) => {
++                        self.cache = Some(cache);
++                        None
++                    }
++                    Err(error) => {
++                        // The same-owner adopted pair passed bootstrap. Repeated
++                        // construction is impossible on this fresh local phase.
++                        debug_assert!(error.rejected_adopted.is_none());
++                        Some(error.failure)
++                    }
++                };
++                phase.complete(returned)?;
++                if let Some(failure) = failure {
++                    return Err(failure);
++                }
++            }
++            Err(failure) => {
++                let _ = control.drop_proof(adopted);
++                return Err(failure);
++            }
++        }
++        {
++            let mut phase = AccountedWasi::prepare(control, cursor)?;
++            let mut returned = Some(phase.construct(grants, wasi_budget, started, cursor));
++            let result = returned.take().unwrap();
++            match result {
++                Ok(wasi) => self.wasi = Some(wasi),
++                Err(failure) => {
++                    phase.complete()?;
++                    return Err(failure);
++                }
++            }
++            phase.complete()?;
++        }
++        {
++            let mut phase = SwiftExecutionState::prepare(
++                control,
++                self.cache.as_ref().unwrap(),
++                self.wasi.as_ref().unwrap(),
++                cursor,
++            )?;
++            let mut returned = Some(phase.construct());
++            let failure = match returned.take().unwrap() {
++                Ok(state) => {
++                    self.state = Some(state);
++                    None
++                }
++                Err(failure) => Some(failure),
++            };
++            phase.complete(returned)?;
++            if let Some(failure) = failure {
++                return Err(failure);
++            }
++        }
++        Ok(())
++    }
++    fn cleanup_failed(
++        mut self,
++        previous_bound: usize,
++        failure: SwiftRunFailure,
++    ) -> ConstructionCleanupTail {
++        let mut control = self.control.take().unwrap();
++        let mut header = None;
++        if let Some(mut state) = self.state.take() {
++            let wasi = self.wasi.as_ref().unwrap();
++            let pages = state.memory.len() / PAGE;
++            state.drop_arenas(&mut control, wasi);
++            let _ = control.remove_live_with_wasi(Live::MemoryPages, pages, Some(wasi.usage()));
++            header = state.execution_header.take();
++            drop(state);
++        }
++        let mut outcome = None;
++        if self.cache.is_some() {
++            match SwiftFunctionCache::cleanup(&mut self.cache, &mut control, self.wasi.as_ref()) {
++                Ok(tail) => tail.complete(self.cache.take(), &mut outcome),
++                Err(error) => {
++                    outcome = Some(error);
++                }
++            }
++        }
++        let final_wasi = self.wasi.as_ref().map(AccountedWasi::usage);
++        if let Some(wasi) = self.wasi.take() {
++            let _ = wasi.cleanup(&mut control);
++        }
++        // Keep the outer envelope through the whole constructor error return.
++        // The caller supplies its possible-owner slots to unit completion.
++        drop(self);
++        let tail = ExecutionCleanupTail {
++            control,
++            header,
++            final_wasi,
++            failure: outcome.or(Some(failure)),
++        };
++        ConstructionCleanupTail {
++            tail,
++            previous_bound,
++        }
++    }
++}
+diff --git a/vm/src/experimental_swift_reactor/execution_tests.rs b/vm/src/experimental_swift_reactor/execution_tests.rs
+index c91fef2..ce6a438 100644
+--- a/vm/src/experimental_swift_reactor/execution_tests.rs
++++ b/vm/src/experimental_swift_reactor/execution_tests.rs
+@@ -18,6 +18,43 @@ use crate::{Cancellation, Type, Value};
+ use std::mem::{align_of, offset_of, size_of};
+ use std::time::Instant;
+ 
++#[derive(Clone, Copy, Default)]
++struct ConstructionHooks {
++    checks: usize,
++    cancel: Option<usize>,
++    capacities: usize,
++    capacity: Option<usize>,
++    bad_restore: bool,
++}
++thread_local! { static CONSTRUCTION_HOOKS: std::cell::Cell<ConstructionHooks> = std::cell::Cell::new(ConstructionHooks::default()); }
++pub(super) fn construction_checkpoint(control: &RuntimeControl, _: Cursor) {
++    CONSTRUCTION_HOOKS.with(|slot| {
++        let mut hooks = slot.get();
++        if hooks.cancel == Some(hooks.checks) {
++            control.cancellation().cancel();
++        }
++        hooks.checks += 1;
++        slot.set(hooks);
++    });
++}
++pub(super) fn construction_capacity(observed: usize) -> usize {
++    CONSTRUCTION_HOOKS.with(|slot| {
++        let mut hooks = slot.get();
++        let corrupt = hooks.capacity == Some(hooks.capacities);
++        hooks.capacities += 1;
++        slot.set(hooks);
++        observed + usize::from(corrupt)
++    })
++}
++pub(super) fn construction_restore_bound(previous: usize) -> usize {
++    CONSTRUCTION_HOOKS.with(|slot| if slot.get().bad_restore { 0 } else { previous })
++}
++#[test]
++fn swift_construction_named_layout_supplement() {
++    print_construction_layouts();
++    assert!(construction_bytes().unwrap() > phase_bytes("construction").unwrap());
++}
++
+ #[test]
+ fn swift_executor_layout_all_eight_phase_shapes() {
+     macro_rules! row {
+@@ -424,6 +461,806 @@ fn actual_final_observation(control: &mut RuntimeControl) -> Option<WasiUsage> {
+     Some(observation)
+ }
+ 
++fn construction_cursor() -> Cursor {
++    Cursor {
++        stage: SwiftRunStage::Initialization,
++        function: None,
++        offset: None,
++    }
++}
++fn construction_hooks(hooks: ConstructionHooks) {
++    CONSTRUCTION_HOOKS.with(|slot| slot.set(hooks));
++}
++fn construction_fixture() -> Vec<u8> {
++    fn uint(mut value: u32, out: &mut Vec<u8>) {
++        loop {
++            let byte = (value & 127) as u8;
++            value >>= 7;
++            out.push(byte | if value == 0 { 0 } else { 128 });
++            if value == 0 {
++                return;
++            }
++        }
++    }
++    fn section(id: u8, payload: &[u8], out: &mut Vec<u8>) {
++        out.push(id);
++        uint(payload.len() as u32, out);
++        out.extend(payload);
++    }
++    fn uint_at(bytes: &[u8], at: &mut usize) -> usize {
++        let mut value = 0;
++        let mut shift = 0;
++        loop {
++            let byte = bytes[*at];
++            *at += 1;
++            value |= ((byte & 127) as usize) << shift;
++            if byte & 128 == 0 {
++                return value;
++            }
++            shift += 7;
++        }
++    }
++    let original = fixture();
++    let mut out = original[..8].to_vec();
++    let mut at = 8;
++    while at < original.len() {
++        let start = at;
++        let id = original[at];
++        at += 1;
++        let len = uint_at(&original, &mut at);
++        at += len;
++        if id == 7 {
++            let globals = [
++                vec![0x7f, 1, 0x41, 0x7f, 0x0b],
++                vec![0x7e, 0, 0x42, 0x7e, 0x0b],
++                vec![0x7d, 0, 0x43, 0x34, 0x12, 0xc0, 0x7f, 0x0b],
++                vec![0x7c, 0, 0x44, 0, 0, 0, 0, 0, 0, 0, 0x80, 0x0b],
++            ];
++            let mut payload = vec![4];
++            for global in globals {
++                payload.extend(global);
++            }
++            section(6, &payload, &mut out);
++        }
++        if id == 10 {
++            // Retained source order: the later element overwrites the first.
++            section(
++                9,
++                &[2, 0, 0x41, 0, 0x0b, 2, 34, 35, 0, 0x41, 1, 0x0b, 1, 62],
++                &mut out,
++            );
++        }
++        out.extend_from_slice(&original[start..at]);
++    }
++    // Overlap and a zero-length range exactly at the memory boundary.
++    let mut data = vec![
++        3, 0, 0x41, 0, 0x0b, 4, b'a', b'b', b'c', b'd', 0, 0x41, 2, 0x0b, 2, b'X', b'Y', 0, 0x41,
++    ];
++    // Positive signed-LEB of 584*65536, followed by end and zero count.
++    let mut value = 584u32 * 65536;
++    loop {
++        let byte = (value & 127) as u8;
++        value >>= 7;
++        let more = value != 0 || byte & 64 != 0;
++        data.push(byte | if more { 128 } else { 0 });
++        if !more {
++            break;
++        }
++    }
++    data.extend([0x0b, 0]);
++    section(11, &data, &mut out);
++    out
++}
++fn construction_adopt(budget: SwiftRunBudget) -> Option<(RuntimeControl, AdoptedProof)> {
++    construction_adopt_bytes(&construction_fixture(), budget)
++}
++fn construction_adopt_bytes(
++    bytes: &[u8],
++    budget: SwiftRunBudget,
++) -> Option<(RuntimeControl, AdoptedProof)> {
++    let proof = validate_swift_reactor(
++        bytes,
++        SwiftValidationBudget::default(),
++        &Cancellation::default(),
++    )
++    .unwrap();
++    Some(RuntimeControl::adopt(proof, budget, Instant::now(), Cancellation::default()).unwrap())
++}
++fn construction_wasi_budget() -> WasiBudget {
++    WasiBudget {
++        one_transfer_bytes: 64,
++        log_bytes: 64,
++        ..WasiBudget::default()
++    }
++}
++fn construct_owned(
++    pair: &mut Option<(RuntimeControl, AdoptedProof)>,
++) -> Result<SwiftReactorInstance, ConstructionFailure> {
++    SwiftReactorInstance::construct(
++        pair,
++        WasiGrants::default(),
++        construction_wasi_budget(),
++        Instant::now(),
++        construction_cursor(),
++    )
++}
++fn construct_failed(mut pair: Option<(RuntimeControl, AdoptedProof)>) -> SwiftRunFailure {
++    let mut returned = Some(construct_owned(&mut pair));
++    let tail = match returned.take().unwrap() {
++        Err(ConstructionFailure::Cleanup(tail)) => tail,
++        _ => panic!("expected destructive constructor failure"),
++    };
++    assert!(pair.is_none());
++    let mut outcome = None;
++    let mut usage = None;
++    tail.complete((pair, returned), &mut outcome, &mut usage);
++    let mut failure = outcome.expect("constructor latched first failure");
++    failure.after_cleanup = usage;
++    failure
++}
++fn construction_finish(owner: SwiftReactorInstance) -> SwiftRunUsage {
++    let mut owned = Some(owner);
++    let mut returned = Some(SwiftReactorInstance::cleanup_owned(&mut owned));
++    let tail = returned
++        .take()
++        .unwrap()
++        .unwrap_or_else(|e| panic!("cleanup {}", e.code));
++    let mut failure = None;
++    let mut usage = None;
++    tail.complete((owned, returned), &mut failure, &mut usage);
++    let usage = usage.unwrap();
++    assert_eq!(usage.reservations.combined.current, 0);
++    assert_eq!(usage.reservations.live_tickets, 0);
++    assert_eq!(usage.live.memory_pages.current, 0);
++    assert_eq!(usage.live.active_pins.current, 0);
++    assert_eq!(usage.live.cache_entries.current, 0);
++    assert_eq!(usage.cleanup_invariant, None);
++    usage
++}
++
++#[test]
++fn swift_construction_composed_original_proof_six_arenas_and_cleanup() {
++    construction_hooks(ConstructionHooks::default());
++    let mut pair = construction_adopt(SwiftRunBudget::default());
++    let source = pair.as_ref().unwrap().1.proof().source().as_ptr();
++    let validation = pair.as_ref().unwrap().1.proof().usage();
++    let floor = pair
++        .as_ref()
++        .unwrap()
++        .0
++        .usage(None)
++        .reservations
++        .construction
++        .current;
++    let (owner, allocations) = measure(|| construct_owned(&mut pair).unwrap());
++    assert!(pair.is_none());
++    drop(pair);
++    assert!(matches!(owner.lifecycle, Lifecycle::Uninitialized));
++    let state = owner.state.as_ref().unwrap();
++    assert_eq!(state.values.capacity(), 16384);
++    assert_eq!(state.controls.capacity(), 4096);
++    assert_eq!(state.frames.capacity(), 64);
++    assert_eq!(state.memory.capacity(), 584 * 65536);
++    assert_eq!(state.table.capacity(), 46713);
++    assert_eq!(state.globals.capacity(), 4);
++    assert_eq!(
++        state.values.len() + state.controls.len() + state.frames.len(),
++        0
++    );
++    assert_eq!(&state.memory[..5], b"abXY\0");
++    assert!(state.memory[4..].iter().all(|byte| *byte == 0));
++    assert_eq!(&state.table[..3], &[Some(34), Some(62), None]);
++    assert_eq!(
++        state.globals,
++        [
++            Value::I32(-1),
++            Value::I64(-2),
++            Value::F32(0x7fc01234),
++            Value::F64(0x8000000000000000)
++        ]
++    );
++    assert_eq!(
++        owner.cache.as_ref().unwrap().proof().source().as_ptr(),
++        source
++    );
++    assert_eq!(owner.cache.as_ref().unwrap().proof().usage(), validation);
++    let usage = owner
++        .control
++        .as_ref()
++        .unwrap()
++        .usage(owner.wasi.as_ref().map(AccountedWasi::usage));
++    assert_eq!(usage.reservations.construction.current, floor);
++    assert_eq!(usage.live.memory_pages.current, 584);
++    assert_eq!(usage.instructions, 0);
++    assert_eq!(usage.instruction_fuel, 0);
++    assert_eq!(usage.host_calls, 0);
++    assert_eq!(
++        usage.execution_work,
++        (584 * 65536 + 46713 + 4 + 64 + 5 + 6 + 3) as u64
++    );
++    assert_eq!(
++        usage.reservations.retained_source.current,
++        validation.source_bytes
++    );
++    assert_eq!(allocations.allocations, 13);
++    assert_eq!(allocations.reallocations, 0);
++    let (usage, cleanup) = measure(|| construction_finish(owner));
++    assert_eq!(cleanup.allocations + cleanup.reallocations, 0);
++    assert_eq!(cleanup.deallocations, 23); // 13 payloads + 10 adopted/foundation backing allocations.
++    assert!(usage.reservations.combined.peak > usage.reservations.state.peak);
++    println!(
++        "construction allocations {} bytes {} cleanup_deallocations {} peak {}",
++        allocations.allocations,
++        allocations.allocated_bytes,
++        cleanup.deallocations,
++        usage.reservations.combined.peak
++    );
++}
++
++#[test]
++fn swift_construction_every_integrated_allocation_ordinal() {
++    use super::allocation_tests::measure_extended;
++    for ordinal in 0..13 {
++        construction_hooks(ConstructionHooks::default());
++        let pair = construction_adopt(SwiftRunBudget::default());
++        let (failure, stats) = measure_extended(Some(ordinal), || construct_failed(pair));
++        assert_eq!(stats.injected_failures, 1, "ordinal {ordinal}");
++        assert_eq!(stats.attempts, ordinal + 1, "ordinal {ordinal}");
++        assert_eq!(stats.reallocations, 0);
++        assert_eq!(failure.kind, SwiftRunFailureKind::Allocation);
++        let after = failure.after_cleanup.unwrap();
++        assert_eq!(
++            after.reservations.combined.current, 0,
++            "ordinal {ordinal} {}",
++            failure.code
++        );
++        assert_eq!(after.reservations.live_tickets, 0, "ordinal {ordinal}");
++        assert_eq!(after.live.memory_pages.current, 0);
++        assert_eq!(after.cleanup_invariant, None);
++        assert_eq!(
++            stats.deallocations,
++            ordinal + 10,
++            "adopted/foundation backing and prior payloads at {ordinal}"
++        );
++    }
++}
++
++#[test]
++fn swift_construction_each_state_capacity_rejects_without_growth() {
++    for ordinal in 0..6 {
++        construction_hooks(ConstructionHooks {
++            capacity: Some(ordinal),
++            ..ConstructionHooks::default()
++        });
++        let pair = construction_adopt(SwiftRunBudget::default());
++        let (failure, stats) = measure(|| construct_failed(pair));
++        assert_eq!(failure.code, "swift_run_unexpected_capacity");
++        assert_eq!(
++            failure.observed_capacity,
++            Some(failure.attempted as usize + 1)
++        );
++        assert_eq!(failure.resource, Some(SwiftRunResource::ExactCapacity));
++        assert_eq!(stats.attempts, 8 + ordinal);
++        assert_eq!(stats.reallocations, 0);
++        assert_eq!(
++            failure.after_cleanup.unwrap().reservations.combined.current,
++            0
++        );
++    }
++    construction_hooks(ConstructionHooks::default());
++}
++
++#[test]
++fn swift_construction_zero_stack_capacities_and_memory_minimum() {
++    construction_hooks(ConstructionHooks::default());
++    let mut pair = construction_adopt(SwiftRunBudget {
++        frames: 0,
++        values: 0,
++        controls: 0,
++        ..SwiftRunBudget::default()
++    });
++    let (owner, stats) = measure(|| construct_owned(&mut pair).unwrap());
++    drop(pair);
++    let state = owner.state.as_ref().unwrap();
++    assert_eq!(
++        state.frames.capacity() + state.values.capacity() + state.controls.capacity(),
++        0
++    );
++    assert_eq!(stats.allocations, 10);
++    construction_finish(owner);
++    let pair = construction_adopt(SwiftRunBudget {
++        memory_pages: 583,
++        ..SwiftRunBudget::default()
++    });
++    let (failure, stats) = measure(|| construct_failed(pair));
++    assert_eq!(failure.code, "swift_execution_memory_minimum");
++    assert_eq!((failure.attempted, failure.limit), (584, 583));
++    assert_eq!(stats.allocations, 7); // Cache and WASI only; no State allocation.
++    assert_eq!(failure.at_failure.reservations.state.current, 0);
++    assert_eq!(
++        failure.after_cleanup.unwrap().reservations.combined.current,
++        0
++    );
++}
++
++#[test]
++fn swift_construction_terminal_before_take_preserves_owner_and_first_cause() {
++    construction_hooks(ConstructionHooks::default());
++    let mut pair = construction_adopt(SwiftRunBudget::default());
++    let first = pair.as_mut().unwrap().0.fail(
++        construction_cursor(),
++        Fault::new(SwiftRunFailureKind::GuestTrap, "construction_prior"),
++        None,
++    );
++    let (returned, stats) = measure(|| construct_owned(&mut pair));
++    let failure = match returned {
++        Err(ConstructionFailure::Rejected(failure)) => failure,
++        _ => panic!("expected intact-pair rejection"),
++    };
++    drop(returned);
++    assert_eq!(failure, first);
++    assert!(pair.is_some());
++    assert_eq!(
++        stats.allocations + stats.deallocations + stats.reallocations,
++        0
++    );
++    let (mut control, proof) = pair.take().unwrap();
++    control.drop_proof(proof).unwrap();
++    control
++        .end_construction_phase(pair, foundation_construction_bytes().unwrap())
++        .unwrap();
++    let usage = control.finish_owned_cleanup(None);
++    assert_eq!(usage.reservations.combined.current, 0);
++}
++
++#[test]
++fn swift_construction_category_and_combined_admission_precede_allocation() {
++    for (budget, kind, attempts) in [
++        (
++            SwiftRunBudget {
++                state_bytes: 0,
++                ..SwiftRunBudget::default()
++            },
++            SwiftRunFailureKind::CategoryExhausted,
++            7,
++        ),
++        (
++            SwiftRunBudget {
++                combined_bytes: 32 * 1024 * 1024,
++                ..SwiftRunBudget::default()
++            },
++            SwiftRunFailureKind::CombinedExhausted,
++            10,
++        ),
++    ] {
++        construction_hooks(ConstructionHooks::default());
++        let pair = construction_adopt(budget);
++        let (failure, stats) = measure(|| construct_failed(pair));
++        assert_eq!(failure.kind, kind);
++        assert_eq!(stats.attempts, attempts);
++        assert_eq!(stats.reallocations, 0);
++        assert_eq!(
++            failure.after_cleanup.unwrap().reservations.combined.current,
++            0
++        );
++        assert_eq!(failure.after_cleanup.unwrap().reservations.live_tickets, 0);
++    }
++}
++
++#[test]
++fn swift_construction_base_work_prefixes_and_selected_cancellation_boundaries() {
++    let base = (584 * 65536 + 46713 + 4) as u64;
++    for limit in [
++        0,
++        base - 1,
++        base,
++        base + 15,
++        base + 16,
++        base + 63,
++        base + 64,
++        base + 77,
++    ] {
++        construction_hooks(ConstructionHooks::default());
++        let pair = construction_adopt(SwiftRunBudget {
++            execution_work: limit,
++            ..SwiftRunBudget::default()
++        });
++        let failure = construct_failed(pair);
++        assert_eq!(failure.kind, SwiftRunFailureKind::WorkExhausted);
++        assert!(failure.at_failure.execution_work <= limit);
++        assert_eq!(failure.at_failure.live.memory_pages.current, 0);
++        assert!(failure.at_failure.wasi.is_some());
++        assert_eq!(
++            failure.after_cleanup.unwrap().reservations.combined.current,
++            0
++        );
++    }
++    construction_hooks(ConstructionHooks::default());
++    let mut pair = construction_adopt(SwiftRunBudget::default());
++    let owner = construct_owned(&mut pair).unwrap();
++    drop(pair);
++    let count = CONSTRUCTION_HOOKS.with(|slot| slot.get().checks);
++    construction_finish(owner);
++    // Bounded construction-only samples; the frozen all-prefix interpreter
++    // qualification remains pending. These hit allocation/zero/table/final loops.
++    for ordinal in [0, 1, 2, 12, 15, 1000, 10000, count - 2, count - 1] {
++        construction_hooks(ConstructionHooks {
++            cancel: Some(ordinal),
++            ..ConstructionHooks::default()
++        });
++        let pair = construction_adopt(SwiftRunBudget::default());
++        let failure = construct_failed(pair);
++        assert_eq!(
++            failure.kind,
++            SwiftRunFailureKind::Cancelled,
++            "check {ordinal}"
++        );
++        assert_eq!(
++            CONSTRUCTION_HOOKS.with(|slot| slot.get().checks),
++            ordinal + 1
++        );
++        assert_eq!(failure.at_failure.live.memory_pages.current, 0);
++        assert_eq!(
++            failure.after_cleanup.unwrap().reservations.combined.current,
++            0
++        );
++        assert_eq!(failure.after_cleanup.unwrap().reservations.live_tickets, 0);
++    }
++    construction_hooks(ConstructionHooks::default());
++    println!("construction real check boundaries {count}; selected cancellation samples 9");
++}
++
++#[test]
++fn swift_construction_real_wasi_terminal_cleanup_and_intact_foreign_preflight() {
++    construction_hooks(ConstructionHooks::default());
++    let mut first =
++        Some(construct_owned(&mut construction_adopt(SwiftRunBudget::default())).unwrap());
++    {
++        let owner = first.as_mut().unwrap();
++        owner
++            .wasi
++            .as_mut()
++            .unwrap()
++            .dispatch(
++                owner.control.as_mut().unwrap(),
++                WasiFunction::ArgsSizesGet,
++                &[Value::I32(0), Value::I32(4)],
++                &mut [0; 8],
++                construction_cursor(),
++            )
++            .unwrap();
++        let observation = owner.wasi.as_ref().unwrap().usage();
++        assert_eq!(observation.calls, 1);
++        owner.control.as_mut().unwrap().fail(
++            construction_cursor(),
++            Fault::new(SwiftRunFailureKind::GuestTrap, "construction_actual_wasi"),
++            Some(observation),
++        );
++    }
++    let mut second =
++        Some(construct_owned(&mut construction_adopt(SwiftRunBudget::default())).unwrap());
++    std::mem::swap(
++        &mut first.as_mut().unwrap().wasi,
++        &mut second.as_mut().unwrap().wasi,
++    );
++    let before = first
++        .as_ref()
++        .unwrap()
++        .control
++        .as_ref()
++        .unwrap()
++        .usage(None);
++    let (failure, stats) = measure(|| {
++        SwiftReactorInstance::cleanup_owned(&mut first)
++            .err()
++            .unwrap()
++    });
++    assert_eq!(failure.code, "construction_actual_wasi");
++    assert!(first.is_some());
++    let after = first
++        .as_ref()
++        .unwrap()
++        .control
++        .as_ref()
++        .unwrap()
++        .usage(None);
++    assert_eq!(before.reservations, after.reservations);
++    assert_eq!(
++        stats.allocations + stats.reallocations + stats.deallocations,
++        0
++    );
++    std::mem::swap(
++        &mut first.as_mut().unwrap().wasi,
++        &mut second.as_mut().unwrap().wasi,
++    );
++    let mut returned = Some(SwiftReactorInstance::cleanup_owned(&mut first));
++    let tail = returned
++        .take()
++        .unwrap()
++        .unwrap_or_else(|e| panic!("{}", e.code));
++    let mut failure = None;
++    let mut usage = None;
++    let (_, stats) = measure(|| tail.complete((first, returned), &mut failure, &mut usage));
++    assert_eq!(stats.allocations + stats.reallocations, 0);
++    let failure = failure.unwrap();
++    assert_eq!(failure.code, "construction_actual_wasi");
++    assert_eq!(failure.at_failure.wasi.unwrap().calls, 1);
++    assert_eq!(usage.unwrap().wasi.unwrap().calls, 1);
++    assert_eq!(usage.unwrap().reservations.combined.current, 0);
++    construction_finish(second.take().unwrap());
++}
++
++#[test]
++fn swift_construction_cleanup_rejects_nonempty_state_before_take() {
++    construction_hooks(ConstructionHooks::default());
++    let mut owned =
++        Some(construct_owned(&mut construction_adopt(SwiftRunBudget::default())).unwrap());
++    owned
++        .as_mut()
++        .unwrap()
++        .state
++        .as_mut()
++        .unwrap()
++        .values
++        .push(Value::I32(7));
++    let before = owned
++        .as_ref()
++        .unwrap()
++        .control
++        .as_ref()
++        .unwrap()
++        .usage(None)
++        .reservations;
++    let (failure, stats) = measure(|| {
++        SwiftReactorInstance::cleanup_owned(&mut owned)
++            .err()
++            .unwrap()
++    });
++    assert_eq!(failure.code, "swift_execution_cleanup_nonempty");
++    assert!(owned.is_some());
++    assert_eq!(
++        owned.as_ref().unwrap().state.as_ref().unwrap().values,
++        [Value::I32(7)]
++    );
++    assert_eq!(
++        owned
++            .as_ref()
++            .unwrap()
++            .control
++            .as_ref()
++            .unwrap()
++            .usage(None)
++            .reservations,
++        before
++    );
++    assert_eq!(
++        stats.allocations + stats.reallocations + stats.deallocations,
++        0
++    );
++    owned
++        .as_mut()
++        .unwrap()
++        .state
++        .as_mut()
++        .unwrap()
++        .values
++        .clear();
++    construction_finish(owned.take().unwrap());
++}
++
++#[test]
++fn swift_construction_failed_outer_restore_drains_actual_components() {
++    construction_hooks(ConstructionHooks {
++        bad_restore: true,
++        ..ConstructionHooks::default()
++    });
++    let pair = construction_adopt(SwiftRunBudget::default());
++    let (failure, stats) = measure(|| construct_failed(pair));
++    assert_eq!(failure.code, "swift_run_construction_phase_bound");
++    assert_eq!(stats.allocations, 13);
++    assert_eq!(stats.deallocations, 23);
++    let after = failure.after_cleanup.unwrap();
++    assert_eq!(after.reservations.state.current, 0);
++    assert_eq!(after.reservations.cache.current, 0);
++    assert_eq!(after.reservations.wasi.current, 0);
++    assert_eq!(
++        after.reservations.retained_source.current + after.reservations.retained_metadata.current,
++        0
++    );
++    assert_eq!(after.live.memory_pages.current, 0);
++    assert_eq!(after.reservations.live_tickets, 1);
++    assert_eq!(
++        after.reservations.combined.current,
++        foundation_construction_bytes().unwrap() + construction_bytes().unwrap()
++    );
++    assert_eq!(
++        after.cleanup_invariant,
++        Some(SwiftCleanupInvariant::ConstructionBound)
++    );
++    construction_hooks(ConstructionHooks::default());
++}
++
++#[test]
++fn swift_construction_retained_minimum_and_padded_signed_constants() {
++    fn uint(mut n: usize, out: &mut Vec<u8>) {
++        loop {
++            let b = (n & 127) as u8;
++            n >>= 7;
++            out.push(b | if n == 0 { 0 } else { 128 });
++            if n == 0 {
++                return;
++            }
++        }
++    }
++    fn uint_at(bytes: &[u8], at: &mut usize) -> usize {
++        let mut n = 0;
++        let mut shift = 0;
++        loop {
++            let b = bytes[*at];
++            *at += 1;
++            n |= ((b & 127) as usize) << shift;
++            if b & 128 == 0 {
++                return n;
++            }
++            shift += 7;
++        }
++    }
++    construction_hooks(ConstructionHooks::default());
++    let source = construction_fixture();
++    let mut fixture = source[..8].to_vec();
++    let mut at = 8;
++    while at < source.len() {
++        let id = source[at];
++        at += 1;
++        let count = uint_at(&source, &mut at);
++        let end = at + count;
++        fixture.push(id);
++        if id == 6 {
++            let mut globals = vec![8];
++            globals.extend_from_slice(&source[at + 1..end]);
++            globals.extend([0x7f, 0, 0x41, 0x80, 0x80, 0x80, 0x80, 0x78, 0x0b]);
++            globals.extend([0x7e, 0, 0x42]);
++            globals.extend([0x80; 9]);
++            globals.extend([0x7f, 0x0b]);
++            globals.extend([0x7f, 0, 0x41, 0xff, 0xff, 0xff, 0xff, 0x7f, 0x0b]);
++            globals.extend([0x7e, 0, 0x42, 0xfe]);
++            globals.extend([0xff; 8]);
++            globals.extend([0x7f, 0x0b]);
++            uint(globals.len(), &mut fixture);
++            fixture.extend(globals);
++        } else {
++            uint(count, &mut fixture);
++            fixture.extend_from_slice(&source[at..end]);
++        }
++        at = end;
++    }
++    let mut pair = construction_adopt_bytes(&fixture, SwiftRunBudget::default());
++    let owner = construct_owned(&mut pair).unwrap();
++    drop(pair);
++    assert_eq!(
++        &owner.state.as_ref().unwrap().globals[4..],
++        &[
++            Value::I32(i32::MIN),
++            Value::I64(i64::MIN),
++            Value::I32(-1),
++            Value::I64(-2)
++        ]
++    );
++    construction_finish(owner);
++}
++
++#[test]
++fn swift_construction_checked_scalar_rejects_exact_first_byte() {
++    for (bytes, ty, code, offset) in [
++        (&[0xff][..], Type::I32, "swift_execution_scalar_opcode", 900),
++        (
++            &[0x41, 0, 0x0b][..],
++            Type::F32,
++            "swift_execution_scalar_type",
++            900,
++        ),
++        (
++            &[0x41, 0, 0][..],
++            Type::I32,
++            "swift_execution_scalar_end",
++            902,
++        ),
++        (
++            &[0x41, 0, 0x0b, 0][..],
++            Type::I32,
++            "swift_execution_scalar_trailing",
++            903,
++        ),
++        (
++            &[0x44, 0, 0][..],
++            Type::F64,
++            "swift_execution_scalar_eof",
++            903,
++        ),
++        (
++            &[0x41, 0x80, 0x80, 0x80, 0x80, 0x08, 0x0b][..],
++            Type::I32,
++            "swift_execution_scalar_signed",
++            905,
++        ),
++    ] {
++        construction_hooks(ConstructionHooks::default());
++        let mut owner =
++            construct_owned(&mut construction_adopt(SwiftRunBudget::default())).unwrap();
++        let (failure, stats) = measure(|| {
++            scalar_constant_probe(
++                bytes,
++                900,
++                ty,
++                owner.control.as_mut().unwrap(),
++                owner.wasi.as_ref().unwrap(),
++            )
++            .err()
++            .unwrap()
++        });
++        assert_eq!((failure.code, failure.offset), (code, Some(offset)));
++        assert_eq!(stats.allocations + stats.reallocations, 0);
++        construction_finish(owner);
++    }
++}
++
++#[test]
++fn swift_construction_state_phase_is_one_shot_and_restores_exact_outer_bound() {
++    construction_hooks(ConstructionHooks::default());
++    let mut owner = construct_owned(&mut construction_adopt(SwiftRunBudget::default())).unwrap();
++    let floor = owner
++        .control
++        .as_ref()
++        .unwrap()
++        .usage(None)
++        .reservations
++        .construction
++        .current;
++    let mut phase = SwiftExecutionState::prepare(
++        owner.control.as_mut().unwrap(),
++        owner.cache.as_ref().unwrap(),
++        owner.wasi.as_ref().unwrap(),
++        construction_cursor(),
++    )
++    .unwrap();
++    let first = phase
++        .construct()
++        .err()
++        .expect("second State cannot double initial live pages");
++    assert_eq!(first.resource, Some(SwiftRunResource::MemoryPages));
++    assert_eq!((first.attempted, first.limit), (1168, 768));
++    let (second, stats) = measure(|| phase.construct().err().unwrap());
++    assert_eq!(first, second);
++    assert_eq!(
++        stats.allocations + stats.reallocations + stats.deallocations,
++        0
++    );
++    phase.complete(()).unwrap();
++    assert_eq!(
++        owner
++            .control
++            .as_ref()
++            .unwrap()
++            .usage(None)
++            .reservations
++            .construction
++            .current,
++        floor
++    );
++    assert_eq!(
++        owner
++            .control
++            .as_ref()
++            .unwrap()
++            .usage(None)
++            .live
++            .memory_pages
++            .current,
++        584
++    );
++    construction_finish(owner);
++}
++
+ #[test]
+ fn swift_executor_layout_final_header_success_consumes_storage_before_refund() {
+     use std::sync::atomic::{AtomicBool, Ordering};

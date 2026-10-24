@@ -1,0 +1,35 @@
+    Checking mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction/build/metadata/vm)
+error[E0603]: module `execution` is private
+  --> examples/construction_privacy.rs:1:59
+   |
+ 1 | fn main() { let _ = mixer_vm::experimental_swift_reactor::execution::SwiftReactorInstance::construct; }
+   |                                                           ^^^^^^^^^  -------------------- struct `SwiftReactorInstance` is not publicly re-exported
+   |                                                           |
+   |                                                           private module
+   |
+note: the module `execution` is defined here
+  --> src/experimental_swift_reactor/mod.rs:18:1
+   |
+18 | mod execution;
+   | ^^^^^^^^^^^^^
+
+error[E0624]: associated function `construct` is private
+    --> examples/construction_privacy.rs:1:92
+     |
+   1 |   fn main() { let _ = mixer_vm::experimental_swift_reactor::execution::SwiftReactorInstance::construct; }
+     |                                                                                              ^^^^^^^^^ private associated function
+     |
+    ::: src/experimental_swift_reactor/execution.rs:1433:5
+     |
+1433 | /     pub(crate) fn construct(
+1434 | |         owned: &mut Option<(RuntimeControl, AdoptedProof)>,
+1435 | |         grants: WasiGrants,
+1436 | |         wasi_budget: WasiBudget,
+1437 | |         started: Instant,
+1438 | |         cursor: Cursor,
+1439 | |     ) -> Result<Self, SwiftRunFailure> {
+     | |______________________________________- private associated function defined here
+
+Some errors have detailed explanations: E0603, E0624.
+For more information about an error, try `rustc --explain E0603`.
+error: could not compile `mixer-vm` (example "construction_privacy") due to 2 previous errors

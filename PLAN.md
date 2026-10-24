@@ -120,7 +120,7 @@ unchanged. The Swift V2 codec now passes106 SDK tests per mode and an independen
 5,584-case corpus (973 accepted/4,611 rejected), with exact canonical roundtrips.
 Public constructors and iOS/officialAndroid modules compile; see
 `verification/ui-appearance-descriptor-v2-root-review/acceptance.json`. Android
-V2 data implementation is active. Native consumers, resource/bootstrap support,
+V2 data implementation is under independent review. Native consumers, resource/bootstrap support,
 signed V2 installation, interaction and physical design parity remain pending.
 
 Eight unchanged iOS simulator screenshots are retained in
@@ -163,6 +163,26 @@ passes all three jobs, including the repaired bridge test; see
 `verification/github-ci-0f177ad/receipt.json`. The separately accepted final
 foundation allowance accounts those borrows and locals explicitly; historical
 cache receipts remain bound to their original source.
+
+The private Uninitialized constructor and zero-frame cleanup now have root
+acceptance with 927 exact bindings. Its deferred failure tail retains original
+authority through caller return storage. Independent review checks 615 typed
+classes, 5,004 named positions and eight layout configurations. Fresh isolated
+product builds pass 366 full host tests per Debug/Release, with nine ignored;
+434 independent derived library/probe executions are separately scoped.
+The production foundation is now 267,800 bytes, additional construction 1,062,312
+and the same execution header 207,352, all logical reservations. Historical
+candidate2 cwd, candidate3 Clippy and candidate4 shared-target contamination
+failures remain preserved. Candidate4's 367-test claims are invalidated by the
+fresh 366-test receipt. See `docs/swift-executor-construction-acceptance.md` and
+`verification/swift-executor-construction-root-review/acceptance.json`.
+Shared interpreter algorithms, active-frame unwind/growth and exact bounded
+full-target execution remain next; no Ready reactor or GA gate is accepted.
+
+Hosted `7855754` passes all three jobs. Hosted `26943ac` passes VM/services but fails
+Swift bridge TSan with session/native-exit publication race reports and an
+HTTP native-exit fixture timeout. Investigation and separately validated repair
+are in progress; see `verification/github-ci-26943ac/receipt.json`.
 
 The next hosted checkpoint `61c5c8b` exposed a minimal-feature Clippy failure in
 unused private descriptor fields after its tests passed. The descriptor-only

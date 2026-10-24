@@ -1,0 +1,72 @@
+# Independent construction review
+
+The final private constructor passes this independent source, lifetime, accounting, and scoped host-library review. This is a recommendation to root for the bounded **Uninitialized constructor and zero-frame cleanup only**. Root remains the acceptance authority. Interpreter algorithms, initialize/invoke, public activation, the full 53 MB target, physical devices, immutable published FieldLog consumption, and every GA gate remain unverified by this receipt.
+
+The final source freeze is [candidate4-final/input-manifest.json](candidate4-final/input-manifest.json), tree SHA-256 `07f66b2daa9809807f947fda47e297cd482dc0ba6fee7b076df9df11e0b18851`, 118 captured files at revision `785575436dee2370a69ac3daaabefc5cf7a0fec2` plus the recorded working-tree changes. Execution source is `ed4c0f10f84096b665f8bcfc7f5b08173bcef7d7ddc8b3ccb88186bf00be3924`; the full manifest binds control, cache, proof-accessor, tests, contracts, and documentation. No build used the changing live checkout.
+
+## Historical blockers and corrections
+
+Candidate 1 is rejected for accounting and completion-boundary omissions even though its bounded behavior tests passed. The preserved source and logs are under the top-level manifests/logs and `snapshots/candidate1.tar.gz`.
+
+- Pairing preflight created whole `Option<Result<WasiUsage, SwiftRunFailure>>` and transpose `Result<Option<WasiUsage>, SwiftRunFailure>` objects (1096 bytes each on this ABI), actual optional WASI borrows, `CacheControl` receiver borrows, captures, and nested propagation shapes without named positive assignments. Pair `as_mut()` also produced both the optional pair borrow and extracted pair borrow.
+- Monomorphized vector borrows and transfers require their actual element types; `Vec<Value>` or raw-borrow slots cannot account for `Vec<Control>`, `Vec<SwiftFrame>`, `Vec<u8>`, `Vec<Option<u32>>`, or `&mut PartialState`.
+- Pre-header failure restored the outer envelope before creating a large cleanup tail. A later constructor error could return a whole possible-instance `Result`/`Option` after final header/foundation cleanup. Neither containing padding nor diagnostic slots authorized those representations.
+
+The final API distinguishes `ConstructionFailure::Rejected(SwiftRunFailure)` from `Cleanup(ConstructionCleanupTail)`. Rejection retains the original exact `Some((control, adopted))` pair and foundation. Post-take failure drains acquired payloads and returns a non-Clone must-use tail holding the original control, the optional actual execution header, copied failure/WASI, and the exact previous bound while the outer construction envelope remains enlarged. There is no new ticket, allocation, cleanup work debit, or cleanup enlargement.
+
+The caller extracts the tail and supplies its actual possible-owner return storage to unit completion. In the reviewed instantiation that storage is `(Option<(RuntimeControl, AdoptedProof)>, Option<Result<SwiftReactorInstance, ConstructionFailure>>)`. `drop_construction_return_storage` consumes it and the tail before returning `(HeaderCompletionParts, usize)`. A full-statement destructure precedes exact outer restoration, actual header refund if present, cleanup observation, and foundation consumption. Headerless completion uses the new positive final foundation group. The successful whole constructor result and caller `Option` remain covered by the same permanent execution header after outer restoration. The generic private helper is reviewed for the concrete instantiations in the map; a new caller/storage type needs its own accounting review.
+
+## Positive exact-type accounting
+
+[positive-accounting-map.json](candidate2-api/positive-accounting-map.json) and its [immutable proposal freeze](candidate2-api/proposal-freeze.json) bind 159 independently enumerated authored function/callback groups. There are 4983 per-function/local/parameter/return/call-operand positions plus 21 explicit caller-boundary positions: 5004 total positions in 615 typed class arrays. The separate unit hook inventory adds 15 positions/152 bytes; production has no hooks. No unresolved field or operand remains. The three `pending` entries in the preserved proposal map describe its historical pre-wiring state; the source bridge and actual final layout measurements resolve them in this review.
+
+Each class entry maps every array index to the concrete selected source function, local/parameter/return or callsite receiver/argument position, block and argument index. It does not justify counts by a blanket number of source/return/caller copies. Every selected branch and explicit call operand is summed positively. The maximum nested multiplicity of each selected authored function is one: no constructor recursion exists, and loop iterations are sequential. Repeated caller operand positions remain separate. Inhabited `Result`, `Option`, `ControlFlow`, residual, tuple, scalar, iterator, closure capture, receiver and descriptor representations are preserved. Closure capture inventories contain their actual captured references; their callback parameter/return and explicit call positions are additional entries. Zero-capture/function items remain named zero-size terms. The sole excluded never place is uninhabited. Standard-library implementation internals and physical stack/register/RSS/allocator overhead are outside this requested-object accounting scope.
+
+The groups are charged at the boundaries where they can first exist:
+
+| Positive supplement | Production bytes | Unit bytes | Authority |
+| --- | ---: | ---: | --- |
+| preflight | 208480 | 208768 | foundation before constructor/preparation inputs and ownership/admission calls |
+| active | 957872 | 960032 | enlarged construction envelope before owning take/partial builder; nested State enlargement preserves the exact previous bound |
+| cleanup | 156424 | 157144 | same actual execution header through all owner/result/cleanup transfers |
+| final | 39736 | 39832 | foundation through headerless completion, exact end-phase call, header refund, control consumption and copied diagnostics |
+| unit hooks | 0 | 152 | foundation; test engine hook argument/return boundary only |
+| retained descriptor chain | 2480 | 2480 | active construction only, after State enlargement |
+
+The narrow descriptor set is `execution_memory/table/global_count/global/global_initializer_offset/data_count/data/element_count/element/signature`, private `execution_segment`, their actual `Metadata<SwiftDeclaration>` signature/params, `Span::slice`, and concrete `Buffer` get/len/as_slice helpers reached by those getters. Cache proof/adopted proof reborrows are included in the execution group. No retained metadata getter runs during composed or State preparation preflight. Function decode/instruction/import/type getter routes were not added speculatively. The original `experimental/swift.rs` is an exact byte prefix of the final file; only private const inventory and a crate-private size constant were appended. No stored field, accessor algorithm, metadata visibility, runtime inventory or live probe was introduced.
+
+Every old group remains charged, including the original 2216-byte bootstrap, old construction inventories and the accepted 864-byte final boundary. No negative subtraction of an old group, padding credit, diagnostic reuse, or unrelated type replacement is used. Checked arithmetic wires the supplements to actual admission formulas. Final bounds are:
+
+| Bound | Production bytes | Unit bytes |
+| --- | ---: | ---: |
+| foundation | 267800 | 268336 |
+| additional construction | 1062312 | 1065072 |
+| same execution header | 207352 | 208312 |
+
+[qualified-layout-map.json](candidate4-final/qualified-layout-map.json) records all 615 actual field offsets, element sizes, alignments and counts in each of eight configurations: production and unit, Debug and Release, minimal Swift reactor and combined span execution. Actual product declarations are probed in a derived-only overlay; declaration copies do not stand in for final types. Every count matches the frozen call map; every nonzero array is aligned, nonoverlapping, and in bounds. Every actual measurement matches the proposal. No inventory value is instantiated. A larger truthful charge can reject a previously narrow budget; no budget or runtime algorithm was raised to mask this.
+
+## Actual behavior and first-failure authority
+
+The source preserves preflight provenance and budget checks before owning take, admission before each allocation, exact requested capacities, checked arena formulas, all range checks before data/element payload effects, source-order overlapping writes, bounded 4096-byte memory/data chunks and checked scalar/table progress, charged work before effects, and page publication as the last fallible State-construction action. Only the new constant reader exists; no duplicate numeric interpreter was introduced. Cleanup rejects nonempty frames, values, controls, or cache pins before take and performs no cancellation/deadline/work-dependent checks after take.
+
+Every reachable post-take failure already lives on the same control. Cache, WASI and State preparation/construction failures use that control's `fail`; phase-completion restore faults use `cleanup_fault_with_wasi`, which reaches `fail`. Further cleanup cannot replace the first cause. Dropping `ExecutionCleanupTail.failure` or ignoring the restore helper's duplicate failure does not lose a unique diagnostic. Independent tests compare the full first failure, including cause, at-failure usage and WASI, across pre-header state-category/minimum/work failures and post-header outer-restore failure. Valid completion has zero combined current bytes and zero tickets; invalid restoration conservatively retains its ticket. Completion allocates/reallocates zero times.
+
+Independent tests exercise 1086 accepted signed MIN/MAX, boundary, padded positive/negative and floating-bit cases; 11 malformed constant/cursor cases; a natural expired WASI deadline after owning take with three cache allocations and thirteen deallocations; intact foreign adopted/cache/State owner rejection; and complete failure-tail authority. Reader malformed tests are helper tests, not validator authority. Attempted out-of-bounds retained data/element fixtures are rejected by the unchanged complete validator before adoption (`swift_data_segment_fit`/`swift_element_segment_fit`); no forged proof was used to manufacture an impossible constructor path.
+
+Protected legacy source, public library/header routes, execution algorithms, Cargo manifest/lock and borrowed execution interfaces are unchanged. [source-review.json](candidate4-final/source-review.json) records exact protected hashes and the final source bridge.
+
+## Commands and evidence binding
+
+The corrected immutable tested tree is `candidate3-final`, 118 files, SHA-256 `1e990008249473403539927ab5ab61b5e67da01be7f7e95074242c6e08d5383f`. Every command records an absolute cwd under that snapshot and verifies every derived source hash before execution. [commands.json](candidate3-final/commands.json), logs, derived manifest and the measurement/test-only overlay record exact commands, outputs, SHA-256, timestamps and scope. Toolchain: Rust 1.99.0 `b940084d7` (2026-09-28), Cargo 1.99.0, aarch64-apple-darwin, LLVM 23.1.1.
+
+- Four combinations each pass seven independent behavior functions, fourteen producer construction functions, seven old layout functions, and one derived accounting-probe function: 116 function executions.
+- Corrected all-features **library unit suites** pass 159 functions in Debug and 159 in Release, including seven independent tests and one derived-only probe. These commands used `--lib`; they do not claim integration, binary or documentation coverage.
+- Eight final production/unit metadata configurations pass. Total tested-tree executions are 434. Repeated functions/configurations are not represented as 434 unique tests.
+
+The final candidate 4 execution hash differs from the tested tree solely by one targeted `large_enum_variant` allow/comment and four targeted const-inventory `type_complexity` allow/comments. Removing those exact additions yields byte-for-byte tested source. [semantic-bridge.patch](candidate4-final/semantic-bridge.patch) and `source-review.json` prove that relationship. The final document hash is `39f223fa3cc4028f28be2f29f4419e450cf9770c0fc016b03f6411b8b435912e`. No claim is made that earlier commands used a later hash.
+
+Producer candidate 2 behavior/matrix/Clippy/format evidence is rejected: its collector captured candidate 1 as the default cwd. Producer candidate 3 corrected cwd binding but exposed the real lint failures; its failure receipt/source remain preserved by the producer. The corrected root test expectation is also preserved: the much larger foundation can exhaust the category before the combined check. Runtime admission order did not change. Producer candidate 4's exact-source full-host regression and lint/format receipts are separate evidence for root. Independently auditing its terminal receipt `bcf3d924edb227078ada37c8843824e4eb36ad1c3e739dbfb674378ec25d8a80` verified all 34 cwd/manifest bindings and log hashes, all recorded artifact hashes, all 425 archived source-file hashes, and all 113 shared VM inputs against this review's final freeze. Full host Debug and Release each report 367 passed, zero failed, nine ignored. The nine ignored tests remain pending. Two Clippy configurations, formatting and the intended private-constructor compile rejection passed. [producer-evidence-audit.json](candidate4-final/producer-evidence-audit.json) records this separate evidence; it does not relabel producer executions as independently authored tests.
+
+Earlier independent harness/probe compile failures and mistaken test expectations remain in logs. The API-tail first attempt wrongly expected a retained header after unpublished work failure; it was corrected to reflect actual header refund. Generic privacy and measurement-only type/name probe repairs did not change product code. The earlier preflight/active prototype files are superseded exploratory inventories, not final accepted maps.
+
+All snapshot input archives are deterministic and bound by their manifests. Build caches and copied working trees are local ignored material. The evidence seal covers review scripts, maps, logs, source archives, report and decision. No product, tracker, commit, push, phone, release or customer action was performed by this lane.

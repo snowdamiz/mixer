@@ -625,3 +625,104 @@ fn segments_fit(
     }
     Ok(())
 }
+
+// Const-only inventory of the retained getters reached AFTER constructor phase
+// admission. Concrete class indices map to the independently reviewed named
+// source/callsite positions in candidate2-api/positive-accounting-map.json under
+// verification/swift-executor-construction-independent-review. No inventory is
+// instantiated and no descriptor/metadata visibility is widened. The execution
+// layer adds this whole positive bound; historical allowances are not reused.
+#[allow(dead_code)]
+struct ConstructionPositiveDescriptor {
+    class_0: [usize; 42],
+    class_1:
+        [&'static crate::experimental::account::Buffer<crate::experimental::metadata::Global>; 8],
+    class_2: [&'static std::vec::Vec<crate::experimental::metadata::Global>; 4],
+    class_3:
+        [&'static crate::experimental::account::Buffer<crate::experimental::metadata::Segment>; 10],
+    class_4: [&'static std::vec::Vec<crate::experimental::metadata::Segment>; 4],
+    class_5:
+        [&'static crate::experimental::account::Buffer<crate::experimental::metadata::Import>; 8],
+    class_6: [&'static std::vec::Vec<crate::experimental::metadata::Import>; 4],
+    class_7: [&'static [Type]; 5],
+    class_8: [&'static crate::experimental::account::Buffer<Type>; 3],
+    class_9: [&'static std::vec::Vec<Type>; 2],
+    class_10: [std::option::Option<&'static crate::experimental::metadata::Global>; 5],
+    class_11: [&'static [crate::experimental::metadata::Global]; 2],
+    class_12: [std::option::Option<&'static crate::experimental::metadata::Segment>; 5],
+    class_13: [&'static [crate::experimental::metadata::Segment]; 2],
+    class_14: [std::option::Option<&'static crate::experimental::metadata::Signature>; 3],
+    class_15: [&'static crate::experimental::account::Buffer<
+        crate::experimental::metadata::Signature,
+    >; 3],
+    class_16: [&'static [crate::experimental::metadata::Signature]; 2],
+    class_17: [&'static std::vec::Vec<crate::experimental::metadata::Signature>; 2],
+    class_18: [std::option::Option<&'static crate::experimental::metadata::Function>; 3],
+    class_19:
+        [&'static crate::experimental::account::Buffer<crate::experimental::metadata::Function>; 3],
+    class_20: [&'static [crate::experimental::metadata::Function]; 2],
+    class_21: [&'static std::vec::Vec<crate::experimental::metadata::Function>; 2],
+    class_22: [std::option::Option<&'static crate::experimental::metadata::Import>; 3],
+    class_23: [&'static [crate::experimental::metadata::Import]; 2],
+    class_24: [&'static [u8]; 9],
+    class_25: [crate::experimental::metadata::Span; 5],
+    class_26: [std::ops::Range<usize>; 4],
+    class_27: [u32; 19],
+    class_28: [(usize, bool); 3],
+    class_29: [std::option::Option<crate::experimental::metadata::Signature>; 3],
+    class_30: [&'static crate::experimental::metadata::Metadata<
+        crate::experimental::metadata::SwiftDeclaration,
+    >; 6],
+    class_31: [bool; 2],
+    class_32: [std::ops::ControlFlow<
+        std::option::Option<std::convert::Infallible>,
+        &'static crate::experimental::metadata::Import,
+    >; 1],
+    class_33: [isize; 9],
+    class_34: [&'static crate::experimental::metadata::Import; 1],
+    class_35: [std::ops::ControlFlow<
+        std::option::Option<std::convert::Infallible>,
+        &'static crate::experimental::metadata::Function,
+    >; 1],
+    class_36: [&'static crate::experimental::metadata::Function; 1],
+    class_37: [Option<std::convert::Infallible>; 9],
+    class_38: [crate::experimental::metadata::Signature; 3],
+    class_39: [std::option::Option<crate::experimental::descriptors::SignatureView<'static>>; 1],
+    class_40: [&'static ValidatedSwiftReactor; 13],
+    class_41: [std::ops::ControlFlow<
+        std::option::Option<std::convert::Infallible>,
+        crate::experimental::metadata::Signature,
+    >; 1],
+    class_42: [crate::experimental::descriptors::SignatureView<'static>; 1],
+    class_43: [std::option::Option<Type>; 1],
+    class_44: [std::option::Option<crate::experimental::descriptors::GlobalView<'static>>; 1],
+    class_45: [std::ops::ControlFlow<
+        std::option::Option<std::convert::Infallible>,
+        &'static crate::experimental::metadata::Global,
+    >; 2],
+    class_46: [&'static crate::experimental::metadata::Global; 2],
+    class_47: [crate::experimental::descriptors::GlobalView<'static>; 1],
+    class_48: [Type; 1],
+    class_49: [&'static std::boxed::Box<[u8]>; 2],
+    class_50: [std::boxed::Box<[u8]>; 2],
+    class_51: [*const [u8]; 2],
+    class_52: [std::option::Option<usize>; 1],
+    class_53:
+        [std::option::Option<crate::experimental::descriptors::SegmentExecutionView<'static>>; 2],
+    class_54: [crate::experimental::descriptors::SegmentExecutionView<'static>; 3],
+    class_55: [std::ops::ControlFlow<
+        std::option::Option<std::convert::Infallible>,
+        &'static crate::experimental::metadata::Segment,
+    >; 2],
+    class_56: [&'static crate::experimental::metadata::Segment; 5],
+    class_57: [std::option::Option<crate::experimental::descriptors::MemoryExecutionView>; 1],
+    class_58: [std::ops::ControlFlow<std::option::Option<std::convert::Infallible>, (u32, u32)>; 2],
+    class_59: [std::option::Option<(u32, u32)>; 4],
+    class_60: [(u32, u32); 2],
+    class_61: [crate::experimental::descriptors::MemoryExecutionView; 1],
+    class_62: [std::option::Option<u32>; 2],
+    class_63: [std::option::Option<crate::experimental::descriptors::TableExecutionView>; 1],
+    class_64: [crate::experimental::descriptors::TableExecutionView; 1],
+}
+pub(crate) const CONSTRUCTION_POSITIVE_DESCRIPTOR_BYTES: usize =
+    std::mem::size_of::<ConstructionPositiveDescriptor>();

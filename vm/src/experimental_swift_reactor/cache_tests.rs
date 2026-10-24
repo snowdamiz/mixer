@@ -299,6 +299,87 @@ fn wasi(control: &mut RuntimeControl) -> AccountedWasi {
     w
 }
 #[test]
+fn borrowed_owner_preflight_preserves_storage_and_ignores_ordinary_checks() {
+    let bytes = fixture(0, &[0, 0x0b], 29);
+    for rejected_owner in 0..3 {
+        let (mut control, adopted) = adopt(&bytes, SwiftRunBudget::default());
+        let context = wasi(&mut control);
+        let cache = construct(&mut control, adopted, Some(&context)).unwrap();
+        let (mut other, other_adopted) = adopt(&bytes, SwiftRunBudget::default());
+        let other_context = wasi(&mut other);
+        let other_cache = construct(&mut other, other_adopted, Some(&other_context)).unwrap();
+        let source = cache.proof().source().as_ptr();
+        let identity = cache.identity();
+        let before = control.usage(Some(context.usage()));
+        control.cancellation().cancel();
+        hooks(Hooks::default());
+        let (result, allocations) = measure(|| match rejected_owner {
+            0 => cache.check_owner(&mut control, Some(&context), cache_cursor()),
+            1 => cache.check_owner(&mut control, Some(&other_context), cache_cursor()),
+            _ => other_cache.check_owner(&mut control, Some(&context), cache_cursor()),
+        });
+        assert_eq!(allocations.attempts, 0);
+        assert_eq!(allocations.deallocations, 0);
+        assert_eq!(HOOKS.with(|h| h.get().checks), 0);
+        assert_eq!(cache.proof().source().as_ptr(), source);
+        assert_eq!(cache.identity(), identity);
+        let after = control.usage(Some(context.usage()));
+        assert_eq!(before.reservations, after.reservations);
+        assert_eq!(before.live, after.live);
+        assert_eq!(before.cache_work, after.cache_work);
+        assert_eq!(before.execution_work, after.execution_work);
+        assert_eq!(before.host_calls, after.host_calls);
+        assert_eq!(before.instruction_fuel, after.instruction_fuel);
+        assert_eq!(before.instructions, after.instructions);
+        if rejected_owner == 0 {
+            result.unwrap();
+            let terminal = control.fail(
+                cache_cursor(),
+                Fault::new(SwiftRunFailureKind::GuestTrap, "owner_preflight_prior_trap"),
+                Some(context.usage()),
+            );
+            let (result, allocations) =
+                measure(|| cache.check_owner(&mut control, Some(&context), cache_cursor()));
+            result.unwrap();
+            assert_eq!(allocations.attempts, 0);
+            assert_eq!(HOOKS.with(|h| h.get().checks), 0);
+            assert_eq!(terminal.code, "owner_preflight_prior_trap");
+        } else {
+            let failure = result.unwrap_err();
+            assert_eq!(failure.kind, SwiftRunFailureKind::Invariant);
+            assert_eq!(failure.code, "swift_run_reservation_owner");
+            assert_eq!(
+                failure.at_failure.wasi,
+                if rejected_owner == 1 {
+                    None
+                } else {
+                    Some(context.usage())
+                }
+            );
+        }
+        cleanup(cache, &mut control, Some(&context));
+        context.cleanup(&mut control).unwrap();
+        cleanup(other_cache, &mut other, Some(&other_context));
+        other_context.cleanup(&mut other).unwrap();
+        assert_eq!(
+            control
+                .finish_owned_cleanup(None)
+                .reservations
+                .combined
+                .current,
+            0
+        );
+        assert_eq!(
+            other
+                .finish_owned_cleanup(None)
+                .reservations
+                .combined
+                .current,
+            0
+        );
+    }
+}
+#[test]
 fn same_abi_descriptors_and_authority() {
     let bytes = fixture(0, &[0, 0x0b], 100);
     let p = proof(&bytes);
@@ -1598,7 +1679,8 @@ fn frozen_layout_allocation_work_error_snapshots() {
         + 4 * size_of::<SwiftRunUsage>()
         + 6 * size_of::<ReservationTicket>()
         + 6 * size_of::<Option<WasiUsage>>()
-        + FOUNDATION_FINAL_BOUNDARY_BYTES;
+        + FOUNDATION_FINAL_BOUNDARY_BYTES
+        + super::execution::CONSTRUCTION_BOOTSTRAP_BYTES;
     assert_eq!(foundation_construction_bytes(), Some(named));
     println!("foundation-tail map failure_count=4 usage_count=4 ticket_count=6 optional_wasi_count=6 optional_wasi_bytes={} final_boundary={} total={named}",size_of::<Option<WasiUsage>>(), FOUNDATION_FINAL_BOUNDARY_BYTES);
     assert_eq!(

@@ -1189,7 +1189,8 @@ fn optional_observation_chain_is_reserved_before_runtime_work() {
         + 6 * size_of::<ReservationTicket>()
         // Isolate observation admission while keeping the separate final-boundary
         // inventory unchanged in both the historical and current formulas.
-        + FOUNDATION_FINAL_BOUNDARY_BYTES;
+        + FOUNDATION_FINAL_BOUNDARY_BYTES
+        + super::super::execution::CONSTRUCTION_BOOTSTRAP_BYTES;
     let historical_floor = non_observation_shapes + historical_observations;
     let required_floor = non_observation_shapes + observed_chain;
     assert_eq!(foundation_construction_bytes(), Some(required_floor));
@@ -1262,8 +1263,16 @@ fn measured_named_layouts_are_recorded_without_allocator_or_rss_claims() {
 
 #[test]
 fn final_boundary_inventory_is_admitted_before_runtime_work() {
+    assert_inventory_admission(FOUNDATION_FINAL_BOUNDARY_BYTES);
+}
+
+#[test]
+fn construction_bootstrap_is_admitted_before_runtime_work() {
+    assert_inventory_admission(super::super::execution::CONSTRUCTION_BOOTSTRAP_BYTES);
+}
+
+fn assert_inventory_admission(added: usize) {
     let required = foundation_construction_bytes().unwrap();
-    let added = FOUNDATION_FINAL_BOUNDARY_BYTES;
     let previous = required.checked_sub(added).unwrap();
     assert!(added > 2 * size_of::<usize>());
     for headroom in [0, added - 1, added] {
@@ -1284,8 +1293,25 @@ fn final_boundary_inventory_is_admitted_before_runtime_work() {
         no_allocations(stats);
         if headroom < added {
             let failure = result.err().unwrap();
-            assert_eq!(failure.kind, SwiftRunFailureKind::CombinedExhausted);
-            assert_eq!(failure.attempted as usize, before + required);
+            // Category admission precedes combined admission. The larger
+            // constructor bootstrap can itself exceed the entire narrowed
+            // budget at zero headroom, before adding the adopted closure.
+            if required > budget.combined_bytes {
+                assert_eq!(failure.kind, SwiftRunFailureKind::CategoryExhausted);
+                assert_eq!(failure.code, "swift_run_category_capacity");
+                assert_eq!(
+                    failure.resource,
+                    Some(SwiftRunResource::Reservation(
+                        SwiftReservationCategory::Construction
+                    ))
+                );
+                assert_eq!(failure.attempted as usize, required);
+            } else {
+                assert_eq!(failure.kind, SwiftRunFailureKind::CombinedExhausted);
+                assert_eq!(failure.code, "swift_run_combined_capacity");
+                assert_eq!(failure.resource, Some(SwiftRunResource::Combined));
+                assert_eq!(failure.attempted as usize, before + required);
+            }
             assert_eq!(failure.limit as usize, budget.combined_bytes);
             assert_eq!(failure.at_failure.reservations.combined.current, before);
             assert_eq!(failure.at_failure.reservations.construction.current, 0);
@@ -1305,7 +1331,7 @@ fn final_boundary_inventory_is_admitted_before_runtime_work() {
         }
     }
     println!(
-        "final-boundary admission previous={previous} additional={added} foundation={required}"
+        "named-inventory admission previous={previous} additional={added} foundation={required}"
     );
 }
 

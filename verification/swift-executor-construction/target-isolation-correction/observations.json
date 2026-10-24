@@ -1,0 +1,132 @@
+{
+  "schema": "mixer.swift-construction-shared-target-contamination.v1",
+  "source_tree_digest": "b5dced18f98fd166d3da0a7a0d60b51d95f2f67815849c26791ccb15954c5349",
+  "candidate4_receipt_sha256": "bcf3d924edb227078ada37c8843824e4eb36ad1c3e739dbfb674378ec25d8a80",
+  "candidate4_archive_sha256": "76219cbca33f2ab12a1c4448820d7f2f623cc4c5c15df354834d962ffda94c58",
+  "status": "candidate4 post-metadata full product regression is contaminated and cannot qualify the original product archive",
+  "scope": "Read-only inspection and direct --list of existing contaminated binaries. No product tests or target invocation repeated. Root owns a fresh-target supplemental product regression.",
+  "diagnosis": "Source and metadata copies share CARGO_TARGET_DIR and identical package/unit artifact names. Both later full runs execute the metadata-only frozen_construction_metadata test. Correct cwd, explicit manifest, unchanged source hashes and Cargo Compiling lines did not establish produced-binary provenance. No deeper Cargo internal-causation claim is needed.",
+  "not_salvageable_by_subtraction": true,
+  "affected_commands": [
+    "all-features-full-debug",
+    "all-features-full-release"
+  ],
+  "earlier_library_matrix_scope": "The six library configurations ran before any metadata command. This observation does not retract those completed source runs. It does not validate the later full regression.",
+  "observations": [
+    {
+      "profile": "debug",
+      "source_library_before_metadata": {
+        "log": "verification/swift-executor-construction/candidate-4/logs/all-debug.log",
+        "sha256": "64f502671ebb0d120545fc7fcdbfcc98abfde7535ee52fe9b7474521fc9c3d3a",
+        "tests": 151
+      },
+      "metadata_unit": {
+        "log": "verification/swift-executor-construction/candidate-4/logs/metadata-all-unit-debug.log",
+        "sha256": "70b2fc46dbcb5589d21be5a0b0272934ccf834210a8bfee1788f10f55aabdec4"
+      },
+      "source_full_after_metadata": {
+        "log": "verification/swift-executor-construction/candidate-4/logs/all-features-full-debug.log",
+        "sha256": "c4bd44b9dd93d42ddd81a7f221a99ecce5a1f5659ae497603ad667649a035374",
+        "library_tests": 152,
+        "derived_probe_executed": true
+      },
+      "shared_executable": "verification/swift-executor-construction/candidate-4/build/target/debug/deps/mixer_vm-f739d999de49f627",
+      "executable_sha256": "f39757d85acc27d54f61e4229cc99447fd12ecfe11ba64196fce5ef06c01a03c",
+      "runtime_list": {
+        "argv": [
+          "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction/candidate-4/build/target/debug/deps/mixer_vm-f739d999de49f627",
+          "--list"
+        ],
+        "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+        "exit": 0,
+        "log": "verification/swift-executor-construction/target-isolation-correction/debug-contaminated-binary-test-list.log",
+        "sha256": "8234d90ae2b7dce1f7fa1fcae95f87126c11a71b13e39dc0e3d9741e933d8b26",
+        "test_count": 152,
+        "derived_probe_present": true
+      }
+    },
+    {
+      "profile": "release",
+      "source_library_before_metadata": {
+        "log": "verification/swift-executor-construction/candidate-4/logs/all-release.log",
+        "sha256": "65d1bbc1d5e302f481032cba22a7e5460b23cb27de8dd23c2bd2e755474323e7",
+        "tests": 151
+      },
+      "metadata_unit": {
+        "log": "verification/swift-executor-construction/candidate-4/logs/metadata-all-unit-release.log",
+        "sha256": "b58418a2b89f277ca9dee9c26b4469edf92b21f8aad04151915281480f894a9b"
+      },
+      "source_full_after_metadata": {
+        "log": "verification/swift-executor-construction/candidate-4/logs/all-features-full-release.log",
+        "sha256": "a204b972a4d86b98a1ab1c6a4f720c21263e592f007d12740d3dcab8e1280c8c",
+        "library_tests": 152,
+        "derived_probe_executed": true
+      },
+      "shared_executable": "verification/swift-executor-construction/candidate-4/build/target/release/deps/mixer_vm-e633425abeb5c97b",
+      "executable_sha256": "fc1a8994257071cad4bdb93b46f51c21178753c0b1010383abcb06d626f6003d",
+      "runtime_list": {
+        "argv": [
+          "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-executor-construction/candidate-4/build/target/release/deps/mixer_vm-e633425abeb5c97b",
+          "--list"
+        ],
+        "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+        "exit": 0,
+        "log": "verification/swift-executor-construction/target-isolation-correction/release-contaminated-binary-test-list.log",
+        "sha256": "8234d90ae2b7dce1f7fa1fcae95f87126c11a71b13e39dc0e3d9741e933d8b26",
+        "test_count": 152,
+        "derived_probe_present": true
+      }
+    }
+  ],
+  "preserved_candidate4_files": {
+    "candidate-4/README.md": "70f4557dc4a74bb95dbe7817479af2af0d0e29bec5801375dc056ad1b64768d5",
+    "candidate-4/annotation-only.patch": "a60c63d30ba0389962047dd7cc4b6473d66ca45321aed84d54ad053bc7184652",
+    "candidate-4/api-freeze.json": "b65d30d8cdd3583f33d5c6225833ad5bc97c8849c9cbced6f8de0775061ce0ad",
+    "candidate-4/cwd-audit.json": "8fe7db3befd8a84839f607c99c683fb40fc744fd8a2d946e8e6dec39c02301e7",
+    "candidate-4/document.md": "39f223fa3cc4028f28be2f29f4419e450cf9770c0fc016b03f6411b8b435912e",
+    "candidate-4/frozen-source.tar.gz": "76219cbca33f2ab12a1c4448820d7f2f623cc4c5c15df354834d962ffda94c58",
+    "candidate-4/layout-map.json": "920f3c3233b2e71283ef54c569c88241bda8256de037b1bd32521acf06ed13cd",
+    "candidate-4/logs/all-debug.log": "64f502671ebb0d120545fc7fcdbfcc98abfde7535ee52fe9b7474521fc9c3d3a",
+    "candidate-4/logs/all-features-full-debug.log": "c4bd44b9dd93d42ddd81a7f221a99ecce5a1f5659ae497603ad667649a035374",
+    "candidate-4/logs/all-features-full-release.log": "a204b972a4d86b98a1ab1c6a4f720c21263e592f007d12740d3dcab8e1280c8c",
+    "candidate-4/logs/all-release.log": "65d1bbc1d5e302f481032cba22a7e5460b23cb27de8dd23c2bd2e755474323e7",
+    "candidate-4/logs/cargo-version.log": "1f88eaf7fe1aaec83184752cf4c944cd22f00184136ff36a3e4c318cc60ef566",
+    "candidate-4/logs/clippy-all.log": "a7b90b3f8a0c632fdd6ae15f67c1bcb018eefd5d587a7b43c99dffe6a39756e4",
+    "candidate-4/logs/clippy-swift.log": "459be9772865bbbb59860b4f824f7a2b92882e164f88c75716e17b975cc2e0c5",
+    "candidate-4/logs/construction-debug.log": "2f7202e7263a453378b6987251883a396711653825f3976cc651a8535ef00e1d",
+    "candidate-4/logs/construction-release.log": "93bc8b1ab1c6ffe4e0fb8a4ea695c4d73c8251b2c01377d58edd0dc316966605",
+    "candidate-4/logs/format.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "candidate-4/logs/host.log": "abe9ccb86c55e0593f387b3138e08c1d0bed9a04ba0080d7badcbf093fabd539",
+    "candidate-4/logs/layout-debug.log": "94c9082932736c14717842211e10c238675cd7a58d51e0bddb21db2dfb4be63a",
+    "candidate-4/logs/layout-release.log": "33716cf1dfa7660b1e3b566c12f52fe9ed9abad624a28843b78b4938e2efb808",
+    "candidate-4/logs/metadata-all-production-debug.log": "2478b7f0bdb7d1686f8e058533d36c37f9d08a4f0f2664a137c6f0a827c3c889",
+    "candidate-4/logs/metadata-all-production-release.log": "29c1850b005dfb23971ab1c9bd1007da2ed43250a6ccd7aa3bf5b47e497943ee",
+    "candidate-4/logs/metadata-all-unit-debug.log": "70b2fc46dbcb5589d21be5a0b0272934ccf834210a8bfee1788f10f55aabdec4",
+    "candidate-4/logs/metadata-all-unit-release.log": "b58418a2b89f277ca9dee9c26b4469edf92b21f8aad04151915281480f894a9b",
+    "candidate-4/logs/metadata1-production-debug.log": "7b7cafab7600ace9ee91a342ca3753337543998341a352ebd8522eb80c58951e",
+    "candidate-4/logs/metadata1-production-release.log": "d869282f22494aeba2fccf9c23dba9b2dd6507019e2ab210bce041014d7b8925",
+    "candidate-4/logs/metadata1-unit-debug.log": "95e7032615dad75d8e7c41c33c03076572e1a15b0e673990a91a84431f642885",
+    "candidate-4/logs/metadata1-unit-release.log": "738cd744f229e1cc0b4f2a86805465ad6c87ad3ce9268cca5e97a1d829d41f35",
+    "candidate-4/logs/neither-debug.log": "d155fc99e08cea47d7d52d7472a2a31ec78b5d0ac068912665eee7fb8c21eade",
+    "candidate-4/logs/neither-release.log": "c6644bc7ebf48e95908bd20b6f65e5190da39db5125aa2821b716ec36cda7c94",
+    "candidate-4/logs/private-constructor1.log": "cbf1ec1d992ecae7f82c30ce122e94e116ce50777a8e9267fbeafb1d000b2346",
+    "candidate-4/logs/python-version.log": "f615dc9512de8b165e2b595e5cdc608a3ba7927ae92f959c5b42ec3d58e2ffa8",
+    "candidate-4/logs/rustc-version.log": "352d6857968e80a6357a926ac685b9b07f77c479aaafde33e73a53945e802909",
+    "candidate-4/logs/span-debug.log": "ecc7c33e11bebb3595e23db03b0f6c5bf6349ed89d6f97cfb5fd6c4a61e47872",
+    "candidate-4/logs/span-release.log": "040f72e8baa311729cfd2426adbb6a9b218e10e613c1375b4fe2524dce8a738a",
+    "candidate-4/logs/swift-cache-debug.log": "7d06a727de02eec0d931bcf96d7958a7832b479e0b5aaba4764b068752c886ac",
+    "candidate-4/logs/swift-cache-release.log": "e16390a6013d19ed1e029fce123155e8ce98d3565a15665a6c8cb25311f5c529",
+    "candidate-4/logs/swift-debug.log": "b78ed91abeb1932c8fe281c1290a2e63f433fed2b643da378ed5f506b79f7ef2",
+    "candidate-4/logs/swift-release.log": "3119818c3cd2d12b041d456271b7bbfa9470f23449b18d3280fff426c9245c91",
+    "candidate-4/logs/swift-span-debug.log": "ee0d4d2cd158b18cbad032b99a2cd3d0ef5a1a30fd44268d316e267252e9eb4b",
+    "candidate-4/logs/swift-span-release.log": "7d84a53169e0db67183a936e888d53a6c6bc22dffa19b946df026f6ae359c1a9",
+    "candidate-4/metadata-overlay.json": "615f2a7f586eb62154c13b158397742e80dd63a51c2d5f5acc29740c52d149e2",
+    "candidate-4/metadata-probe.rs": "e2bb3b5e1acc6d2bc6467b8f4bab257da03cc356bdc0291d7db62de908abd1b1",
+    "candidate-4/receipt.json": "bcf3d924edb227078ada37c8843824e4eb36ad1c3e739dbfb674378ec25d8a80",
+    "candidate-4/receipt.partial.json": "e5cfa86e1bfbc1a97320ccbcc9c3bfc157e8809a3dd2c4244a0d9bc4e622f22d",
+    "candidate-4/source-delta.json": "bfe6fdbb270a97a13ae7addc0527cf547adb4fa3c5ba381a88d4f1b5c30a7a3e",
+    "candidate-4/source-manifest.json": "b6cde3155a7e238b0467027fdb796681afaac13f472c96be7a2c9041d7ecc612"
+  },
+  "future_correction": "Wholly disjoint source and metadata target roots, selected in each subprocess environment; explicit target-dir recording; exact executable hashing; direct runtime --list with derived probe rejection for source binaries.",
+  "root_supplement_pending": true
+}
