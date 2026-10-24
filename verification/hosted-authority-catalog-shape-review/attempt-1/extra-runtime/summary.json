@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "total": 1,
+  "passed": 1,
+  "failed": [],
+  "captures": [
+    {
+      "label": "new OID padded baseline",
+      "path": "001.json.gz",
+      "sha256": "40d706dc2c98ecbcea2c620f1ad511e41010ce9043f14afba54a2cbb8191f059"
+    },
+    {
+      "label": "actual asterisk role without defaults is well-typed",
+      "path": "002.json.gz",
+      "sha256": "761431d196a65e91f1ebb4edfd1b449ed7696ba2cccfbd5b080e508a5698c96c"
+    },
+    {
+      "label": "actual positive role OID resolving asterisk name",
+      "path": "003.json.gz",
+      "sha256": "d945e1ce184fb2206c4f91c79c6982eaf822303632928a6fddfa8de16291a924"
+    },
+    {
+      "label": "safe restoration after independent domain probe",
+      "path": "004.json.gz",
+      "sha256": "edb33e62362ffed0a76733edbff147747b0821d2ef6eb4f55e5701ff7593c264"
+    }
+  ],
+  "findings": [
+    {
+      "finding": "ACSR01",
+      "actual_SQL": "CREATE ROLE \"*\" NOLOGIN; GRANT \"*\" TO mixer_hosted_runtime; ALTER ROLE \"*\" IN DATABASE authority_contract SET application_name=review",
+      "actual_raw_row": {
+        "role": "*",
+        "config": [
+          "application_name=review"
+        ],
+        "database": "authority_contract",
+        "role_oid": 17807,
+        "database_oid": 16384
+      },
+      "raw_validator_error": "malformed raw value: startup_defaults[0] wildcard association role",
+      "other_selected_mismatch_after_removing_default": "selected authority mismatch: legacy,enforcement",
+      "scope": "false rejection of valid unselected raw shape; no selected-safe admission change or runtime bypass"
+    }
+  ]
+}

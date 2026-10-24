@@ -1,0 +1,209 @@
+{
+  "cases": [
+    {
+      "id": "mm01_all_load_store_shapes",
+      "maxCallFrames": 3,
+      "maxFixtureInstancesPerCase": 64,
+      "maxGuestSteps": 64,
+      "maxMemoryPages": 584,
+      "maxTotalGuestStepsPerCase": 4096,
+      "phoneOrUI": false,
+      "requiredTest": "experimental_swift_reactor::execution::frame_operations::memory_operations::tests::mm01_all_load_store_shapes",
+      "requirement": "14 load and 9 store opcodes, four Value types, full/narrow signed+unsigned, negative values, high bits; exact bytes/result bits and delta values",
+      "status": "pending-behavior-lane"
+    },
+    {
+      "id": "mm02_little_endian_nan_unaligned",
+      "maxCallFrames": 3,
+      "maxFixtureInstancesPerCase": 64,
+      "maxGuestSteps": 64,
+      "maxMemoryPages": 584,
+      "maxTotalGuestStepsPerCase": 4096,
+      "phoneOrUI": false,
+      "requiredTest": "experimental_swift_reactor::execution::frame_operations::memory_operations::tests::mm02_little_endian_nan_unaligned",
+      "requirement": "little endian non-palindromic bytes, unaligned offsets1/3/7, f32/f64 positive/negative zero, infinity, quiet/signaling NaN payload preservation",
+      "status": "pending-behavior-lane"
+    },
+    {
+      "id": "mm03_memory_bounds_overflow",
+      "maxCallFrames": 3,
+      "maxFixtureInstancesPerCase": 64,
+      "maxGuestSteps": 64,
+      "maxMemoryPages": 584,
+      "maxTotalGuestStepsPerCase": 4096,
+      "phoneOrUI": false,
+      "requiredTest": "experimental_swift_reactor::execution::frame_operations::memory_operations::tests::mm03_memory_bounds_overflow",
+      "requirement": "valid final range; one-byte end OOB; unsigned i32 max+u32 max offset; direct usizeMAX checked-add overflow; no host panic or out-of-range access",
+      "status": "pending-behavior-lane"
+    },
+    {
+      "id": "mm04_opcode_type_floor_closed",
+      "maxCallFrames": 3,
+      "maxFixtureInstancesPerCase": 64,
+      "maxGuestSteps": 64,
+      "maxMemoryPages": 584,
+      "maxTotalGuestStepsPerCase": 4096,
+      "phoneOrUI": false,
+      "requiredTest": "experimental_swift_reactor::execution::frame_operations::memory_operations::tests::mm04_opcode_type_floor_closed",
+      "requirement": "nonmemory and wrong Load/Store scalar opcode reject before pop/work; absent frame; caller/local operand floors; wrong address/store value type, insufficient count",
+      "status": "pending-behavior-lane"
+    },
+    {
+      "id": "mm05_load_store_work_prefix",
+      "maxCallFrames": 3,
+      "maxFixtureInstancesPerCase": 64,
+      "maxGuestSteps": 64,
+      "maxMemoryPages": 584,
+      "maxTotalGuestStepsPerCase": 4096,
+      "phoneOrUI": false,
+      "requiredTest": "experimental_swift_reactor::execution::frame_operations::memory_operations::tests::mm05_load_store_work_prefix",
+      "requirement": "load pop/width/push, store value-pop/address-pop/width work denial prefixes, exact live values and memory write prefix; helper charges no instruction fuel",
+      "status": "pending-behavior-lane"
+    },
+    {
+      "id": "mm06_cancel_prefix",
+      "maxCallFrames": 3,
+      "maxFixtureInstancesPerCase": 64,
+      "maxGuestSteps": 64,
+      "maxMemoryPages": 584,
+      "maxTotalGuestStepsPerCase": 4096,
+      "phoneOrUI": false,
+      "requiredTest": "experimental_swift_reactor::execution::frame_operations::memory_operations::tests::mm06_cancel_prefix",
+      "requirement": "cancellation at every accepted primitive work checkpoint and caller boundary; no mutation after failed check; final width-success store is atomic bounded write",
+      "status": "pending-behavior-lane"
+    },
+    {
+      "id": "mm07_pinned_decoded_caller",
+      "maxCallFrames": 3,
+      "maxFixtureInstancesPerCase": 64,
+      "maxGuestSteps": 64,
+      "maxMemoryPages": 584,
+      "maxTotalGuestStepsPerCase": 4096,
+      "phoneOrUI": false,
+      "requiredTest": "experimental_swift_reactor::execution::frame_operations::memory_operations::tests::mm07_pinned_decoded_caller",
+      "requirement": "actual retained frame pin selects instruction; cursor actual function/offset; one instruction+fuel+caller work+pc advance exactly once; no borrow survives effect",
+      "status": "pending-behavior-lane"
+    },
+    {
+      "id": "mm08_post_pop_live_fault",
+      "maxCallFrames": 3,
+      "maxFixtureInstancesPerCase": 64,
+      "maxGuestSteps": 64,
+      "maxMemoryPages": 584,
+      "maxTotalGuestStepsPerCase": 4096,
+      "phoneOrUI": false,
+      "requiredTest": "experimental_swift_reactor::execution::frame_operations::memory_operations::tests::mm08_post_pop_live_fault",
+      "requirement": "existing post-pop live-removal failure latches original Cleanup with absent cursor/resource and real WASI; debt retained; no fabricated source diagnostic",
+      "status": "pending-behavior-lane"
+    },
+    {
+      "id": "mm09_held_pin_cleanup",
+      "maxCallFrames": 3,
+      "maxFixtureInstancesPerCase": 64,
+      "maxGuestSteps": 64,
+      "maxMemoryPages": 584,
+      "maxTotalGuestStepsPerCase": 4096,
+      "phoneOrUI": false,
+      "requiredTest": "experimental_swift_reactor::execution::frame_operations::memory_operations::tests::mm09_held_pin_cleanup",
+      "requirement": "deepest retained frames/pins survive every helper failure and release rejection; drain once retains failed releases; explicit cleanup retry then fixed completion exact restore",
+      "status": "pending-behavior-lane"
+    },
+    {
+      "id": "mm10_actual_live_capacity",
+      "maxCallFrames": 3,
+      "maxFixtureInstancesPerCase": 64,
+      "maxGuestSteps": 64,
+      "maxMemoryPages": 584,
+      "maxTotalGuestStepsPerCase": 4096,
+      "phoneOrUI": false,
+      "requiredTest": "experimental_swift_reactor::execution::frame_operations::memory_operations::tests::mm10_actual_live_capacity",
+      "requirement": "actual/live preflight mismatch; injected existing push room/predebit denial after load read; no result publication, no allocation, actual reduction tracked",
+      "status": "pending-behavior-lane"
+    },
+    {
+      "id": "mm11_slot_vacancy",
+      "maxCallFrames": 3,
+      "maxFixtureInstancesPerCase": 64,
+      "maxGuestSteps": 64,
+      "maxMemoryPages": 584,
+      "maxTotalGuestStepsPerCase": 4096,
+      "phoneOrUI": false,
+      "requiredTest": "experimental_swift_reactor::execution::frame_operations::memory_operations::tests::mm11_slot_vacancy",
+      "requirement": "occupied entry Some(Ok) and Some(Err) preserved; no fetch/debit/pc/value/memory effect before vacancy; prior first failure sticky; no overwrite of entry guard/pin",
+      "status": "pending-behavior-lane"
+    },
+    {
+      "id": "mm12_outcome_completion",
+      "maxCallFrames": 3,
+      "maxFixtureInstancesPerCase": 64,
+      "maxGuestSteps": 64,
+      "maxMemoryPages": 584,
+      "maxTotalGuestStepsPerCase": 4096,
+      "phoneOrUI": false,
+      "requiredTest": "experimental_swift_reactor::execution::frame_operations::memory_operations::tests::mm12_outcome_completion",
+      "requirement": "outer Ok only slot publication; stored Err stops next fetch; take/drop success before reuse; pass actual fixed storage and retained diagnostics through original completion/owner cleanup",
+      "status": "pending-behavior-lane"
+    },
+    {
+      "id": "mm13_no_alloc_warm",
+      "maxCallFrames": 3,
+      "maxFixtureInstancesPerCase": 64,
+      "maxGuestSteps": 64,
+      "maxMemoryPages": 584,
+      "maxTotalGuestStepsPerCase": 4096,
+      "phoneOrUI": false,
+      "requiredTest": "experimental_swift_reactor::execution::frame_operations::memory_operations::tests::mm13_no_alloc_warm",
+      "requirement": "after cache/pins/arenas warmed, allocation observer refusing first request sees zero requests over all selected load/store success/trap/work/cancel paths",
+      "status": "pending-behavior-lane"
+    },
+    {
+      "id": "mm14_frozen_parity",
+      "maxCallFrames": 3,
+      "maxFixtureInstancesPerCase": 64,
+      "maxGuestSteps": 64,
+      "maxMemoryPages": 584,
+      "maxTotalGuestStepsPerCase": 4096,
+      "phoneOrUI": false,
+      "requiredTest": "experimental_swift_reactor::execution::frame_operations::memory_operations::tests::mm14_frozen_parity",
+      "requirement": "unchanged expanded Frozen range/load/store/run/copy/fill/grow and original 2912 reservation; executed baseline vs candidate values/bytes/traps/work/fuel/cache/allocation parity",
+      "status": "pending-behavior-lane"
+    },
+    {
+      "id": "mm15_deferred_fail_closed",
+      "maxCallFrames": 3,
+      "maxFixtureInstancesPerCase": 64,
+      "maxGuestSteps": 64,
+      "maxMemoryPages": 584,
+      "maxTotalGuestStepsPerCase": 4096,
+      "phoneOrUI": false,
+      "requiredTest": "experimental_swift_reactor::execution::frame_operations::memory_operations::tests::mm15_deferred_fail_closed",
+      "requirement": "MemoryCopy, MemoryFill, MemoryGrow, MemorySize and all non-Load/Store operations reject in this API; original memory ticket identity and capacity unchanged",
+      "status": "pending-behavior-lane"
+    },
+    {
+      "id": "mm16_accounting_restore",
+      "maxCallFrames": 3,
+      "maxFixtureInstancesPerCase": 64,
+      "maxGuestSteps": 64,
+      "maxMemoryPages": 584,
+      "maxTotalGuestStepsPerCase": 4096,
+      "phoneOrUI": false,
+      "requiredTest": "experimental_swift_reactor::execution::frame_operations::memory_operations::tests::mm16_accounting_restore",
+      "requirement": "exact positive actual authored/canonical inventory replay; all 8 profile/feature/unit layouts; original containing owner identity; frame bound old+nested/new active once; header positive permanent; exact restoration or retained debt",
+      "status": "pending-behavior-lane"
+    }
+  ],
+  "configurations": [
+    "swift-debug",
+    "swift-release",
+    "all-debug",
+    "all-release"
+  ],
+  "limits": {
+    "maxCallFrames": 3,
+    "maxGuestStepsPerCase": 64,
+    "serial": true
+  },
+  "scope": "Host development only; 584-page strict-ABI synthetic fixture; no full target or device",
+  "status": "behavior-not-run"
+}

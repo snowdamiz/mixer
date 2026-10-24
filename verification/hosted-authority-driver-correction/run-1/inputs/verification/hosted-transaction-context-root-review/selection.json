@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "status": "root-selected-preimplementation-seam-product-acceptance-pending",
+  "observedUTC": "2026-10-24T07:07:31.300925+00:00",
+  "sourceRevision": "4586bb901b980e9beeca5f7bb826f8b62140a3b4",
+  "review": {
+    "command": [
+      "python3",
+      "-B",
+      "verification/hosted-transaction-context-preflight/check.py"
+    ],
+    "exitCode": 0,
+    "producerArtifactBindingsVerified": 41,
+    "installedPrimarySourceFiles": {
+      "hosted/deps/ecto/lib/ecto/repo.ex": "a3ffe7038094d8bf34ef85faa09a041ce92c0a58840cb1e1d104b4a2a3e14a6d",
+      "hosted/deps/ecto_sql/lib/ecto/adapters/sql.ex": "335698e0e658e47e76142a7edd4bbd199f6c16f00c0f0c50c768e5f4958a9ee0",
+      "hosted/deps/db_connection/README.md": "457f9fa82cc8f0df65a7e294d5d9f04e487b265ecb5e592309601f72f637f707",
+      "hosted/deps/db_connection/lib/db_connection.ex": "e04def33c0be48ded3a661a7c31e818cc611eb17968aa6087d945c309cc6fafb",
+      "hosted/deps/db_connection/lib/db_connection/holder.ex": "d574dacca73bafe651de85dd5427877534e4d8f2d1bdc7936b27986bff9732e6",
+      "hosted/deps/db_connection/lib/db_connection/connection_pool.ex": "c9fe3d9750fe844b9ed2178717f1d8be57e9fca4b5e65446c07be0ef1027a36d",
+      "hosted/deps/postgrex/lib/postgrex/protocol.ex": "b9de5d55f6e4928742b6d1f33e1da8f5963c779534ee22f08ffc780a5b9ef8e5"
+    },
+    "installedPrimarySourceExcerptsVerified": 13,
+    "sourceReview": "Root inspected actual context entry/validation/query/cleanup and executable transaction, timeout, lock and checkout tests. Integrity checks are fresh; 24 runtime cases are the producer's exact retained run-3, not a second root runtime run.",
+    "historicalFailure": "run-2 deadline-only queued checkout failed and remains retained; run-3 supplies queue:false."
+  },
+  "decisions": [
+    "Use a fixed Repo and owning process, checked public dynamic Repo, fresh active invocation reference, exact action/target and actual SQL backend/full xid8/database/current role/transaction-local nonce. Revalidate before every fixed repository operation; process dictionary and in_transaction? alone are insufficient.",
+    "Use queue:false for protected transaction admission. A busy healthy pool rejects before callback entry and maps to storage unavailable; any retry starts fresh authorization. This is not a hard scheduling or stalled-pool-process latency guarantee.",
+    "Set READ COMMITTED first, use the same absolute monotonic deadline capped at five seconds, remaining per-call timeout, decreasing transaction-local statement_timeout and 250ms lock_timeout. Read current policy in a separate statement after all canonical locks. Remove invocation marker in after and rely on transaction-local SQL cleanup.",
+    "The DBConnection deadline invalidates/disconnects the checked-out connection; it does not kill a BEAM callback. Keep product callbacks fixed and bounded, with no customer code, arbitrary SQL, async work or network/signing. HTTP/request admission and cancellation require their own integration checks.",
+    "A failure racing an already-sent COMMIT is uncertain. Return storage unavailable and require a fresh authorized principal-bound idempotent retry; do not claim every timeout proves rollback.",
+    "Full xid is retained as text and requires the qualified primary PostgreSQL capability. No backend-only identity, 32-bit truncation, replica fallback, malicious-BEAM protection or runtime role/RLS qualification is implied."
+  ],
+  "scope": "Public API/actual database identity and deadline seam selected for subsequent product implementation. No live authorization, migration, repository or HTTP implementation is accepted here; Neon, providers, native, physical phones and GA gates remain pending.",
+  "bindings": {
+    "review.py": "9704df41be1951cda60293c52798ac6d589a8ea9f54d1539094d1865416cab8a",
+    "integrity-output.log": "3ebd23c09b2e77d44d813e338e65fe223940a2bfa57eed86e1010042207583c0",
+    "../hosted-transaction-context-preflight/receipt.json": "2e1f51b2dd9c355b86661066afe9cc2f1da48a069fc14648494be6e35f6cbaab",
+    "../hosted-transaction-context-preflight/artifact-manifest.json": "7f225e9b46d4f802ed443f4dfe66780ebff745113223a07d14c4f10cc32fe629"
+  }
+}

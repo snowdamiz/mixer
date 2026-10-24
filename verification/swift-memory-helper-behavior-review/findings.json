@@ -1,0 +1,30 @@
+[
+  {
+    "id": "MR01",
+    "status": "blocking-accounting-prerequisite",
+    "candidateSourceClosure": "6046a5fa8ba3800ec168b7ae6a80cb82bad5ba39b8701cb23a5db720d998bb62",
+    "source": "src/experimental_swift_reactor/memory_operations.rs",
+    "line": 190,
+    "function": "memory_pinned_step::promoted[0]",
+    "bindings": [
+      {"binding": "_0", "type": "&std::thread::LocalKey<std::cell::Cell<bool>>", "bytes": 8, "requiredSeparatePositions": 4},
+      {"binding": "_1", "type": "std::thread::LocalKey<std::cell::Cell<bool>>", "bytes": 8, "requiredSeparatePositions": 4}
+    ],
+    "observedConfigurations": ["swift-unit", "all-unit"],
+    "producerArchivedMIRAlsoContainsPromotion": true,
+    "producerSelector": "promoted_constants skips const names without memory_operations::; memory_pinned_step::promoted[0] is excluded",
+    "existingCallerRows": ["mir_unit_17_55_source", "mir_unit_17_55_argument", "mir_unit_17_55_returned", "mir_unit_17_55_caller"],
+    "existingCallerRowsMaySupplyCredit": false,
+    "requiredAdditionalUnitFields": 8,
+    "requiredAdditionalNamedUnitBytes": 64,
+    "currentTotalFields": 4792,
+    "requiredTotalFields": 4800,
+    "currentUnitCanonicalFields": 2156,
+    "requiredUnitCanonicalFields": 2164,
+    "productionInventoryAffected": false,
+    "fix": "Count promoted return and backing separately, regenerate source/inventory/final MIR and actual affected unit containing bounds/layouts, freeze a new packet for review before root acceptance/integration.",
+    "runtimeBehaviorBugObserved": false,
+    "G08Related": false,
+    "RSSClaim": false
+  }
+]

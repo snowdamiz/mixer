@@ -1,0 +1,2207 @@
+[
+  {
+    "query": "begin",
+    "parameter_count": 0,
+    "total_time_native": 80500
+  },
+  {
+    "query": "SET TRANSACTION ISOLATION LEVEL READ COMMITTED",
+    "parameter_count": 0,
+    "total_time_native": 32625
+  },
+  {
+    "query": "SELECT set_config('mixer_authz.invocation_nonce',$1,true),set_config('mixer_authz.deadline',(clock_timestamp()+$2::int4*interval '1 millisecond')::text,true),set_config('lock_timeout','250ms',true)",
+    "parameter_count": 2,
+    "total_time_native": 81417
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 33417
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 1741292
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 44333
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 43625
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 2164792
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 36042
+  },
+  {
+    "query": "SELECT (r.identity).profile_id,(r.identity).profile_version,(r.identity).issuer,(r.identity).subject,(r.identity).client_id,(r.identity).credential_sha256,(r.identity).issued_at,(r.identity).expires_at,(r.identity).identity_class,(r.identity).scopes,(r.identity).authentication_completed_at,(r.target).action,(r.target).organization,(r.target).project,(r.target).app,(r.target).environment,(r.target).platform,(r.target).runtime_sha256,(r.target).manifest_sha256,(r.transaction_identity).backend,(r.transaction_identity).full_xid,(r.transaction_identity).database_name,(r.transaction_identity).runtime_role,(r.transaction_identity).nonce,(r.transaction_identity).deadline,r.principal_id,r.binding_id,r.family_id,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,r.lock_statement_at FROM mixer_authz.lookup_admission(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 25,
+    "total_time_native": 2009000
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 29583
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 42000
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 31375
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 26333
+  },
+  {
+    "query": "SELECT (r.identity).profile_id,(r.identity).profile_version,(r.identity).issuer,(r.identity).subject,(r.identity).client_id,(r.identity).credential_sha256,(r.identity).issued_at,(r.identity).expires_at,(r.identity).identity_class,(r.identity).scopes,(r.identity).authentication_completed_at,(r.target).action,(r.target).organization,(r.target).project,(r.target).app,(r.target).environment,(r.target).platform,(r.target).runtime_sha256,(r.target).manifest_sha256,(r.transaction_identity).backend,(r.transaction_identity).full_xid,(r.transaction_identity).database_name,(r.transaction_identity).runtime_role,(r.transaction_identity).nonce,(r.transaction_identity).deadline,r.principal_id,r.binding_id,r.family_id,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,r.lock_statement_at FROM mixer_authz.lock_admission_rows(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1,$26::uuid,$27::uuid,$28::uuid,$29::int8,$30::int8,$31::int8,$32::int8,$33::int8,$34::timestamptz)::mixer_authz.admission_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 34,
+    "total_time_native": 1155416
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 22042
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 41208
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 24916
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 17625
+  },
+  {
+    "query": "SELECT r.outcome,r.principal_id,r.binding_id,r.family_id,r.decision_at,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,ARRAY(SELECT m.lifecycle_id FROM unnest(r.memberships) m),ARRAY(SELECT m.role FROM unnest(r.memberships) m),ARRAY(SELECT m.revision FROM unnest(r.memberships) m) FROM mixer_authz.decide_current(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1,$26::uuid,$27::uuid,$28::uuid,$29::int8,$30::int8,$31::int8,$32::int8,$33::int8,$34::timestamptz)::mixer_authz.admission_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 34,
+    "total_time_native": 1780000
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 32125
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 41875
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 28292
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 19958
+  },
+  {
+    "query": "INSERT INTO driver_fixture.effects(invocation) VALUES ($1)",
+    "parameter_count": 1,
+    "total_time_native": 110083
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 22792
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 30291
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 23833
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 21459
+  },
+  {
+    "query": "INSERT INTO driver_fixture.effects(invocation) VALUES ($1)",
+    "parameter_count": 1,
+    "total_time_native": 23458
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 16583
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 24291
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 22084
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 24083
+  },
+  {
+    "query": "INSERT INTO driver_fixture.effects(invocation) VALUES ($1)",
+    "parameter_count": 1,
+    "total_time_native": 29292
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 20708
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 23750
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 21209
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 19875
+  },
+  {
+    "query": "INSERT INTO driver_fixture.effects(invocation) VALUES ($1)",
+    "parameter_count": 1,
+    "total_time_native": 21667
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 19334
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 20667
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 21833
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 19500
+  },
+  {
+    "query": "INSERT INTO driver_fixture.effects(invocation) VALUES ($1)",
+    "parameter_count": 1,
+    "total_time_native": 28167
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 24125
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 31250
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 28708
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 23917
+  },
+  {
+    "query": "INSERT INTO driver_fixture.effects(invocation) VALUES ($1)",
+    "parameter_count": 1,
+    "total_time_native": 26625
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 25125
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 35500
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 23000
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 21042
+  },
+  {
+    "query": "INSERT INTO driver_fixture.effects(invocation) VALUES ($1)",
+    "parameter_count": 1,
+    "total_time_native": 22500
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 22750
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 27125
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 20792
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 20250
+  },
+  {
+    "query": "INSERT INTO driver_fixture.effects(invocation) VALUES ($1)",
+    "parameter_count": 1,
+    "total_time_native": 21458
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 25209
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 30708
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 29208
+  },
+  {
+    "query": "commit",
+    "parameter_count": 0,
+    "total_time_native": 76625
+  },
+  {
+    "query": "SELECT current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true),current_setting('statement_timeout'),current_setting('lock_timeout'),current_setting('transaction_isolation'),current_setting('role')",
+    "parameter_count": 0,
+    "total_time_native": 68000
+  },
+  {
+    "query": "begin",
+    "parameter_count": 0,
+    "total_time_native": 143000
+  },
+  {
+    "query": "SET TRANSACTION ISOLATION LEVEL READ COMMITTED",
+    "parameter_count": 0,
+    "total_time_native": 28500
+  },
+  {
+    "query": "SELECT set_config('mixer_authz.invocation_nonce',$1,true),set_config('mixer_authz.deadline',(clock_timestamp()+$2::int4*interval '1 millisecond')::text,true),set_config('lock_timeout','250ms',true)",
+    "parameter_count": 2,
+    "total_time_native": 50708
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 28208
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 46625
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 22791
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 38292
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 35791
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 25000
+  },
+  {
+    "query": "SELECT (r.identity).profile_id,(r.identity).profile_version,(r.identity).issuer,(r.identity).subject,(r.identity).client_id,(r.identity).credential_sha256,(r.identity).issued_at,(r.identity).expires_at,(r.identity).identity_class,(r.identity).scopes,(r.identity).authentication_completed_at,(r.target).action,(r.target).organization,(r.target).project,(r.target).app,(r.target).environment,(r.target).platform,(r.target).runtime_sha256,(r.target).manifest_sha256,(r.transaction_identity).backend,(r.transaction_identity).full_xid,(r.transaction_identity).database_name,(r.transaction_identity).runtime_role,(r.transaction_identity).nonce,(r.transaction_identity).deadline,r.principal_id,r.binding_id,r.family_id,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,r.lock_statement_at FROM mixer_authz.lookup_admission(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 25,
+    "total_time_native": 451500
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 25750
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 30917
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 28250
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 22125
+  },
+  {
+    "query": "SELECT (r.identity).profile_id,(r.identity).profile_version,(r.identity).issuer,(r.identity).subject,(r.identity).client_id,(r.identity).credential_sha256,(r.identity).issued_at,(r.identity).expires_at,(r.identity).identity_class,(r.identity).scopes,(r.identity).authentication_completed_at,(r.target).action,(r.target).organization,(r.target).project,(r.target).app,(r.target).environment,(r.target).platform,(r.target).runtime_sha256,(r.target).manifest_sha256,(r.transaction_identity).backend,(r.transaction_identity).full_xid,(r.transaction_identity).database_name,(r.transaction_identity).runtime_role,(r.transaction_identity).nonce,(r.transaction_identity).deadline,r.principal_id,r.binding_id,r.family_id,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,r.lock_statement_at FROM mixer_authz.lock_admission_rows(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1,$26::uuid,$27::uuid,$28::uuid,$29::int8,$30::int8,$31::int8,$32::int8,$33::int8,$34::timestamptz)::mixer_authz.admission_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 34,
+    "total_time_native": 466208
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 22041
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 29208
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 20375
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 21209
+  },
+  {
+    "query": "SELECT r.outcome,r.principal_id,r.binding_id,r.family_id,r.decision_at,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,ARRAY(SELECT m.lifecycle_id FROM unnest(r.memberships) m),ARRAY(SELECT m.role FROM unnest(r.memberships) m),ARRAY(SELECT m.revision FROM unnest(r.memberships) m) FROM mixer_authz.decide_current(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1,$26::uuid,$27::uuid,$28::uuid,$29::int8,$30::int8,$31::int8,$32::int8,$33::int8,$34::timestamptz)::mixer_authz.admission_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 34,
+    "total_time_native": 979958
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 24375
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 27250
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 22042
+  },
+  {
+    "query": "commit",
+    "parameter_count": 0,
+    "total_time_native": 48208
+  },
+  {
+    "query": "begin",
+    "parameter_count": 0,
+    "total_time_native": 29375
+  },
+  {
+    "query": "SET TRANSACTION ISOLATION LEVEL READ COMMITTED",
+    "parameter_count": 0,
+    "total_time_native": 21833
+  },
+  {
+    "query": "SELECT set_config('mixer_authz.invocation_nonce',$1,true),set_config('mixer_authz.deadline',(clock_timestamp()+$2::int4*interval '1 millisecond')::text,true),set_config('lock_timeout','250ms',true)",
+    "parameter_count": 2,
+    "total_time_native": 30584
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 20958
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 26041
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 21667
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 26542
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 21541
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 20417
+  },
+  {
+    "query": "SELECT (r.identity).profile_id,(r.identity).profile_version,(r.identity).issuer,(r.identity).subject,(r.identity).client_id,(r.identity).credential_sha256,(r.identity).issued_at,(r.identity).expires_at,(r.identity).identity_class,(r.identity).scopes,(r.identity).authentication_completed_at,(r.target).action,(r.target).organization,(r.target).project,(r.target).app,(r.target).environment,(r.target).platform,(r.target).runtime_sha256,(r.target).manifest_sha256,(r.transaction_identity).backend,(r.transaction_identity).full_xid,(r.transaction_identity).database_name,(r.transaction_identity).runtime_role,(r.transaction_identity).nonce,(r.transaction_identity).deadline,r.principal_id,r.binding_id,r.family_id,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,r.lock_statement_at FROM mixer_authz.lookup_admission(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 25,
+    "total_time_native": 179209
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 22042
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 25458
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 23459
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 21083
+  },
+  {
+    "query": "SELECT (r.identity).profile_id,(r.identity).profile_version,(r.identity).issuer,(r.identity).subject,(r.identity).client_id,(r.identity).credential_sha256,(r.identity).issued_at,(r.identity).expires_at,(r.identity).identity_class,(r.identity).scopes,(r.identity).authentication_completed_at,(r.target).action,(r.target).organization,(r.target).project,(r.target).app,(r.target).environment,(r.target).platform,(r.target).runtime_sha256,(r.target).manifest_sha256,(r.transaction_identity).backend,(r.transaction_identity).full_xid,(r.transaction_identity).database_name,(r.transaction_identity).runtime_role,(r.transaction_identity).nonce,(r.transaction_identity).deadline,r.principal_id,r.binding_id,r.family_id,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,r.lock_statement_at FROM mixer_authz.lock_admission_rows(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1,$26::uuid,$27::uuid,$28::uuid,$29::int8,$30::int8,$31::int8,$32::int8,$33::int8,$34::timestamptz)::mixer_authz.admission_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 34,
+    "total_time_native": 197333
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 22291
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 26333
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 20541
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 19291
+  },
+  {
+    "query": "SELECT r.outcome,r.principal_id,r.binding_id,r.family_id,r.decision_at,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,ARRAY(SELECT m.lifecycle_id FROM unnest(r.memberships) m),ARRAY(SELECT m.role FROM unnest(r.memberships) m),ARRAY(SELECT m.revision FROM unnest(r.memberships) m) FROM mixer_authz.decide_current(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1,$26::uuid,$27::uuid,$28::uuid,$29::int8,$30::int8,$31::int8,$32::int8,$33::int8,$34::timestamptz)::mixer_authz.admission_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 34,
+    "total_time_native": 528500
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 23292
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 25083
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 20209
+  },
+  {
+    "query": "commit",
+    "parameter_count": 0,
+    "total_time_native": 34541
+  },
+  {
+    "query": "SELECT current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true),current_setting('statement_timeout'),current_setting('lock_timeout'),current_setting('transaction_isolation'),current_setting('role')",
+    "parameter_count": 0,
+    "total_time_native": 72375
+  },
+  {
+    "query": "begin",
+    "parameter_count": 0,
+    "total_time_native": 129959
+  },
+  {
+    "query": "SET TRANSACTION ISOLATION LEVEL READ COMMITTED",
+    "parameter_count": 0,
+    "total_time_native": 36125
+  },
+  {
+    "query": "SELECT set_config('mixer_authz.invocation_nonce',$1,true),set_config('mixer_authz.deadline',(clock_timestamp()+$2::int4*interval '1 millisecond')::text,true),set_config('lock_timeout','250ms',true)",
+    "parameter_count": 2,
+    "total_time_native": 34250
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 19750
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 33500
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 20083
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 20041
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 22542
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 16042
+  },
+  {
+    "query": "SELECT (r.identity).profile_id,(r.identity).profile_version,(r.identity).issuer,(r.identity).subject,(r.identity).client_id,(r.identity).credential_sha256,(r.identity).issued_at,(r.identity).expires_at,(r.identity).identity_class,(r.identity).scopes,(r.identity).authentication_completed_at,(r.target).action,(r.target).organization,(r.target).project,(r.target).app,(r.target).environment,(r.target).platform,(r.target).runtime_sha256,(r.target).manifest_sha256,(r.transaction_identity).backend,(r.transaction_identity).full_xid,(r.transaction_identity).database_name,(r.transaction_identity).runtime_role,(r.transaction_identity).nonce,(r.transaction_identity).deadline,r.principal_id,r.binding_id,r.family_id,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,r.lock_statement_at FROM mixer_authz.lookup_admission(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 25,
+    "total_time_native": 390666
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 21625
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 23084
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 22292
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 16417
+  },
+  {
+    "query": "SELECT (r.identity).profile_id,(r.identity).profile_version,(r.identity).issuer,(r.identity).subject,(r.identity).client_id,(r.identity).credential_sha256,(r.identity).issued_at,(r.identity).expires_at,(r.identity).identity_class,(r.identity).scopes,(r.identity).authentication_completed_at,(r.target).action,(r.target).organization,(r.target).project,(r.target).app,(r.target).environment,(r.target).platform,(r.target).runtime_sha256,(r.target).manifest_sha256,(r.transaction_identity).backend,(r.transaction_identity).full_xid,(r.transaction_identity).database_name,(r.transaction_identity).runtime_role,(r.transaction_identity).nonce,(r.transaction_identity).deadline,r.principal_id,r.binding_id,r.family_id,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,r.lock_statement_at FROM mixer_authz.lock_admission_rows(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1,$26::uuid,$27::uuid,$28::uuid,$29::int8,$30::int8,$31::int8,$32::int8,$33::int8,$34::timestamptz)::mixer_authz.admission_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 34,
+    "total_time_native": 426625
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 24250
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 25417
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 23125
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 22792
+  },
+  {
+    "query": "SELECT r.outcome,r.principal_id,r.binding_id,r.family_id,r.decision_at,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,ARRAY(SELECT m.lifecycle_id FROM unnest(r.memberships) m),ARRAY(SELECT m.role FROM unnest(r.memberships) m),ARRAY(SELECT m.revision FROM unnest(r.memberships) m) FROM mixer_authz.decide_current(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1,$26::uuid,$27::uuid,$28::uuid,$29::int8,$30::int8,$31::int8,$32::int8,$33::int8,$34::timestamptz)::mixer_authz.admission_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 34,
+    "total_time_native": 938583
+  },
+  {
+    "query": "SELECT set_config('mixer_authz.deadline',($1::timestamptz+interval '1 second')::text,true)",
+    "parameter_count": 1,
+    "total_time_native": 30292
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 23500
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 25542
+  },
+  {
+    "query": "rollback",
+    "parameter_count": 0,
+    "total_time_native": 45209
+  },
+  {
+    "query": "SELECT current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true),current_setting('statement_timeout'),current_setting('lock_timeout'),current_setting('transaction_isolation'),current_setting('role')",
+    "parameter_count": 0,
+    "total_time_native": 68834
+  },
+  {
+    "query": "SELECT current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true),current_setting('statement_timeout'),current_setting('lock_timeout'),current_setting('transaction_isolation'),current_setting('role')",
+    "parameter_count": 0,
+    "total_time_native": 66000
+  },
+  {
+    "query": "begin",
+    "parameter_count": 0,
+    "total_time_native": 132542
+  },
+  {
+    "query": "SET TRANSACTION ISOLATION LEVEL READ COMMITTED",
+    "parameter_count": 0,
+    "total_time_native": 16584
+  },
+  {
+    "query": "SELECT set_config('mixer_authz.invocation_nonce',$1,true),set_config('mixer_authz.deadline',(clock_timestamp()+$2::int4*interval '1 millisecond')::text,true),set_config('lock_timeout','250ms',true)",
+    "parameter_count": 2,
+    "total_time_native": 24250
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 22500
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 31125
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 17292
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 24625
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 19250
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 14000
+  },
+  {
+    "query": "SELECT (r.identity).profile_id,(r.identity).profile_version,(r.identity).issuer,(r.identity).subject,(r.identity).client_id,(r.identity).credential_sha256,(r.identity).issued_at,(r.identity).expires_at,(r.identity).identity_class,(r.identity).scopes,(r.identity).authentication_completed_at,(r.target).action,(r.target).organization,(r.target).project,(r.target).app,(r.target).environment,(r.target).platform,(r.target).runtime_sha256,(r.target).manifest_sha256,(r.transaction_identity).backend,(r.transaction_identity).full_xid,(r.transaction_identity).database_name,(r.transaction_identity).runtime_role,(r.transaction_identity).nonce,(r.transaction_identity).deadline,r.principal_id,r.binding_id,r.family_id,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,r.lock_statement_at FROM mixer_authz.lookup_admission(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 25,
+    "total_time_native": 378000
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 22792
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 23833
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 23333
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 26958
+  },
+  {
+    "query": "SELECT (r.identity).profile_id,(r.identity).profile_version,(r.identity).issuer,(r.identity).subject,(r.identity).client_id,(r.identity).credential_sha256,(r.identity).issued_at,(r.identity).expires_at,(r.identity).identity_class,(r.identity).scopes,(r.identity).authentication_completed_at,(r.target).action,(r.target).organization,(r.target).project,(r.target).app,(r.target).environment,(r.target).platform,(r.target).runtime_sha256,(r.target).manifest_sha256,(r.transaction_identity).backend,(r.transaction_identity).full_xid,(r.transaction_identity).database_name,(r.transaction_identity).runtime_role,(r.transaction_identity).nonce,(r.transaction_identity).deadline,r.principal_id,r.binding_id,r.family_id,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,r.lock_statement_at FROM mixer_authz.lock_admission_rows(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1,$26::uuid,$27::uuid,$28::uuid,$29::int8,$30::int8,$31::int8,$32::int8,$33::int8,$34::timestamptz)::mixer_authz.admission_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 34,
+    "total_time_native": 453500
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 25667
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 33084
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 24500
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 21416
+  },
+  {
+    "query": "SELECT r.outcome,r.principal_id,r.binding_id,r.family_id,r.decision_at,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,ARRAY(SELECT m.lifecycle_id FROM unnest(r.memberships) m),ARRAY(SELECT m.role FROM unnest(r.memberships) m),ARRAY(SELECT m.revision FROM unnest(r.memberships) m) FROM mixer_authz.decide_current(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1,$26::uuid,$27::uuid,$28::uuid,$29::int8,$30::int8,$31::int8,$32::int8,$33::int8,$34::timestamptz)::mixer_authz.admission_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 34,
+    "total_time_native": 873250
+  },
+  {
+    "query": "SELECT set_config('statement_timeout','0',true)",
+    "parameter_count": 0,
+    "total_time_native": 22875
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 20375
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 29417
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 20667
+  },
+  {
+    "query": "SELECT setting::int FROM pg_settings WHERE name='statement_timeout'",
+    "parameter_count": 0,
+    "total_time_native": 440041
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 18500
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 24375
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 22209
+  },
+  {
+    "query": "commit",
+    "parameter_count": 0,
+    "total_time_native": 36041
+  },
+  {
+    "query": "SELECT current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true),current_setting('statement_timeout'),current_setting('lock_timeout'),current_setting('transaction_isolation'),current_setting('role')",
+    "parameter_count": 0,
+    "total_time_native": 60333
+  },
+  {
+    "query": "begin",
+    "parameter_count": 0,
+    "total_time_native": 124792
+  },
+  {
+    "query": "SET TRANSACTION ISOLATION LEVEL READ COMMITTED",
+    "parameter_count": 0,
+    "total_time_native": 20458
+  },
+  {
+    "query": "SELECT set_config('mixer_authz.invocation_nonce',$1,true),set_config('mixer_authz.deadline',(clock_timestamp()+$2::int4*interval '1 millisecond')::text,true),set_config('lock_timeout','250ms',true)",
+    "parameter_count": 2,
+    "total_time_native": 34250
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 25833
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 29750
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 20625
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 29708
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 24208
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 20333
+  },
+  {
+    "query": "SELECT (r.identity).profile_id,(r.identity).profile_version,(r.identity).issuer,(r.identity).subject,(r.identity).client_id,(r.identity).credential_sha256,(r.identity).issued_at,(r.identity).expires_at,(r.identity).identity_class,(r.identity).scopes,(r.identity).authentication_completed_at,(r.target).action,(r.target).organization,(r.target).project,(r.target).app,(r.target).environment,(r.target).platform,(r.target).runtime_sha256,(r.target).manifest_sha256,(r.transaction_identity).backend,(r.transaction_identity).full_xid,(r.transaction_identity).database_name,(r.transaction_identity).runtime_role,(r.transaction_identity).nonce,(r.transaction_identity).deadline,r.principal_id,r.binding_id,r.family_id,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,r.lock_statement_at FROM mixer_authz.lookup_admission(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 25,
+    "total_time_native": 364583
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 21500
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 27542
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 23375
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 20541
+  },
+  {
+    "query": "SELECT (r.identity).profile_id,(r.identity).profile_version,(r.identity).issuer,(r.identity).subject,(r.identity).client_id,(r.identity).credential_sha256,(r.identity).issued_at,(r.identity).expires_at,(r.identity).identity_class,(r.identity).scopes,(r.identity).authentication_completed_at,(r.target).action,(r.target).organization,(r.target).project,(r.target).app,(r.target).environment,(r.target).platform,(r.target).runtime_sha256,(r.target).manifest_sha256,(r.transaction_identity).backend,(r.transaction_identity).full_xid,(r.transaction_identity).database_name,(r.transaction_identity).runtime_role,(r.transaction_identity).nonce,(r.transaction_identity).deadline,r.principal_id,r.binding_id,r.family_id,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,r.lock_statement_at FROM mixer_authz.lock_admission_rows(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1,$26::uuid,$27::uuid,$28::uuid,$29::int8,$30::int8,$31::int8,$32::int8,$33::int8,$34::timestamptz)::mixer_authz.admission_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 34,
+    "total_time_native": 415708
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 31834
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 30083
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 20541
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 22333
+  },
+  {
+    "query": "SELECT r.outcome,r.principal_id,r.binding_id,r.family_id,r.decision_at,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,ARRAY(SELECT m.lifecycle_id FROM unnest(r.memberships) m),ARRAY(SELECT m.role FROM unnest(r.memberships) m),ARRAY(SELECT m.revision FROM unnest(r.memberships) m) FROM mixer_authz.decide_current(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1,$26::uuid,$27::uuid,$28::uuid,$29::int8,$30::int8,$31::int8,$32::int8,$33::int8,$34::timestamptz)::mixer_authz.admission_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 34,
+    "total_time_native": 908334
+  },
+  {
+    "query": "ROLLBACK",
+    "parameter_count": 0,
+    "total_time_native": 31375
+  },
+  {
+    "query": "BEGIN",
+    "parameter_count": 0,
+    "total_time_native": 18917
+  },
+  {
+    "query": "SELECT set_config('mixer_authz.invocation_nonce',$1,true),set_config('mixer_authz.deadline',$2::timestamptz::text,true)",
+    "parameter_count": 2,
+    "total_time_native": 22167
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 21334
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 26833
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 19167
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 27958
+  },
+  {
+    "query": "rollback",
+    "parameter_count": 0,
+    "total_time_native": 23459
+  },
+  {
+    "query": "SELECT current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true),current_setting('statement_timeout'),current_setting('lock_timeout'),current_setting('transaction_isolation'),current_setting('role')",
+    "parameter_count": 0,
+    "total_time_native": 65292
+  },
+  {
+    "query": "SELECT current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true),current_setting('statement_timeout'),current_setting('lock_timeout'),current_setting('transaction_isolation'),current_setting('role')",
+    "parameter_count": 0,
+    "total_time_native": 63375
+  },
+  {
+    "query": "begin",
+    "parameter_count": 0,
+    "total_time_native": 632792
+  },
+  {
+    "query": "SET TRANSACTION ISOLATION LEVEL READ COMMITTED",
+    "parameter_count": 0,
+    "total_time_native": 69833
+  },
+  {
+    "query": "SELECT set_config('mixer_authz.invocation_nonce',$1,true),set_config('mixer_authz.deadline',(clock_timestamp()+$2::int4*interval '1 millisecond')::text,true),set_config('lock_timeout','250ms',true)",
+    "parameter_count": 2,
+    "total_time_native": 128709
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 83583
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 109000
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 58542
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 86083
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 60584
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 43750
+  },
+  {
+    "query": "SELECT (r.identity).profile_id,(r.identity).profile_version,(r.identity).issuer,(r.identity).subject,(r.identity).client_id,(r.identity).credential_sha256,(r.identity).issued_at,(r.identity).expires_at,(r.identity).identity_class,(r.identity).scopes,(r.identity).authentication_completed_at,(r.target).action,(r.target).organization,(r.target).project,(r.target).app,(r.target).environment,(r.target).platform,(r.target).runtime_sha256,(r.target).manifest_sha256,(r.transaction_identity).backend,(r.transaction_identity).full_xid,(r.transaction_identity).database_name,(r.transaction_identity).runtime_role,(r.transaction_identity).nonce,(r.transaction_identity).deadline,r.principal_id,r.binding_id,r.family_id,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,r.lock_statement_at FROM mixer_authz.lookup_admission(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 25,
+    "total_time_native": 1585417
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 58500
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 209958
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 69042
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 39417
+  },
+  {
+    "query": "SELECT (r.identity).profile_id,(r.identity).profile_version,(r.identity).issuer,(r.identity).subject,(r.identity).client_id,(r.identity).credential_sha256,(r.identity).issued_at,(r.identity).expires_at,(r.identity).identity_class,(r.identity).scopes,(r.identity).authentication_completed_at,(r.target).action,(r.target).organization,(r.target).project,(r.target).app,(r.target).environment,(r.target).platform,(r.target).runtime_sha256,(r.target).manifest_sha256,(r.transaction_identity).backend,(r.transaction_identity).full_xid,(r.transaction_identity).database_name,(r.transaction_identity).runtime_role,(r.transaction_identity).nonce,(r.transaction_identity).deadline,r.principal_id,r.binding_id,r.family_id,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,r.lock_statement_at FROM mixer_authz.lock_admission_rows(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1,$26::uuid,$27::uuid,$28::uuid,$29::int8,$30::int8,$31::int8,$32::int8,$33::int8,$34::timestamptz)::mixer_authz.admission_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 34,
+    "total_time_native": 2003333
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 115125
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 109958
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 118708
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 70084
+  },
+  {
+    "query": "SELECT r.outcome,r.principal_id,r.binding_id,r.family_id,r.decision_at,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,ARRAY(SELECT m.lifecycle_id FROM unnest(r.memberships) m),ARRAY(SELECT m.role FROM unnest(r.memberships) m),ARRAY(SELECT m.revision FROM unnest(r.memberships) m) FROM mixer_authz.decide_current(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1,$26::uuid,$27::uuid,$28::uuid,$29::int8,$30::int8,$31::int8,$32::int8,$33::int8,$34::timestamptz)::mixer_authz.admission_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 34,
+    "total_time_native": 2660583
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 75834
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 80375
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 59583
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 56208
+  },
+  {
+    "query": "INSERT INTO driver_fixture.effects(invocation) VALUES ($1)",
+    "parameter_count": 1,
+    "total_time_native": 239667
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 52833
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 73958
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 61166
+  },
+  {
+    "query": "commit",
+    "parameter_count": 0,
+    "total_time_native": 133541
+  },
+  {
+    "query": "SELECT current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true),current_setting('statement_timeout'),current_setting('lock_timeout'),current_setting('transaction_isolation'),current_setting('role')",
+    "parameter_count": 0,
+    "total_time_native": 172958
+  },
+  {
+    "query": "begin",
+    "parameter_count": 0,
+    "total_time_native": 268709
+  },
+  {
+    "query": "SET TRANSACTION ISOLATION LEVEL READ COMMITTED",
+    "parameter_count": 0,
+    "total_time_native": 42416
+  },
+  {
+    "query": "SELECT set_config('mixer_authz.invocation_nonce',$1,true),set_config('mixer_authz.deadline',(clock_timestamp()+$2::int4*interval '1 millisecond')::text,true),set_config('lock_timeout','250ms',true)",
+    "parameter_count": 2,
+    "total_time_native": 62167
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 37583
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 52250
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 36333
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 42042
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 49375
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 34709
+  },
+  {
+    "query": "SELECT (r.identity).profile_id,(r.identity).profile_version,(r.identity).issuer,(r.identity).subject,(r.identity).client_id,(r.identity).credential_sha256,(r.identity).issued_at,(r.identity).expires_at,(r.identity).identity_class,(r.identity).scopes,(r.identity).authentication_completed_at,(r.target).action,(r.target).organization,(r.target).project,(r.target).app,(r.target).environment,(r.target).platform,(r.target).runtime_sha256,(r.target).manifest_sha256,(r.transaction_identity).backend,(r.transaction_identity).full_xid,(r.transaction_identity).database_name,(r.transaction_identity).runtime_role,(r.transaction_identity).nonce,(r.transaction_identity).deadline,r.principal_id,r.binding_id,r.family_id,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,r.lock_statement_at FROM mixer_authz.lookup_admission(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 25,
+    "total_time_native": 742584
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 41625
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 44042
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 44916
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 34375
+  },
+  {
+    "query": "SELECT (r.identity).profile_id,(r.identity).profile_version,(r.identity).issuer,(r.identity).subject,(r.identity).client_id,(r.identity).credential_sha256,(r.identity).issued_at,(r.identity).expires_at,(r.identity).identity_class,(r.identity).scopes,(r.identity).authentication_completed_at,(r.target).action,(r.target).organization,(r.target).project,(r.target).app,(r.target).environment,(r.target).platform,(r.target).runtime_sha256,(r.target).manifest_sha256,(r.transaction_identity).backend,(r.transaction_identity).full_xid,(r.transaction_identity).database_name,(r.transaction_identity).runtime_role,(r.transaction_identity).nonce,(r.transaction_identity).deadline,r.principal_id,r.binding_id,r.family_id,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,r.lock_statement_at FROM mixer_authz.lock_admission_rows(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1,$26::uuid,$27::uuid,$28::uuid,$29::int8,$30::int8,$31::int8,$32::int8,$33::int8,$34::timestamptz)::mixer_authz.admission_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 34,
+    "total_time_native": 733666
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 40458
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 50166
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 50875
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 50167
+  },
+  {
+    "query": "SELECT r.outcome,r.principal_id,r.binding_id,r.family_id,r.decision_at,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,ARRAY(SELECT m.lifecycle_id FROM unnest(r.memberships) m),ARRAY(SELECT m.role FROM unnest(r.memberships) m),ARRAY(SELECT m.revision FROM unnest(r.memberships) m) FROM mixer_authz.decide_current(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1,$26::uuid,$27::uuid,$28::uuid,$29::int8,$30::int8,$31::int8,$32::int8,$33::int8,$34::timestamptz)::mixer_authz.admission_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 34,
+    "total_time_native": 1576458
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 44250
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 49000
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 49334
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 38625
+  },
+  {
+    "query": "INSERT INTO driver_fixture.effects(invocation) VALUES ($1)",
+    "parameter_count": 1,
+    "total_time_native": 101167
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 35375
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 45167
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 40083
+  },
+  {
+    "query": "commit",
+    "parameter_count": 0,
+    "total_time_native": 63666
+  },
+  {
+    "query": "SELECT current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true),current_setting('statement_timeout'),current_setting('lock_timeout'),current_setting('transaction_isolation'),current_setting('role')",
+    "parameter_count": 0,
+    "total_time_native": 114625
+  },
+  {
+    "query": "begin",
+    "parameter_count": 0,
+    "total_time_native": 193375
+  },
+  {
+    "query": "SET TRANSACTION ISOLATION LEVEL READ COMMITTED",
+    "parameter_count": 0,
+    "total_time_native": 32708
+  },
+  {
+    "query": "SELECT set_config('mixer_authz.invocation_nonce',$1,true),set_config('mixer_authz.deadline',(clock_timestamp()+$2::int4*interval '1 millisecond')::text,true),set_config('lock_timeout','250ms',true)",
+    "parameter_count": 2,
+    "total_time_native": 42292
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 30833
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 43708
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 32791
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 32083
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 31709
+  },
+  {
+    "query": "rollback",
+    "parameter_count": 0,
+    "total_time_native": 48875
+  },
+  {
+    "query": "SELECT current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true),current_setting('statement_timeout'),current_setting('lock_timeout'),current_setting('transaction_isolation'),current_setting('role')",
+    "parameter_count": 0,
+    "total_time_native": 81000
+  },
+  {
+    "query": "SELECT current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true),current_setting('statement_timeout'),current_setting('lock_timeout'),current_setting('transaction_isolation'),current_setting('role')",
+    "parameter_count": 0,
+    "total_time_native": 81583
+  },
+  {
+    "query": "begin",
+    "parameter_count": 0,
+    "total_time_native": 100084
+  },
+  {
+    "query": "SET TRANSACTION ISOLATION LEVEL READ COMMITTED",
+    "parameter_count": 0,
+    "total_time_native": 31875
+  },
+  {
+    "query": "SELECT set_config('mixer_authz.invocation_nonce',$1,true),set_config('mixer_authz.deadline',(clock_timestamp()+$2::int4*interval '1 millisecond')::text,true),set_config('lock_timeout','250ms',true)",
+    "parameter_count": 2,
+    "total_time_native": 41291
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 19667
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 37083
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 33083
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 30000
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 32209
+  },
+  {
+    "query": "rollback",
+    "parameter_count": 0,
+    "total_time_native": 31958
+  },
+  {
+    "query": "SELECT current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true),current_setting('statement_timeout'),current_setting('lock_timeout'),current_setting('transaction_isolation'),current_setting('role')",
+    "parameter_count": 0,
+    "total_time_native": 81000
+  },
+  {
+    "query": "SELECT current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true),current_setting('statement_timeout'),current_setting('lock_timeout'),current_setting('transaction_isolation'),current_setting('role')",
+    "parameter_count": 0,
+    "total_time_native": 63625
+  },
+  {
+    "query": "begin",
+    "parameter_count": 0,
+    "total_time_native": 103959
+  },
+  {
+    "query": "SET TRANSACTION ISOLATION LEVEL READ COMMITTED",
+    "parameter_count": 0,
+    "total_time_native": 31542
+  },
+  {
+    "query": "SELECT set_config('mixer_authz.invocation_nonce',$1,true),set_config('mixer_authz.deadline',(clock_timestamp()+$2::int4*interval '1 millisecond')::text,true),set_config('lock_timeout','250ms',true)",
+    "parameter_count": 2,
+    "total_time_native": 38416
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 41541
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 35875
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 18375
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 26917
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 29500
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 24542
+  },
+  {
+    "query": "SELECT (r.identity).profile_id,(r.identity).profile_version,(r.identity).issuer,(r.identity).subject,(r.identity).client_id,(r.identity).credential_sha256,(r.identity).issued_at,(r.identity).expires_at,(r.identity).identity_class,(r.identity).scopes,(r.identity).authentication_completed_at,(r.target).action,(r.target).organization,(r.target).project,(r.target).app,(r.target).environment,(r.target).platform,(r.target).runtime_sha256,(r.target).manifest_sha256,(r.transaction_identity).backend,(r.transaction_identity).full_xid,(r.transaction_identity).database_name,(r.transaction_identity).runtime_role,(r.transaction_identity).nonce,(r.transaction_identity).deadline,r.principal_id,r.binding_id,r.family_id,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,r.lock_statement_at FROM mixer_authz.lookup_admission(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 25,
+    "total_time_native": 491667
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 18541
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 32667
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 26542
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 18542
+  },
+  {
+    "query": "SELECT (r.identity).profile_id,(r.identity).profile_version,(r.identity).issuer,(r.identity).subject,(r.identity).client_id,(r.identity).credential_sha256,(r.identity).issued_at,(r.identity).expires_at,(r.identity).identity_class,(r.identity).scopes,(r.identity).authentication_completed_at,(r.target).action,(r.target).organization,(r.target).project,(r.target).app,(r.target).environment,(r.target).platform,(r.target).runtime_sha256,(r.target).manifest_sha256,(r.transaction_identity).backend,(r.transaction_identity).full_xid,(r.transaction_identity).database_name,(r.transaction_identity).runtime_role,(r.transaction_identity).nonce,(r.transaction_identity).deadline,r.principal_id,r.binding_id,r.family_id,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,r.lock_statement_at FROM mixer_authz.lock_admission_rows(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1,$26::uuid,$27::uuid,$28::uuid,$29::int8,$30::int8,$31::int8,$32::int8,$33::int8,$34::timestamptz)::mixer_authz.admission_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 34,
+    "total_time_native": 525792
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 19333
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 27917
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 23958
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 17167
+  },
+  {
+    "query": "SELECT r.outcome,r.principal_id,r.binding_id,r.family_id,r.decision_at,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,ARRAY(SELECT m.lifecycle_id FROM unnest(r.memberships) m),ARRAY(SELECT m.role FROM unnest(r.memberships) m),ARRAY(SELECT m.revision FROM unnest(r.memberships) m) FROM mixer_authz.decide_current(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1,$26::uuid,$27::uuid,$28::uuid,$29::int8,$30::int8,$31::int8,$32::int8,$33::int8,$34::timestamptz)::mixer_authz.admission_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 34,
+    "total_time_native": 1007833
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 29833
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 35708
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 20333
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 18208
+  },
+  {
+    "query": "INSERT INTO driver_fixture.effects(invocation) VALUES ($1)",
+    "parameter_count": 1,
+    "total_time_native": 69875
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 22000
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 31541
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 31250
+  },
+  {
+    "query": "commit",
+    "parameter_count": 0,
+    "total_time_native": 41750
+  },
+  {
+    "query": "SELECT current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true),current_setting('statement_timeout'),current_setting('lock_timeout'),current_setting('transaction_isolation'),current_setting('role')",
+    "parameter_count": 0,
+    "total_time_native": 235250
+  },
+  {
+    "query": "SELECT current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true),current_setting('statement_timeout'),current_setting('lock_timeout'),current_setting('transaction_isolation'),current_setting('role')",
+    "parameter_count": 0,
+    "total_time_native": 64125
+  },
+  {
+    "query": "SELECT current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true),current_setting('statement_timeout'),current_setting('lock_timeout'),current_setting('transaction_isolation'),current_setting('role')",
+    "parameter_count": 0,
+    "total_time_native": 145041
+  },
+  {
+    "query": "SELECT current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true),current_setting('statement_timeout'),current_setting('lock_timeout'),current_setting('transaction_isolation'),current_setting('role')",
+    "parameter_count": 0,
+    "total_time_native": 54292
+  },
+  {
+    "query": "SELECT current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true),current_setting('statement_timeout'),current_setting('lock_timeout'),current_setting('transaction_isolation'),current_setting('role')",
+    "parameter_count": 0,
+    "total_time_native": 50708
+  },
+  {
+    "query": "SELECT current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true),current_setting('statement_timeout'),current_setting('lock_timeout'),current_setting('transaction_isolation'),current_setting('role')",
+    "parameter_count": 0,
+    "total_time_native": 60542
+  },
+  {
+    "query": "SELECT current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true),current_setting('statement_timeout'),current_setting('lock_timeout'),current_setting('transaction_isolation'),current_setting('role')",
+    "parameter_count": 0,
+    "total_time_native": 53625
+  },
+  {
+    "query": "begin",
+    "parameter_count": 0,
+    "total_time_native": 109250
+  },
+  {
+    "query": "SET TRANSACTION ISOLATION LEVEL READ COMMITTED",
+    "parameter_count": 0,
+    "total_time_native": 30958
+  },
+  {
+    "query": "SELECT set_config('mixer_authz.invocation_nonce',$1,true),set_config('mixer_authz.deadline',(clock_timestamp()+$2::int4*interval '1 millisecond')::text,true),set_config('lock_timeout','250ms',true)",
+    "parameter_count": 2,
+    "total_time_native": 37250
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 33750
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 38625
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 26167
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 38417
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 32917
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 27708
+  },
+  {
+    "query": "SELECT (r.identity).profile_id,(r.identity).profile_version,(r.identity).issuer,(r.identity).subject,(r.identity).client_id,(r.identity).credential_sha256,(r.identity).issued_at,(r.identity).expires_at,(r.identity).identity_class,(r.identity).scopes,(r.identity).authentication_completed_at,(r.target).action,(r.target).organization,(r.target).project,(r.target).app,(r.target).environment,(r.target).platform,(r.target).runtime_sha256,(r.target).manifest_sha256,(r.transaction_identity).backend,(r.transaction_identity).full_xid,(r.transaction_identity).database_name,(r.transaction_identity).runtime_role,(r.transaction_identity).nonce,(r.transaction_identity).deadline,r.principal_id,r.binding_id,r.family_id,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,r.lock_statement_at FROM mixer_authz.lookup_admission(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 25,
+    "total_time_native": 479000
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 23958
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 31000
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 25042
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 22333
+  },
+  {
+    "query": "SELECT (r.identity).profile_id,(r.identity).profile_version,(r.identity).issuer,(r.identity).subject,(r.identity).client_id,(r.identity).credential_sha256,(r.identity).issued_at,(r.identity).expires_at,(r.identity).identity_class,(r.identity).scopes,(r.identity).authentication_completed_at,(r.target).action,(r.target).organization,(r.target).project,(r.target).app,(r.target).environment,(r.target).platform,(r.target).runtime_sha256,(r.target).manifest_sha256,(r.transaction_identity).backend,(r.transaction_identity).full_xid,(r.transaction_identity).database_name,(r.transaction_identity).runtime_role,(r.transaction_identity).nonce,(r.transaction_identity).deadline,r.principal_id,r.binding_id,r.family_id,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,r.lock_statement_at FROM mixer_authz.lock_admission_rows(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1,$26::uuid,$27::uuid,$28::uuid,$29::int8,$30::int8,$31::int8,$32::int8,$33::int8,$34::timestamptz)::mixer_authz.admission_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 34,
+    "total_time_native": 529625
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 25625
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 35042
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 28458
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 24166
+  },
+  {
+    "query": "SELECT r.outcome,r.principal_id,r.binding_id,r.family_id,r.decision_at,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,ARRAY(SELECT m.lifecycle_id FROM unnest(r.memberships) m),ARRAY(SELECT m.role FROM unnest(r.memberships) m),ARRAY(SELECT m.revision FROM unnest(r.memberships) m) FROM mixer_authz.decide_current(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1,$26::uuid,$27::uuid,$28::uuid,$29::int8,$30::int8,$31::int8,$32::int8,$33::int8,$34::timestamptz)::mixer_authz.admission_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 34,
+    "total_time_native": 980083
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 21542
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 24584
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 21208
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 19292
+  },
+  {
+    "query": "INSERT INTO driver_fixture.effects(invocation) VALUES ($1)",
+    "parameter_count": 1,
+    "total_time_native": 76417
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 22750
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 29084
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 23500
+  },
+  {
+    "query": "commit",
+    "parameter_count": 0,
+    "total_time_native": 39583
+  },
+  {
+    "query": "SELECT current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true),current_setting('statement_timeout'),current_setting('lock_timeout'),current_setting('transaction_isolation'),current_setting('role')",
+    "parameter_count": 0,
+    "total_time_native": 66834
+  },
+  {
+    "query": "SELECT current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true),current_setting('statement_timeout'),current_setting('lock_timeout'),current_setting('transaction_isolation'),current_setting('role')",
+    "parameter_count": 0,
+    "total_time_native": 162334
+  },
+  {
+    "query": "begin",
+    "parameter_count": 0,
+    "total_time_native": 174708
+  },
+  {
+    "query": "SET TRANSACTION ISOLATION LEVEL READ COMMITTED",
+    "parameter_count": 0,
+    "total_time_native": 87125
+  },
+  {
+    "query": "SELECT set_config('mixer_authz.invocation_nonce',$1,true),set_config('mixer_authz.deadline',(clock_timestamp()+$2::int4*interval '1 millisecond')::text,true),set_config('lock_timeout','250ms',true)",
+    "parameter_count": 2,
+    "total_time_native": 92750
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 31208
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 52958
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 20000
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 29209
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 26625
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 110541
+  },
+  {
+    "query": "SELECT (r.identity).profile_id,(r.identity).profile_version,(r.identity).issuer,(r.identity).subject,(r.identity).client_id,(r.identity).credential_sha256,(r.identity).issued_at,(r.identity).expires_at,(r.identity).identity_class,(r.identity).scopes,(r.identity).authentication_completed_at,(r.target).action,(r.target).organization,(r.target).project,(r.target).app,(r.target).environment,(r.target).platform,(r.target).runtime_sha256,(r.target).manifest_sha256,(r.transaction_identity).backend,(r.transaction_identity).full_xid,(r.transaction_identity).database_name,(r.transaction_identity).runtime_role,(r.transaction_identity).nonce,(r.transaction_identity).deadline,r.principal_id,r.binding_id,r.family_id,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,r.lock_statement_at FROM mixer_authz.lookup_admission(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 25,
+    "total_time_native": 503333
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 23709
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 36000
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 37042
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 28875
+  },
+  {
+    "query": "SELECT (r.identity).profile_id,(r.identity).profile_version,(r.identity).issuer,(r.identity).subject,(r.identity).client_id,(r.identity).credential_sha256,(r.identity).issued_at,(r.identity).expires_at,(r.identity).identity_class,(r.identity).scopes,(r.identity).authentication_completed_at,(r.target).action,(r.target).organization,(r.target).project,(r.target).app,(r.target).environment,(r.target).platform,(r.target).runtime_sha256,(r.target).manifest_sha256,(r.transaction_identity).backend,(r.transaction_identity).full_xid,(r.transaction_identity).database_name,(r.transaction_identity).runtime_role,(r.transaction_identity).nonce,(r.transaction_identity).deadline,r.principal_id,r.binding_id,r.family_id,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,r.lock_statement_at FROM mixer_authz.lock_admission_rows(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1,$26::uuid,$27::uuid,$28::uuid,$29::int8,$30::int8,$31::int8,$32::int8,$33::int8,$34::timestamptz)::mixer_authz.admission_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 34,
+    "total_time_native": 542083
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 26209
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 31000
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 23708
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 22584
+  },
+  {
+    "query": "SELECT r.outcome,r.principal_id,r.binding_id,r.family_id,r.decision_at,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,ARRAY(SELECT m.lifecycle_id FROM unnest(r.memberships) m),ARRAY(SELECT m.role FROM unnest(r.memberships) m),ARRAY(SELECT m.revision FROM unnest(r.memberships) m) FROM mixer_authz.decide_current(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1,$26::uuid,$27::uuid,$28::uuid,$29::int8,$30::int8,$31::int8,$32::int8,$33::int8,$34::timestamptz)::mixer_authz.admission_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 34,
+    "total_time_native": 1135542
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 37584
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 38791
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 23167
+  },
+  {
+    "query": "commit",
+    "parameter_count": 0,
+    "total_time_native": 59166
+  },
+  {
+    "query": "SELECT current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true),current_setting('statement_timeout'),current_setting('lock_timeout'),current_setting('transaction_isolation'),current_setting('role')",
+    "parameter_count": 0,
+    "total_time_native": 70417
+  },
+  {
+    "query": "begin",
+    "parameter_count": 0,
+    "total_time_native": 153708
+  },
+  {
+    "query": "SET TRANSACTION ISOLATION LEVEL READ COMMITTED",
+    "parameter_count": 0,
+    "total_time_native": 18083
+  },
+  {
+    "query": "SELECT set_config('mixer_authz.invocation_nonce',$1,true),set_config('mixer_authz.deadline',(clock_timestamp()+$2::int4*interval '1 millisecond')::text,true),set_config('lock_timeout','250ms',true)",
+    "parameter_count": 2,
+    "total_time_native": 34375
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 24083
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 36875
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 23541
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 27584
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 24958
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 18708
+  },
+  {
+    "query": "SELECT (r.identity).profile_id,(r.identity).profile_version,(r.identity).issuer,(r.identity).subject,(r.identity).client_id,(r.identity).credential_sha256,(r.identity).issued_at,(r.identity).expires_at,(r.identity).identity_class,(r.identity).scopes,(r.identity).authentication_completed_at,(r.target).action,(r.target).organization,(r.target).project,(r.target).app,(r.target).environment,(r.target).platform,(r.target).runtime_sha256,(r.target).manifest_sha256,(r.transaction_identity).backend,(r.transaction_identity).full_xid,(r.transaction_identity).database_name,(r.transaction_identity).runtime_role,(r.transaction_identity).nonce,(r.transaction_identity).deadline,r.principal_id,r.binding_id,r.family_id,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,r.lock_statement_at FROM mixer_authz.lookup_admission(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 25,
+    "total_time_native": 456041
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 20875
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 29458
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 20417
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 17416
+  },
+  {
+    "query": "SELECT (r.identity).profile_id,(r.identity).profile_version,(r.identity).issuer,(r.identity).subject,(r.identity).client_id,(r.identity).credential_sha256,(r.identity).issued_at,(r.identity).expires_at,(r.identity).identity_class,(r.identity).scopes,(r.identity).authentication_completed_at,(r.target).action,(r.target).organization,(r.target).project,(r.target).app,(r.target).environment,(r.target).platform,(r.target).runtime_sha256,(r.target).manifest_sha256,(r.transaction_identity).backend,(r.transaction_identity).full_xid,(r.transaction_identity).database_name,(r.transaction_identity).runtime_role,(r.transaction_identity).nonce,(r.transaction_identity).deadline,r.principal_id,r.binding_id,r.family_id,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,r.lock_statement_at FROM mixer_authz.lock_admission_rows(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1,$26::uuid,$27::uuid,$28::uuid,$29::int8,$30::int8,$31::int8,$32::int8,$33::int8,$34::timestamptz)::mixer_authz.admission_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 34,
+    "total_time_native": 483208
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 21916
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 21875
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 19833
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 14375
+  },
+  {
+    "query": "SELECT r.outcome,r.principal_id,r.binding_id,r.family_id,r.decision_at,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,ARRAY(SELECT m.lifecycle_id FROM unnest(r.memberships) m),ARRAY(SELECT m.role FROM unnest(r.memberships) m),ARRAY(SELECT m.revision FROM unnest(r.memberships) m) FROM mixer_authz.decide_current(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1,$26::uuid,$27::uuid,$28::uuid,$29::int8,$30::int8,$31::int8,$32::int8,$33::int8,$34::timestamptz)::mixer_authz.admission_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 34,
+    "total_time_native": 992084
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 28125
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 25292
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 22792
+  },
+  {
+    "query": "commit",
+    "parameter_count": 0,
+    "total_time_native": 43000
+  },
+  {
+    "query": "begin",
+    "parameter_count": 0,
+    "total_time_native": 22041
+  },
+  {
+    "query": "SET TRANSACTION ISOLATION LEVEL READ COMMITTED",
+    "parameter_count": 0,
+    "total_time_native": 19958
+  },
+  {
+    "query": "SELECT set_config('mixer_authz.invocation_nonce',$1,true),set_config('mixer_authz.deadline',(clock_timestamp()+$2::int4*interval '1 millisecond')::text,true),set_config('lock_timeout','250ms',true)",
+    "parameter_count": 2,
+    "total_time_native": 34000
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 26125
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 31000
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 22625
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 29042
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 33750
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 22209
+  },
+  {
+    "query": "SELECT (r.identity).profile_id,(r.identity).profile_version,(r.identity).issuer,(r.identity).subject,(r.identity).client_id,(r.identity).credential_sha256,(r.identity).issued_at,(r.identity).expires_at,(r.identity).identity_class,(r.identity).scopes,(r.identity).authentication_completed_at,(r.target).action,(r.target).organization,(r.target).project,(r.target).app,(r.target).environment,(r.target).platform,(r.target).runtime_sha256,(r.target).manifest_sha256,(r.transaction_identity).backend,(r.transaction_identity).full_xid,(r.transaction_identity).database_name,(r.transaction_identity).runtime_role,(r.transaction_identity).nonce,(r.transaction_identity).deadline,r.principal_id,r.binding_id,r.family_id,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,r.lock_statement_at FROM mixer_authz.lookup_admission(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 25,
+    "total_time_native": 219875
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 52041
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 29542
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 80833
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 24542
+  },
+  {
+    "query": "SELECT (r.identity).profile_id,(r.identity).profile_version,(r.identity).issuer,(r.identity).subject,(r.identity).client_id,(r.identity).credential_sha256,(r.identity).issued_at,(r.identity).expires_at,(r.identity).identity_class,(r.identity).scopes,(r.identity).authentication_completed_at,(r.target).action,(r.target).organization,(r.target).project,(r.target).app,(r.target).environment,(r.target).platform,(r.target).runtime_sha256,(r.target).manifest_sha256,(r.transaction_identity).backend,(r.transaction_identity).full_xid,(r.transaction_identity).database_name,(r.transaction_identity).runtime_role,(r.transaction_identity).nonce,(r.transaction_identity).deadline,r.principal_id,r.binding_id,r.family_id,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,r.lock_statement_at FROM mixer_authz.lock_admission_rows(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1,$26::uuid,$27::uuid,$28::uuid,$29::int8,$30::int8,$31::int8,$32::int8,$33::int8,$34::timestamptz)::mixer_authz.admission_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 34,
+    "total_time_native": 172708
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 33708
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 31792
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 28334
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 48917
+  },
+  {
+    "query": "SELECT r.outcome,r.principal_id,r.binding_id,r.family_id,r.decision_at,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,ARRAY(SELECT m.lifecycle_id FROM unnest(r.memberships) m),ARRAY(SELECT m.role FROM unnest(r.memberships) m),ARRAY(SELECT m.revision FROM unnest(r.memberships) m) FROM mixer_authz.decide_current(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1,$26::uuid,$27::uuid,$28::uuid,$29::int8,$30::int8,$31::int8,$32::int8,$33::int8,$34::timestamptz)::mixer_authz.admission_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 34,
+    "total_time_native": 1336792
+  },
+  {
+    "query": "rollback",
+    "parameter_count": 0,
+    "total_time_native": 31500
+  },
+  {
+    "query": "begin",
+    "parameter_count": 0,
+    "total_time_native": 146959
+  },
+  {
+    "query": "SET TRANSACTION ISOLATION LEVEL READ COMMITTED",
+    "parameter_count": 0,
+    "total_time_native": 19500
+  },
+  {
+    "query": "SELECT set_config('mixer_authz.invocation_nonce',$1,true),set_config('mixer_authz.deadline',(clock_timestamp()+$2::int4*interval '1 millisecond')::text,true),set_config('lock_timeout','250ms',true)",
+    "parameter_count": 2,
+    "total_time_native": 35250
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 20625
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 32792
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 15083
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 24084
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 26166
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 14750
+  },
+  {
+    "query": "SELECT (r.identity).profile_id,(r.identity).profile_version,(r.identity).issuer,(r.identity).subject,(r.identity).client_id,(r.identity).credential_sha256,(r.identity).issued_at,(r.identity).expires_at,(r.identity).identity_class,(r.identity).scopes,(r.identity).authentication_completed_at,(r.target).action,(r.target).organization,(r.target).project,(r.target).app,(r.target).environment,(r.target).platform,(r.target).runtime_sha256,(r.target).manifest_sha256,(r.transaction_identity).backend,(r.transaction_identity).full_xid,(r.transaction_identity).database_name,(r.transaction_identity).runtime_role,(r.transaction_identity).nonce,(r.transaction_identity).deadline,r.principal_id,r.binding_id,r.family_id,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,r.lock_statement_at FROM mixer_authz.lookup_admission(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 25,
+    "total_time_native": 396583
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 20084
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 22041
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 27042
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 33125
+  },
+  {
+    "query": "SELECT (r.identity).profile_id,(r.identity).profile_version,(r.identity).issuer,(r.identity).subject,(r.identity).client_id,(r.identity).credential_sha256,(r.identity).issued_at,(r.identity).expires_at,(r.identity).identity_class,(r.identity).scopes,(r.identity).authentication_completed_at,(r.target).action,(r.target).organization,(r.target).project,(r.target).app,(r.target).environment,(r.target).platform,(r.target).runtime_sha256,(r.target).manifest_sha256,(r.transaction_identity).backend,(r.transaction_identity).full_xid,(r.transaction_identity).database_name,(r.transaction_identity).runtime_role,(r.transaction_identity).nonce,(r.transaction_identity).deadline,r.principal_id,r.binding_id,r.family_id,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,r.lock_statement_at FROM mixer_authz.lock_admission_rows(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1,$26::uuid,$27::uuid,$28::uuid,$29::int8,$30::int8,$31::int8,$32::int8,$33::int8,$34::timestamptz)::mixer_authz.admission_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 34,
+    "total_time_native": 464542
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 25625
+  },
+  {
+    "query": "SELECT pg_backend_pid(),pg_current_xact_id()::text,current_database(),session_user,current_user,current_setting('role'),current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true)::timestamptz,current_setting('transaction_isolation')",
+    "parameter_count": 0,
+    "total_time_native": 38542
+  },
+  {
+    "query": "SELECT clock_timestamp() < $1::timestamptz,floor(extract(epoch FROM clock_timestamp()))",
+    "parameter_count": 1,
+    "total_time_native": 29583
+  },
+  {
+    "query": "SELECT set_config('statement_timeout',$1,true)",
+    "parameter_count": 1,
+    "total_time_native": 25125
+  },
+  {
+    "query": "SELECT r.outcome,r.principal_id,r.binding_id,r.family_id,r.decision_at,r.profile_revision,r.principal_revision,r.family_revision,r.organization_revision,r.project_revision,ARRAY(SELECT m.lifecycle_id FROM unnest(r.memberships) m),ARRAY(SELECT m.role FROM unnest(r.memberships) m),ARRAY(SELECT m.revision FROM unnest(r.memberships) m) FROM mixer_authz.decide_current(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW(ROW($1::text,$2::int4,$3::text,$4::text,$5::text,$6::bytea,$7::numeric,$8::numeric,$9::text,$10::text[],$11::numeric)::mixer_authz.verified_identity_v1,ROW($12::text,$13::text,$14::text,$15::text,$16::text,$17::text,$18::bytea,$19::bytea)::mixer_authz.target_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1,$26::uuid,$27::uuid,$28::uuid,$29::int8,$30::int8,$31::int8,$32::int8,$33::int8,$34::timestamptz)::mixer_authz.admission_v1,ROW($20::int4,$21::text,$22::name,$23::name,$24::text,$25::timestamptz)::mixer_authz.transaction_identity_v1) AS r",
+    "parameter_count": 34,
+    "total_time_native": 904542
+  },
+  {
+    "query": "rollback",
+    "parameter_count": 0,
+    "total_time_native": 40042
+  },
+  {
+    "query": "SELECT current_setting('mixer_authz.invocation_nonce',true),current_setting('mixer_authz.deadline',true),current_setting('statement_timeout'),current_setting('lock_timeout'),current_setting('transaction_isolation'),current_setting('role')",
+    "parameter_count": 0,
+    "total_time_native": 70875
+  }
+]

@@ -1712,3 +1712,47 @@ hosted audit codec candidate preserves 185 captured PostgreSQL rows and passes
 its independent review is pending. See `docs/hosted-authority-driver.md` and
 `docs/hosted-audit-codec-integration.md`. No live authority/domain migration,
 HTTP or GA acceptance is claimed.
+
+
+The isolated memory behavior candidate passes all 64 MM selections and 24
+independent adversarial selections. Independent review reproduces existing
+layouts and Frozen behavior but finds MR01: eight unit-only promoted-binding
+positions are missing (64 named bytes). Root verifies 381 review and 1,451
+producer bindings. An isolated accounting correction is underway; live VM
+integration remains pending. See `docs/swift-memory-helper-behavior-review.md`
+and `docs/swift-memory-promoted-accounting-direction.md`.
+
+The audit decoder's independent review found unbounded work from sorting unknown
+map keys. A two-line correction passes 12 focused tests, six retained review
+tests covering 107 cases/eight edges, and 105 full hosted tests with two explicit
+Linux-only skips, plus release checks. Root verifies 68 correction bindings;
+fresh independent correction review is active. See
+`docs/hosted-audit-key-bound-correction.md`.
+
+The authority driver's independent review stopped after an automated safety
+flag. Its preserved findings led to an isolated strict-context comparison and
+fixed error-message correction: 56 original actual-driver cases, 128 unchanged
+schema cases and 17 regression groups pass. All eight equal-value float context
+copies reject before effects. Root verifies 303 correction bindings and 4,025
+interrupted-review bindings; independent acceptance remains pending. See
+`docs/hosted-authority-driver-correction.md`. The catalog shape correction and
+review are also isolated, with final narrow domain corrections still pending.
+No current-authority/domain migration, authenticated HTTP, provider, native,
+physical-device or GA acceptance is inferred.
+
+Checkpoint `e337ddd1` passes all three Swift, VM and Go service engine jobs.
+See `verification/github-ci-e337ddd1-engine/receipt.json`; no GA gate changes.
+
+The catalog shape review is frozen at 115 review/277 producer bindings. ACSR01
+rejects a legal quoted asterisk role; ACSR02 admits impossible duplicate trigger
+names after normalization. Both have selected isolated corrections; the latter
+is model evidence, with no ordinary-runtime bypass demonstrated. See
+`docs/hosted-catalog-wildcard-direction.md`. The preliminary review is retained.
+
+The pure upload audit codec is now independently reviewed, root accepted and
+integrated into `hosted/`. Root verifies 281 upstream and 17 integration bindings,
+all 66 tested inputs, and 12 direct-checkout tests. The byte-identical full suite
+passes 105 tests with two explicit Linux-only skips; release checks pass.
+Independent review adds 546 key replacements and exact original/corrected byte
+parity. See `docs/hosted-audit-codec-acceptance.md`. Current-authority/domain SQL,
+authenticated HTTP, provider and GA qualification remain open.

@@ -1,0 +1,20 @@
+--- original/hosted/lib/mixer_hosted/audit/upload_event.ex
++++ corrected/hosted/lib/mixer_hosted/audit/upload_event.ex
+@@ -34,7 +34,7 @@
+   def validate_row(row) do
+     ensure(
+       is_map(row) and map_size(row) == 10 and
+-        Enum.sort(Map.keys(row)) == Enum.sort(@row_keys),
++        Enum.all?(@row_keys, &Map.has_key?(row, &1)),
+       "closed row"
+     )
+ 
+@@ -157,7 +157,7 @@
+ 
+   defp from_display(d) do
+     ensure(
+-      is_map(d) and map_size(d) == 16 and Enum.sort(Map.keys(d)) == Enum.sort(@display_keys),
++      is_map(d) and map_size(d) == 16 and Enum.all?(@display_keys, &Map.has_key?(d, &1)),
+       "closed display"
+     )
+ 

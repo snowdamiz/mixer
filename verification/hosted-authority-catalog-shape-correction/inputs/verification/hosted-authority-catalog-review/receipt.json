@@ -1,0 +1,98 @@
+{
+  "schema": 1,
+  "status": "frozen-independent-review-correction-required",
+  "frozen_utc": "2026-10-24T09:36:16.292049+00:00",
+  "recommendation": "correction-required-before-final-contract-selection",
+  "findings": [
+    "ACR01"
+  ],
+  "finding_classification": "Raw comparator malformed-input contract gap; no ordinary PostgreSQL runtime bypass demonstrated within selected properties.",
+  "source_authority": {
+    "observed_head": "f044e6db2bbf0d76d521d0741ce9545de91cadda",
+    "observed_tree": "21ab5ac3c94b960f9276e6271d757ce951a80f36",
+    "candidate_source_digest": "8448b889f9050f9f160b8982bc929e1eacb5ca0c522cd3c7358404b331c987a0",
+    "candidate_receipt_sha256": "5bc49cf63736fdb9b0835323c4313cbab6931489fdebc33e6616cf46952b9715",
+    "candidate_manifest_sha256": "ff5b1c497e4d79cabb5eb69da2d56fe0ad44e9966d90c301148ecdc5fd40285a",
+    "expected_sha256": "78c0c8a56c6d358eda1e8a183176d5fe7b7e67e9427bdeb4aa1bb308dfaa8e6e",
+    "producer_bindings_verified": 789
+  },
+  "final_attempt": "attempt-2",
+  "fresh_replays": {
+    "count": 2,
+    "oid_padding_per_replay": 53,
+    "unchanged_original_cases_per_replay": 128,
+    "prior_review_observations_per_replay": 48,
+    "prior_controls": 43,
+    "historical_gap_reproductions": 5,
+    "historical_gap_reproductions_are_not_security_passes": true,
+    "correction_cases_per_replay": 67
+  },
+  "independent": {
+    "oid_padding": 61,
+    "observations": 21,
+    "expected_behavior_groups": 20,
+    "finding_reproduction_groups": 1,
+    "actual_runtime_cases": 19,
+    "actual_runtime_drift_rejections": 15,
+    "actual_runtime_safe_behavior_cases": 4,
+    "safe_capture_comparisons": 25,
+    "strict_model_rejections": 8,
+    "initial_model_malformed_admissions": 10,
+    "captures": 58
+  },
+  "boundary_matrix": {
+    "cases": 126,
+    "malformed_admissions": 21,
+    "rejections": 87,
+    "valid_OID_portability_controls": 18,
+    "model_only": true,
+    "ordinary_runtime_bypass": false
+  },
+  "attempts": [
+    {
+      "path": "attempt-1",
+      "success": false,
+      "observations_executed": 21,
+      "observations_as_expected": 20,
+      "error": "Reviewer setup batched CREATE DATABASE inside libpq multi-statement implicit transaction; SQLSTATE 25001. Frozen outputs and cleanup preserved."
+    },
+    {
+      "path": "attempt-2",
+      "success": true,
+      "observations_executed": 21,
+      "observations_as_expected": 21,
+      "finding_is_not_security_pass": true
+    }
+  ],
+  "cleanup": {
+    "all_four_owned_clusters_stopped": true,
+    "all_four_owned_scratch_roots_removed": true,
+    "tcp_listener_opened": false,
+    "other_project_processes_touched": false,
+    "native_or_phone_runs": false
+  },
+  "tools": {
+    "python3": "Python 3.14.8",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "pg_ctl": "pg_ctl (PostgreSQL) 17.11 (Homebrew)",
+    "psql": "psql (PostgreSQL) 17.11 (Homebrew)",
+    "pg_config": "/opt/homebrew/lib/postgresql@17"
+  },
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "doc_sha256": "6d3ce01d0c25813a664a605de3597cddacb776cf805f5041647d4e7ba1467092",
+  "raw_field_domains_sha256": "2d1830de34cb4682cb48cbed13d095e63c41162b9284b410fe17dc339486aea1",
+  "limitations": [
+    "Point-in-time standalone catalog/default/session validation only; no prevention of later concurrent privileged DDL.",
+    "No product startup inspector, combined domain/authorization migration, actual authority driver coordinator, authenticated HTTP/provider/native/GA acceptance.",
+    "No ordinary runtime index liveness-false reproduction; producer limitation preserved.",
+    "PostgreSQL 17.11 macOS synthetic fixture does not qualify Neon/TLS/pooling/Cloudflare/Oban/R2 operations.",
+    "Physical phones remain deferred; no FieldLog immutable published-package qualification."
+  ],
+  "root_acceptance": false,
+  "product_migration_applied": false,
+  "ga_acceptance": false,
+  "owned_paths": [
+    "docs/hosted-authority-catalog-review.md",
+    "verification/hosted-authority-catalog-review/**"
+  ]
+}

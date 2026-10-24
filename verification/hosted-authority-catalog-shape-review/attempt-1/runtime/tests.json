@@ -1,0 +1,217 @@
+{
+  "tests": [
+    {
+      "name": "fresh runtime connections have distinct backend and exact identity",
+      "passed": true,
+      "seconds": 0.10527637507766485,
+      "observation": {
+        "admin_pid": 85160,
+        "separate_fresh_runtime_pids": [
+          85161,
+          85162,
+          85163
+        ],
+        "not_SET_ROLE_admin_emulation": true
+      }
+    },
+    {
+      "name": "internal generated trigger name may change without hiding enforcement",
+      "passed": true,
+      "seconds": 0.0785852090921253,
+      "observation": {
+        "actual_ddl": "ALTER TRIGGER \"RI_ConstraintTrigger_a_16760\" ON mixer_authz.external_identity_bindings RENAME TO review_renamed_internal_fk",
+        "expected_admission": true,
+        "rejection": null,
+        "witness": {
+          "renamed_internal_trigger_preserved": true,
+          "real_FK_violation_denied": true
+        }
+      }
+    },
+    {
+      "name": "same FK recreated under new OIDs retains semantic identity",
+      "passed": true,
+      "seconds": 0.07661045796703547,
+      "observation": {
+        "actual_ddl": "ALTER TABLE mixer_authz.external_identity_bindings DROP CONSTRAINT external_identity_bindings_principal_id_identity_class_fkey;ALTER TABLE mixer_authz.external_identity_bindings ADD CONSTRAINT external_identity_bindings_principal_id_identity_class_fkey FOREIGN KEY (principal_id, identity_class) REFERENCES mixer_authz.principals(principal_id, kind)",
+        "expected_admission": true,
+        "rejection": null,
+        "witness": null
+      }
+    },
+    {
+      "name": "actual duplicate FK multiplicity rejects",
+      "passed": true,
+      "seconds": 0.08015020797029138,
+      "observation": {
+        "actual_ddl": "ALTER TABLE mixer_authz.external_identity_bindings ADD CONSTRAINT review_duplicate_fk FOREIGN KEY (principal_id, identity_class) REFERENCES mixer_authz.principals(principal_id, kind)",
+        "expected_admission": false,
+        "rejection": "selected authority mismatch: legacy,enforcement",
+        "witness": {
+          "constraints": 90,
+          "triggers": 78,
+          "actual_extra_internal_triggers": 4
+        }
+      }
+    },
+    {
+      "name": "internal trigger ALWAYS mode rejects",
+      "passed": true,
+      "seconds": 0.07830083393491805,
+      "observation": {
+        "actual_ddl": "ALTER TABLE mixer_authz.external_identity_bindings ENABLE ALWAYS TRIGGER \"RI_ConstraintTrigger_c_16746\"",
+        "expected_admission": false,
+        "rejection": "selected authority mismatch: enforcement",
+        "witness": null
+      }
+    },
+    {
+      "name": "actual lifecycle WHEN predicate bypass rejects",
+      "passed": true,
+      "seconds": 0.07860925002023578,
+      "observation": {
+        "actual_ddl": "DROP TRIGGER lifecycle_guard ON mixer_authz.external_identity_bindings;CREATE TRIGGER lifecycle_guard BEFORE UPDATE OR DELETE ON mixer_authz.external_identity_bindings FOR EACH ROW WHEN(false) EXECUTE FUNCTION mixer_authz.guard_lifecycle()",
+        "expected_admission": false,
+        "rejection": "selected authority mismatch: legacy,enforcement",
+        "witness": {
+          "actual_immutable_subject_bypass": true,
+          "unsafe_predicate_rejected": true
+        }
+      }
+    },
+    {
+      "name": "renamed user lifecycle trigger rejects",
+      "passed": true,
+      "seconds": 0.07800066703930497,
+      "observation": {
+        "actual_ddl": "ALTER TRIGGER lifecycle_guard ON mixer_authz.external_identity_bindings RENAME TO review_lifecycle_guard",
+        "expected_admission": false,
+        "rejection": "selected authority mismatch: legacy,enforcement",
+        "witness": null
+      }
+    },
+    {
+      "name": "lifecycle event semantics changed to insert rejects",
+      "passed": true,
+      "seconds": 0.07771295798011124,
+      "observation": {
+        "actual_ddl": "DROP TRIGGER lifecycle_guard ON mixer_authz.external_identity_bindings;CREATE TRIGGER lifecycle_guard BEFORE INSERT ON mixer_authz.external_identity_bindings FOR EACH ROW EXECUTE FUNCTION mixer_authz.guard_lifecycle()",
+        "expected_admission": false,
+        "rejection": "selected authority mismatch: legacy,enforcement",
+        "witness": null
+      }
+    },
+    {
+      "name": "extra deferred constraint trigger rejects",
+      "passed": true,
+      "seconds": 0.07848974992521107,
+      "observation": {
+        "actual_ddl": "CREATE CONSTRAINT TRIGGER review_deferred_guard AFTER UPDATE ON mixer_authz.principals DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION mixer_authz.guard_lifecycle()",
+        "expected_admission": false,
+        "rejection": "selected authority mismatch: legacy,enforcement",
+        "witness": null
+      }
+    },
+    {
+      "name": "actual FK deferrable initially immediate rejects",
+      "passed": true,
+      "seconds": 0.08082241599913687,
+      "observation": {
+        "actual_ddl": "ALTER TABLE mixer_authz.external_identity_bindings ALTER CONSTRAINT external_identity_bindings_principal_id_identity_class_fkey DEFERRABLE INITIALLY IMMEDIATE",
+        "expected_admission": false,
+        "rejection": "selected authority mismatch: legacy,enforcement",
+        "witness": null
+      }
+    },
+    {
+      "name": "index null uniqueness semantics rejects",
+      "passed": true,
+      "seconds": 0.10156729107256979,
+      "observation": {
+        "actual_ddl": "DROP INDEX mixer_authz.project_memberships_active_unique;CREATE UNIQUE INDEX project_memberships_active_unique ON mixer_authz.project_memberships(principal_id,organization,project,role) NULLS NOT DISTINCT WHERE status='active'",
+        "expected_admission": false,
+        "rejection": "selected authority mismatch: legacy,enforcement",
+        "witness": null
+      }
+    },
+    {
+      "name": "replica identity USING INDEX rejects",
+      "passed": true,
+      "seconds": 0.08125158294569701,
+      "observation": {
+        "actual_ddl": "ALTER TABLE mixer_authz.credential_denials REPLICA IDENTITY USING INDEX credential_denials_pkey",
+        "expected_admission": false,
+        "rejection": "selected authority mismatch: enforcement",
+        "witness": null
+      }
+    },
+    {
+      "name": "two-hop reachable SET ROLE parameter grant rejects",
+      "passed": true,
+      "seconds": 0.10387929098214954,
+      "observation": {
+        "rejection": "selected authority mismatch: legacy,enforcement",
+        "actual_two_hop_SET_ROLE_dangerous_SET": true,
+        "grant_option": true
+      }
+    },
+    {
+      "name": "ALTER ROLE ALL IN DATABASE unsafe fresh default rejects",
+      "passed": true,
+      "seconds": 0.07067120797000825,
+      "observation": {
+        "rejection": "selected authority mismatch: enforcement,fresh_session",
+        "actual_all_roles_startup_replica": true
+      }
+    },
+    {
+      "name": "highest startup precedence unsafe value rejects",
+      "passed": true,
+      "seconds": 0.07392950006760657,
+      "observation": {
+        "rejection": "selected authority mismatch: enforcement,fresh_session",
+        "fresh_row_security": "off",
+        "captured_default_rows": 3
+      }
+    },
+    {
+      "name": "unrelated defaults do not contaminate applicable selection",
+      "passed": true,
+      "seconds": 0.16200162505265325,
+      "observation": {
+        "unrelated_unsafe_defaults_excluded": true,
+        "actual_runtime_safe": true
+      }
+    },
+    {
+      "name": "admin SET ROLE cannot substitute for fresh runtime login",
+      "passed": true,
+      "seconds": 0.037304708966985345,
+      "observation": {
+        "rejection": "selected authority mismatch: fresh_session",
+        "session_user": "andreyyurlov",
+        "current_user": "mixer_hosted_runtime"
+      }
+    },
+    {
+      "name": "actual transaction isolation rejects even with safe default",
+      "passed": true,
+      "seconds": 0.037354417028836906,
+      "observation": {
+        "rejection": "selected authority mismatch: fresh_session",
+        "different_actual_isolation_captured": true
+      }
+    },
+    {
+      "name": "fresh runtime read-only default rejects",
+      "passed": true,
+      "seconds": 0.07143358304165304,
+      "observation": {
+        "rejection": "selected authority mismatch: enforcement,fresh_session",
+        "actual_fresh_read_only": true
+      }
+    }
+  ],
+  "passed": 19,
+  "total": 19
+}

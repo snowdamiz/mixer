@@ -1,0 +1,26 @@
+{
+  "AF22": "Only memory active term is added to previous frame/value/control formula exactly once; other diffs are crate-private test scaffold visibility. Runtime regressions preserved and executed.",
+  "accountingCarrierInstantiated": false,
+  "baselineClosure": "241f7a6037100d29a4d277e1ec176fec55c0380b4283c17120bb8ace045318d5",
+  "candidateClosure": "6046a5fa8ba3800ec168b7ae6a80cb82bad5ba39b8701cb23a5db720d998bb62",
+  "hookLine": 190,
+  "hookSnippet": [
+    "    #[cfg(test)]",
+    "    if tests::PC_OVERFLOW.with(std::cell::Cell::get) {",
+    "        phase.phase.parts.frames.last_mut().expect(\"actual frame\").pc = usize::MAX;",
+    "    }",
+    "    let pc = match phase.phase.parts.frames.last().and_then(|frame| frame.pc.checked_add(1)) {"
+  ],
+  "hookSource": "src/experimental_swift_reactor/memory_operations.rs",
+  "slotFailure": "Vacancy precedes active/cache/debits. Outer success publishes inner result; occupied outcomes preserved. Actual stored failures request terminal/drain; first failure includes original diagnostic plus cleanup observations.",
+  "sourceInventoryGap": "Unit runtime PC_OVERFLOW call site emits independent promoted backing and return; schema has caller _55 reference only.",
+  "ticketAuthority": [
+    {
+      "line": 15,
+      "path": "src/experimental_swift_reactor/control.rs",
+      "sourceUnchanged": true,
+      "text": "pub(crate) const MAX_RESERVATION_TICKETS: usize = 86;"
+    }
+  ],
+  "viewLifetime": "Actual cache view is a block-local immutable borrow; selected DecodedInstruction/function copied, view ends before cursor/fuel/work/PC/helper effects. Fresh compiler MIR and type-checking reproduce actual shapes."
+}

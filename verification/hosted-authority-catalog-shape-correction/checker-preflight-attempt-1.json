@@ -1,0 +1,13 @@
+{
+  "scope": "retained failed read-only capture-count preflight helper; not candidate/runtime failure",
+  "observed_utc": "2026-10-24T09:49:14.263846+00:00",
+  "executed_via": "python3 -B - (shell heredoc)",
+  "source_copy": "checker-preflight-attempt-1.py",
+  "source_sha256": "e4afc7e46634667d113f0e5331e68ef932efdee0ac6c9ce0447d703c5e76ab2d",
+  "exit_code": 1,
+  "stdout": "corrected {True: 61, False: 49}\n",
+  "stderr": "Traceback (most recent call last):\n  File \"<stdin>\", line 9, in <module>\n  File \"<stdin>\", line 5, in load\n  File \"/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/json/__init__.py\", line 347, in loads\n    s = s.decode(detect_encoding(s), 'surrogatepass')\nUnicodeDecodeError: 'utf-8' codec can't decode byte 0x8b in position 1: invalid start byte\n",
+  "stdout_sha256": "3d137af0e39dfb5a74d9bbef24810acffe675dd982df2c80a2eb39d723adcc77",
+  "stderr_sha256": "584eb01018541bf63f3b6f32393ec27ca5aae6dd06046b9a41cabdadb6c366c9",
+  "correction": "Detect explicit .gz paths before JSON decoding in the frozen read-only checker. No candidate or SQL replay change."
+}

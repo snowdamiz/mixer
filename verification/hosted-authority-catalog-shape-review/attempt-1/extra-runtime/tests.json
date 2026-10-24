@@ -1,0 +1,27 @@
+{
+  "tests": [
+    {
+      "name": "actual quoted asterisk role exposes wildcard raw-domain collision",
+      "passed": true,
+      "seconds": 0.06498525000642985,
+      "observation": {
+        "finding": "ACSR01",
+        "actual_SQL": "CREATE ROLE \"*\" NOLOGIN; GRANT \"*\" TO mixer_hosted_runtime; ALTER ROLE \"*\" IN DATABASE authority_contract SET application_name=review",
+        "actual_raw_row": {
+          "role": "*",
+          "config": [
+            "application_name=review"
+          ],
+          "database": "authority_contract",
+          "role_oid": 17807,
+          "database_oid": 16384
+        },
+        "raw_validator_error": "malformed raw value: startup_defaults[0] wildcard association role",
+        "other_selected_mismatch_after_removing_default": "selected authority mismatch: legacy,enforcement",
+        "scope": "false rejection of valid unselected raw shape; no selected-safe admission change or runtime bypass"
+      }
+    }
+  ],
+  "passed": 1,
+  "total": 1
+}

@@ -1,0 +1,172 @@
+{
+  "total": 17,
+  "observations": {
+    "equal_float_substitutions": [
+      {
+        "error": "authority driver rejected",
+        "field": "identity.profile_version",
+        "accepted": false,
+        "loose_equal_original": true,
+        "strict_equal_original": false
+      },
+      {
+        "error": "authority driver rejected",
+        "field": "identity.issued_at",
+        "accepted": false,
+        "loose_equal_original": true,
+        "strict_equal_original": false
+      },
+      {
+        "error": "authority driver rejected",
+        "field": "identity.expires_at",
+        "accepted": false,
+        "loose_equal_original": true,
+        "strict_equal_original": false
+      },
+      {
+        "error": "authority driver rejected",
+        "field": "identity.authentication_completed_at",
+        "accepted": false,
+        "loose_equal_original": true,
+        "strict_equal_original": false
+      },
+      {
+        "error": "authority driver rejected",
+        "field": "admission.profile_revision",
+        "accepted": false,
+        "loose_equal_original": true,
+        "strict_equal_original": false
+      },
+      {
+        "error": "authority driver rejected",
+        "field": "decision.project_revision",
+        "accepted": false,
+        "loose_equal_original": true,
+        "strict_equal_original": false
+      },
+      {
+        "error": "authority driver rejected",
+        "field": "decision.memberships.revision",
+        "accepted": false,
+        "loose_equal_original": true,
+        "strict_equal_original": false
+      },
+      {
+        "error": "authority driver rejected",
+        "field": "transaction.backend",
+        "accepted": false,
+        "loose_equal_original": true,
+        "strict_equal_original": false
+      }
+    ],
+    "equal_float_contract": {
+      "fields": [
+        "identity.profile_version",
+        "identity.issued_at",
+        "identity.expires_at",
+        "identity.authentication_completed_at",
+        "admission.profile_revision",
+        "decision.project_revision",
+        "decision.memberships.revision",
+        "transaction.backend"
+      ],
+      "contract_passed": true,
+      "prior_finding_regression": true,
+      "committed_effects": 0,
+      "authority_value_changed": false
+    },
+    "sensitive_ref": {
+      "telemetry_contains_raw": false,
+      "retained_exception_contains_raw": false,
+      "exception_reason": "{:database, \"42501\"}"
+    }
+  },
+  "results": [
+    {
+      "name": "reject exact-context equal-float type substitutions without effects",
+      "elapsed_ms": 27,
+      "passed": true
+    },
+    {
+      "name": "all exception reason shapes format to one fixed bounded message",
+      "elapsed_ms": 0,
+      "passed": true
+    },
+    {
+      "name": "old exact original context rejected during later active invocation",
+      "elapsed_ms": 16,
+      "passed": true
+    },
+    {
+      "name": "database deadline GUC cannot extend unchanged context",
+      "elapsed_ms": 14,
+      "passed": true
+    },
+    {
+      "name": "statement timeout reset to zero is overwritten by guard",
+      "elapsed_ms": 14,
+      "passed": true
+    },
+    {
+      "name": "raw ROLLBACK BEGIN restored nonce/deadline rejects actual full xid",
+      "elapsed_ms": 13,
+      "passed": true
+    },
+    {
+      "name": "original completion age45 exact lower window is inclusive",
+      "elapsed_ms": 816,
+      "passed": true
+    },
+    {
+      "name": "original completion future30 exact upper window is inclusive",
+      "elapsed_ms": 15,
+      "passed": true
+    },
+    {
+      "name": "original completion age46 rejects before callback",
+      "elapsed_ms": 12,
+      "passed": true
+    },
+    {
+      "name": "original completion future31 rejects before callback",
+      "elapsed_ms": 12,
+      "passed": true
+    },
+    {
+      "name": "UTF8 credential exact byte length256 accepted and257 rejected",
+      "elapsed_ms": 26,
+      "passed": true
+    },
+    {
+      "name": "transport integers reject equal floats before query or callback",
+      "elapsed_ms": 11,
+      "passed": true
+    },
+    {
+      "name": "exact integer profileVersion max and expiry max are preserved",
+      "elapsed_ms": 16,
+      "passed": true
+    },
+    {
+      "name": "numeric result validator rejects fraction overflow NaN Infinity and floats",
+      "elapsed_ms": 3,
+      "passed": true
+    },
+    {
+      "name": "decision decoder rejects malformed UUID order duplicate count and revision",
+      "elapsed_ms": 15,
+      "passed": true
+    },
+    {
+      "name": "secret raw credential not in telemetry query or retained exception",
+      "elapsed_ms": 21,
+      "passed": true
+    },
+    {
+      "name": "unsupported callback remains closed and rolls back",
+      "elapsed_ms": 14,
+      "passed": true
+    }
+  ],
+  "passed": 17
+}

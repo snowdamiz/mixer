@@ -1,0 +1,55 @@
+{"name":"reject exact-context equal-float type substitutions without effects","elapsed_ms":27,"passed":true}
+{"name":"all exception reason shapes format to one fixed bounded message","elapsed_ms":0,"passed":true}
+{"name":"old exact original context rejected during later active invocation","elapsed_ms":16,"passed":true}
+{"name":"database deadline GUC cannot extend unchanged context","elapsed_ms":14,"passed":true}
+{"name":"statement timeout reset to zero is overwritten by guard","elapsed_ms":14,"passed":true}
+{"name":"raw ROLLBACK BEGIN restored nonce/deadline rejects actual full xid","elapsed_ms":13,"passed":true}
+{"name":"original completion age45 exact lower window is inclusive","elapsed_ms":816,"passed":true}
+{"name":"original completion future30 exact upper window is inclusive","elapsed_ms":15,"passed":true}
+{"name":"original completion age46 rejects before callback","elapsed_ms":12,"passed":true}
+{"name":"original completion future31 rejects before callback","elapsed_ms":12,"passed":true}
+{"name":"UTF8 credential exact byte length256 accepted and257 rejected","elapsed_ms":26,"passed":true}
+{"name":"transport integers reject equal floats before query or callback","elapsed_ms":11,"passed":true}
+{"name":"exact integer profileVersion max and expiry max are preserved","elapsed_ms":16,"passed":true}
+{"name":"numeric result validator rejects fraction overflow NaN Infinity and floats","elapsed_ms":3,"passed":true}
+{"name":"decision decoder rejects malformed UUID order duplicate count and revision","elapsed_ms":15,"passed":true}
+{"name":"secret raw credential not in telemetry query or retained exception","elapsed_ms":21,"passed":true}
+{"name":"unsupported callback remains closed and rolls back","elapsed_ms":14,"passed":true}
+      warning: incompatible types given on function call within Map.update!/3:
+
+          Map.update!(e.identity, field, &(&1 / 1))
+
+      given types:
+
+          -dynamic(MixerHosted.Identity.VerifiedIdentity)-
+
+      but function has type:
+
+          (float() or integer() -> dynamic(float()))
+
+      where "e" was given the type:
+
+          # type: dynamic(%MixerHosted.AuthorityDriver.Envelope{
+            identity: %MixerHosted.Identity.VerifiedIdentity{
+              profile_version: integer(),
+              identity_class: :human,
+              scopes: non_empty_list(binary())
+            },
+            authentication_completed_at: float() or integer()
+          })
+          # from: /Users/andreyyurlov/Documents/dev/mixer/verification/hosted-authority-driver-correction/run-2/source/probe/driver_test.exs:1110:17
+          {e, t} = DriverTests.seed()
+
+      where "field" was given the type:
+
+          # type: dynamic()
+          # from: /Users/andreyyurlov/Documents/dev/mixer/verification/hosted-authority-driver-correction/run-2/source/probe/driver_test.exs:1112:20
+          field <- [:issued_at, :expires_at, :profile_version]
+
+      type warning found at:
+      │
+ 1113 │            changed = %{e | identity: Map.update!(e.identity, field, &(&1 / 1))}
+      │                                          ~
+      │
+      └─ /Users/andreyyurlov/Documents/dev/mixer/verification/hosted-authority-driver-correction/run-2/source/probe/driver_test.exs:1113:42: ReviewTests.cases/0
+

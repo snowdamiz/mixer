@@ -1,0 +1,18 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-authority-catalog-shape-review/name-uniqueness-probe.py",
+    "--out",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-authority-catalog-shape-review/name-uniqueness-observations.json"
+  ],
+  "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+  "started_utc": "2026-10-24T10:02:54.483041+00:00",
+  "python_version": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "script_sha256": "44dfa3dcedff5c070cc2ba111a02b6ecded12436fda30f9c4e54ebf02b25e39c",
+  "exit_code": 0,
+  "stdout": "{\n  \"schema\": 1,\n  \"finding\": \"ACSR02\",\n  \"scope\": \"model-only impossible catalog uniqueness admission; no ordinary-runtime bypass\",\n  \"source_digest\": \"7e2a24ec2aad45d07d2dd8a5d581fa8df5966e841981d20b27c75acd1de74b40\",\n  \"input_sha256\": \"687b2ed91c14e70abe5a6dda4587711b783e4174b18283c821a9f875c090ef48\",\n  \"header_sha256\": \"2a6dc488caf665947f578fd67e18a02f4befed9855a54d9fd48c57f4e9c1b745\",\n  \"header_unique_index\": \"DECLARE_UNIQUE_INDEX(pg_trigger_tgrelid_tgname_index, 2701, TriggerRelidNameIndexId, pg_trigger, btree(tgrelid oid_ops, tgname name_ops));\",\n  \"observations\": [\n    {\n      \"mode\": \"internal/internal same relation\",\n      \"mutated_oid\": 16757,\n      \"peer_oid\": 16758,\n      \"relation_oid\": 16730,\n      \"peer_relation_oid\": 16730,\n      \"relation\": \"mixer_authz.applications\",\n      \"old_name\": \"RI_ConstraintTrigger_a_16757\",\n      \"new_name\": \"RI_ConstraintTrigger_a_16758\",\n      \"raw_admitted\": true,\n      \"selected_admitted\": true,\n      \"input_unchanged\": true,\n      \"violates_retained_pg_trigger_unique_key\": true,\n      \"finding_observation_not_security_pass\": true\n    },\n    {\n      \"mode\": \"internal/external same relation\",\n      \"mutated_oid\": 16757,\n      \"peer_oid\": 16870,\n      \"relation_oid\": 16730,\n      \"peer_relation_oid\": 16730,\n      \"relation\": \"mixer_authz.applications\",\n      \"old_name\": \"RI_ConstraintTrigger_a_16757\",\n      \"new_name\": \"lifecycle_guard\",\n      \"raw_admitted\": true,\n      \"selected_admitted\": true,\n      \"input_unchanged\": true,\n      \"violates_retained_pg_trigger_unique_key\": true,\n      \"finding_observation_not_security_pass\": true\n    },\n    {\n      \"mode\": \"same name different relations portable\",\n      \"mutated_oid\": 16757,\n      \"peer_oid\": 16713,\n      \"relation_oid\": 16730,\n      \"peer_relation_oid\": 16698,\n      \"relation\": \"mixer_authz.applications\",\n      \"old_name\": \"RI_ConstraintTrigger_a_16757\",\n      \"new_name\": \"RI_ConstraintTrigger_c_16713\",\n      \"raw_admitted\": true,\n      \"selected_admitted\": true,\n      \"input_unchanged\": true,\n      \"violates_retained_pg_trigger_unique_key\": false,\n      \"finding_observation_not_security_pass\": false\n    }\n  ],\n  \"malformed_admission_observations\": 2,\n  \"valid_portability_control\": 1\n}\n",
+  "stderr": "",
+  "stdout_sha256": "e36caae26f65ef2a9b665c3788bcb45af8697a0489771893ce819295213d07ba",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

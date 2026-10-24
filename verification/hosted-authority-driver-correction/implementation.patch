@@ -1,0 +1,21 @@
+--- a/coordinator.ex
++++ b/coordinator.ex
+@@ -100,7 +100,7 @@
+     reject(c.owner != self(), :foreign_process)
+     reject(c.repo != Repo, :fixed_repo)
+     reject(c.dynamic_repo != Repo or Repo.get_dynamic_repo() != Repo, :dynamic_repo)
+-    reject(Process.get(@marker) != c, :inactive_or_changed_context)
++    reject(Process.get(@marker) !== c, :inactive_or_changed_context)
+     reject(c.target != target, :target)
+     reject(not Repo.in_transaction?(), :not_transaction)
+     remaining!(c.deadline_ms)
+--- a/transport.ex
++++ b/transport.ex
+@@ -1,6 +1,6 @@
+ defmodule MixerHosted.AuthorityDriver.Rejected do
+   defexception [:reason]
+-  def message(e), do: "authority driver rejected: #{e.reason}"
++  def message(_), do: "authority driver rejected"
+ end
+ 
+ defmodule MixerHosted.AuthorityDriver.Envelope do

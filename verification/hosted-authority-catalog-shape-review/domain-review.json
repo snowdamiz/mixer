@@ -1,0 +1,173 @@
+{
+  "schema": 1,
+  "method": "Manual field-by-field correspondence review of frozen enforcement.sql, frozen/catalog.sql, inspector.SESSION, retained PG17 headers and raw validator before independent replays. No SQL, resolver or product changes.",
+  "raw_discard_boundary": "validate_raw(raw) executes before deepcopy, group sorting, OID deletion, or internal trigger name/definition deletion. Direct raw tests distinguish raw acceptance from selected comparison.",
+  "enforcement": {
+    "relations": {
+      "oid": "positive uint32 from c.oid::bigint",
+      "identity": "nonempty UTF8 formatted qualified identity",
+      "kind": "single PG relation-kind enum",
+      "persistence": "p/u/t",
+      "replica_identity": "d/n/f/i"
+    },
+    "constraints": {
+      "oid": "positive uint32",
+      "identity": "nonempty UTF8 formatted qualified constraint identity",
+      "relation": "nonempty UTF8 qualified relation",
+      "type": "single PG constraint-kind enum",
+      "validated": "bool",
+      "deferrable": "bool",
+      "initially_deferred": "bool",
+      "no_inherit": "bool",
+      "local": "bool",
+      "inheritance_count": "nonnegative int16",
+      "parent_oid": "optional uint32",
+      "parent_identity": "null or nonempty resolved identity; null exactly for zero parent OID",
+      "definition": "nonempty UTF8 deparsed DDL"
+    },
+    "indexes": {
+      "oid": "positive uint32",
+      "identity": "nonempty UTF8 qualified identity",
+      "relation": "nonempty UTF8 qualified identity",
+      "valid": "bool",
+      "ready": "bool",
+      "live": "bool",
+      "immediate": "bool",
+      "unique": "bool",
+      "primary": "bool",
+      "exclusion": "bool",
+      "nulls_not_distinct": "bool",
+      "definition": "nonempty UTF8 deparsed DDL"
+    },
+    "triggers": {
+      "oid": "positive uint32",
+      "name": "nonempty UTF8 NameData payload <=63 bytes checked before possible discard",
+      "relation_oid": "positive uint32 required association",
+      "relation": "nonempty resolved relation",
+      "function_oid": "positive uint32 required association",
+      "function_identity": "nonempty resolved function",
+      "enabled": "O/D/R/A",
+      "internal": "bool",
+      "event_timing_bits": "nonnegative int16, only defined bits, events required, exclusive timing, no row TRUNCATE or statement INSTEAD",
+      "deferrable": "bool",
+      "initially_deferred": "bool",
+      "constraint_oid": "optional uint32",
+      "constraint_identity": "null exactly for zero constraint OID; internal requires resolved constraint",
+      "referenced_relation_oid": "optional uint32",
+      "referenced_relation": "null exactly for zero referenced relation OID",
+      "constraint_index_oid": "optional uint32",
+      "constraint_index": "null exactly for zero index OID",
+      "parent_oid": "optional uint32",
+      "parent_identity": "null exactly for zero parent OID, otherwise exact {relation:nonempty text,name:identifier <=63 bytes}",
+      "argument_count": "nonnegative int16",
+      "argument_hex": "even lowercase bytea hex; NUL count and trailing terminator agree with argument_count",
+      "columns": "empty or canonical space-separated positive int16 attribute numbers",
+      "when": "null or nonempty UTF8 deparsed expression",
+      "old_table": "null or valid <=63-byte identifier",
+      "new_table": "null or valid <=63-byte identifier",
+      "definition": "nonempty UTF8 checked before possible internal-trigger discard"
+    },
+    "parameter_acl": {
+      "oid": "positive uint32",
+      "parameter": "nonempty UTF8 parameter name",
+      "acl": "null or nonempty UTF8 ACL text",
+      "entries": "null or exact object array grantor:text,grantee:text,privilege:SET|ALTER SYSTEM,grantable:bool; preserve multiplicity"
+    },
+    "parameter_effective": {
+      "subject": "nonempty UTF8 subject text",
+      "parameter": "nonempty UTF8 parameter text",
+      "context": "null or nonempty context; null exactly when unregistered",
+      "registered": "bool",
+      "selected_set": "bool; true exactly for unregistered or superuser/superuser-backend context",
+      "set": "bool",
+      "alter_system": "bool"
+    },
+    "parameter_public": {
+      "parameter": "nonempty UTF8 parameter text",
+      "context": "null or nonempty context; null exactly when unregistered",
+      "registered": "bool",
+      "selected_set": "bool; true exactly for unregistered or superuser/superuser-backend context",
+      "set": "bool",
+      "alter_system": "bool"
+    },
+    "role_config": {
+      "role": "nonempty UTF8 role text",
+      "config": "null or string array of nonempty name=value; empty values valid; preserve duplicates"
+    },
+    "startup_defaults": {
+      "database_oid": "optional uint32",
+      "database": "SQL zero emits wildcard *, positive resolves actual database name; candidate falsely rejects positive actual * name (ACSR01)",
+      "role_oid": "optional uint32",
+      "role": "SQL zero emits wildcard *, positive resolves actual role name; candidate falsely rejects positive actual * name (ACSR01 reproduced with actual DDL)",
+      "config": "null or string array of nonempty name=value; empty values valid; preserve duplicates"
+    }
+  },
+  "fresh_session": {
+    "session_user": "required nonempty UTF8 text",
+    "current_user": "required nonempty UTF8 text",
+    "role": "required nonempty UTF8 current_setting text",
+    "database": "required nonempty UTF8 text",
+    "session_replication_role": "required nonempty UTF8 current_setting text",
+    "row_security": "required nonempty UTF8 current_setting text",
+    "default_transaction_isolation": "required nonempty UTF8 current_setting text",
+    "transaction_isolation": "required nonempty UTF8 current_setting text",
+    "transaction_read_only": "required nonempty UTF8 current_setting text"
+  },
+  "legacy": {
+    "server_version": "text",
+    "schemas": "nullable exact name/owner/acl objects",
+    "roles": "nullable exact name plus seven bool objects",
+    "memberships": "exact role/member plus admin/inherit/set bool objects",
+    "database": "exact name/owner/acl object",
+    "tables": "nullable exact name/owner/RLS/force/ACL plus nullable columns/constraints/indexes/triggers",
+    "types": "nullable exact name/owner/ACL plus nullable name/type field objects",
+    "functions": "nullable exact identity/owner/security_definer/volatility/parallel/leakproof/language/config/ACL/definition/definition_sha256/execute flag objects",
+    "policies": "nullable exact table/name/permissive/roles/command/using/check objects",
+    "default_acl": "exact owner/schema/type/ACL objects",
+    "runtime_owned_objects": "text array",
+    "runtime_creatable_schemas": "identifier array",
+    "runtime_capabilities": "exact four bool fields plus reachable identifier array"
+  },
+  "primitive_rules": [
+    "Exact required keys at every object; duplicate transport JSON keys reject before object construction.",
+    "Python exact bool and int types prevent bool/int equality confusion; OIDs are 1..4294967295 or optional 0..4294967295; all row OIDs unique within each group.",
+    "Text is valid nonempty UTF8 without NUL except explicitly nullable or empty-capable fields; raw identifier bounds use UTF8 bytes, not code points.",
+    "Every list element and duplicate semantic entry survives normalization. Exact selected comparison rejects unselected rows/multiplicity.",
+    "Resolved identity association validation is presence-based. Cross-row numeric OID equality is intentionally not required by the portable model contract; retained semantic identities still compare exactly.",
+    "Header/SQL domains do not select a new baseline. Registered contexts, settings, ACLs, definitions, semantic enums and retained values must still equal the separately selected manifest."
+  ],
+  "finding": "ACSR01 valid-unselected wildcard-name false rejection and ACSR02 discarded internal-trigger-name uniqueness malformed admissions; exact evidence separately retained.",
+  "scope": "Point-in-time prerequisite only. No concurrent privileged DDL protection, startup integration, product runtime/driver, provider, native or GA acceptance.",
+  "already_inspected_retained_header_unique_keys": [
+    {
+      "header": "catalog/pg_trigger.h:85",
+      "key": "tgrelid,tgname",
+      "result": "ACSR02 missing raw uniqueness before internal name discard; two model admissions retained."
+    },
+    {
+      "header": "catalog/pg_trigger.h:86",
+      "key": "oid",
+      "result": "Enforced positive and unique within raw trigger group."
+    },
+    {
+      "header": "catalog/pg_constraint.h:170",
+      "key": "conrelid,contypid,conname",
+      "result": "Resolved relation/constraint identity is retained; added duplicate identities/multiplicity still rejected by exact selected comparison. No new domain-type capture expansion."
+    },
+    {
+      "header": "catalog/pg_constraint.h:172",
+      "key": "oid",
+      "result": "Enforced positive and unique within raw constraint group."
+    },
+    {
+      "header": "catalog/pg_parameter_acl.h:53-54",
+      "key": "parname and oid",
+      "result": "Raw oid uniqueness enforced; parameter names retained, selected ACL group empty; extra multiplicity fails selected comparison."
+    },
+    {
+      "header": "catalog/pg_db_role_setting.h:51",
+      "key": "setdatabase,setrole",
+      "result": "Selected startup-default group empty, all entries/multiplicity retained and rejected; ACSR01 separately exposes wildcard marker ambiguity."
+    }
+  ]
+}

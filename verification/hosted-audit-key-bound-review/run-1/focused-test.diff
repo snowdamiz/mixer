@@ -1,0 +1,29 @@
+--- original/hosted/test/mixer_hosted/audit/upload_event_test.exs
++++ corrected/hosted/test/mixer_hosted/audit/upload_event_test.exs
+@@ -342,4 +342,26 @@
+       assert UploadEvent.validate_row(%{r | display_bytes: changed}) == @error
+     end
+   end
++
++  test "exact-cardinality unknown keys reject without scanning their contents" do
++    prefix = :binary.copy("x", 1_048_576)
++    unknown_display = Map.new(0..15, &{prefix <> <<&1>>, nil})
++    unknown_row = Map.new(0..9, &{prefix <> <<&1>>, nil})
++    assert UploadEvent.decode(unknown_display) == @error
++    assert UploadEvent.validate_row(unknown_row) == @error
++
++    for foreign <- [prefix, :unknown, 1, 1.0, [], {}, %{}] do
++      for key <- Map.keys(display()) do
++        malformed = display() |> Map.delete(key) |> Map.put(foreign, nil)
++        assert map_size(malformed) == 16
++        assert UploadEvent.decode(malformed) == @error
++      end
++
++      for key <- @keys do
++        malformed = row() |> Map.delete(key) |> Map.put(foreign, nil)
++        assert map_size(malformed) == 10
++        assert UploadEvent.validate_row(malformed) == @error
++      end
++    end
++  end
+ end

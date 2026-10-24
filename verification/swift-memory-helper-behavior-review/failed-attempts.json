@@ -1,0 +1,53 @@
+[
+  {
+    "command": "adversarial-swift-debug",
+    "exitCode": 101,
+    "classification": "review-expectation-only",
+    "sourceArchive": "historical-adversarial-v1-source.tar.gz",
+    "reason": "Original drain enriches first failure with after_cleanup usage; compare original diagnostic and at_failure, while requiring cleanup observation rather than full struct equality.",
+    "candidateChanged": false
+  },
+  {
+    "command": "mir-independent-parser-v1",
+    "exitCode": 1,
+    "classification": "review-parser-only",
+    "sourceArchive": "producer candidate unchanged; generated mir-swift-production.mir.gz retained",
+    "reason": "Review parser initially truncated array types at semicolon and incorrectly required uniqueness of repeated source alias names across MIR scopes; corrected to preserve full type and multiplicity. Compiler command itself passed.",
+    "candidateChanged": false
+  },
+  {
+    "command": "mir-parser-diagnostic-import",
+    "exitCode": 1,
+    "classification": "review-operational-only",
+    "reason": "One ad hoc diagnostic omitted owned packet from Python sys.path; repeat with explicit sys.path exposed parser issue. No build or test failed.",
+    "candidateChanged": false
+  },
+  {
+    "command": "mir-independent-parser-v2",
+    "exitCode": 1,
+    "classification": "review-parser-only",
+    "reason": "Swift-only unit MIR qualifies module and control paths differently from all-feature unit MIR. Preserve semantic identity through explicit module qualification normalization; all typed roles still compared with multiplicity.",
+    "candidateChanged": false
+  },
+  {
+    "command": "frozen-expansion-parser-v1",
+    "exitCode": 1,
+    "classification": "review-parser-only",
+    "reason": "Review parser required exactly four leading spaces and missed methods in actual expansion. Corrected method capture to accept compiler indentation and preserve exact fn body. All 16 paired layout executions already passed and are reused.",
+    "candidateChanged": false
+  },
+  {
+    "command": "mir-independent-parser-v3",
+    "exitCode": 1,
+    "classification": "candidate-accounting-finding",
+    "reason": "After qualification normalization, independent audit finds two omitted runtime unit promoted bindings. Frozen producer canonical-unit MIR confirms both bindings. No additional compiler or runtime rerun needed for already captured Swift MIR.",
+    "candidateChanged": false
+  },
+  {
+    "command": "review-offline-verifier-v1",
+    "exitCode": 1,
+    "classification": "review-serialization-only",
+    "reason": "Offline comparison must JSON-normalize tuple-valued sourceNames before comparing with saved JSON lists. No source, compiler or behavioral result changed; final checker applies exact normalized comparison.",
+    "candidateChanged": false
+  }
+]
