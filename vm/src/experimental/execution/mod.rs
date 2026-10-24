@@ -21,7 +21,7 @@
 use super::cache::{CacheFailure, CacheUsage, ControlKind, FunctionCache, FunctionPin, Operation};
 use crate::{Cancellation, Value};
 #[allow(unused_imports)]
-use borrowed::{control_record, frozen_control_leaf, shared_control_methods, frozen_memory_leaf, frozen_bulk_memory_leaf};
+use borrowed::{control_record, frozen_control_leaf, shared_control_methods, frozen_memory_leaf, frozen_bulk_memory_leaf, frozen_growth_leaf};
 #[cfg(feature = "experimental-span-execution")]
 use std::mem::size_of;
 
@@ -1049,54 +1049,7 @@ impl SpanInstance {
     borrowed::shared_bulk_memory_methods!(self, ExecutionFailure, frozen_bulk_memory_leaf, bulk, copy, fill);
 
 
-    fn grow(&mut self) -> Result<(), ExecutionFailure> {
-        let delta = self.pop32()? as u32;
-        let old = self.usage.memory_pages;
-        let maximum = self
-            .cache
-            .spans()
-            .execution_memory()
-            .ok_or_else(|| self.invariant())?
-            .1
-            .min(self.cache.spans().limits().memory_pages);
-        let Some(next) = old.checked_add(delta).filter(|next| *next <= maximum) else {
-            return self.push(Value::I32(-1));
-        };
-        if delta == 0 {
-            return self.push(Value::I32(old as i32));
-        }
-        let bytes = (next as usize)
-            .checked_mul(PAGE)
-            .ok_or_else(|| self.invariant())?;
-        self.work(
-            bytes
-                .checked_add(self.memory.len())
-                .ok_or_else(|| self.invariant())?,
-        )?;
-        let mut memory = self.allocation(bytes)?;
-        let result = (|| {
-            for at in (0..bytes).step_by(CHUNK) {
-                self.check()?;
-                memory.resize((at + CHUNK).min(bytes), 0);
-            }
-            for at in (0..self.memory.len()).step_by(CHUNK) {
-                self.check()?;
-                let end = (at + CHUNK).min(self.memory.len());
-                memory[at..end].copy_from_slice(&self.memory[at..end]);
-            }
-            self.check()
-        })();
-        if let Err(error) = result {
-            drop(memory);
-            self.usage.state_reserved -= bytes;
-            return Err(error);
-        }
-        let old_bytes = self.memory.len();
-        self.memory = memory;
-        self.usage.state_reserved -= old_bytes;
-        self.usage.memory_pages = next;
-        self.push(Value::I32(old as i32))
-    }
+    borrowed::shared_memory_growth!(self, ExecutionFailure, frozen_growth_leaf, grow);
 
 
 }

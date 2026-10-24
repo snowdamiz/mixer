@@ -691,7 +691,7 @@ const EXECUTION_HEADER_BYTES: Option<usize> = {
                                         match header.checked_add(value_operations::PERMANENT_BYTES)
                                         {
                                             Some(header) => match header.checked_add(frame_operations::PERMANENT_BYTES) {
-                                                Some(header) => match header.checked_add(frame_operations::control_operations::PERMANENT_BYTES) { Some(header) => match header.checked_add(frame_operations::memory_operations::PERMANENT_BYTES) { Some(header) => header.checked_add(frame_operations::bulk_memory_operations::PERMANENT_BYTES), None => None }, None => None }, None => None,
+                                                Some(header) => match header.checked_add(frame_operations::control_operations::PERMANENT_BYTES) { Some(header) => match header.checked_add(frame_operations::memory_operations::PERMANENT_BYTES) { Some(header) => match header.checked_add(frame_operations::bulk_memory_operations::PERMANENT_BYTES) {Some(header)=>header.checked_add(frame_operations::memory_growth_operations::PERMANENT_BYTES),None=>None}, None => None }, None => None }, None => None,
                                             },
                                             None => None,
                                         }

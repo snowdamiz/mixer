@@ -509,3 +509,70 @@ macro_rules! shared_memory_size {
 }
 #[allow(unused_imports)]
 pub(crate) use shared_memory_size;
+
+#[allow(unused_macros)]
+macro_rules! shared_memory_growth {
+($this:ident,$failure:ty,$leaf:ident,$grow:ident)=>{
+fn $grow(&mut $this) -> Result<(), $failure> {
+        let delta = $leaf!(pop32 $this)? as u32;
+        let old = $leaf!(pages $this);
+        let maximum = $leaf!(maximum $this);
+        let Some(next) = old.checked_add(delta).filter(|next| *next <= maximum) else {
+            return $leaf!(push $this, Value::I32(-1));
+        };
+        if delta == 0 {
+            return $leaf!(push $this, Value::I32(old as i32));
+        }
+        let bytes = (next as usize)
+            .checked_mul(PAGE)
+            .ok_or_else(|| $leaf!(invariant $this))?;
+        $leaf!(work $this,
+            bytes
+                .checked_add($leaf!(memory $this).len())
+                .ok_or_else(|| $leaf!(invariant $this))?,
+        )?;
+        let mut memory = $leaf!(allocation $this, bytes)?;
+        let result = (|| {
+            for at in (0..bytes).step_by(CHUNK) {
+                $leaf!(zero_check $this, memory)?;
+                memory.resize((at + CHUNK).min(bytes), 0);
+            }
+            for at in (0..$leaf!(memory $this).len()).step_by(CHUNK) {
+                $leaf!(copy_check $this, memory)?;
+                let end = (at + CHUNK).min($leaf!(memory $this).len());
+                memory[at..end].copy_from_slice(&$leaf!(memory $this)[at..end]);
+            }
+            $leaf!(final_check $this, memory)
+        })();
+        if let Err(error) = result {
+            $leaf!{rollback $this, memory, bytes}
+            return Err(error);
+        }
+        let old_bytes = $leaf!(memory $this).len();
+        $leaf!{commit $this, memory, old_bytes, next}
+        $leaf!(push $this, Value::I32(old as i32))
+    }
+};
+}
+#[allow(unused_imports)]
+pub(crate) use shared_memory_growth;
+
+#[allow(unused_macros)]
+macro_rules! frozen_growth_leaf {
+ (work $s:ident,$amount:expr $(,)?) => {$s.work($amount)};
+ (pop32 $s:ident) => {$s.pop32()};
+ (pages $s:ident) => {$s.usage.memory_pages};
+ (maximum $s:ident) => {$s.cache.spans().execution_memory().ok_or_else(|| $s.invariant())?.1.min($s.cache.spans().limits().memory_pages)};
+ (push $s:ident,$value:expr) => {$s.push($value)};
+ (invariant $s:ident) => {$s.invariant()};
+ (memory $s:ident) => {$s.memory};
+ (allocation $s:ident,$bytes:expr) => {$s.allocation($bytes)};
+ (check $s:ident) => {$s.check()};
+ (zero_check $s:ident,$memory:ident) => {$s.check()};
+ (copy_check $s:ident,$memory:ident) => {$s.check()};
+ (final_check $s:ident,$memory:ident) => {$s.check()};
+ (rollback $s:ident,$memory:ident,$bytes:ident) => {drop($memory);$s.usage.state_reserved -= $bytes;};
+ (commit $s:ident,$memory:ident,$old_bytes:ident,$next:ident) => {$s.memory=$memory;$s.usage.state_reserved -= $old_bytes;$s.usage.memory_pages=$next;};
+}
+#[allow(unused_imports)]
+pub(super) use frozen_growth_leaf;

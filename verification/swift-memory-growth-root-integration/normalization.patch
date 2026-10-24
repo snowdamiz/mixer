@@ -1,0 +1,11 @@
+--- reviewed/src/experimental/execution/borrowed.rs
++++ integrated/src/experimental/execution/borrowed.rs
+@@ -526,7 +526,7 @@
+         let bytes = (next as usize)
+             .checked_mul(PAGE)
+             .ok_or_else(|| $leaf!(invariant $this))?;
+-        $leaf!(work $this, 
++        $leaf!(work $this,
+             bytes
+                 .checked_add($leaf!(memory $this).len())
+                 .ok_or_else(|| $leaf!(invariant $this))?,

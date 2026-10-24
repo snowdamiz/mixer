@@ -1550,7 +1550,7 @@ fn af22_frozen_accounting_and_value_phase_reservations_stay_distinct() {
     }
     assert_eq!(
         FRAME_OPERATION_BYTES,
-        Some(ACTIVE_BYTES + 119576 + control_operations::ACTIVE_BYTES + memory_operations::ACTIVE_BYTES + bulk_memory_operations::ACTIVE_BYTES)
+        Some(ACTIVE_BYTES + 119576 + control_operations::ACTIVE_BYTES + memory_operations::ACTIVE_BYTES + bulk_memory_operations::ACTIVE_BYTES + memory_growth_operations::ACTIVE_BYTES)
     );
     assert_eq!(FROZEN_ACTIVE_BYTES, 240776);
     println!("AF_LAYOUT permanent={} frozen_permanent={} active={} frozen_active={} frame={} value={} state={}",PERMANENT_BYTES,FROZEN_PERMANENT_BYTES,ACTIVE_BYTES,FROZEN_ACTIVE_BYTES,FRAME_OPERATION_BYTES.unwrap(),value_operations::VALUE_OPERATION_BYTES.unwrap(),size_of::<SwiftExecutionState>());
