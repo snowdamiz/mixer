@@ -740,7 +740,7 @@ signed presentation is enabled. Native renderer candidates now execute on their
 dedicated simulator/emulator and are undergoing common-fixture visual review.
 Initial nested interactive list rows reject before attachment as recorded in
 `docs/native-appearance-v2-nested-row-limitation.md`. Hosted `25c5e03` passes all
-three jobs; `8338fa0` VM/services pass and its Swift job is still running.
+three jobs. Hosted `8338fa0` and `a739aa6` also pass all three jobs.
 
 Unused simulator cleanup is complete for this checkpoint: root shut down the two
 older Mixer measurement/reference instances, and the Apple lane deleted its three
@@ -749,3 +749,16 @@ active MeGPT iOS simulator remain booted. The current Android test emulator is
 also retained until capture completes. One active instance per native lane and
 post-run cleanup are now required in AGENTS.md. See
 `verification/simulator-cleanup-2026-10-24/receipt.json`.
+
+The private original-owner Swift value-operation slice now has independent and
+root acceptance. Preparation, push/pop, admitted scalar/saturating numeric work,
+trap reconciliation and zero-frame completion execute on the original accounted
+owners. Root verifies 1,112 source/evidence bindings; independent review passes
+48 selected product and 44 derived test executions, plus a separate metadata
+replay. The corrected inventory has 227 fields and 561 typed positions; prior
+accounting and collector failures remain retained. See
+`verification/swift-value-operations-root-review/acceptance.json`.
+These are selected host tests, not full Swift execution. Function entry/dispatch,
+active-frame unwind, control flow, memory/growth and host integration remain next.
+All GA and dogfood gates remain open. Hosted `8338fa0` and `a739aa6` now pass all
+three configured VM/Swift/services jobs; their receipts are retained separately.

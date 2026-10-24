@@ -1,0 +1,29 @@
+{
+  "findings": [
+    {
+      "actual": "float::truncated returns Result<Value, &str> at float.rs:75",
+      "declared": "Result<i128, &str>",
+      "file": "vm/src/experimental_swift_reactor/value_operations.rs",
+      "line": 203,
+      "missing": [
+        "Result<Value, &str> source/return/caller",
+        "Range<f64>",
+        "&f64",
+        "primitive nested shape Option source/return/caller",
+        "primitive nested saturating shape and truncation parameters"
+      ]
+    },
+    {
+      "actual": "named_bytes(\"operation\") runtime traversal before enlargement",
+      "file": "vm/src/experimental_swift_reactor/value_operations.rs",
+      "line": 212,
+      "missing": [
+        "rows, phase, total/index/at, a/b, same, checked bytes/next positions"
+      ],
+      "possibleCorrection": "const-evaluate total as existing construction/header formulas do"
+    }
+  ],
+  "limits": "Named source inventory coverage finding; no arithmetic behavior failure observed.",
+  "sourceTreeSHA256": "9d20753b5b8d101d8d043c9eb1420ef95806b108e6770c94a52b76f3e19944ff",
+  "status": "rejected-accounting-coverage"
+}

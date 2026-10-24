@@ -96,6 +96,15 @@ and adds fully named positive inventories. Full target execution remains pending
 
 Observed implementation and evidence:
 
+- Private original-owner value operations now have scoped independent and root
+  acceptance: 1,112 root bindings, 48 independent selected-product executions and
+  44 derived probe executions. Corrected accounting covers 227 fields / 561 typed
+  positions; all eight owner-layout comparisons agree. Push/pop, scalar and
+  saturating arithmetic, trap reconciliation and zero-frame completion are
+  implemented. Instruction dispatch, active frames, growth/host integration and
+  full Swift target execution remain pending. See
+  `verification/swift-value-operations-root-review/acceptance.json`.
+
 - Shared text profiles now expose twelve coordinated role-size sets and a bounded
   nearest-anchor selector that rejects unsupported sizes. All 89 SDK host tests
   pass per Debug/Release; 72 public metrics match raw native reference values,
@@ -1352,3 +1361,7 @@ active MeGPT iOS simulator remain booted. The current Android test emulator is
 also retained until capture completes. One active instance per native lane and
 post-run cleanup are now required in AGENTS.md. See
 `verification/simulator-cleanup-2026-10-24/receipt.json`.
+
+Hosted `8338fa0` and `a739aa6` now pass all three VM/Swift/services jobs.
+See `verification/github-ci-8338fa0/receipt.json` and
+`verification/github-ci-a739aa6/receipt.json`; these are scoped CI results, not GA acceptance.

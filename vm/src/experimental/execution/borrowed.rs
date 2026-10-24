@@ -80,9 +80,12 @@ pub(crate) fn frozen_parts(
 mod tests;
 
 /// Static primitive dispatch only. Owner validation/metering/observation/errors
-/// remain on the existing frozen path; Swift has no numeric mode adapter.
-#[cfg(feature = "experimental-span-execution")]
-pub(super) trait NumericMode: ExecutionMode + Sized {
+/// remain on each owner path; the primitive algorithm has one shared body.
+#[cfg(any(
+    feature = "experimental-span-execution",
+    feature = "experimental-swift-reactor"
+))]
+pub(crate) trait NumericMode: ExecutionMode + Sized {
     type NumericState<'a>;
     fn values_mut<'short>(state: &'short mut Self::NumericState<'_>) -> &'short mut Vec<Value>;
 }
@@ -95,8 +98,11 @@ impl NumericMode for FrozenMode {
     }
 }
 
-#[cfg(feature = "experimental-span-execution")]
-pub(super) fn numeric<M: NumericMode>(
+#[cfg(any(
+    feature = "experimental-span-execution",
+    feature = "experimental-swift-reactor"
+))]
+pub(crate) fn numeric<M: NumericMode>(
     state: &mut M::NumericState<'_>,
     opcode: u8,
     saturating: bool,

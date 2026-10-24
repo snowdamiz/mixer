@@ -551,7 +551,7 @@ fn construction_fixture() -> Vec<u8> {
     section(11, &data, &mut out);
     out
 }
-fn construction_adopt(budget: SwiftRunBudget) -> Option<(RuntimeControl, AdoptedProof)> {
+pub(super) fn construction_adopt(budget: SwiftRunBudget) -> Option<(RuntimeControl, AdoptedProof)> {
     construction_adopt_bytes(&construction_fixture(), budget)
 }
 fn construction_adopt_bytes(
@@ -573,7 +573,7 @@ fn construction_wasi_budget() -> WasiBudget {
         ..WasiBudget::default()
     }
 }
-fn construct_owned(
+pub(super) fn construct_owned(
     pair: &mut Option<(RuntimeControl, AdoptedProof)>,
 ) -> Result<SwiftReactorInstance, ConstructionFailure> {
     SwiftReactorInstance::construct(
@@ -598,7 +598,7 @@ fn construct_failed(mut pair: Option<(RuntimeControl, AdoptedProof)>) -> SwiftRu
     failure.after_cleanup = usage;
     failure
 }
-fn construction_finish(owner: SwiftReactorInstance) -> SwiftRunUsage {
+pub(super) fn construction_finish(owner: SwiftReactorInstance) -> SwiftRunUsage {
     let mut owned = Some(owner);
     let mut returned = Some(SwiftReactorInstance::cleanup_owned(&mut owned));
     let tail = returned

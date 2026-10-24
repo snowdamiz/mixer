@@ -1,5 +1,6 @@
 //! Private bounded construction of an uninitialized Swift reactor owner.
-//! No initialize, invoke, or interpreter algorithm is provided.
+//! Private accounted zero-frame value operations are also implemented.
+//! No initialize, invoke, or interpreter loop is provided.
 #![allow(dead_code)] // The constructor remains private, with no activation route.
 #![allow(clippy::result_large_err)]
 
@@ -21,6 +22,9 @@ use crate::experimental_wasi::{
 use crate::{Type, Value};
 use std::mem::{size_of, take};
 use std::time::Instant;
+
+#[path = "value_operations.rs"]
+pub(crate) mod value_operations;
 
 #[allow(dead_code)] // Chosen private type/layout prerequisite; no executable owner route yet.
 pub(crate) struct SwiftMode;
@@ -678,7 +682,14 @@ const EXECUTION_HEADER_BYTES: Option<usize> = {
                 Some(header) => match header.checked_add(cleanup) {
                     Some(header) => {
                         match header.checked_add(size_of::<CleanupPreflightInventory>()) {
-                            Some(header) => header.checked_add(CONSTRUCTION_POSITIVE_CLEANUP_BYTES),
+                            Some(header) => {
+                                match header.checked_add(CONSTRUCTION_POSITIVE_CLEANUP_BYTES) {
+                                    Some(header) => {
+                                        header.checked_add(value_operations::PERMANENT_BYTES)
+                                    }
+                                    None => None,
+                                }
+                            }
                             None => None,
                         }
                     }
