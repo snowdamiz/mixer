@@ -1,0 +1,65 @@
+# Hosted TLS receive buffering preflight
+
+Status: **bounded prototype recommendation; production implementation and full-component acceptance remain root/producer work**. This reviews the per-socket transport hook proposed for the [hosted key owner](hosted-key-owner-contract.md). It changes no product source, dependency, configuration, startup, provider, deployment, device, or GA gate.
+
+## Decision
+
+Use OTP's documented TLS `cb_info` customization with an independently authored client TCP adapter and unchanged `tcp`, `tcp_closed`, `tcp_error`, and `tcp_passive` tags. Keep verified TLS, pinned IP, hostname/SNI, Mint HTTP/1 passive parsing, exact positive `ssl:recv` counts, strict framing, four-flight admission, and the absolute two-second deadline.
+
+The adapter must apply non-activation socket options first, enforce **and read back** driver `buffer: 16_384`, then apply activation with every positive integer `active: N` reduced to `active: 1`. After `gen_tcp:connect/4`, it must enforce that driver buffer while the socket is passive. Register the actual raw socket with the flight watcher, receive a bounded acknowledgement, and only then return it to OTP for TLS ownership transfer/handshake. Missing/dead watchers, invalid options, failed buffer enforcement/readback, expired registration, and unsupported transport state must close and reject. Registration is private per-flight state, not application-global configuration.
+
+Ordering matters: activating first permits the driver to deliver one message under an already inflated buffer before a later `setopts(buffer: 16_384)` runs. An option list requesting `recbuf: 16_384, buffer: 16_384` was insufficient by itself: this runtime later exposed driver `buffer: 324_216`. Separating option changes, enforcing/readback, and activation removes that window. Keep the raw socket registration alive through completion and close it on success, rejection, deadline, cancellation, worker/flight failure, and shutdown. Do not release the admission slot before the required cleanup fence.
+
+This is the smallest reviewed choice addressing both inbound flow control and raw-socket reachability before handshake completion. Do not change node-global SSL `internal_active_n`, assume an application-level active-once mode constrains underlying TLS reads, or inspect opaque SSL records in product code.
+
+## Supported seam and pinned source argument
+
+The public [OTP TLS transport option](https://www.erlang.org/doc/apps/ssl/ssl.html#t:transport_option/0) permits custom reliable transports behaving as `gen_tcp`, with the listed `inet` option/address functions. This is a supported TLS extension point; it is not documented as experimental for TLS. The callback module must supply the entire client call surface actually exercised by the pinned OTP, including `connect`, `send`, `close`, `controlling_process`, `setopts`, `getopts`, `getstat`, `peername`, `sockname`, and `port`; preserve standard errors and ownership. The prototype delegates these calls to ordinary `gen_tcp`/`inet`. It changes no TLS verification callback, protocol, certificate, IP, hostname or HTTP data.
+
+The online documentation currently describes OTP 29.1.2. The executed runtime is **OTP 29.1.1, ERTS 17.1, ssl 11.7.7, Elixir 1.20.4, Mint 1.11.0** on macOS. Installed source hashes and selected line excerpts are in [source evidence](../verification/hosted-tls-buffer-preflight/otp-source-evidence.json); the runtime and input copies are authoritative for this preflight.
+
+The installed sources establish the following bounded mechanism:
+
+1. `ssl.erl:258–277` documents `cb_info`; `tls_socket.erl:150–159,196–199` calls the custom `connect`/`setopts` callbacks. Initial TCP options are passive (`tls_socket.erl:286–289`). No global SSL setting is required.
+2. `ssl_config.erl:136–149` and `ssl_internal.hrl:55` select the ordinary internal active count, 100. That count is not a per-connection public flow-control option. It allowed approximately 100 underlying driver deliveries despite passive, small application reads.
+3. `tls_gen_connection.erl:274–308` consumes raw TCP data and the unchanged passive tag. On `tcp_passive`, it marks activation required, or rearms only when an existing receive needs data and there are no queued ciphertexts. Its separate `socket_active` counter is used by the `socket` backend branch; this proposal uses `gen_tcp` and genuine TCP tags.
+4. `tls_gen_connection.erl:655–735` waits to reactivate when passive application data is already sufficient. With raw `active: 1`, no second raw driver message can arrive until that passive transition is processed and the state machine explicitly rearms. A message can contain multiple TLS records. This is **one TCP delivery**, not one TLS record.
+5. The [driver buffer option](https://www.erlang.org/doc/apps/kernel/inet.html#option-buffer) bounds one driver receive, while `recbuf` describes the kernel receive buffer minimum. `tls_record.erl` and `ssl_record.hrl:142–144` additionally enforce finite TLS ciphertext lengths (18,432 bytes through TLS 1.2; 16,640 for TLS 1.3, excluding the five-byte header). A partial ciphertext may span more than one 16 KiB driver delivery. OTP can concatenate the records within a batch (`tls_gen_connection.erl:735–790`), so exact application receive lengths alone do not bound the underlying retained batch.
+6. With the driver delivery fixed at 16 KiB and at most one granted delivery at a time, raw queued input, a partial TLS record, and the next decoded batch have finite input sizes independent of the hostile HTTP body size. Individual handshake message acceptance is separately limited by `max_handshake_size: 65_536` (`tls_gen_connection.erl:862–871`); this is not a total handshake allocation limit. Exact application reads stay at most 4,096 and complete HTTP bodies at most 262,144 bytes. This is a source-supported flow-control argument, **not a derivation of an exact whole-process memory ceiling**.
+7. `tls_dyn_connection_sup.erl:62–91` makes the receiver significant under `one_for_all`/`auto_shutdown`, with a temporary sender. Retaining the raw TCP socket before `ssl:connect` completes lets the flight watcher close the transport even if the SSL helper has not returned an `sslsocket`. The prototype measured cleanup; production still needs its own registration/cancellation/admission race tests.
+
+`receiver_spawn_opts`/`sender_spawn_opts` and a heap limit including shared binaries are public additional containment options. They do not replace flow control or raw socket ownership; heap-limit enforcement is tied to garbage collection and does not constitute a byte-exact immediate RSS bound. They were not selected or tested here.
+
+## Executed comparison
+
+Run [the isolated harness](../verification/hosted-tls-buffer-preflight/run.py) with `PREFLIGHT_REUSE_INPUTS=1 python3 verification/hosted-tls-buffer-preflight/run.py`. It compiles frozen copies of the producer's transport/framing/freshness and TLS fixture plus the owned prototype, using copied Mint/HPAX/Jason dependencies in a disposable scratch project. Fixture traffic uses actual chain- and hostname-verified TLS on loopback; no provider or DNS network is involved. The final [execution record](../verification/hosted-tls-buffer-preflight/execution.json) exited 0, all executable assertions passed, and [cleanup](../verification/hosted-tls-buffer-preflight/cleanup.json) removed the owned scratch project. Probe-only compiler warnings identify the unused DNS entry point and runtime-loaded pause helper; those paths do not supply successful results.
+
+Each hostile comparison comprises four simultaneous TLS connections receiving an 8 MiB close-delimited HTTP 500 response. An explicit 20 ms pause after request transmission makes consumer scheduling delay reproducible. There are three repetitions per variant, plus three without that pause.
+
+| Final run variant, 20 ms pause | Maximum referenced binary bytes in one sampled SSL process | Maximum simultaneous referenced bytes across four flights | Observed driver buffer |
+| --- | ---: | ---: | ---: |
+| Original passive/exact-read transport | 9,927,555 | 35,651,231 | 324,216 |
+| Per-socket positive `active` count capped to one | 340,368 | 842,326 | 324,216 |
+| Cap plus ordered enforcement/readback of driver buffer | 78,583 | 315,832 | 16,384 |
+
+The original transport still rejects the status before retaining a worker body. These measurements preserve the rejected assumption: small worker bodies/mailboxes and positive `ssl:recv` lengths did not prevent megabytes retained by SSL processes. Earlier observed baseline failures of 6.2/7.9 MiB are not invalidated by a fast passing run. The packet preserves [the earlier active-only experiment](../verification/hosted-tls-buffer-preflight/active-only-results.json) and [the pre-ordering experiment](../verification/hosted-tls-buffer-preflight/pre-ordering-results.json); neither is the final prototype authority.
+
+Additional final prototype results:
+
+- Four 262,144-byte Content-Length bodies succeeded in **5 ms**; four same-size chunked bodies in **5 ms**. The framing/parser path stayed unchanged apart from the deliberate probe pause hook, disabled for success cases.
+- Four independently verified TLS 1.2 responses succeeded in **4 ms**. Ordinary dual-version fixtures negotiated TLS 1.3. The wrong hostname failed with an actual `hostname_check_failed` certificate alert; its raw socket/observed SSL processes were gone after 30 ms.
+- Four established TLS peers withholding HTTP data returned failures in **2,002 ms**. Four TCP peers withholding the TLS handshake returned failures in **2,004 ms**, and all four server peers observed EOF.
+- Five rounds of cancellation before handshake completion registered raw sockets, killed the four caller workers, closed those raw sockets from the watcher, and observed all worker `DOWN` messages in **13–14 ms** including a deliberate 10 ms settling interval. In every round all four server peers observed EOF and all tracked raw ports, receivers and senders were gone at the sample 30 ms later.
+- Every final transport case left zero tracked client raw ports and SSL receiver/sender processes after the 30 ms cleanup interval. The default SSL internal active count application setting was unset both before and after. The prototype uses scoped test globals for instrumentation only; production is explicitly required to avoid them.
+
+The machine-readable [results](../verification/hosted-tls-buffer-preflight/results.json) retain every iteration, elapsed time, outcome, driver options, per-process/aggregate measurements, and cleanup sample. The executable assertions fail on accepted hostile responses, missing valid responses, driver buffer mismatches, deadline overruns, retained tracked resources, and explicit sampled hostile-buffer regression thresholds.
+
+## Resource envelope and limits
+
+Admission remains four fetch flights, each with one DNS/TCP/TLS attempt and its original absolute two-second deadline. Candidate body storage alone can reach 4 × 262,144 = **1,048,576 bytes**; immutable-copy assembly, JSON/JWK construction and GC can temporarily retain additional copies. The framing buffer remains at most 10,240 and the receive request at most 4,096 bytes. Per-socket driver buffer is enforced/read back at 16,384, and one raw delivery is granted per activation. The handshake size limit is independent of HTTP body size. These quantities support bounded input accumulation on this pinned OTP implementation.
+
+The 78,583/315,832 byte results are **sampled observations**, not hard allocation limits. `Process.info(:binary)` reports referenced ref-counted binaries, including full parents of sub-binaries and uncollected references; summing per process can count a shared binary more than once. The packet also records a deduplicated simultaneous binary sum. `Process.info(:memory)` excludes referenced off-heap binary payloads. Sampling every approximately 1–2 ms can miss shorter peaks.
+
+Kernel `recbuf` still exceeded 16 KiB (up to 536,084 in the final baseline comparison and 438,132 in a final successful capped case). The kernel receive queue, BEAM allocator/RSS, cryptographic native allocations, certificate caches, fixture/server allocations and other node activity are **not** covered by a hard byte ceiling here. Do not call the sampled totals an RSS limit, all-hostile-input proof, formal availability guarantee, or a kernel-buffer bound. Production needs deployment-level memory/egress limits and operational qualification under its actual OS/runtime; those are separate gates.
+
+This packet does not prove producer integration, DNS behavior, manifest/cache fencing, future runtime upgrades, Linux equivalence, physical phones, operational acceptance, or any GA gate. Root/producer must requalify the integrated callback, private watcher registration, deadline/cancel races, slot release fence, complete component suite, and the pinned Linux runtime. A runtime/backend change requires source and probe review again.

@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "status": "required-not-executed-hosted-integration",
+  "default_environment": "real Phoenix HTTP + accepted verifier with generated synthetic keys + disposable real PostgreSQL; no provider qualification claim",
+  "cases": [
+    {"id":"HMS01","case":"all six human roles intersect exact supported token scopes; missing/unknown scopes and signed roles never grant","expected":"exact allow table; billing-only 403; nonmember/nonexistent 404"},
+    {"id":"HMS02","case":"unknown binding/jti/family; alternate issuer/client/profile version; service token","expected":"401; no auto-provision; no private/domain/audit/dedup write"},
+    {"id":"HMS03","case":"profile/principal/family disabled; denial present; both valid_after boundaries; token expires at admission or before effect","expected":"fresh deny, including before dedup; no cached success"},
+    {"id":"HMS04","case":"org-only vs explicit org-wide/project membership; inactive/invited/revoked/time-window; 65 matching memberships","expected":"exact explicit scope only; overflow 503 rather than truncated allow"},
+    {"id":"HMS05","case":"two tenants reuse digest; forged route/body/app/environment/platform/runtime; artifact read derives target","expected":"no cross-tenant payload/metadata/result; exact target and ancestry required"},
+    {"id":"HMS06","case":"direct runtime SQL without/wrong context, old publisher GUC, authz SELECT/DML, domain update/delete/truncate","expected":"zero domain rows or permission denied; no publication authority"},
+    {"id":"HMS07","case":"startup actual owner/bypass/elevated/NOINHERIT SET owner chain, privileged function drift, missing FORCE RLS/ACL drift","expected":"protected startup rejected; narrow runtime accepted"},
+    {"id":"HMS08","case":"reader first then each profile/principal/family/denial/member revoke; writer first; grant insertion/removal under heads","expected":"canonical shared/exclusive locks order real transactions; after revoke commit new request denies"},
+    {"id":"HMS09","case":"lock timeout/deadlock; expired transaction deadline; pool saturation; policy DB down","expected":"rollback, bounded unavailable; no stale allow or unbounded waiter"},
+    {"id":"HMS10","case":"same actual pooled connection reused after success/failure/rollback between tenants; callback spawned/foreign Repo/connection/action/target; captured context after close","expected":"no GUC leak; repository rejects unusable context"},
+    {"id":"HMS11","case":"shared Go v3 golden canonical/signature/rejection vectors plus real Ed25519 artifact verification","expected":"exact digest/preimage/envelope/bytes; no version fallback; v1/v2/release/public endpoints explicitly reject"},
+    {"id":"HMS12","case":"normalized SQL fields differ/null/type-confuse signed JSON; CBOR digest differs; altered signature/payload/root/runtime; boundary oversized bodies","expected":"CHECK or owned verifier rejection before domain/audit/dedup success"},
+    {"id":"HMS13","case":"new upload; identical new-key upload; same-key concurrent upload; changed bytes/action/target; different principal; refreshed registered jti","expected":"201/200 parity, original exact cached response one original event; conflict no body; eligible same principal retry works"},
+    {"id":"HMS14","case":"revoke membership/credential after original upload then retry key","expected":"fresh deny before response lookup"},
+    {"id":"HMS15","case":"audit spoof actor/reason/IP; role/name change after success; deterministic versioned audit/state vectors; legacy Go hash prefix","expected":"immutable context actor; bounded reason; trusted IP or null; new schema explicit; Go hashes unchanged"},
+    {"id":"HMS16","case":"failure between artifact/audit/dedup/head writes; real DB process death pre/post commit; same-key recovery","expected":"atomic rollback or original committed result; no partial event/gap/duplicate effect"},
+    {"id":"HMS17","case":"local blob staging failure/orphan/restart and immutable content reference mismatch","expected":"no successful metadata for unusable fixture content; cleanup recorded; no R2 durability claim"},
+    {"id":"HMS18","case":"if Oban insert included, insert failure then crash/retry with no dispatcher; otherwise mark omitted","expected":"same Repo atomicity only if real job exists; dispatch/outbox gate pending otherwise"},
+    {"id":"HMS19","case":"sanitized errors/logs, private no-store, pagination bounds, request budget, no token/email authority","expected":"versioned envelopes and nonenumerating status; no raw bearer/claims/DSN/provider body"},
+    {"id":"HMS20","case":"cleanup and frozen source verification by independent reviewer","expected":"owned PostgreSQL/socket/blob fixture stopped/removed; other project services preserved; no unsupported qualification claim"}
+  ]
+}

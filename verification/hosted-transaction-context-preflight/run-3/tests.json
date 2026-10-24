@@ -1,0 +1,121 @@
+{
+  "summary": {
+    "total": 24,
+    "failures": 0,
+    "excluded": 0,
+    "skipped": 0
+  },
+  "observations": {
+    "after_lock_read_committed_membership": {
+      "isolation": "read committed",
+      "initial_active": true,
+      "after_lock_active": false,
+      "lock_wait_ms": 101
+    },
+    "application_deadline_spans_callback_wait": {
+      "error": "deadline_exceeded",
+      "elapsed_ms": 331,
+      "partial_effect_rows": 0
+    },
+    "busy_pool_nonqueued_admission": {
+      "elapsed_ms": 0,
+      "outcome": "{:raised, \"DBConnection.ConnectionError\", \"connection not available and queuing is disabled\", nil}",
+      "callback_started": false
+    },
+    "callback_cannot_extend_connection_deadline": {
+      "partial_effect_rows": 0,
+      "outcome": "{:raised, \"DBConnection.ConnectionError\", \"connection is closed because of an error, disconnect or timeout\", nil}"
+    },
+    "cleanup_after_commit": {
+      "settings": [
+        [
+          "",
+          "0",
+          "0"
+        ]
+      ]
+    },
+    "cleanup_after_exception": {
+      "settings": [
+        [
+          "",
+          "0",
+          "0"
+        ]
+      ]
+    },
+    "cleanup_after_rollback": {
+      "settings": [
+        [
+          "",
+          "0",
+          "0"
+        ]
+      ]
+    },
+    "direct_commit_begin": {
+      "old_xid": "810",
+      "actual_xid": "811",
+      "ecto_in_transaction": true,
+      "nonce_restored": true
+    },
+    "fresh_admission_after_slot_available": {
+      "passed": true,
+      "reused_failed_context": false
+    },
+    "lock_timeout": {
+      "elapsed_ms": 251,
+      "partial_effect_rows": 0,
+      "sqlstate": "55P03"
+    },
+    "raw_dbconnection_deadline_commit": {
+      "partial_effect_rows": 0,
+      "outcome": "{:returned, {:error, :rollback}}"
+    },
+    "raw_dbconnection_deadline_write": {
+      "partial_effect_rows": 0,
+      "outcome": "{:raised, \"DBConnection.ConnectionError\", \"connection is closed because of an error, disconnect or timeout\", nil}",
+      "old_backend_pid": 85210,
+      "new_backend_pid": 85217
+    },
+    "same_backend_new_transaction": {
+      "backend_pid": 85203,
+      "old_xid": "749",
+      "new_xid": "750"
+    },
+    "slow_sql_deadline": {
+      "partial_effect_rows": 0,
+      "outcome": "{:raised, \"DBConnection.ConnectionError\", \"tcp recv: closed\", nil}"
+    },
+    "spoofed_marker_still_denied_by_xid": {
+      "backend_pid": 85203,
+      "old_xid": "759",
+      "actual_xid": "760",
+      "marker_and_nonce_spoofed": true
+    },
+    "stable_identity_and_decreasing_budget": {
+      "identity": [
+        [
+          85203,
+          "746",
+          "context_preflight",
+          "preflight_owner"
+        ]
+      ],
+      "first_statement_budget_ms": 4998,
+      "second_statement_budget_ms": 4961
+    },
+    "unrelated_raw_transaction_nonce": {
+      "value": ""
+    }
+  },
+  "dependency_versions": {
+    "decimal": "3.2.0",
+    "telemetry": "1.4.2",
+    "jason": "1.4.5",
+    "db_connection": "2.10.2",
+    "ecto": "3.14.2",
+    "postgrex": "0.22.4",
+    "ecto_sql": "3.14.0"
+  }
+}

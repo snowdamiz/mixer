@@ -1,0 +1,26 @@
+2026-10-24 01:51:17.515 EDT [59976] LOG:  starting PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit
+2026-10-24 01:51:17.515 EDT [59976] LOG:  listening on Unix socket "/private/tmp/mixer-authz-dcl92sie/socket/.s.PGSQL.5432"
+2026-10-24 01:51:17.518 EDT [59979] LOG:  database system was shut down at 2026-10-24 01:51:17 EDT
+2026-10-24 01:51:17.521 EDT [59976] LOG:  database system is ready to accept connections
+2026-10-24 01:51:17.642 EDT [59986] ERROR:  infinite recursion detected in policy for relation "recursive_members"
+2026-10-24 01:51:17.642 EDT [59986] STATEMENT:  SELECT * FROM probe_auth.recursive_members;
+2026-10-24 01:51:17.654 EDT [59988] ERROR:  permission denied for table profiles
+2026-10-24 01:51:17.654 EDT [59988] CONTEXT:  SQL statement "SELECT 1 FROM probe_auth.profiles WHERE id='p' FOR SHARE"
+	PL/pgSQL function probe_auth.lock_chain() line 3 at PERFORM
+2026-10-24 01:51:17.654 EDT [59988] STATEMENT:  SELECT probe_auth.lock_chain();
+2026-10-24 01:51:17.676 EDT [59992] ERROR:  missing profile lock row
+2026-10-24 01:51:17.676 EDT [59992] CONTEXT:  PL/pgSQL function probe_auth.lock_chain() line 4 at RAISE
+2026-10-24 01:51:17.676 EDT [59992] STATEMENT:  SELECT probe_auth.lock_chain();
+2026-10-24 01:51:17.709 EDT [59998] ERROR:  permission denied for table memberships
+2026-10-24 01:51:17.709 EDT [59998] STATEMENT:  SELECT * FROM probe_auth.memberships;
+2026-10-24 01:51:17.719 EDT [60000] ERROR:  permission denied for table principals
+2026-10-24 01:51:17.719 EDT [60000] STATEMENT:  UPDATE probe_auth.principals SET active=false;
+2026-10-24 01:51:17.804 EDT [60016] ERROR:  permission denied to set role "probe_resolver"
+2026-10-24 01:51:17.804 EDT [60016] STATEMENT:  SET ROLE probe_resolver;
+2026-10-24 01:51:18.126 EDT [60028] ERROR:  canceling statement due to lock timeout
+2026-10-24 01:51:18.126 EDT [60028] CONTEXT:  while locking tuple (0,3) in relation "families"
+	SQL statement "SELECT 1 FROM probe_auth.families WHERE id='p' FOR SHARE"
+	PL/pgSQL function probe_auth.lock_chain() line 7 at PERFORM
+2026-10-24 01:51:18.126 EDT [60028] STATEMENT:  SELECT probe_auth.lock_chain();
+2026-10-24 01:51:18.306 EDT [59976] LOG:  received immediate shutdown request
+2026-10-24 01:51:18.307 EDT [59976] LOG:  database system is shut down

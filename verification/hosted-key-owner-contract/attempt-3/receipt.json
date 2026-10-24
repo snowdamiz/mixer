@@ -1,0 +1,369 @@
+{
+  "schema": 1,
+  "status": "failed",
+  "observedUTC": "2026-10-24T05:46:09.819998+00:00",
+  "command": [
+    "python3",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-key-owner-contract/run.py"
+  ],
+  "commands": [
+    {
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exitCode": 0,
+      "stdout": "probe-output/00.stdout",
+      "stderr": "probe-output/00.stderr"
+    },
+    {
+      "argv": [
+        "elixir",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exitCode": 0,
+      "stdout": "probe-output/01.stdout",
+      "stderr": "probe-output/01.stderr"
+    },
+    {
+      "argv": [
+        "mix",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exitCode": 0,
+      "stdout": "probe-output/02.stdout",
+      "stderr": "probe-output/02.stderr"
+    },
+    {
+      "argv": [
+        "python3",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exitCode": 0,
+      "stdout": "probe-output/03.stdout",
+      "stderr": "probe-output/03.stderr"
+    },
+    {
+      "argv": [
+        "openssl",
+        "version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exitCode": 0,
+      "stdout": "probe-output/04.stdout",
+      "stderr": "probe-output/04.stderr"
+    },
+    {
+      "argv": [
+        "erl",
+        "-noshell",
+        "-eval",
+        "application:load(ssl),application:load(inets),io:format(\"root=~s~nerts=~s~nssl=~p~ninets=~p~n\",[code:root_dir(),erlang:system_info(version),application:get_key(ssl,vsn),application:get_key(inets,vsn)]),halt()."
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exitCode": 0,
+      "stdout": "probe-output/05.stdout",
+      "stderr": "probe-output/05.stderr"
+    },
+    {
+      "argv": [
+        "openssl",
+        "req",
+        "-x509",
+        "-newkey",
+        "rsa:2048",
+        "-nodes",
+        "-keyout",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-key-owner-contract-wqg7neg_/ca.key",
+        "-out",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-key-owner-contract-wqg7neg_/ca.pem",
+        "-days",
+        "1",
+        "-subj",
+        "/CN=Mixer Isolated Probe ca"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exitCode": 0,
+      "stdout": "probe-output/06.stdout",
+      "stderr": "probe-output/06.stderr"
+    },
+    {
+      "argv": [
+        "openssl",
+        "req",
+        "-x509",
+        "-newkey",
+        "rsa:2048",
+        "-nodes",
+        "-keyout",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-key-owner-contract-wqg7neg_/wrong-ca.key",
+        "-out",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-key-owner-contract-wqg7neg_/wrong-ca.pem",
+        "-days",
+        "1",
+        "-subj",
+        "/CN=Mixer Isolated Probe wrong-ca"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exitCode": 0,
+      "stdout": "probe-output/07.stdout",
+      "stderr": "probe-output/07.stderr"
+    },
+    {
+      "argv": [
+        "openssl",
+        "req",
+        "-new",
+        "-newkey",
+        "rsa:2048",
+        "-nodes",
+        "-keyout",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-key-owner-contract-wqg7neg_/leaf.key",
+        "-out",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-key-owner-contract-wqg7neg_/leaf.csr",
+        "-subj",
+        "/CN=jwks.contract.invalid"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exitCode": 0,
+      "stdout": "probe-output/08.stdout",
+      "stderr": "probe-output/08.stderr"
+    },
+    {
+      "argv": [
+        "openssl",
+        "x509",
+        "-req",
+        "-in",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-key-owner-contract-wqg7neg_/leaf.csr",
+        "-CA",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-key-owner-contract-wqg7neg_/ca.pem",
+        "-CAkey",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-key-owner-contract-wqg7neg_/ca.key",
+        "-CAcreateserial",
+        "-out",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-key-owner-contract-wqg7neg_/leaf.pem",
+        "-days",
+        "1",
+        "-extfile",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-key-owner-contract-wqg7neg_/leaf.ext"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exitCode": 0,
+      "stdout": "probe-output/09.stdout",
+      "stderr": "probe-output/09.stderr"
+    },
+    {
+      "argv": [
+        "mix",
+        "deps.get"
+      ],
+      "cwd": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-key-owner-contract-wqg7neg_/harness",
+      "exitCode": 0,
+      "stdout": "probe-output/10.stdout",
+      "stderr": "probe-output/10.stderr"
+    },
+    {
+      "argv": [
+        "mix",
+        "compile"
+      ],
+      "cwd": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-key-owner-contract-wqg7neg_/harness",
+      "exitCode": 0,
+      "stdout": "probe-output/11.stdout",
+      "stderr": "probe-output/11.stderr"
+    },
+    {
+      "argv": [
+        "mix",
+        "run",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-key-owner-contract/probe.exs"
+      ],
+      "cwd": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-key-owner-contract-wqg7neg_/harness",
+      "exitCode": 1,
+      "stdout": "probe-output/12.stdout",
+      "stderr": "probe-output/12.stderr"
+    }
+  ],
+  "observations": [
+    {
+      "event": "sni",
+      "name": "jwks.contract.invalid"
+    },
+    {
+      "event": "request",
+      "peer": [
+        "127.0.0.1",
+        50782
+      ],
+      "path": "/ok",
+      "headers": [
+        "host: jwks.contract.invalid:50775",
+        "user-agent: mint/1.11.0",
+        "accept-encoding: identity",
+        "connection: close"
+      ]
+    },
+    {
+      "event": "sni",
+      "name": "wrong.contract.invalid"
+    },
+    {
+      "event": "tls_rejected",
+      "reason": "SSLV3_ALERT_BAD_CERTIFICATE"
+    },
+    {
+      "event": "sni",
+      "name": "jwks.contract.invalid"
+    },
+    {
+      "event": "tls_rejected",
+      "reason": "TLSV1_ALERT_UNKNOWN_CA"
+    },
+    {
+      "event": "sni",
+      "name": "jwks.contract.invalid"
+    },
+    {
+      "event": "request",
+      "peer": [
+        "127.0.0.1",
+        50785
+      ],
+      "path": "/large500",
+      "headers": [
+        "host: jwks.contract.invalid:50775",
+        "user-agent: mint/1.11.0"
+      ]
+    },
+    {
+      "event": "peer_closed_during_send",
+      "path": "/large500"
+    },
+    {
+      "event": "sni",
+      "name": "jwks.contract.invalid"
+    },
+    {
+      "event": "request",
+      "peer": [
+        "127.0.0.1",
+        50786
+      ],
+      "path": "/oversize200",
+      "headers": [
+        "host: jwks.contract.invalid:50775",
+        "user-agent: mint/1.11.0"
+      ]
+    },
+    {
+      "event": "peer_closed",
+      "path": "/oversize200"
+    }
+  ],
+  "inputAggregateSHA256": "91e9c9b5956a1694d2401c33f296352e909bcee833451f280710a0ff5ae281a9",
+  "artifacts": {
+    "attempt-1/probe-output/00.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-1/probe-output/00.stdout": "61077a091fb1161e42c9a227f8edb4eb98b946b31b638be7a73615b8c6dd1963",
+    "attempt-1/probe-output/01.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-1/probe-output/01.stdout": "44fe1d5e597ef84e0b6859be8ef275ca7da40d28005c64ea6a103835caa29081",
+    "attempt-1/probe-output/02.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-1/probe-output/02.stdout": "bc34b129dd989393fed8f2bedf43c844a721626fc44c7e4ce7b70bc2441df63b",
+    "attempt-1/probe-output/03.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-1/probe-output/03.stdout": "f615dc9512de8b165e2b595e5cdc608a3ba7927ae92f959c5b42ec3d58e2ffa8",
+    "attempt-1/probe-output/04.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-1/probe-output/04.stdout": "50bc8ea637df53e57f6a77e21416ec9a320b8123447130cd1be83698a4863c29",
+    "attempt-1/probe-output/05.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-1/probe-output/05.stdout": "909e1cda2005b070eb85267bce15bd24437cf0d5fcb4264b0e598a3f1deaf4c9",
+    "attempt-1/probe-output/06.stderr": "b975eb811681d1f29bb9b2fa7035698a7fa59ef3420314d915f716e611562a59",
+    "attempt-1/probe-output/06.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-1/probe-output/07.stderr": "92fbda2059250a2137a7ccb5b2a32ee061664ca97235de6ac3d17e79fe5a8a2c",
+    "attempt-1/probe-output/07.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-1/probe-output/08.stderr": "22b6f23c3f34126cb35af79a4786089d8367ecc0024fa386e486221e47306940",
+    "attempt-1/probe-output/08.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-1/probe-output/09.stderr": "39d2b6d6882ef0da14f3253fcf26c5e685ac9b69fce8df2417d6c96597a2aec9",
+    "attempt-1/probe-output/09.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-1/probe-output/10.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-1/probe-output/10.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-1/probe-output/11.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-1/probe-output/11.stdout": "edfc81857d3ea7220434cd1de801b8e038d0e6be1e501358cd6f81ebb7381735",
+    "attempt-1/probe-output/12.stderr": "f92a65c8753bb815a63ae55f0916f65f33bdf1593b49335fd3eb13dde11fa3af",
+    "attempt-1/probe-output/12.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-2/probe-output/00.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-2/probe-output/00.stdout": "61077a091fb1161e42c9a227f8edb4eb98b946b31b638be7a73615b8c6dd1963",
+    "attempt-2/probe-output/01.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-2/probe-output/01.stdout": "44fe1d5e597ef84e0b6859be8ef275ca7da40d28005c64ea6a103835caa29081",
+    "attempt-2/probe-output/02.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-2/probe-output/02.stdout": "bc34b129dd989393fed8f2bedf43c844a721626fc44c7e4ce7b70bc2441df63b",
+    "attempt-2/probe-output/03.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-2/probe-output/03.stdout": "f615dc9512de8b165e2b595e5cdc608a3ba7927ae92f959c5b42ec3d58e2ffa8",
+    "attempt-2/probe-output/04.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-2/probe-output/04.stdout": "50bc8ea637df53e57f6a77e21416ec9a320b8123447130cd1be83698a4863c29",
+    "attempt-2/probe-output/05.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-2/probe-output/05.stdout": "909e1cda2005b070eb85267bce15bd24437cf0d5fcb4264b0e598a3f1deaf4c9",
+    "attempt-2/probe-output/06.stderr": "d1cde4911edb3eb5364533b6a23ab29f3dad73742259690b23db60d1e84f6290",
+    "attempt-2/probe-output/06.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-2/probe-output/07.stderr": "225c30d3e4c224314a0e7d1f088c2f00c1cc7d23357fe67751bc042aa1038afa",
+    "attempt-2/probe-output/07.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-2/probe-output/08.stderr": "3aeee7b654c00366f57e5c705b0ef6c3a4356dda7888eb8bddfe7577f6d61f3b",
+    "attempt-2/probe-output/08.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-2/probe-output/09.stderr": "39d2b6d6882ef0da14f3253fcf26c5e685ac9b69fce8df2417d6c96597a2aec9",
+    "attempt-2/probe-output/09.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-2/probe-output/10.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-2/probe-output/10.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-2/probe-output/11.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-2/probe-output/11.stdout": "edfc81857d3ea7220434cd1de801b8e038d0e6be1e501358cd6f81ebb7381735",
+    "attempt-2/probe-output/12.stderr": "7babfa38f84452560aa3cabb9dcf3362b1d8ebeb477789d20d8f9c144c4ef4a5",
+    "attempt-2/probe-output/12.stdout": "fa6668f04a17f0cc2ca31dcefc25ebf9bc2459f73a275d955d91e9223a251163",
+    "harness.mix.exs": "609c5805d394683f60166eb5a43729f23f9ac84cb6f9cb9e93735bb7aec67e06",
+    "harness.mix.lock": "d77a30bb3762b71ad37424e85fbbee97bce5aedf785411efe9bad866c4b3fc73",
+    "input-manifest.json": "03ae49db12dbe968bc118a4befb5a3f681a8887a6cc5cb2f9afc8872e236d1f2",
+    "mint-1.11.0.tar": "c6279ba2d6aa3a383a1d4cfbe7b59f42e6efd400f58d8e2acfeac48a438693ab",
+    "mint-advisories.json": "b73b163745b84870410c253d649bf4d1006df73fc5a0add4eca8cc7a5ff4c877",
+    "mint-package.json": "077b290a44d6ab1598bdf6f5800dcb4ab4d61be6149de324e3d868479bb08093",
+    "mint-release.json": "25ddad92ac5fcc95cd3fc7ccce2e82c6d249d81a8c1489ccbddc83ea3d9b66d6",
+    "mint-releases.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "mint-source-manifest.json": "e76ebf5dd9ec0ae3c8b47267b0eaf19d7dbc8cf0cd252295f3d91ff8ba4d165c",
+    "probe-output/00.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "probe-output/00.stdout": "61077a091fb1161e42c9a227f8edb4eb98b946b31b638be7a73615b8c6dd1963",
+    "probe-output/01.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "probe-output/01.stdout": "44fe1d5e597ef84e0b6859be8ef275ca7da40d28005c64ea6a103835caa29081",
+    "probe-output/02.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "probe-output/02.stdout": "bc34b129dd989393fed8f2bedf43c844a721626fc44c7e4ce7b70bc2441df63b",
+    "probe-output/03.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "probe-output/03.stdout": "f615dc9512de8b165e2b595e5cdc608a3ba7927ae92f959c5b42ec3d58e2ffa8",
+    "probe-output/04.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "probe-output/04.stdout": "50bc8ea637df53e57f6a77e21416ec9a320b8123447130cd1be83698a4863c29",
+    "probe-output/05.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "probe-output/05.stdout": "909e1cda2005b070eb85267bce15bd24437cf0d5fcb4264b0e598a3f1deaf4c9",
+    "probe-output/06.stderr": "67071ff1427fcafe28c09ab3255c6480c5a88d264c03ce56f3238751fd2bf479",
+    "probe-output/06.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "probe-output/07.stderr": "d99dd9be87ed8496116f5589871b7f05b1081bfe9d3391cedc87e8a3d1b0fb0b",
+    "probe-output/07.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "probe-output/08.stderr": "9664dda69e22a1369b7142d6928de5a701c61ca1e11e2c884d5b63e570e9372d",
+    "probe-output/08.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "probe-output/09.stderr": "39d2b6d6882ef0da14f3253fcf26c5e685ac9b69fce8df2417d6c96597a2aec9",
+    "probe-output/09.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "probe-output/10.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "probe-output/10.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "probe-output/11.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "probe-output/11.stdout": "edfc81857d3ea7220434cd1de801b8e038d0e6be1e501358cd6f81ebb7381735",
+    "probe-output/12.stderr": "442ade4ae394741fd2bc625ffebc053eace853e87dc6eccb8cb8ccd8c06613a6",
+    "probe-output/12.stdout": "2b1e3a6b89bd22670fe50a0116f70d176f11f0cb6052426114496713e4a0a095",
+    "probe.exs": "d7be19d674eef0d39a1c6221f624645672cf36c70e2dc8bf0e431f794f6b8499"
+  },
+  "cleanup": {
+    "temporaryDirectory": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-key-owner-contract-wqg7neg_",
+    "removed": true,
+    "listenerClosed": true,
+    "fixtureThreadStopped": true,
+    "syntheticPrivateKeysPersisted": false,
+    "simulatorsEmulatorsDevicesUI": "not used; paused"
+  },
+  "scope": "One synthetic loopback TLS server. Transport API feasibility only; no product owner/cache/adapter/provider qualification or GA acceptance."
+}

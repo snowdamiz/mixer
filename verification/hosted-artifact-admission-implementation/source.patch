@@ -1,0 +1,1046 @@
+diff --git a/hosted/lib/mixer_hosted/protocol/artifact_admission.ex b/hosted/lib/mixer_hosted/protocol/artifact_admission.ex
+new file mode 100644
+--- /dev/null
++++ b/hosted/lib/mixer_hosted/protocol/artifact_admission.ex
+@@ -0,0 +1,174 @@
++defmodule MixerHosted.Protocol.ArtifactAdmission do
++  @moduledoc """
++  Bounded v3 artifact storage admission against explicit current trust and host
++  policy. Checked data confers no tenant permission, publication, validation,
++  compiler eligibility or execution authority. Roots contain raw public bytes.
++  """
++  alias MixerHosted.Protocol.{ArtifactCBOR, ArtifactJSON, ArtifactV3Policy}
++  @envelope_limit 6_291_456
++  @signed_limit 65_536
++  @payload_limit 4_194_304
++  @domain "mixer.artifact.v3\0"
++
++  defmodule Checked do
++    @moduledoc "Immutable retained data; constructing this struct is not proof of admission."
++    @enforce_keys [
++      :envelope_bytes,
++      :signed_manifest_bytes,
++      :manifest,
++      :canonical_manifest_cbor,
++      :signature,
++      :payload,
++      :manifest_sha256,
++      :payload_sha256,
++      :target
++    ]
++    defstruct @enforce_keys
++  end
++
++  def admit(bytes, host, roots, now)
++      when is_binary(bytes) and byte_size(bytes) <= @envelope_limit do
++    with {:ok, spans, _} <- ArtifactJSON.preflight(bytes, @envelope_limit),
++         {:ok, signed_bytes} <- signed_span(bytes, spans),
++         {:ok, envelope, _, _} <- ArtifactJSON.decode(bytes, @envelope_limit),
++         true <- ArtifactV3Policy.exact?(envelope, ~w(signed_manifest payload)),
++         {:ok, payload} <- base64(envelope["payload"], 1, @payload_limit),
++         {:ok, data} <- admit_signed(signed_bytes, payload, host, roots, now) do
++      {:ok, struct!(Checked, Map.put(data, :envelope_bytes, bytes))}
++    else
++      false -> {:error, :envelope_shape}
++      {:error, reason} -> {:error, reason}
++      _ -> {:error, :envelope_shape}
++    end
++  end
++
++  def admit(_, _, _, _), do: {:error, :envelope_limit}
++
++  @doc "Checks an exact standalone signed document and raw payload; returns data, never an upload Checked record."
++  def admit_signed(signed_bytes, payload, host, roots, now)
++      when is_binary(signed_bytes) and byte_size(signed_bytes) <= @signed_limit and
++             is_binary(payload) and byte_size(payload) in 1..@payload_limit do
++    with true <- ArtifactV3Policy.uint?(now),
++         {:ok, signed, _, _} <- ArtifactJSON.decode(signed_bytes, @signed_limit),
++         true <- ArtifactV3Policy.exact?(signed, ~w(manifest signature)),
++         manifest = signed["manifest"],
++         true <- ArtifactV3Policy.manifest?(manifest),
++         true <- ArtifactV3Policy.compatible?(manifest, host),
++         {:ok, public_key} <-
++           ArtifactV3Policy.authority(roots, manifest["key_id"], manifest["scope"], now),
++         {:ok, signature} <- base64(signed["signature"], 64, 64),
++         {:ok, cbor} <- ArtifactCBOR.encode(manifest),
++         true <- :crypto.verify(:eddsa, :none, @domain <> cbor, signature, [public_key, :ed25519]),
++         payload_hash = hash(payload),
++         true <-
++           byte_size(payload) == manifest["compressed_bytes"] and
++             payload_hash == manifest["payload_sha256"] do
++      digest = hash(cbor)
++
++      {:ok,
++       %{
++         signed_manifest_bytes: signed_bytes,
++         manifest: manifest,
++         canonical_manifest_cbor: cbor,
++         signature: signature,
++         payload: payload,
++         manifest_sha256: digest,
++         payload_sha256: payload_hash,
++         target:
++           Map.merge(manifest["scope"], %{
++             "runtime" => manifest["runtime"],
++             "manifest_sha256" => digest
++           })
++       }}
++    else
++      _ -> {:error, :artifact_rejected}
++    end
++  end
++
++  def admit_signed(_, _, _, _, _), do: {:error, :document_or_payload_limit}
++
++  @doc "Reconstructs exact retained bytes under current policy and rejects any changed field."
++  def recheck(%Checked{envelope_bytes: bytes} = checked, host, roots, now) do
++    case admit(bytes, host, roots, now) do
++      {:ok, ^checked} -> {:ok, checked}
++      _ -> {:error, :recheck_rejected}
++    end
++  end
++
++  def recheck(_, _, _, _), do: {:error, :recheck_rejected}
++
++  defp signed_span(bytes, spans) do
++    Enum.reduce_while(spans, {:error, :envelope_shape}, fn {key_start, key_size, start, size},
++                                                           result ->
++      case Jason.decode(binary_part(bytes, key_start, key_size)) do
++        {:ok, "signed_manifest"} when size <= @signed_limit ->
++          {:halt, {:ok, :binary.copy(binary_part(bytes, start, size))}}
++
++        {:ok, "signed_manifest"} ->
++          {:halt, {:error, :document_limit}}
++
++        _ ->
++          {:cont, result}
++      end
++    end)
++  end
++
++  defp base64(text, minimum, maximum) when is_binary(text) do
++    size = byte_size(text)
++    # Encoded bound and exact tail arithmetic precede decoding allocation.
++    if size > 0 and rem(size, 4) == 0 and size <= 4 * div(maximum + 2, 3) do
++      padding =
++        cond do
++          :binary.at(text, size - 2) == ?= and :binary.at(text, size - 1) == ?= -> 2
++          :binary.at(text, size - 1) == ?= -> 1
++          true -> 0
++        end
++
++      decoded_size = div(size, 4) * 3 - padding
++
++      if decoded_size >= minimum and decoded_size <= maximum and
++           alphabet?(text, size - padding, 0) and tail?(text, size - padding, padding) do
++        case Base.decode64(text, padding: true) do
++          {:ok, decoded} when byte_size(decoded) == decoded_size ->
++            if Base.encode64(decoded) == text, do: {:ok, decoded}, else: {:error, :base64}
++
++          _ ->
++            {:error, :base64}
++        end
++      else
++        {:error, :base64}
++      end
++    else
++      {:error, :base64}
++    end
++  end
++
++  defp base64(_, _, _), do: {:error, :base64}
++  defp alphabet?(_, finish, finish), do: true
++
++  defp alphabet?(text, finish, offset) do
++    c = :binary.at(text, offset)
++
++    (c in ?A..?Z or c in ?a..?z or c in ?0..?9 or c in [?+, ?/]) and
++      alphabet?(text, finish, offset + 1)
++  end
++
++  defp tail?(_, _, 0), do: true
++
++  defp tail?(text, finish, padding) do
++    c = :binary.at(text, finish - 1)
++
++    n =
++      cond do
++        c in ?A..?Z -> c - ?A
++        c in ?a..?z -> c - ?a + 26
++        c in ?0..?9 -> c - ?0 + 52
++        c == ?+ -> 62
++        c == ?/ -> 63
++      end
++
++    rem(n, if(padding == 2, do: 16, else: 4)) == 0
++  end
++
++  defp hash(bytes), do: Base.encode16(:crypto.hash(:sha256, bytes), case: :lower)
++end
+diff --git a/hosted/lib/mixer_hosted/protocol/artifact_json.ex b/hosted/lib/mixer_hosted/protocol/artifact_json.ex
+new file mode 100644
+--- /dev/null
++++ b/hosted/lib/mixer_hosted/protocol/artifact_json.ex
+@@ -0,0 +1,181 @@
++defmodule MixerHosted.Protocol.ArtifactJSON do
++  @moduledoc false
++  @max_uint 18_446_744_073_709_551_615
++
++  # This walk precedes Jason. It retains only bounded outer spans, never a
++  # character list, and counts keys, values and containers before descending.
++  def decode(bytes, maximum)
++      when is_binary(bytes) and is_integer(maximum) and maximum in 1..6_291_456 and
++             byte_size(bytes) <= maximum do
++    with {:ok, spans, stats} <- preflight(bytes, maximum),
++         {:ok, ordered} <- Jason.decode(bytes, objects: :ordered_objects, strings: :copy),
++         {:ok, value} <- unique(ordered) do
++      {:ok, value, spans, stats}
++    else
++      _ -> {:error, :invalid_json}
++    end
++  end
++
++  def decode(_, _), do: {:error, :document_limit}
++
++  def preflight(bytes, maximum)
++      when is_binary(bytes) and is_integer(maximum) and maximum in 1..6_291_456 and
++             byte_size(bytes) <= maximum do
++    try do
++      {finish, items, spans, deepest} = value(bytes, ws(bytes, 0), 0, 0, 0)
++      if ws(bytes, finish) != byte_size(bytes), do: fail()
++      {:ok, spans, %{items: items, max_depth: deepest, input_bytes: byte_size(bytes)}}
++    catch
++      :invalid -> {:error, :invalid_json}
++    end
++  end
++
++  def preflight(_, _), do: {:error, :document_limit}
++
++  defp value(bytes, offset, depth, items, deepest) do
++    if depth > 16 or items >= 4096, do: fail()
++    items = items + 1
++    deepest = max(deepest, depth)
++
++    case at(bytes, offset) do
++      ?{ -> object(bytes, ws(bytes, offset + 1), depth, items, 0, [], deepest)
++      ?[ -> array(bytes, ws(bytes, offset + 1), depth, items, 0, deepest)
++      ?" -> {string(bytes, offset + 1), items, [], deepest}
++      ?t -> {literal(bytes, offset, "true"), items, [], deepest}
++      ?f -> {literal(bytes, offset, "false"), items, [], deepest}
++      digit when digit in ?0..?9 -> {number(bytes, offset, 0, 0), items, [], deepest}
++      _ -> fail()
++    end
++  end
++
++  defp object(bytes, offset, depth, items, count, spans, deepest) do
++    if at(bytes, offset) == ?} do
++      {offset + 1, items, Enum.reverse(spans), deepest}
++    else
++      member(bytes, offset, depth, items, count, spans, deepest)
++    end
++  end
++
++  defp member(bytes, offset, depth, items, count, spans, deepest) do
++    if count >= 256 or items >= 4096 or at(bytes, offset) != ?", do: fail()
++    key_end = string(bytes, offset + 1)
++    colon = ws(bytes, key_end)
++    if at(bytes, colon) != ?:, do: fail()
++    start = ws(bytes, colon + 1)
++    {finish, items, _, deepest} = value(bytes, start, depth + 1, items + 1, deepest)
++
++    spans =
++      if depth == 0, do: [{offset, key_end - offset, start, finish - start} | spans], else: spans
++
++    next = ws(bytes, finish)
++
++    case at(bytes, next) do
++      ?} -> {next + 1, items, Enum.reverse(spans), deepest}
++      ?, -> member(bytes, ws(bytes, next + 1), depth, items, count + 1, spans, deepest)
++      _ -> fail()
++    end
++  end
++
++  defp array(bytes, offset, depth, items, count, deepest) do
++    if at(bytes, offset) == ?] do
++      {offset + 1, items, [], deepest}
++    else
++      element(bytes, offset, depth, items, count, deepest)
++    end
++  end
++
++  defp element(bytes, offset, depth, items, count, deepest) do
++    if count >= 256, do: fail()
++    {finish, items, _, deepest} = value(bytes, offset, depth + 1, items, deepest)
++    next = ws(bytes, finish)
++
++    case at(bytes, next) do
++      ?] -> {next + 1, items, [], deepest}
++      ?, -> element(bytes, ws(bytes, next + 1), depth, items, count + 1, deepest)
++      _ -> fail()
++    end
++  end
++
++  defp string(bytes, offset) do
++    case at(bytes, offset) do
++      ?" -> offset + 1
++      ?\\ -> escape(bytes, offset + 1)
++      c when is_integer(c) and c >= 32 -> string(bytes, offset + 1)
++      _ -> fail()
++    end
++  end
++
++  defp escape(bytes, offset) do
++    case at(bytes, offset) do
++      c when c in [?", ?\\, ?/, ?b, ?f, ?n, ?r, ?t] ->
++        string(bytes, offset + 1)
++
++      ?u ->
++        Enum.each(1..4, fn n -> if not hex?(at(bytes, offset + n)), do: fail() end)
++        string(bytes, offset + 5)
++
++      _ ->
++        fail()
++    end
++  end
++
++  defp hex?(c), do: c in ?0..?9 or c in ?a..?f or c in ?A..?F
++
++  defp number(bytes, offset, value, count) do
++    case at(bytes, offset) do
++      c when c in ?0..?9 ->
++        if count >= 20 or (count > 0 and value == 0), do: fail()
++        next = value * 10 + c - ?0
++        if next > @max_uint, do: fail()
++        number(bytes, offset + 1, next, count + 1)
++
++      _ ->
++        offset
++    end
++  end
++
++  defp literal(bytes, offset, text) do
++    size = byte_size(text)
++    if offset + size > byte_size(bytes) or binary_part(bytes, offset, size) != text, do: fail()
++    offset + size
++  end
++
++  defp ws(bytes, offset) do
++    if at(bytes, offset) in [32, 9, 10, 13], do: ws(bytes, offset + 1), else: offset
++  end
++
++  defp at(bytes, offset) when offset < byte_size(bytes), do: :binary.at(bytes, offset)
++  defp at(_, _), do: nil
++  defp fail, do: throw(:invalid)
++
++  defp unique(%Jason.OrderedObject{values: pairs}) do
++    Enum.reduce_while(pairs, {:ok, %{}}, fn {key, value}, {:ok, result} ->
++      if Map.has_key?(result, key) do
++        {:halt, {:error, :duplicate}}
++      else
++        case unique(value) do
++          {:ok, checked} -> {:cont, {:ok, Map.put(result, key, checked)}}
++          error -> {:halt, error}
++        end
++      end
++    end)
++  end
++
++  defp unique(values) when is_list(values) do
++    Enum.reduce_while(values, {:ok, []}, fn value, {:ok, result} ->
++      case unique(value) do
++        {:ok, checked} -> {:cont, {:ok, [checked | result]}}
++        error -> {:halt, error}
++      end
++    end)
++    |> case do
++      {:ok, checked} -> {:ok, Enum.reverse(checked)}
++      error -> error
++    end
++  end
++
++  defp unique(value) when is_binary(value) or is_integer(value) or is_boolean(value),
++    do: {:ok, value}
++
++  defp unique(_), do: {:error, :type}
++end
+diff --git a/hosted/lib/mixer_hosted/protocol/artifact_v3_policy.ex b/hosted/lib/mixer_hosted/protocol/artifact_v3_policy.ex
+new file mode 100644
+--- /dev/null
++++ b/hosted/lib/mixer_hosted/protocol/artifact_v3_policy.ex
+@@ -0,0 +1,202 @@
++defmodule MixerHosted.Protocol.ArtifactV3Policy do
++  @moduledoc false
++  @uint 18_446_744_073_709_551_615
++  @http "network.http.v1"
++  @storage "storage.keyValue.v1"
++  @http_hash "fa1549c0a1e2e6b3bf4a83af1a6d37730bbefc8cddc3ffbe3c807d5e7af503f3"
++  @storage_hash "4a311222c978ddd0982e8dfbcf3d4864b856a80bcc1efb3b725adede7f8e22fd"
++  @grant_hash "b394ffd165ef28977de9743b1c1a98c419504787f2912e30d419cfb1582e15e1"
++  @manifest ~w(schema scope release_id source_commit provenance_id runtime protocol guest_abi ui_schema capability_hashes capability_grants state_min state_max payload_sha256 compressed_bytes expanded_bytes compression asset_hashes source_map_sha256 limits key_id created_at_unix)
++  @host ~w(scope runtime protocol guest_abi ui_schema capability_hashes state_version max_payload_bytes limits)
++  @root ~w(key_id public_key scope artifact assignment revoked not_before_unix not_after_unix)
++
++  def uint?(n), do: is_integer(n) and n >= 0 and n <= @uint
++
++  def exact?(map, fields),
++    do:
++      is_map(map) and not is_struct(map) and map_size(map) == length(fields) and
++        Enum.all?(fields, &Map.has_key?(map, &1))
++
++  def id?(s), do: is_binary(s) and byte_size(s) in 1..128 and ascii?(s, :id)
++  def digest?(s), do: is_binary(s) and byte_size(s) == 64 and ascii?(s, :hex)
++
++  def scope?(s) do
++    exact?(s, ~w(organization project app environment platform)) and
++      Enum.all?(~w(organization project app environment), &id?(s[&1])) and
++      s["platform"] in ["ios", "android"]
++  end
++
++  def limits?(l) do
++    exact?(l, ~w(memory_bytes fuel startup_milliseconds)) and
++      range?(l["memory_bytes"], 1, 4_194_304) and range?(l["fuel"], 1, 1_000_000) and
++      range?(l["startup_milliseconds"], 1, 60_000)
++  end
++
++  def capabilities?(m) do
++    is_map(m) and not is_struct(m) and map_size(m) <= 2 and
++      Enum.all?(m, fn {id, hash} ->
++        (id == @http and hash == @http_hash) or (id == @storage and hash == @storage_hash)
++      end)
++  end
++
++  def manifest?(m) do
++    exact?(m, @manifest) and tuple?(m) and scope?(m["scope"]) and
++      Enum.all?(~w(release_id provenance_id key_id), &id?(m[&1])) and
++      is_binary(m["source_commit"]) and byte_size(m["source_commit"]) in [40, 64] and
++      ascii?(m["source_commit"], :hex) and
++      Enum.all?(~w(runtime payload_sha256 source_map_sha256), &digest?(m[&1])) and
++      uint?(m["state_min"]) and uint?(m["state_max"]) and m["state_min"] <= m["state_max"] and
++      range?(m["created_at_unix"], 1, @uint) and m["compression"] == "none" and
++      range?(m["compressed_bytes"], 1, 4_194_304) and
++      m["compressed_bytes"] === m["expanded_bytes"] and
++      exact?(m["asset_hashes"], []) and capabilities?(m["capability_hashes"]) and
++      limits?(m["limits"]) and grants?(m["capability_grants"], m["capability_hashes"])
++  end
++
++  def host?(h) do
++    exact?(h, @host) and tuple?(h) and scope?(h["scope"]) and digest?(h["runtime"]) and
++      capabilities?(h["capability_hashes"]) and uint?(h["state_version"]) and
++      range?(h["max_payload_bytes"], 1, 4_194_304) and limits?(h["limits"])
++  end
++
++  def compatible?(m, h) do
++    host?(h) and Enum.all?(~w(scope runtime capability_hashes), &(m[&1] == h[&1])) and
++      h["state_version"] >= m["state_min"] and h["state_version"] <= m["state_max"] and
++      m["expanded_bytes"] <= h["max_payload_bytes"] and
++      Enum.all?(~w(memory_bytes fuel startup_milliseconds), &(m["limits"][&1] <= h["limits"][&1]))
++  end
++
++  def roots?(roots) do
++    bounded_list?(roots, 128) and roots != [] and
++      Enum.reduce_while(roots, MapSet.new(), fn root, seen ->
++        if root?(root) and not MapSet.member?(seen, root["key_id"]),
++          do: {:cont, MapSet.put(seen, root["key_id"])},
++          else: {:halt, false}
++      end) != false
++  end
++
++  def authority(roots, key, scope, now) do
++    if uint?(now) and roots?(roots) do
++      case Enum.find(roots, &(&1["key_id"] == key)) do
++        %{"scope" => ^scope, "artifact" => true, "revoked" => false} = root ->
++          if now >= root["not_before_unix"] and
++               (root["not_after_unix"] == 0 or now < root["not_after_unix"]),
++             do: {:ok, root["public_key"]},
++             else: {:error, :root_policy}
++
++        _ ->
++          {:error, :root_policy}
++      end
++    else
++      {:error, :root_policy}
++    end
++  end
++
++  defp root?(r) do
++    exact?(r, @root) and id?(r["key_id"]) and is_binary(r["public_key"]) and
++      byte_size(r["public_key"]) == 32 and
++      scope?(r["scope"]) and Enum.all?(~w(artifact assignment revoked), &is_boolean(r[&1])) and
++      (r["artifact"] or r["assignment"]) and uint?(r["not_before_unix"]) and
++      uint?(r["not_after_unix"]) and
++      (r["not_after_unix"] == 0 or r["not_after_unix"] > r["not_before_unix"])
++  end
++
++  def grants?(g, hashes) do
++    exact?(g, ~w(schema schema_sha256 entries)) and g["schema"] === 1 and
++      g["schema_sha256"] == @grant_hash and
++      bounded_list?(g["entries"], 2) and
++      Enum.reduce_while(g["entries"], "", fn e, previous ->
++        if grant?(e, hashes) and e["capability_id"] > previous,
++          do: {:cont, e["capability_id"]},
++          else: {:halt, false}
++      end) != false
++  end
++
++  defp grant?(e, hashes) do
++    exact?(e, ~w(capability_id schema_sha256 permissions origins methods namespaces)) and
++      e["capability_id"] in [@http, @storage] and e["schema_sha256"] == hashes[e["capability_id"]] and
++      e["schema_sha256"] == if(e["capability_id"] == @http, do: @http_hash, else: @storage_hash) and
++      sorted?(e["permissions"], 1) and sorted?(e["origins"], 32) and sorted?(e["methods"], 6) and
++      sorted?(e["namespaces"], 32) and
++      grant_authority?(e)
++  end
++
++  defp grant_authority?(%{"capability_id" => @http} = e) do
++    Enum.all?(e["permissions"], &(&1 == "network.https")) and e["namespaces"] == [] and
++      Enum.all?(e["origins"], &valid_origin?/1) and
++      Enum.all?(e["methods"], &(&1 in ~w(DELETE GET HEAD PATCH POST PUT)))
++  end
++
++  defp grant_authority?(e) do
++    Enum.all?(e["permissions"], &(&1 == "storage.appPrivate")) and e["origins"] == [] and
++      e["methods"] == [] and
++      Enum.all?(e["namespaces"], &valid_namespace?/1)
++  end
++
++  def valid_namespace?(s), do: is_binary(s) and byte_size(s) in 1..64 and ascii?(s, :namespace)
++
++  def valid_origin?("https://" <> rest = full) when byte_size(full) <= 267 do
++    case :binary.split(rest, ":", [:global]) do
++      [host] -> hostname?(host)
++      [host, port] -> hostname?(host) and port?(port)
++      _ -> false
++    end
++  end
++
++  def valid_origin?(_), do: false
++
++  defp hostname?(host) do
++    byte_size(host) in 1..253 and
++      Enum.all?(:binary.split(host, ".", [:global]), fn label ->
++        byte_size(label) in 1..63 and :binary.first(label) != ?- and :binary.last(label) != ?- and
++          ascii?(label, :hostname)
++      end)
++  end
++
++  defp port?(p) do
++    byte_size(p) in 1..5 and ascii?(p, :digit) and :binary.first(p) != ?0 and
++      case Integer.parse(p) do
++        {n, ""} -> n in 1..65_535 and n != 443
++        _ -> false
++      end
++  end
++
++  defp sorted?(values, maximum) do
++    bounded_list?(values, maximum) and
++      Enum.reduce_while(values, "", fn v, previous ->
++        if is_binary(v) and byte_size(v) <= 4096 and v > previous and ascii?(v, :visible),
++          do: {:cont, v},
++          else: {:halt, false}
++      end) != false
++  end
++
++  def bounded_list?(list, maximum), do: list_count(list, maximum)
++  defp list_count([], _), do: true
++  defp list_count([_ | rest], left) when left > 0, do: list_count(rest, left - 1)
++  defp list_count(_, _), do: false
++  defp range?(n, low, high), do: is_integer(n) and n >= low and n <= high
++
++  defp tuple?(m),
++    do:
++      m["protocol"] === 3 and m["guest_abi"] === 2 and m["ui_schema"] === 1 and
++        (not Map.has_key?(m, "schema") or m["schema"] === 3)
++
++  defp ascii?(<<>>, _), do: true
++
++  defp ascii?(<<c, rest::binary>>, mode) do
++    letter = c in ?a..?z or c in ?A..?Z
++    digit = c in ?0..?9
++
++    allowed =
++      case mode do
++        :id -> letter or digit or c in [?_, ?., ?-]
++        :hex -> digit or c in ?a..?f
++        :namespace -> letter or digit or c in [?_, ?-]
++        :hostname -> c in ?a..?z or digit or c == ?-
++        :digit -> digit
++        :visible -> c in 33..126
++      end
++
++    allowed and ascii?(rest, mode)
++  end
++end
+diff --git a/hosted/test/mixer_hosted/protocol/artifact_admission_test.exs b/hosted/test/mixer_hosted/protocol/artifact_admission_test.exs
+new file mode 100644
+--- /dev/null
++++ b/hosted/test/mixer_hosted/protocol/artifact_admission_test.exs
+@@ -0,0 +1,469 @@
++defmodule MixerHosted.Protocol.ArtifactAdmissionTest do
++  use ExUnit.Case, async: false
++  alias MixerHosted.Protocol.{ArtifactAdmission, ArtifactCBOR, ArtifactJSON, ArtifactV3Policy}
++  @fixtures Path.expand("../../../../services/protocol/testdata", __DIR__)
++  @fixture Path.join(@fixtures, "signed-release-v3.json")
++  @corpus Path.join(@fixtures, "release-v3-cases.json")
++  @domain "mixer.artifact.v3\0"
++
++  defp fixture do
++    f = @fixture |> File.read!() |> Jason.decode!()
++
++    Map.update!(f, "roots", fn roots ->
++      Enum.map(roots, &Map.update!(&1, "public_key", fn b -> Base.decode64!(b) end))
++    end)
++  end
++
++  defp signed_bytes do
++    bytes = File.read!(@fixture)
++    {:ok, spans, _} = ArtifactJSON.preflight(bytes, 65_536)
++
++    {_, _, start, size} =
++      Enum.find(spans, fn {start, size, _, _} ->
++        Jason.decode!(binary_part(bytes, start, size)) == "signed_manifest"
++      end)
++
++    binary_part(bytes, start, size)
++  end
++
++  defp envelope(signed, payload),
++    do:
++      "{\"signed_manifest\":" <>
++        signed <> ",\"payload\":" <> Jason.encode!(Base.encode64(payload)) <> "}"
++
++  defp payload(f), do: Base.decode64!(f["payload"])
++
++  defp admit(bytes, f),
++    do: ArtifactAdmission.admit(bytes, f["host"], f["roots"], f["verification_time_unix"])
++
++  defp standalone(bytes, f),
++    do:
++      ArtifactAdmission.admit_signed(
++        bytes,
++        payload(f),
++        f["host"],
++        f["roots"],
++        f["verification_time_unix"]
++      )
++
++  defp sha(b), do: Base.encode16(:crypto.hash(:sha256, b), case: :lower)
++
++  # Ephemeral private keys remain in this test process and are never retained.
++  defp ephemeral(f) do
++    {public, private} = :crypto.generate_key(:eddsa, :ed25519)
++    root = hd(f["roots"]) |> Map.put("public_key", public)
++    {Map.put(f, "roots", [root]), private}
++  end
++
++  defp sign(manifest, private, domain \\ @domain) do
++    {:ok, cbor} = ArtifactCBOR.encode(manifest)
++    signature = :crypto.sign(:eddsa, :none, domain <> cbor, [private, :ed25519])
++    Jason.encode!(%{"manifest" => manifest, "signature" => Base.encode64(signature)})
++  end
++
++  test "exact original fixture bytes, CBOR, preimage and digest, with a checked signed target" do
++    f = fixture()
++    bytes = envelope(signed_bytes(), payload(f))
++    assert {:ok, checked} = admit(bytes, f)
++    assert checked.envelope_bytes == bytes
++    assert checked.signed_manifest_bytes == signed_bytes()
++    assert Base.encode16(checked.canonical_manifest_cbor, case: :lower) == f["manifest_cbor_hex"]
++
++    assert Base.encode16(@domain <> checked.canonical_manifest_cbor, case: :lower) ==
++             f["manifest_message_hex"]
++
++    assert checked.manifest_sha256 == f["artifact_sha256"]
++
++    assert checked.target ==
++             Map.merge(f["host"]["scope"], %{
++               "runtime" => f["host"]["runtime"],
++               "manifest_sha256" => f["artifact_sha256"]
++             })
++
++    assert {:ok, ^checked} =
++             ArtifactAdmission.recheck(
++               checked,
++               f["host"],
++               f["roots"],
++               f["verification_time_unix"]
++             )
++  end
++
++  test "154 unchanged original signed manifest cases and 39 origin plus 14 namespace cases" do
++    f = fixture()
++    corpus = @corpus |> File.read!() |> Jason.decode!()
++    assert length(corpus["cases"]) == 154
++    assert length(corpus["origin_cases"]) == 39
++    assert length(corpus["namespace_cases"]) == 14
++    assert length(corpus["assignment_cases"]) == 36
++
++    Enum.each(corpus["cases"], fn c ->
++      assert match?({:ok, _}, standalone(c["signed_manifest_json"], f)) == c["accepted"],
++             c["name"]
++    end)
++
++    Enum.each(corpus["origin_cases"], fn c ->
++      assert ArtifactV3Policy.valid_origin?(c["value"]) == c["accepted"], c["value"]
++    end)
++
++    Enum.each(corpus["namespace_cases"], fn c ->
++      assert ArtifactV3Policy.valid_namespace?(c["value"]) == c["accepted"], c["value"]
++    end)
++  end
++
++  test "every closed manifest, scope, limits, descriptor and entry field rejects missing, extra, case and null" do
++    f = fixture()
++    manifest = f["signed_manifest"]["manifest"]
++
++    paths = [
++      [],
++      ["scope"],
++      ["limits"],
++      ["capability_grants"],
++      ["capability_grants", "entries", Access.at(0)]
++    ]
++
++    Enum.each(paths, fn path ->
++      value = if path == [], do: manifest, else: get_in(manifest, path)
++
++      Enum.each(Map.keys(value), fn key ->
++        wrong_type =
++          cond do
++            is_map(value[key]) -> []
++            is_list(value[key]) -> %{}
++            is_binary(value[key]) -> 1
++            is_integer(value[key]) -> "1"
++          end
++
++        for replacement <- [
++              Map.put(value, key, wrong_type),
++              Map.delete(value, key),
++              Map.put(value, key, nil),
++              Map.put(value, String.upcase(key), value[key]),
++              Map.put(value, "unknown", true)
++            ] do
++          changed = if path == [], do: replacement, else: put_in(manifest, path, replacement)
++          refute ArtifactV3Policy.manifest?(changed), inspect({path, key})
++        end
++      end)
++    end)
++
++    for key <-
++          ~w(schema protocol guest_abi ui_schema state_min state_max compressed_bytes expanded_bytes created_at_unix) do
++      for bad <- [-1, 3.0, "1", nil, true, 18_446_744_073_709_551_616] do
++        refute ArtifactV3Policy.manifest?(Map.put(manifest, key, bad)), key
++      end
++    end
++  end
++
++  test "ordered duplicate detection and lexical closed numeric and Unicode rejection" do
++    for bytes <- [
++          "{\"a\":1,\"a\":2}",
++          "{\"a\":1,\"\\u0061\":2}",
++          "{\"x\":{\"a\":1,\"a\":2}}",
++          "{\"a\":null}",
++          "{\"a\":1.0}",
++          "{\"a\":1e0}",
++          "{\"a\":-0}",
++          "{\"a\":01}",
++          "{\"a\":18446744073709551616}",
++          "{\"a\":\"\\uD800\"}",
++          "{\"a\":\"\\uDC00\"}",
++          "{\"a\":\"\\x12\"}",
++          <<?{, ?", ?a, ?", ?:, ?", 255, ?", ?}>>,
++          "{}{}",
++          "[1,]",
++          "{\"a\":1,}"
++        ] do
++      assert {:error, _} = ArtifactJSON.decode(bytes, 65_536)
++    end
++
++    assert {:ok, %{"a" => 18_446_744_073_709_551_615}, _, _} =
++             ArtifactJSON.decode("{\"a\":18446744073709551615}", 65_536)
++
++    assert {:ok, %{"a" => "😀"}, _, _} = ArtifactJSON.decode("{\"a\":\"\\ud83d\\ude00\"}", 65_536)
++    assert {:ok, _, _, _} = ArtifactJSON.decode("{\"a\":9007199254740993}", 65_536)
++  end
++
++  test "lexical structural boundaries count before decoder collection allocation" do
++    nested = String.duplicate("[", 16) <> "0" <> String.duplicate("]", 16)
++    assert {:ok, _, %{max_depth: 16}} = ArtifactJSON.preflight(nested, 65_536)
++    assert {:error, _} = ArtifactJSON.preflight("[" <> nested <> "]", 65_536)
++    assert {:ok, _, _} = ArtifactJSON.preflight(Jason.encode!(List.duplicate(0, 256)), 65_536)
++    assert {:error, _} = ArtifactJSON.preflight(Jason.encode!(List.duplicate(0, 257)), 65_536)
++    exact = List.duplicate(List.duplicate(0, 256), 15) ++ [List.duplicate(0, 239)]
++    assert {:ok, _, %{items: 4096}} = ArtifactJSON.preflight(Jason.encode!(exact), 65_536)
++
++    assert {:error, _} =
++             ArtifactJSON.preflight(
++               Jason.encode!(List.replace_at(exact, 15, List.duplicate(0, 240))),
++               65_536
++             )
++
++    object = for n <- 1..256, into: %{}, do: {Integer.to_string(n), 0}
++    assert {:ok, _, _} = ArtifactJSON.preflight(Jason.encode!(object), 65_536)
++    assert {:error, _} = ArtifactJSON.preflight(Jason.encode!(Map.put(object, "257", 0)), 65_536)
++  end
++
++  test "standalone, embedded signed bytes, payload and whole-envelope exact and one-over bounds" do
++    f = fixture()
++    signed = signed_bytes()
++    standalone_exact = String.duplicate(" ", 65_536 - byte_size(signed)) <> signed
++    assert {:ok, data} = standalone(standalone_exact, f)
++    assert data.signed_manifest_bytes == standalone_exact
++    refute Map.has_key?(data, :envelope_bytes)
++    assert {:error, _} = standalone(" " <> standalone_exact, f)
++
++    embedded_exact =
++      "{" <>
++        String.duplicate(" ", 65_536 - byte_size(signed)) <>
++        binary_part(signed, 1, byte_size(signed) - 1)
++
++    assert {:ok, checked} = admit(envelope(embedded_exact, payload(f)), f)
++    assert byte_size(checked.signed_manifest_bytes) == 65_536
++
++    assert {:error, _} =
++             admit(
++               envelope(
++                 "{ " <> binary_part(embedded_exact, 1, byte_size(embedded_exact) - 1),
++                 payload(f)
++               ),
++               f
++             )
++
++    {f, private} = ephemeral(f)
++    payload = :binary.copy(<<42>>, 4_194_304)
++
++    m =
++      f["signed_manifest"]["manifest"]
++      |> Map.put("payload_sha256", sha(payload))
++      |> Map.put("compressed_bytes", byte_size(payload))
++      |> Map.put("expanded_bytes", byte_size(payload))
++
++    bytes = envelope(sign(m, private), payload)
++    exact = bytes <> String.duplicate(" ", 6_291_456 - byte_size(bytes))
++    assert byte_size(exact) == 6_291_456
++    assert {:ok, checked} = admit(exact, f)
++    assert byte_size(checked.payload) == 4_194_304
++    assert {:error, :envelope_limit} = admit(exact <> " ", f)
++    assert {:error, _} = admit(envelope(sign(m, private), payload <> "x"), f)
++    assert {:error, _} = admit(envelope(sign(m, private), ""), f)
++    one = "x"
++
++    m =
++      m
++      |> Map.put("payload_sha256", sha(one))
++      |> Map.put("compressed_bytes", 1)
++      |> Map.put("expanded_bytes", 1)
++
++    assert {:ok, _} = admit(envelope(sign(m, private), one), f)
++  end
++
++  test "envelope and signed outer fields are closed and canonical padded base64 is checked before decode" do
++    f = fixture()
++    signed = signed_bytes()
++    p64 = Base.encode64(payload(f))
++    bytes = envelope(signed, payload(f))
++
++    for bad <- [
++          "{}",
++          "[]",
++          "null",
++          bytes <> "{}",
++          String.replace(bytes, "\"payload\":", "\"Payload\":"),
++          String.replace(bytes, "\"payload\":", "\"extra\":0,\"payload\":"),
++          String.replace(bytes, "\"payload\":", "\"payload\":\"eA==\",\"payload\":"),
++          String.replace(bytes, "\"payload\":", "\"\\u0070ayload\":\"eA==\",\"payload\":"),
++          String.replace(bytes, Jason.encode!(p64), "null"),
++          String.replace(bytes, Jason.encode!(p64), "[]")
++        ] do
++      assert {:error, _} = admit(bad, f)
++    end
++
++    for invalid <- [
++          "eA",
++          "eA=",
++          "eB==",
++          "eA==\n",
++          "eA--",
++          "eA__",
++          "eA===",
++          "=AAA",
++          "AA=A",
++          "",
++          "A"
++        ] do
++      assert {:error, _} =
++               admit(
++                 "{\"signed_manifest\":" <>
++                   signed <> ",\"payload\":" <> Jason.encode!(invalid) <> "}",
++                 f
++               )
++    end
++
++    sm = f["signed_manifest"]
++
++    for bad <- [
++          Map.delete(sm, "signature"),
++          Map.put(sm, "Signature", sm["signature"]),
++          Map.put(sm, "extra", 1),
++          Map.put(sm, "signature", nil),
++          Map.put(sm, "signature", "AAAA")
++        ] do
++      assert {:error, _} = standalone(Jason.encode!(bad), f)
++    end
++
++    # Canonical tail-bit changes must reject even if Base.decode64 accepts them.
++    text = sm["signature"]
++    alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
++    <<last>> = binary_part(text, 85, 1)
++    {index, _} = :binary.match(alphabet, <<last>>)
++    invalid = binary_part(text, 0, 85) <> binary_part(alphabet, index + 1, 1) <> "=="
++    assert {:error, _} = standalone(Jason.encode!(Map.put(sm, "signature", invalid)), f)
++  end
++
++  test "full host and root policies, uint64 exactness, wrong signature and current-policy recheck" do
++    f = fixture()
++    bytes = envelope(signed_bytes(), payload(f))
++    assert {:ok, checked} = admit(bytes, f)
++    root = hd(f["roots"])
++    now = f["verification_time_unix"]
++
++    root_changes = [
++      {"key_id", "another"},
++      {"public_key", <<0::256>>},
++      {"public_key", <<0>>},
++      {"public_key", root["public_key"] <> "x"},
++      {"artifact", false},
++      {"revoked", true},
++      {"artifact", "true"},
++      {"assignment", 0},
++      {"revoked", nil},
++      {"not_before_unix", now + 1},
++      {"not_after_unix", now},
++      {"not_before_unix", -1},
++      {"not_after_unix", 18_446_744_073_709_551_616},
++      {"scope", Map.put(root["scope"], "project", "other")}
++    ]
++
++    Enum.each(root_changes, fn {key, value} ->
++      roots = [Map.put(root, key, value)]
++      assert {:error, _} = ArtifactAdmission.admit(bytes, f["host"], roots, now), key
++      assert {:error, _} = ArtifactAdmission.recheck(checked, f["host"], roots, now), key
++    end)
++
++    for roots <- [
++          [],
++          List.duplicate(root, 129),
++          [root, root],
++          [root, Map.put(root, "key_id", "other") |> Map.put("public_key", "bad")],
++          [Map.put(root, "not_before_unix", 5) |> Map.put("not_after_unix", 5)]
++        ] do
++      assert {:error, _} = ArtifactAdmission.admit(bytes, f["host"], roots, now)
++    end
++
++    for key <- Map.keys(root) do
++      assert {:error, _} = ArtifactAdmission.admit(bytes, f["host"], [Map.delete(root, key)], now)
++    end
++
++    valid_window = [root |> Map.put("not_before_unix", now) |> Map.put("not_after_unix", now + 1)]
++    assert {:ok, _} = ArtifactAdmission.admit(bytes, f["host"], valid_window, now)
++    assert {:error, _} = ArtifactAdmission.recheck(checked, f["host"], valid_window, now + 1)
++
++    for bad <- [-1, 1.0, nil, 18_446_744_073_709_551_616] do
++      assert {:error, _} = ArtifactAdmission.admit(bytes, f["host"], f["roots"], bad)
++    end
++
++    h = f["host"]
++
++    for {key, value} <- [
++          {"protocol", 2},
++          {"protocol", 3.0},
++          {"guest_abi", 1},
++          {"ui_schema", 2},
++          {"runtime", String.duplicate("0", 64)},
++          {"scope", Map.put(h["scope"], "app", "other")},
++          {"state_version", 2},
++          {"state_version", -1},
++          {"capability_hashes", %{}},
++          {"capability_hashes", nil},
++          {"max_payload_bytes", 1},
++          {"max_payload_bytes", 4_194_305},
++          {"limits", Map.put(h["limits"], "fuel", 1)},
++          {"limits", Map.put(h["limits"], "memory_bytes", 0)}
++        ] do
++      assert {:error, _} =
++               ArtifactAdmission.recheck(checked, Map.put(h, key, value), f["roots"], now),
++             key
++    end
++
++    for key <- Map.keys(h) do
++      assert {:error, _} = ArtifactAdmission.recheck(checked, Map.delete(h, key), f["roots"], now)
++    end
++
++    {ef, private} = ephemeral(f)
++    m = ef["signed_manifest"]["manifest"]
++    assert {:error, _} = admit(envelope(sign(m, private, "mixer.artifact.v2\0"), payload(f)), ef)
++    assert {:error, _} = admit(envelope(sign(m, private), payload(f) <> "x"), ef)
++
++    assert {:error, _} =
++             admit(envelope(sign(m, private), :binary.copy("x", byte_size(payload(f)))), ef)
++
++    wide =
++      m
++      |> Map.put("state_min", 9_007_199_254_740_993)
++      |> Map.put("state_max", 18_446_744_073_709_551_615)
++      |> Map.put("created_at_unix", 18_446_744_073_709_551_615)
++
++    wide_host = Map.put(ef["host"], "state_version", 9_007_199_254_740_993)
++
++    assert {:ok, _} =
++             ArtifactAdmission.admit(
++               envelope(sign(wide, private), payload(f)),
++               wide_host,
++               ef["roots"],
++               now
++             )
++
++    for key <- Map.keys(Map.from_struct(checked)) do
++      changed = Map.put(checked, key, nil)
++      assert {:error, _} = ArtifactAdmission.recheck(changed, h, f["roots"], now), inspect(key)
++    end
++
++    assert {:error, _} = ArtifactAdmission.recheck(%{valid: true}, h, f["roots"], now)
++  end
++
++  test "semantic grant, asset, compression and signed resource rejection does not rely on signatures" do
++    m = fixture()["signed_manifest"]["manifest"]
++
++    for {key, value} <- [
++          {"schema", 2},
++          {"source_commit", String.duplicate("A", 40)},
++          {"source_map_sha256", String.duplicate("A", 64)},
++          {"compression", "gzip"},
++          {"asset_hashes", %{"asset" => String.duplicate("a", 64)}},
++          {"state_min", 2},
++          {"capability_hashes", %{"other" => String.duplicate("a", 64)}},
++          {"compressed_bytes", 4_194_305},
++          {"limits", Map.put(m["limits"], "fuel", 1_000_001)},
++          {"created_at_unix", 0}
++        ] do
++      refute ArtifactV3Policy.manifest?(Map.put(m, key, value)), key
++    end
++
++    descriptor = m["capability_grants"]
++
++    for entries <- [
++          Enum.reverse(descriptor["entries"]),
++          [hd(descriptor["entries"]), hd(descriptor["entries"])],
++          nil
++        ] do
++      refute ArtifactV3Policy.manifest?(
++               Map.put(m, "capability_grants", Map.put(descriptor, "entries", entries))
++             )
++    end
++
++    empty = Map.put(descriptor, "entries", [])
++    assert ArtifactV3Policy.manifest?(Map.put(m, "capability_grants", empty))
++  end
++end

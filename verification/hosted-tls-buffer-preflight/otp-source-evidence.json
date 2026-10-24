@@ -1,0 +1,152 @@
+[
+  {
+    "path": "/opt/homebrew/Cellar/erlang/29.1.1_2/lib/erlang/lib/ssl-11.7.7/src/ssl.erl",
+    "sha256": "5a7cc7d251115e0a7815f04831441c60f05c498e33c3d15b0c31bea33f9f6cb3",
+    "excerpts": [
+      {
+        "startLine": 258,
+        "endLine": 283,
+        "text": "-doc(#{group => <<\"Socket\">>}).\n-doc \"\"\"\nTransport option defines a callback module and message tags to handle the underlying transport socket.\n\nCan be used to customize the transport layer. The tag\nvalues should be the values used by the underlying transport in its active mode\nmessages.\n\nDefaults to `{gen_tcp, tcp, tcp_closed, tcp_error, tcp_passive}` for TLS.\n\n> #### Note {: .info }\nFor backward compatibility a tuple of size four will be converted to a\ntuple of size five, where `PassiveTag` is the `DataTag` element with\n`_passive` appended.\n\nFor TLS the callback module must implement a reliable transport\nprotocol, behave as `m:gen_tcp`, and have functions corresponding to\n`inet:setopts/2`, `inet:getopts/2`, `inet:peername/1`, `inet:sockname/1`, and\n`inet:port/1`. The callback `m:gen_tcp` is treated specially and calls `m:inet`\ndirectly. For DTLS this feature is considered experimental.\n\"\"\".\n-type transport_option()         :: {cb_info, {CallbackModule::atom(), DataTag::atom(),\n                                               ClosedTag::atom(), ErrTag::atom()}} |\n                                    {cb_info, {CallbackModule::atom(), DataTag::atom(),\n                                               ClosedTag::atom(), ErrTag::atom(), PassiveTag::atom()}}.\n-doc(#{group => <<\"Socket\">>})."
+      }
+    ]
+  },
+  {
+    "path": "/opt/homebrew/Cellar/erlang/29.1.1_2/lib/erlang/lib/ssl-11.7.7/src/ssl_config.erl",
+    "sha256": "c4012d4d32493e2da6c01293465dad000c50a1df5f81b39bb8fcee8f1622932f",
+    "excerpts": [
+      {
+        "startLine": 136,
+        "endLine": 149,
+        "text": "get_internal_active_n() ->\n    get_internal_active_n(false).\n\nget_internal_active_n(true) ->\n    %% Start with a random number between 1 and ?INTERNAL_ACTIVE_N\n    %% In most cases distribution connections are established all at\n    %%  the same time, and flow control engages with ?INTERNAL_ACTIVE_N for\n    %%  all connections. Which creates a wave of \"passive\" messages, leading\n    %%  to significant bump of memory & scheduler utilisation. Starting with\n    %%  a random number between 1 and ?INTERNAL_ACTIVE_N helps to spread the\n    %%  spike.\n    erlang:system_time() rem ?INTERNAL_ACTIVE_N + 1;\nget_internal_active_n(false) ->\n    application_int(internal_active_n, ?INTERNAL_ACTIVE_N)."
+      }
+    ]
+  },
+  {
+    "path": "/opt/homebrew/Cellar/erlang/29.1.1_2/lib/erlang/lib/ssl-11.7.7/src/ssl_internal.hrl",
+    "sha256": "613a67c2b607b0dc59ab7895ebbfbe3fa04b55579ce0071f2cffd3798e4b450f",
+    "excerpts": [
+      {
+        "startLine": 50,
+        "endLine": 60,
+        "text": "-define(uint48(X), << ?UINT48(X) >> ).\n-define(uint64(X), << ?UINT64(X) >> ).\n\n-define(CDR_MAGIC, \"GIOP\").\n-define(CDR_HDR_SIZE, 12).\n-define(INTERNAL_ACTIVE_N, 100).\n-define(DEPTH, 20).\n\n-define(DEFAULT_TIMEOUT, 5000).\n-define(NO_DIST_POINT, \"http://dummy/no_distribution_point\").\n-define(NO_DIST_POINT_PATH, \"dummy/no_distribution_point\")."
+      }
+    ]
+  },
+  {
+    "path": "/opt/homebrew/Cellar/erlang/29.1.1_2/lib/erlang/lib/ssl-11.7.7/src/tls_socket.erl",
+    "sha256": "97f2f5434f4992527cfd54b0f2d710c22bdefb243c6f869e211f07376ddf6591",
+    "excerpts": [
+      {
+        "startLine": 150,
+        "endLine": 159,
+        "text": "connect(Host, Port,\n\t#config{transport_info = CbInfo, inet_user = UserOpts, ssl = SslOpts,\n\t\temulated = EmOpts, inet_ssl = SocketOpts},\n\tTimeout) ->\n    {Transport, _, _, _, _} = CbInfo,\n    try Transport:connect(Host, Port, SocketOpts ++ internal_inet_values(Transport), Timeout) of\n\t{ok, Socket} ->\n\t    start_tls_client_connection(Host, Port, Socket, SslOpts, EmOpts, CbInfo, Timeout);\n\t{error, Reason} ->\n\t    {error, Reason}"
+      },
+      {
+        "startLine": 196,
+        "endLine": 199,
+        "text": "setopts(gen_tcp, Socket, Options) ->\n    inet:setopts(Socket, Options);\nsetopts(Transport, Socket, Options) ->\n    Transport:setopts(Socket, Options)."
+      },
+      {
+        "startLine": 246,
+        "endLine": 279,
+        "text": "    Transport:getopts(Socket, Options).\n\ngetstat(gen_tcp, Socket, Options) ->\n\tinet:getstat(Socket, Options);\ngetstat(Transport, Socket, Options) ->\n\tTransport:getstat(Socket, Options).\n\npeername(gen_tcp, Socket) ->\n    inet:peername(Socket);\npeername(Transport, Socket) ->\n    Transport:peername(Socket).\n\nsockname(gen_tcp, Socket) ->\n    inet:sockname(Socket);\nsockname(Transport, Socket) ->\n    Transport:sockname(Socket).\n\nport(gen_tcp, Socket) ->\n    inet:port(Socket);\nport(Transport, Socket) ->\n    Transport:port(Socket).\n\nclose(gen_tcp, Socket) ->\n    inet:close(Socket);\nclose(Transport, Socket) ->\n    Transport:close(Socket).\n\nmonitor_socket({'$socket', _}=Socket) ->\n    socket:monitor(Socket);\nmonitor_socket(InetSocket) ->\n    inet:monitor(InetSocket).\n\nemulated_options(tls_socket_tcp) ->\n    [mode, packet, active, header, packet_size, high_watermark, low_watermark];"
+      },
+      {
+        "startLine": 286,
+        "endLine": 289,
+        "text": "internal_inet_values(tls_socket_tcp) ->\n    [];\ninternal_inet_values(_) ->\n    [{packet_size,0}, {packet, 0}, {header, 0}, {active, false}, {mode,binary}]."
+      }
+    ]
+  },
+  {
+    "path": "/opt/homebrew/Cellar/erlang/29.1.1_2/lib/erlang/lib/ssl-11.7.7/src/tls_gen_connection.erl",
+    "sha256": "c281f3b8cda54b861f80b3136263f1187755ba6f057885c3a2cbab7eebfd4b7b",
+    "excerpts": [
+      {
+        "startLine": 274,
+        "endLine": 308,
+        "text": "    {Data, SelInfo} = Transport:data_available(Socket, Type, Handle, N > 0),\n    State1 = State0#state{protocol_specific = PS#{socket_active := N-1, sel_info => SelInfo}},\n    case next_tls_record(Data, StateName, State1) of\n\t{Record, State} ->\n\t    next_event(StateName, Record, State);\n\t#alert{} = Alert ->\n\t    ssl_gen_statem:handle_own_alert(Alert, StateName, State0)\n    end;\n%% raw data from (gen_tcp) socket, unpack records\nhandle_info({Protocol, _, Data}, StateName,\n            #state{static_env = #static_env{data_tag = Protocol}} = State0) ->\n    case next_tls_record(Data, StateName, State0) of\n\t{Record, State} ->\n\t    next_event(StateName, Record, State);\n\t#alert{} = Alert ->\n\t    ssl_gen_statem:handle_own_alert(Alert, StateName, State0)\n    end;\nhandle_info({PassiveTag, Socket},  StateName,\n            #state{static_env = #static_env{socket = Socket, passive_tag = PassiveTag} = StatEnv,\n                   recv = #recv{from = From},\n                   protocol_buffers = #protocol_buffers{tls_cipher_texts = CTs},\n                   protocol_specific = PS0\n                  } = State0) ->\n    case (From =/= undefined) andalso (CTs == []) of\n        true ->\n            PS = do_activate_socket(PS0, StatEnv),\n            State = State0#state{protocol_specific = PS},\n            next_event(StateName, no_record, State);\n        false ->\n            State = State0#state{protocol_specific = PS0#{active_n_toggle => true}},\n            next_event(StateName, no_record, State)\n    end;\nhandle_info({CloseTag, Socket}, StateName,\n            #state{static_env = #static_env{\n                                   role = Role,"
+      },
+      {
+        "startLine": 612,
+        "endLine": 642,
+        "text": "    Versions =\n        %% TLSPlaintext.legacy_record_version is ignored in TLS 1.3 and thus all\n        %% record version are accepted when receiving initial ClientHello and\n        %% ServerHello. This can happen in state 'hello' in case of all TLS\n        %% versions and also in state 'start' when TLS 1.3 is negotiated.\n        %% After the version is negotiated all subsequent TLS records shall have\n        %% the proper legacy_record_version (= negotiated_version).\n        %% Note: TLS record version {3,4} is used internally in TLS 1.3 and at this\n        %% point it is the same as the negotiated protocol version. TLS-1.3\n        %% uses TLS-1.2 as record version.\n        if StateName =:= hello orelse StateName =:= start ->\n                %% Allow any {03,XX} TLS record version for the hello message\n                %% for maximum interopability and compliance with TLS-1.2 spec.\n                %% This does not allow SSL-3.0 connections, that we do not support\n                %% or interfere with TLS-1.3 extensions to handle version negotiation.\n                AllHelloVersions = [ 'sslv3' | ?ALL_AVAILABLE_VERSIONS],\n                [tls_record:protocol_version_name(Vsn) || Vsn <- AllHelloVersions];\n           true ->\n                Vsns0\n        end,\n    MaxFragLen = maps:get(max_fragment_length, State#state.connection_states, undefined),\n    case tls_record:get_tls_records(Data, Versions, Buf0, MaxFragLen, Downgrade) of\n\t{Records, Buf1} when StateName == connection ->\n\t    CT1 = CT0 ++ Records,\n\t    next_record(StateName, Buffers#protocol_buffers{tls_record_buffer = Buf1,\n                                                            tls_cipher_texts = CT1}, State);\n        {Records, Buf1} ->\n            CT1 = CT0 ++ Records,\n            [ssl_logger:debug(get(log_level), inbound, 'record', Record) || Record <- Records],\n\t    next_record(StateName, Buffers#protocol_buffers{tls_record_buffer = Buf1,\n                                                            tls_cipher_texts = CT1}, State);"
+      },
+      {
+        "startLine": 655,
+        "endLine": 790,
+        "text": "                            protocol_buffers = PBuffers}};\nnext_record(_,\n            #protocol_buffers{tls_cipher_texts = [_|_] = CipherTexts} = PBuffers,\n            #state{connection_states = ConnectionStates, ssl_options = SslOpts} = State) ->\n    %% Do not match this option as it is relevant for TLS-1.0 only\n    %% and will not be present otherwise that is we regard it to always be true\n    Check = maps:get(padding_check, SslOpts, true),\n    next_record(State, CipherTexts, ConnectionStates, PBuffers, Check);\nnext_record(connection, #protocol_buffers{tls_cipher_texts = []} = PBuffers,\n            #state{protocol_specific = #{active_n_toggle := true}} = State) ->\n    %% If ssl application user is not reading data wait to activate socket\n    flow_ctrl(State, PBuffers);\n\nnext_record(_, #protocol_buffers{tls_cipher_texts = []} = PBuffers,\n            #state{protocol_specific = #{active_n_toggle := true}} = State) ->\n    activate_socket(State, PBuffers);\nnext_record(_, PBuffers, State) ->\n    {no_record, State#state{protocol_buffers = PBuffers}}.\n\nflow_ctrl(#state{ssl_options = #{ktls := true}} = State, PBuffers) ->\n    {no_record, State#state{protocol_buffers = PBuffers}};\n%%% bytes_to_read equals the integer Length arg of ssl:recv\n%%% the actual value is only relevant for packet = raw | 0\n%%% bytes_to_read = undefined means no recv call is ongoing\nflow_ctrl(#state{user_data_buffer = {_,Size,_},\n                 socket_options = #socket_options{active = false},\n                 recv = #recv{bytes_to_read = undefined}} = State,\n         PBuffers)\n  when Size =/= 0 ->\n    %% Passive mode wait for new recv request or socket activation\n    %% that is preserve some tcp back pressure by waiting to activate\n    %% socket\n    {no_record, State#state{protocol_buffers = PBuffers}};\n%%%%%%%%%% A packet mode is set and socket is passive %%%%%%%%%%\nflow_ctrl(#state{socket_options = #socket_options{active = false,\n                                                  packet = Packet}} = State,\n         PBuffers)\n  when ((Packet =/= 0) andalso (Packet =/= raw)) ->\n    %% We need more data to complete the packet.\n    activate_socket(State, PBuffers);\n%%%%%%%%% No packet mode set and socket is passive %%%%%%%%%%%%\nflow_ctrl(#state{user_data_buffer = {_,Size,_},\n                 socket_options = #socket_options{active = false},\n                 recv = #recv{bytes_to_read = BytesToRead}} = State,\n          PBuffers) ->\n    if BytesToRead =:= 0, Size =:= 0 ->\n            %% Passive mode no available bytes, get some\n            activate_socket(State, PBuffers);\n       BytesToRead =:= 0, Size =/= 0 ->\n            %% There is data in the buffer to deliver\n            {no_record, State#state{protocol_buffers = PBuffers}};\n       Size >= BytesToRead ->\n            %% There is enough data bufferd\n            {no_record, State#state{protocol_buffers = PBuffers}};\n        true -> %% We need more data to complete the delivery of <BytesToRead> size\n            activate_socket(State, PBuffers)\n    end;\n%%%%%%%%%%% Active mode or more data needed %%%%%%%%%%\nflow_ctrl(State, PBuffers) ->\n    activate_socket(State, PBuffers).\n\n\nactivate_socket(#state{protocol_specific = #{active_n_toggle := true} = ProtocolSpec,\n                       static_env = StatEnv\n                      } = State,\n                PBuffers) ->\n    PS = do_activate_socket(ProtocolSpec, StatEnv),\n    {no_record, State#state{protocol_specific = PS, protocol_buffers = PBuffers}}.\n\ndo_activate_socket(#{active_n := N} = PS,\n                   #static_env{socket = Socket, close_tag = CloseTag, transport_cb = Transport}) ->\n    case tls_socket:setopts(Transport, Socket, [{active, N}]) of\n        ok ->\n            PS#{active_n_toggle => false, socket_active => N};\n        _ ->\n            self() ! {CloseTag, Socket},\n            PS#{active_n_toggle => false}\n    end.\n\n%% Decipher next record and concatenate consecutive ?APPLICATION_DATA records into one\n%%\nnext_record(State, CipherTexts, ConnectionStates, PBuffers, Check) ->\n    next_record(State, CipherTexts, ConnectionStates, Check, PBuffers, false, []).\n%%\nnext_record(#state{connection_env = #connection_env{negotiated_version = ?TLS_1_3}} = State,\n            [CT|CipherTexts], ConnectionStates0, Check, PBuffers0, IsEarlyData, Acc) ->\n    case tls_record_1_3:decode_cipher_text(CT, ConnectionStates0) of\n        {Record0 = #ssl_tls{type = ?APPLICATION_DATA, fragment = Fragment0}, ConnectionStates} ->\n            case CipherTexts of\n                [] ->\n                    %% End of cipher texts - build and deliver an ?APPLICATION_DATA record\n                    %% from the accumulated fragments\n                    PBuffers = PBuffers0#protocol_buffers{tls_cipher_texts = []},\n                    Fragment = iolist_to_binary(lists:reverse(Acc, [Fragment0])),\n                    Record = Record0#ssl_tls{type = ?APPLICATION_DATA, fragment = Fragment},\n                    next_record_done(State, PBuffers, ConnectionStates, Record);\n                [_|_] ->\n                    next_record(State, CipherTexts, ConnectionStates, Check, PBuffers0,\n                                Record0#ssl_tls.early_data, [Fragment0|Acc])\n            end;\n        {no_record, ConnectionStates} ->\n            case CipherTexts of\n                [] ->\n                    Record = accumulated_app_record(Acc, IsEarlyData),\n                    PBuffers = PBuffers0#protocol_buffers{tls_cipher_texts = []},\n                    next_record_done(State, PBuffers, ConnectionStates, Record);\n                [_|_] ->\n                    next_record(State, CipherTexts, ConnectionStates, Check,\n                                PBuffers0, IsEarlyData, Acc)\n            end;\n        {Record, ConnectionStates} when Acc =:= [] ->\n            %% Singleton non-?APPLICATION_DATA record - deliver\n            PBuffers = PBuffers0#protocol_buffers{tls_cipher_texts = CipherTexts},\n            next_record_done(State, PBuffers, ConnectionStates, Record);\n        {_Record, _ConnectionStates_to_forget} ->\n            %% Not ?APPLICATION_DATA but we have accumulated fragments\n            %% -> build an ?APPLICATION_DATA record with concatenated fragments\n            %%    and forget about decrypting this record - we'll decrypt it again next time\n            %% Will not work for stream ciphers\n            PBuffers = PBuffers0#protocol_buffers{tls_cipher_texts = [CT|CipherTexts]},\n            Fragment = iolist_to_binary(lists:reverse(Acc)),\n            Record = #ssl_tls{type = ?APPLICATION_DATA,\n                              early_data = IsEarlyData,\n                              fragment = Fragment},\n            next_record_done(State, PBuffers, ConnectionStates0, Record);\n        #alert{} = Alert ->\n            Alert\n    end;\nnext_record(#state{connection_env = #connection_env{negotiated_version = Version}} = State,\n            [#ssl_tls{type = ?APPLICATION_DATA} = CT |CipherTexts],\n            ConnectionStates0, Check, PBuffers0, NotRelevant, Acc) ->\n    case tls_record:decode_cipher_text(Version, CT, ConnectionStates0, Check) of\n        {Record0 = #ssl_tls{type = ?APPLICATION_DATA, fragment = Fragment0}, ConnectionStates} ->\n            case CipherTexts of\n                [] ->\n                    %% End of cipher texts - build and deliver an ?APPLICATION_DATA record"
+      },
+      {
+        "startLine": 850,
+        "endLine": 880,
+        "text": "    {HSPacket, <<>> = NewHsBuffer} = tls_handshake:get_tls_handshakes(Version, FirstPacket,\n                                                                      Buffer, Options),\n    {HSPacket, NewHsBuffer, RecordRest};\n%% TLS-1.3 RetryRequest\nhandle_unnegotiated_version(?TLS_1_2 , #{versions := [?TLS_1_3 = Version |_]} = Options, Data,\n                            Buffer, client, wait_sh) ->\n    tls_handshake:get_tls_handshakes(Version, Data, Buffer, Options);\n%% When the `negotiated_version` variable is not yet set use the highest supported version.\nhandle_unnegotiated_version(undefined, #{versions := [Version|_]} = Options, Data, Buff, _, _) ->\n    tls_handshake:get_tls_handshakes(Version, Data, Buff, Options);\n%% In all other cases use the version saved in the connection state variable `negotiated_version`\nhandle_unnegotiated_version(Version, Options, Data, Buff, _, _) ->\n    tls_handshake:get_tls_handshakes(Version, Data, Buff, Options).\n\nassert_buffer_sanity(<<?BYTE(_Type), ?UINT24(Length), Rest/binary>>,\n                     #{max_handshake_size := Max}) when\n      Length =< Max ->\n    case byte_size(Rest) of\n        N when N < Length ->\n            true;\n        N when N > Length ->\n            throw(?ALERT_REC(?FATAL, ?HANDSHAKE_FAILURE,\n                             too_big_handshake_data));\n        _ ->\n            throw(?ALERT_REC(?FATAL, ?HANDSHAKE_FAILURE,\n                             malformed_handshake_data))\n    end;\nassert_buffer_sanity(Bin, _) ->\n    case byte_size(Bin) of\n        N when N < 4 ->\n            true;"
+      }
+    ]
+  },
+  {
+    "path": "/opt/homebrew/Cellar/erlang/29.1.1_2/lib/erlang/lib/ssl-11.7.7/src/ssl_record.hrl",
+    "sha256": "9ece990412395bc6ed2e1c8719d6603a98dc150de3194526007dbcd79bbc468e",
+    "excerpts": [
+      {
+        "startLine": 140,
+        "endLine": 146,
+        "text": "-define(KNOWN_RECORD_TYPE(Type),\n        (is_integer(Type) andalso (20 =< (Type)) andalso ((Type) =< 23))).\n-define(MAX_PLAIN_TEXT_LENGTH, 16384).\n-define(MAX_CIPHER_TEXT_LENGTH, (?MAX_PLAIN_TEXT_LENGTH+2048)).\n-define(TLS13_MAX_CIPHER_TEXT_LENGTH, (?MAX_PLAIN_TEXT_LENGTH+256)).\n-define(MAX_PADDING_LENGTH,256).\n-define(MAX_MAC_LENGTH,32)."
+      }
+    ]
+  },
+  {
+    "path": "/opt/homebrew/Cellar/erlang/29.1.1_2/lib/erlang/lib/ssl-11.7.7/src/tls_dyn_connection_sup.erl",
+    "sha256": "c88a2a2a46a854cdebea8831a1cb7558c8510f36f17cd7151fa4f68a2f4853e6",
+    "excerpts": [
+      {
+        "startLine": 62,
+        "endLine": 91,
+        "text": "                 auto_shutdown => any_significant,\n                 intensity     =>    0,\n                 period        => 3600\n                },\n    ChildSpecs = [sender(SenderArgs), receiver(Parent, ReceiverSpawnOpts)],\n    {ok, {SupFlags, ChildSpecs}}.\n\nsender(Args) ->\n    #{id          => sender,\n      restart     => temporary,\n      type        => worker,\n      start       => {tls_sender, start_link, Args},\n      modules     => [tls_sender]\n     }.\n\nreceiver(Parent, SpawnOpts) ->\n    #{id          => receiver,\n      restart     => temporary,\n      type        => worker,\n      significant => true,\n      start       => {ssl_gen_statem, tls_start_link, [Parent, SpawnOpts]},\n      modules     => [ssl_gen_statem,\n                      tls_client_connection,\n                      tls_server_connection,\n                      tls_gen_connection,\n                      tls_client_connection_1_3,\n                      tls_server_connection_1_3,\n                      tls_gen_connection_1_3]\n     }."
+      }
+    ]
+  },
+  {
+    "path": "/opt/homebrew/Cellar/erlang/29.1.1_2/share/doc/erlang/lib/kernel-11.0.4/doc/html/inet.md",
+    "sha256": "a8bb19f63ba023f11b203b51b6f0ae10ec3babe20b706794ec880b384c36085c",
+    "excerpts": [
+      {
+        "startLine": 1239,
+        "endLine": 1252,
+        "text": "- **`{buffer,\u00a0Size}`** [](){: #option-buffer } -\n  The size of the user-level buffer used by the driver.  Not to be confused\n  with options `sndbuf` and `recbuf`, which correspond to the\n  Kernel socket buffers. For TCP it is recommended to have\n  `val(buffer) >= val(recbuf)` to avoid performance issues because of\n  unnecessary copying. For UDP the same recommendation applies, but the max\n  should not be larger than the MTU of the network path. `val(buffer)` is\n  automatically set to the above maximum when `recbuf` is set. However, as the\n  size set for `recbuf` usually become larger, you are encouraged to use\n  `getopts/2` to analyze the behavior of your operating system.\n\n  Note that this is also the maximum amount of data that can be received from a\n  single recv call. If you are using higher than normal MTU consider setting\n  buffer higher."
+      },
+      {
+        "startLine": 1593,
+        "endLine": 1596,
+        "text": "- **`{recbuf,\u00a0Size}`** [](){: #option-recbuf } -\n  The minimum size of the receive buffer to use for the socket.\n  You are encouraged to use `getopts/2` to retrieve the size\n  set by your operating system."
+      }
+    ]
+  },
+  {
+    "path": "/opt/homebrew/Cellar/erlang/29.1.1_2/share/doc/erlang/lib/ssl-11.7.7/doc/html/ssl.md",
+    "sha256": "f8fae18a32750725896d068b039c531c30b9c74bf59dc923117b52e0f31c074c",
+    "excerpts": [
+      {
+        "startLine": 1042,
+        "endLine": 1047,
+        "text": "- **`{receiver|sender_spawn_opts, SpawnOpts}`** - Configure erlang spawn opts.\n\n  Configures spawn options of TLS sender and receiver processes.\n\n  Setting up garbage collection options can be helpful for trade-offs between CPU\n  usage and memory usage. See `erlang:spawn_opt/2`."
+      },
+      {
+        "startLine": 2035,
+        "endLine": 2068,
+        "text": "# `transport_option`\n*not exported* \n\n```erlang\n-type transport_option() ::\n          {cb_info,\n           {CallbackModule :: atom(), DataTag :: atom(), ClosedTag :: atom(), ErrTag :: atom()}} |\n          {cb_info,\n           {CallbackModule :: atom(),\n            DataTag :: atom(),\n            ClosedTag :: atom(),\n            ErrTag :: atom(),\n            PassiveTag :: atom()}}.\n```\n\nTransport option defines a callback module and message tags to handle the underlying transport socket.\n\nCan be used to customize the transport layer. The tag\nvalues should be the values used by the underlying transport in its active mode\nmessages.\n\nDefaults to `{gen_tcp, tcp, tcp_closed, tcp_error, tcp_passive}` for TLS.\n\n> #### Note {: .info }\nFor backward compatibility a tuple of size four will be converted to a\ntuple of size five, where `PassiveTag` is the `DataTag` element with\n`_passive` appended.\n\nFor TLS the callback module must implement a reliable transport\nprotocol, behave as `m:gen_tcp`, and have functions corresponding to\n`inet:setopts/2`, `inet:getopts/2`, `inet:peername/1`, `inet:sockname/1`, and\n`inet:port/1`. The callback `m:gen_tcp` is treated specially and calls `m:inet`\ndirectly. For DTLS this feature is considered experimental.\n"
+      }
+    ]
+  },
+  {
+    "path": "/opt/homebrew/Cellar/erlang/29.1.1_2/share/doc/erlang/erts-17.1/doc/html/erlang.md",
+    "sha256": "4c294bd14009b3b1a123ae6ef18b00b2093ec0a8af6e501138579eef969197e1",
+    "excerpts": [
+      {
+        "startLine": 6957,
+        "endLine": 7015,
+        "text": "- ```erlang\n  process_flag(max_heap_size, max_heap_size())\n  ```\n  {: #process_flag_max_heap_size }\n  \n  This flag sets the maximum heap size for the calling process. If `MaxHeapSize`\n  is an integer, the system default values for `kill` and `error_logger` are used.\n  \n  For details on how the heap grows, see\n  [Sizing the heap](GarbageCollection.md#sizing-the-heap) in the ERTS internal\n  documentation.\n  \n  - **`size`** - The maximum size in words of the process. If set to zero, the\n    heap size limit is disabled. `badarg` is be thrown if the value is smaller\n    than [`min_heap_size`](#process_flag_min_heap_size). The size check\n    is only done when a garbage collection is triggered.\n  \n    `size` is the entire heap of the process when garbage collection is triggered.\n    This includes all generational heaps, the process stack, any\n    [messages that are considered to be part of the heap](#process_flag_message_queue_data),\n    and any extra memory that the garbage collector needs during collection.\n  \n    `size` is the same as can be retrieved using\n    [`erlang:process_info(Pid, total_heap_size)`](#process_info_total_heap_size),\n    or by adding `heap_block_size`, `old_heap_block_size` and `mbuf_size` from\n    [`erlang:process_info(Pid, garbage_collection_info)`](#process_info_garbage_collection_info).\n  \n  - **`kill`** - When set to `true`, the runtime system sends an untrappable exit\n    signal with reason `kill` to the process if the maximum heap size is reached.\n    The garbage collection that triggered the `kill` is not completed, instead the\n    process exits as soon as possible. When set to `false`, no exit signal is sent\n    to the process, instead it continues executing.\n  \n    If `kill` is not defined in the map, the system default will be used. The\n    default system default is `true`. It can be changed by either option\n    [\\+hmaxk](erl_cmd.md#%2Bhmaxk) in [erl](erl_cmd.md), or\n    [`erlang:system_flag(max_heap_size, MaxHeapSize)`](#system_flag_max_heap_size).\n  \n  - **`error_logger`** - When set to `true`, the runtime system logs an error\n    event via `m:logger`, containing details about the process when the maximum\n    heap size is reached. One log event is sent each time the limit is reached.\n  \n    If `error_logger` is not defined in the map, the system default is used. The\n    default system default is `true`. It can be changed by either the option\n    [\\+hmaxel](erl_cmd.md#%2Bhmaxel) int [erl](erl_cmd.md), or\n    [`erlang:system_flag(max_heap_size, MaxHeapSize)`](#system_flag_max_heap_size).\n  \n  - **`include_shared_binaries`** - When set to `true`, off-heap binaries are\n    included in the total sum compared against the `size` limit. Off-heap binaries\n    are typically larger binaries that may be shared between processes. The size\n    of a shared binary is included by all processes that are referring it. Also,\n    the entire size of a large binary may be included even if only a smaller part\n    of it is referred by the process.\n  \n    If `include_shared_binaries` is not defined in the map, the system default is\n    used. The default system default is `false`. It can be changed by either the\n    option [\\+hmaxib](erl_cmd.md#%2Bhmaxib) in [erl](erl_cmd.md), or\n    [`erlang:system_flag(max_heap_size, MaxHeapSize)`](#system_flag_max_heap_size).\n  "
+      }
+    ]
+  }
+]

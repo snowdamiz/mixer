@@ -1,0 +1,2058 @@
+[
+  {
+    "accepted": true,
+    "detail": "",
+    "expected": true,
+    "inputSHA256": "64cf8400a9001e17f93ebc8fa0a2809ab1d9a4d58af5af7ec0073f4afac6f515",
+    "name": "fixture-reencoded-json-same-signature",
+    "stage": "verify"
+  },
+  {
+    "accepted": true,
+    "detail": "",
+    "expected": true,
+    "inputSHA256": "b1326bb4c9b6c1ee1cc00798486308c198d2c247f8b2cab04972481e22de44e6",
+    "name": "valid-escaped-field-name",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal number -0 into Go struct field plain.manifest.created_at_unix of type uint64",
+    "expected": false,
+    "inputSHA256": "b4e6829f2099d002dac0ea3b75267b04c7e34051680b5a3eb8faea2bed1c07b2",
+    "name": "negative-zero",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal number 1.0 into Go struct field plain.manifest.created_at_unix of type uint64",
+    "expected": false,
+    "inputSHA256": "3e23d204538f16ec890ee4abf2b5fe7c8e451d10c18c496df8b7071707368da3",
+    "name": "fraction",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal number 1e0 into Go struct field plain.manifest.created_at_unix of type uint64",
+    "expected": false,
+    "inputSHA256": "354383c321c4e652bf92048e4af37c34c1eadd1e0c2b8eae9e64488dd542b13d",
+    "name": "exponent",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal number 18446744073709551616 into Go struct field plain.manifest.created_at_unix of type uint64",
+    "expected": false,
+    "inputSHA256": "5a471033f15a3860cf03c4834fa4543af3410095da43729afd2540362f4370eb",
+    "name": "uint-overflow",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "invalid character '0' after object key:value pair",
+    "expected": false,
+    "inputSHA256": "635bd56fec5f0d1424997a17103c1a7c67298b9fee8edf2ffe81f1030d437f4b",
+    "name": "uint-long-zero-prefix",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "duplicate or invalid JSON key",
+    "expected": false,
+    "inputSHA256": "2fd71235ac0a5f613afc02de4459a09b32b7028d880ec559b59ee4eed13cc7fe",
+    "name": "escaped-equivalent-nested-key",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "ba8a821b79c4191bd1d78ecb0c79656a6c10f7d87aa74056d1a5568a2860be45",
+    "name": "unicode-case-sensitive-key",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "invalid JSON UTF-8",
+    "expected": false,
+    "inputSHA256": "ed18e996eaa7217828f35422d5aa1e7c095cd30efb4bd3ba2361368ccb6ebb6b",
+    "name": "invalid-utf8-in-id",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "invalid manifest identity",
+    "expected": false,
+    "inputSHA256": "c8abf079c3dc99dfb0bc67f456b1416c297a2964c71fc204c432905b0ea7afcf",
+    "name": "lone-high-surrogate",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "invalid manifest identity",
+    "expected": false,
+    "inputSHA256": "24254f5c849306cb05c906bf1bcb028cd2c852d5e1016ecf1d6b73e248bacfe4",
+    "name": "lone-low-surrogate",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "invalid manifest identity",
+    "expected": false,
+    "inputSHA256": "a5e0ff43ec0be05801bcfb3d019ef808caf3da4343009781fc9001a2973e2bfb",
+    "name": "reversed-surrogates",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "invalid manifest identity",
+    "expected": false,
+    "inputSHA256": "9ee15bd270ae7731df3a4f27ca9d057aee536118e1fd51f50fddccecb4c2e359",
+    "name": "valid-surrogate-pair-non-ascii-id",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "265b6fd4f0cbdb7cddcbe043d0704be19e8d09e30aa4e670f1823382661ad0c1",
+    "name": "literal-null",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "trailing JSON",
+    "expected": false,
+    "inputSHA256": "89ee78e1ed21bd6cbdc57e69d447f473c91cde086774e4c111feea1652e22384",
+    "name": "trailing-json",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "invalid character 'x' in string escape code",
+    "expected": false,
+    "inputSHA256": "18e27e69074bb2a126900f92987d76fcaae052464f9e5ecfdb140ed4a9feb271",
+    "name": "invalid-escape",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "invalid character '\\x01' in string literal",
+    "expected": false,
+    "inputSHA256": "54f072a1112b0c8a7decb20476c794141340d2f76bdf02a788e5c9c7139f256b",
+    "name": "control-character",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "invalid state range or audit time",
+    "expected": false,
+    "inputSHA256": "f5a0cfd8b22facc57e02a24ae1165bee504c36aec7284e7eab26e0c170295222",
+    "name": "created-zero",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "invalid state range or audit time",
+    "expected": false,
+    "inputSHA256": "17b192fd9c94799ae26581389cb413e313236d6d4e112d5c4bba8c28e633e823",
+    "name": "state-inverted",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "separate asset payloads unsupported in v1",
+    "expected": false,
+    "inputSHA256": "a12c4c81f2e7def4e4188245f49e0bbf0402322eee069a898016c884e6a84b6f",
+    "name": "assets-present",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "unsupported payload digest, size or compression",
+    "expected": false,
+    "inputSHA256": "115f8b8e2e899f28d026857a9542ce3b4a6a9896e311769f75e5ab5a00fcb9de",
+    "name": "compression-gzip",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "unsupported v3 schema, protocol, guest ABI or UI schema",
+    "expected": false,
+    "inputSHA256": "26edac91c3fa907abb4e9851ce512daed9747dac237284016cccdc8f3d4167d8",
+    "name": "ui-unsupported",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "v3 resource limit outside installed execution profile",
+    "expected": false,
+    "inputSHA256": "4273f558f1d7e60ba9ab9f97654df08751403444b515f7dd1996ef9c8b30fddf",
+    "name": "fuel-over",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "zero resource limit",
+    "expected": false,
+    "inputSHA256": "ce7bbf53ff5f7d274ad0ae2400630b1275d23c8b15557286a4b081590599fbf1",
+    "name": "memory-zero",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "v3 resource limit outside installed execution profile",
+    "expected": false,
+    "inputSHA256": "915e2400706863445b66738791e7a3b1278c127221660d71f596098cedac4ff2",
+    "name": "startup-over",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "unsupported v3 capability",
+    "expected": false,
+    "inputSHA256": "1dbfb7d0354cc415d58dff32596ad9b057832f424394d8ff62cfa7bba2f841ae",
+    "name": "capability-unknown",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "invalid source commit",
+    "expected": false,
+    "inputSHA256": "ed52b7245489a97e768b3cabdbbec16a5598c24d69707dbd951a45e616346e13",
+    "name": "source-uppercase",
+    "stage": "verify"
+  },
+  {
+    "accepted": true,
+    "detail": "",
+    "expected": true,
+    "inputSHA256": "6a16e9cbf43065583c62d8ad10dffce5d3b1870fc40b5e8d41b723937d435ea2",
+    "name": "empty-grants",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "capability grants must be strictly ASCII sorted and unique",
+    "expected": false,
+    "inputSHA256": "a1b4f88c91bd2a4bb42bf72a2b4e6b4561f83c98a25b86055282efe012080c1a",
+    "name": "grant-duplicate",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "capability grants must be strictly ASCII sorted and unique",
+    "expected": false,
+    "inputSHA256": "15bca6f33f5cf1726309a1d18a52e757ba246f964e67acf1141343e57b74f382",
+    "name": "grant-reversed",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "unknown or unbound capability grant schema",
+    "expected": false,
+    "inputSHA256": "7549d0cf616bea3812e719ab4f80133a77ed654463470bb1a72f1e9bf5cf71b9",
+    "name": "grant-unbound",
+    "stage": "verify"
+  },
+  {
+    "accepted": true,
+    "detail": "",
+    "expected": true,
+    "inputSHA256": "fafbc99cf45ac3942433d411407f93c194ccf44428b5fea48b14c1b871ad6216",
+    "name": "grant-empty-arrays",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "99b20e2338c4d961cc14c97bcfe95d0b8e595a234e9cbddbc5210fd7babc959e",
+    "name": "closed-manifest-missing-asset_hashes",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "42ea3d774cfb5681372cc4e33fbebf7c5c6faf54aeec85885f3975bdc87a068b",
+    "name": "closed-manifest-case-asset_hashes",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "265b6fd4f0cbdb7cddcbe043d0704be19e8d09e30aa4e670f1823382661ad0c1",
+    "name": "closed-manifest-null-asset_hashes",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal array into Go struct field plain.manifest.asset_hashes of type map[string]string",
+    "expected": false,
+    "inputSHA256": "a08c6ff518cb33de07e6fef55a37e26741c2d7253547c69e9c79f11f7c63adac",
+    "name": "closed-manifest-type-asset_hashes",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "e0320dd311b195d86f8c5cf5cda2a5901e4fd4a86704a8676e66db014cfb0edf",
+    "name": "closed-manifest-missing-capability_grants",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "640f49fb991525b6c82e706fd4f5cabf6bd36e2baf48d75211532f386b487470",
+    "name": "closed-manifest-case-capability_grants",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "a269df277665a9ee32071f2b23bed5f7023e0a5679740cd974f14e38311b715a",
+    "name": "closed-manifest-null-capability_grants",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal array into Go struct field plain.manifest.capability_grants of type map[string]json.RawMessage",
+    "expected": false,
+    "inputSHA256": "9607d52eb2cde97940a6ef841d5693f5335117568381a986be583911cfb5f3ca",
+    "name": "closed-manifest-type-capability_grants",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "a84f3692258a66a019c3b35a2ba90a94693ae643ade2ffb689d4dfec873d4a3b",
+    "name": "closed-manifest-missing-capability_hashes",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "e44229b89ca6d05a49bc2bdeccb60471c6d92ba3dc73c674f79d8588731dc866",
+    "name": "closed-manifest-case-capability_hashes",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "4c0dd782faf34f965b94e153de1e65fb30e4df996b67ee33193a5886c149d4ff",
+    "name": "closed-manifest-null-capability_hashes",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal array into Go struct field plain.manifest.capability_hashes of type map[string]string",
+    "expected": false,
+    "inputSHA256": "299f3a3c79550f7f88150b88dd16f3647d55f00a2227c0ed1f2775deb2b8e7e3",
+    "name": "closed-manifest-type-capability_hashes",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "1994194c5ad827408729454b88c9f9f5f20862611df3b162073f886fa545fc44",
+    "name": "closed-manifest-missing-compressed_bytes",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "4ca96e67e09dbbd33c4335bf813bdd5a13ed16ecdbdbe07d3262ee38bb90a9dc",
+    "name": "closed-manifest-case-compressed_bytes",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "83521e4845f611ea3ec818708e695fef9b7a8e57a65064c93e48b0893aef4427",
+    "name": "closed-manifest-null-compressed_bytes",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal string into Go struct field plain.manifest.compressed_bytes of type uint64",
+    "expected": false,
+    "inputSHA256": "1121db3631f2edad8b9867cc2d5596621f9aa8efeca2bef181a3881370b18c9a",
+    "name": "closed-manifest-type-compressed_bytes",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "2e854efca3dc3d6d1d67ab92a026e014c63f7a44deba3b6088ee5e7c2535f4f4",
+    "name": "closed-manifest-missing-compression",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "3ebe6c06f94a591d138cf1c93570764ac6efe5c2567cf49805161cb59612c2bf",
+    "name": "closed-manifest-case-compression",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "9d4482893f52f7c77dae360a02dc1b6bcaf7090db27a5e9ea22dfed3eed55d35",
+    "name": "closed-manifest-null-compression",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal bool into Go struct field plain.manifest.compression of type string",
+    "expected": false,
+    "inputSHA256": "d70861abe590f53292ae30422f980ceefe2341728be5b56ae982bf66aba10577",
+    "name": "closed-manifest-type-compression",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "cbb27f0deb4efb29d0659cb455596500c26271fbf3449f4505e225cfb4ab4ba3",
+    "name": "closed-manifest-missing-created_at_unix",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "c7e0cf86b37399c61a5b4e01c3e69cd11e8b0714e20c7911d46a98dc4fabe292",
+    "name": "closed-manifest-case-created_at_unix",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "4be2b1072afd21fbd0d5d2fdeb78ec96b09beee42f0d39772201f958731a8994",
+    "name": "closed-manifest-null-created_at_unix",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal string into Go struct field plain.manifest.created_at_unix of type uint64",
+    "expected": false,
+    "inputSHA256": "0afa4f8fa1b6833c209f2932aa5298ec5bfa9d700b557c9379c0381f5a4d9048",
+    "name": "closed-manifest-type-created_at_unix",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "c54ba8f47d4c53eecd6eb01da40e47a03f6c5e25892fc8578d9103f35f5e6895",
+    "name": "closed-manifest-missing-expanded_bytes",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "ff8c550f3d6465ff539105ecfd5e6f5cc087a05bbd5782842fde40194b8420d7",
+    "name": "closed-manifest-case-expanded_bytes",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "97e918423f6ede1ab0b903f82d8e594ffb73ba9947fb18536a10536667d6aa5e",
+    "name": "closed-manifest-null-expanded_bytes",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal string into Go struct field plain.manifest.expanded_bytes of type uint64",
+    "expected": false,
+    "inputSHA256": "2c75bb90bead7b900b868a0ae188d1d7160175d770617a1efc86939eb320791d",
+    "name": "closed-manifest-type-expanded_bytes",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "b1e1b6ca9e2b65b24344e8d9a510d0654f4c3e28917d4b7f6cfb82f109cdb49c",
+    "name": "closed-manifest-missing-guest_abi",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "003ca3207bcfb2e9448c5cb9a714935908954397112e37ab23a6bdc9cd1e6be6",
+    "name": "closed-manifest-case-guest_abi",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "0991188b56d0c22a08b4735b4b95e0ebf3cf722b66faf49745d9fe1393b19db3",
+    "name": "closed-manifest-null-guest_abi",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal string into Go struct field plain.manifest.guest_abi of type uint64",
+    "expected": false,
+    "inputSHA256": "ff0a825625d39e938c1f3654fd099a7001716e77add5f672f73f69acdacdd602",
+    "name": "closed-manifest-type-guest_abi",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "305950b7b8aeec8c13acaacfd70772981c9461544a00432d2d4c14433ca98a16",
+    "name": "closed-manifest-missing-key_id",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "e020bcbfc1ff69777a80220d57d08c5a7ac4bfe517da53fe56ebef464503ef7e",
+    "name": "closed-manifest-case-key_id",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "63992519727ca7340afabf4b10e55b89d10d7457caca152e52fffc7c53303dde",
+    "name": "closed-manifest-null-key_id",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal bool into Go struct field plain.manifest.key_id of type string",
+    "expected": false,
+    "inputSHA256": "fcfac37984ed401c868537aaeedac66b43b89f04ab0dcab52929d28eb14841e6",
+    "name": "closed-manifest-type-key_id",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "7d827c3af22c42da83f83e2264d8890fb39714ec5acdca3aab9757bf534eb4b0",
+    "name": "closed-manifest-missing-limits",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "8d5b1c3dcbd5e8e2262cc16fb4067b4e35c95447dafe861f0084f29eb9f551c4",
+    "name": "closed-manifest-case-limits",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "93667f88ba6ac58283a416ef5d83dc204e1422549df77f8c62bc557e607dffd2",
+    "name": "closed-manifest-null-limits",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal array into Go struct field plain.manifest of type map[string]json.RawMessage",
+    "expected": false,
+    "inputSHA256": "25ab0dd757e84bc4ce4da2e192b83d9745e0b7ebde3dc7f361a21bc047a8a1aa",
+    "name": "closed-manifest-type-limits",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "10fdc8d5221b57e8516a979e8fafed40da810bae7ab96349b371f2d905e77453",
+    "name": "closed-manifest-missing-payload_sha256",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "7627081dceae5d7f1fe0106e338c039585bdd8b2cf98c6eeae21b5e63c3fff49",
+    "name": "closed-manifest-case-payload_sha256",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "f9024ded8f8a79b0974c7dc30a30251ffc0b1f59c2d07e8f0f22e25f1c291f35",
+    "name": "closed-manifest-null-payload_sha256",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal bool into Go struct field plain.manifest.payload_sha256 of type string",
+    "expected": false,
+    "inputSHA256": "d38459f3120ceca9225e7b9bc408ef186647c9eaf752f01892801b2ceba6da7f",
+    "name": "closed-manifest-type-payload_sha256",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "c53ff50a45531d1db602cf8d4e9db5328e4622bc562f71675736ebad5b2aa53e",
+    "name": "closed-manifest-missing-protocol",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "309414cf07f5b84ff79141df35ed1227705c698052c5240541eff5d3e57757da",
+    "name": "closed-manifest-case-protocol",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "5d093a04cf6b00cde9bf9228d20d5f20a93c7b37ee158d827eb187b8b20cb133",
+    "name": "closed-manifest-null-protocol",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal string into Go struct field plain.manifest.protocol of type uint64",
+    "expected": false,
+    "inputSHA256": "615583ccd8550e81663e841714d3a34b72e1655cace177f7d559def093ffc350",
+    "name": "closed-manifest-type-protocol",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "c8f0ab053cbe7375bb736dad3795a80b666a992d58aaf3584657fc9a137aa7b2",
+    "name": "closed-manifest-missing-provenance_id",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "537997d4c7eb7bb9b4466823c6a4f6695f1fff58ad4465b86439a4815ea94653",
+    "name": "closed-manifest-case-provenance_id",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "66e84dd189b09ac598f864dc187cfb835ec8d269e9beee9936e582b0cccd39ec",
+    "name": "closed-manifest-null-provenance_id",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal bool into Go struct field plain.manifest.provenance_id of type string",
+    "expected": false,
+    "inputSHA256": "11f7ef431b27d24117e7d35aefed30709e2541786cb687ac55c0f6ed79037df0",
+    "name": "closed-manifest-type-provenance_id",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "994a3a380632ca3db09f5ab5458688f0baa66d3a2e8ec7ac0542a1e2ec6ba7e1",
+    "name": "closed-manifest-missing-release_id",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "a1dd8b960f9335da93eaac0db30d2f19a863c817a3e5402c0c434889c01dd66d",
+    "name": "closed-manifest-case-release_id",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "6a8b79dc1feb4faf6f547d14823cdc8632fe0d0ba9bfa491b1d72213e908737e",
+    "name": "closed-manifest-null-release_id",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal bool into Go struct field plain.manifest.release_id of type string",
+    "expected": false,
+    "inputSHA256": "62c8418e847ba8724f834f7fa9679730777f3bdacf3bfb8d22a1b343e7803e96",
+    "name": "closed-manifest-type-release_id",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "61e9c64194efb0a5fe72b76f26772742a8b19e89b4934ba4d91ad9cf071e5d0a",
+    "name": "closed-manifest-missing-runtime",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "063406a6bf11f75e04d93f3dc438fac1f1ad10e964de538da9a707a7c5c53826",
+    "name": "closed-manifest-case-runtime",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "80fbb60e61e2efe7f2013c823f930fb44caa552511926193291237ec8beaabe6",
+    "name": "closed-manifest-null-runtime",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal bool into Go struct field plain.manifest.runtime of type string",
+    "expected": false,
+    "inputSHA256": "e891d0f088928209941d1a4d9d2085611cecc8f50e92bbdfacd6b1f9dc3162de",
+    "name": "closed-manifest-type-runtime",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "d39dbd325bfde7815384d71c9a45a683ce5bfddf89713188d6cf02be46d995cb",
+    "name": "closed-manifest-missing-schema",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "38d0e1127d1ecd4ce7d550644274581977536e3c033f2e3b7719a8fd912f81d3",
+    "name": "closed-manifest-case-schema",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "9953a69480a434f6d47cec0591da08db72df1703748e7f3e931c71a85e123a67",
+    "name": "closed-manifest-null-schema",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal string into Go struct field plain.manifest.schema of type uint64",
+    "expected": false,
+    "inputSHA256": "241688688b31a232e56d466578001b7d44a656c419da7b5fd19fed2b22bb20e7",
+    "name": "closed-manifest-type-schema",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "ccc850114dc311f7b69b35c4b86c7a2270684cad75cdaa2250170b88a2c01fb1",
+    "name": "closed-manifest-missing-scope",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "0396e55608fd896d6446aab5f8135a19be921e76b11499cba6252a63fd72ba1e",
+    "name": "closed-manifest-case-scope",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "a28cc46797d54cf6a5d0f5e3aa115a5f0743b99b7edb48278f62903c2244078e",
+    "name": "closed-manifest-null-scope",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal array into Go struct field plain.manifest of type map[string]json.RawMessage",
+    "expected": false,
+    "inputSHA256": "fd2de8e181a26e2b208e55e96e4bc8f1c21e8fd0bb39ad854ec89198aee7162e",
+    "name": "closed-manifest-type-scope",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "f08e4d0a8717af7de99490110bde8aaeb107696c2c39453a733e7ea321c41a93",
+    "name": "closed-manifest-missing-source_commit",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "cd5cdff6198b036234e27d1cb2b39b860773d32ae2508384bf81679d562c9bed",
+    "name": "closed-manifest-case-source_commit",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "02b451b04a01e4a8d523453a9e45f51248cc774cb872e83d539354f041bd8312",
+    "name": "closed-manifest-null-source_commit",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal bool into Go struct field plain.manifest.source_commit of type string",
+    "expected": false,
+    "inputSHA256": "1edae35bd3c10fb3bf66e31e4686ce3f5956943adb67737dce36386788ce830a",
+    "name": "closed-manifest-type-source_commit",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "7a39cd82d88a374b9296aec80edc0da40fa8118942ae6484c1d959635da7592b",
+    "name": "closed-manifest-missing-source_map_sha256",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "5d83fcfb1b3ea582567d29a0f08523da3b67511f76ffd5b5e13fda469e46f7fd",
+    "name": "closed-manifest-case-source_map_sha256",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "d084e161f25bf337164d87979efb1a8f06384a896ab03289770962ae447e47c2",
+    "name": "closed-manifest-null-source_map_sha256",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal bool into Go struct field plain.manifest.source_map_sha256 of type string",
+    "expected": false,
+    "inputSHA256": "8ac86e4b7ccafacca81aabe6c742aaed22e05a2121eb3bd8d70fd240db05dc19",
+    "name": "closed-manifest-type-source_map_sha256",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "e94c1e1576ff3dcec7cbb6b12b9626e89b4b0b915176b09d9cf6c73826e52028",
+    "name": "closed-manifest-missing-state_max",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "7cf7f6a36fea6da15cec8b9a43469cf246c3109c677f8aaee8ef9ad8d321e5e8",
+    "name": "closed-manifest-case-state_max",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "372ea166eb18f9b907822804ce18b911c2762aec9ceadc69bcf546e168781316",
+    "name": "closed-manifest-null-state_max",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal string into Go struct field plain.manifest.state_max of type uint64",
+    "expected": false,
+    "inputSHA256": "4bbb9b521c39c891f039caf536423b871f80958421a9c49ff38390a64ba9e3b0",
+    "name": "closed-manifest-type-state_max",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "b7019afa265397df438a4eb02fc345fae11d5bbc9d6256161e47f72deac42637",
+    "name": "closed-manifest-missing-state_min",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "2ac3609cd4e647b8ac026a94ccf9af7146a79ff9f24dd083f7092c3194c042fc",
+    "name": "closed-manifest-case-state_min",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "aaefcfd48c343deef2bd125b5bba8e85f32524da6a366a64a368d590a85e409d",
+    "name": "closed-manifest-null-state_min",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal string into Go struct field plain.manifest.state_min of type uint64",
+    "expected": false,
+    "inputSHA256": "718da1a2265c4f19de04e33b0f5c6a9c0488643e4f29d026551e0bfa3a82cc38",
+    "name": "closed-manifest-type-state_min",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "6b4a3515e20243c8a6a8b0f4b5bacf211720001a264f5b4196c9014f5253c417",
+    "name": "closed-manifest-missing-ui_schema",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "0241084890d26f256eaa39ebd1cf83da4b95edb72d67c2f21f0e19fe18985b22",
+    "name": "closed-manifest-case-ui_schema",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "d05867d079886d71f6e76410fb8217544c00845a82a0a67578dfcd2eb87356af",
+    "name": "closed-manifest-null-ui_schema",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal string into Go struct field plain.manifest.ui_schema of type uint64",
+    "expected": false,
+    "inputSHA256": "42b53589a73772429ac57479ed1e1c26158f616331010961d242c1a48237a608",
+    "name": "closed-manifest-type-ui_schema",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "bc17ff9994c4f7daa72e650f336c79df80c3c13c088dd8ac8fad0464f6da8245",
+    "name": "closed-manifest-unknown",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "e7e66e25cf7088c7b1bc53e6d954614673f8fc71b4f11ad11157e9e3e4c9fce6",
+    "name": "closed-scope-missing-app",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "a656e778aefabca81df90e1aecc5f3057eb7daa6d7d0fb8f9c2f052135eadc25",
+    "name": "closed-scope-case-app",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "8121d41f3c37c0792468170bca0fae03f4a11f94fd86a5f2552ed07a955cb7e9",
+    "name": "closed-scope-null-app",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal bool into Go struct field plain.manifest.scope.app of type string",
+    "expected": false,
+    "inputSHA256": "cbfa3f23ecc163b750ab25cc267ce8221bfaab2762de2990ad2f85dc4f53e45e",
+    "name": "closed-scope-type-app",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "7c9292a51daf126fef7e1283c8881edc900711ea18a3eef997254e642ef19b8e",
+    "name": "closed-scope-missing-environment",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "e96a57fe40db7c7db1ca87ab7488025cd80c6a2b5970b88d4d1f19f068970284",
+    "name": "closed-scope-case-environment",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "f38344c53e3b13c792a79b980f7129a58a680a06b030238fa276e6e6d09917e1",
+    "name": "closed-scope-null-environment",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal bool into Go struct field plain.manifest.scope.environment of type string",
+    "expected": false,
+    "inputSHA256": "14b3de0086556e5764a1ca76cbe623902f33e882e1facb558dd881e38b6538a2",
+    "name": "closed-scope-type-environment",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "a4e355f855153513fbe198ea99078241322e1848d403cc6cf6218340a27af18c",
+    "name": "closed-scope-missing-organization",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "656861edf5bf0b4a711cc71d715e4d11b3cada262501e4ace2416abd033c21de",
+    "name": "closed-scope-case-organization",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "c414f7b5c1801c46acf6771ab9c0bdee96515bf421f9e1314d3f6ddeef7caf56",
+    "name": "closed-scope-null-organization",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal bool into Go struct field plain.manifest.scope.organization of type string",
+    "expected": false,
+    "inputSHA256": "832e09b8f5e71df1f0284ffd84505b1697cdfa5f9f3efe72ebb443578c8e9d56",
+    "name": "closed-scope-type-organization",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "33e3d0a2808aef7e4d3ddbd1e1727112ccf1a5512d0c9aa4facd94646e41c227",
+    "name": "closed-scope-missing-platform",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "8a03c54a5b0639a081fd9b4af521b7057d6447f45a6e2b2ede7654aca852782f",
+    "name": "closed-scope-case-platform",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "5758d6b54404f87b4a6d1a4c18500263c36a307bd39fe9f31b2cc42a713511b1",
+    "name": "closed-scope-null-platform",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal bool into Go struct field plain.manifest.scope.platform of type string",
+    "expected": false,
+    "inputSHA256": "c3fe4964f8525d8cdfcb52a75f96bef5ac1f8a9b310e84a8750e02111b87ccd7",
+    "name": "closed-scope-type-platform",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "762c8d61d757a834f5a4ed1c26889198198348927195401c085052b5697aa9b5",
+    "name": "closed-scope-missing-project",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "d0d0b3c9fb7d1f18c4210ec5f3b75a796114a61fcdf24f1e0a0fed56ad9a9a48",
+    "name": "closed-scope-case-project",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "da12b53b29fc69c6e0d7981f10fca9cec753da56aaf9bd80a2f0fad09eaaad86",
+    "name": "closed-scope-null-project",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal bool into Go struct field plain.manifest.scope.project of type string",
+    "expected": false,
+    "inputSHA256": "bd34621da9221bead2efda5ba89a2806f2e4b0cf1186555c6869371f09011e59",
+    "name": "closed-scope-type-project",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "0ea29b0d98607644ca99a507d5bf8a29d27a0429da8d630ba6023dbc0210c8d1",
+    "name": "closed-scope-unknown",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "e56075c729761a317b5c5fe73cf39f09de3014eb4a6c684d12da93984438276d",
+    "name": "closed-limits-missing-fuel",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "2132bf4132221ebe38efc782376c616c05b896a902e3c19d33f8bcd8893607ee",
+    "name": "closed-limits-case-fuel",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "20c10c5c328f0a2c36a119cf0d955d6d561594eac06c6b775c6433a8e2617846",
+    "name": "closed-limits-null-fuel",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal string into Go struct field plain.manifest.limits.fuel of type uint64",
+    "expected": false,
+    "inputSHA256": "b34018161b988f7bdd33f695d3bcfed8823f2b80be67176aa7cd542ac2df8288",
+    "name": "closed-limits-type-fuel",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "87c72deb3537a8ddff171ee6a3f7623da0bae26debc70222054ffa98e48b50b1",
+    "name": "closed-limits-missing-memory_bytes",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "73b393471a345d841122535688ee0b49bfe376e9786699f42fb4b2246b70fbe9",
+    "name": "closed-limits-case-memory_bytes",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "87b02a250803b12680b48bf60c84f512f1d10a018a793f2c67ac384968388cf2",
+    "name": "closed-limits-null-memory_bytes",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal string into Go struct field plain.manifest.limits.memory_bytes of type uint64",
+    "expected": false,
+    "inputSHA256": "2cfdf807948650aa08e5b29bdd3fe3493c193563b0179585fa676bd2cae5bdad",
+    "name": "closed-limits-type-memory_bytes",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "74edaaba5e3e7d8f41a68b27f91e60ec645d70de6e7cd8642abe04ab35906f10",
+    "name": "closed-limits-missing-startup_milliseconds",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "b692cb8e3935b267a5e222354769d73b3eab78668ca4c2608cabd47daeef4aea",
+    "name": "closed-limits-case-startup_milliseconds",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "9ed09f699c9659aab603aac22ec9827e553aca1621a8afacaff1617cc5fca4db",
+    "name": "closed-limits-null-startup_milliseconds",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal string into Go struct field plain.manifest.limits.startup_milliseconds of type uint64",
+    "expected": false,
+    "inputSHA256": "b48f37e441560048235b963059317fe7e2241df91911f6c9dbae27ba642d0e13",
+    "name": "closed-limits-type-startup_milliseconds",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "4a1fcc456a3af96161b2505c04c2c7bb9bb0fac85ad7b9b3847d36de45f6d08b",
+    "name": "closed-limits-unknown",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "6e586c4958f78112846a984fc1060d7742e23e95819c228cad1e3b70f4dca1f0",
+    "name": "closed-descriptor-missing-entries",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "3457b1a0dbe05e7195e397f755bc2459f0834b19d34033f4f190e85fa13500b9",
+    "name": "closed-descriptor-case-entries",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "fe798c0cdcad48bdac2b9e7c142dfb71f7a5b8b23b96772a7f70dec1cdba5c6b",
+    "name": "closed-descriptor-null-entries",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal object into Go struct field plain.manifest.capability_grants.entries of type []protocol.CapabilityGrant",
+    "expected": false,
+    "inputSHA256": "eec3d7bc854239d09b590195697e1aecca28a2db525197fd1a3795497e16f0c4",
+    "name": "closed-descriptor-type-entries",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "eb79955c3da6bac7c01689224577ce60c609df6b52d533b26dd9bfda6fad76bb",
+    "name": "closed-descriptor-missing-schema",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "1ccb9fb95ba93260ab968aaaef976d1cce97a16f1ce917c94e47e958a3ca157e",
+    "name": "closed-descriptor-case-schema",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "1f47a1269c6c7621695993a275c97f61b054b87e924b90f53a2376b1d3e8c6af",
+    "name": "closed-descriptor-null-schema",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal string into Go struct field plain.manifest.capability_grants.schema of type uint64",
+    "expected": false,
+    "inputSHA256": "bbbfda46428b9a81a52bc64025e3f74d7021394521517718be9a22633fdd5a7e",
+    "name": "closed-descriptor-type-schema",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "f41db1be9ef022fe137d6558f4f8f90ad8f4f6372494599e784bf348c970d72f",
+    "name": "closed-descriptor-missing-schema_sha256",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "2ef2caf53fabaaa69b3f60d28de7f8839eed2821dbb040d5da92ddd6b57155ea",
+    "name": "closed-descriptor-case-schema_sha256",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "781b5806ea977b66da8208df4b7813f8fcdb489ad6cbcc57c934132921b86db1",
+    "name": "closed-descriptor-null-schema_sha256",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal bool into Go struct field plain.manifest.capability_grants.schema_sha256 of type string",
+    "expected": false,
+    "inputSHA256": "9163e2378c549d7b20771cde3472c1325afbe3464289aa6d3ed8de5bbaf210e4",
+    "name": "closed-descriptor-type-schema_sha256",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "ec2cc6492a14808063cf2de4ed1a8bf7132070c2a128901f58a69903be3f8746",
+    "name": "closed-descriptor-unknown",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "dd6df4742ae7c805cc15139bae4d41b4602644da48580d81acb90691d848c5b5",
+    "name": "closed-http-entry-missing-capability_id",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "ddd75d90d12922656a097ac49744527b8cd48123e47d566e1613d49fe3cb1f54",
+    "name": "closed-http-entry-case-capability_id",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "6979699a41d3d4427dad43a1732f32603d75d186121c6c02e08cd76f05b7fad6",
+    "name": "closed-http-entry-null-capability_id",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal bool into Go struct field plain.manifest.capability_grants.entries.capability_id of type string",
+    "expected": false,
+    "inputSHA256": "7f421e7beb9ca4c260a5cd0e8fc067f1ea26827b8a932b44663b641e3aabaf71",
+    "name": "closed-http-entry-type-capability_id",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "da233684b707460adaa2bca6f5a565b7a7a02937ed478ee69c9cb400a8de3d21",
+    "name": "closed-http-entry-missing-methods",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "d12878e2fb21ab3facdb97834d13cf63590745e8c7aa5471ca48b2e5a44ec896",
+    "name": "closed-http-entry-case-methods",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "8ff84169a43159e5bbcd89680cbf935b6e08d340f0c588ce3aaee415f297c27a",
+    "name": "closed-http-entry-null-methods",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal object into Go struct field plain.manifest.capability_grants.entries.methods of type []string",
+    "expected": false,
+    "inputSHA256": "2239f02c2d1efde1ec58741c30282e37a545a0bab33a4f2de72ed3f1b220f9e6",
+    "name": "closed-http-entry-type-methods",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "b73b3ec83681c0c730e9da9979c9bfaceb77794017eee360c3dc80041bc20c15",
+    "name": "closed-http-entry-missing-namespaces",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "cf5cc821909b33536e2adb8597d35ebb8c78481c2b91f0424b02221b31811635",
+    "name": "closed-http-entry-case-namespaces",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "32a620462154c6fb0edc85338bd100a6dfcbae6bea38a78680b4d1ec07cd3cd6",
+    "name": "closed-http-entry-null-namespaces",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal object into Go struct field plain.manifest.capability_grants.entries.namespaces of type []string",
+    "expected": false,
+    "inputSHA256": "ed6aed2e6c7b858641de1f666241dbff09a2ff0204214c7776078cf1efdee9cd",
+    "name": "closed-http-entry-type-namespaces",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "eb27e741e597797e013370771023156895decc754fd88d5b19708dbcb9af152d",
+    "name": "closed-http-entry-missing-origins",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "3be5b6b40879b6b65a2c5bdab0cc39061f41763d0529927c71a2579f87cb0656",
+    "name": "closed-http-entry-case-origins",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "df9770f08d36f85a3f0136c25b5479a79e9b15fcfcdcffd46f5303cd616d0177",
+    "name": "closed-http-entry-null-origins",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal object into Go struct field plain.manifest.capability_grants.entries.origins of type []string",
+    "expected": false,
+    "inputSHA256": "d07a88394f3b072b3254855b20242483bf316f900fe293af98deb4bbc850b8ba",
+    "name": "closed-http-entry-type-origins",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "225d833c5a3114232923ebb296a85c147bae087c7e0b5116fde4f47e0d1be09f",
+    "name": "closed-http-entry-missing-permissions",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "3b66cc78c1ec807de02bce3ec6c22ea2a60beb388a18c068c2d93f37ac817efd",
+    "name": "closed-http-entry-case-permissions",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "d987d233b551f718ace311883e8439ae4668fefac5808d989ff7de838f99405a",
+    "name": "closed-http-entry-null-permissions",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal object into Go struct field plain.manifest.capability_grants.entries.permissions of type []string",
+    "expected": false,
+    "inputSHA256": "0f0d0bdc94823ed980967cb5599396714fc98b69b2a251ea34f048802ede1de1",
+    "name": "closed-http-entry-type-permissions",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "2ba908ecd13aa3265d19ce2fbef4c4faa9ab32d2fc15ee8ff840ed9cab7f31bb",
+    "name": "closed-http-entry-missing-schema_sha256",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "f09bc26a5930ecdc13de4e1c1f35d68be716481e362261e9707c69a5f0cc6bc2",
+    "name": "closed-http-entry-case-schema_sha256",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "8670da86f003ecf39effddfb9b85bba5c03528d6d4b20321f4e7fed1c787145c",
+    "name": "closed-http-entry-null-schema_sha256",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal bool into Go struct field plain.manifest.capability_grants.entries.schema_sha256 of type string",
+    "expected": false,
+    "inputSHA256": "569e6e363b82539fe8a859bf2b38c36bd993ee435818a07a87aca5ff3166a314",
+    "name": "closed-http-entry-type-schema_sha256",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "31e504c20e92d4d6fd761615b8ad8e8e5457ac3356df541027751b350d6eae08",
+    "name": "closed-http-entry-unknown",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "a163aae0615bdaf0ddbd1504decee519f54e6fb95706bac53f2a977e191639fb",
+    "name": "closed-storage-entry-missing-capability_id",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "7a3de3b3222d663f66676489bb2473cd46980003b338e097325ba87ca5852f84",
+    "name": "closed-storage-entry-case-capability_id",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "c3c09116aabce81411aedbb570cb4924c2d37d88e520bd756ab2acf962b22766",
+    "name": "closed-storage-entry-null-capability_id",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal bool into Go struct field plain.manifest.capability_grants.entries.capability_id of type string",
+    "expected": false,
+    "inputSHA256": "c200994b673b97d315d852ebb35f4a2cd540eee596af8c9a90bad4ca7dba8522",
+    "name": "closed-storage-entry-type-capability_id",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "71fc8911c0634cd6934374d3ddcc991abcc5c25675cab6e903a818e1166e7dbd",
+    "name": "closed-storage-entry-missing-methods",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "c20b372389c5ce97c90f70c125bbfbc556cce4b90281067b21d1f9d1c5c7f0a0",
+    "name": "closed-storage-entry-case-methods",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "d42f21e76fe687c1bfc115a67e18e8d0b598d7bbc897ec5f804089aa4a6b6930",
+    "name": "closed-storage-entry-null-methods",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal object into Go struct field plain.manifest.capability_grants.entries.methods of type []string",
+    "expected": false,
+    "inputSHA256": "5872f4537c974fff5e802d96269afcca43fc334e5046338d2275d163317c9887",
+    "name": "closed-storage-entry-type-methods",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "7235a974306b1ef8713be427ba4840ffd59502522df36b2b0e85a891fd5e5725",
+    "name": "closed-storage-entry-missing-namespaces",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "9542d97caf2619954951561a7b384c68233229e34bdd0b3c67055dce41647cb3",
+    "name": "closed-storage-entry-case-namespaces",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "5c34cd8897af8e1ccf73d95af7c8ffec6e9e416aa4d96c6721613de7adbb3d97",
+    "name": "closed-storage-entry-null-namespaces",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal object into Go struct field plain.manifest.capability_grants.entries.namespaces of type []string",
+    "expected": false,
+    "inputSHA256": "40f3077e455dc99de6f707755da707fa6d6b7bbb1df7dbfb904bb792c73225d4",
+    "name": "closed-storage-entry-type-namespaces",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "51fb59155abd051bb69a11c06420454c13f4186b2ff7aeb062aa28e22fb716af",
+    "name": "closed-storage-entry-missing-origins",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "efaf16ce1fcd4da6a55ba3a1427bdbca9981acc76952d0e62a27bc486a2b48d6",
+    "name": "closed-storage-entry-case-origins",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "1ab4ae7b2103d31475b794f20187e20eea8f9eb931384a2ed59197d7d95185dd",
+    "name": "closed-storage-entry-null-origins",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal object into Go struct field plain.manifest.capability_grants.entries.origins of type []string",
+    "expected": false,
+    "inputSHA256": "cf2605fa94294a2f25223207db6e8d57a6f51548ce816e5cf320cb6920ce88e3",
+    "name": "closed-storage-entry-type-origins",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "d3f28fcc8281ed3ba9efecfe799ef9dc088af4d1b23092f1e0ddf48b898a2aed",
+    "name": "closed-storage-entry-missing-permissions",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "937b40d3a98594cf8c9c23644b421d98e07847980a4e894df9c49e0642c9bd95",
+    "name": "closed-storage-entry-case-permissions",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "feef89e110764afa2858e85b79b476d00b1cf5779256cd1c411a9276125e6eba",
+    "name": "closed-storage-entry-null-permissions",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal object into Go struct field plain.manifest.capability_grants.entries.permissions of type []string",
+    "expected": false,
+    "inputSHA256": "936abbb65abfccd2096f20d6b749c85e9a32f84231c37d9993dc4e8e71b1474c",
+    "name": "closed-storage-entry-type-permissions",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "35070e1e3f2a111bb1434cd740659e0e1a8909d28201d5a9afc6ca53a7b19e4d",
+    "name": "closed-storage-entry-missing-schema_sha256",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "03719fd4a07629cf0b1b1ec87aa4aef72703d2624ebbf7ba44e03fcdd35e419b",
+    "name": "closed-storage-entry-case-schema_sha256",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "5470dea1ea57aacd372bef5756e3778d561d7d399fc1a7ee3ad813533c02ce32",
+    "name": "closed-storage-entry-null-schema_sha256",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal bool into Go struct field plain.manifest.capability_grants.entries.schema_sha256 of type string",
+    "expected": false,
+    "inputSHA256": "8d1bc51543d71bbec4afbb9612a3a4f826ca4b55322121d2e64194f273cf9ff7",
+    "name": "closed-storage-entry-type-schema_sha256",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing or unknown protocol fields",
+    "expected": false,
+    "inputSHA256": "ab7d3b1d61d3960398512cdbbaafb0014ae0b799b7eb63315e1d2e8c15f2af9c",
+    "name": "closed-storage-entry-unknown",
+    "stage": "decode"
+  },
+  {
+    "accepted": true,
+    "detail": "",
+    "expected": true,
+    "inputSHA256": "c27f10c5a1b831066bfc46cd363acf7e076ceb2280908c324caaddc42c76a795",
+    "name": "origins32",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "grant arrays must be explicit, bounded, strictly ASCII sorted and unique",
+    "expected": false,
+    "inputSHA256": "273298cc9fbc0693748b9573c6cc0b8cf8dcf8d70260cfb7e1d652adab51e75d",
+    "name": "origins33",
+    "stage": "verify"
+  },
+  {
+    "accepted": true,
+    "detail": "",
+    "expected": true,
+    "inputSHA256": "09b0254dbbf7a0ae51e919c6da5fe07a6a28c9aaf85fe3ebbc69bc9e445ae6f8",
+    "name": "namespaces32",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "grant arrays must be explicit, bounded, strictly ASCII sorted and unique",
+    "expected": false,
+    "inputSHA256": "0adcd22d6dcff555cccc7217fa9454461d15b9d28159ffcb85492306dafa82c7",
+    "name": "namespaces33",
+    "stage": "verify"
+  },
+  {
+    "accepted": true,
+    "detail": "",
+    "expected": true,
+    "inputSHA256": "735702114e388d592b8965121ebe7e358c40cc9a9362aab18d186d21840125dd",
+    "name": "methods6",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "grant arrays must be explicit, bounded, strictly ASCII sorted and unique",
+    "expected": false,
+    "inputSHA256": "6d569823d2ea12146de9ddd527ea4c50f6652227bbae9eae94b748311d7709d3",
+    "name": "methods7",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "grant arrays must be explicit, bounded, strictly ASCII sorted and unique",
+    "expected": false,
+    "inputSHA256": "54c46dc467cfc5282683138c277bfa4271d075bbf97774f388e997475b049774",
+    "name": "permission-duplicate",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "noncanonical HTTP grant origin",
+    "expected": false,
+    "inputSHA256": "00c7c56bf6bdc260c3f6a10b704de2f64970fb141df5a9c66e6c7d4b17a972dc",
+    "name": "origin-default-port",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "noncanonical HTTP grant origin",
+    "expected": false,
+    "inputSHA256": "f06278dd136158a823e9ad8a19abf8afd816581b898cba89999009e6f7cb11ae",
+    "name": "origin-uppercase",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "storage grants cannot carry HTTP authority",
+    "expected": false,
+    "inputSHA256": "b805453d759a1986cd14ec2886f2d0b99209a23d1852b96950019a1100731e9d",
+    "name": "storage-cross-authority",
+    "stage": "verify"
+  },
+  {
+    "accepted": true,
+    "detail": "",
+    "expected": true,
+    "inputSHA256": "97c351f0d53f01dede19939cd75b069f4f32c52b7b5c78696ed47ed134a8a461",
+    "name": "explicit-empty-capabilities-grants",
+    "stage": "verify"
+  },
+  {
+    "accepted": true,
+    "detail": "",
+    "expected": true,
+    "inputSHA256": "ec97ad0cadde28bf0f7402dd08efbb9fe240bba0edad64cca68f261074b88e75",
+    "name": "wide-integers",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "state schema incompatible",
+    "expected": false,
+    "inputSHA256": "ec97ad0cadde28bf0f7402dd08efbb9fe240bba0edad64cca68f261074b88e75",
+    "name": "wide-integer-state-below",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "v3 artifact signature invalid",
+    "expected": false,
+    "inputSHA256": "815bcebb036152a55721308f4d71958c6853ab8d8f8fc41b3d87aafa9f73637c",
+    "name": "domain-523a8c6cc19a02a816aadb6d373580d4f554c919cfb94b7be49cb4ac73d4fe6d",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "v3 artifact signature invalid",
+    "expected": false,
+    "inputSHA256": "423af1f427fb39826ce42f8cde86cfad843b6ab830adedb41b5be087e3556d33",
+    "name": "domain-ca6b117522dd0695032cd9fd7d936f03305414de70d34bb6837ecbfb7cd7a08a",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "v3 artifact signature invalid",
+    "expected": false,
+    "inputSHA256": "f71e076930f0c43a1095e8eecdce7c7e72c821bd495be7e4c65e9beba61bf3be",
+    "name": "domain-20e7e453c611af7cf940dd17c033cc25d370588c9487caca9bcdd2765a15a5ba",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "v3 artifact signature invalid",
+    "expected": false,
+    "inputSHA256": "7ba548518c034d22e6d0ef1adb2099bb5bad2e6b0d2550582983330b95011d76",
+    "name": "domain-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "payload size or hash mismatch",
+    "expected": false,
+    "inputSHA256": "9ff4f845c2d86e7be9bee86581aac5acf3f3e71ad936f787122ae38f16f788b9",
+    "name": "payload-same-size-mutation",
+    "stage": "verify"
+  },
+  {
+    "accepted": true,
+    "detail": "",
+    "expected": true,
+    "inputSHA256": "9ff4f845c2d86e7be9bee86581aac5acf3f3e71ad936f787122ae38f16f788b9",
+    "name": "root-count-one",
+    "stage": "verify"
+  },
+  {
+    "accepted": true,
+    "detail": "",
+    "expected": true,
+    "inputSHA256": "9ff4f845c2d86e7be9bee86581aac5acf3f3e71ad936f787122ae38f16f788b9",
+    "name": "root-count128",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "v3 trust root count outside bounds",
+    "expected": false,
+    "inputSHA256": "9ff4f845c2d86e7be9bee86581aac5acf3f3e71ad936f787122ae38f16f788b9",
+    "name": "root-count129",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "invalid or ambiguous v3 trust root",
+    "expected": false,
+    "inputSHA256": "9ff4f845c2d86e7be9bee86581aac5acf3f3e71ad936f787122ae38f16f788b9",
+    "name": "root-duplicate",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "invalid or ambiguous v3 trust root",
+    "expected": false,
+    "inputSHA256": "9ff4f845c2d86e7be9bee86581aac5acf3f3e71ad936f787122ae38f16f788b9",
+    "name": "unrelated-malformed-public-key",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "invalid or ambiguous v3 trust root",
+    "expected": false,
+    "inputSHA256": "9ff4f845c2d86e7be9bee86581aac5acf3f3e71ad936f787122ae38f16f788b9",
+    "name": "unrelated-no-role",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "unsupported platform",
+    "expected": false,
+    "inputSHA256": "9ff4f845c2d86e7be9bee86581aac5acf3f3e71ad936f787122ae38f16f788b9",
+    "name": "unrelated-bad-scope",
+    "stage": "verify"
+  },
+  {
+    "accepted": true,
+    "detail": "",
+    "expected": true,
+    "inputSHA256": "9ff4f845c2d86e7be9bee86581aac5acf3f3e71ad936f787122ae38f16f788b9",
+    "name": "root-not-before-inclusive",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "signing authority denied",
+    "expected": false,
+    "inputSHA256": "9ff4f845c2d86e7be9bee86581aac5acf3f3e71ad936f787122ae38f16f788b9",
+    "name": "root-not-after-exclusive",
+    "stage": "verify"
+  },
+  {
+    "accepted": true,
+    "detail": "",
+    "expected": true,
+    "inputSHA256": "9ff4f845c2d86e7be9bee86581aac5acf3f3e71ad936f787122ae38f16f788b9",
+    "name": "root-no-expiry",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "invalid or ambiguous v3 trust root",
+    "expected": false,
+    "inputSHA256": "9ff4f845c2d86e7be9bee86581aac5acf3f3e71ad936f787122ae38f16f788b9",
+    "name": "root-time-invalid-interval",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "invalid or ambiguous v3 trust root",
+    "expected": false,
+    "inputSHA256": "9ff4f845c2d86e7be9bee86581aac5acf3f3e71ad936f787122ae38f16f788b9",
+    "name": "root-assignment-only",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "signing authority denied",
+    "expected": false,
+    "inputSHA256": "9ff4f845c2d86e7be9bee86581aac5acf3f3e71ad936f787122ae38f16f788b9",
+    "name": "root-revoked",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "v3 artifact signature invalid",
+    "expected": false,
+    "inputSHA256": "9ff4f845c2d86e7be9bee86581aac5acf3f3e71ad936f787122ae38f16f788b9",
+    "name": "wrong-root-key",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "signing authority denied",
+    "expected": false,
+    "inputSHA256": "9ff4f845c2d86e7be9bee86581aac5acf3f3e71ad936f787122ae38f16f788b9",
+    "name": "wrong-scope",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "signature must encode exactly 64 bytes in canonical padded base64",
+    "expected": false,
+    "inputSHA256": "efd45549fd9665cfc2a5791f9a1fb5d29594e2926d33436e654de84ace6499f3",
+    "name": "signature-noncanonical-tail",
+    "stage": "decode"
+  },
+  {
+    "accepted": true,
+    "detail": "",
+    "expected": true,
+    "inputSHA256": "86ac8bad13d9651b1db8195a791d2106859c211a1b31e4e6ccb76174765493a7",
+    "name": "standalone65536",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "v3 document exceeds byte limit",
+    "expected": false,
+    "inputSHA256": "c9e6c066ab5fdac1d2205378fe6b50350789e8cac975f61a5978d27c47652ff5",
+    "name": "standalone65537",
+    "stage": "decode"
+  },
+  {
+    "accepted": true,
+    "detail": "",
+    "expected": true,
+    "inputSHA256": "b2b829fb11dbc32c4196f3a5fc4e0232d6852fb04f181be06f4b866749b8d382",
+    "name": "payload4194304",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "payload size or hash mismatch",
+    "expected": false,
+    "inputSHA256": "b2b829fb11dbc32c4196f3a5fc4e0232d6852fb04f181be06f4b866749b8d382",
+    "name": "payload4194305",
+    "stage": "verify"
+  }
+]

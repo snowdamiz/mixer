@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "scope": "Harness corrections only; each attempt cleans its own TLS fixture, temporary keys and build directory. None is product acceptance.",
+  "attempts": [
+    {"directory": "attempt-1", "result": "failed", "reason": "Probe used Mint.HTTP.request/4; exact public API requires request/5 with nil body.", "correction": "Pass nil as the fifth argument."},
+    {"directory": "attempt-2", "result": "failed", "reason": "Probe expected handshake_failure; installed OTP29 correctly returns bad_certificate with charlist hostname_check_failed detail.", "correction": "Assert actual TLS alert category and normalize only the diagnostic for the assertion."},
+    {"directory": "attempt-3", "result": "failed", "reason": "Probe incorrectly assumed passive recv(0) could cross the payload limit by at most one TLS record.", "correction": "Retain the observed multi-record batching limitation; assert only finite bounded fixture crossing and keep retained body zero. Production RSS/parser/receive batching remains pending implementation qualification."},
+    {"directory": "attempt-4", "result": "failed", "reason": "Probe attempted to set httpc proxy={undefined,[]}; the installed setter rejects that value even though it is the fresh profile's documented default.", "correction": "Use a dedicated fresh profile, set cookies disabled, and assert proxy/https_proxy defaults through get_options/2."},
+    {"directory": "probe-output", "result": "passed-feasibility-only", "reason": "Exact public APIs and runtime alert/batching behavior now asserted; no product owner/cache/adapter exists."}
+  ]
+}

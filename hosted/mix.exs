@@ -29,7 +29,8 @@ defmodule MixerHosted.MixProject do
       {:postgrex, "== 0.22.4"},
       {:oban, "== 2.24.2"},
       {:jason, "== 1.4.5"},
-      {:jose, "== 1.11.12"}
+      {:jose, "== 1.11.12"},
+      {:mint, "== 1.11.0"}
     ]
   end
 end

@@ -1,0 +1,110 @@
+[
+  {
+    "package": "ecto",
+    "path": "lib/ecto/repo.ex",
+    "source_sha256": "a3ffe7038094d8bf34ef85faa09a041ce92c0a58840cb1e1d104b4a2a3e14a6d",
+    "first_line": 308,
+    "last_line": 316,
+    "finding": "Public dynamic Repo accessors",
+    "text": "      @compile {:inline, get_dynamic_repo: 0}\n\n      def get_dynamic_repo() do\n        Process.get({__MODULE__, :dynamic_repo}, @default_dynamic_repo)\n      end\n\n      def put_dynamic_repo(dynamic) when is_atom(dynamic) or is_pid(dynamic) do\n        Process.put({__MODULE__, :dynamic_repo}, dynamic) || @default_dynamic_repo\n      end\n"
+  },
+  {
+    "package": "ecto_sql",
+    "path": "lib/ecto/adapters/sql.ex",
+    "source_sha256": "335698e0e658e47e76142a7edd4bbd199f6c16f00c0f0c50c768e5f4958a9ee0",
+    "first_line": 1217,
+    "last_line": 1224,
+    "finding": "in_transaction? reflects Ecto connection mode, not server xid",
+    "text": "  def transaction(adapter_meta, opts, callback) do\n    checkout_or_transaction(:transaction, adapter_meta, opts, callback)\n  end\n\n  @doc false\n  def in_transaction?(%{pid: pool}) do\n    match?(%DBConnection{conn_mode: :transaction}, get_conn(pool))\n  end\n"
+  },
+  {
+    "package": "ecto_sql",
+    "path": "lib/ecto/adapters/sql.ex",
+    "source_sha256": "335698e0e658e47e76142a7edd4bbd199f6c16f00c0f0c50c768e5f4958a9ee0",
+    "first_line": 1472,
+    "last_line": 1490,
+    "finding": "Repo transaction forwards options into DBConnection",
+    "text": "    %{pid: pool, telemetry: telemetry, opts: default_opts, log_stacktrace_mfa: log_stacktrace_mfa} =\n      adapter_meta\n\n    opts = with_log(telemetry, log_stacktrace_mfa, [], opts ++ default_opts)\n\n    callback = fn conn ->\n      previous_conn = put_conn(pool, conn)\n\n      try do\n        callback.()\n      after\n        reset_conn(pool, previous_conn)\n      end\n    end\n\n    apply(DBConnection, fun, [get_conn_or_pool(pool, adapter_meta), callback, opts])\n  end\n\n  defp get_conn_or_pool(pool, adapter_meta) do\n"
+  },
+  {
+    "package": "db_connection",
+    "path": "README.md",
+    "source_sha256": "457f9fa82cc8f0df65a7e294d5d9f04e487b265ecb5e592309601f72f637f707",
+    "first_line": 72,
+    "last_line": 79,
+    "finding": "Checkout deadline terminates checked-out connection, not callback",
+    "text": "When a checkout happens, a deadline is started by the client\nto send a message to the pool after a time interval. If the\ndeadline is reached and the connection is still checked out,\nthe holder is deleted and the connection is terminated. If the\nclient tries to use a terminated connection, an error will\nbe raised (see `Holder.handle/4`).\n\n### Pool\n"
+  },
+  {
+    "package": "db_connection",
+    "path": "lib/db_connection.ex",
+    "source_sha256": "e04def33c0be48ded3a661a7c31e818cc611eb17968aa6087d945c309cc6fafb",
+    "first_line": 1080,
+    "last_line": 1114,
+    "finding": "Nested and outer DBConnection transaction paths",
+    "text": "  def transaction(conn, fun, opts \\\\ [])\n\n  def transaction(%DBConnection{conn_mode: :transaction} = conn, fun, _opts) do\n    %DBConnection{conn_ref: conn_ref} = conn\n\n    try do\n      result = fun.(conn)\n      conclude(conn, result)\n    catch\n      :throw, {__MODULE__, ^conn_ref, reason} ->\n        fail(conn)\n        {:error, reason}\n\n      kind, reason ->\n        stack = __STACKTRACE__\n        fail(conn)\n        :erlang.raise(kind, reason, stack)\n    else\n      result ->\n        {:ok, result}\n    end\n  end\n\n  def transaction(%DBConnection{} = conn, fun, opts) do\n    case begin(conn, &run/4, opts) do\n      {:ok, _} ->\n        run_transaction(conn, fun, &run/4, opts, true)\n\n      {:error, error} ->\n        rollback_or_raise(error)\n    end\n  end\n\n  def transaction(pool, fun, opts) do\n    case begin(pool, &checkout/4, opts) do\n"
+  },
+  {
+    "package": "db_connection",
+    "path": "lib/db_connection.ex",
+    "source_sha256": "e04def33c0be48ded3a661a7c31e818cc611eb17968aa6087d945c309cc6fafb",
+    "first_line": 1756,
+    "last_line": 1796,
+    "finding": "Callback result still needs commit, closed transaction returns rollback",
+    "text": "  defp run_transaction(conn, fun, run, opts, reset_after?) do\n    %DBConnection{conn_ref: conn_ref} = conn\n\n    try do\n      result = fun.(%{conn | conn_mode: :transaction})\n      conclude(conn, result)\n    catch\n      :throw, {__MODULE__, ^conn_ref, reason} ->\n        reset(conn)\n\n        case rollback(conn, run, opts) do\n          {:ok, _} ->\n            {:error, reason}\n\n          {:error, %DBConnection.TransactionError{}} ->\n            {:error, reason}\n\n          {:error, %DBConnection.ConnectionError{}} ->\n            {:error, reason}\n\n          {:error, err} ->\n            raise err\n        end\n\n      kind, reason ->\n        stack = __STACKTRACE__\n        reset(conn)\n        _ = rollback(conn, run, opts)\n        :erlang.raise(kind, reason, stack)\n    else\n      result ->\n        case commit(conn, run, opts) do\n          {:ok, _} ->\n            {:ok, result}\n\n          {:error, %DBConnection.TransactionError{}} ->\n            {:error, :rollback}\n\n          {:error, err} ->\n            raise err\n        end\n"
+  },
+  {
+    "package": "db_connection",
+    "path": "lib/db_connection/holder.ex",
+    "source_sha256": "d574dacca73bafe651de85dd5427877534e4d8f2d1bdc7936b27986bff9732e6",
+    "first_line": 145,
+    "last_line": 163,
+    "finding": "Deleted/error holder rejects subsequent operations",
+    "text": "    pool_ref(holder: holder, lock: lock) = pool_ref\n\n    try do\n      :ets.lookup(holder, :conn)\n    rescue\n      ArgumentError ->\n        msg = \"connection is closed because of an error, disconnect or timeout\"\n        {:disconnect, DBConnection.ConnectionError.exception(msg), _state = :unused}\n    else\n      [conn(lock: conn_lock)] when conn_lock != lock ->\n        raise \"an outdated connection has been given to DBConnection on #{fun}/#{length(args) + 2}\"\n\n      [conn(status: :error)] ->\n        msg = \"connection is closed because of an error, disconnect or timeout\"\n        {:disconnect, DBConnection.ConnectionError.exception(msg), _state = :unused}\n\n      [conn(status: :aborted)] when type != :cleanup ->\n        msg = \"transaction rolling back\"\n        {:disconnect, DBConnection.ConnectionError.exception(msg), _state = :unused}\n"
+  },
+  {
+    "package": "db_connection",
+    "path": "lib/db_connection/holder.ex",
+    "source_sha256": "d574dacca73bafe651de85dd5427877534e4d8f2d1bdc7936b27986bff9732e6",
+    "first_line": 222,
+    "last_line": 230,
+    "finding": "Deadline checks exact timer reference",
+    "text": "  @spec handle_deadline(t, reference) :: boolean\n  def handle_deadline(holder, deadline) do\n    :ets.lookup_element(holder, :conn, conn(:deadline) + 1)\n  rescue\n    ArgumentError -> false\n  else\n    ^deadline -> true\n    _ -> false\n  end\n"
+  },
+  {
+    "package": "db_connection",
+    "path": "lib/db_connection/holder.ex",
+    "source_sha256": "d574dacca73bafe651de85dd5427877534e4d8f2d1bdc7936b27986bff9732e6",
+    "first_line": 245,
+    "last_line": 248,
+    "finding": "Deadline disconnect reaches connection process",
+    "text": "  @spec handle_disconnect(t, Exception.t()) :: boolean\n  def handle_disconnect(holder, err) do\n    handle_done(holder, &DBConnection.Connection.disconnect/3, err)\n  end\n"
+  },
+  {
+    "package": "db_connection",
+    "path": "lib/db_connection/holder.ex",
+    "source_sha256": "d574dacca73bafe651de85dd5427877534e4d8f2d1bdc7936b27986bff9732e6",
+    "first_line": 441,
+    "last_line": 456,
+    "finding": "Finite timeout and absolute deadline choose earlier; absolute monotonic timer",
+    "text": "  defp abs_timeout(now, opts) do\n    case Keyword.get(opts, :timeout, @timeout) do\n      :infinity -> Keyword.get(opts, :deadline)\n      timeout -> min(now + timeout, Keyword.get(opts, :deadline))\n    end\n  end\n\n  defp start_deadline(nil, _, _, _, _) do\n    {nil, []}\n  end\n\n  defp start_deadline(timeout, pid, ref, holder, start) do\n    deadline =\n      :erlang.start_timer(timeout, pid, {ref, holder, self(), timeout - start}, abs: true)\n\n    {deadline, [{conn(:deadline) + 1, deadline}]}\n"
+  },
+  {
+    "package": "db_connection",
+    "path": "lib/db_connection/connection_pool.ex",
+    "source_sha256": "c9fe3d9750fe844b9ed2178717f1d8be57e9fca4b5e65446c07be0ef1027a36d",
+    "first_line": 188,
+    "last_line": 212,
+    "finding": "Pool deadline invokes holder disconnect while callback may be waiting",
+    "text": "  def handle_info({:timeout, deadline, {queue, holder, pid, len}}, {_, queue, _, _} = data) do\n    # Check that timeout refers to current holder (and not previous)\n    if Holder.handle_deadline(holder, deadline) do\n      message =\n        \"client #{Util.inspect_pid(pid)} timed out because \" <>\n          \"it queued and checked out the connection for longer than #{len}ms\"\n\n      exc =\n        case Process.info(pid, :current_stacktrace) do\n          {:current_stacktrace, stacktrace} ->\n            message <>\n              \"\\n\\n#{Util.inspect_pid(pid)} was at location:\\n\\n\" <>\n              Exception.format_stacktrace(stacktrace)\n\n          _ ->\n            message\n        end\n        |> DBConnection.ConnectionError.exception()\n\n      Holder.handle_disconnect(holder, exc)\n    end\n\n    {:noreply, data}\n  end\n\n"
+  },
+  {
+    "package": "postgrex",
+    "path": "lib/postgrex/protocol.ex",
+    "source_sha256": "b9de5d55f6e4928742b6d1f33e1da8f5963c779534ee22f08ffc780a5b9ef8e5",
+    "first_line": 282,
+    "last_line": 298,
+    "finding": "Disconnect cancels request and closes socket",
+    "text": "  @impl true\n  @spec disconnect(Exception.t(), state) :: :ok\n  def disconnect(_, s) do\n    # cancel the request first otherwise PostgreSQL will log\n    # every time the connection is explicitly disconnected\n    # because the associated PID will no longer exist.\n    #\n    # Note we don't log when failing to cancel requests,\n    # in case the socket is not available or terminated.\n    _ = cancel_request(s)\n    terminate(s)\n    sock_close(s)\n    _ = recv_buffer(s)\n    delete_parameters(s)\n    queries_delete(s)\n    :ok\n  end\n"
+  }
+]

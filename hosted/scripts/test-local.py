@@ -33,10 +33,11 @@ def manifest():
         if p.is_file() and p.name != "erl_crash.dump"
         and not {"_build", "deps", "__pycache__", "cover"}.intersection(p.relative_to(root).parts)
     }
-    # The hosted encoder consumes this existing cross-language wire fixture.
-    # Bind it in both the source digest and replay archive, not just tests.log.
-    fixture = root.parent / "services/protocol/testdata/signed-release-v3.json"
-    inputs[str(fixture.relative_to(root.parent))] = digest(fixture)
+    # Encoding and admission consume both shared signed bytes and rejection
+    # cases. Bind each exact input in the digest and replay archive.
+    for name in ("signed-release-v3.json", "release-v3-cases.json"):
+        fixture = root.parent / "services/protocol/testdata" / name
+        inputs[str(fixture.relative_to(root.parent))] = digest(fixture)
     return inputs
 
 

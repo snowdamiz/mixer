@@ -1,0 +1,12 @@
+PASS mint_pinned_ip_correct_hostname status=200 body_bytes=2
+
+01:46:11.985 [notice] TLS :client: In state :wait_cert_cr at ssl_handshake.erl:2312 generated CLIENT ALERT: Fatal - Bad Certificate
+ - {:bad_cert,
+ {:hostname_check_failed, {:requested, ~c"wrong.contract.invalid"},
+  {:received, [dNSName: ~c"jwks.contract.invalid"]}}}
+PASS mint_wrong_hostname_rejected
+PASS mint_untrusted_chain_rejected
+
+01:46:11.998 [notice] TLS :client: In state :wait_cert_cr at ssl_handshake.erl:2304 generated CLIENT ALERT: Fatal - Unknown CA
+
+PASS mint_non200_headers_available_before_completion data_bytes=16343

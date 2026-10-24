@@ -48,6 +48,28 @@ are retained in `verification/github-ci-68910a1-engine/receipt.json`.
 Recent hosted CI at 4546513 and b15ff7a passes Swift, VM and Go service jobs,
 resolving the prior milestone busy-admission revalidation. No GA gate is closed.
 
+The configured key-owner and signed artifact-admission components now have
+root acceptance after independent review and a composed 73-pass host run. The
+artifact overlay is applied exactly; existing v3 bytes and signed authority
+remain unchanged. Application wiring, authenticated HTTP and current database
+membership are still pending. See `docs/hosted-identity-artifact-checkpoint.md`
+and `verification/hosted-component-integration-root-review/acceptance.json`.
+The actual Ecto/Postgrex transaction boundary has a selected
+preimplementation seam after 24 disposable PostgreSQL cases; protected checkout
+must use `queue: false` because the pinned driver's transaction deadline does
+not bound queued checkout. See
+`verification/hosted-transaction-context-root-review/selection.json`. Membership,
+repository, audit/idempotency atomicity and HTTP integration remain unimplemented.
+The narrow atomic SQL writer, fixed audit/state encodings and bounded local blob
+fixture are under an isolated contract/probe assignment; no migration is applied.
+
+The private Swift control candidate 2 now has root source/accounting preflight
+acceptance after fresh independent MIR, eight layout configurations and unchanged
+Frozen expansion checks. See
+`verification/swift-control-invocation-root-review/candidate-2-acceptance.json`.
+SC01–SC12 behavior, cleanup, work-prefix and allocation tests are assigned in an
+isolated overlay. Live VM integration and complete Swift execution remain pending.
+
 Section 8.3 requires the same shared app design on iOS and Android. Shared theme
 values control layout, typography scale, colors, iconography, spacing and component
 appearance; platform-specific app appearance requires an explicit declaration.

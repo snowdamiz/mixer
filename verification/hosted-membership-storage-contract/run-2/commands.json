@@ -1,0 +1,462 @@
+[
+  {
+    "argv": [
+      "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+      "--version"
+    ],
+    "stdin": null,
+    "exit": 0,
+    "stdout": "postgres (PostgreSQL) 17.11 (Homebrew)\n",
+    "stderr": "",
+    "seconds": 0.0099
+  },
+  {
+    "argv": [
+      "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+      "--version"
+    ],
+    "stdin": null,
+    "exit": 0,
+    "stdout": "psql (PostgreSQL) 17.11 (Homebrew)\n",
+    "stderr": "",
+    "seconds": 0.0086
+  },
+  {
+    "argv": [
+      "python3",
+      "--version"
+    ],
+    "stdin": null,
+    "exit": 0,
+    "stdout": "Python 3.14.8\n",
+    "stderr": "",
+    "seconds": 0.0117
+  },
+  {
+    "argv": [
+      "git",
+      "-C",
+      "/Users/andreyyurlov/Documents/dev/mixer",
+      "rev-parse",
+      "HEAD"
+    ],
+    "stdin": null,
+    "exit": 0,
+    "stdout": "4d6ab07e159db2e02a2433396e9a83f275c33a40\n",
+    "stderr": "",
+    "seconds": 0.0064
+  },
+  {
+    "argv": [
+      "/opt/homebrew/Cellar/postgresql@17/17.11/bin/initdb",
+      "-D",
+      "/private/tmp/mixer-authz-1zv1p_81/data",
+      "-U",
+      "bootstrap",
+      "-A",
+      "trust",
+      "--no-locale",
+      "-E",
+      "UTF8"
+    ],
+    "stdin": null,
+    "exit": 0,
+    "stdout": "The files belonging to this database system will be owned by user \"andreyyurlov\".\nThis user must also own the server process.\n\nThe database cluster will be initialized with locale \"C\".\nThe default text search configuration will be set to \"english\".\n\nData page checksums are disabled.\n\ncreating directory /private/tmp/mixer-authz-1zv1p_81/data ... ok\ncreating subdirectories ... ok\nselecting dynamic shared memory implementation ... posix\nselecting default \"max_connections\" ... 100\nselecting default \"shared_buffers\" ... 128MB\nselecting default time zone ... America/New_York\ncreating configuration files ... ok\nrunning bootstrap script ... ok\nperforming post-bootstrap initialization ... ok\nsyncing data to disk ... ok\n\nSuccess. You can now start the database server using:\n\n    '/opt/homebrew/Cellar/postgresql@17/17.11/bin/pg_ctl' -D /private/tmp/mixer-authz-1zv1p_81/data -l logfile start\n\n",
+    "stderr": "",
+    "seconds": 0.3578
+  },
+  {
+    "argv": [
+      "/opt/homebrew/Cellar/postgresql@17/17.11/bin/pg_ctl",
+      "-D",
+      "/private/tmp/mixer-authz-1zv1p_81/data",
+      "-l",
+      "/private/tmp/mixer-authz-1zv1p_81/postgres.log",
+      "-o",
+      "-k /private/tmp/mixer-authz-1zv1p_81/socket -c listen_addresses='' -c unix_socket_permissions=0700 -c max_connections=12",
+      "start",
+      "-w"
+    ],
+    "stdin": null,
+    "exit": 0,
+    "stdout": "waiting for server to start.... done\nserver started\n",
+    "stderr": "",
+    "seconds": 0.1233
+  },
+  {
+    "argv": [
+      "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+      "-X",
+      "-q",
+      "-A",
+      "-t",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "VERBOSITY=verbose",
+      "-h",
+      "/private/tmp/mixer-authz-1zv1p_81/socket",
+      "-U",
+      "bootstrap",
+      "-d",
+      "postgres"
+    ],
+    "stdin": "-- Disposable privilege/locking pattern probe, NOT a hosted migration.\nCREATE ROLE probe_owner NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;\nCREATE ROLE probe_resolver NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;\nCREATE ROLE probe_runtime LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;\nCREATE ROLE probe_bypass LOGIN BYPASSRLS;\nCREATE ROLE probe_bridge NOLOGIN NOINHERIT;\nCREATE ROLE probe_chain LOGIN NOINHERIT;\nGRANT probe_owner TO probe_bridge WITH INHERIT FALSE, SET TRUE;\nGRANT probe_bridge TO probe_chain WITH INHERIT FALSE, SET TRUE;\nREVOKE CREATE ON SCHEMA public FROM PUBLIC;\nCREATE SCHEMA probe_auth AUTHORIZATION probe_owner;\nCREATE SCHEMA probe_domain AUTHORIZATION probe_owner;\nGRANT USAGE ON SCHEMA probe_auth, probe_domain TO probe_resolver, probe_runtime;\nSET ROLE probe_owner;\nCREATE TABLE probe_auth.profiles(id text PRIMARY KEY, active boolean NOT NULL, revision bigint NOT NULL);\nCREATE TABLE probe_auth.principals(LIKE probe_auth.profiles INCLUDING ALL);\nCREATE TABLE probe_auth.families(LIKE probe_auth.profiles INCLUDING ALL);\nCREATE TABLE probe_auth.org_heads(LIKE probe_auth.profiles INCLUDING ALL);\nCREATE TABLE probe_auth.project_heads(LIKE probe_auth.profiles INCLUDING ALL);\nCREATE TABLE probe_auth.memberships(principal text NOT NULL, org text NOT NULL, project text NOT NULL, role text NOT NULL, active boolean NOT NULL);\nCREATE TABLE probe_auth.recursive_members(principal text PRIMARY KEY);\nCREATE TABLE probe_domain.artifacts(org text NOT NULL, project text NOT NULL, digest text NOT NULL, PRIMARY KEY(org,project,digest));\nINSERT INTO probe_auth.profiles VALUES ('p',true,1);\nINSERT INTO probe_auth.principals VALUES ('p',true,1);\nINSERT INTO probe_auth.families VALUES ('p',true,1);\nINSERT INTO probe_auth.org_heads VALUES ('a',true,1);\nINSERT INTO probe_auth.project_heads VALUES ('a/p',true,1);\nINSERT INTO probe_auth.memberships VALUES ('p','a','p','viewer',true);\nINSERT INTO probe_auth.recursive_members VALUES ('p');\nINSERT INTO probe_domain.artifacts VALUES ('a','p','digest-a'),('b','p','digest-b');\nRESET ROLE;\nDO $$ DECLARE t text; BEGIN\n  FOREACH t IN ARRAY ARRAY['profiles','principals','families','org_heads','project_heads','memberships'] LOOP\n    EXECUTE format('ALTER TABLE probe_auth.%I ENABLE ROW LEVEL SECURITY', t);\n    EXECUTE format('ALTER TABLE probe_auth.%I FORCE ROW LEVEL SECURITY', t);\n    EXECUTE format('CREATE POLICY resolver_read ON probe_auth.%I FOR SELECT TO probe_resolver USING (true)', t);\n    EXECUTE format('GRANT SELECT ON probe_auth.%I TO probe_resolver', t);\n  END LOOP;\nEND $$;\nALTER TABLE probe_auth.recursive_members ENABLE ROW LEVEL SECURITY;\nALTER TABLE probe_auth.recursive_members FORCE ROW LEVEL SECURITY;\nCREATE POLICY recursive_bad ON probe_auth.recursive_members TO probe_runtime USING (EXISTS(SELECT 1 FROM probe_auth.recursive_members m WHERE m.principal=current_setting('probe.principal',true)));\nGRANT SELECT ON probe_auth.recursive_members TO probe_runtime;\n-- Creation is performed by disposable bootstrap. Owner has no CREATE afterward.\nCREATE FUNCTION probe_auth.lock_chain() RETURNS void LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=pg_catalog SET row_security=on AS $$\nBEGIN\n  PERFORM 1 FROM probe_auth.profiles WHERE id='p' FOR SHARE;\n  PERFORM 1 FROM probe_auth.principals WHERE id='p' FOR SHARE;\n  PERFORM 1 FROM probe_auth.families WHERE id='p' FOR SHARE;\n  PERFORM 1 FROM probe_auth.org_heads WHERE id='a' FOR SHARE;\n  PERFORM 1 FROM probe_auth.project_heads WHERE id='a/p' FOR SHARE;\nEND $$;\nALTER FUNCTION probe_auth.lock_chain() OWNER TO probe_resolver;\nREVOKE ALL ON FUNCTION probe_auth.lock_chain() FROM PUBLIC;\nGRANT EXECUTE ON FUNCTION probe_auth.lock_chain() TO probe_runtime;\nCREATE FUNCTION probe_auth.can_read(o text,p text) RETURNS boolean LANGUAGE sql VOLATILE SECURITY DEFINER SET search_path=pg_catalog SET row_security=on AS $$\n SELECT coalesce(current_setting('probe.action',true)='artifact.read'\n   AND current_setting('probe.org',true)=o AND current_setting('probe.project',true)=p\n   AND EXISTS(SELECT 1 FROM probe_auth.profiles WHERE id='p' AND active)\n   AND EXISTS(SELECT 1 FROM probe_auth.principals WHERE id=current_setting('probe.principal',true) AND active)\n   AND EXISTS(SELECT 1 FROM probe_auth.families WHERE id='p' AND active)\n   AND EXISTS(SELECT 1 FROM probe_auth.memberships m WHERE m.principal=current_setting('probe.principal',true) AND m.org=o AND m.project=p AND m.active AND m.role='viewer'),false)\n$$;\nALTER FUNCTION probe_auth.can_read(text,text) OWNER TO probe_resolver;\nREVOKE ALL ON FUNCTION probe_auth.can_read(text,text) FROM PUBLIC;\nGRANT EXECUTE ON FUNCTION probe_auth.can_read(text,text) TO probe_runtime;\nALTER TABLE probe_domain.artifacts ENABLE ROW LEVEL SECURITY;\nALTER TABLE probe_domain.artifacts FORCE ROW LEVEL SECURITY;\nCREATE POLICY runtime_read ON probe_domain.artifacts FOR SELECT TO probe_runtime USING (probe_auth.can_read(org,project));\nGRANT SELECT ON probe_domain.artifacts TO probe_runtime;\n",
+    "exit": 0,
+    "stdout": "",
+    "stderr": "",
+    "seconds": 0.0291
+  },
+  {
+    "argv": [
+      "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+      "-X",
+      "-q",
+      "-A",
+      "-t",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "VERBOSITY=verbose",
+      "-h",
+      "/private/tmp/mixer-authz-1zv1p_81/socket",
+      "-U",
+      "probe_runtime",
+      "-d",
+      "postgres"
+    ],
+    "stdin": "SELECT * FROM probe_auth.recursive_members;",
+    "exit": 3,
+    "stdout": "",
+    "stderr": "ERROR:  42P17: infinite recursion detected in policy for relation \"recursive_members\"\nLOCATION:  fireRIRrules, rewriteHandler.c:2265\n",
+    "seconds": 0.0118
+  },
+  {
+    "argv": [
+      "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+      "-X",
+      "-q",
+      "-A",
+      "-t",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "VERBOSITY=verbose",
+      "-h",
+      "/private/tmp/mixer-authz-1zv1p_81/socket",
+      "-U",
+      "probe_runtime",
+      "-d",
+      "postgres"
+    ],
+    "stdin": "SELECT probe_auth.lock_chain();",
+    "exit": 3,
+    "stdout": "",
+    "stderr": "ERROR:  42501: permission denied for table profiles\nCONTEXT:  SQL statement \"SELECT 1 FROM probe_auth.profiles WHERE id='p' FOR SHARE\"\nPL/pgSQL function probe_auth.lock_chain() line 3 at PERFORM\nLOCATION:  aclcheck_error, aclchk.c:2845\n",
+    "seconds": 0.0126
+  },
+  {
+    "argv": [
+      "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+      "-X",
+      "-q",
+      "-A",
+      "-t",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "VERBOSITY=verbose",
+      "-h",
+      "/private/tmp/mixer-authz-1zv1p_81/socket",
+      "-U",
+      "bootstrap",
+      "-d",
+      "postgres"
+    ],
+    "stdin": "DO $$ DECLARE t text; BEGIN FOREACH t IN ARRAY ARRAY['profiles','principals','families','org_heads','project_heads'] LOOP EXECUTE format('GRANT UPDATE(revision) ON probe_auth.%I TO probe_resolver', t); END LOOP; END $$;",
+    "exit": 0,
+    "stdout": "",
+    "stderr": "",
+    "seconds": 0.0127
+  },
+  {
+    "argv": [
+      "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+      "-X",
+      "-q",
+      "-A",
+      "-t",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "VERBOSITY=verbose",
+      "-h",
+      "/private/tmp/mixer-authz-1zv1p_81/socket",
+      "-U",
+      "probe_runtime",
+      "-d",
+      "postgres"
+    ],
+    "stdin": "BEGIN; SELECT probe_auth.lock_chain(); COMMIT;",
+    "exit": 0,
+    "stdout": "\n",
+    "stderr": "",
+    "seconds": 0.0139
+  },
+  {
+    "argv": [
+      "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+      "-X",
+      "-q",
+      "-A",
+      "-t",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "VERBOSITY=verbose",
+      "-h",
+      "/private/tmp/mixer-authz-1zv1p_81/socket",
+      "-U",
+      "probe_runtime",
+      "-d",
+      "postgres"
+    ],
+    "stdin": "SELECT * FROM probe_auth.memberships;",
+    "exit": 3,
+    "stdout": "",
+    "stderr": "ERROR:  42501: permission denied for table memberships\nLOCATION:  aclcheck_error, aclchk.c:2845\n",
+    "seconds": 0.0105
+  },
+  {
+    "argv": [
+      "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+      "-X",
+      "-q",
+      "-A",
+      "-t",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "VERBOSITY=verbose",
+      "-h",
+      "/private/tmp/mixer-authz-1zv1p_81/socket",
+      "-U",
+      "probe_runtime",
+      "-d",
+      "postgres"
+    ],
+    "stdin": "UPDATE probe_auth.principals SET active=false;",
+    "exit": 3,
+    "stdout": "",
+    "stderr": "ERROR:  42501: permission denied for table principals\nLOCATION:  aclcheck_error, aclchk.c:2845\n",
+    "seconds": 0.0134
+  },
+  {
+    "argv": [
+      "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+      "-X",
+      "-q",
+      "-A",
+      "-t",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "VERBOSITY=verbose",
+      "-h",
+      "/private/tmp/mixer-authz-1zv1p_81/socket",
+      "-U",
+      "probe_runtime",
+      "-d",
+      "postgres"
+    ],
+    "stdin": "SELECT count(*) FROM probe_domain.artifacts;",
+    "exit": 0,
+    "stdout": "0\n",
+    "stderr": "",
+    "seconds": 0.0126
+  },
+  {
+    "argv": [
+      "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+      "-X",
+      "-q",
+      "-A",
+      "-t",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "VERBOSITY=verbose",
+      "-h",
+      "/private/tmp/mixer-authz-1zv1p_81/socket",
+      "-U",
+      "probe_runtime",
+      "-d",
+      "postgres"
+    ],
+    "stdin": "BEGIN; SET LOCAL mixer.role='publisher'; SELECT count(*) FROM probe_domain.artifacts; COMMIT;",
+    "exit": 0,
+    "stdout": "0\n",
+    "stderr": "",
+    "seconds": 0.0113
+  },
+  {
+    "argv": [
+      "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+      "-X",
+      "-q",
+      "-A",
+      "-t",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "VERBOSITY=verbose",
+      "-h",
+      "/private/tmp/mixer-authz-1zv1p_81/socket",
+      "-U",
+      "probe_runtime",
+      "-d",
+      "postgres"
+    ],
+    "stdin": "BEGIN; SELECT set_config('probe.principal','p',true),set_config('probe.org','a',true),set_config('probe.project','p',true),set_config('probe.action','artifact.read',true); SELECT string_agg(digest,',') FROM probe_domain.artifacts; COMMIT;",
+    "exit": 0,
+    "stdout": "p|a|p|artifact.read\ndigest-a\n",
+    "stderr": "",
+    "seconds": 0.0115
+  },
+  {
+    "argv": [
+      "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+      "-X",
+      "-q",
+      "-A",
+      "-t",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "VERBOSITY=verbose",
+      "-h",
+      "/private/tmp/mixer-authz-1zv1p_81/socket",
+      "-U",
+      "probe_runtime",
+      "-d",
+      "postgres"
+    ],
+    "stdin": "BEGIN; SELECT set_config('probe.principal','p',true),set_config('probe.org','a',true),set_config('probe.project','p',true),set_config('probe.action','artifact.read',true); SELECT set_config('probe.action','release.publish',true); SELECT count(*) FROM probe_domain.artifacts; COMMIT;",
+    "exit": 0,
+    "stdout": "p|a|p|artifact.read\nrelease.publish\n0\n",
+    "stderr": "",
+    "seconds": 0.0116
+  },
+  {
+    "argv": [
+      "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+      "-X",
+      "-q",
+      "-A",
+      "-t",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "VERBOSITY=verbose",
+      "-h",
+      "/private/tmp/mixer-authz-1zv1p_81/socket",
+      "-U",
+      "probe_runtime",
+      "-d",
+      "postgres"
+    ],
+    "stdin": "SELECT EXISTS(SELECT 1 FROM pg_roles r WHERE (r.rolsuper OR r.rolbypassrls OR r.rolcreaterole OR r.rolcreatedb OR r.rolreplication OR r.rolname IN ('probe_owner','probe_resolver','pg_read_all_data','pg_write_all_data','pg_read_server_files','pg_write_server_files','pg_execute_server_program')) AND pg_has_role(current_user,r.oid,'MEMBER'));",
+    "exit": 0,
+    "stdout": "f\n",
+    "stderr": "",
+    "seconds": 0.0113
+  },
+  {
+    "argv": [
+      "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+      "-X",
+      "-q",
+      "-A",
+      "-t",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "VERBOSITY=verbose",
+      "-h",
+      "/private/tmp/mixer-authz-1zv1p_81/socket",
+      "-U",
+      "probe_bypass",
+      "-d",
+      "postgres"
+    ],
+    "stdin": "SELECT EXISTS(SELECT 1 FROM pg_roles r WHERE (r.rolsuper OR r.rolbypassrls OR r.rolcreaterole OR r.rolcreatedb OR r.rolreplication OR r.rolname IN ('probe_owner','probe_resolver','pg_read_all_data','pg_write_all_data','pg_read_server_files','pg_write_server_files','pg_execute_server_program')) AND pg_has_role(current_user,r.oid,'MEMBER'));",
+    "exit": 0,
+    "stdout": "t\n",
+    "stderr": "",
+    "seconds": 0.0103
+  },
+  {
+    "argv": [
+      "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+      "-X",
+      "-q",
+      "-A",
+      "-t",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "VERBOSITY=verbose",
+      "-h",
+      "/private/tmp/mixer-authz-1zv1p_81/socket",
+      "-U",
+      "probe_chain",
+      "-d",
+      "postgres"
+    ],
+    "stdin": "SELECT EXISTS(SELECT 1 FROM pg_roles r WHERE (r.rolsuper OR r.rolbypassrls OR r.rolcreaterole OR r.rolcreatedb OR r.rolreplication OR r.rolname IN ('probe_owner','probe_resolver','pg_read_all_data','pg_write_all_data','pg_read_server_files','pg_write_server_files','pg_execute_server_program')) AND pg_has_role(current_user,r.oid,'MEMBER'));",
+    "exit": 0,
+    "stdout": "t\n",
+    "stderr": "",
+    "seconds": 0.0107
+  },
+  {
+    "argv": [
+      "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+      "-X",
+      "-q",
+      "-A",
+      "-t",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "VERBOSITY=verbose",
+      "-h",
+      "/private/tmp/mixer-authz-1zv1p_81/socket",
+      "-U",
+      "probe_runtime",
+      "-d",
+      "postgres"
+    ],
+    "stdin": "SET ROLE probe_resolver;",
+    "exit": 3,
+    "stdout": "",
+    "stderr": "ERROR:  42501: permission denied to set role \"probe_resolver\"\nLOCATION:  call_string_check_hook, guc.c:6947\n",
+    "seconds": 0.0105
+  },
+  {
+    "argv": [
+      "/opt/homebrew/Cellar/postgresql@17/17.11/bin/pg_ctl",
+      "-D",
+      "/private/tmp/mixer-authz-1zv1p_81/data",
+      "stop",
+      "-m",
+      "immediate",
+      "-w"
+    ],
+    "stdin": null,
+    "exit": 0,
+    "stdout": "waiting for server to shut down.... done\nserver stopped\n",
+    "stderr": "",
+    "seconds": 0.1128
+  }
+]

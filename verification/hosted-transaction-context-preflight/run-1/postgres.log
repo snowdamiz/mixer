@@ -1,0 +1,561 @@
+2026-10-24 02:52:39.173 EDT [83390] LOG:  starting PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit
+2026-10-24 02:52:39.173 EDT [83390] LOG:  listening on Unix socket "/private/tmp/mxtc-jiwnrz77/socket/.s.PGSQL.5432"
+2026-10-24 02:52:39.177 EDT [83393] LOG:  database system was shut down at 2026-10-24 02:52:39 EDT
+2026-10-24 02:52:39.179 EDT [83390] LOG:  database system is ready to accept connections
+2026-10-24 02:52:39.288 EDT [83398] LOG:  statement: CREATE DATABASE context_preflight
+2026-10-24 02:52:45.125 EDT [83495] LOG:  statement: SELECT t.oid, t.typname, t.typsend, t.typreceive, t.typoutput, t.typinput,
+	       coalesce(d.typelem, t.typelem), coalesce(r.rngsubtype, 0), ARRAY (
+	  SELECT a.atttypid
+	  FROM pg_attribute AS a
+	  WHERE a.attrelid = t.typrelid AND a.attnum > 0 AND NOT a.attisdropped
+	  ORDER BY a.attnum
+	)
+	
+	FROM pg_type AS t
+	LEFT JOIN pg_type AS d ON t.typbasetype = d.oid
+	LEFT JOIN pg_range AS r ON r.rngtypid = t.oid OR r.rngmultitypid = t.oid OR (t.typbasetype <> 0 AND r.rngtypid = t.typbasetype)
+	WHERE (t.typrelid = 0)
+	AND (t.typelem = 0 OR NOT EXISTS (SELECT 1 FROM pg_catalog.pg_type s WHERE s.typrelid != 0 AND s.oid = t.typelem))
+	
+	
+2026-10-24 02:52:45.127 EDT [83495] LOG:  execute <unnamed>: CREATE TABLE effects (case_name text NOT NULL, value integer NOT NULL)
+2026-10-24 02:52:45.127 EDT [83495] LOG:  execute <unnamed>: CREATE TABLE gate (id integer PRIMARY KEY, revision integer NOT NULL)
+2026-10-24 02:52:45.128 EDT [83495] LOG:  execute <unnamed>: CREATE TABLE membership (id integer PRIMARY KEY, active boolean NOT NULL)
+2026-10-24 02:52:45.128 EDT [83495] LOG:  execute <unnamed>: INSERT INTO gate VALUES (1, 1)
+2026-10-24 02:52:45.128 EDT [83495] LOG:  execute <unnamed>: INSERT INTO membership VALUES (1, true)
+2026-10-24 02:52:45.248 EDT [83495] LOG:  execute <unnamed>: TRUNCATE effects
+2026-10-24 02:52:45.249 EDT [83495] LOG:  execute <unnamed>: UPDATE membership SET active = true WHERE id = 1
+2026-10-24 02:52:45.249 EDT [83495] LOG:  statement: BEGIN
+2026-10-24 02:52:45.249 EDT [83495] LOG:  execute <unnamed>: SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+2026-10-24 02:52:45.250 EDT [83495] LOG:  execute <unnamed>: SELECT set_config($1, $2, true), set_config('lock_timeout', '250ms', true)
+2026-10-24 02:52:45.250 EDT [83495] DETAIL:  Parameters: $1 = 'mixer_preflight.invocation_nonce', $2 = 'a753fbe36b5283967c77f12e4082422425406a9849a266186bea308039c62d7e'
+2026-10-24 02:52:45.250 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.250 EDT [83495] DETAIL:  Parameters: $1 = '4999ms'
+2026-10-24 02:52:45.250 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.250 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.250 EDT [83495] DETAIL:  Parameters: $1 = '4999ms'
+2026-10-24 02:52:45.250 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.250 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.250 EDT [83495] DETAIL:  Parameters: $1 = '4999ms'
+2026-10-24 02:52:45.250 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user
+2026-10-24 02:52:45.250 EDT [83495] LOG:  execute <unnamed>: SELECT setting::int FROM pg_settings WHERE name = 'statement_timeout'
+2026-10-24 02:52:45.288 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.288 EDT [83495] DETAIL:  Parameters: $1 = '4961ms'
+2026-10-24 02:52:45.288 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.289 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.289 EDT [83495] DETAIL:  Parameters: $1 = '4961ms'
+2026-10-24 02:52:45.289 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user
+2026-10-24 02:52:45.289 EDT [83495] LOG:  execute <unnamed>: SELECT setting::int FROM pg_settings WHERE name = 'statement_timeout'
+2026-10-24 02:52:45.289 EDT [83495] LOG:  execute <unnamed>: SHOW transaction_isolation
+2026-10-24 02:52:45.289 EDT [83495] LOG:  execute <unnamed>: SHOW lock_timeout
+2026-10-24 02:52:45.289 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.289 EDT [83495] DETAIL:  Parameters: $1 = '4960ms'
+2026-10-24 02:52:45.289 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.289 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.289 EDT [83495] DETAIL:  Parameters: $1 = '4960ms'
+2026-10-24 02:52:45.289 EDT [83495] LOG:  execute <unnamed>: INSERT INTO effects VALUES ('stable', 1)
+2026-10-24 02:52:45.290 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.290 EDT [83495] DETAIL:  Parameters: $1 = '4959ms'
+2026-10-24 02:52:45.290 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.290 EDT [83495] LOG:  statement: COMMIT
+2026-10-24 02:52:45.290 EDT [83496] LOG:  execute <unnamed>: SELECT count(*) FROM effects
+2026-10-24 02:52:45.291 EDT [83495] LOG:  execute <unnamed>: TRUNCATE effects
+2026-10-24 02:52:45.291 EDT [83495] LOG:  execute <unnamed>: UPDATE membership SET active = true WHERE id = 1
+2026-10-24 02:52:45.291 EDT [83495] LOG:  statement: BEGIN
+2026-10-24 02:52:45.291 EDT [83495] LOG:  execute <unnamed>: SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+2026-10-24 02:52:45.291 EDT [83495] LOG:  execute <unnamed>: SELECT set_config($1, $2, true), set_config('lock_timeout', '250ms', true)
+2026-10-24 02:52:45.291 EDT [83495] DETAIL:  Parameters: $1 = 'mixer_preflight.invocation_nonce', $2 = '67ed9bd9594450f555f361c3c4c4c2c1dcf95f74d8b9586e2914460dd9cee404'
+2026-10-24 02:52:45.291 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.291 EDT [83495] DETAIL:  Parameters: $1 = '5000ms'
+2026-10-24 02:52:45.291 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.292 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.292 EDT [83495] DETAIL:  Parameters: $1 = '4999ms'
+2026-10-24 02:52:45.292 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.292 EDT [83495] LOG:  statement: COMMIT
+2026-10-24 02:52:45.292 EDT [83495] LOG:  statement: BEGIN
+2026-10-24 02:52:45.292 EDT [83495] LOG:  execute <unnamed>: SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+2026-10-24 02:52:45.292 EDT [83495] LOG:  execute <unnamed>: SELECT set_config($1, $2, true), set_config('lock_timeout', '250ms', true)
+2026-10-24 02:52:45.292 EDT [83495] DETAIL:  Parameters: $1 = 'mixer_preflight.invocation_nonce', $2 = 'e07c0c33d1efc7f3d7197f32440b7c7e51b9ecc260212bc10bee5ff2079fc485'
+2026-10-24 02:52:45.292 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.292 EDT [83495] DETAIL:  Parameters: $1 = '5000ms'
+2026-10-24 02:52:45.292 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.292 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.292 EDT [83495] DETAIL:  Parameters: $1 = '5000ms'
+2026-10-24 02:52:45.292 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.292 EDT [83495] LOG:  statement: COMMIT
+2026-10-24 02:52:45.292 EDT [83495] LOG:  execute <unnamed>: TRUNCATE effects
+2026-10-24 02:52:45.293 EDT [83495] LOG:  execute <unnamed>: UPDATE membership SET active = true WHERE id = 1
+2026-10-24 02:52:45.293 EDT [83495] LOG:  statement: BEGIN
+2026-10-24 02:52:45.293 EDT [83495] LOG:  execute <unnamed>: SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+2026-10-24 02:52:45.293 EDT [83495] LOG:  execute <unnamed>: SELECT set_config($1, $2, true), set_config('lock_timeout', '250ms', true)
+2026-10-24 02:52:45.293 EDT [83495] DETAIL:  Parameters: $1 = 'mixer_preflight.invocation_nonce', $2 = '878a04cba3e10ac4336784d3fd603df7038601cd3a4ffa8c913b48049bffbe07'
+2026-10-24 02:52:45.293 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.293 EDT [83495] DETAIL:  Parameters: $1 = '5000ms'
+2026-10-24 02:52:45.293 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.293 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.293 EDT [83495] DETAIL:  Parameters: $1 = '5000ms'
+2026-10-24 02:52:45.293 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.293 EDT [83495] LOG:  statement: COMMIT
+2026-10-24 02:52:45.294 EDT [83496] LOG:  execute <unnamed>: SELECT count(*) FROM effects
+2026-10-24 02:52:45.294 EDT [83495] LOG:  execute <unnamed>: TRUNCATE effects
+2026-10-24 02:52:45.294 EDT [83495] LOG:  execute <unnamed>: UPDATE membership SET active = true WHERE id = 1
+2026-10-24 02:52:45.294 EDT [83495] LOG:  statement: BEGIN
+2026-10-24 02:52:45.294 EDT [83495] LOG:  execute <unnamed>: SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+2026-10-24 02:52:45.294 EDT [83495] LOG:  execute <unnamed>: SELECT set_config($1, $2, true), set_config('lock_timeout', '250ms', true)
+2026-10-24 02:52:45.294 EDT [83495] DETAIL:  Parameters: $1 = 'mixer_preflight.invocation_nonce', $2 = '900b094d0731402cb7035e9762ec01cfbb6e84ce0bde61f97d14e55a23c2e50f'
+2026-10-24 02:52:45.294 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.294 EDT [83495] DETAIL:  Parameters: $1 = '5000ms'
+2026-10-24 02:52:45.295 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.295 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.295 EDT [83495] DETAIL:  Parameters: $1 = '4999ms'
+2026-10-24 02:52:45.295 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.295 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.295 EDT [83495] DETAIL:  Parameters: $1 = '4999ms'
+2026-10-24 02:52:45.295 EDT [83495] LOG:  execute <unnamed>: INSERT INTO effects VALUES ('rollback', 1)
+2026-10-24 02:52:45.295 EDT [83495] LOG:  statement: ROLLBACK
+2026-10-24 02:52:45.295 EDT [83496] LOG:  execute <unnamed>: SELECT count(*) FROM effects
+2026-10-24 02:52:45.295 EDT [83495] LOG:  execute <unnamed>: TRUNCATE effects
+2026-10-24 02:52:45.296 EDT [83495] LOG:  execute <unnamed>: UPDATE membership SET active = true WHERE id = 1
+2026-10-24 02:52:45.296 EDT [83495] LOG:  statement: BEGIN
+2026-10-24 02:52:45.296 EDT [83495] LOG:  execute <unnamed>: SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+2026-10-24 02:52:45.296 EDT [83495] LOG:  execute <unnamed>: SELECT set_config($1, $2, true), set_config('lock_timeout', '250ms', true)
+2026-10-24 02:52:45.296 EDT [83495] DETAIL:  Parameters: $1 = 'mixer_preflight.invocation_nonce', $2 = '3cee6653134284f7a50a4544b985ee40e647a3482ce1a22c9edc1e5de9030dce'
+2026-10-24 02:52:45.296 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.296 EDT [83495] DETAIL:  Parameters: $1 = '5000ms'
+2026-10-24 02:52:45.296 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.296 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.296 EDT [83495] DETAIL:  Parameters: $1 = '5000ms'
+2026-10-24 02:52:45.296 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.296 EDT [83495] LOG:  statement: COMMIT
+2026-10-24 02:52:45.296 EDT [83495] LOG:  statement: BEGIN
+2026-10-24 02:52:45.296 EDT [83495] LOG:  execute <unnamed>: SELECT set_config($1, $2, true)
+2026-10-24 02:52:45.296 EDT [83495] DETAIL:  Parameters: $1 = 'mixer_preflight.invocation_nonce', $2 = '3cee6653134284f7a50a4544b985ee40e647a3482ce1a22c9edc1e5de9030dce'
+2026-10-24 02:52:45.296 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text
+2026-10-24 02:52:45.296 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.296 EDT [83495] DETAIL:  Parameters: $1 = '5000ms'
+2026-10-24 02:52:45.296 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.296 EDT [83495] LOG:  statement: COMMIT
+2026-10-24 02:52:45.297 EDT [83496] LOG:  execute <unnamed>: SELECT count(*) FROM effects
+2026-10-24 02:52:45.297 EDT [83495] LOG:  execute <unnamed>: TRUNCATE effects
+2026-10-24 02:52:45.297 EDT [83495] LOG:  execute <unnamed>: UPDATE membership SET active = true WHERE id = 1
+2026-10-24 02:52:45.297 EDT [83495] LOG:  statement: BEGIN
+2026-10-24 02:52:45.297 EDT [83495] LOG:  execute <unnamed>: SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+2026-10-24 02:52:45.297 EDT [83495] LOG:  execute <unnamed>: SELECT set_config($1, $2, true), set_config('lock_timeout', '250ms', true)
+2026-10-24 02:52:45.297 EDT [83495] DETAIL:  Parameters: $1 = 'mixer_preflight.invocation_nonce', $2 = 'f532d2bede04e4d00014dcfb3ead4490018ec8a82b8fa069ad420f57fe2b7b6a'
+2026-10-24 02:52:45.297 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.297 EDT [83495] DETAIL:  Parameters: $1 = '5000ms'
+2026-10-24 02:52:45.297 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.298 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.298 EDT [83495] DETAIL:  Parameters: $1 = '4999ms'
+2026-10-24 02:52:45.298 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.298 EDT [83495] LOG:  statement: COMMIT
+2026-10-24 02:52:45.298 EDT [83495] LOG:  execute <unnamed>: TRUNCATE effects
+2026-10-24 02:52:45.298 EDT [83495] LOG:  execute <unnamed>: UPDATE membership SET active = true WHERE id = 1
+2026-10-24 02:52:45.298 EDT [83495] LOG:  statement: BEGIN
+2026-10-24 02:52:45.298 EDT [83495] LOG:  execute <unnamed>: SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+2026-10-24 02:52:45.298 EDT [83495] LOG:  execute <unnamed>: SELECT set_config($1, $2, true), set_config('lock_timeout', '250ms', true)
+2026-10-24 02:52:45.298 EDT [83495] DETAIL:  Parameters: $1 = 'mixer_preflight.invocation_nonce', $2 = '16475f92fd9003487dd68b91e1bf2e104ebbed4400c2d08858486568669f0cdd'
+2026-10-24 02:52:45.298 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.298 EDT [83495] DETAIL:  Parameters: $1 = '5000ms'
+2026-10-24 02:52:45.298 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.299 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.299 EDT [83495] DETAIL:  Parameters: $1 = '4999ms'
+2026-10-24 02:52:45.299 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.299 EDT [83495] LOG:  statement: COMMIT
+2026-10-24 02:52:45.299 EDT [83495] LOG:  execute <unnamed>: TRUNCATE effects
+2026-10-24 02:52:45.299 EDT [83495] LOG:  execute <unnamed>: UPDATE membership SET active = true WHERE id = 1
+2026-10-24 02:52:45.299 EDT [83495] LOG:  statement: BEGIN
+2026-10-24 02:52:45.299 EDT [83495] LOG:  execute <unnamed>: SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+2026-10-24 02:52:45.299 EDT [83495] LOG:  execute <unnamed>: SELECT set_config($1, $2, true), set_config('lock_timeout', '250ms', true)
+2026-10-24 02:52:45.299 EDT [83495] DETAIL:  Parameters: $1 = 'mixer_preflight.invocation_nonce', $2 = 'b4fc2cf7b63035bb831ead2d5bb8f6dc878e6c6324d3cba182ee7cab25a0ea75'
+2026-10-24 02:52:45.299 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.299 EDT [83495] DETAIL:  Parameters: $1 = '5000ms'
+2026-10-24 02:52:45.299 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.299 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.299 EDT [83495] DETAIL:  Parameters: $1 = '5000ms'
+2026-10-24 02:52:45.300 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.300 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.300 EDT [83495] DETAIL:  Parameters: $1 = '4999ms'
+2026-10-24 02:52:45.300 EDT [83495] LOG:  execute <unnamed>: SELECT 1
+2026-10-24 02:52:45.300 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.300 EDT [83495] DETAIL:  Parameters: $1 = '4999ms'
+2026-10-24 02:52:45.300 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.300 EDT [83495] LOG:  statement: COMMIT
+2026-10-24 02:52:45.300 EDT [83495] LOG:  statement: BEGIN
+2026-10-24 02:52:45.300 EDT [83495] LOG:  statement: COMMIT
+2026-10-24 02:52:45.300 EDT [83495] LOG:  execute <unnamed>: TRUNCATE effects
+2026-10-24 02:52:45.300 EDT [83495] LOG:  execute <unnamed>: UPDATE membership SET active = true WHERE id = 1
+2026-10-24 02:52:45.300 EDT [83495] LOG:  statement: BEGIN
+2026-10-24 02:52:45.300 EDT [83495] LOG:  execute <unnamed>: SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+2026-10-24 02:52:45.301 EDT [83495] LOG:  execute <unnamed>: SELECT set_config($1, $2, true), set_config('lock_timeout', '250ms', true)
+2026-10-24 02:52:45.301 EDT [83495] DETAIL:  Parameters: $1 = 'mixer_preflight.invocation_nonce', $2 = 'b933caf71cc32f3999b96d895596547815b1452cf59d82841b4ee18df53dd4f4'
+2026-10-24 02:52:45.301 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.301 EDT [83495] DETAIL:  Parameters: $1 = '4999ms'
+2026-10-24 02:52:45.301 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.301 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.301 EDT [83495] DETAIL:  Parameters: $1 = '4999ms'
+2026-10-24 02:52:45.301 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.301 EDT [83495] LOG:  statement: COMMIT
+2026-10-24 02:52:45.301 EDT [83495] LOG:  execute <unnamed>: TRUNCATE effects
+2026-10-24 02:52:45.301 EDT [83495] LOG:  execute <unnamed>: UPDATE membership SET active = true WHERE id = 1
+2026-10-24 02:52:45.301 EDT [83495] LOG:  statement: BEGIN
+2026-10-24 02:52:45.301 EDT [83495] LOG:  execute <unnamed>: SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+2026-10-24 02:52:45.301 EDT [83495] LOG:  execute <unnamed>: SELECT set_config($1, $2, true), set_config('lock_timeout', '250ms', true)
+2026-10-24 02:52:45.301 EDT [83495] DETAIL:  Parameters: $1 = 'mixer_preflight.invocation_nonce', $2 = '024e7ec9da9b2ff3d5fa2770bfa3a8f7ccc8b70bcd1f4ef2f197324e13f38789'
+2026-10-24 02:52:45.302 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.302 EDT [83495] DETAIL:  Parameters: $1 = '4999ms'
+2026-10-24 02:52:45.302 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.302 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.302 EDT [83495] DETAIL:  Parameters: $1 = '4999ms'
+2026-10-24 02:52:45.302 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.302 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.302 EDT [83495] DETAIL:  Parameters: $1 = '4999ms'
+2026-10-24 02:52:45.302 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.302 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.302 EDT [83495] DETAIL:  Parameters: $1 = '4999ms'
+2026-10-24 02:52:45.302 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.302 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.302 EDT [83495] DETAIL:  Parameters: $1 = '4999ms'
+2026-10-24 02:52:45.302 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.302 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.302 EDT [83495] DETAIL:  Parameters: $1 = '4999ms'
+2026-10-24 02:52:45.302 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.302 EDT [83495] LOG:  statement: COMMIT
+2026-10-24 02:52:45.302 EDT [83495] LOG:  execute <unnamed>: TRUNCATE effects
+2026-10-24 02:52:45.303 EDT [83495] LOG:  execute <unnamed>: UPDATE membership SET active = true WHERE id = 1
+2026-10-24 02:52:45.303 EDT [83495] LOG:  statement: BEGIN
+2026-10-24 02:52:45.303 EDT [83495] LOG:  execute <unnamed>: SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+2026-10-24 02:52:45.303 EDT [83495] LOG:  execute <unnamed>: SELECT set_config($1, $2, true), set_config('lock_timeout', '250ms', true)
+2026-10-24 02:52:45.303 EDT [83495] DETAIL:  Parameters: $1 = 'mixer_preflight.invocation_nonce', $2 = '1e0dacb73b7a135b7aa8479ee72de6c4ace9d3f5b7ba7cc24bcb936be846410f'
+2026-10-24 02:52:45.303 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.303 EDT [83495] DETAIL:  Parameters: $1 = '5000ms'
+2026-10-24 02:52:45.303 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.303 EDT [83495] LOG:  execute <unnamed>: SELECT set_config($1, 'tampered', true)
+2026-10-24 02:52:45.303 EDT [83495] DETAIL:  Parameters: $1 = 'mixer_preflight.invocation_nonce'
+2026-10-24 02:52:45.303 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.303 EDT [83495] DETAIL:  Parameters: $1 = '5000ms'
+2026-10-24 02:52:45.303 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.303 EDT [83495] LOG:  statement: ROLLBACK
+2026-10-24 02:52:45.303 EDT [83496] LOG:  execute <unnamed>: SELECT count(*) FROM effects
+2026-10-24 02:52:45.303 EDT [83495] LOG:  execute <unnamed>: SELECT current_setting($1, true), current_setting('statement_timeout'), current_setting('lock_timeout')
+2026-10-24 02:52:45.303 EDT [83495] DETAIL:  Parameters: $1 = 'mixer_preflight.invocation_nonce'
+2026-10-24 02:52:45.303 EDT [83495] LOG:  execute <unnamed>: TRUNCATE effects
+2026-10-24 02:52:45.304 EDT [83495] LOG:  execute <unnamed>: UPDATE membership SET active = true WHERE id = 1
+2026-10-24 02:52:45.304 EDT [83495] LOG:  statement: BEGIN
+2026-10-24 02:52:45.304 EDT [83495] LOG:  execute <unnamed>: SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+2026-10-24 02:52:45.304 EDT [83495] LOG:  execute <unnamed>: SELECT set_config($1, $2, true), set_config('lock_timeout', '250ms', true)
+2026-10-24 02:52:45.304 EDT [83495] DETAIL:  Parameters: $1 = 'mixer_preflight.invocation_nonce', $2 = 'a6baed9a98225beed6bd8464cdaf64c25f2837c6050fc9b08004213731280a4c'
+2026-10-24 02:52:45.304 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.304 EDT [83495] DETAIL:  Parameters: $1 = '5000ms'
+2026-10-24 02:52:45.304 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.304 EDT [83495] LOG:  execute <unnamed>: SELECT current_setting($1, true)
+2026-10-24 02:52:45.304 EDT [83495] DETAIL:  Parameters: $1 = 'mixer_preflight.invocation_nonce'
+2026-10-24 02:52:45.304 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.304 EDT [83495] DETAIL:  Parameters: $1 = '5000ms'
+2026-10-24 02:52:45.304 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.304 EDT [83495] LOG:  statement: COMMIT
+2026-10-24 02:52:45.304 EDT [83495] LOG:  execute <unnamed>: SELECT current_setting($1, true), current_setting('statement_timeout'), current_setting('lock_timeout')
+2026-10-24 02:52:45.304 EDT [83495] DETAIL:  Parameters: $1 = 'mixer_preflight.invocation_nonce'
+2026-10-24 02:52:45.305 EDT [83495] LOG:  execute <unnamed>: TRUNCATE effects
+2026-10-24 02:52:45.305 EDT [83495] LOG:  execute <unnamed>: UPDATE membership SET active = true WHERE id = 1
+2026-10-24 02:52:45.305 EDT [83495] LOG:  statement: BEGIN
+2026-10-24 02:52:45.305 EDT [83495] LOG:  execute <unnamed>: SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+2026-10-24 02:52:45.305 EDT [83495] LOG:  execute <unnamed>: SELECT set_config($1, $2, true), set_config('lock_timeout', '250ms', true)
+2026-10-24 02:52:45.305 EDT [83495] DETAIL:  Parameters: $1 = 'mixer_preflight.invocation_nonce', $2 = '8374dcce6a361ae4847fea9b883583982ab77acb9a792809669fb1b310896bb8'
+2026-10-24 02:52:45.305 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.305 EDT [83495] DETAIL:  Parameters: $1 = '5000ms'
+2026-10-24 02:52:45.305 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.305 EDT [83495] LOG:  statement: ROLLBACK
+2026-10-24 02:52:45.305 EDT [83495] LOG:  execute <unnamed>: SELECT current_setting($1, true), current_setting('statement_timeout'), current_setting('lock_timeout')
+2026-10-24 02:52:45.305 EDT [83495] DETAIL:  Parameters: $1 = 'mixer_preflight.invocation_nonce'
+2026-10-24 02:52:45.305 EDT [83495] LOG:  execute <unnamed>: TRUNCATE effects
+2026-10-24 02:52:45.306 EDT [83495] LOG:  execute <unnamed>: UPDATE membership SET active = true WHERE id = 1
+2026-10-24 02:52:45.306 EDT [83495] LOG:  statement: BEGIN
+2026-10-24 02:52:45.306 EDT [83495] LOG:  execute <unnamed>: SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+2026-10-24 02:52:45.306 EDT [83495] LOG:  execute <unnamed>: SELECT set_config($1, $2, true), set_config('lock_timeout', '250ms', true)
+2026-10-24 02:52:45.306 EDT [83495] DETAIL:  Parameters: $1 = 'mixer_preflight.invocation_nonce', $2 = 'ebe9f1ae31a0b65364556004429ccf427d8dfd17a9fd9d7945d7ffa1faba6c20'
+2026-10-24 02:52:45.306 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.306 EDT [83495] DETAIL:  Parameters: $1 = '5000ms'
+2026-10-24 02:52:45.306 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.306 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.306 EDT [83495] DETAIL:  Parameters: $1 = '5000ms'
+2026-10-24 02:52:45.306 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.306 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.306 EDT [83495] DETAIL:  Parameters: $1 = '5000ms'
+2026-10-24 02:52:45.306 EDT [83495] LOG:  execute <unnamed>: INSERT INTO effects VALUES ('exception', 1)
+2026-10-24 02:52:45.307 EDT [83495] LOG:  statement: ROLLBACK
+2026-10-24 02:52:45.307 EDT [83496] LOG:  execute <unnamed>: SELECT count(*) FROM effects
+2026-10-24 02:52:45.307 EDT [83495] LOG:  execute <unnamed>: SELECT current_setting($1, true), current_setting('statement_timeout'), current_setting('lock_timeout')
+2026-10-24 02:52:45.307 EDT [83495] DETAIL:  Parameters: $1 = 'mixer_preflight.invocation_nonce'
+2026-10-24 02:52:45.307 EDT [83495] LOG:  execute <unnamed>: TRUNCATE effects
+2026-10-24 02:52:45.308 EDT [83495] LOG:  execute <unnamed>: UPDATE membership SET active = true WHERE id = 1
+2026-10-24 02:52:45.308 EDT [83495] LOG:  statement: BEGIN
+2026-10-24 02:52:45.308 EDT [83495] LOG:  execute <unnamed>: SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+2026-10-24 02:52:45.308 EDT [83495] LOG:  execute <unnamed>: SELECT set_config($1, $2, true), set_config('lock_timeout', '250ms', true)
+2026-10-24 02:52:45.308 EDT [83495] DETAIL:  Parameters: $1 = 'mixer_preflight.invocation_nonce', $2 = 'e998c0b2bf0ba1046b9f076982b54ef3d131363802360d3ee3179b96a8867c07'
+2026-10-24 02:52:45.308 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.308 EDT [83495] DETAIL:  Parameters: $1 = '180ms'
+2026-10-24 02:52:45.308 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.308 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.308 EDT [83495] DETAIL:  Parameters: $1 = '180ms'
+2026-10-24 02:52:45.308 EDT [83495] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:45.308 EDT [83495] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:45.308 EDT [83495] DETAIL:  Parameters: $1 = '180ms'
+2026-10-24 02:52:45.308 EDT [83495] LOG:  execute <unnamed>: INSERT INTO effects VALUES ('app-before-deadline', 1)
+2026-10-24 02:52:45.639 EDT [83496] LOG:  execute <unnamed>: SELECT count(*) FROM effects
+2026-10-24 02:52:45.639 EDT [83498] LOG:  execute <unnamed>: TRUNCATE effects
+2026-10-24 02:52:45.641 EDT [83498] LOG:  execute <unnamed>: UPDATE membership SET active = true WHERE id = 1
+2026-10-24 02:52:45.641 EDT [83498] LOG:  statement: BEGIN
+2026-10-24 02:52:45.641 EDT [83498] LOG:  execute <unnamed>: SELECT pg_backend_pid()
+2026-10-24 02:52:45.641 EDT [83498] LOG:  execute <unnamed>: INSERT INTO effects VALUES ('db-before-deadline', 1)
+2026-10-24 02:52:45.975 EDT [83496] LOG:  execute <unnamed>: SELECT count(*) FROM pg_stat_activity WHERE pid = $1
+2026-10-24 02:52:45.975 EDT [83496] DETAIL:  Parameters: $1 = '83498'
+2026-10-24 02:52:45.976 EDT [83507] LOG:  execute <unnamed>: SELECT pg_backend_pid()
+2026-10-24 02:52:45.976 EDT [83496] LOG:  execute <unnamed>: SELECT count(*) FROM effects
+2026-10-24 02:52:45.977 EDT [83507] LOG:  execute <unnamed>: TRUNCATE effects
+2026-10-24 02:52:45.980 EDT [83507] LOG:  execute <unnamed>: UPDATE membership SET active = true WHERE id = 1
+2026-10-24 02:52:45.980 EDT [83507] LOG:  statement: BEGIN
+2026-10-24 02:52:45.980 EDT [83507] LOG:  execute <unnamed>: INSERT INTO effects VALUES ('late-return', 1)
+2026-10-24 02:52:46.311 EDT [83496] LOG:  execute <unnamed>: SELECT count(*) FROM effects
+2026-10-24 02:52:46.312 EDT [83513] LOG:  execute <unnamed>: TRUNCATE effects
+2026-10-24 02:52:46.313 EDT [83513] LOG:  execute <unnamed>: UPDATE membership SET active = true WHERE id = 1
+2026-10-24 02:52:46.314 EDT [83513] LOG:  statement: BEGIN
+2026-10-24 02:52:46.314 EDT [83513] LOG:  execute <unnamed>: SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+2026-10-24 02:52:46.314 EDT [83513] LOG:  execute <unnamed>: SELECT set_config($1, $2, true), set_config('lock_timeout', '250ms', true)
+2026-10-24 02:52:46.314 EDT [83513] DETAIL:  Parameters: $1 = 'mixer_preflight.invocation_nonce', $2 = 'de417de9a0db09ed7066a3bf28e17b827c699e5397bfdf4391587695a6074f96'
+2026-10-24 02:52:46.314 EDT [83513] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:46.314 EDT [83513] DETAIL:  Parameters: $1 = '220ms'
+2026-10-24 02:52:46.314 EDT [83513] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:46.314 EDT [83513] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:46.314 EDT [83513] DETAIL:  Parameters: $1 = '220ms'
+2026-10-24 02:52:46.315 EDT [83513] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:46.315 EDT [83513] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:46.315 EDT [83513] DETAIL:  Parameters: $1 = '219ms'
+2026-10-24 02:52:46.315 EDT [83513] LOG:  execute <unnamed>: INSERT INTO effects VALUES ('before-slow-sql', 1)
+2026-10-24 02:52:46.315 EDT [83513] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:46.315 EDT [83513] DETAIL:  Parameters: $1 = '219ms'
+2026-10-24 02:52:46.315 EDT [83513] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:46.315 EDT [83513] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:46.315 EDT [83513] DETAIL:  Parameters: $1 = '219ms'
+2026-10-24 02:52:46.315 EDT [83513] LOG:  execute <unnamed>: SELECT pg_sleep(0.8)
+2026-10-24 02:52:46.540 EDT [83513] ERROR:  canceling statement due to statement timeout
+2026-10-24 02:52:46.540 EDT [83513] STATEMENT:  SELECT pg_sleep(0.8)
+2026-10-24 02:52:46.540 EDT [83513] LOG:  could not send data to client: Broken pipe
+2026-10-24 02:52:46.540 EDT [83513] STATEMENT:  SELECT pg_sleep(0.8)
+2026-10-24 02:52:46.540 EDT [83513] FATAL:  connection to client lost
+2026-10-24 02:52:46.540 EDT [83496] LOG:  execute <unnamed>: SELECT count(*) FROM effects
+2026-10-24 02:52:46.543 EDT [83515] LOG:  execute <unnamed>: TRUNCATE effects
+2026-10-24 02:52:46.545 EDT [83515] LOG:  execute <unnamed>: UPDATE membership SET active = true WHERE id = 1
+2026-10-24 02:52:46.545 EDT [83496] LOG:  statement: BEGIN
+2026-10-24 02:52:46.546 EDT [83496] LOG:  execute <unnamed>: UPDATE gate SET revision = revision + 1 WHERE id = 1
+2026-10-24 02:52:46.546 EDT [83515] LOG:  statement: BEGIN
+2026-10-24 02:52:46.546 EDT [83515] LOG:  execute <unnamed>: SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+2026-10-24 02:52:46.546 EDT [83515] LOG:  execute <unnamed>: SELECT set_config($1, $2, true), set_config('lock_timeout', '250ms', true)
+2026-10-24 02:52:46.546 EDT [83515] DETAIL:  Parameters: $1 = 'mixer_preflight.invocation_nonce', $2 = 'e53f144be9e81451b080c95e4d8d1d5650c5dc94ea72b2fa57675ebc03b690c2'
+2026-10-24 02:52:46.546 EDT [83515] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:46.546 EDT [83515] DETAIL:  Parameters: $1 = '2000ms'
+2026-10-24 02:52:46.546 EDT [83515] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:46.547 EDT [83515] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:46.547 EDT [83515] DETAIL:  Parameters: $1 = '1999ms'
+2026-10-24 02:52:46.547 EDT [83515] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:46.547 EDT [83515] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:46.547 EDT [83515] DETAIL:  Parameters: $1 = '1999ms'
+2026-10-24 02:52:46.547 EDT [83515] LOG:  execute <unnamed>: INSERT INTO effects VALUES ('before-lock', 1)
+2026-10-24 02:52:46.547 EDT [83515] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:46.547 EDT [83515] DETAIL:  Parameters: $1 = '1999ms'
+2026-10-24 02:52:46.547 EDT [83515] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:46.547 EDT [83515] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:46.547 EDT [83515] DETAIL:  Parameters: $1 = '1999ms'
+2026-10-24 02:52:46.548 EDT [83515] LOG:  execute <unnamed>: UPDATE gate SET revision = revision + 1 WHERE id = 1
+2026-10-24 02:52:46.800 EDT [83515] ERROR:  canceling statement due to lock timeout
+2026-10-24 02:52:46.800 EDT [83515] CONTEXT:  while updating tuple (0,1) in relation "gate"
+2026-10-24 02:52:46.800 EDT [83515] STATEMENT:  UPDATE gate SET revision = revision + 1 WHERE id = 1
+2026-10-24 02:52:46.800 EDT [83515] LOG:  statement: ROLLBACK
+2026-10-24 02:52:46.800 EDT [83496] LOG:  statement: COMMIT
+2026-10-24 02:52:46.802 EDT [83496] LOG:  execute <unnamed>: SELECT count(*) FROM effects
+2026-10-24 02:52:46.803 EDT [83515] LOG:  execute <unnamed>: TRUNCATE effects
+2026-10-24 02:52:46.805 EDT [83515] LOG:  execute <unnamed>: UPDATE membership SET active = true WHERE id = 1
+2026-10-24 02:52:46.805 EDT [83496] LOG:  statement: BEGIN
+2026-10-24 02:52:46.805 EDT [83496] LOG:  execute <unnamed>: UPDATE gate SET revision = revision + 1 WHERE id = 1
+2026-10-24 02:52:46.806 EDT [83496] LOG:  execute <unnamed>: UPDATE membership SET active = false WHERE id = 1
+2026-10-24 02:52:46.806 EDT [83515] LOG:  statement: BEGIN
+2026-10-24 02:52:46.806 EDT [83515] LOG:  execute <unnamed>: SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+2026-10-24 02:52:46.806 EDT [83515] LOG:  execute <unnamed>: SELECT set_config($1, $2, true), set_config('lock_timeout', '250ms', true)
+2026-10-24 02:52:46.806 EDT [83515] DETAIL:  Parameters: $1 = 'mixer_preflight.invocation_nonce', $2 = 'b62e582542d4cad415f1845a1f95087af33d392de8ed4613ac733960cf718f67'
+2026-10-24 02:52:46.806 EDT [83515] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:46.806 EDT [83515] DETAIL:  Parameters: $1 = '5000ms'
+2026-10-24 02:52:46.806 EDT [83515] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:46.807 EDT [83515] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:46.807 EDT [83515] DETAIL:  Parameters: $1 = '4999ms'
+2026-10-24 02:52:46.807 EDT [83515] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:46.807 EDT [83515] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:46.807 EDT [83515] DETAIL:  Parameters: $1 = '4999ms'
+2026-10-24 02:52:46.807 EDT [83515] LOG:  execute <unnamed>: SELECT active FROM membership WHERE id = 1
+2026-10-24 02:52:46.807 EDT [83515] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:46.807 EDT [83515] DETAIL:  Parameters: $1 = '4999ms'
+2026-10-24 02:52:46.807 EDT [83515] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:46.807 EDT [83515] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:46.807 EDT [83515] DETAIL:  Parameters: $1 = '4999ms'
+2026-10-24 02:52:46.807 EDT [83515] LOG:  execute <unnamed>: SELECT id FROM gate WHERE id = 1 FOR SHARE
+2026-10-24 02:52:46.908 EDT [83496] LOG:  statement: COMMIT
+2026-10-24 02:52:46.909 EDT [83515] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:46.909 EDT [83515] DETAIL:  Parameters: $1 = '4898ms'
+2026-10-24 02:52:46.909 EDT [83515] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:46.909 EDT [83515] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:46.909 EDT [83515] DETAIL:  Parameters: $1 = '4897ms'
+2026-10-24 02:52:46.910 EDT [83515] LOG:  execute <unnamed>: SELECT active FROM membership WHERE id = 1
+2026-10-24 02:52:46.910 EDT [83515] LOG:  execute <unnamed>: SHOW transaction_isolation
+2026-10-24 02:52:46.910 EDT [83515] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:46.910 EDT [83515] DETAIL:  Parameters: $1 = '4896ms'
+2026-10-24 02:52:46.910 EDT [83515] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:46.911 EDT [83515] LOG:  statement: COMMIT
+2026-10-24 02:52:46.911 EDT [83515] LOG:  execute <unnamed>: TRUNCATE effects
+2026-10-24 02:52:46.913 EDT [83515] LOG:  execute <unnamed>: UPDATE membership SET active = true WHERE id = 1
+2026-10-24 02:52:46.913 EDT [83515] LOG:  statement: BEGIN
+2026-10-24 02:52:46.913 EDT [83515] LOG:  execute <unnamed>: SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+2026-10-24 02:52:46.914 EDT [83515] LOG:  execute <unnamed>: SELECT set_config($1, $2, true), set_config('lock_timeout', '250ms', true)
+2026-10-24 02:52:46.914 EDT [83515] DETAIL:  Parameters: $1 = 'mixer_preflight.invocation_nonce', $2 = '0554ea7461bbe5706669107c07c226da7dd1abf49552dd7135c0113e9fc25c5c'
+2026-10-24 02:52:46.914 EDT [83515] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:46.914 EDT [83515] DETAIL:  Parameters: $1 = '4999ms'
+2026-10-24 02:52:46.914 EDT [83515] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:46.914 EDT [83515] LOG:  execute <unnamed>: COMMIT
+2026-10-24 02:52:46.914 EDT [83515] LOG:  execute <unnamed>: BEGIN
+2026-10-24 02:52:46.914 EDT [83515] LOG:  execute <unnamed>: SELECT set_config($1, $2, true)
+2026-10-24 02:52:46.914 EDT [83515] DETAIL:  Parameters: $1 = 'mixer_preflight.invocation_nonce', $2 = '0554ea7461bbe5706669107c07c226da7dd1abf49552dd7135c0113e9fc25c5c'
+2026-10-24 02:52:46.914 EDT [83515] LOG:  execute <unnamed>: SELECT pg_current_xact_id()::text
+2026-10-24 02:52:46.914 EDT [83515] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:46.914 EDT [83515] DETAIL:  Parameters: $1 = '4999ms'
+2026-10-24 02:52:46.915 EDT [83515] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:46.915 EDT [83515] LOG:  statement: ROLLBACK
+2026-10-24 02:52:46.915 EDT [83496] LOG:  execute <unnamed>: SELECT count(*) FROM effects
+2026-10-24 02:52:46.915 EDT [83515] LOG:  execute <unnamed>: SELECT current_setting($1, true), current_setting('statement_timeout'), current_setting('lock_timeout')
+2026-10-24 02:52:46.915 EDT [83515] DETAIL:  Parameters: $1 = 'mixer_preflight.invocation_nonce'
+2026-10-24 02:52:46.915 EDT [83515] LOG:  execute <unnamed>: TRUNCATE effects
+2026-10-24 02:52:46.917 EDT [83515] LOG:  execute <unnamed>: UPDATE membership SET active = true WHERE id = 1
+2026-10-24 02:52:46.917 EDT [83515] LOG:  statement: BEGIN
+2026-10-24 02:52:46.917 EDT [83515] LOG:  execute <unnamed>: SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+2026-10-24 02:52:46.918 EDT [83515] LOG:  execute <unnamed>: SELECT set_config($1, $2, true), set_config('lock_timeout', '250ms', true)
+2026-10-24 02:52:46.918 EDT [83515] DETAIL:  Parameters: $1 = 'mixer_preflight.invocation_nonce', $2 = '201bf53114eaa2b06dbf122946da65b4a0107934804825f7531e345828b5ce18'
+2026-10-24 02:52:46.918 EDT [83515] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:46.918 EDT [83515] DETAIL:  Parameters: $1 = '4999ms'
+2026-10-24 02:52:46.918 EDT [83515] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:46.918 EDT [83515] LOG:  execute <unnamed>: SELECT set_config('statement_timeout', $1, true)
+2026-10-24 02:52:46.918 EDT [83515] DETAIL:  Parameters: $1 = '4999ms'
+2026-10-24 02:52:46.918 EDT [83515] LOG:  execute <unnamed>: SELECT pg_backend_pid(), pg_current_xact_id()::text, current_database(), current_user,
+	       current_setting('mixer_preflight.invocation_nonce', true)
+	
+2026-10-24 02:52:46.918 EDT [83515] LOG:  statement: COMMIT
+2026-10-24 02:52:46.918 EDT [83515] LOG:  statement: BEGIN
+2026-10-24 02:52:46.919 EDT [83515] LOG:  execute <unnamed>: SELECT current_setting($1, true)
+2026-10-24 02:52:46.919 EDT [83515] DETAIL:  Parameters: $1 = 'mixer_preflight.invocation_nonce'
+2026-10-24 02:52:46.919 EDT [83515] LOG:  statement: COMMIT
+2026-10-24 02:52:46.961 EDT [83390] LOG:  received immediate shutdown request
+2026-10-24 02:52:46.963 EDT [83390] LOG:  database system is shut down

@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "status": "root-frozen-supplemental-contract-component-acceptance-pending",
+  "sourceRevisionAtReview": "4586bb901b980e9beeca5f7bb826f8b62140a3b4",
+  "finding": "Expiring the only removed-profile record after 30 seconds also forgot immutable issuer/client/class and highest version. Manifest.transition treated a no-longer-known ID as new; even before expiry, its unchanged shortcut permitted same-version re-add. Both contradict the intended profile identity/version boundary.",
+  "supersedes": "The original contract's statement that removed profiles retain only a 30-second attempt tombstone is insufficient for identity history. Its cooldown requirement remains; this adds separate bounded lifetime identity metadata.",
+  "requiredImplementation": [
+    "Retain a separate process-lifetime history for at most 16 distinct known profile IDs, including current profiles. Each record contains the last validated outer profile/endpoint entry and retired state, with no keys, JWKS, token, snapshot or certificate material.",
+    "All replacement validation checks the immutable issuer/client/class tuple and highest accepted version against that history, even after cooldown tombstones expire. A removed ID returning to the manifest, or a disabled ID becoming enabled, requires a strictly higher version.",
+    "An unchanged currently present entry remains permitted. An emergency disable may retain its current version only under the existing exact policy-equality rule. Any other policy change requires a higher version. Validate the whole candidate before atomically changing history, live manifest, tombstones or trust.",
+    "Reject a seventeenth distinct ID during the owner's lifetime rather than evict identity history. Keep existing eight-live-profile, sixteen-live-plus-cooldown-tombstone, four-flight and all other limits. Clock faults and ordinary reaping must not erase identity history.",
+    "Document the stricter configuration-churn availability limit and measured/derived bounded metadata size. History never retains retired cryptographic authority. Authoritative durable provisioning/database enforcement across owner/component restarts remains separate and pending; do not claim process-local history proves it."
+  ],
+  "requiredTests": [
+    "Remove a profile, expire its cooldown tombstone, then reject issuer/client/class reinterpretation and version rollback.",
+    "Reject same-version re-add both before and after tombstone expiry; accept a valid higher-version re-add with the original immutable identity.",
+    "Reject a seventeenth lifetime ID after older cooldown entries have expired, without partially changing live entries/history or releasing the existing capacity constraints.",
+    "Preserve ordinary unchanged entry, emergency disable, versioned re-enable, stale-lease and late-flight rejection behavior. Rerun the final source-bound macOS/Linux component and packaged fixture-exclusion checks."
+  ],
+  "scope": "Root contract correction for an implemented component still under review. No accepted product checkpoint, Application wiring, database authorization, provider or GA qualification is changed. Historical runs remain evidence for their exact earlier sources."
+}

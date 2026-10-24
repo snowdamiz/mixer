@@ -1,0 +1,29 @@
+     warning: expected a map or struct when accessing .flight in expression:
+
+         waiter.flight
+
+     where "waiter" was given the types:
+
+         # type: dynamic()
+         # from: lib/mixer_hosted/identity/key_owner.ex:400:8
+         waiter
+
+         # type: dynamic(true)
+         # from: lib/mixer_hosted/identity/key_owner.ex:403:10
+         waiter
+
+     hint: "var.field" (without parentheses) means "var" is a map() while "var.fun()" (with parentheses) means "var" is an atom()
+
+     type warning found at:
+     │
+ 403 │     if ((waiter and s.flights[waiter.flight]) && s.flights[waiter.flight].mode == :required) and
+     │                                      ~
+     │
+     └─ lib/mixer_hosted/identity/key_owner.ex:403:38: MixerHosted.Identity.KeyOwner.drop_permit/2
+
+** (ArgumentError) invalid or missing hosted setting: MIXER_HOSTED_ROLE
+    (mixer_hosted 0.1.0) lib/mixer_hosted/runtime_config.ex:119: MixerHosted.RuntimeConfig.invalid!/1
+    (mixer_hosted 0.1.0) lib/mixer_hosted/runtime_config.ex:15: MixerHosted.RuntimeConfig.load!/1
+    (stdlib 8.1) erl_eval.erl:1048: :erl_eval.do_apply/7
+    (stdlib 8.1) erl_eval.erl:792: :erl_eval.expr/6
+    (stdlib 8.1) erl_eval.erl:276: :erl_eval.exprs/6

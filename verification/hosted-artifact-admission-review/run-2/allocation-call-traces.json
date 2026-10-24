@@ -1,0 +1,86 @@
+{
+  "scope": "Isolated review BEAM only; arity-only tracing does not capture arguments, keys or payload data. Positive control demonstrates decoder calls are observable. Trace proves call ordering, not native allocation/RSS bounds.",
+  "traces": [
+    {
+      "calls": {
+        "Base.decode64/2": 2,
+        "Jason.decode/1": 2,
+        "Jason.decode/2": 4
+      },
+      "input": "inputs/a3b619e267826b51b6256c572c4b199f1ba543dadf8f2e7c94ebe90fd407b143.trace-input",
+      "name": "valid-fixture-positive-control",
+      "result": {
+        "kind": "ok",
+        "accepted": true
+      },
+      "inputSHA256": "a3b619e267826b51b6256c572c4b199f1ba543dadf8f2e7c94ebe90fd407b143",
+      "inputBytes": 1854
+    },
+    {
+      "calls": {},
+      "input": "inputs/6f6eca311912e9b0a6a59e3165e3511600539dcbb10fb3d0c6cd952023d187af.trace-input",
+      "name": "one-over-body-before-json-or-base64",
+      "result": {
+        "reason": "envelope_limit",
+        "kind": "closed_error",
+        "accepted": false
+      },
+      "inputSHA256": "6f6eca311912e9b0a6a59e3165e3511600539dcbb10fb3d0c6cd952023d187af",
+      "inputBytes": 6291457
+    },
+    {
+      "calls": {},
+      "input": "inputs/a0451fb0615a3261ecbd51ba9fe53e624d203cb432b188d43a72bce0d319e200.trace-input",
+      "name": "depth-before-jason",
+      "result": {
+        "reason": "invalid_json",
+        "kind": "closed_error",
+        "accepted": false
+      },
+      "inputSHA256": "a0451fb0615a3261ecbd51ba9fe53e624d203cb432b188d43a72bce0d319e200",
+      "inputBytes": 200001
+    },
+    {
+      "calls": {},
+      "input": "inputs/3821bdc166634aa9e4b6fafdb0855d115fbcee0500e19789f4d9aee4e6633042.trace-input",
+      "name": "integer-before-jason",
+      "result": {
+        "reason": "invalid_json",
+        "kind": "closed_error",
+        "accepted": false
+      },
+      "inputSHA256": "3821bdc166634aa9e4b6fafdb0855d115fbcee0500e19789f4d9aee4e6633042",
+      "inputBytes": 60032
+    },
+    {
+      "calls": {
+        "Jason.decode/1": 1,
+        "Jason.decode/2": 2
+      },
+      "input": "inputs/adc775234f8b3e4d46c167496f57406c9463204f47666dbd23b68c2dca846444.trace-input",
+      "name": "decoded-size-one-over-before-base64",
+      "result": {
+        "reason": "base64",
+        "kind": "closed_error",
+        "accepted": false
+      },
+      "inputSHA256": "adc775234f8b3e4d46c167496f57406c9463204f47666dbd23b68c2dca846444",
+      "inputBytes": 5594188
+    },
+    {
+      "calls": {
+        "Jason.decode/1": 1,
+        "Jason.decode/2": 2
+      },
+      "input": "inputs/ba8bf6bc169ade6d15e2045ed9ff2a76706feef4f1bc230c7aba2ee5aa5b9454.trace-input",
+      "name": "noncanonical-tail-before-base64",
+      "result": {
+        "reason": "base64",
+        "kind": "closed_error",
+        "accepted": false
+      },
+      "inputSHA256": "ba8bf6bc169ade6d15e2045ed9ff2a76706feef4f1bc230c7aba2ee5aa5b9454",
+      "inputBytes": 1774
+    }
+  ]
+}

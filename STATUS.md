@@ -161,6 +161,41 @@ This is encoding only, with no
 new authenticated route, signature/root admission, membership/persistence,
 provider, audit or cloud qualification. No gate is closed.
 
+The transaction-context preflight now has root mechanism selection after 24
+real disposable PostgreSQL/Ecto cases and 41 checked evidence bindings. It binds
+the owning process/Repo/invocation to the actual backend and full transaction ID.
+The retained failed attempt showed that a transaction deadline does not bound
+queued checkout; the corrected seam uses `queue: false`. Deadline expiry
+disconnects the connection without killing the callback, and an already-sent
+COMMIT can remain uncertain. See
+`verification/hosted-transaction-context-root-review/selection.json`. This is
+preimplementation evidence, with no authorization, repository or provider pass.
+
+The configured key-owner and signed v3 artifact-admission components now have
+root acceptance. Identity producer tests pass 45 macOS/46 Linux cases; independent
+review adds 12 cases on each platform. Artifact review passes 316 independent
+cases, 257 new Go comparisons, 208 original comparisons and 15 retained-data
+checks. The exact artifact overlay is applied. Together they pass 73 host tests,
+production release compilation and expected missing-config rejection; one Linux
+namespace test is explicitly skipped on macOS and exercised in separate Linux
+runs. Root verifies 308 acceptance bindings and all 56 composed source inputs.
+See `docs/hosted-identity-artifact-checkpoint.md` and
+`verification/hosted-component-integration-root-review/acceptance.json`.
+Application wiring, authenticated HTTP and authoritative database membership
+remain pending. The narrow atomic-writer/audit/blob contract and real PostgreSQL
+probe are assigned in isolation; no new migration is applied. New combined
+hosted CI remains pending commit/push. All GA gates remain open.
+
+Swift control candidate 2 now has root source/accounting preflight acceptance:
+7,640 positive fields, eight fresh independent layouts, canonical MIR census
+and unchanged Frozen expansions. The repaired after-effect pop latches existing
+cleanup debt while preserving the original failure. See
+`verification/swift-control-invocation-root-review/candidate-2-acceptance.json`.
+SC01–SC12 behavior and regression work is now assigned in an isolated overlay;
+complete behavior acceptance and live VM integration remain pending. Native UI
+access was rechecked and the Mac remains locked; no new Apple test instance
+was started. Simulator/emulator permission remains active; phones are deferred.
+
 The release server now owns a configuration snapshot before validation/storage
 open. Independent probes reproduced caller mutations changing token permissions,
 trust keys and host policy, plus five data races; the fixed v1/v2/v3 workflows

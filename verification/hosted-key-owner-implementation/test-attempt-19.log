@@ -1,0 +1,217 @@
+Compiling 4 files (.ex)
+Generated mixer_hosted app
+Running ExUnit with seed: 537200, max_cases: 30
+
+.....................
+
+  1) test K05 four actual TLS workers exact boundary and hostile framing (MixerHosted.Identity.KeyOwnerTest)
+     test/mixer_hosted/identity/key_owner_test.exs:260
+     match (=) failed
+     code:  assert {:ok, c} = result
+     left:  {:ok, c}
+     right: {:error, :deadline}
+     stacktrace:
+       test/mixer_hosted/identity/key_owner_test.exs:273: anonymous fn/2 in MixerHosted.Identity.KeyOwnerTest."test K05 four actual TLS workers exact boundary and hostile framing"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       test/mixer_hosted/identity/key_owner_test.exs:272: (test)
+
+
+
+  2) test K04 rejected statuses never follow redirects or retain error bodies (MixerHosted.Identity.KeyOwnerTest)
+     test/mixer_hosted/identity/key_owner_test.exs:237
+     match (=) failed
+     code:  assert {:ok, _} = fetch(ctx)
+     left:  {:ok, _}
+     right: {:error, :deadline}
+     stacktrace:
+       test/mixer_hosted/identity/key_owner_test.exs:252: (test)
+
+
+
+  3) test K05b four full chunked candidates and client TLS resource observations (MixerHosted.Identity.KeyOwnerTest)
+     test/mixer_hosted/identity/key_owner_test.exs:322
+     Assertion with < failed
+     code:  assert elapsed < 2000
+     left:  2003
+     right: 2000
+     stacktrace:
+       test/mixer_hosted/identity/key_owner_test.exs:348: (test)
+
+..
+
+  4) test K09 actual HTTPS rotation and invalid-candidate retention (MixerHosted.Identity.KeyOwnerTest)
+     test/mixer_hosted/identity/key_owner_test.exs:714
+     match (=) failed
+     code:  assert {:ok, _} = ConfiguredVerifier.authenticate(owner, "fixture", token(ctx), now())
+     left:  {:ok, _}
+     right: {:error, :identity_unavailable}
+     stacktrace:
+       test/mixer_hosted/identity/key_owner_test.exs:716: (test)
+
+.
+
+  5) test K08 cold storm single flight, admission and FIFO negative cache (MixerHosted.Identity.KeyOwnerTest)
+     test/mixer_hosted/identity/key_owner_test.exs:573
+     Expected truthy, got false
+     code: assert Enum.any?(results, &match?({:ok, _}, &1))
+     arguments:
+
+         # 1
+         [
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable,
+           error: :identity_unavailable
+         ]
+
+         # 2
+         #Function<64.55851645/1 in MixerHosted.Identity.KeyOwnerTest."test K08 cold storm single flight, admission and FIFO negative cache"/1>
+
+     stacktrace:
+       test/mixer_hosted/identity/key_owner_test.exs:589: (test)
+
+.
+
+  6) test K10 serialized fence across disable removal and clock discontinuity (MixerHosted.Identity.KeyOwnerTest)
+     test/mixer_hosted/identity/key_owner_test.exs:801
+     match (=) failed
+     code:  assert {:ok, _} = ConfiguredVerifier.authenticate(owner, "fixture", token(ctx), now())
+     left:  {:ok, _}
+     right: {:error, :identity_unavailable}
+     stacktrace:
+       test/mixer_hosted/identity/key_owner_test.exs:803: (test)
+
+..
+
+  7) test K01 manifest limits and immutable identity transitions (MixerHosted.Identity.KeyOwnerTest)
+     test/mixer_hosted/identity/key_owner_test.exs:106
+     match (=) failed
+     code:  assert {:ok, _} = ConfiguredVerifier.authenticate(owner, "fixture", token(ctx), now())
+     left:  {:ok, _}
+     right: {:error, :identity_unavailable}
+     stacktrace:
+       test/mixer_hosted/identity/key_owner_test.exs:133: (test)
+
+.
+
+  8) test K02 real TLS pins peer Host path SNI; CA and hostname fail (MixerHosted.Identity.KeyOwnerTest)
+     test/mixer_hosted/identity/key_owner_test.exs:147
+     match (=) failed
+     code:  assert {:ok, candidate} = fetch(ctx)
+     left:  {:ok, candidate}
+     right: {:error, :deadline}
+     stacktrace:
+       test/mixer_hosted/identity/key_owner_test.exs:148: (test)
+
+..
+
+  9) test K02b real IPv6 and expired/future/downgrade certificates (MixerHosted.Identity.KeyOwnerTest)
+     test/mixer_hosted/identity/key_owner_test.exs:171
+     match (=) failed
+     code:  assert {:ok, c} = JWKSTransport.fetch_fixture(@entry, a.ip, a.port, deadline(), [a.ca], nil)
+     left:  {:ok, c}
+     right: {:error, :deadline}
+     stacktrace:
+       test/mixer_hosted/identity/key_owner_test.exs:175: (test)
+
+
+Finished in 66.5 seconds (0.00s async, 66.5s sync)
+
+Result: 30/39 passed
+Failed: 9 tests

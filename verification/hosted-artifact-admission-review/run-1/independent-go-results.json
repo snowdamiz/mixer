@@ -1,0 +1,482 @@
+[
+  {
+    "accepted": true,
+    "detail": "",
+    "expected": true,
+    "inputSHA256": "64cf8400a9001e17f93ebc8fa0a2809ab1d9a4d58af5af7ec0073f4afac6f515",
+    "name": "fixture-reencoded-json-same-signature",
+    "stage": "verify"
+  },
+  {
+    "accepted": true,
+    "detail": "",
+    "expected": true,
+    "inputSHA256": "b1326bb4c9b6c1ee1cc00798486308c198d2c247f8b2cab04972481e22de44e6",
+    "name": "valid-escaped-field-name",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal number -0 into Go struct field plain.manifest.created_at_unix of type uint64",
+    "expected": false,
+    "inputSHA256": "b4e6829f2099d002dac0ea3b75267b04c7e34051680b5a3eb8faea2bed1c07b2",
+    "name": "negative-zero",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal number 1.0 into Go struct field plain.manifest.created_at_unix of type uint64",
+    "expected": false,
+    "inputSHA256": "3e23d204538f16ec890ee4abf2b5fe7c8e451d10c18c496df8b7071707368da3",
+    "name": "fraction",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal number 1e0 into Go struct field plain.manifest.created_at_unix of type uint64",
+    "expected": false,
+    "inputSHA256": "354383c321c4e652bf92048e4af37c34c1eadd1e0c2b8eae9e64488dd542b13d",
+    "name": "exponent",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "json: cannot unmarshal number 18446744073709551616 into Go struct field plain.manifest.created_at_unix of type uint64",
+    "expected": false,
+    "inputSHA256": "5a471033f15a3860cf03c4834fa4543af3410095da43729afd2540362f4370eb",
+    "name": "uint-overflow",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "invalid character '0' after object key:value pair",
+    "expected": false,
+    "inputSHA256": "635bd56fec5f0d1424997a17103c1a7c67298b9fee8edf2ffe81f1030d437f4b",
+    "name": "uint-long-zero-prefix",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "duplicate or invalid JSON key",
+    "expected": false,
+    "inputSHA256": "2fd71235ac0a5f613afc02de4459a09b32b7028d880ec559b59ee4eed13cc7fe",
+    "name": "escaped-equivalent-nested-key",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "missing protocol field",
+    "expected": false,
+    "inputSHA256": "ba8a821b79c4191bd1d78ecb0c79656a6c10f7d87aa74056d1a5568a2860be45",
+    "name": "unicode-case-sensitive-key",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "invalid JSON UTF-8",
+    "expected": false,
+    "inputSHA256": "ed18e996eaa7217828f35422d5aa1e7c095cd30efb4bd3ba2361368ccb6ebb6b",
+    "name": "invalid-utf8-in-id",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "invalid manifest identity",
+    "expected": false,
+    "inputSHA256": "c8abf079c3dc99dfb0bc67f456b1416c297a2964c71fc204c432905b0ea7afcf",
+    "name": "lone-high-surrogate",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "invalid manifest identity",
+    "expected": false,
+    "inputSHA256": "24254f5c849306cb05c906bf1bcb028cd2c852d5e1016ecf1d6b73e248bacfe4",
+    "name": "lone-low-surrogate",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "invalid manifest identity",
+    "expected": false,
+    "inputSHA256": "a5e0ff43ec0be05801bcfb3d019ef808caf3da4343009781fc9001a2973e2bfb",
+    "name": "reversed-surrogates",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "invalid manifest identity",
+    "expected": false,
+    "inputSHA256": "9ee15bd270ae7731df3a4f27ca9d057aee536118e1fd51f50fddccecb4c2e359",
+    "name": "valid-surrogate-pair-non-ascii-id",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "JSON null is not in the v1 data model",
+    "expected": false,
+    "inputSHA256": "265b6fd4f0cbdb7cddcbe043d0704be19e8d09e30aa4e670f1823382661ad0c1",
+    "name": "literal-null",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "trailing JSON",
+    "expected": false,
+    "inputSHA256": "89ee78e1ed21bd6cbdc57e69d447f473c91cde086774e4c111feea1652e22384",
+    "name": "trailing-json",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "invalid character 'x' in string escape code",
+    "expected": false,
+    "inputSHA256": "18e27e69074bb2a126900f92987d76fcaae052464f9e5ecfdb140ed4a9feb271",
+    "name": "invalid-escape",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "invalid character '\\x01' in string literal",
+    "expected": false,
+    "inputSHA256": "54f072a1112b0c8a7decb20476c794141340d2f76bdf02a788e5c9c7139f256b",
+    "name": "control-character",
+    "stage": "decode"
+  },
+  {
+    "accepted": false,
+    "detail": "invalid state range or audit time",
+    "expected": false,
+    "inputSHA256": "6d8caa66ce29fae3d05462b3b2d62f317d7f6eb6fc9355e3d8cb5cc6180ab18d",
+    "name": "created-zero",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "invalid state range or audit time",
+    "expected": false,
+    "inputSHA256": "8a160eb5358d2302f72ca6922104edd2a781f246724f38d9bf6a1abd18dfebce",
+    "name": "state-inverted",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "separate asset payloads unsupported in v1",
+    "expected": false,
+    "inputSHA256": "2b257ee45cf5593658d695e0903b74201491d0895e433155e1cfb7e7dd9dfad7",
+    "name": "assets-present",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "unsupported payload digest, size or compression",
+    "expected": false,
+    "inputSHA256": "c563aea4b9b823c2942bfce1ae89c4df72fd70326f57f7165455dea5c3c8afa7",
+    "name": "compression-gzip",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "unsupported v3 schema, protocol, guest ABI or UI schema",
+    "expected": false,
+    "inputSHA256": "27b04a5bdb8d9bf4839f428f126f05bb8b237c66b0024c1fd4aac43fae4850bb",
+    "name": "ui-unsupported",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "v3 resource limit outside installed execution profile",
+    "expected": false,
+    "inputSHA256": "12811cc4b092236e069921562703f479649524027b6a4e2cb1048d4c5992497b",
+    "name": "fuel-over",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "zero resource limit",
+    "expected": false,
+    "inputSHA256": "92274660527bca5e50103115c1a0ad14be9c8f394cdb49115ae87babd3bad83c",
+    "name": "memory-zero",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "v3 resource limit outside installed execution profile",
+    "expected": false,
+    "inputSHA256": "d9dc65149959070d8e24181d097201053b4fbc70c90d3a6003b65c5846c2dfe1",
+    "name": "startup-over",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "unsupported v3 capability",
+    "expected": false,
+    "inputSHA256": "d4759316361ed0df9c97ced17c11467f76e92568c1c50d000a5030e4d95c90f4",
+    "name": "capability-unknown",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "invalid source commit",
+    "expected": false,
+    "inputSHA256": "aa595d2505e558b77b616db647c0699059e22df5f886ecf610ee6c000ddecac1",
+    "name": "source-uppercase",
+    "stage": "verify"
+  },
+  {
+    "accepted": true,
+    "detail": "",
+    "expected": true,
+    "inputSHA256": "19933231e925eb7306d07507d5593d693e33391c14f1046247e25edfdaf9e848",
+    "name": "empty-grants",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "capability grants must be strictly ASCII sorted and unique",
+    "expected": false,
+    "inputSHA256": "3667aa22c22ba833f563007fcccb5cad7655d45ccdb4f70e440f38e0c6c0971f",
+    "name": "grant-duplicate",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "capability grants must be strictly ASCII sorted and unique",
+    "expected": false,
+    "inputSHA256": "3f6b2fea70c1a100b9625ecd47baa9bbad9c6d3aebd6b1dd1c61b544ba166e6d",
+    "name": "grant-reversed",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "unknown or unbound capability grant schema",
+    "expected": false,
+    "inputSHA256": "cfdbf280db7ac47e486d1d64e25eacb6167ee3aa16107887d94f59a690ad4cf4",
+    "name": "grant-unbound",
+    "stage": "verify"
+  },
+  {
+    "accepted": true,
+    "detail": "",
+    "expected": true,
+    "inputSHA256": "621abd380bc9bc2d15b761767e3f29c5b558920daa4bfb9379f19276067db2e1",
+    "name": "grant-empty-arrays",
+    "stage": "verify"
+  },
+  {
+    "accepted": true,
+    "detail": "",
+    "expected": true,
+    "inputSHA256": "652880fea06c2eb4a170aee37b13f1ca8e06b58d66db090ae8a6f404b9e78803",
+    "name": "wide-integers",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "state schema incompatible",
+    "expected": false,
+    "inputSHA256": "652880fea06c2eb4a170aee37b13f1ca8e06b58d66db090ae8a6f404b9e78803",
+    "name": "wide-integer-state-below",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "v3 artifact signature invalid",
+    "expected": false,
+    "inputSHA256": "7f37cc774a7595b641d9b236d984d742b1f3c06b3cffd1cfcf5c60541d9758c5",
+    "name": "domain-523a8c6cc19a02a816aadb6d373580d4f554c919cfb94b7be49cb4ac73d4fe6d",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "v3 artifact signature invalid",
+    "expected": false,
+    "inputSHA256": "2050723f6c38f9a8c53294465c0c989265fa36f4e059fb88a4c225c3b5b858d6",
+    "name": "domain-ca6b117522dd0695032cd9fd7d936f03305414de70d34bb6837ecbfb7cd7a08a",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "v3 artifact signature invalid",
+    "expected": false,
+    "inputSHA256": "db361782550adf4594508205abdc04711b0d04faef27576962cfe3ce7f2eacf9",
+    "name": "domain-20e7e453c611af7cf940dd17c033cc25d370588c9487caca9bcdd2765a15a5ba",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "v3 artifact signature invalid",
+    "expected": false,
+    "inputSHA256": "3692d7466768c5ed96dc2a806fd1d5b29ff10d4b77dfd82e2bb0eb8d2c608987",
+    "name": "domain-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "payload size or hash mismatch",
+    "expected": false,
+    "inputSHA256": "f63517b328e33241e617dd9b4198f6427c654ccf0f6dd0d1638883a239c1e153",
+    "name": "payload-same-size-mutation",
+    "stage": "verify"
+  },
+  {
+    "accepted": true,
+    "detail": "",
+    "expected": true,
+    "inputSHA256": "f63517b328e33241e617dd9b4198f6427c654ccf0f6dd0d1638883a239c1e153",
+    "name": "root-count-one",
+    "stage": "verify"
+  },
+  {
+    "accepted": true,
+    "detail": "",
+    "expected": true,
+    "inputSHA256": "f63517b328e33241e617dd9b4198f6427c654ccf0f6dd0d1638883a239c1e153",
+    "name": "root-count128",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "v3 trust root count outside bounds",
+    "expected": false,
+    "inputSHA256": "f63517b328e33241e617dd9b4198f6427c654ccf0f6dd0d1638883a239c1e153",
+    "name": "root-count129",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "invalid or ambiguous v3 trust root",
+    "expected": false,
+    "inputSHA256": "f63517b328e33241e617dd9b4198f6427c654ccf0f6dd0d1638883a239c1e153",
+    "name": "root-duplicate",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "invalid or ambiguous v3 trust root",
+    "expected": false,
+    "inputSHA256": "f63517b328e33241e617dd9b4198f6427c654ccf0f6dd0d1638883a239c1e153",
+    "name": "unrelated-malformed-public-key",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "invalid or ambiguous v3 trust root",
+    "expected": false,
+    "inputSHA256": "f63517b328e33241e617dd9b4198f6427c654ccf0f6dd0d1638883a239c1e153",
+    "name": "unrelated-no-role",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "unsupported platform",
+    "expected": false,
+    "inputSHA256": "f63517b328e33241e617dd9b4198f6427c654ccf0f6dd0d1638883a239c1e153",
+    "name": "unrelated-bad-scope",
+    "stage": "verify"
+  },
+  {
+    "accepted": true,
+    "detail": "",
+    "expected": true,
+    "inputSHA256": "f63517b328e33241e617dd9b4198f6427c654ccf0f6dd0d1638883a239c1e153",
+    "name": "root-not-before-inclusive",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "signing authority denied",
+    "expected": false,
+    "inputSHA256": "f63517b328e33241e617dd9b4198f6427c654ccf0f6dd0d1638883a239c1e153",
+    "name": "root-not-after-exclusive",
+    "stage": "verify"
+  },
+  {
+    "accepted": true,
+    "detail": "",
+    "expected": true,
+    "inputSHA256": "f63517b328e33241e617dd9b4198f6427c654ccf0f6dd0d1638883a239c1e153",
+    "name": "root-no-expiry",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "invalid or ambiguous v3 trust root",
+    "expected": false,
+    "inputSHA256": "f63517b328e33241e617dd9b4198f6427c654ccf0f6dd0d1638883a239c1e153",
+    "name": "root-time-invalid-interval",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "invalid or ambiguous v3 trust root",
+    "expected": false,
+    "inputSHA256": "f63517b328e33241e617dd9b4198f6427c654ccf0f6dd0d1638883a239c1e153",
+    "name": "root-assignment-only",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "signing authority denied",
+    "expected": false,
+    "inputSHA256": "f63517b328e33241e617dd9b4198f6427c654ccf0f6dd0d1638883a239c1e153",
+    "name": "root-revoked",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "v3 artifact signature invalid",
+    "expected": false,
+    "inputSHA256": "f63517b328e33241e617dd9b4198f6427c654ccf0f6dd0d1638883a239c1e153",
+    "name": "wrong-root-key",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "signing authority denied",
+    "expected": false,
+    "inputSHA256": "f63517b328e33241e617dd9b4198f6427c654ccf0f6dd0d1638883a239c1e153",
+    "name": "wrong-scope",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "signature must encode exactly 64 bytes in canonical padded base64",
+    "expected": false,
+    "inputSHA256": "7a8584c6bea141c4e15b8d599197c477b52e898a8e382c78167c65a3871f804f",
+    "name": "signature-noncanonical-tail",
+    "stage": "decode"
+  },
+  {
+    "accepted": true,
+    "detail": "",
+    "expected": true,
+    "inputSHA256": "6ab271fdcd8fae73975de4d953058534ccf159351d64fecec0a2da75fc4137cb",
+    "name": "standalone65536",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "v3 document exceeds byte limit",
+    "expected": false,
+    "inputSHA256": "5d59bd5870e900680f0c09b0f2bd42de2fd119474194ffc1fef4f5e711ca9fe5",
+    "name": "standalone65537",
+    "stage": "decode"
+  },
+  {
+    "accepted": true,
+    "detail": "",
+    "expected": true,
+    "inputSHA256": "5f3f844201140d7e62412a4f4581ff5ebe8ae3a8c38ec125c552754038f1b27d",
+    "name": "payload4194304",
+    "stage": "verify"
+  },
+  {
+    "accepted": false,
+    "detail": "payload size or hash mismatch",
+    "expected": false,
+    "inputSHA256": "5f3f844201140d7e62412a4f4581ff5ebe8ae3a8c38ec125c552754038f1b27d",
+    "name": "payload4194305",
+    "stage": "verify"
+  }
+]

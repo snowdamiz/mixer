@@ -1,0 +1,117 @@
+{
+  "scope": "One isolated process per call; input already allocated before spawn. Sampled process memory is heap/stack and excludes referenced off-heap binaries, native crypto allocator and unsampled transients. No total RSS, allocation, concurrent-request or deployment ceiling is claimed. Runtime/memory observations are platform-specific evidence, not API guarantees. Ephemeral test private key exists only in this collector VM and is not written.",
+  "observations": [
+    {
+      "name": "4096-structural-items",
+      "reductions": 114735,
+      "result": {
+        "status": "lexically_admitted",
+        "stats": {
+          "items": 4096,
+          "input_bytes": 8191,
+          "max_depth": 2
+        }
+      },
+      "inputSHA256": "8be771df6e79c894f0fa48a71258ab9d03ef218c1b428aeec2c89712af555010",
+      "inputBytes": 8191,
+      "elapsedMicroseconds": 186,
+      "processMemoryBefore": 2712,
+      "processMemoryAfter": 5720,
+      "referencedBinaryBytesAfter": 8191,
+      "sampledProcessMemoryHigh": 2712
+    },
+    {
+      "name": "4097-structural-items-rejected",
+      "reductions": 114730,
+      "result": {
+        "reason": "invalid_json",
+        "status": "rejected"
+      },
+      "inputSHA256": "67b821c84988a835d0f118cf6eda5626c0f0afa7d51645aadbde7ee59ee93875",
+      "inputBytes": 8193,
+      "elapsedMicroseconds": 174,
+      "processMemoryBefore": 2712,
+      "processMemoryAfter": 5720,
+      "referencedBinaryBytesAfter": 8193,
+      "sampledProcessMemoryHigh": 2712
+    },
+    {
+      "name": "long-bounded-string-linear-scan",
+      "reductions": 22369759,
+      "result": {
+        "status": "lexically_admitted",
+        "stats": {
+          "items": 3,
+          "input_bytes": 5592422,
+          "max_depth": 1
+        }
+      },
+      "inputSHA256": "80da6e603c99dc67acf3f737b1443ffc3f18c09c5bf72e2ad2c531b030afc657",
+      "inputBytes": 5592422,
+      "elapsedMicroseconds": 29207,
+      "processMemoryBefore": 2712,
+      "processMemoryAfter": 2712,
+      "referencedBinaryBytesAfter": 5592422,
+      "sampledProcessMemoryHigh": 5720
+    },
+    {
+      "name": "100000-nesting-early-rejection",
+      "reductions": 265,
+      "result": {
+        "reason": "invalid_json",
+        "status": "rejected"
+      },
+      "inputSHA256": "a0451fb0615a3261ecbd51ba9fe53e624d203cb432b188d43a72bce0d319e200",
+      "inputBytes": 200001,
+      "elapsedMicroseconds": 2,
+      "processMemoryBefore": 2712,
+      "processMemoryAfter": 2712,
+      "referencedBinaryBytesAfter": 200001,
+      "sampledProcessMemoryHigh": 2712
+    },
+    {
+      "name": "60000-digit-early-rejection",
+      "reductions": 118,
+      "result": {
+        "reason": "invalid_json",
+        "status": "rejected"
+      },
+      "inputSHA256": "e74cf7442c0cd8cec2ca434e2457175e6139320781d224938b22bf4b5d5f5148",
+      "inputBytes": 60000,
+      "elapsedMicroseconds": 4,
+      "processMemoryBefore": 2712,
+      "processMemoryAfter": 2880,
+      "referencedBinaryBytesAfter": 60000,
+      "sampledProcessMemoryHigh": 2712
+    },
+    {
+      "name": "6MiB-body-4MiB-payload-full-admission",
+      "reductions": 81252692,
+      "result": {
+        "status": "admitted"
+      },
+      "inputSHA256": "32916143970a096551630f9d9848e0bf9470ed9a76564941ebbb72fa4be155ab",
+      "inputBytes": 6291456,
+      "elapsedMicroseconds": 119214,
+      "processMemoryBefore": 21536,
+      "processMemoryAfter": 13632,
+      "referencedBinaryBytesAfter": 10489527,
+      "sampledProcessMemoryHigh": 67832
+    },
+    {
+      "name": "6MiB-plus-one-byte-early-rejection",
+      "reductions": 25,
+      "result": {
+        "reason": "envelope_limit",
+        "status": "rejected"
+      },
+      "inputSHA256": "bafc3010671feee7ec93e5203e933aaa5a610d08349161dcf283a3041e772ce4",
+      "inputBytes": 6291457,
+      "elapsedMicroseconds": 3,
+      "processMemoryBefore": 21536,
+      "processMemoryAfter": 21536,
+      "referencedBinaryBytesAfter": 6524552,
+      "sampledProcessMemoryHigh": 55016
+    }
+  ]
+}

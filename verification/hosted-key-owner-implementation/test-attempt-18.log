@@ -1,0 +1,19 @@
+Compiling 4 files (.ex)
+     warning: clauses with the same name and arity (number of arguments) should be grouped together, "def handle_info/2" was previously defined (lib/mixer_hosted/identity/fetch_flight.ex:81)
+     │
+ 136 │   def handle_info({:DOWN, ref, :port, socket, _}, %{raw_monitor: ref, raw_socket: socket} = s),
+     │       ~
+     │
+     └─ lib/mixer_hosted/identity/fetch_flight.ex:136:7
+
+    error: imported Kernel.send/2 conflicts with local function
+    │
+ 94 │   defdelegate send(socket, data), to: :gen_tcp
+    │   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    │
+    └─ lib/mixer_hosted/identity/bounded_tcp.ex:94: MixerHosted.Identity.BoundedTCP (module)
+
+
+== Compilation error in file lib/mixer_hosted/identity/bounded_tcp.ex ==
+** (CompileError) lib/mixer_hosted/identity/bounded_tcp.ex: cannot compile module MixerHosted.Identity.BoundedTCP (errors have been logged)
+

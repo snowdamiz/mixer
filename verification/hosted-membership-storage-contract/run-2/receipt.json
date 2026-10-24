@@ -1,0 +1,115 @@
+{
+  "schema": 1,
+  "scope": "Disposable PostgreSQL privilege/RLS/lock pattern probe only; not hosted authorization, HTTP, provider, migration or GA evidence",
+  "observed_utc": "2026-10-24T05:50:54.062873+00:00",
+  "revision": "4d6ab07e159db2e02a2433396e9a83f275c33a40",
+  "inputs": {
+    "verification/hosted-membership-storage-contract/probe.py": "bd59324ce9dbe6d53810963afcab58efe5ee8ef9ca24f4b2b7362396488d12d7",
+    "verification/hosted-membership-storage-contract/probe.sql": "b9eb7fc50ba8083920066521ef89c9cf6c6acb478a3d75b56ca0e534e71cfad6",
+    "AGENTS.md": "aea714a09438b3568b892f815a2af3c00fc870d8dcc474b5ec1681d1151032af",
+    "mixer-product-plan.md": "b797eb9f4b4106fe85acbd29481270ecb0fae0f2c5d3bbf3fa85e0bed8b7836d",
+    "docs/hosted-identity-contract.md": "6262875ef19c107cd86e4c0386d9e7c8e337db68574249861b0e12a91bddb549",
+    "docs/hosted-token-verifier.md": "5135ae1f56fca8e7049f0b7b3d29faac1dc2d03a4d004929aa21d0561c609990",
+    "verification/hosted-identity-contract/root-acceptance.json": "b42ccebc13990c616a1157323d3a385c07ee7191e15ceefc580a5a768b7b6943",
+    "verification/hosted-token-verifier-root-review/acceptance.json": "d39081b335940589b4ad259f97b48820481e369167b538f8e37b163d6f7d1bd4"
+  },
+  "cases": [
+    {
+      "name": "recursive_rls_is_rejected",
+      "status": "passed",
+      "expected_sqlstate": "42P17",
+      "observed": "",
+      "stderr": "ERROR:  42P17: infinite recursion detected in policy for relation \"recursive_members\"\nLOCATION:  fireRIRrules, rewriteHandler.c:2265\n"
+    },
+    {
+      "name": "select_only_cannot_for_share",
+      "status": "passed",
+      "expected_sqlstate": "42501",
+      "observed": "",
+      "stderr": "ERROR:  42501: permission denied for table profiles\nCONTEXT:  SQL statement \"SELECT 1 FROM probe_auth.profiles WHERE id='p' FOR SHARE\"\nPL/pgSQL function probe_auth.lock_chain() line 3 at PERFORM\nLOCATION:  aclcheck_error, aclchk.c:2845\n"
+    },
+    {
+      "name": "column_update_grant_permits_share_lock",
+      "status": "passed",
+      "expected_sqlstate": null,
+      "observed": "",
+      "stderr": ""
+    },
+    {
+      "name": "runtime_cannot_read_policy_rows",
+      "status": "passed",
+      "expected_sqlstate": "42501",
+      "observed": "",
+      "stderr": "ERROR:  42501: permission denied for table memberships\nLOCATION:  aclcheck_error, aclchk.c:2845\n"
+    },
+    {
+      "name": "runtime_cannot_mutate_policy",
+      "status": "passed",
+      "expected_sqlstate": "42501",
+      "observed": "",
+      "stderr": "ERROR:  42501: permission denied for table principals\nLOCATION:  aclcheck_error, aclchk.c:2845\n"
+    },
+    {
+      "name": "missing_context_denies",
+      "status": "passed",
+      "expected_sqlstate": null,
+      "observed": "0",
+      "stderr": ""
+    },
+    {
+      "name": "publisher_guc_is_not_authority",
+      "status": "passed",
+      "expected_sqlstate": null,
+      "observed": "0",
+      "stderr": ""
+    },
+    {
+      "name": "exact_scope_policy_without_recursive_rls",
+      "status": "passed",
+      "expected_sqlstate": null,
+      "observed": "p|a|p|artifact.read\ndigest-a",
+      "stderr": ""
+    },
+    {
+      "name": "wrong_action_denies",
+      "status": "passed",
+      "expected_sqlstate": null,
+      "observed": "p|a|p|artifact.read\nrelease.publish\n0",
+      "stderr": ""
+    },
+    {
+      "name": "runtime_guard_accepts_narrow_role",
+      "status": "passed",
+      "expected_sqlstate": null,
+      "observed": "f",
+      "stderr": ""
+    },
+    {
+      "name": "runtime_guard_rejects_bypass",
+      "status": "passed",
+      "expected_sqlstate": null,
+      "observed": "t",
+      "stderr": ""
+    },
+    {
+      "name": "runtime_guard_rejects_noinherit_owner_chain",
+      "status": "passed",
+      "expected_sqlstate": null,
+      "observed": "t",
+      "stderr": ""
+    },
+    {
+      "name": "runtime_cannot_set_resolver",
+      "status": "passed",
+      "expected_sqlstate": "42501",
+      "observed": "",
+      "stderr": "ERROR:  42501: permission denied to set role \"probe_resolver\"\nLOCATION:  call_string_check_hook, guc.c:6947\n"
+    }
+  ],
+  "cleanup": {
+    "owned_base": "/private/tmp/mixer-authz-1zv1p_81",
+    "postgres_stopped": true,
+    "socket_removed": true,
+    "other_clusters_touched": false
+  }
+}

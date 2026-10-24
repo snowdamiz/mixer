@@ -1,0 +1,25 @@
+Compiling 25 files (.ex)
+     warning: expected a map or struct when accessing .flight in expression:
+
+         waiter.flight
+
+     where "waiter" was given the types:
+
+         # type: dynamic()
+         # from: lib/mixer_hosted/identity/key_owner.ex:400:8
+         waiter
+
+         # type: dynamic(true)
+         # from: lib/mixer_hosted/identity/key_owner.ex:403:10
+         waiter
+
+     hint: "var.field" (without parentheses) means "var" is a map() while "var.fun()" (with parentheses) means "var" is an atom()
+
+     type warning found at:
+     │
+ 403 │     if ((waiter and s.flights[waiter.flight]) && s.flights[waiter.flight].mode == :required) and
+     │                                      ~
+     │
+     └─ lib/mixer_hosted/identity/key_owner.ex:403:38: MixerHosted.Identity.KeyOwner.drop_permit/2
+
+Generated mixer_hosted app

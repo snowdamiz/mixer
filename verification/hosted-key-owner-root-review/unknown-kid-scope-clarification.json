@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "status": "root-clarified-conflicting-refresh-contract-component-review-pending",
+  "sourceRevision": "4586bb901b980e9beeca5f7bb826f8b62140a3b4",
+  "contract": "docs/hosted-key-owner-contract.md",
+  "conflict": [
+    "The explicit state table permits a bounded background refresh for an absent valid kid in a fresh snapshot.",
+    "The next paragraph permits only bounded protected-header inspection after the pure unauthenticated result.",
+    "The later sentence saying no random bearer or unknown issuer allocates any worker or negative entry conflicts with both that refresh path and required cold-start fetching. An absent-key token's issuer is not authenticated."
+  ],
+  "decision": [
+    "Keep the explicit root-configured profile binding, header-only adapter and pure verifier unchanged. No token issuer/client/kid may create or choose a profile, endpoint, clock, transport policy or metric label.",
+    "Within an already explicitly configured binding, a token with a syntactically valid bounded protected header and absent kid may consume one bounded negative-cache entry and trigger one eligible background flight. This includes a token with foreign, malformed or fabricated payload claims; it remains unauthenticated regardless of the refresh outcome.",
+    "The existing maximum 128 negative entries per profile, snapshot-generation binding, non-extending 30-second expiry, FIFO eviction, one flight per profile, 30-second attempt cooldown, four process-wide flights and pre-mailbox request reservations apply unchanged. No new unbounded or token-derived owner state is permitted.",
+    "A known-key signature/claim failure never triggers refresh. An invalid protected header never creates a negative entry. An unknown configured binding cannot allocate a new profile or fetch. Cold configured trust may require its bounded fetch before any token can be verified.",
+    "This clarification replaces only the contradictory blanket no-worker/no-negative-entry sentence. It grants no identity or tenant authority and does not claim resistance to all refresh-pressure or denial-of-service attempts. Future HTTP request/IP admission and deployment-wide provider quotas remain required."
+  ],
+  "reviewRequirements": [
+    "Retain an executable foreign-issuer/absent-kid observation showing unauthenticated plus only the bounded configured-profile negative/eligible-refresh effect.",
+    "Exercise repeated hits, varied absent kids, cooldown, snapshot replacement and invalid-header/known-key negative controls against the frozen component.",
+    "Preserve the frozen original contract and producer packet; report this explicit interpretation in the independent review. Root component acceptance remains pending."
+  ],
+  "implementationAcceptance": false,
+  "providerOrGAQualification": false
+}

@@ -1,0 +1,44 @@
+Running ExUnit with seed: 0, max_cases: 30
+
+     warning: MixerHosted.Identity.TLSFixture.date/0 is undefined or private
+     │
+ 147 │     head = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nTransfer-Encoding: chunked\r\nDate: #{TLSFixture.date()}\r\nCache-Control: max-age=120\r\n\r\n"
+     │                                                                                                                   ~
+     │
+     └─ test/mixer_hosted/identity/independent_adversarial_test.exs:147:115: MixerHosted.Identity.IndependentAdversarialTest."test I07 exact TLS path requires Mint and wire guard to agree on hostile chunk syntax"/1
+
+......
+
+  1) test I07 exact TLS path requires Mint and wire guard to agree on hostile chunk syntax (MixerHosted.Identity.IndependentAdversarialTest)
+     test/mixer_hosted/identity/independent_adversarial_test.exs:146
+     ** (UndefinedFunctionError) function MixerHosted.Identity.TLSFixture.date/0 is undefined or private
+     code: head = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nTransfer-Encoding: chunked\r\nDate: #{TLSFixture.date()}\r\nCache-Control: max-age=120\r\n\r\n"
+     stacktrace:
+       (mixer_hosted 0.1.0) MixerHosted.Identity.TLSFixture.date()
+       test/mixer_hosted/identity/independent_adversarial_test.exs:147: (test)
+
+.
+
+  2) test I09 freshness never grows from positive Age response delay shorter Expires or wall reversal (MixerHosted.Identity.IndependentAdversarialTest)
+     test/mixer_hosted/identity/independent_adversarial_test.exs:166
+     match (=) failed
+     code:  assert {:error, :freshness_rejected} =
+              HTTPFreshness.calculate(%{h | "cache-control" => value}, {wall, 1000}, {wall + 2000, 3000})
+     left:  {:error, :freshness_rejected}
+     right: {:ok,
+             %{
+               expires_mono: 51000,
+               fresh_until: 1792826574,
+               fetched_at: 1792826526
+             }}
+     stacktrace:
+       test/mixer_hosted/identity/independent_adversarial_test.exs:175: anonymous fn/3 in MixerHosted.Identity.IndependentAdversarialTest."test I09 freshness never grows from positive Age response delay shorter Expires or wall reversal"/1
+       (elixir 1.20.4) lib/enum.ex:1725: Enum."-map/2-lists^map/1-1-"/2
+       (elixir 1.20.4) lib/enum.ex:1725: Enum."-map/2-lists^map/1-1-"/2
+       test/mixer_hosted/identity/independent_adversarial_test.exs:174: (test)
+
+..
+Finished in 0.3 seconds (0.00s async, 0.3s sync)
+
+Result: 9/11 passed
+Failed: 2 tests

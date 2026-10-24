@@ -1,0 +1,125 @@
+{
+  "schema": 1,
+  "observedUTC": "2026-10-24T05:54:59.265691+00:00",
+  "command": [
+    "python3",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-key-owner-contract/research.py"
+  ],
+  "networkSourceScope": "Public primary metadata only; no provider credentials/resources or product dependency changes.",
+  "fetched": [
+    {
+      "url": "https://hex.pm/api/packages/mint",
+      "output": "mint-package.json",
+      "httpStatus": 200,
+      "sha256": "077b290a44d6ab1598bdf6f5800dcb4ab4d61be6149de324e3d868479bb08093"
+    },
+    {
+      "url": "https://hex.pm/api/packages/mint/releases/1.11.0",
+      "output": "mint-release.json",
+      "httpStatus": 200,
+      "sha256": "25ddad92ac5fcc95cd3fc7ccce2e82c6d249d81a8c1489ccbddc83ea3d9b66d6"
+    },
+    {
+      "url": "https://api.github.com/repos/elixir-mint/mint/security-advisories?per_page=100",
+      "output": "mint-advisories.json",
+      "httpStatus": 200,
+      "sha256": "b73b163745b84870410c253d649bf4d1006df73fc5a0add4eca8cc7a5ff4c877"
+    },
+    {
+      "url": "https://api.github.com/repos/elixir-mint/mint/releases?per_page=5",
+      "output": "mint-releases.json",
+      "httpStatus": 200,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  ],
+  "installedSources": [
+    {
+      "path": "/opt/homebrew/Cellar/erlang/29.1.1_2/lib/erlang/lib/inets-9.8/src/http_client/httpc.erl",
+      "sha256": "d79c6e1cbb512cee3c9bec4467d81511b2ccb14aecbcc4ae59a0e2ec8810e6e6",
+      "excerpts": [
+        {
+          "start": 272,
+          "end": 310,
+          "text": "- [](){: #opt_timeout } **`timeout`** - Time-out time for the request.\n\n  The clock starts ticking when the request is sent.\n\n  Time is in milliseconds.\n\n  Default is `infinity`.\n\n- [](){: #opt_connect_timeout } **`connect_timeout`** - Connection time-out time, used during the initial\n  request, when the client is _connecting_ to the server.\n\n  Time is in milliseconds.\n\n  Default is the value of option `timeout`.\n\n- [](){: #opt_ssl } **`ssl`** - This is the `SSL/TLS` connecting configuration option.\n\n  Default value is obtained by calling\n  [`httpc:ssl_verify_host_options(true)`. ](`ssl_verify_host_options/1`). See\n  [ssl:connect/2,3,4](`m:ssl`) for available options.\n\n- [](){: #opt_autoredirect } **`autoredirect`** - The client automatically retrieves the information from\n  the new URI and returns that as the result, instead of a 30X-result code.\n\n  For some 30X-result codes, automatic redirect is not allowed. In these cases\n  the 30X-result is always returned.\n\n  Default is `true`.\n\n- [](){: #opt_autoretry } **`autoretry`** - The client automatically retries the request **once** after receiving\n  a Retry-After header from the server.\n\n  Sometimes servers can suggest a value that is not suitable for application,\n  so this option allows limiting the wait time **(in miliseconds)** inbetween requests, or disabling\n  the retry with a value of `0`. If a value of Retry-After header exceeds the set\n  value, no retry will be done.\n\n  Default is atom `infinity`.\n"
+        },
+        {
+          "start": 334,
+          "end": 347,
+          "text": "- [](){: #opt_stream } **`stream`** - Streams the body of a 200 or 206 response to the calling\n  process or to a file. When streaming to the calling process using option\n  `self`, the following stream messages are sent to that process:\n  `{http, {RequestId, stream_start, Headers}}, {http, {RequestId, stream, BinBodyPart}}, and {http, {RequestId, stream_end, Headers}}`.\n\n  When streaming to the calling processes using option `{self, once}`, the first\n  message has an extra element, that is,\n  `{http, {RequestId, stream_start, Headers, Pid}}`. This is the process id to\n  be used as an argument to `httpc:stream_next/1` to trigger the next message to\n  be sent to the calling process.\n\n  Notice that chunked encoding can add headers so that there are more headers in\n  the `stream_end` message than in `stream_start`. When streaming to a file and\n  the request is asynchronous, the message `{http, {RequestId, saved_to_file}}`"
+        },
+        {
+          "start": 431,
+          "end": 451,
+          "text": "  [](){: #opt_max_header_size }\n\n- **`max_header_size`** - Maximum total number of bytes allowed for the response\n  headers (cumulative across all header lines). If the server sends headers\n  exceeding this limit, the request fails with\n  `{error, {header_too_long, {max, MaxSize}}}`.\n\n  The atom `nolimit` disables the check (not recommended).\n\n  Default is `10240` (same as the [`max_header_size`](`m:httpd#prop_max_header_size`)\n  configuration for `httpd`).\n\n  [](){: #opt_max_body_size }\n\n- **`max_body_size`** - Maximum number of bytes allowed for the response body.\n  If the `Content-Length` of the response exceeds this limit, the request fails\n  with `{error, body_too_big}`.\n\n  The atom `nolimit` disables the check.\n\n  Default is `nolimit`."
+        },
+        {
+          "start": 1968,
+          "end": 1972,
+          "text": "\t\t  Version);  \nheader_record([{\"host\", Val} | Rest], RequestHeaders, Host, Version) ->\n    header_record(Rest, RequestHeaders#http_request_h{host = Val}, Host, \n\t\t  Version);\nheader_record([{\"if-match\", Val} | Rest], RequestHeaders, Host, Version) ->"
+        }
+      ]
+    },
+    {
+      "path": "/opt/homebrew/Cellar/erlang/29.1.1_2/lib/erlang/lib/inets-9.8/src/http_client/httpc_handler.erl",
+      "sha256": "ba4af8b1704748ea2c4d6af7e42fb3f825bb7721be0ac7bf97020e20c3992fe2",
+      "excerpts": [
+        {
+          "start": 979,
+          "end": 1034,
+          "text": "\t\t\t      max_body_size = MaxBodySize,\n\t\t\t      status_line   = {_,Code, _},\n\t\t\t      request       = Request} = State) ->\n    case case_insensitive_header(TransferEnc) of\n        \"chunked\" ->\n\t    try http_chunk:decode(Body, State#state.max_body_size, \n\t\t\t\t  State#state.max_header_size) of\n\t\t{Module, Function, Args} ->\n\t\t    NewState = next_body_chunk(State, Code),\n\t\t    {noreply, NewState#state{mfa = \n\t\t\t\t\t     {Module, Function, Args}}};\n\t\t{ok, {ChunkedHeaders, NewBody}} ->\n\t\t    NewHeaders = http_chunk:handle_headers(Headers, \n\t\t\t\t\t\t\t   ChunkedHeaders),\n                    case Body of\n                        <<>> ->\n                           handle_response(State#state{headers = NewHeaders,\n                                                body    = NewBody});\n                        _ ->\n                           {_, NewBody2, _} =\n                                stream(NewBody, Request, Code),\n                           handle_response(State#state{headers = NewHeaders,\n                                       body    = NewBody2})\n                    end\n\t    catch throw:{error, Reason} ->\n\t\tNewState =\n\t\t    answer_request(Request,\n\t\t\t\t   httpc_response:error(Request,\n\t\t\t\t\t\t\tReason),\n\t\t\t\t   State),\n\t\t    {stop, normal, NewState}\n\t    end;\n        Enc when Enc =:= \"identity\"; Enc =:= undefined ->\n            Length =\n                list_to_integer(Headers#http_response_h.'content-length'),\n            case ((Length =< MaxBodySize) orelse (MaxBodySize =:= nolimit)) of\n                true ->\n                    case httpc_response:whole_body(Body, Length) of\n                        {ok, Body} ->\n\t\t\t    {_, NewBody, NewRequest} =\n\t\t\t\tstream(Body, Request, Code),\n\t\t\t    handle_response(State#state{body    = NewBody,\n\t\t\t\t\t\t\trequest = NewRequest});\n                        MFA ->\n\t\t\t    NewState = next_body_chunk(State, Code),\n\t\t\t    {noreply, NewState#state{mfa = MFA}}\n\t\t    end;\n                false ->\n\t\t    NewState = \n\t\t\tanswer_request(Request,\n\t\t\t\t       httpc_response:error(Request, \n\t\t\t\t\t\t\t    body_too_big),\n\t\t\t\t       State),\n                    {stop, normal, NewState}\n            end;\n        Encoding when is_list(Encoding) ->"
+        },
+        {
+          "start": 1486,
+          "end": 1513,
+          "text": "start_stream({_Version, _Code, _ReasonPhrase}, _Headers, \n\t     #request{stream = none} = Request) ->\n    {ok, Request};\nstart_stream({_Version, Code, _ReasonPhrase}, Headers, \n\t     #request{stream = self} = Request) \n  when ?IS_STREAMED(Code) ->\n    Msg = httpc_response:stream_start(Headers, Request, ignore),\n    httpc_response:send(Request#request.from, Msg),\n    {ok, Request};\nstart_stream({_Version, Code, _ReasonPhrase}, Headers, \n\t     #request{stream = {self, once}} = Request) \n  when ?IS_STREAMED(Code) ->\n    Msg = httpc_response:stream_start(Headers, Request, self()),\n    httpc_response:send(Request#request.from, Msg),\n    {ok, Request};    \nstart_stream({_Version, Code, _ReasonPhrase}, _Headers, \n\t     #request{stream = Filename} = Request)\n  when ?IS_STREAMED(Code) andalso is_list(Filename) ->\n    case file:open(Filename, [write, raw, append, delayed_write]) of\n        {ok, Fd} ->\n            {ok, Request#request{stream = Fd}};\n        {error, Reason} ->\n            exit({stream_to_file_failed, Reason})\n    end;\nstart_stream(_StatusLine, _Headers, Request) ->\n    {ok, Request}.\n\nstream_remaining_body(<<>>, _, _) ->"
+        }
+      ]
+    },
+    {
+      "path": "/opt/homebrew/Cellar/erlang/29.1.1_2/lib/erlang/lib/inets-9.8/src/http_client/httpc_response.erl",
+      "sha256": "b508696c3fda6c5f2735817af40c1d927a25013c6e8c91d1d9bcc1aebdef1044",
+      "excerpts": [
+        {
+          "start": 68,
+          "end": 85,
+          "text": "whole_body(Body, Length) when is_binary(Body)->\n    case byte_size(Body) of\n\tN when (N < Length) andalso (N > 0)  ->\n\t    {?MODULE, whole_body, [Body, Length]};\n\t%% OBS!  The Server may close the connection to indicate that the\n\t%% whole body is now sent instead of sending a length\n\t%% indicator.In this case the length indicator will be\n\t%% -1.\n\tN when (N >= Length) andalso (Length >= 0) -> \n\t    %% Potential trailing garbage will be thrown away in\n\t    %% format_response/1 Some servers may send a 100-continue\n\t    %% response without the client requesting it through an\n\t    %% expect header in this case the trailing bytes may be\n\t    %% part of the real response message.\n\t    {ok, Body};\n\t_ -> %% Length == -1\n\t    {?MODULE, whole_body, [Body, Length]} \n    end."
+        }
+      ]
+    },
+    {
+      "path": "/opt/homebrew/Cellar/erlang/29.1.1_2/lib/erlang/lib/ssl-11.7.7/src/ssl.erl",
+      "sha256": "5a7cc7d251115e0a7815f04831441c60f05c498e33c3d15b0c31bea33f9f6cb3",
+      "excerpts": [
+        {
+          "start": 2305,
+          "end": 2321,
+          "text": "Opens a TLS/DTLS connection to `Host`, `Port`.\n\nWhen the `verify` option is set to `verify_peer`, the\n`public_key:pkix_verify_hostname/2` check will be performed in addition to the usual\nX.509-path validation checks. If the check fails, the error `{bad_cert,\nhostname_check_failed}` will be propagated to the path validation fun,\nwhere it is possible to do customized checks\nby using the full possibilities of the `public_key:pkix_verify_hostname/3` API.\nWhen the `server_name_indication` option is provided, its value (the DNS name)\nwill be used as `ReferenceID` to `public_key:pkix_verify_hostname/2`. When no\n`server_name_indication` option is given, the `Host` argument will be used as\nServer Name Indication extension. The `Host` argument will also be used for the\n`public_key:pkix_verify_hostname/2` check. If the `Host` argument is an\n[`inet:ip_address()`](`t:inet:ip_address/0`) the `ReferenceID` used for the\ncheck will be `{ip, Host}`; otherwise `dns_id` will be assumed with a fallback to\n`ip` if that fails.\n"
+        }
+      ]
+    },
+    {
+      "path": "/opt/homebrew/Cellar/erlang/29.1.1_2/lib/erlang/lib/kernel-11.0.4/src/inet_res.erl",
+      "sha256": "dadb5140fd8cdf3d301fd56eb501a04bcaa119f66ebe3d6620a42ce723668f44",
+      "excerpts": [
+        {
+          "start": 302,
+          "end": 386,
+          "text": "-spec resolve(Name, Class, Type) -> {ok, dns_msg()} | Error when\n      Name :: dns_name() | inet:ip_address(),\n      Class :: dns_class(),\n      Type :: dns_rr_type(),\n      Error :: {error, Reason} | {error,{Reason,dns_msg()}},\n      Reason :: inet:posix() | res_error().\n\nresolve(Name, Class, Type) ->\n    resolve(Name, Class, Type, [], infinity).\n\n-doc(#{equiv => resolve(Name, Class, Type, Opts, infinity)}).\n-spec resolve(Name, Class, Type, Opts) ->\n                     {ok, dns_msg()} | Error when\n      Name :: dns_name() | inet:ip_address(),\n      Class :: dns_class(),\n      Type :: dns_rr_type(),\n      Opts :: [Opt],\n      Opt :: res_option() | verbose | atom(),\n      Error :: {error, Reason} | {error,{Reason,dns_msg()}},\n      Reason :: inet:posix() | res_error().\n\nresolve(Name, Class, Type, Opts) ->\n    resolve(Name, Class, Type, Opts, infinity).\n\n-doc \"\"\"\nResolve a DNS query.\n\nResolves a DNS query for the specified `Type`, `Class`, and  `Name`,\ninto a DNS message possibly containing Resource Records.\nThe returned `t:dns_msg/0` can be examined using access functions\nin `inet_db`, as described in section in [DNS Types](#module-dns-types).\n\nIf `Name` is an `ip_address()`, the domain name to query about is generated\nas the standard reverse `\".IN-ADDR.ARPA.\"` name for an IPv4 address, or the\n`\".IP6.ARPA.\"` name for an IPv6 address.  In this case, you most probably\nwant to use `Class = in` and `Type = ptr`, but it is not done automatically.\n\n`Opts` overrides the corresponding resolver options. If option `nameservers`\nis specified, it is assumed that it is the complete list of name serves,\nso resolver option `alt_nameserves` is ignored. However, if option\n`alt_nameserves` is also specified to this function, it is used.\n\nOption `verbose` (or rather `{verbose,true}`) causes diagnostics printout\nthrough [`io:format/2`](`io:format/3`) of queries, replies, retransmissions,\nand so on, similar to utilities such as `dig` and `nslookup`.\n\nOption `nxdomain_reply` (or rather `{nxdomain_reply,\u00a0true}`) causes NXDOMAIN\nerrors from DNS servers to be returned as `{error,\u00a0{nxdomain,\u00a0dns_msg()}}`.\n`t:dns_msg/0` contains the additional sections that where included by the\nanswering server. This is mainly useful to inspect the SOA record\nto get the TTL for negative caching.\n\nIf `Opt` is any atom, it is interpreted as `{Opt,true}` unless\nthe atom string starts with `\"no\"`, making the interpretation `{Opt,false}`.\nFor example, `usevc` is an alias for `{usevc,\u00a0true}` and `nousevc`\nis an alias for `{usevc,\u00a0false}`.\n\nOption `inet6` has no effect on this function. You probably want to use\n`Type\u00a0=\u00a0a\u00a0|\u00a0aaaa` instead.\n\"\"\".\n-spec resolve(Name, Class, Type, Opts, Timeout) ->\n                     {ok, dns_msg()} | Error when\n      Name :: dns_name() | inet:ip_address(),\n      Class :: dns_class(),\n      Type :: dns_rr_type(),\n      Opts :: [Opt],\n      Opt :: res_option() | verbose | atom(),\n      Timeout :: timeout(),\n      Error :: {error, Reason} | {error,{Reason,dns_msg()}},\n      Reason :: inet:posix() | res_error().\n\nresolve(Name, Class, Type, Opts, Timeout) ->\n    case nsdname(Name) of\n\t{ok, Nm} ->\n\t    Timer = inet:start_timer(Timeout),\n\t    Options = make_options(Opts),\n\t    Res = res_query(Nm, Class, Type, Options, Timer),\n\t    _ = inet:stop_timer(Timer),\n\t    Res;\n\t{error, _} = Error ->\n\t    Error\n    end.\n\n%% --------------------------------------------------------------------------\n%% lookup:"
+        }
+      ]
+    }
+  ],
+  "mintTarball": {
+    "url": "https://repo.hex.pm/tarballs/mint-1.11.0.tar",
+    "sha256": "c6279ba2d6aa3a383a1d4cfbe7b59f42e6efd400f58d8e2acfeac48a438693ab"
+  },
+  "onlineDocsPatchDrift": "Online OTP docs observed 29.1.2/inets9.8.1/ssl11.7.8; installed source and TLS probe use29.1.1/inets9.8/ssl11.7.7.",
+  "webPrimaryReferences": [
+    "https://www.erlang.org/doc/apps/inets/httpc.html#request/5",
+    "https://www.erlang.org/doc/apps/ssl/ssl.html#connect/4",
+    "https://www.erlang.org/doc/apps/kernel/inet_res.html#resolve/5",
+    "https://www.rfc-editor.org/rfc/rfc9111.html#section-4.2.3",
+    "https://github.com/elixir-mint/mint/tree/v1.11.0",
+    "https://github.com/elixir-mint/mint/security/advisories"
+  ]
+}

@@ -1,0 +1,5 @@
+{:ok, socket} = :socket.open(:inet, :dgram, :udp)
+:ok = :socket.ioctl(socket, :sifaddr, ~c"lo:1", %{family: :inet, addr: {8, 8, 8, 8}, port: 0})
+{:ok, %{addr: {8, 8, 8, 8}}} = :socket.ioctl(socket, :gifaddr, ~c"lo:1")
+:ok = :socket.close(socket)
+IO.puts("isolated network namespace lo:1=8.8.8.8; no host network mutation")
