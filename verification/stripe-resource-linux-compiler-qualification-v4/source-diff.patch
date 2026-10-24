@@ -1,0 +1,83 @@
+--- verification/stripe-resource-linux-compiler-qualification-v3/run_qualification.py
++++ verification/stripe-resource-linux-compiler-qualification-v4/run_qualification.py
+@@ -20,7 +20,7 @@
+ import qualification as q
+ 
+ HERE, ROOT = prepare.HERE, prepare.ROOT
+-SELECTION = ROOT/"verification/stripe-webhook-resource-ingress-root-review/linux-compiler-qualification-v3-selection.json"
++SELECTION = ROOT/"verification/stripe-webhook-resource-ingress-root-review/linux-compiler-qualification-v4-selection.json"
+ LABEL = "com.mixer.private-compiler-qualification.owner"
+ SOURCES = ["prepare.py", "qualification.py", "run_qualification.py", "native-qualify.sh", "test_preparation.py"]
+ 
+@@ -118,6 +118,19 @@
+             prepare.require(not any(block), "header export tail")
+     prepare.require(all(files.get(p) == h for p, h in expected.items()), "original ERTS header pin mismatch")
+     return files
++
++
++def product_export_argv(name, iteration, filename):
++    """Read one fixed product through pinned tar in the owned mount namespace."""
++    prefix = "mixer-private-compiler-qualification-"
++    prepare.require(isinstance(name, str) and name.startswith(prefix)
++                    and len(name[len(prefix):]) == 12
++                    and all(c in "0123456789abcdef" for c in name[len(prefix):]), "product export container name")
++    prepare.require(type(iteration) is int and iteration in (1, 2)
++                    and filename in ("fault_helper", "control_nif.so"), "unselected product export")
++    directories = {1: "/tmp/mixer-compiler-qualification/run-1", 2: "/tmp/mixer-compiler-qualification/run-2"}
++    return ["docker", "exec", name, "/usr/bin/tar", "--create", "--file=-",
++            "--directory="+directories[iteration], filename]
+ 
+ 
+ def main(argv=None):
+@@ -298,7 +311,7 @@
+         for iteration in (1, 2):
+             for filename in ("fault_helper", "control_nif.so"):
+                 raw = run("product-{}-{}".format(iteration, filename),
+-                          ["docker", "cp", "-L", name+":/tmp/mixer-compiler-qualification/run-"+str(iteration)+"/"+filename, "-"],
++                          product_export_argv(name, iteration, filename),
+                           export="product-{}-{}.tar".format(iteration, filename), maximum=2097152+1048576)
+                 body = q.one_file_tar(raw, filename, maximum=2097152)
+                 products[str(iteration)+"/"+filename] = {"sha256": hashlib.sha256(body).hexdigest(), "bytes": len(body), "ELF": prepare.elf(body)}
+--- verification/stripe-resource-linux-compiler-qualification-v3/test_preparation.py
++++ verification/stripe-resource-linux-compiler-qualification-v4/test_preparation.py
+@@ -264,6 +264,40 @@
+ 
+ 
+ class AuthorityControls(unittest.TestCase):
++
++    def test_product_tar_argv_is_fixed_for_all_four_exports(self):
++        name = "mixer-private-compiler-qualification-0123456789ab"
++        for iteration in (1, 2):
++            for filename in ("fault_helper", "control_nif.so"):
++                actual = run.product_export_argv(name, iteration, filename)
++                self.assertEqual(actual, ["docker", "exec", name, "/usr/bin/tar", "--create", "--file=-",
++                                          "--directory=/tmp/mixer-compiler-qualification/run-"+str(iteration), filename])
++
++    def test_product_tar_argv_rejects_unselected_values(self):
++        name = "mixer-private-compiler-qualification-0123456789ab"
++        for iteration in (0, 3, -1, True, "1"):
++            with self.subTest(iteration=iteration), self.assertRaises(ValueError):
++                run.product_export_argv(name, iteration, "fault_helper")
++        for filename in ("*", "../fault_helper", "/tmp/fault_helper", "fault_helper.1", "fault_helper;echo x", "control_nif.so/"):
++            with self.subTest(filename=filename), self.assertRaises(ValueError):
++                run.product_export_argv(name, 1, filename)
++        for container in (None, "foreign", name+"f", name+";echo x", "mixer-private-compiler-qualification-ABCDEFGHIJKL"):
++            with self.subTest(container=container), self.assertRaises(ValueError):
++                run.product_export_argv(container, 1, "fault_helper")
++
++    def test_actual_runner_product_export_calls_fixed_tar_builder(self):
++        import ast
++        tree = ast.parse(Path(run.__file__).read_text())
++        calls = [value for value in ast.walk(tree) if isinstance(value, ast.Call)
++                 and isinstance(value.func, ast.Name) and value.func.id == "run" and value.args
++                 and isinstance(value.args[0], ast.Call) and isinstance(value.args[0].func, ast.Attribute)
++                 and isinstance(value.args[0].func.value, ast.Constant)
++                 and value.args[0].func.value.value == "product-{}-{}"]
++        self.assertEqual(len(calls), 1)
++        self.assertEqual(ast.dump(calls[0].args[1]),
++                         ast.dump(ast.parse("product_export_argv(name, iteration, filename)", mode="eval").body))
++        maximum = next(value.value for value in calls[0].keywords if value.arg == "maximum")
++        self.assertEqual(ast.dump(maximum), ast.dump(ast.parse("2097152+1048576", mode="eval").body))
+     def test_actual_v2_lowercase_absence_is_accepted_exactly(self):
+         folder = p.ROOT/"verification/stripe-resource-linux-compiler-qualification-v2/attempt-1"
+         receipt = json.loads((folder/"receipt.json").read_text())

@@ -1,0 +1,167 @@
+--- verification/stripe-resource-linux-compiler-qualification-v2/qualification.py
++++ verification/stripe-resource-linux-compiler-qualification-v3/qualification.py
+@@ -40,6 +40,22 @@
+             require(not any(block), "ambiguous base export tail")
+     require(len(files) == 1, "base export file absent")
+     return files[0]
++
++
++def base_file_tar(data, soname, maximum=MAX_FILE_BYTES):
++    """Base-library-only docker cp -L basename compatibility; strict graph stays shared."""
++    base_path(soname)  # Requested identity must remain an ASCII SONAME leaf.
++    require(0 < len(data) <= maximum+1048576, "base export envelope bound")
++    with tarfile.open(fileobj=io.BytesIO(data), mode="r|") as archive:
++        member = archive.next()
++        require(member is not None, "base export file absent")
++        require(not member.pax_headers and member.sparse is None, "unsupported base tar metadata")
++        observed = member.name
++        require(re.fullmatch(re.escape(soname)+r"(?:\.[0-9]+(?:\.[0-9]+)*)?", observed, flags=re.ASCII),
++                "base export versioned member name")
++    # Keep the existing one-file/type/PAX/sparse/link/size/tail validation exact.
++    # Product, notice and header consumers never call this compatibility wrapper.
++    return one_file_tar(data, observed, maximum=maximum), observed
+ 
+ 
+ def base_path(name):
+--- verification/stripe-resource-linux-compiler-qualification-v2/run_qualification.py
++++ verification/stripe-resource-linux-compiler-qualification-v3/run_qualification.py
+@@ -20,7 +20,7 @@
+ import qualification as q
+ 
+ HERE, ROOT = prepare.HERE, prepare.ROOT
+-SELECTION = ROOT/"verification/stripe-webhook-resource-ingress-root-review/linux-compiler-qualification-v2-selection.json"
++SELECTION = ROOT/"verification/stripe-webhook-resource-ingress-root-review/linux-compiler-qualification-v3-selection.json"
+ LABEL = "com.mixer.private-compiler-qualification.owner"
+ SOURCES = ["prepare.py", "qualification.py", "run_qualification.py", "native-qualify.sh", "test_preparation.py"]
+ 
+@@ -80,7 +80,8 @@
+ def cleanup_resolution(raw, exit_code, stderr, name, token, identifier=None):
+     """Recover creation side effects without ever adopting/removing foreign state."""
+     if exit_code:
+-        allowed = {"Error: No such object: "+name, "Error response from daemon: No such container: "+name}
++        allowed = {"Error: No such object: "+name, "Error response from daemon: No such container: "+name,
++                   "error: no such object: "+name}
+         prepare.require(exit_code == 1 and raw.strip() == b"[]" and stderr.decode().strip() in allowed,
+                         "cleanup cannot prove absence from failed inspection")
+         return None
+@@ -240,12 +241,21 @@
+                 source = q.base_path(soname)
+                 raw = run("base-"+soname, ["docker", "cp", "-L", name+":"+source, "-"],
+                           export="base-"+soname+".tar", maximum=q.MAX_FILE_BYTES+1048576)
+-                body = q.one_file_tar(raw, soname)
++                observation = {"requestedPath": source, "requestedSONAME": soname,
++                               "exportTar": commands[-1]["outputs"]["stdout"], "decoderStatus": "pending"}
++                receipt.setdefault("baseExportObservations", []).append(observation)
++                try:
++                    body, observed_member = q.base_file_tar(raw, soname)
++                except Exception as exc:
++                    observation.update(decoderStatus="rejected", decoderError=str(exc))
++                    raise
++                h = hashlib.sha256(body).hexdigest()
++                observation.update(decoderStatus="accepted", observedMemberName=observed_member,
++                                   bodyBytes=len(body), bodySHA256=h)
+                 base_bytes += len(body)
+                 prepare.require(base_bytes <= q.MAX_BASE_BYTES, "base bytes aggregate")
+                 item = prepare.elf(body)
+                 prepare.require(item["soname"] == soname, "base SONAME mismatch")
+-                h = hashlib.sha256(body).hexdigest()
+                 old = inherited_hashes.get(source) or inherited_hashes.get(source.replace("/usr/lib/", "/lib/", 1))
+                 prepare.require(old is None or h == old, "retained base runtime byte hash changed")
+                 base[soname], base_hashes[source] = item, h
+--- verification/stripe-resource-linux-compiler-qualification-v2/test_preparation.py
++++ verification/stripe-resource-linux-compiler-qualification-v3/test_preparation.py
+@@ -104,6 +104,65 @@
+ 
+ 
+ class TarControls(unittest.TestCase):
++    def test_base_requested_or_decimal_versioned_leaf_is_accepted(self):
++        for name in ("libgmp.so.10", "libgmp.so.10.5", "libgmp.so.10.5.0", "libgmp.so.10.05.00"):
++            raw = archive([(name, b"base-data", tarfile.REGTYPE)])
++            body, observed = q.base_file_tar(raw, "libgmp.so.10")
++            self.assertEqual((body, observed), (b"base-data", name))
++
++    def test_base_rejects_wrong_prefix_nondecimal_and_path_names(self):
++        bad = ("libgmp.so.100", "libgmp.so.100.5.0", "other-libgmp.so.10.5.0", "libgmp.so.10.",
++               "libgmp.so.10..5", "libgmp.so.10.5..0", "libgmp.so.10.5x", "libgmp.so.10.5.so",
++               "libgmp.so.10.+5", "libgmp.so.10.-5", "libgmp.so.10.٥", "./libgmp.so.10.5.0",
++               "../libgmp.so.10.5.0", "/libgmp.so.10.5.0", "libgmp.so.10.5/0")
++        for name in bad:
++            with self.subTest(name=name), self.assertRaises(ValueError):
++                q.base_file_tar(archive([(name, b"base-data", tarfile.REGTYPE)]), "libgmp.so.10")
++
++    def test_base_rejects_pax_multi_links_and_nonzero_tail(self):
++        data = io.BytesIO()
++        with tarfile.open(fileobj=data, mode="w", format=tarfile.PAX_FORMAT) as writer:
++            member = tarfile.TarInfo("libgmp.so.10.5.0")
++            member.size, member.pax_headers = 1, {"comment": "unselected"}
++            writer.addfile(member, io.BytesIO(b"x"))
++        samples = [data.getvalue(), archive([("libgmp.so.10.5.0", b"x", tarfile.REGTYPE)]*2),
++                   archive([("libgmp.so.10.5.0", b"x", tarfile.REGTYPE)], b"hidden")]
++        samples += [archive([("libgmp.so.10.5.0", b"target", kind)])
++                    for kind in (tarfile.SYMTYPE, tarfile.LNKTYPE, tarfile.DIRTYPE, tarfile.FIFOTYPE)]
++        for raw in samples:
++            with self.subTest(bytes=len(raw)), self.assertRaises(ValueError):
++                q.base_file_tar(raw, "libgmp.so.10")
++
++    def test_base_rejects_sparse_header_even_with_no_extents(self):
++        data = io.BytesIO()
++        with tarfile.open(fileobj=data, mode="w", format=tarfile.GNU_FORMAT) as writer:
++            member = tarfile.TarInfo("libgmp.so.10.5.0")
++            member.type, member.size = tarfile.GNUTYPE_SPARSE, 1
++            writer.addfile(member, io.BytesIO(b"\0"))
++        with self.assertRaises(ValueError):
++            q.base_file_tar(data.getvalue(), "libgmp.so.10")
++
++    def test_base_wrapper_retains_individual_byte_limit(self):
++        with self.assertRaises(ValueError):
++            q.base_file_tar(archive([("libgmp.so.10.5.0", b"123", tarfile.REGTYPE)]), "libgmp.so.10", maximum=2)
++
++    def test_exact_product_and_notice_decoders_keep_name_contracts(self):
++        for exact in ("fault_helper", "control_nif.so", "copyright"):
++            raw = archive([(exact+".1", b"data", tarfile.REGTYPE)])
++            with self.subTest(exact=exact), self.assertRaises(ValueError):
++                q.one_file_tar(raw, exact)
++
++    def test_actual_v2_gmp_tar_retains_observed_name_and_body_hash(self):
++        path = p.ROOT/"verification/stripe-resource-linux-compiler-qualification-v2/attempt-1/exports/base-libgmp.so.10.tar"
++        raw = path.read_bytes()
++        self.assertEqual(hashlib.sha256(raw).hexdigest(), "a2de7a3968ca484ac035d4349071c6919378a95f88096ffe38d8b00041bc76af")
++        body, name = q.base_file_tar(raw, "libgmp.so.10")
++        self.assertEqual(name, "libgmp.so.10.5.0")
++        self.assertEqual(hashlib.sha256(body).hexdigest(), "39b6701812ed7135f28df49352b3f6664c7a9f56880a3fe50c1b87cd7681db9b")
++        self.assertEqual(p.elf(body)["soname"], "libgmp.so.10")
++        with self.assertRaises(ValueError):
++            q.one_file_tar(raw, "libgmp.so.10")
++
+     def test_one_regular_file_is_returned_as_data(self):
+         self.assertEqual(q.one_file_tar(archive([("library", b"bytes", tarfile.REGTYPE)]), "library"), b"bytes")
+ 
+@@ -205,6 +264,28 @@
+ 
+ 
+ class AuthorityControls(unittest.TestCase):
++    def test_actual_v2_lowercase_absence_is_accepted_exactly(self):
++        folder = p.ROOT/"verification/stripe-resource-linux-compiler-qualification-v2/attempt-1"
++        receipt = json.loads((folder/"receipt.json").read_text())
++        command = next(x for x in receipt["commands"] if x["label"] == "cleanup-absence")
++        raw = (p.ROOT/command["outputs"]["stdout"]["path"]).read_bytes()
++        error = (p.ROOT/command["outputs"]["stderr"]["path"]).read_bytes()
++        self.assertEqual(error.decode().strip(), "error: no such object: "+receipt["containerName"])
++        self.assertIsNone(run.cleanup_resolution(raw, command["exitCode"], error, receipt["containerName"],
++                                                receipt["ownerToken"], receipt["cleanupRecoveredContainerID"]))
++
++    def test_lowercase_absence_does_not_accept_false_or_ambiguous_messages(self):
++        bad = (b"error: no such object: foreign\n", b"error: no such object: owned-extra\n",
++               b"ERROR: NO SUCH OBJECT: owned\n", b"error: no such container: owned\n",
++               b"daemon: error: no such object: owned\n", b"Cannot connect to Docker daemon\n",
++               b"error: no such object: owned\nadditional daemon error\n")
++        for error in bad:
++            with self.subTest(error=error), self.assertRaises(ValueError):
++                run.cleanup_resolution(b"[]\n", 1, error, "owned", "token")
++        for code, output in ((0, b"[]\n"), (2, b"[]\n"), (1, b""), (1, b"[{}]\n")):
++            with self.subTest(code=code, output=output), self.assertRaises(ValueError):
++                run.cleanup_resolution(output, code, b"error: no such object: owned\n", "owned", "token")
++
+ 
+     def test_actual_runner_image_inspect_argv_selects_arm64_explicitly(self):
+         # Inspect the real call site; validators and native commands are not run.
