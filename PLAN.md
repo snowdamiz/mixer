@@ -34,6 +34,13 @@ routes and selected-cloud qualification remain open. See
 `docs/phoenix-foundation.md` and `verification/phoenix-foundation/candidate-5/receipt.json`.
 The coordinated next identity/artifact seam is documented in
 `docs/hosted-identity-contract.md`; its declaration tests are not authentication.
+The hosted artifact CBOR encoder now matches the existing v3 manifest,
+assignment, signature-preimage and grant-descriptor vectors. Eleven new tests,
+35 full hosted tests, two Go vector tests and packaged release checks pass in
+an isolated accepted-source snapshot. See `docs/hosted-artifact-cbor.md` and
+`verification/hosted-artifact-cbor/acceptance.json`. This supplies encoding only;
+signed artifact admission, authenticated routes, membership and persistence
+remain pending. Linux CI for this new slice is pending its push.
 Recent hosted CI at 4546513 and b15ff7a passes Swift, VM and Go service jobs,
 resolving the prior milestone busy-admission revalidation. No GA gate is closed.
 

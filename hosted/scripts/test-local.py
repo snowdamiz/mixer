@@ -27,12 +27,17 @@ def digest(path):
 
 
 def manifest():
-    return {
-        str(p.relative_to(root)): digest(p)
+    inputs = {
+        str(p.relative_to(root.parent)): digest(p)
         for p in sorted(root.rglob("*"))
         if p.is_file() and p.name != "erl_crash.dump"
         and not {"_build", "deps", "__pycache__", "cover"}.intersection(p.relative_to(root).parts)
     }
+    # The hosted encoder consumes this existing cross-language wire fixture.
+    # Bind it in both the source digest and replay archive, not just tests.log.
+    fixture = root.parent / "services/protocol/testdata/signed-release-v3.json"
+    inputs[str(fixture.relative_to(root.parent))] = digest(fixture)
+    return inputs
 
 
 def run(label, argv, env=None, check=True):
@@ -56,7 +61,7 @@ before = manifest()
 source_digest = hashlib.sha256(json.dumps(before, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
 with tarfile.open(output / "source.tar.gz", "w:gz") as archive:
     for name in before:
-        archive.add(root / name, arcname=name, recursive=False)
+        archive.add(root.parent / name, arcname=name, recursive=False)
 scratch = Path(tempfile.mkdtemp(prefix="mixer-phoenix-foundation-"))
 pg_started = False
 status = "failed"
@@ -109,7 +114,8 @@ finally:
         shutil.rmtree(scratch)
         cleanup["scratch_removed"] = not scratch.exists()
     receipt = {
-        "schema": 1, "status": status, "source_tree_sha256": source_digest, "inputs": before,
+        "schema": 2, "status": status, "source_tree_sha256": source_digest, "inputs": before,
+        "input_paths": "repository-relative; source archive uses the same paths",
         "source_archive_sha256": digest(output / "source.tar.gz"), "commands": commands,
         "cleanup": cleanup,
         "scope": "Host application test suite, Phoenix/Bandit, disposable PostgreSQL and packaged release. Exact tested components are recorded in tests.log. No Neon, Cloudflare, configured identity provider, authenticated HTTP routes, production domain outbox, external-effect, native, or GA qualification.",

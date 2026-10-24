@@ -1,0 +1,70 @@
+{
+  "schema": 1,
+  "status": "accepted-host-artifact-encoding-component",
+  "observedUTC": "2026-10-24T06:25:45.034954+00:00",
+  "sourceRevision": "39ae956a829da538d7deb7a8bee3d98267bc0da5",
+  "sourceTreeSHA256": "ca70e88a146904f8c2c84a775704dc7705e2886e765a0eddbbb6620ec68f3076",
+  "hostedSourceTreeSHA256": "8547f2e0ef4139bd2bfd2831011a8c18682db627591d28e6b34704cff459bb2a",
+  "checks": {
+    "newCodecTests": 11,
+    "fullHostedTests": 35,
+    "goVectorTests": 2,
+    "packagedRelease": "built; missing runtime configuration rejected with exit1",
+    "sourceInputs": 186,
+    "hostedInputsIncludingWireFixture": 32,
+    "cleanup": {
+      "nested_postgres_stopped": true,
+      "scratch_removed": true
+    }
+  },
+  "review": [
+    "Every data item, including encoded map keys, consumes a shared item budget; all headers and payload bytes consume output budget before final allocation.",
+    "List scan is bounded before recursion; map size is bounded before pair materialization; text byte budget precedes UTF-8 validation.",
+    "Map ordering compares encoded binary keys; no implicit atom/struct/number conversion or Unicode normalization.",
+    "Existing exact v3 bytes, public test signatures and digest vectors are independently retained in the Go suite.",
+    "Qualification uses committed hosted baseline plus six explicit owned overrides, excluding the concurrent identity owner and pending Mint dependency change."
+  ],
+  "limitations": [
+    "No artifact schema/root/payload admission or authorization route.",
+    "No hosted provider, membership/persistence, audit or cloud qualification.",
+    "No phone/simulator runtime or GA gate qualification.",
+    "Logical work/output bounds are not a total heap/RSS claim.",
+    "Linux CI for the forthcoming product commit remains pending; no GA gate is closed."
+  ],
+  "bindings": {
+    ".github/workflows/hosted.yml": "91116c23cd48a100a71177868ae59e6c6da3fd90a1a05fb65c83aa0c0d53d852",
+    "docs/hosted-artifact-cbor.md": "254f072e58fc529cacfafde0555c08633b239e649f4b1d66d751e594477ebb60",
+    "hosted/lib/mixer_hosted/protocol/artifact_cbor.ex": "518f5a23b7c6a266c2b0837355446ad6d326cfcd0f5cfd9b0120ea4e851caaa6",
+    "hosted/scripts/test-local.py": "b277671c9059f4e4d9067422f56bd916b4d45fb2284449ac729deb010448513b",
+    "hosted/test/mixer_hosted/protocol/artifact_cbor_test.exs": "083d0479d56a3c77fffc32988fc42746d1968219807debbb687078a812a933a5",
+    "services/protocol/testdata/signed-release-v3.json": "ee4935fedca51b728e78801cb05c5732e8547bda1e26f109330e6659a0a2f77a",
+    "verification/hosted-artifact-cbor/run-1/elixir-version.log": "44fe1d5e597ef84e0b6859be8ef275ca7da40d28005c64ea6a103835caa29081",
+    "verification/hosted-artifact-cbor/run-1/go-shared-vectors.log": "be35c5e8a78646841c766a0354b90c47bcece6b2be32e93cb95be7219f451cf2",
+    "verification/hosted-artifact-cbor/run-1/go-version.log": "36849436282e424cf1142184057f25a7bd6845d03b16fedbb1071bc6722524c4",
+    "verification/hosted-artifact-cbor/run-1/host/compile.log": "3c803227063b5502b5387574c4326b152233cdf0864ee2426ce3343f0ad485f1",
+    "verification/hosted-artifact-cbor/run-1/host/createdb.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/hosted-artifact-cbor/run-1/host/elixir-version.log": "44fe1d5e597ef84e0b6859be8ef275ca7da40d28005c64ea6a103835caa29081",
+    "verification/hosted-artifact-cbor/run-1/host/format.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/hosted-artifact-cbor/run-1/host/initdb.log": "86e39397219df50236f3cfc5bd9fa793ff58579a0c648e62abc77342ba4dae79",
+    "verification/hosted-artifact-cbor/run-1/host/postgres-start.log": "66afd0411ccc09366e99fdd99b85f21899c8d2d064f5835126859618802153ad",
+    "verification/hosted-artifact-cbor/run-1/host/postgres-stop.log": "ca19178a35ab4153b75b494963b66ce8243e1b94c173107c87b44d09db23652d",
+    "verification/hosted-artifact-cbor/run-1/host/postgres-version.log": "1fb2f20d9f998fb585cf5edb1878e8381f2e78c75597c8a18a19e50178f621b2",
+    "verification/hosted-artifact-cbor/run-1/host/postgres.log": "bff5078015cd8d1272ef518fb21da152e8bde3c21133c4538b912324b76429a1",
+    "verification/hosted-artifact-cbor/run-1/host/receipt.json": "e52b2826ab8dac1cbc7c97c01ae755ece537a873f0b194e466253d6d23022cd8",
+    "verification/hosted-artifact-cbor/run-1/host/release-build.log": "1df5d0fcda2dad270eb6dfeeb184e57457dd27e1c081175d6edf3026d696d906",
+    "verification/hosted-artifact-cbor/run-1/host/release-missing-config.log": "d01d00dbd5b9487f36f82396a29bad4a450fb88d39baa40958e147ee5ea476e4",
+    "verification/hosted-artifact-cbor/run-1/host/revision.log": "2846c8359d85f3e5393467f581ea0b03a9113ec030fe39b470463859a210e63c",
+    "verification/hosted-artifact-cbor/run-1/host/source.tar.gz": "ab1840510f8ac73d1f446bd3ed57bfea92c516b60863c9d86d3da28fd3464ca2",
+    "verification/hosted-artifact-cbor/run-1/host/tests.log": "8d97a0b917ba2b97a780e4c9a800e4bbb355029f40f9fa5ee118584badea6f5a",
+    "verification/hosted-artifact-cbor/run-1/hosted.log": "859159270c81da7ec4f9ab17a487e3792d19b1ecfd9901e9d27d555404a9224f",
+    "verification/hosted-artifact-cbor/run-1/locked-dependencies.log": "77d1f62673c3764cb8893e3283a8862c7310dc4bf10bc9eb692df786a234b07a",
+    "verification/hosted-artifact-cbor/run-1/mix-version.log": "bc34b129dd989393fed8f2bedf43c844a721626fc44c7e4ce7b70bc2441df63b",
+    "verification/hosted-artifact-cbor/run-1/receipt.json": "0b2398812c48598df757f47c80e4664cd996dbe15e1a0221d62788e19f0dc976",
+    "verification/hosted-artifact-cbor/run-1/snapshot-commit.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/hosted-artifact-cbor/run-1/snapshot-init.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/hosted-artifact-cbor/run-1/snapshot-stage.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/hosted-artifact-cbor/run-1/source.tar.gz": "ba7678ae4f921e6996593933fcd15113f51d35088093f2f61767aac3f1c29324",
+    "verification/hosted-artifact-cbor/run.py": "11fedb2fee4c8d93547ad40dae017f0554114e82b1fa8e7c8d8d7ab1b8cdfaf0",
+    "verification/hosted-artifact-cbor/verify.py": "42ff5e8890e87b19f94bf22adcee53d5c4df1acaf363f204d4e3c0973a40de30"
+  }
+}

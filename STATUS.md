@@ -140,7 +140,20 @@ The pushed verifier commit `f18ea41` also passes Linux hosted CI: 24 tests,
 packaged release and missing-config rejection. Root verified all 29 hosted
 source inputs and the downloaded artifact digest against that commit. See
 `verification/github-ci-f18ea41-phoenix/receipt.json`. Its separate engine
-workflow and frame commit `ff1bb26` are still being observed independently.
+workflow and frame commit `ff1bb26` now also pass all three jobs; their separate
+receipts are linked at the beginning of this status file.
+
+The additive hosted artifact CBOR encoder has host acceptance: eleven new
+boundary/compatibility tests, all 35 hosted tests, two existing Go vector tests,
+production release build and missing-config rejection pass. Exact v3 manifest,
+assignment, grant descriptor, Ed25519 preimage and digest bytes are preserved.
+Output/work bounds reject unsupported values and oversized structures. Root
+verifies 186 isolated source inputs, 32 hosted inputs including the shared
+fixture, and 34 evidence bindings. The temporary database and source checkout
+were cleaned up. See `verification/hosted-artifact-cbor/acceptance.json`.
+Linux CI for this forthcoming slice is pending. This is encoding only, with no
+new authenticated route, signature/root admission, membership/persistence,
+provider, audit or cloud qualification. No gate is closed.
 
 The release server now owns a configuration snapshot before validation/storage
 open. Independent probes reproduced caller mutations changing token permissions,
