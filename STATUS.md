@@ -2,8 +2,8 @@
 
 Implementation resumed at the user's request on October 24. The saved
 [pause handoff](docs/implementation-pause-2026-10-24.md) remains historical context.
-The private frame entry/return/cleanup slice has root host acceptance; the
-bounded hosted token verifier is in independent review. Computer use and native runtime tests remain
+The private frame entry/return/cleanup slice and bounded hosted RS256 token
+verifier have root host acceptance. Computer use and native runtime tests remain
 paused; the full product scope and all GA gates remain open.
 
 Product status: **in development; no GA or dogfood gate passed**.
@@ -108,9 +108,14 @@ product release operations, Neon TLS, Cloudflare and production readiness remain
 pending. See `docs/phoenix-foundation.md`. The Go reference remains intact.
 Its Linux hosted CI and the separate VM/Swift/Go workflow at `6df4807` now
 all pass. See `verification/github-ci-6df4807-phoenix/receipt.json` and
-`verification/github-ci-6df4807-engine/receipt.json`. The RS256 token-verifier
-component is being implemented with JOSE 1.11.12; identity HTTP routes, key
-transport/cache and authoritative membership remain pending.
+`verification/github-ci-6df4807-engine/receipt.json`. The pure RS256 token
+verifier now has root acceptance with 24 full hosted tests, 23 independent
+adversarial tests, a production release build and fail-closed missing-config
+boot. It uses exact JOSE 1.11.12/Jason 1.4.5 and immutable validated trust
+snapshots. See `verification/hosted-token-verifier-root-review/acceptance.json`.
+Configured provider/key ownership, identity HTTP routes, key transport/cache
+and authoritative membership remain pending; this does not authenticate an
+HTTP request or grant any tenant permission.
 
 The release server now owns a configuration snapshot before validation/storage
 open. Independent probes reproduced caller mutations changing token permissions,

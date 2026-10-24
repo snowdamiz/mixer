@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "decision": "accepted-for-bounded-pure-token-verifier-development",
+  "observed_at": "2026-10-24T05:28:36.753494+00:00",
+  "reviewer": "root",
+  "source_revision": "f31ba1110e2db4bfab662a55e55ab346f4e47bf2",
+  "inputs": {
+    "docs/hosted-verifier-dependency.md": "610cbdc1452da54686cefef0dda235c63e960671fa667479cc0c24a40304d851",
+    "docs/hosted-identity-contract.md": "6262875ef19c107cd86e4c0386d9e7c8e337db68574249861b0e12a91bddb549",
+    "verification/hosted-identity-contract/root-acceptance.json": "b42ccebc13990c616a1157323d3a385c07ee7191e15ceefc580a5a768b7b6943",
+    "verification/hosted-verifier-dependency/run-1/receipt.json": "a2e8b6fe81b53a87ca2b3171205a9937af910bb7b0e801b64197b143dbe02532",
+    "verification/hosted-verifier-dependency/qualified.mix.lock": "caecb0490697fa8ba156eb73681972d3d873668af6093d39de48fc77d5c58c64",
+    "verification/hosted-verifier-dependency/notices/jose-LICENSE.md": "c91e4a6111420cdd4a36ce4a130d8e625d8a8c7a00f895ffe00ca3b493d48f81",
+    "hosted/mix.exs": "7eb063c882b216431a8c70885604c25f814bba24ca6ea8ce0b486763c0187ae1",
+    "hosted/mix.lock": "d16f187083b0a05c14bdd5d15c595680bc2d4ff21c5c2606c59db269500140c1",
+    "hosted/config/config.exs": "6510b5e0f5eecb2ced799250d7bdcef91b8f8278e19e2c886c60dd624443005c",
+    "THIRD_PARTY.yml": "a5d06f58e9bc87ef08701ac8f173568b41720c0c451b4da5bcda24714e1db7e2"
+  },
+  "dependencies": {
+    "jose": "1.11.12",
+    "jason": "1.4.5",
+    "new_transitive_packages": []
+  },
+  "policy": {
+    "algorithm": "RS256",
+    "max_token_bytes": 4089,
+    "max_http_authorization_bytes": 4096,
+    "human_max_lifetime_seconds": 900,
+    "service_max_lifetime_seconds": 300,
+    "future_clock_skew_seconds": 30,
+    "expire_at_exp": true,
+    "claims_are_not_membership": true,
+    "max_snapshot_freshness_seconds": 300
+  },
+  "resolution": "Class-specific lifetime bounds from the accepted identity contract replace the dependency proposal provisional 600 seconds. Root approves fixed profile restrictions for implementation; real provider issuance remains unqualified.",
+  "shared_configuration": {
+    "json_module": "jose_json_jason",
+    "unsecured_signing": false,
+    "crypto_fallback": false
+  },
+  "official_docs_rechecked": [
+    "https://jose.hexdocs.pm/JOSE.JWS.html#verify_strict/3",
+    "https://jason.hexdocs.pm/1.4.5/Jason.html#decode/2"
+  ],
+  "evidence": "Previously sealed 21-test real-crypto synthetic qualification plus source/lock/notice review. Product integration tests and independent review remain pending at this decision.",
+  "limitations": [
+    "OTP29 dependency deprecation warnings retained",
+    "No provider/login/transport/cache/policy/database/HTTP integration acceptance",
+    "No production or GA gate advanced"
+  ]
+}

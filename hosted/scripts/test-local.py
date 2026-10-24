@@ -112,7 +112,7 @@ finally:
         "schema": 1, "status": status, "source_tree_sha256": source_digest, "inputs": before,
         "source_archive_sha256": digest(output / "source.tar.gz"), "commands": commands,
         "cleanup": cleanup,
-        "scope": "Host Phoenix/Bandit and local PostgreSQL foundation only. No Neon, Cloudflare, identity, production domain outbox, external-effect, native, or GA qualification.",
+        "scope": "Host application test suite, Phoenix/Bandit, disposable PostgreSQL and packaged release. Exact tested components are recorded in tests.log. No Neon, Cloudflare, configured identity provider, authenticated HTTP routes, production domain outbox, external-effect, native, or GA qualification.",
         "limitations": ["Synthetic domain table and worker are test-only.",
                         "Database integration uses an isolated loopback PostgreSQL fixture without TLS; production TLS options have configuration tests only.",
                         "Local delayed-job completion does not qualify Cloudflare zero-traffic wake/recovery."]

@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "attempts": [
+    {
+      "argv": [
+        "mix",
+        "test",
+        "--no-start",
+        "test/mixer_hosted/identity",
+        "--seed",
+        "0"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/hosted",
+      "environment_overrides": {
+        "MIX_ENV": "test",
+        "MIX_BUILD_PATH": "/tmp/mixer-hosted-token-verifier-build"
+      },
+      "exit_code": 1,
+      "observed_terminal_output": "Compiling 8 files (.ex)\n\n== Compilation error in file lib/jose/jwt.ex ==\n** (RuntimeError) error parsing file /tmp/mixer-hosted-token-verifier-build/lib/jose/include/jose_jwt.hrl, got: {:error, :enoent}\n    (elixir 1.20.4) lib/record/extractor.ex:88: Record.Extractor.read_file/2\n    (elixir 1.20.4) lib/record/extractor.ex:54: Record.Extractor.extract_record/2\n    lib/jose/jwt.ex:41: (module)\n    lib/jose/jwt.ex:3: (file)\ncould not compile dependency :jose, \"mix compile\" failed. Errors may have been logged above. You can recompile this dependency with \"mix deps.compile jose --force\", update it with \"mix deps.update jose\" or clean it with \"mix deps.clean jose\"\n",
+      "cause": "macOS /tmp resolves to /private/tmp; the relative Mix include symlink was calculated from the noncanonical /tmp spelling and resolved below /private/Users instead of /Users",
+      "correction": "Use canonical MIX_BUILD_PATH=/private/tmp/mixer-hosted-token-verifier-build. No dependency or product source patch needed.",
+      "output_scope": "Terminal error preserved exactly; preceding JOSE deprecated-catch warnings were observed, not captured in this file as a complete transcript"
+    },
+    {
+      "argv": [
+        "mix",
+        "test",
+        "--no-start",
+        "test/mixer_hosted/identity",
+        "--seed",
+        "0"
+      ],
+      "environment_overrides": {
+        "MIX_ENV": "test",
+        "MIX_BUILD_PATH": "/private/tmp/mixer-hosted-token-verifier-build"
+      },
+      "exit_code": 0,
+      "result": "16 passed",
+      "observed_dependency_warnings": [
+        "JOSE 1.11.12 deprecated Erlang catch syntax",
+        "Plug xref exclude configuration deprecated in Mix 1.20"
+      ],
+      "followup": "Final source-frozen scoped receipt collected by collect.py with full stdout/stderr logs. No failed cryptographic assertion or product-code repair occurred."
+    },
+    {
+      "argv": [
+        "python3",
+        "verification/hosted-token-verifier/collect.py"
+      ],
+      "exit_code": 1,
+      "stage": "Input manifest collection before any test/crypto command",
+      "observed_error": "FileNotFoundError: [Errno 2] No such file or directory: '/Users/andreyyurlov/Documents/dev/mixer/hosted/config/test.exs'",
+      "correction": "Collector removes assumed nonexistent config/test.exs; actual config/config.exs and test/test_helper.exs remain input-hashed. Product/test sources unchanged."
+    }
+  ]
+}

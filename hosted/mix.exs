@@ -28,7 +28,8 @@ defmodule MixerHosted.MixProject do
       {:ecto_sql, "== 3.14.0"},
       {:postgrex, "== 0.22.4"},
       {:oban, "== 2.24.2"},
-      {:jason, "== 1.4.5"}
+      {:jason, "== 1.4.5"},
+      {:jose, "== 1.11.12"}
     ]
   end
 end

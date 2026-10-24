@@ -2,8 +2,8 @@
 
 Implementation resumed at the user's request on October 24. The saved
 [pause handoff](docs/implementation-pause-2026-10-24.md) remains historical context.
-The private frame entry/return/cleanup slice has root host acceptance; the
-bounded hosted token verifier is in independent review. Computer use and native runtime tests remain
+The private frame entry/return/cleanup slice and bounded hosted RS256 token
+verifier have root host acceptance. Computer use and native runtime tests remain
 paused; the full product scope and all GA gates remain open.
 
 The complete specification is [mixer-product-plan.md](mixer-product-plan.md).
@@ -894,3 +894,13 @@ hardware qualification remain pending; no public V2 opt-in or GA gate changes.
 Hosted `1b3de6d` passes all three VM, Swift and services jobs; see
 `verification/github-ci-1b3de6d/receipt.json`. This verifies the configured checks
 for the value-operation checkpoint, with complete Swift execution still pending.
+
+The pure hosted RS256 verifier now has root acceptance at
+`verification/hosted-token-verifier-root-review/acceptance.json`: 16 scoped
+producer tests, 23 independent real-signature adversarial tests, 24 full hosted
+tests, production release build and missing-config boot rejection. The fixed
+profile rejects duplicate JSON, unsupported headers/algorithms and invalid
+keys/claims, while retaining no role or tenant authority. Configured active
+trust ownership, bounded HTTPS key refresh/cache, provider interoperability and
+authoritative membership/RLS/private artifact operations remain next. This is
+a component acceptance; all hosted and GA completion gates remain open.
