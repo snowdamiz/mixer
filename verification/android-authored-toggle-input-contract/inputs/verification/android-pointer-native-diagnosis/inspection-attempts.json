@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "scope": "Retained exploratory failures and limitations before the successful owned offline analysis; no native command was executed",
+  "attempts": [
+    {
+      "kind": "official-web-source-open",
+      "tool": "web.run",
+      "url": "https://android.googlesource.com/platform/frameworks/base/+/refs/heads/main/core/java/android/widget/Switch.java",
+      "result": "failed",
+      "output": "Internal Error (); URL https://android.googlesource.com/platform/frameworks/base/%2B/refs/heads/main/core/java/android/widget/Switch.java is not accessible via this tool.",
+      "resolution": "Fetched official android17-release source with Python urllib, resolved branch to immutable commit, fetched pinned source again and verified byte equality. All successful fetch metadata and sources are retained."
+    },
+    {
+      "kind": "local-optional-reference-search",
+      "command": "rg --files /opt/homebrew/share/android-commandlinetools/sources | rg '/(Switch|View|VelocityTracker)\\.java$|source.properties$'",
+      "exitCode": 1,
+      "output": "rg: /opt/homebrew/share/android-commandlinetools/sources: IO error for operation on /opt/homebrew/share/android-commandlinetools/sources: No such file or directory (os error 2)",
+      "resolution": "Did not install or discover native targets. Retrieved official AOSP reference source instead."
+    },
+    {
+      "kind": "exploratory-output-budget",
+      "result": "source data unchanged; initial broad receipt/filename reads exceeded tool display budget",
+      "toolChunks": ["7689a5", "50022b", "6d8d06"],
+      "resolution": "Switched to structured key selection and event extraction. Final executable analysis and outputs contain complete, bounded evidence bindings and all P03 event rows."
+    }
+  ],
+  "executableAnalysisAttempts": [
+    {
+      "command": "python3 verification/android-pointer-native-diagnosis/analyze.py analysis-1 > verification/android-pointer-native-diagnosis/analysis-1.log 2>&1",
+      "exitCode": 0,
+      "output": "analysis-1.log",
+      "receipt": "analysis-1/receipt.json",
+      "status": "passed-offline-analysis"
+    }
+  ]
+}

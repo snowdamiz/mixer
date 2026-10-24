@@ -1,0 +1,24 @@
+            require(visible.contains((int)off,(int)cy)&&visible.contains((int)on,(int)cy)&&!inside(track,((Number)result.get("labelX")).doubleValue(),((Number)result.get("labelY")).doubleValue()),"authored thumb centers and separate label are visible");
+        }else{result.put("labelX",full.exactCenterX());result.put("labelY",full.exactCenterY());}
+        return result;
+    }
+    private static double number(Map<String,Object> m,String key){return((Number)m.get(key)).doubleValue();}
+    private static Map<String,Object> event(int action,long offset,double x,double y){return Json.map("action",action,"offsetMilliseconds",offset,"x",x,"y",y,"pressure",action==MotionEvent.ACTION_UP||action==MotionEvent.ACTION_CANCEL?0:1);}
+    private List<Map<String,Object>> events(String id,Map<String,Object> g,int hold,int slop){
+        double x=number(g,"labelX"),y=number(g,"labelY");List<Map<String,Object>> result=new ArrayList<>();
+        if(id.equals("P03")||id.equals("P04")||id.equals("P05")){
+            double from=number(g,id.equals("P04")?"onX":"offX"),to=number(g,id.equals("P04")?"offX":"onX"),cy=number(g,"thumbY");
+            require(Math.abs(to-from)>slop,"authored horizontal path crosses actual slop");result.add(event(0,0,from,cy));
+            for(int i=1;i<=8;i++)result.add(event(2,i*80,from+(to-from)*i/8,cy));
+            result.add(event(id.equals("P05")?3:1,790,to,cy));
+        }else if(id.equals("P06")){
+            @SuppressWarnings("unchecked") Map<String,Object> root=(Map<String,Object>)g.get("root");
+            double travel=Math.min(240,y-((Number)root.get("screenY")).doubleValue()-8);
+            require(travel>4*slop,"vertical label-start travel exceeds four slops and remains in window");
+            result.add(event(0,0,x,y));for(int i=1;i<=12;i++)result.add(event(2,i*80,x,y-travel*i/12));result.add(event(1,1110,x,y-travel));
+        }else{result.add(event(0,0,x,y));result.add(event(1,id.equals("P02")?hold:80,x,y));}
+        require(result.size()<=16,"16 event action budget");return List.copyOf(result);
+    }
+    private MotionEvent obtain(Map<String,Object> step,long down){
+        MotionEvent.PointerProperties property=new MotionEvent.PointerProperties();property.id=0;property.toolType=MotionEvent.TOOL_TYPE_FINGER;
+        MotionEvent.PointerCoords point=new MotionEvent.PointerCoords();point.x=(float)number(step,"x");point.y=(float)number(step,"y");point.pressure=(float)number(step,"pressure");point.size=1;

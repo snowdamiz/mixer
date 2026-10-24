@@ -1,0 +1,1075 @@
+{
+  "scope": "synthetic API probe; no product endpoint, verifier, provider, DB, Oban or 2xx",
+  "cleanup": {
+    "sockets": [
+      {
+        "closed": true,
+        "case": "h1-header-stall"
+      },
+      {
+        "closed": true,
+        "case": "h2-preface-stall"
+      },
+      {
+        "closed": true,
+        "case": "h1-body-stall"
+      },
+      {
+        "closed": true,
+        "case": "h2-body-drip"
+      },
+      {
+        "closed": true,
+        "case": "h1-cl-success"
+      },
+      {
+        "closed": true,
+        "case": "h1-chunked-success"
+      },
+      {
+        "closed": true,
+        "case": "h2-trailer-sink"
+      }
+    ],
+    "listener_down": true,
+    "connection_and_stream_owners_down": true,
+    "watchdogs_down": true,
+    "port_refused": true,
+    "telemetry_detached": true,
+    "owned_logger_handlers_removed": true
+  },
+  "owners": [
+    {
+      "pid": "#PID<0.183.0>",
+      "kind": "connection"
+    },
+    {
+      "pid": "#PID<0.185.0>",
+      "kind": "connection"
+    },
+    {
+      "pid": "#PID<0.187.0>",
+      "kind": "connection"
+    },
+    {
+      "pid": "#PID<0.187.0>",
+      "protocol": "HTTP/1.1",
+      "case": "h1-body-stall",
+      "connection": "#PID<0.187.0>",
+      "kind": "request"
+    },
+    {
+      "pid": "#PID<0.191.0>",
+      "kind": "connection"
+    },
+    {
+      "pid": "#PID<0.193.0>",
+      "protocol": "HTTP/2",
+      "case": "h2-body-drip",
+      "connection": "#PID<0.191.0>",
+      "kind": "request"
+    },
+    {
+      "pid": "#PID<0.194.0>",
+      "kind": "connection"
+    },
+    {
+      "pid": "#PID<0.194.0>",
+      "protocol": "HTTP/1.1",
+      "case": "h1-cl-success",
+      "connection": "#PID<0.194.0>",
+      "kind": "request"
+    },
+    {
+      "pid": "#PID<0.196.0>",
+      "kind": "connection"
+    },
+    {
+      "pid": "#PID<0.196.0>",
+      "protocol": "HTTP/1.1",
+      "case": "h1-chunked-success",
+      "connection": "#PID<0.196.0>",
+      "kind": "request"
+    },
+    {
+      "pid": "#PID<0.198.0>",
+      "kind": "connection"
+    },
+    {
+      "pid": "#PID<0.200.0>",
+      "protocol": "HTTP/2",
+      "case": "h2-trailer-sink",
+      "connection": "#PID<0.198.0>",
+      "kind": "request"
+    }
+  ],
+  "filtered_logs": [],
+  "results": [
+    {
+      "case": "h1-header-stall",
+      "result": {
+        "end": "closed",
+        "response_base64": "",
+        "response_bytes": 0
+      },
+      "kind": "client",
+      "elapsed_ms": 500
+    },
+    {
+      "reason": ":killed",
+      "kind": "watchdog_kill",
+      "elapsed_ms": 501
+    },
+    {
+      "reason": ":killed",
+      "kind": "watchdog_kill",
+      "elapsed_ms": 500
+    },
+    {
+      "case": "h2-preface-stall",
+      "result": {
+        "end": "closed",
+        "response_base64": "AAASBAAAAAAAAAMAAAABAAYAAEAAAAQAAIAA",
+        "response_bytes": 27
+      },
+      "kind": "client",
+      "elapsed_ms": 500
+    },
+    {
+      "case": "h1-body-stall",
+      "kind": "plug_enter"
+    },
+    {
+      "reason": ":killed",
+      "kind": "watchdog_kill",
+      "elapsed_ms": 500
+    },
+    {
+      "case": "h1-body-stall",
+      "result": {
+        "end": "closed",
+        "response_base64": "",
+        "response_bytes": 0
+      },
+      "kind": "client",
+      "elapsed_ms": 500
+    },
+    {
+      "case": "h2-body-drip",
+      "kind": "plug_enter"
+    },
+    {
+      "reason": ":killed",
+      "kind": "watchdog_kill",
+      "elapsed_ms": 500
+    },
+    {
+      "case": "h2-body-drip",
+      "kind": "client",
+      "elapsed_ms": 514,
+      "responses": [],
+      "ending": "%Mint.TransportError{reason: :closed}",
+      "connection_usable_after_stream_kill": null
+    },
+    {
+      "case": "h1-cl-success",
+      "kind": "plug_enter"
+    },
+    {
+      "case": "h1-cl-success",
+      "bytes": 27,
+      "kind": "capture_return",
+      "disposition": "captured"
+    },
+    {
+      "case": "h1-cl-success",
+      "result": {
+        "end": "closed",
+        "response_base64": "SFRUUC8xLjEgNDE4IEknbSBhIHRlYXBvdA0KY29ubmVjdGlvbjogY2xvc2UNCmRhdGU6IFNhdCwgMjQgT2N0IDIwMjYgMTQ6MTA6NDYgR01UDQpjb250ZW50LWxlbmd0aDogMTMNCnZhcnk6IGFjY2VwdC1lbmNvZGluZw0KY2FjaGUtY29udHJvbDogbWF4LWFnZT0wLCBwcml2YXRlLCBtdXN0LXJldmFsaWRhdGUNCg0KcHJpdmF0ZSBwcm9iZQ==",
+        "response_bytes": 193
+      },
+      "kind": "client",
+      "elapsed_ms": 2
+    },
+    {
+      "reason": "{:shutdown, :local_closed}",
+      "kind": "connection_down",
+      "elapsed_ms": 3
+    },
+    {
+      "case": "h1-chunked-success",
+      "kind": "plug_enter"
+    },
+    {
+      "case": "h1-chunked-success",
+      "bytes": 27,
+      "kind": "capture_return",
+      "disposition": "captured"
+    },
+    {
+      "reason": "{:shutdown, :local_closed}",
+      "kind": "connection_down",
+      "elapsed_ms": 1
+    },
+    {
+      "case": "h1-chunked-success",
+      "result": {
+        "end": "closed",
+        "response_base64": "SFRUUC8xLjEgNDE4IEknbSBhIHRlYXBvdA0KY29ubmVjdGlvbjogY2xvc2UNCmRhdGU6IFNhdCwgMjQgT2N0IDIwMjYgMTQ6MTA6NDYgR01UDQpjb250ZW50LWxlbmd0aDogMTMNCnZhcnk6IGFjY2VwdC1lbmNvZGluZw0KY2FjaGUtY29udHJvbDogbWF4LWFnZT0wLCBwcml2YXRlLCBtdXN0LXJldmFsaWRhdGUNCg0KcHJpdmF0ZSBwcm9iZQ==",
+        "response_bytes": 193
+      },
+      "kind": "client",
+      "elapsed_ms": 1
+    },
+    {
+      "case": "h2-trailer-sink",
+      "kind": "plug_enter"
+    },
+    {
+      "case": "h2-trailer-sink",
+      "bytes": 27,
+      "kind": "capture_return",
+      "disposition": "captured"
+    },
+    {
+      "reason": ":killed",
+      "kind": "watchdog_kill",
+      "elapsed_ms": 500
+    },
+    {
+      "case": "h2-trailer-sink",
+      "kind": "client",
+      "elapsed_ms": 501,
+      "responses": [
+        {
+          "reason": "%Mint.HTTPError{reason: {:flow_control_error, \"window size too big\"}, module: Mint.HTTP2}",
+          "type": "error"
+        }
+      ],
+      "ending": "%Mint.TransportError{reason: :enotconn}",
+      "connection_usable_after_stream_kill": null
+    }
+  ],
+  "telemetry": [
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "start"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "ready"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "recv"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "recv"
+      ],
+      "measurements": {
+        "signature": true,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "start"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "ready"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "recv"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "recv"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "start"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "ready"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "recv"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "recv"
+      ],
+      "measurements": {
+        "signature": true,
+        "body": true,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": true,
+        "body": true,
+        "trailer": false
+      },
+      "event": [
+        "bandit",
+        "request",
+        "start"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "start"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "ready"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "recv"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "recv"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "async_recv"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "async_recv"
+      ],
+      "measurements": {
+        "signature": true,
+        "body": true,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": true,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "bandit",
+        "request",
+        "start"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "async_recv"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "async_recv"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "async_recv"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "async_recv"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "start"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "ready"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "recv"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "recv"
+      ],
+      "measurements": {
+        "signature": true,
+        "body": true,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": true,
+        "body": true,
+        "trailer": false
+      },
+      "event": [
+        "bandit",
+        "request",
+        "start"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": true,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "bandit",
+        "request",
+        "stop"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "start"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "ready"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "recv"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "recv"
+      ],
+      "measurements": {
+        "signature": true,
+        "body": true,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": true,
+        "body": true,
+        "trailer": false
+      },
+      "event": [
+        "bandit",
+        "request",
+        "start"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": true,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "bandit",
+        "request",
+        "stop"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "start"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "ready"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "recv"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "recv"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "async_recv"
+      ],
+      "measurements": {
+        "signature": true,
+        "body": true,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": true,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "bandit",
+        "request",
+        "start"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "async_recv"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": true
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "async_recv"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "thousand_island",
+        "connection",
+        "async_recv"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "metadata": {
+        "signature": true,
+        "body": false,
+        "trailer": false
+      },
+      "event": [
+        "bandit",
+        "request",
+        "stop"
+      ],
+      "measurements": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    }
+  ],
+  "unfiltered_logs": [
+    {
+      "safe": false,
+      "level": "info",
+      "bits": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "safe": false,
+      "level": "info",
+      "bits": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    },
+    {
+      "safe": false,
+      "level": "warning",
+      "bits": {
+        "signature": false,
+        "body": false,
+        "trailer": true
+      }
+    },
+    {
+      "safe": false,
+      "level": "info",
+      "bits": {
+        "signature": false,
+        "body": false,
+        "trailer": false
+      }
+    }
+  ]
+}

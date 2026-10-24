@@ -1,0 +1,25 @@
+    private static final class NativeSwitch extends Switch {
+        final Record record;Path track,thumb;
+        NativeSwitch(Context context,Record record){super(context);this.record=record;}
+        void refreshPaint(){if(record!=null&&record.binding!=null)setTextColor(color(togglePaint(record).label()));}
+        @Override protected void drawableStateChanged(){super.drawableStateChanged();refreshPaint();}
+        @Override protected void onDraw(Canvas canvas) {
+            if(record.binding==null||track==null)return;Binding b=record.binding;ToggleRecipe recipe=(ToggleRecipe)b.node.recipe();ToggleMetrics m=recipe.metrics();TogglePaint colors=togglePaint(record);
+            Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);Layout text=getLayout();
+            if(text!=null){int save=canvas.save();int x=b.rtl()?px(sum(m.trackWidth64(),m.labelGap64()),b):0;
+                canvas.translate(x,(getHeight()-text.getHeight())/2f);text.draw(canvas);canvas.restoreToCount(save);}
+            float x=b.rtl()?0:getWidth()-px(m.trackWidth64(),b),y=(getHeight()-px(m.trackHeight64(),b))/2f;
+            int save=canvas.save();canvas.translate(x,y);paint.setColor(color(colors.track()));canvas.drawPath(track,paint);
+            int clip=canvas.save();canvas.clipPath(track);paint.setColor(color(colors.overlay()));canvas.drawPath(track,paint);canvas.restoreToCount(clip);
+            AppearanceGeometryV2.Point origin=AppearanceGeometryV2.thumbOrigin(isChecked(),b.rtl()?AppearanceGeometryV2.Direction.rightToLeft:AppearanceGeometryV2.Direction.leftToRight);
+            canvas.translate((float)AppearanceGeometryV2.pixelCoordinate(origin.x64(),b.density()),(float)AppearanceGeometryV2.pixelCoordinate(origin.y64(),b.density()));
+            paint.setColor(color(colors.thumb()));canvas.drawPath(thumb,paint);canvas.restoreToCount(save);
+            if(isEnabled()&&isFocused()){ToggleStates states=isChecked()?b.palette().toggle().on():b.palette().toggle().off();outline(canvas,new RectF(x,y,x+px(m.trackWidth64(),b),y+px(m.trackHeight64(),b)),states.focus(),b,paint);}
+        }
+    }
+    private abstract static class OwnedDrawable extends Drawable {
+        final Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);
+        @Override public void setAlpha(int alpha){if(alpha!=255)throw new IllegalArgumentException("authored alpha only");}
+        @Override public void setColorFilter(ColorFilter filter){if(filter!=null)throw new IllegalArgumentException("authored colors only");}
+        @Override public int getOpacity(){return PixelFormat.TRANSLUCENT;}
+    }

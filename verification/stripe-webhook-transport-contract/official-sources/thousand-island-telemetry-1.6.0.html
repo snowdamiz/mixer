@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.40.4">
+    <meta name="project" content="Thousand Island v1.6.0">
+
+
+    <title>ThousandIsland.Telemetry — Thousand Island v1.6.0</title>
+
+    <link rel="stylesheet" href="dist/html-elixir-RXHHCTJW.css" />
+
+    <script defer src="dist/sidebar_items-A0D3D11F.js"></script>
+    <script defer src="docs_config.js"></script>
+    <script defer src="dist/html-MI33G4N7.js"></script>
+
+  <script async defer src="https://s.hexdocs.pm/js/script.js"></script><script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init({endpoint:"https://s.hexdocs.pm/api/event"})</script></head>
+  <body>
+    <script>(()=>{var t="ex_doc:settings",e="dark";var o="dark",s="light";var E="sidebar_state",n="closed";var r="sidebar_width";var a="sidebar-open";var i=new URLSearchParams(window.location.search),S=i.get("theme")||JSON.parse(localStorage.getItem(t)||"{}").theme;(S===o||S!==s&&window.matchMedia("(prefers-color-scheme: dark)").matches)&&document.body.classList.add(e);var d=sessionStorage.getItem(E),A=d!==n&&!window.matchMedia(`screen and (max-width: ${768}px)`).matches;document.body.classList.toggle(a,A);var c=sessionStorage.getItem(r);c&&document.body.style.setProperty("--sidebarWidth",`${c}px`);var p=/(Macintosh|iPhone|iPad|iPod)/.test(window.navigator.userAgent);document.documentElement.classList.toggle("apple-os",p);})();
+</script>
+
+<div class="body-wrapper">
+
+<button id="sidebar-menu" class="sidebar-button sidebar-toggle" aria-label="toggle sidebar" aria-controls="sidebar">
+  <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
+</button>
+
+<nav id="sidebar" class="sidebar">
+
+  <div class="sidebar-header">
+    <div class="sidebar-projectInfo">
+
+        <a href="ThousandIsland.html" class="sidebar-projectImage">
+          <img src="assets/logo.png" alt="Thousand Island" />
+        </a>
+
+      <div>
+        <a href="ThousandIsland.html" class="sidebar-projectName" translate="no">
+Thousand Island
+        </a>
+        <div class="sidebar-projectVersion" translate="no">
+          v1.6.0
+        </div>
+      </div>
+    </div>
+    <ul id="sidebar-list-nav" class="sidebar-list-nav" role="tablist" data-extras="Pages"></ul>
+  </div>
+</nav>
+
+<output role="status" id="toast"></output>
+
+<main class="content page-module" id="main" data-type="modules">
+  <div id="content" class="content-inner">
+    <div class="top-search">
+      <div class="search-settings">
+        <form class="search-bar" action="search.html">
+          <label class="search-label">
+            <span class="sr-only">Search documentation of Thousand Island</span>
+            <div class="search-input-wrapper">
+              <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+              <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
+                <i class="ri-close-line ri-lg" title="Cancel search"></i>
+              </button>
+            </div>
+          </label>
+        </form>
+        <div class="autocomplete">
+        </div>
+        <div class="engine-selector" data-multiple="false">
+          <button type="button" class="engine-button" aria-label="Select search engine" aria-haspopup="true" aria-expanded="false">
+            <i class="ri-search-2-line" aria-hidden="true"></i>
+            <span class="engine-name">Default</span>
+            <i class="ri-arrow-down-s-line" aria-hidden="true"></i>
+          </button>
+          <div class="engine-dropdown" hidden role="menu">
+
+              <button type="button"
+                      class="engine-option"
+                      data-engine-url="search.html?q="
+                      role="menuitemradio"
+                      aria-checked="true">
+                <span class="name">Default</span>
+                <span class="help">In-browser search</span>
+              </button>
+
+          </div>
+        </div>
+        <button class="icon-settings display-settings">
+          <i class="ri-settings-3-line"></i>
+          <span class="sr-only">Settings</span>
+        </button>
+      </div>
+    </div>
+
+<div id="top-content">
+  <div class="heading-with-actions top-heading">
+    <h1>
+      <span translate="no">ThousandIsland.<wbr />Telemetry</span> 
+      <small class="app-vsn" translate="no">(Thousand Island v1.6.0)</small>
+
+    </h1>
+
+<a href="ThousandIsland.Telemetry.md" title="Copy Markdown (hold Ctrl/Cmd and click it to open as Markdown)" class="copy-markdown icon-action" rel="help">
+  <i class="ri-markdown-line" aria-hidden="true"></i>
+  <span class="sr-only">Copy Markdown</span>
+</a>
+
+
+
+      <a href="https://github.com/mtrudel/thousand_island/blob/main/lib/thousand_island/telemetry.ex#L1" title="View Source" class="icon-action" rel="help nofollow">
+        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        <span class="sr-only">View Source</span>
+      </a>
+
+  </div>
+
+
+    <section id="moduledoc">
+<p>The following telemetry spans are emitted by thousand_island</p><h2 id="module-thousand_island-listener" class="section-heading"><a href="#module-thousand_island-listener" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text"><code class="inline">[:thousand_island, :listener, *]</code></span></h2><p>Represents a Thousand Island server listening to a port</p><p>This span is started by the following event:</p><ul><li><p><code class="inline">[:thousand_island, :listener, :start]</code></p><p>  Represents the start of the span</p><p>  This event contains the following measurements:</p><ul><li><code class="inline">monotonic_time</code>: The time of this event, in <code class="inline">:native</code> units</li><li><code class="inline">system_time</code>: The system time of this event, in <code class="inline">:native</code> units</li></ul><p>  This event contains the following metadata:</p><ul><li><code class="inline">telemetry_span_context</code>: A unique identifier for this span</li><li><code class="inline">local_address</code>: The IP address that the listener is bound to</li><li><code class="inline">local_port</code>: The port that the listener is bound to</li><li><code class="inline">transport_module</code>: The transport module in use</li><li><code class="inline">transport_options</code>: Options passed to the transport module at startup</li></ul></li></ul><p>This span is ended by the following event:</p><ul><li><p><code class="inline">[:thousand_island, :listener, :stop]</code></p><p>  Represents the end of the span</p><p>  This event contains the following measurements:</p><ul><li><code class="inline">monotonic_time</code>: The time of this event, in <code class="inline">:native</code> units</li><li><code class="inline">duration</code>: The span duration, in <code class="inline">:native</code> units</li></ul><p>  This event contains the following metadata:</p><ul><li><code class="inline">telemetry_span_context</code>: A unique identifier for this span</li><li><code class="inline">local_address</code>: The IP address that the listener is bound to</li><li><code class="inline">local_port</code>: The port that the listener is bound to</li><li><code class="inline">transport_module</code>: The transport module in use</li><li><code class="inline">transport_options</code>: Options passed to the transport module at startup</li></ul></li></ul><h2 id="module-thousand_island-acceptor" class="section-heading"><a href="#module-thousand_island-acceptor" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text"><code class="inline">[:thousand_island, :acceptor, *]</code></span></h2><p>Represents a Thousand Island acceptor process listening for connections</p><p>This span is started by the following event:</p><ul><li><p><code class="inline">[:thousand_island, :acceptor, :start]</code></p><p>  Represents the start of the span</p><p>  This event contains the following measurements:</p><ul><li><code class="inline">monotonic_time</code>: The time of this event, in <code class="inline">:native</code> units</li><li><code class="inline">system_time</code>: The system time of this event, in <code class="inline">:native</code> units</li></ul><p>  This event contains the following metadata:</p><ul><li><code class="inline">telemetry_span_context</code>: A unique identifier for this span</li><li><code class="inline">parent_telemetry_span_context</code>: The span context of the <code class="inline">:listener</code> which created this acceptor</li></ul></li></ul><p>This span is ended by the following event:</p><ul><li><p><code class="inline">[:thousand_island, :acceptor, :stop]</code></p><p>  Represents the end of the span</p><p>  This event contains the following measurements:</p><ul><li><code class="inline">monotonic_time</code>: The time of this event, in <code class="inline">:native</code> units</li><li><code class="inline">duration</code>: The span duration, in <code class="inline">:native</code> units</li><li><code class="inline">connections</code>: The number of client requests that the acceptor handled</li></ul><p>  This event contains the following metadata:</p><ul><li><code class="inline">telemetry_span_context</code>: A unique identifier for this span</li><li><code class="inline">parent_telemetry_span_context</code>: The span context of the <code class="inline">:listener</code> which created this acceptor</li><li><code class="inline">error</code>: The error that caused the span to end, if it ended in error</li></ul></li></ul><p>The following events may be emitted within this span:</p><ul><li><p><code class="inline">[:thousand_island, :acceptor, :spawn_error]</code></p><p>  Thousand Island was unable to spawn a process to handle a connection. This occurs when too
+  many connections are in progress (in which case you may want to look at increasing the
+  <code class="inline">num_connections</code> configuration parameter), or when the configured handler failed to start
+  (for example if its <code class="inline">init/1</code> returned <code class="inline">{:stop, reason}</code> or <code class="inline">:ignore</code>)</p><p>  This event contains the following measurements:</p><ul><li><code class="inline">monotonic_time</code>: The time of this event, in <code class="inline">:native</code> units</li><li><code class="inline">error</code>: Present when a handler process failed to start; the reason the start failed.
+Not present when the connection limit was reached</li></ul><p>  This event contains the following metadata:</p><ul><li><code class="inline">telemetry_span_context</code>: A unique identifier for this span</li></ul></li><li><p><code class="inline">[:thousand_island, :acceptor, :econnaborted]</code></p><p>  Thousand Island was unable to spawn a process to handle a connection since the remote end
+  closed before we could accept it. This usually occurs when it takes too long for your server
+  to start processing a connection; you may want to look at tuning OS-level TCP parameters or
+  adding more server capacity.</p><p>  This event contains the following measurements:</p><ul><li><code class="inline">monotonic_time</code>: The time of this event, in <code class="inline">:native</code> units</li></ul><p>  This event contains the following metadata:</p><ul><li><code class="inline">telemetry_span_context</code>: A unique identifier for this span</li></ul></li><li><p><code class="inline">[:thousand_island, :acceptor, :accept_error]</code></p><p>  Thousand Island encountered a transient network error while accepting a connection, of the
+  kind that <code class="inline">accept(2)</code> documents as retryable (an error already pending on the incoming
+  connection, such as <code class="inline">:ehostunreach</code> or <code class="inline">:enetdown</code>). These reflect a condition on one
+  incoming connection rather than a problem with the listener, so the acceptor retries and
+  keeps running rather than crashing.</p><p>  This event contains the following measurements:</p><ul><li><code class="inline">monotonic_time</code>: The time of this event, in <code class="inline">:native</code> units</li><li><code class="inline">error</code>: The transient error reason that was retried</li></ul><p>  This event contains the following metadata:</p><ul><li><code class="inline">telemetry_span_context</code>: A unique identifier for this span</li></ul></li><li><p><code class="inline">[:thousand_island, :acceptor, :emfile]</code></p><p>  Thousand Island was unable to accept a connection because the system is out of file
+  descriptors (<code class="inline">:emfile</code> or <code class="inline">:enfile</code>). The acceptor backs off briefly and keeps running
+  rather than crashing. Persistent occurrences indicate that the OS file descriptor limit
+  (<code class="inline">ulimit -n</code>) is too low, or that file descriptors are being leaked elsewhere in the node.</p><p>  This event contains the following measurements:</p><ul><li><code class="inline">monotonic_time</code>: The time of this event, in <code class="inline">:native</code> units</li><li><code class="inline">error</code>: The specific error returned by accept: <code class="inline">:emfile</code> if the per-process
+descriptor limit was reached, or <code class="inline">:enfile</code> if the system-wide limit was reached</li></ul><p>  This event contains the following metadata:</p><ul><li><code class="inline">telemetry_span_context</code>: A unique identifier for this span</li></ul></li></ul><h2 id="module-thousand_island-connection" class="section-heading"><a href="#module-thousand_island-connection" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text"><code class="inline">[:thousand_island, :connection, *]</code></span></h2><p>Represents Thousand Island handling a specific client request</p><p>This span is started by the following event:</p><ul><li><p><code class="inline">[:thousand_island, :connection, :start]</code></p><p>  Represents the start of the span</p><p>  This event contains the following measurements:</p><ul><li><code class="inline">monotonic_time</code>: The time of this event, in <code class="inline">:native</code> units</li><li><code class="inline">system_time</code>: The system time of this event, in <code class="inline">:native</code> units</li></ul><p>  This event contains the following metadata:</p><ul><li><code class="inline">telemetry_span_context</code>: A unique identifier for this span</li><li><code class="inline">parent_telemetry_span_context</code>: The span context of the <code class="inline">:acceptor</code> span which accepted
+this connection</li><li><code class="inline">remote_address</code>: The IP address of the connected client</li><li><code class="inline">remote_port</code>: The port of the connected client</li></ul></li></ul><p>This span is normally ended by the following event:</p><ul><li><p><code class="inline">[:thousand_island, :connection, :stop]</code></p><p>  Represents the end of the span</p><p>  This event contains the following measurements:</p><ul><li><code class="inline">monotonic_time</code>: The time of this event, in <code class="inline">:native</code> units</li><li><code class="inline">duration</code>: The span duration, in <code class="inline">:native</code> units</li><li><code class="inline">send_oct</code>: The number of octets sent on the connection</li><li><code class="inline">send_cnt</code>: The number of packets sent on the connection</li><li><code class="inline">recv_oct</code>: The number of octets received on the connection</li><li><code class="inline">recv_cnt</code>: The number of packets received on the connection</li></ul><p>  This event contains the following metadata:</p><ul><li><code class="inline">telemetry_span_context</code>: A unique identifier for this span</li><li><code class="inline">parent_telemetry_span_context</code>: The span context of the <code class="inline">:acceptor</code> span which accepted
+this connection</li><li><code class="inline">remote_address</code>: The IP address of the connected client</li><li><code class="inline">remote_port</code>: The port of the connected client</li><li><code class="inline">error</code>: The error that caused the span to end, if it ended in error</li></ul></li></ul><p>If <code class="inline">handle_connection/2</code> or <code class="inline">handle_data/3</code> raises, throws, or exits, the span is instead
+ended by:</p><ul><li><p><code class="inline">[:thousand_island, :connection, :exception]</code></p><p>  Represents an exception which ended the span</p><p>  This event contains the following measurements:</p><ul><li><code class="inline">monotonic_time</code>: The time of this event, in <code class="inline">:native</code> units</li><li><code class="inline">duration</code>: The span duration, in <code class="inline">:native</code> units</li></ul><p>  This event contains the following metadata:</p><ul><li><code class="inline">telemetry_span_context</code>: A unique identifier for this span</li><li><code class="inline">parent_telemetry_span_context</code>: The span context of the <code class="inline">:acceptor</code> span which accepted
+this connection</li><li><code class="inline">remote_address</code>: The IP address of the connected client</li><li><code class="inline">remote_port</code>: The port of the connected client</li><li><code class="inline">kind</code>: The exception class (<code class="inline">:error</code>, <code class="inline">:throw</code>, or <code class="inline">:exit</code>)</li><li><code class="inline">reason</code>: The exception reason</li><li><code class="inline">stacktrace</code>: The exception stacktrace</li></ul></li></ul><p>The following events may be emitted within this span:</p><ul><li><p><code class="inline">[:thousand_island, :connection, :ready]</code></p><p>  Thousand Island has completed setting up the client connection</p><p>  This event contains the following measurements:</p><ul><li><code class="inline">monotonic_time</code>: The time of this event, in <code class="inline">:native</code> units</li></ul><p>  This event contains the following metadata:</p><ul><li><code class="inline">telemetry_span_context</code>: A unique identifier for this span</li></ul></li><li><p><code class="inline">[:thousand_island, :connection, :async_recv]</code></p><p>  Thousand Island has asynchronously received data from the client</p><p>  This event contains the following measurements:</p><ul><li><code class="inline">data</code>: The data received from the client</li></ul><p>  This event contains the following metadata:</p><ul><li><code class="inline">telemetry_span_context</code>: A unique identifier for this span</li></ul></li><li><p><code class="inline">[:thousand_island, :connection, :recv]</code></p><p>  Thousand Island has synchronously received data from the client</p><p>  This event contains the following measurements:</p><ul><li><code class="inline">data</code>: The data received from the client</li></ul><p>  This event contains the following metadata:</p><ul><li><code class="inline">telemetry_span_context</code>: A unique identifier for this span</li></ul></li><li><p><code class="inline">[:thousand_island, :connection, :recv_error]</code></p><p>  Thousand Island encountered an error reading data from the client</p><p>  This event contains the following measurements:</p><ul><li><code class="inline">error</code>: A description of the error</li></ul><p>  This event contains the following metadata:</p><ul><li><code class="inline">telemetry_span_context</code>: A unique identifier for this span</li></ul></li><li><p><code class="inline">[:thousand_island, :connection, :send]</code></p><p>  Thousand Island has sent data to the client</p><p>  This event contains the following measurements:</p><ul><li><code class="inline">data</code>: The data sent to the client</li></ul><p>  This event contains the following metadata:</p><ul><li><code class="inline">telemetry_span_context</code>: A unique identifier for this span</li></ul></li><li><p><code class="inline">[:thousand_island, :connection, :send_error]</code></p><p>  Thousand Island encountered an error sending data to the client</p><p>  This event contains the following measurements:</p><ul><li><code class="inline">data</code>: The data that was being sent to the client</li><li><code class="inline">error</code>: A description of the error</li></ul><p>  This event contains the following metadata:</p><ul><li><code class="inline">telemetry_span_context</code>: A unique identifier for this span</li></ul></li><li><p><code class="inline">[:thousand_island, :connection, :sendfile]</code></p><p>  Thousand Island has sent a file to the client</p><p>  This event contains the following measurements:</p><ul><li><code class="inline">filename</code>: The filename containing data sent to the client</li><li><code class="inline">offset</code>: The offset (in bytes) within the file sending started from</li><li><code class="inline">bytes_written</code>: The number of bytes written</li></ul><p>  This event contains the following metadata:</p><ul><li><code class="inline">telemetry_span_context</code>: A unique identifier for this span</li></ul></li><li><p><code class="inline">[:thousand_island, :connection, :sendfile_error]</code></p><p>  Thousand Island encountered an error sending a file to the client</p><p>  This event contains the following measurements:</p><ul><li><code class="inline">filename</code>: The filename containing data that was being sent to the client</li><li><code class="inline">offset</code>: The offset (in bytes) within the file where sending started from</li><li><code class="inline">length</code>: The number of bytes that were attempted to send</li><li><code class="inline">error</code>: A description of the error</li></ul><p>  This event contains the following metadata:</p><ul><li><code class="inline">telemetry_span_context</code>: A unique identifier for this span</li></ul></li><li><p><code class="inline">[:thousand_island, :connection, :socket_shutdown]</code></p><p>  Thousand Island has shutdown the client connection</p><p>  This event contains the following measurements:</p><ul><li><code class="inline">monotonic_time</code>: The time of this event, in <code class="inline">:native</code> units</li><li><code class="inline">way</code>: The direction in which the socket was shut down</li></ul><p>  This event contains the following metadata:</p><ul><li><code class="inline">telemetry_span_context</code>: A unique identifier for this span</li></ul></li></ul>
+    </section>
+
+</div>
+
+  <section id="summary" class="details-list">
+    <h2 class="section-heading">
+      <a class="hover-link" href="#summary">
+        <i class="ri-link-m" aria-hidden="true"></i>
+      </a>
+      <span class="text">Summary</span>
+    </h2>
+<div class="summary-types summary">
+  <h3>
+    <a href="#types">Types</a>
+  </h3>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:metadata/0" data-no-tooltip="" translate="no">metadata()</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:span_name/0" data-no-tooltip="" translate="no">span_name()</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:t/0" data-no-tooltip="" translate="no">t()</a>
+
+      </div>
+
+    </div>
+
+</div>
+<div class="summary-functions summary">
+  <h3>
+    <a href="#functions">Functions</a>
+  </h3>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#monotonic_time/0" data-no-tooltip="" translate="no">monotonic_time()</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>See <a href="https://elixir.hexdocs.pm/System.html#monotonic_time/0"><code class="inline">System.monotonic_time/0</code></a>.</p></div>
+
+    </div>
+
+</div>
+
+  </section>
+
+
+  <section id="types" class="details-list">
+    <h2 class="section-heading">
+      <a class="hover-link" href="#types">
+        <i class="ri-link-m" aria-hidden="true"></i>
+      </a>
+      <span class="text">Types</span>
+    </h2>
+
+    <div class="types-list">
+<section class="detail" id="t:metadata/0">
+
+  <div class="detail-header">
+    <a href="#t:metadata/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">metadata()</h1>
+
+
+        <a href="https://github.com/mtrudel/thousand_island/blob/main/lib/thousand_island/telemetry.ex#L362" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@type</span> metadata() :: <a href="https://telemetry.hexdocs.pm/1.4.2/telemetry.html#t:event_metadata/0">:telemetry.event_metadata</a>()</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:span_name/0">
+
+  <div class="detail-header">
+    <a href="#t:span_name/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">span_name()</h1>
+
+
+        <a href="https://github.com/mtrudel/thousand_island/blob/main/lib/thousand_island/telemetry.ex#L361" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@type</span> span_name() :: :listener | :acceptor | :connection</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:t/0">
+
+  <div class="detail-header">
+    <a href="#t:t/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">t()</h1>
+
+
+        <a href="https://github.com/mtrudel/thousand_island/blob/main/lib/thousand_island/telemetry.ex#L352" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@type</span> t() :: %ThousandIsland.Telemetry{
+  handler: <a href="https://elixir.hexdocs.pm/typespecs.html#built-in-types">module</a>(),
+  span_metadata: <a href="#t:metadata/0">metadata</a>(),
+  span_name: <a href="#t:span_name/0">span_name</a>(),
+  start_metadata: <a href="#t:metadata/0">metadata</a>(),
+  start_time: <a href="https://elixir.hexdocs.pm/typespecs.html#basic-types">integer</a>(),
+  telemetry_span_context: <a href="https://elixir.hexdocs.pm/typespecs.html#basic-types">reference</a>()
+}</pre>
+
+      </div>
+
+
+  </section>
+</section>
+
+    </div>
+  </section>
+
+  <section id="functions" class="details-list">
+    <h2 class="section-heading">
+      <a class="hover-link" href="#functions">
+        <i class="ri-link-m" aria-hidden="true"></i>
+      </a>
+      <span class="text">Functions</span>
+    </h2>
+
+    <div class="functions-list">
+<section class="detail" id="monotonic_time/0">
+
+  <div class="detail-header">
+    <a href="#monotonic_time/0" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">monotonic_time()</h1>
+
+
+        <a href="https://github.com/mtrudel/thousand_island/blob/main/lib/thousand_island/telemetry.ex#L497" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> monotonic_time() :: <a href="https://elixir.hexdocs.pm/typespecs.html#basic-types">integer</a>()</pre>
+
+      </div>
+
+<p>See <a href="https://elixir.hexdocs.pm/System.html#monotonic_time/0"><code class="inline">System.monotonic_time/0</code></a>.</p>
+  </section>
+</section>
+
+    </div>
+  </section>
+
+    <footer class="footer">
+
+        <p>
+
+            <span class="line">
+              <a href="https://hex.pm/packages/thousand_island/1.6.0">Hex Package</a>
+
+              <a href="https://preview.hex.pm/preview/thousand_island/1.6.0">Hex Preview</a>
+
+            </span>
+
+          <span class="line">
+            <button class="a-main footer-button display-quick-switch" title="Go to package docs">
+              Go to package docs
+            </button>
+
+              <a href="llms.txt" target="_blank">
+                View llms.txt
+              </a>
+
+
+              <a href="Thousand Island.epub">
+                Download ePub version
+              </a>
+
+          </span>
+        </p>
+
+        <p class="built-using">
+          Built using
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener nofollow" translate="no">ExDoc</a> (v0.40.4) for the
+
+            <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
+
+        </p>
+
+
+    </footer>
+  </div>
+</main>
+</div>
+
+  </body>
+</html>

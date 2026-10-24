@@ -1,10 +1,12 @@
 # Implementation status
 
-Latest checkpoint: the private imported-host operation is integrated and passes
-265 Release library tests, sixteen Frozen tests and Swift Clippy. Android tap
-and hold pass on the emulator; its first drag fails and is under diagnosis.
-Private Stripe body capture is integrated with 142 hosted tests passing and two
-explicit skips. All owned native test instances are cleaned; phones stay deferred.
+Latest checkpoint: the integrated private Swift host operation is passing host
+checks; its contextual diagnostic candidate is under independent review. Android
+authored-toggle input repair is in progress after the emulator exposed a drag
+failure. Integrated Stripe body capture passes Linux CI with 142 tests and two
+explicit fixture skips; private transport implementation is next. Owned native
+instances are cleaned, Apple UI access awaits an unlocked Mac, and phones remain
+deferred. No GA or dogfood gate has passed.
 
 Implementation resumed at the user's request on October 24. The saved
 [pause handoff](docs/implementation-pause-2026-10-24.md) remains historical context.
@@ -1873,3 +1875,8 @@ Root verifies the sealed offline P03 diagnosis:20owned files and177 read-only in
 
 
 Checkpoint `2e1931b4` passes all three terminal engine CI jobs (Swift, VM and services), with all 38 steps successful and none skipped. See `verification/github-ci-2e1931b4-engine/receipt.json`. This qualifies the pushed private host-operation host/cross-build slice; subsequent raw-body integration and diagnostic/input repairs remain outside that run.
+
+
+Root selected the authored-toggle input contract after 16 proposed-policy host tests and 44 input bindings. The root receipt binds 69 actual packet files and records the producer seal membership omission without mutating it. Isolated product implementation is in progress using shared drawing/drag geometry, original admission and ordinary listener ownership, with cancellation on lifecycle/binding/gate changes. The original 20-action native fixture remains immutable. Independent build/source review and a new emulator run remain pending; the prior P03 drag failure is not accepted. See `docs/android-authored-toggle-input-contract.md` and `verification/android-authored-toggle-root-review/selection.json`.
+
+Checkpoint 8c634c49 passes exact-source Linux hosted CI: 142 tests pass, two network-namespace fixture tests remain explicitly skipped, and packaged release checks pass. All 71 archived source inputs match the integrated capture closure ac391070ec439ecfca288b9a7657aac1eada5bc1196efb8735211cc60a6883bc. Root selects the dedicated private transport role, complete configured-sink boundary, whole-connection disposal, 16-connection envelope and fixed stage/outer deadlines after 150 sealed contract files and 228 root bindings. Isolated implementation is in progress. Public admission, resource ceilings, trailer policy, deployed ingress, provider/account/inbox and G23 remain pending. See `verification/github-ci-8c634c49-phoenix/receipt.json`, `docs/stripe-webhook-transport-direction.md` and `verification/stripe-webhook-transport-root-review/selection.json`.

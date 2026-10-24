@@ -1,0 +1,120 @@
+{
+  "fullPrivacyQualified": false,
+  "publicAdmissionAccepted": false,
+  "rootSelection": "pending",
+  "rows": [
+    {
+      "accountableOwner": "implementation lane and independent reviewer",
+      "boundary": "Framing and exact capture",
+      "id": "P01",
+      "observedStatus": "API-probed subset; full composed replay pending",
+      "requiredCases": "Replay all thirteen accepted capture rows; H1 CL/chunked, H2 optional CL, exact bytes/signatures, framework vs capture rejections"
+    },
+    {
+      "accountableOwner": "transport lane",
+      "boundary": "Pre-Plug stages",
+      "id": "P02",
+      "observedStatus": "500ms H1 headers/H2 preface cancellation observed; staged limits pending",
+      "requiredCases": "absolute handshake, request line/header, H2 preface/HEADERS/CONTINUATION deadlines; slow drip, PINGs, empty DATA, malformed lengths"
+    },
+    {
+      "accountableOwner": "transport lane and independent reviewer",
+      "boundary": "Absolute body deadline",
+      "id": "P03",
+      "observedStatus": "500ms owner kill during H1 stall and H2 drip observed; production policy pending",
+      "requiredCases": "5s boundary and 7s outer deadline; drip faster than idle timeout, never-EOF, late read/flatten, frozen reader and delayed timer"
+    },
+    {
+      "accountableOwner": "transport lane",
+      "boundary": "Permit and cancellation races",
+      "id": "P04",
+      "observedStatus": "pending implementation",
+      "requiredCases": "before/at/after expiry; stale generations, duplicate completion, unknown token, spoofed conn-private/HTTP values, owner/guard/handler failures"
+    },
+    {
+      "accountableOwner": "transport lane and independent reviewer",
+      "boundary": "Whole connection disposal",
+      "id": "P05",
+      "observedStatus": "observed 4 timeout owner/socket disposals; full failure/completion policy pending",
+      "requiredCases": "monitor original connection and H2 stream DOWN; peer EOF/reset; no postfailure continuation, no H1 pipeline second route, no detached reader"
+    },
+    {
+      "accountableOwner": "transport lane",
+      "boundary": "Stream-only negative control",
+      "id": "P06",
+      "observedStatus": "pass feasibility: no response/reset in bounded wait; PING/PONG succeeds",
+      "requiredCases": "kill H2 stream; observe absence of completed disposal, PING/PONG, then explicit client cleanup"
+    },
+    {
+      "accountableOwner": "privacy reviewer assigned by root",
+      "boundary": "Every configured telemetry sink",
+      "id": "P07",
+      "observedStatus": "exposure observed; full configured-sink qualification pending",
+      "requiredCases": "raw body/signature/path/query/trailer/opaque-error sentinels in both measurements and metadata; approved subscriber inventory; no raw trace subscriber"
+    },
+    {
+      "accountableOwner": "privacy reviewer assigned by root",
+      "boundary": "Every configured Logger sink",
+      "id": "P08",
+      "observedStatus": "new owned handler filter feasibility passes; default/unfiltered leak remains visible in synthetic proof",
+      "requiredCases": "all messages/reports/metadata, prePlug parser failures, H2 trailer warning, OTP crash, subscriber/filter failure, stdout/stderr collector paths; retain safe counters"
+    },
+    {
+      "accountableOwner": "transport lane and operational reviewer",
+      "boundary": "Bootstrap and failure domain",
+      "id": "P09",
+      "observedStatus": "pending implementation",
+      "requiredCases": "reject unknown sink, missing/failed filter, raw subscriber, owner failure/detach; no unguarded listener; listener restart/supervision and stale inventory tests"
+    },
+    {
+      "accountableOwner": "transport lane",
+      "boundary": "Slot/header/frame limits",
+      "id": "P10",
+      "observedStatus": "supported config families exercised; exact selected profile/saturation pending",
+      "requiredCases": "16 connections total; overflow/throttling retry=0, header limits compressed/decompressed, SETTINGS/window extremes/reset flood, new streams before/after completion"
+    },
+    {
+      "accountableOwner": "operational reviewer assigned by root",
+      "boundary": "Memory and resource ceilings",
+      "id": "P11",
+      "observedStatus": "pending; body/initial window/header limits do not establish memory ceiling",
+      "requiredCases": "actual max H2 body, oversize frame/header floods, queued/frozen reader, heap/binary/mailbox/RSS peaks; independent OS/container ceilings and failure outputs"
+    },
+    {
+      "accountableOwner": "root and ingress/privacy reviewers",
+      "boundary": "Trailer semantics",
+      "id": "P12",
+      "observedStatus": "source/runtime limitation observed; root decision pending",
+      "requiredCases": "explicit public choice of discard-vs-reject for undeclared trailers; enforce with deployed framing path; no swallowed trailer privacy/logging claim"
+    },
+    {
+      "accountableOwner": "transport lane",
+      "boundary": "Cleanup and retained evidence",
+      "id": "P13",
+      "observedStatus": "pass scoped API probe cleanup in six retained attempts; production drain pending",
+      "requiredCases": "all successful/failed runs own one localhost listener at a time; close clients, monitor owners/watchdogs, remove handlers, refuse port, inspect process groups/open holders, retain source/output/seals"
+    },
+    {
+      "accountableOwner": "ingress/operational reviewer assigned by root",
+      "boundary": "TLS/ALPN and deployed ingress",
+      "id": "P14",
+      "observedStatus": "pending; h2c localhost is not TLS/ALPN or Cloudflare evidence",
+      "requiredCases": "real TLS1.2/1.3, ALPN H1/H2; Cloudflare Worker/DO/container translated header occurrences, byte preservation, streaming/backpressure/timeout/retention"
+    },
+    {
+      "accountableOwner": "billing/security reviewer assigned by root",
+      "boundary": "Stripe provider and authority",
+      "id": "P15",
+      "observedStatus": "pending separate contract; no provider contacted",
+      "requiredCases": "test-mode delivery size/time/header behavior, account/mode/secret/generation ownership; authenticated-only progression and no unauthenticated2xx"
+    },
+    {
+      "accountableOwner": "root and accountable G23 reviewer",
+      "boundary": "Durability and G23",
+      "id": "P16",
+      "observedStatus": "pending separate lanes and full product gate",
+      "requiredCases": "deduplicated inbox+atomic Oban enqueue before authenticated acknowledgment, duplicate/out-of-order reconciliation, realistic account/usage/cap/credit/cancel/export/delete/support cases"
+    }
+  ],
+  "schema": 1
+}

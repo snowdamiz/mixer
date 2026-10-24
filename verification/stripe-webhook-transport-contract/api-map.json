@@ -1,0 +1,305 @@
+{
+  "findings": [
+    {
+      "evidence": "run-6 telemetry recv sentinel",
+      "finding": "recv/3 places raw data in measurements, with no disable option",
+      "id": "raw-receive-events",
+      "installedSource": "/Users/andreyyurlov/Documents/dev/mixer/hosted/deps/thousand_island/lib/thousand_island/socket.ex",
+      "lines": [
+        120,
+        145
+      ],
+      "privateAPIsUsedByProposedImplementation": false,
+      "retainedSource": "api-source/thousand_island__lib__thousand_island__socket.ex",
+      "sourceSHA256": "1871dd858c2ab777f497c5112c1227883209ac2a8d38c9afaf24b2a49e02c812"
+    },
+    {
+      "evidence": "run-6 owner registry and async_recv sentinel",
+      "finding": "connection:start before handshake; async_recv raw measurements",
+      "id": "async-receive-and-prehandshake-registration",
+      "installedSource": "/Users/andreyyurlov/Documents/dev/mixer/hosted/deps/thousand_island/lib/thousand_island/handler.ex",
+      "lines": [
+        362,
+        419
+      ],
+      "privateAPIsUsedByProposedImplementation": false,
+      "retainedSource": "api-source/thousand_island__lib__thousand_island__handler.ex",
+      "sourceSHA256": "52b3a76d60680e31da6eaa75c390b4e3e2ee7ffc14df9d90d0b850fd9fddf00b"
+    },
+    {
+      "evidence": "run-6 independent watcher kills blocked readers",
+      "finding": "idle deadline advances on each continuation; not an independent total deadline",
+      "id": "idle-not-absolute-timer",
+      "installedSource": "/Users/andreyyurlov/Documents/dev/mixer/hosted/deps/thousand_island/lib/thousand_island/handler.ex",
+      "lines": [
+        584,
+        629
+      ],
+      "privateAPIsUsedByProposedImplementation": false,
+      "retainedSource": "api-source/thousand_island__lib__thousand_island__handler.ex",
+      "sourceSHA256": "52b3a76d60680e31da6eaa75c390b4e3e2ee7ffc14df9d90d0b850fd9fddf00b"
+    },
+    {
+      "evidence": "source review; admission-stage implementation pending",
+      "finding": "accept start timestamp precedes child/retry/ownership transfer; set retry count zero",
+      "id": "connection-setup-and-retry-window",
+      "installedSource": "/Users/andreyyurlov/Documents/dev/mixer/hosted/deps/thousand_island/lib/thousand_island/connection.ex",
+      "lines": [
+        34,
+        106
+      ],
+      "privateAPIsUsedByProposedImplementation": false,
+      "retainedSource": "api-source/thousand_island__lib__thousand_island__connection.ex",
+      "sourceSHA256": "3b1b1f6f3a9eb82adab2d6c342b1bc461520c2692e99cbe596c068dae522f19c"
+    },
+    {
+      "evidence": "run-6 bounded listener starts under these supported option families",
+      "finding": "documented listener parser/protocol settings, no raw telemetry toggle",
+      "id": "documented-limits-and-logging",
+      "installedSource": "/Users/andreyyurlov/Documents/dev/mixer/hosted/deps/bandit/lib/bandit.ex",
+      "lines": [
+        66,
+        201
+      ],
+      "privateAPIsUsedByProposedImplementation": false,
+      "retainedSource": "api-source/bandit__lib__bandit.ex",
+      "sourceSHA256": "4c8bad9b611e2e8b4466438b96b9f8d4660f2c69d619b5fa0b2c1b1417ab7d42"
+    },
+    {
+      "evidence": "run-6 request.start metadata signature sentinel",
+      "finding": "request telemetry conn exists before call_plug",
+      "id": "bandit-conn-before-plug",
+      "installedSource": "/Users/andreyyurlov/Documents/dev/mixer/hosted/deps/bandit/lib/bandit/pipeline.ex",
+      "lines": [
+        26,
+        69
+      ],
+      "privateAPIsUsedByProposedImplementation": false,
+      "retainedSource": "api-source/bandit__lib__bandit__pipeline.ex",
+      "sourceSHA256": "0c86cc25a146c6ed6514812c8d761d09e3fd067533634d9c64769b797d4a5f5b"
+    },
+    {
+      "evidence": "accepted reviewer transport exposure plus source",
+      "finding": "request span retains conn; exception span adds reason and stacktrace",
+      "id": "bandit-exception-telemetry",
+      "installedSource": "/Users/andreyyurlov/Documents/dev/mixer/hosted/deps/bandit/lib/bandit/telemetry.ex",
+      "lines": [
+        168,
+        210
+      ],
+      "privateAPIsUsedByProposedImplementation": false,
+      "retainedSource": "api-source/bandit__lib__bandit__telemetry.ex",
+      "sourceSHA256": "029c40cb8f7af0846cf76f3d2db72aab5305af37a52166e6027de05f76efbc40"
+    },
+    {
+      "evidence": "run-6 H2 trailer sentinel and kill during dripped read",
+      "finding": "unconditional inspected trailer warning; timeout reused each receive",
+      "id": "h2-trailer-log-and-idle-read",
+      "installedSource": "/Users/andreyyurlov/Documents/dev/mixer/hosted/deps/bandit/lib/bandit/http2/stream.ex",
+      "lines": [
+        303,
+        337
+      ],
+      "privateAPIsUsedByProposedImplementation": false,
+      "retainedSource": "api-source/bandit__lib__bandit__http2__stream.ex",
+      "sourceSHA256": "aa282571f68f23bad9f33e194dc67776dd6abdbd9458a68be0d8e8aedb1b3db0"
+    },
+    {
+      "evidence": "run-6 stream kill no response/reset followed by successful PING/PONG",
+      "finding": "stream exit only purges pending send and mapping; no RST",
+      "id": "h2-no-reset-on-owner-exit",
+      "installedSource": "/Users/andreyyurlov/Documents/dev/mixer/hosted/deps/bandit/lib/bandit/http2/connection.ex",
+      "lines": [
+        567,
+        582
+      ],
+      "privateAPIsUsedByProposedImplementation": false,
+      "retainedSource": "api-source/bandit__lib__bandit__http2__connection.ex",
+      "sourceSHA256": "71cb2d2a7c582d6417c291c5212547b0023e956545900930442c6a5e59620332"
+    },
+    {
+      "evidence": "run-6 all original connection/stream owners down after whole-connection kill",
+      "finding": "stream started linked; Plug lifecycle runs on stream process",
+      "id": "h2-linked-owners",
+      "installedSource": "/Users/andreyyurlov/Documents/dev/mixer/hosted/deps/bandit/lib/bandit/http2/stream_process.ex",
+      "lines": [
+        1,
+        31
+      ],
+      "privateAPIsUsedByProposedImplementation": false,
+      "retainedSource": "api-source/bandit__lib__bandit__http2__stream_process.ex",
+      "sourceSHA256": "bd06ffdc828541da7f0f407ea9bf9be08b3b02c1098918e1513c263a21fb77b1"
+    },
+    {
+      "evidence": "run-6 stream-only negative disposal probe",
+      "finding": "connection traps linked stream exit and merely removes stream state",
+      "id": "h2-exit-handler",
+      "installedSource": "/Users/andreyyurlov/Documents/dev/mixer/hosted/deps/bandit/lib/bandit/http2/handler.ex",
+      "lines": [
+        150,
+        160
+      ],
+      "privateAPIsUsedByProposedImplementation": false,
+      "retainedSource": "api-source/bandit__lib__bandit__http2__handler.ex",
+      "sourceSHA256": "35f6d2ef9bd13b89ebf8ed3fd01b463f1d222eed492c23b4639efb0e9d1f906f"
+    },
+    {
+      "evidence": "source only; memory peak qualification pending",
+      "finding": "DATA delivered to process mailbox before connection window replenishment",
+      "id": "h2-data-delivery-before-window-update",
+      "installedSource": "/Users/andreyyurlov/Documents/dev/mixer/hosted/deps/bandit/lib/bandit/http2/connection.ex",
+      "lines": [
+        202,
+        220
+      ],
+      "privateAPIsUsedByProposedImplementation": false,
+      "retainedSource": "api-source/bandit__lib__bandit__http2__connection.ex",
+      "sourceSHA256": "71cb2d2a7c582d6417c291c5212547b0023e956545900930442c6a5e59620332"
+    },
+    {
+      "evidence": "source only; no bounded-memory claim",
+      "finding": "receive-window replenishment tends toward 2^31-1 below 2^30",
+      "id": "h2-window-not-memory-cap",
+      "installedSource": "/Users/andreyyurlov/Documents/dev/mixer/hosted/deps/bandit/lib/bandit/http2/flow_control.ex",
+      "lines": [
+        7,
+        43
+      ],
+      "privateAPIsUsedByProposedImplementation": false,
+      "retainedSource": "api-source/bandit__lib__bandit__http2__flow_control.ex",
+      "sourceSHA256": "6a75238e58a5e378c95686cc62af3810b292be4a8da3b4fb508130ac66e69d1c"
+    },
+    {
+      "evidence": "source only; decompression-allocation qualification pending",
+      "finding": "header list bound is checked after HPAX.decode allocates values",
+      "id": "h2-decompression-before-list-size",
+      "installedSource": "/Users/andreyyurlov/Documents/dev/mixer/hosted/deps/bandit/lib/bandit/http2/connection.ex",
+      "lines": [
+        161,
+        196
+      ],
+      "privateAPIsUsedByProposedImplementation": false,
+      "retainedSource": "api-source/bandit__lib__bandit__http2__connection.ex",
+      "sourceSHA256": "71cb2d2a7c582d6417c291c5212547b0023e956545900930442c6a5e59620332"
+    },
+    {
+      "evidence": "accepted independent capture wire matrix; source",
+      "finding": "chunked body reader consumes trailers without returning fields to Plug",
+      "id": "h1-parser-and-trailer-limits",
+      "installedSource": "/Users/andreyyurlov/Documents/dev/mixer/hosted/deps/bandit/lib/bandit/http1/socket.ex",
+      "lines": [
+        337,
+        374
+      ],
+      "privateAPIsUsedByProposedImplementation": false,
+      "retainedSource": "api-source/bandit__lib__bandit__http1__socket.ex",
+      "sourceSHA256": "831cb5ae1e527529c6ddeccbfb6ab5aabcea0716fd18c99418541319d1ddebb4"
+    },
+    {
+      "evidence": "accepted independent capture matrix; source",
+      "finding": "available socket reads and advisory targets differ from allocation bound",
+      "id": "h1-available-read",
+      "installedSource": "/Users/andreyyurlov/Documents/dev/mixer/hosted/deps/bandit/lib/bandit/http1/socket.ex",
+      "lines": [
+        446,
+        480
+      ],
+      "privateAPIsUsedByProposedImplementation": false,
+      "retainedSource": "api-source/bandit__lib__bandit__http1__socket.ex",
+      "sourceSHA256": "831cb5ae1e527529c6ddeccbfb6ab5aabcea0716fd18c99418541319d1ddebb4"
+    },
+    {
+      "evidence": "accepted component tests plus run-6 original owner read",
+      "finding": "read timeout is per read; sizes expressly not exact; preserve returned conn",
+      "id": "plug-advisory-read",
+      "installedSource": "/Users/andreyyurlov/Documents/dev/mixer/hosted/deps/plug/lib/plug/conn.ex",
+      "lines": [
+        1132,
+        1175
+      ],
+      "privateAPIsUsedByProposedImplementation": false,
+      "retainedSource": "api-source/plug__lib__plug__conn.ex",
+      "sourceSHA256": "7841e3654ebc8d2cd5af86c8c6f7717807af305789d7e03e2529e7ceeca96c22"
+    },
+    {
+      "evidence": "run-6 uses standard exported telemetry attach-many callback",
+      "finding": "handlers run synchronously with original maps and failure detaches handler",
+      "id": "telemetry-handler-semantics",
+      "installedSource": "/Users/andreyyurlov/Documents/dev/mixer/hosted/deps/telemetry/src/telemetry.erl",
+      "lines": [
+        184,
+        218
+      ],
+      "privateAPIsUsedByProposedImplementation": false,
+      "retainedSource": "api-source/telemetry__src__telemetry.erl",
+      "sourceSHA256": "8bb2a1fa116def38f63a5b36b65fdc9af98022e6e378e047f38d49b584564278"
+    },
+    {
+      "evidence": "source review; next-slice saturation/privacy inventory pending",
+      "finding": "num_connections per acceptor; silent errors do not suppress exception logs or telemetry",
+      "id": "thousand-island-connection-limits",
+      "installedSource": "/Users/andreyyurlov/Documents/dev/mixer/hosted/deps/thousand_island/lib/thousand_island.ex",
+      "lines": [
+        120,
+        162
+      ],
+      "privateAPIsUsedByProposedImplementation": false,
+      "retainedSource": "api-source/thousand_island__lib__thousand_island.ex",
+      "sourceSHA256": "a8ad44777b99c609d27ff7bf3e0882a31b23dcbbb39b31f285f1a950057b2300"
+    },
+    {
+      "evidence": "run-6 owned handler filter receives only 3 safe messages",
+      "finding": "handler filter executes before handler callback, can stop or reconstruct event",
+      "id": "logger-handler-filter",
+      "installedSource": "see sources.json",
+      "lines": [
+        767,
+        798
+      ],
+      "privateAPIsUsedByProposedImplementation": false,
+      "retainedSource": "api-source/otp-29.1.1-kernel-logger.erl",
+      "sourceSHA256": "54726ffc96bed8862cf1c11a10f570c7d52467eb53b06c54d69196ecb7b6abdc"
+    },
+    {
+      "evidence": "source only; no resource-cap claim",
+      "finding": "GC-related max_heap_size and shared binary accounting do not establish total RSS ceiling",
+      "id": "max-heap-is-not-os-ceiling",
+      "installedSource": "see sources.json",
+      "lines": [
+        8100,
+        8170
+      ],
+      "privateAPIsUsedByProposedImplementation": false,
+      "retainedSource": "api-source/otp-29.1.1-erts-erlang.erl",
+      "sourceSHA256": "00d7672a16325e43ca221c6d6ceb4200390e2a961a243c2e31ddc141ac145047"
+    },
+    {
+      "evidence": "source only; no proposed dependency on private stream startup",
+      "finding": "GenServer spawn options are public; no guarantee these cover H2 child allocations",
+      "id": "genserver-spawn-options",
+      "installedSource": "see sources.json",
+      "lines": [
+        63,
+        100
+      ],
+      "privateAPIsUsedByProposedImplementation": false,
+      "retainedSource": "api-source/otp-29.1.1-stdlib-gen.erl",
+      "sourceSHA256": "b828697b055865df24aad48ec4cd7f23821fa54a7aa2baa0408a444a5d0d04be"
+    },
+    {
+      "evidence": "run-6 four connection watchdogs see :DOWN :killed; all linked H2 request owners down",
+      "finding": "standard exit_signal/2 and legacy exit/2 send untrappable kill; reason becomes killed for linked processes",
+      "id": "untrappable-owner-cancellation",
+      "installedSource": "see sources.json",
+      "lines": [
+        2514,
+        2567
+      ],
+      "privateAPIsUsedByProposedImplementation": false,
+      "retainedSource": "api-source/otp-29.1.1-erts-erlang.erl",
+      "sourceSHA256": "00d7672a16325e43ca221c6d6ceb4200390e2a961a243c2e31ddc141ac145047"
+    }
+  ],
+  "role": "pinned official source findings; private internals inspected to establish limits, not called by product contract",
+  "schema": 1
+}

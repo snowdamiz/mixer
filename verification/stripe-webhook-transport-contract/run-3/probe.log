@@ -1,0 +1,95 @@
+
+10:10:17.745 [info] transport_probe_safe
+
+10:10:17.749 [info] transport_probe_safe
+
+10:10:17.755 [warning] Ignoring trailers [{"x-synthetic-trailer", "RAW_TRANSPORT_TRAILER_SENTINEL"}]
+
+10:10:17.755 [info] transport_probe_safe
+** (MatchError) no match of right hand side value:
+
+    {:error,
+     %Mint.HTTP2{
+       transport: Mint.Core.Transport.TCP,
+       socket: #Port<0.18>,
+       mode: :passive,
+       hostname: "localhost",
+       port: 63012,
+       scheme: "http",
+       authority: "localhost:63012",
+       state: :open,
+       buffer: "",
+       last_promised_stream_id: 0,
+       send_window_size: 2147483647,
+       receive_window_size: 16777216,
+       receive_window_remaining: 16777216,
+       receive_window_update_threshold: 160000,
+       encode_table: %HPAX.Table{
+         protocol_max_table_size: 4096,
+         max_table_size: 4096,
+         huffman_encoding: :never,
+         entries: [
+           {"x-probe-case", "h2-stream-only"},
+           {"stripe-signature", "RAW_TRANSPORT_SIG_SENTINEL"}
+         ],
+         size: 132,
+         length: 2,
+         pending_minimum_resize: nil,
+         required_minimum_resize: nil
+       },
+       decode_table: %HPAX.Table{
+         protocol_max_table_size: 4096,
+         max_table_size: 4096,
+         huffman_encoding: :never,
+         entries: [],
+         size: 0,
+         length: 0,
+         pending_minimum_resize: nil,
+         required_minimum_resize: nil
+       },
+       ping_queue: {[], []},
+       client_settings_queue: {[], []},
+       next_stream_id: 5,
+       streams: %{
+         3 => %{
+           id: 3,
+           state: :open,
+           ref: #Reference<0.2094195862.2838757377.72375>,
+           method: "POST",
+           send_window_size: 2147483647,
+           content_length: nil,
+           body_size: 0,
+           receive_window_remaining: 4194304,
+           receive_window_size: 4194304,
+           received_first_headers?: false
+         }
+       },
+       open_client_stream_count: 1,
+       open_server_stream_count: 0,
+       reserved_server_stream_count: 0,
+       ref_to_stream_id: %{#Reference<0.2094195862.2838757377.72375> => 3},
+       server_settings: %{
+         max_concurrent_streams: 1,
+         max_header_list_size: 16384,
+         max_frame_size: 16384,
+         initial_window_size: 32768,
+         enable_push: true,
+         enable_connect_protocol: false
+       },
+       client_settings: %{
+         max_concurrent_streams: 100,
+         max_header_list_size: 262144,
+         max_frame_size: 16384,
+         initial_window_size: 4194304,
+         header_table_size: 4096,
+         enable_push: true
+       },
+       headers_being_processed: nil,
+       proxy_headers: [],
+       private: %{},
+       log: false
+     }, %Mint.HTTPError{reason: :too_many_concurrent_requests, module: Mint.HTTP2}}
+
+    /var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-transport-contract-49rvmia3/source/probe.exs:134: MixerTransportProbe.Client.request/2
+    /var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-transport-contract-49rvmia3/source/probe.exs:168: MixerTransportProbe.Client.h2/3
+    /var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-transport-contract-49rvmia3/source/probe.exs:214: (file)

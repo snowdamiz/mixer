@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.40.3">
+    <meta name="project" content="telemetry v1.4.2">
+
+
+    <title>telemetry — telemetry v1.4.2</title>
+
+    <link rel="stylesheet" href="dist/html-erlang-KCHZLXSC.css" />
+
+    <script defer src="dist/sidebar_items-2D44B38B.js"></script>
+    <script defer src="docs_config.js"></script>
+    <script defer src="dist/html-Y2MUTVIN.js"></script>
+
+  <script async defer src="https://s.hexdocs.pm/js/script.js"></script><script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init({endpoint:"https://s.hexdocs.pm/api/event"})</script></head>
+  <body>
+    <script>(()=>{var t="ex_doc:settings",e="dark";var o="dark",s="light";var E="sidebar_state",n="closed";var r="sidebar_width";var a="sidebar-open";var i=new URLSearchParams(window.location.search),S=i.get("theme")||JSON.parse(localStorage.getItem(t)||"{}").theme;(S===o||S!==s&&window.matchMedia("(prefers-color-scheme: dark)").matches)&&document.body.classList.add(e);var d=sessionStorage.getItem(E),A=d!==n&&!window.matchMedia(`screen and (max-width: ${768}px)`).matches;document.body.classList.toggle(a,A);var c=sessionStorage.getItem(r);c&&document.body.style.setProperty("--sidebarWidth",`${c}px`);var p=/(Macintosh|iPhone|iPad|iPod)/.test(window.navigator.userAgent);document.documentElement.classList.toggle("apple-os",p);})();
+</script>
+
+<div class="body-wrapper">
+
+<button id="sidebar-menu" class="sidebar-button sidebar-toggle" aria-label="toggle sidebar" aria-controls="sidebar">
+  <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
+</button>
+
+<nav id="sidebar" class="sidebar">
+
+  <div class="sidebar-header">
+    <div class="sidebar-projectInfo">
+
+      <div>
+        <a href="readme.html" class="sidebar-projectName" translate="no">
+telemetry
+        </a>
+        <div class="sidebar-projectVersion" translate="no">
+          v1.4.2
+        </div>
+      </div>
+    </div>
+    <ul id="sidebar-list-nav" class="sidebar-list-nav" role="tablist" data-extras="Pages"></ul>
+  </div>
+</nav>
+
+<output role="status" id="toast"></output>
+
+<main class="content page-module" id="main" data-type="modules">
+  <div id="content" class="content-inner">
+    <div class="top-search">
+      <div class="search-settings">
+        <form class="search-bar" action="search.html">
+          <label class="search-label">
+            <span class="sr-only">Search documentation of telemetry</span>
+            <div class="search-input-wrapper">
+              <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+              <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
+                <i class="ri-close-line ri-lg" title="Cancel search"></i>
+              </button>
+            </div>
+          </label>
+        </form>
+        <div class="autocomplete">
+        </div>
+        <div class="engine-selector" data-multiple="false">
+          <button type="button" class="engine-button" aria-label="Select search engine" aria-haspopup="true" aria-expanded="false">
+            <i class="ri-search-2-line" aria-hidden="true"></i>
+            <span class="engine-name">Default</span>
+            <i class="ri-arrow-down-s-line" aria-hidden="true"></i>
+          </button>
+          <div class="engine-dropdown" hidden role="menu">
+
+              <button type="button"
+                      class="engine-option"
+                      data-engine-url="search.html?q="
+                      role="menuitemradio"
+                      aria-checked="true">
+                <span class="name">Default</span>
+                <span class="help">In-browser search</span>
+              </button>
+
+          </div>
+        </div>
+        <button class="icon-settings display-settings">
+          <i class="ri-settings-3-line"></i>
+          <span class="sr-only">Settings</span>
+        </button>
+      </div>
+    </div>
+
+<div id="top-content">
+  <div class="heading-with-actions top-heading">
+    <h1>
+      <span translate="no">telemetry</span> 
+      <small class="app-vsn" translate="no">(telemetry v1.4.2)</small>
+
+    </h1>
+
+<a href="telemetry.md" title="Copy Markdown (hold Ctrl/Cmd and click it to open as Markdown)" class="copy-markdown icon-action" rel="help">
+  <i class="ri-markdown-line" aria-hidden="true"></i>
+  <span class="sr-only">Copy Markdown</span>
+</a>
+
+
+
+      <a href="https://github.com/beam-telemetry/telemetry/blob/v1.4.2/src/telemetry.erl#L1" title="View Source" class="icon-action" rel="help nofollow">
+        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        <span class="sr-only">View Source</span>
+      </a>
+
+  </div>
+
+
+    <section id="moduledoc">
+<p><code class="inline">telemetry</code> allows you to invoke certain functions whenever a
+particular event is emitted.</p><p>For more information see the documentation for <a href="#attach/4"><code class="inline">attach/4</code></a>, <a href="#attach_many/4"><code class="inline">attach_many/4</code></a>
+and <a href="#execute/2"><code class="inline">execute/2</code></a>.</p>
+    </section>
+
+</div>
+
+  <section id="summary" class="details-list">
+    <h2 class="section-heading">
+      <a class="hover-link" href="#summary">
+        <i class="ri-link-m" aria-hidden="true"></i>
+      </a>
+      <span class="text">Summary</span>
+    </h2>
+<div class="summary-types summary">
+  <h3>
+    <a href="#types">Types</a>
+  </h3>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:event_measurements/0" data-no-tooltip="" translate="no">event_measurements()</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:event_metadata/0" data-no-tooltip="" translate="no">event_metadata()</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:event_name/0" data-no-tooltip="" translate="no">event_name()</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:event_prefix/0" data-no-tooltip="" translate="no">event_prefix()</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:event_value/0" data-no-tooltip="" translate="no">event_value()</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:handler/0" data-no-tooltip="" translate="no">handler()</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:handler_config/0" data-no-tooltip="" translate="no">handler_config()</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:handler_function/0" data-no-tooltip="" translate="no">handler_function()</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:handler_id/0" data-no-tooltip="" translate="no">handler_id()</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:span_function/0" data-no-tooltip="" translate="no">span_function()</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:span_result/0" data-no-tooltip="" translate="no">span_result()</a>
+
+      </div>
+
+    </div>
+
+</div>
+<div class="summary-functions summary">
+  <h3>
+    <a href="#functions">Functions</a>
+  </h3>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#attach/4" data-no-tooltip="" translate="no">attach(HandlerId, EventName, Function, Config)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Attaches the handler to the event.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#attach_many/4" data-no-tooltip="" translate="no">attach_many(HandlerId, EventNames, Function, Config)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Attaches the handler to many events.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#detach/1" data-no-tooltip="" translate="no">detach(HandlerId)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Removes the existing handler.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#execute/2" data-no-tooltip="" translate="no">execute(EventName, Measurements)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Same as <a href="#execute/3"><code class="inline">execute(EventName, Measurements, #{})</code></a>.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#execute/3" data-no-tooltip="" translate="no">execute(EventName, Measurements, Metadata)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Emits the event, invoking handlers attached to it.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#execute_lazy/2" data-no-tooltip="" translate="no">execute_lazy(EventName, Func)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#execute_lazy/3" data-no-tooltip="" translate="no">execute_lazy/3</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#list_handlers/1" data-no-tooltip="" translate="no">list_handlers(EventPrefix)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Returns all handlers attached to events with given prefix.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#persist/0" data-no-tooltip="" translate="no">persist()</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Persist telemetry handlers.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#span/3" data-no-tooltip="" translate="no">span(EventPrefix, StartMetadata, SpanFunction)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Runs the provided <code class="inline">SpanFunction</code>, emitting start and stop/exception events, invoking the handlers attached to each.</p></div>
+
+    </div>
+
+</div>
+
+  </section>
+
+
+  <section id="types" class="details-list">
+    <h2 class="section-heading">
+      <a class="hover-link" href="#types">
+        <i class="ri-link-m" aria-hidden="true"></i>
+      </a>
+      <span class="text">Types</span>
+    </h2>
+
+    <div class="types-list">
+<section class="detail" id="t:event_measurements/0">
+
+  <div class="detail-header">
+    <a href="#t:event_measurements/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">event_measurements()</h1>
+
+
+        <a href="https://github.com/beam-telemetry/telemetry/blob/v1.4.2/src/telemetry.erl#L28" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-type</span> event_measurements() :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:map/0">map</a>().</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:event_metadata/0">
+
+  <div class="detail-header">
+    <a href="#t:event_metadata/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">event_metadata()</h1>
+
+
+        <a href="https://github.com/beam-telemetry/telemetry/blob/v1.4.2/src/telemetry.erl#L29" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-type</span> event_metadata() :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:map/0">map</a>().</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:event_name/0">
+
+  <div class="detail-header">
+    <a href="#t:event_name/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">event_name()</h1>
+
+
+        <a href="https://github.com/beam-telemetry/telemetry/blob/v1.4.2/src/telemetry.erl#L27" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-type</span> event_name() :: [<a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:atom/0">atom</a>(), ...].</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:event_prefix/0">
+
+  <div class="detail-header">
+    <a href="#t:event_prefix/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">event_prefix()</h1>
+
+
+        <a href="https://github.com/beam-telemetry/telemetry/blob/v1.4.2/src/telemetry.erl#L31" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-type</span> event_prefix() :: [<a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:atom/0">atom</a>()].</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:event_value/0">
+
+  <div class="detail-header">
+    <a href="#t:event_value/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">event_value()</h1>
+
+
+        <a href="https://github.com/beam-telemetry/telemetry/blob/v1.4.2/src/telemetry.erl#L30" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-type</span> event_value() :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:number/0">number</a>().</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:handler/0">
+
+  <div class="detail-header">
+    <a href="#t:handler/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">handler()</h1>
+
+
+        <a href="https://github.com/beam-telemetry/telemetry/blob/v1.4.2/src/telemetry.erl#L36" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-type</span> handler() ::
+          #{id := <a href="#t:handler_id/0">handler_id</a>(),
+            event_name := <a href="#t:event_name/0">event_name</a>(),
+            function := <a href="#t:handler_function/0">handler_function</a>(),
+            config := <a href="#t:handler_config/0">handler_config</a>()}.</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:handler_config/0">
+
+  <div class="detail-header">
+    <a href="#t:handler_config/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">handler_config()</h1>
+
+
+        <a href="https://github.com/beam-telemetry/telemetry/blob/v1.4.2/src/telemetry.erl#L32" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-type</span> handler_config() :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:term/0">term</a>().</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:handler_function/0">
+
+  <div class="detail-header">
+    <a href="#t:handler_function/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">handler_function()</h1>
+
+
+        <a href="https://github.com/beam-telemetry/telemetry/blob/v1.4.2/src/telemetry.erl#L33" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-type</span> handler_function() ::
+          fun((<a href="#t:event_name/0">event_name</a>(), <a href="#t:event_measurements/0">event_measurements</a>(), <a href="#t:event_metadata/0">event_metadata</a>(), <a href="#t:handler_config/0">handler_config</a>()) -> <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:any/0">any</a>()).</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:handler_id/0">
+
+  <div class="detail-header">
+    <a href="#t:handler_id/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">handler_id()</h1>
+
+
+        <a href="https://github.com/beam-telemetry/telemetry/blob/v1.4.2/src/telemetry.erl#L26" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-type</span> handler_id() :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:term/0">term</a>().</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:span_function/0">
+
+  <div class="detail-header">
+    <a href="#t:span_function/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">span_function()</h1>
+
+
+        <a href="https://github.com/beam-telemetry/telemetry/blob/v1.4.2/src/telemetry.erl#L35" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-type</span> span_function() ::
+          fun(() ->
+                  {<a href="#t:span_result/0">span_result</a>(), <a href="#t:event_metadata/0">event_metadata</a>()} |
+                  {<a href="#t:span_result/0">span_result</a>(), <a href="#t:event_measurements/0">event_measurements</a>(), <a href="#t:event_metadata/0">event_metadata</a>()}).</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="t:span_result/0">
+
+  <div class="detail-header">
+    <a href="#t:span_result/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">span_result()</h1>
+
+
+        <a href="https://github.com/beam-telemetry/telemetry/blob/v1.4.2/src/telemetry.erl#L34" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-type</span> span_result() :: <a href="https://www.erlang.org/doc/apps/erts/erlang.html#t:term/0">term</a>().</pre>
+
+      </div>
+
+
+  </section>
+</section>
+
+    </div>
+  </section>
+
+  <section id="functions" class="details-list">
+    <h2 class="section-heading">
+      <a class="hover-link" href="#functions">
+        <i class="ri-link-m" aria-hidden="true"></i>
+      </a>
+      <span class="text">Functions</span>
+    </h2>
+
+    <div class="functions-list">
+<section class="detail" id="attach/4">
+
+  <div class="detail-header">
+    <a href="#attach/4" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">attach(HandlerId, EventName, Function, Config)</h1>
+
+
+        <a href="https://github.com/beam-telemetry/telemetry/blob/v1.4.2/src/telemetry.erl#L105" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-spec</span> attach(HandlerId, EventName, Function, Config) -> ok | {error, already_exists}
+                when
+                    HandlerId :: <a href="#t:handler_id/0">handler_id</a>(),
+                    EventName :: <a href="#t:event_name/0">event_name</a>(),
+                    Function :: <a href="#t:handler_function/0">handler_function</a>(),
+                    Config :: <a href="#t:handler_config/0">handler_config</a>().</pre>
+
+      </div>
+
+<p>Attaches the handler to the event.</p><p><code class="inline">HandlerId</code> must be unique, if another handler with the same ID already exists the
+<code class="inline">{error, already_exists}</code> tuple is returned.</p><p>See <a href="#execute/3"><code class="inline">execute/3</code></a> to learn how the handlers are invoked.</p><section role="note" class="admonition info"><h4 class="admonition-title info">Function Captures</h4><p>Due to how anonymous functions are implemented in the Erlang VM, it is best to use
+function captures (<code class="inline">fun mod:fun/4</code> in Erlang or <code class="inline">&amp;Mod.fun/4</code> in Elixir) as event handlers
+to achieve the best performance. In other words, avoid using literal anonymous functions
+(<code class="inline">fun(...) -&gt; ... end</code> or <code class="inline">fn ... -&gt; ... end</code>) or local function captures (<code class="inline">fun handle_event/4</code>
+or <code class="inline">&amp;handle_event/4</code>) as event handlers.</p></section><p>All the handlers are executed by the process dispatching event. If the function fails (raises,
+exits or throws) then the handler is removed and a failure event is emitted.</p><p>Note that you should not rely on the order in which handlers are invoked.</p><h3 id="attach/4-failing-handlers" class="section-heading"><a href="#attach/4-failing-handlers" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Failing Handlers</span></h3><p>When a handler fails, it is removed and a <strong>failure event</strong> is emitted.
+This is useful for monitoring and diagnostic purposes.</p><p>Handler failure events are executed as:</p><ul><li>Event name: <code class="inline">[telemetry, handler, failure]</code></li><li>Measurements:<ul><li><code class="inline">monotonic_time</code> - The current monotonic time in native units from calling
+<a href="https://www.erlang.org/doc/apps/erts/erlang.html#monotonic_time/0"><code class="inline">erlang:monotonic_time/0</code></a></li><li><code class="inline">system_time</code> - The current system time in native units from calling
+<a href="https://www.erlang.org/doc/apps/erts/erlang.html#system_time/0"><code class="inline">erlang:system_time/0</code></a></li></ul></li><li>Metadata:<ul><li><code class="inline">event_name</code> - The event that failed (<a href="#t:event_name/0"><code class="inline">event_name/0</code></a>)</li><li><code class="inline">handler_id</code> - The ID of the handler that failed</li><li><code class="inline">handler_config</code> - The configuration of the handler that failed</li><li><code class="inline">kind</code> - The kind of failure (<code class="inline">error</code>, <code class="inline">exit</code>, <code class="inline">throw</code>)</li><li><code class="inline">reason</code> - The reason for the failure</li><li><code class="inline">stacktrace</code> - The stacktrace for the failure</li></ul></li></ul><p>These handler failure events should only be used for monitoring and diagnostic purposes.
+Re-attaching a failed handler will likely result in the handler failing again.</p>
+  </section>
+</section>
+<section class="detail" id="attach_many/4">
+
+  <div class="detail-header">
+    <a href="#attach_many/4" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">attach_many(HandlerId, EventNames, Function, Config)</h1>
+
+
+        <a href="https://github.com/beam-telemetry/telemetry/blob/v1.4.2/src/telemetry.erl#L133" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-spec</span> attach_many(HandlerId, [EventName], Function, Config) -> ok | {error, already_exists}
+                     when
+                         HandlerId :: <a href="#t:handler_id/0">handler_id</a>(),
+                         EventName :: <a href="#t:event_name/0">event_name</a>(),
+                         Function :: <a href="#t:handler_function/0">handler_function</a>(),
+                         Config :: <a href="#t:handler_config/0">handler_config</a>().</pre>
+
+      </div>
+
+<p>Attaches the handler to many events.</p><p>The handler will be invoked whenever any of the events in the <code class="inline">EventNames</code> list is emitted. Note
+that failure of the handler on any of these invocations will detach it from all the events in
+<code class="inline">EventNames</code> (the same applies to manual detaching using <a href="#detach/1"><code class="inline">detach/1</code></a>).</p><b>Note:</b><p>function captures (i.e. <code class="inline">fun mod:fun/4</code> in Erlang or <code class="inline">&amp;Mod.fun/4</code> in Elixir) as event handlers
+to achieve maximum performance. In other words, avoid using literal anonymous functions
+(<code class="inline">fun(...) -&gt; ... end</code> or <code class="inline">fn ... -&gt; ... end</code>) or local function captures (<code class="inline">fun handle_event/4</code>
+or <code class="inline">&amp;handle_event/4</code>) as event handlers.</p><p>All the handlers are executed by the process dispatching event. If the function fails (raises,
+exits or throws) a handler failure event is emitted and then the handler is removed.</p><p>Failing handlers emit a failure event, which is documented in <a href="#attach/4"><code class="inline">attach/4</code></a>.</p><p>Note that you should not rely on the order in which handlers are invoked.</p>
+  </section>
+</section>
+<section class="detail" id="detach/1">
+
+  <div class="detail-header">
+    <a href="#detach/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">detach(HandlerId)</h1>
+
+
+        <a href="https://github.com/beam-telemetry/telemetry/blob/v1.4.2/src/telemetry.erl#L167" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-spec</span> detach(<a href="#t:handler_id/0">handler_id</a>()) -> ok | {error, not_found}.</pre>
+
+      </div>
+
+<p>Removes the existing handler.</p><p>If the handler with given ID doesn't exist, <code class="inline">{error, not_found}</code> is returned.</p>
+  </section>
+</section>
+<section class="detail" id="execute/2">
+
+  <div class="detail-header">
+    <a href="#execute/2" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">execute(EventName, Measurements)</h1>
+
+
+        <a href="https://github.com/beam-telemetry/telemetry/blob/v1.4.2/src/telemetry.erl#L413" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-spec</span> execute(EventName, Measurements) -> ok
+                 when EventName :: <a href="#t:event_name/0">event_name</a>(), Measurements :: <a href="#t:event_measurements/0">event_measurements</a>() | <a href="#t:event_value/0">event_value</a>().</pre>
+
+      </div>
+
+<p>Same as <a href="#execute/3"><code class="inline">execute(EventName, Measurements, #{})</code></a>.</p>
+  </section>
+</section>
+<section class="detail" id="execute/3">
+
+  <div class="detail-header">
+    <a href="#execute/3" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">execute(EventName, Measurements, Metadata)</h1>
+
+
+        <a href="https://github.com/beam-telemetry/telemetry/blob/v1.4.2/src/telemetry.erl#L206" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-spec</span> execute(EventName, Measurements, Metadata) -> ok
+                 when
+                     EventName :: <a href="#t:event_name/0">event_name</a>(),
+                     Measurements :: <a href="#t:event_measurements/0">event_measurements</a>() | <a href="#t:event_value/0">event_value</a>(),
+                     Metadata :: <a href="#t:event_metadata/0">event_metadata</a>().</pre>
+
+      </div>
+
+<p>Emits the event, invoking handlers attached to it.</p><p>When the event is emitted, the handler function provided to <a href="#attach/4"><code class="inline">attach/4</code></a> is called with four
+arguments:</p><ul><li>the event name</li><li>the map of measurements</li><li>the map of event metadata</li><li>the handler configuration given to <a href="#attach/4"><code class="inline">attach/4</code></a></li></ul><h4>Best practices and conventions:</h4><p>While you are able to emit messages of any <a href="#t:event_name/0"><code class="inline">event_name/0</code></a> structure, it is recommended that you follow the
+the guidelines laid out in <a href="#span/3"><code class="inline">span/3</code></a> if you are capturing start/stop events.</p>
+  </section>
+</section>
+<section class="detail" id="execute_lazy/2">
+
+  <div class="detail-header">
+    <a href="#execute_lazy/2" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">execute_lazy(EventName, Func)</h1>
+
+
+        <a href="https://github.com/beam-telemetry/telemetry/blob/v1.4.2/src/telemetry.erl#L170" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+<section class="detail" id="execute_lazy/3">
+
+  <div class="detail-header">
+    <a href="#execute_lazy/3" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">execute_lazy/3</h1>
+
+
+        <a href="https://github.com/beam-telemetry/telemetry/blob/v1.4.2/src/telemetry.erl#L172" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+<section class="detail" id="list_handlers/1">
+
+  <div class="detail-header">
+    <a href="#list_handlers/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">list_handlers(EventPrefix)</h1>
+
+
+        <a href="https://github.com/beam-telemetry/telemetry/blob/v1.4.2/src/telemetry.erl#L424" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-spec</span> list_handlers(<a href="#t:event_prefix/0">event_prefix</a>()) -> [<a href="#t:handler/0">handler</a>()].</pre>
+
+      </div>
+
+<p>Returns all handlers attached to events with given prefix.</p><p>Handlers attached to many events at once using <a href="#attach_many/4"><code class="inline">attach_many/4</code></a> will be listed once for each
+event they're attached to.
+Note that you can list all handlers by feeding this function an empty list.</p>
+  </section>
+</section>
+<section class="detail" id="persist/0">
+
+  <div class="detail-header">
+    <a href="#persist/0" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">persist()</h1>
+
+        <span class="note">(since 1.4.0)</span>
+
+
+        <a href="https://github.com/beam-telemetry/telemetry/blob/v1.4.2/src/telemetry.erl#L158" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-spec</span> persist() -> ok.</pre>
+
+      </div>
+
+<p>Persist telemetry handlers.</p><p>This will improve performance of calling Telemetry handlers at the cost of
+reducing performance of attaching or detaching new handlers.</p><p>This function should be used with care.</p>
+  </section>
+</section>
+<section class="detail" id="span/3">
+
+  <div class="detail-header">
+    <a href="#span/3" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">span(EventPrefix, StartMetadata, SpanFunction)</h1>
+
+
+        <a href="https://github.com/beam-telemetry/telemetry/blob/v1.4.2/src/telemetry.erl#L368" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">-spec</span> span(<a href="#t:event_prefix/0">event_prefix</a>(), <a href="#t:event_metadata/0">event_metadata</a>(), <a href="#t:span_function/0">span_function</a>()) -> <a href="#t:span_result/0">span_result</a>().</pre>
+
+      </div>
+
+<p>Runs the provided <code class="inline">SpanFunction</code>, emitting start and stop/exception events, invoking the handlers attached to each.</p><p>The <code class="inline">SpanFunction</code> must return a <code class="inline">{result, stop_metadata}</code> or a <code class="inline">{result, extra_measurements, stop_metadata}</code> tuple.</p><p>When this function is called, 2 events will be emitted via <a href="#execute/3"><code class="inline">execute/3</code></a>. Those events will be one of the following
+pairs:</p><ul><li><code class="inline">EventPrefix ++ [start]</code> and <code class="inline">EventPrefix ++ [stop]</code></li><li><code class="inline">EventPrefix ++ [start]</code> and <code class="inline">EventPrefix ++ [exception]</code></li></ul><p>However, note that in case the current process crashes due to an exit signal
+of another process, then none or only part of those events would be emitted.
+Below is a breakdown of the measurements and metadata associated with each individual event.</p><p>When providing <code class="inline">StartMetadata</code> and <code class="inline">StopMetadata</code>, these values will be sent independently to <code class="inline">start</code> and
+<code class="inline">stop</code> events. If an exception occurs, exception metadata will be merged onto the <code class="inline">StartMetadata</code>. In general,
+it is <strong>highly recommended</strong> that <code class="inline">StopMetadata</code> should include the values from <code class="inline">StartMetadata</code>
+so that handlers, such as those used for metrics, can rely entirely on the <code class="inline">stop</code> event. Failure to include
+all of <code class="inline">StartMetadata</code> in <code class="inline">StopMetadata</code> can add significant complexity to event handlers.</p><p>A default span context is added to event metadata under the <code class="inline">telemetry_span_context</code> key if this key is not provided
+by the user in the <code class="inline">StartMetadata</code>. This context is useful for tracing libraries to identify unique
+executions of span events within a process to match start, stop, and exception events. Metadata keys which
+should be available to both <code class="inline">start</code> and <code class="inline">stop</code> events need to supplied separately for <code class="inline">StartMetadata</code> and
+<code class="inline">StopMetadata</code>.</p><p>If <code class="inline">SpanFunction</code> returns <code class="inline">{result, extra_measurements, stop_metadata}</code>, then a map of extra measurements
+will be merged with the measurements automatically provided. This is useful if you want to return, for example,
+bytes from an HTTP request. The standard measurements <code class="inline">duration</code> and <code class="inline">monotonic_time</code> cannot be overridden.</p><p>For <code class="inline">telemetry</code> events denoting the <strong>start</strong> of a larger event, the following data is provided:</p><ul><li><p>Event:</p><pre><code class="makeup erlang" translate="no"><span class="n">EventPrefix</span><span class="w"> </span><span class="o">++</span><span class="w"> </span><span class="p" data-group-id="4155026569-1">[</span><span class="ss">start</span><span class="p" data-group-id="4155026569-1">]</span></code></pre></li><li><p>Measurements:</p><pre><code class="makeup erlang" translate="no"><span class="p" data-group-id="9662427453-1">#{</span><span class="w">
+  </span><span class="c1">% The current system time in native units from</span><span class="w">
+  </span><span class="c1">% calling: erlang:system_time()</span><span class="w">
+  </span><span class="ss">system_time</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nf">integer</span><span class="p" data-group-id="9662427453-2">(</span><span class="p" data-group-id="9662427453-2">)</span><span class="p">,</span><span class="w">
+  </span><span class="ss">monotonic_time</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nf">integer</span><span class="p" data-group-id="9662427453-3">(</span><span class="p" data-group-id="9662427453-3">)</span><span class="p">,</span><span class="w">
+</span><span class="p" data-group-id="9662427453-1">}</span></code></pre></li><li><p>Metadata:</p><pre><code class="makeup erlang" translate="no"><span class="p" data-group-id="7947920325-1">#{</span><span class="w">
+  </span><span class="ss">telemetry_span_context</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nf">term</span><span class="p" data-group-id="7947920325-2">(</span><span class="p" data-group-id="7947920325-2">)</span><span class="p">,</span><span class="w">
+  </span><span class="c1">% User defined metadata as provided in StartMetadata</span><span class="w">
+  </span><span class="p">.</span><span class="p">.</span><span class="p">.</span><span class="w">
+</span><span class="p" data-group-id="7947920325-1">}</span></code></pre></li></ul><p>For <code class="inline">telemetry</code> events denoting the <strong>stop</strong> of a larger event, the following data is provided:</p><ul><li><p>Event:</p><pre><code class="makeup erlang" translate="no"><span class="n">EventPrefix</span><span class="w"> </span><span class="o">++</span><span class="w"> </span><span class="p" data-group-id="2182614649-1">[</span><span class="ss">stop</span><span class="p" data-group-id="2182614649-1">]</span></code></pre></li><li><p>Measurements:</p><pre><code class="makeup erlang" translate="no"><span class="p" data-group-id="9952444850-1">#{</span><span class="w">
+  </span><span class="c1">% The current monotonic time minus the start monotonic time in native units</span><span class="w">
+  </span><span class="c1">% by calling: erlang:monotonic_time() - start_monotonic_time</span><span class="w">
+  </span><span class="ss">duration</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nf">integer</span><span class="p" data-group-id="9952444850-2">(</span><span class="p" data-group-id="9952444850-2">)</span><span class="p">,</span><span class="w">
+  </span><span class="ss">monotonic_time</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nf">integer</span><span class="p" data-group-id="9952444850-3">(</span><span class="p" data-group-id="9952444850-3">)</span><span class="p">,</span><span class="w">
+  </span><span class="c1">% User defined measurements when returning `SpanFunction` as a 3 element tuple</span><span class="w">
+</span><span class="p" data-group-id="9952444850-1">}</span></code></pre></li><li><p>Metadata:</p><pre><code class="makeup erlang" translate="no"><span class="p" data-group-id="7431911763-1">#{</span><span class="w">
+  </span><span class="c1">% An optional error field if the stop event is the result of an error</span><span class="w">
+  </span><span class="c1">% but not necessarily an exception.</span><span class="w">
+  </span><span class="nb">error</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nf">term</span><span class="p" data-group-id="7431911763-2">(</span><span class="p" data-group-id="7431911763-2">)</span><span class="p">,</span><span class="w">
+  </span><span class="ss">telemetry_span_context</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nf">term</span><span class="p" data-group-id="7431911763-3">(</span><span class="p" data-group-id="7431911763-3">)</span><span class="p">,</span><span class="w">
+  </span><span class="c1">% User defined metadata as provided in StopMetadata</span><span class="w">
+  </span><span class="p">.</span><span class="p">.</span><span class="p">.</span><span class="w">
+</span><span class="p" data-group-id="7431911763-1">}</span></code></pre></li></ul><p>For <code class="inline">telemetry</code> events denoting an <strong>exception</strong> of a larger event, the following data is provided:</p><ul><li><p>Event:</p><pre><code class="makeup erlang" translate="no"><span class="n">EventPrefix</span><span class="w"> </span><span class="o">++</span><span class="w"> </span><span class="p" data-group-id="5146819288-1">[</span><span class="ss">exception</span><span class="p" data-group-id="5146819288-1">]</span></code></pre></li><li><p>Measurements:</p><pre><code class="makeup erlang" translate="no"><span class="p" data-group-id="0969803351-1">#{</span><span class="w">
+  </span><span class="c1">% The current monotonic time minus the start monotonic time in native units</span><span class="w">
+  </span><span class="c1">% by calling: erlang:monotonic_time() - start_monotonic_time</span><span class="w">
+  </span><span class="ss">duration</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nf">integer</span><span class="p" data-group-id="0969803351-2">(</span><span class="p" data-group-id="0969803351-2">)</span><span class="p">,</span><span class="w">
+  </span><span class="ss">monotonic_time</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nf">integer</span><span class="p" data-group-id="0969803351-3">(</span><span class="p" data-group-id="0969803351-3">)</span><span class="w">
+</span><span class="p" data-group-id="0969803351-1">}</span></code></pre></li><li><p>Metadata:</p><pre><code class="makeup erlang" translate="no"><span class="p" data-group-id="3582803309-1">#{</span><span class="w">
+  </span><span class="ss">kind</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nb">throw</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="nb">error</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="nb">exit</span><span class="p">,</span><span class="w">
+  </span><span class="ss">reason</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nf">term</span><span class="p" data-group-id="3582803309-2">(</span><span class="p" data-group-id="3582803309-2">)</span><span class="p">,</span><span class="w">
+  </span><span class="ss">stacktrace</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nf">list</span><span class="p" data-group-id="3582803309-3">(</span><span class="p" data-group-id="3582803309-3">)</span><span class="p">,</span><span class="w">
+  </span><span class="ss">telemetry_span_context</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nf">term</span><span class="p" data-group-id="3582803309-4">(</span><span class="p" data-group-id="3582803309-4">)</span><span class="p">,</span><span class="w">
+  </span><span class="c1">% User defined metadata as provided in StartMetadata</span><span class="w">
+   </span><span class="p">.</span><span class="p">.</span><span class="p">.</span><span class="w">
+</span><span class="p" data-group-id="3582803309-1">}</span></code></pre></li></ul>
+  </section>
+</section>
+
+    </div>
+  </section>
+
+    <footer class="footer">
+
+        <p>
+
+            <span class="line">
+              <a href="https://hex.pm/packages/telemetry/1.4.2">Hex Package</a>
+
+              <a href="https://preview.hex.pm/preview/telemetry/1.4.2">Hex Preview</a>
+
+            </span>
+
+          <span class="line">
+            <button class="a-main footer-button display-quick-switch" title="Go to package docs">
+              Go to package docs
+            </button>
+
+              <a href="llms.txt" target="_blank">
+                View llms.txt
+              </a>
+
+
+              <a href="telemetry.epub">
+                Download ePub version
+              </a>
+
+          </span>
+        </p>
+
+        <p class="built-using">
+          Built using
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener nofollow" translate="no">ExDoc</a> (v0.40.3) for the
+
+            <a href="https://erlang.org" title="Erlang" target="_blank" translate="no">Erlang programming language</a>
+
+        </p>
+
+
+    </footer>
+  </div>
+</main>
+</div>
+
+  </body>
+</html>

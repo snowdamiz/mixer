@@ -1,0 +1,16 @@
+                    public void afterTextChanged(Editable value){if(!changing&&input.open(Record.this))input.event(Record.this,"textChange",value.toString());}
+                });
+                edit.setOnEditorActionListener((field,action,event)-> {
+                    if(action==EditorInfo.IME_ACTION_DONE&&input.open(this)&&binding.source.actions.containsKey("submit")) {
+                        input.event(this,"submit",null);return true;
+                    }return false;
+                });
+            }
+            if(view instanceof Switch toggle) toggle.setOnCheckedChangeListener((button,checked)-> {
+                if(!changing&&input.open(this))input.event(this,"valueChange",checked);
+                toggle.invalidate();
+            });
+        }
+        void bind(Binding next, Geometry measured, boolean preserveEditor) {
+            changing=true;
+            try {

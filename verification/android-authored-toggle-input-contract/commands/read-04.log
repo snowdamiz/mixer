@@ -1,0 +1,16 @@
+    private long v2Interaction;
+    private int v2Fault=-1,v2Steps;
+    private boolean v2RollbackFault;
+    private NativeAppearanceViewsV2.Input v2Input;
+    private NativeAppearanceViewsV2.Input inputV2(){if(v2Input==null)v2Input=new NativeAppearanceViewsV2.Input(){
+        public boolean open(NativeAppearanceViewsV2.Record record){
+            return presentationCurrentV2()&&v2Records.get(record.id)==record&&record.view.isEnabled()&&record.view.isAttachedToWindow()&&record.view.isShown()&&record.view.hasWindowFocus();
+        }
+        public void event(NativeAppearanceViewsV2.Record record,String name,Object value){
+            if(!open(record))return;interaction();if(v2Open&&!v2Retired)events.send(packet.event(record.id,record.generation,name,value));
+        }
+        public void interaction(){if(!v2Open)return;if(v2Interaction==Long.MAX_VALUE){retireV2();return;}v2Interaction++;}
+    };return v2Input;}
+    InstalledAppearanceV2 captureInstalledV2(){
+        requireV2Live();NativeEnvironmentV2.requireMain();
+        InstalledAppearanceV2 capture=InstalledAppearanceV2.capture(context,this);

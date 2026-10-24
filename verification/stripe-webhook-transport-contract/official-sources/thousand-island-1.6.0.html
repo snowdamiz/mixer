@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.40.4">
+    <meta name="project" content="Thousand Island v1.6.0">
+
+
+    <title>ThousandIsland — Thousand Island v1.6.0</title>
+
+    <link rel="stylesheet" href="dist/html-elixir-RXHHCTJW.css" />
+
+    <script defer src="dist/sidebar_items-A0D3D11F.js"></script>
+    <script defer src="docs_config.js"></script>
+    <script defer src="dist/html-MI33G4N7.js"></script>
+
+  <script async defer src="https://s.hexdocs.pm/js/script.js"></script><script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init({endpoint:"https://s.hexdocs.pm/api/event"})</script></head>
+  <body>
+    <script>(()=>{var t="ex_doc:settings",e="dark";var o="dark",s="light";var E="sidebar_state",n="closed";var r="sidebar_width";var a="sidebar-open";var i=new URLSearchParams(window.location.search),S=i.get("theme")||JSON.parse(localStorage.getItem(t)||"{}").theme;(S===o||S!==s&&window.matchMedia("(prefers-color-scheme: dark)").matches)&&document.body.classList.add(e);var d=sessionStorage.getItem(E),A=d!==n&&!window.matchMedia(`screen and (max-width: ${768}px)`).matches;document.body.classList.toggle(a,A);var c=sessionStorage.getItem(r);c&&document.body.style.setProperty("--sidebarWidth",`${c}px`);var p=/(Macintosh|iPhone|iPad|iPod)/.test(window.navigator.userAgent);document.documentElement.classList.toggle("apple-os",p);})();
+</script>
+
+<div class="body-wrapper">
+
+<button id="sidebar-menu" class="sidebar-button sidebar-toggle" aria-label="toggle sidebar" aria-controls="sidebar">
+  <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
+</button>
+
+<nav id="sidebar" class="sidebar">
+
+  <div class="sidebar-header">
+    <div class="sidebar-projectInfo">
+
+        <a href="ThousandIsland.html" class="sidebar-projectImage">
+          <img src="assets/logo.png" alt="Thousand Island" />
+        </a>
+
+      <div>
+        <a href="ThousandIsland.html" class="sidebar-projectName" translate="no">
+Thousand Island
+        </a>
+        <div class="sidebar-projectVersion" translate="no">
+          v1.6.0
+        </div>
+      </div>
+    </div>
+    <ul id="sidebar-list-nav" class="sidebar-list-nav" role="tablist" data-extras="Pages"></ul>
+  </div>
+</nav>
+
+<output role="status" id="toast"></output>
+
+<main class="content page-module" id="main" data-type="modules">
+  <div id="content" class="content-inner">
+    <div class="top-search">
+      <div class="search-settings">
+        <form class="search-bar" action="search.html">
+          <label class="search-label">
+            <span class="sr-only">Search documentation of Thousand Island</span>
+            <div class="search-input-wrapper">
+              <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+              <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
+                <i class="ri-close-line ri-lg" title="Cancel search"></i>
+              </button>
+            </div>
+          </label>
+        </form>
+        <div class="autocomplete">
+        </div>
+        <div class="engine-selector" data-multiple="false">
+          <button type="button" class="engine-button" aria-label="Select search engine" aria-haspopup="true" aria-expanded="false">
+            <i class="ri-search-2-line" aria-hidden="true"></i>
+            <span class="engine-name">Default</span>
+            <i class="ri-arrow-down-s-line" aria-hidden="true"></i>
+          </button>
+          <div class="engine-dropdown" hidden role="menu">
+
+              <button type="button"
+                      class="engine-option"
+                      data-engine-url="search.html?q="
+                      role="menuitemradio"
+                      aria-checked="true">
+                <span class="name">Default</span>
+                <span class="help">In-browser search</span>
+              </button>
+
+          </div>
+        </div>
+        <button class="icon-settings display-settings">
+          <i class="ri-settings-3-line"></i>
+          <span class="sr-only">Settings</span>
+        </button>
+      </div>
+    </div>
+
+<div id="top-content">
+  <div class="heading-with-actions top-heading">
+    <h1>
+      <span translate="no">ThousandIsland</span> 
+      <small class="app-vsn" translate="no">(Thousand Island v1.6.0)</small>
+
+    </h1>
+
+<a href="ThousandIsland.md" title="Copy Markdown (hold Ctrl/Cmd and click it to open as Markdown)" class="copy-markdown icon-action" rel="help">
+  <i class="ri-markdown-line" aria-hidden="true"></i>
+  <span class="sr-only">Copy Markdown</span>
+</a>
+
+
+
+      <a href="https://github.com/mtrudel/thousand_island/blob/main/lib/thousand_island.ex#L1" title="View Source" class="icon-action" rel="help nofollow">
+        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        <span class="sr-only">View Source</span>
+      </a>
+
+  </div>
+
+
+    <section id="moduledoc">
+<p>Thousand Island is a modern, pure Elixir socket server, inspired heavily by
+<a rel="nofollow" href="https://github.com/ninenines/ranch">ranch</a>. It aims to be easy to understand
+&amp; reason about, while also being at least as stable and performant as alternatives.</p><p>Thousand Island is implemented as a supervision tree which is intended to be hosted
+inside a host application, often as a dependency embedded within a higher-level
+protocol library such as <a rel="nofollow" href="https://github.com/mtrudel/bandit">Bandit</a>. Aside from
+supervising the Thousand Island process tree, applications interact with Thousand
+Island primarily via the <a href="ThousandIsland.Handler.html"><code class="inline">ThousandIsland.Handler</code></a> behaviour.</p><h2 id="module-handlers" class="section-heading"><a href="#module-handlers" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Handlers</span></h2><p>The <a href="ThousandIsland.Handler.html"><code class="inline">ThousandIsland.Handler</code></a> behaviour defines the interface that Thousand Island
+uses to pass <a href="ThousandIsland.Socket.html"><code class="inline">ThousandIsland.Socket</code></a>s up to the application level; together they
+form the primary interface that most applications will have with Thousand Island.
+Thousand Island comes with a few simple protocol handlers to serve as examples;
+these can be found in the <a rel="nofollow" href="https://github.com/mtrudel/thousand_island/tree/main/examples">examples</a>
+folder of this project. A simple implementation would look like this:</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">Echo</span><span class="w"> </span><span class="k" data-group-id="group-1">do</span><span class="w">
+  </span><span class="kn">use</span><span class="w"> </span><span class="nc">ThousandIsland.Handler</span><span class="w">
+
+  </span><span class="na">@impl</span><span class="w"> </span><span class="nc">ThousandIsland.Handler</span><span class="w">
+  </span><span class="kd">def</span><span class="w"> </span><span class="nf">handle_data</span><span class="p" data-group-id="group-2">(</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="n">socket</span><span class="p">,</span><span class="w"> </span><span class="n">state</span><span class="p" data-group-id="group-2">)</span><span class="w"> </span><span class="k" data-group-id="group-3">do</span><span class="w">
+    </span><span class="nc">ThousandIsland.Socket</span><span class="o">.</span><span class="n">send</span><span class="p" data-group-id="group-4">(</span><span class="n">socket</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="p" data-group-id="group-4">)</span><span class="w">
+    </span><span class="p" data-group-id="group-5">{</span><span class="ss">:continue</span><span class="p">,</span><span class="w"> </span><span class="n">state</span><span class="p" data-group-id="group-5">}</span><span class="w">
+  </span><span class="k" data-group-id="group-3">end</span><span class="w">
+</span><span class="k" data-group-id="group-1">end</span><span class="w">
+
+</span><span class="p" data-group-id="group-6">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="n">pid</span><span class="p" data-group-id="group-6">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">ThousandIsland</span><span class="o">.</span><span class="n">start_link</span><span class="p" data-group-id="group-7">(</span><span class="ss">port</span><span class="p">:</span><span class="w"> </span><span class="mi">1234</span><span class="p">,</span><span class="w"> </span><span class="ss">handler_module</span><span class="p">:</span><span class="w"> </span><span class="nc">Echo</span><span class="p" data-group-id="group-7">)</span></code></pre><p>For more information, please consult the <a href="ThousandIsland.Handler.html"><code class="inline">ThousandIsland.Handler</code></a> documentation.</p><h2 id="module-starting-a-thousand-island-server" class="section-heading"><a href="#module-starting-a-thousand-island-server" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Starting a Thousand Island Server</span></h2><p>A typical use of <a href="ThousandIsland.html"><code class="inline">ThousandIsland</code></a> might look like the following:</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">MyApp.Supervisor</span><span class="w"> </span><span class="k" data-group-id="group-1">do</span><span class="w">
+  </span><span class="c1"># ... other Supervisor boilerplate</span><span class="w">
+
+  </span><span class="kd">def</span><span class="w"> </span><span class="nf">init</span><span class="p" data-group-id="group-2">(</span><span class="n">config</span><span class="p" data-group-id="group-2">)</span><span class="w"> </span><span class="k" data-group-id="group-3">do</span><span class="w">
+    </span><span class="n">children</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p" data-group-id="group-4">[</span><span class="w">
+      </span><span class="c1"># ... other children as dictated by your app</span><span class="w">
+      </span><span class="p" data-group-id="group-5">{</span><span class="nc">ThousandIsland</span><span class="p">,</span><span class="w"> </span><span class="ss">port</span><span class="p">:</span><span class="w"> </span><span class="mi">1234</span><span class="p">,</span><span class="w"> </span><span class="ss">handler_module</span><span class="p">:</span><span class="w"> </span><span class="nc">MyApp.ConnectionHandler</span><span class="p" data-group-id="group-5">}</span><span class="w">
+    </span><span class="p" data-group-id="group-4">]</span><span class="w">
+
+    </span><span class="nc">Supervisor</span><span class="o">.</span><span class="n">init</span><span class="p" data-group-id="group-6">(</span><span class="n">children</span><span class="p">,</span><span class="w"> </span><span class="ss">strategy</span><span class="p">:</span><span class="w"> </span><span class="ss">:one_for_one</span><span class="p" data-group-id="group-6">)</span><span class="w">
+  </span><span class="k" data-group-id="group-3">end</span><span class="w">
+</span><span class="k" data-group-id="group-1">end</span></code></pre><p>You can also start servers directly via the <a href="#start_link/1"><code class="inline">start_link/1</code></a> function:</p><pre><code class="makeup elixir" translate="no"><span class="p" data-group-id="group-1">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="n">pid</span><span class="p" data-group-id="group-1">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">ThousandIsland</span><span class="o">.</span><span class="n">start_link</span><span class="p" data-group-id="group-2">(</span><span class="ss">port</span><span class="p">:</span><span class="w"> </span><span class="mi">1234</span><span class="p">,</span><span class="w"> </span><span class="ss">handler_module</span><span class="p">:</span><span class="w"> </span><span class="nc">MyApp.ConnectionHandler</span><span class="p" data-group-id="group-2">)</span></code></pre><h2 id="module-configuration" class="section-heading"><a href="#module-configuration" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Configuration</span></h2><p>A number of options are defined when starting a server. The complete list is
+defined by the <a href="#t:options/0"><code class="inline">ThousandIsland.options/0</code></a> type.</p><h2 id="module-connection-draining-shutdown" class="section-heading"><a href="#module-connection-draining-shutdown" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Connection Draining &amp; Shutdown</span></h2><p><a href="ThousandIsland.html"><code class="inline">ThousandIsland</code></a> instances are just a process tree consisting of standard
+<a href="https://elixir.hexdocs.pm/Supervisor.html"><code class="inline">Supervisor</code></a>, <a href="https://elixir.hexdocs.pm/GenServer.html"><code class="inline">GenServer</code></a> and <a href="https://elixir.hexdocs.pm/Task.html"><code class="inline">Task</code></a> modules, and so the usual rules regarding
+shutdown and shutdown timeouts apply. Immediately upon beginning the shutdown
+sequence the ThousandIsland.ShutdownListener process will cause the listening
+socket to shut down, which in turn will cause all of the
+ThousandIsland.Acceptor processes to shut down as well. At this point all that
+is left in the supervision tree are several layers of Supervisors and whatever
+<code class="inline">Handler</code> processes were in progress when shutdown was initiated. At this
+point, standard <a href="https://elixir.hexdocs.pm/Supervisor.html"><code class="inline">Supervisor</code></a> shutdown timeout semantics give existing
+connections a chance to finish things up. <code class="inline">Handler</code> processes trap exit, so
+they continue running beyond shutdown until they either complete or are
+<code class="inline">:brutal_kill</code>ed after their shutdown timeout expires.</p><h2 id="module-logging-telemetry" class="section-heading"><a href="#module-logging-telemetry" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Logging &amp; Telemetry</span></h2><p>As a low-level library, Thousand Island purposely does not do any inline
+logging of any kind. The <a href="ThousandIsland.Logger.html"><code class="inline">ThousandIsland.Logger</code></a> module defines a number of
+functions to aid in tracing connections at various log levels, and such logging
+can be dynamically enabled and disabled against an already running server. This
+logging is backed by telemetry events internally.</p><p>Thousand Island emits a rich set of telemetry events including spans for each
+server, acceptor process, and individual client connection. These telemetry
+events are documented in the <a href="ThousandIsland.Telemetry.html"><code class="inline">ThousandIsland.Telemetry</code></a> module.</p>
+    </section>
+
+</div>
+
+  <section id="summary" class="details-list">
+    <h2 class="section-heading">
+      <a class="hover-link" href="#summary">
+        <i class="ri-link-m" aria-hidden="true"></i>
+      </a>
+      <span class="text">Summary</span>
+    </h2>
+<div class="summary-types summary">
+  <h3>
+    <a href="#types">Types</a>
+  </h3>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:options/0" data-no-tooltip="" translate="no">options()</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Possible options to configure a server. Valid option values are as follows</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:status/0" data-no-tooltip="" translate="no">status()</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>The status of a server's listener</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:transport_module/0" data-no-tooltip="" translate="no">transport_module()</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>A module implementing <a href="ThousandIsland.Transport.html"><code class="inline">ThousandIsland.Transport</code></a> behaviour</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:transport_options/0" data-no-tooltip="" translate="no">transport_options()</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>A keyword list of options to be passed to the transport module's <code class="inline">listen/2</code> function</p></div>
+
+    </div>
+
+</div>
+<div class="summary-functions summary">
+  <h3>
+    <a href="#functions">Functions</a>
+  </h3>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#connection_pids/1" data-no-tooltip="" translate="no">connection_pids(supervisor)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Gets a list of active connection processes. This is inherently a bit of a leaky notion in the
+face of concurrency, as there may be connections coming and going during the period that this
+function takes to run. Callers should account for the possibility that new connections may have
+been made since / during this call, and that processes returned by this call may have since
+completed. The order that connection processes are returned in is not specified</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#info/1" data-no-tooltip="" translate="no">info(supervisor)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Returns a map of information about the given server, suitable for observability and debugging
+purposes such as health checks, remote consoles and dashboards</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#listener_info/1" data-no-tooltip="" translate="no">listener_info(supervisor)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Returns information about the address and port that the server is listening on</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#resume/1" data-no-tooltip="" translate="no">resume(supervisor)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Resume a suspended server. This will reopen the listening port, and resume the acceptance of new
+connections</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#start_link/1" data-no-tooltip="" translate="no">start_link(opts \\ [])</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Starts a <a href="ThousandIsland.html"><code class="inline">ThousandIsland</code></a> instance with the given options. Returns a pid
+that can be used to further manipulate the server via other functions defined on
+this module in the case of success, or an error tuple describing the reason the
+server was unable to start in the case of failure.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#status/1" data-no-tooltip="" translate="no">status(supervisor)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Returns the current status of the given server: <code class="inline">:running</code> if it is accepting new connections,
+or <code class="inline">:suspended</code> if the acceptance of new connections has been suspended via <a href="#suspend/1"><code class="inline">suspend/1</code></a>.
+Existing connections are not reflected in (and are unaffected by) this value; a <code class="inline">:suspended</code>
+server may well still be serving many previously accepted connections</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#stop/2" data-no-tooltip="" translate="no">stop(supervisor, connection_wait \\ 15000)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Synchronously stops the given server, waiting up to the given number of milliseconds
+for existing connections to finish up. Immediately upon calling this function,
+the server stops listening for new connections, and then proceeds to wait until
+either all existing connections have completed or the specified timeout has
+elapsed.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#suspend/1" data-no-tooltip="" translate="no">suspend(supervisor)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Suspend the server. This will close the listening port, and will stop the acceptance of new
+connections. Existing connections will stay connected and will continue to be processed.</p></div>
+
+    </div>
+
+</div>
+
+  </section>
+
+
+  <section id="types" class="details-list">
+    <h2 class="section-heading">
+      <a class="hover-link" href="#types">
+        <i class="ri-link-m" aria-hidden="true"></i>
+      </a>
+      <span class="text">Types</span>
+    </h2>
+
+    <div class="types-list">
+<section class="detail" id="t:options/0">
+
+  <div class="detail-header">
+    <a href="#t:options/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">options()</h1>
+
+
+        <a href="https://github.com/mtrudel/thousand_island/blob/main/lib/thousand_island.ex#L164" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@type</span> options() :: [
+  handler_module: <a href="https://elixir.hexdocs.pm/typespecs.html#built-in-types">module</a>(),
+  handler_options: <a href="https://elixir.hexdocs.pm/typespecs.html#built-in-types">term</a>(),
+  genserver_options: <a href="https://elixir.hexdocs.pm/GenServer.html#t:options/0">GenServer.options</a>(),
+  supervisor_options: [<a href="https://elixir.hexdocs.pm/Supervisor.html#t:option/0">Supervisor.option</a>()],
+  port: <a href="https://www.erlang.org/doc/apps/kernel/inet.html#t:port_number/0">:inet.port_number</a>(),
+  transport_module: <a href="https://elixir.hexdocs.pm/typespecs.html#built-in-types">module</a>(),
+  transport_options: <a href="#t:transport_options/0">transport_options</a>(),
+  num_acceptors: <a href="https://elixir.hexdocs.pm/typespecs.html#basic-types">pos_integer</a>(),
+  num_listen_sockets: <a href="https://elixir.hexdocs.pm/typespecs.html#basic-types">pos_integer</a>(),
+  num_connections: <a href="https://elixir.hexdocs.pm/typespecs.html#basic-types">non_neg_integer</a>() | :infinity,
+  max_connections_retry_count: <a href="https://elixir.hexdocs.pm/typespecs.html#basic-types">non_neg_integer</a>(),
+  max_connections_retry_wait: <a href="https://elixir.hexdocs.pm/typespecs.html#built-in-types">timeout</a>(),
+  read_timeout: <a href="https://elixir.hexdocs.pm/typespecs.html#built-in-types">timeout</a>(),
+  handshake_timeout: <a href="https://elixir.hexdocs.pm/typespecs.html#built-in-types">timeout</a>(),
+  shutdown_timeout: <a href="https://elixir.hexdocs.pm/typespecs.html#built-in-types">timeout</a>(),
+  silent_terminate_on_error: <a href="https://elixir.hexdocs.pm/typespecs.html#built-in-types">boolean</a>()
+]</pre>
+
+      </div>
+
+<p>Possible options to configure a server. Valid option values are as follows:</p><ul><li><code class="inline">handler_module</code>: The name of the module used to handle connections to this server.
+The module is expected to implement the <a href="ThousandIsland.Handler.html"><code class="inline">ThousandIsland.Handler</code></a> behaviour. Required</li><li><code class="inline">handler_options</code>: A term which is passed as the initial state value to
+<a href="ThousandIsland.Handler.html#c:handle_connection/2"><code class="inline">ThousandIsland.Handler.handle_connection/2</code></a> calls. Optional, defaulting to nil</li><li><code class="inline">port</code>: The TCP port number to listen on. If not specified this defaults to 4000.
+If a port number of <code class="inline">0</code> is given, the server will dynamically assign a port number
+which can then be obtained via <a href="#listener_info/1"><code class="inline">ThousandIsland.listener_info/1</code></a> or
+<a href="ThousandIsland.Socket.html#sockname/1"><code class="inline">ThousandIsland.Socket.sockname/1</code></a></li><li><code class="inline">transport_module</code>: The name of the module which provides basic socket functions.
+Thousand Island provides <a href="ThousandIsland.Transports.TCP.html"><code class="inline">ThousandIsland.Transports.TCP</code></a> and <a href="ThousandIsland.Transports.SSL.html"><code class="inline">ThousandIsland.Transports.SSL</code></a>,
+which provide clear and TLS encrypted TCP sockets respectively. If not specified this
+defaults to <a href="ThousandIsland.Transports.TCP.html"><code class="inline">ThousandIsland.Transports.TCP</code></a></li><li><code class="inline">transport_options</code>: A keyword list of options to be passed to the transport module's
+<a href="ThousandIsland.Transport.html#c:listen/2"><code class="inline">ThousandIsland.Transport.listen/2</code></a> function. Valid values depend on the transport
+module specified in <code class="inline">transport_module</code> and can be found in the documentation for the
+<a href="ThousandIsland.Transports.TCP.html"><code class="inline">ThousandIsland.Transports.TCP</code></a> and <a href="ThousandIsland.Transports.SSL.html"><code class="inline">ThousandIsland.Transports.SSL</code></a> modules. Any options
+in terms of interfaces to listen to / certificates and keys to use for SSL connections
+will be passed in via this option</li><li><code class="inline">genserver_options</code>: A term which is passed as the option value to the handler module's
+underlying <a href="https://elixir.hexdocs.pm/GenServer.html#start_link/3"><code class="inline">GenServer.start_link/3</code></a> call. Optional, defaulting to <code class="inline">[]</code></li><li><code class="inline">supervisor_options</code>: A term which is passed as the option value to this server's top-level
+supervisor's <a href="https://elixir.hexdocs.pm/Supervisor.html#start_link/3"><code class="inline">Supervisor.start_link/3</code></a> call. Useful for setting the <code class="inline">name</code> for this server.
+Optional, defaulting to <code class="inline">[]</code></li><li><code class="inline">num_acceptors</code>: The number of acceptor processes to run. Defaults to 100</li><li><code class="inline">num_listen_sockets</code>: The number of listener sockets to create. When set to a value greater
+than 1, multiple listener sockets will be created to distribute incoming connections across
+multiple sockets for improved performance on multi-core systems. This requires setting either
+<code class="inline">reuseport: true</code> or <code class="inline">reuseport_lb: true</code> in the <code class="inline">transport_options</code>, and will only work on
+systems that support such socket functionality (most modern Unix-like systems). If the system
+does not support the required socket options, server startup will fail. This value must be
+less than or equal to <code class="inline">num_acceptors</code>. Defaults to 1</li><li><code class="inline">num_connections</code>: The maximum number of concurrent connections which each acceptor will
+accept before throttling connections. Connections will be throttled by having the acceptor
+process wait <code class="inline">max_connections_retry_wait</code> milliseconds, up to <code class="inline">max_connections_retry_count</code>
+times for existing connections to terminate &amp; make room for this new connection. If there is
+still no room for this new connection after this interval, the acceptor will close the client
+connection and emit a <code class="inline">[:thousand_island, :acceptor, :spawn_error]</code> telemetry event. This number
+is expressed per-acceptor, so the total number of maximum connections for a Thousand Island
+server is <code class="inline">num_acceptors * num_connections</code>. Defaults to <code class="inline">16_384</code></li><li><code class="inline">max_connections_retry_wait</code>: How long to wait during each iteration as described in
+<code class="inline">num_connectors</code> above, in milliseconds. Defaults to <code class="inline">1000</code></li><li><code class="inline">max_connections_retry_count</code>: How many iterations to wait as described in <code class="inline">num_connectors</code>
+above. Defaults to <code class="inline">5</code></li><li><code class="inline">read_timeout</code>: How long to wait for client data before closing the connection, in
+milliseconds. Defaults to 60_000</li><li><code class="inline">handshake_timeout</code>: How long to allow for the transport handshake (such as TLS negotiation)
+to complete after a client connects, in milliseconds (or <code class="inline">:infinity</code>). Connections which do not
+complete their handshake within this time are closed and surfaced to the handler via
+<a href="ThousandIsland.Handler.html#c:handle_error/3"><code class="inline">ThousandIsland.Handler.handle_error/3</code></a> with a reason of <code class="inline">:timeout</code>. Without such a bound, a
+client which connects and then stalls mid-handshake will hold its connection process (and its
+slot within <code class="inline">num_connections</code>) indefinitely. This value is only consulted by transports which
+perform a handshake (it is ignored by <a href="ThousandIsland.Transports.TCP.html"><code class="inline">ThousandIsland.Transports.TCP</code></a>, and by custom transports
+which do not implement the optional <a href="ThousandIsland.Transport.html#c:handshake/2"><code class="inline">ThousandIsland.Transport.handshake/2</code></a> callback).
+Defaults to <code class="inline">5_000</code> (the same default that Ranch uses); pass <code class="inline">:infinity</code> to restore the
+previous unbounded behaviour</li><li><code class="inline">shutdown_timeout</code>: How long to wait for existing client connections to complete before
+forcibly shutting those connections down at server shutdown time, in milliseconds. Defaults to
+15_000. May also be <code class="inline">:infinity</code> or <code class="inline">:brutal_kill</code> as described in the <a href="https://elixir.hexdocs.pm/Supervisor.html"><code class="inline">Supervisor</code></a>
+documentation</li><li><code class="inline">silent_terminate_on_error</code>: Whether to silently ignore errors returned by the handler or to
+surface them to the runtime via an abnormal termination result. This only applies to errors
+returned via <code class="inline">{:error, reason, state}</code> responses; exceptions raised within a handler are always
+logged regardless of this value. Note also that telemetry events will always be sent for errors
+regardless of this value. Defaults to false</li></ul>
+  </section>
+</section>
+<section class="detail" id="t:status/0">
+
+  <div class="detail-header">
+    <a href="#t:status/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">status()</h1>
+
+
+        <a href="https://github.com/mtrudel/thousand_island/blob/main/lib/thousand_island.ex#L287" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@type</span> status() :: :running | :suspended</pre>
+
+      </div>
+
+<p>The status of a server's listener</p>
+  </section>
+</section>
+<section class="detail" id="t:transport_module/0">
+
+  <div class="detail-header">
+    <a href="#t:transport_module/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">transport_module()</h1>
+
+
+        <a href="https://github.com/mtrudel/thousand_island/blob/main/lib/thousand_island.ex#L184" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@type</span> transport_module() ::
+  ThousandIsland.Transports.TCP | ThousandIsland.Transports.SSL</pre>
+
+      </div>
+
+<p>A module implementing <a href="ThousandIsland.Transport.html"><code class="inline">ThousandIsland.Transport</code></a> behaviour</p>
+  </section>
+</section>
+<section class="detail" id="t:transport_options/0">
+
+  <div class="detail-header">
+    <a href="#t:transport_options/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">transport_options()</h1>
+
+
+        <a href="https://github.com/mtrudel/thousand_island/blob/main/lib/thousand_island.ex#L187" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@type</span> transport_options() ::
+  <a href="ThousandIsland.Transports.TCP.html#t:options/0">ThousandIsland.Transports.TCP.options</a>()
+  | <a href="ThousandIsland.Transports.SSL.html#t:options/0">ThousandIsland.Transports.SSL.options</a>()</pre>
+
+      </div>
+
+<p>A keyword list of options to be passed to the transport module's <code class="inline">listen/2</code> function</p>
+  </section>
+</section>
+
+    </div>
+  </section>
+
+  <section id="functions" class="details-list">
+    <h2 class="section-heading">
+      <a class="hover-link" href="#functions">
+        <i class="ri-link-m" aria-hidden="true"></i>
+      </a>
+      <span class="text">Functions</span>
+    </h2>
+
+    <div class="functions-list">
+<section class="detail" id="connection_pids/1">
+
+  <div class="detail-header">
+    <a href="#connection_pids/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">connection_pids(supervisor)</h1>
+
+
+        <a href="https://github.com/mtrudel/thousand_island/blob/main/lib/thousand_island.ex#L234" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> connection_pids(<a href="https://elixir.hexdocs.pm/Supervisor.html#t:supervisor/0">Supervisor.supervisor</a>()) :: {:ok, [<a href="https://elixir.hexdocs.pm/typespecs.html#basic-types">pid</a>()]} | :error</pre>
+
+      </div>
+
+<p>Gets a list of active connection processes. This is inherently a bit of a leaky notion in the
+face of concurrency, as there may be connections coming and going during the period that this
+function takes to run. Callers should account for the possibility that new connections may have
+been made since / during this call, and that processes returned by this call may have since
+completed. The order that connection processes are returned in is not specified</p>
+  </section>
+</section>
+<section class="detail" id="info/1">
+
+  <div class="detail-header">
+    <a href="#info/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">info(supervisor)</h1>
+
+
+        <a href="https://github.com/mtrudel/thousand_island/blob/main/lib/thousand_island.ex#L333" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> info(<a href="https://elixir.hexdocs.pm/Supervisor.html#t:supervisor/0">Supervisor.supervisor</a>()) ::
+  {:ok,
+   %{
+     status: <a href="#t:status/0">status</a>(),
+     local_info: <a href="ThousandIsland.Transport.html#t:socket_info/0">ThousandIsland.Transport.socket_info</a>() | nil,
+     active_connections: <a href="https://elixir.hexdocs.pm/typespecs.html#basic-types">non_neg_integer</a>()
+   }}
+  | :error</pre>
+
+      </div>
+
+<p>Returns a map of information about the given server, suitable for observability and debugging
+purposes such as health checks, remote consoles and dashboards:</p><ul><li><code class="inline">status</code>: <code class="inline">:running</code> or <code class="inline">:suspended</code>, as per <a href="#status/1"><code class="inline">status/1</code></a></li><li><code class="inline">local_info</code>: the address and port that the server is listening on, as per
+<a href="#listener_info/1"><code class="inline">listener_info/1</code></a>, or <code class="inline">nil</code> if the server is suspended</li><li><code class="inline">active_connections</code>: the number of connection handler processes currently alive across the
+entire server. As with <a href="#connection_pids/1"><code class="inline">connection_pids/1</code></a>, this is inherently a leaky notion in the face of
+concurrency; connections may come and go while this function runs</li></ul><p>Note that this function walks the server's supervision tree on every call, and so is intended
+to be called at human timescales; it is not optimized for use in hot loops. One especially
+useful application is graceful draining at deploy time, without having to stop the server:</p><pre><code class="makeup elixir" translate="no"><span class="ss">:ok</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">ThousandIsland</span><span class="o">.</span><span class="n">suspend</span><span class="p" data-group-id="group-1">(</span><span class="n">server_pid</span><span class="p" data-group-id="group-1">)</span><span class="w">
+
+</span><span class="c1"># Poll (at whatever interval and deadline suits) until existing connections finish up</span><span class="w">
+</span><span class="p" data-group-id="group-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="group-3">%{</span><span class="ss">active_connections</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p" data-group-id="group-3">}</span><span class="p" data-group-id="group-2">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">ThousandIsland</span><span class="o">.</span><span class="n">info</span><span class="p" data-group-id="group-4">(</span><span class="n">server_pid</span><span class="p" data-group-id="group-4">)</span></code></pre>
+  </section>
+</section>
+<section class="detail" id="listener_info/1">
+
+  <div class="detail-header">
+    <a href="#listener_info/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">listener_info(supervisor)</h1>
+
+
+        <a href="https://github.com/mtrudel/thousand_island/blob/main/lib/thousand_island.ex#L219" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> listener_info(<a href="https://elixir.hexdocs.pm/Supervisor.html#t:supervisor/0">Supervisor.supervisor</a>()) ::
+  {:ok, <a href="ThousandIsland.Transport.html#t:socket_info/0">ThousandIsland.Transport.socket_info</a>()} | :error</pre>
+
+      </div>
+
+<p>Returns information about the address and port that the server is listening on</p>
+  </section>
+</section>
+<section class="detail" id="resume/1">
+
+  <div class="detail-header">
+    <a href="#resume/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">resume(supervisor)</h1>
+
+
+        <a href="https://github.com/mtrudel/thousand_island/blob/main/lib/thousand_island.ex#L261" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+<p>Resume a suspended server. This will reopen the listening port, and resume the acceptance of new
+connections</p>
+  </section>
+</section>
+<section class="detail" id="start_link/1">
+
+    <span id="start_link/0"></span>
+
+  <div class="detail-header">
+    <a href="#start_link/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">start_link(opts \\ [])</h1>
+
+
+        <a href="https://github.com/mtrudel/thousand_island/blob/main/lib/thousand_island.ex#L208" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> start_link(<a href="#t:options/0">options</a>()) :: <a href="https://elixir.hexdocs.pm/Supervisor.html#t:on_start/0">Supervisor.on_start</a>()</pre>
+
+      </div>
+
+<p>Starts a <a href="ThousandIsland.html"><code class="inline">ThousandIsland</code></a> instance with the given options. Returns a pid
+that can be used to further manipulate the server via other functions defined on
+this module in the case of success, or an error tuple describing the reason the
+server was unable to start in the case of failure.</p>
+  </section>
+</section>
+<section class="detail" id="status/1">
+
+  <div class="detail-header">
+    <a href="#status/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">status(supervisor)</h1>
+
+
+        <a href="https://github.com/mtrudel/thousand_island/blob/main/lib/thousand_island.ex#L296" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> status(<a href="https://elixir.hexdocs.pm/Supervisor.html#t:supervisor/0">Supervisor.supervisor</a>()) :: <a href="#t:status/0">status</a>()</pre>
+
+      </div>
+
+<p>Returns the current status of the given server: <code class="inline">:running</code> if it is accepting new connections,
+or <code class="inline">:suspended</code> if the acceptance of new connections has been suspended via <a href="#suspend/1"><code class="inline">suspend/1</code></a>.
+Existing connections are not reflected in (and are unaffected by) this value; a <code class="inline">:suspended</code>
+server may well still be serving many previously accepted connections</p>
+  </section>
+</section>
+<section class="detail" id="stop/2">
+
+    <span id="stop/1"></span>
+
+  <div class="detail-header">
+    <a href="#stop/2" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">stop(supervisor, connection_wait \\ 15000)</h1>
+
+
+        <a href="https://github.com/mtrudel/thousand_island/blob/main/lib/thousand_island.ex#L373" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> stop(<a href="https://elixir.hexdocs.pm/Supervisor.html#t:supervisor/0">Supervisor.supervisor</a>(), <a href="https://elixir.hexdocs.pm/typespecs.html#built-in-types">timeout</a>()) :: :ok</pre>
+
+      </div>
+
+<p>Synchronously stops the given server, waiting up to the given number of milliseconds
+for existing connections to finish up. Immediately upon calling this function,
+the server stops listening for new connections, and then proceeds to wait until
+either all existing connections have completed or the specified timeout has
+elapsed.</p>
+  </section>
+</section>
+<section class="detail" id="suspend/1">
+
+  <div class="detail-header">
+    <a href="#suspend/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">suspend(supervisor)</h1>
+
+
+        <a href="https://github.com/mtrudel/thousand_island/blob/main/lib/thousand_island.ex#L255" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+<p>Suspend the server. This will close the listening port, and will stop the acceptance of new
+connections. Existing connections will stay connected and will continue to be processed.</p><p>The server can later be resumed by calling <a href="#resume/1"><code class="inline">resume/1</code></a>, or shut down via standard supervision
+patterns.</p><p>If this function returns <code class="inline">:error</code>, it is unlikely that the server is in a useable state</p><p>Note that if you do not explicitly set a port (or if you set port to <code class="inline">0</code>), then the server will
+bind to a different port when you resume it. This new port can be obtained as usual via the
+<a href="#listener_info/1"><code class="inline">listener_info/1</code></a> function. This is not a concern if you explicitly set a port value when first
+instantiating the server</p>
+  </section>
+</section>
+
+    </div>
+  </section>
+
+    <footer class="footer">
+
+        <p>
+
+            <span class="line">
+              <a href="https://hex.pm/packages/thousand_island/1.6.0">Hex Package</a>
+
+              <a href="https://preview.hex.pm/preview/thousand_island/1.6.0">Hex Preview</a>
+
+            </span>
+
+          <span class="line">
+            <button class="a-main footer-button display-quick-switch" title="Go to package docs">
+              Go to package docs
+            </button>
+
+              <a href="llms.txt" target="_blank">
+                View llms.txt
+              </a>
+
+
+              <a href="Thousand Island.epub">
+                Download ePub version
+              </a>
+
+          </span>
+        </p>
+
+        <p class="built-using">
+          Built using
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener nofollow" translate="no">ExDoc</a> (v0.40.4) for the
+
+            <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
+
+        </p>
+
+
+    </footer>
+  </div>
+</main>
+</div>
+
+  </body>
+</html>

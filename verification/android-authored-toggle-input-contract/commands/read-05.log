@@ -1,0 +1,14 @@
+        if(v2Environment==null)v2Environment=new NativeEnvironmentV2.Observer(this,activity,root);
+        else if(v2Environment.activity!=activity||v2Environment.root!=root)throw Json.bad("foreign V2 window");
+        try{return v2Environment.capture();}catch(RuntimeException|java.lang.Error failure){if(v2Plan!=null)retireV2();throw failure;}
+    }
+    void environmentInvalidatedV2(){
+        NativeEnvironmentV2.requireMain();if(v2Plan==null)return;
+        v2Open=false;if(v2Gate!=null){v2Gate.open=false;v2Gate.invalidate();}
+    }
+    boolean presentationCurrentV2(){
+        NativeEnvironmentV2.requireMain();if(!v2Open||v2Retired)return false;
+        if(v2CommittedEnvironment==null||!v2CommittedEnvironment.current(this)){environmentInvalidatedV2();return false;}return true;
+    }
+    static final class Candidate {
+        private final NativeRenderer owner;

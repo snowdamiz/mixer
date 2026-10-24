@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.40.4">
+    <meta name="project" content="Bandit v1.13.1">
+
+
+    <title>Bandit — Bandit v1.13.1</title>
+
+    <link rel="stylesheet" href="dist/html-elixir-RXHHCTJW.css" />
+
+    <script defer src="dist/sidebar_items-AAF871CA.js"></script>
+    <script defer src="docs_config.js"></script>
+    <script defer src="dist/html-MI33G4N7.js"></script>
+
+  <script async defer src="https://s.hexdocs.pm/js/script.js"></script><script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init({endpoint:"https://s.hexdocs.pm/api/event"})</script></head>
+  <body>
+    <script>(()=>{var t="ex_doc:settings",e="dark";var o="dark",s="light";var E="sidebar_state",n="closed";var r="sidebar_width";var a="sidebar-open";var i=new URLSearchParams(window.location.search),S=i.get("theme")||JSON.parse(localStorage.getItem(t)||"{}").theme;(S===o||S!==s&&window.matchMedia("(prefers-color-scheme: dark)").matches)&&document.body.classList.add(e);var d=sessionStorage.getItem(E),A=d!==n&&!window.matchMedia(`screen and (max-width: ${768}px)`).matches;document.body.classList.toggle(a,A);var c=sessionStorage.getItem(r);c&&document.body.style.setProperty("--sidebarWidth",`${c}px`);var p=/(Macintosh|iPhone|iPad|iPod)/.test(window.navigator.userAgent);document.documentElement.classList.toggle("apple-os",p);})();
+</script>
+
+<div class="body-wrapper">
+
+<button id="sidebar-menu" class="sidebar-button sidebar-toggle" aria-label="toggle sidebar" aria-controls="sidebar">
+  <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
+</button>
+
+<nav id="sidebar" class="sidebar">
+
+  <div class="sidebar-header">
+    <div class="sidebar-projectInfo">
+
+        <a href="Bandit.html" class="sidebar-projectImage">
+          <img src="assets/logo.png" alt="Bandit" />
+        </a>
+
+      <div>
+        <a href="Bandit.html" class="sidebar-projectName" translate="no">
+Bandit
+        </a>
+        <div class="sidebar-projectVersion" translate="no">
+          v1.13.1
+        </div>
+      </div>
+    </div>
+    <ul id="sidebar-list-nav" class="sidebar-list-nav" role="tablist" data-extras="Pages"></ul>
+  </div>
+</nav>
+
+<output role="status" id="toast"></output>
+
+<main class="content page-module" id="main" data-type="modules">
+  <div id="content" class="content-inner">
+    <div class="top-search">
+      <div class="search-settings">
+        <form class="search-bar" action="search.html">
+          <label class="search-label">
+            <span class="sr-only">Search documentation of Bandit</span>
+            <div class="search-input-wrapper">
+              <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+              <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
+                <i class="ri-close-line ri-lg" title="Cancel search"></i>
+              </button>
+            </div>
+          </label>
+        </form>
+        <div class="autocomplete">
+        </div>
+        <div class="engine-selector" data-multiple="false">
+          <button type="button" class="engine-button" aria-label="Select search engine" aria-haspopup="true" aria-expanded="false">
+            <i class="ri-search-2-line" aria-hidden="true"></i>
+            <span class="engine-name">Default</span>
+            <i class="ri-arrow-down-s-line" aria-hidden="true"></i>
+          </button>
+          <div class="engine-dropdown" hidden role="menu">
+
+              <button type="button"
+                      class="engine-option"
+                      data-engine-url="search.html?q="
+                      role="menuitemradio"
+                      aria-checked="true">
+                <span class="name">Default</span>
+                <span class="help">In-browser search</span>
+              </button>
+
+          </div>
+        </div>
+        <button class="icon-settings display-settings">
+          <i class="ri-settings-3-line"></i>
+          <span class="sr-only">Settings</span>
+        </button>
+      </div>
+    </div>
+
+<div id="top-content">
+  <div class="heading-with-actions top-heading">
+    <h1>
+      <span translate="no">Bandit</span> 
+      <small class="app-vsn" translate="no">(Bandit v1.13.1)</small>
+
+    </h1>
+
+<a href="Bandit.md" title="Copy Markdown (hold Ctrl/Cmd and click it to open as Markdown)" class="copy-markdown icon-action" rel="help">
+  <i class="ri-markdown-line" aria-hidden="true"></i>
+  <span class="sr-only">Copy Markdown</span>
+</a>
+
+
+
+      <a href="https://github.com/mtrudel/bandit/blob/main/lib/bandit.ex#L1" title="View Source" class="icon-action" rel="help nofollow">
+        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        <span class="sr-only">View Source</span>
+      </a>
+
+  </div>
+
+
+    <section id="moduledoc">
+<p>Bandit is an HTTP server for Plug and WebSock apps.</p><p>As an HTTP server, Bandit's primary goal is to act as 'glue' between client connections managed
+by <a rel="nofollow" href="https://github.com/mtrudel/thousand_island">Thousand Island</a> and application code defined
+via the <a rel="nofollow" href="https://github.com/elixir-plug/plug">Plug</a> and/or
+<a rel="nofollow" href="https://github.com/phoenixframework/websock">WebSock</a> APIs. As such there really isn't a whole lot of
+user-visible surface area to Bandit, and as a consequence the API documentation presented here
+is somewhat sparse. This is by design! Bandit is intended to 'just work' in almost all cases;
+the only thought users typically have to put into Bandit comes in the choice of which options (if
+any) they would like to change when starting a Bandit server. The sparseness of the Bandit API
+should not be taken as an indicator of the comprehensiveness or robustness of the project.</p><h2 id="module-using-bandit-with-phoenix" class="section-heading"><a href="#module-using-bandit-with-phoenix" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Using Bandit With Phoenix</span></h2><p>Bandit fully supports Phoenix. Phoenix applications which use WebSockets for
+features such as Channels or LiveView require Phoenix 1.7 or later.</p><p>Using Bandit to host your Phoenix application couldn't be simpler:</p><ol><li><p>Add Bandit as a dependency in your Phoenix application's <code class="inline">mix.exs</code>:</p><pre><code class="makeup elixir" translate="no"><span class="w"> </span><span class="p" data-group-id="group-1">{</span><span class="ss">:bandit</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;~&gt; 1.8&quot;</span><span class="p" data-group-id="group-1">}</span></code></pre></li><li><p>Add the following <code class="inline">adapter:</code> line to your endpoint configuration in <code class="inline">config/config.exs</code>, as in the following example:</p><pre><code class="makeup elixir" translate="no"><span class="w">  </span><span class="c1"># config/config.exs</span><span class="w">
+
+  </span><span class="n">config</span><span class="w"> </span><span class="ss">:your_app</span><span class="p">,</span><span class="w"> </span><span class="nc">YourAppWeb.Endpoint</span><span class="p">,</span><span class="w">
+    </span><span class="ss">adapter</span><span class="p">:</span><span class="w"> </span><span class="nc">Bandit.PhoenixAdapter</span><span class="p">,</span><span class="w"> </span><span class="c1"># &lt;---- ADD THIS LINE</span><span class="w">
+    </span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="group-1">[</span><span class="ss">host</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;localhost&quot;</span><span class="p" data-group-id="group-1">]</span><span class="p">,</span><span class="w">
+    </span><span class="ss">render_errors</span><span class="p">:</span><span class="w"> </span><span class="n">...</span></code></pre></li><li><p>That's it! <strong>You should now see messages at startup indicating that Phoenix is
+using Bandit to serve your endpoint</strong>, and everything should 'just work'. Note
+that if you have set any exotic configuration options within your endpoint,
+you may need to update that configuration to work with Bandit; see the
+<a href="https://bandit.hexdocs.pm/Bandit.PhoenixAdapter.html">Bandit.PhoenixAdapter</a>
+documentation for more information.</p></li></ol><h2 id="module-using-bandit-with-plug-applications" class="section-heading"><a href="#module-using-bandit-with-plug-applications" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Using Bandit With Plug Applications</span></h2><p>Using Bandit to host your own Plug is very straightforward. Assuming you have
+a Plug module implemented already, you can host it within Bandit by adding
+something similar to the following to your application's <a href="https://elixir.hexdocs.pm/Application.html#start/2"><code class="inline">Application.start/2</code></a>
+function:</p><pre><code class="makeup elixir" translate="no"><span class="c1"># lib/my_app/application.ex</span><span class="w">
+
+</span><span class="kd">defmodule</span><span class="w"> </span><span class="nc">MyApp.Application</span><span class="w"> </span><span class="k" data-group-id="group-1">do</span><span class="w">
+  </span><span class="kn">use</span><span class="w"> </span><span class="nc">Application</span><span class="w">
+
+  </span><span class="kd">def</span><span class="w"> </span><span class="nf">start</span><span class="p" data-group-id="group-2">(</span><span class="c">_type</span><span class="p">,</span><span class="w"> </span><span class="c">_args</span><span class="p" data-group-id="group-2">)</span><span class="w"> </span><span class="k" data-group-id="group-3">do</span><span class="w">
+    </span><span class="n">children</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p" data-group-id="group-4">[</span><span class="w">
+      </span><span class="p" data-group-id="group-5">{</span><span class="nc">Bandit</span><span class="p">,</span><span class="w"> </span><span class="ss">plug</span><span class="p">:</span><span class="w"> </span><span class="nc">MyApp.MyPlug</span><span class="p" data-group-id="group-5">}</span><span class="w">
+    </span><span class="p" data-group-id="group-4">]</span><span class="w">
+
+    </span><span class="n">opts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p" data-group-id="group-6">[</span><span class="ss">strategy</span><span class="p">:</span><span class="w"> </span><span class="ss">:one_for_one</span><span class="p">,</span><span class="w"> </span><span class="ss">name</span><span class="p">:</span><span class="w"> </span><span class="nc">MyApp.Supervisor</span><span class="p" data-group-id="group-6">]</span><span class="w">
+    </span><span class="nc">Supervisor</span><span class="o">.</span><span class="n">start_link</span><span class="p" data-group-id="group-7">(</span><span class="n">children</span><span class="p">,</span><span class="w"> </span><span class="n">opts</span><span class="p" data-group-id="group-7">)</span><span class="w">
+  </span><span class="k" data-group-id="group-3">end</span><span class="w">
+</span><span class="k" data-group-id="group-1">end</span></code></pre><p>For less formal usage, you can also start Bandit using the same configuration
+options via the <a href="#start_link/1"><code class="inline">Bandit.start_link/1</code></a> function:</p><pre><code class="makeup elixir" translate="no"><span class="c1"># Start an http server on the default port 4000, serving MyApp.MyPlug</span><span class="w">
+</span><span class="nc">Bandit</span><span class="o">.</span><span class="n">start_link</span><span class="p" data-group-id="group-1">(</span><span class="ss">plug</span><span class="p">:</span><span class="w"> </span><span class="nc">MyPlug</span><span class="p" data-group-id="group-1">)</span></code></pre><h2 id="module-configuration" class="section-heading"><a href="#module-configuration" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Configuration</span></h2><p>A number of options are defined when starting a server. The complete list is
+defined by the <a href="https://bandit.hexdocs.pm/Bandit.html#summary"><code class="inline">t:Bandit.options/0</code></a> type.</p><h2 id="module-setting-up-an-https-server" class="section-heading"><a href="#module-setting-up-an-https-server" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Setting up an HTTPS Server</span></h2><p>By far the most common stumbling block encountered when setting up an HTTPS
+server involves configuring key and certificate data. Bandit is comparatively
+easy to set up in this regard, with a working example looking similar to the
+following:</p><pre><code class="makeup elixir" translate="no"><span class="c1"># lib/my_app/application.ex</span><span class="w">
+
+</span><span class="kd">defmodule</span><span class="w"> </span><span class="nc">MyApp.Application</span><span class="w"> </span><span class="k" data-group-id="group-1">do</span><span class="w">
+  </span><span class="kn">use</span><span class="w"> </span><span class="nc">Application</span><span class="w">
+
+  </span><span class="kd">def</span><span class="w"> </span><span class="nf">start</span><span class="p" data-group-id="group-2">(</span><span class="c">_type</span><span class="p">,</span><span class="w"> </span><span class="c">_args</span><span class="p" data-group-id="group-2">)</span><span class="w"> </span><span class="k" data-group-id="group-3">do</span><span class="w">
+    </span><span class="n">children</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p" data-group-id="group-4">[</span><span class="w">
+      </span><span class="p" data-group-id="group-5">{</span><span class="nc">Bandit</span><span class="p">,</span><span class="w">
+       </span><span class="ss">plug</span><span class="p">:</span><span class="w"> </span><span class="nc">MyApp.MyPlug</span><span class="p">,</span><span class="w">
+       </span><span class="ss">scheme</span><span class="p">:</span><span class="w"> </span><span class="ss">:https</span><span class="p">,</span><span class="w">
+       </span><span class="ss">certfile</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/absolute/path/to/cert.pem&quot;</span><span class="p">,</span><span class="w">
+       </span><span class="ss">keyfile</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/absolute/path/to/key.pem&quot;</span><span class="p" data-group-id="group-5">}</span><span class="w">
+    </span><span class="p" data-group-id="group-4">]</span><span class="w">
+
+    </span><span class="n">opts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p" data-group-id="group-6">[</span><span class="ss">strategy</span><span class="p">:</span><span class="w"> </span><span class="ss">:one_for_one</span><span class="p">,</span><span class="w"> </span><span class="ss">name</span><span class="p">:</span><span class="w"> </span><span class="nc">MyApp.Supervisor</span><span class="p" data-group-id="group-6">]</span><span class="w">
+    </span><span class="nc">Supervisor</span><span class="o">.</span><span class="n">start_link</span><span class="p" data-group-id="group-7">(</span><span class="n">children</span><span class="p">,</span><span class="w"> </span><span class="n">opts</span><span class="p" data-group-id="group-7">)</span><span class="w">
+  </span><span class="k" data-group-id="group-3">end</span><span class="w">
+</span><span class="k" data-group-id="group-1">end</span></code></pre><h2 id="module-websocket-support" class="section-heading"><a href="#module-websocket-support" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">WebSocket Support</span></h2><p>If you're using Bandit to run a Phoenix application as suggested above, there is
+nothing more for you to do; WebSocket support will 'just work'.</p><p>If you wish to interact with WebSockets at a more fundamental level, the
+<a href="https://websock.hexdocs.pm/WebSock.html">WebSock</a> and
+<a href="https://websock_adapter.hexdocs.pm/WebSockAdapter.html">WebSockAdapter</a> libraries
+provides a generic abstraction for WebSockets (very similar to how Plug is
+a generic abstraction on top of HTTP). Bandit fully supports all aspects of
+these libraries.</p><h2 id="module-receiving-messages-in-your-plug-process-a-word-of-warning" class="section-heading"><a href="#module-receiving-messages-in-your-plug-process-a-word-of-warning" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Receiving messages in your Plug process: A word of warning</span></h2><p>The Plug specification is concerned only with the shape of the <a href="https://plug.hexdocs.pm/1.20.3/Plug.html#c:init/1"><code class="inline">Plug.init/1</code></a>
+and <a href="https://plug.hexdocs.pm/1.20.3/Plug.html#c:call/2"><code class="inline">Plug.call/2</code></a> functions; it says nothing about the process model that
+underlies the call, nor about how the Plug function should respond to any
+messages it may receive. Although it is occasionally necessary to receive
+messages from within your Plug call, this must be done with caution as Bandit
+makes extensive use of messaging internally, especially with HTTP/2 based
+requests.</p><p>In particular, you must ensure that your code <em>never</em> receives messages that
+match the patterns <code class="inline">{:bandit, _}</code> or <code class="inline">{:plug_conn, :sent}</code>. Any <code class="inline">receive</code> calls
+you make should be appropriately guarded to ensure that these messages remain in
+the process' mailbox for Bandit to process them when required.</p>
+    </section>
+
+</div>
+
+  <section id="summary" class="details-list">
+    <h2 class="section-heading">
+      <a class="hover-link" href="#summary">
+        <i class="ri-link-m" aria-hidden="true"></i>
+      </a>
+      <span class="text">Summary</span>
+    </h2>
+<div class="summary-types summary">
+  <h3>
+    <a href="#types">Types</a>
+  </h3>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:deflate_options/0" data-no-tooltip="" translate="no">deflate_options()</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Options to configure the deflate library used for HTTP and WebSocket compression</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:http_1_options/0" data-no-tooltip="" translate="no">http_1_options()</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Options to configure the HTTP/1 stack in Bandit</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:http_2_options/0" data-no-tooltip="" translate="no">http_2_options()</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Options to configure the HTTP/2 stack in Bandit</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:http_options/0" data-no-tooltip="" translate="no">http_options()</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Options to configure shared aspects of the HTTP stack in Bandit</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:options/0" data-no-tooltip="" translate="no">options()</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Possible top-level options to configure a Bandit server</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:websocket_options/0" data-no-tooltip="" translate="no">websocket_options()</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Options to configure the WebSocket stack in Bandit</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#t:zstd_options/0" data-no-tooltip="" translate="no">zstd_options()</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Options to configure the zstd library used for HTTP compression</p></div>
+
+    </div>
+
+</div>
+<div class="summary-functions summary">
+  <h3>
+    <a href="#functions">Functions</a>
+  </h3>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#start_link/1" data-no-tooltip="" translate="no">start_link(arg)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Starts a Bandit server using the provided arguments. See <a href="#t:options/0"><code class="inline">options/0</code></a> for specific options to
+pass to this function.</p></div>
+
+    </div>
+
+</div>
+
+  </section>
+
+
+  <section id="types" class="details-list">
+    <h2 class="section-heading">
+      <a class="hover-link" href="#types">
+        <i class="ri-link-m" aria-hidden="true"></i>
+      </a>
+      <span class="text">Types</span>
+    </h2>
+
+    <div class="types-list">
+<section class="detail" id="t:deflate_options/0">
+
+  <div class="detail-header">
+    <a href="#t:deflate_options/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">deflate_options()</h1>
+
+
+        <a href="https://github.com/mtrudel/bandit/blob/main/lib/bandit.ex#L243" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@type</span> deflate_options() :: [
+  level: <a href="https://www.erlang.org/doc/apps/erts/zlib.html#t:zlevel/0">:zlib.zlevel</a>(),
+  window_bits: <a href="https://www.erlang.org/doc/apps/erts/zlib.html#t:zwindowbits/0">:zlib.zwindowbits</a>(),
+  mem_level: <a href="https://www.erlang.org/doc/apps/erts/zlib.html#t:zmemlevel/0">:zlib.zmemlevel</a>(),
+  strategy: <a href="https://www.erlang.org/doc/apps/erts/zlib.html#t:zstrategy/0">:zlib.zstrategy</a>()
+]</pre>
+
+      </div>
+
+<p>Options to configure the deflate library used for HTTP and WebSocket compression</p>
+  </section>
+</section>
+<section class="detail" id="t:http_1_options/0">
+
+  <div class="detail-header">
+    <a href="#t:http_1_options/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">http_1_options()</h1>
+
+
+        <a href="https://github.com/mtrudel/bandit/blob/main/lib/bandit.ex#L164" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@type</span> http_1_options() :: [
+  enabled: <a href="https://elixir.hexdocs.pm/typespecs.html#built-in-types">boolean</a>(),
+  max_request_line_length: <a href="https://elixir.hexdocs.pm/typespecs.html#basic-types">pos_integer</a>(),
+  max_header_length: <a href="https://elixir.hexdocs.pm/typespecs.html#basic-types">pos_integer</a>(),
+  max_header_count: <a href="https://elixir.hexdocs.pm/typespecs.html#basic-types">pos_integer</a>(),
+  max_requests: <a href="https://elixir.hexdocs.pm/typespecs.html#basic-types">pos_integer</a>(),
+  clear_process_dict: <a href="https://elixir.hexdocs.pm/typespecs.html#built-in-types">boolean</a>(),
+  gc_every_n_keepalive_requests: <a href="https://elixir.hexdocs.pm/typespecs.html#basic-types">pos_integer</a>(),
+  log_unknown_messages: <a href="https://elixir.hexdocs.pm/typespecs.html#built-in-types">boolean</a>()
+]</pre>
+
+      </div>
+
+<p>Options to configure the HTTP/1 stack in Bandit</p><ul><li><code class="inline">enabled</code>: Whether or not to serve HTTP/1 requests. Defaults to true</li><li><code class="inline">max_request_line_length</code>: The maximum permitted length of the request line
+(expressed as the number of bytes on the wire) in an HTTP/1.1 request. Defaults to 10_000 bytes</li><li><code class="inline">max_header_length</code>: The maximum permitted length of any single header (combined
+key &amp; value, expressed as the number of bytes on the wire) in an HTTP/1.1 request. Defaults to 10_000 bytes</li><li><code class="inline">max_header_count</code>: The maximum permitted number of headers in an HTTP/1.1 request.
+Defaults to 50 headers</li><li><code class="inline">max_requests</code>: The maximum number of requests to serve in a single
+HTTP/1.1 connection before closing the connection. Defaults to 0 (no limit)</li><li><code class="inline">clear_process_dict</code>: Whether to clear the process dictionary of all non-internal entries
+between subsequent keepalive requests. If set, all keys not starting with <code class="inline">$</code> are removed from
+the process dictionary between requests. Defaults to <code class="inline">true</code></li><li><code class="inline">gc_every_n_keepalive_requests</code>: How often to run a full garbage collection pass between subsequent
+keepalive requests on the same HTTP/1.1 connection. Defaults to 5 (garbage collect between
+every 5 requests). This option is currently experimental, and may change at any time</li><li><code class="inline">log_unknown_messages</code>: Whether or not to log unknown messages sent to the handler process.
+Defaults to <code class="inline">false</code></li></ul>
+  </section>
+</section>
+<section class="detail" id="t:http_2_options/0">
+
+  <div class="detail-header">
+    <a href="#t:http_2_options/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">http_2_options()</h1>
+
+
+        <a href="https://github.com/mtrudel/bandit/blob/main/lib/bandit.ex#L193" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@type</span> http_2_options() :: [
+  enabled: <a href="https://elixir.hexdocs.pm/typespecs.html#built-in-types">boolean</a>(),
+  max_header_block_size: <a href="https://elixir.hexdocs.pm/typespecs.html#basic-types">pos_integer</a>(),
+  max_requests: <a href="https://elixir.hexdocs.pm/typespecs.html#basic-types">pos_integer</a>(),
+  max_reset_stream_rate: {<a href="https://elixir.hexdocs.pm/typespecs.html#basic-types">pos_integer</a>(), <a href="https://elixir.hexdocs.pm/typespecs.html#basic-types">pos_integer</a>()} | nil,
+  sendfile_chunk_size: <a href="https://elixir.hexdocs.pm/typespecs.html#basic-types">pos_integer</a>(),
+  default_local_settings: <a href="https://elixir.hexdocs.pm/typespecs.html#built-in-types">keyword</a>()
+]</pre>
+
+      </div>
+
+<p>Options to configure the HTTP/2 stack in Bandit</p><ul><li><code class="inline">enabled</code>: Whether or not to serve HTTP/2 requests. Defaults to true</li><li><code class="inline">max_header_block_size</code>: The maximum permitted length of a field block of an HTTP/2 request
+(expressed as the number of compressed bytes). Includes any concatenated block fragments from
+continuation frames. Defaults to 50_000 bytes</li><li><code class="inline">max_requests</code>: The maximum number of requests to serve in a single
+HTTP/2 connection before closing the connection. Defaults to 0 (no limit)</li><li><code class="inline">max_reset_stream_rate</code>: The maximum rate of stream resets (RST_STREAM frames) allowed.
+Specified as a tuple of <code class="inline">{count, milliseconds}</code> where <code class="inline">count</code> is the maximum number of
+RST_STREAM frames allowed within the time window of <code class="inline">milliseconds</code>. Defaults to <code class="inline">{500, 10_000}</code>
+(500 resets per 10 seconds). Setting this to <code class="inline">nil</code> disables rate limiting</li><li><code class="inline">sendfile_chunk_size</code>: The maximum number of bytes read per sendfile chunk when streaming
+HTTP/2 responses. Defaults to 1_048_576 (1 MiB)</li><li><code class="inline">default_local_settings</code>: Options to override the default values for local HTTP/2
+settings. Values provided here will override the defaults specified in RFC9113§6.5.2</li></ul>
+  </section>
+</section>
+<section class="detail" id="t:http_options/0">
+
+  <div class="detail-header">
+    <a href="#t:http_options/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">http_options()</h1>
+
+
+        <a href="https://github.com/mtrudel/bandit/blob/main/lib/bandit.ex#L132" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@type</span> http_options() :: [
+  compress: <a href="https://elixir.hexdocs.pm/typespecs.html#built-in-types">boolean</a>(),
+  response_encodings: <a href="https://elixir.hexdocs.pm/typespecs.html#built-in-types">list</a>(),
+  compress_chunked: <a href="https://elixir.hexdocs.pm/typespecs.html#built-in-types">boolean</a>(),
+  deflate_options: <a href="#t:deflate_options/0">deflate_options</a>(),
+  zstd_options: <a href="#t:zstd_options/0">zstd_options</a>(),
+  log_exceptions_with_status_codes: <a href="https://elixir.hexdocs.pm/typespecs.html#built-in-types">list</a>() | <a href="https://elixir.hexdocs.pm/Range.html#t:t/0">Range.t</a>(),
+  log_protocol_errors: :short | :verbose | false,
+  log_client_closures: :short | :verbose | false
+]</pre>
+
+      </div>
+
+<p>Options to configure shared aspects of the HTTP stack in Bandit</p><ul><li><code class="inline">compress</code>: Whether or not to attempt compression of responses via content-encoding
+negotiation as described in
+<a rel="nofollow" href="https://www.rfc-editor.org/rfc/rfc9110.html#section-8.4">RFC9110§8.4</a>. Defaults to true</li><li><code class="inline">response_encodings</code>: A list of compression encodings, expressed in order of preference.
+Defaults to <code class="inline">~w(zstd gzip x-gzip deflate)</code>, with <code class="inline">zstd</code> only being present on platforms which
+have the zstd library compiled in</li><li><code class="inline">compress_chunked</code>: Whether chunked responses (those sent via <a href="https://plug.hexdocs.pm/1.20.3/Plug.Conn.html#send_chunked/2"><code class="inline">Plug.Conn.send_chunked/2</code></a>) may
+be compressed with any of the <code class="inline">response_encodings</code>. When false, chunked responses are only
+compressed if <code class="inline">deflate</code> is the preferred encoding. Prior to OTP 29, chunked responses use the
+next encoding the client accepts instead of <code class="inline">zstd</code> due to missing <code class="inline">:zstd.flush/1</code>. Compressed
+chunked responses hold their compressor's state until they complete, which takes a few
+hundred KB for gzip and deflate and up to about 3 MB for zstd at its default settings (see
+<code class="inline">zstd_options</code>). Note that compressing a response in individually flushed chunks may make it
+more susceptible to compression side-channel attacks such as
+<a rel="nofollow" href="https://www.breachattack.com">BREACH</a>. Defaults to false</li><li><code class="inline">deflate_options</code>: A keyword list of options to set on the deflate library. A complete list can
+be found at <a href="#t:deflate_options/0"><code class="inline">deflate_options/0</code></a>. Note that these options only affect the behaviour of the
+'deflate' content encoding; 'gzip' does not have any configurable options (this is a
+limitation of the underlying <code class="inline">:zlib</code> library)</li><li><code class="inline">zstd_options</code>: A map of options passed verbatim to :zstd, review the options <a href="https://www.erlang.org/doc/apps/stdlib/zstd.html#t:compress_parameters/0">here</a></li><li><code class="inline">log_exceptions_with_status_codes</code>: Which exceptions to log. Bandit will log only those
+exceptions whose status codes (as determined by <a href="https://plug.hexdocs.pm/1.20.3/Plug.Exception.html#status/1"><code class="inline">Plug.Exception.status/1</code></a>) match the specified
+list or range. Defaults to <code class="inline">500..599</code></li><li><code class="inline">log_protocol_errors</code>: How to log protocol errors such as malformed requests. <code class="inline">:short</code> will
+log a single-line summary, while <code class="inline">:verbose</code> will log full stack traces. The value of <code class="inline">false</code>
+will disable protocol error logging entirely. Defaults to <code class="inline">:short</code></li><li><code class="inline">log_client_closures</code>: How to log cases where the client closes the connection. These happen
+routinely in the real world and so the handling of them is configured separately since they
+can be quite noisy. Takes the same options as <code class="inline">log_protocol_errors</code>, but defaults to <code class="inline">false</code></li></ul>
+  </section>
+</section>
+<section class="detail" id="t:options/0">
+
+  <div class="detail-header">
+    <a href="#t:options/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">options()</h1>
+
+
+        <a href="https://github.com/mtrudel/bandit/blob/main/lib/bandit.ex#L79" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@type</span> options() :: [
+  {:plug, <a href="https://elixir.hexdocs.pm/typespecs.html#built-in-types">module</a>() | {<a href="https://elixir.hexdocs.pm/typespecs.html#built-in-types">module</a>(), <a href="https://plug.hexdocs.pm/1.20.3/Plug.html#t:opts/0">Plug.opts</a>()}}
+  | {:scheme, :http | :https}
+  | {:port, <a href="https://www.erlang.org/doc/apps/kernel/inet.html#t:port_number/0">:inet.port_number</a>()}
+  | {:ip, <a href="https://www.erlang.org/doc/apps/kernel/inet.html#t:socket_address/0">:inet.socket_address</a>()}
+  | :inet
+  | :inet6
+  | {:keyfile, <a href="https://elixir.hexdocs.pm/typespecs.html#built-in-types">binary</a>()}
+  | {:certfile, <a href="https://elixir.hexdocs.pm/typespecs.html#built-in-types">binary</a>()}
+  | {:otp_app, <a href="https://elixir.hexdocs.pm/Application.html#t:app/0">Application.app</a>()}
+  | {:cipher_suite, :strong | :compatible}
+  | {:display_plug, <a href="https://elixir.hexdocs.pm/typespecs.html#built-in-types">module</a>()}
+  | {:startup_log, <a href="https://logger.hexdocs.pm/Logger.html#t:level/0">Logger.level</a>() | false}
+  | {:thousand_island_options, <a href="https://thousand-island.hexdocs.pm/1.6.0/ThousandIsland.html#t:options/0">ThousandIsland.options</a>()}
+  | {:http_options, <a href="#t:http_options/0">http_options</a>()}
+  | {:http_1_options, <a href="#t:http_1_options/0">http_1_options</a>()}
+  | {:http_2_options, <a href="#t:http_2_options/0">http_2_options</a>()}
+  | {:websocket_options, <a href="#t:websocket_options/0">websocket_options</a>()}
+]</pre>
+
+      </div>
+
+<p>Possible top-level options to configure a Bandit server</p><ul><li><code class="inline">plug</code>: The Plug to use to handle connections. Can be specified as <code class="inline">MyPlug</code> or <code class="inline">{MyPlug, plug_opts}</code></li><li><code class="inline">scheme</code>: One of <code class="inline">:http</code> or <code class="inline">:https</code>. If <code class="inline">:https</code> is specified, you will also need to specify
+valid <code class="inline">certfile</code> and <code class="inline">keyfile</code> values (or an equivalent value within
+<code class="inline">thousand_island_options.transport_options</code>). Defaults to <code class="inline">:http</code></li><li><code class="inline">port</code>: The TCP port to listen on. This option is offered as a convenience and actually sets
+the option of the same name within <code class="inline">thousand_island_options</code>. If a string value is passed, it
+will be parsed as an integer. Defaults to 4000 if <code class="inline">scheme</code> is <code class="inline">:http</code>, and 4040 if <code class="inline">scheme</code> is
+<code class="inline">:https</code></li><li><code class="inline">ip</code>:  The interface(s) to listen on. This option is offered as a convenience and actually sets the
+option of the same name within <code class="inline">thousand_island_options.transport_options</code>. Can be specified as:<ul><li><code class="inline">{1, 2, 3, 4}</code> for IPv4 addresses</li><li><code class="inline">{1, 2, 3, 4, 5, 6, 7, 8}</code> for IPv6 addresses</li><li><code class="inline">:loopback</code> for local loopback (ie: <code class="inline">127.0.0.1</code>)</li><li><code class="inline">:any</code> for all interfaces (ie: <code class="inline">0.0.0.0</code>)</li><li><code class="inline">{:local, &quot;/path/to/socket&quot;}</code> for a Unix domain socket. If this option is used, the <code class="inline">port</code>
+option <em>must</em> be set to <code class="inline">0</code></li></ul></li><li><code class="inline">inet</code>: Only bind to IPv4 interfaces. This option is offered as a convenience and actually sets the
+option of the same name within <code class="inline">thousand_island_options.transport_options</code>. Must be specified
+as a bare atom <code class="inline">:inet</code></li><li><code class="inline">inet6</code>: Bind to IPv6 interfaces. This option is offered as a convenience and actually sets the
+option of the same name within <code class="inline">thousand_island_options.transport_options</code>. Must be specified
+as a bare atom <code class="inline">:inet6</code>. Note that whether the resulting socket also accepts IPv4 connections
+is decided by the operating system; on Linux it does by default (see the <code class="inline">net.ipv6.bindv6only</code>
+sysctl). To get a socket which only accepts IPv6 connections regardless of platform defaults,
+also set <code class="inline">ipv6_v6only: true</code> within <code class="inline">thousand_island_options.transport_options</code></li><li><code class="inline">keyfile</code>: The path to a file containing the SSL key to use for this server. This option is
+offered as a convenience and actually sets the option of the same name within
+<code class="inline">thousand_island_options.transport_options</code>. If a relative path is used here, you will also
+need to set the <code class="inline">otp_app</code> parameter and ensure that the named file is part of your application
+build</li><li><code class="inline">certfile</code>: The path to a file containing the SSL certificate to use for this server. This option is
+offered as a convenience and actually sets the option of the same name within
+<code class="inline">thousand_island_options.transport_options</code>. If a relative path is used here, you will also
+need to set the <code class="inline">otp_app</code> parameter and ensure that the named file is part of your application
+build</li><li><code class="inline">otp_app</code>: Provided as a convenience when using relative paths for <code class="inline">keyfile</code> and <code class="inline">certfile</code></li><li><code class="inline">cipher_suite</code>: Used to define a pre-selected set of ciphers, as described by
+<a href="https://plug.hexdocs.pm/1.20.3/Plug.SSL.html#configure/1"><code class="inline">Plug.SSL.configure/1</code></a>. Optional, can be either <code class="inline">:strong</code> or <code class="inline">:compatible</code></li><li><code class="inline">display_plug</code>: The plug to use when describing the connection in logs. Useful for situations
+such as Phoenix code reloading where you have a 'wrapper' plug but wish to refer to the
+connection by the endpoint name</li><li><code class="inline">startup_log</code>: The log level at which Bandit should log startup info.
+Defaults to <code class="inline">:info</code> log level, can be set to false to disable it</li><li><code class="inline">thousand_island_options</code>: A list of options to pass to Thousand Island. Bandit sets some
+default values in this list based on your top-level configuration; these values will be
+overridden by values appearing here. A complete list can be found at
+<a href="https://thousand-island.hexdocs.pm/1.6.0/ThousandIsland.html#t:options/0"><code class="inline">ThousandIsland.options/0</code></a></li><li><code class="inline">http_options</code>: A list of options to configure the shared aspects of Bandit's HTTP stack. A
+complete list can be found at <a href="#t:http_options/0"><code class="inline">http_options/0</code></a></li><li><code class="inline">http_1_options</code>: A list of options to configure Bandit's HTTP/1 stack. A complete list can
+be found at <a href="#t:http_1_options/0"><code class="inline">http_1_options/0</code></a></li><li><code class="inline">http_2_options</code>: A list of options to configure Bandit's HTTP/2 stack. A complete list can
+be found at <a href="#t:http_2_options/0"><code class="inline">http_2_options/0</code></a></li><li><code class="inline">websocket_options</code>: A list of options to configure Bandit's WebSocket stack. A complete list can
+be found at <a href="#t:websocket_options/0"><code class="inline">websocket_options/0</code></a></li></ul>
+  </section>
+</section>
+<section class="detail" id="t:websocket_options/0">
+
+  <div class="detail-header">
+    <a href="#t:websocket_options/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">websocket_options()</h1>
+
+
+        <a href="https://github.com/mtrudel/bandit/blob/main/lib/bandit.ex#L229" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@type</span> websocket_options() :: [
+  enabled: <a href="https://elixir.hexdocs.pm/typespecs.html#built-in-types">boolean</a>(),
+  max_frame_size: <a href="https://elixir.hexdocs.pm/typespecs.html#basic-types">pos_integer</a>(),
+  max_fragmented_message_size: <a href="https://elixir.hexdocs.pm/typespecs.html#basic-types">pos_integer</a>(),
+  validate_text_frames: <a href="https://elixir.hexdocs.pm/typespecs.html#built-in-types">boolean</a>(),
+  compress: <a href="https://elixir.hexdocs.pm/typespecs.html#built-in-types">boolean</a>(),
+  deflate_options: <a href="#t:deflate_options/0">deflate_options</a>(),
+  max_inflate_ratio: <a href="https://elixir.hexdocs.pm/typespecs.html#basic-types">pos_integer</a>(),
+  log_protocol_errors: :short | :verbose | false
+]</pre>
+
+      </div>
+
+<p>Options to configure the WebSocket stack in Bandit</p><ul><li><code class="inline">enabled</code>: Whether or not to serve WebSocket upgrade requests. Defaults to true</li><li><code class="inline">max_frame_size</code>: The maximum size of a single WebSocket frame (expressed as
+a number of bytes on the wire). Use a value of 0 for no limit. Defaults to 8_000_000</li><li><code class="inline">max_fragmented_message_size</code>: The maximum size of a WebSocket message delivered across
+multiple continuation frames (expressed as a number of bytes on the wire). Does NOT affect the
+handling of single-frame messages. Use a value of 0 for no limit. Defaults to 8_000_000</li><li><code class="inline">validate_text_frames</code>: Whether or not to validate text frames as being UTF-8. Strictly
+speaking this is required per RFC6455§5.6, however it can be an expensive operation and one
+that may be safely skipped in some situations. Defaults to true</li><li><code class="inline">compress</code>: Whether or not to allow per-message deflate compression globally. Note that
+upgrade requests still need to set the <code class="inline">compress: true</code> option in <code class="inline">connection_opts</code> on
+a per-upgrade basis for compression to be negotiated (see 'WebSocket Support' section below
+for details). Defaults to <code class="inline">true</code></li><li><code class="inline">deflate_options</code>: A keyword list of options to set on the deflate library when using the
+per-message deflate extension. A complete list can be found at <a href="#t:deflate_options/0"><code class="inline">deflate_options/0</code></a>.
+<code class="inline">window_bits</code> is currently ignored and left to negotiation.</li><li><code class="inline">max_inflate_ratio</code>: The maximum allowable ratio to allow decompression of received WebSocket
+messages. Intended to prevent 'inflate bomb' attacks where a tiny deflated messages inflates to
+a massive one. Defaults to <code class="inline">25</code> representing a 25:1 allowable inflation ratio.</li><li><code class="inline">log_protocol_errors</code>: How to log protocol errors such as malformed frames. <code class="inline">:short</code> and
+<code class="inline">:verbose</code> will log a single-line summary (frame deserialization errors carry no stack
+trace, so both values behave identically). The value of <code class="inline">false</code> will disable protocol error
+logging entirely. Defaults to <code class="inline">:short</code></li></ul>
+  </section>
+</section>
+<section class="detail" id="t:zstd_options/0">
+
+  <div class="detail-header">
+    <a href="#t:zstd_options/0" class="detail-link" data-no-tooltip="" aria-label="Link to this type">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">zstd_options()</h1>
+
+
+        <a href="https://github.com/mtrudel/bandit/blob/main/lib/bandit.ex#L253" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@type</span> zstd_options() :: <a href="https://elixir.hexdocs.pm/typespecs.html#basic-types">map</a>()</pre>
+
+      </div>
+
+<p>Options to configure the zstd library used for HTTP compression</p>
+  </section>
+</section>
+
+    </div>
+  </section>
+
+  <section id="functions" class="details-list">
+    <h2 class="section-heading">
+      <a class="hover-link" href="#functions">
+        <i class="ri-link-m" aria-hidden="true"></i>
+      </a>
+      <span class="text">Functions</span>
+    </h2>
+
+    <div class="functions-list">
+<section class="detail" id="start_link/1">
+
+  <div class="detail-header">
+    <a href="#start_link/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">start_link(arg)</h1>
+
+
+        <a href="https://github.com/mtrudel/bandit/blob/main/lib/bandit.ex#L285" class="icon-action" rel="help nofollow" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> start_link(<a href="#t:options/0">options</a>()) :: <a href="https://elixir.hexdocs.pm/Supervisor.html#t:on_start/0">Supervisor.on_start</a>()</pre>
+
+      </div>
+
+<p>Starts a Bandit server using the provided arguments. See <a href="#t:options/0"><code class="inline">options/0</code></a> for specific options to
+pass to this function.</p>
+  </section>
+</section>
+
+    </div>
+  </section>
+
+    <footer class="footer">
+
+        <p>
+
+            <span class="line">
+              <a href="https://hex.pm/packages/bandit/1.13.1">Hex Package</a>
+
+              <a href="https://preview.hex.pm/preview/bandit/1.13.1">Hex Preview</a>
+
+            </span>
+
+          <span class="line">
+            <button class="a-main footer-button display-quick-switch" title="Go to package docs">
+              Go to package docs
+            </button>
+
+              <a href="llms.txt" target="_blank">
+                View llms.txt
+              </a>
+
+
+              <a href="Bandit.epub">
+                Download ePub version
+              </a>
+
+          </span>
+        </p>
+
+        <p class="built-using">
+          Built using
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener nofollow" translate="no">ExDoc</a> (v0.40.4) for the
+
+            <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
+
+        </p>
+
+
+    </footer>
+  </div>
+</main>
+</div>
+
+  </body>
+</html>
