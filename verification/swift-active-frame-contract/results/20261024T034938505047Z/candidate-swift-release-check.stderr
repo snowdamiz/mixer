@@ -1,0 +1,28 @@
+    Checking mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-active-frame-contract/build/20261024T034938505047Z/candidate/vm)
+warning: type `FrameDisposition` is more private than the item `FrameCleanupState::disposition`
+  --> src/experimental_swift_reactor/active_contract.rs:12:5
+   |
+12 |     pub disposition: FrameDisposition,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ field `FrameCleanupState::disposition` is reachable at visibility `pub(in crate::experimental_swift_reactor)`
+   |
+note: but type `FrameDisposition` is only usable at visibility `pub(in crate::experimental_swift_reactor::execution)`
+  --> src/experimental_swift_reactor/active_contract.rs:8:1
+   |
+ 8 | pub(super) enum FrameDisposition { Idle, Active, Draining, Retained, RestorePending }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = note: `#[warn(private_interfaces)]` on by default
+
+warning: type `FrameBound` is more private than the item `FrameCleanupState::bound`
+  --> src/experimental_swift_reactor/active_contract.rs:13:5
+   |
+13 |     pub bound: Option<FrameBound>,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ field `FrameCleanupState::bound` is reachable at visibility `pub(in crate::experimental_swift_reactor)`
+   |
+note: but type `FrameBound` is only usable at visibility `pub(in crate::experimental_swift_reactor::execution)`
+  --> src/experimental_swift_reactor/active_contract.rs:10:1
+   |
+10 | pub(super) struct FrameBound { pub previous: usize, pub admitted: usize }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `mixer-vm` (lib) generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 0.89s

@@ -104,7 +104,12 @@ host implementation acceptance at
 `verification/swift-control-macro-root-review/acceptance.json`: 795 matching
 baseline/candidate control observations per four configurations, independent
 review of 44 binaries, and root replay of eight public/private host tests.
-The complete private active-frame entry/return/unwind ownership contract is next;
+The complete private active-frame entry/return/unwind ownership contract now has
+root acceptance at `verification/swift-active-frame-contract-root-review/acceptance.json`.
+The amended original-owner declarations pass 81 compiler/layout/privacy commands,
+two independent fresh compilations, and sixteen root metadata replays. Entry,
+return, retained multiple-pin cleanup and both owner barriers are being implemented;
+all AF01–AF22 runtime cases and actual-source accounting review remain pending.
 Swift control invocation, dispatch, memory and host integration remain incomplete.
 
 The private Android host binding is now accepted within its recorded host scope;

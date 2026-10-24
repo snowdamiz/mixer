@@ -1,0 +1,201 @@
+{
+  "schema": 1,
+  "status": "required-future-runtime-tests-not-executed",
+  "fixtureBound": {
+    "maxFrames": 9,
+    "maxDeclaredLocals": 256,
+    "maxFunctionControls": 512,
+    "maxAggregateControls": 4096,
+    "maxRecursiveDepth": 9
+  },
+  "contract": "docs/swift-active-frame-contract.md",
+  "cases": [
+    {
+      "id": "AF01",
+      "name": "real_nested_and_recursive_entry",
+      "setup": "Construct original SwiftReactorInstance; enter two different real decoded functions and the same function recursively via private phase, with real caller parameter/operand values.",
+      "required": "Frame, cache PinRecord, cache usage, ActivePins and live Frames increase once per entered frame; parameters are not appended twice; actual locals and function controls match decoded source.",
+      "executed": false,
+      "scope": "future host original-owner runtime"
+    },
+    {
+      "id": "AF02",
+      "name": "normal_nested_and_outer_return",
+      "setup": "Return zero-result and single-result real frames through finish.",
+      "required": "Callee locals/parameters/controls and one actual pin retire; caller gets exactly one value via existing push; only outermost copied result escapes; exact work/pop/release/push order.",
+      "executed": false,
+      "scope": "future host original-owner runtime"
+    },
+    {
+      "id": "AF03",
+      "name": "call_depth_and_pin_ceilings",
+      "setup": "Narrow frames and active_pins independently; use bounded recursion until each limit.",
+      "required": "Failure occurs before prohibited publication/acquisition; all prior actual frame pins survive then drain; no allocation or new frame after ceiling.",
+      "executed": false,
+      "scope": "future host original-owner runtime"
+    },
+    {
+      "id": "AF04",
+      "name": "parameters_locals_255_256_257",
+      "setup": "Decode real functions near 256 combined parameters/locals; include values of all four scalar types.",
+      "required": "256 succeeds under legal signature count; 257 fails before local publication; zero-value bits exact; 128 parameter ceiling remains sealed.",
+      "executed": false,
+      "scope": "future host original-owner runtime"
+    },
+    {
+      "id": "AF05",
+      "name": "function_control_and_aggregate_controls",
+      "setup": "Use at most nine actual entry-created frames. A cfg(test)-only setup helper publishes actual common Controls representing decoded nested blocks, with exact original live predebits and scoped no-dispatch provenance. Use eight callers at512 controls for ninth-entry aggregate4097 rejection, and a separate4095-plus-one accepted entry; exercise narrowed aggregate cases too.",
+      "required": "Function entry consumes its real control slot; aggregate4096 boundary and next-entry rejection are executable within this ownership slice using original-owner setup. Per-function512-inclusive depth rejects513. Test-only Control setup does not claim Swift block/control dispatcher acceptance.",
+      "executed": false,
+      "scope": "future host original-owner runtime"
+    },
+    {
+      "id": "AF06",
+      "name": "every_entry_work_prefix",
+      "setup": "For fixed small real functions enumerate all execution_work ceilings from 0 through successful entry work total and local check boundaries.",
+      "required": "Original 1 then locals+1 charges preserved; completed work never refunded; prior caller arena unchanged on rejection; first cause uses actual WASI.",
+      "executed": false,
+      "scope": "future host original-owner runtime"
+    },
+    {
+      "id": "AF07",
+      "name": "predebit_and_capacity_faults",
+      "setup": "Force each exact Values/Controls/Frames predebit and fixed room check to reject using narrower budgets and isolated private hooks.",
+      "required": "No matching publication on failed debit; successful earlier local/control effects removed; guard tracks only acquired counts; zero allocator requests in warm phase.",
+      "executed": false,
+      "scope": "future host original-owner runtime"
+    },
+    {
+      "id": "AF08",
+      "name": "local_initialization_cancellation",
+      "setup": "Cancel at every before-local initialization check after a bounded number of successful real local pushes.",
+      "required": "No locals view crosses mutation; only actual appended locals removed; all caller params/control untouched; acquired pin returned or retained explicitly.",
+      "executed": false,
+      "scope": "future host original-owner runtime"
+    },
+    {
+      "id": "AF09",
+      "name": "pin_and_phase_completion_failure",
+      "setup": "Acquire actual cache pin then inject original construction completion rejection before refund; also pin failure plus completion rejection.",
+      "required": "PinAttempt contains pin and failure simultaneously; empty return slots consumed; nested exact bound recorded; first failure unchanged; no frame published.",
+      "executed": false,
+      "scope": "future host original-owner runtime"
+    },
+    {
+      "id": "AF10",
+      "name": "entry_guard_release_rejection",
+      "setup": "After real acquired pin and partial entry effects force same-owner cache release pre-effect rejection.",
+      "required": "Actual guard pin stays in State.entry with unresolved charges; no token drop; guard attempted at most once in pass; consuming cleanup rejects intact.",
+      "executed": false,
+      "scope": "future host original-owner runtime"
+    },
+    {
+      "id": "AF11",
+      "name": "several_frame_release_rejections",
+      "setup": "Create bounded 4-frame real nested/recursive chain; make releases at deepest/third positions reject while other actual releases succeed.",
+      "required": "Actual rejected frames and same pins survive in order; unvisited prefix invariant holds; all four original frames attempted deepest first exactly once.",
+      "executed": false,
+      "scope": "future host original-owner runtime"
+    },
+    {
+      "id": "AF12",
+      "name": "all_frames_release_reject",
+      "setup": "Create three actual frames; corrupt original cache header pairing through held test-only original ticket replacement so all releases reject pre-effect.",
+      "required": "All three actual pins/frames and charges remain, terminal only; all attempts occur; no cache cleanup or header refund.",
+      "executed": false,
+      "scope": "future host original-owner runtime"
+    },
+    {
+      "id": "AF13",
+      "name": "guard_plus_multiple_rejected_frames",
+      "setup": "Create three actual caller frames then acquire fourth entry pin and fail nested completion/entry; reject guard plus at least two frame releases.",
+      "required": "One actual State guard pin and at least two frame pins survive simultaneously; no lone Option overwrite; all pinned/resident and live charges remain observable.",
+      "executed": false,
+      "scope": "future host original-owner runtime"
+    },
+    {
+      "id": "AF14",
+      "name": "release_failure_then_finish_drain",
+      "setup": "Make finish release fail after actual arena truncation; call drain.",
+      "required": "Rejected top frame begins in processed suffix, not attempted twice; stale base/operands/controls are never reused; lower frames still drain.",
+      "executed": false,
+      "scope": "future host original-owner runtime"
+    },
+    {
+      "id": "AF15",
+      "name": "failed_result_push",
+      "setup": "Use actual result-returning callee; fail caller result push work/operand/capacity/predebit boundary separately.",
+      "required": "Callee already retired and pin released; result does not publish; original push failure remains first while remaining callers drain.",
+      "executed": false,
+      "scope": "future host original-owner runtime"
+    },
+    {
+      "id": "AF16",
+      "name": "cleanup_live_undercount_reads_zero",
+      "setup": "Corrupt actual live Values/Controls/Frames accounting immediately before their actual cleanup removal.",
+      "required": "Cleanup continues; live_unreconciled latches even when ledger reads zero; no completion/header refund or generic cleanup bypass.",
+      "executed": false,
+      "scope": "future host original-owner runtime"
+    },
+    {
+      "id": "AF17",
+      "name": "prior_wasi_effect_and_first_failure",
+      "setup": "Perform a real permitted accounted WASI effect through existing direct host test boundary before entering real frames, then force trap/cancel/work failure and cleanup faults.",
+      "required": "Real WASI counters/bytes/denials are preserved in at_failure and after_cleanup; first cause/code/cursor remains unchanged; no fabricated WasiUsage default.",
+      "executed": false,
+      "scope": "future host original-owner runtime"
+    },
+    {
+      "id": "AF18",
+      "name": "dropped_phase_and_cleanup_resume",
+      "setup": "Drop Active phase at completed method boundary; reacquire cleanup-only using State record; also resume Retained and RestorePending with real original slots.",
+      "required": "No fresh admission/ordinary check/work; exact saved bound reused; each retained pin attempted once in new pass; no enter/finish/value access; terminal retained frames never interpreted.",
+      "executed": false,
+      "scope": "future host original-owner runtime"
+    },
+    {
+      "id": "AF19",
+      "name": "final_bound_restore_and_return_storage",
+      "setup": "Consume fixed actual preparation/entry/finish/drain Option slots; force outer restore rejection before refund and exercise cleanup-only retry.",
+      "required": "Every named large wrapper ends before shrink; exact previous bound restored only after all pin/live/nested obligations resolved; failure retains State bound and charge.",
+      "executed": false,
+      "scope": "future host original-owner runtime"
+    },
+    {
+      "id": "AF20",
+      "name": "provenance_and_consuming_barrier",
+      "setup": "Cross-pair original WASI/cache/state tickets while preserving all replaced authority in test fixtures; attempt prepare, resume, value operation and cleanup_owned.",
+      "required": "Reject before owner take/admission; retain original ticket/pin/arena owners; no direct cache teardown while frames/guard/bound/live latch present.",
+      "executed": false,
+      "scope": "future host original-owner runtime"
+    },
+    {
+      "id": "AF21",
+      "name": "warm_allocator_refusal",
+      "setup": "Warm actual functions before frame operation; install existing allocation observer rejecting first request during selected entry/return/drain/completion paths.",
+      "required": "Zero allocation requests in those intervals; cold cache decode allocations reported separately with ordinal source boundaries.",
+      "executed": false,
+      "scope": "future host original-owner runtime"
+    },
+    {
+      "id": "AF22",
+      "name": "frozen_and_existing_value_regressions",
+      "setup": "Run actual existing frozen and Swift owner/construction/cache/value tests, and public traces, minimal/all Debug/Release against exact baseline/candidate.",
+      "required": "Original frozen work/fuel/failure/allocation/observations/reservation unchanged; previously accepted zero-frame preparation remains strict; no new public route.",
+      "executed": false,
+      "scope": "future host original-owner runtime"
+    }
+  ],
+  "nativeChecks": {
+    "status": "pending-paused",
+    "simulator": false,
+    "emulator": false,
+    "physical": false
+  },
+  "notAccepted": [
+    "fabricated pin fixtures counted as frame execution",
+    "declaration compilation counted as active runtime acceptance",
+    "local checkout counted as published FieldLog qualification"
+  ]
+}

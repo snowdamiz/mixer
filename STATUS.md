@@ -48,16 +48,26 @@ public tests produce 795 identical baseline/candidate observations in each of
 four configurations. Independent review verifies 44 qualifying binaries; root
 replays six public tests and two actual-owner private probes. The original method
 bodies, ownership, failure order and 2,912-byte reservation are unchanged.
-See `verification/swift-control-macro-root-review/acceptance.json`. This enables
-the next active-frame ownership contract; Swift control execution, entry/return/
-unwind and full dispatch remain incomplete.
+See `verification/swift-control-macro-root-review/acceptance.json`. The amended
+active-frame ownership contract now has root acceptance after 81 declaration/
+compiler/layout/privacy commands, two independent fresh compilations and sixteen
+root metadata replays. Saved entry lengths and exact reservation layout checks are
+accounted separately; retained pins stay in original frame/guard owners. Actual
+entry/return/unwind code and its AF01–AF22 tests are in progress; actual-source
+accounting, Swift control execution and full dispatch remain incomplete. See
+`verification/swift-active-frame-contract-root-review/acceptance.json`.
 
 Hosted VM CI at 6172e65 exposed test-observer interference under concurrent
 tests and default captured output. The test-only repair passes all six cases
 in four feature/profile configurations, with and without background noise;
 all 795 observation rows per run match the accepted sequential packet.
-Hosted revalidation is pending. See
-`verification/swift-control-test-concurrency/root-acceptance.json`.
+Hosted revalidation at 931414f passes VM, Swift and services. See
+`verification/swift-control-test-concurrency/root-acceptance.json` and
+`verification/github-ci-931414f/receipt.json`. The later 6bee951 checkpoint passes
+VM/services but fails a Swift cold-start milestone test at the busy admission
+guard; Android-binding and generated-consumer steps are skipped in that run.
+That separate failure is under investigation, not a passing checkpoint. See
+`verification/github-ci-6bee951/receipt.json`.
 
 Active work: native shared-theme renderer integration and failure-atomic
 attachment for W03–W05, plus complete Swift guest execution for W08. Both V2

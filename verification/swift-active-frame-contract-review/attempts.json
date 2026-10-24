@@ -1,0 +1,55 @@
+[
+  {
+    "stage": "initial source collector",
+    "argv": [
+      "python3",
+      "-B",
+      "verification/swift-active-frame-contract-review/collect_review.py"
+    ],
+    "exitCode": 1,
+    "failure": "Rust compiler was not on the default PATH; collector now uses existing explicit tool paths.",
+    "evidence": "initial-environment-attempt.json",
+    "evidenceSHA256": "68835a33711fb551f4f2ac97f1ba2e610cf2e0de66839ff1486cbf536c7f5af9"
+  },
+  {
+    "stage": "interim packet verifier initial run",
+    "argv": [
+      "python3",
+      "-B",
+      "verification/swift-active-frame-contract-review/verify_packet.py",
+      "verification/swift-active-frame-contract/results/20261024T034938505047Z"
+    ],
+    "exitCode": 1,
+    "failure": "Independent checker expected only three changed overlay files; actual fourth was the required empty FrameCleanupState initializer in the isolated unit test fixture. Exact single-field overlay is now checked.",
+    "stderr": "interim-20261024T034938505047Z.stderr",
+    "stderrSHA256": "1d35945bf1200bd3817818582bd94a2ef0087729a06f5d0b95a64173589915ec"
+  },
+  {
+    "stage": "interim verifier after exact fixture overlay association",
+    "packet": "verification/swift-active-frame-contract/results/20261024T034938505047Z",
+    "exitCode": 0,
+    "stdout": "interim-20261024T034938505047Z-second.stdout",
+    "stdoutSHA256": "93de078ee6ad41804b588db278a1391a5c53434d490a938450f3f0c4073a393f"
+  },
+  {
+    "stage": "interim fresh nested component verification",
+    "packet": "verification/swift-active-frame-contract/results/20261024T035323154442Z",
+    "exitCode": 0,
+    "stdout": "interim-20261024T035323154442Z.stdout",
+    "stdoutSHA256": "8b153ab72ac6e77e0faa6125b8308e7e476b6587706381ad4100c0ebbab851df"
+  },
+  {
+    "stage": "interim exact owner-overlay verification",
+    "packet": "verification/swift-active-frame-contract/results/20261024T035323154442Z",
+    "exitCode": 0,
+    "stdout": "interim-20261024T035323154442Z-second.stdout",
+    "stdoutSHA256": "8b153ab72ac6e77e0faa6125b8308e7e476b6587706381ad4100c0ebbab851df"
+  },
+  {
+    "stage": "first portable-artifact verifier extension",
+    "packet": "verification/swift-active-frame-contract/results/20261024T035815017174Z",
+    "exitCode": 1,
+    "failure": "Independent checker expected ABI kind abi; portable producer manifest correctly names abi-dylib. Checker corrected; no producer defect or compiler execution.",
+    "receipt": "results/20261024T040239294849Z/receipt.json"
+  }
+]

@@ -1,0 +1,17 @@
+revision
+rustc-version
+cargo-version
+python-version
+candidate-default-debug-check
+candidate-default-release-check
+candidate-span-debug-check
+candidate-span-release-check
+/Users/andreyyurlov/Documents/dev/mixer/verification/swift-active-frame-contract/results/20261024T034305278564Z
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-active-frame-contract/collect.py", line 126, in <module>
+    cmd(label,['cargo','check','--locked','--offline','--lib',*flags,*(['--release'] if profile=='release' else [])],vm,BUILD/(label+'-target'),closure)
+    ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-active-frame-contract/collect.py", line 46, in cmd
+    else: assert p.returncode==0, (name,p.stderr[-5000:])
+                 ^^^^^^^^^^^^^^^
+AssertionError: ('candidate-swift-debug-check', '    Checking mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-active-frame-contract/build/20261024T034305278564Z/candidate/vm)\nerror[E0583]: file not found for module `active_contract`\n    --> src/experimental_swift_reactor/execution.rs:2976:1\n     |\n2976 | mod active_contract;\n     | ^^^^^^^^^^^^^^^^^^^^\n     |\n     = help: to create the module `active_contract`, create file "src/experimental_swift_reactor/execution/active_contract.rs" or "src/experimental_swift_reactor/execution/active_contract/mod.rs"\n     = note: if there is a `mod active_contract` elsewhere in the crate already, import it with `use crate::...` instead\n\nFor more information about this error, try `rustc --explain E0583`.\nerror: could not compile `mixer-vm` (lib) due to 1 previous error\n')
