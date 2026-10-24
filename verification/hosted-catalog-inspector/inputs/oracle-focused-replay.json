@@ -1,0 +1,537 @@
+{
+  "schema": 1,
+  "scope": "raw copied-input models only; no impossible actual SQL catalog or runtime bypass claim",
+  "total": 24,
+  "passed": true,
+  "baseline_admitted": true,
+  "input_sha256": "687b2ed91c14e70abe5a6dda4587711b783e4174b18283c821a9f875c090ef48",
+  "cases": [
+    {
+      "label": "startup database (0, '*')",
+      "mutation": {
+        "group": "startup_defaults",
+        "row": {
+          "database_oid": 0,
+          "database": "*",
+          "role_oid": 0,
+          "role": "*",
+          "config": [
+            "application_name=model"
+          ]
+        }
+      },
+      "expected_raw_valid": true,
+      "expected_admitted": false,
+      "raw_valid": true,
+      "admitted": false,
+      "raw_error": null,
+      "admission_error": "selected authority mismatch: enforcement",
+      "input_unchanged": true,
+      "passed": true
+    },
+    {
+      "label": "startup database (0, 'named')",
+      "mutation": {
+        "group": "startup_defaults",
+        "row": {
+          "database_oid": 0,
+          "database": "named",
+          "role_oid": 0,
+          "role": "*",
+          "config": [
+            "application_name=model"
+          ]
+        }
+      },
+      "expected_raw_valid": false,
+      "expected_admitted": false,
+      "raw_valid": false,
+      "admitted": false,
+      "raw_error": "malformed raw value: startup_defaults[0] wildcard association database",
+      "admission_error": "malformed raw value: startup_defaults[0] wildcard association database",
+      "input_unchanged": true,
+      "passed": true
+    },
+    {
+      "label": "startup database (0, None)",
+      "mutation": {
+        "group": "startup_defaults",
+        "row": {
+          "database_oid": 0,
+          "database": null,
+          "role_oid": 0,
+          "role": "*",
+          "config": [
+            "application_name=model"
+          ]
+        }
+      },
+      "expected_raw_valid": false,
+      "expected_admitted": false,
+      "raw_valid": false,
+      "admitted": false,
+      "raw_error": "malformed raw value: startup_defaults[0] wildcard association database",
+      "admission_error": "malformed raw value: startup_defaults[0] wildcard association database",
+      "input_unchanged": true,
+      "passed": true
+    },
+    {
+      "label": "startup database (1, '*')",
+      "mutation": {
+        "group": "startup_defaults",
+        "row": {
+          "database_oid": 1,
+          "database": "*",
+          "role_oid": 0,
+          "role": "*",
+          "config": [
+            "application_name=model"
+          ]
+        }
+      },
+      "expected_raw_valid": true,
+      "expected_admitted": false,
+      "raw_valid": true,
+      "admitted": false,
+      "raw_error": null,
+      "admission_error": "selected authority mismatch: enforcement",
+      "input_unchanged": true,
+      "passed": true
+    },
+    {
+      "label": "startup database (4294967295, '*')",
+      "mutation": {
+        "group": "startup_defaults",
+        "row": {
+          "database_oid": 4294967295,
+          "database": "*",
+          "role_oid": 0,
+          "role": "*",
+          "config": [
+            "application_name=model"
+          ]
+        }
+      },
+      "expected_raw_valid": true,
+      "expected_admitted": false,
+      "raw_valid": true,
+      "admitted": false,
+      "raw_error": null,
+      "admission_error": "selected authority mismatch: enforcement",
+      "input_unchanged": true,
+      "passed": true
+    },
+    {
+      "label": "startup database (1, 'named')",
+      "mutation": {
+        "group": "startup_defaults",
+        "row": {
+          "database_oid": 1,
+          "database": "named",
+          "role_oid": 0,
+          "role": "*",
+          "config": [
+            "application_name=model"
+          ]
+        }
+      },
+      "expected_raw_valid": true,
+      "expected_admitted": false,
+      "raw_valid": true,
+      "admitted": false,
+      "raw_error": null,
+      "admission_error": "selected authority mismatch: enforcement",
+      "input_unchanged": true,
+      "passed": true
+    },
+    {
+      "label": "startup database (1, None)",
+      "mutation": {
+        "group": "startup_defaults",
+        "row": {
+          "database_oid": 1,
+          "database": null,
+          "role_oid": 0,
+          "role": "*",
+          "config": [
+            "application_name=model"
+          ]
+        }
+      },
+      "expected_raw_valid": false,
+      "expected_admitted": false,
+      "raw_valid": false,
+      "admitted": false,
+      "raw_error": "malformed raw value: startup_defaults[0] wildcard association database",
+      "admission_error": "malformed raw value: startup_defaults[0] wildcard association database",
+      "input_unchanged": true,
+      "passed": true
+    },
+    {
+      "label": "startup database (1, '')",
+      "mutation": {
+        "group": "startup_defaults",
+        "row": {
+          "database_oid": 1,
+          "database": "",
+          "role_oid": 0,
+          "role": "*",
+          "config": [
+            "application_name=model"
+          ]
+        }
+      },
+      "expected_raw_valid": false,
+      "expected_admitted": false,
+      "raw_valid": false,
+      "admitted": false,
+      "raw_error": "malformed raw value: startup_defaults[0].database text",
+      "admission_error": "malformed raw value: startup_defaults[0].database text",
+      "input_unchanged": true,
+      "passed": true
+    },
+    {
+      "label": "startup database (1, '\\x00')",
+      "mutation": {
+        "group": "startup_defaults",
+        "row": {
+          "database_oid": 1,
+          "database": "\u0000",
+          "role_oid": 0,
+          "role": "*",
+          "config": [
+            "application_name=model"
+          ]
+        }
+      },
+      "expected_raw_valid": false,
+      "expected_admitted": false,
+      "raw_valid": false,
+      "admitted": false,
+      "raw_error": "malformed raw value: startup_defaults[0].database text",
+      "admission_error": "malformed raw value: startup_defaults[0].database text",
+      "input_unchanged": true,
+      "passed": true
+    },
+    {
+      "label": "startup database (1, '\\ud800')",
+      "mutation": {
+        "group": "startup_defaults",
+        "row": {
+          "database_oid": 1,
+          "database": "\ud800",
+          "role_oid": 0,
+          "role": "*",
+          "config": [
+            "application_name=model"
+          ]
+        }
+      },
+      "expected_raw_valid": false,
+      "expected_admitted": false,
+      "raw_valid": false,
+      "admitted": false,
+      "raw_error": "malformed raw value: startup_defaults[0].database UTF8",
+      "admission_error": "malformed raw value: startup_defaults[0].database UTF8",
+      "input_unchanged": true,
+      "passed": true
+    },
+    {
+      "label": "startup role (0, '*')",
+      "mutation": {
+        "group": "startup_defaults",
+        "row": {
+          "database_oid": 0,
+          "database": "*",
+          "role_oid": 0,
+          "role": "*",
+          "config": [
+            "application_name=model"
+          ]
+        }
+      },
+      "expected_raw_valid": true,
+      "expected_admitted": false,
+      "raw_valid": true,
+      "admitted": false,
+      "raw_error": null,
+      "admission_error": "selected authority mismatch: enforcement",
+      "input_unchanged": true,
+      "passed": true
+    },
+    {
+      "label": "startup role (0, 'named')",
+      "mutation": {
+        "group": "startup_defaults",
+        "row": {
+          "database_oid": 0,
+          "database": "*",
+          "role_oid": 0,
+          "role": "named",
+          "config": [
+            "application_name=model"
+          ]
+        }
+      },
+      "expected_raw_valid": false,
+      "expected_admitted": false,
+      "raw_valid": false,
+      "admitted": false,
+      "raw_error": "malformed raw value: startup_defaults[0] wildcard association role",
+      "admission_error": "malformed raw value: startup_defaults[0] wildcard association role",
+      "input_unchanged": true,
+      "passed": true
+    },
+    {
+      "label": "startup role (0, None)",
+      "mutation": {
+        "group": "startup_defaults",
+        "row": {
+          "database_oid": 0,
+          "database": "*",
+          "role_oid": 0,
+          "role": null,
+          "config": [
+            "application_name=model"
+          ]
+        }
+      },
+      "expected_raw_valid": false,
+      "expected_admitted": false,
+      "raw_valid": false,
+      "admitted": false,
+      "raw_error": "malformed raw value: startup_defaults[0] wildcard association role",
+      "admission_error": "malformed raw value: startup_defaults[0] wildcard association role",
+      "input_unchanged": true,
+      "passed": true
+    },
+    {
+      "label": "startup role (1, '*')",
+      "mutation": {
+        "group": "startup_defaults",
+        "row": {
+          "database_oid": 0,
+          "database": "*",
+          "role_oid": 1,
+          "role": "*",
+          "config": [
+            "application_name=model"
+          ]
+        }
+      },
+      "expected_raw_valid": true,
+      "expected_admitted": false,
+      "raw_valid": true,
+      "admitted": false,
+      "raw_error": null,
+      "admission_error": "selected authority mismatch: enforcement",
+      "input_unchanged": true,
+      "passed": true
+    },
+    {
+      "label": "startup role (4294967295, '*')",
+      "mutation": {
+        "group": "startup_defaults",
+        "row": {
+          "database_oid": 0,
+          "database": "*",
+          "role_oid": 4294967295,
+          "role": "*",
+          "config": [
+            "application_name=model"
+          ]
+        }
+      },
+      "expected_raw_valid": true,
+      "expected_admitted": false,
+      "raw_valid": true,
+      "admitted": false,
+      "raw_error": null,
+      "admission_error": "selected authority mismatch: enforcement",
+      "input_unchanged": true,
+      "passed": true
+    },
+    {
+      "label": "startup role (1, 'named')",
+      "mutation": {
+        "group": "startup_defaults",
+        "row": {
+          "database_oid": 0,
+          "database": "*",
+          "role_oid": 1,
+          "role": "named",
+          "config": [
+            "application_name=model"
+          ]
+        }
+      },
+      "expected_raw_valid": true,
+      "expected_admitted": false,
+      "raw_valid": true,
+      "admitted": false,
+      "raw_error": null,
+      "admission_error": "selected authority mismatch: enforcement",
+      "input_unchanged": true,
+      "passed": true
+    },
+    {
+      "label": "startup role (1, None)",
+      "mutation": {
+        "group": "startup_defaults",
+        "row": {
+          "database_oid": 0,
+          "database": "*",
+          "role_oid": 1,
+          "role": null,
+          "config": [
+            "application_name=model"
+          ]
+        }
+      },
+      "expected_raw_valid": false,
+      "expected_admitted": false,
+      "raw_valid": false,
+      "admitted": false,
+      "raw_error": "malformed raw value: startup_defaults[0] wildcard association role",
+      "admission_error": "malformed raw value: startup_defaults[0] wildcard association role",
+      "input_unchanged": true,
+      "passed": true
+    },
+    {
+      "label": "startup role (1, '')",
+      "mutation": {
+        "group": "startup_defaults",
+        "row": {
+          "database_oid": 0,
+          "database": "*",
+          "role_oid": 1,
+          "role": "",
+          "config": [
+            "application_name=model"
+          ]
+        }
+      },
+      "expected_raw_valid": false,
+      "expected_admitted": false,
+      "raw_valid": false,
+      "admitted": false,
+      "raw_error": "malformed raw value: startup_defaults[0].role text",
+      "admission_error": "malformed raw value: startup_defaults[0].role text",
+      "input_unchanged": true,
+      "passed": true
+    },
+    {
+      "label": "startup role (1, '\\x00')",
+      "mutation": {
+        "group": "startup_defaults",
+        "row": {
+          "database_oid": 0,
+          "database": "*",
+          "role_oid": 1,
+          "role": "\u0000",
+          "config": [
+            "application_name=model"
+          ]
+        }
+      },
+      "expected_raw_valid": false,
+      "expected_admitted": false,
+      "raw_valid": false,
+      "admitted": false,
+      "raw_error": "malformed raw value: startup_defaults[0].role text",
+      "admission_error": "malformed raw value: startup_defaults[0].role text",
+      "input_unchanged": true,
+      "passed": true
+    },
+    {
+      "label": "startup role (1, '\\ud800')",
+      "mutation": {
+        "group": "startup_defaults",
+        "row": {
+          "database_oid": 0,
+          "database": "*",
+          "role_oid": 1,
+          "role": "\ud800",
+          "config": [
+            "application_name=model"
+          ]
+        }
+      },
+      "expected_raw_valid": false,
+      "expected_admitted": false,
+      "raw_valid": false,
+      "admitted": false,
+      "raw_error": "malformed raw value: startup_defaults[0].role UTF8",
+      "admission_error": "malformed raw value: startup_defaults[0].role UTF8",
+      "input_unchanged": true,
+      "passed": true
+    },
+    {
+      "label": "frozen ACSR02 internal/internal same relation",
+      "mutation": {
+        "group": "triggers",
+        "oid": 16757,
+        "name": "RI_ConstraintTrigger_a_16758",
+        "peer_oid": 16758
+      },
+      "expected_raw_valid": false,
+      "expected_admitted": false,
+      "raw_valid": false,
+      "admitted": false,
+      "raw_error": "malformed raw value: triggers[1] duplicate relation/name",
+      "admission_error": "malformed raw value: triggers[1] duplicate relation/name",
+      "input_unchanged": true,
+      "passed": true
+    },
+    {
+      "label": "frozen ACSR02 internal/external same relation",
+      "mutation": {
+        "group": "triggers",
+        "oid": 16757,
+        "name": "lifecycle_guard",
+        "peer_oid": 16870
+      },
+      "expected_raw_valid": false,
+      "expected_admitted": false,
+      "raw_valid": false,
+      "admitted": false,
+      "raw_error": "malformed raw value: triggers[4] duplicate relation/name",
+      "admission_error": "malformed raw value: triggers[4] duplicate relation/name",
+      "input_unchanged": true,
+      "passed": true
+    },
+    {
+      "label": "frozen ACSR02 same name different relations portable",
+      "mutation": {
+        "group": "triggers",
+        "oid": 16757,
+        "name": "RI_ConstraintTrigger_c_16713",
+        "peer_oid": 16713
+      },
+      "expected_raw_valid": true,
+      "expected_admitted": true,
+      "raw_valid": true,
+      "admitted": true,
+      "raw_error": null,
+      "admission_error": null,
+      "input_unchanged": true,
+      "passed": true
+    },
+    {
+      "label": "different names on the same relation remain portable",
+      "mutation": {
+        "group": "triggers",
+        "oid": 16757,
+        "name": "wc_model_distinct"
+      },
+      "expected_raw_valid": true,
+      "expected_admitted": true,
+      "raw_valid": true,
+      "admitted": true,
+      "raw_error": null,
+      "admission_error": null,
+      "input_unchanged": true,
+      "passed": true
+    }
+  ]
+}

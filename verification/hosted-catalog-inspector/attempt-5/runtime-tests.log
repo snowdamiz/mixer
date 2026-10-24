@@ -1,0 +1,102 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+
+MixerCatalogInspector.RuntimeTest [test/runtime_test.exs]
+  * test separate observer and runtime reads accept the isolated profile with fresh portable OIDs [L#83]  * test separate observer and runtime reads accept the isolated profile with fresh portable OIDs (67.3ms) [L#83]
+  * test ordinary drift rejects and both successful and failed calls close the original transaction [L#102]  * test ordinary drift rejects and both successful and failed calls close the original transaction (62.0ms) [L#102]
+  * test positive OID literal-star roles and defaults validate raw but selected comparison rejects [L#116]  * test positive OID literal-star roles and defaults validate raw but selected comparison rejects (81.6ms) [L#116]
+  * test nested transaction and checked-out calls reject without adopting their context [L#132]
+06:47:44.769 [debug] QUERY OK db=0.0ms idle=7.9ms
+begin []
+
+06:47:44.769 [debug] QUERY OK db=0.0ms
+commit []
+  * test nested transaction and checked-out calls reject without adopting their context (1.7ms) [L#132]
+  * test queue false rejects pool occupancy promptly without starting inspection [L#141]  * test queue false rejects pool occupancy promptly without starting inspection (0.8ms) [L#141]
+  * test unsafe fresh-session state rejects before BEGIN and is never repaired by inspector [L#160]  * test unsafe fresh-session state rejects before BEGIN and is never repaired by inspector (28.3ms) [L#160]
+  * test catalog lock timeout reports actual SQLSTATE and rolls back [L#173]  * test catalog lock timeout reports actual SQLSTATE and rolls back (292.9ms) [L#173]
+  * test expired absolute deadline cannot return success and cleanup is observed separately [L#189]
+06:47:50.114 [error] Postgrex.Protocol (#PID<0.390.0> ({Postgrex.Protocol, "authority_contract"})) disconnected: ** (DBConnection.ConnectionError) client #PID<0.428.0> ({MixerCatalogInspector.RuntimeTest, :"test expired absolute deadline cannot return success and cleanup is observed separately"}) timed out because it queued and checked out the connection for longer than 5000ms
+
+#PID<0.428.0> ({MixerCatalogInspector.RuntimeTest, :"test expired absolute deadline cannot return success and cleanup is observed separately"}) was at location:
+
+    (elixir 1.20.4) lib/process.ex:330: Process.sleep/1
+    (telemetry 1.4.2) src/telemetry.erl:202: :telemetry.do_execute/4
+    (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1315: Ecto.Adapters.SQL.log/5
+    (db_connection 2.10.2) lib/db_connection.ex:1708: DBConnection.log/5
+    (postgrex 0.22.4) lib/postgrex.ex:353: Postgrex.query_prepare_execute/4
+    (mixer_catalog_inspector 0.1.0) lib/mixer_hosted/catalog_inspector.ex:178: MixerHosted.CatalogInspector.query!/3
+    (mixer_catalog_inspector 0.1.0) lib/mixer_hosted/catalog_inspector.ex:102: anonymous fn/4 in MixerHosted.CatalogInspector.verify/2
+    test/runtime_test.exs:6: anonymous fn/1 in MixerCatalogInspector.CatalogRepo.transaction/2
+    (ecto 3.14.2) lib/ecto/repo/transaction.ex:11: anonymous fn/3 in Ecto.Repo.Transaction.transact/4
+    (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1481: anonymous fn/3 in Ecto.Adapters.SQL.checkout_or_transaction/4
+    (db_connection 2.10.2) lib/db_connection.ex:1760: DBConnection.run_transaction/5
+    (mixer_catalog_inspector 0.1.0) lib/mixer_hosted/catalog_inspector.ex:93: anonymous fn/5 in MixerHosted.CatalogInspector.verify/2
+    (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1481: anonymous fn/3 in Ecto.Adapters.SQL.checkout_or_transaction/4
+    (db_connection 2.10.2) lib/db_connection.ex:995: DBConnection.run/3
+    (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1481: anonymous fn/3 in Ecto.Adapters.SQL.checkout_or_transaction/4
+    (db_connection 2.10.2) lib/db_connection.ex:995: DBConnection.run/3
+    (mixer_catalog_inspector 0.1.0) lib/mixer_hosted/catalog_inspector.ex:81: MixerHosted.CatalogInspector.verify/2
+    test/runtime_test.exs:199: MixerCatalogInspector.RuntimeTest."test expired absolute deadline cannot return success and cleanup is observed separately"/1
+    (ex_unit 1.20.4) lib/ex_unit/runner.ex:533: ExUnit.Runner.exec_test/2
+    (stdlib 8.1) timer.erl:599: :timer.tc/2
+
+
+06:47:50.115 [error] Postgrex.Protocol (#PID<0.394.0> ({Postgrex.Protocol, "authority_contract"})) disconnected: ** (DBConnection.ConnectionError) client #PID<0.428.0> ({MixerCatalogInspector.RuntimeTest, :"test expired absolute deadline cannot return success and cleanup is observed separately"}) timed out because it queued and checked out the connection for longer than 4993ms
+
+#PID<0.428.0> ({MixerCatalogInspector.RuntimeTest, :"test expired absolute deadline cannot return success and cleanup is observed separately"}) was at location:
+
+    (elixir 1.20.4) lib/process.ex:330: Process.sleep/1
+    (telemetry 1.4.2) src/telemetry.erl:202: :telemetry.do_execute/4
+    (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1315: Ecto.Adapters.SQL.log/5
+    (db_connection 2.10.2) lib/db_connection.ex:1708: DBConnection.log/5
+    (postgrex 0.22.4) lib/postgrex.ex:353: Postgrex.query_prepare_execute/4
+    (mixer_catalog_inspector 0.1.0) lib/mixer_hosted/catalog_inspector.ex:178: MixerHosted.CatalogInspector.query!/3
+    (mixer_catalog_inspector 0.1.0) lib/mixer_hosted/catalog_inspector.ex:102: anonymous fn/4 in MixerHosted.CatalogInspector.verify/2
+    test/runtime_test.exs:6: anonymous fn/1 in MixerCatalogInspector.CatalogRepo.transaction/2
+    (ecto 3.14.2) lib/ecto/repo/transaction.ex:11: anonymous fn/3 in Ecto.Repo.Transaction.transact/4
+    (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1481: anonymous fn/3 in Ecto.Adapters.SQL.checkout_or_transaction/4
+    (db_connection 2.10.2) lib/db_connection.ex:1760: DBConnection.run_transaction/5
+    (mixer_catalog_inspector 0.1.0) lib/mixer_hosted/catalog_inspector.ex:93: anonymous fn/5 in MixerHosted.CatalogInspector.verify/2
+    (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1481: anonymous fn/3 in Ecto.Adapters.SQL.checkout_or_transaction/4
+    (db_connection 2.10.2) lib/db_connection.ex:995: DBConnection.run/3
+    (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1481: anonymous fn/3 in Ecto.Adapters.SQL.checkout_or_transaction/4
+    (db_connection 2.10.2) lib/db_connection.ex:995: DBConnection.run/3
+    (mixer_catalog_inspector 0.1.0) lib/mixer_hosted/catalog_inspector.ex:81: MixerHosted.CatalogInspector.verify/2
+    test/runtime_test.exs:199: MixerCatalogInspector.RuntimeTest."test expired absolute deadline cannot return success and cleanup is observed separately"/1
+    (ex_unit 1.20.4) lib/ex_unit/runner.ex:533: ExUnit.Runner.exec_test/2
+    (stdlib 8.1) timer.erl:599: :timer.tc/2
+
+  * test expired absolute deadline cannot return success and cleanup is observed separately (5235.8ms) [L#189]
+  * test backend termination fails closed and a later connection requires fresh full verification [L#214]
+06:47:50.332 [error] Postgrex.Protocol (#PID<0.394.0> ({Postgrex.Protocol, "authority_contract"})) disconnected: ** (Postgrex.Error) FATAL 57P01 (admin_shutdown) terminating connection due to administrator command
+
+    query: SELECT pg_catalog.set_config('statement_timeout', $1, true)
+  * test backend termination fails closed and a later connection requires fresh full verification (152.2ms) [L#214]
+  * test server output envelope and raw string cap reject independently before comparison [L#234]  * test server output envelope and raw string cap reject independently before comparison (17.1ms) [L#234]
+
+  1) test server output envelope and raw string cap reject independently before comparison (MixerCatalogInspector.RuntimeTest)
+     test/runtime_test.exs:234
+     Assertion with == failed
+     code:  assert verify() == {:error, expected}
+     left:  {:error, :catalog_unavailable}
+     right: {:error, :malformed_catalog}
+     stacktrace:
+       test/runtime_test.exs:241: anonymous fn/3 in MixerCatalogInspector.RuntimeTest."test server output envelope and raw string cap reject independently before comparison"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       test/runtime_test.exs:236: (test)
+
+  * test same read-only repeatable-read snapshot remains coherent across a concurrent committed catalog change [L#251]  * test same read-only repeatable-read snapshot remains coherent across a concurrent committed catalog change (87.1ms) [L#251]
+
+Finished in 6.2 seconds (0.00s async, 6.2s sync)
+
+Result: 10/11 passed
+Failed: 1 test
+warning: "xref: [exclude: ...]" in your mix.exs file is deprecated, instead use: "elixirc_options: [no_warn_undefined: ...]"
+  (mix 1.20.4) lib/mix/tasks/compile.elixir.ex:243: Mix.Tasks.Compile.Elixir.xref_exclude_opts/2
+  (mix 1.20.4) lib/mix/tasks/compile.elixir.ex:142: Mix.Tasks.Compile.Elixir.run/1
+  (mix 1.20.4) lib/mix/task.ex:502: anonymous fn/3 in Mix.Task.run_task/5
+  (mix 1.20.4) lib/mix/task.compiler.ex:299: Mix.Task.Compiler.run_compiler/2
+  (mix 1.20.4) lib/mix/task.compiler.ex:287: Mix.Task.Compiler.run/4
+  (mix 1.20.4) lib/mix/tasks/compile.all.ex:75: Mix.Tasks.Compile.All.do_run/2
+

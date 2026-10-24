@@ -1,0 +1,810 @@
+Compiled from "NativeCoordinatorV2.java"
+final class dev.mixer.android.NativeCoordinatorV2 implements java.lang.AutoCloseable {
+  private final android.app.Activity activity;
+
+  private final android.widget.FrameLayout root;
+
+  private final dev.mixer.android.NativeRenderer renderer;
+
+  private long session;
+
+  private byte[] committedPacket;
+
+  private java.lang.RuntimeException lastNativeInputFailure;
+
+  private boolean active;
+
+  private boolean retired;
+
+  dev.mixer.android.NativeCoordinatorV2(android.app.Activity, android.widget.FrameLayout);
+    Code:
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: invokestatic  #7                  // Method requireMain:()V
+         7: aload_1
+         8: ifnull        15
+        11: aload_2
+        12: ifnonnull     25
+        15: new           #12                 // class java/lang/IllegalArgumentException
+        18: dup
+        19: ldc           #14                 // String V2 window required
+        21: invokespecial #16                 // Method java/lang/IllegalArgumentException."<init>":(Ljava/lang/String;)V
+        24: athrow
+        25: aload_0
+        26: aload_1
+        27: putfield      #19                 // Field activity:Landroid/app/Activity;
+        30: aload_0
+        31: aload_2
+        32: putfield      #23                 // Field root:Landroid/widget/FrameLayout;
+        35: aload_0
+        36: new           #27                 // class dev/mixer/android/NativeRenderer
+        39: dup
+        40: aload_1
+        41: aload_0
+        42: invokedynamic #29,  0             // InvokeDynamic #0:send:(Ldev/mixer/android/NativeCoordinatorV2;)Ldev/mixer/android/NativeRenderer$Events;
+        47: invokespecial #33                 // Method dev/mixer/android/NativeRenderer."<init>":(Landroid/content/Context;Ldev/mixer/android/NativeRenderer$Events;)V
+        50: putfield      #36                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+        53: aload_0
+        54: invokestatic  #40                 // Method dev/mixer/android/NativeBridge.create:()J
+        57: putfield      #46                 // Field session:J
+        60: aload_0
+        61: getfield      #46                 // Field session:J
+        64: lconst_0
+        65: lcmp
+        66: ifne          79
+        69: new           #50                 // class java/lang/IllegalStateException
+        72: dup
+        73: ldc           #52                 // String V2 session creation failed
+        75: invokespecial #54                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+        78: athrow
+        79: goto          90
+        82: astore_3
+        83: aload_0
+        84: aload_3
+        85: invokevirtual #59                 // Method retire:(Ljava/lang/Throwable;)V
+        88: aload_3
+        89: athrow
+        90: return
+      Exception table:
+         from    to  target type
+            53    79    82   Class java/lang/RuntimeException
+            53    79    82   Class java/lang/Error
+
+  void renderInitial();
+    Code:
+         0: aload_0
+         1: invokevirtual #63                 // Method enter:()V
+         4: aload_0
+         5: getfield      #66                 // Field committedPacket:[B
+         8: ifnull        21
+        11: new           #50                 // class java/lang/IllegalStateException
+        14: dup
+        15: ldc           #70                 // String V2 already initialized
+        17: invokespecial #54                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+        20: athrow
+        21: aload_0
+        22: iconst_0
+        23: aconst_null
+        24: iconst_0
+        25: invokevirtual #72                 // Method transact:(I[BZ)V
+        28: aload_0
+        29: iconst_0
+        30: putfield      #76                 // Field active:Z
+        33: goto          44
+        36: astore_1
+        37: aload_0
+        38: iconst_0
+        39: putfield      #76                 // Field active:Z
+        42: aload_1
+        43: athrow
+        44: return
+      Exception table:
+         from    to  target type
+             4    28    36   any
+
+  void dispatchInput(byte[]);
+    Code:
+         0: aload_0
+         1: invokevirtual #63                 // Method enter:()V
+         4: aload_0
+         5: getfield      #66                 // Field committedPacket:[B
+         8: ifnonnull     21
+        11: new           #50                 // class java/lang/IllegalStateException
+        14: dup
+        15: ldc           #80                 // String V2 requires initial render
+        17: invokespecial #54                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+        20: athrow
+        21: aload_0
+        22: iconst_1
+        23: aload_1
+        24: iconst_1
+        25: invokevirtual #72                 // Method transact:(I[BZ)V
+        28: aload_0
+        29: iconst_0
+        30: putfield      #76                 // Field active:Z
+        33: goto          44
+        36: astore_2
+        37: aload_0
+        38: iconst_0
+        39: putfield      #76                 // Field active:Z
+        42: aload_2
+        43: athrow
+        44: return
+      Exception table:
+         from    to  target type
+             4    28    36   any
+
+  private void nativeInput(byte[]);
+    Code:
+         0: invokestatic  #7                  // Method requireMain:()V
+         3: aload_0
+         4: getfield      #76                 // Field active:Z
+         7: ifeq          31
+        10: new           #50                 // class java/lang/IllegalStateException
+        13: dup
+        14: ldc           #82                 // String V2 reentrant native input
+        16: invokespecial #54                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+        19: astore_2
+        20: aload_0
+        21: aload_2
+        22: invokevirtual #59                 // Method retire:(Ljava/lang/Throwable;)V
+        25: aload_2
+        26: invokestatic  #84                 // Method rethrowNestedError:(Ljava/lang/Throwable;)V
+        29: aload_2
+        30: athrow
+        31: aload_0
+        32: getfield      #87                 // Field retired:Z
+        35: ifeq          48
+        38: new           #50                 // class java/lang/IllegalStateException
+        41: dup
+        42: ldc           #90                 // String V2 coordinator retired
+        44: invokespecial #54                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+        47: athrow
+        48: aload_0
+        49: aload_1
+        50: invokevirtual #92                 // Method dispatchInput:([B)V
+        53: goto          75
+        56: astore_2
+        57: aload_0
+        58: getfield      #87                 // Field retired:Z
+        61: ifne          66
+        64: aload_2
+        65: athrow
+        66: aload_0
+        67: aload_2
+        68: putfield      #96                 // Field lastNativeInputFailure:Ljava/lang/RuntimeException;
+        71: aload_2
+        72: invokestatic  #84                 // Method rethrowNestedError:(Ljava/lang/Throwable;)V
+        75: return
+      Exception table:
+         from    to  target type
+            48    53    56   Class java/lang/RuntimeException
+
+  private void transact(int, byte[], boolean);
+    Code:
+         0: lconst_0
+         1: lstore        4
+         3: iconst_0
+         4: istore        6
+         6: iconst_0
+         7: istore        7
+         9: iconst_0
+        10: istore        8
+        12: iconst_0
+        13: istore        9
+        15: iconst_0
+        16: istore        10
+        18: iconst_0
+        19: istore        11
+        21: aconst_null
+        22: astore        12
+        24: aconst_null
+        25: astore        13
+        27: aload_0
+        28: getfield      #36                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+        31: invokevirtual #100                // Method dev/mixer/android/NativeRenderer.captureInstalledV2:()Ldev/mixer/android/InstalledAppearanceV2;
+        34: astore        14
+        36: aload_0
+        37: getfield      #36                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+        40: aload_0
+        41: getfield      #19                 // Field activity:Landroid/app/Activity;
+        44: aload_0
+        45: getfield      #23                 // Field root:Landroid/widget/FrameLayout;
+        48: invokevirtual #104                // Method dev/mixer/android/NativeRenderer.captureEnvironmentV2:(Landroid/app/Activity;Landroid/widget/FrameLayout;)Ldev/mixer/android/NativeEnvironmentV2;
+        51: astore        15
+        53: iconst_1
+        54: istore        6
+        56: aload_0
+        57: getfield      #46                 // Field session:J
+        60: iload_1
+        61: aload_2
+        62: invokestatic  #108                // Method dev/mixer/android/NativeBridge.prepareV2:(JI[B)Ldev/mixer/android/NativeBridge$Candidate;
+        65: astore        16
+        67: aload         16
+        69: invokevirtual #112                // Method dev/mixer/android/NativeBridge$Candidate.token:()J
+        72: lstore        4
+        74: lload         4
+        76: lconst_0
+        77: lcmp
+        78: ifne          91
+        81: new           #50                 // class java/lang/IllegalStateException
+        84: dup
+        85: ldc           #117                // String V2 invalid engine token
+        87: invokespecial #54                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+        90: athrow
+        91: iconst_1
+        92: istore        7
+        94: aload         16
+        96: invokevirtual #119                // Method dev/mixer/android/NativeBridge$Candidate.packet:()[B
+        99: astore        17
+       101: aload_0
+       102: getfield      #36                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+       105: aload         17
+       107: aload         14
+       109: aload         15
+       111: invokevirtual #123                // Method dev/mixer/android/NativeRenderer.prepareV2:([BLdev/mixer/android/InstalledAppearanceV2;Ldev/mixer/android/NativeEnvironmentV2;)Ldev/mixer/android/NativeRenderer$Candidate;
+       114: astore        12
+       116: aload         15
+       118: aload_0
+       119: getfield      #36                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+       122: invokevirtual #126                // Method dev/mixer/android/NativeEnvironmentV2.current:(Ljava/lang/Object;)Z
+       125: ifne          138
+       128: new           #50                 // class java/lang/IllegalStateException
+       131: dup
+       132: ldc           #132                // String V2 environment changed during preparation
+       134: invokespecial #54                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+       137: athrow
+       138: iconst_1
+       139: istore        8
+       141: aload_0
+       142: getfield      #36                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+       145: aload         12
+       147: aload_0
+       148: getfield      #23                 // Field root:Landroid/widget/FrameLayout;
+       151: invokevirtual #134                // Method dev/mixer/android/NativeRenderer.attachV2:(Ldev/mixer/android/NativeRenderer$Candidate;Landroid/widget/FrameLayout;)Ldev/mixer/android/NativeRenderer$AttachmentJournal;
+       154: astore        13
+       156: aload_0
+       157: getfield      #36                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+       160: aload         12
+       162: aload         13
+       164: invokevirtual #138                // Method dev/mixer/android/NativeRenderer.validateAttachedV2:(Ldev/mixer/android/NativeRenderer$Candidate;Ldev/mixer/android/NativeRenderer$AttachmentJournal;)V
+       167: iconst_1
+       168: istore        9
+       170: aload_0
+       171: getfield      #46                 // Field session:J
+       174: lload         4
+       176: invokestatic  #142                // Method dev/mixer/android/NativeBridge.commitV2:(JJ)I
+       179: istore        18
+       181: iload         18
+       183: ifne          204
+       186: aload_0
+       187: getfield      #36                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+       190: aload         12
+       192: aload         13
+       194: invokevirtual #146                // Method dev/mixer/android/NativeRenderer.finishV2:(Ldev/mixer/android/NativeRenderer$Candidate;Ldev/mixer/android/NativeRenderer$AttachmentJournal;)V
+       197: aload_0
+       198: aload         17
+       200: putfield      #66                 // Field committedPacket:[B
+       203: return
+       204: iload         18
+       206: iconst_1
+       207: if_icmplt     221
+       210: iload         18
+       212: bipush        7
+       214: if_icmpgt     221
+       217: iconst_1
+       218: goto          222
+       221: iconst_0
+       222: istore        10
+       224: iload         18
+       226: iconst_2
+       227: if_icmpne     234
+       230: iconst_1
+       231: goto          235
+       234: iconst_0
+       235: istore        11
+       237: new           #50                 // class java/lang/IllegalStateException
+       240: dup
+       241: iload         18
+       243: invokedynamic #149,  0            // InvokeDynamic #1:makeConcatWithConstants:(I)Ljava/lang/String;
+       248: invokespecial #54                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+       251: athrow
+       252: astore        14
+       254: aload_0
+       255: getfield      #87                 // Field retired:Z
+       258: ifeq          264
+       261: aload         14
+       263: athrow
+       264: iload         6
+       266: ifeq          274
+       269: iload         7
+       271: ifeq          284
+       274: iload         9
+       276: ifeq          288
+       279: iload         10
+       281: ifne          288
+       284: iconst_1
+       285: goto          289
+       288: iconst_0
+       289: istore        15
+       291: iload         15
+       293: ifne          310
+       296: iload         11
+       298: ifne          310
+       301: iload_3
+       302: ifne          310
+       305: iload         6
+       307: ifne          314
+       310: iconst_1
+       311: goto          315
+       314: iconst_0
+       315: istore        16
+       317: iconst_0
+       318: istore        17
+       320: aconst_null
+       321: astore        18
+       323: aconst_null
+       324: astore        19
+       326: iload         15
+       328: ifne          374
+       331: lload         4
+       333: lconst_0
+       334: lcmp
+       335: ifeq          374
+       338: aload_0
+       339: getfield      #46                 // Field session:J
+       342: lload         4
+       344: invokestatic  #153                // Method dev/mixer/android/NativeBridge.abortV2:(JJ)I
+       347: ifne          354
+       350: iconst_1
+       351: goto          355
+       354: iconst_0
+       355: istore        17
+       357: goto          366
+       360: astore        20
+       362: aload         20
+       364: astore        18
+       366: iload         17
+       368: ifne          374
+       371: iconst_1
+       372: istore        16
+       374: iload         8
+       376: ifeq          390
+       379: aload         13
+       381: ifnonnull     390
+       384: iconst_1
+       385: istore        16
+       387: goto          450
+       390: iload         15
+       392: ifne          450
+       395: iload         17
+       397: ifeq          450
+       400: iload         11
+       402: ifne          450
+       405: aload         12
+       407: ifnull        450
+       410: aload         13
+       412: ifnull        429
+       415: aload_0
+       416: getfield      #36                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+       419: aload         12
+       421: aload         13
+       423: invokevirtual #156                // Method dev/mixer/android/NativeRenderer.rollbackV2:(Ldev/mixer/android/NativeRenderer$Candidate;Ldev/mixer/android/NativeRenderer$AttachmentJournal;)V
+       426: goto          438
+       429: aload_0
+       430: getfield      #36                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+       433: aload         12
+       435: invokevirtual #159                // Method dev/mixer/android/NativeRenderer.discardV2:(Ldev/mixer/android/NativeRenderer$Candidate;)V
+       438: goto          450
+       441: astore        20
+       443: aload         20
+       445: astore        19
+       447: iconst_1
+       448: istore        16
+       450: iload         16
+       452: ifeq          461
+       455: aload_0
+       456: aload         14
+       458: invokevirtual #59                 // Method retire:(Ljava/lang/Throwable;)V
+       461: aload         14
+       463: aload         18
+       465: invokestatic  #163                // Method suppress:(Ljava/lang/Throwable;Ljava/lang/Throwable;)V
+       468: aload         14
+       470: aload         19
+       472: invokestatic  #163                // Method suppress:(Ljava/lang/Throwable;Ljava/lang/Throwable;)V
+       475: aload         14
+       477: athrow
+      Exception table:
+         from    to  target type
+            27   203   252   Class java/lang/RuntimeException
+            27   203   252   Class java/lang/Error
+           204   252   252   Class java/lang/RuntimeException
+           204   252   252   Class java/lang/Error
+           338   357   360   Class java/lang/RuntimeException
+           338   357   360   Class java/lang/Error
+           410   438   441   Class java/lang/RuntimeException
+           410   438   441   Class java/lang/Error
+
+  void refreshEnvironment();
+    Code:
+         0: aload_0
+         1: invokevirtual #63                 // Method enter:()V
+         4: aload_0
+         5: getfield      #66                 // Field committedPacket:[B
+         8: ifnonnull     21
+        11: new           #50                 // class java/lang/IllegalStateException
+        14: dup
+        15: ldc           #80                 // String V2 requires initial render
+        17: invokespecial #54                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+        20: athrow
+        21: aconst_null
+        22: astore_1
+        23: aconst_null
+        24: astore_2
+        25: iconst_0
+        26: istore_3
+        27: iconst_0
+        28: istore        4
+        30: aload_0
+        31: getfield      #36                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+        34: invokevirtual #100                // Method dev/mixer/android/NativeRenderer.captureInstalledV2:()Ldev/mixer/android/InstalledAppearanceV2;
+        37: astore        5
+        39: aload_0
+        40: getfield      #36                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+        43: aload_0
+        44: getfield      #19                 // Field activity:Landroid/app/Activity;
+        47: aload_0
+        48: getfield      #23                 // Field root:Landroid/widget/FrameLayout;
+        51: invokevirtual #104                // Method dev/mixer/android/NativeRenderer.captureEnvironmentV2:(Landroid/app/Activity;Landroid/widget/FrameLayout;)Ldev/mixer/android/NativeEnvironmentV2;
+        54: astore        6
+        56: aload_0
+        57: getfield      #36                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+        60: aload_0
+        61: getfield      #66                 // Field committedPacket:[B
+        64: aload         5
+        66: aload         6
+        68: invokevirtual #123                // Method dev/mixer/android/NativeRenderer.prepareV2:([BLdev/mixer/android/InstalledAppearanceV2;Ldev/mixer/android/NativeEnvironmentV2;)Ldev/mixer/android/NativeRenderer$Candidate;
+        71: astore_1
+        72: aload         6
+        74: aload_0
+        75: getfield      #36                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+        78: invokevirtual #126                // Method dev/mixer/android/NativeEnvironmentV2.current:(Ljava/lang/Object;)Z
+        81: ifne          94
+        84: new           #50                 // class java/lang/IllegalStateException
+        87: dup
+        88: ldc           #132                // String V2 environment changed during preparation
+        90: invokespecial #54                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+        93: athrow
+        94: iconst_1
+        95: istore_3
+        96: aload_0
+        97: getfield      #36                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+       100: aload_1
+       101: aload_0
+       102: getfield      #23                 // Field root:Landroid/widget/FrameLayout;
+       105: invokevirtual #134                // Method dev/mixer/android/NativeRenderer.attachV2:(Ldev/mixer/android/NativeRenderer$Candidate;Landroid/widget/FrameLayout;)Ldev/mixer/android/NativeRenderer$AttachmentJournal;
+       108: astore_2
+       109: aload_0
+       110: getfield      #36                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+       113: aload_1
+       114: aload_2
+       115: invokevirtual #138                // Method dev/mixer/android/NativeRenderer.validateAttachedV2:(Ldev/mixer/android/NativeRenderer$Candidate;Ldev/mixer/android/NativeRenderer$AttachmentJournal;)V
+       118: iconst_1
+       119: istore        4
+       121: aload_0
+       122: getfield      #36                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+       125: aload_1
+       126: aload_2
+       127: invokevirtual #146                // Method dev/mixer/android/NativeRenderer.finishV2:(Ldev/mixer/android/NativeRenderer$Candidate;Ldev/mixer/android/NativeRenderer$AttachmentJournal;)V
+       130: goto          214
+       133: astore        5
+       135: aload_0
+       136: getfield      #87                 // Field retired:Z
+       139: ifeq          145
+       142: aload         5
+       144: athrow
+       145: aconst_null
+       146: astore        6
+       148: iload         4
+       150: ifne          198
+       153: aload_1
+       154: ifnull        198
+       157: iload_3
+       158: ifeq          165
+       161: aload_2
+       162: ifnull        198
+       165: aload_2
+       166: ifnull        181
+       169: aload_0
+       170: getfield      #36                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+       173: aload_1
+       174: aload_2
+       175: invokevirtual #156                // Method dev/mixer/android/NativeRenderer.rollbackV2:(Ldev/mixer/android/NativeRenderer$Candidate;Ldev/mixer/android/NativeRenderer$AttachmentJournal;)V
+       178: goto          189
+       181: aload_0
+       182: getfield      #36                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+       185: aload_1
+       186: invokevirtual #159                // Method dev/mixer/android/NativeRenderer.discardV2:(Ldev/mixer/android/NativeRenderer$Candidate;)V
+       189: goto          198
+       192: astore        7
+       194: aload         7
+       196: astore        6
+       198: aload_0
+       199: aload         5
+       201: invokevirtual #59                 // Method retire:(Ljava/lang/Throwable;)V
+       204: aload         5
+       206: aload         6
+       208: invokestatic  #163                // Method suppress:(Ljava/lang/Throwable;Ljava/lang/Throwable;)V
+       211: aload         5
+       213: athrow
+       214: aload_0
+       215: iconst_0
+       216: putfield      #76                 // Field active:Z
+       219: goto          232
+       222: astore        8
+       224: aload_0
+       225: iconst_0
+       226: putfield      #76                 // Field active:Z
+       229: aload         8
+       231: athrow
+       232: return
+      Exception table:
+         from    to  target type
+            30   130   133   Class java/lang/RuntimeException
+            30   130   133   Class java/lang/Error
+           165   189   192   Class java/lang/RuntimeException
+           165   189   192   Class java/lang/Error
+             4   214   222   any
+           222   224   222   any
+
+  boolean isRetired();
+    Code:
+         0: invokestatic  #7                  // Method requireMain:()V
+         3: aload_0
+         4: getfield      #87                 // Field retired:Z
+         7: ireturn
+
+  boolean hasCommittedPresentation();
+    Code:
+         0: invokestatic  #7                  // Method requireMain:()V
+         3: aload_0
+         4: getfield      #87                 // Field retired:Z
+         7: ifne          21
+        10: aload_0
+        11: getfield      #66                 // Field committedPacket:[B
+        14: ifnull        21
+        17: iconst_1
+        18: goto          22
+        21: iconst_0
+        22: ireturn
+
+  java.lang.RuntimeException lastNativeInputFailure();
+    Code:
+         0: invokestatic  #7                  // Method requireMain:()V
+         3: aload_0
+         4: getfield      #96                 // Field lastNativeInputFailure:Ljava/lang/RuntimeException;
+         7: areturn
+
+  public void close();
+    Code:
+         0: aload_0
+         1: invokevirtual #63                 // Method enter:()V
+         4: aload_0
+         5: aconst_null
+         6: invokevirtual #59                 // Method retire:(Ljava/lang/Throwable;)V
+         9: aload_0
+        10: iconst_0
+        11: putfield      #76                 // Field active:Z
+        14: goto          25
+        17: astore_1
+        18: aload_0
+        19: iconst_0
+        20: putfield      #76                 // Field active:Z
+        23: aload_1
+        24: athrow
+        25: return
+      Exception table:
+         from    to  target type
+             4     9    17   any
+
+  private void enter();
+    Code:
+         0: invokestatic  #7                  // Method requireMain:()V
+         3: aload_0
+         4: getfield      #87                 // Field retired:Z
+         7: ifeq          20
+        10: new           #50                 // class java/lang/IllegalStateException
+        13: dup
+        14: ldc           #90                 // String V2 coordinator retired
+        16: invokespecial #54                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+        19: athrow
+        20: aload_0
+        21: getfield      #76                 // Field active:Z
+        24: ifeq          37
+        27: new           #50                 // class java/lang/IllegalStateException
+        30: dup
+        31: ldc           #167                // String V2 coordinator reentrant call
+        33: invokespecial #54                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+        36: athrow
+        37: aload_0
+        38: iconst_1
+        39: putfield      #76                 // Field active:Z
+        42: return
+
+  private static void requireMain();
+    Code:
+         0: invokestatic  #169                // Method android/os/Looper.myLooper:()Landroid/os/Looper;
+         3: invokestatic  #175                // Method android/os/Looper.getMainLooper:()Landroid/os/Looper;
+         6: if_acmpeq     19
+         9: new           #50                 // class java/lang/IllegalStateException
+        12: dup
+        13: ldc           #178                // String V2 coordinator requires main Looper
+        15: invokespecial #54                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+        18: athrow
+        19: return
+
+  private void retire(java.lang.Throwable);
+    Code:
+         0: aload_0
+         1: getfield      #87                 // Field retired:Z
+         4: ifeq          8
+         7: return
+         8: aload_0
+         9: iconst_1
+        10: putfield      #87                 // Field retired:Z
+        13: aload_0
+        14: aconst_null
+        15: putfield      #66                 // Field committedPacket:[B
+        18: aload_0
+        19: getfield      #46                 // Field session:J
+        22: lstore_2
+        23: aload_0
+        24: lconst_0
+        25: putfield      #46                 // Field session:J
+        28: aconst_null
+        29: astore        4
+        31: aconst_null
+        32: astore        5
+        34: aload_0
+        35: getfield      #36                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+        38: invokevirtual #180                // Method dev/mixer/android/NativeRenderer.disposeV2:()V
+        41: goto          50
+        44: astore        6
+        46: aload         6
+        48: astore        4
+        50: lload_2
+        51: lconst_0
+        52: lcmp
+        53: ifeq          60
+        56: lload_2
+        57: invokestatic  #183                // Method dev/mixer/android/NativeBridge.destroy:(J)V
+        60: goto          69
+        63: astore        6
+        65: aload         6
+        67: astore        5
+        69: aload_1
+        70: ifnull        88
+        73: aload_1
+        74: aload         4
+        76: invokestatic  #163                // Method suppress:(Ljava/lang/Throwable;Ljava/lang/Throwable;)V
+        79: aload_1
+        80: aload         5
+        82: invokestatic  #163                // Method suppress:(Ljava/lang/Throwable;Ljava/lang/Throwable;)V
+        85: goto          153
+        88: aload         4
+        90: ifnull        124
+        93: aload         4
+        95: aload         5
+        97: invokestatic  #163                // Method suppress:(Ljava/lang/Throwable;Ljava/lang/Throwable;)V
+       100: aload         4
+       102: instanceof    #55                 // class java/lang/RuntimeException
+       105: ifeq          118
+       108: aload         4
+       110: checkcast     #55                 // class java/lang/RuntimeException
+       113: astore        7
+       115: aload         7
+       117: athrow
+       118: aload         4
+       120: checkcast     #57                 // class java/lang/Error
+       123: athrow
+       124: aload         5
+       126: instanceof    #55                 // class java/lang/RuntimeException
+       129: ifeq          142
+       132: aload         5
+       134: checkcast     #55                 // class java/lang/RuntimeException
+       137: astore        6
+       139: aload         6
+       141: athrow
+       142: aload         5
+       144: ifnull        153
+       147: aload         5
+       149: checkcast     #57                 // class java/lang/Error
+       152: athrow
+       153: return
+      Exception table:
+         from    to  target type
+            34    41    44   Class java/lang/RuntimeException
+            34    41    44   Class java/lang/Error
+            50    60    63   Class java/lang/RuntimeException
+            50    60    63   Class java/lang/Error
+
+  private static void suppress(java.lang.Throwable, java.lang.Throwable);
+    Code:
+         0: aload_1
+         1: ifnull        14
+         4: aload_1
+         5: aload_0
+         6: if_acmpeq     14
+         9: aload_0
+        10: aload_1
+        11: invokevirtual #187                // Method java/lang/Throwable.addSuppressed:(Ljava/lang/Throwable;)V
+        14: return
+
+  private static void rethrowNestedError(java.lang.Throwable);
+    Code:
+         0: new           #192                // class java/util/ArrayDeque
+         3: dup
+         4: invokespecial #194                // Method java/util/ArrayDeque."<init>":()V
+         7: astore_1
+         8: new           #195                // class java/util/IdentityHashMap
+        11: dup
+        12: invokespecial #197                // Method java/util/IdentityHashMap."<init>":()V
+        15: astore_2
+        16: aload_1
+        17: aload_0
+        18: invokevirtual #198                // Method java/util/ArrayDeque.add:(Ljava/lang/Object;)Z
+        21: pop
+        22: aload_1
+        23: invokevirtual #201                // Method java/util/ArrayDeque.isEmpty:()Z
+        26: ifne          129
+        29: aload_1
+        30: invokevirtual #205                // Method java/util/ArrayDeque.removeFirst:()Ljava/lang/Object;
+        33: checkcast     #188                // class java/lang/Throwable
+        36: astore_3
+        37: aload_2
+        38: aload_3
+        39: getstatic     #209                // Field java/lang/Boolean.TRUE:Ljava/lang/Boolean;
+        42: invokevirtual #215                // Method java/util/IdentityHashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+        45: ifnull        51
+        48: goto          22
+        51: aload_3
+        52: instanceof    #57                 // class java/lang/Error
+        55: ifeq          67
+        58: aload_3
+        59: checkcast     #57                 // class java/lang/Error
+        62: astore        4
+        64: aload         4
+        66: athrow
+        67: aload_3
+        68: invokevirtual #219                // Method java/lang/Throwable.getCause:()Ljava/lang/Throwable;
+        71: astore        4
+        73: aload         4
+        75: ifnull        85
+        78: aload_1
+        79: aload         4
+        81: invokevirtual #198                // Method java/util/ArrayDeque.add:(Ljava/lang/Object;)Z
+        84: pop
+        85: aload_3
+        86: invokevirtual #223                // Method java/lang/Throwable.getSuppressed:()[Ljava/lang/Throwable;
+        89: astore        5
+        91: aload         5
+        93: arraylength
+        94: istore        6
+        96: iconst_0
+        97: istore        7
+        99: iload         7
+       101: iload         6
+       103: if_icmpge     126
+       106: aload         5
+       108: iload         7
+       110: aaload
+       111: astore        8
+       113: aload_1
+       114: aload         8
+       116: invokevirtual #198                // Method java/util/ArrayDeque.add:(Ljava/lang/Object;)Z
+       119: pop
+       120: iinc          7, 1
+       123: goto          99
+       126: goto          22
+       129: return
+}

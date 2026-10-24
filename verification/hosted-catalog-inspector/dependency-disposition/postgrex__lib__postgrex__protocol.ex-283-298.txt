@@ -1,0 +1,16 @@
+283:   @spec disconnect(Exception.t(), state) :: :ok
+284:   def disconnect(_, s) do
+285:     # cancel the request first otherwise PostgreSQL will log
+286:     # every time the connection is explicitly disconnected
+287:     # because the associated PID will no longer exist.
+288:     #
+289:     # Note we don't log when failing to cancel requests,
+290:     # in case the socket is not available or terminated.
+291:     _ = cancel_request(s)
+292:     terminate(s)
+293:     sock_close(s)
+294:     _ = recv_buffer(s)
+295:     delete_parameters(s)
+296:     queries_delete(s)
+297:     :ok
+298:   end

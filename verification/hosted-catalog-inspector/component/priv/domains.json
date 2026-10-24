@@ -1,0 +1,258 @@
+{
+  "groups": {
+    "constraints": {
+      "deferrable": "bool",
+      "definition": "text",
+      "identity": "text",
+      "inheritance_count": "int16",
+      "initially_deferred": "bool",
+      "local": "bool",
+      "no_inherit": "bool",
+      "oid": "positive_oid",
+      "parent_identity": "nullable_text",
+      "parent_oid": "optional_oid",
+      "relation": "text",
+      "type": "constraint_type",
+      "validated": "bool"
+    },
+    "indexes": {
+      "definition": "text",
+      "exclusion": "bool",
+      "identity": "text",
+      "immediate": "bool",
+      "live": "bool",
+      "nulls_not_distinct": "bool",
+      "oid": "positive_oid",
+      "primary": "bool",
+      "ready": "bool",
+      "relation": "text",
+      "unique": "bool",
+      "valid": "bool"
+    },
+    "parameter_acl": {
+      "acl": "nullable_text",
+      "entries": "nullable_acl_entries",
+      "oid": "positive_oid",
+      "parameter": "text"
+    },
+    "parameter_effective": {
+      "alter_system": "bool",
+      "context": "nullable_text",
+      "parameter": "text",
+      "registered": "bool",
+      "selected_set": "bool",
+      "set": "bool",
+      "subject": "text"
+    },
+    "parameter_public": {
+      "alter_system": "bool",
+      "context": "nullable_text",
+      "parameter": "text",
+      "registered": "bool",
+      "selected_set": "bool",
+      "set": "bool"
+    },
+    "relations": {
+      "identity": "text",
+      "kind": "relation_kind",
+      "oid": "positive_oid",
+      "persistence": "persistence",
+      "replica_identity": "replica_identity"
+    },
+    "role_config": {
+      "config": "nullable_config",
+      "role": "text"
+    },
+    "startup_defaults": {
+      "config": "nullable_config",
+      "database": "nullable_text",
+      "database_oid": "optional_oid",
+      "role": "nullable_text",
+      "role_oid": "optional_oid"
+    },
+    "triggers": {
+      "argument_count": "int16",
+      "argument_hex": "hex",
+      "columns": "int2vector",
+      "constraint_identity": "nullable_text",
+      "constraint_index": "nullable_text",
+      "constraint_index_oid": "optional_oid",
+      "constraint_oid": "optional_oid",
+      "deferrable": "bool",
+      "definition": "text",
+      "enabled": "trigger_enable_mode",
+      "event_timing_bits": "trigger_bits",
+      "function_identity": "text",
+      "function_oid": "positive_oid",
+      "initially_deferred": "bool",
+      "internal": "bool",
+      "name": "identifier",
+      "new_table": "nullable_identifier",
+      "oid": "positive_oid",
+      "old_table": "nullable_identifier",
+      "parent_identity": "nullable_parent",
+      "parent_oid": "optional_oid",
+      "referenced_relation": "nullable_text",
+      "referenced_relation_oid": "optional_oid",
+      "relation": "text",
+      "relation_oid": "positive_oid",
+      "when": "nullable_text"
+    }
+  },
+  "legacy": {
+    "database": [
+      "object",
+      {
+        "acl": "empty_text",
+        "name": "identifier",
+        "owner": "identifier"
+      }
+    ],
+    "default_acl": [
+      "objects",
+      {
+        "acl": "text",
+        "owner": "identifier",
+        "schema": "empty_text",
+        "type": "text"
+      }
+    ],
+    "functions": [
+      "nullable_objects",
+      {
+        "acl": "empty_text",
+        "config": "nullable_config",
+        "definition": "text",
+        "definition_sha256": "text",
+        "identity": "text",
+        "language": "identifier",
+        "leakproof": "bool",
+        "owner": "identifier",
+        "parallel": "text",
+        "public_execute": "bool",
+        "runtime_execute": "bool",
+        "security_definer": "bool",
+        "volatility": "text",
+        "writer_execute": "bool"
+      }
+    ],
+    "memberships": [
+      "objects",
+      {
+        "admin": "bool",
+        "inherit": "bool",
+        "member": "identifier",
+        "role": "identifier",
+        "set": "bool"
+      }
+    ],
+    "policies": [
+      "nullable_objects",
+      {
+        "check": "nullable_text",
+        "command": "text",
+        "name": "identifier",
+        "permissive": "text",
+        "roles": [
+          "strings",
+          "identifier"
+        ],
+        "table": "identifier",
+        "using": "nullable_text"
+      }
+    ],
+    "roles": [
+      "nullable_objects",
+      {
+        "bypass": "bool",
+        "createdb": "bool",
+        "createrole": "bool",
+        "inherit": "bool",
+        "login": "bool",
+        "name": "identifier",
+        "replication": "bool",
+        "super": "bool"
+      }
+    ],
+    "runtime_capabilities": [
+      "object",
+      {
+        "authz_create": "bool",
+        "database_create": "bool",
+        "database_temp": "bool",
+        "public_create": "bool",
+        "reachable": [
+          "strings",
+          "identifier"
+        ]
+      }
+    ],
+    "runtime_creatable_schemas": [
+      "strings",
+      "identifier"
+    ],
+    "runtime_owned_objects": [
+      "strings",
+      "text"
+    ],
+    "schemas": [
+      "nullable_objects",
+      {
+        "acl": "empty_text",
+        "name": "identifier",
+        "owner": "identifier"
+      }
+    ],
+    "server_version": "text",
+    "tables": [
+      "nullable_objects",
+      {
+        "acl": "empty_text",
+        "columns": [
+          "nullable_objects",
+          {
+            "acl": "empty_text",
+            "collation": "nullable_text",
+            "name": "identifier",
+            "notnull": "bool",
+            "type": "text"
+          }
+        ],
+        "constraints": [
+          "nullable_objects",
+          {
+            "definition": "text",
+            "name": "identifier"
+          }
+        ],
+        "force": "bool",
+        "indexes": [
+          "nullable_strings",
+          "text"
+        ],
+        "name": "identifier",
+        "owner": "identifier",
+        "rls": "bool",
+        "triggers": [
+          "nullable_strings",
+          "text"
+        ]
+      }
+    ],
+    "types": [
+      "nullable_objects",
+      {
+        "acl": "empty_text",
+        "fields": [
+          "nullable_objects",
+          {
+            "name": "identifier",
+            "type": "text"
+          }
+        ],
+        "name": "identifier",
+        "owner": "identifier"
+      }
+    ]
+  }
+}

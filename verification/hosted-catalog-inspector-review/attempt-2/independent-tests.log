@@ -1,0 +1,77 @@
+Running ExUnit with seed: 0, max_cases: 1
+Excluding tags: [:test]
+Including tags: [location: {"test/review_test.exs", 272}]
+
+
+MixerInspectorIndependent.ReviewTest [test/review_test.exs]
+  * test baseline observes both fixed sessions and one bounded observer transaction [L#87]  * test baseline observes both fixed sessions and one bounded observer transaction (excluded) [L#87]
+  * test observer transitive protected authority and standalone column privilege reject [L#121]  * test observer transitive protected authority and standalone column privilege reject (excluded) [L#121]
+  * test both held contexts reject nesting aliases catalog occupancy and catalog dynamic changes [L#151]  * test both held contexts reject nesting aliases catalog occupancy and catalog dynamic changes (excluded) [L#151]
+  * test raw lossy fields strict primitives Unicode ordering and exact parser limits remain closed [L#198]  * test raw lossy fields strict primitives Unicode ordering and exact parser limits remain closed (excluded) [L#198]
+  * test independent canonical vectors and decoder byte node depth key boundaries [L#221]  * test independent canonical vectors and decoder byte node depth key boundaries (excluded) [L#221]
+  * test hostile path function and type shadows cannot spoof either real connection [L#243]  * test hostile path function and type shadows cannot spoof either real connection (excluded) [L#243]
+  * test expired holder is quarantined while paused owned driver leaves original backend alive [L#272]
+07:11:04.889 [error] Postgrex.Protocol (#PID<0.390.0> ({Postgrex.Protocol, "authority_contract"})) disconnected: ** (DBConnection.ConnectionError) client #PID<0.397.0> ({MixerInspectorIndependent.ReviewTest, :"test expired holder is quarantined while paused owned driver leaves original backend alive"}) timed out because it queued and checked out the connection for longer than 5000ms
+
+#PID<0.397.0> ({MixerInspectorIndependent.ReviewTest, :"test expired holder is quarantined while paused owned driver leaves original backend alive"}) was at location:
+
+    (elixir 1.20.4) lib/process.ex:330: Process.sleep/1
+    (telemetry 1.4.2) src/telemetry.erl:202: :telemetry.do_execute/4
+    (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1315: Ecto.Adapters.SQL.log/5
+    (db_connection 2.10.2) lib/db_connection.ex:1708: DBConnection.log/5
+    (postgrex 0.22.4) lib/postgrex.ex:353: Postgrex.query_prepare_execute/4
+    (mixer_catalog_inspector 0.1.0) lib/mixer_hosted/catalog_inspector.ex:254: MixerHosted.CatalogInspector.query!/3
+    (mixer_catalog_inspector 0.1.0) lib/mixer_hosted/catalog_inspector.ex:126: anonymous fn/4 in MixerHosted.CatalogInspector.verify/2
+    test/review_test.exs:6: anonymous fn/1 in MixerInspectorIndependent.ObserverRepo.transaction/2
+    (ecto 3.14.2) lib/ecto/repo/transaction.ex:11: anonymous fn/3 in Ecto.Repo.Transaction.transact/4
+    (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1481: anonymous fn/3 in Ecto.Adapters.SQL.checkout_or_transaction/4
+    (db_connection 2.10.2) lib/db_connection.ex:1760: DBConnection.run_transaction/5
+    (mixer_catalog_inspector 0.1.0) lib/mixer_hosted/catalog_inspector.ex:116: anonymous fn/5 in MixerHosted.CatalogInspector.verify/2
+    (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1481: anonymous fn/3 in Ecto.Adapters.SQL.checkout_or_transaction/4
+    (db_connection 2.10.2) lib/db_connection.ex:995: DBConnection.run/3
+    (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1481: anonymous fn/3 in Ecto.Adapters.SQL.checkout_or_transaction/4
+    (db_connection 2.10.2) lib/db_connection.ex:995: DBConnection.run/3
+    (mixer_catalog_inspector 0.1.0) lib/mixer_hosted/catalog_inspector.ex:99: MixerHosted.CatalogInspector.verify/2
+    test/review_test.exs:293: MixerInspectorIndependent.ReviewTest."test expired holder is quarantined while paused owned driver leaves original backend alive"/1
+    (ex_unit 1.20.4) lib/ex_unit/runner.ex:533: ExUnit.Runner.exec_test/2
+    (stdlib 8.1) timer.erl:599: :timer.tc/2
+
+
+07:11:04.945 [error] Postgrex.Protocol (#PID<0.394.0> ({Postgrex.Protocol, "authority_contract"})) disconnected: ** (DBConnection.ConnectionError) client #PID<0.397.0> ({MixerInspectorIndependent.ReviewTest, :"test expired holder is quarantined while paused owned driver leaves original backend alive"}) timed out because it queued and checked out the connection for longer than 4997ms
+
+#PID<0.397.0> ({MixerInspectorIndependent.ReviewTest, :"test expired holder is quarantined while paused owned driver leaves original backend alive"}) was at location:
+
+    (elixir 1.20.4) lib/process.ex:330: Process.sleep/1
+    (telemetry 1.4.2) src/telemetry.erl:202: :telemetry.do_execute/4
+    (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1315: Ecto.Adapters.SQL.log/5
+    (db_connection 2.10.2) lib/db_connection.ex:1708: DBConnection.log/5
+    (postgrex 0.22.4) lib/postgrex.ex:353: Postgrex.query_prepare_execute/4
+    (mixer_catalog_inspector 0.1.0) lib/mixer_hosted/catalog_inspector.ex:254: MixerHosted.CatalogInspector.query!/3
+    (mixer_catalog_inspector 0.1.0) lib/mixer_hosted/catalog_inspector.ex:126: anonymous fn/4 in MixerHosted.CatalogInspector.verify/2
+    test/review_test.exs:6: anonymous fn/1 in MixerInspectorIndependent.ObserverRepo.transaction/2
+    (ecto 3.14.2) lib/ecto/repo/transaction.ex:11: anonymous fn/3 in Ecto.Repo.Transaction.transact/4
+    (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1481: anonymous fn/3 in Ecto.Adapters.SQL.checkout_or_transaction/4
+    (db_connection 2.10.2) lib/db_connection.ex:1760: DBConnection.run_transaction/5
+    (mixer_catalog_inspector 0.1.0) lib/mixer_hosted/catalog_inspector.ex:116: anonymous fn/5 in MixerHosted.CatalogInspector.verify/2
+    (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1481: anonymous fn/3 in Ecto.Adapters.SQL.checkout_or_transaction/4
+    (db_connection 2.10.2) lib/db_connection.ex:995: DBConnection.run/3
+    (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1481: anonymous fn/3 in Ecto.Adapters.SQL.checkout_or_transaction/4
+    (db_connection 2.10.2) lib/db_connection.ex:995: DBConnection.run/3
+    (mixer_catalog_inspector 0.1.0) lib/mixer_hosted/catalog_inspector.ex:99: MixerHosted.CatalogInspector.verify/2
+    test/review_test.exs:293: MixerInspectorIndependent.ReviewTest."test expired holder is quarantined while paused owned driver leaves original backend alive"/1
+    (ex_unit 1.20.4) lib/ex_unit/runner.ex:533: ExUnit.Runner.exec_test/2
+    (stdlib 8.1) timer.erl:599: :timer.tc/2
+
+  * test expired holder is quarantined while paused owned driver leaves original backend alive (5225.7ms) [L#272]
+
+Finished in 5.4 seconds (0.00s async, 5.4s sync)
+
+Result: 1 passed, 6 excluded
+warning: "xref: [exclude: ...]" in your mix.exs file is deprecated, instead use: "elixirc_options: [no_warn_undefined: ...]"
+  (mix 1.20.4) lib/mix/tasks/compile.elixir.ex:243: Mix.Tasks.Compile.Elixir.xref_exclude_opts/2
+  (mix 1.20.4) lib/mix/tasks/compile.elixir.ex:142: Mix.Tasks.Compile.Elixir.run/1
+  (mix 1.20.4) lib/mix/task.ex:502: anonymous fn/3 in Mix.Task.run_task/5
+  (mix 1.20.4) lib/mix/task.compiler.ex:299: Mix.Task.Compiler.run_compiler/2
+  (mix 1.20.4) lib/mix/task.compiler.ex:287: Mix.Task.Compiler.run/4
+  (mix 1.20.4) lib/mix/tasks/compile.all.ex:75: Mix.Tasks.Compile.All.do_run/2
+

@@ -1,0 +1,189 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+
+MixerCatalogInspector.RuntimeTest [test/runtime_test.exs]
+  * test runtime-only reads accept the selected baseline with fresh portable OIDs [L#72]  * test runtime-only reads accept the selected baseline with fresh portable OIDs (5.0ms) [L#72]
+
+  1) test runtime-only reads accept the selected baseline with fresh portable OIDs (MixerCatalogInspector.RuntimeTest)
+     test/runtime_test.exs:72
+     Assertion with == failed
+     code:  assert CatalogInspector.verify(RuntimeRepo) == success()
+     left:  {:error, :catalog_unavailable}
+     right: {:ok,
+             %{
+               manifest_sha256: "78c0c8a56c6d358eda1e8a183176d5fe7b7e67e9427bdeb4aa1bb308dfaa8e6e",
+               snapshot_scope: :point_in_time
+             }}
+     stacktrace:
+       test/runtime_test.exs:74: (test)
+
+  * test ordinary drift rejects and both successful and failed calls close the original transaction [L#91]  * test ordinary drift rejects and both successful and failed calls close the original transaction (79.2ms) [L#91]
+
+  2) test ordinary drift rejects and both successful and failed calls close the original transaction (MixerCatalogInspector.RuntimeTest)
+     test/runtime_test.exs:91
+     Assertion with == failed
+     code:  assert CatalogInspector.verify(RuntimeRepo) == success()
+     left:  {:error, :catalog_mismatch}
+     right: {:ok,
+             %{
+               manifest_sha256: "78c0c8a56c6d358eda1e8a183176d5fe7b7e67e9427bdeb4aa1bb308dfaa8e6e",
+               snapshot_scope: :point_in_time
+             }}
+     stacktrace:
+       test/runtime_test.exs:100: (test)
+
+  * test positive OID literal-star roles and defaults validate raw but selected comparison rejects [L#105]  * test positive OID literal-star roles and defaults validate raw but selected comparison rejects (75.1ms) [L#105]
+
+  3) test positive OID literal-star roles and defaults validate raw but selected comparison rejects (MixerCatalogInspector.RuntimeTest)
+     test/runtime_test.exs:105
+     Assertion with == failed
+     code:  assert CatalogInspector.verify(RuntimeRepo) == success()
+     left:  {:error, :catalog_mismatch}
+     right: {:ok,
+             %{
+               manifest_sha256: "78c0c8a56c6d358eda1e8a183176d5fe7b7e67e9427bdeb4aa1bb308dfaa8e6e",
+               snapshot_scope: :point_in_time
+             }}
+     stacktrace:
+       test/runtime_test.exs:116: (test)
+
+  * test nested transaction and checked-out calls reject without adopting their context [L#121]
+06:40:38.997 [debug] QUERY OK db=0.0ms idle=8.2ms
+begin []
+
+06:40:38.998 [debug] QUERY OK db=0.0ms
+commit []
+  * test nested transaction and checked-out calls reject without adopting their context (2.6ms) [L#121]
+  * test queue false rejects pool occupancy promptly without starting inspection [L#130]  * test queue false rejects pool occupancy promptly without starting inspection (0.6ms) [L#130]
+  * test unsafe fresh-session state rejects before BEGIN and is never repaired by inspector [L#149]  * test unsafe fresh-session state rejects before BEGIN and is never repaired by inspector (26.6ms) [L#149]
+
+  4) test unsafe fresh-session state rejects before BEGIN and is never repaired by inspector (MixerCatalogInspector.RuntimeTest)
+     test/runtime_test.exs:149
+     Assertion with == failed
+     code:  assert CatalogInspector.verify(RuntimeRepo) == success()
+     left:  {:error, :catalog_mismatch}
+     right: {:ok,
+             %{
+               manifest_sha256: "78c0c8a56c6d358eda1e8a183176d5fe7b7e67e9427bdeb4aa1bb308dfaa8e6e",
+               snapshot_scope: :point_in_time
+             }}
+     stacktrace:
+       test/runtime_test.exs:157: (test)
+
+  * test catalog lock timeout reports actual SQLSTATE and rolls back [L#162]  * test catalog lock timeout reports actual SQLSTATE and rolls back (280.8ms) [L#162]
+
+  5) test catalog lock timeout reports actual SQLSTATE and rolls back (MixerCatalogInspector.RuntimeTest)
+     test/runtime_test.exs:162
+     Assertion with == failed
+     code:  assert CatalogInspector.verify(RuntimeRepo) == success()
+     left:  {:error, :catalog_mismatch}
+     right: {:ok,
+             %{
+               manifest_sha256: "78c0c8a56c6d358eda1e8a183176d5fe7b7e67e9427bdeb4aa1bb308dfaa8e6e",
+               snapshot_scope: :point_in_time
+             }}
+     stacktrace:
+       test/runtime_test.exs:174: (test)
+
+  * test expired absolute deadline cannot return success and cleanup is observed separately [L#178]
+06:40:44.309 [error] Postgrex.Protocol (#PID<0.387.0> ({Postgrex.Protocol, "authority_contract"})) disconnected: ** (DBConnection.ConnectionError) client #PID<0.420.0> ({MixerCatalogInspector.RuntimeTest, :"test expired absolute deadline cannot return success and cleanup is observed separately"}) timed out because it queued and checked out the connection for longer than 5000ms
+
+#PID<0.420.0> ({MixerCatalogInspector.RuntimeTest, :"test expired absolute deadline cannot return success and cleanup is observed separately"}) was at location:
+
+    (elixir 1.20.4) lib/process.ex:330: Process.sleep/1
+    (telemetry 1.4.2) src/telemetry.erl:202: :telemetry.do_execute/4
+    (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1315: Ecto.Adapters.SQL.log/5
+    (db_connection 2.10.2) lib/db_connection.ex:1708: DBConnection.log/5
+    (postgrex 0.22.4) lib/postgrex.ex:353: Postgrex.query_prepare_execute/4
+    (mixer_catalog_inspector 0.1.0) lib/mixer_hosted/catalog_inspector.ex:119: MixerHosted.CatalogInspector.query!/3
+    (mixer_catalog_inspector 0.1.0) lib/mixer_hosted/catalog_inspector.ex:65: anonymous fn/3 in MixerHosted.CatalogInspector.verify/1
+    test/runtime_test.exs:2: anonymous fn/1 in MixerCatalogInspector.RuntimeRepo.transaction/2
+    (ecto 3.14.2) lib/ecto/repo/transaction.ex:11: anonymous fn/3 in Ecto.Repo.Transaction.transact/4
+    (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1481: anonymous fn/3 in Ecto.Adapters.SQL.checkout_or_transaction/4
+    (db_connection 2.10.2) lib/db_connection.ex:1760: DBConnection.run_transaction/5
+    (mixer_catalog_inspector 0.1.0) lib/mixer_hosted/catalog_inspector.ex:56: anonymous fn/2 in MixerHosted.CatalogInspector.verify/1
+    (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1481: anonymous fn/3 in Ecto.Adapters.SQL.checkout_or_transaction/4
+    (db_connection 2.10.2) lib/db_connection.ex:995: DBConnection.run/3
+    (mixer_catalog_inspector 0.1.0) lib/mixer_hosted/catalog_inspector.ex:50: MixerHosted.CatalogInspector.verify/1
+    test/runtime_test.exs:188: MixerCatalogInspector.RuntimeTest."test expired absolute deadline cannot return success and cleanup is observed separately"/1
+    (ex_unit 1.20.4) lib/ex_unit/runner.ex:533: ExUnit.Runner.exec_test/2
+    (stdlib 8.1) timer.erl:599: :timer.tc/2
+    (ex_unit 1.20.4) lib/ex_unit/runner.ex:455: anonymous fn/6 in ExUnit.Runner.spawn_test_monitor/4
+
+  * test expired absolute deadline cannot return success and cleanup is observed separately (5188.1ms) [L#178]
+
+  6) test expired absolute deadline cannot return success and cleanup is observed separately (MixerCatalogInspector.RuntimeTest)
+     test/runtime_test.exs:178
+     Assertion with == failed
+     code:  assert CatalogInspector.verify(RuntimeRepo) == success()
+     left:  {:error, :catalog_mismatch}
+     right: {:ok,
+             %{
+               manifest_sha256: "78c0c8a56c6d358eda1e8a183176d5fe7b7e67e9427bdeb4aa1bb308dfaa8e6e",
+               snapshot_scope: :point_in_time
+             }}
+     stacktrace:
+       test/runtime_test.exs:199: (test)
+
+  * test backend termination fails closed and a later connection requires fresh full verification [L#203]
+06:40:44.500 [error] Postgrex.Protocol (#PID<0.387.0> ({Postgrex.Protocol, "authority_contract"})) disconnected: ** (Postgrex.Error) FATAL 57P01 (admin_shutdown) terminating connection due to administrator command
+
+    query: SELECT pg_catalog.set_config('statement_timeout', $1, true)
+  * test backend termination fails closed and a later connection requires fresh full verification (135.4ms) [L#203]
+
+  7) test backend termination fails closed and a later connection requires fresh full verification (MixerCatalogInspector.RuntimeTest)
+     test/runtime_test.exs:203
+     Assertion with == failed
+     code:  assert CatalogInspector.verify(RuntimeRepo) == success()
+     left:  {:error, :catalog_mismatch}
+     right: {:ok,
+             %{
+               manifest_sha256: "78c0c8a56c6d358eda1e8a183176d5fe7b7e67e9427bdeb4aa1bb308dfaa8e6e",
+               snapshot_scope: :point_in_time
+             }}
+     stacktrace:
+       test/runtime_test.exs:218: (test)
+
+  * test server output envelope and raw string cap reject independently before comparison [L#223]  * test server output envelope and raw string cap reject independently before comparison (129.4ms) [L#223]
+
+  8) test server output envelope and raw string cap reject independently before comparison (MixerCatalogInspector.RuntimeTest)
+     test/runtime_test.exs:223
+     Assertion with == failed
+     code:  assert CatalogInspector.verify(RuntimeRepo) == success()
+     left:  {:error, :catalog_mismatch}
+     right: {:ok,
+             %{
+               manifest_sha256: "78c0c8a56c6d358eda1e8a183176d5fe7b7e67e9427bdeb4aa1bb308dfaa8e6e",
+               snapshot_scope: :point_in_time
+             }}
+     stacktrace:
+       test/runtime_test.exs:235: (test)
+
+  * test same read-only repeatable-read snapshot remains coherent across a concurrent committed catalog change [L#240]  * test same read-only repeatable-read snapshot remains coherent across a concurrent committed catalog change (25.0ms) [L#240]
+
+  9) test same read-only repeatable-read snapshot remains coherent across a concurrent committed catalog change (MixerCatalogInspector.RuntimeTest)
+     test/runtime_test.exs:240
+     Assertion with == failed
+     code:  assert CatalogInspector.verify(RuntimeRepo) == success()
+     left:  {:error, :catalog_mismatch}
+     right: {:ok,
+             %{
+               manifest_sha256: "78c0c8a56c6d358eda1e8a183176d5fe7b7e67e9427bdeb4aa1bb308dfaa8e6e",
+               snapshot_scope: :point_in_time
+             }}
+     stacktrace:
+       test/runtime_test.exs:251: (test)
+
+
+Finished in 6.1 seconds (0.00s async, 6.1s sync)
+
+Result: 2/11 passed
+Failed: 9 tests
+warning: "xref: [exclude: ...]" in your mix.exs file is deprecated, instead use: "elixirc_options: [no_warn_undefined: ...]"
+  (mix 1.20.4) lib/mix/tasks/compile.elixir.ex:243: Mix.Tasks.Compile.Elixir.xref_exclude_opts/2
+  (mix 1.20.4) lib/mix/tasks/compile.elixir.ex:142: Mix.Tasks.Compile.Elixir.run/1
+  (mix 1.20.4) lib/mix/task.ex:502: anonymous fn/3 in Mix.Task.run_task/5
+  (mix 1.20.4) lib/mix/task.compiler.ex:299: Mix.Task.Compiler.run_compiler/2
+  (mix 1.20.4) lib/mix/task.compiler.ex:287: Mix.Task.Compiler.run/4
+  (mix 1.20.4) lib/mix/tasks/compile.all.ex:75: Mix.Tasks.Compile.All.do_run/2
+

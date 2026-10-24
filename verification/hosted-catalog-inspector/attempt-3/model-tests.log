@@ -1,0 +1,33 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+
+MixerCatalogInspector.RawTest [test/raw_test.exs]
+  * test all accepted raw-model matrices execute through independently authored Elixir validation [L#21]  * test all accepted raw-model matrices execute through independently authored Elixir validation (4092.8ms) [L#21]
+  * test strict transport rejects duplicate keys, parser abuse and finite resource overflows [L#44]  * test strict transport rejects duplicate keys, parser abuse and finite resource overflows (41.2ms) [L#44]
+  * test unknown model keys cannot create dynamic atoms [L#64]  * test unknown model keys cannot create dynamic atoms (370.1ms) [L#64]
+  * test canonical bytes and portable array ordering match the selected Python oracle [L#85]  * test canonical bytes and portable array ordering match the selected Python oracle (3.9ms) [L#85]
+
+  1) test canonical bytes and portable array ordering match the selected Python oracle (MixerCatalogInspector.RawTest)
+     test/raw_test.exs:85
+     Assertion with == failed
+     code:  assert Raw.canonical(item["value"]) == item["canonical"]
+     left:  "\"\\u001F\""
+     right: "\"\\u001f\""
+     stacktrace:
+       test/raw_test.exs:87: anonymous fn/2 in MixerCatalogInspector.RawTest."test canonical bytes and portable array ordering match the selected Python oracle"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       test/raw_test.exs:87: (test)
+
+
+Finished in 4.5 seconds (0.00s async, 4.5s sync)
+
+Result: 3/4 passed
+Failed: 1 test
+warning: "xref: [exclude: ...]" in your mix.exs file is deprecated, instead use: "elixirc_options: [no_warn_undefined: ...]"
+  (mix 1.20.4) lib/mix/tasks/compile.elixir.ex:243: Mix.Tasks.Compile.Elixir.xref_exclude_opts/2
+  (mix 1.20.4) lib/mix/tasks/compile.elixir.ex:142: Mix.Tasks.Compile.Elixir.run/1
+  (mix 1.20.4) lib/mix/task.ex:502: anonymous fn/3 in Mix.Task.run_task/5
+  (mix 1.20.4) lib/mix/task.compiler.ex:299: Mix.Task.Compiler.run_compiler/2
+  (mix 1.20.4) lib/mix/task.compiler.ex:287: Mix.Task.Compiler.run/4
+  (mix 1.20.4) lib/mix/tasks/compile.all.ex:75: Mix.Tasks.Compile.All.do_run/2
+

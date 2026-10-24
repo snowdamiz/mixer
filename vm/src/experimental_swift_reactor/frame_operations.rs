@@ -1056,6 +1056,8 @@ pub(super) fn control_work_checkpoint(control: &RuntimeControl) {
 pub(super) mod control_operations;
 #[path = "memory_operations.rs"]
 pub(super) mod memory_operations;
+#[path = "bulk_memory_operations.rs"]
+pub(super) mod bulk_memory_operations;
 // ACCOUNTING_GENERATED_START
 struct PermanentPositions {
     owner_instance_source: SwiftReactorInstance,
@@ -27479,7 +27481,7 @@ pub(super) const ACTIVE_BYTES: usize =
 pub(super) const FRAME_OPERATION_BYTES: Option<usize> =
     match value_operations::VALUE_OPERATION_BYTES {
         Some(nested) => match ACTIVE_BYTES.checked_add(nested) {
-            Some(bytes) => match bytes.checked_add(control_operations::ACTIVE_BYTES) { Some(bytes) => bytes.checked_add(memory_operations::ACTIVE_BYTES), None => None },
+            Some(bytes) => match bytes.checked_add(control_operations::ACTIVE_BYTES) { Some(bytes) => match bytes.checked_add(memory_operations::ACTIVE_BYTES) { Some(bytes) => bytes.checked_add(bulk_memory_operations::ACTIVE_BYTES), None => None }, None => None },
             None => None,
         },
         None => None,

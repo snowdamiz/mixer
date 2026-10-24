@@ -1,0 +1,39 @@
+1756:   defp run_transaction(conn, fun, run, opts, reset_after?) do
+1757:     %DBConnection{conn_ref: conn_ref} = conn
+1758: 
+1759:     try do
+1760:       result = fun.(%{conn | conn_mode: :transaction})
+1761:       conclude(conn, result)
+1762:     catch
+1763:       :throw, {__MODULE__, ^conn_ref, reason} ->
+1764:         reset(conn)
+1765: 
+1766:         case rollback(conn, run, opts) do
+1767:           {:ok, _} ->
+1768:             {:error, reason}
+1769: 
+1770:           {:error, %DBConnection.TransactionError{}} ->
+1771:             {:error, reason}
+1772: 
+1773:           {:error, %DBConnection.ConnectionError{}} ->
+1774:             {:error, reason}
+1775: 
+1776:           {:error, err} ->
+1777:             raise err
+1778:         end
+1779: 
+1780:       kind, reason ->
+1781:         stack = __STACKTRACE__
+1782:         reset(conn)
+1783:         _ = rollback(conn, run, opts)
+1784:         :erlang.raise(kind, reason, stack)
+1785:     else
+1786:       result ->
+1787:         case commit(conn, run, opts) do
+1788:           {:ok, _} ->
+1789:             {:ok, result}
+1790: 
+1791:           {:error, %DBConnection.TransactionError{}} ->
+1792:             {:error, :rollback}
+1793: 
+1794:           {:error, err} ->

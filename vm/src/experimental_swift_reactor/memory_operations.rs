@@ -16,7 +16,7 @@ macro_rules! swift_memory_leaf {
 impl FrameOperationPhase<'_> {
     crate::experimental::execution::borrowed::shared_memory_methods!(
         self, SwiftRunFailure, swift_memory_leaf, (mut), memory_range,
-        memory_load, memory_store
+        memory_load, memory_store, (pub(super))
     );
 
     fn memory_trap(&mut self) -> SwiftRunFailure {
@@ -27,7 +27,7 @@ impl FrameOperationPhase<'_> {
         )
     }
 
-    fn memory_push_value(&mut self, value: Value) -> Result<(), SwiftRunFailure> {
+    pub(super) fn memory_push_value(&mut self, value: Value) -> Result<(), SwiftRunFailure> {
         #[cfg(test)]
         let old = super::tests::before_result_push(self.phase.operation.control);
         let result = self.phase.push_value(value);
@@ -36,7 +36,7 @@ impl FrameOperationPhase<'_> {
         result
     }
 
-    fn memory_pop_value(&mut self) -> Result<Value, SwiftRunFailure> {
+    pub(super) fn memory_pop_value(&mut self) -> Result<Value, SwiftRunFailure> {
         let before = self.phase.parts.values.len();
         let result = self.phase.pop_value();
         if result.is_err() && self.phase.parts.values.len() != before {
@@ -45,7 +45,7 @@ impl FrameOperationPhase<'_> {
         result
     }
 
-    fn memory_pop32(&mut self) -> Result<i32, SwiftRunFailure> {
+    pub(super) fn memory_pop32(&mut self) -> Result<i32, SwiftRunFailure> {
         match self.memory_pop_value()? {
             Value::I32(value) => Ok(value),
             _ => Err(self.invariant("swift_memory_address_type")),

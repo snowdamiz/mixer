@@ -21,14 +21,14 @@
 use super::cache::{CacheFailure, CacheUsage, ControlKind, FunctionCache, FunctionPin, Operation};
 use crate::{Cancellation, Value};
 #[allow(unused_imports)]
-use borrowed::{control_record, frozen_control_leaf, shared_control_methods, frozen_memory_leaf};
+use borrowed::{control_record, frozen_control_leaf, shared_control_methods, frozen_memory_leaf, frozen_bulk_memory_leaf};
 #[cfg(feature = "experimental-span-execution")]
 use std::mem::size_of;
 
 #[cfg_attr(not(feature = "experimental-span-execution"), allow(dead_code))]
 const PAGE: usize = 65536;
 #[cfg_attr(not(feature = "experimental-span-execution"), allow(dead_code))]
-const CHUNK: usize = 4096;
+pub(crate) const CHUNK: usize = 4096;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ExecutionBudget {
@@ -1006,7 +1006,7 @@ impl SpanInstance {
                     }
                     self.call(function)?;
                 }
-                Operation::MemorySize => self.push(Value::I32(self.usage.memory_pages as i32))?,
+                Operation::MemorySize => borrowed::shared_memory_size!(self, frozen_bulk_memory_leaf)?,
                 Operation::MemoryGrow => self.grow()?,
                 Operation::MemoryCopy => self.copy()?,
                 Operation::MemoryFill => self.fill()?,
@@ -1045,49 +1045,10 @@ impl SpanInstance {
         self.observe();
         result.map_err(|code| self.trap(code))
     }
-    borrowed::shared_memory_methods!(self, ExecutionFailure, frozen_memory_leaf, (), range, load, store);
-    fn bulk(&mut self, len: usize) -> Result<(), ExecutionFailure> {
-        self.charge(len.div_ceil(64) as u64, false)?;
-        self.work(len)
-    }
-    fn copy(&mut self) -> Result<(), ExecutionFailure> {
-        let len = self.pop32()? as u32 as usize;
-        let src = self.pop32()? as u32 as usize;
-        let dst = self.pop32()? as u32 as usize;
-        self.range(src, len)?;
-        self.range(dst, len)?;
-        self.bulk(len)?;
-        if dst > src {
-            let mut left = len;
-            while left != 0 {
-                self.check()?;
-                let n = left.min(CHUNK);
-                left -= n;
-                self.memory
-                    .copy_within(src + left..src + left + n, dst + left);
-            }
-        } else {
-            for at in (0..len).step_by(CHUNK) {
-                self.check()?;
-                let n = (len - at).min(CHUNK);
-                self.memory.copy_within(src + at..src + at + n, dst + at);
-            }
-        }
-        Ok(())
-    }
-    fn fill(&mut self) -> Result<(), ExecutionFailure> {
-        let len = self.pop32()? as u32 as usize;
-        let value = self.pop32()? as u8;
-        let dst = self.pop32()? as u32 as usize;
-        let range = self.range(dst, len)?;
-        self.bulk(len)?;
-        for start in (range.start..range.end).step_by(CHUNK) {
-            self.check()?;
-            let end = (start + CHUNK).min(range.end);
-            self.memory[start..end].fill(value);
-        }
-        Ok(())
-    }
+    borrowed::shared_memory_methods!(self, ExecutionFailure, frozen_memory_leaf, (), range, load, store, ());
+    borrowed::shared_bulk_memory_methods!(self, ExecutionFailure, frozen_bulk_memory_leaf, bulk, copy, fill);
+
+
     fn grow(&mut self) -> Result<(), ExecutionFailure> {
         let delta = self.pop32()? as u32;
         let old = self.usage.memory_pages;

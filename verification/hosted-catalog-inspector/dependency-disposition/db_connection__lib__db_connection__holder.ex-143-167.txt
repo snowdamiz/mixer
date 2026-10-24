@@ -1,0 +1,25 @@
+143: 
+144:   defp handle_or_cleanup(type, pool_ref, fun, args, opts) do
+145:     pool_ref(holder: holder, lock: lock) = pool_ref
+146: 
+147:     try do
+148:       :ets.lookup(holder, :conn)
+149:     rescue
+150:       ArgumentError ->
+151:         msg = "connection is closed because of an error, disconnect or timeout"
+152:         {:disconnect, DBConnection.ConnectionError.exception(msg), _state = :unused}
+153:     else
+154:       [conn(lock: conn_lock)] when conn_lock != lock ->
+155:         raise "an outdated connection has been given to DBConnection on #{fun}/#{length(args) + 2}"
+156: 
+157:       [conn(status: :error)] ->
+158:         msg = "connection is closed because of an error, disconnect or timeout"
+159:         {:disconnect, DBConnection.ConnectionError.exception(msg), _state = :unused}
+160: 
+161:       [conn(status: :aborted)] when type != :cleanup ->
+162:         msg = "transaction rolling back"
+163:         {:disconnect, DBConnection.ConnectionError.exception(msg), _state = :unused}
+164: 
+165:       [conn(module: module, state: state)] ->
+166:         holder_apply(holder, module, fun, args ++ [opts, state])
+167:     end

@@ -1,0 +1,13 @@
+--- reviewed/vm/src/experimental/execution/mod.rs
++++ integrated/vm/src/experimental/execution/mod.rs
+@@ -1047,8 +1047,8 @@
+     }
+     borrowed::shared_memory_methods!(self, ExecutionFailure, frozen_memory_leaf, (), range, load, store, ());
+     borrowed::shared_bulk_memory_methods!(self, ExecutionFailure, frozen_bulk_memory_leaf, bulk, copy, fill);
+-    
+-    
++
++
+     fn grow(&mut self) -> Result<(), ExecutionFailure> {
+         let delta = self.pop32()? as u32;
+         let old = self.usage.memory_pages;

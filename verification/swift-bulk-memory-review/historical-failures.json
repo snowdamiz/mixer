@@ -1,0 +1,86 @@
+[
+  {
+    "command": "python3 -B verification/swift-bulk-memory-review/adversarial.py",
+    "error": "error[E0599]: no variant, associated function, or constant named `WorkLimit` found for enum `control::SwiftRunFailureKind`",
+    "id": "review-adversarial-kind-spelling",
+    "recordedCommand": "fresh-adversarial-swift-debug",
+    "resolution": "Review-only assertion now uses actual WorkExhausted; four final configs pass",
+    "script": "adversarial-before-variant-fix.py",
+    "scriptSHA256": "e52da689f200187f1377437a5bead96fa048f60fb39803b0c09d9ff05d9f7c27",
+    "sourceArchive": "failed-adversarial-source.tar.gz",
+    "sourceManifest": "failed-adversarial-source-manifest.json",
+    "timestampNote": "Compiler/runtime command timestamps are in referenced receipts; outer selector failure time was not separately captured",
+    "toolVersions": "commands/rustc-version, commands/cargo-version, commands/python-version, commands/host-version"
+  },
+  {
+    "command": "python3 -B verification/swift-bulk-memory-review/canonical.py",
+    "error": "AssertionError: [] from mixer_vm-*.mir lookup; compiler itself exited 0",
+    "id": "review-mir-filename-glob",
+    "recordedCommand": "fresh-mir-swift-production",
+    "resolution": "Find actual mixer_vm*.mir including production mixer_vm.mir; retain same successful compiled output",
+    "script": "canonical-before-mir-path-fix.py",
+    "scriptSHA256": "e41218bbd1f858ea6e4e44a22567704dbdde0483aa086316bdec0b8108df0af2",
+    "sourceTreeSHA256": "e5050427a9653019e429bd6cb050133e89617d9a40c9896e0d684f12aa7c8626",
+    "timestampNote": "Compiler/runtime command timestamps are in referenced receipts; outer selector failure time was not separately captured",
+    "toolVersions": "commands/rustc-version, commands/cargo-version, commands/python-version, commands/host-version"
+  },
+  {
+    "command": "python3 -B verification/swift-bulk-memory-review/canonical.py",
+    "error": "Raw-header set disagreement: bulk_memory_operations::PERMANENT_BYTES and ACTIVE_BYTES are ordinary constants, not promoted bodies",
+    "id": "review-mir-ordinary-accounting-constant",
+    "recordedCommand": "fresh-mir-swift-production",
+    "resolution": "Enumerate fn and promoted const bodies; ordinary size constants measured separately",
+    "script": "canonical-before-accounting-constant-filter-fix.py",
+    "scriptSHA256": "c2105e04df016b3ebd4ced54bd5e97e8b7f4baa2350878ef7ca250ee4dc32449",
+    "sourceTreeSHA256": "e5050427a9653019e429bd6cb050133e89617d9a40c9896e0d684f12aa7c8626",
+    "timestampNote": "Compiler/runtime command timestamps are in referenced receipts; outer selector failure time was not separately captured",
+    "toolVersions": "commands/rustc-version, commands/cargo-version, commands/python-version, commands/host-version"
+  },
+  {
+    "command": "python3 -B verification/swift-bulk-memory-review/canonical.py",
+    "error": "Raw-header set disagreement: check_checkpoint::{closure#0} is a test hook identified by bulk_memory_operations_tests.rs source",
+    "id": "review-mir-test-hook-source",
+    "recordedCommand": "fresh-mir-swift-unit",
+    "resolution": "Exclude actual test-source headers from independent raw production enumeration",
+    "script": "canonical-before-test-hook-filter-fix.py",
+    "scriptSHA256": "7bd2e2810a4b5a7b124ab39c4e1f17cd27f61464b5872d75dcddc6256e544b25",
+    "sourceTreeSHA256": "e5050427a9653019e429bd6cb050133e89617d9a40c9896e0d684f12aa7c8626",
+    "timestampNote": "Compiler/runtime command timestamps are in referenced receipts; outer selector failure time was not separately captured",
+    "toolVersions": "commands/rustc-version, commands/cargo-version, commands/python-version, commands/host-version"
+  },
+  {
+    "command": "python3 -B verification/swift-bulk-memory-review/layout.py",
+    "error": "AssertionError from field['bytes']>0; actual typed () places have measured size 0",
+    "id": "review-layout-zero-sized-type",
+    "recordedCommand": "fresh-layout-candidate-production",
+    "resolution": "Keep separate typed unit fields; require aligned ordered contained intervals; no credit for other objects",
+    "script": "layout-before-zero-type-assertion-fix.py",
+    "scriptSHA256": "eb1fdf7769cd69b4065ad772dd13a0b7c6d23e0fe92133afc63a44c60effd394",
+    "sourceArchive": "layout-candidate-source.tar.gz",
+    "sourceManifest": "layout-candidate-source-manifest.json",
+    "timestampNote": "Compiler/runtime command timestamps are in referenced receipts; outer selector failure time was not separately captured",
+    "toolVersions": "commands/rustc-version, commands/cargo-version, commands/python-version, commands/host-version"
+  },
+  {
+    "command": "python3 -B verification/swift-bulk-memory-review/accounting.py",
+    "error": "SyntaxError: expected 'else' after 'if' expression; else642456 token",
+    "id": "review-accounting-token-spacing",
+    "recordedCommand": "raw-accounting-replay",
+    "resolution": "Insert Python whitespace; no engine source changed",
+    "script": "accounting-before-token-spacing-fix.py",
+    "scriptSHA256": "cbfc289cf27d0e8dced8f6257453e130b93d7ceb72c204b42e278d58ab60d7d8",
+    "timestampNote": "Compiler/runtime command timestamps are in referenced receipts; outer selector failure time was not separately captured",
+    "toolVersions": "commands/rustc-version, commands/cargo-version, commands/python-version, commands/host-version"
+  },
+  {
+    "command": "python3 -B verification/swift-bulk-memory-review/accounting.py",
+    "error": "AssertionError: ('ActivePositions', 642452, {'bytes': 642456, 'alignment': 8})",
+    "id": "review-accounting-fresh-padding",
+    "recordedCommand": "raw-accounting-replay-retry",
+    "resolution": "Measured containing size includes 4 fresh padding bytes; require field sum <= containing size and record padding without subtraction",
+    "script": "accounting-before-padding-assertion-fix.py",
+    "scriptSHA256": "3a59d32a5a6f6a4ce4f5e3979e8cfbbce311eb31ee4eaefda3d1b7a671fb1c43",
+    "timestampNote": "Compiler/runtime command timestamps are in referenced receipts; outer selector failure time was not separately captured",
+    "toolVersions": "commands/rustc-version, commands/cargo-version, commands/python-version, commands/host-version"
+  }
+]

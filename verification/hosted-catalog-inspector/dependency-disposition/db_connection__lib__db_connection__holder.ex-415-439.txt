@@ -1,0 +1,25 @@
+415:     pool_ref(pool: pool, reference: ref, deadline: deadline, holder: holder) = pool_ref
+416:     cancel_deadline(deadline)
+417: 
+418:     try do
+419:       :ets.update_element(holder, :conn, [{conn(:deadline) + 1, nil} | ops])
+420:       :ets.give_away(holder, pool, {tag, ref, info})
+421:     rescue
+422:       ArgumentError -> :ok
+423:     else
+424:       true -> :ok
+425:     end
+426:   end
+427: 
+428:   defp handle_done(holder, stop, err) do
+429:     :ets.lookup(holder, :conn)
+430:   rescue
+431:     ArgumentError ->
+432:       false
+433:   else
+434:     [conn(connection: pid, deadline: deadline, state: state)] ->
+435:       cancel_deadline(deadline)
+436:       :ets.delete(holder)
+437:       stop.({pid, holder}, err, state)
+438:       true
+439:   end

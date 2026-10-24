@@ -1,0 +1,361 @@
+schema: 1
+policy: independently-owned-product-engine
+dependencies:
+  - name: Mint
+    origin: https://github.com/elixir-mint/mint
+    version: 1.11.0
+    license: Apache-2.0
+    purpose: bounded-hosted-JWKS-HTTPS-transport-with-explicit-peer-hostname-and-socket-ownership
+    distribution: hosted-BEAM-release
+    owner: hosted-identity
+    inventory_receipt: verification/hosted-key-owner-root-review/selection.json
+    qualification: dependency-selection-and-synthetic-TLS-feasibility-only-full-owner-transport-resource-and-provider-qualification-pending
+  - name: Swift compiler and standard libraries
+    origin: https://github.com/swiftlang/swift
+    version: 6.3.3-cross-target-and-Xcode-6.4-Apple
+    license: Apache-2.0-with-Runtime-Library-Exception
+    purpose: official-language-compilation-runtime-and-FoundationNetworking-native-HTTP-TLS
+    distribution: toolchain-external-runtime-linked-in-apps
+    owner: compiler
+  - name: Rust compiler and standard library
+    origin: https://www.rust-lang.org
+    version: 1.99.0-local-candidate
+    license: MIT-OR-Apache-2.0
+    purpose: owned-interpreter-compilation
+    distribution: toolchain-external-standard-library-linked
+    owner: runtime
+  - name: Go compiler and standard library
+    origin: https://go.dev
+    version: 1.26.4
+    license: BSD-3-Clause
+    purpose: services-standard-cryptography-http-and-durability
+    distribution: service-binaries
+    owner: cloud
+  - name: Apple SDKs and CryptoKit
+    origin: https://developer.apple.com
+    version: Xcode-27.1
+    license: Apple-SDK-agreements
+    purpose: native-UI-established-cryptography-and-URLSession-system-HTTP-TLS
+    distribution: system-frameworks-not-vendored
+    owner: apple
+  - name: Android SDK and NDK
+    origin: https://developer.android.com
+    version: installed-SDK-with-NDK-r27d-qualification-candidate
+    license: Android-SDK-terms-and-component-notices
+    purpose: native-Android-toolchain-and-libcxx
+    distribution: tooling-external-libcxx-shared-library-in-app
+    owner: android
+  - name: Official Swift Android SDK networking components
+    origin: https://www.swift.org/install/android/
+    version: Swift-6.3.3-Android-SDK-SBOM
+    license: SDK-component-declarations-and-upstream-notices-review-pending
+    purpose: FoundationNetworking-native-HTTP-and-TLS-backend
+    distribution: official-libFoundationNetworking-and-its-runtime-dependencies-when-linked
+    owner: android-networking
+    inventory_receipt: verification/android-networking-inventory-2026-10-22.json
+    reported_components: curl-8.9.1-and-BoringSSL-fips-20220613
+    qualification: local-binary-and-SDK-SBOM-inventory-only-not-redistribution-or-security-approval
+  - name: Node.js V8 and WASI
+    origin: https://nodejs.org
+    version: local-development-runtime
+    license: Node-MIT-and-bundled-notices
+    purpose: development-only-Wasm-differential-oracle-and-static-marketing-site-build-tests-preview
+    distribution: never-linked-into-product
+    owner: verification
+  - name: Swift Crypto
+    origin: https://github.com/apple/swift-crypto
+    version: 5.0.3-c2cbadd7263439d8015189668f96ff5b5be565ce
+    license: Apache-2.0-and-vendored-BoringSSL-notices
+    purpose: standard-Ed25519-and-SHA256-for-native-update-verification
+    distribution: CryptoKit-on-Apple-BoringSSL-linked-on-supported-other-hosts
+    owner: update-security
+  - name: Swift ASN.1
+    origin: https://github.com/apple/swift-asn1
+    version: 1.7.3-3b6410f7dee09eb33cdd26260c5fd47fda19b0e2
+    license: Apache-2.0
+    purpose: transitive-Swift-Crypto-dependency
+    distribution: Swift-package-graph
+    owner: update-security
+  - name: pgx PostgreSQL driver
+    origin: https://github.com/jackc/pgx
+    version: 5.11.0
+    license: MIT
+    purpose: maintained-general-purpose-PostgreSQL-protocol-driver
+    distribution: Go-service-binary
+    owner: cloud
+  - name: pgpassfile
+    origin: https://github.com/jackc/pgpassfile
+    version: 1.0.0
+    license: MIT
+    purpose: pgx-transitive-local-PostgreSQL-credential-file-parser
+    distribution: Go-service-binary
+    owner: cloud
+  - name: pgservicefile
+    origin: https://github.com/jackc/pgservicefile
+    version: 0.0.0-20240606120523-5a60cdf6a761
+    license: MIT
+    purpose: pgx-transitive-PostgreSQL-service-file-parser
+    distribution: Go-service-binary
+    owner: cloud
+  - name: puddle
+    origin: https://github.com/jackc/puddle
+    version: 2.2.2
+    license: MIT
+    purpose: pgx-transitive-bounded-connection-pool
+    distribution: Go-service-binary
+    owner: cloud
+  - name: Go x/sync
+    origin: https://go.googlesource.com/sync
+    version: 0.17.0
+    license: BSD-3-Clause
+    purpose: pgx-pool-transitive-concurrency-primitives
+    distribution: Go-service-binary
+    owner: cloud
+  - name: Go x/text
+    origin: https://go.googlesource.com/text
+    version: 0.29.0
+    license: BSD-3-Clause
+    purpose: pgx-transitive-text-and-protocol-encoding
+    distribution: Go-service-binary
+    owner: cloud
+  - name: sharp and libvips
+    origin: https://github.com/lovell/sharp
+    version: sharp-0.35.5
+    license: Apache-2.0-with-libvips-LGPL-2.1-or-later-and-bundled-notices
+    purpose: development-only-raster-brand-asset-export-and-social-card-rendering
+    distribution: tooling-only-not-served-with-static-website-or-linked-into-engine
+    owner: website
+  - name: Pillow
+    origin: https://github.com/python-pillow/Pillow
+    version: 12.3.0
+    license: MIT-CMU
+    purpose: development-only-native-screenshot-PNG-decoding-and-pixel-assertions
+    distribution: verification-tooling-only-never-linked-into-product
+    owner: verification
+    provenance: Codex-workspace-dependency-bundle-26.1022.11436-Python-3.12.14
+    inventory_receipt: verification/apple-native-appearance-v2/candidate-6/post-capture-tools.json
+    qualification: installed-package-metadata-inventory-only
+  - name: Elixir
+    origin: https://elixir-lang.org/
+    version: "1.20.4"
+    license: Apache-2.0
+    purpose: Phoenix-hosted-runtime
+    distribution: hosted-service-runtime
+    owner: cloud
+  - name: Erlang OTP
+    origin: https://www.erlang.org/
+    version: "29.1.1"
+    license: Apache-2.0
+    purpose: Phoenix-hosted-runtime
+    distribution: hosted-service-runtime
+    owner: cloud
+  - name: Hex bandit
+    origin: https://hex.pm/packages/bandit
+    version: "1.13.1"
+    license: MIT
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex db_connection
+    origin: https://hex.pm/packages/db_connection
+    version: "2.10.2"
+    license: Apache-2.0
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex decimal
+    origin: https://hex.pm/packages/decimal
+    version: "3.2.0"
+    license: Apache-2.0
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex ecto
+    origin: https://hex.pm/packages/ecto
+    version: "3.14.2"
+    license: Apache-2.0
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex ecto_sql
+    origin: https://hex.pm/packages/ecto_sql
+    version: "3.14.0"
+    license: Apache-2.0
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex hpax
+    origin: https://hex.pm/packages/hpax
+    version: "1.1.0"
+    license: Apache-2.0
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex jason
+    origin: https://hex.pm/packages/jason
+    version: "1.4.5"
+    license: Apache-2.0
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex jose
+    origin: https://hex.pm/packages/jose
+    version: "1.11.12"
+    license: MIT
+    purpose: standard-RS256-JWS-verification-for-hosted-access-tokens
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/hosted-verifier-dependency/root-selection.json
+  - name: Hex mime
+    origin: https://hex.pm/packages/mime
+    version: "2.0.7"
+    license: Apache-2.0
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex oban
+    origin: https://hex.pm/packages/oban
+    version: "2.24.2"
+    license: Apache-2.0
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex phoenix
+    origin: https://hex.pm/packages/phoenix
+    version: "1.8.16"
+    license: MIT
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex phoenix_pubsub
+    origin: https://hex.pm/packages/phoenix_pubsub
+    version: "2.4.1"
+    license: MIT
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex phoenix_template
+    origin: https://hex.pm/packages/phoenix_template
+    version: "1.1.0"
+    license: MIT
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex plug
+    origin: https://hex.pm/packages/plug
+    version: "1.20.3"
+    license: Apache-2.0
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex plug_crypto
+    origin: https://hex.pm/packages/plug_crypto
+    version: "2.2.1"
+    license: Apache-2.0
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex postgrex
+    origin: https://hex.pm/packages/postgrex
+    version: "0.22.4"
+    license: Apache-2.0
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex telemetry
+    origin: https://hex.pm/packages/telemetry
+    version: "1.4.2"
+    license: Apache-2.0
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex thousand_island
+    origin: https://hex.pm/packages/thousand_island
+    version: "1.6.0"
+    license: MIT
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex websock
+    origin: https://hex.pm/packages/websock
+    version: "0.5.3"
+    license: MIT
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: Hex websock_adapter
+    origin: https://hex.pm/packages/websock_adapter
+    version: "0.6.0"
+    license: MIT
+    purpose: Phoenix-hosted-foundation-dependency
+    distribution: hosted-service-runtime
+    owner: cloud
+    inventory_receipt: verification/phoenix-foundation/dependencies.json
+  - name: PostgreSQL host verification fixture
+    origin: https://www.postgresql.org/
+    version: "17.11-local-and-16-CI-patch-recorded-per-run"
+    license: PostgreSQL
+    purpose: isolated-Phoenix-transaction-and-job-host-tests
+    distribution: verification-only-external-service
+    owner: cloud-verification
+# Selected by the October 24 hosted-stack plan. The Phoenix foundation is
+# pinned above; console and remaining libraries still need exact pins/notices.
+# No hosted deployment is qualified by this inventory.
+planned_hosted_stack:
+  status: Phoenix-foundation-pinned-remaining-implementation-and-license-review-pending
+  plan: mixer-product-plan.md#134-hosted-stack-and-deployment-placement
+  inventory_receipt: verification/hosted-stack-plan-update-2026-10-24/receipt.json
+  packages:
+    - name: Elixir and Erlang/OTP
+      origin: https://elixir-lang.org/
+      purpose: supervised-hosted-control-plane-and-job-runtime
+    - name: Phoenix
+      origin: https://www.phoenixframework.org/
+      purpose: hosted-REST-API-framework
+    - name: Plug and Bandit
+      origin: https://bandit.hexdocs.pm/
+      purpose: HTTP-request-pipeline-and-Phoenix-server
+    - name: Ecto and Postgrex
+      origin: https://ecto.hexdocs.pm/
+      purpose: PostgreSQL-transactions-migrations-and-verified-TLS-connections
+    - name: Oban
+      origin: https://oban.hexdocs.pm/
+      purpose: open-source-durable-jobs-in-the-domain-PostgreSQL-transaction
+    - name: SolidJS and Solid Router
+      origin: https://docs.solidjs.com/
+      purpose: hosted-console-UI-and-routing
+    - name: TypeScript and Vite
+      origin: https://vite.dev/
+      purpose: typed-console-and-edge-code-build-tooling
+  managed_services:
+    - name: Neon PostgreSQL
+      origin: https://neon.com/docs/
+      purpose: production-relational-state-and-Oban-jobs
+    - name: Cloudflare Containers Workers R2 and CDN
+      origin: https://developers.cloudflare.com/
+      purpose: qualified-Linux-compute-console-edge-and-artifact-delivery
+    - name: Stripe Billing Checkout and Customer Portal
+      origin: https://docs.stripe.com/
+      purpose: hosted-commercial-billing-and-payment-flows
+  remaining: exact-package-runtime-versions-license-notices-provider-configuration-and-deployment-qualification
+review:
+  status: implementation-inventory-not-legal-release-approval
+  remaining: redistribution-notices-and-independent-license-review-before-distribution

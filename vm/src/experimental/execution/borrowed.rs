@@ -364,8 +364,8 @@ pub(crate) use shared_control_arm;
 
 #[allow(unused_macros)]
 macro_rules! shared_memory_methods {
-    ($this:ident, $failure:ty, $leaf:ident, ($($mutable:tt)*), $range:ident, $load:ident, $store:ident) => {
-fn $range(
+    ($this:ident, $failure:ty, $leaf:ident, ($($mutable:tt)*), $range:ident, $load:ident, $store:ident, ($($rangevis:tt)*)) => {
+$($rangevis)* fn $range(
         &$($mutable)* $this,
         address: usize,
         len: usize,
@@ -440,3 +440,72 @@ macro_rules! frozen_memory_leaf {
 }
 #[allow(unused_imports)]
 pub(super) use frozen_memory_leaf;
+
+#[allow(unused_macros)]
+macro_rules! shared_bulk_memory_methods {
+($this:ident, $failure:ty, $leaf:ident, $bulk:ident, $copy:ident, $fill:ident) => {
+fn $bulk(&mut $this, len: usize) -> Result<(), $failure> {
+        $leaf!(charge $this, len.div_ceil(64) as u64)?;
+        $this.work(len)
+    }
+fn $copy(&mut $this) -> Result<(), $failure> {
+        let len = $leaf!(pop32 $this)? as u32 as usize;
+        let src = $leaf!(pop32 $this)? as u32 as usize;
+        let dst = $leaf!(pop32 $this)? as u32 as usize;
+        $leaf!(range $this, src, len)?;
+        $leaf!(range $this, dst, len)?;
+        $this.$bulk(len)?;
+        if dst > src {
+            let mut left = len;
+            while left != 0 {
+                $leaf!(check $this)?;
+                let n = left.min(CHUNK);
+                left -= n;
+                $leaf!(memory $this)
+                    .copy_within(src + left..src + left + n, dst + left);
+            }
+        } else {
+            for at in (0..len).step_by(CHUNK) {
+                $leaf!(check $this)?;
+                let n = (len - at).min(CHUNK);
+                $leaf!(memory $this).copy_within(src + at..src + at + n, dst + at);
+            }
+        }
+        Ok(())
+    }
+fn $fill(&mut $this) -> Result<(), $failure> {
+        let len = $leaf!(pop32 $this)? as u32 as usize;
+        let value = $leaf!(pop32 $this)? as u8;
+        let dst = $leaf!(pop32 $this)? as u32 as usize;
+        let range = $leaf!(range $this, dst, len)?;
+        $this.$bulk(len)?;
+        for start in (range.start..range.end).step_by(CHUNK) {
+            $leaf!(check $this)?;
+            let end = (start + CHUNK).min(range.end);
+            $leaf!(memory $this)[start..end].fill(value);
+        }
+        Ok(())
+    }
+};
+}
+#[allow(unused_imports)]
+pub(crate) use shared_bulk_memory_methods;
+
+#[allow(unused_macros)]
+macro_rules! frozen_bulk_memory_leaf {
+ (pop32 $s:ident) => {$s.pop32()};
+ (range $s:ident, $address:expr, $len:expr) => {$s.range($address,$len)};
+ (check $s:ident) => {$s.check()};
+ (memory $s:ident) => {$s.memory};
+ (charge $s:ident, $credits:expr) => {$s.charge($credits,false)};
+ (push $s:ident, $value:expr) => {$s.push($value)};
+ (pages $s:ident) => {$s.usage.memory_pages};
+}
+#[allow(unused_imports)]
+pub(super) use frozen_bulk_memory_leaf;
+#[allow(unused_macros)]
+macro_rules! shared_memory_size {
+ ($this:ident, $leaf:ident) => {$leaf!(push $this, Value::I32($leaf!(pages $this) as i32))};
+}
+#[allow(unused_imports)]
+pub(crate) use shared_memory_size;
