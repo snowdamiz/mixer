@@ -58,7 +58,9 @@ REQUIRED=['vm/Cargo.toml','vm/Cargo.lock','vm/src/lib.rs',*HEADER_HASHES,
     'capabilities/schema/v1.json','capabilities/schema/hashes.json','runtime/Sources/CMixerVM/include/mixer_vm.h']
 LIBRARY='libmixer_vm_capability_experimental.a'
 MAX_FILES=8192
-MAX_FILE_BYTES=8*1024*1024
+# The complete owned dispatch/accounting source exceeds 8 MiB. This export
+# bound is separate from guest resource limits; keep the aggregate cap below.
+MAX_FILE_BYTES=16*1024*1024
 MAX_SOURCE_BYTES=64*1024*1024
 MAX_ARCHIVE_BYTES=512*1024*1024
 DIRECTORY=os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW|os.O_CLOEXEC
@@ -173,7 +175,8 @@ def frozen_inputs(revision):
         if kind!=b'blob' or mode not in (b'100644',b'100755'):raise BuildError('source entry is not a regular file: '+name)
         if name in files or len(files)>=MAX_FILES:raise BuildError('duplicate/too many source files')
         size=int(git('cat-file','-s',oid.decode()).strip())
-        if size>MAX_FILE_BYTES or total+size>MAX_SOURCE_BYTES:raise BuildError('source byte limit exceeded')
+        if size>MAX_FILE_BYTES:raise BuildError('source file byte limit exceeded: '+name)
+        if total+size>MAX_SOURCE_BYTES:raise BuildError('source aggregate byte limit exceeded')
         raw=git('cat-file','blob',oid.decode(),maximum=MAX_FILE_BYTES)
         if len(raw)!=size:raise BuildError('Git object size changed')
         files[name]={'bytes':raw,'mode':0o755 if mode==b'100755' else 0o644,'git_blob':oid.decode()};total+=size

@@ -15,6 +15,7 @@ import tempfile
 import time
 import types
 import unittest
+from unittest import mock
 
 BUILDER=Path(__file__).resolve().parents[1]/'build-vm.py'
 spec=importlib.util.spec_from_file_location('experimental_builder',BUILDER)
@@ -58,6 +59,37 @@ class BuilderTests(unittest.TestCase):
         files=b.frozen_inputs(self.revision)
         self.assertTrue(files['vm/src/lib.rs']['bytes'].startswith(b'// Original empty'))
         self.assertEqual(len(files),len(b.REQUIRED))
+    def test_source_file_boundary_and_one_byte_over_rejection(self):
+        path='vm/src/large_accounting.rs'
+        self.write(path,b' ' * b.MAX_FILE_BYTES)
+        revision=self.commit()
+        files=b.frozen_inputs(revision)
+        self.assertEqual(len(files[path]['bytes']),b.MAX_FILE_BYTES)
+        # The Git object boundary is checked before the blob is read or an
+        # output directory is created, also when Python assertions are off.
+        self.write(path,b' ' * (b.MAX_FILE_BYTES+1))
+        revision=self.commit()
+        for optimized in (False,True):
+            self.rejected(revision,'source file byte limit exceeded',optimized)
+    def test_source_aggregate_boundary_rejects_before_overflow_blob_read(self):
+        self.write('vm/src/aggregate_a.rs',b'a' * 4096)
+        self.write('vm/src/aggregate_b.rs',b'b' * 4096)
+        revision=self.commit()
+        files=b.frozen_inputs(revision)
+        total=sum(len(value['bytes']) for value in files.values())
+        with mock.patch.object(b,'MAX_SOURCE_BYTES',total):
+            self.assertEqual(b.frozen_inputs(revision),files)
+        calls=[]
+        original_git=b.git
+        def observed_git(*args,**kwargs):
+            calls.append(args)
+            return original_git(*args,**kwargs)
+        # A reduced aggregate cap exercises the same admission boundary
+        # without making the test allocate a 64-MiB snapshot repeatedly.
+        with mock.patch.object(b,'MAX_SOURCE_BYTES',total-1),mock.patch.object(b,'git',observed_git):
+            with self.assertRaisesRegex(b.BuildError,'source aggregate byte limit exceeded'):
+                b.frozen_inputs(revision)
+        self.assertEqual(calls[-1][:2],('cat-file','-s'))
     def test_full_commit_only_normal_and_optimized(self):
         for optimized in (False,True):
             for value in ('HEAD',self.revision[:12],self.revision.upper(),'0'*40):

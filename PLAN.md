@@ -1,5 +1,11 @@
 # Execution index
 
+Current delivery repair: the dispatch source exceeded the capability builder's
+per-file export bound. A finite 16-MiB cap preserves the 64-MiB aggregate and
+all runtime budgets; 52 builder test executions, a fresh archive and three C
+consumers pass. Push and inspect corrected-source CI before declaring delivery
+verified. See [the repair evidence](docs/capability-builder-source-bound-repair.md).
+
 Latest native checkpoint: the private iOS pan-commit carrier passes 43 XCTest
 methods, 45 native input actions and 36 scoped callback components on iOS 26.5.
 Root replays 1,286 verdict predicates and 324 touch-origin checks. All five cleanup
