@@ -12,6 +12,14 @@ Linux resource harness remain under implementation/review. Phones, full product
 qualification and every GA/dogfood gate remain pending. See
 [the diagnostic checkpoint](docs/native-toggle-diagnostics-progress.md).
 
+The console now has its first TypeScript display model for release checks. Nine
+host tests cover 4,096 status combinations, missing/stale results, duplicate and
+malformed input, and immutable rows. A current platform failure remains visible
+and dominates the aggregate; missing or unrun results remain incomplete. This
+adds no API, permission or release authority. SolidJS UI, Phoenix integration,
+and deployment remain pending; strict TypeScript 5.9.3 checks pass. See
+[the console summary contract](docs/console-release-check-summary.md).
+
 Implementation resumed at the user's request on October 24. The saved
 [pause handoff](docs/implementation-pause-2026-10-24.md) remains historical context.
 The private frame entry/return/cleanup slice and bounded hosted RS256 token
