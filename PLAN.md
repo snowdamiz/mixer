@@ -54,6 +54,11 @@ artifact overlay is applied exactly; existing v3 bytes and signed authority
 remain unchanged. Application wiring, authenticated HTTP and current database
 membership are still pending. See `docs/hosted-identity-artifact-checkpoint.md`
 and `verification/hosted-component-integration-root-review/acceptance.json`.
+The `dd604eca` engine jobs all pass. Its Phoenix CI exposed a platform-specific
+temporary directory in a test fixture. The portable fixture and isolated test
+measurement outputs now pass root host/Linux review; production identity code
+is unchanged. See `verification/hosted-tls-fixture-ci-root-review/acceptance.json`;
+a fresh hosted CI result remains pending delivery.
 The actual Ecto/Postgrex transaction boundary has a selected
 preimplementation seam after 24 disposable PostgreSQL cases; protected checkout
 must use `queue: false` because the pinned driver's transaction deadline does

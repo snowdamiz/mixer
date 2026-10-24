@@ -1,0 +1,85 @@
+{
+  "commands": [
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--",
+        "hosted/scripts/test-local.py",
+        "hosted/test/mixer_hosted/identity/key_owner_linux_network_test.exs",
+        "hosted/test/mixer_hosted/identity/key_owner_test.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "elapsedSeconds": 0.012260332936421037,
+      "exitCode": 0,
+      "output": "root-source-diff.patch",
+      "outputSHA256": "e9293d1ee31538afb75485145de025da6fd7ccf25f5bb9303151aa41fdda4965"
+    },
+    {
+      "argv": [
+        "docker",
+        "version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "elapsedSeconds": 0.038593250093981624,
+      "exitCode": 0,
+      "output": "docker-version.log",
+      "outputSHA256": "e8cbd2e0bd5c9370ddc34e0e1ee809dfc38252ed823c6c7316074618c4562ff0"
+    },
+    {
+      "argv": [
+        "docker",
+        "image",
+        "inspect",
+        "hexpm/elixir@sha256:52ec0f335b9084bcfc0ce3a29b4c0288dc2fc2a07658ff809dc7d07589212cde"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "elapsedSeconds": 0.0383637499762699,
+      "exitCode": 0,
+      "output": "image-inspect.json",
+      "outputSHA256": "0a72e0c7eccfc3675b8b99b1c7d20fe886681213090ee47796cec697594407dc"
+    },
+    {
+      "argv": [
+        "docker",
+        "run",
+        "--rm",
+        "--name",
+        "mixer-identity-metrics-output-check-1246ef1ef73e",
+        "--network",
+        "none",
+        "--cap-add",
+        "NET_ADMIN",
+        "--memory",
+        "1g",
+        "--cpus",
+        "4",
+        "-v",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity-metrics-output-check-jyrr0rnq:/workspace",
+        "-w",
+        "/workspace/hosted",
+        "-e",
+        "MIX_HOME=/workspace/mix",
+        "-e",
+        "MIX_REBAR3=/workspace/rebar3",
+        "-e",
+        "MIXER_ISOLATED_NETNS=1",
+        "-e",
+        "MIX_BUILD_PATH=/workspace/hosted/_build/test",
+        "-e",
+        "MIX_ENV=test",
+        "-e",
+        "MIXER_TEST_IDENTITY_EVIDENCE=/workspace/identity-metrics",
+        "hexpm/elixir@sha256:52ec0f335b9084bcfc0ce3a29b4c0288dc2fc2a07658ff809dc7d07589212cde",
+        "bash",
+        "-euc",
+        "test ! -e /private/tmp\nelixir /workspace/linux_netns_setup.exs\nelixir --version\nmix --version\nopenssl version\nuname -a\nelixir -e 'Application.load(:ssl); IO.inspect(%{ssl: Application.spec(:ssl,:vsn)}); IO.puts(File.read!(Path.join([:code.root_dir(),\"releases\",System.otp_release(),\"OTP_VERSION\"])))'\nelixir -e 'IO.inspect(%{system_tmp_dir: System.tmp_dir!(), private_tmp_exists: File.exists?(\"/private/tmp\"), fixture_directories: Path.wildcard(Path.join(System.tmp_dir!(), \"mixer-key-owner-tls-*\"))}); if File.exists?(\"/private/tmp\") or Path.wildcard(Path.join(System.tmp_dir!(), \"mixer-key-owner-tls-*\")) != [], do: System.halt(9)'\nmix test --seed 0 test/mixer_hosted/identity/key_owner_test.exs test/mixer_hosted/identity/access_token_verifier_test.exs test/mixer_hosted/identity/key_owner_linux_network_test.exs\ntest ! -e /private/tmp\ntest ! -e /workspace/verification\nelixir -e 'IO.inspect(%{system_tmp_dir: System.tmp_dir!(), private_tmp_exists: File.exists?(\"/private/tmp\"), fixture_directories: Path.wildcard(Path.join(System.tmp_dir!(), \"mixer-key-owner-tls-*\"))}); if File.exists?(\"/private/tmp\") or Path.wildcard(Path.join(System.tmp_dir!(), \"mixer-key-owner-tls-*\")) != [], do: System.halt(9)'"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "elapsedSeconds": 40.13811158307362,
+      "exitCode": 0,
+      "output": "tests.log",
+      "outputSHA256": "9e15234aae406e3a0239906622b12a011a352ca452024071ba5133f462955f17"
+    }
+  ]
+}

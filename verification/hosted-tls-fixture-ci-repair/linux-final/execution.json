@@ -1,0 +1,71 @@
+{
+  "commands": [
+    {
+      "argv": [
+        "docker",
+        "version"
+      ],
+      "cwd": null,
+      "elapsedSeconds": 0.039533832925371826,
+      "environmentOverrides": {},
+      "exitCode": 0,
+      "output": "docker-version.log",
+      "outputSHA256": "e8cbd2e0bd5c9370ddc34e0e1ee809dfc38252ed823c6c7316074618c4562ff0"
+    },
+    {
+      "argv": [
+        "docker",
+        "image",
+        "inspect",
+        "hexpm/elixir@sha256:52ec0f335b9084bcfc0ce3a29b4c0288dc2fc2a07658ff809dc7d07589212cde"
+      ],
+      "cwd": null,
+      "elapsedSeconds": 0.039827417000196874,
+      "environmentOverrides": {},
+      "exitCode": 0,
+      "output": "image-inspect.json",
+      "outputSHA256": "0a72e0c7eccfc3675b8b99b1c7d20fe886681213090ee47796cec697594407dc"
+    },
+    {
+      "argv": [
+        "docker",
+        "run",
+        "--rm",
+        "--name",
+        "mixer-tls-fixture-ci-repair-10d871215701",
+        "--network",
+        "none",
+        "--cap-add",
+        "NET_ADMIN",
+        "--memory",
+        "1g",
+        "--cpus",
+        "4",
+        "-v",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-tls-fixture-ci-repair-6vtyrmtk:/workspace",
+        "-w",
+        "/workspace/hosted",
+        "-e",
+        "MIX_HOME=/workspace/mix",
+        "-e",
+        "MIX_REBAR3=/workspace/rebar3",
+        "-e",
+        "MIXER_ISOLATED_NETNS=1",
+        "-e",
+        "MIX_BUILD_PATH=/workspace/hosted/_build/test",
+        "-e",
+        "MIX_ENV=test",
+        "hexpm/elixir@sha256:52ec0f335b9084bcfc0ce3a29b4c0288dc2fc2a07658ff809dc7d07589212cde",
+        "bash",
+        "-euc",
+        "test ! -e /private/tmp\nelixir /workspace/linux_netns_setup.exs\nelixir --version\nmix --version\nopenssl version\nuname -a\nelixir -e 'IO.inspect(%{system_tmp_dir: System.tmp_dir!(), private_tmp_exists: File.exists?(\"/private/tmp\"), fixture_directories: Path.wildcard(Path.join(System.tmp_dir!(), \"mixer-key-owner-tls-*\"))}); if File.exists?(\"/private/tmp\") or Path.wildcard(Path.join(System.tmp_dir!(), \"mixer-key-owner-tls-*\")) != [], do: System.halt(9)'\nmix test --seed 0 test/mixer_hosted/identity/key_owner_test.exs test/mixer_hosted/identity/access_token_verifier_test.exs test/mixer_hosted/identity/key_owner_linux_network_test.exs\ntest ! -e /private/tmp\nelixir -e 'IO.inspect(%{system_tmp_dir: System.tmp_dir!(), private_tmp_exists: File.exists?(\"/private/tmp\"), fixture_directories: Path.wildcard(Path.join(System.tmp_dir!(), \"mixer-key-owner-tls-*\"))}); if File.exists?(\"/private/tmp\") or Path.wildcard(Path.join(System.tmp_dir!(), \"mixer-key-owner-tls-*\")) != [], do: System.halt(9)'"
+      ],
+      "cwd": null,
+      "elapsedSeconds": 41.46655150002334,
+      "environmentOverrides": {},
+      "exitCode": 0,
+      "output": "tests.log",
+      "outputSHA256": "66ed1a6294880405a83eefdbdcf48b464326c2dfb84244682be8e76e1f2ba426"
+    }
+  ]
+}

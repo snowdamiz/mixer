@@ -57,6 +57,15 @@ defmodule MixerHosted.Identity.KeyOwnerTest do
     :ok
   end
 
+  # The collector opts into run-local observations. Ordinary mix test must not
+  # overwrite previously accepted evidence in the source checkout.
+  defp write_evidence(name, bytes) do
+    case System.get_env("MIXER_TEST_IDENTITY_EVIDENCE") do
+      nil -> :ok
+      directory -> File.write!(Path.join(directory, name), bytes)
+    end
+  end
+
   defp now, do: System.system_time(:second)
   defp deadline, do: System.monotonic_time(:millisecond) + 2_000
 
@@ -309,11 +318,8 @@ defmodule MixerHosted.Identity.KeyOwnerTest do
       results: Enum.map(results, fn {:ok, c} -> c.metrics end)
     }
 
-    File.write!(
-      Path.expand(
-        "../../../../verification/hosted-key-owner-implementation/transport-metrics.json",
-        __DIR__
-      ),
+    write_evidence(
+      "transport-metrics.json",
       Jason.encode!(metrics, pretty: true)
     )
 
@@ -382,11 +388,8 @@ defmodule MixerHosted.Identity.KeyOwnerTest do
     assert observation.max_ssl_binary_bytes < 4_000_000
     assert observation.max_ssl_mailbox < 64
 
-    File.write!(
-      Path.expand(
-        "../../../../verification/hosted-key-owner-implementation/chunked-TLS-resources.json",
-        __DIR__
-      ),
+    write_evidence(
+      "chunked-TLS-resources.json",
       Jason.encode!(
         Map.merge(observation, %{
           elapsed_ms: elapsed,
@@ -423,11 +426,8 @@ defmodule MixerHosted.Identity.KeyOwnerTest do
     assert map_size(:sys.get_state(pid).snapshots) == 4
     assert map_size(:sys.get_state(pid).flights) == 0
 
-    File.write!(
-      Path.expand(
-        "../../../../verification/hosted-key-owner-implementation/owner-four-full-candidate-publication.json",
-        __DIR__
-      ),
+    write_evidence(
+      "owner-four-full-candidate-publication.json",
       Jason.encode!(
         %{
           profiles: 4,
@@ -483,11 +483,8 @@ defmodule MixerHosted.Identity.KeyOwnerTest do
     eventually(fn -> MixerHosted.Identity.SocketProbe.info(probe).closed == 4 end)
     observation = MixerHosted.Identity.SocketProbe.info(probe)
 
-    File.write!(
-      Path.expand(
-        "../../../../verification/hosted-key-owner-implementation/hostile-fast-TLS-resources.json",
-        __DIR__
-      ),
+    write_evidence(
+      "hostile-fast-TLS-resources.json",
       Jason.encode!(
         Map.put(
           observation,
@@ -534,11 +531,8 @@ defmodule MixerHosted.Identity.KeyOwnerTest do
       Process.sleep(25)
       observation = MixerHosted.Identity.SocketProbe.info(probe)
 
-      File.write!(
-        Path.expand(
-          "../../../../verification/hosted-key-owner-implementation/suspended-consumer-TLS-resources.json",
-          __DIR__
-        ),
+      write_evidence(
+        "suspended-consumer-TLS-resources.json",
         Jason.encode!(observation, pretty: true)
       )
 
@@ -775,11 +769,8 @@ defmodule MixerHosted.Identity.KeyOwnerTest do
     assert {:error, :identity_unavailable} = Task.await(next, 2_500)
     eventually(fn -> MixerHosted.Identity.RawFixture.info(fixture).closed == 5 end)
 
-    File.write!(
-      Path.expand(
-        "../../../../verification/hosted-key-owner-implementation/handshake-cleanup.json",
-        __DIR__
-      ),
+    write_evidence(
+      "handshake-cleanup.json",
       Jason.encode!(
         Map.merge(MixerHosted.Identity.RawFixture.info(fixture), %{
           closedBeforeReuse: closed_before_reuse,
@@ -936,11 +927,8 @@ defmodule MixerHosted.Identity.KeyOwnerTest do
 
     eventually(fn -> MixerHosted.Identity.RawFixture.info(raw).closed == 4 end)
 
-    File.write!(
-      Path.expand(
-        "../../../../verification/hosted-key-owner-implementation/crash-restart-cleanup.json",
-        __DIR__
-      ),
+    write_evidence(
+      "crash-restart-cleanup.json",
       Jason.encode!(
         %{
           oldControllersDownBeforeRestart: true,
@@ -1153,11 +1141,8 @@ defmodule MixerHosted.Identity.KeyOwnerTest do
     bytes = byte_size(:erlang.term_to_binary(history))
     assert bytes < 10_000
 
-    File.write!(
-      Path.expand(
-        "../../../../verification/hosted-key-owner-implementation/history-metadata-size.json",
-        __DIR__
-      ),
+    write_evidence(
+      "history-metadata-size.json",
       Jason.encode!(
         %{
           exampleRecords: 1,

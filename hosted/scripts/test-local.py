@@ -95,6 +95,9 @@ try:
                            str(output / "postgres.log"), "-o", f"-h 127.0.0.1 -p {port} -k ''", "-w", "start"])
     pg_started = True
     env["MIXER_TEST_DATABASE_PORT"] = str(port)
+    identity_evidence = output / "identity-metrics"
+    identity_evidence.mkdir()
+    env["MIXER_TEST_IDENTITY_EVIDENCE"] = str(identity_evidence)
     run("createdb", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
                      "mixer_fixture", "mixer_foundation_test"])
     run("tests", ["mix", "test", "--warnings-as-errors", "--trace"], env)

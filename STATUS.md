@@ -183,8 +183,20 @@ See `docs/hosted-identity-artifact-checkpoint.md` and
 `verification/hosted-component-integration-root-review/acceptance.json`.
 Application wiring, authenticated HTTP and authoritative database membership
 remain pending. The narrow atomic-writer/audit/blob contract and real PostgreSQL
-probe are assigned in isolation; no new migration is applied. New combined
-hosted CI remains pending commit/push. All GA gates remain open.
+probe are assigned in isolation; no new migration is applied. Commit `dd604eca`
+is pushed. Its Phoenix CI passed 44 tests but invalidated 29 identity cases when
+a test fixture tried to create a directory under macOS-only `/private/tmp`; one
+namespace case was skipped. The exact failed artifact and all 56 committed
+inputs are verified in `verification/github-ci-dd604eca-phoenix/receipt.json`.
+The portable fixture and run-local metrics repair now have root acceptance: 45
+macOS and 46 Linux identity cases pass, the full host suite passes 73 with one
+explicit namespace skip, and a final 46-case Linux run writes all nine metrics
+only into its own directory. Root verifies 152 evidence bindings; production
+code and dependencies are unchanged. See
+`verification/hosted-tls-fixture-ci-root-review/acceptance.json`. New hosted CI
+remains pending delivery. The separate Swift, VM and Go jobs at `dd604eca` all
+pass; see `verification/github-ci-dd604eca-engine/receipt.json`. The original
+Phoenix failure is retained as a failure. All GA gates remain open.
 
 Swift control candidate 2 now has root source/accounting preflight acceptance:
 7,640 positive fields, eight fresh independent layouts, canonical MIR census

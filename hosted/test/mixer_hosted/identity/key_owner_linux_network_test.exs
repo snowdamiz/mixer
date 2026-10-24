@@ -20,6 +20,13 @@ defmodule MixerHosted.Identity.KeyOwnerLinuxNetworkTest do
     jwks_endpoint: %{host: "jwks.fixture.invalid", port: 443, path: "/keys"},
     transport: :hosted_https
   }
+  defp write_evidence(name, bytes) do
+    case System.get_env("MIXER_TEST_IDENTITY_EVIDENCE") do
+      nil -> :ok
+      directory -> File.write!(Path.join(directory, name), bytes)
+    end
+  end
+
   # This file is run only by the network-none disposable Linux collector whose
   # private namespace owns8.8.8.8 on lo:1. It grants no product test exception.
   test "K03 production resolver/classifier pins public peer despite rebinding; private sink remains untouched" do
@@ -58,11 +65,8 @@ defmodule MixerHosted.Identity.KeyOwnerLinuxNetworkTest do
 
     assert TLSFixture.info(sink).accepted == 0
 
-    File.write!(
-      Path.expand(
-        "../../../../verification/hosted-key-owner-implementation/production-DNS-rebinding.json",
-        __DIR__
-      ),
+    write_evidence(
+      "production-DNS-rebinding.json",
       Jason.encode!(
         %{
           initialQueries: 2,

@@ -11,7 +11,7 @@ defmodule MixerHosted.Identity.TLSFixture do
 
     dir =
       Path.join(
-        "/private/tmp",
+        System.tmp_dir!(),
         "mixer-key-owner-tls-#{Base.url_encode64(:crypto.strong_rand_bytes(16), padding: false)}"
       )
 

@@ -1,0 +1,178 @@
+diff --git a/hosted/scripts/test-local.py b/hosted/scripts/test-local.py
+index 348d118c..de369db0 100644
+--- a/hosted/scripts/test-local.py
++++ b/hosted/scripts/test-local.py
+@@ -95,6 +95,9 @@ try:
+                            str(output / "postgres.log"), "-o", f"-h 127.0.0.1 -p {port} -k ''", "-w", "start"])
+     pg_started = True
+     env["MIXER_TEST_DATABASE_PORT"] = str(port)
++    identity_evidence = output / "identity-metrics"
++    identity_evidence.mkdir()
++    env["MIXER_TEST_IDENTITY_EVIDENCE"] = str(identity_evidence)
+     run("createdb", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
+                      "mixer_fixture", "mixer_foundation_test"])
+     run("tests", ["mix", "test", "--warnings-as-errors", "--trace"], env)
+diff --git a/hosted/test/mixer_hosted/identity/key_owner_linux_network_test.exs b/hosted/test/mixer_hosted/identity/key_owner_linux_network_test.exs
+index b6861322..bec18171 100644
+--- a/hosted/test/mixer_hosted/identity/key_owner_linux_network_test.exs
++++ b/hosted/test/mixer_hosted/identity/key_owner_linux_network_test.exs
+@@ -20,6 +20,13 @@ defmodule MixerHosted.Identity.KeyOwnerLinuxNetworkTest do
+     jwks_endpoint: %{host: "jwks.fixture.invalid", port: 443, path: "/keys"},
+     transport: :hosted_https
+   }
++  defp write_evidence(name, bytes) do
++    case System.get_env("MIXER_TEST_IDENTITY_EVIDENCE") do
++      nil -> :ok
++      directory -> File.write!(Path.join(directory, name), bytes)
++    end
++  end
++
+   # This file is run only by the network-none disposable Linux collector whose
+   # private namespace owns8.8.8.8 on lo:1. It grants no product test exception.
+   test "K03 production resolver/classifier pins public peer despite rebinding; private sink remains untouched" do
+@@ -58,11 +65,8 @@ defmodule MixerHosted.Identity.KeyOwnerLinuxNetworkTest do
+ 
+     assert TLSFixture.info(sink).accepted == 0
+ 
+-    File.write!(
+-      Path.expand(
+-        "../../../../verification/hosted-key-owner-implementation/production-DNS-rebinding.json",
+-        __DIR__
+-      ),
++    write_evidence(
++      "production-DNS-rebinding.json",
+       Jason.encode!(
+         %{
+           initialQueries: 2,
+diff --git a/hosted/test/mixer_hosted/identity/key_owner_test.exs b/hosted/test/mixer_hosted/identity/key_owner_test.exs
+index 725cd776..3bc20bde 100644
+--- a/hosted/test/mixer_hosted/identity/key_owner_test.exs
++++ b/hosted/test/mixer_hosted/identity/key_owner_test.exs
+@@ -57,6 +57,15 @@ defmodule MixerHosted.Identity.KeyOwnerTest do
+     :ok
+   end
+ 
++  # The collector opts into run-local observations. Ordinary mix test must not
++  # overwrite previously accepted evidence in the source checkout.
++  defp write_evidence(name, bytes) do
++    case System.get_env("MIXER_TEST_IDENTITY_EVIDENCE") do
++      nil -> :ok
++      directory -> File.write!(Path.join(directory, name), bytes)
++    end
++  end
++
+   defp now, do: System.system_time(:second)
+   defp deadline, do: System.monotonic_time(:millisecond) + 2_000
+ 
+@@ -309,11 +318,8 @@ defmodule MixerHosted.Identity.KeyOwnerTest do
+       results: Enum.map(results, fn {:ok, c} -> c.metrics end)
+     }
+ 
+-    File.write!(
+-      Path.expand(
+-        "../../../../verification/hosted-key-owner-implementation/transport-metrics.json",
+-        __DIR__
+-      ),
++    write_evidence(
++      "transport-metrics.json",
+       Jason.encode!(metrics, pretty: true)
+     )
+ 
+@@ -382,11 +388,8 @@ defmodule MixerHosted.Identity.KeyOwnerTest do
+     assert observation.max_ssl_binary_bytes < 4_000_000
+     assert observation.max_ssl_mailbox < 64
+ 
+-    File.write!(
+-      Path.expand(
+-        "../../../../verification/hosted-key-owner-implementation/chunked-TLS-resources.json",
+-        __DIR__
+-      ),
++    write_evidence(
++      "chunked-TLS-resources.json",
+       Jason.encode!(
+         Map.merge(observation, %{
+           elapsed_ms: elapsed,
+@@ -423,11 +426,8 @@ defmodule MixerHosted.Identity.KeyOwnerTest do
+     assert map_size(:sys.get_state(pid).snapshots) == 4
+     assert map_size(:sys.get_state(pid).flights) == 0
+ 
+-    File.write!(
+-      Path.expand(
+-        "../../../../verification/hosted-key-owner-implementation/owner-four-full-candidate-publication.json",
+-        __DIR__
+-      ),
++    write_evidence(
++      "owner-four-full-candidate-publication.json",
+       Jason.encode!(
+         %{
+           profiles: 4,
+@@ -483,11 +483,8 @@ defmodule MixerHosted.Identity.KeyOwnerTest do
+     eventually(fn -> MixerHosted.Identity.SocketProbe.info(probe).closed == 4 end)
+     observation = MixerHosted.Identity.SocketProbe.info(probe)
+ 
+-    File.write!(
+-      Path.expand(
+-        "../../../../verification/hosted-key-owner-implementation/hostile-fast-TLS-resources.json",
+-        __DIR__
+-      ),
++    write_evidence(
++      "hostile-fast-TLS-resources.json",
+       Jason.encode!(
+         Map.put(
+           observation,
+@@ -534,11 +531,8 @@ defmodule MixerHosted.Identity.KeyOwnerTest do
+       Process.sleep(25)
+       observation = MixerHosted.Identity.SocketProbe.info(probe)
+ 
+-      File.write!(
+-        Path.expand(
+-          "../../../../verification/hosted-key-owner-implementation/suspended-consumer-TLS-resources.json",
+-          __DIR__
+-        ),
++      write_evidence(
++        "suspended-consumer-TLS-resources.json",
+         Jason.encode!(observation, pretty: true)
+       )
+ 
+@@ -775,11 +769,8 @@ defmodule MixerHosted.Identity.KeyOwnerTest do
+     assert {:error, :identity_unavailable} = Task.await(next, 2_500)
+     eventually(fn -> MixerHosted.Identity.RawFixture.info(fixture).closed == 5 end)
+ 
+-    File.write!(
+-      Path.expand(
+-        "../../../../verification/hosted-key-owner-implementation/handshake-cleanup.json",
+-        __DIR__
+-      ),
++    write_evidence(
++      "handshake-cleanup.json",
+       Jason.encode!(
+         Map.merge(MixerHosted.Identity.RawFixture.info(fixture), %{
+           closedBeforeReuse: closed_before_reuse,
+@@ -936,11 +927,8 @@ defmodule MixerHosted.Identity.KeyOwnerTest do
+ 
+     eventually(fn -> MixerHosted.Identity.RawFixture.info(raw).closed == 4 end)
+ 
+-    File.write!(
+-      Path.expand(
+-        "../../../../verification/hosted-key-owner-implementation/crash-restart-cleanup.json",
+-        __DIR__
+-      ),
++    write_evidence(
++      "crash-restart-cleanup.json",
+       Jason.encode!(
+         %{
+           oldControllersDownBeforeRestart: true,
+@@ -1153,11 +1141,8 @@ defmodule MixerHosted.Identity.KeyOwnerTest do
+     bytes = byte_size(:erlang.term_to_binary(history))
+     assert bytes < 10_000
+ 
+-    File.write!(
+-      Path.expand(
+-        "../../../../verification/hosted-key-owner-implementation/history-metadata-size.json",
+-        __DIR__
+-      ),
++    write_evidence(
++      "history-metadata-size.json",
+       Jason.encode!(
+         %{
+           exampleRecords: 1,
