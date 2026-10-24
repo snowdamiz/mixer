@@ -2,6 +2,15 @@
 
 Product status: **in development; no GA or dogfood gate passed**.
 
+Current execution constraint: the user paused computer use, screen capture and
+native simulator/emulator runs until further notice. All Mixer test processes
+and the Simulator frontend are stopped; unrelated project processes are
+preserved. Code work, host tests, cross-compilation and offline review continue.
+The latest Android Section layout repair has native regression checks pending;
+the Apple pressed-switch paint repair is not yet qualified. Earlier captures
+cannot qualify those later source changes. See
+`verification/computer-use-pause-2026-10-24/receipt.json`.
+
 The repository began with only the product plan on October 22, 2026. It now has
 an owned Swift SDK and native adapters, Rust interpreter, local release service,
 native Swift signature verifier, CLI, and a separate FieldLog repository.

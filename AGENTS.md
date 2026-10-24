@@ -39,6 +39,13 @@ and shut down disposable test instances after evidence collection, including
 failed runs. Record cleanup; preserve other projects' active instances and their
 data. The user explicitly requested cleanup of unused simulators.
 
+Latest user override: computer use, screen capture and native simulator/emulator
+runtime tests are paused until further notice. Owned test instances and the
+Simulator frontend have been stopped. Do not restart them or use UI automation.
+Continue source work, host tests, cross-compilation, offline evidence review and
+authorized delivery; record newly unrun native checks as pending. Preserve other
+projects' processes. See verification/computer-use-pause-2026-10-24/receipt.json.
+
 Record command, tool version, source revision/tree digest, output, and scope.
 Mac unit tests are not physical iOS/Android receipts. FieldLog must eventually
 consume immutable published packages from a separate repository. Local checkout

@@ -47,6 +47,14 @@ hardware checks pending; do not retry phones or request reconnection. This chang
 test sequencing, not the shared-design contract or untested external launch gates.
 See `verification/simulator-development-policy/receipt.json`.
 
+The latest user instruction pauses computer use, screen capture and native
+simulator/emulator runs until further notice. All owned test processes and the
+Simulator frontend are stopped. Continue implementation with host tests,
+cross-compilation and offline review; new native interaction/visual checks remain
+pending until testing resumes. This pause does not cancel implementation or
+periodic validated Git delivery. See
+`verification/computer-use-pause-2026-10-24/receipt.json`.
+
 The private Android host binding is now accepted within its recorded host scope;
 see `verification/android-binding-stage4-root-review/acceptance.json`. Root
 verified 4,149 acceptance bindings after independent review of 3,182 files and
