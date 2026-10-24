@@ -1,0 +1,893 @@
+// WARNING: This output format is intended for human consumers only
+// and is subject to change without notice. Knock yourself out.
+// HINT: See also -Z dump-mir for MIR at specific points during compilation.
+fn bytes(_1: &T) -> usize {
+    let mut _0: usize;
+    scope 1 (inlined std::mem::size_of::<T>) {
+    }
+
+    bb0: {
+        _0 = const <T as std::mem::SizedTypeProperties>::SIZE;
+        return;
+    }
+}
+
+// MIR FOR CTFE
+fn bytes(_1: &T) -> usize {
+    let mut _0: usize;
+
+    bb0: {
+        ConstEvalCounter;
+        _0 = std::mem::size_of::<T>() -> [return: bb1, unwind continue];
+    }
+
+    bb1: {
+        return;
+    }
+}
+
+fn alignment(_1: &T) -> usize {
+    let mut _0: usize;
+    scope 1 (inlined std::mem::align_of::<T>) {
+    }
+
+    bb0: {
+        _0 = const <T as std::mem::SizedTypeProperties>::ALIGN;
+        return;
+    }
+}
+
+// MIR FOR CTFE
+fn alignment(_1: &T) -> usize {
+    let mut _0: usize;
+
+    bb0: {
+        ConstEvalCounter;
+        _0 = std::mem::align_of::<T>() -> [return: bb1, unwind continue];
+    }
+
+    bb1: {
+        return;
+    }
+}
+
+const ITEM_BYTES: usize = {
+    let mut _0: usize;
+    let mut _1: &for<'a> fn(&'a std::sync::Arc<std::sync::atomic::Atomic<bool>>) -> std::sync::Arc<std::sync::atomic::Atomic<bool>> {<std::sync::Arc<std::sync::atomic::Atomic<bool>> as std::clone::Clone>::clone};
+    let _2: &for<'a> fn(&'a std::sync::Arc<std::sync::atomic::Atomic<bool>>) -> std::sync::Arc<std::sync::atomic::Atomic<bool>> {<std::sync::Arc<std::sync::atomic::Atomic<bool>> as std::clone::Clone>::clone};
+    let _3: for<'a> fn(&'a std::sync::Arc<std::sync::atomic::Atomic<bool>>) -> std::sync::Arc<std::sync::atomic::Atomic<bool>> {<std::sync::Arc<std::sync::atomic::Atomic<bool>> as std::clone::Clone>::clone};
+    let mut _4: &for<'a> fn(&'a std::sync::Arc<std::sync::atomic::Atomic<bool>>) -> std::sync::Arc<std::sync::atomic::Atomic<bool>> {<std::sync::Arc<std::sync::atomic::Atomic<bool>> as std::clone::Clone>::clone};
+
+    bb0: {
+        StorageLive(_1);
+        StorageLive(_2);
+        _4 = const ITEM_BYTES::promoted[0];
+        _2 = &(*_4);
+        _1 = &(*_2);
+        ConstEvalCounter;
+        _0 = bytes::<for<'a> fn(&'a Arc<Atomic<bool>>) -> Arc<Atomic<bool>> {<Arc<Atomic<bool>> as Clone>::clone}>(move _1) -> [return: bb1, unwind continue];
+    }
+
+    bb1: {
+        StorageDead(_2);
+        StorageDead(_1);
+        return;
+    }
+}
+
+const ITEM_BYTES::promoted[0]: &for<'a> fn(&'a Arc<Atomic<bool>>) -> Arc<Atomic<bool>> {<Arc<Atomic<bool>> as Clone>::clone} = {
+    let mut _0: &for<'a> fn(&'a std::sync::Arc<std::sync::atomic::Atomic<bool>>) -> std::sync::Arc<std::sync::atomic::Atomic<bool>> {<std::sync::Arc<std::sync::atomic::Atomic<bool>> as std::clone::Clone>::clone};
+    let mut _1: for<'a> fn(&'a std::sync::Arc<std::sync::atomic::Atomic<bool>>) -> std::sync::Arc<std::sync::atomic::Atomic<bool>> {<std::sync::Arc<std::sync::atomic::Atomic<bool>> as std::clone::Clone>::clone};
+
+    bb0: {
+        _1 = <Arc<Atomic<bool>> as Clone>::clone;
+        _0 = &_1;
+        return;
+    }
+}
+
+const ITEM_ALIGNMENT: usize = {
+    let mut _0: usize;
+    let mut _1: &for<'a> fn(&'a std::sync::Arc<std::sync::atomic::Atomic<bool>>) -> std::sync::Arc<std::sync::atomic::Atomic<bool>> {<std::sync::Arc<std::sync::atomic::Atomic<bool>> as std::clone::Clone>::clone};
+    let _2: &for<'a> fn(&'a std::sync::Arc<std::sync::atomic::Atomic<bool>>) -> std::sync::Arc<std::sync::atomic::Atomic<bool>> {<std::sync::Arc<std::sync::atomic::Atomic<bool>> as std::clone::Clone>::clone};
+    let _3: for<'a> fn(&'a std::sync::Arc<std::sync::atomic::Atomic<bool>>) -> std::sync::Arc<std::sync::atomic::Atomic<bool>> {<std::sync::Arc<std::sync::atomic::Atomic<bool>> as std::clone::Clone>::clone};
+    let mut _4: &for<'a> fn(&'a std::sync::Arc<std::sync::atomic::Atomic<bool>>) -> std::sync::Arc<std::sync::atomic::Atomic<bool>> {<std::sync::Arc<std::sync::atomic::Atomic<bool>> as std::clone::Clone>::clone};
+
+    bb0: {
+        StorageLive(_1);
+        StorageLive(_2);
+        _4 = const ITEM_ALIGNMENT::promoted[0];
+        _2 = &(*_4);
+        _1 = &(*_2);
+        ConstEvalCounter;
+        _0 = alignment::<for<'a> fn(&'a Arc<Atomic<bool>>) -> Arc<Atomic<bool>> {<Arc<Atomic<bool>> as Clone>::clone}>(move _1) -> [return: bb1, unwind continue];
+    }
+
+    bb1: {
+        StorageDead(_2);
+        StorageDead(_1);
+        return;
+    }
+}
+
+const ITEM_ALIGNMENT::promoted[0]: &for<'a> fn(&'a Arc<Atomic<bool>>) -> Arc<Atomic<bool>> {<Arc<Atomic<bool>> as Clone>::clone} = {
+    let mut _0: &for<'a> fn(&'a std::sync::Arc<std::sync::atomic::Atomic<bool>>) -> std::sync::Arc<std::sync::atomic::Atomic<bool>> {<std::sync::Arc<std::sync::atomic::Atomic<bool>> as std::clone::Clone>::clone};
+    let mut _1: for<'a> fn(&'a std::sync::Arc<std::sync::atomic::Atomic<bool>>) -> std::sync::Arc<std::sync::atomic::Atomic<bool>> {<std::sync::Arc<std::sync::atomic::Atomic<bool>> as std::clone::Clone>::clone};
+
+    bb0: {
+        _1 = <Arc<Atomic<bool>> as Clone>::clone;
+        _0 = &_1;
+        return;
+    }
+}
+
+fn factory(_1: usize) -> {closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_inference_copy_bound/exact_inference_copy_bound.rs:7:59: 7:66} {
+    debug v => _1;
+    let mut _0: {closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_inference_copy_bound/exact_inference_copy_bound.rs:7:59: 7:66};
+
+    bb0: {
+        _0 = {closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_inference_copy_bound/exact_inference_copy_bound.rs:7:59: 7:66} { v: copy _1 };
+        return;
+    }
+}
+
+// MIR FOR CTFE
+fn factory(_1: usize) -> {closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_inference_copy_bound/exact_inference_copy_bound.rs:7:59: 7:66} {
+    debug v => _1;
+    let mut _0: {closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_inference_copy_bound/exact_inference_copy_bound.rs:7:59: 7:66};
+
+    bb0: {
+        _0 = {closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_inference_copy_bound/exact_inference_copy_bound.rs:7:59: 7:66} { v: copy _1 };
+        return;
+    }
+}
+
+fn factory::{closure#0}(_1: &{closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_inference_copy_bound/exact_inference_copy_bound.rs:7:59: 7:66}) -> usize {
+    debug v => ((*_1).0: usize);
+    let mut _0: usize;
+
+    bb0: {
+        _0 = copy ((*_1).0: usize);
+        return;
+    }
+}
+
+const CLOSURE_BYTES: usize = {
+    let mut _0: usize;
+    let mut _1: &{closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_inference_copy_bound/exact_inference_copy_bound.rs:7:59: 7:66};
+    let _2: &{closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_inference_copy_bound/exact_inference_copy_bound.rs:7:59: 7:66};
+    let _3: {closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_inference_copy_bound/exact_inference_copy_bound.rs:7:59: 7:66};
+    let mut _4: &{closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_inference_copy_bound/exact_inference_copy_bound.rs:7:59: 7:66};
+
+    bb0: {
+        StorageLive(_1);
+        StorageLive(_2);
+        _4 = const CLOSURE_BYTES::promoted[0];
+        _2 = &(*_4);
+        _1 = &(*_2);
+        ConstEvalCounter;
+        _0 = bytes::<{closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_inference_copy_bound/exact_inference_copy_bound.rs:7:59: 7:66}>(move _1) -> [return: bb1, unwind continue];
+    }
+
+    bb1: {
+        StorageDead(_2);
+        StorageDead(_1);
+        return;
+    }
+}
+
+const CLOSURE_BYTES::promoted[0]: &{closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_inference_copy_bound/exact_inference_copy_bound.rs:7:59: 7:66} = {
+    let mut _0: &{closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_inference_copy_bound/exact_inference_copy_bound.rs:7:59: 7:66};
+    let mut _1: {closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_inference_copy_bound/exact_inference_copy_bound.rs:7:59: 7:66};
+
+    bb0: {
+        _1 = factory(const 7_usize) -> [return: bb1, unwind continue];
+    }
+
+    bb1: {
+        _0 = &_1;
+        return;
+    }
+}
+
+const CLOSURE_ALIGNMENT: usize = {
+    let mut _0: usize;
+    let mut _1: &{closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_inference_copy_bound/exact_inference_copy_bound.rs:7:59: 7:66};
+    let _2: &{closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_inference_copy_bound/exact_inference_copy_bound.rs:7:59: 7:66};
+    let _3: {closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_inference_copy_bound/exact_inference_copy_bound.rs:7:59: 7:66};
+    let mut _4: &{closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_inference_copy_bound/exact_inference_copy_bound.rs:7:59: 7:66};
+
+    bb0: {
+        StorageLive(_1);
+        StorageLive(_2);
+        _4 = const CLOSURE_ALIGNMENT::promoted[0];
+        _2 = &(*_4);
+        _1 = &(*_2);
+        ConstEvalCounter;
+        _0 = alignment::<{closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_inference_copy_bound/exact_inference_copy_bound.rs:7:59: 7:66}>(move _1) -> [return: bb1, unwind continue];
+    }
+
+    bb1: {
+        StorageDead(_2);
+        StorageDead(_1);
+        return;
+    }
+}
+
+const CLOSURE_ALIGNMENT::promoted[0]: &{closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_inference_copy_bound/exact_inference_copy_bound.rs:7:59: 7:66} = {
+    let mut _0: &{closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_inference_copy_bound/exact_inference_copy_bound.rs:7:59: 7:66};
+    let mut _1: {closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_inference_copy_bound/exact_inference_copy_bound.rs:7:59: 7:66};
+
+    bb0: {
+        _1 = factory(const 7_usize) -> [return: bb1, unwind continue];
+    }
+
+    bb1: {
+        _0 = &_1;
+        return;
+    }
+}
+
+fn main() -> () {
+    let mut _0: ();
+    let _1: ();
+    let mut _2: std::fmt::Arguments<'_>;
+    let mut _3: &&str;
+    let _4: &str;
+    let mut _6: core::fmt::rt::Argument<'_>;
+    let mut _7: core::fmt::rt::Argument<'_>;
+    let mut _8: core::fmt::rt::Argument<'_>;
+    let _9: &[core::fmt::rt::Argument<'_>; 3];
+    let _10: ();
+    let mut _11: std::fmt::Arguments<'_>;
+    let mut _12: &&str;
+    let _13: &str;
+    let mut _15: core::fmt::rt::Argument<'_>;
+    let mut _16: core::fmt::rt::Argument<'_>;
+    let mut _17: core::fmt::rt::Argument<'_>;
+    let _18: &[core::fmt::rt::Argument<'_>; 3];
+    let _19: ();
+    let mut _20: std::fmt::Arguments<'_>;
+    let mut _21: &usize;
+    let _22: usize;
+    let _23: std::sync::Arc<std::sync::atomic::Atomic<bool>>;
+    let mut _24: std::sync::atomic::Atomic<bool>;
+    let mut _26: core::fmt::rt::Argument<'_>;
+    let mut _27: core::fmt::rt::Argument<'_>;
+    let _28: &[core::fmt::rt::Argument<'_>; 2];
+    let mut _29: &usize;
+    scope 1 {
+        debug f => <Arc<Atomic<bool>> as Clone>::clone;
+        scope 2 {
+            debug ((c: {closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_inference_copy_bound/exact_inference_copy_bound.rs:7:59: 7:66}).0: usize) => const 7_usize;
+            let mut _30: &usize;
+            let mut _31: &usize;
+            let mut _32: &usize;
+            let mut _33: &usize;
+            let mut _34: &usize;
+            let mut _35: &usize;
+            let mut _36: &usize;
+            let mut _37: &usize;
+            scope 3 {
+                debug ((args: (&usize, &usize, &&str)).0: &usize) => _37;
+                debug ((args: (&usize, &usize, &&str)).1: &usize) => _36;
+                debug ((args: (&usize, &usize, &&str)).2: &&str) => _3;
+                let _5: [core::fmt::rt::Argument<'_>; 3];
+                scope 4 {
+                    debug args => _5;
+                    scope 31 (inlined Arguments::<'_>::new::<16, 3>) {
+                        let mut _53: std::ptr::NonNull<u8>;
+                        let mut _54: std::ptr::NonNull<core::fmt::rt::Argument<'_>>;
+                    }
+                }
+                scope 16 (inlined core::fmt::rt::Argument::<'_>::new_display::<usize>) {
+                    let mut _38: core::fmt::rt::ArgumentType<'_>;
+                    let mut _39: std::ptr::NonNull<()>;
+                    let mut _40: for<'a, 'b> unsafe fn(std::ptr::NonNull<()>, &'a mut std::fmt::Formatter<'b>) -> std::result::Result<(), std::fmt::Error>;
+                    let _41: for<'a, 'b, 'c> fn(&'a usize, &'b mut std::fmt::Formatter<'c>) -> std::result::Result<(), std::fmt::Error>;
+                    scope 17 {
+                    }
+                    scope 18 (inlined NonNull::<usize>::from_ref) {
+                        let mut _42: *const usize;
+                    }
+                    scope 19 (inlined NonNull::<usize>::cast::<()>) {
+                        scope 20 (inlined NonNull::<usize>::as_ptr) {
+                        }
+                    }
+                }
+                scope 21 (inlined core::fmt::rt::Argument::<'_>::new_display::<usize>) {
+                    let mut _43: core::fmt::rt::ArgumentType<'_>;
+                    let mut _44: std::ptr::NonNull<()>;
+                    let mut _45: for<'a, 'b> unsafe fn(std::ptr::NonNull<()>, &'a mut std::fmt::Formatter<'b>) -> std::result::Result<(), std::fmt::Error>;
+                    let _46: for<'a, 'b, 'c> fn(&'a usize, &'b mut std::fmt::Formatter<'c>) -> std::result::Result<(), std::fmt::Error>;
+                    scope 22 {
+                    }
+                    scope 23 (inlined NonNull::<usize>::from_ref) {
+                        let mut _47: *const usize;
+                    }
+                    scope 24 (inlined NonNull::<usize>::cast::<()>) {
+                        scope 25 (inlined NonNull::<usize>::as_ptr) {
+                        }
+                    }
+                }
+                scope 26 (inlined core::fmt::rt::Argument::<'_>::new_display::<&str>) {
+                    let mut _48: core::fmt::rt::ArgumentType<'_>;
+                    let mut _49: std::ptr::NonNull<()>;
+                    let mut _50: for<'a, 'b> unsafe fn(std::ptr::NonNull<()>, &'a mut std::fmt::Formatter<'b>) -> std::result::Result<(), std::fmt::Error>;
+                    let _51: for<'a, 'b, 'c> fn(&'a &str, &'b mut std::fmt::Formatter<'c>) -> std::result::Result<(), std::fmt::Error>;
+                    scope 27 {
+                    }
+                    scope 28 (inlined NonNull::<&str>::from_ref) {
+                        let mut _52: *const &str;
+                    }
+                    scope 29 (inlined NonNull::<&str>::cast::<()>) {
+                        scope 30 (inlined NonNull::<&str>::as_ptr) {
+                        }
+                    }
+                }
+            }
+            scope 5 {
+                debug ((args: (&usize, &usize, &&str)).0: &usize) => _35;
+                debug ((args: (&usize, &usize, &&str)).1: &usize) => _34;
+                debug ((args: (&usize, &usize, &&str)).2: &&str) => _12;
+                let _14: [core::fmt::rt::Argument<'_>; 3];
+                scope 6 {
+                    debug args => _14;
+                    scope 49 (inlined Arguments::<'_>::new::<19, 3>) {
+                        let mut _70: std::ptr::NonNull<u8>;
+                        let mut _71: std::ptr::NonNull<core::fmt::rt::Argument<'_>>;
+                    }
+                }
+                scope 34 (inlined core::fmt::rt::Argument::<'_>::new_display::<usize>) {
+                    let mut _55: core::fmt::rt::ArgumentType<'_>;
+                    let mut _56: std::ptr::NonNull<()>;
+                    let mut _57: for<'a, 'b> unsafe fn(std::ptr::NonNull<()>, &'a mut std::fmt::Formatter<'b>) -> std::result::Result<(), std::fmt::Error>;
+                    let _58: for<'a, 'b, 'c> fn(&'a usize, &'b mut std::fmt::Formatter<'c>) -> std::result::Result<(), std::fmt::Error>;
+                    scope 35 {
+                    }
+                    scope 36 (inlined NonNull::<usize>::from_ref) {
+                        let mut _59: *const usize;
+                    }
+                    scope 37 (inlined NonNull::<usize>::cast::<()>) {
+                        scope 38 (inlined NonNull::<usize>::as_ptr) {
+                        }
+                    }
+                }
+                scope 39 (inlined core::fmt::rt::Argument::<'_>::new_display::<usize>) {
+                    let mut _60: core::fmt::rt::ArgumentType<'_>;
+                    let mut _61: std::ptr::NonNull<()>;
+                    let mut _62: for<'a, 'b> unsafe fn(std::ptr::NonNull<()>, &'a mut std::fmt::Formatter<'b>) -> std::result::Result<(), std::fmt::Error>;
+                    let _63: for<'a, 'b, 'c> fn(&'a usize, &'b mut std::fmt::Formatter<'c>) -> std::result::Result<(), std::fmt::Error>;
+                    scope 40 {
+                    }
+                    scope 41 (inlined NonNull::<usize>::from_ref) {
+                        let mut _64: *const usize;
+                    }
+                    scope 42 (inlined NonNull::<usize>::cast::<()>) {
+                        scope 43 (inlined NonNull::<usize>::as_ptr) {
+                        }
+                    }
+                }
+                scope 44 (inlined core::fmt::rt::Argument::<'_>::new_display::<&str>) {
+                    let mut _65: core::fmt::rt::ArgumentType<'_>;
+                    let mut _66: std::ptr::NonNull<()>;
+                    let mut _67: for<'a, 'b> unsafe fn(std::ptr::NonNull<()>, &'a mut std::fmt::Formatter<'b>) -> std::result::Result<(), std::fmt::Error>;
+                    let _68: for<'a, 'b, 'c> fn(&'a &str, &'b mut std::fmt::Formatter<'c>) -> std::result::Result<(), std::fmt::Error>;
+                    scope 45 {
+                    }
+                    scope 46 (inlined NonNull::<&str>::from_ref) {
+                        let mut _69: *const &str;
+                    }
+                    scope 47 (inlined NonNull::<&str>::cast::<()>) {
+                        scope 48 (inlined NonNull::<&str>::as_ptr) {
+                        }
+                    }
+                }
+            }
+            scope 7 {
+                debug ((args: (&usize, &usize)).0: &usize) => _33;
+                debug ((args: (&usize, &usize)).1: &usize) => _21;
+                let _25: [core::fmt::rt::Argument<'_>; 2];
+                scope 8 {
+                    debug args => _25;
+                    scope 88 (inlined Arguments::<'_>::new::<21, 2>) {
+                        let mut _89: std::ptr::NonNull<u8>;
+                        let mut _90: std::ptr::NonNull<core::fmt::rt::Argument<'_>>;
+                    }
+                }
+                scope 78 (inlined core::fmt::rt::Argument::<'_>::new_display::<usize>) {
+                    let mut _79: core::fmt::rt::ArgumentType<'_>;
+                    let mut _80: std::ptr::NonNull<()>;
+                    let mut _81: for<'a, 'b> unsafe fn(std::ptr::NonNull<()>, &'a mut std::fmt::Formatter<'b>) -> std::result::Result<(), std::fmt::Error>;
+                    let _82: for<'a, 'b, 'c> fn(&'a usize, &'b mut std::fmt::Formatter<'c>) -> std::result::Result<(), std::fmt::Error>;
+                    scope 79 {
+                    }
+                    scope 80 (inlined NonNull::<usize>::from_ref) {
+                        let mut _83: *const usize;
+                    }
+                    scope 81 (inlined NonNull::<usize>::cast::<()>) {
+                        scope 82 (inlined NonNull::<usize>::as_ptr) {
+                        }
+                    }
+                }
+                scope 83 (inlined core::fmt::rt::Argument::<'_>::new_display::<usize>) {
+                    let mut _84: core::fmt::rt::ArgumentType<'_>;
+                    let mut _85: std::ptr::NonNull<()>;
+                    let mut _86: for<'a, 'b> unsafe fn(std::ptr::NonNull<()>, &'a mut std::fmt::Formatter<'b>) -> std::result::Result<(), std::fmt::Error>;
+                    let _87: for<'a, 'b, 'c> fn(&'a usize, &'b mut std::fmt::Formatter<'c>) -> std::result::Result<(), std::fmt::Error>;
+                    scope 84 {
+                    }
+                    scope 85 (inlined NonNull::<usize>::from_ref) {
+                        let mut _88: *const usize;
+                    }
+                    scope 86 (inlined NonNull::<usize>::cast::<()>) {
+                        scope 87 (inlined NonNull::<usize>::as_ptr) {
+                        }
+                    }
+                }
+            }
+            scope 9 {
+                debug left_val => _32;
+                debug right_val => _31;
+                scope 10 {
+                    debug kind => const core::panicking::AssertKind::Eq;
+                }
+            }
+            scope 11 {
+                debug left_val => _30;
+                debug right_val => _29;
+                scope 12 {
+                    debug kind => const core::panicking::AssertKind::Eq;
+                }
+            }
+            scope 14 (inlined type_name_of_val::<for<'a> fn(&'a Arc<Atomic<bool>>) -> Arc<Atomic<bool>> {<Arc<Atomic<bool>> as Clone>::clone}>) {
+                scope 15 (inlined std::any::type_name::<for<'a> fn(&'a Arc<Atomic<bool>>) -> Arc<Atomic<bool>> {<Arc<Atomic<bool>> as Clone>::clone}>) {
+                }
+            }
+            scope 32 (inlined type_name_of_val::<{closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_inference_copy_bound/exact_inference_copy_bound.rs:7:59: 7:66}>) {
+                scope 33 (inlined std::any::type_name::<{closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_inference_copy_bound/exact_inference_copy_bound.rs:7:59: 7:66}>) {
+                }
+            }
+            scope 50 (inlined Atomic::<bool>::new) {
+            }
+            scope 51 (inlined Arc::<Atomic<bool>>::new) {
+                let _72: std::boxed::Box<alloc::sync::ArcInner<std::sync::atomic::Atomic<bool>>>;
+                let mut _73: alloc::sync::ArcInner<std::sync::atomic::Atomic<bool>>;
+                let mut _74: std::sync::atomic::Atomic<usize>;
+                let mut _75: std::ptr::NonNull<alloc::sync::ArcInner<std::sync::atomic::Atomic<bool>>>;
+                let mut _78: std::ptr::Unique<alloc::sync::ArcInner<std::sync::atomic::Atomic<bool>>>;
+                scope 52 {
+                    scope 55 (inlined Box::<alloc::sync::ArcInner<Atomic<bool>>>::leak::<'_>) {
+                        scope 56 {
+                            scope 68 (inlined std::mem::forget::<std::alloc::Global>) {
+                                scope 69 {
+                                }
+                                scope 70 (inlined ManuallyDrop::<std::alloc::Global>::new) {
+                                    scope 71 (inlined MaybeDangling::<std::alloc::Global>::new) {
+                                    }
+                                }
+                            }
+                        }
+                        scope 57 (inlined Box::<alloc::sync::ArcInner<Atomic<bool>>>::into_raw_with_allocator) {
+                            let mut _76: *const alloc::sync::ArcInner<std::sync::atomic::Atomic<bool>>;
+                            scope 58 {
+                                scope 59 {
+                                    scope 60 {
+                                    }
+                                    scope 65 (inlined <ManuallyDrop<Box<alloc::sync::ArcInner<Atomic<bool>>>> as Deref>::deref) {
+                                        scope 66 (inlined MaybeDangling::<Box<alloc::sync::ArcInner<Atomic<bool>>>>::as_ref) {
+                                        }
+                                    }
+                                    scope 67 (inlined #[track_caller] std::ptr::read::<std::alloc::Global>) {
+                                    }
+                                }
+                                scope 63 (inlined <ManuallyDrop<Box<alloc::sync::ArcInner<Atomic<bool>>>> as DerefMut>::deref_mut) {
+                                    scope 64 (inlined MaybeDangling::<Box<alloc::sync::ArcInner<Atomic<bool>>>>::as_mut) {
+                                    }
+                                }
+                            }
+                            scope 61 (inlined ManuallyDrop::<Box<alloc::sync::ArcInner<Atomic<bool>>>>::new) {
+                                scope 62 (inlined MaybeDangling::<Box<alloc::sync::ArcInner<Atomic<bool>>>>::new) {
+                                }
+                            }
+                        }
+                    }
+                    scope 72 (inlined #[track_caller] <&mut alloc::sync::ArcInner<Atomic<bool>> as Into<NonNull<alloc::sync::ArcInner<Atomic<bool>>>>>::into) {
+                        scope 73 (inlined <NonNull<alloc::sync::ArcInner<Atomic<bool>>> as From<&mut alloc::sync::ArcInner<Atomic<bool>>>>::from) {
+                            scope 74 (inlined NonNull::<alloc::sync::ArcInner<Atomic<bool>>>::from_mut) {
+                                let mut _77: *mut alloc::sync::ArcInner<std::sync::atomic::Atomic<bool>>;
+                            }
+                        }
+                    }
+                    scope 75 (inlined Arc::<Atomic<bool>>::from_inner) {
+                        scope 76 (inlined Arc::<Atomic<bool>>::from_inner_in) {
+                        }
+                    }
+                }
+                scope 53 (inlined Atomic::<usize>::new) {
+                }
+                scope 54 (inlined Atomic::<usize>::new) {
+                }
+            }
+            scope 77 (inlined std::mem::size_of_val::<Arc<Atomic<bool>>>) {
+            }
+            scope 89 (inlined std::mem::size_of_val::<{closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_inference_copy_bound/exact_inference_copy_bound.rs:7:59: 7:66}>) {
+            }
+        }
+        scope 13 (inlined factory) {
+        }
+    }
+
+    bb0: {
+        StorageLive(_2);
+        _37 = const main::promoted[7];
+        _36 = const main::promoted[6];
+        StorageLive(_4);
+        _4 = const std::any::type_name::<for<'a> fn(&'a std::sync::Arc<std::sync::atomic::Atomic<bool>>) -> std::sync::Arc<std::sync::atomic::Atomic<bool>> {<std::sync::Arc<std::sync::atomic::Atomic<bool>> as std::clone::Clone>::clone}>::{constant#0};
+        _3 = &_4;
+        StorageLive(_5);
+        StorageLive(_6);
+        StorageLive(_42);
+        StorageLive(_38);
+        StorageLive(_39);
+        _42 = &raw const (*_37);
+        _39 = copy _42 as std::ptr::NonNull<()> (Transmute);
+        StorageLive(_40);
+        StorageLive(_41);
+        _41 = <usize as std::fmt::Display>::fmt as for<'a, 'b, 'c> fn(&'a usize, &'b mut std::fmt::Formatter<'c>) -> std::result::Result<(), std::fmt::Error> (PointerCoercion(ReifyFnPointer(Safe), Implicit));
+        _40 = copy _41 as for<'a, 'b> unsafe fn(std::ptr::NonNull<()>, &'a mut std::fmt::Formatter<'b>) -> std::result::Result<(), std::fmt::Error> (Transmute);
+        StorageDead(_41);
+        _38 = core::fmt::rt::ArgumentType::<'_>::Placeholder { value: move _39, formatter: copy _40, _lifetime: const PhantomData::<&()> };
+        StorageDead(_40);
+        StorageDead(_39);
+        _6 = core::fmt::rt::Argument::<'_> { ty: move _38 };
+        StorageDead(_38);
+        StorageDead(_42);
+        StorageLive(_7);
+        StorageLive(_47);
+        StorageLive(_43);
+        StorageLive(_44);
+        _47 = &raw const (*_36);
+        _44 = copy _47 as std::ptr::NonNull<()> (Transmute);
+        StorageLive(_45);
+        StorageLive(_46);
+        _46 = <usize as std::fmt::Display>::fmt as for<'a, 'b, 'c> fn(&'a usize, &'b mut std::fmt::Formatter<'c>) -> std::result::Result<(), std::fmt::Error> (PointerCoercion(ReifyFnPointer(Safe), Implicit));
+        _45 = copy _46 as for<'a, 'b> unsafe fn(std::ptr::NonNull<()>, &'a mut std::fmt::Formatter<'b>) -> std::result::Result<(), std::fmt::Error> (Transmute);
+        StorageDead(_46);
+        _43 = core::fmt::rt::ArgumentType::<'_>::Placeholder { value: move _44, formatter: copy _45, _lifetime: const PhantomData::<&()> };
+        StorageDead(_45);
+        StorageDead(_44);
+        _7 = core::fmt::rt::Argument::<'_> { ty: move _43 };
+        StorageDead(_43);
+        StorageDead(_47);
+        StorageLive(_8);
+        StorageLive(_52);
+        StorageLive(_48);
+        StorageLive(_49);
+        _52 = &raw const (*_3);
+        _49 = copy _52 as std::ptr::NonNull<()> (Transmute);
+        StorageLive(_50);
+        StorageLive(_51);
+        _51 = <&str as std::fmt::Display>::fmt as for<'a, 'b, 'c> fn(&'a &str, &'b mut std::fmt::Formatter<'c>) -> std::result::Result<(), std::fmt::Error> (PointerCoercion(ReifyFnPointer(Safe), Implicit));
+        _50 = copy _51 as for<'a, 'b> unsafe fn(std::ptr::NonNull<()>, &'a mut std::fmt::Formatter<'b>) -> std::result::Result<(), std::fmt::Error> (Transmute);
+        StorageDead(_51);
+        _48 = core::fmt::rt::ArgumentType::<'_>::Placeholder { value: move _49, formatter: copy _50, _lifetime: const PhantomData::<&()> };
+        StorageDead(_50);
+        StorageDead(_49);
+        _8 = core::fmt::rt::Argument::<'_> { ty: move _48 };
+        StorageDead(_48);
+        StorageDead(_52);
+        _5 = [move _6, move _7, move _8];
+        StorageDead(_8);
+        StorageDead(_7);
+        StorageDead(_6);
+        StorageLive(_9);
+        _9 = &_5;
+        StorageLive(_53);
+        _53 = const b"\x05item \xc0\x01 \xc0\x01 \xc0\x01\n\x00" as std::ptr::NonNull<u8> (Transmute);
+        StorageLive(_54);
+        _54 = copy _9 as std::ptr::NonNull<core::fmt::rt::Argument<'_>> (Transmute);
+        _2 = Arguments::<'_> { template: move _53, args: move _54 };
+        StorageDead(_54);
+        StorageDead(_53);
+        StorageDead(_9);
+        _1 = std::io::_print(move _2) -> [return: bb1, unwind continue];
+    }
+
+    bb1: {
+        StorageDead(_2);
+        StorageDead(_5);
+        StorageDead(_4);
+        StorageLive(_11);
+        _35 = const main::promoted[5];
+        _34 = const main::promoted[4];
+        StorageLive(_13);
+        _13 = const std::any::type_name::<{closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_inference_copy_bound/exact_inference_copy_bound.rs:7:59: 7:66}>::{constant#0};
+        _12 = &_13;
+        StorageLive(_14);
+        StorageLive(_15);
+        StorageLive(_59);
+        StorageLive(_55);
+        StorageLive(_56);
+        _59 = &raw const (*_35);
+        _56 = copy _59 as std::ptr::NonNull<()> (Transmute);
+        StorageLive(_57);
+        StorageLive(_58);
+        _58 = <usize as std::fmt::Display>::fmt as for<'a, 'b, 'c> fn(&'a usize, &'b mut std::fmt::Formatter<'c>) -> std::result::Result<(), std::fmt::Error> (PointerCoercion(ReifyFnPointer(Safe), Implicit));
+        _57 = copy _58 as for<'a, 'b> unsafe fn(std::ptr::NonNull<()>, &'a mut std::fmt::Formatter<'b>) -> std::result::Result<(), std::fmt::Error> (Transmute);
+        StorageDead(_58);
+        _55 = core::fmt::rt::ArgumentType::<'_>::Placeholder { value: move _56, formatter: copy _57, _lifetime: const PhantomData::<&()> };
+        StorageDead(_57);
+        StorageDead(_56);
+        _15 = core::fmt::rt::Argument::<'_> { ty: move _55 };
+        StorageDead(_55);
+        StorageDead(_59);
+        StorageLive(_16);
+        StorageLive(_64);
+        StorageLive(_60);
+        StorageLive(_61);
+        _64 = &raw const (*_34);
+        _61 = copy _64 as std::ptr::NonNull<()> (Transmute);
+        StorageLive(_62);
+        StorageLive(_63);
+        _63 = <usize as std::fmt::Display>::fmt as for<'a, 'b, 'c> fn(&'a usize, &'b mut std::fmt::Formatter<'c>) -> std::result::Result<(), std::fmt::Error> (PointerCoercion(ReifyFnPointer(Safe), Implicit));
+        _62 = copy _63 as for<'a, 'b> unsafe fn(std::ptr::NonNull<()>, &'a mut std::fmt::Formatter<'b>) -> std::result::Result<(), std::fmt::Error> (Transmute);
+        StorageDead(_63);
+        _60 = core::fmt::rt::ArgumentType::<'_>::Placeholder { value: move _61, formatter: copy _62, _lifetime: const PhantomData::<&()> };
+        StorageDead(_62);
+        StorageDead(_61);
+        _16 = core::fmt::rt::Argument::<'_> { ty: move _60 };
+        StorageDead(_60);
+        StorageDead(_64);
+        StorageLive(_17);
+        StorageLive(_69);
+        StorageLive(_65);
+        StorageLive(_66);
+        _69 = &raw const (*_12);
+        _66 = copy _69 as std::ptr::NonNull<()> (Transmute);
+        StorageLive(_67);
+        StorageLive(_68);
+        _68 = <&str as std::fmt::Display>::fmt as for<'a, 'b, 'c> fn(&'a &str, &'b mut std::fmt::Formatter<'c>) -> std::result::Result<(), std::fmt::Error> (PointerCoercion(ReifyFnPointer(Safe), Implicit));
+        _67 = copy _68 as for<'a, 'b> unsafe fn(std::ptr::NonNull<()>, &'a mut std::fmt::Formatter<'b>) -> std::result::Result<(), std::fmt::Error> (Transmute);
+        StorageDead(_68);
+        _65 = core::fmt::rt::ArgumentType::<'_>::Placeholder { value: move _66, formatter: copy _67, _lifetime: const PhantomData::<&()> };
+        StorageDead(_67);
+        StorageDead(_66);
+        _17 = core::fmt::rt::Argument::<'_> { ty: move _65 };
+        StorageDead(_65);
+        StorageDead(_69);
+        _14 = [move _15, move _16, move _17];
+        StorageDead(_17);
+        StorageDead(_16);
+        StorageDead(_15);
+        StorageLive(_18);
+        _18 = &_14;
+        StorageLive(_70);
+        _70 = const b"\x08closure \xc0\x01 \xc0\x01 \xc0\x01\n\x00" as std::ptr::NonNull<u8> (Transmute);
+        StorageLive(_71);
+        _71 = copy _18 as std::ptr::NonNull<core::fmt::rt::Argument<'_>> (Transmute);
+        _11 = Arguments::<'_> { template: move _70, args: move _71 };
+        StorageDead(_71);
+        StorageDead(_70);
+        StorageDead(_18);
+        _10 = std::io::_print(move _11) -> [return: bb2, unwind continue];
+    }
+
+    bb2: {
+        StorageDead(_11);
+        StorageDead(_14);
+        StorageDead(_13);
+        StorageLive(_20);
+        _33 = const main::promoted[3];
+        StorageLive(_22);
+        StorageLive(_23);
+        StorageLive(_24);
+        _24 = const false as std::sync::atomic::Atomic<bool> (Transmute);
+        StorageLive(_76);
+        StorageLive(_72);
+        StorageLive(_73);
+        StorageLive(_74);
+        _74 = const 1_usize as std::sync::atomic::Atomic<usize> (Transmute);
+        _73 = alloc::sync::ArcInner::<Atomic<bool>> { strong: copy _74, weak: copy _74, data: copy _24 };
+        StorageDead(_74);
+        _72 = Box::<alloc::sync::ArcInner<Atomic<bool>>>::new(move _73) -> [return: bb7, unwind continue];
+    }
+
+    bb3: {
+        StorageDead(_20);
+        StorageDead(_25);
+        drop(_23) -> [return: bb4, unwind continue];
+    }
+
+    bb4: {
+        StorageDead(_23);
+        StorageDead(_22);
+        _32 = const main::promoted[2];
+        _31 = const main::promoted[1];
+        _30 = const main::promoted[0];
+        // DBG: _29 = &?;
+        return;
+    }
+
+    bb5 (cleanup): {
+        drop(_23) -> [return: bb6, unwind terminate(cleanup)];
+    }
+
+    bb6 (cleanup): {
+        resume;
+    }
+
+    bb7: {
+        StorageDead(_73);
+        StorageLive(_75);
+        StorageLive(_78);
+        _78 = move (_72.0: std::ptr::Unique<alloc::sync::ArcInner<std::sync::atomic::Atomic<bool>>>);
+        _76 = copy _78 as *const alloc::sync::ArcInner<std::sync::atomic::Atomic<bool>> (BoxDerefTransmute);
+        StorageDead(_78);
+        StorageLive(_77);
+        _77 = &raw mut (*_76);
+        _75 = copy _77 as std::ptr::NonNull<alloc::sync::ArcInner<std::sync::atomic::Atomic<bool>>> (Transmute);
+        StorageDead(_77);
+        _23 = Arc::<Atomic<bool>> { ptr: copy _75, phantom: const PhantomData::<alloc::sync::ArcInner<Atomic<bool>>>, alloc: const std::alloc::Global };
+        StorageDead(_75);
+        StorageDead(_72);
+        StorageDead(_76);
+        StorageDead(_24);
+        _22 = const 8_usize;
+        _21 = &_22;
+        StorageLive(_25);
+        StorageLive(_26);
+        StorageLive(_83);
+        StorageLive(_79);
+        StorageLive(_80);
+        _83 = &raw const (*_33);
+        _80 = copy _83 as std::ptr::NonNull<()> (Transmute);
+        StorageLive(_81);
+        StorageLive(_82);
+        _82 = <usize as std::fmt::Display>::fmt as for<'a, 'b, 'c> fn(&'a usize, &'b mut std::fmt::Formatter<'c>) -> std::result::Result<(), std::fmt::Error> (PointerCoercion(ReifyFnPointer(Safe), Implicit));
+        _81 = copy _82 as for<'a, 'b> unsafe fn(std::ptr::NonNull<()>, &'a mut std::fmt::Formatter<'b>) -> std::result::Result<(), std::fmt::Error> (Transmute);
+        StorageDead(_82);
+        _79 = core::fmt::rt::ArgumentType::<'_>::Placeholder { value: move _80, formatter: copy _81, _lifetime: const PhantomData::<&()> };
+        StorageDead(_81);
+        StorageDead(_80);
+        _26 = core::fmt::rt::Argument::<'_> { ty: move _79 };
+        StorageDead(_79);
+        StorageDead(_83);
+        StorageLive(_27);
+        StorageLive(_88);
+        StorageLive(_84);
+        StorageLive(_85);
+        _88 = &raw const (*_21);
+        _85 = copy _88 as std::ptr::NonNull<()> (Transmute);
+        StorageLive(_86);
+        StorageLive(_87);
+        _87 = <usize as std::fmt::Display>::fmt as for<'a, 'b, 'c> fn(&'a usize, &'b mut std::fmt::Formatter<'c>) -> std::result::Result<(), std::fmt::Error> (PointerCoercion(ReifyFnPointer(Safe), Implicit));
+        _86 = copy _87 as for<'a, 'b> unsafe fn(std::ptr::NonNull<()>, &'a mut std::fmt::Formatter<'b>) -> std::result::Result<(), std::fmt::Error> (Transmute);
+        StorageDead(_87);
+        _84 = core::fmt::rt::ArgumentType::<'_>::Placeholder { value: move _85, formatter: copy _86, _lifetime: const PhantomData::<&()> };
+        StorageDead(_86);
+        StorageDead(_85);
+        _27 = core::fmt::rt::Argument::<'_> { ty: move _84 };
+        StorageDead(_84);
+        StorageDead(_88);
+        _25 = [move _26, move _27];
+        StorageDead(_27);
+        StorageDead(_26);
+        StorageLive(_28);
+        _28 = &_25;
+        StorageLive(_89);
+        _89 = const b"\rpublic_alias \xc0\x01 \xc0\x01\n\x00" as std::ptr::NonNull<u8> (Transmute);
+        StorageLive(_90);
+        _90 = copy _28 as std::ptr::NonNull<core::fmt::rt::Argument<'_>> (Transmute);
+        _20 = Arguments::<'_> { template: move _89, args: move _90 };
+        StorageDead(_90);
+        StorageDead(_89);
+        StorageDead(_28);
+        _19 = std::io::_print(move _20) -> [return: bb3, unwind: bb5];
+    }
+}
+
+alloc21 (size: 21, align: 1) {
+    0x00 │ 0d 70 75 62 6c 69 63 5f 61 6c 69 61 73 20 c0 01 │ .public_alias ..
+    0x10 │ 20 c0 01 0a 00                                  │  ....
+}
+
+alloc20 (size: 19, align: 1) {
+    0x00 │ 08 63 6c 6f 73 75 72 65 20 c0 01 20 c0 01 20 c0 │ .closure .. .. .
+    0x10 │ 01 0a 00                                        │ ...
+}
+
+alloc19 (size: 16, align: 1) {
+    05 69 74 65 6d 20 c0 01 20 c0 01 20 c0 01 0a 00 │ .item .. .. ....
+}
+
+const main::promoted[0]: &usize = {
+    let mut _0: &usize;
+    let mut _1: usize;
+
+    bb0: {
+        _1 = const CLOSURE_BYTES;
+        _0 = &_1;
+        return;
+    }
+}
+
+const main::promoted[1]: &usize = {
+    let mut _0: &usize;
+    let mut _1: usize;
+
+    bb0: {
+        _1 = const 0_usize;
+        _0 = &_1;
+        return;
+    }
+}
+
+const main::promoted[2]: &usize = {
+    let mut _0: &usize;
+    let mut _1: usize;
+
+    bb0: {
+        _1 = const ITEM_BYTES;
+        _0 = &_1;
+        return;
+    }
+}
+
+const main::promoted[3]: &usize = {
+    let mut _0: &usize;
+    let mut _1: usize;
+
+    bb0: {
+        _1 = std::mem::size_of::<Arc<Atomic<bool>>>() -> [return: bb1, unwind continue];
+    }
+
+    bb1: {
+        _0 = &_1;
+        return;
+    }
+}
+
+const main::promoted[4]: &usize = {
+    let mut _0: &usize;
+    let mut _1: usize;
+
+    bb0: {
+        _1 = const CLOSURE_ALIGNMENT;
+        _0 = &_1;
+        return;
+    }
+}
+
+const main::promoted[5]: &usize = {
+    let mut _0: &usize;
+    let mut _1: usize;
+
+    bb0: {
+        _1 = const CLOSURE_BYTES;
+        _0 = &_1;
+        return;
+    }
+}
+
+const main::promoted[6]: &usize = {
+    let mut _0: &usize;
+    let mut _1: usize;
+
+    bb0: {
+        _1 = const ITEM_ALIGNMENT;
+        _0 = &_1;
+        return;
+    }
+}
+
+const main::promoted[7]: &usize = {
+    let mut _0: &usize;
+    let mut _1: usize;
+
+    bb0: {
+        _1 = const ITEM_BYTES;
+        _0 = &_1;
+        return;
+    }
+}

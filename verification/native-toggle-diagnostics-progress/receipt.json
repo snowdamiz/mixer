@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "status": "diagnostic-evidence-and-pending-gates-checkpoint",
+  "observedUTC": "2026-10-24T16:25:49.880720+00:00",
+  "sourceRevisionContext": "bbed074d3bd2453bbcc0807f05219d042cedd738",
+  "tools": {
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "pythonExecutable": "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "git": "git version 2.56.0"
+  },
+  "verification": [
+    {
+      "command": [
+        "python3",
+        "scripts/check-policy.py"
+      ],
+      "exitCode": 0,
+      "output": "policy.log",
+      "sha256": "acc32803caf425205dd7802da90d5cbe8f83fb712f6c0380d90625b00e9622dc"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "PLAN.md",
+        "STATUS.md",
+        "work-graph.json",
+        "gates/ga.json"
+      ],
+      "exitCode": 0,
+      "output": "empty"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "verification/android-toggle-scroll-reset-root-review/review_runtime.py"
+      ],
+      "exitCode": 0,
+      "output": "39-component-cases-pass-scroll-cancellation-observed-keyboard-focus-and-result-parser-failures-retained"
+    }
+  ],
+  "bindingValidation": "97 Apple runtime/root bindings,66 Android runtime/root bindings,2 Engine CI bindings and31 Phoenix CI bindings independently rehashed; all matched.",
+  "gateStatesAndReviewersUnchanged": true,
+  "fullNativeQualification": false,
+  "physicalPhones": "deferred disconnected",
+  "scope": "Completed diagnostic artifacts, observed failures and selected future implementation contracts. Active dispatcher/XCTest/keyboard fixture work excluded from delivery.",
+  "bindings": {
+    "PLAN.md": "3bbe6b1400b791a5caefcf3ca92e4f3942df2f2b72e2c97b6c2c5ecc30b22aee",
+    "STATUS.md": "94fb311f371f34e11a9a66f2afd0ab71d1b42080080e610a13acf8a4634fd1c3",
+    "work-graph.json": "01f47ad47a63a83569924dafce61b9b7b7130787546fe1a703b51a559c56bdea",
+    "gates/ga.json": "bd8cbf5099a1312ceb97570cf1806e0782a58d1897a7e327877d6f80b25da3d9",
+    "docs/native-toggle-diagnostics-progress.md": "bc384e4979ba7d5ff1d59f25407f95308089fdd4048d87fcc378dec531b7adf8",
+    "verification/android-toggle-scroll-reset-root-review/runtime-review.json": "ee64cc2e6b261bb8b3f0c8cfe54d3f04385290a671d592b0f637517648f6542c",
+    "verification/apple-toggle-diagnostic-root-review/runtime-review.json": "6827d0697272b5bf4ef053b73b2073b33c22a00cc061e2fe1de4361d2ef213ec",
+    "verification/stripe-webhook-resource-ingress-root-review/selection.json": "4762d82aea2d8974fddca73bc16407ef2ec78899fa05760f3e16ed31b95df5d0",
+    "verification/swift-calls-dispatch-root-review/compiler-discovered-closure-amendment.json": "9c99de797e54af8e82432a524ac13ad118ac7cf57cd9cbcd9c6ee12cca36ec38",
+    "verification/github-ci-bbed074d-engine/receipt.json": "32593871b4692b740e827d836479db9385651c21a5066559c6b733f5a927f64d",
+    "verification/github-ci-bbed074d-phoenix/receipt.json": "ae38203bb3bf8069a04bd9f942ccdb7f6132afd04106ff991ecce7d867c63a90",
+    "scripts/check-policy.py": "6cfc865f231c37e782baaf1828c52d79ee13defc0db19e8fbb88070cc79718ce"
+  }
+}

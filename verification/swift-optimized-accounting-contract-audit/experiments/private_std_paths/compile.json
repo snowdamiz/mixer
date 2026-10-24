@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "/opt/homebrew/opt/rustup/bin/rustc",
+    "--edition=2024",
+    "-Copt-level=3",
+    "--emit=link,mir",
+    "--out-dir",
+    "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-optimized-accounting-audit-grauezgy",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/private_std_paths/private_std_paths.rs"
+  ],
+  "startedUTC": "2026-10-24T15:49:17.302175+00:00",
+  "finishedUTC": "2026-10-24T15:49:17.340536+00:00",
+  "exitCode": 1,
+  "stdout": "",
+  "stderr": "error[E0425]: cannot find type `ArcInner` in module `std::sync`\n --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/private_std_paths/private_std_paths.rs:5:23\n  |\n5 |  c: *const std::sync::ArcInner<std::sync::atomic::AtomicBool>,\n  |                       ^^^^^^^^ not found in `std::sync`\n\nerror[E0603]: module `private` is private\n --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/private_std_paths/private_std_paths.rs:6:31\n  |\n6 |  d: *const std::sync::atomic::private::Align8<usize>,\n  |                               ^^^^^^^  ------ struct `Align8` is not publicly re-exported\n  |                               |\n  |                               private module\n  |\nnote: the module `private` is defined here\n --> /rustc/b940084d7eb6a299eb4bfeb8e34901bc051e7ac4/library/core/src/sync/atomic.rs:259:0\n\nerror[E0658]: use of unstable library feature `thread_local_internals`: internal details of the thread_local macro\n --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/private_std_paths/private_std_paths.rs:3:5\n  |\n3 |  a: std::thread::local_impl::EagerStorage<Cell<bool>>,\n  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nerror[E0658]: use of unstable library feature `temporary_niche_types`: for core, alloc, and std internals until pattern types are further along\n --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/private_std_paths/private_std_paths.rs:4:5\n  |\n4 |  b: core::num::niche_types::UsizeNoHighBit,\n  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nerror[E0658]: use of unstable library feature `atomic_internals`: implementation detail which may disappear or be replaced at any time\n --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/private_std_paths/private_std_paths.rs:6:12\n  |\n6 |  d: *const std::sync::atomic::private::Align8<usize>,\n  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nerror: aborting due to 5 previous errors\n\nSome errors have detailed explanations: E0425, E0603, E0658.\nFor more information about an error, try `rustc --explain E0425`.\n"
+}

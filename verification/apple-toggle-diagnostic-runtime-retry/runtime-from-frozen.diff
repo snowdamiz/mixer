@@ -1,0 +1,47 @@
+--- verification/apple-toggle-native-failure-analysis/runtime.py
++++ verification/apple-toggle-diagnostic-runtime-retry/runtime.py
+@@ -18,7 +18,7 @@
+ import uuid
+ 
+ sys.dont_write_bytecode = True
+-from packet import BASE, ROOT, CONFIGS, SOURCE_CLOSURE, file_sha, read_json, require, restore, verify_packet, verify_restored
++from packet import BASE, ROOT, CONFIGS, SOURCE_CLOSURE, file_sha, read_json, require, restore, verify_packet, verify_restored, verify_installed
+ 
+ OUT = BASE / "runtime"
+ LIFECYCLE = OUT / "lifecycle.json"
+@@ -26,7 +26,7 @@
+ SIMULATOR = DEVELOPER / "Applications/Simulator.app/Contents/MacOS/Simulator"
+ RUNTIME_ID = "com.apple.CoreSimulator.SimRuntime.iOS-26-5"
+ DEVICE_TYPE = "com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro"
+-DEVICE_NAME = "MixerAuthoredToggleDiagnosticsRuntime"
++DEVICE_NAME = "MixerAuthoredToggleDiagnosticsRetryRuntime"
+ PROTECTED = {"24DD0059-D1DD-456D-ADF9-0946595DDE66", "1A7E942B-CF97-4DBB-8786-1D982744EBE4", "D55AD884-6D5A-4403-9D16-A0FEE48A29C5", "328CA6E8-BA26-4404-8D47-63EF761B0F91"}
+ ALLOWED_COMMANDS = {"self-tests", "reset", "set-on", "disable", "stale", "resume", "rtl", "dark", "cancel", "focus", "authored-value", "clear-authored-value"}
+ 
+@@ -195,7 +195,7 @@
+     prior = current.get("selectedCandidate")
+     if prior:
+         simctl("terminate", current["ownedSimulator"], CONFIGS[prior]["bundle"], check=False)
+-    verify_restored(pathlib.Path(current["apps"][key]["installedApp"]["path"]), key)
++    verify_installed(pathlib.Path(current["apps"][key]["installedApp"]["path"]), key, record)
+     current["selectedCandidate"] = key
+     write_json(LIFECYCLE, current)
+     simctl("launch", current["ownedSimulator"], CONFIGS[key]["bundle"])
+@@ -236,7 +236,7 @@
+             verify_restored(app, key)
+             simctl("install", identifier, app)
+             installed = pathlib.Path(simctl("get_app_container", identifier, config["bundle"], "app"))
+-            current["apps"][key] = {"identity": config, "restoredApp": restored[key], "installedApp": verify_restored(installed, key), "container": simctl("get_app_container", identifier, config["bundle"], "data")}
++            current["apps"][key] = {"identity": config, "restoredApp": restored[key], "installedApp": verify_installed(installed, key, record), "container": simctl("get_app_container", identifier, config["bundle"], "data")}
+             write_json(LIFECYCLE, current)
+         current["ready"] = True
+         write_json(LIFECYCLE, current)
+@@ -355,7 +355,7 @@
+     require(not OUT.is_symlink() and OUT.resolve() == OUT, "Mutable runtime path redirected")
+     OUT.mkdir(exist_ok=True)
+     owner_path = OUT / "owner.json"
+-    expected_owner = {"schema": "mixer.apple-toggle-diagnostics-owner.1", "sourceClosureSHA256": SOURCE_CLOSURE, "handoffSealSHA256": verified["sealSHA256"]}
++    expected_owner = {"schema": "mixer.apple-toggle-diagnostics-retry-owner.1", "sourceClosureSHA256": SOURCE_CLOSURE, "handoffSealSHA256": verified["sealSHA256"]}
+     if owner_path.exists():
+         require(not owner_path.is_symlink() and read_json(owner_path) == expected_owner, "Mutable runtime belongs to another handoff")
+     else:

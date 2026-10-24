@@ -1,0 +1,140 @@
+{
+  "files": {
+    "build.py": {
+      "candidateSHA256": "20b556c9d83e4bf3f50c76ff2d6599261d05fb577d2249bc6c9e33c1b61ea2ec",
+      "changes": [
+        {
+          "after": "fresh scroll container reset correction",
+          "before": "minimum scroll extent correction",
+          "name": "host-build-description",
+          "occurrences": 1
+        }
+      ],
+      "upstreamSHA256": "2021700ec3539e342e89a4a5943dad13797fe1c56ebea12e4513d0b4b7d9fb51"
+    },
+    "fixture/AndroidManifest.xml": {
+      "candidateSHA256": "4b1a1d771d31691d042d2d87b3ae307c56232e3a5b17a74466319551bc69ed26",
+      "changes": [
+        {
+          "after": "dev.mixer.android.authoredtogglescrollresetfix",
+          "before": "dev.mixer.android.authoredtogglescrollextentfix",
+          "name": "new-private-package",
+          "occurrences": 2
+        },
+        {
+          "after": "Mixer private scroll reset fix",
+          "before": "Mixer private scroll extent fix",
+          "name": "new-private-label",
+          "occurrences": 1
+        }
+      ],
+      "upstreamSHA256": "884266e4dfc8a8199b89c88460515cadf4ec0af1e5241c52783f96f16c0744aa"
+    },
+    "fixture/AuthoredToggleSupplementActivity.java": {
+      "candidateSHA256": "a5afc510fe044b5c538f7c75cb243500f3996cdeb45bca32a441e4057f760fc1",
+      "changes": [
+        {
+          "after": "        recreateScroll();\n    }\n    void recreateScroll(){\n        if(scroll!=null)root.removeView(scroll);\n        scroll=new ObservedScroll();content=new Parent();content.setMinimumHeight(6000);scroll.addView(content,new ScrollView.LayoutParams(-1,6000));root.addView(scroll,new FrameLayout.LayoutParams(-1,-1));\n",
+          "before": "        scroll=new ObservedScroll();content=new Parent();content.setMinimumHeight(6000);scroll.addView(content,new ScrollView.LayoutParams(-1,6000));root.addView(scroll,new FrameLayout.LayoutParams(-1,-1));\n",
+          "name": "fresh-scroll-construction",
+          "occurrences": 1
+        },
+        {
+          "after": "    Map<String,Object> ownedInputGeometry(View toggle,double x,double y,boolean diagonal){\n        View decor=getWindow().getDecorView();Rect frame=new Rect();decor.getWindowVisibleDisplayFrame(frame);\n        Rect rootVisible=new Rect(),toggleVisible=new Rect();boolean rootHasVisible=root.getLocalVisibleRect(rootVisible),toggleHasVisible=toggle.getLocalVisibleRect(toggleVisible);\n        int[] rootScreen=new int[2],toggleScreen=new int[2],decorScreen=new int[2];root.getLocationOnScreen(rootScreen);toggle.getLocationOnScreen(toggleScreen);decor.getLocationOnScreen(decorScreen);\n        rootVisible.offset(rootScreen[0],rootScreen[1]);toggleVisible.offset(toggleScreen[0],toggleScreen[1]);\n        WindowInsets insets=decor.getRootWindowInsets();android.graphics.Insets bars=insets==null?null:insets.getInsets(WindowInsets.Type.systemBars());\n        int[] visibleFrame={frame.left,frame.top,frame.right,frame.bottom},rootRect={rootVisible.left,rootVisible.top,rootVisible.right,rootVisible.bottom};\n        int[] decorRect={decorScreen[0],decorScreen[1],decorScreen[0]+decor.getWidth(),decorScreen[1]+decor.getHeight()};\n        int[] system=bars==null?new int[]{0,0,0,0}:new int[]{bars.left,bars.top,bars.right,bars.bottom};\n        int[] owned=FixtureInputBounds.intersect(visibleFrame,rootRect,decorRect,system);double lastX=x+(diagonal?8*10:0),lastY=y-8*35;\n        boolean firstOnToggle=toggleHasVisible&&FixtureInputBounds.contains(new int[]{toggleVisible.left,toggleVisible.top,toggleVisible.right,toggleVisible.bottom},x,y);\n        boolean windowOwned=bars!=null&&rootHasVisible&&root.isAttachedToWindow()&&root.isShown()&&root.hasWindowFocus()&&decor.hasWindowFocus()&&toggle.isAttachedToWindow()&&toggle.isShown()&&toggle.hasWindowFocus();\n        boolean admitted=windowOwned&&firstOnToggle&&FixtureInputBounds.contains(owned,x,y)&&FixtureInputBounds.contains(owned,lastX,lastY);\n        return Json.map(\"admitted\",admitted,\"windowOwned\",windowOwned,\"firstOnVisibleToggle\",firstOnToggle,\"insetsAvailable\",bars!=null,\n            \"windowVisibleFrame\",List.of(frame.left,frame.top,frame.right,frame.bottom),\"rootVisibleScreen\",List.of(rootVisible.left,rootVisible.top,rootVisible.right,rootVisible.bottom),\n            \"toggleVisibleScreen\",List.of(toggleVisible.left,toggleVisible.top,toggleVisible.right,toggleVisible.bottom),\"decorScreen\",List.of(decorRect[0],decorRect[1],decorRect[2],decorRect[3]),\n            \"systemBarInsets\",List.of(system[0],system[1],system[2],system[3]),\"ownedVisibleScreen\",List.of(owned[0],owned[1],owned[2],owned[3]),\"firstPoint\",List.of(x,y),\"lastPoint\",List.of(lastX,lastY));\n    }\n    Map<String,Object> exportTrace()",
+          "before": "    Map<String,Object> exportTrace()",
+          "name": "owned-input-geometry",
+          "occurrences": 1
+        }
+      ],
+      "upstreamSHA256": "c10cd089848be60ef42460af70509eeefc218bf0685937c2bb96ec45a0cbdff8"
+    },
+    "fixture/AuthoredToggleSupplementInstrumentation.java": {
+      "candidateSHA256": "25e1d22cd55c5f4343e239e4f92325744786b4fa21ffe6b54b57c51a4526aa3f",
+      "changes": [
+        {
+          "after": "if(record!=null){record.cancelToggleInput();if(record.view.getParent() instanceof android.view.ViewGroup parent)parent.removeView(record.view);}window.content.removeAllViews();window.recreateScroll();",
+          "before": "if(record!=null)record.cancelToggleInput();window.content.removeAllViews();window.scroll.scrollTo(0,0);",
+          "name": "replace-reset-container",
+          "occurrences": 1
+        },
+        {
+          "after": "    private int setupChecks;\n    private int mode,overflowAt=-1;",
+          "before": "    private int mode,overflowAt=-1;",
+          "name": "classify-added-setup-assertions",
+          "occurrences": 1
+        },
+        {
+          "after": "    private void setupRequire(boolean value,String label){setupChecks++;require(value,label);}\n    private void main(Runnable action)",
+          "before": "    private void main(Runnable action)",
+          "name": "setup-assertion-counter",
+          "occurrences": 1
+        },
+        {
+          "after": "            window.trace.add(Json.map(\"stage\",\"scroll.geometry.before\",\"case\",cases,\"uptime\",SystemClock.uptimeMillis(),\"diagonal\",diagonal,\"geometry\",window.geometry(toggle),\"state\",scrollState()));\n        });\n        int[] xy=new int[2];main(()->toggle.getLocationOnScreen(xy));double x=xy[0]+geometry().offCenter(),y=xy[1]+66;\n        main(()->{\n            Map<String,Object> ownedInput=window.ownedInputGeometry(toggle,x,y,diagonal);\n            window.trace.add(Json.map(\"stage\",\"scroll.input.preconditions\",\"case\",cases,\"uptime\",SystemClock.uptimeMillis(),\"geometry\",window.geometry(toggle),\"state\",scrollState(),\"ownedInput\",ownedInput,\"addedSetupAssertionsBefore\",setupChecks));\n            int viewport=window.scroll.getHeight()-window.scroll.getPaddingTop()-window.scroll.getPaddingBottom();\n            setupRequire(viewport>0&&window.content.getMeasuredHeight()>viewport&&window.content.getHeight()>viewport&&window.scroll.canScrollVertically(1),\"fixture positive measured content extent and canScrollDown before injection\");\n            setupRequire(window.scroll.getScrollX()==0&&window.scroll.getScrollY()==0,\"fixture fresh scroll zero offset before injection\");\n            setupRequire(Boolean.TRUE.equals(ownedInput.get(\"admitted\")),\"fixture original first and last points within owned visible app input area\");\n        });\n",
+          "before": "            window.trace.add(Json.map(\"stage\",\"scroll.geometry.before\",\"case\",cases,\"uptime\",SystemClock.uptimeMillis(),\"diagonal\",diagonal,\"geometry\",window.geometry(toggle),\"state\",scrollState()));\n            int viewport=window.scroll.getHeight()-window.scroll.getPaddingTop()-window.scroll.getPaddingBottom();\n            require(viewport>0&&window.content.getMeasuredHeight()>viewport&&window.content.getHeight()>viewport&&window.scroll.canScrollVertically(1),\"fixture positive measured content extent and canScrollDown before injection\");\n        });\n        int[] xy=new int[2];main(()->toggle.getLocationOnScreen(xy));double x=xy[0]+geometry().offCenter(),y=xy[1]+66;\n",
+          "name": "record-and-admit-original-input",
+          "occurrences": 1
+        },
+        {
+          "after": "\"assertions\",checks,\"addedSetupAssertions\",setupChecks,\"originalAssertionCounter\",checks-setupChecks,\"events\",events",
+          "before": "\"assertions\",checks,\"events\",events",
+          "name": "export-original-and-added-counters",
+          "occurrences": 1
+        }
+      ],
+      "upstreamSHA256": "fe429d749adff5d8ec553741d1483ab7a46083c885762c385603445e4b9653e1"
+    },
+    "fixture/FixtureFailures.java": {
+      "candidateSHA256": "d7e5f405d71d47cc793b2dfc96b1f9b5d067503f97335c27069de386fe91110c",
+      "changes": [],
+      "upstreamSHA256": "d7e5f405d71d47cc793b2dfc96b1f9b5d067503f97335c27069de386fe91110c"
+    },
+    "fixture/ScrollTraceBuffer.java": {
+      "candidateSHA256": "28f03b3b9d19e43f9cb12e5998ed05735e00b8d28278b49b8c07724a7ab4dc3c",
+      "changes": [],
+      "upstreamSHA256": "28f03b3b9d19e43f9cb12e5998ed05735e00b8d28278b49b8c07724a7ab4dc3c"
+    },
+    "host-tests/FixtureFailuresTest.java": {
+      "candidateSHA256": "8a0c61060d2443fe1b1f054344e206fc9075dfdc5c6c98e79640bd0354c53323",
+      "changes": [],
+      "upstreamSHA256": "8a0c61060d2443fe1b1f054344e206fc9075dfdc5c6c98e79640bd0354c53323"
+    },
+    "host-tests/ScrollTraceBufferTest.java": {
+      "candidateSHA256": "f7cec00721ea933853a582143d692e130df945cf87720ee1d96204f2e0a7953e",
+      "changes": [],
+      "upstreamSHA256": "f7cec00721ea933853a582143d692e130df945cf87720ee1d96204f2e0a7953e"
+    },
+    "verify.py": {
+      "candidateSHA256": "b31935420c0772a3aec9cdd27e881cd5aec8d61b239a16bf2ad77b48243bada6",
+      "changes": [
+        {
+          "after": "fixture-only scroll reset correction",
+          "before": "fixture-only scroll extent correction",
+          "name": "fresh-host-description",
+          "occurrences": 1
+        },
+        {
+          "after": "        support.save(out/'trace-buffer-tests.json',json.loads(result[0]))\n        output=command('run-host-input-bounds-test',[support.JDK/'bin/java','-ea','-cp',os.pathsep.join(map(str,[fresh,host])),'dev.mixer.android.FixtureInputBoundsTest']);result=re.findall(rb'^RESULT (.+)$',output,re.M)\n        if len(result)!=1:raise ValueError('one input bounds result required')\n        support.save(out/'input-bounds-tests.json',json.loads(result[0]))\n",
+          "before": "        support.save(out/'trace-buffer-tests.json',json.loads(result[0]))\n",
+          "name": "input-bounds-host-test",
+          "occurrences": 1
+        },
+        {
+          "after": "('FixtureFailuresTest.java','ScrollTraceBufferTest.java','FixtureInputBoundsTest.java')",
+          "before": "('FixtureFailuresTest.java','ScrollTraceBufferTest.java')",
+          "name": "host-test-snapshot",
+          "occurrences": 1
+        },
+        {
+          "after": "passed-fresh-host-fixture-only-scroll-reset-correction",
+          "before": "passed-fresh-host-fixture-only-scroll-extent-correction",
+          "name": "host-result-status",
+          "occurrences": 1
+        }
+      ],
+      "upstreamSHA256": "b48f5f77b8b3baa08888880d490584734294294a72edf78d376ab2667215a744"
+    }
+  },
+  "schema": 1,
+  "upstreamSeal": "233f2a713571621e48e07cab2e6e2678545bb1fb64830ca77b32ebeb95bc9ace"
+}

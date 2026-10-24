@@ -1,0 +1,205 @@
+{
+  "files": [
+    {
+      "findings": [
+        {
+          "end": 1172,
+          "excerpt": "    conn\n  end\n\n  @doc \"\"\"\n  Reads the request body.\n\n  This function reads a chunk of the request body up to a given length (specified\n  by the `:length` option). If there is more data to be read, then\n  `{:more, partial_body, conn}` is returned. Otherwise `{:ok, body, conn}` is\n  returned. In case of an error reading the socket, `{:error, reason}` is\n  returned as per `:gen_tcp.recv/2`.\n\n  Like all functions in this module, the `conn` returned by `read_body` must\n  be passed to the next stage of your pipeline and should not be ignored.\n\n  In order to, for instance, support slower clients you can tune the\n  `:read_length` and `:read_timeout` options. These specify how much time should\n  be allowed to pass for each read from the underlying socket.\n\n  Because the request body can be of any size, reading the body will only\n  work once, as `Plug` will not cache the result of these operations. If you\n  need to access the body multiple times, it is your responsibility to store\n  it. Finally keep in mind some plugs like `Plug.Parsers` may read the body,\n  so the body may be unavailable after being accessed by such plugs.\n\n  This function is able to handle both chunked and identity transfer-encoding\n  by default.\n\n  ## Options\n\n    * `:length` - sets the maximum number of bytes to read from the body on\n      every call, defaults to `8_000_000` bytes\n    * `:read_length` - sets the amount of bytes to read at one time from the\n      underlying socket to fill the chunk, defaults to `1_000_000` bytes\n    * `:read_timeout` - sets the timeout for each socket read, defaults to\n      `15_000` milliseconds\n\n  The values above are not meant to be exact. For example, setting the\n  length to `8_000_000` may end up reading some hundred bytes more from\n  the socket until we halt.",
+          "finding": "read_body options are approximate",
+          "start": 1133
+        }
+      ],
+      "lineCount": 2038,
+      "path": "hosted/deps/plug/lib/plug/conn.ex",
+      "sha256": "7841e3654ebc8d2cd5af86c8c6f7717807af305789d7e03e2529e7ceeca96c22"
+    },
+    {
+      "findings": [
+        {
+          "end": 355,
+          "excerpt": "      case do_read_chunk_size!(socket, buffer, opts) do\n        {0, rest} ->\n          {trailers, fake_socket} =\n            do_read_headers!(%@for{socket: socket, buffer: rest, opts: %{http_1: []}})\n\n          if trailers != [],\n            do: Logger.warning(\"Encountered trailers in chunked request; ignoring\")\n\n          {:done, fake_socket.buffer}",
+          "finding": "trailer parse uses default H1 header options then discard",
+          "start": 347
+        }
+      ],
+      "lineCount": 708,
+      "path": "hosted/deps/bandit/lib/bandit/http1/socket.ex",
+      "sha256": "831cb5ae1e527529c6ddeccbfb6ab5aabcea0716fd18c99418541319d1ddebb4"
+    },
+    {
+      "findings": [
+        {
+          "end": 104,
+          "excerpt": "  @spec deliver_data(stream_handle(), iodata(), boolean()) :: term()\n  def deliver_data(:closed, _data, _end_stream), do: :ok\n  def deliver_data(pid, data, end_stream), do: send(pid, {:bandit, {:data, data, end_stream}})",
+          "finding": "DATA delivered by process message",
+          "start": 102
+        },
+        {
+          "end": 319,
+          "excerpt": "    def read_data(%@for{} = stream, opts) do\n      max_bytes = Keyword.get(opts, :length, 8_000_000)\n      timeout = Keyword.get(opts, :read_timeout, 15_000)\n      do_read_data(stream, max_bytes, timeout, [])\n    end\n\n    defp do_read_data(%@for{state: state} = stream, max_bytes, timeout, acc)\n         when state in [:open, :local_closed] do\n      case do_recv(stream, timeout) do\n        {:headers, trailers, stream} ->\n          Logger.warning(\"Ignoring trailers #{inspect(trailers)}\", domain: [:bandit])\n          do_read_data(stream, max_bytes, timeout, acc)\n\n        {:data, data, stream} ->\n          acc = [data | acc]\n          max_bytes = max_bytes - byte_size(data)\n",
+          "finding": "per-read timeout and logged discarded trailers",
+          "start": 303
+        }
+      ],
+      "lineCount": 766,
+      "path": "hosted/deps/bandit/lib/bandit/http2/stream.ex",
+      "sha256": "aa282571f68f23bad9f33e194dc67776dd6abdbd9458a68be0d8e8aedb1b3db0"
+    },
+    {
+      "findings": [
+        {
+          "end": 174,
+          "excerpt": "\n  def handle_frame(%Bandit.HTTP2.Frame.Headers{end_headers: true} = frame, socket, connection) do\n    check_oversize_fragment!(frame.fragment, connection)\n\n    case HPAX.decode(frame.fragment, connection.recv_hpack_state) do\n      {:ok, headers, recv_hpack_state} ->\n        # We need to preserve HPAX's internal state even if we reject this stream's header list\n        connection = %{connection | recv_hpack_state: recv_hpack_state}\n\n        # Erlang term ordering does the right thing with :infinity here\n        if header_list_size(headers) > connection.local_settings.max_header_list_size do\n          send_rst_stream(\n            frame.stream_id,\n            Bandit.HTTP2.Errors.enhance_your_calm(),\n            socket,",
+          "finding": "decode before header-list check",
+          "start": 160
+        },
+        {
+          "end": 219,
+          "excerpt": "    {recv_window_size, window_increment} =\n      Bandit.HTTP2.FlowControl.compute_recv_window(\n        connection.recv_window_size,\n        byte_size(frame.data)\n      )\n\n    if window_increment > 0 do\n      %Bandit.HTTP2.Frame.WindowUpdate{stream_id: 0, size_increment: window_increment}\n      |> send_frame(socket, connection)\n    end\n\n    %{connection | recv_window_size: recv_window_size, streams: streams}",
+          "finding": "connection receive-window updates",
+          "start": 208
+        },
+        {
+          "end": 321,
+          "excerpt": "  defp check_oversize_fragment!(fragment, connection) do\n    if byte_size(fragment) > Keyword.get(connection.opts.http_2, :max_header_block_size, 50_000),\n      do: connection_error!(\"Received overlong headers\")\n  end\n\n  # Header list size per RFC9113\u00a76.5.2\n  defp header_list_size(headers) do\n    Enum.reduce(headers, 0, fn {name, value}, acc ->\n      acc + byte_size(name) + byte_size(value) + 32",
+          "finding": "compressed block versus decoded header-list limits",
+          "start": 313
+        }
+      ],
+      "lineCount": 624,
+      "path": "hosted/deps/bandit/lib/bandit/http2/connection.ex",
+      "sha256": "71cb2d2a7c582d6417c291c5212547b0023e956545900930442c6a5e59620332"
+    },
+    {
+      "findings": [
+        {
+          "end": 38,
+          "excerpt": "defmodule Bandit.HTTP2.FlowControl do\n  @moduledoc false\n  # Helpers for working with flow control window calculations\n\n  import Bitwise\n\n  @max_window_increment (1 <<< 31) - 1\n  @max_window_size (1 <<< 31) - 1\n  @min_window_size 1 <<< 30\n\n  # The slowest rate (in bytes per second) at which a peer may drain a blocked send before we stop\n  # waiting on it. See `extend_send_deadline/4`\n  @min_send_rate 1_024\n\n  @spec compute_recv_window(non_neg_integer(), non_neg_integer()) ::\n          {non_neg_integer(), non_neg_integer()}\n  def compute_recv_window(recv_window_size, data_size) do\n    # This is what our window size will be after receiving data_size bytes\n    recv_window_size = recv_window_size - data_size\n\n    if recv_window_size > @min_window_size do\n      # We have room to go before we need to update our window\n      {recv_window_size, 0}\n    else\n      # We want our new window to be as large as possible, but are limited by both the maximum size\n      # of the window (2^31-1) and the maximum size of the increment we can send to the client, both\n      # per RFC9113\u00a76.9. Be careful about handling cases where we have a negative window due to\n      # misbehaving clients or network races\n      new_recv_window_size = min(recv_window_size + @max_window_increment, @max_window_size)\n\n      # Finally, determine what increment to send to the client\n      increment = new_recv_window_size - recv_window_size\n\n      {new_recv_window_size, increment}\n    end\n  end\n\n  @spec update_send_window(non_neg_integer(), non_neg_integer()) ::",
+          "finding": "receive window grows toward 2^31-1",
+          "start": 1
+        }
+      ],
+      "lineCount": 66,
+      "path": "hosted/deps/bandit/lib/bandit/http2/flow_control.ex",
+      "sha256": "6a75238e58a5e378c95686cc62af3810b292be4a8da3b4fb508130ac66e69d1c"
+    },
+    {
+      "findings": [
+        {
+          "end": 83,
+          "excerpt": "  defp accept(listener_socket, connection_sup_pid, server_config, handler_config, span, count) do\n    with {:ok, socket} <- server_config.transport_module.accept(listener_socket),\n         :ok <-\n           ThousandIsland.Connection.start(\n             connection_sup_pid,\n             socket,\n             server_config,\n             handler_config,\n             span\n           ) do\n      accept(listener_socket, connection_sup_pid, server_config, handler_config, span, count + 1)\n    else\n      {:error, :too_many_connections} ->\n        ThousandIsland.Telemetry.span_event(span, :spawn_error)\n\n        accept(\n          listener_socket,\n          connection_sup_pid,\n          server_config,\n          handler_config,\n          span,\n          count + 1\n        )\n",
+          "finding": "logical admission after socket accept",
+          "start": 60
+        },
+        {
+          "end": 153,
+          "excerpt": "      {:error, reason} when reason in [:emfile, :enfile] ->\n        # File descriptors are exhausted, so nothing can be accepted right now.\n        # Back off briefly to let the situation resolve rather than crashing the\n        # acceptor (whose crash loop would escalate through the supervision\n        # tree, killing in-flight connections along the way). This mirrors\n        # Ranch's handling of the same condition\n        ThousandIsland.Telemetry.span_event(span, :emfile, %{error: reason})\n        Process.sleep(@fd_exhaustion_wait)",
+          "finding": "file descriptor exhaustion backoff",
+          "start": 146
+        }
+      ],
+      "lineCount": 172,
+      "path": "hosted/deps/thousand_island/lib/thousand_island/acceptor.ex",
+      "sha256": "f778919a231f53fdd25a6e7dd35a2577272c690a6fa99d20aa6cb198d3f1c04a"
+    },
+    {
+      "findings": [
+        {
+          "end": 142,
+          "excerpt": "  end\n\n  @doc \"\"\"\n  Returns available bytes on the given socket. Up to `length` bytes will be\n  returned (0 can be passed in to get the next 'available' bytes, typically the\n  next packet). If insufficient bytes are available, the function can wait `timeout`\n  milliseconds for data to arrive.\n  \"\"\"\n  @spec recv(t(), non_neg_integer(), timeout() | nil) :: ThousandIsland.Transport.on_recv()\n  def recv(%__MODULE__{} = socket, length \\\\ 0, timeout \\\\ nil) do\n    case socket.transport_module.recv(socket.socket, length, timeout || socket.read_timeout) do\n      {:ok, data} = ok ->\n        ThousandIsland.Telemetry.untimed_span_event(socket.span, :recv, %{data: data})\n        ok\n\n      {:error, reason} = err ->\n        ThousandIsland.Telemetry.span_event(socket.span, :recv_error, %{error: reason})\n        err\n    end\n  end\n\n  @doc \"\"\"\n  Sends the given data (specified as a binary or an IO list) on the given socket.\n  \"\"\"\n  @spec send(t(), iodata()) :: ThousandIsland.Transport.on_send()\n  def send(%__MODULE__{} = socket, data) do\n    case socket.transport_module.send(socket.socket, data) do\n      :ok ->\n        ThousandIsland.Telemetry.untimed_span_event(socket.span, :send, %{data: data})\n        :ok\n\n      {:error, reason} = err ->\n        ThousandIsland.Telemetry.span_event(socket.span, :send_error, %{data: data, error: reason})",
+          "finding": "raw receive/send telemetry measurements",
+          "start": 110
+        }
+      ],
+      "lineCount": 273,
+      "path": "hosted/deps/thousand_island/lib/thousand_island/socket.ex",
+      "sha256": "1871dd858c2ab777f497c5112c1227883209ac2a8d38c9afaf24b2a49e02c812"
+    },
+    {
+      "findings": [
+        {
+          "end": 16,
+          "excerpt": "defmodule Bandit.MixProject do\n  use Mix.Project\n\n  def project do\n    [\n      app: :bandit,\n      version: \"1.13.1\",\n      elixir: \"~> 1.13\",\n      start_permanent: Mix.env() == :prod,\n      deps: deps(),\n      elixirc_paths: elixirc_path(Mix.env()),\n      dialyzer: dialyzer(),\n      name: \"Bandit\",\n      description: \"A pure-Elixir HTTP server built for Plug & WebSock apps\",\n      source_url: \"https://github.com/mtrudel/bandit\",\n      package: [",
+          "finding": "installed package version and Elixir compatibility",
+          "start": 1
+        }
+      ],
+      "lineCount": 97,
+      "path": "hosted/deps/bandit/mix.exs",
+      "sha256": "cce955d59baeea0d76e1b6b064dc791c10dd1070ac13f7700068e0099be3dd24"
+    },
+    {
+      "findings": [
+        {
+          "end": 14,
+          "excerpt": "defmodule ThousandIsland.MixProject do\n  use Mix.Project\n\n  def project do\n    [\n      app: :thousand_island,\n      version: \"1.6.0\",\n      elixir: \"~> 1.13\",\n      elixirc_paths: elixirc_paths(Mix.env()),\n      start_permanent: Mix.env() == :prod,\n      deps: deps(),\n      dialyzer: dialyzer(),\n      name: \"Thousand Island\",\n      description: \"A simple & modern pure Elixir socket server\",",
+          "finding": "installed package version and Elixir compatibility",
+          "start": 1
+        }
+      ],
+      "lineCount": 80,
+      "path": "hosted/deps/thousand_island/mix.exs",
+      "sha256": "0b68260ca3f59dde4bc75bbd86aef1623d87f3383b589e2b1ba6a79a38000485"
+    },
+    {
+      "findings": [
+        {
+          "end": 36,
+          "excerpt": "defmodule MixerHosted.MixProject do\n  use Mix.Project\n\n  def project do\n    [\n      app: :mixer_hosted,\n      version: \"0.1.0\",\n      elixir: \"== 1.20.4\",\n      elixirc_paths: elixirc_paths(Mix.env()),\n      start_permanent: Mix.env() == :prod,\n      deps: deps(),\n      aliases: [test: \"test --no-start\"]\n    ]\n  end\n\n  def application do\n    [mod: {MixerHosted.Application, []}, extra_applications: [:logger, :ssl, :inets]]\n  end\n\n  defp elixirc_paths(:test), do: [\"lib\", \"test/support\"]\n  defp elixirc_paths(_), do: [\"lib\"]\n\n  defp deps do\n    [\n      {:phoenix, \"== 1.8.16\"},\n      {:plug, \"== 1.20.3\"},\n      {:bandit, \"== 1.13.1\"},\n      {:ecto_sql, \"== 3.14.0\"},\n      {:postgrex, \"== 0.22.4\"},\n      {:oban, \"== 2.24.2\"},\n      {:jason, \"== 1.4.5\"},\n      {:jose, \"== 1.11.12\"},\n      {:mint, \"== 1.11.0\"}\n    ]\n  end\nend",
+          "finding": "exact compiler and package pins; test support excluded from production",
+          "start": 1
+        }
+      ],
+      "lineCount": 36,
+      "path": "hosted/mix.exs",
+      "sha256": "ade39cb685e8f78d7d62ab1517db38e572094dcf9bc9ec21f91b9b6b3bd3cbe2"
+    },
+    {
+      "findings": [
+        {
+          "end": 686,
+          "excerpt": "    for e <- entries,\n        c = state.connections[e.span],\n        not is_nil(c),\n        do: GenServer.cast(c.guard, {:dispose, reason})\n  end\n\n  defp now, do: System.monotonic_time(:millisecond)\nend\n\ndefmodule MixerHosted.Billing.WebhookTransport do\n  @moduledoc \"Private dedicated-role transport candidate. No public route or billing authority.\"\n  use Supervisor\n  alias __MODULE__.{Owner, Sinks}\n\n  def start_link(plug, approved_handlers \\\\ %{}),\n    do: Supervisor.start_link(__MODULE__, {plug, approved_handlers})\n\n  def init({plug, approved_handlers}) do\n    # Fixed profile; no request-selected policy or per-request timeout knobs.\n    listener =\n      {Bandit,\n       [\n         plug: plug,\n         ip: {127, 0, 0, 1},\n         port: 0,\n         startup_log: false,\n         http_options: [\n           log_protocol_errors: false,\n           log_client_closures: false,\n           log_exceptions_with_status_codes: []\n         ],\n         http_1_options: [\n           max_request_line_length: 512,\n           max_header_length: 8_192,\n           max_header_count: 32,\n           max_requests: 1,\n           log_unknown_messages: false\n         ],\n         http_2_options: [\n           max_header_block_size: 16_384,\n           max_requests: 1,\n           max_reset_stream_rate: {16, 1_000},\n           default_local_settings: [\n             max_header_list_size: 16_384,\n             header_table_size: 4_096,\n             max_frame_size: 16_384,\n             max_concurrent_streams: 1\n           ]\n         ],\n         thousand_island_options: [\n           num_acceptors: 1,\n           num_connections: 16,\n           max_connections_retry_count: 0,\n           read_timeout: 1_000,\n           handshake_timeout: 1_000,\n           shutdown_timeout: 1_000,\n           transport_options: [backlog: 128]\n         ]\n       ]}\n\n    Supervisor.init(\n      [\n        {Sinks, approved_handlers},\n        {DynamicSupervisor, name: __MODULE__.Guards, strategy: :one_for_one},\n        {Owner, plug},\n        listener\n      ],\n      strategy: :one_for_all,\n      max_restarts: 0\n    )\n  end\n\n  def capture(conn) do\n    permit = Process.get({__MODULE__, :permit})\n\n    with :ok <- Owner.check(permit, :begin) do\n      case MixerHosted.Billing.RawWebhookCapture.capture(conn) do\n        {:ok, captured, latest} ->",
+          "finding": "fixed private loopback listener/profile",
+          "start": 609
+        },
+        {
+          "end": 724,
+          "excerpt": "          case Owner.check(permit, :finish) do\n            {:ok, deadline} ->\n              if System.monotonic_time(:millisecond) < deadline do\n                {:ok, captured, latest}\n              else\n                Owner.dispose(permit)\n                {:error, :read_deadline, Plug.Conn.halt(latest)}\n              end\n\n            {:error, _} ->\n              Owner.dispose(permit)\n              {:error, :unavailable_state, Plug.Conn.halt(latest)}\n          end\n\n        {:error, reason, latest} ->\n          # Dispose after private error response, with the independent deadline\n          # active. Caller's fixed private plug must always execute dispose/0.\n          Sinks.record(:rejected)\n          {:error, reason, latest}\n      end\n    else\n      _ -> {:error, :unavailable_state, Plug.Conn.halt(conn)}\n    end\n  rescue\n    _ ->\n      dispose()\n      reraise RuntimeError, [message: \"private transport capture failure\"], []\n  catch\n    kind, _ ->\n      dispose()\n      :erlang.raise(kind, :private_transport_failure, [])\n  end\n\n  def dispose do\n    if permit = Process.get({__MODULE__, :permit}), do: Owner.dispose(permit)\n    :ok\n  end\nend",
+          "finding": "capture/permit/dispose interface",
+          "start": 687
+        }
+      ],
+      "lineCount": 724,
+      "path": "hosted/lib/mixer_hosted/billing/webhook_transport.ex",
+      "sha256": "56a26cf3a56f3e5a5b2d8f5104fc7c3371b0e44918b007197be5871cf94ef1a5"
+    },
+    {
+      "findings": [
+        {
+          "end": 42,
+          "excerpt": "defmodule MixerHosted.Application do\n  @moduledoc false\n  use Application\n  alias MixerHosted.Identity.{KeyOwnerSupervisor, StartupConfig}\n\n  @impl true\n  def start(_type, _args) do\n    role = Application.fetch_env!(:mixer_hosted, :role)\n\n    children =\n      children(\n        role,\n        Application.fetch_env!(:mixer_hosted, Oban),\n        Application.fetch_env!(:mixer_hosted, :identity_startup)\n      )\n\n    Supervisor.start_link(children, strategy: :one_for_one, name: MixerHosted.Supervisor)\n  end\n\n  @doc false\n  def children(role, oban),\n    do: children(role, oban, %StartupConfig{mode: :disabled, owner_options: []})\n\n  @doc false\n  def children(:api, oban, %StartupConfig{mode: :disabled}),\n    do: [MixerHosted.Repo, {Oban, oban}, MixerHostedWeb.Endpoint]\n\n  def children(:api, oban, %StartupConfig{mode: :configured, owner_options: options}),\n    do: [MixerHosted.Repo, {Oban, oban}, {KeyOwnerSupervisor, options}, MixerHostedWeb.Endpoint]\n\n  def children(:processor, oban, %StartupConfig{mode: :disabled}),\n    do: [MixerHosted.Repo, {Oban, oban}]\n\n  @impl true\n  def config_change(changed, _new, removed) do\n    if Application.fetch_env!(:mixer_hosted, :role) == :api do\n      MixerHostedWeb.Endpoint.config_change(changed, removed)\n    end\n\n    :ok\n  end\nend",
+          "finding": "ordinary API/processor children do not start transport",
+          "start": 1
+        }
+      ],
+      "lineCount": 42,
+      "path": "hosted/lib/mixer_hosted/application.ex",
+      "sha256": "bbf02752b982e1437564c266772cd4e5dd7190670a575dd6676dda7fc692803f"
+    },
+    {
+      "findings": [
+        {
+          "end": 91,
+          "excerpt": "    run(\"format\", [\"mix\", \"format\", \"--check-formatted\"])\n    env = dict(os.environ, MIX_ENV=\"test\")\n    run(\"compile\", [\"mix\", \"compile\", \"--warnings-as-errors\"], env)\n    prod_env = {key: value for key, value in os.environ.items() if not key.startswith(\"MIXER_\")}\n    prod_env[\"MIX_ENV\"] = \"prod\"\n    prod_env[\"ERL_CRASH_DUMP_SECONDS\"] = \"0\"\n    prod_env[\"ERL_CRASH_DUMP\"] = str(scratch / \"release-crash.dump\")\n    run(\"release-build\", [\"mix\", \"release\", \"--overwrite\"], prod_env)\n    code = run(\"release-missing-config\", [str(root / \"_build/prod/rel/mixer_hosted/bin/mixer_hosted\"),\n                                          \"eval\", \":ok\"], prod_env, check=False)\n    rejection = (output / \"release-missing-config.log\").read_text()\n    commands[-1][\"expected_exit_code\"] = 1\n    if code != 1 or \"invalid or missing hosted setting: MIXER_HOSTED_ROLE\" not in rejection:\n        raise RuntimeError(\"release did not reject missing runtime settings as specified\")\n    release_code = \"Code.ensure_loaded!(MixerHosted.Identity.KeyOwner); Code.ensure_loaded!(MixerHosted.Identity.JWKSTransport); values = %{fixture_owner: function_exported?(MixerHosted.Identity.KeyOwner, :start_fixture, 1), fixture_transport: function_exported?(MixerHosted.Identity.JWKSTransport, :fetch_fixture, 6), startup_fixture: Code.ensure_loaded?(MixerHosted.Identity.StartupFixture), startup_dns_fixture: Code.ensure_loaded?(MixerHosted.Identity.StartupDNSFixture)}; IO.inspect(values, label: \\\"production_test_export_exclusion\\\"); true = Enum.all?(Map.values(values), &(&1 == false))\"\n    release_code += \"; \" + 'Code.ensure_loaded!(MixerHosted.Billing.RawWebhookCapture)\\n{:ok, {_, [atoms: atoms, exports: exports]}} = :beam_lib.chunks(:code.which(MixerHosted.Billing.RawWebhookCapture), [:atoms, :exports])\\nfalse = Enum.any?(atoms, fn {_, atom} -> Atom.to_string(atom) == \"Elixir.MixerRawCapture.TestClock\" end)\\ntrue = Enum.sort(exports) == Enum.sort(__info__: 1, capture: 1, module_info: 0, module_info: 1)\\nfalse = Code.ensure_loaded?(MixerRawCapture.TestClock)\\nfalse = Code.ensure_loaded?(MixerHosted.Billing.RawWebhookCaptureTest.Adapter)\\nIO.inspect(%{test_clock_absent: true, test_adapter_absent: true, exports: exports}, label: \"production_raw_capture_policy\")\\n'\n    release_code += \"; \" + 'modules = [\\n  MixerHosted.Billing.WebhookTransport,\\n  MixerHosted.Billing.WebhookTransport.Sinks,\\n  MixerHosted.Billing.WebhookTransport.Guard,\\n  MixerHosted.Billing.WebhookTransport.Owner\\n]\\n\\nhelpers = [\\n  MixerRawCapture.TestClock,\\n  MixerRawCapture.FakeAdapter,\\n  MixerRawCapture.ProductionProbeAdapter,\\n  MixerRawCapture.CountingAdapter,\\n  MixerRawCapture.ComponentTest,\\n  MixerRawCapture.WireState,\\n  MixerRawCapture.LoggerHandler,\\n  MixerRawCapture.PrivatePlug,\\n  MixerRawCapture.WireHelpers,\\n  MixerRawCapture.WireTest,\\n  MixerPrivateNegative,\\n  PrivateTransportEvidence,\\n  PrivateTransportLogSink,\\n  PrivateTransportPlug,\\n  PrivateTransportHelpers,\\n  PrivateTransportTest,\\n  ReviewEvidence,\\n  ReviewSink,\\n  ReviewPlug,\\n  ReviewHelpers,\\n  ReviewIndependentTest,\\n  MixerHosted.Billing.RawWebhookCaptureTest.Adapter,\\n  MixerHosted.Billing.WebhookTransportTest,\\n  MixerHosted.Billing.WebhookTransportTest.ForbiddenAdapter\\n]\\n\\nrows = Enum.map(modules, fn module ->\\n  Code.ensure_loaded!(module)\\n  path = :code.which(module)\\n  {:ok, {^module, [atoms: atoms, exports: exports]}} = :beam_lib.chunks(path, [:atoms, :exports])\\n  names = Enum.map(atoms, fn {_, atom} -> Atom.to_string(atom) end)\\n  false = Enum.any?(names, fn name ->\\n    String.starts_with?(name, [\"Elixir.MixerRawCapture.\", \"Elixir.PrivateTransport\", \"Elixir.Review\"])\\n  end)\\n\\n  %{\\n    module: Atom.to_string(module),\\n    path: List.to_string(path),\\n    exports: Enum.map(exports, fn {name, arity} -> %{name: Atom.to_string(name), arity: arity} end),\\n    atoms: names,\\n    test_helper_atom_absent: true\\n  }\\nend)\\n\\nfalse = Enum.any?(helpers, &Code.ensure_loaded?/1)\\nfalse = function_exported?(MixerHosted.Billing.WebhookTransport, :capture, 2)\\nfalse = function_exported?(MixerHosted.Billing.WebhookTransport, :dispose, 1)\\ntrue = Enum.sort(MixerHosted.Billing.WebhookTransport.__info__(:functions)) ==\\n  Enum.sort(capture: 1, child_spec: 1, dispose: 0, init: 1, start_link: 1, start_link: 2)\\n\\n# This process only loads production modules. The candidate role is intentionally\\n# absent: the ordinary application has no transport child or activated listener.\\nnil = Process.whereis(MixerHosted.Billing.WebhookTransport.Owner)\\nnil = Process.whereis(MixerHosted.Billing.WebhookTransport.Sinks)\\nnil = Process.whereis(MixerHosted.Billing.WebhookTransport.Guards)\\n\\nresult = %{\\n  status: \"passed\",\\n  candidate_modules: rows,\\n  absent_helper_modules: Enum.map(helpers, &Atom.to_string/1),\\n  test_helpers_loaded: false,\\n  transport_capture_clock_or_adapter_argument: false,\\n  role_started: false,\\n  listener_started: false,\\n  scope: \"Production release BEAM inspection; no transport role startup or public admission\"\\n}\\n\\nIO.inspect(result, label: \"production_transport_policy\", limit: :infinity)\\nIO.puts(\"production_transport_policy: passed; 4 production modules; test helpers absent; role inactive\")\\n'\n    run(\"release-test-exclusion\", [\"elixir\", \"-pa\", str(root / \"_build/prod/rel/mixer_hosted/lib/mixer_hosted-0.1.0/ebin\"), \"-e\", release_code], prod_env)",
+          "finding": "warning/error compile, release and exclusion collector",
+          "start": 74
+        }
+      ],
+      "lineCount": 137,
+      "path": "hosted/scripts/test-local.py",
+      "sha256": "98a18f6442f946402f41efee3abf1eaa8d75ec7567b628cf2551416695797c7e"
+    }
+  ],
+  "schema": 1,
+  "scope": "actual installed source inspection; no new runtime execution"
+}

@@ -1,0 +1,178 @@
+// WARNING: This output format is intended for human consumers only
+// and is subject to change without notice. Knock yourself out.
+// HINT: See also -Z dump-mir for MIR at specific points during compilation.
+fn first(_1: &[u32]) -> Option<&u32> {
+    debug v => _1;
+    let mut _0: std::option::Option<&u32>;
+    scope 1 (inlined core::slice::<impl [u32]>::first) {
+        let mut _2: usize;
+        let mut _3: bool;
+        scope 2 {
+            let _4: &u32;
+        }
+    }
+
+    bb0: {
+        StorageLive(_2);
+        StorageLive(_3);
+        _2 = PtrMetadata(copy _1);
+        _3 = Ge(copy _2, const 1_usize);
+        switchInt(move _3) -> [0: bb3, otherwise: bb2];
+    }
+
+    bb1: {
+        StorageDead(_3);
+        StorageDead(_2);
+        return;
+    }
+
+    bb2: {
+        StorageLive(_4);
+        _4 = &(*_1)[0 of 1];
+        _0 = Option::<&u32>::Some(copy _4);
+        StorageDead(_4);
+        goto -> bb1;
+    }
+
+    bb3: {
+        _0 = const Option::<&u32>::None;
+        goto -> bb1;
+    }
+}
+
+fn main() -> () {
+    let mut _0: ();
+    let mut _1: &std::option::Option<&u32>;
+    let _2: std::option::Option<&u32>;
+    let mut _3: &[u32];
+    let mut _4: bool;
+    let _5: !;
+    let mut _6: &std::option::Option<&u32>;
+    scope 1 {
+        debug left_val => _1;
+        debug right_val => _6;
+        scope 2 {
+            debug kind => const core::panicking::AssertKind::Eq;
+        }
+        scope 3 (inlined <Option<&u32> as PartialEq>::eq) {
+            let mut _7: isize;
+            let mut _8: isize;
+            let mut _9: isize;
+            scope 4 {
+                scope 5 (inlined std::cmp::impls::<impl PartialEq for &u32>::eq) {
+                    let mut _10: &u32;
+                    let mut _11: &u32;
+                    scope 6 (inlined std::cmp::impls::<impl PartialEq for u32>::eq) {
+                        let mut _12: u32;
+                        let mut _13: u32;
+                    }
+                }
+            }
+        }
+    }
+
+    bb0: {
+        StorageLive(_2);
+        StorageLive(_3);
+        _3 = const main::promoted[1] as &[u32] (PointerCoercion(Unsize, Implicit));
+        _2 = first(move _3) -> [return: bb1, unwind continue];
+    }
+
+    bb1: {
+        StorageDead(_3);
+        _1 = &_2;
+        _6 = const main::promoted[0];
+        StorageLive(_4);
+        StorageLive(_7);
+        StorageLive(_8);
+        StorageLive(_9);
+        _9 = discriminant(_2);
+        switchInt(move _9) -> [0: bb7, 1: bb6, otherwise: bb5];
+    }
+
+    bb2: {
+        StorageDead(_4);
+        StorageDead(_2);
+        return;
+    }
+
+    bb3: {
+        _5 = core::panicking::assert_failed::<Option<&u32>, Option<&u32>>(const core::panicking::AssertKind::Eq, move _1, move _6, const Option::<Arguments<'_>>::None) -> unwind continue;
+    }
+
+    bb4: {
+        StorageDead(_9);
+        StorageDead(_8);
+        StorageDead(_7);
+        switchInt(move _4) -> [0: bb3, otherwise: bb2];
+    }
+
+    bb5: {
+        unreachable;
+    }
+
+    bb6: {
+        _7 = discriminant((*_6));
+        switchInt(move _7) -> [0: bb8, 1: bb9, otherwise: bb5];
+    }
+
+    bb7: {
+        _8 = discriminant((*_6));
+        _4 = Eq(copy _8, const 0_isize);
+        goto -> bb4;
+    }
+
+    bb8: {
+        StorageDead(_9);
+        StorageDead(_8);
+        StorageDead(_7);
+        goto -> bb3;
+    }
+
+    bb9: {
+        StorageLive(_10);
+        StorageLive(_11);
+        _10 = no_retag copy ((_2 as Some).0: &u32);
+        _11 = no_retag copy (((*_6) as Some).0: &u32);
+        StorageLive(_12);
+        _12 = copy (*_10);
+        StorageLive(_13);
+        _13 = copy (*_11);
+        _4 = Eq(move _12, move _13);
+        StorageDead(_13);
+        StorageDead(_12);
+        StorageDead(_11);
+        StorageDead(_10);
+        goto -> bb4;
+    }
+}
+
+alloc8 (size: 16, align: 8) {
+    00 00 00 00 00 00 00 00 __ __ __ __ __ __ __ __ │ ........░░░░░░░░
+}
+
+const main::promoted[0]: &Option<&u32> = {
+    let mut _0: &std::option::Option<&u32>;
+    let mut _1: std::option::Option<&u32>;
+    let mut _2: &u32;
+    let mut _3: u32;
+
+    bb0: {
+        _3 = const 7_u32;
+        _2 = &_3;
+        _1 = Option::<&u32>::Some(move _2);
+        _0 = &_1;
+        return;
+    }
+}
+
+const main::promoted[1]: &[u32; 1] = {
+    let mut _0: &[u32; 1];
+    let mut _1: [u32; 1];
+
+    bb0: {
+        _1 = [const 7_u32];
+        _0 = &_1;
+        return;
+    }
+}

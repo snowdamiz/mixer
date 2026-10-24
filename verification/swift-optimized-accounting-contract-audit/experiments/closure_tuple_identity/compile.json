@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "/opt/homebrew/opt/rustup/bin/rustc",
+    "--edition=2024",
+    "-Copt-level=3",
+    "--emit=link,mir",
+    "--out-dir",
+    "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-optimized-accounting-audit-grauezgy",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/closure_tuple_identity/closure_tuple_identity.rs"
+  ],
+  "startedUTC": "2026-10-24T15:49:17.408697+00:00",
+  "finishedUTC": "2026-10-24T15:49:17.442919+00:00",
+  "exitCode": 1,
+  "stdout": "",
+  "stderr": "error[E0308]: mismatched types\n --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/closure_tuple_identity/closure_tuple_identity.rs:2:90\n  |\n2 | fn main(){let value=1usize;let closure=||value;let tuple=(&value,);require_same(&closure,&tuple);}\n  |                                        --                          ------------          ^^^^^^ expected `&{closure@...}`, found `&(&usize,)`\n  |                                        |                           |\n  |                                        the expected closure        arguments to this function are incorrect\n  |\n  = note: expected reference `&{closu... 2:42}`\n             found reference `&(&usize,)`\nnote: function defined here\n --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/closure_tuple_identity/closure_tuple_identity.rs:1:4\n  |\n1 | fn require_same<T>(_:&T,_:&T){}\n  |    ^^^^^^^^^^^^         ----\n  = note: the full name for the type has been written to '/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-optimized-accounting-audit-grauezgy/closure_tuple_identity.long-type-8633298094167736034.txt'\n  = note: consider using `--verbose` to print the full type name to the console\n\nerror: aborting due to 1 previous error\n\nFor more information about this error, try `rustc --explain E0308`.\n"
+}

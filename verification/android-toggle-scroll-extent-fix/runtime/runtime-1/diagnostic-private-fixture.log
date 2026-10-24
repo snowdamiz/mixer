@@ -1,0 +1,24 @@
+Private component fixture diagnostics; no product cause inferred.
+java.lang.IllegalArgumentException: Targeted input event injection from pid 2897 was not directed at a window owned by uid 10233.
+	at android.os.Parcel.createExceptionOrNull(Parcel.java:3396)
+	at android.os.Parcel.createException(Parcel.java:3376)
+	at android.os.Parcel.readException(Parcel.java:3359)
+	at android.os.Parcel.readException(Parcel.java:3301)
+	at android.hardware.input.IInputManager$Stub$Proxy.injectInputEventToTarget(IInputManager.java:2199)
+	at android.hardware.input.InputManagerGlobal.injectInputEvent(InputManagerGlobal.java:1713)
+	at android.app.Instrumentation.syncInputTransactionsAndInjectEventIntoSelf(Instrumentation.java:1312)
+	at android.app.Instrumentation.sendPointerSync(Instrumentation.java:1297)
+	at dev.mixer.android.AuthoredToggleSupplementInstrumentation.dispatchScroll(AuthoredToggleSupplementInstrumentation.java:111)
+	at dev.mixer.android.AuthoredToggleSupplementInstrumentation.lambda$onStart$19(AuthoredToggleSupplementInstrumentation.java:131)
+	at dev.mixer.android.AuthoredToggleSupplementInstrumentation.$r8$lambda$8B6ypg0mTMH7W_gSRrAllfMVmxs(AuthoredToggleSupplementInstrumentation.java:0)
+	at dev.mixer.android.AuthoredToggleSupplementInstrumentation$55.run(D8$$SyntheticClass:0)
+	at dev.mixer.android.AuthoredToggleSupplementInstrumentation.caseRun(AuthoredToggleSupplementInstrumentation.java:86)
+	at dev.mixer.android.AuthoredToggleSupplementInstrumentation.onStart(AuthoredToggleSupplementInstrumentation.java:131)
+	at android.app.Instrumentation$InstrumentationThread.run(Instrumentation.java:2637)
+Caused by: android.os.RemoteException: Remote stack trace:
+	at com.android.server.input.InputManagerService$$ExternalSyntheticBUOutline0.m(R8$$SyntheticClass:0)
+	at com.android.server.input.InputManagerService.injectInputEventToTarget(InputManagerService.java:1072)
+	at android.hardware.input.IInputManager$Stub.onTransact(IInputManager.java:1004)
+	at android.os.Binder.execTransactInternal(Binder.java:1364)
+	at android.os.Binder.execTransact(Binder.java:1323)
+

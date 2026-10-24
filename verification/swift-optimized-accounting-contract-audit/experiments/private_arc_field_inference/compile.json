@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "/opt/homebrew/opt/rustup/bin/rustc",
+    "--edition=2024",
+    "-Copt-level=3",
+    "--emit=link,mir",
+    "--out-dir",
+    "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-optimized-accounting-audit-grauezgy",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/private_arc_field_inference/private_arc_field_inference.rs"
+  ],
+  "startedUTC": "2026-10-24T15:49:17.340930+00:00",
+  "finishedUTC": "2026-10-24T15:49:17.376326+00:00",
+  "exitCode": 1,
+  "stdout": "",
+  "stderr": "error[E0616]: field `ptr` of struct `Arc` is private\n --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/private_arc_field_inference/private_arc_field_inference.rs:2:68\n  |\n2 | fn main(){let arc=Arc::new(AtomicBool::new(false));let private=arc.ptr; println!(\"{}\",std::mem::size_of_val(&private));}\n  |                                                                    ^^^ private field\n\nerror: aborting due to 1 previous error\n\nFor more information about this error, try `rustc --explain E0616`.\n"
+}

@@ -1,0 +1,530 @@
+// WARNING: This output format is intended for human consumers only
+// and is subject to change without notice. Knock yourself out.
+// HINT: See also -Z dump-mir for MIR at specific points during compilation.
+fn roles_of_value(_1: T) -> (usize, usize) {
+    let mut _0: (usize, usize);
+    scope 1 (inlined std::mem::size_of::<Roles<T>>) {
+    }
+    scope 2 (inlined std::mem::align_of::<Roles<T>>) {
+    }
+
+    bb0: {
+        _0 = (const <Roles<T> as std::mem::SizedTypeProperties>::SIZE, const <Roles<T> as std::mem::SizedTypeProperties>::ALIGN);
+        return;
+    }
+}
+
+// MIR FOR CTFE
+fn roles_of_value(_1: T) -> (usize, usize) {
+    let mut _0: (usize, usize);
+    let mut _2: usize;
+    let mut _3: usize;
+
+    bb0: {
+        StorageLive(_2);
+        ConstEvalCounter;
+        _2 = std::mem::size_of::<Roles<T>>() -> [return: bb1, unwind continue];
+    }
+
+    bb1: {
+        StorageLive(_3);
+        ConstEvalCounter;
+        _3 = std::mem::align_of::<Roles<T>>() -> [return: bb2, unwind continue];
+    }
+
+    bb2: {
+        _0 = (move _2, move _3);
+        StorageDead(_3);
+        StorageDead(_2);
+        return;
+    }
+}
+
+fn roles_of_return(_1: fn() -> T) -> (usize, usize) {
+    let mut _0: (usize, usize);
+    scope 1 (inlined std::mem::size_of::<Roles<T>>) {
+    }
+    scope 2 (inlined std::mem::align_of::<Roles<T>>) {
+    }
+
+    bb0: {
+        _0 = (const <Roles<T> as std::mem::SizedTypeProperties>::SIZE, const <Roles<T> as std::mem::SizedTypeProperties>::ALIGN);
+        return;
+    }
+}
+
+// MIR FOR CTFE
+fn roles_of_return(_1: fn() -> T) -> (usize, usize) {
+    let mut _0: (usize, usize);
+    let mut _2: usize;
+    let mut _3: usize;
+
+    bb0: {
+        StorageLive(_2);
+        ConstEvalCounter;
+        _2 = std::mem::size_of::<Roles<T>>() -> [return: bb1, unwind continue];
+    }
+
+    bb1: {
+        StorageLive(_3);
+        ConstEvalCounter;
+        _3 = std::mem::align_of::<Roles<T>>() -> [return: bb2, unwind continue];
+    }
+
+    bb2: {
+        _0 = (move _2, move _3);
+        StorageDead(_3);
+        StorageDead(_2);
+        return;
+    }
+}
+
+fn never() -> ! {
+    let mut _0: !;
+    let _1: !;
+    let mut _2: std::fmt::Arguments<'_>;
+    let mut _3: &str;
+    scope 1 (inlined Arguments::<'_>::from_str) {
+        let mut _4: std::ptr::NonNull<u8>;
+        let mut _5: *const u8;
+        let mut _6: std::ptr::NonNull<core::fmt::rt::Argument<'_>>;
+        let mut _7: usize;
+        let mut _8: usize;
+        let mut _9: usize;
+        scope 2 (inlined core::str::<impl str>::as_ptr) {
+            let mut _10: *const str;
+        }
+        scope 3 (inlined core::str::<impl str>::len) {
+            let _11: &[u8];
+            scope 4 (inlined core::str::<impl str>::as_bytes) {
+            }
+        }
+    }
+
+    bb0: {
+        StorageLive(_2);
+        StorageLive(_3);
+        _3 = const "never executed";
+        StorageLive(_4);
+        StorageLive(_5);
+        StorageLive(_10);
+        _10 = &raw const (*_3);
+        _5 = copy _10 as *const u8 (PtrToPtr);
+        StorageDead(_10);
+        _4 = copy _5 as std::ptr::NonNull<u8> (Transmute);
+        StorageDead(_5);
+        StorageLive(_6);
+        StorageLive(_7);
+        StorageLive(_8);
+        StorageLive(_9);
+        StorageLive(_11);
+        _11 = const "never executed" as &[u8] (Transmute);
+        _9 = PtrMetadata(copy _11);
+        StorageDead(_11);
+        _8 = Shl(move _9, const 1_i32);
+        StorageDead(_9);
+        _7 = BitOr(move _8, const 1_usize);
+        StorageDead(_8);
+        _6 = move _7 as std::ptr::NonNull<core::fmt::rt::Argument<'_>> (Transmute);
+        StorageDead(_7);
+        _2 = Arguments::<'_> { template: move _4, args: move _6 };
+        StorageDead(_6);
+        StorageDead(_4);
+        StorageDead(_3);
+        _1 = std::rt::panic_fmt(move _2) -> unwind continue;
+    }
+}
+
+alloc15 (size: 14, align: 1) {
+    6e 65 76 65 72 20 65 78 65 63 75 74 65 64       │ never executed
+}
+
+const NEVER: (usize, usize) = {
+    let mut _0: (usize, usize);
+    let mut _1: fn() -> !;
+
+    bb0: {
+        StorageLive(_1);
+        _1 = never as fn() -> ! (PointerCoercion(ReifyFnPointer(Safe), Implicit));
+        ConstEvalCounter;
+        _0 = roles_of_return::<!>(move _1) -> [return: bb1, unwind continue];
+    }
+
+    bb1: {
+        StorageDead(_1);
+        return;
+    }
+}
+
+const ITEM: (usize, usize) = {
+    let mut _0: (usize, usize);
+
+    bb0: {
+        ConstEvalCounter;
+        _0 = roles_of_value::<fn() -> ! {never}>(never) -> [return: bb1, unwind continue];
+    }
+
+    bb1: {
+        return;
+    }
+}
+
+fn factory(_1: usize) -> {closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_four_role_classes/exact_four_role_classes.rs:8:50: 8:56} {
+    debug v => _1;
+    let mut _0: {closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_four_role_classes/exact_four_role_classes.rs:8:50: 8:56};
+
+    bb0: {
+        _0 = {closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_four_role_classes/exact_four_role_classes.rs:8:50: 8:56} { v: copy _1 };
+        return;
+    }
+}
+
+// MIR FOR CTFE
+fn factory(_1: usize) -> {closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_four_role_classes/exact_four_role_classes.rs:8:50: 8:56} {
+    debug v => _1;
+    let mut _0: {closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_four_role_classes/exact_four_role_classes.rs:8:50: 8:56};
+
+    bb0: {
+        _0 = {closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_four_role_classes/exact_four_role_classes.rs:8:50: 8:56} { v: copy _1 };
+        return;
+    }
+}
+
+fn factory::{closure#0}(_1: &{closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_four_role_classes/exact_four_role_classes.rs:8:50: 8:56}) -> usize {
+    debug v => ((*_1).0: usize);
+    let mut _0: usize;
+
+    bb0: {
+        _0 = copy ((*_1).0: usize);
+        return;
+    }
+}
+
+const CLOSURE: (usize, usize) = {
+    let mut _0: (usize, usize);
+    let mut _1: {closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_four_role_classes/exact_four_role_classes.rs:8:50: 8:56};
+
+    bb0: {
+        StorageLive(_1);
+        ConstEvalCounter;
+        _1 = factory(const 7_usize) -> [return: bb1, unwind continue];
+    }
+
+    bb1: {
+        ConstEvalCounter;
+        _0 = roles_of_value::<{closure@/Users/andreyyurlov/Documents/dev/mixer/verification/swift-optimized-accounting-contract-audit/experiments/exact_four_role_classes/exact_four_role_classes.rs:8:50: 8:56}>(move _1) -> [return: bb2, unwind continue];
+    }
+
+    bb2: {
+        StorageDead(_1);
+        return;
+    }
+}
+
+fn main() -> () {
+    let mut _0: ();
+    let _1: ();
+    let mut _2: std::fmt::Arguments<'_>;
+    let mut _4: core::fmt::rt::Argument<'_>;
+    let mut _5: core::fmt::rt::Argument<'_>;
+    let mut _6: core::fmt::rt::Argument<'_>;
+    let _7: &[core::fmt::rt::Argument<'_>; 3];
+    let mut _8: &(usize, usize);
+    let mut _9: &(usize, usize);
+    let mut _10: &(usize, usize);
+    let mut _11: &(usize, usize);
+    let mut _12: &(usize, usize);
+    let mut _13: &(usize, usize);
+    let mut _14: &(usize, usize);
+    let mut _15: &(usize, usize);
+    let mut _16: &(usize, usize);
+    scope 1 {
+        debug ((args: (&(usize, usize), &(usize, usize), &(usize, usize))).0: &(usize, usize)) => _16;
+        debug ((args: (&(usize, usize), &(usize, usize), &(usize, usize))).1: &(usize, usize)) => _15;
+        debug ((args: (&(usize, usize), &(usize, usize), &(usize, usize))).2: &(usize, usize)) => _14;
+        let _3: [core::fmt::rt::Argument<'_>; 3];
+        scope 2 {
+            debug args => _3;
+            scope 24 (inlined Arguments::<'_>::new::<53, 3>) {
+                let mut _32: std::ptr::NonNull<u8>;
+                let mut _33: std::ptr::NonNull<core::fmt::rt::Argument<'_>>;
+            }
+        }
+        scope 9 (inlined core::fmt::rt::Argument::<'_>::new_debug::<(usize, usize)>) {
+            let mut _17: core::fmt::rt::ArgumentType<'_>;
+            let mut _18: std::ptr::NonNull<()>;
+            let mut _19: for<'a, 'b> unsafe fn(std::ptr::NonNull<()>, &'a mut std::fmt::Formatter<'b>) -> std::result::Result<(), std::fmt::Error>;
+            let _20: for<'a, 'b, 'c> fn(&'a (usize, usize), &'b mut std::fmt::Formatter<'c>) -> std::result::Result<(), std::fmt::Error>;
+            scope 10 {
+            }
+            scope 11 (inlined NonNull::<(usize, usize)>::from_ref) {
+                let mut _21: *const (usize, usize);
+            }
+            scope 12 (inlined NonNull::<(usize, usize)>::cast::<()>) {
+                scope 13 (inlined NonNull::<(usize, usize)>::as_ptr) {
+                }
+            }
+        }
+        scope 14 (inlined core::fmt::rt::Argument::<'_>::new_debug::<(usize, usize)>) {
+            let mut _22: core::fmt::rt::ArgumentType<'_>;
+            let mut _23: std::ptr::NonNull<()>;
+            let mut _24: for<'a, 'b> unsafe fn(std::ptr::NonNull<()>, &'a mut std::fmt::Formatter<'b>) -> std::result::Result<(), std::fmt::Error>;
+            let _25: for<'a, 'b, 'c> fn(&'a (usize, usize), &'b mut std::fmt::Formatter<'c>) -> std::result::Result<(), std::fmt::Error>;
+            scope 15 {
+            }
+            scope 16 (inlined NonNull::<(usize, usize)>::from_ref) {
+                let mut _26: *const (usize, usize);
+            }
+            scope 17 (inlined NonNull::<(usize, usize)>::cast::<()>) {
+                scope 18 (inlined NonNull::<(usize, usize)>::as_ptr) {
+                }
+            }
+        }
+        scope 19 (inlined core::fmt::rt::Argument::<'_>::new_debug::<(usize, usize)>) {
+            let mut _27: core::fmt::rt::ArgumentType<'_>;
+            let mut _28: std::ptr::NonNull<()>;
+            let mut _29: for<'a, 'b> unsafe fn(std::ptr::NonNull<()>, &'a mut std::fmt::Formatter<'b>) -> std::result::Result<(), std::fmt::Error>;
+            let _30: for<'a, 'b, 'c> fn(&'a (usize, usize), &'b mut std::fmt::Formatter<'c>) -> std::result::Result<(), std::fmt::Error>;
+            scope 20 {
+            }
+            scope 21 (inlined NonNull::<(usize, usize)>::from_ref) {
+                let mut _31: *const (usize, usize);
+            }
+            scope 22 (inlined NonNull::<(usize, usize)>::cast::<()>) {
+                scope 23 (inlined NonNull::<(usize, usize)>::as_ptr) {
+                }
+            }
+        }
+    }
+    scope 3 {
+        debug left_val => _13;
+        debug right_val => _12;
+        scope 4 {
+            debug kind => const core::panicking::AssertKind::Eq;
+        }
+        scope 25 (inlined core::tuple::<impl PartialEq for (usize, usize)>::eq) {
+            scope 26 (inlined std::cmp::impls::<impl PartialEq for usize>::eq) {
+            }
+            scope 27 (inlined std::cmp::impls::<impl PartialEq for usize>::eq) {
+            }
+        }
+    }
+    scope 5 {
+        debug left_val => _11;
+        debug right_val => _10;
+        scope 6 {
+            debug kind => const core::panicking::AssertKind::Eq;
+        }
+        scope 28 (inlined core::tuple::<impl PartialEq for (usize, usize)>::eq) {
+            scope 29 (inlined std::cmp::impls::<impl PartialEq for usize>::eq) {
+            }
+            scope 30 (inlined std::cmp::impls::<impl PartialEq for usize>::eq) {
+            }
+        }
+    }
+    scope 7 {
+        debug left_val => _9;
+        debug right_val => _8;
+        scope 8 {
+            debug kind => const core::panicking::AssertKind::Eq;
+        }
+        scope 31 (inlined core::tuple::<impl PartialEq for (usize, usize)>::eq) {
+            scope 32 (inlined std::cmp::impls::<impl PartialEq for usize>::eq) {
+            }
+            scope 33 (inlined std::cmp::impls::<impl PartialEq for usize>::eq) {
+            }
+        }
+    }
+
+    bb0: {
+        StorageLive(_2);
+        _16 = const main::promoted[8];
+        _15 = const main::promoted[7];
+        _14 = const main::promoted[6];
+        StorageLive(_3);
+        StorageLive(_4);
+        StorageLive(_21);
+        StorageLive(_17);
+        StorageLive(_18);
+        _21 = &raw const (*_16);
+        _18 = copy _21 as std::ptr::NonNull<()> (Transmute);
+        StorageLive(_19);
+        StorageLive(_20);
+        _20 = <(usize, usize) as std::fmt::Debug>::fmt as for<'a, 'b, 'c> fn(&'a (usize, usize), &'b mut std::fmt::Formatter<'c>) -> std::result::Result<(), std::fmt::Error> (PointerCoercion(ReifyFnPointer(Safe), Implicit));
+        _19 = copy _20 as for<'a, 'b> unsafe fn(std::ptr::NonNull<()>, &'a mut std::fmt::Formatter<'b>) -> std::result::Result<(), std::fmt::Error> (Transmute);
+        StorageDead(_20);
+        _17 = core::fmt::rt::ArgumentType::<'_>::Placeholder { value: move _18, formatter: copy _19, _lifetime: const PhantomData::<&()> };
+        StorageDead(_19);
+        StorageDead(_18);
+        _4 = core::fmt::rt::Argument::<'_> { ty: move _17 };
+        StorageDead(_17);
+        StorageDead(_21);
+        StorageLive(_5);
+        StorageLive(_26);
+        StorageLive(_22);
+        StorageLive(_23);
+        _26 = &raw const (*_15);
+        _23 = copy _26 as std::ptr::NonNull<()> (Transmute);
+        StorageLive(_24);
+        StorageLive(_25);
+        _25 = <(usize, usize) as std::fmt::Debug>::fmt as for<'a, 'b, 'c> fn(&'a (usize, usize), &'b mut std::fmt::Formatter<'c>) -> std::result::Result<(), std::fmt::Error> (PointerCoercion(ReifyFnPointer(Safe), Implicit));
+        _24 = copy _25 as for<'a, 'b> unsafe fn(std::ptr::NonNull<()>, &'a mut std::fmt::Formatter<'b>) -> std::result::Result<(), std::fmt::Error> (Transmute);
+        StorageDead(_25);
+        _22 = core::fmt::rt::ArgumentType::<'_>::Placeholder { value: move _23, formatter: copy _24, _lifetime: const PhantomData::<&()> };
+        StorageDead(_24);
+        StorageDead(_23);
+        _5 = core::fmt::rt::Argument::<'_> { ty: move _22 };
+        StorageDead(_22);
+        StorageDead(_26);
+        StorageLive(_6);
+        StorageLive(_31);
+        StorageLive(_27);
+        StorageLive(_28);
+        _31 = &raw const (*_14);
+        _28 = copy _31 as std::ptr::NonNull<()> (Transmute);
+        StorageLive(_29);
+        StorageLive(_30);
+        _30 = <(usize, usize) as std::fmt::Debug>::fmt as for<'a, 'b, 'c> fn(&'a (usize, usize), &'b mut std::fmt::Formatter<'c>) -> std::result::Result<(), std::fmt::Error> (PointerCoercion(ReifyFnPointer(Safe), Implicit));
+        _29 = copy _30 as for<'a, 'b> unsafe fn(std::ptr::NonNull<()>, &'a mut std::fmt::Formatter<'b>) -> std::result::Result<(), std::fmt::Error> (Transmute);
+        StorageDead(_30);
+        _27 = core::fmt::rt::ArgumentType::<'_>::Placeholder { value: move _28, formatter: copy _29, _lifetime: const PhantomData::<&()> };
+        StorageDead(_29);
+        StorageDead(_28);
+        _6 = core::fmt::rt::Argument::<'_> { ty: move _27 };
+        StorageDead(_27);
+        StorageDead(_31);
+        _3 = [move _4, move _5, move _6];
+        StorageDead(_6);
+        StorageDead(_5);
+        StorageDead(_4);
+        StorageLive(_7);
+        _7 = &_3;
+        StorageLive(_32);
+        _32 = const b"\x1dexact four typed roles never \xc0\x06 item \xc0\t closure \xc0\x01\n\x00" as std::ptr::NonNull<u8> (Transmute);
+        StorageLive(_33);
+        _33 = copy _7 as std::ptr::NonNull<core::fmt::rt::Argument<'_>> (Transmute);
+        _2 = Arguments::<'_> { template: move _32, args: move _33 };
+        StorageDead(_33);
+        StorageDead(_32);
+        StorageDead(_7);
+        _1 = std::io::_print(move _2) -> [return: bb1, unwind continue];
+    }
+
+    bb1: {
+        StorageDead(_2);
+        StorageDead(_3);
+        _13 = const main::promoted[5];
+        _12 = const main::promoted[4];
+        _11 = const main::promoted[3];
+        _10 = const main::promoted[2];
+        _9 = const main::promoted[1];
+        _8 = const main::promoted[0];
+        return;
+    }
+}
+
+alloc16 (size: 53, align: 1) {
+    0x00 │ 1d 65 78 61 63 74 20 66 6f 75 72 20 74 79 70 65 │ .exact four type
+    0x10 │ 64 20 72 6f 6c 65 73 20 6e 65 76 65 72 20 c0 06 │ d roles never ..
+    0x20 │ 20 69 74 65 6d 20 c0 09 20 63 6c 6f 73 75 72 65 │  item .. closure
+    0x30 │ 20 c0 01 0a 00                                  │  ....
+}
+
+const main::promoted[0]: &(usize, usize) = {
+    let mut _0: &(usize, usize);
+    let mut _1: (usize, usize);
+
+    bb0: {
+        _1 = (const 32_usize, const 8_usize);
+        _0 = &_1;
+        return;
+    }
+}
+
+const main::promoted[1]: &(usize, usize) = {
+    let mut _0: &(usize, usize);
+    let mut _1: (usize, usize);
+
+    bb0: {
+        _1 = const CLOSURE;
+        _0 = &_1;
+        return;
+    }
+}
+
+const main::promoted[2]: &(usize, usize) = {
+    let mut _0: &(usize, usize);
+    let mut _1: (usize, usize);
+
+    bb0: {
+        _1 = (const 0_usize, const 1_usize);
+        _0 = &_1;
+        return;
+    }
+}
+
+const main::promoted[3]: &(usize, usize) = {
+    let mut _0: &(usize, usize);
+    let mut _1: (usize, usize);
+
+    bb0: {
+        _1 = const ITEM;
+        _0 = &_1;
+        return;
+    }
+}
+
+const main::promoted[4]: &(usize, usize) = {
+    let mut _0: &(usize, usize);
+    let mut _1: (usize, usize);
+
+    bb0: {
+        _1 = (const 0_usize, const 1_usize);
+        _0 = &_1;
+        return;
+    }
+}
+
+const main::promoted[5]: &(usize, usize) = {
+    let mut _0: &(usize, usize);
+    let mut _1: (usize, usize);
+
+    bb0: {
+        _1 = const NEVER;
+        _0 = &_1;
+        return;
+    }
+}
+
+const main::promoted[6]: &(usize, usize) = {
+    let mut _0: &(usize, usize);
+    let mut _1: (usize, usize);
+
+    bb0: {
+        _1 = const CLOSURE;
+        _0 = &_1;
+        return;
+    }
+}
+
+const main::promoted[7]: &(usize, usize) = {
+    let mut _0: &(usize, usize);
+    let mut _1: (usize, usize);
+
+    bb0: {
+        _1 = const ITEM;
+        _0 = &_1;
+        return;
+    }
+}
+
+const main::promoted[8]: &(usize, usize) = {
+    let mut _0: &(usize, usize);
+    let mut _1: (usize, usize);
+
+    bb0: {
+        _1 = const NEVER;
+        _0 = &_1;
+        return;
+    }
+}

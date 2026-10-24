@@ -1,14 +1,16 @@
 # Execution index
 
-Latest checkpoint: seven permanent webhook transport regressions bring the full
-hosted suite to 149 passing tests, with two namespace fixtures explicitly skipped.
-Production transport remains unchanged and inactive. Android's original pointer
-matrix passes 429 assertions; its separate scroll diagnostic exposed a fixture
-with 532 pixels of content in a 2,622-pixel viewport. A fixture correction is next.
-Apple taps and held-touch cancellation have partial iOS26.5 evidence; activation,
-drag, keyboard and pressed-paint qualification continue. The private Swift
-dispatcher and exact optimized-type accounting are under implementation/review.
-Owned native instances are cleaned; phones and all GA/dogfood gates remain pending.
+Latest checkpoint: the private Android component fixture completes 39 of 45
+cases. Both original scroll-cancellation cases now pass; case 40 cannot acquire
+keyboard focus, and the host collector separately rejects new setup counters.
+The iOS 26.5 comparison retains eight failed direct-activation expectations and
+shows that computer-use drags delivered no movement events. Official XCTest
+movement checks and Android focus setup are being prepared. Both owned native
+instances are cleaned. Commit bbed074d passes Engine CI and 149 Phoenix tests
+with two explicit namespace skips. Swift exact-type accounting and the private
+Linux resource harness remain under implementation/review. Phones, full product
+qualification and every GA/dogfood gate remain pending. See
+[the diagnostic checkpoint](docs/native-toggle-diagnostics-progress.md).
 
 Implementation resumed at the user's request on October 24. The saved
 [pause handoff](docs/implementation-pause-2026-10-24.md) remains historical context.

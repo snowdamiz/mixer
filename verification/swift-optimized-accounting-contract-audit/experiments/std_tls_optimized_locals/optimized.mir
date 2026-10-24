@@ -1,0 +1,303 @@
+// WARNING: This output format is intended for human consumers only
+// and is subject to change without notice. Knock yourself out.
+// HINT: See also -Z dump-mir for MIR at specific points during compilation.
+const VALUE: LocalKey<Cell<Option<usize>>> = {
+    let mut _0: std::thread::LocalKey<std::cell::Cell<std::option::Option<usize>>>;
+
+    bb0: {
+        ConstEvalCounter;
+        _0 = LocalKey::<Cell<Option<usize>>>::new(const VALUE::{constant#0}) -> [return: bb1, unwind continue];
+    }
+
+    bb1: {
+        return;
+    }
+}
+
+const __RUST_STD_INTERNAL_INIT: Cell<Option<usize>> = {
+    let mut _0: std::cell::Cell<std::option::Option<usize>>;
+    let mut _1: std::option::Option<usize>;
+
+    bb0: {
+        StorageLive(_1);
+        _1 = Option::<usize>::None;
+        ConstEvalCounter;
+        _0 = Cell::<Option<usize>>::new(move _1) -> [return: bb1, unwind continue];
+    }
+
+    bb1: {
+        StorageDead(_1);
+        return;
+    }
+}
+
+VALUE::{constant#0}: for<'a> fn(Option<&'a mut Option<Cell<Option<usize>>>>) -> *const Cell<Option<usize>> = {
+    let mut _0: for<'a> fn(std::option::Option<&'a mut std::option::Option<std::cell::Cell<std::option::Option<usize>>>>) -> *const std::cell::Cell<std::option::Option<usize>>;
+    let mut _1: bool;
+    let mut _2: {closure@/rustc/b940084d7eb6a299eb4bfeb8e34901bc051e7ac4/library/std/src/sys/thread_local/native/mod.rs:63:21: 63:24};
+    let mut _3: {closure@/rustc/b940084d7eb6a299eb4bfeb8e34901bc051e7ac4/library/std/src/sys/thread_local/native/mod.rs:71:21: 71:24};
+
+    bb0: {
+        StorageLive(_1);
+        ConstEvalCounter;
+        _1 = std::mem::needs_drop::<Cell<Option<usize>>>() -> [return: bb1, unwind continue];
+    }
+
+    bb1: {
+        switchInt(move _1) -> [0: bb3, otherwise: bb2];
+    }
+
+    bb2: {
+        StorageLive(_2);
+        _2 = {closure@/rustc/b940084d7eb6a299eb4bfeb8e34901bc051e7ac4/library/std/src/sys/thread_local/native/mod.rs:63:21: 63:24};
+        _0 = move _2 as for<'a> fn(std::option::Option<&'a mut std::option::Option<std::cell::Cell<std::option::Option<usize>>>>) -> *const std::cell::Cell<std::option::Option<usize>> (PointerCoercion(ClosureFnPointer(Safe), Implicit));
+        StorageDead(_2);
+        goto -> bb4;
+    }
+
+    bb3: {
+        StorageLive(_3);
+        _3 = {closure@/rustc/b940084d7eb6a299eb4bfeb8e34901bc051e7ac4/library/std/src/sys/thread_local/native/mod.rs:71:21: 71:24};
+        _0 = move _3 as for<'a> fn(std::option::Option<&'a mut std::option::Option<std::cell::Cell<std::option::Option<usize>>>>) -> *const std::cell::Cell<std::option::Option<usize>> (PointerCoercion(ClosureFnPointer(Safe), Implicit));
+        StorageDead(_3);
+        goto -> bb4;
+    }
+
+    bb4: {
+        StorageDead(_1);
+        return;
+    }
+}
+
+fn VALUE::{constant#0}::{closure#0}(_1: &{closure@/rustc/b940084d7eb6a299eb4bfeb8e34901bc051e7ac4/library/std/src/sys/thread_local/native/mod.rs:63:21: 63:24}, _2: Option<&mut Option<Cell<Option<usize>>>>) -> *const Cell<Option<usize>> {
+    let mut _0: *const std::cell::Cell<std::option::Option<usize>>;
+    let _3: &std::thread::local_impl::EagerStorage<std::cell::Cell<std::option::Option<usize>>>;
+    scope 1 (inlined std::thread::local_impl::EagerStorage::<Cell<Option<usize>>>::get) {
+        let mut _4: std::sys::thread_local::native::eager::State;
+        let mut _5: isize;
+        scope 2 {
+            scope 3 (inlined Cell::<std::sys::thread_local::native::eager::State>::get) {
+                let mut _6: *mut std::sys::thread_local::native::eager::State;
+                scope 4 (inlined UnsafeCell::<std::sys::thread_local::native::eager::State>::get) {
+                    let mut _7: *const std::cell::UnsafeCell<std::sys::thread_local::native::eager::State>;
+                }
+            }
+            scope 5 (inlined UnsafeCell::<Cell<Option<usize>>>::get) {
+                let mut _8: *const std::cell::UnsafeCell<std::cell::Cell<std::option::Option<usize>>>;
+            }
+        }
+    }
+
+    bb0: {
+        _3 = &/*tls*/ VALUE::{constant#0}::{closure#0}::__RUST_STD_INTERNAL_VAL;
+        StorageLive(_5);
+        StorageLive(_8);
+        StorageLive(_4);
+        StorageLive(_6);
+        StorageLive(_7);
+        _7 = &raw const (((*_3).1: std::cell::Cell<std::sys::thread_local::native::eager::State>).0: std::cell::UnsafeCell<std::sys::thread_local::native::eager::State>);
+        _6 = copy _7 as *mut std::sys::thread_local::native::eager::State (PtrToPtr);
+        StorageDead(_7);
+        _4 = copy (*_6);
+        StorageDead(_6);
+        _5 = discriminant(_4);
+        switchInt(move _5) -> [0: bb2, otherwise: bb3];
+    }
+
+    bb1: {
+        StorageDead(_8);
+        StorageDead(_5);
+        return;
+    }
+
+    bb2: {
+        _8 = &raw const ((*_3).0: std::cell::UnsafeCell<std::cell::Cell<std::option::Option<usize>>>);
+        _0 = copy _8 as *const std::cell::Cell<std::option::Option<usize>> (PtrToPtr);
+        StorageDead(_4);
+        goto -> bb1;
+    }
+
+    bb3: {
+        StorageDead(_4);
+        _0 = std::thread::local_impl::EagerStorage::<Cell<Option<usize>>>::get_or_init_slow(move _3) -> [return: bb1, unwind continue];
+    }
+}
+
+static VALUE::{constant#0}::{closure#0}::__RUST_STD_INTERNAL_VAL: std::thread::local_impl::EagerStorage<Cell<Option<usize>>> = {
+    let mut _0: std::thread::local_impl::EagerStorage<std::cell::Cell<std::option::Option<usize>>>;
+
+    bb0: {
+        ConstEvalCounter;
+        _0 = std::thread::local_impl::EagerStorage::<Cell<Option<usize>>>::new(const VALUE::__RUST_STD_INTERNAL_INIT) -> [return: bb1, unwind continue];
+    }
+
+    bb1: {
+        return;
+    }
+}
+
+fn VALUE::{constant#0}::{closure#1}(_1: &{closure@/rustc/b940084d7eb6a299eb4bfeb8e34901bc051e7ac4/library/std/src/sys/thread_local/native/mod.rs:71:21: 71:24}, _2: Option<&mut Option<Cell<Option<usize>>>>) -> *const Cell<Option<usize>> {
+    let mut _0: *const std::cell::Cell<std::option::Option<usize>>;
+    let _3: &std::cell::Cell<std::option::Option<usize>>;
+
+    bb0: {
+        _3 = &/*tls*/ VALUE::{constant#0}::{closure#1}::__RUST_STD_INTERNAL_VAL;
+        _0 = &raw const (*_3);
+        return;
+    }
+}
+
+static VALUE::{constant#0}::{closure#1}::__RUST_STD_INTERNAL_VAL: Cell<Option<usize>> = {
+    let mut _0: std::cell::Cell<std::option::Option<usize>>;
+
+    bb0: {
+        _0 = const VALUE::__RUST_STD_INTERNAL_INIT;
+        return;
+    }
+}
+
+fn hook() -> Option<usize> {
+    let mut _0: std::option::Option<usize>;
+
+    bb0: {
+        _0 = LocalKey::<Cell<Option<usize>>>::with::<for<'a> fn(&'a Cell<Option<usize>>) -> Option<usize> {Cell::<Option<usize>>::get}, Option<usize>>(const hook::promoted[0], Cell::<Option<usize>>::get) -> [return: bb1, unwind continue];
+    }
+
+    bb1: {
+        return;
+    }
+}
+
+const hook::promoted[0]: &LocalKey<Cell<Option<usize>>> = {
+    let mut _0: &std::thread::LocalKey<std::cell::Cell<std::option::Option<usize>>>;
+    let mut _1: std::thread::LocalKey<std::cell::Cell<std::option::Option<usize>>>;
+
+    bb0: {
+        _1 = const VALUE;
+        _0 = &_1;
+        return;
+    }
+}
+
+fn main() -> () {
+    let mut _0: ();
+    let mut _1: &std::option::Option<usize>;
+    let _2: std::option::Option<usize>;
+    let _3: !;
+    let _4: ();
+    let mut _5: std::fmt::Arguments<'_>;
+    let mut _6: &std::option::Option<usize>;
+    let mut _8: &str;
+    scope 1 {
+        debug left_val => _1;
+        debug right_val => _6;
+        scope 2 {
+            debug kind => const core::panicking::AssertKind::Eq;
+        }
+        scope 3 (inlined <Option<usize> as PartialEq>::eq) {
+            let mut _7: isize;
+            scope 4 {
+                scope 5 (inlined std::cmp::impls::<impl PartialEq for usize>::eq) {
+                }
+            }
+        }
+    }
+    scope 6 (inlined Arguments::<'_>::from_str) {
+        let mut _9: std::ptr::NonNull<u8>;
+        let mut _10: *const u8;
+        let mut _11: std::ptr::NonNull<core::fmt::rt::Argument<'_>>;
+        let mut _12: usize;
+        let mut _13: usize;
+        let mut _14: usize;
+        scope 7 (inlined core::str::<impl str>::as_ptr) {
+            let mut _15: *const str;
+        }
+        scope 8 (inlined core::str::<impl str>::len) {
+            let _16: &[u8];
+            scope 9 (inlined core::str::<impl str>::as_bytes) {
+            }
+        }
+    }
+
+    bb0: {
+        StorageLive(_2);
+        _2 = hook() -> [return: bb1, unwind continue];
+    }
+
+    bb1: {
+        _1 = &_2;
+        _6 = const main::promoted[0];
+        StorageLive(_7);
+        _7 = discriminant(_2);
+        switchInt(move _7) -> [0: bb4, 1: bb5, otherwise: bb3];
+    }
+
+    bb2: {
+        StorageDead(_5);
+        return;
+    }
+
+    bb3: {
+        unreachable;
+    }
+
+    bb4: {
+        StorageDead(_7);
+        StorageDead(_2);
+        StorageLive(_5);
+        StorageLive(_8);
+        _8 = const "tls hook executed\n";
+        StorageLive(_9);
+        StorageLive(_10);
+        StorageLive(_15);
+        _15 = &raw const (*_8);
+        _10 = copy _15 as *const u8 (PtrToPtr);
+        StorageDead(_15);
+        _9 = copy _10 as std::ptr::NonNull<u8> (Transmute);
+        StorageDead(_10);
+        StorageLive(_11);
+        StorageLive(_12);
+        StorageLive(_13);
+        StorageLive(_14);
+        StorageLive(_16);
+        _16 = const "tls hook executed\n" as &[u8] (Transmute);
+        _14 = PtrMetadata(copy _16);
+        StorageDead(_16);
+        _13 = Shl(move _14, const 1_i32);
+        StorageDead(_14);
+        _12 = BitOr(move _13, const 1_usize);
+        StorageDead(_13);
+        _11 = move _12 as std::ptr::NonNull<core::fmt::rt::Argument<'_>> (Transmute);
+        StorageDead(_12);
+        _5 = Arguments::<'_> { template: move _9, args: move _11 };
+        StorageDead(_11);
+        StorageDead(_9);
+        StorageDead(_8);
+        _4 = std::io::_print(move _5) -> [return: bb2, unwind continue];
+    }
+
+    bb5: {
+        StorageDead(_7);
+        _3 = core::panicking::assert_failed::<Option<usize>, Option<usize>>(const core::panicking::AssertKind::Eq, move _1, move _6, const Option::<Arguments<'_>>::None) -> unwind continue;
+    }
+}
+
+alloc36 (size: 16, align: 8) {
+    00 00 00 00 00 00 00 00 __ __ __ __ __ __ __ __ │ ........░░░░░░░░
+}
+
+alloc32 (size: 18, align: 1) {
+    0x00 │ 74 6c 73 20 68 6f 6f 6b 20 65 78 65 63 75 74 65 │ tls hook execute
+    0x10 │ 64 0a                                           │ d.
+}
+
+const main::promoted[0]: &Option<usize> = {
+    let mut _0: &std::option::Option<usize>;
+    let mut _1: std::option::Option<usize>;
+
+    bb0: {
+        _1 = Option::<usize>::None;
+        _0 = &_1;
+        return;
+    }
+}

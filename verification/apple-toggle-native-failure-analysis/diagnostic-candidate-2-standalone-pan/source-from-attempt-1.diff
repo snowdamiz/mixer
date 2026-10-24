@@ -1,0 +1,29 @@
+--- attempt-1-diagnostic/Prototype/main.swift
++++ standalone-pan-diagnostic/Prototype/main.swift
+@@ -69,7 +69,7 @@
+             referenceButton.addAction(UIAction { _ in DiagnosticTrace.shared.append("referenceControlEvent", ["event": name]) }, for: event)
+         }
+         scroll.addSubview(referenceButton)
+-        scroll.addSubview(referencePanSurface)
++        view.addSubview(referencePanSurface)
+         for n in 1...12 {
+             let label = UILabel(frame: CGRect(x: 16, y: 230+n*70, width: 300, height: 32))
+             label.text = "Native scroll row \(n)"; label.font = .systemFont(ofSize: 17)
+@@ -95,8 +95,8 @@
+         rowLabel.frame = CGRect(x: 16, y: 30, width: scroll.bounds.width-110, height: 44)
+         toggle.frame = CGRect(x: scroll.bounds.width-83, y: 30, width: 63, height: 44)
+         referenceButton.frame = CGRect(x: 16, y: 100, width: 280, height: 44)
+-        referencePanSurface.frame = CGRect(x: 16, y: 170, width: min(300, scroll.bounds.width-32), height: 60)
+         nextButton.frame = CGRect(x: 24, y: scroll.frame.maxY+24, width: view.bounds.width-48, height: 44)
++        referencePanSurface.frame = CGRect(x: 24, y: nextButton.frame.maxY+20, width: min(300, view.bounds.width-48), height: 60)
+         if events.isEmpty { record("initial") }
+     }
+     @objc func changed() { eventCount += 1; eventValues.append(toggle.isOn); record("valueChanged") }
+@@ -194,6 +194,7 @@
+         toggle.paints = theme.dark.toggle; toggle.paints = theme.light.toggle
+         check("binding environment and theme preserve native identity", ObjectIdentifier(toggle) == identity)
+         check("native visual carrier is custom unconfigured UIButton", toggle.buttonType == .custom && toggle.configuration == nil && toggle.menu == nil)
++        check("pan reference is attached directly to root view outside scroll", referencePanSurface.superview === view && !(view is UIScrollView))
+         runDiagnosticOperation(0)
+     }
+     func runDiagnosticOperation(_ index: Int) {

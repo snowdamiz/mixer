@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "status": "private-linux-profile-selected-for-implementation-runtime-not-accepted",
+  "observedUTC": "2026-10-24T16:19:23.963585+00:00",
+  "sourceRevisionContext": "bbed074d3bd2453bbcc0807f05219d042cedd738",
+  "bindings": {
+    "docs/stripe-webhook-resource-ingress-contract.md": "c51bf448b0e023284e752e1eebf4dfa3a6cd1156f6694bc666bf55d1564b99e4",
+    "verification/stripe-webhook-resource-ingress-contract/profile.json": "65adc0ed279a6acd9ba13af2445294b2e6bea3016aa91d29dbadbbc6642a3aec",
+    "verification/stripe-webhook-resource-ingress-contract/matrix.json": "52a9f2fef3b0e290877ad8c102d6b613cd7bcca675b1d62b4be320874b3a5f10",
+    "verification/stripe-webhook-resource-ingress-contract/seal.json": "79961d32f8d8f8bc8e8332d155800bd0c0759c3e0d7797d023ab0daa7c3d4659",
+    "verification/stripe-webhook-resource-ingress-contract/source-map.json": "3d2c723b2b46d3b5286128fa974c55a0f17b5bfd385e63da89ee203e541242f2"
+  },
+  "rootCheck": "verify.py --live passed: 73 baseline and 20 additional source bindings, 657 rejected contract mutations, 30 pending runtime cases, zero executed.",
+  "selection": "Select exact proposed profile constants and private R01-R18 resource harness; retain T01-T04 and I01 as separately pending private protocol/TLS cases. No production activation or public trailer choice.",
+  "clarifications": [
+    "Only stdin/stdout/stderr and one explicitly identified controller-created private control FD may survive launcher exec. Validate type, peer ownership, generation and allowlisted protocol; close all other inherited FDs. This finite control pipe is a scoped exception to the profile inheritedDescriptors list, not an HTTP capability.",
+    "Create namespace/reaper and cgroup containment before executing any role/helper. Controller stays outside stress cgroup. Drop effective, permitted, inheritable and ambient capabilities, prohibit escalation, and prove role cannot write or migrate cgroup limits.",
+    "External egress negative attempts must use reserved synthetic destinations inside isolated no-route namespace; no provider or public endpoint contacted.",
+    "Host tests and macOS unavailable preflight do not qualify Linux enforcement. No unprivileged or relaxed-limit fallback. Fresh independent source/runtime review required before root runtime acceptance.",
+    "Treat quota, memory, FD/task limits as distinct boundaries; no guaranteed realtime deadlines, universal socket count, Cloudflare equivalence or sampled absolute peak claims.",
+    "Linux artifact must be rebuilt from exact accepted source and lock closure; target/compiler/runtime libraries and artifact identity recorded. Existing macOS BEAM artifacts cannot qualify Linux."
+  ],
+  "ownedNextFiles": [
+    "docs/stripe-webhook-linux-resource-harness.md",
+    "verification/stripe-webhook-linux-resource-harness/**"
+  ],
+  "forbidden": [
+    "Live hosted code changes",
+    "Public routes or customer responses",
+    "Provider/database operations",
+    "Cloud deployment",
+    "Catalog-inspector or authority-driver review retries",
+    "Unowned resources or host stress",
+    "Physical devices or native simulator tools",
+    "Git operations by lane"
+  ],
+  "pending": [
+    "All 30 actual runtime matrix rows",
+    "Independent implementation replay",
+    "Public trailer policy",
+    "Cloudflare ingress and operational equivalence",
+    "P15/P16 authority and durable inbox",
+    "Stripe and Neon staging",
+    "G23"
+  ]
+}

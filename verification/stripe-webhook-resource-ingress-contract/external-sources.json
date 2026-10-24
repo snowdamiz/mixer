@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "retrievedDate": "2026-10-24",
+  "method": "web tool open/click/find; official Cloudflare Container/Worker documentation only",
+  "runtimeProviderContacted": false,
+  "sources": [
+    {
+      "url": "https://developers.cloudflare.com/containers/platform/limits/",
+      "title": "Limits and Instance Types",
+      "pageUpdated": "2026-10-21",
+      "finding": "The documented basic type has 1 GiB memory and one quarter vCPU. This motivates the local comparison profile; equivalence of enforcement is unproven. Custom types have other constraints and do not make arbitrary small local cgroup profiles deployable.",
+      "doesNotEstablish": "A delegated cgroup, task/FD/socket ceiling, no-dump policy or this harness's enforcement"
+    },
+    {
+      "url": "https://developers.cloudflare.com/containers/api/durable-object-container/",
+      "title": "Durable Object Container API",
+      "pageUpdated": "2026-09-30",
+      "finding": "The direct API separates start, readiness, monitoring and stop; a running container need not be ready. getTcpPort supports HTTP/TCP communication. Monitor must be reattached after a Durable Object restart. The inspected API does not document the full proposed local OS controls.",
+      "doesNotEstablish": "Shutdown timing, OOM attribution, output retention, cgroup delegation or application compatibility"
+    },
+    {
+      "url": "https://developers.cloudflare.com/workers/runtime-apis/request/",
+      "title": "Workers Request",
+      "finding": "Request exposes a body stream. Runtime body source determines Content-Length and transfer framing. The inspected interface has no documented trailer-observation API; this does not prove a deployed trailer discard/reject outcome.",
+      "doesNotEstablish": "Original wire header occurrence/framing preservation or a public trailer-reject capability"
+    },
+    {
+      "url": "https://developers.cloudflare.com/containers/configuration/outbound-traffic/",
+      "title": "Handle outbound traffic",
+      "finding": "HTTP interception and Internet-disable policy differ from native arbitrary TCP egress. An HTTP destination allowlist alone does not qualify the plan's direct Neon PostgreSQL TLS and notification path.",
+      "doesNotEstablish": "Neon TCP reachability, database credentials, notifier recovery or Stripe reconciliation"
+    },
+    {
+      "url": "https://developers.cloudflare.com/containers/guides/local-dev/",
+      "title": "Local Development",
+      "finding": "Local container development requires a compatible Docker CLI and engine and can build or pull images. This proposal does neither. Documented local/deployed differences reinforce that a local container is not deployed evidence.",
+      "doesNotEstablish": "An active local engine, installed qualifying Wrangler version or deployed isolation parity"
+    }
+  ],
+  "inaccessibleInitialGuesses": [
+    "https://developers.cloudflare.com/containers/platform-details/instance-types/",
+    "https://developers.cloudflare.com/containers/api/durable-object-container-api/",
+    "https://developers.cloudflare.com/containers/concepts/lifecycle/",
+    "https://developers.cloudflare.com/containers/configuration/outbound/"
+  ],
+  "limitations": "Documentation facts only. No provider API/account, credentials, deployment, staging event, TLS endpoint, container, Neon or Stripe request was used. API absence is not proof of unsupported provider internals. Public admission remains forbidden pending root selection and separate qualification."
+}

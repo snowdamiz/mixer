@@ -1,0 +1,85 @@
+--- frozen-scroll-diagnostic/build.py
++++ fixture-extent-fix/build.py
+@@ -1,5 +1,5 @@
+ #!/usr/bin/env python3
+-"""Build original-protocol scroll diagnostic over exact selected production bytes; host only."""
++"""Build fixture-only minimum scroll extent correction over exact selected production bytes; host only."""
+ import argparse,gzip,json,os,re,secrets,shutil,tarfile,traceback,zipfile
+ from pathlib import Path
+ import support as common
+@@ -77,7 +77,7 @@
+         if len(certs)!=1:raise ValueError('single disposable certificate required')
+         command('official-private-manifest-dump',[BT/'aapt2','dump','xmltree',apk,'--file','AndroidManifest.xml'])
+         with zipfile.ZipFile(apk) as z:entries={i.filename:{'bytes':i.file_size,'sha256':__import__('hashlib').sha256(z.read(i.filename)).hexdigest()} for i in z.infolist()}
+-        base_entries=json.loads((common.PRODUCER/'supplement-3/apk-entries.json').read_text());libs={n:v for n,v in entries.items() if n.startswith('lib/')}
++        base_entries=json.loads((common.SCROLL/'supplement-1/apk-entries.json').read_text());libs={n:v for n,v in entries.items() if n.startswith('lib/')}
+         if len(libs)!=18 or any(base_entries[n]!=v for n,v in libs.items()):raise ValueError('unchanged native library inventory required')
+         common.save(out/'apk-entries.json',entries);common.save(out/'abi-libraries.json',libs)
+         allowed_entry_changes={'AndroidManifest.xml','classes.dex','assets/AuthoredToggleSupplement/contract.json'}
+--- frozen-scroll-diagnostic/fixture/AndroidManifest.xml
++++ fixture-extent-fix/fixture/AndroidManifest.xml
+@@ -1,9 +1,9 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <!-- Separate private component fixture; no public activity or release transport. -->
+-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="dev.mixer.android.authoredtogglescrolldiagnostic">
++<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="dev.mixer.android.authoredtogglescrollextentfix">
+   <uses-sdk android:minSdkVersion="36" android:targetSdkVersion="37" />
+-  <application android:theme="@android:style/Theme.Material.Light.NoActionBar" android:label="Mixer private scroll diagnostic" android:debuggable="true" android:allowBackup="false" android:supportsRtl="true" android:extractNativeLibs="true">
++  <application android:theme="@android:style/Theme.Material.Light.NoActionBar" android:label="Mixer private scroll extent fix" android:debuggable="true" android:allowBackup="false" android:supportsRtl="true" android:extractNativeLibs="true">
+     <activity android:name="dev.mixer.android.AuthoredToggleSupplementActivity" android:exported="false" />
+   </application>
+-  <instrumentation android:name="dev.mixer.android.AuthoredToggleSupplementInstrumentation" android:targetPackage="dev.mixer.android.authoredtogglescrolldiagnostic" />
++  <instrumentation android:name="dev.mixer.android.AuthoredToggleSupplementInstrumentation" android:targetPackage="dev.mixer.android.authoredtogglescrollextentfix" />
+ </manifest>
+--- frozen-scroll-diagnostic/fixture/AuthoredToggleSupplementActivity.java
++++ fixture-extent-fix/fixture/AuthoredToggleSupplementActivity.java
+@@ -61,7 +61,7 @@
+     }
+     @Override public void onCreate(Bundle state){
+         super.onCreate(state);getWindow().setDecorFitsSystemWindows(false);root=new FrameLayout(this);setContentView(root);
+-        scroll=new ObservedScroll();content=new Parent();scroll.addView(content,new ScrollView.LayoutParams(-1,6000));root.addView(scroll,new FrameLayout.LayoutParams(-1,-1));
++        scroll=new ObservedScroll();content=new Parent();content.setMinimumHeight(6000);scroll.addView(content,new ScrollView.LayoutParams(-1,6000));root.addView(scroll,new FrameLayout.LayoutParams(-1,-1));
+     }
+     @Override public void onDestroy(){destroyed=true;super.onDestroy();}
+     void place(View view,int top){FrameLayout.LayoutParams lp=new FrameLayout.LayoutParams(1000,132);lp.leftMargin=60;lp.topMargin=top;content.addView(view,lp);watch(view);}
+--- frozen-scroll-diagnostic/fixture/AuthoredToggleSupplementInstrumentation.java
++++ fixture-extent-fix/fixture/AuthoredToggleSupplementInstrumentation.java
+@@ -102,7 +102,10 @@
+     }
+     private void dispatchScroll(boolean diagonal){
+         main(()->{window.componentState=this::scrollState;window.traceCase=cases;window.tracing=true;
+-            window.trace.add(Json.map("stage","scroll.geometry.before","case",cases,"uptime",SystemClock.uptimeMillis(),"diagonal",diagonal,"geometry",window.geometry(toggle),"state",scrollState()));});
++            window.trace.add(Json.map("stage","scroll.geometry.before","case",cases,"uptime",SystemClock.uptimeMillis(),"diagonal",diagonal,"geometry",window.geometry(toggle),"state",scrollState()));
++            int viewport=window.scroll.getHeight()-window.scroll.getPaddingTop()-window.scroll.getPaddingBottom();
++            require(viewport>0&&window.content.getMeasuredHeight()>viewport&&window.content.getHeight()>viewport&&window.scroll.canScrollVertically(1),"fixture positive measured content extent and canScrollDown before injection");
++        });
+         int[] xy=new int[2];main(()->toggle.getLocationOnScreen(xy));double x=xy[0]+geometry().offCenter(),y=xy[1]+66;
+         long base=SystemClock.uptimeMillis();down=base;
+         for(int i=0;i<=8;i++){int action=i==0?0:i==8?1:2;double dx=diagonal?i*10:0;MotionEvent e=event(action,x+dx,y-i*35,1,7,base+i*25);try{window.observe("worker.injection.before",e,null);sendPointerSync(e);events++;window.observe("worker.injection.after",e,null);}finally{e.recycle();}}
+--- frozen-scroll-diagnostic/verify.py
++++ fixture-extent-fix/verify.py
+@@ -1,5 +1,5 @@
+ #!/usr/bin/env python3
+-"""Fresh host-only replay of original-protocol scroll observation and exact APK composition."""
++"""Fresh host-only replay of fixture-only scroll extent correction and exact APK composition."""
+ import argparse,json,os,re,shutil,sys,traceback,zipfile
+ from pathlib import Path
+ import support
+@@ -19,7 +19,7 @@
+     try:
+         receipt['upstreamBefore']=support.upstream();receipt['candidate']=support.frozen();receipt['runnerContract']=support.bind(support.HERE/'runner-contract.json')
+         used=out/'source-used';used.mkdir()
+-        for name in ('support.py','run.py','diagnostics.py','test_host.py','verify.py','runner-contract.json','derived-runner.py','capture_analysis.py'):(used/name).write_bytes((support.HERE/name).read_bytes())
++        for name in ('support.py','run.py','diagnostics.py','test_host.py','verify.py','runner-contract.json','derived-runner.py','stage_sources.py','source-adaptation.json'):(used/name).write_bytes((support.HERE/name).read_bytes())
+         for name in ('FixtureFailuresTest.java','ScrollTraceBufferTest.java'):(used/name).write_bytes((support.HERE/'host-tests'/name).read_bytes())
+         for name,argv in [('python',[sys.executable,'--version']),('java',[support.JDK/'bin/java','--version']),('javac',[support.JDK/'bin/javac','--version']),('d8',[support.BT/'d8','--version']),('aapt2',[support.BT/'aapt2','version']),('apksigner',[support.BT/'apksigner','version'])]:command(name+'-version',argv)
+         support.save(out/'payload-inventory.json',support.extract(work));production=work/'production-classes';fresh=work/'fresh-fixture';fresh.mkdir();host=work/'host';host.mkdir();dex=work/'fresh-dex';dex.mkdir()
+@@ -42,7 +42,7 @@
+         if entries!=support.read(support.candidate()/'apk-entries.json'):raise ValueError('APK entry replay drift')
+         original=support.read(support.PRODUCER/'supplement-3/production-class-inventory.json');actual={str(p.relative_to(work)):support.bind(p) for p in production.rglob('*.class')}
+         if actual!=original or len(actual)!=159:raise ValueError('production classes changed')
+-        support.save(out/'host-controls.json',test_host.test());receipt['upstreamAfter']=support.upstream();receipt.update({'status':'passed-fresh-host-original-protocol-scroll-observation-and-exact-apk-composition-native-NOT-RUN','unchangedProductionClasses':159,'unchangedNativeLibraries':18,'replayedFixtureClasses':fixtureCount,'exactDexReplay':True,'sourceSnapshots':{p.name:support.bind(p) for p in used.iterdir()}})
++        support.save(out/'host-controls.json',test_host.test());receipt['upstreamAfter']=support.upstream();receipt.update({'status':'passed-fresh-host-fixture-only-scroll-extent-correction-and-exact-apk-composition-native-NOT-RUN','unchangedProductionClasses':159,'unchangedNativeLibraries':18,'replayedFixtureClasses':fixtureCount,'exactDexReplay':True,'sourceSnapshots':{p.name:support.bind(p) for p in used.iterdir()}})
+     except BaseException as failure:
+         receipt['status']='failed-host-review-retained';receipt['failure']=repr(failure);(out/'failure.log').write_text(traceback.format_exc());raise
+     finally:
