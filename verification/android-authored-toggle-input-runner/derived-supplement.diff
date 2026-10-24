@@ -1,0 +1,183 @@
+--- reviewed-candidate5-concrete.py
++++ derived-supplement.py
+@@ -17,10 +17,10 @@
+ 
+ ROOT = Path(__file__).resolve().parents[2]
+ HERE = Path(__file__).resolve().parent
+-BUILDS = ROOT / 'verification/android-pointer-oracle-repair'
++BUILDS = ROOT / 'verification/android-authored-toggle-input'
+ ORIGINAL_RUNNER_SHA256 = '8f4caee8c90fb2ab7348403576e56783e7e9ffd0d13a80850398ca4e34ea78d3'
+ PROCESS_HELPER_SHA256 = '209290a7b3638f7510bb1b88dfcdb272f657b89fffe96dcc2f2b631b8f244216'
+-SOURCE_CLOSURE_SHA256 = '9082e2de1327bd0784d752db5dfbe4484751d565b3410e01e78664321467f5ce'
++SOURCE_CLOSURE_SHA256 = '12fc0156b7689bcf0718c404b80471e707633d93ba44196184fd68b358c5306f'
+ ARCHIVE_SHA256 = '847de52459dbe90b8fd5abbe186aaf2f936cce38981cbc28ce86b36bcdc9249b'
+ BUILD_BINDINGS = {
+     "apk-entries.json": "9fccc1510bad915a97d12d75526fb787b59dda9e3ad51861e1fdd3e383bccd02",
+@@ -38,7 +38,7 @@
+     "source-lock.json": "5029843a33baf5fa4dfd13525ac3452fe40cdfc3acf301e284f0b7a2e6b9a53a"
+ }
+ SDK = Path('/opt/homebrew/share/android-commandlinetools')
+-PACKAGE = 'dev.mixer.android.coordinatorjoin'
++PACKAGE = 'dev.mixer.android.authoredtoggle'
+ PORT = 5586
+ SERIAL = 'emulator-' + str(PORT)
+ AVD = 'megpt-parity-api37'
+@@ -54,12 +54,8 @@
+ 
+ 
+ def bind_candidate(built):
+-    if sha(_helper_path) != PROCESS_HELPER_SHA256:
+-        raise ValueError('accepted owned process helper drift')
+-    for name, expected in BUILD_BINDINGS.items():
+-        if sha(built / name) != expected:
+-            raise ValueError('pointer frozen build binding drift ' + name)
+-    return _pointer_bind(built)
++    if built != BUILDS / 'candidate-3': raise ValueError('only frozen candidate-3 input allowed')
++    return _authored_bind('supplement')
+ 
+ 
+ class ExtractionCleanupRefused(RuntimeError):
+@@ -151,15 +147,15 @@
+ 
+ def main():
+     parser = argparse.ArgumentParser(description=__doc__)
+-    parser.add_argument('--build', required=True, help='frozen private actual-pointer candidate-5 only')
++    parser.add_argument('--build', required=True, help='authored candidate-3; explicit new source identity')
+     parser.add_argument('--attempt', required=True, help='fresh runtime-N evidence directory')
+     parser.add_argument('--execute-native', action='store_true',
+                         help='required only after explicit root runtime dispatch; headless native runtime starts')
+     args = parser.parse_args()
+     if not args.execute_native:
+         parser.error('runtime is NOT RUN; --execute-native requires explicit root dispatch')
+-    if args.build != 'candidate-5' or not re.fullmatch(r'runtime-[0-9]+', args.attempt):
+-        parser.error('bound pointer candidate-5 and fresh runtime-N required')
++    if args.build != 'candidate-3' or not re.fullmatch(r'runtime-[0-9]+', args.attempt):
++        parser.error('bound authored candidate-3 and fresh runtime-N required')
+     out = _pointer_runtime_directory(args.attempt)
+     out.parent.mkdir(exist_ok=True)
+     out.mkdir()
+@@ -181,7 +177,7 @@
+                'buildSourceDirectory': str((BUILDS / args.build).relative_to(ROOT)),
+                'nativeDispatch': 'explicit root dispatch; headless subset has no desktop-unlock dependency',
+                'cleanup': 'not-started', 'physicalTargetsQueried': False,
+-               'scope': 'bounded actual API37 private pointer delivery/state subset only; internal callbacks unobserved; native IME/accessibility/public/signed/physical/FieldLog/store/operational/GA pending'}
++               'scope': 'actual View component supplement only; direct View touch except worker ScrollView arbitration; fixture acknowledgements are not engine commits; screenshot pixels/TalkBack/renderer authority/physical/Apple/public/FieldLog/store/operational/GA pending'}
+ 
+     def run(name, argv, timeout=30, allow_failure=False):
+         argv = list(map(str, argv))
+@@ -208,25 +204,14 @@
+         ownership = (created.st_dev, created.st_ino)
+         built = BUILDS / args.build
+         metadata = bind_candidate(built)
+-        if metadata['status'] != 'actual-private-apk-built-runtime-NOT-RUN' or not metadata['sourceUnchanged']:
+-            raise ValueError('successful unchanged-source build required')
+-        archive_path = built / 'built-artifacts.tar.gz'
+-        if sha(archive_path) != metadata['builtArchiveSHA256']:
+-            raise ValueError('built archive seal changed')
+-        artifacts = json.loads((built / 'built-artifacts.json').read_text())
+-        with tarfile.open(archive_path, 'r:gz') as archive:
+-            members = archive.getmembers()
+-            validate_members(members, artifacts)
+-            archive.extractall(work, members=members, filter='data')
+-        for relative, expected in artifacts.items():
+-            if sha(work / relative) != expected['sha256']:
+-                raise ValueError('built artifact hash changed ' + relative)
++        if metadata['status'] != 'authored-frozen-candidate-ready-runtime-NOT-RUN' or metadata['sourceUnchanged']:
++            raise ValueError('selected repaired-source build required; sourceUnchanged must be false')
++        artifacts = _authored_inventory('supplement')
++        _authored_extract(work, 'supplement')
+         apk = work / 'coordinator-join.apk'
+         if sha(apk) != metadata['apkSHA256']:
+             raise ValueError('APK identity mismatch')
+-        save(out / 'source-identity-predispatch.json', {'sourceRevision': metadata['sourceRevision'], 'sourceTree': metadata['sourceTree'],
+-            'sourceClosureSHA256': metadata['sourceClosureSHA256'], 'sourceInputsRechecked': 105, 'liveNativeAndSDKInputsRechecked': 88,
+-            'apkSHA256': sha(apk), 'scope': 'frozen source plus unchanged live native/SDK content before any native command'})
++        save(out / 'source-identity-predispatch.json', metadata)
+         run('apk-zipalign-predispatch', [SDK / 'build-tools/37.0.0/zipalign', '-c', '-P', '16', '-v', '4', apk])
+         _, predispatch_signature = run('apk-apksigner-predispatch', [SDK / 'build-tools/37.0.0/apksigner', 'verify', '--verbose', '--print-certs', apk])
+         if re.findall(r'certificate SHA-256 digest: ([0-9a-f]{64})', predispatch_signature.decode()) != [metadata['debugCertificateSHA256']]:
+@@ -236,8 +221,7 @@
+                         'debugCertificateSHA256': metadata['debugCertificateSHA256'],
+                         'buildReceiptSHA256': sha(built / 'receipt.json'),
+                         'packagingPreDispatch': metadata['packagingPreDispatch']})
+-        for name in ['receipt.json', 'source-lock.json', 'built-artifacts.json']:
+-            (out / ('build-' + name)).write_bytes((built / name).read_bytes())
++        _authored_copy_component_metadata(out)
+         session = json.loads((built / 'inputs/verification/android-native-appearance-v2/emulator-session.json').read_text())
+         expected_argv = [str(SDK / 'emulator/emulator'), '-avd', AVD, '-port', str(PORT), '-read-only',
+                          '-no-snapshot', '-no-window', '-no-audio', '-no-boot-anim', '-gpu', 'swiftshader_indirect']
+@@ -248,10 +232,8 @@
+             if sha(Path(path)) != expected:
+                 raise ValueError('unsupported AVD/toolchain metadata drift ' + path)
+         receipt['metadataSHA256'] = session['metadataSHA256']
+-        _, revision = run('runner-source-revision', ['git', 'rev-parse', 'HEAD'])
+-        _, tree = run('runner-source-tree', ['git', 'rev-parse', 'HEAD^{tree}'])
+-        receipt['adaptation']['runnerSourceRevision'] = revision.decode().strip()
+-        receipt['adaptation']['runnerSourceTree'] = tree.decode().strip()
++        receipt['adaptation']['runnerSourceRevisionContext'] = metadata['sourceRevision']
++        receipt['adaptation']['runnerContentIdentity'] = _authored_content_identity
+         run('python-version', [sys.executable, '--version'])
+         run('adb-version', [SDK / 'platform-tools/adb', 'version'])
+         run('emulator-version', [SDK / 'emulator/emulator', '-version'])
+@@ -304,9 +286,7 @@
+         preinstall = bind_candidate(built)
+         if preinstall['sourceClosureSHA256'] != metadata['sourceClosureSHA256'] or preinstall['apkSHA256'] != metadata['apkSHA256'] or sha(apk) != metadata['apkSHA256']:
+             raise ValueError('preinstall frozen source/APK identity differs')
+-        save(out / 'source-identity-preinstall.json', {'sourceRevision': metadata['sourceRevision'], 'sourceTree': metadata['sourceTree'],
+-            'sourceClosureSHA256': metadata['sourceClosureSHA256'], 'sourceInputsRechecked': 105, 'liveNativeAndSDKInputsRechecked': 88,
+-            'apkSHA256': sha(apk), 'scope': 'frozen source plus unchanged live native/SDK content; disjoint repository commits do not alter the content authority'})
++        save(out / 'source-identity-preinstall.json', preinstall)
+         _, signature = run('apk-apksigner-preinstall', [SDK / 'build-tools/37.0.0/apksigner', 'verify', '--verbose', '--print-certs', apk])
+         certificates = re.findall(r'certificate SHA-256 digest: ([0-9a-f]{64})', signature.decode())
+         if certificates != [metadata['debugCertificateSHA256']]:
+@@ -321,45 +301,11 @@
+         _, installed_sha = run('installed-apk-hash', adb + ['shell', 'sha256sum', path[8:]])
+         if installed_sha.decode().split()[0] != metadata['apkSHA256']:
+             raise ValueError('installed APK differs from frozen build')
+-        code, instrument = run('actual-native-pointer', adb + ['shell', 'am', 'instrument', '-w',
+-            '-e', 'descriptorSHA256', metadata['descriptorSHA256'],
+-            '-e', 'apkSHA256', metadata['apkSHA256'],
+-            '-e', 'sourceClosureSHA256', metadata['sourceClosureSHA256'],
+-            '-e', 'sourceRevision', metadata['sourceRevision'],
+-            '-e', 'sourceTree', metadata['sourceTree'],
+-            '-e', 'fixtureSHA256', metadata['fixtureSHA256'],
+-            PACKAGE + '/dev.mixer.android.CoordinatorJoinInstrumentation'], timeout=180, allow_failure=True)
+-        exported, content = run('native-results-export', adb + ['exec-out', 'run-as', PACKAGE, 'cat', 'files/native-results.json'], allow_failure=True)
+-        if exported == 0:
+-            native = json.loads(content)
+-            save(out / 'native-results.json', native)
+-            receipt['native'] = {'status': native['status'], 'checks': native['checks'], 'operations': native['operations']}
+-            exports = native.get('exports', {})
+-            if not isinstance(exports, dict) or not 1 <= len(exports) <= 128:
+-                raise ValueError('bounded private pointer export index required')
+-            export_bytes = 0
+-            for filename, value in exports.items():
+-                if not re.fullmatch(r'pointer-[a-z0-9-]+\.(json|bin|jsonl)', filename):
+-                    raise ValueError('unsafe pointer export name')
+-                if set(value) != {'bytes', 'sha256'} or type(value['bytes']) is not int or not 0 <= value['bytes'] <= 8388608 or not re.fullmatch(r'[0-9a-f]{64}', value['sha256']):
+-                    raise ValueError('invalid pointer export binding')
+-                export_bytes += value['bytes']
+-                if export_bytes > 33554432:
+-                    raise ValueError('32MiB private metadata export budget exceeded')
+-                _, payload = run('export-' + filename, adb + ['exec-out', 'run-as', PACKAGE, 'cat', 'files/' + filename])
+-                if len(payload) != value['bytes'] or hashlib.sha256(payload).hexdigest() != value['sha256']:
+-                    raise ValueError('private pointer export differs from native binding')
+-                if filename.endswith('.bin') and len(payload) > 262144:
+-                    raise ValueError('packet exceeds 256KiB bound')
+-                (out / filename).write_bytes(payload)
+-            _pointer_validate_native(native, out, metadata)
+-        else:
+-            raise RuntimeError('no actual native result; native execution did not qualify')
+-        if code or b'INSTRUMENTATION_RESULT: status=passed' not in instrument or b'INSTRUMENTATION_CODE: -1' not in instrument:
+-            raise RuntimeError('actual bounded native assertions failed; output retained')
+-        if native['status'] != 'passed' or native['operations'] != 20 or not 1 <= native['checks'] <= 512:
+-            raise RuntimeError('native fixture/result budget mismatch')
+-        receipt['status'] = 'actual-API37-private-pointer-bounded-subset-passed'
++        code, instrument = run('actual-native-component', adb + ['shell', 'am', 'instrument', '-w',
++            '-e', 'apkSHA256', metadata['apkSHA256'], '-e', 'sourceClosureSHA256', metadata['sourceClosureSHA256'],
++            PACKAGE + '/dev.mixer.android.AuthoredToggleSupplementInstrumentation'], timeout=120, allow_failure=True)
++        receipt['native'] = _authored_component_collect(run, adb, PACKAGE, out, metadata, code, instrument)
++        receipt['status'] = 'actual-API37-authored-toggle-component-only-passed'
+     except BaseException as failure:
+         receipt['status'] = 'failed-native-attempt-retained'
+         receipt['failure'] = repr(failure)

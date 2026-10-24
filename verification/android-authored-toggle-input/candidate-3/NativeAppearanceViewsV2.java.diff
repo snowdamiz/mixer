@@ -1,0 +1,166 @@
+--- sealed-candidate5/native/android/app/src/dev/mixer/android/NativeAppearanceViewsV2.java
++++ isolated-authored/native/android/app/src/dev/mixer/android/NativeAppearanceViewsV2.java
+@@ -140,8 +140,9 @@
+                 toggle.invalidate();
+             });
+         }
++        void cancelToggleInput() { if(view instanceof NativeSwitch toggle)toggle.cancelTouch(); }
+         void bind(Binding next, Geometry measured, boolean preserveEditor) {
+-            changing=true;
++            cancelToggleInput();boolean previousChanging=changing;changing=true;
+             try {
+                 binding=next; geometry=measured;
+                 if(!preserveEditor) {
+@@ -186,7 +187,7 @@
+                     header.setVisibility(!measured.collapsed&&r.expandedTitle()!=null?View.VISIBLE:View.INVISIBLE);compact.setVisibility(measured.collapsed&&r.compactTitle()!=null?View.VISIBLE:View.INVISIBLE);
+                 }
+                 view.invalidate();
+-            } finally { changing=false; }
++            } finally { changing=previousChanging; }
+         }
+     }
+     private static boolean plainProposal(CharSequence value,boolean composing){
+@@ -237,7 +238,7 @@
+     static ButtonStates buttonStates(Binding b,ButtonRole role) {return switch(role){
+         case normal -> b.palette().button().normal();case destructive -> b.palette().button().destructive();case cancel -> b.palette().button().cancel();};}
+     static FieldPaint fieldPaint(Record r) {FieldStates s=r.binding.palette().field();return !r.view.isEnabled()?s.disabled():r.view.isFocused()?s.focused():s.enabled();}
+-    static TogglePaint togglePaint(Record r) {ToggleStates s=((Switch)r.view).isChecked()?r.binding.palette().toggle().on():r.binding.palette().toggle().off();
++    static TogglePaint togglePaint(Record r) {ToggleStates s=((NativeSwitch)r.view).visualChecked()?r.binding.palette().toggle().on():r.binding.palette().toggle().off();
+         return !r.view.isEnabled()?s.disabled():r.view.isPressed()?s.pressed():s.enabled();}
+     static int color(Color c) {return android.graphics.Color.argb(c.alpha(),c.red(),c.green(),c.blue());}
+     static int px(long value,Binding b){return AppearanceGeometryV2.pixelEdge(value,b.density());}
+@@ -598,23 +599,128 @@
+             return super.onTextContextMenuItem(id);
+         }
+     }
+-    private static final class NativeSwitch extends Switch {
++    private static final class NativeSwitch extends Switch implements AuthoredToggleInputV2.CheckedBinding {
+         final Record record;Path track,thumb;
++        private final AuthoredToggleInputV2 touch = new AuthoredToggleInputV2();
++        private android.view.ViewParent downParent, disallowedParent;
++        private int downLeft,downTop;
+         NativeSwitch(Context context,Record record){super(context);this.record=record;}
++        private boolean open(){return record!=null&&record.view==this&&!record.changing&&record.binding!=null&&
++            record.binding.node.recipe() instanceof ToggleRecipe&&record.binding.nativeToggleValue()!=null&&
++            isChecked()==record.binding.nativeToggleValue()&&record.input.open(record);}
++        private AuthoredToggleInputV2.Geometry authoredGeometry(){
++            if(record==null||record.binding==null||!(record.binding.node.recipe() instanceof ToggleRecipe recipe))return null;
++            Binding b=record.binding;ToggleMetrics m=recipe.metrics();
++            return AuthoredToggleInputV2.geometry(getWidth(),getHeight(),b.density(),b.rtl(),m.trackWidth64(),m.trackHeight64(),m.thumbWidth64(),m.thumbHeight64());
++        }
++        private boolean fence(){
++            if(touch==null||!touch.active()||!open())return false;
++            var geometry=touch.geometry();return touch.matches(record.binding,isChecked())&&getParent()==downParent&&
++                getLeft()==downLeft&&getTop()==downTop&&geometry.width()==getWidth()&&geometry.height()==getHeight();
++        }
++        // Clear ownership before invoking a parent: a callback may synchronously rebind or retire this view.
++        void cancelTouch(){clearTouch(false);}
++        private void clearTouch(boolean terminal){
++            if(touch==null)return;if(terminal)touch.end();else touch.cancel();downParent=null;
++            var parent=disallowedParent;disallowedParent=null;
++            setPressed(false);invalidate();if(parent!=null)parent.requestDisallowInterceptTouchEvent(false);
++        }
++        private void endTouch(){clearTouch(true);}
++        private void syncPaint(){setPressed(touch.pressed());refreshPaint();invalidate();}
++        private boolean sample(int id,int count,double x,double y,long time){
++            if(!fence()){cancelTouch();return false;}
++            record.input.interaction(); // Local epoch only, never a feature envelope or JNI call.
++            if(!fence()){cancelTouch();return false;}
++            var before=touch.phase();boolean valid=touch.sample(id,count,x,y,time);
++            if(!valid){cancelTouch();return false;}
++            syncPaint();
++            if(before!=AuthoredToggleInputV2.Phase.drag&&touch.phase()==AuthoredToggleInputV2.Phase.drag){
++                var parent=getParent();disallowedParent=parent;
++                if(parent!=null)parent.requestDisallowInterceptTouchEvent(true);
++                if(!fence()){cancelTouch();return false;}
++            }
++            return true;
++        }
++        private boolean samples(MotionEvent event){
++            if(event.getPointerCount()!=1||event.getActionIndex()!=0||event.getPointerId(0)<0||
++                event.getToolType(0)!=MotionEvent.TOOL_TYPE_FINGER||event.getDownTime()!=touch.downTime()){
++                cancelTouch();return false;
++            }
++            int id=event.getPointerId(0);
++            for(int h=0;h<event.getHistorySize();h++)
++                if(!sample(id,1,event.getHistoricalX(0,h),event.getHistoricalY(0,h),event.getHistoricalEventTime(h)))return false;
++            return sample(id,1,event.getX(0),event.getY(0),event.getEventTime());
++        }
++        @Override public boolean onTouchEvent(MotionEvent event){
++            if(touch==null||record==null||event==null)return false;
++            int action=event.getActionMasked(),index=event.getActionIndex();
++            boolean owned=touch.ownsRemainder();
++            if(event.getAction()!=(action|(index<<MotionEvent.ACTION_POINTER_INDEX_SHIFT))){cancelTouch();return owned;}
++            if(action==MotionEvent.ACTION_DOWN){
++                endTouch();if(!open()||event.getPointerCount()!=1||index!=0||event.getHistorySize()!=0||event.getToolType(0)!=MotionEvent.TOOL_TYPE_FINGER)return false;
++                var binding=record.binding;
++                record.input.interaction();if(!open()||record.binding!=binding)return false;var geometry=authoredGeometry();
++                if(!touch.begin(binding,geometry,event.getPointerId(0),1,event.getX(0),event.getY(0),isChecked(),
++                    android.view.ViewConfiguration.get(getContext()).getScaledTouchSlop(),event.getDownTime(),event.getEventTime()))return false;
++                downParent=getParent();downLeft=getLeft();downTop=getTop();syncPaint();return true;
++            }
++            if(action==MotionEvent.ACTION_CANCEL||action==MotionEvent.ACTION_OUTSIDE){endTouch();return owned;}
++            if(!touch.active()){
++                if(action==MotionEvent.ACTION_UP)endTouch();return owned;
++            }
++            if(action!=MotionEvent.ACTION_MOVE&&action!=MotionEvent.ACTION_UP){cancelTouch();return owned;}
++            if(!samples(event)){
++                boolean consume=touch.ownsRemainder();if(action==MotionEvent.ACTION_UP)endTouch();return consume;
++            }
++            if(action==MotionEvent.ACTION_MOVE)return true;
++            var binding=touch.binding();int desired=touch.result(event.getX(0),event.getY(0));
++            endTouch();
++            if(desired!=AuthoredToggleInputV2.NO_CHANGE&&record.binding==binding&&open()&&isChecked()!=(desired==1))performClick();
++            return true;
++        }
++        @Override public boolean performClick(){
++            cancelTouch();if(!open())return false;
++            try{return super.performClick();}finally{AuthoredToggleInputV2.reconcile(this);refreshPaint();invalidate();}
++        }
++        @Override public boolean dispatchKeyEvent(android.view.KeyEvent event){
++            if(touch!=null&&touch.active())cancelTouch();
++            if(!open()){cancelTouch();return false;}return super.dispatchKeyEvent(event);
++        }
++        @Override public boolean performAccessibilityAction(int action,android.os.Bundle arguments){
++            cancelTouch();return open()&&super.performAccessibilityAction(action,arguments);
++        }
++        @Override public Boolean latestBoundChecked(){return record==null||record.binding==null?null:record.binding.nativeToggleValue();}
++        @Override public boolean nativeChecked(){return isChecked();}
++        @Override public boolean changingGuard(){return record!=null&&record.changing;}
++        @Override public void changingGuard(boolean value){if(record!=null)record.changing=value;}
++        @Override public void restoreChecked(boolean value){setChecked(value);}
++        boolean visualChecked(){return touch!=null&&record!=null&&touch.matches(record.binding,isChecked())?touch.visualChecked():isChecked();}
+         void refreshPaint(){if(record!=null&&record.binding!=null)setTextColor(color(togglePaint(record).label()));}
+         @Override protected void drawableStateChanged(){super.drawableStateChanged();refreshPaint();}
++        @Override public void setEnabled(boolean enabled){if(!enabled)cancelTouch();super.setEnabled(enabled);}
++        @Override protected boolean setFrame(int left,int top,int right,int bottom){
++            if(left!=getLeft()||top!=getTop()||right!=getRight()||bottom!=getBottom())cancelTouch();return super.setFrame(left,top,right,bottom);
++        }
++        @Override protected void onDetachedFromWindow(){cancelTouch();super.onDetachedFromWindow();}
++        @Override protected void onAttachedToWindow(){cancelTouch();super.onAttachedToWindow();}
++        @Override protected void onVisibilityChanged(View changed,int visibility){if(visibility!=View.VISIBLE)cancelTouch();super.onVisibilityChanged(changed,visibility);}
++        @Override protected void onWindowVisibilityChanged(int visibility){if(visibility!=View.VISIBLE)cancelTouch();super.onWindowVisibilityChanged(visibility);}
++        @Override public void onWindowFocusChanged(boolean focused){if(!focused)cancelTouch();super.onWindowFocusChanged(focused);}
++        @Override protected void onFocusChanged(boolean focused,int direction,android.graphics.Rect old){if(!focused)cancelTouch();super.onFocusChanged(focused,direction,old);}
++        @Override public void onRtlPropertiesChanged(int direction){cancelTouch();super.onRtlPropertiesChanged(direction);}
+         @Override protected void onDraw(Canvas canvas) {
+-            if(record.binding==null||track==null)return;Binding b=record.binding;ToggleRecipe recipe=(ToggleRecipe)b.node.recipe();ToggleMetrics m=recipe.metrics();TogglePaint colors=togglePaint(record);
++            if(record==null||record.binding==null||track==null)return;Binding b=record.binding;ToggleRecipe recipe=(ToggleRecipe)b.node.recipe();ToggleMetrics m=recipe.metrics();TogglePaint colors=togglePaint(record);
++            var geometry=authoredGeometry();if(geometry==null)return;
+             Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);Layout text=getLayout();
+             if(text!=null){int save=canvas.save();int x=b.rtl()?px(sum(m.trackWidth64(),m.labelGap64()),b):0;
+                 canvas.translate(x,(getHeight()-text.getHeight())/2f);text.draw(canvas);canvas.restoreToCount(save);}
+-            float x=b.rtl()?0:getWidth()-px(m.trackWidth64(),b),y=(getHeight()-px(m.trackHeight64(),b))/2f;
++            float x=geometry.trackX(),y=geometry.trackY();
+             int save=canvas.save();canvas.translate(x,y);paint.setColor(color(colors.track()));canvas.drawPath(track,paint);
+             int clip=canvas.save();canvas.clipPath(track);paint.setColor(color(colors.overlay()));canvas.drawPath(track,paint);canvas.restoreToCount(clip);
+-            AppearanceGeometryV2.Point origin=AppearanceGeometryV2.thumbOrigin(isChecked(),b.rtl()?AppearanceGeometryV2.Direction.rightToLeft:AppearanceGeometryV2.Direction.leftToRight);
+-            canvas.translate((float)AppearanceGeometryV2.pixelCoordinate(origin.x64(),b.density()),(float)AppearanceGeometryV2.pixelCoordinate(origin.y64(),b.density()));
++            double fraction=touch!=null&&touch.matches(b,isChecked())?touch.fraction():(isChecked()?1:0);
++            canvas.translate((float)geometry.origin(fraction),(float)geometry.thumbY());
+             paint.setColor(color(colors.thumb()));canvas.drawPath(thumb,paint);canvas.restoreToCount(save);
+-            if(isEnabled()&&isFocused()){ToggleStates states=isChecked()?b.palette().toggle().on():b.palette().toggle().off();outline(canvas,new RectF(x,y,x+px(m.trackWidth64(),b),y+px(m.trackHeight64(),b)),states.focus(),b,paint);}
++            if(isEnabled()&&isFocused()){ToggleStates states=visualChecked()?b.palette().toggle().on():b.palette().toggle().off();outline(canvas,new RectF(x,y,x+geometry.trackWidth(),y+geometry.trackHeight()),states.focus(),b,paint);}
+         }
+     }
+     private abstract static class OwnedDrawable extends Drawable {

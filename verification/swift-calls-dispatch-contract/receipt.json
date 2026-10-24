@@ -1,0 +1,154 @@
+{
+  "accountingAccepted": false,
+  "attempts": [
+    {
+      "cleanup": {
+        "filesRemoved": 128,
+        "holderCheckEmpty": true,
+        "logicalBytesRemoved": 7138323,
+        "nativeInstancesCreated": 0,
+        "ownedScratchRemoved": true,
+        "remainingCommandGroups": 0,
+        "scratch": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-calls-contract-2uk_mpzd"
+      },
+      "commands": 0,
+      "failure": {
+        "message": "rustc unavailable on inherited PATH before first command; add the root integrator pinned /opt/homebrew/opt/rustup/bin directory",
+        "type": "FileNotFoundError"
+      },
+      "path": "attempts/20261024T145208949022Z",
+      "status": null
+    },
+    {
+      "cleanup": {
+        "filesRemoved": 137,
+        "holderCheckEmpty": true,
+        "logicalBytesRemoved": 7212283,
+        "nativeInstancesCreated": 0,
+        "ownedScratchRemoved": true,
+        "remainingCommandGroups": 0,
+        "scratch": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-calls-contract-98rus1pv"
+      },
+      "commands": 6,
+      "failure": {
+        "message": "   Compiling mixer-vm v0.1.0 (/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-calls-contract-98rus1pv/source)\nerror[E0500]: closure requires unique access to `*phase` but it is already borrowed\n  --> src/experimental_swift_reactor/calls_contract_probe.rs:21:21\n   |\n20 |     let parameters = phase.phase.parts.cache.proof().execution_signature(function)\n   |                      ----------------------- borrow occurs here\n21 |         .ok_or_else(|| phase.invariant(\"calls_probe_signature\"))?.params.len();\n   |          ---------- ^^ ----- second borrow occurs due to use of `*phase` in closure\n   |          |          |\n   |          |          closure construction occurs here\n   |          first borrow later used by call\n\nerror[E0500]: closure requires unique access to `*phase` but it is already borrowed\n  --> src/experimental_swift_reactor/calls_contract_probe.rs:46:25\n   |\n45 |         let expected = phase.phase.parts.cache.proof().execution_type(index)\n   |                        ----------------------- borrow occurs here\n46 |             .ok_or_else(|| phase.invariant(\"calls_probe_expected_type\"))?;\n   |              ---------- ^^ ----- second borrow occurs due to use of `*phase` in closure\n   |              |          |\n   |              |          closure construction occurs here\n   |              first borrow later used by call\n\nerror[E0500]: closure requires unique access to `*phase` but it is already borrowed\n  --> src/experimental_swift_reactor/calls_contract_probe.rs:48:25\n   |\n45 |         let expected = phase.phase.parts.cache.proof().execution_type(index)\n   |                        ----------------------- borrow occurs here\n...\n48 |             .ok_or_else(|| phase.invariant(\"calls_probe_actual_type\"))?;\n   |                         ^^ ----- second borrow occurs due to use of `*phase` in closure\n   |                         |\n   |                         closure construction occurs here\n49 |         expected.params.len().checked_add(actual.params.len())\n   |         --------------- first borrow later used here\n\nerror[E0500]: closure requires unique access to `*phase` but it is already borrowed\n  --> src/experimental_swift_reactor/calls_contract_probe.rs:63:25\n   |\n62 |         let frame = phase.phase.parts.frames.last()\n   |                     ------------------------ borrow occurs here\n63 |             .ok_or_else(|| phase.invariant(\"calls_probe_frame\"))?;\n   |              ---------- ^^ ----- second borrow occurs due to use of `*phase` in closure\n   |              |          |\n   |              |          closure construction occurs here\n   |              first borrow later used by call\n\nerror[E0500]: closure requires unique access to `*phase` but it is already borrowed\n  --> src/experimental_swift_reactor/calls_contract_probe.rs:67:25\n   |\n62 |         let frame = phase.phase.parts.frames.last()\n   |                     ------------------------ borrow occurs here\n...\n67 |             .ok_or_else(|| phase.invariant(\"calls_probe_instruction\"))?;\n   |                         ^^ ----- second borrow occurs due to use of `*phase` in closure\n   |                         |\n   |                         closure construction occurs here\n...\n78 |         (frame.function, instruction, branch_target)\n   |          -------------- first borrow later used here\n\nerror[E0500]: closure requires unique access to `*phase` but it is already borrowed\n  --> src/experimental_swift_reactor/calls_contract_probe.rs:74:65\n   |\n62 |         let frame = phase.phase.parts.frames.last()\n   |                     ------------------------ borrow occurs here\n...\n74 |                 let at = first.checked_add(selector).ok_or_else(|| phase.invariant(\"calls_probe_branch_index\"))?;\n   |                                                                 ^^ ----- second borrow occurs due to use of `*phase` in closure\n   |                                                                 |\n   |                                                                 closure construction occurs here\n...\n78 |         (frame.function, instruction, branch_target)\n   |          -------------- first borrow later used here\n\nerror[E0500]: closure requires unique access to `*phase` but it is already borrowed\n  --> src/experimental_swift_reactor/calls_contract_probe.rs:75:57\n   |\n62 |         let frame = phase.phase.parts.frames.last()\n   |                     ------------------------ borrow occurs here\n...\n75 |                 *view.branch_targets.get(at).ok_or_else(|| phase.invariant(\"calls_probe_branch_bound\"))?\n   |                                                         ^^ ----- second borrow occurs due to use of `*phase` in closure\n   |                                                         |\n   |                                                         closure construction occurs here\n...\n78 |         (frame.function, instruction, branch_target)\n   |          -------------- first borrow later used here\n\nerror[E0500]: closure requires unique access to `*phase` but it is already borrowed\n  --> src/experimental_swift_reactor/calls_contract_probe.rs:84:60\n   |\n84 |     let frame = phase.phase.parts.frames.last().ok_or_else(|| phase.invariant(\"calls_probe_local_frame\"))?;\n   |                 ------------------------        ---------- ^^ ----- second borrow occurs due to use of `*phase` in closure\n   |                 |                               |          |\n   |                 |                               |          closure construction occurs here\n   |                 |                               first borrow later used by call\n   |                 borrow occurs here\n\nerror[E0500]: closure requires unique access to `*phase` but it is already borrowed\n   --> src/experimental_swift_reactor/calls_contract_probe.rs:116:61\n    |\n116 |                 *phase.phase.parts.values.last().ok_or_else(|| phase.invariant(\"calls_probe_tee_empty\"))?\n    |                  ------------------------        ---------- ^^ ----- second borrow occurs due to use of `*phase` in closure\n    |                  |                               |          |\n    |                  |                               |          closure construction occurs here\n    |                  |                               first borrow later used by call\n    |                  borrow occurs here\n\nerror[E0500]: closure requires unique access to `*phase` but it is already borrowed\n   --> src/experimental_swift_reactor/calls_contract_probe.rs:123:29\n    |\n122 |             let value = *phase.phase.parts.globals.get(index as usize)\n    |                          ------------------------- borrow occurs here\n123 |                 .ok_or_else(|| phase.invariant(\"calls_probe_global\"))?;\n    |                  ---------- ^^ ----- second borrow occurs due to use of `*phase` in closure\n    |                  |          |\n    |                  |          closure construction occurs here\n    |                  first borrow later used by call\n\nerror[E0500]: closure requires unique access to `*phase` but it is already borrowed\n   --> src/experimental_swift_reactor/calls_contract_probe.rs:129:29\n    |\n128 |             let descriptor = phase.phase.parts.cache.proof().execution_global(index as usize)\n    |                              ----------------------- borrow occurs here\n129 |                 .ok_or_else(|| phase.invariant(\"calls_probe_global\"))?;\n    |                  ---------- ^^ ----- second borrow occurs due to use of `*phase` in closure\n    |                  |          |\n    |                  |          closure construction occurs here\n    |                  first borrow later used by call\n\nerror[E0500]: closure requires unique access to `*phase` but it is already borrowed\n   --> src/experimental_swift_reactor/calls_contract_probe.rs:132:29\n    |\n131 |             *phase.phase.parts.globals.get_mut(index as usize)\n    |              ------------------------- borrow occurs here\n132 |                 .ok_or_else(|| phase.invariant(\"calls_probe_global_slot\"))? = value;\n    |                  ---------- ^^ ----- second borrow occurs due to use of `*phase` in closure\n    |                  |          |\n    |                  |          closure construction occurs here\n    |                  first borrow later used by call\n\nFor more information about this error, try `rustc --explain E0500`.\nerror: could not compile `mixer-vm` (lib) due to 12 previous errors\n",
+        "type": "AssertionError"
+      },
+      "path": "attempts/20261024T145227166221Z",
+      "status": null
+    },
+    {
+      "cleanup": {
+        "filesRemoved": 261,
+        "holderCheckEmpty": true,
+        "logicalBytesRemoved": 560334455,
+        "nativeInstancesCreated": 0,
+        "ownedScratchRemoved": true,
+        "remainingCommandGroups": 0,
+        "scratch": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-calls-contract-j32ouo5p"
+      },
+      "commands": 13,
+      "failure": null,
+      "path": "attempts/20261024T145255196777Z",
+      "status": {
+        "accountingAccepted": false,
+        "baselineSHA256": "1e89853d56f0ae46720cb0e9d72a4a2a13003f777e1d01f65db154f30782ed9c",
+        "runtimeExecutions": 0,
+        "status": "passed-uncalled-type-composition",
+        "witnessSHA256": "5d07262597a096afc2b0fb57a269387c005907724a82b4703e1b9afacfa7519c"
+      }
+    },
+    {
+      "cleanup": {
+        "filesRemoved": 163,
+        "holderCheckEmpty": true,
+        "logicalBytesRemoved": 150941703,
+        "nativeInstancesCreated": 0,
+        "ownedScratchRemoved": true,
+        "remainingCommandGroups": 0,
+        "scratch": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-calls-contract-xmzsma4l"
+      },
+      "commands": 7,
+      "failure": {
+        "message": "('swift-debug-unit', [{'line': 417439, 'header': \"fn pop_checked(_1: &mut experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'_>) -> Result<Value, control::SwiftRunFailure> {\"}, {'line': 417502, 'header': \"fn typed_i32(_1: &mut experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'_>) -> Result<i32, control::SwiftRunFailure> {\"}, {'line': 417580, 'header': \"fn call_defined(_1: &mut experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'_>, _2: u32) -> Result<(), control::SwiftRunFailure> {\"}, {'line': 417688, 'header': \"fn call_defined::{closure#0}(_1: {closure@src/experimental_swift_reactor/calls_contract_probe.rs:20:88: 20:99}, _2: descriptors::SignatureView<'_>) -> usize {\"}, {'line': 417700, 'header': 'fn call_defined::{closure#1}(_1: {closure@src/experimental_swift_reactor/calls_contract_probe.rs:21:21: 21:23}) -> control::SwiftRunFailure {'}, {'line': 417720, 'header': \"fn call_selected(_1: &mut experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'_>, _2: u32, _3: &mut experimental_swift_reactor::execution::frame_operations::FrameOperationStorage<'_>) -> Result<(), control::SwiftRunFailure> {\"}, {'line': 417848, 'header': \"fn indirect(_1: &mut experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'_>, _2: u32, _3: &mut experimental_swift_reactor::execution::frame_operations::FrameOperationStorage<'_>) -> Result<(), control::SwiftRunFailure> {\"}, {'line': 418231, 'header': 'fn indirect::{closure#0}(_1: {closure@src/experimental_swift_reactor/calls_contract_probe.rs:42:21: 42:23}) -> control::SwiftRunFailure {'}, {'line': 418251, 'header': 'fn indirect::{closure#1}(_1: {closure@src/experimental_swift_reactor/calls_contract_probe.rs:43:21: 43:23}) -> control::SwiftRunFailure {'}, {'line': 418271, 'header': 'fn indirect::{closure#2}(_1: {closure@src/experimental_swift_reactor/calls_contract_probe.rs:52:25: 52:27}) -> control::SwiftRunFailure {'}, {'line': 418291, 'header': \"fn fetch(_1: &mut experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'_>) -> Result<experimental_swift_reactor::execution::SelectedInstruction, control::SwiftRunFailure> {\"}, {'line': 418689, 'header': \"fn local_slot(_1: &mut experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'_>, _2: u32) -> Result<usize, control::SwiftRunFailure> {\"}, {'line': 418772, 'header': 'fn local_slot::{closure#0}(_1: {closure@src/experimental_swift_reactor/calls_contract_probe.rs:89:51: 89:55}, _2: &usize) -> bool {'}, {'line': 418814, 'header': 'fn local_slot::{closure#1}(_1: {closure@src/experimental_swift_reactor/calls_contract_probe.rs:90:21: 90:23}) -> control::SwiftRunFailure {'}, {'line': 418834, 'header': \"fn calls_contract_probe::step(_1: &mut experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'_>, _2: &mut experimental_swift_reactor::execution::frame_operations::memory_growth_operations::SwiftGrowthContext<'_>, _3: &mut experimental_swift_reactor::execution::frame_operations::memory_growth_operations::SwiftGrowthStorage, _4: &mut experimental_swift_reactor::execution::frame_operations::FrameOperationStorage<'_>) -> Result<bool, control::SwiftRunFailure> {\"}, {'line': 420228, 'header': 'fn calls_contract_probe::step::{closure#0}(_1: {closure@src/experimental_swift_reactor/calls_contract_probe.rs:98:55: 98:62}, _2: &experimental_swift_reactor::execution::SwiftFrame) -> Option<usize> {'}, {'line': 420243, 'header': 'fn calls_contract_probe::step::{closure#1}(_1: {closure@src/experimental_swift_reactor/calls_contract_probe.rs:99:21: 99:23}) -> control::SwiftRunFailure {'}, {'line': 420262, 'header': 'fn calls_contract_probe::step::{closure#2}(_1: {closure@src/experimental_swift_reactor/calls_contract_probe.rs:120:69: 120:71}) -> control::SwiftRunFailure {'}, {'line': 420282, 'header': 'fn calls_contract_probe::step::{closure#3}(_1: {closure@src/experimental_swift_reactor/calls_contract_probe.rs:127:29: 127:31}) -> control::SwiftRunFailure {'}, {'line': 420302, 'header': \"fn calls_contract_probe::step::{closure#4}(_1: {closure@src/experimental_swift_reactor/calls_contract_probe.rs:132:102: 132:114}, _2: GlobalView<'_>) -> (bool, Type) {\"}, {'line': 420316, 'header': 'fn calls_contract_probe::step::{closure#5}(_1: {closure@src/experimental_swift_reactor/calls_contract_probe.rs:133:29: 133:31}) -> control::SwiftRunFailure {'}, {'line': 420336, 'header': \"fn run(_1: &mut experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'_>, _2: &mut experimental_swift_reactor::execution::frame_operations::memory_growth_operations::SwiftGrowthContext<'_>, _3: &mut experimental_swift_reactor::execution::frame_operations::memory_growth_operations::SwiftGrowthStorage, _4: &mut experimental_swift_reactor::execution::frame_operations::FrameOperationStorage<'_>) -> Result<(), control::SwiftRunFailure> {\"}, {'line': 420462, 'header': 'fn run::{closure#0}(_1: &mut {closure@src/experimental_swift_reactor/calls_contract_probe.rs:161:20: 161:22}) -> Result<experimental_swift_reactor::execution::frame_operations::FrameReturn, control::SwiftRunFailure> {'}, {'line': 420578, 'header': \"fn calls_contract_probe::complete(_1: experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'_>, _2: experimental_swift_reactor::execution::frame_operations::memory_growth_operations::SwiftGrowthContext<'_>, _3: experimental_swift_reactor::execution::frame_operations::memory_growth_operations::SwiftGrowthStorage, _4: experimental_swift_reactor::execution::frame_operations::FrameOperationStorage<'_>, _5: Option<Result<(experimental_swift_reactor::execution::frame_operations::FrameOperationPhase<'_>, experimental_swift_reactor::execution::frame_operations::memory_growth_operations::SwiftGrowthContext<'_>), control::SwiftRunFailure>>) -> experimental_swift_reactor::execution::frame_operations::memory_growth_operations::GrowthCompletion<'_> {\"}])",
+        "type": "AssertionError"
+      },
+      "path": "attempts/20261024T145554572926Z",
+      "status": null
+    },
+    {
+      "cleanup": {
+        "filesRemoved": 289,
+        "holderCheckEmpty": true,
+        "logicalBytesRemoved": 560377092,
+        "nativeInstancesCreated": 0,
+        "ownedScratchRemoved": true,
+        "remainingCommandGroups": 0,
+        "scratch": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-calls-contract-_7uk1qvi"
+      },
+      "commands": 17,
+      "failure": null,
+      "path": "attempts/20261024T150134948097Z",
+      "status": {
+        "accountingAccepted": false,
+        "baselineSHA256": "1e89853d56f0ae46720cb0e9d72a4a2a13003f777e1d01f65db154f30782ed9c",
+        "runtimeExecutions": 0,
+        "status": "passed-uncalled-type-composition",
+        "witnessSHA256": "5d07262597a096afc2b0fb57a269387c005907724a82b4703e1b9afacfa7519c"
+      }
+    }
+  ],
+  "baselineSHA256": "1e89853d56f0ae46720cb0e9d72a4a2a13003f777e1d01f65db154f30782ed9c",
+  "baselineSourceFiles": 128,
+  "environment": {
+    "CARGO_INCREMENTAL": "0",
+    "PATHPrefix": "/opt/homebrew/opt/rustup/bin",
+    "cargoLocked": true,
+    "cargoOffline": true,
+    "freshSourceSpecificTargets": true
+  },
+  "expectedBorrowRejections": 4,
+  "finalCommands": 17,
+  "fullSelectedHeadersPerContext": 24,
+  "gaAccepted": false,
+  "inputSnapshots": 25,
+  "limitations": [
+    "Uncalled compiler composition only; no source runtime execution or accounting acceptance.",
+    "Full shared Frozen orchestration extraction and exact expansion parity remain a candidate prerequisite.",
+    "Witness fixed Invocation stage and abbreviated defenses are not the runtime contract.",
+    "Initializer/Ready/public invocation/full Swift target/native/FieldLog/physical/OTA/GA remain pending."
+  ],
+  "nativeAccepted": false,
+  "newDependencies": [],
+  "positiveCompilerContexts": 8,
+  "requiredFreeBodiesPerContext": 10,
+  "runtimeExecutions": 0,
+  "runtimeGroupsPending": 24,
+  "schema": 1,
+  "selectedAttempt": "attempts/20261024T150134948097Z",
+  "selectedCollectorSHA256": "811a280486f5c083ecc1a25c4323308dfad46a44cb3769646571414dd6b6ad25",
+  "sourceRevisionContext": "2fb0db995395a97dbc3dee26766ecb425c8521db",
+  "status": "ready-for-root-contract-selection",
+  "toolShims": {
+    "cargo": {
+      "bytes": 158,
+      "invokedPath": "/opt/homebrew/opt/rustup/bin/cargo",
+      "resolvedPath": "/opt/homebrew/Cellar/rustup/1.29.1/bin/cargo",
+      "sha256": "75e0018c511565343732515b14c819119cd707bb30ed34b685fb13117861f15b"
+    },
+    "python3": {
+      "bytes": 34640,
+      "invokedPath": "/opt/homebrew/bin/python3",
+      "resolvedPath": "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+      "sha256": "e401ac7a95cda75dee34a0cfe1e4faf0a6df1a501cf67887f177fb78cd4eb60a"
+    },
+    "rustc": {
+      "bytes": 158,
+      "invokedPath": "/opt/homebrew/opt/rustup/bin/rustc",
+      "resolvedPath": "/opt/homebrew/Cellar/rustup/1.29.1/bin/rustc",
+      "sha256": "53d84580eddd2f4a3c1ef16c3d14d0522f1852c39690eb20a506d04d30c621e5"
+    }
+  },
+  "witnessSHA256": "5d07262597a096afc2b0fb57a269387c005907724a82b4703e1b9afacfa7519c",
+  "witnessSourceFiles": 129
+}

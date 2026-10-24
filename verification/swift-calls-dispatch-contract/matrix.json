@@ -1,0 +1,374 @@
+{
+  "groups": [
+    {
+      "assertions": [
+        "reject before fetch/work/instruction/PC/host effects",
+        "retain original owners and attributable first failure"
+      ],
+      "cases": [
+        "missing/foreign WASI,cache,construction,State-header and each backing ticket",
+        "wrong memory layout/live pages",
+        "nonempty preparation"
+      ],
+      "id": "CD01",
+      "name": "original_authority",
+      "status": "pending",
+      "testPrefix": "swift_dispatch_cd01_"
+    },
+    {
+      "assertions": [
+        "one fetched instruction/fuel debit and one outer work per actual instruction",
+        "no arm on failed prefix; retain exact reached prefix and cursor"
+      ],
+      "cases": [
+        "Const,Nop,Call,CallIndirect,Return,MemoryGrow in real pinned functions",
+        "fuel0/exact/overflow,work0/exact,checked PC overflow"
+      ],
+      "id": "CD02",
+      "name": "single_prefix",
+      "status": "pending",
+      "testPrefix": "swift_dispatch_cd02_"
+    },
+    {
+      "assertions": [
+        "preserve occupied value and reject before fetch",
+        "outer Ok is publication only; retain failed stored result and stop"
+      ],
+      "cases": [
+        "occupied preparation,entry,returned,controlled,drained",
+        "successful and failed primitive publications"
+      ],
+      "id": "CD03",
+      "name": "slot_publication",
+      "status": "pending",
+      "testPrefix": "swift_dispatch_cd03_"
+    },
+    {
+      "assertions": [
+        "parameter work exactly once; original enter work plus locals+1",
+        "parameters reused; append only zero locals; no allocation or extra parameter live debit"
+      ],
+      "cases": [
+        "0/multiple mixed scalar parameters and zero/nonzero locals",
+        "nested 3 functions with scalar result and void return",
+        "invalid absolute target,underflow,arguments below caller floor,wrong ordered types"
+      ],
+      "id": "CD04",
+      "name": "direct_defined",
+      "status": "pending",
+      "testPrefix": "swift_dispatch_cd04_"
+    },
+    {
+      "assertions": [
+        "each frame owns one move-only pin",
+        "depth/capacity reject without orphaned guard/pin; no guest reentry"
+      ],
+      "cases": [
+        "self recursion and mutual recursion",
+        "same resident function has multiple active pins",
+        "depth63/64/65 and narrowed frame limit/capacity"
+      ],
+      "id": "CD05",
+      "name": "recursive_pins",
+      "status": "pending",
+      "testPrefix": "swift_dispatch_cd05_"
+    },
+    {
+      "assertions": [
+        "ordered parameter plus optional result structural equality",
+        "scan work expected.params+actual.params before mismatch trap; no callee pin/host on rejection"
+      ],
+      "cases": [
+        "different type indices with equal complete signatures",
+        "same arity with i32/i64/f32/f64 differences",
+        "equal params with void/i32/i64 result mismatch"
+      ],
+      "id": "CD06",
+      "name": "indirect_structure",
+      "status": "pending",
+      "testPrefix": "swift_dispatch_cd06_"
+    },
+    {
+      "assertions": [
+        "pop once after prefix; preserve consumed selector on later failure",
+        "distinct table_out_of_bounds,null,type mismatch/invariant; protect locals floor"
+      ],
+      "cases": [
+        "selector -1 and highest unsigned u32",
+        "selector exactly len and greater than len",
+        "null entry and invalid absolute function descriptor",
+        "missing/type-invalid selector"
+      ],
+      "id": "CD07",
+      "name": "indirect_table",
+      "status": "pending",
+      "testPrefix": "swift_dispatch_cd07_"
+    },
+    {
+      "assertions": [
+        "same imported-host path; no callee frame/pin",
+        "exactly one parameter debit and one adapter-owned host entry only on admission"
+      ],
+      "cases": [
+        "table selects existing WASI import with matching signature",
+        "same imported target called directly",
+        "type mismatch to import"
+      ],
+      "id": "CD08",
+      "name": "indirect_import",
+      "status": "pending",
+      "testPrefix": "swift_dispatch_cd08_"
+    },
+    {
+      "assertions": [
+        "State owns acquired pin/nested restore before error escapes",
+        "rollback only added debits; failed release retained once and cleanup resumes explicitly"
+      ],
+      "cases": [
+        "pin acquisition succeeds then cache phase restoration fails",
+        "failure during each local zero/live/control/frame predebit",
+        "reject guard-pin release"
+      ],
+      "id": "CD09",
+      "name": "entry_completion",
+      "status": "pending",
+      "testPrefix": "swift_dispatch_cd09_"
+    },
+    {
+      "assertions": [
+        "finish once; retain scalar bits; nested push once and resume advanced caller",
+        "outermost result stops fetch; no Ready transition"
+      ],
+      "cases": [
+        "nested and outermost void,i32,i64,f32,f64 result",
+        "missing/wrong result type",
+        "explicit Return,fallthrough End,branch to function"
+      ],
+      "id": "CD10",
+      "name": "function_return",
+      "status": "pending",
+      "testPrefix": "swift_dispatch_cd10_"
+    },
+    {
+      "assertions": [
+        "retain exact reached truncation/release/push effects",
+        "first failure immutable; processed pin suffix is not retried within same drain"
+      ],
+      "cases": [
+        "work rejection after saved-result pop",
+        "each actual contextual live removal rejection",
+        "pin release rejection and caller result push rejection"
+      ],
+      "id": "CD11",
+      "name": "return_failure",
+      "status": "pending",
+      "testPrefix": "swift_dispatch_cd11_"
+    },
+    {
+      "assertions": [
+        "original scalar push/pop work and exact order",
+        "unknown numeric/subopcode or invalid shapes fail before partial helper"
+      ],
+      "cases": [
+        "Const,Drop,Nop,Unreachable",
+        "Select both branches with scalar/float bit patterns",
+        "Select bad count/condition/type below operand floor"
+      ],
+      "id": "CD12",
+      "name": "scalar_arms",
+      "status": "pending",
+      "testPrefix": "swift_dispatch_cd12_"
+    },
+    {
+      "assertions": [
+        "no locals consumed as operands; typed writes only",
+        "get push1,set pop1,tee work1; no implicit Vec growth"
+      ],
+      "cases": [
+        "parameter and declared-local get/set/tee",
+        "checked base+index overflow and region end",
+        "tee sees only locals/no operands; declared-type mismatch"
+      ],
+      "id": "CD13",
+      "name": "local_arms",
+      "status": "pending",
+      "testPrefix": "swift_dispatch_cd13_"
+    },
+    {
+      "assertions": [
+        "set pop order retained; reject before invalid write",
+        "global effects persist across nested calls and later trap"
+      ],
+      "cases": [
+        "mutable and immutable all scalar types",
+        "GlobalGet/Set absent State slot or descriptor",
+        "wrong value type"
+      ],
+      "id": "CD14",
+      "name": "global_arms",
+      "status": "pending",
+      "testPrefix": "swift_dispatch_cd14_"
+    },
+    {
+      "assertions": [
+        "actual shared control semantics,aggregate4096/function-inclusive512 limits",
+        "only selected target copied; selector popped once; finished invokes finish once"
+      ],
+      "cases": [
+        "Block,If true/false/Else,Loop",
+        "Br,BrIf,BrTable selected/default with nested labels",
+        "invalid branch depth/target/control floor"
+      ],
+      "id": "CD15",
+      "name": "all_control",
+      "status": "pending",
+      "testPrefix": "swift_dispatch_cd15_"
+    },
+    {
+      "assertions": [
+        "single shared algorithm bodies; exact actual value count on trap",
+        "no second instruction debit; exact current cursor; retained post-effect mismatch"
+      ],
+      "cases": [
+        "integer overflow/division/conversion traps,float bits,saturating",
+        "all admitted loads/stores signed/narrow/unaligned/OOB",
+        "numeric contextual removal corruption"
+      ],
+      "id": "CD16",
+      "name": "numeric_memory",
+      "status": "pending",
+      "testPrefix": "swift_dispatch_cd16_"
+    },
+    {
+      "assertions": [
+        "bulk extra fuel distinct; unchanged ranges/chunks/effects",
+        "grow denial -1 only where specified; admit full old/new overlap and proper page/ticket transfer"
+      ],
+      "cases": [
+        "MemorySize,copy forward/backward overlap,fill,zero length,bounds",
+        "grow0,maximum denial,admitted growth,State/Combined rejection",
+        "cancellation at zero/copy/final check"
+      ],
+      "id": "CD17",
+      "name": "bulk_growth",
+      "status": "pending",
+      "testPrefix": "swift_dispatch_cd17_"
+    },
+    {
+      "assertions": [
+        "pending growth/phase/context/storage retained until explicit cleanup",
+        "no envelope/header refund while growth debt/wrappers survive; no rollback of committed memory"
+      ],
+      "cases": [
+        "grow succeeds then old-ticket refund rejects",
+        "precommit replacement ticket/page reconciliation rejects",
+        "no grow program uses same retaining completion",
+        "attempt frame-only completion while growth pending"
+      ],
+      "id": "CD18",
+      "name": "growth_completion",
+      "status": "pending",
+      "testPrefix": "swift_dispatch_cd18_"
+    },
+    {
+      "assertions": [
+        "zero-extended errno i32 only on successful errno return",
+        "GuestExit exact and terminal; no process exit; retain actual output/memory/counters"
+      ],
+      "cases": [
+        "official success/non-success errno",
+        "proc_exit0,nonzero,high unsigned code",
+        "typed WASI failure and postcheck cancel/deadline"
+      ],
+      "id": "CD19",
+      "name": "host_outcomes",
+      "status": "pending",
+      "testPrefix": "swift_dispatch_cd19_"
+    },
+    {
+      "assertions": [
+        "RuntimeControl sole first-cause authority with exact at_failure",
+        "after_cleanup separate; active cursor not fabricated for genuine cleanup"
+      ],
+      "cases": [
+        "cancel/deadline before fetch,after fuel,before work,inside adapter/loops",
+        "guest trap followed by removal/refund/pin cleanup failure",
+        "actual WASI failure followed by later timeout"
+      ],
+      "id": "CD20",
+      "name": "first_cause",
+      "status": "pending",
+      "testPrefix": "swift_dispatch_cd20_"
+    },
+    {
+      "assertions": [
+        "deepest-first bounded pass continues after cleanup invariant",
+        "one attempt/pin/pass; no executable retry; no lost authority"
+      ],
+      "cases": [
+        "multiple retained pins plus unpublished entry guard",
+        "multiple failed releases and existing live/nested-restore debt",
+        "repeated drain then explicit cleanup reacquisition"
+      ],
+      "id": "CD21",
+      "name": "terminal_drain",
+      "status": "pending",
+      "testPrefix": "swift_dispatch_cd21_"
+    },
+    {
+      "assertions": [
+        "zero executor warm allocation requests",
+        "all added MIR/caller/completion roles positive; all old rows/layouts/Frozen bound retained"
+      ],
+      "cases": [
+        "warm mixed non-growth/non-cache-miss run with refusing allocator",
+        "cache miss and growth allocation separately metered",
+        "exact and one-byte-below new header/frame envelopes"
+      ],
+      "id": "CD22",
+      "name": "allocation_accounting",
+      "status": "pending",
+      "testPrefix": "swift_dispatch_cd22_"
+    },
+    {
+      "assertions": [
+        "Frozen source/expansion/ordering/budgets/trace unchanged",
+        "all listed runtime tests execute; zero selected tests is failure"
+      ],
+      "cases": [
+        "all27 arms through cached/Frozen fixtures",
+        "shared literal expanded39 methods",
+        "default,span,Swift,all feature builds and Debug/Release"
+      ],
+      "id": "CD23",
+      "name": "frozen_regression",
+      "status": "pending",
+      "testPrefix": "swift_dispatch_cd23_"
+    },
+    {
+      "assertions": [
+        "one real loop runs entire program; independently expected values,memory,counters,pins/debt",
+        "synthetic full-loop host proof only; full Swift initialize/Ready/public/native gates still pending"
+      ],
+      "cases": [
+        "at least one independently authored multi-function scalar+control+memory+growth+host program",
+        "same-ABI module retains34imports,min584pages,fixed46713table,exports35and62",
+        "nested call result affects observable memory and errno path"
+      ],
+      "id": "CD24",
+      "name": "meaningful_program",
+      "status": "pending",
+      "testPrefix": "swift_dispatch_cd24_"
+    }
+  ],
+  "operationVariants": 27,
+  "requiredConfigurations": [
+    "swift-debug",
+    "swift-release",
+    "all-debug",
+    "all-release"
+  ],
+  "runtimeExecutions": 0,
+  "schema": 1,
+  "status": "preimplementation-runtime-pending"
+}

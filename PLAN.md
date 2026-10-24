@@ -1,12 +1,13 @@
 # Execution index
 
-Latest checkpoint: the private Swift contextual diagnostic repair is independently
-reviewed and integrated; 282 library and 16 Frozen Release tests pass. Defined
-and indirect calls plus full dispatch are next. Android authored-toggle repair
-passes independent class/DEX and policy checks; the new emulator runner is being
-prepared. Stripe private transport implementation is in progress on the accepted
-raw-body capture. Owned native instances are cleaned, Apple UI access awaits an
-unlocked Mac, and phones remain deferred. No GA or dogfood gate has passed.
+Latest checkpoint: the Swift diagnostic repair passes all three GitHub engine
+jobs; the full private calls/dispatcher contract is selected. Android authored
+toggle input passes the original 20-action emulator matrix with 429 assertions.
+Its separate component supplement crashed before reporting results, so that
+fixture is being repaired and its checks remain pending. Apple UI access is
+restored and runtime preflight is underway. Webhook transport is under independent
+review. Owned test instances are cleaned; phones and all GA/dogfood gates remain
+pending.
 
 Implementation resumed at the user's request on October 24. The saved
 [pause handoff](docs/implementation-pause-2026-10-24.md) remains historical context.
@@ -1203,3 +1204,22 @@ failure remains immutable. Owned command groups and 166,955,154 bytes of scratch
 are cleaned. Defined/indirect calls and the full dispatcher contract are next.
 Original-source diagnostics, Ready/public invocation, native/FieldLog/physical
 and G08/GA remain pending. See `docs/swift-cleanup-diagnostic-integration-checkpoint.md`.
+
+
+The authored Android candidate now passes all 429 assertions in the original
+20-action API37 arm64 pointer matrix, including all three P03 drag repetitions.
+Root verifies 124 worker/Activity deliveries, 573 observations, 73 exports and
+107 command outputs; owned emulator/groups/ports and 172,984,646 scratch bytes
+are cleaned. Separate supplement runtime-3 crashed before exporting results;
+zero component assertions are accepted, its cause is unobserved and all owned
+resources are cleaned. A fixture-only reporting/diagnostic repair is underway.
+Live production integration, preview/key/AX and broader authority/parity checks
+remain pending. See `docs/android-authored-toggle-native-checkpoint.md`.
+
+Pushed diagnostic checkpoint 2fb0db99 passes all three terminal engine jobs and
+38 steps, with none skipped. Root selects the coherent defined/indirect calls
+plus complete private dispatcher contract after 139 bindings, eight fresh
+compiler contexts and four expected borrow rejections. CD01-CD24 runtime and
+complete positive accounting remain pending; the uncalled compiler witness is
+not execution or reservation evidence. See `docs/swift-calls-dispatch-contract.md`
+and `verification/swift-calls-dispatch-root-review/selection.json`.

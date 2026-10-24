@@ -1,0 +1,86 @@
+{
+  "schema": 1,
+  "observedUTC": "2026-10-24T15:13:13.601062+00:00",
+  "sourceRevisionContext": "2fb0db995395a97dbc3dee26766ecb425c8521db",
+  "status": "passed-native-baseline-contract-checkpoint",
+  "commands": [
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "verification/android-authored-toggle-input-runner/verify.py"
+      ],
+      "exitCode": 0,
+      "output": "verification/native-pointer-dispatch-contract-checkpoint/runner-bindings.log",
+      "sha256": "fd2471f94bbdb70c033438bbec1a224a859ce1a4101e9edb4b1f06e7b5bb7a65"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "verification/android-authored-toggle-input-review/verify.py"
+      ],
+      "exitCode": 0,
+      "output": "verification/native-pointer-dispatch-contract-checkpoint/host-review.log",
+      "sha256": "9533077c5434a95b35e7dc0e833f80f92a277ab301db889822dfc5e488e55007"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "verification/swift-calls-dispatch-contract/verify.py",
+        "--live"
+      ],
+      "exitCode": 0,
+      "output": "verification/native-pointer-dispatch-contract-checkpoint/dispatcher-contract.log",
+      "sha256": "d8eb66e45ea8e07bdc6bf70ffe7825f3cafd16d5e21a69ac2445fab33aab73a3"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "scripts/check-policy.py"
+      ],
+      "exitCode": 0,
+      "output": "verification/native-pointer-dispatch-contract-checkpoint/policy.log",
+      "sha256": "83e9d73f7084e17a188fd457d1187d00697a64bc1f34d1e3a09e339c6584919f"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "PLAN.md",
+        "STATUS.md",
+        "work-graph.json",
+        "gates/ga.json"
+      ],
+      "exitCode": 0,
+      "output": "verification/native-pointer-dispatch-contract-checkpoint/whitespace.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "--version"
+      ],
+      "exitCode": 0,
+      "output": "verification/native-pointer-dispatch-contract-checkpoint/python-version.log",
+      "sha256": "f615dc9512de8b165e2b595e5cdc608a3ba7927ae92f959c5b42ec3d58e2ffa8"
+    }
+  ],
+  "bindings": {
+    "PLAN.md": "6a72fe04cc4ec60ef6a9ac1036c7d2a220e8270e0ee9e1b02e39bf412ea91fed",
+    "STATUS.md": "ca2580103e87b0eebe4b272d72f07e63f282f95e67490b6436a135fa36508158",
+    "work-graph.json": "3c0e0756265d845536459b634a249f6f0d0d359dd30814b4c58eb2ae1cfb3a62",
+    "gates/ga.json": "fe6761ef34ad0cada041bafd77afbdde322e7a369e3fc323fd8dcac968d48a69",
+    "verification/android-authored-toggle-runtime-root-review/selection.json": "b3aebe84b3e4ecac8153912651f5941465eda3325fda18c6f602ded0bef198ba",
+    "verification/android-authored-toggle-runtime-root-review/baseline-acceptance.json": "875fa4e7b9d1fcfae8ecf6e72164bf86956234efd59f6c877ab19d83e48abe03",
+    "verification/android-authored-toggle-runtime-root-review/supplement-failure-review.json": "bea4622f75545ca55a3b15be8574c48975e981df0af37d2cc25c5ca2d7c0b2dd",
+    "verification/swift-calls-dispatch-root-review/selection.json": "8d7056b2dece804aa360d3f5bb89f6123e79172a468dc3913cc6dc0ecce90540",
+    "verification/github-ci-2fb0db99-engine/receipt.json": "627bad61e9cae279b2da6aa219172017398dbbe926044a80ba47834d24ea1894",
+    "verification/github-ci-18378bb8-engine/receipt.json": "fa3361a831df83343ea42ac6973d8a2bad1c14c6e4c590348c69f93a7f39dd2d"
+  },
+  "scope": "Accepted original20-action Android candidate matrix with failed separate component retained; private dispatcher contract selection and diagnostic CI. No live Android integration, component acceptance or GA promotion."
+}
