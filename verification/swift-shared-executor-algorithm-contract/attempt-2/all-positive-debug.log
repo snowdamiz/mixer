@@ -1,0 +1,91 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-shared-executor-algorithm-contract/build/20261024T000934Z/all-positive/vm)
+error[E0753]: expected outer doc comment
+    --> src/experimental_swift_reactor/execution.rs:2963:1
+     |
+2963 |   //! Appended only to isolated Swift execution module. Never activates its owner.
+     |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2964 | / use crate::experimental::execution::borrowed::algorithm_contract_probe::{AlgorithmMode,
+2965 | |     FrameScalars, PinAttempt};
+     | |______________________________- the inner doc comment doesn't annotate this `use` import
+     |
+help: to annotate the `use` import, change the doc comment from inner to outer style
+     |
+2963 - //! Appended only to isolated Swift execution module. Never activates its owner.
+2963 + /// Appended only to isolated Swift execution module. Never activates its owner.
+     |
+
+error[E0283]: type annotations needed for `algorithm_contract_probe::PinAttempt<_>`
+    --> src/experimental_swift_reactor/execution.rs:3024:9
+     |
+3024 |     let attempt = match returned.take().expect("just populated") {
+     |         ^^^^^^^
+3025 |         Ok(pin) => PinAttempt { pin: Some(pin), failure: None },
+     |                    ---------- type must be known at this point
+     |
+     = note: the type must implement `AlgorithmMode`
+help: the following types implement trait `AlgorithmMode`
+    --> src/experimental/execution/algorithm_contract_probe.rs:87:1
+     |
+  87 | impl AlgorithmMode for FrozenMode {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `experimental::execution::borrowed::FrozenMode`
+     |
+    ::: src/experimental_swift_reactor/execution.rs:2969:1
+     |
+2969 | impl AlgorithmMode for SwiftMode {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `experimental_swift_reactor::execution::SwiftMode`
+note: required by a bound in `algorithm_contract_probe::PinAttempt`
+    --> src/experimental/execution/algorithm_contract_probe.rs:16:33
+     |
+  16 | pub(crate) struct PinAttempt<M: AlgorithmMode> {
+     |                                 ^^^^^^^^^^^^^ required by this bound in `PinAttempt`
+help: consider giving `attempt` an explicit type, where the type for type parameter `M` is specified
+     |
+3024 |     let attempt: algorithm_contract_probe::PinAttempt<M> = match returned.take().expect("just populated") {
+     |                +++++++++++++++++++++++++++++++++++++++++
+
+error[E0283]: type annotations needed for `fn(&mut _, _) {with_cache_operation::<(), _>}`
+    --> src/experimental_swift_reactor/execution.rs:3058:13
+     |
+3058 |         let _ = with_cache_operation::<()>;
+     |             ^   -------------------------- type must be known at this point
+     |
+     = note: multiple `impl`s satisfying `for<'a, 'short, 'b> _: FnOnce(&'a mut experimental::execution::borrowed::ExecutionParts<'short, experimental_swift_reactor::execution::SwiftMode>, &'b mut experimental_swift_reactor::execution::SwiftExecutionOperation<'short>)` found in the following crates: `alloc`, `core`:
+             - impl<A, F> FnOnce<A> for &F
+               where A: std::marker::Tuple, F: Fn<A>, F: ?Sized;
+             - impl<A, F> FnOnce<A> for &mut F
+               where A: std::marker::Tuple, F: FnMut<A>, F: ?Sized;
+             - impl<Args, F, A> FnOnce<Args> for Box<F, A>
+               where Args: std::marker::Tuple, F: FnOnce<Args>, A: Allocator, F: ?Sized;
+             - impl<F, Args> FnOnce<Args> for SyncView<F>
+               where F: FnOnce<Args>, Args: std::marker::Tuple;
+     = note: cannot satisfy `<_ as FnOnce<(&mut ExecutionParts<'short, _>, _)>>::Output == ()`
+note: required by a bound in `experimental_swift_reactor::execution::with_cache_operation`
+    --> src/experimental_swift_reactor/execution.rs:248:16
+     |
+ 246 |   pub(crate) fn with_cache_operation<R>(
+     |                 -------------------- required by a bound in this function
+ 247 |       phase: &mut ExecutionOperationPhase<'_>,
+ 248 |       body: impl for<'short> FnOnce(
+     |  ________________^
+ 249 | |         &mut ExecutionParts<'short, SwiftMode>,
+ 250 | |         &mut SwiftExecutionOperation<'short>,
+ 251 | |     ) -> R,
+     | |__________^ required by this bound in `with_cache_operation`
+note: required by a bound in `experimental_swift_reactor::execution::with_cache_operation`
+    --> src/experimental_swift_reactor/execution.rs:251:10
+     |
+ 246 | pub(crate) fn with_cache_operation<R>(
+     |               -------------------- required by a bound in this function
+...
+ 251 |     ) -> R,
+     |          ^ required by this bound in `with_cache_operation`
+     = note: the full name for the type has been written to '/Users/andreyyurlov/Documents/dev/mixer/verification/swift-shared-executor-algorithm-contract/build/20261024T000934Z/all-positive/debug-target/debug/deps/mixer_vm-f739d999de49f627.long-type-2211394116304418552.txt'
+     = note: consider using `--verbose` to print the full type name to the console
+help: consider giving this pattern a type, where the type for type parameter `impl for<'short> FnOnce(&mut ExecutionParts<'short, SwiftMode>, &mut SwiftExecutionOperation<'short>) -> R` is specified
+     |
+3058 |         let _: for<'a, 'b> fn(&'a mut experimental_swift_reactor::execution::ExecutionOperationPhase<'b>, _) -> _ = with_cache_operation::<()>;
+     |              ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Some errors have detailed explanations: E0283, E0753.
+For more information about an error, try `rustc --explain E0283`.
+error: could not compile `mixer-vm` (lib test) due to 3 previous errors

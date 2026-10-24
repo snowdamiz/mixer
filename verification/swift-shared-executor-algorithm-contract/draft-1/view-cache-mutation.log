@@ -1,0 +1,13 @@
+    Checking mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-shared-executor-algorithm-contract/build/20261024T001027Z/view-cache-mutation/vm)
+error[E0502]: cannot borrow `*cache` as mutable because it is also borrowed as immutable
+    --> src/experimental_swift_reactor/execution.rs:3078:21
+     |
+3077 |     let view = <SwiftMode as AlgorithmMode>::view(cache, pin, operation).unwrap();
+     |                                                   ----- immutable borrow occurs here
+3078 |     let _released = <SwiftMode as AlgorithmMode>::release(cache, owned, operation);
+     |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ mutable borrow occurs here
+3079 |     std::hint::black_box(view.instructions.len());
+     |                          ----------------- immutable borrow later used here
+
+For more information about this error, try `rustc --explain E0502`.
+error: could not compile `mixer-vm` (lib) due to 1 previous error

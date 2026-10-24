@@ -184,6 +184,14 @@ fresh 366-test receipt. See `docs/swift-executor-construction-acceptance.md` and
 `verification/swift-executor-construction-root-review/acceptance.json`.
 Shared interpreter algorithms, active-frame unwind/growth and exact bounded
 full-target execution remain next; no Ready reactor or GA gate is accepted.
+The static execution seam now has a scoped type/borrow freeze with 149 root
+bindings, fourteen binding/layout probes, two frozen-layout comparisons and
+three compiler-rejected invalid borrow variants. All 41 frozen layout lines
+match. See `docs/swift-shared-executor-algorithm-contract.md` and
+`verification/swift-shared-executor-algorithm-contract/root-acceptance.json`.
+Only the compiled subset is accepted; later adapter bodies and simultaneous
+accounting remain pending. The first implementation extracts numeric dispatch
+through the existing frozen route before any Swift-mode execution is enabled.
 
 Hosted `7855754` passes all three jobs. Hosted `26943ac` passes VM/services but fails
 Swift bridge TSan with session/native-exit publication race reports and an

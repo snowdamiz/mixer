@@ -1,0 +1,11 @@
+    Checking mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-shared-executor-algorithm-contract/build/20261024T001027Z/view-static-escape/vm)
+error: lifetime may not live long enough
+    --> src/experimental_swift_reactor/execution.rs:3077:5
+     |
+3075 | fn rejected_view_escape(cache: &SwiftFunctionCache, pin: &SwiftFunctionPin,
+     |                                - let's call the lifetime of this reference `'1`
+3076 |     operation: &mut SwiftExecutionOperation<'_>) -> FunctionView<'static> {
+3077 |     <SwiftMode as AlgorithmMode>::view(cache, pin, operation).unwrap()
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ returning this value requires that `'1` must outlive `'static`
+
+error: could not compile `mixer-vm` (lib) due to 1 previous error

@@ -123,6 +123,12 @@ Observed implementation and evidence:
   return storage. See `verification/swift-executor-construction-root-review/acceptance.json`.
   Interpreter operations, growth/active-frame unwind and full Swift target
   initialization/invocation remain pending.
+- The shared executor's type/borrow prerequisite now has root freeze with 149
+  bindings. Fourteen binding/layout probes, two frozen-layout comparisons and
+  three expected borrow-checker rejections pass; all 41 frozen layout lines
+  match. Numeric dispatch extraction through FrozenMode is underway. Remaining
+  adapters, complete positive accounting and Swift execution remain pending.
+  See `verification/swift-shared-executor-algorithm-contract/root-acceptance.json`.
 
 - The unchanged Apple design is measured in 24 simulator captures across 12
   Debug/Release profiles. Root verifies 385 bindings and independently decodes all

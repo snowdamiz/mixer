@@ -1,0 +1,24 @@
+    Checking mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-shared-executor-algorithm-contract/build/20261024T001320Z/wasi-dispatch-during-cache-phase/vm)
+error[E0502]: cannot borrow `*operation.wasi` as mutable because it is also borrowed as immutable
+    --> src/experimental_swift_reactor/execution.rs:3078:13
+     |
+3077 |     let phase = cache.prepare_operation(&mut *operation.control, Some(&*operation.wasi), operation.cursor).unwrap();
+     |                                                                       ---------------- immutable borrow occurs here
+3078 |     let _ = operation.wasi.dispatch(operation.control, function, &[], memory, operation.cursor);
+     |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ mutable borrow occurs here
+3079 |     let _ = phase.complete(());
+     |             ----- immutable borrow later used here
+
+error[E0499]: cannot borrow `*operation.control` as mutable more than once at a time
+    --> src/experimental_swift_reactor/execution.rs:3078:37
+     |
+3077 |     let phase = cache.prepare_operation(&mut *operation.control, Some(&*operation.wasi), operation.cursor).unwrap();
+     |                                         ----------------------- first mutable borrow occurs here
+3078 |     let _ = operation.wasi.dispatch(operation.control, function, &[], memory, operation.cursor);
+     |                                     ^^^^^^^^^^^^^^^^^ second mutable borrow occurs here
+3079 |     let _ = phase.complete(());
+     |             ----- first borrow later used here
+
+Some errors have detailed explanations: E0499, E0502.
+For more information about an error, try `rustc --explain E0499`.
+error: could not compile `mixer-vm` (lib) due to 2 previous errors
