@@ -1,0 +1,118 @@
+[
+  {
+    "name": "policy",
+    "command": [
+      "python3",
+      "scripts/check-policy.py"
+    ],
+    "started_at_utc": "2026-10-24T04:48:04.478315+00:00",
+    "exit_code": 0,
+    "output": "verification/hosted-stack-plan-update-2026-10-24/policy.log",
+    "output_sha256": "e6331401c2da32cb3243bb7af9de5dd0140e098e3a16dc826189020bacfc30e7"
+  },
+  {
+    "name": "diff-check",
+    "command": [
+      "git",
+      "diff",
+      "--check",
+      "--",
+      "mixer-product-plan.md",
+      "PLAN.md",
+      "STATUS.md",
+      "work-graph.json",
+      "gates/ga.json",
+      "THIRD_PARTY.yml"
+    ],
+    "started_at_utc": "2026-10-24T04:48:06.494941+00:00",
+    "exit_code": 2,
+    "output": "verification/hosted-stack-plan-update-2026-10-24/diff-check.log",
+    "output_sha256": "59d126fc43e3f949e514821db8c4adcece14308548ae1bba72f555cb86f6c6ec"
+  },
+  {
+    "name": "plan-integrity",
+    "command": [
+      "python3",
+      "verification/hosted-stack-plan-update-2026-10-24/validate.py"
+    ],
+    "started_at_utc": "2026-10-24T04:50:09.385606+00:00",
+    "exit_code": 0,
+    "output": "verification/hosted-stack-plan-update-2026-10-24/plan-integrity.log",
+    "output_sha256": "d1e638c8d4d68bde5aefa2a485f48f4d84ae116b9bb132eac377161e6c849da6"
+  },
+  {
+    "name": "diff-check-final",
+    "command": [
+      "git",
+      "diff",
+      "--check",
+      "--",
+      "mixer-product-plan.md",
+      "PLAN.md",
+      "STATUS.md",
+      "work-graph.json",
+      "gates/ga.json",
+      "THIRD_PARTY.yml"
+    ],
+    "started_at_utc": "2026-10-24T04:50:09.412071+00:00",
+    "exit_code": 0,
+    "output": "verification/hosted-stack-plan-update-2026-10-24/diff-check-final.log",
+    "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "yaml-parse",
+    "command": [
+      "ruby",
+      "-e",
+      "require \"yaml\"; data = YAML.safe_load(File.read(\"THIRD_PARTY.yml\")); abort \"missing planned stack\" unless data.fetch(\"planned_hosted_stack\").fetch(\"status\") == \"selected-implementation-and-license-review-pending\"; puts \"THIRD_PARTY.yml parses; actual dependencies and planned stack remain separate\""
+    ],
+    "started_at_utc": "2026-10-24T04:50:09.424196+00:00",
+    "exit_code": 0,
+    "output": "verification/hosted-stack-plan-update-2026-10-24/yaml-parse.log",
+    "output_sha256": "9c45f748f757c7b67a7eb113c22303bdc28fc2182e047b094d44462f5d853d9c"
+  },
+  {
+    "name": "archival-whitespace-check",
+    "command": [
+      "git",
+      "diff",
+      "--cached",
+      "--check",
+      "--",
+      "mixer-product-plan.md",
+      "PLAN.md",
+      "STATUS.md",
+      "work-graph.json",
+      "gates/ga.json",
+      "THIRD_PARTY.yml",
+      "verification/hosted-stack-plan-update-2026-10-24"
+    ],
+    "exit_code": 2,
+    "expected_exit_code": 2,
+    "output": "verification/hosted-stack-plan-update-2026-10-24/archival-whitespace-check.log",
+    "output_sha256": "95f6de0c7fd75d75010cba0633ba71a0b26ff9d2047dce8fa6e1f3d913ae4d5b",
+    "scope": "Current source checks exclude original archived input/log whitespace; archive bytes remain unchanged."
+  },
+  {
+    "name": "staged-source-check",
+    "command": [
+      "git",
+      "diff",
+      "--cached",
+      "--check",
+      "--",
+      "mixer-product-plan.md",
+      "PLAN.md",
+      "STATUS.md",
+      "work-graph.json",
+      "gates/ga.json",
+      "THIRD_PARTY.yml",
+      "verification/hosted-stack-plan-update-2026-10-24/validate.py"
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "output": "verification/hosted-stack-plan-update-2026-10-24/staged-source-check.log",
+    "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "scope": "Current source checks exclude original archived input/log whitespace; archive bytes remain unchanged."
+  }
+]

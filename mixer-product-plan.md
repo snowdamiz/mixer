@@ -1,6 +1,7 @@
 # mixer — Swift-First Mobile Platform Product and Engineering Plan
 
-Version: 1.2  
+Version: 1.3 — updated October 24, 2026 (hosted stack and deployment decisions).
+
 Prepared: October 22, 2026  
 Status: Proposed implementation plan; no implementation or release evidence is claimed by this document.  
 Project name: **mixer**. The CLI is `mixer`, configuration files are `mixer.yml` and `mixer.lock`, and owned Swift modules use the `Mixer*` prefix. These are the planned product interfaces; implementation status remains governed by the acceptance gates.
@@ -157,9 +158,11 @@ For context only, source inspection found MPL-2.0 in Skip's UI/bridge libraries 
 | `MixerGuest` | Wasm-facing Swift UI/effect/state interface | Swift; no Apple or Android frameworks in guest. |
 | `MixerVM` | Wasm validation, execution, metering, imports, memory management, traps | Independently implemented memory-safe Rust core behind a stable C ABI. |
 | `MixerUpdates` | Verification, download, atomic activation, local recovery, telemetry | Shared core plus small OS-specific storage/network adapters. |
-| Build service | Worker scheduling, isolation, logs, artifact provenance, signing handoff | Go services, isolated macOS/Linux workers. |
-| Release service | Compatibility, channels, policies, staged rollout, revocation, audit | Go services and PostgreSQL. |
-| Console | Team/project/build/release/support workflows | TypeScript web application. |
+| Build service | Worker scheduling, isolation, logs, artifact provenance, signing handoff | Elixir/OTP services with Phoenix and Oban; isolated macOS/Linux build workers. |
+| Release service | Compatibility, channels, policies, staged rollout, revocation, audit | Elixir/Phoenix REST API, Ecto/Postgrex, Oban, and Neon-hosted PostgreSQL; Cloudflare Containers deployment. |
+| Artifact delivery | Immutable payloads, private build outputs, cacheable signed assignments | Cloudflare R2 object storage, Workers, and Cloudflare CDN. |
+| Console | Team/project/build/release/support workflows | SolidJS + TypeScript + Vite + Solid Router; Cloudflare Workers Static Assets. |
+| Commercial billing | Subscriptions, invoices, payment collection, usage reconciliation | Stripe Billing, Checkout, and Customer Portal; Phoenix webhook processing and Oban reconciliation. |
 | FieldLog | Real Swift application proving the platform works | Swift app in a separate consumer repository. |
 
 The customer application's language is Swift. It is acceptable for the engine's native adapter and cloud infrastructure to use the languages appropriate to those platforms.
@@ -197,6 +200,10 @@ Native and patched feature implementations emit the same logical UI/effect contr
 | ADR-08 | Exact native-runtime identity before capability-range optimization | Prefer conservative incompatibility to an update that fails on installed devices. |
 | ADR-09 | Local build and native project export remain available | Cloud outage or subscription cancellation cannot prevent app maintenance. |
 | ADR-10 | Independent dogfood app consumes published candidate packages | Exposes real installation, migration, documentation, and support failures. |
+| ADR-11 | Elixir/Phoenix hosted API and orchestration, with Oban durable jobs | OTP supervision and transactionally persisted jobs fit builds/releases; retries still require idempotent external effects and fencing. |
+| ADR-12 | Neon hosts the production PostgreSQL database | Ecto/Postgrex connect directly over verified TLS initially; bounded pools and Oban notification/recovery behavior require Neon qualification. |
+| ADR-13 | Cloudflare hosts every suitable workload | Containers host Phoenix; Workers host edge routing and the SolidJS console; R2/CDN deliver artifacts. macOS builds and isolated key custody retain explicit exceptions. |
+| ADR-14 | SolidJS web console and Stripe commercial billing | Fix the web framework and payment provider; retain the existing usability, metering, entitlement, and recovery requirements. |
 
 ## 6. Customer workflow
 
@@ -486,17 +493,50 @@ Artifacts are immutable and content-addressed. Published releases reference arti
 
 ### 13.2 API behavior
 
-Provide a versioned REST API and generated CLI client for creating builds, uploading artifacts, validating releases, signing, publishing assignments, promoting stages, rolling back, exporting logs, and inspecting usage. Require idempotency keys for chargeable or publishing operations. Document pagination, rate limits, retries, webhook authentication, and error codes.
+Implement the versioned REST API in **Elixir with Phoenix**, using Phoenix controllers/routers, Plug, and the Bandit HTTP server. Use Ecto with the Postgrex driver for Neon PostgreSQL, and generate the CLI client from the versioned API contract. Endpoints cover creating builds, uploading artifacts, validating releases, signing, publishing assignments, promoting stages, rolling back, exporting logs, and inspecting usage. Require idempotency keys for chargeable or publishing operations. Document pagination, rate limits, retries, webhook authentication, and error codes.
 
-Use database transactions plus a durable outbox for queueing external work. Build/signing/submission jobs use leases, fencing tokens, explicit attempt records, and idempotent reconciliation. A worker crash cannot authorize a duplicate release or silently create a second charge. Administrative operations require project permissions rather than possession of a public app ID.
+Use **Oban backed by the same Neon PostgreSQL database** for durable jobs. Commit domain changes and job insertion together with Ecto.Multi; Oban's persisted jobs provide the transactional outbox for dispatched work, while immutable domain/audit records remain separate. This is the queue advantage motivating Elixir: OTP supervision plus durable retries, scheduling, and bounded queue concurrency without a separate queue database. Phoenix itself is the HTTP framework, not the durable queue. Start with Oban's open-source functionality; its queue concurrency is per node, so fleet-wide build/signing quotas require Mixer-owned transactional admission/leases. Do not assume an unselected commercial queue feature supplies global limits. [Oban transactions](https://hexdocs.pm/oban/Oban.html#module-transactions), [Oban queue concurrency](https://oban.hexdocs.pm/defining_queues.html)
+
+Separate API and Oban processor roles, with distinct queues and capacity for builds, signing requests, store submissions, releases, telemetry aggregation, and Stripe reconciliation. Build/signing/submission jobs retain leases, fencing tokens, explicit attempt records, and idempotent reconciliation. Oban execution is not exactly-once external execution: crash/redelivery tests must prove that retries cannot authorize a duplicate release or silently create a second charge. A coordinator dispatches fenced work to isolated build/signing workers; customer scripts never execute inside the API or Oban control-plane process. Administrative operations require project permissions rather than possession of a public app ID.
 
 The device update endpoint exposes only the public assignment information needed for an eligible app. Do not embed a project administrator secret in the app. Scope telemetry ingestion, rate-limit abuse, and prevent arbitrary high-cardinality labels. Customer business data remains outside platform telemetry by default.
 
 ### 13.3 Delivery path and failure independence
 
-Serve immutable payloads from object storage/CDN and small signed assignment documents through a cacheable path. Separate this read path from console, billing, and build scheduling. A console outage must not prevent a healthy installed app from starting. A billing dispute must not remotely brick already installed applications.
+Serve immutable payloads from **Cloudflare R2 through Cloudflare CDN**, and small signed assignment documents through a dedicated TypeScript Worker and cacheable delivery path. Use production custom domains and explicit cache rules; keep private source uploads, build outputs, logs, and source maps behind tenant authorization. Never expose private objects through a public bucket route or share authenticated cache entries between tenants. Cache immutable payloads by content hash; bound assignment freshness and preserve signed sequence/replay checks. Separate this read path from console, billing, build scheduling, and live database availability for already-published content. A console outage must not prevent a healthy installed app from starting. A billing dispute must not remotely brick already installed applications. [R2 delivery and access](https://developers.cloudflare.com/r2/buckets/public-buckets/)
 
-Use a multi-zone primary database, encrypted backups, tested restore, and regional delivery. GA does not need active-active global writes, but it does need a documented region-loss recovery plan and tested recovery objectives. Retain provenance and release history for the contracted period; allow source/artifact exports and project deletion with explicit retention rules.
+Host the primary PostgreSQL database on **Neon**, with encrypted backups, tested restore, and regional delivery. The chosen Neon tier/region/topology must demonstrate the required multi-zone availability and Section 18.3 recovery objectives; provider branding does not pass these gates. Document failover interruptions, backup retention, restore/export procedures, and region-loss recovery. GA does not need active-active global writes. Retain provenance and release history for the contracted period; allow source/artifact exports and project deletion with explicit retention rules.
+
+### 13.4 Hosted stack and deployment placement
+
+These choices supersede the earlier Go hosted-service direction. Existing independently authored Go services and their receipts remain local reference/compatibility evidence until an explicit migration is implemented and qualified; this plan update does not claim that migration has happened.
+
+| Workload | Language/framework or service | Selected placement and boundary |
+| --- | --- | --- |
+| Public REST API and release/build orchestration | Elixir/OTP, Phoenix, Plug/Bandit | A pinned Linux OCI release image on **Cloudflare Containers**, reached through a small TypeScript Worker and Durable Object routing layer. Phoenix owns tenant authorization and business logic. |
+| Durable background work | Oban, Ecto.Multi, PostgreSQL | Separate BEAM processor role backed by **Neon**. Cloudflare Containers is the first deployment target, subject to the lifecycle checks below. |
+| Relational persistence | Ecto, Postgrex, PostgreSQL | **Neon**, with environment-specific databases/roles, existing tenant/RLS controls, bounded connections, and serialized migrations. |
+| Console | SolidJS, TypeScript, Vite, Solid Router | Build to static assets and deploy on **Cloudflare Workers Static Assets**; use the Phoenix API for server operations. Node.js is a build tool, not an additional production API runtime. |
+| Edge and update delivery | TypeScript Workers, Cloudflare CDN | Routing, narrowly scoped artifact access, cache policy, and delivery of already-authorized signed assignments. Edge code never gains release-signing authority. |
+| Blobs | Cloudflare R2 | Content-addressed guest packages/assets plus separately authorized source uploads, native artifacts, logs, symbols, and source maps. PostgreSQL stores metadata/references, not blob payloads. |
+| Billing | Stripe Billing, Checkout, Customer Portal | Hosted Stripe payment flows; Phoenix verifies webhooks and persists billing state, with Oban reconciliation and idempotent outbound Stripe requests. |
+| iOS compilation and signing | Xcode, SwiftPM, Apple SDKs | Dedicated ephemeral **Apple/macOS workers outside Cloudflare's Linux container runtime**; signing remains a separate trusted stage. |
+| Android compilation | Swift SDK, Android SDK/NDK, Gradle | Prefer isolated **Cloudflare Linux Containers** only after resource, toolchain, hostile-code isolation, cache, and egress qualification; use external ephemeral Linux runners when these requirements cannot be met. |
+| DNS, TLS, ingress protection | Cloudflare DNS/proxy, WAF and rate limits | Cloudflare in front of console/API/delivery; application authorization and signed update validation remain mandatory. |
+
+**Runtime placement.** Phoenix/BEAM runs in a Linux container, not directly in the ordinary Workers runtime. Containers are generally available, but optional beta scheduling/snapshot features are not prerequisites. Start with the GA service scheduling policy, the direct Durable Object Container API, and a pinned supported image/Workers configuration. This is a selected deployment design inferred from Cloudflare's Linux container contract, not a vendor-certified Phoenix integration. Container disk is disposable; authoritative state lives in Neon/R2. Implement bounded instance routing/scaling and account for API/Worker/container compatibility during rolling deployments. Do not assume inbound distributed Erlang networking; database-backed jobs must recover without a BEAM cluster. [Containers capabilities](https://developers.cloudflare.com/containers/), [GA scope](https://developers.cloudflare.com/changelog/post/2026-04-13-containers-sandbox-ga/), [Container API](https://developers.cloudflare.com/containers/api/)
+
+**Queue liveness.** A serverless container can stop while no user request is arriving; an in-process OTP supervisor cannot restart an absent container. Implement durable wake/reconciliation using the Cloudflare routing controller's alarms or scheduled Worker, and prove that delayed/retry jobs execute with zero customer HTTP traffic. Qualify inactivity shutdown, process death, deploy/drain, reconnect, duplicate wake, and missed-wake recovery against queue latency objectives. Keep API and processor scaling independent and account for every replica's database connections. If Cloudflare lifecycle limits cannot meet these tests, place the Oban processor role on a continuously running external BEAM host behind Cloudflare, record that exception in an ADR, and retain Cloudflare for suitable workloads. No production queue acceptance follows from simply booting Phoenix in a container. [Container lifecycle](https://developers.cloudflare.com/containers/concepts/architecture/)
+
+**Neon connection contract.** Start with direct TLS PostgreSQL connections for Phoenix/Ecto, Oban notifications, and migrations, with certificate verification and bounded pools. Neon's transaction-pooler endpoint does not support LISTEN/NOTIFY, so do not route Oban's default Postgres notifier through it. Introducing pooled query traffic later requires a separately configured direct notification path or a qualified Oban notifier change. Disable production scale-to-zero for the queue database; test connection loss/failover, notification reconnect and polling/reconciliation, capacity limits, and database recovery. Align container placement with the selected Neon region, and qualify native PostgreSQL TCP egress separately from HTTP-only egress policies. [Neon pooling limits](https://neon.com/docs/connect/connection-pooling), [Neon scale to zero](https://neon.com/docs/introduction/scale-to-zero)
+
+Pin exact package/runtime versions and licenses in lockfiles and THIRD_PARTY.yml when implementing this stack. Keep remaining operational choices explicit: Neon tier/region, container sizing/wake policy, any required external runner/processor host, signing-key custody, application identity/SSO provider, and observability tooling need scoped ADRs and measured acceptance. The selected vendors/frameworks are fixed by this revision; their deployments are not yet qualified.
+
+### 13.5 Hosted migration and qualification
+
+Implement the Phoenix service in an explicitly owned new service directory; preserve active Go work and historical evidence. Before changing the authoritative hosted route, replay shared wire/signature vectors and verify tenant/RLS boundaries, canonical signed bytes, monotonic assignments, idempotency conflicts, audit ordering, and rejection behavior against the supported Go contracts. Plan schema/outbox migration and recovery without two independent dispatchers authorizing the same operation. Never reinterpret an old Go/local/PostgreSQL receipt as Phoenix/Neon evidence.
+
+Required hosted receipts include atomic domain/job commit and rollback; crash before/after an external effect; orphan-job rescue and stale-fence rejection; per-node versus organization-wide concurrency; zero-traffic scheduled/retry execution and missed-wake recovery; Neon connection exhaustion, failover and notification resubscription; restore reconciliation against completed external effects; private R2/cache isolation; and Stripe test-mode event/order/retry reconciliation. Record exact versions, provider configuration, source revision, measured output and limitations. All relevant GA gates remain open until this evidence exists.
 
 ## 14. Managed builds and supply-chain isolation
 
@@ -512,6 +552,8 @@ Use a multi-zone primary database, encrypted backups, tested restore, and region
 8. Optionally submit to a configured store/testing destination under the project's release policy.
 
 iOS jobs run on appropriately licensed Apple hardware with supported Xcode. Android jobs run on isolated Linux workers; macOS local Android builds remain supported. Maintain explicit images for supported toolchain versions and deprecate images with advance notice.
+
+The Elixir/Phoenix control plane schedules these jobs through Oban; database job completion and external runner completion require fenced reconciliation. Use Cloudflare Containers for Android workers where Section 13.4 qualification passes, keeping control-plane and untrusted build images/identities separate. Apple/macOS workers are an explicit hosting exception. A generic Cloudflare Workers invocation is not a native build worker, and a Linux container cannot satisfy the macOS requirement. Route caches and artifacts through scoped R2 access; stream bounded logs without granting workers broad account credentials.
 
 ### 14.2 Untrusted customer code
 
@@ -565,6 +607,8 @@ An export is considered working only when FieldLog builds and launches through a
 
 ## 17. Console, organizations, and commercial administration
 
+Build the console with **SolidJS, TypeScript, Vite, and Solid Router**, served by Cloudflare Workers Static Assets. Keep privileged operations in the Phoenix API. The console uses ordinary customer API authorization, and renders precise pending/failed states when a provider or queued operation has not completed. [SolidJS setup](https://docs.solidjs.com/quick-start), [Workers Static Assets](https://developers.cloudflare.com/workers/static-assets/)
+
 Implement complete workflows for onboarding, project creation/import, repository connection, runtime inspection, builds, signing setup, test distribution, release diff, staged promotion, rollback, incident review, member management, invoices, quotas, support, and deletion/export.
 
 Roles include owner, administrator, developer, release manager, billing manager, and viewer. Environment-specific release rights, service accounts, short-lived CI credentials, and optional two-person production approval are first-class. Respect a customer's configured authorization policy without inserting an additional manual step into already authorized automation.
@@ -572,6 +616,8 @@ Roles include owner, administrator, developer, release manager, billing manager,
 The release screen shows changed behavior, source revision, target binaries, compatibility result, required capabilities, policy-review status, test receipts, payload size, signing identity, rollout stage, and available recovery target. It must not bury a platform failure under a green group status.
 
 Usage and billing explain build minutes by platform, active update devices, storage, included quotas, overage prices, and spending caps before work is incurred. Support seat removal, organization transfers, expired payment methods, refunds/credits, cancellation, and grace periods. Installed apps remain functional after account cancellation; new paid work can be suspended under documented terms.
+
+Use **Stripe Billing** for subscriptions/invoices, **Stripe Checkout** for hosted purchase flows, and **Stripe Customer Portal** for customer billing management. Mixer retains an authoritative, deduplicated usage ledger in Neon and reconciles metered usage to Stripe with stable idempotency keys. Verify webhook signatures against the unmodified request body in Phoenix, commit a deduplicated event and Oban job before acknowledging receipt, and handle duplicate/out-of-order events by reconciling current Stripe state. Test payments, trials, failed renewals, cancellation, credits/refunds, retries, delayed webhooks, and usage corrections in Stripe test mode. Hosted update delivery and local recovery do not depend on a synchronous Stripe call. [Stripe subscriptions](https://docs.stripe.com/billing/subscriptions/overview), [Stripe webhooks](https://docs.stripe.com/webhooks), [Stripe idempotency](https://docs.stripe.com/api/idempotent_requests)
 
 Console accessibility, keyboard navigation, time zones, readable logs, downloadable diagnostics, and API parity are required. Use customer-visible terminology; internal VM and queue details appear only when they explain an actionable failure.
 
@@ -605,6 +651,8 @@ Initial proposed GA objectives, measured over a rolling 30 days:
 | P1 incident response | Acknowledgment within 30 minutes, 24/7 | Verify automated alerting and accountable escalation before selling this commitment. |
 
 Define error budgets, deployment freeze triggers, status-page communication, severity levels, escalation, forensic retention, and postincident actions. Practice CDN outage, database failover, lost worker, expired credential, compromised publisher key, bad patch, and region loss. Store status and support operations cannot depend on the same failing primary application path.
+
+Qualify the selected hosted stack explicitly: Phoenix/Oban container stop/wake with no user traffic, Neon disconnect/failover and restore, R2/CDN cache isolation and assignment freshness, separate runner/signing failures, and delayed/duplicate Stripe events. Measure the Section 18.3 objectives across these dependencies. Database/job durability, container availability, and external-effect idempotency are separate claims, each requiring evidence.
 
 ## 19. Support and compatibility matrix
 
@@ -700,9 +748,9 @@ Subscriptions are tested as a platform capability; whether FieldLog itself charg
 
 ### 21.3 Architecture and independence
 
-Use a separate repository, separate CI pipeline, real app identities, a simple production backend, and the same published packages, CLI, console, quotas, release permissions, and support channel available to customers. The backend can use Go, PostgreSQL, and object storage; customer app code remains Swift.
+Use a separate repository, separate CI pipeline, real app identities, a simple production backend, and the same published packages, CLI, console, quotas, release permissions, and support channel available to customers. Prefer the selected Elixir/Phoenix, Neon PostgreSQL, and Cloudflare R2 stack for this backend, with separately qualified Cloudflare deployment; customer app code remains Swift.
 
-The app must not import engine internals, use unpublished checkout paths, bypass compatibility validation, access release-service databases, or rely on privileged distribution endpoints. Every discovered SDK gap becomes an engine issue or a documented supported extension. An app-only workaround that violates the advertised platform contract does not close that issue.
+The app must not import engine internals, use unpublished checkout paths, bypass compatibility validation, access release-service databases, or rely on privileged distribution endpoints. Every discovered SDK gap becomes an engine issue or a documented supported extension. An app-only workaround that violates the advertised platform contract does not close that issue. The FieldLog backend may share the selected Phoenix/Neon/R2 technology, but uses separate application credentials/data and never the platform control-plane database or administrative identity.
 
 Dogfood releases include ordinary product fixes unrelated to demonstrating the platform. Track weekly active use, task completion, saved records, successful uploads, support requests, and usability feedback. Measure whether the platform helps app work, not how many sample buttons can be rendered.
 
@@ -776,12 +824,12 @@ Each package has a directly responsible owner, versioned design, implementation 
 | W08 Owned interpreter | Runtime lead | Validator/interpreter, resource controls, imports, Swift runtime integration, debugger | W07 profile; early work parallel | D3, standards-profile tests, fuzzing and differential results. |
 | W09 First-party integrations | iOS/Android leads | All capability families in Section 9, plugin authoring guide | W04–06 | FieldLog flows pass on both devices; native additions correctly require binary changes. |
 | W10 Device updater | Runtime/release leads | Verifier, cache, activation, health, quarantine, recovery, key rotation | W07–08 | D4–05, data-preserving rollback, offline recovery, fault matrix. |
-| W11 Release backend | Cloud lead | Artifacts, compatibility, channels, assignment signing, rollout/rollback, API | W10 protocol | Dual-platform release with immutable audit and correct cohort routing. |
-| W12 Build/signing service | Infrastructure lead | Isolated macOS/Linux workers, caches, secrets, signer, provenance, quotas | W02, W11 identity | Cross-tenant adversarial tests and signed FieldLog builds from clean workers. |
+| W11 Release backend | Cloud lead | Elixir/Phoenix/Bandit API, Ecto/Postgrex on Neon, Oban jobs, R2/Workers delivery, compatibility, assignment signing, rollout/rollback | W10 protocol | Dual-platform release with immutable audit/correct cohorts; Go-contract parity, transactional enqueue, zero-traffic job wake, Neon recovery, and tenant-safe delivery qualified. |
+| W12 Build/signing service | Infrastructure lead | Elixir/Oban orchestration, isolated Cloudflare Linux and external macOS workers, R2 caches/artifacts, separate signer, provenance, quotas | W02, W11 identity | Cross-tenant adversarial tests and signed FieldLog builds from clean workers; Cloudflare worker sizing/lifecycle/isolation or recorded external-runner exception qualified. |
 | W13 Store distribution | DevEx/build lead | Store connections, submissions, status reconciliation, test links | W12 | D6 with actual ready-for-testing states on both stores. |
-| W14 Console and commercial | Product/cloud leads | Onboarding, permissions, SSO, release console, usage, billing, support | W11–13 | New organization completes full workflow through public UX/API. |
+| W14 Console and commercial | Product/cloud leads | SolidJS/TypeScript/Vite console on Cloudflare Workers Static Assets, onboarding, permissions, SSO, usage ledger, Stripe billing, support | W11–13 | New organization completes full workflow through public UX/API; Stripe duplicate/out-of-order/test-mode and usage reconciliation cases pass. |
 | W15 Debug/import/export | DevEx lead | Native/guest debug, migration reports, profiler, export/ejection guide | W02, W07–10 | Original source diagnostics, external app import, independent CI export build. |
-| W16 Security and reliability | Security/QA/SRE | Threat review, audit remediation, monitoring, backups, recovery drills, load tests | Starts W01; final W10–14 | No unresolved launch-blocking findings; measured service objectives. |
+| W16 Security and reliability | Security/QA/SRE | Threat review, audit remediation, monitoring, Neon backups/restore, Cloudflare/Oban lifecycle and R2/CDN isolation drills, Stripe recovery, load tests | Starts W01; final W10–14 | No unresolved launch-blocking findings; measured service objectives across selected providers and explicit hosting exceptions. |
 | W17 FieldLog delivery | Dogfood app lead | Real product, backend, users, both stores, continuous updates | Starts W01; consumes all | D0–08 with independently reviewable evidence and no private escape routes. |
 | W18 External qualification and launch | Product + DevEx | Two external apps minimum, paid pilots, docs, support, migration, release train | W09–17 | Section 29 gates; customers onboard and pay without bespoke engine forks. |
 
@@ -797,9 +845,9 @@ mixer/
   vm/                         # independently authored Rust interpreter
   schemas/                    # UI, capabilities, manifests, compatibility
   plugins/                    # first-party native integrations
-  services/                   # release, build, signing, usage
-  console/
-  infrastructure/
+  services/                   # existing Go reference; new Phoenix/Oban hosted app in an explicitly owned subdirectory
+  console/                    # SolidJS + TypeScript + Vite
+  infrastructure/             # Cloudflare Workers/Containers/R2; Neon and external-worker configuration
   tests/conformance/ integration/ security/ performance/
   docs/adrs/ provenance/ migration/ operations/
   release/                    # lockfiles, SBOM/provenance, qualification
@@ -1101,7 +1149,7 @@ All unchecked items below are **planned, not passed**. Each item must link to im
 ### Application engine and developer experience
 
 - [ ] G05: A new developer can create and locally run a shared Swift app on physical iOS and Android using public documentation.
-- [ ] G06: FieldLog's required native UI, state, navigation, input, and accessibility matrix passes on both platforms.
+- [ ] G06: FieldLog's required native UI, state, navigation, input, and accessibility matrix passes on both platforms. Reference screens must meet shared-theme design parity per section8.3, reviewed side by side on physical iOS/Android devices.
 - [ ] G07: The published language/runtime/capability profile passes in native and guest modes without silent feature omission.
 - [ ] G08: Compiler, guest, bridge, and native failures map to actionable original-source diagnostics.
 - [ ] G09: All first-party capability families in Section 9 pass their platform-specific behavior/permission tests.
@@ -1121,11 +1169,11 @@ All unchecked items below are **planned, not passed**. Each item must link to im
 
 ### Hosted product
 
-- [ ] G20: Isolated macOS/iOS and Android builds produce signed, traceable artifacts with usable logs and debugging symbols.
+- [ ] G20: Elixir/Oban orchestration and isolated macOS/iOS and Android builds produce signed, traceable artifacts with usable logs and debugging symbols; Cloudflare workers or recorded hosting exceptions pass resource/isolation/lifecycle qualification.
 - [ ] G21: Store integrations reach verified ready-for-testing and available states; provider errors are accurately represented.
-- [ ] G22: Onboarding, teams, permissions, SSO, audit export, customer keys, and dedicated-runner workflows work end to end.
-- [ ] G23: Billing, usage caps, credits, cancellation, export/deletion, and support workflows are tested with realistic account states.
-- [ ] G24: API/CLI/console behavior agrees; publishing and chargeable actions are idempotent under retries and worker failures.
+- [ ] G22: SolidJS console on Cloudflare and Phoenix API support onboarding, teams, permissions, SSO, audit export, customer keys, and dedicated-runner workflows end to end.
+- [ ] G23: Stripe billing, Neon usage reconciliation, usage caps, credits, cancellation, export/deletion, and support workflows pass realistic account and duplicate/out-of-order webhook cases.
+- [ ] G24: Phoenix API/CLI/SolidJS behavior agrees; domain writes and Oban enqueue are atomic; publishing and chargeable actions remain idempotent under redelivery and worker failures, including migration parity with existing Go contracts.
 
 ### Security, reliability, and measured behavior
 
@@ -1133,8 +1181,8 @@ All unchecked items below are **planned, not passed**. Each item must link to im
 - [ ] G26: Applicable standards-profile conformance, differential tests, fuzzing, and resource-limit tests pass.
 - [ ] G27: Performance, memory, patch size, sharing, and real-change OTA coverage meet the approved budgets with published methodology.
 - [ ] G28: Device/OS/accessibility/localization matrix passes, with physical evidence for performance and native capabilities.
-- [ ] G29: Service objectives have sufficient operating/load-test evidence; low-volume uncertainty is disclosed.
-- [ ] G30: Backup restoration, region-loss response, compromised publisher response, and bad-release drills are complete.
+- [ ] G29: Service objectives have sufficient operating/load-test evidence, including Cloudflare container stop/wake with no user traffic and Neon/Oban reconnect behavior; low-volume uncertainty is disclosed.
+- [ ] G30: Neon backup restoration/region-loss, R2/CDN isolation/freshness, separate worker/signer loss, Stripe reconciliation, compromised publisher, and bad-release drills are complete.
 - [ ] G31: Alerting, accountable escalation, status page, incident communication, and security response are configured and rehearsed.
 
 ### Real usage and launch readiness
@@ -1174,6 +1222,12 @@ Potential later expansions include richer tablet/desktop support, a wider plugin
 | One coherent guest module per target runtime | GA baseline | Avoid mixed-module state/version complexity; revisit after proven need. |
 | Cold-start activation | GA baseline | Avoid live object/state migration and in-flight effect switching. |
 | Exact runtime fingerprint | GA baseline | Conservative compatibility rule until broader compatibility is demonstrated. |
+| Hosted API and orchestration: Elixir/Phoenix, Plug/Bandit | Selected under October 24 user instruction | OTP supervision and Oban's transactional queue provide the requested job-management advantage; existing Go references require explicit contract-preserving migration. |
+| Durable jobs: Oban, Ecto/Postgrex, Neon PostgreSQL | Selected architecture | Atomic domain/job writes, retries and bounded queues; retain fencing/idempotency and qualify direct TLS connections, always-available production database and notification recovery. |
+| PostgreSQL hosting: Neon | Fixed by user | Selected tier/region must meet availability, backup/restore, privacy and recovery requirements; hosting is not qualified by this decision. |
+| Cloudflare-first hosting: Containers, Workers, R2, CDN | Fixed by user where reasonable | Phoenix in Containers, SolidJS/edge in Workers, artifacts in R2; qualify Oban lifecycle and Android builds, retain necessary macOS/signing/external processor exceptions. |
+| Console framework: SolidJS with TypeScript/Vite/Solid Router | Fixed framework by user; selected tooling | Static console deployment on Cloudflare Workers Static Assets, Phoenix owns privileged API operations. |
+| Billing: Stripe Billing, Checkout, Customer Portal | Fixed provider by user; selected integrations | Neon usage ledger and idempotent Oban reconciliation; signed webhook handling, realistic billing tests and installed-app continuity remain required. |
 | iOS 26.0+, including iOS 27 and later | Fixed by user; qualification required | Target iOS 26.0 in packages and generated/native builds; qualify minimum, current stable and future releases without a public upper-version cutoff. |
 | Android API 28+ | Proposed baseline | Freeze after toolchain/dependency/device qualification and partner input. |
 | Open SDK/engine/CLI, paid hosted service | Proposed business model | Developer trust and exit path; price managed value and support. |
@@ -1182,7 +1236,7 @@ Potential later expansions include richer tablet/desktop support, a wider plugin
 | Pricing and quotas | Hypotheses | Finalize from measured costs and paid-pilot willingness to pay. |
 | AI-agent execution | Fixed by user | Advance by dependencies, verified deliverables, and full-product acceptance gates. |
 
-Remaining implementation decisions include the exact Swift-emitted Wasm feature profile, actor/executor integration, UI protocol encoding, Rust/Swift ownership tooling, cryptographic library/provider, initial cloud region/vendor, and detailed metering allowances. Owners resolve these through documented evidence during implementation; they are not prerequisites to delivering this plan.
+Remaining implementation decisions include the exact Swift-emitted Wasm feature profile, actor/executor integration, UI protocol encoding, Rust/Swift ownership tooling, cryptographic library/provider, Neon tier/region, Cloudflare container sizing/wake policy, necessary external build/processor hosts, identity/SSO and observability providers, and detailed metering allowances. The hosted language/framework, database vendor, Cloudflare-first placement, console framework and billing provider are selected above. Owners resolve remaining choices through documented evidence during implementation; they are not prerequisites to delivering this plan.
 
 ## 32. Illustrative configuration and release records
 
@@ -1289,6 +1343,13 @@ Research checked on October 22, 2026. Dynamic product status, prices, SDK requir
 | [Shorebird FAQ](https://docs.shorebird.dev/code-push/faq/) | Flutter/Dart adjacent product and native-change boundary. |
 | [Zipline project overview](https://github.com/cashapp/zipline) | Kotlin/JS interpreted logic in native hosts, adjacent architecture only. |
 | [Ketoy FAQ](https://ketoy.dev/docs/faq) | Emerging Android native-UI OTA competitor, with alpha status disclosed. |
+| [Phoenix releases](https://hexdocs.pm/phoenix/releases.html), [Bandit](https://bandit.hexdocs.pm/) | Elixir release/container packaging and selected Phoenix HTTP server. |
+| [Oban transactions](https://hexdocs.pm/oban/Oban.html#module-transactions) | Database-backed job insertion in the same transaction as domain changes; framework choice does not imply exactly-once external effects. |
+| [Neon pooling](https://neon.com/docs/connect/connection-pooling), [scale to zero](https://neon.com/docs/introduction/scale-to-zero) | Direct connection/notifier requirements and production queue-compute configuration. |
+| [Cloudflare Containers](https://developers.cloudflare.com/containers/), [lifecycle](https://developers.cloudflare.com/containers/concepts/architecture/) | Phoenix/Linux runtime placement and the need for explicit queue wake/recovery qualification. |
+| [Cloudflare R2](https://developers.cloudflare.com/r2/buckets/public-buckets/), [Workers Static Assets](https://developers.cloudflare.com/workers/static-assets/) | Artifact delivery/access boundaries and selected console hosting. |
+| [SolidJS quick start](https://docs.solidjs.com/quick-start), [Solid Router](https://docs.solidjs.com/solid-router/getting-started/installation-and-setup) | Selected TypeScript web framework and routing/tooling. |
+| [Stripe subscriptions](https://docs.stripe.com/billing/subscriptions/overview), [webhooks](https://docs.stripe.com/webhooks), [idempotency](https://docs.stripe.com/api/idempotent_requests) | Subscription integration, signature verification, event reconciliation and retry-safe billing requests. |
 
 ## 34. How to execute and maintain this plan
 

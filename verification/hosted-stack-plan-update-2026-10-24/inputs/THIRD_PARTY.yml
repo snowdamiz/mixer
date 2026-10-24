@@ -1,0 +1,131 @@
+schema: 1
+policy: independently-owned-product-engine
+dependencies:
+  - name: Swift compiler and standard libraries
+    origin: https://github.com/swiftlang/swift
+    version: 6.3.3-cross-target-and-Xcode-6.4-Apple
+    license: Apache-2.0-with-Runtime-Library-Exception
+    purpose: official-language-compilation-runtime-and-FoundationNetworking-native-HTTP-TLS
+    distribution: toolchain-external-runtime-linked-in-apps
+    owner: compiler
+  - name: Rust compiler and standard library
+    origin: https://www.rust-lang.org
+    version: 1.99.0-local-candidate
+    license: MIT-OR-Apache-2.0
+    purpose: owned-interpreter-compilation
+    distribution: toolchain-external-standard-library-linked
+    owner: runtime
+  - name: Go compiler and standard library
+    origin: https://go.dev
+    version: 1.26.4
+    license: BSD-3-Clause
+    purpose: services-standard-cryptography-http-and-durability
+    distribution: service-binaries
+    owner: cloud
+  - name: Apple SDKs and CryptoKit
+    origin: https://developer.apple.com
+    version: Xcode-27.1
+    license: Apple-SDK-agreements
+    purpose: native-UI-established-cryptography-and-URLSession-system-HTTP-TLS
+    distribution: system-frameworks-not-vendored
+    owner: apple
+  - name: Android SDK and NDK
+    origin: https://developer.android.com
+    version: installed-SDK-with-NDK-r27d-qualification-candidate
+    license: Android-SDK-terms-and-component-notices
+    purpose: native-Android-toolchain-and-libcxx
+    distribution: tooling-external-libcxx-shared-library-in-app
+    owner: android
+  - name: Official Swift Android SDK networking components
+    origin: https://www.swift.org/install/android/
+    version: Swift-6.3.3-Android-SDK-SBOM
+    license: SDK-component-declarations-and-upstream-notices-review-pending
+    purpose: FoundationNetworking-native-HTTP-and-TLS-backend
+    distribution: official-libFoundationNetworking-and-its-runtime-dependencies-when-linked
+    owner: android-networking
+    inventory_receipt: verification/android-networking-inventory-2026-10-22.json
+    reported_components: curl-8.9.1-and-BoringSSL-fips-20220613
+    qualification: local-binary-and-SDK-SBOM-inventory-only-not-redistribution-or-security-approval
+  - name: Node.js V8 and WASI
+    origin: https://nodejs.org
+    version: local-development-runtime
+    license: Node-MIT-and-bundled-notices
+    purpose: development-only-Wasm-differential-oracle-and-static-marketing-site-build-tests-preview
+    distribution: never-linked-into-product
+    owner: verification
+  - name: Swift Crypto
+    origin: https://github.com/apple/swift-crypto
+    version: 5.0.3-c2cbadd7263439d8015189668f96ff5b5be565ce
+    license: Apache-2.0-and-vendored-BoringSSL-notices
+    purpose: standard-Ed25519-and-SHA256-for-native-update-verification
+    distribution: CryptoKit-on-Apple-BoringSSL-linked-on-supported-other-hosts
+    owner: update-security
+  - name: Swift ASN.1
+    origin: https://github.com/apple/swift-asn1
+    version: 1.7.3-3b6410f7dee09eb33cdd26260c5fd47fda19b0e2
+    license: Apache-2.0
+    purpose: transitive-Swift-Crypto-dependency
+    distribution: Swift-package-graph
+    owner: update-security
+  - name: pgx PostgreSQL driver
+    origin: https://github.com/jackc/pgx
+    version: 5.11.0
+    license: MIT
+    purpose: maintained-general-purpose-PostgreSQL-protocol-driver
+    distribution: Go-service-binary
+    owner: cloud
+  - name: pgpassfile
+    origin: https://github.com/jackc/pgpassfile
+    version: 1.0.0
+    license: MIT
+    purpose: pgx-transitive-local-PostgreSQL-credential-file-parser
+    distribution: Go-service-binary
+    owner: cloud
+  - name: pgservicefile
+    origin: https://github.com/jackc/pgservicefile
+    version: 0.0.0-20240606120523-5a60cdf6a761
+    license: MIT
+    purpose: pgx-transitive-PostgreSQL-service-file-parser
+    distribution: Go-service-binary
+    owner: cloud
+  - name: puddle
+    origin: https://github.com/jackc/puddle
+    version: 2.2.2
+    license: MIT
+    purpose: pgx-transitive-bounded-connection-pool
+    distribution: Go-service-binary
+    owner: cloud
+  - name: Go x/sync
+    origin: https://go.googlesource.com/sync
+    version: 0.17.0
+    license: BSD-3-Clause
+    purpose: pgx-pool-transitive-concurrency-primitives
+    distribution: Go-service-binary
+    owner: cloud
+  - name: Go x/text
+    origin: https://go.googlesource.com/text
+    version: 0.29.0
+    license: BSD-3-Clause
+    purpose: pgx-transitive-text-and-protocol-encoding
+    distribution: Go-service-binary
+    owner: cloud
+  - name: sharp and libvips
+    origin: https://github.com/lovell/sharp
+    version: sharp-0.35.5
+    license: Apache-2.0-with-libvips-LGPL-2.1-or-later-and-bundled-notices
+    purpose: development-only-raster-brand-asset-export-and-social-card-rendering
+    distribution: tooling-only-not-served-with-static-website-or-linked-into-engine
+    owner: website
+  - name: Pillow
+    origin: https://github.com/python-pillow/Pillow
+    version: 12.3.0
+    license: MIT-CMU
+    purpose: development-only-native-screenshot-PNG-decoding-and-pixel-assertions
+    distribution: verification-tooling-only-never-linked-into-product
+    owner: verification
+    provenance: Codex-workspace-dependency-bundle-26.1022.11436-Python-3.12.14
+    inventory_receipt: verification/apple-native-appearance-v2/candidate-6/post-capture-tools.json
+    qualification: installed-package-metadata-inventory-only
+review:
+  status: implementation-inventory-not-legal-release-approval
+  remaining: redistribution-notices-and-independent-license-review-before-distribution

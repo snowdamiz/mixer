@@ -1,0 +1,111 @@
+{
+  "checked_on_client_date": "2026-10-24",
+  "scope": "Official documentation research; selected architecture is not deployment qualification.",
+  "sources": [
+    {
+      "url": "https://phoenix.hexdocs.pm/releases.html",
+      "supports": "Self-contained BEAM/Elixir releases and container packaging."
+    },
+    {
+      "url": "https://bandit.hexdocs.pm/",
+      "supports": "Bandit HTTP server and Phoenix integration."
+    },
+    {
+      "url": "https://oban.hexdocs.pm/Oban.html",
+      "supports": "Durable SQL jobs, atomic enqueue with domain changes, retry and scheduling features."
+    },
+    {
+      "url": "https://oban.hexdocs.pm/defining_queues.html",
+      "supports": "Open-source queue concurrency is per node; Mixer requires fleet-level admission."
+    },
+    {
+      "url": "https://oban.hexdocs.pm/Oban.Notifiers.Postgres.html",
+      "supports": "Default PostgreSQL notifier needs LISTEN/NOTIFY and is unsuitable for transaction poolers."
+    },
+    {
+      "url": "https://neon.com/docs/connect/connection-pooling",
+      "supports": "Transaction pooling has session-feature restrictions including LISTEN/NOTIFY."
+    },
+    {
+      "url": "https://neon.com/docs/guides/elixir-ecto",
+      "supports": "Ecto/Postgrex connection and trusted TLS CA configuration."
+    },
+    {
+      "url": "https://neon.com/docs/introduction/scale-to-zero",
+      "supports": "Production compute availability must be configured for durable queue processing."
+    },
+    {
+      "url": "https://neon.com/docs/introduction/high-availability",
+      "supports": "Storage redundancy is distinct from interrupted compute/connection recovery."
+    },
+    {
+      "url": "https://developers.cloudflare.com/containers/",
+      "supports": "Linux runtime containers controlled through Workers; Phoenix placement is an architecture inference."
+    },
+    {
+      "url": "https://developers.cloudflare.com/changelog/post/2026-04-13-containers-sandbox-ga/",
+      "supports": "Containers generally available since April 13, 2026."
+    },
+    {
+      "url": "https://developers.cloudflare.com/containers/api/",
+      "supports": "Direct Durable Object Container API recommended for new applications."
+    },
+    {
+      "url": "https://developers.cloudflare.com/containers/api/durable-object-container/",
+      "supports": "Inactivity timeout needs active management and is bounded; no implicit BEAM job liveness."
+    },
+    {
+      "url": "https://developers.cloudflare.com/containers/concepts/architecture/",
+      "supports": "Container lifecycle, ephemeral state and routing/recovery boundaries."
+    },
+    {
+      "url": "https://developers.cloudflare.com/containers/configuration/scheduling-policy/",
+      "supports": "GA default service policy; optional durable_object scheduling remains beta."
+    },
+    {
+      "url": "https://developers.cloudflare.com/containers/configuration/outbound-traffic/",
+      "supports": "Native PostgreSQL TCP egress requires separate qualification from HTTP handlers."
+    },
+    {
+      "url": "https://developers.cloudflare.com/containers/platform/limits/",
+      "supports": "Android build resource limits must be exercised before placement acceptance."
+    },
+    {
+      "url": "https://developers.cloudflare.com/r2/buckets/public-buckets/",
+      "supports": "Production custom domains, cache rules and private object access boundaries."
+    },
+    {
+      "url": "https://developers.cloudflare.com/workers/static-assets/",
+      "supports": "Static frontend bundles deployed with Workers."
+    },
+    {
+      "url": "https://docs.solidjs.com/quick-start",
+      "supports": "Official Solid TypeScript app scaffolding and optional full-stack framework."
+    },
+    {
+      "url": "https://docs.solidjs.com/solid-router/getting-started/installation-and-setup",
+      "supports": "Solid Router browser routing."
+    },
+    {
+      "url": "https://docs.stripe.com/billing/subscriptions/overview",
+      "supports": "Stripe subscription and invoice lifecycle."
+    },
+    {
+      "url": "https://docs.stripe.com/webhooks",
+      "supports": "Unmodified-body signature verification, duplicates, unordered events and asynchronous handling."
+    },
+    {
+      "url": "https://docs.stripe.com/api/idempotent_requests",
+      "supports": "Retry-safe provider requests; Mixer durable operation ledger remains necessary."
+    }
+  ],
+  "decisions": {
+    "api": "Elixir/OTP + Phoenix + Plug/Bandit in Cloudflare Containers",
+    "queue": "Oban OSS + Ecto.Multi on Neon; Mixer-owned quotas, fencing and external-effect reconciliation",
+    "database": "Neon direct verified TLS initially, bounded pools, production scale-to-zero disabled",
+    "cloudflare": "Workers frontend/edge, R2/CDN payloads, Containers API and qualified Oban/Android roles",
+    "web": "SolidJS + TypeScript + Vite + Solid Router, static console deployment",
+    "billing": "Stripe Billing + Checkout + Customer Portal",
+    "exceptions": "Apple/macOS build hardware, separate signer; external continuously running BEAM/Linux runner if required qualification fails"
+  }
+}

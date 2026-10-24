@@ -2,6 +2,18 @@
 
 Product status: **in development; no GA or dogfood gate passed**.
 
+Hosted-stack specification updated October 24: Elixir/Phoenix (Plug/Bandit),
+Ecto/Postgrex and Oban, Neon PostgreSQL, Cloudflare Containers/Workers/R2/CDN,
+SolidJS/TypeScript/Vite/Solid Router console, and Stripe Billing/Checkout/Customer
+Portal are selected. Existing Go service implementation/evidence remains valid
+only in its recorded local scope; Phoenix migration, Neon/provider deployment,
+zero-traffic queue wake/recovery, isolated Cloudflare Android builds, console
+implementation and Stripe integration are pending. macOS build workers and
+isolated signing retain hosting exceptions; an external continuous BEAM host
+is required if Cloudflare queue-liveness qualification fails. No new deployment,
+service migration or gate pass is claimed. See product-plan sections 13.2–13.5
+and `verification/hosted-stack-plan-update-2026-10-24/receipt.json`.
+
 Supported product target: **iOS 26.0 and later**, including iOS 27 and subsequent
 releases, per the user's updated requirement. Nine package manifests, 19 CLI
 tests and an actual generated app cross-build pass; its Info.plist and Mach-O

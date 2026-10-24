@@ -4,6 +4,21 @@ The complete specification is [mixer-product-plan.md](mixer-product-plan.md).
 All W01–W18 packages, G01–G38 launch gates, and D0–D8 dogfood milestones remain
 in scope. No internal slice substitutes for those completion requirements.
 
+The October 24 hosted-stack decision fixes Elixir/OTP + Phoenix + Plug/Bandit
+for the REST API and orchestration, Ecto/Postgrex + Oban on Neon PostgreSQL for
+durable jobs, Cloudflare Containers for the API, Workers/R2/CDN for suitable
+edge/delivery workloads, SolidJS + TypeScript + Vite + Solid Router for the
+console on Workers Static Assets, and Stripe Billing/Checkout/Customer Portal.
+See product-plan sections 13.2–13.5, 14, 17 and 31. Cloudflare Oban processor
+liveness and Android build resources/isolation require qualification; macOS
+builds and isolated signing retain necessary hosting exceptions. Use direct
+Neon TLS connections initially, with bounded pools and production scale-to-zero
+disabled; qualify Oban notifications, retries and recovery. Current Go services
+remain reference/compatibility work pending an explicit Phoenix migration.
+This documentation decision implements no hosted migration or deployment and
+passes no gate. W11/W12/W14/W16 retain the new deliverables and pending checks;
+see `verification/hosted-stack-plan-update-2026-10-24/receipt.json`.
+
 Section 8.3 requires the same shared app design on iOS and Android. Shared theme
 values control layout, typography scale, colors, iconography, spacing and component
 appearance; platform-specific app appearance requires an explicit declaration.

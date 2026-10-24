@@ -126,6 +126,45 @@ dependencies:
     provenance: Codex-workspace-dependency-bundle-26.1022.11436-Python-3.12.14
     inventory_receipt: verification/apple-native-appearance-v2/candidate-6/post-capture-tools.json
     qualification: installed-package-metadata-inventory-only
+# Selected by the October 24 hosted-stack plan. These are not installed
+# dependencies or deployed services; pin exact versions/notices before use.
+planned_hosted_stack:
+  status: selected-implementation-and-license-review-pending
+  plan: mixer-product-plan.md#134-hosted-stack-and-deployment-placement
+  inventory_receipt: verification/hosted-stack-plan-update-2026-10-24/receipt.json
+  packages:
+    - name: Elixir and Erlang/OTP
+      origin: https://elixir-lang.org/
+      purpose: supervised-hosted-control-plane-and-job-runtime
+    - name: Phoenix
+      origin: https://www.phoenixframework.org/
+      purpose: hosted-REST-API-framework
+    - name: Plug and Bandit
+      origin: https://bandit.hexdocs.pm/
+      purpose: HTTP-request-pipeline-and-Phoenix-server
+    - name: Ecto and Postgrex
+      origin: https://ecto.hexdocs.pm/
+      purpose: PostgreSQL-transactions-migrations-and-verified-TLS-connections
+    - name: Oban
+      origin: https://oban.hexdocs.pm/
+      purpose: open-source-durable-jobs-in-the-domain-PostgreSQL-transaction
+    - name: SolidJS and Solid Router
+      origin: https://docs.solidjs.com/
+      purpose: hosted-console-UI-and-routing
+    - name: TypeScript and Vite
+      origin: https://vite.dev/
+      purpose: typed-console-and-edge-code-build-tooling
+  managed_services:
+    - name: Neon PostgreSQL
+      origin: https://neon.com/docs/
+      purpose: production-relational-state-and-Oban-jobs
+    - name: Cloudflare Containers Workers R2 and CDN
+      origin: https://developers.cloudflare.com/
+      purpose: qualified-Linux-compute-console-edge-and-artifact-delivery
+    - name: Stripe Billing Checkout and Customer Portal
+      origin: https://docs.stripe.com/
+      purpose: hosted-commercial-billing-and-payment-flows
+  remaining: exact-package-runtime-versions-license-notices-provider-configuration-and-deployment-qualification
 review:
   status: implementation-inventory-not-legal-release-approval
   remaining: redistribution-notices-and-independent-license-review-before-distribution
