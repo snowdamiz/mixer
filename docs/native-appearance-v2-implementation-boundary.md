@@ -17,8 +17,10 @@ Each native owner captures its actual bundle and window. Application-provided
 data cannot establish native support. A first implementation may accept only
 `systemSans` with an empty catalog, provided all other configurations are rejected
 before attachment. The complete product still requires bundled resources/fonts.
-API-specific prototype limitations do not change the public Android API28 or
-iOS17 targets. Record the operating systems actually executed.
+API-specific prototype limitations do not change the product Android API28 or
+iOS26.0-and-later targets. The iOS baseline includes iOS27 and subsequent releases;
+each supported version still needs runtime qualification. Record the operating
+systems actually executed.
 
 Candidates are bound to one owner, one base revision/identity set and one complete
 window generation. They are single use. Prepare performs native measurement and

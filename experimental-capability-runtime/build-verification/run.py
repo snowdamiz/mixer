@@ -93,7 +93,7 @@ def main():
             if target=='host':
                 flags=['-isysroot',build['environment']['SDKROOT'],'-mmacosx-version-min=14.0']
             elif target in ('ios','ios-simulator'):
-                triple='arm64-apple-ios17.0' if target=='ios' else 'arm64-apple-ios17.0-simulator'
+                triple='arm64-apple-ios26.0' if target=='ios' else 'arm64-apple-ios26.0-simulator'
                 flags=['-target',triple,'-isysroot',build['environment']['SDKROOT']]
             else:libraries=['-ldl','-llog','-lm','-Wl,-z,max-page-size=16384']
             common=[clang,'-std=c11','-Wall','-Wextra','-Werror',*flags,'-I',output/'include']

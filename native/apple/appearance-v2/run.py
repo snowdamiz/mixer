@@ -47,9 +47,9 @@ for fixture,bytes_ in [('BadDescriptor',b'{}\n'),('UnsupportedResources',(OUT/'u
 for name in ['MixerCore','MixerUI','MixerAppearanceInternal']:
     shutil.copy2(BUILD/('lib'+name+'.dylib'),app/'Frameworks'/('lib'+name+'.dylib'))
     run('codesign','--force','--sign','-',str(app/'Frameworks'/('lib'+name+'.dylib')))
-run('xcrun','swiftc',str(SOURCE/'main.swift'),str(SOURCE/'Fixture.swift'),str(SOURCE/'CoverGeometryRegression.swift'),'-o',str(app/'MixerAppearanceV2Harness'),'-target','arm64-apple-ios17.0-simulator','-sdk',sdk,'-swift-version','6','-I',str(BUILD),'-L',str(BUILD),'-lMixerCore','-lMixerUI','-lMixerAppearanceInternal','-Xlinker','-rpath','-Xlinker','@executable_path/Frameworks','-framework','UIKit')
+run('xcrun','swiftc',str(SOURCE/'main.swift'),str(SOURCE/'Fixture.swift'),str(SOURCE/'CoverGeometryRegression.swift'),'-o',str(app/'MixerAppearanceV2Harness'),'-target','arm64-apple-ios26.0-simulator','-sdk',sdk,'-swift-version','6','-I',str(BUILD),'-L',str(BUILD),'-lMixerCore','-lMixerUI','-lMixerAppearanceInternal','-Xlinker','-rpath','-Xlinker','@executable_path/Frameworks','-framework','UIKit')
 run('codesign','--force','--sign','-',str(app))
-(OUT/'built-app.json').write_text(json.dumps(dict(binarySHA256=digest(app/'MixerAppearanceV2Harness'),libraries={p.name:digest(p) for p in (app/'Frameworks').glob('*')},descriptorSHA256=digest(app/'MixerAppearanceV2/descriptor.json'),deploymentTarget='arm64-apple-ios17.0-simulator'),indent=2)+'\n')
+(OUT/'built-app.json').write_text(json.dumps(dict(binarySHA256=digest(app/'MixerAppearanceV2Harness'),libraries={p.name:digest(p) for p in (app/'Frameworks').glob('*')},descriptorSHA256=digest(app/'MixerAppearanceV2/descriptor.json'),deploymentTarget='arm64-apple-ios26.0-simulator'),indent=2)+'\n')
 artifactFiles={str(p.relative_to(app)):dict(sha256=digest(p),bytes=p.stat().st_size) for p in app.rglob('*') if p.is_file()}
 with tarfile.open(OUT/'built-app.tar.gz','w:gz') as archive: archive.add(app,arcname=app.name)
 (OUT/'built-app-manifest.json').write_text(json.dumps(dict(archive='built-app.tar.gz',sha256=digest(OUT/'built-app.tar.gz'),files=artifactFiles),indent=2)+'\n')

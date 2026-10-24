@@ -2,6 +2,14 @@
 
 Product status: **in development; no GA or dogfood gate passed**.
 
+Supported product target: **iOS 26.0 and later**, including iOS 27 and subsequent
+releases, per the user's updated requirement. Nine package manifests, 19 CLI
+tests and an actual generated app cross-build pass; its Info.plist and Mach-O
+both declare minimum 26.0. See `verification/ios26-baseline/candidate-1/receipt.json`.
+The private appearance experiment remains restricted to iOS 26.5;
+minimum/current/future OS runtime qualification is still pending. Earlier iOS17
+compilation evidence is historical and does not define the product minimum.
+
 Current execution constraint: the user paused computer use, screen capture and
 native simulator/emulator runs until further notice. All Mixer test processes
 and the Simulator frontend are stopped; unrelated project processes are

@@ -2,7 +2,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "MixerActivation", platforms: [.iOS(.v17), .macOS(.v14)],
+    name: "MixerActivation", platforms: [.iOS("26.0"), .macOS(.v14)],
     products: [.library(name: "MixerActivation", targets: ["MixerActivation"])],
     dependencies: [
         .package(path: "../runtime"), .package(path: "../updates"), .package(path: "../runtime-identity"),

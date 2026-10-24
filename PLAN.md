@@ -47,6 +47,16 @@ hardware checks pending; do not retry phones or request reconnection. This chang
 test sequencing, not the shared-design contract or untested external launch gates.
 See `verification/simulator-development-policy/receipt.json`.
 
+The user fixed the iOS baseline at **iOS 26.0**, covering iOS 26, iOS 27 and
+subsequent releases. Package and generated/native build defaults use 26.0.
+Nine package manifests, 19 CLI tests and an actual generated app cross-build pass;
+both the app Info.plist and Mach-O declare 26.0. Evidence is retained in
+`verification/ios26-baseline/candidate-1/receipt.json`.
+The private appearance prototype still admits only its exercised
+iOS 26.5 runtime; broader version qualification remains pending, and historical
+iOS17 compile receipts are retained as historical evidence. This does not resume
+native testing during the current pause. See product-plan section19.1.
+
 The latest user instruction pauses computer use, screen capture and native
 simulator/emulator runs until further notice. All owned test processes and the
 Simulator frontend are stopped. Continue implementation with host tests,

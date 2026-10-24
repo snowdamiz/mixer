@@ -608,9 +608,11 @@ Define error budgets, deployment freeze triggers, status-page communication, sev
 
 ## 19. Support and compatibility matrix
 
-### 19.1 Proposed launch baseline
+### 19.1 Launch platform baseline
 
-The planning baseline is iOS 17+ and Android API 28+, subject to qualification against the selected Swift/NDK/Compose versions and market demand. These are product targets, not assertions that every dependency currently supports them. If qualification requires a higher minimum, record the evidence and commercial impact before fixing the public contract.
+The iOS minimum is **iOS 26.0**, fixed by the user. Support iOS 26, iOS 27, and subsequent iOS releases; do not impose an upper major-version cutoff in the public SDK or generated applications. Generated projects, Swift packages and native build defaults must target iOS 26.0 or later. iOS 17–25 compatibility is outside the supported product baseline. Android API 28+ remains the proposed baseline, subject to qualification against the selected Swift/NDK/Compose versions and market demand.
+
+Qualify the oldest supported iOS 26 release, representative iOS 26 updates, iOS 27, and each subsequent stable major release. Monitor beta releases and repair compatibility before declaring that version verified. Forward support is a product commitment, not a claim that future or untested operating systems already passed. A temporary private prototype allowlist, such as the current iOS 26.5 appearance experiment, does not satisfy this product matrix or authorize public integration. Keep those gaps explicit until qualified. Any proposal to raise the iOS minimum beyond 26 requires an explicit product decision with evidence and user approval.
 
 Support physical arm64 iOS and Android devices, Apple-silicon iOS simulators, and the Android emulator architectures supported by the selected toolchain. Qualify current Android native page-size requirements, JNI packaging, native library alignment, lifecycle, and background restrictions. An emulator build alone does not qualify a physical architecture.
 
@@ -1172,7 +1174,8 @@ Potential later expansions include richer tablet/desktop support, a wider plugin
 | One coherent guest module per target runtime | GA baseline | Avoid mixed-module state/version complexity; revisit after proven need. |
 | Cold-start activation | GA baseline | Avoid live object/state migration and in-flight effect switching. |
 | Exact runtime fingerprint | GA baseline | Conservative compatibility rule until broader compatibility is demonstrated. |
-| iOS 17+/Android API 28+ | Proposed baseline | Freeze after toolchain/dependency/device qualification and partner input. |
+| iOS 26.0+, including iOS 27 and later | Fixed by user; qualification required | Target iOS 26.0 in packages and generated/native builds; qualify minimum, current stable and future releases without a public upper-version cutoff. |
+| Android API 28+ | Proposed baseline | Freeze after toolchain/dependency/device qualification and partner input. |
 | Open SDK/engine/CLI, paid hosted service | Proposed business model | Developer trust and exit path; price managed value and support. |
 | FieldLog as mandatory consumer | Selected | Real application throughout, separate repository and ordinary customer workflow. |
 | Performance and coverage thresholds | Proposed acceptance budgets | Validate early; revisions require recorded evidence and product impact. |

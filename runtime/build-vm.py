@@ -40,7 +40,7 @@ def main():
     env = dict(os.environ,PATH='/opt/homebrew/opt/rustup/bin:'+os.environ['PATH'],CARGO_TARGET_DIR=str(output/'target'))
     target = {'host':None,'ios':'aarch64-apple-ios','ios-simulator':'aarch64-apple-ios-sim','android':'aarch64-linux-android'}[args.target]
     if args.target.startswith('ios'):
-        env['IPHONEOS_DEPLOYMENT_TARGET']='17.0'
+        env['IPHONEOS_DEPLOYMENT_TARGET']='26.0'
     if args.target == 'android':
         env['CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER']=str(args.ndk.resolve()/'toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android28-clang')
     command = ['cargo','build','--release','--lib','--manifest-path',str(source/'vm/Cargo.toml')]

@@ -8,6 +8,10 @@ The engine uses official Swift compilers, an owned Swift UI/state contract, nati
 platform adapters, an owned Rust Wasm interpreter, and separately authorized signed
 artifacts and rollout assignments. No Patch/Skip implementation is used.
 
+The iOS product target is **iOS 26.0 and later**, including iOS 27 and subsequent
+releases. Package and generated app deployment minimums are 26.0. Runtime
+qualification across supported versions remains pending; see product-plan §19.1.
+
 ## Local development
 
 The repository root is a Swift package exporting `MixerCore`, `MixerUI`,

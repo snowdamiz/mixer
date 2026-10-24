@@ -391,7 +391,7 @@ def build(args):
         if not nm.is_file():raise BuildError('matching Rust llvm-tools component required (llvm-nm missing)')
         receipt['tools']['llvm_nm']=tool_identity(nm);receipt['llvm_nm']=run('llvm-nm-version',[str(nm),'--version'])
         if args.target in ('ios','ios-simulator'):
-            env['IPHONEOS_DEPLOYMENT_TARGET']='17.0';sdk='iphoneos' if args.target=='ios' else 'iphonesimulator'
+            env['IPHONEOS_DEPLOYMENT_TARGET']='26.0';sdk='iphoneos' if args.target=='ios' else 'iphonesimulator'
             env['SDKROOT']=run('apple-sdk',['xcrun','--sdk',sdk,'--show-sdk-path'])
         elif args.target=='host' and rust_host.endswith('apple-darwin'):
             env['MACOSX_DEPLOYMENT_TARGET']='14.0';env['SDKROOT']=run('apple-sdk',['xcrun','--sdk','macosx','--show-sdk-path'])

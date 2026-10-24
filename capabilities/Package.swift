@@ -1,6 +1,6 @@
 // swift-tools-version: 6.0
 import PackageDescription
-let package = Package(name: "MixerCapabilityQualification", platforms: [.macOS(.v14), .iOS(.v17)],
+let package = Package(name: "MixerCapabilityQualification", platforms: [.macOS(.v14), .iOS("26.0")],
     dependencies: [.package(path: "../sdk")], targets: [
         .executableTarget(name: "capability-probe", dependencies: [.product(name: "MixerCapabilities", package: "sdk")], path: "Probe"),
         .executableTarget(name: "guest-transport-probe", dependencies: [.product(name: "MixerCapabilities", package: "sdk")], path: "GuestTransportProbe"),

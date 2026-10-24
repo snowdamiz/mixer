@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compile exact internal UIKit consumer source closure, iOS17 deployment target."""
+"""Compile exact internal UIKit consumer source closure, iOS26 deployment target."""
 import pathlib, subprocess, json, hashlib, shutil, sys
 ROOT=pathlib.Path(__file__).resolve().parents[3]
 OUT=ROOT/'verification/apple-native-appearance-v2'
@@ -13,7 +13,7 @@ def run(args):
     if r.returncode: print(r.stdout+r.stderr); sys.exit(r.returncode)
     return r.stdout.strip()
 sdk=run(['xcrun','--sdk','iphonesimulator','--show-sdk-path'])
-common=['xcrun','swiftc','-target','arm64-apple-ios17.0-simulator','-sdk',sdk,'-swift-version','6','-enable-testing','-emit-library','-emit-module','-I',str(BUILD),'-L',str(BUILD)]
+common=['xcrun','swiftc','-target','arm64-apple-ios26.0-simulator','-sdk',sdk,'-swift-version','6','-enable-testing','-emit-library','-emit-module','-I',str(BUILD),'-L',str(BUILD)]
 for module, sources, libraries in [
  ('MixerCore', sorted((ROOT/'sdk/Sources/MixerCore').glob('*.swift')), []),
  ('MixerUI', sorted((ROOT/'sdk/Sources/MixerUI').glob('*.swift')), ['MixerCore']),
