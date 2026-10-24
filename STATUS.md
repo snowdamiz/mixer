@@ -53,8 +53,13 @@ fresh private Android host runner under Swift 6.2.4. See
 Latest hosted evidence: `09dac10`, `958998d`, `0f177ad` and `5988e4a` pass all three
 VM/Swift/services jobs. `7c2baeb`, `aa87c6e`, `d40c540`, `542e040` and `7855754` also pass all three jobs.
 `26943ac` passes VM/services but fails Swift bridge TSan: publication data races
-and an HTTP native-exit test timeout are under separate investigation/repair.
-See `verification/github-ci-26943ac/receipt.json`. The earlier
+and an HTTP native-exit test timeout are retained. The repair now passes all 48
+existing tests plus three independent controlled schedules per Debug/Release/TSan,
+with 875 root bindings. Explicit locked publication and an observed-request test
+precondition preserve native exit; a lifetime pin keeps the reserved constructions
+alive. Pinned Swift 6.2.4 replay remains pending; the exact hosted timeout route
+is unproved. See `verification/github-ci-26943ac/receipt.json` and
+`verification/bridge-publication-root-review/acceptance.json`. The earlier
 `c687e69` run failed TSan `fault-leave` with an observation deadline; a test-only
 precondition repair now has scoped root acceptance with 1,157 exact bindings,
 117 fresh scenario passes, six independent actual Swift/C scheduling probes and

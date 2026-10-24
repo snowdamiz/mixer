@@ -1,0 +1,52 @@
+{
+  "command": [
+    "swift",
+    "test",
+    "--package-path",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/bridge-native-exit-ci-repair/candidate/source/experimental-capability-runtime",
+    "--scratch-path",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/bridge-native-exit-ci-repair/.build/candidate/debug",
+    "-Xswiftc",
+    "-DMIXER_EXPERIMENTAL_LOCAL_TLS_TEST",
+    "-Xcc",
+    "-I/Users/andreyyurlov/Documents/dev/mixer/verification/bridge-native-exit-ci-repair/native-26943ac/include",
+    "-Xlinker",
+    "-L/Users/andreyyurlov/Documents/dev/mixer/verification/bridge-native-exit-ci-repair/native-26943ac/lib",
+    "-Xswiftc",
+    "-warnings-as-errors"
+  ],
+  "environment": {
+    "MIXER_EXPERIMENTAL_TLS_URL": "https://127.0.0.1:63412/"
+  },
+  "exit_code": 0,
+  "output_sha256": "32b0fd604a8562691b3d3b1848c840a48119cac9869743e4ed2d9cbf16c5f1b4",
+  "certificate_generation": [
+    "openssl",
+    "req",
+    "-x509",
+    "-newkey",
+    "rsa:2048",
+    "-nodes",
+    "-keyout",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/bridge-native-exit-ci-repair/candidate/source/experimental-capability-runtime/.build/untrusted-loopback-21l8g5xr/ephemeral-key.pem",
+    "-out",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/bridge-native-exit-ci-repair/candidate/source/experimental-capability-runtime/.build/untrusted-loopback-21l8g5xr/certificate.pem",
+    "-days",
+    "1",
+    "-subj",
+    "/CN=127.0.0.1",
+    "-addext",
+    "subjectAltName=IP:127.0.0.1"
+  ],
+  "certificate_sha256": "fe3ff70ce86b8bcdbeff8f00837e0bc99e848fbddaffceb9902dbbbf18c25706",
+  "observations": {
+    "tcp_accepts": 1,
+    "tls_failures": 1,
+    "application_requests": 0,
+    "errors": [
+      "SSLEOFError:[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1082)"
+    ]
+  },
+  "server_stopped": true,
+  "scope": "Actual normal-trust loopback TLS rejection, no trust/keychain/credential change; not HTTPS success or device evidence"
+}

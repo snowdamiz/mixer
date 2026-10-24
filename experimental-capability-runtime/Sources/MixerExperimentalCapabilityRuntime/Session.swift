@@ -64,14 +64,21 @@ public final class ExperimentalCapabilityConstruction: @unchecked Sendable {
             state.started = true
         }
         return try await withTaskCancellationHandler {
-            try await withCheckedThrowingContinuation { continuation in
+            // Publish the fully started native owner through an explicit lock.
+            // The queue initializes its dispatch sources and the public session;
+            // the resumed task takes that session once, retaining no second owner.
+            let handoff = Locked<ExperimentalCapabilitySession?>(nil)
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, any Error>) in
                 ExperimentalQueues.construction.async { [self] in
                     let outcome = performCreate()
                     let accepted = state.withLock { state in state.finished = true; return !state.cancelled }
                     switch outcome {
                     case .success(let owner):
                         owner.start()
-                        if accepted { continuation.resume(returning: ExperimentalCapabilitySession(owner: owner)) }
+                        if accepted {
+                            handoff.withLock { $0 = ExperimentalCapabilitySession(owner: owner) }
+                            continuation.resume(returning: ())
+                        }
                         else {
                             guestUIExchange?.stop(.cancelled)
                             owner.stop(); continuation.resume(throwing: CancellationError())
@@ -91,6 +98,11 @@ public final class ExperimentalCapabilityConstruction: @unchecked Sendable {
                     // handoff and failure wait for this tiny logical worker tail.
                     lifecycle?.constructorReturned()
                 }
+            }
+            return try handoff.withLock { session in
+                guard let published = session else { throw ExperimentalCapabilityError("construction_handoff") }
+                session = nil
+                return published
             }
         } onCancel: { self.cancel() }
     }

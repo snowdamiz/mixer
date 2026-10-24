@@ -1,0 +1,21 @@
+Building for production...
+[0/13] /Users/andreyyurlov/Documents/dev/mixer/verification/bridge-publication-independent-review/.build/release/arm64-apple-macosx/release/MixerExperimentalCapabilityRuntimePackageTests.derived/runner.swift
+[1/13] Write sources
+[8/13] Compiling CMixerVMCapability bridge.c
+[9/13] Write swift-version-7974D3F7F03D5E95.txt
+[10/14] Compiling MixerCapabilityIO lock.c
+[12/14] Compiling MixerCore FeatureStore.swift
+[13/16] Compiling MixerCapabilities AppPrivateKeyValueStore.swift
+[14/16] Compiling MixerUI AppearanceDefaultV1.swift
+[15/17] Compiling MixerGuest GuestUICodec.swift
+[16/18] Compiling MixerExperimentalCapabilityRuntime Failure.swift
+[17/19] Compiling MixerExperimentalCapabilityRuntimeTests ConstructionTests.swift
+/Users/andreyyurlov/Documents/dev/mixer/verification/bridge-publication-independent-review/source/experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/ScheduleProbe.swift:12:20: error: missing reinitialization of closure capture 'job' after consume
+ 10 | private final class ReviewTaskExecutor: TaskExecutor, @unchecked Sendable {
+ 11 |     private let jobs = Locked<[UnownedJob]>([])
+ 12 |     func enqueue(_ job: consuming ExecutorJob) { jobs.withLock { $0.append(UnownedJob(job)) } }
+    |                    |                                                                  `- note: consumed here
+    |                    `- error: missing reinitialization of closure capture 'job' after consume
+ 13 |     var pending: Int { jobs.withLock { $0.count } }
+ 14 |     @discardableResult func runOne() -> Bool {
+error: fatalError

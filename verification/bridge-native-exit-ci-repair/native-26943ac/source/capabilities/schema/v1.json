@@ -1,0 +1,45 @@
+{
+  "wireVersion": 1,
+  "maximumWireBytes": 524288,
+  "maximumDepth": 8,
+  "maximumRequestsPerSession": 256,
+  "integerEncoding": "canonical unsigned decimal UInt32",
+  "unicodePolicy": "No normalization. Identifiers, keys, origins, URLs and header text are ASCII; opaque bytes use canonical padded base64. JSON escapes compare decoded scalar values.",
+  "identity": {"session": "host-generated UUID scoped to one originating guest", "slot": "UInt16", "generation": "UInt32 nonzero; retire slot at exhaustion"},
+  "envelopes": {"call": ["schema", "kind", "identity", "capability", "schemaHash", "operation", "arguments"], "cancel": ["schema", "kind", "identity", "capability", "schemaHash", "operation"], "completion": ["schema", "kind", "identity", "capability", "schemaHash", "operation", "outcome"], "identity": ["session", "slot", "generation"], "successOutcome": ["kind", "value"], "failureOutcome": ["kind", "code"], "unknownFields": "reject", "duplicateKeys": "reject after JSON escape decoding", "sessionEncoding": "canonical lowercase UUID"},
+  "failureCodes": ["permissionDenied", "unavailable", "cancelled", "deadlineExceeded", "invalidResponse", "redirectDenied", "quotaExceeded", "ioFailure"],
+  "capabilities": [
+    {
+      "id": "network.http.v1", "version": 1,
+      "permission": "network.https", "permissionDescription": "HTTPS only to installed and manifest-granted exact origins and methods",
+      "executor": "background.async", "cancellable": true,
+      "nativeImplementation": "installed-bounded-http-transport-v1",
+      "policy": {"redirects": "reject; any future redirect requires destination origin/method reauthorization before sending", "retries": "none", "cookies": "disabled", "credentials": "explicit request headers only; no ambient credential store", "streaming": false, "resumable": false},
+      "operations": [
+        {"id": "request", "swiftCase": "http", "arguments": "HTTPRequestArguments", "result": "HTTPResponse"}
+      ]
+    },
+    {
+      "id": "storage.keyValue.v1", "version": 1,
+      "permission": "storage.appPrivate", "permissionDescription": "Bounded app-private values in exact installed and manifest-granted namespaces; keys are identifiers, never paths",
+      "executor": "serial.actor", "cancellable": true,
+      "nativeImplementation": "mixer-posix-private-kv-v1",
+      "policy": {"maximumValueBytes": 65536, "maximumTotalBytes": 4194304, "maximumEntries": 1024, "atomicReplacement": true, "syncFileAndDirectory": true, "cancellation": "observed at the precommit cancellation check aborts write; once commit starts effect may remain; get resolves outcome", "secrets": false, "database": false, "migration": false},
+      "operations": [
+        {"id": "get", "swiftCase": "get", "arguments": "KVGetArguments", "result": "KVGetResponse"},
+        {"id": "put", "swiftCase": "put", "arguments": "KVPutArguments", "result": "KVMutationResponse"},
+        {"id": "delete", "swiftCase": "delete", "arguments": "KVDeleteArguments", "result": "KVMutationResponse"}
+      ]
+    }
+  ],
+  "types": {
+    "Header": {"name": {"type": "string", "rule": "headerName", "maximum": 64}, "value": {"type": "string", "rule": "ascii", "maximum": 4096}},
+    "HTTPRequestArguments": {"url": {"type": "string", "rule": "httpsURL", "maximum": 4096}, "method": {"type": "string", "rule": "method", "maximum": 6}, "headers": {"type": "headers", "maximum": 32}, "bodyBase64": {"type": "string", "rule": "base64", "maximum": 65536}, "timeoutMilliseconds": {"type": "uint", "minimum": 1, "maximum": 30000}},
+    "HTTPResponse": {"status": {"type": "uint", "minimum": 100, "maximum": 599}, "headers": {"type": "headers", "maximum": 32}, "bodyBase64": {"type": "string", "rule": "base64", "maximum": 262144}},
+    "KVGetArguments": {"namespace": {"type": "string", "rule": "identifier", "maximum": 64}, "key": {"type": "string", "rule": "identifier", "maximum": 128}},
+    "KVPutArguments": {"namespace": {"type": "string", "rule": "identifier", "maximum": 64}, "key": {"type": "string", "rule": "identifier", "maximum": 128}, "valueBase64": {"type": "string", "rule": "base64", "maximum": 65536}},
+    "KVDeleteArguments": {"namespace": {"type": "string", "rule": "identifier", "maximum": 64}, "key": {"type": "string", "rule": "identifier", "maximum": 128}},
+    "KVGetResponse": {"found": {"type": "bool"}, "valueBase64": {"type": "string", "rule": "base64", "maximum": 65536}},
+    "KVMutationResponse": {"committed": {"type": "bool"}}
+  }
+}

@@ -1,0 +1,125 @@
+diff --git a/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Session.swift b/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Session.swift
+index 086d291..87e5f83 100644
+--- a/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Session.swift
++++ b/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Session.swift
+@@ -64,14 +64,21 @@ public final class ExperimentalCapabilityConstruction: @unchecked Sendable {
+             state.started = true
+         }
+         return try await withTaskCancellationHandler {
+-            try await withCheckedThrowingContinuation { continuation in
++            // Publish the fully started native owner through an explicit lock.
++            // The queue initializes its dispatch sources and the public session;
++            // the resumed task takes that session once, retaining no second owner.
++            let handoff = Locked<ExperimentalCapabilitySession?>(nil)
++            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, any Error>) in
+                 ExperimentalQueues.construction.async { [self] in
+                     let outcome = performCreate()
+                     let accepted = state.withLock { state in state.finished = true; return !state.cancelled }
+                     switch outcome {
+                     case .success(let owner):
+                         owner.start()
+-                        if accepted { continuation.resume(returning: ExperimentalCapabilitySession(owner: owner)) }
++                        if accepted {
++                            handoff.withLock { $0 = ExperimentalCapabilitySession(owner: owner) }
++                            continuation.resume(returning: ())
++                        }
+                         else {
+                             guestUIExchange?.stop(.cancelled)
+                             owner.stop(); continuation.resume(throwing: CancellationError())
+@@ -92,6 +99,11 @@ public final class ExperimentalCapabilityConstruction: @unchecked Sendable {
+                     lifecycle?.constructorReturned()
+                 }
+             }
++            return try handoff.withLock { session in
++                guard let published = session else { throw ExperimentalCapabilityError("construction_handoff") }
++                session = nil
++                return published
++            }
+         } onCancel: { self.cancel() }
+     }
+     private enum Outcome {
+diff --git a/experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/HTTPTests.swift b/experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/HTTPTests.swift
+index 1101352..8915bf8 100644
+--- a/experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/HTTPTests.swift
++++ b/experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/HTTPTests.swift
+@@ -10,14 +10,16 @@ private final class BridgeInvalidationGate: @unchecked Sendable {
+     private let condition = NSCondition()
+     private var released = false
+     private var began = false
++    private var expired = false
+     func hold() {
+         condition.lock(); began = true
+         let limit = Date().addingTimeInterval(5)
+-        while !released { if !condition.wait(until: limit) { break } }
++        while !released { if !condition.wait(until: limit) { expired = true; break } }
+         condition.unlock()
+     }
+     func release() { condition.lock(); released = true; condition.broadcast(); condition.unlock() }
+     var entered: Bool { condition.lock(); defer { condition.unlock() }; return began }
++    var timedOut: Bool { condition.lock(); defer { condition.unlock() }; return expired }
+ }
+ private final class BridgeWeakSession {
+     weak var value: ExperimentalCapabilitySession?
+@@ -26,18 +28,23 @@ private final class BridgeWeakSession {
+ private final class BridgeHTTPFixtures: @unchecked Sendable {
+     struct Value { let body: Data; let stall: Bool }
+     private let values = Locked<[String: Value]>([:])
++    private let starts = Locked<Set<String>>([])
+     func install(stall: Bool) -> String {
+         let url = "https://api.example.test/bridge-" + UUID().uuidString.lowercased()
+         values.withLock { $0[url] = Value(body: Data([0,1,254,255]), stall: stall) }; return url
+     }
+-    func value(_ url: String) -> Value? { values.withLock { $0[url] } }
++    func begin(_ url: String) -> Value? {
++        starts.withLock { _ = $0.insert(url) }
++        return values.withLock { $0[url] }
++    }
++    func started(_ url: String) -> Bool { starts.withLock { $0.contains(url) } }
+ }
+ private final class BridgeInterceptedProtocol: URLProtocol {
+     static let fixtures = BridgeHTTPFixtures()
+     override class func canInit(with request: URLRequest) -> Bool { true }
+     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+     override func startLoading() {
+-        guard let url = request.url, let value = Self.fixtures.value(url.absoluteString) else {
++        guard let url = request.url, let value = Self.fixtures.begin(url.absoluteString) else {
+             client?.urlProtocol(self, didFailWithError: URLError(.badURL)); return
+         }
+         client?.urlProtocol(self, didReceive: HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: [:])!, cacheStoragePolicy: .notAllowed)
+@@ -64,18 +71,26 @@ extension ExperimentalBridgeTests {
+     @Test func publicOwnerDeinitRetainsActualNativeExitAndConstructionBudget() async throws {
+         let gate = BridgeInvalidationGate(); defer { gate.release() }
+         let transport = try URLSessionHTTPTransport(maximumConcurrentRequests: 8, protocolClasses: [BridgeInterceptedProtocol.self], beforeInvalidation: { gate.hold() })
+-        var session: ExperimentalCapabilitySession? = try await httpBridge(BridgeInterceptedProtocol.fixtures.install(stall: true), transport: transport, timeout: 50)
++        let url = BridgeInterceptedProtocol.fixtures.install(stall: true)
++        var session: ExperimentalCapabilitySession? = try await httpBridge(url, transport: transport, timeout: 30000)
+         let weakSession = BridgeWeakSession(session)
+         _ = try await session!.startup(); try await session!.enableEffects(); _ = try await session!.invoke("run")
+-        try await bridgeEventually { gate.entered && transport.activeRequests == 1 }
++        // Establish real native work before close triggers invalidation. A short
++        // timer can expire before URLSession exists and resolve a no-I/O exit.
++        try await bridgeEventually {
++            BridgeInterceptedProtocol.fixtures.started(url) && transport.activeRequests == 1 && session!.status.retainedExits == 1
++        }
+         session!.close(); session = nil
+         #expect(weakSession.value == nil)
++        try await bridgeEventually { gate.entered }
++        #expect(transport.activeRequests == 1)
+         let policy = try CapabilityPolicy(installed: [], manifest: [])
+         var held: [ExperimentalCapabilityConstruction] = []
+         for _ in 0..<15 { held.append(try ExperimentalCapabilitySession.prepare(module: Data(), startupExport: "boot", policy: policy, adapters: InstalledCapabilityAdapters())) }
+         #expect(throws: ExperimentalCapabilityError("construction_busy")) {
+             try ExperimentalCapabilitySession.prepare(module: Data(), startupExport: "boot", policy: policy, adapters: InstalledCapabilityAdapters())
+         }
++        #expect(!gate.timedOut && transport.activeRequests == 1)
+         gate.release()
+         var reclaimed: ExperimentalCapabilityConstruction?
+         try await bridgeEventually {
+@@ -83,6 +98,7 @@ extension ExperimentalBridgeTests {
+             return reclaimed != nil
+         }
+         #expect(transport.activeRequests == 0)
++        #expect(!gate.timedOut)
+         reclaimed?.cancel(); held.removeAll()
+     }
+     @Test func interceptedHTTPUsesRealHostAdapterAndStrictGuestConversion() async throws {

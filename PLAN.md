@@ -195,8 +195,14 @@ through the existing frozen route before any Swift-mode execution is enabled.
 
 Hosted `7855754` passes all three jobs. Hosted `26943ac` passes VM/services but fails
 Swift bridge TSan with session/native-exit publication race reports and an
-HTTP native-exit fixture timeout. Investigation and separately validated repair
-are in progress; see `verification/github-ci-26943ac/receipt.json`.
+HTTP native-exit fixture timeout. The scoped repair now has 875 root bindings:
+explicit locked session publication, real native-request preconditions and an
+explicit construction-permit lifetime in the test. All 48 existing bridge tests
+plus three independent controlled schedules pass per Debug/Release/TSan.
+Pinned Swift 6.2.4 hosted replay remains pending. Exact hosted timeout cause is
+unproved; demonstrated expiry and optimized lifetime hazards remain separately
+scoped. See `verification/github-ci-26943ac/receipt.json` and
+`verification/bridge-publication-root-review/acceptance.json`.
 
 The next hosted checkpoint `61c5c8b` exposed a minimal-feature Clippy failure in
 unused private descriptor fields after its tests passed. The descriptor-only

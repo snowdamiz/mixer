@@ -1,0 +1,54 @@
+{
+  "command": [
+    "swift",
+    "test",
+    "--package-path",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/bridge-native-exit-ci-repair/candidate/source/experimental-capability-runtime",
+    "--scratch-path",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/bridge-native-exit-ci-repair/.build/candidate/release",
+    "-c",
+    "release",
+    "-Xswiftc",
+    "-DMIXER_EXPERIMENTAL_LOCAL_TLS_TEST",
+    "-Xcc",
+    "-I/Users/andreyyurlov/Documents/dev/mixer/verification/bridge-native-exit-ci-repair/native-26943ac/include",
+    "-Xlinker",
+    "-L/Users/andreyyurlov/Documents/dev/mixer/verification/bridge-native-exit-ci-repair/native-26943ac/lib",
+    "-Xswiftc",
+    "-warnings-as-errors"
+  ],
+  "environment": {
+    "MIXER_EXPERIMENTAL_TLS_URL": "https://127.0.0.1:63485/"
+  },
+  "exit_code": 0,
+  "output_sha256": "868effa803dd3b08b3489f2f6ff823aacaaf5d7cdb2de18ff0571686d2f069c0",
+  "certificate_generation": [
+    "openssl",
+    "req",
+    "-x509",
+    "-newkey",
+    "rsa:2048",
+    "-nodes",
+    "-keyout",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/bridge-native-exit-ci-repair/candidate/source/experimental-capability-runtime/.build/untrusted-loopback-mn5bhxhh/ephemeral-key.pem",
+    "-out",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/bridge-native-exit-ci-repair/candidate/source/experimental-capability-runtime/.build/untrusted-loopback-mn5bhxhh/certificate.pem",
+    "-days",
+    "1",
+    "-subj",
+    "/CN=127.0.0.1",
+    "-addext",
+    "subjectAltName=IP:127.0.0.1"
+  ],
+  "certificate_sha256": "66c33b677360087c0ed027497e52685317c91b22efa598d852dcd20dda5f5f51",
+  "observations": {
+    "tcp_accepts": 1,
+    "tls_failures": 1,
+    "application_requests": 0,
+    "errors": [
+      "SSLEOFError:[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1082)"
+    ]
+  },
+  "server_stopped": true,
+  "scope": "Actual normal-trust loopback TLS rejection, no trust/keychain/credential change; not HTTPS success or device evidence"
+}

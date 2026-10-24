@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "contract": "mixer-native-session-v1",
+  "status": "additive development host ABI; no full Swift or production OTA qualification",
+  "profile_ids": {"1": "mixer-integer-v1", "2": "mixer-numeric-v2", "3": "mixer-table-memory-v3"},
+  "legacy_contracts": "Guest profile acceptance, existing C symbols, ABI version and all struct layouts remain unchanged",
+  "ownership": "Inputs borrowed only for the call. Successful create owns decoded module/instance state. Never exposes guest memory or native pointers.",
+  "handles": {
+    "representation": "uint64_t; high32 generation, low32 slot+1; both nonzero",
+    "scope": "opaque native process-local identity, not a secret authorization token",
+    "maximum_sessions": 16,
+    "ceiling_includes": ["reserved creations", "live sessions", "closed instances retained by in-flight operations"],
+    "creation": "reserve before decode/instantiation; no handle published until both succeed; failures/unwind release reservation",
+    "reuse": "increment generation before slot reuse; retire forever at UINT32_MAX; stale/zero/unknown/closed handles reject"
+  },
+  "state": {
+    "success": "memory and globals persist; invocation fuel and host-call counters reset to original narrowed limits",
+    "terminal": "every interpreter error, including unknown export or signature mismatch, permanently terminates session; cancellation is permanent",
+    "api_rejection": "invalid buffers, transfer bounds, malformed value encoding and busy rejection do not terminate session",
+    "panic": "contained at C boundary; mutex poison prevents state reuse; close remains possible",
+    "limits": "unchanged profile ceilings; caller can narrow with the existing MixerVmLimits structure"
+  },
+  "concurrency": {
+    "operations": "invoke/read/write hold one session mutex using try_lock; overlap returns status3 session_busy",
+    "cancel": "does not acquire the instance mutex; terminal flag plus cooperative cancellation; repeat cancel on live handle succeeds",
+    "close": "invalidates handle under registry lock, cancels, returns without waiting; in-flight calls retain storage and count against ceiling",
+    "race_semantics": "already admitted work can complete or mutate before observing cancellation; no rollback; a successful result may precede a concurrent cancel",
+    "execution": "cancellation at existing instruction/import/bulk boundaries; fuel is not a wall-clock deadline",
+    "registry": "bounded short mutex critical sections; decoding, execution, memory copies and large instance destruction happen outside registry lock"
+  },
+  "memory_transfer": {
+    "maximum_bytes_per_call": 1048576,
+    "offset": "unsigned32 byte offset into current memory",
+    "bounds": "complete range checked before copying; zero length still requires offset <= memory length; no partial mutation on bounds failure",
+    "cost": "bounded native copy; no guest execution or guest fuel consumed",
+    "caller_buffers": "valid throughout call, no overlap with any other input/output; null permitted only with zero length"
+  },
+  "status_codes": {"0":"success", "1":"module validation rejection", "2":"execution, instantiation or terminal session", "3":"invalid arguments, limits, transfer bounds, handle, busy or capacity", "4":"contained panic or poisoned state"},
+  "outputs": "report required; null report returns3 with no mutation. Create sets non-null out_handle to0 before validation, except when report is null. Callers release successful handles explicitly.",
+  "not_provided": ["WASI", "arbitrary host callbacks", "Swift runtime imports", "guest capability transport", "async executor", "mobile SDK packaging", "updater lifecycle integration", "source debugging", "production gate approval"]
+}

@@ -1,0 +1,250 @@
+{
+  "observedAt": "2026-10-24T00:07:50.023398+00:00",
+  "status": "local-repair-qualified-pinned-hosted-replay-pending",
+  "baseRevision": "26943ac8a6d17f59cb8a8323609d9e90a0268542",
+  "baseTree": "d3ab8e729bca9e1a5eb76ff196ba469c77c9a8d0",
+  "productFiles": {
+    "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Session.swift": "04544c945e4a562b3a2ee477b7083f23cb3c6536ddd7ad60a844fc113f962294",
+    "experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/HTTPTests.swift": "3281664fe253dd1e95336aa86dda43af72acfe74138a60f96b281ea3e595285e"
+  },
+  "candidatePatchSHA256": "f32ff1a7ab161553886957538dfe305cefad85e6326f49e91c6392be603af414",
+  "probeSHA256": "4444118cabbd9d49b90b0306dac86a2066eb6a4f144c80024fb6216c5ef6cfcd",
+  "hostedLogSHA256": "f1617647f867dffba680fde763663c3aaf4f3b23e74c2d0c22089ca7ea2a3a89",
+  "jobsSHA256": "b9f68c5b1f70df04c0116426128199b32e43a1c3d0bd2f7bdba5aa3d6a69130b",
+  "previousGreenJobsSHA256": "1bc14d8fa0f08fe07893c7838c39625376a96584b8af1da98572db2ecf8b9ded",
+  "relevantSourcesIdenticalAcrossPreviousGreenAndFailure": true,
+  "observed": [
+    "Hosted run40037022177 Swift job120698923707 fails only bridge step; VM/services pass",
+    "Hosted target records StorageTests.swift11 generic predicate failure after22.179s; actual predicate location/state is absent",
+    "Hosted TSan reports Session.swift189 read vs138 init and Ownership.swift132 read vs117 start; process also reports signal6",
+    "Deterministic original fixture plus transport clock seam reaches guest completion gate=false active=0 exits=0, then original invalidation predicate fails",
+    "Unmodified baseline full48 and both stress probes pass locally under newer Swift6.3.3/Xcode26.6 without TSan diagnostics",
+    "Candidate full48 pass Debug Release TSan;64 source/timer/native-drain plus32 GuestUI startup/deinit/retirement iterations pass under TSan",
+    "Candidate-stress first generic probe incorrectly required retained exit after already acknowledged policy denial; that failed diagnostic is excluded from qualification"
+  ],
+  "hypothesesNotProven": [
+    "50ms request may expire before URLSession adoption on hosted TSan, matching deterministic reproduction; hosted log does not establish this exact route",
+    "Original gate has5s escape and awaited conjunction can also be missed if observation is delayed; hosted state/timing not retained",
+    "Two publication race reports are addressed by explicit queue-to-task lock publication; local newer toolchain does not reproduce them, so CI6.2.4 confirmation remains required"
+  ],
+  "ownershipAssessment": [
+    "handoff lock exists before dispatch, receives started owner/session before success resume, and is taken/cleared under same lock after await",
+    "success continuation resumes once; cancelled/error branches never put a public session into the slot and retain original owner.stop/permit cleanup",
+    "constructorReturned remains in original queued tail after continuation resolution; nil public owner/retirement probes detect retained extra handoff session",
+    "HTTP test now awaits URLProtocol start plus real lease/native exit, triggers close/drop, waits actual invalidation, keeps15-held/16th-rejected and final reclamation checks",
+    "HTTP test retains original800x5ms polling bound and5s gate escape, and explicitly checks gate did not time out"
+  ],
+  "nativeReceiptSHA256": "b875ad3b312bd1ff125081ff8b2683416a6c08b594da86e4115be73e324957f3",
+  "nativeLibrary": {
+    "sha256": "af0acddd9ce7cf510e55e8413b1df112860e868d877c5b4dcd08b3862aa6c69f",
+    "bytes": 19306720,
+    "path": "/Users/andreyyurlov/Documents/dev/mixer/verification/bridge-native-exit-ci-repair/native-26943ac/lib/libmixer_vm_capability_experimental.a"
+  },
+  "variants": {
+    "baseline": {
+      "receiptSHA256": "a2616c1d006cba9041ed97b5f2156b2cd992cccb39ed5a1ca324b933eddc2da0",
+      "manifestSHA256": "dd6e78884c8e99bdd0a19cc8b8f7739eea7e1994d2da1e85b8157cf0442e6fc1",
+      "frozenSourceVerified": true,
+      "logs": [
+        {
+          "path": "baseline/tsan-filtered.log",
+          "sha256": "a8cc787cbcc840f9db7b3cb9803cfa583a27b5797609680eb66c1f1ff354d878",
+          "passedSummaries": [
+            "Test run with 1 test in 1 suite passed after 0.067 seconds."
+          ],
+          "failedSummaries": [],
+          "tsanWarnings": 0,
+          "probeLines": []
+        }
+      ],
+      "productBindings": {
+        "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Session.swift": "4ea4f4f61f56830fb8e79ff79feed0d472e622105b67be735b0b409074c7d419",
+        "experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/HTTPTests.swift": "7fedf534a0f309c575b9f1b0c02e08bc99034ef1200ba83d89dfdb3ffa49eee4"
+      },
+      "scope": "local host check; not pinned hosted toolchain qualification"
+    },
+    "preflight": {
+      "receiptSHA256": "fce7524587b79507ff8632f5c6380f53e0d417ff3ed9d81cbf1a221a376199d6",
+      "manifestSHA256": "89e3d06f353b67aa2fb325d975a0fef03806d60463c4b04c24a8af4898f0ca76",
+      "frozenSourceVerified": true,
+      "logs": [
+        {
+          "path": "preflight/tsan-filtered.log",
+          "sha256": "d252e0d02a8e17813da4d58e6401972e04a2499464e224f37a5f8d80aa2c3207",
+          "passedSummaries": [],
+          "failedSummaries": [
+            "Test run with 1 test in 1 suite failed after 4.905 seconds with 1 issue."
+          ],
+          "tsanWarnings": 0,
+          "probeLines": [
+            "PREFLIGHT_OBSERVATION gate=false active=0 exits=0"
+          ]
+        }
+      ],
+      "productBindings": {
+        "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Session.swift": "4ea4f4f61f56830fb8e79ff79feed0d472e622105b67be735b0b409074c7d419",
+        "experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/HTTPTests.swift": "21842b3c13ca8e31e5203c4b1ac1883c7c622904ca1d764d3b1f5b96c59fbd03"
+      },
+      "scope": "negative deterministic precondition reproduction"
+    },
+    "baseline-full": {
+      "receiptSHA256": "24e1e77621ffb165b6474394bf9c7431b07a8fab594a9dbb1c6a9fea39d49654",
+      "manifestSHA256": "dd6e78884c8e99bdd0a19cc8b8f7739eea7e1994d2da1e85b8157cf0442e6fc1",
+      "frozenSourceVerified": true,
+      "logs": [
+        {
+          "path": "baseline-full/tsan-filtered.log",
+          "sha256": "51b0c1a3494e5dcbbb1866c0049eb00262298cc941a5d87eedd587ffa2e32318",
+          "passedSummaries": [
+            "Test run with 48 tests in 1 suite passed after 1.892 seconds."
+          ],
+          "failedSummaries": [],
+          "tsanWarnings": 0,
+          "probeLines": []
+        }
+      ],
+      "productBindings": {
+        "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Session.swift": "4ea4f4f61f56830fb8e79ff79feed0d472e622105b67be735b0b409074c7d419",
+        "experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/HTTPTests.swift": "7fedf534a0f309c575b9f1b0c02e08bc99034ef1200ba83d89dfdb3ffa49eee4"
+      },
+      "scope": "local host check; not pinned hosted toolchain qualification"
+    },
+    "candidate": {
+      "receiptSHA256": "180a13f618ecb7f245c2164453afe93c29cd76b9f5ce2aaccdb97e764ef55875",
+      "manifestSHA256": "8256808b9304171b35cc632e51ccdccb54cdf9448c94a5068ac6e9a6c9687ba8",
+      "frozenSourceVerified": true,
+      "logs": [
+        {
+          "path": "candidate/debug-filtered.log",
+          "sha256": "815856a57f2de78d661126f62e5bc114547ddf932932af344180e6df0a09aece",
+          "passedSummaries": [
+            "Test run with 48 tests in 1 suite passed after 1.829 seconds."
+          ],
+          "failedSummaries": [],
+          "tsanWarnings": 0,
+          "probeLines": []
+        },
+        {
+          "path": "candidate/release-filtered.log",
+          "sha256": "b5155c8a164a1f7eded29882fa69336d6fbe845c102e691cc3b84b80f7b3b2b7",
+          "passedSummaries": [
+            "Test run with 48 tests in 1 suite passed after 1.677 seconds."
+          ],
+          "failedSummaries": [],
+          "tsanWarnings": 0,
+          "probeLines": []
+        },
+        {
+          "path": "candidate/tsan-filtered.log",
+          "sha256": "b92cd354f295aa6853c6d42624efb750741ff016b46e0cf3bd8bd707b9ca6251",
+          "passedSummaries": [
+            "Test run with 48 tests in 1 suite passed after 1.699 seconds."
+          ],
+          "failedSummaries": [],
+          "tsanWarnings": 0,
+          "probeLines": []
+        }
+      ],
+      "productBindings": {
+        "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Session.swift": "04544c945e4a562b3a2ee477b7083f23cb3c6536ddd7ad60a844fc113f962294",
+        "experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/HTTPTests.swift": "3281664fe253dd1e95336aa86dda43af72acfe74138a60f96b281ea3e595285e"
+      },
+      "scope": "local host check; not pinned hosted toolchain qualification"
+    },
+    "candidate-stress": {
+      "receiptSHA256": "973e71c9161eac0648ccf3ae98e299418131893147b0efff9aef072424fa771f",
+      "manifestSHA256": "4545531ba776baf5430653e251c8c09bedcb6e75e8efb99f578ce15908ea0fcb",
+      "frozenSourceVerified": true,
+      "logs": [
+        {
+          "path": "candidate-stress/tsan-filtered.log",
+          "sha256": "f680d9a3c2cc9c2535c4f5a1b1bf4d639e69edf6855a690851a9b9789058791c",
+          "passedSummaries": [],
+          "failedSummaries": [
+            "Test run with 2 tests in 1 suite failed after 5.642 seconds with 1 issue."
+          ],
+          "tsanWarnings": 0,
+          "probeLines": [
+            "PUBLICATION_UI_PROBE retired=8",
+            "PUBLICATION_UI_PROBE retired=16",
+            "PUBLICATION_UI_PROBE retired=24",
+            "PUBLICATION_UI_PROBE retired=32"
+          ]
+        }
+      ],
+      "productBindings": {
+        "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Session.swift": "04544c945e4a562b3a2ee477b7083f23cb3c6536ddd7ad60a844fc113f962294",
+        "experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/HTTPTests.swift": "3281664fe253dd1e95336aa86dda43af72acfe74138a60f96b281ea3e595285e"
+      },
+      "scope": "discarded incorrect extra probe, retained failure"
+    },
+    "candidate-stress-v2": {
+      "receiptSHA256": "d7b18a7f5a446be111bb3bf03e1cea21563a97a1ceb86e81023cfcf31f26e6a1",
+      "manifestSHA256": "1f1683c2047a10f88fdb420567aebfdbd37e6eef50ed1706e5dbeec6ae59d2ef",
+      "frozenSourceVerified": true,
+      "logs": [
+        {
+          "path": "candidate-stress-v2/tsan-filtered.log",
+          "sha256": "5ddd530786d634bf86b35463f749491c7bad2b8512412b48b98b35f5804d5c4f",
+          "passedSummaries": [
+            "Test run with 2 tests in 1 suite passed after 1.923 seconds."
+          ],
+          "failedSummaries": [],
+          "tsanWarnings": 0,
+          "probeLines": [
+            "PUBLICATION_PROBE drained=16",
+            "PUBLICATION_PROBE drained=32",
+            "PUBLICATION_PROBE drained=48",
+            "PUBLICATION_PROBE drained=64",
+            "PUBLICATION_UI_PROBE retired=8",
+            "PUBLICATION_UI_PROBE retired=16",
+            "PUBLICATION_UI_PROBE retired=24",
+            "PUBLICATION_UI_PROBE retired=32"
+          ]
+        }
+      ],
+      "productBindings": {
+        "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Session.swift": "04544c945e4a562b3a2ee477b7083f23cb3c6536ddd7ad60a844fc113f962294",
+        "experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/HTTPTests.swift": "3281664fe253dd1e95336aa86dda43af72acfe74138a60f96b281ea3e595285e"
+      },
+      "scope": "local host check; not pinned hosted toolchain qualification"
+    },
+    "baseline-stress": {
+      "receiptSHA256": "7bada009769b8f76f0cf46d38d0d0a712b037ed8f944f158ff267031d45a8b78",
+      "manifestSHA256": "ec931aae4daeaedaa01597b8f79c1eb93ce19016a6fb42a8b467cefb847a25ed",
+      "frozenSourceVerified": true,
+      "logs": [
+        {
+          "path": "baseline-stress/tsan-filtered.log",
+          "sha256": "7ccf68caed4b3e87583e18d399fa383ffc2af8c00965f1e5bbdff1cc2cbe0560",
+          "passedSummaries": [
+            "Test run with 2 tests in 1 suite passed after 1.949 seconds."
+          ],
+          "failedSummaries": [],
+          "tsanWarnings": 0,
+          "probeLines": [
+            "PUBLICATION_PROBE drained=16",
+            "PUBLICATION_PROBE drained=32",
+            "PUBLICATION_PROBE drained=48",
+            "PUBLICATION_PROBE drained=64",
+            "PUBLICATION_UI_PROBE retired=8",
+            "PUBLICATION_UI_PROBE retired=16",
+            "PUBLICATION_UI_PROBE retired=24",
+            "PUBLICATION_UI_PROBE retired=32"
+          ]
+        }
+      ],
+      "productBindings": {
+        "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Session.swift": "4ea4f4f61f56830fb8e79ff79feed0d472e622105b67be735b0b409074c7d419",
+        "experimental-capability-runtime/Tests/MixerExperimentalCapabilityRuntimeTests/HTTPTests.swift": "7fedf534a0f309c575b9f1b0c02e08bc99034ef1200ba83d89dfdb3ffa49eee4"
+      },
+      "scope": "local host check; not pinned hosted toolchain qualification"
+    }
+  },
+  "limitations": [
+    "Hosted pin Swift6.2.4 Xcode26.3 unavailable locally; local toolchain Swift6.3.3 Xcode26.6",
+    "Static native Rust archive and system frameworks not Swift TSan instrumented",
+    "No physical devices, cross-platform execution, release/signing/store/customer/GA evidence",
+    "No commit/push/tracker edits or production publication by this investigation lane"
+  ]
+}
