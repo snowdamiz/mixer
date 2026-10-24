@@ -42,7 +42,9 @@ an isolated accepted-source snapshot. See `docs/hosted-artifact-cbor.md` and
 signed artifact admission, authenticated routes, membership and persistence
 remain pending. Commit `68910a1` now passes Linux hosted CI with the same 35
 tests and release checks; root verifies all 32 committed hosted/fixture inputs
-in `verification/github-ci-68910a1-phoenix/receipt.json`.
+in `verification/github-ci-68910a1-phoenix/receipt.json`. The same checkpoint
+also passes the Swift, VM and Go service engine jobs; terminal step observations
+are retained in `verification/github-ci-68910a1-engine/receipt.json`.
 Recent hosted CI at 4546513 and b15ff7a passes Swift, VM and Go service jobs,
 resolving the prior milestone busy-admission revalidation. No GA gate is closed.
 

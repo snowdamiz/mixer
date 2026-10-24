@@ -154,6 +154,9 @@ were cleaned up. See `verification/hosted-artifact-cbor/acceptance.json`.
 Commit `68910a1` now also passes Linux hosted CI with 35 tests and release
 checks. Root matches all 32 hosted/fixture inputs and the downloaded artifact
 digest to that commit; see `verification/github-ci-68910a1-phoenix/receipt.json`.
+Its Swift, VM and Go service engine jobs also completed successfully; see
+`verification/github-ci-68910a1-engine/receipt.json`. These are host tests and
+cross-builds, with no native runtime or provider acceptance implied.
 This is encoding only, with no
 new authenticated route, signature/root admission, membership/persistence,
 provider, audit or cloud qualification. No gate is closed.
