@@ -1,0 +1,225 @@
+--- frozen-repair/AndroidManifest.xml
++++ original-protocol-diagnostic/AndroidManifest.xml
+@@ -1,9 +1,9 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <!-- Separate private component fixture; no public activity or release transport. -->
+-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="dev.mixer.android.authoredtogglerepair">
++<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="dev.mixer.android.authoredtogglescrolldiagnostic">
+   <uses-sdk android:minSdkVersion="36" android:targetSdkVersion="37" />
+-  <application android:theme="@android:style/Theme.Material.Light.NoActionBar" android:label="Mixer authored toggle component supplement" android:debuggable="true" android:allowBackup="false" android:supportsRtl="true" android:extractNativeLibs="true">
++  <application android:theme="@android:style/Theme.Material.Light.NoActionBar" android:label="Mixer private scroll diagnostic" android:debuggable="true" android:allowBackup="false" android:supportsRtl="true" android:extractNativeLibs="true">
+     <activity android:name="dev.mixer.android.AuthoredToggleSupplementActivity" android:exported="false" />
+   </application>
+-  <instrumentation android:name="dev.mixer.android.AuthoredToggleSupplementInstrumentation" android:targetPackage="dev.mixer.android.authoredtogglerepair" />
++  <instrumentation android:name="dev.mixer.android.AuthoredToggleSupplementInstrumentation" android:targetPackage="dev.mixer.android.authoredtogglescrolldiagnostic" />
+ </manifest>
+--- frozen-repair/AuthoredToggleSupplementActivity.java
++++ original-protocol-diagnostic/AuthoredToggleSupplementActivity.java
+@@ -1,27 +1,92 @@
+ package dev.mixer.android;
+ 
+ import android.app.Activity;
++import android.graphics.Rect;
+ import android.os.Bundle;
++import android.os.SystemClock;
++import android.view.MotionEvent;
+ import android.view.View;
++import android.view.WindowInsets;
+ import android.widget.FrameLayout;
+ import android.widget.ScrollView;
++import java.util.List;
++import java.util.Map;
++import java.util.function.Supplier;
+ 
+-/** Private component owner; native ScrollView owns parent arbitration. */
++/** Private observation-only component owner; the native superclass retains arbitration. */
+ @SuppressWarnings("deprecation")
+ public final class AuthoredToggleSupplementActivity extends Activity {
+-    FrameLayout root;ScrollView scroll;Parent content;boolean destroyed;
+-    static final class Parent extends FrameLayout {
++    FrameLayout root;ObservedScroll scroll;Parent content;boolean destroyed;
++    final ScrollTraceBuffer trace=new ScrollTraceBuffer(2048);
++    volatile boolean tracing;
++    int traceCase;
++    Supplier<Map<String,Object>> componentState=()->Json.map("available",false);
++    private int observerFailures;
++    void observe(String stage,MotionEvent event,Boolean returned){
++        if(!tracing)return;
++        try{
++            Map<String,Object> row=Json.map("stage",stage,"case",traceCase,"uptime",SystemClock.uptimeMillis(),
++                "thread",Thread.currentThread().getName(),"returned",returned,"state",android.os.Looper.myLooper()==getMainLooper()?componentState.get():null);
++            if(event!=null)row.put("event",Json.map("action",event.getAction(),"masked",event.getActionMasked(),
++                "downTime",event.getDownTime(),"eventTime",event.getEventTime(),"eventTimeLead",event.getEventTime()-SystemClock.uptimeMillis(),
++                "pointerCount",event.getPointerCount(),"pointerId",event.getPointerId(0),"tool",event.getToolType(0),
++                "source",event.getSource(),"deviceId",event.getDeviceId(),"x",event.getX(),"y",event.getY(),
++                "rawX",event.getRawX(),"rawY",event.getRawY(),"historySize",event.getHistorySize()));
++            trace.add(row);
++        }catch(RuntimeException failure){observerFailures++;}
++    }
++    void watch(View view){view.setOnTouchListener((target,event)->{observe("toggle.OnTouchListener.before-return-false",event,false);return false;});}
++    @Override public boolean dispatchTouchEvent(MotionEvent event){
++        observe("activity.dispatch.before",event,null);boolean result=super.dispatchTouchEvent(event);
++        observe("activity.dispatch.after",event,result);return result;
++    }
++    final class ObservedScroll extends ScrollView {
++        ObservedScroll(){super(AuthoredToggleSupplementActivity.this);}
++        @Override public boolean dispatchTouchEvent(MotionEvent event){observe("scroll.dispatch.before",event,null);boolean result=super.dispatchTouchEvent(event);observe("scroll.dispatch.after",event,result);return result;}
++        @Override public boolean onInterceptTouchEvent(MotionEvent event){observe("scroll.intercept.before",event,null);boolean result=super.onInterceptTouchEvent(event);observe("scroll.intercept.after",event,result);return result;}
++        @Override public boolean onTouchEvent(MotionEvent event){observe("scroll.touch.before",event,null);boolean result=super.onTouchEvent(event);observe("scroll.touch.after",event,result);return result;}
++        @Override public void requestDisallowInterceptTouchEvent(boolean value){super.requestDisallowInterceptTouchEvent(value);observe("scroll.disallow."+value,null,null);}
++        int nativeRange(){return computeVerticalScrollRange();}
++        int nativeExtent(){return computeVerticalScrollExtent();}
++        int nativeOffset(){return computeVerticalScrollOffset();}
++    }
++    final class Parent extends FrameLayout {
+         int acquired,released,unownedRelease;boolean disallowed;
+-        Parent(android.content.Context context){super(context);}
++        Parent(){super(AuthoredToggleSupplementActivity.this);}
+         @Override public void requestDisallowInterceptTouchEvent(boolean value){
+             if(value){acquired++;disallowed=true;}else{released++;if(!disallowed)unownedRelease++;disallowed=false;}
+-            super.requestDisallowInterceptTouchEvent(value);
++            super.requestDisallowInterceptTouchEvent(value);observe("content.disallow."+value,null,null);
+         }
++        @Override public boolean dispatchTouchEvent(MotionEvent event){observe("content.dispatch.before",event,null);boolean result=super.dispatchTouchEvent(event);observe("content.dispatch.after",event,result);return result;}
+     }
+     @Override public void onCreate(Bundle state){
+         super.onCreate(state);getWindow().setDecorFitsSystemWindows(false);root=new FrameLayout(this);setContentView(root);
+-        scroll=new ScrollView(this);content=new Parent(this);scroll.addView(content,new ScrollView.LayoutParams(-1,6000));root.addView(scroll,new FrameLayout.LayoutParams(-1,-1));
++        scroll=new ObservedScroll();content=new Parent();scroll.addView(content,new ScrollView.LayoutParams(-1,6000));root.addView(scroll,new FrameLayout.LayoutParams(-1,-1));
+     }
+     @Override public void onDestroy(){destroyed=true;super.onDestroy();}
+-    void place(View view,int top){FrameLayout.LayoutParams lp=new FrameLayout.LayoutParams(1000,132);lp.leftMargin=60;lp.topMargin=top;content.addView(view,lp);}
++    void place(View view,int top){FrameLayout.LayoutParams lp=new FrameLayout.LayoutParams(1000,132);lp.leftMargin=60;lp.topMargin=top;content.addView(view,lp);watch(view);}
++    static Map<String,Object> viewState(View view){
++        int[] screen=new int[2],window=new int[2];view.getLocationOnScreen(screen);view.getLocationInWindow(window);
++        Rect visible=new Rect();boolean hasVisible=view.getGlobalVisibleRect(visible);
++        return Json.map("frame",List.of(view.getLeft(),view.getTop(),view.getRight(),view.getBottom()),
++            "size",List.of(view.getWidth(),view.getHeight()),"measured",List.of(view.getMeasuredWidth(),view.getMeasuredHeight()),
++            "screen",List.of(screen[0],screen[1]),"window",List.of(window[0],window[1]),
++            "globalVisible",hasVisible,"globalVisibleRect",List.of(visible.left,visible.top,visible.right,visible.bottom),
++            "shown",view.isShown(),"attached",view.isAttachedToWindow(),"windowFocused",view.hasWindowFocus(),
++            "focused",view.isFocused(),"enabled",view.isEnabled(),"layoutRequested",view.isLayoutRequested());
++    }
++    Map<String,Object> geometry(View toggle){
++        View decor=getWindow().getDecorView();Rect frame=new Rect();decor.getWindowVisibleDisplayFrame(frame);
++        WindowInsets insets=decor.getRootWindowInsets();android.graphics.Insets system=insets==null?null:insets.getInsets(WindowInsets.Type.systemBars());
++        int viewport=scroll.getHeight()-scroll.getPaddingTop()-scroll.getPaddingBottom();
++        return Json.map("decor",viewState(decor),"root",viewState(root),"scroll",viewState(scroll),"content",viewState(content),"toggle",viewState(toggle),
++            "windowVisibleFrame",List.of(frame.left,frame.top,frame.right,frame.bottom),
++            "systemBarInsets",system==null?null:List.of(system.left,system.top,system.right,system.bottom),
++            "contentLayoutHeight",content.getLayoutParams().height,"viewportHeight",viewport,"contentHeight",content.getHeight(),
++            "positiveContentExtent",content.getHeight()>viewport,"computedRange",scroll.nativeRange(),"computedExtent",scroll.nativeExtent(),"computedOffset",scroll.nativeOffset(),
++            "canScrollUp",scroll.canScrollVertically(-1),"canScrollDown",scroll.canScrollVertically(1),"density",getResources().getDisplayMetrics().density);
++    }
++    Map<String,Object> exportTrace(){return Json.map("schema",1,"mode","original-protocol","entries",trace.snapshot(),"dropped",trace.dropped(),
++        "observerFailures",observerFailures,"entryLimit",2048,"byteLimit",524288,"listenerConsumes",false,
++        "observerPerturbation","Public queries and Map allocation add time on dispatch; no sleep, coordinate or timestamp schedule changes");}
+ }
+--- frozen-repair/AuthoredToggleSupplementInstrumentation.java
++++ original-protocol-diagnostic/AuthoredToggleSupplementInstrumentation.java
+@@ -91,11 +91,23 @@
+     private void key(int action,int repeat,boolean cancelled){main(()->{var e=new KeyEvent(down,SystemClock.uptimeMillis(),action,KeyEvent.KEYCODE_DPAD_CENTER,repeat,0,android.view.KeyCharacterMap.VIRTUAL_KEYBOARD,0,cancelled?KeyEvent.FLAG_CANCELED:0,InputDevice.SOURCE_KEYBOARD);toggle.dispatchKeyEvent(e);});}
+     private void focus(){main(()->require(toggle.requestFocus(),"native focus admitted"));idle();}
+     private void cancelCase(String name,Runnable mutation){caseRun(name,()->{reset(false,false,false);double x=end();drag(x,66);main(mutation);touch(MotionEvent.ACTION_UP,x,66);main(()->require(proposals==0&&!toggle.isPressed(),"cancellation emits no proposal or resurrected pressed"));});}
++    private Map<String,Object> scrollState(){
++        int viewport=window.scroll.getHeight()-window.scroll.getPaddingTop()-window.scroll.getPaddingBottom();
++        return Json.map("scrollY",window.scroll.getScrollY(),"proposals",proposals,"pressed",toggle.isPressed(),
++            "scrollPositive",window.scroll.getScrollY()>0,"zeroProposals",proposals==0,"notPressed",!toggle.isPressed(),
++            "positiveContentExtent",window.content.getHeight()>viewport,"contentHeight",window.content.getHeight(),"viewportHeight",viewport,
++            "nativeChecked",toggle.isChecked(),"boundChecked",record.binding.nativeToggleValue(),"fixtureAcknowledgements",fixtureAcks,
++            "inputOpen",input.open(record),"parentAcquired",window.content.acquired,"parentReleased",window.content.released,
++            "unownedRelease",window.content.unownedRelease,"disallowed",window.content.disallowed);
++    }
+     private void dispatchScroll(boolean diagonal){
++        main(()->{window.componentState=this::scrollState;window.traceCase=cases;window.tracing=true;
++            window.trace.add(Json.map("stage","scroll.geometry.before","case",cases,"uptime",SystemClock.uptimeMillis(),"diagonal",diagonal,"geometry",window.geometry(toggle),"state",scrollState()));});
+         int[] xy=new int[2];main(()->toggle.getLocationOnScreen(xy));double x=xy[0]+geometry().offCenter(),y=xy[1]+66;
+         long base=SystemClock.uptimeMillis();down=base;
+-        for(int i=0;i<=8;i++){int action=i==0?0:i==8?1:2;double dx=diagonal?i*10:0;MotionEvent e=event(action,x+dx,y-i*35,1,7,base+i*25);try{sendPointerSync(e);events++;}finally{e.recycle();}}
+-        idle();main(()->require(window.scroll.getScrollY()>0&&proposals==0&&!toggle.isPressed(),"actual native ScrollView interception and CANCEL"));
++        for(int i=0;i<=8;i++){int action=i==0?0:i==8?1:2;double dx=diagonal?i*10:0;MotionEvent e=event(action,x+dx,y-i*35,1,7,base+i*25);try{window.observe("worker.injection.before",e,null);sendPointerSync(e);events++;window.observe("worker.injection.after",e,null);}finally{e.recycle();}}
++        idle();main(()->{window.trace.add(Json.map("stage","scroll.geometry.after","case",cases,"uptime",SystemClock.uptimeMillis(),"diagonal",diagonal,"geometry",window.geometry(toggle),"state",scrollState()));window.tracing=false;});
++        main(()->require(window.scroll.getScrollY()>0&&proposals==0&&!toggle.isPressed(),"actual native ScrollView interception and CANCEL"));
+     }
+     @Override public void onStart(){
+         started=SystemClock.uptimeMillis();Throwable failure=null;
+@@ -151,6 +163,12 @@
+                 Map<String,Object> export=Json.map("schema",1,"scope","actual native View component fixture; fixture Input acknowledgements are not authoritative engine commits","status",retained==null?"passed-component-only":"failed-retained","failure",retained==null?null:retained.toString(),"apkSHA256",arguments==null?null:arguments.getString("apkSHA256"),"sourceClosureSHA256",arguments==null?null:arguments.getString("sourceClosureSHA256"),"cases",results,"observations",observations,"assertions",checks,"events",events,"durationMilliseconds",SystemClock.uptimeMillis()-started,"rawCheckedListenerCallbacks",null,"authoritativeCommits",null,"physicalPhones","deferred disconnected","TalkBackServiceWorkflow","NOT RUN");
+                 try{byte[] bytes=new org.json.JSONObject(export).toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);if(bytes.length>8388608)throw new AssertionError("8MiB export");Files.write(getTargetContext().getFilesDir().toPath().resolve("toggle-supplement-results.json"),bytes,StandardOpenOption.CREATE_NEW);bundle.putString("exportSHA256",sha(bytes));}catch(java.io.IOException e){throw new AssertionError(e);}
+             });
++            failure=FixtureFailures.attempt(failure,()->{
++                if(window==null)throw new AssertionError("scroll diagnostic window unavailable");
++                byte[] bytes=new org.json.JSONObject(window.exportTrace()).toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
++                if(bytes.length>524288)throw new AssertionError("512KiB scroll trace");
++                try{Files.write(getTargetContext().getFilesDir().toPath().resolve("toggle-scroll-trace.json"),bytes,StandardOpenOption.CREATE_NEW);bundle.putString("scrollTraceSHA256",sha(bytes));}catch(java.io.IOException e){throw new AssertionError(e);}
++            });
+             final Throwable beforeDiagnostics=failure;
+             failure=FixtureFailures.attempt(failure,()->{
+                 try{byte[] bytes=FixtureFailures.diagnostic(beforeDiagnostics).getBytes(java.nio.charset.StandardCharsets.UTF_8);if(bytes.length>131072)throw new AssertionError("128KiB diagnostics");Files.write(getTargetContext().getFilesDir().toPath().resolve("toggle-supplement-diagnostics.txt"),bytes,StandardOpenOption.CREATE_NEW);bundle.putString("diagnosticSHA256",sha(bytes));}catch(java.io.IOException e){throw new AssertionError(e);}
+--- frozen-repair/ScrollTraceBuffer.java
++++ original-protocol-diagnostic/ScrollTraceBuffer.java
+@@ -0,0 +1,22 @@
++package dev.mixer.android;
++
++import java.util.ArrayList;
++import java.util.Collections;
++import java.util.LinkedHashMap;
++import java.util.List;
++import java.util.Map;
++
++/** Private bounded observation storage. Saturation never changes event delivery. */
++final class ScrollTraceBuffer {
++    private final int limit;
++    private final List<Map<String,Object>> rows=new ArrayList<>();
++    private int dropped;
++    ScrollTraceBuffer(int limit){if(limit<1)throw new IllegalArgumentException("positive limit");this.limit=limit;}
++    synchronized void add(Map<String,Object> row){
++        if(rows.size()==limit){dropped++;return;}
++        Map<String,Object> copy=new LinkedHashMap<>(row);copy.put("sequence",rows.size());
++        rows.add(Collections.unmodifiableMap(copy));
++    }
++    synchronized List<Map<String,Object>> snapshot(){return List.copyOf(rows);}
++    synchronized int dropped(){return dropped;}
++}
+--- frozen-repair/supplement-contract.json
++++ original-protocol-diagnostic/supplement-contract.json
+@@ -7,7 +7,7 @@
+     "nativeMilliseconds": 120000,
+     "screenshots": 4
+   },
+-  "diagnostics": "Main-thread Throwable forwarding and independently retained cleanup/export diagnostics; unchanged 45 native cases and counters",
++  "diagnostics": "Observation-only public Activity/View/ScrollView hooks; original45casebodies and9-event schedule unchanged",
+   "entryPoint": "dev.mixer.android.AuthoredToggleSupplementInstrumentation",
+   "fixtureInputModes": [
+     "acknowledge by new binding",
+@@ -44,7 +44,7 @@
+     "rawCheckedCallbacks": null,
+     "screenshots": "UiAutomation.takeScreenshot after native idle; checked/binding remain false"
+   },
+-  "package": "dev.mixer.android.authoredtogglerepair",
++  "package": "dev.mixer.android.authoredtogglescrolldiagnostic",
+   "pending": [
+     "all native execution",
+     "real renderer overflow/prepare/attach/rollback/retirement authority supplement beyond baseline cases",
+@@ -57,10 +57,19 @@
+   ],
+   "schema": 1,
+   "scope": "Actual NativeAppearanceViewsV2.Record and exact production classes; fixture Input acknowledgements are not authoritative coordinator commits. Unchanged 20-action ordinary-join matrix remains required.",
++  "scrollTrace": {
++    "bytes": 524288,
++    "entries": 2048,
++    "extraSleep": false,
++    "mode": "original-protocol",
++    "nativeEventsChanged": false,
++    "observerTimingPerturbation": "Map allocation and public state queries occur on delivery; comparison remains instrumented"
++  },
+   "sources": [
+     "AuthoredToggleSupplementActivity.java",
+     "AuthoredToggleSupplementInstrumentation.java",
+-    "FixtureFailures.java"
++    "FixtureFailures.java",
++    "ScrollTraceBuffer.java"
+   ],
+-  "status": "prepared-component-supplement-native-NOT-RUN"
++  "status": "prepared-original-protocol-diagnostic-native-NOT-RUN"
+ }

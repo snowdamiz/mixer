@@ -1,14 +1,14 @@
 # Execution index
 
-Latest checkpoint: the private webhook transport is integrated after independent
-review and full hosted composition: 142 tests pass, with two explicit namespace
-fixture skips. Android's original 429-assertion pointer matrix passes; its separate
-component suite now preserves a native scroll failure after seventeen completed
-cases. Apple actual taps and held-touch cancellation pass in the iOS26.5 prototype,
-while programmatic activation, drag, keyboard and pressed-paint checks remain
-unqualified. Diagnostic candidates and the private Swift dispatcher implementation
-are in progress. Owned native instances are cleaned; phones and all GA/dogfood
-gates remain pending.
+Latest checkpoint: seven permanent webhook transport regressions bring the full
+hosted suite to 149 passing tests, with two namespace fixtures explicitly skipped.
+Production transport remains unchanged and inactive. Android's original pointer
+matrix passes 429 assertions; its separate scroll diagnostic exposed a fixture
+with 532 pixels of content in a 2,622-pixel viewport. A fixture correction is next.
+Apple taps and held-touch cancellation have partial iOS26.5 evidence; activation,
+drag, keyboard and pressed-paint qualification continue. The private Swift
+dispatcher and exact optimized-type accounting are under implementation/review.
+Owned native instances are cleaned; phones and all GA/dogfood gates remain pending.
 
 Implementation resumed at the user's request on October 24. The saved
 [pause handoff](docs/implementation-pause-2026-10-24.md) remains historical context.
@@ -1234,3 +1234,21 @@ private webhook transport is now integrated at72-input closure
 see `docs/stripe-webhook-transport-integration.md`. It remains inactive and passes
 no public billing or GA gate. Checkpoint2f715b10 is pushed; VM and service CI jobs
 pass while Swift CI is still running at this observation.
+
+The permanent webhook transport tests and packaged release exclusions are now
+integrated at73-input closure
+1b2f03d474f825a6265e0a10f9baf2adda62dffe6c747542207f32753b4df997.
+The isolated full host suite passes149tests with2namespacefixtures skipped;
+production modules remain unchanged and inactive. See
+`docs/stripe-webhook-transport-regressions.md`. Checkpoint09ee31ff passes the
+preceding142-test Linux hosted suite and release checks; checkpoint2f715b10
+passes all three engine jobs and38steps without skips. These CI receipts retain
+their exact earlier source scope.
+
+The fresh Android diagnostic delivered all9originalevents to the Activity and
+actual child, but observed no positive content extent, interception or CANCEL.
+Requested6000-pixel layout height measured532inside2622viewport. Root retains
+the failed original assertion, trace and cleanup in
+`verification/android-toggle-scroll-runtime-root-review/runtime-review.json`.
+A fixture-only measured-extent correction precedes the unchanged45-case rerun;
+no product input change or full component acceptance follows from this diagnosis.
