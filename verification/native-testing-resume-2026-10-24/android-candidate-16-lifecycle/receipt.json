@@ -1,0 +1,212 @@
+{
+  "status": "qualified",
+  "error": null,
+  "cleanup": "stopped",
+  "sourceRevision": "3c976abed70370c095459fb259224099b1c43fff",
+  "collectorSHA256": "944cf6666fc5d4b196639d92e2ed64d1171fd98ad6a2af426ee413f9a895bc76",
+  "commands": [
+    {
+      "name": "python-version",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "--version"
+      ],
+      "exitCode": 0,
+      "log": "python-version.log",
+      "sha256": "f615dc9512de8b165e2b595e5cdc608a3ba7927ae92f959c5b42ec3d58e2ffa8"
+    },
+    {
+      "name": "emulator-version",
+      "argv": [
+        "/opt/homebrew/share/android-commandlinetools/emulator/emulator",
+        "-version"
+      ],
+      "exitCode": 0,
+      "log": "emulator-version.log",
+      "sha256": "ea36a35958c14ba5f003d0e68087a01947b2b1e7d3c26286417430ced3f2b811"
+    },
+    {
+      "name": "adb-version",
+      "argv": [
+        "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+        "version"
+      ],
+      "exitCode": 0,
+      "log": "adb-version.log",
+      "sha256": "e9869f6c83803a56fdd25ed6fb31e1901662cfe4d3eebc62f9370870602c6a51"
+    },
+    {
+      "name": "port-before-5586",
+      "argv": [
+        "lsof",
+        "-nP",
+        "-iTCP:5586",
+        "-sTCP:LISTEN"
+      ],
+      "exitCode": 1,
+      "log": "port-before-5586.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "port-before-5587",
+      "argv": [
+        "lsof",
+        "-nP",
+        "-iTCP:5587",
+        "-sTCP:LISTEN"
+      ],
+      "exitCode": 1,
+      "log": "port-before-5587.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "processes-before",
+      "argv": [
+        "ps",
+        "-axo",
+        "pid,ppid,command"
+      ],
+      "exitCode": 0,
+      "log": "processes-before.log",
+      "sha256": "1b49a0b7725225ecc55796d88aea33966766f5caf60fd18131ef7eab5c4ecf0f",
+      "capturedOutputSHA256": "b71a2fcea748e035efa9ab0807b38d5b02faaa874ab8c93615281f2719648d9c",
+      "retention": "Only qemu-system process rows retained; unrelated host process inventory omitted before delivery. Original capture digest retained."
+    },
+    {
+      "name": "boot-1",
+      "argv": [
+        "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+        "-s",
+        "emulator-5586",
+        "shell",
+        "getprop",
+        "sys.boot_completed"
+      ],
+      "exitCode": 1,
+      "log": "boot-1.log",
+      "sha256": "0a4eaa910b7b5a1c8dd49906ad441b71bfdbc8f220ddca7855306b47295775fb"
+    },
+    {
+      "name": "boot-2",
+      "argv": [
+        "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+        "-s",
+        "emulator-5586",
+        "shell",
+        "getprop",
+        "sys.boot_completed"
+      ],
+      "exitCode": 0,
+      "log": "boot-2.log",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "name": "boot-3",
+      "argv": [
+        "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+        "-s",
+        "emulator-5586",
+        "shell",
+        "getprop",
+        "sys.boot_completed"
+      ],
+      "exitCode": 0,
+      "log": "boot-3.log",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "name": "boot-4",
+      "argv": [
+        "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+        "-s",
+        "emulator-5586",
+        "shell",
+        "getprop",
+        "sys.boot_completed"
+      ],
+      "exitCode": 0,
+      "log": "boot-4.log",
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "name": "qualification",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-native-appearance-v2/qualify.py",
+        "--output",
+        "candidate-16",
+        "--emulator",
+        "emulator-5586",
+        "--paired-viewport"
+      ],
+      "exitCode": 0,
+      "log": "qualification.log",
+      "sha256": "18ac6422ee5b7ebf0c66f0a82ab5bc59a89888b010f8ec30baa849393abe683d"
+    },
+    {
+      "name": "owned-process-before-cleanup",
+      "argv": [
+        "ps",
+        "-p",
+        "60668",
+        "-o",
+        "pid=,command="
+      ],
+      "exitCode": 0,
+      "log": "owned-process-before-cleanup.log",
+      "sha256": "2075afe872c341dce564857d658c673967feece2b0f55a41aefec2b22a765f82"
+    },
+    {
+      "name": "stop-owned-emulator",
+      "argv": [
+        "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+        "-s",
+        "emulator-5586",
+        "emu",
+        "kill"
+      ],
+      "exitCode": 0,
+      "log": "stop-owned-emulator.log",
+      "sha256": "c8688fc34ee1d36f2e975dad0607555ba84d8951ccb39e69b7ab7a5d159ec81f"
+    },
+    {
+      "name": "owned-process-after-cleanup",
+      "argv": [
+        "ps",
+        "-p",
+        "60668",
+        "-o",
+        "pid=,command="
+      ],
+      "exitCode": 1,
+      "log": "owned-process-after-cleanup.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "port-after-5586",
+      "argv": [
+        "lsof",
+        "-nP",
+        "-iTCP:5586",
+        "-sTCP:LISTEN"
+      ],
+      "exitCode": 1,
+      "log": "port-after-5586.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "port-after-5587",
+      "argv": [
+        "lsof",
+        "-nP",
+        "-iTCP:5587",
+        "-sTCP:LISTEN"
+      ],
+      "exitCode": 1,
+      "log": "port-after-5587.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "observedUTC": "2026-10-24T05:54:29.588944+00:00",
+  "scope": "One API37 emulator development run; no physical phones, other-project process changes, cross-platform parity or GA acceptance."
+}

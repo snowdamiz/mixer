@@ -15,6 +15,11 @@ jobs: Swift, VM and services. The terminal job/step observation is retained in
 cross-builds; current native behavior still requires its own simulator/emulator
 receipts.
 
+The subsequent token-verifier checkpoint `f18ea41` also passes all three engine
+jobs, alongside its already accepted Phoenix/Linux run. See
+`verification/github-ci-f18ea41-engine/receipt.json` and
+`verification/github-ci-f18ea41-phoenix/receipt.json`.
+
 Hosted-stack specification updated October 24: Elixir/Phoenix (Plug/Bandit),
 Ecto/Postgrex and Oban, Neon PostgreSQL, Cloudflare Containers/Workers/R2/CDN,
 SolidJS/TypeScript/Vite/Solid Router console, and Stripe Billing/Checkout/Customer
@@ -40,9 +45,13 @@ and simulator/emulator runtime tests on October 24. Reuse existing instances,
 keep normally one active per native lane, and shut down disposable instances
 after evidence collection. Preserve unrelated projects. Physical-phone testing
 remains deferred; resuming permission does not itself qualify any native behavior.
-The latest Android Section layout repair has native regression checks pending;
-the Apple pressed-switch paint repair is not yet qualified. Earlier captures
-cannot qualify those later source changes. See
+The Android Section and baseline repairs now pass the fresh API37 candidate-16
+run: 570 main, 120 first-baseline, 120 last-baseline and 14 inset assertions, plus
+five separately installed rejection fixtures. Root verifies its source/build
+and capture evidence; its owned emulator is shut down. See
+`docs/android-native-resume-2026-10-24.md`. Apple native revalidation is underway;
+the pressed-switch paint repair is not yet qualified. Earlier captures cannot
+qualify later source changes. Execution authorization is recorded in
 `verification/native-testing-resume-2026-10-24/receipt.json`. The previous
 `verification/computer-use-pause-2026-10-24/receipt.json` remains historical evidence.
 
@@ -56,8 +65,10 @@ The updated section 8.3 requires shared-theme design parity on iOS and Android,
 with platform-specific app appearance only when explicitly declared. Public Apple
 and Android application paths still use platform defaults and do not meet this requirement.
 The shared appearance data foundation now has independent and root acceptance.
-The private Android consumer now implements shared style consumption; its latest
-source has headless acceptance, with native revalidation pending. The private
+The private Android consumer implements shared style consumption; its latest
+source has scoped API37 emulator acceptance at
+`verification/android-native-appearance-v2/candidate-16-root-review/acceptance.json`.
+The private
 Apple consumer now has scoped headless acceptance; native appearance remains
 unqualified.
 Eight unchanged iOS simulator reference screenshots are captured and reviewed.

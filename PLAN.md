@@ -104,11 +104,13 @@ generated-app staging exports are implemented. Current source passes Java/DEX,
 host JNI and generated Swift tests, plus an inspected unsigned arm64 API28 APK
 build and deliberate missing-export rejection. Root evidence is in
 `verification/android-native-appearance-v2/root-headless-acceptance.json` and
-`verification/android-generated-v2-bridge/acceptance.json`. Historical API37
-native tests do not qualify the later Section/baseline corrections. Resume those
-native regressions and the pending Apple pressed-switch qualification under the
-resumed testing authorization. Continue coordinator/runtime implementation in
-parallel. Public application paths remain V1, and no GA or
+`verification/android-generated-v2-bridge/acceptance.json`. Fresh API37 candidate16
+now qualifies the private Android Section/baseline repairs with 570 main, 120 first-
+baseline, 120 last-baseline and 14 inset assertions plus five rejection installations.
+See `verification/android-native-appearance-v2/candidate-16-root-review/acceptance.json`
+and `docs/android-native-resume-2026-10-24.md`; the owned emulator is stopped.
+Apple pressed-switch/native qualification is underway. Continue coordinator/runtime
+implementation in parallel. Public application paths remain V1, and no GA or
 dogfood gate is passed.
 
 The Apple private consumer has scoped headless acceptance at
