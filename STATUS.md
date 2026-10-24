@@ -116,6 +116,11 @@ snapshots. See `verification/hosted-token-verifier-root-review/acceptance.json`.
 Configured provider/key ownership, identity HTTP routes, key transport/cache
 and authoritative membership remain pending; this does not authenticate an
 HTTP request or grant any tenant permission.
+The pushed verifier commit `f18ea41` also passes Linux hosted CI: 24 tests,
+packaged release and missing-config rejection. Root verified all 29 hosted
+source inputs and the downloaded artifact digest against that commit. See
+`verification/github-ci-f18ea41-phoenix/receipt.json`. Its separate engine
+workflow and frame commit `ff1bb26` are still being observed independently.
 
 The release server now owns a configuration snapshot before validation/storage
 open. Independent probes reproduced caller mutations changing token permissions,

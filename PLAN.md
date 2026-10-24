@@ -904,3 +904,8 @@ keys/claims, while retaining no role or tenant authority. Configured active
 trust ownership, bounded HTTPS key refresh/cache, provider interoperability and
 authoritative membership/RLS/private artifact operations remain next. This is
 a component acceptance; all hosted and GA completion gates remain open.
+
+Linux hosted CI at `f18ea41` confirms the 24-test application suite and packaged
+release checks; artifact/source verification is retained at
+`verification/github-ci-f18ea41-phoenix/receipt.json`. This adds Linux host
+evidence only; provider, membership, native and operational gates remain open.
