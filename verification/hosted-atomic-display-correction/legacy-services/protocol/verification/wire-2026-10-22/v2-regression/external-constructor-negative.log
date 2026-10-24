@@ -1,0 +1,53 @@
+/Users/andreyyurlov/Documents/dev/mixer/services/protocol/verification/authority-constructor-negative.swift:4:21: error: 'VerifiedCapabilityGrant' initializer is inaccessible due to 'fileprivate' protection level
+2 | // specifically for inaccessible initialization, not an unrelated import error.
+3 | import MixerUpdates
+4 | let inventedGrant = VerifiedCapabilityGrant(capabilityID: "network.http.v1", schemaSHA256: "unverified",
+  |                     `- error: 'VerifiedCapabilityGrant' initializer is inaccessible due to 'fileprivate' protection level
+5 |     permissions: ["network.https"], origins: ["https://example.com"], methods: ["GET"], namespaces: [])
+6 | let inventedGrants = VerifiedCapabilityGrants(entries: [])
+
+MixerUpdates.VerifiedCapabilityGrant.init:2:13: note: 'init(capabilityID:schemaSHA256:permissions:origins:methods:namespaces:)' declared here
+1 | struct VerifiedCapabilityGrant {
+2 | fileprivate init(capabilityID: String, schemaSHA256: String, permissions: [String], origins: [String], methods: [String], namespaces: [String])}
+  |             `- note: 'init(capabilityID:schemaSHA256:permissions:origins:methods:namespaces:)' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/services/protocol/verification/authority-constructor-negative.swift:6:22: error: 'VerifiedCapabilityGrants' initializer is inaccessible due to 'fileprivate' protection level
+4 | let inventedGrant = VerifiedCapabilityGrant(capabilityID: "network.http.v1", schemaSHA256: "unverified",
+5 |     permissions: ["network.https"], origins: ["https://example.com"], methods: ["GET"], namespaces: [])
+6 | let inventedGrants = VerifiedCapabilityGrants(entries: [])
+  |                      `- error: 'VerifiedCapabilityGrants' initializer is inaccessible due to 'fileprivate' protection level
+7 | let inventedArtifact = VerifiedArtifact()
+8 | 
+
+MixerUpdates.VerifiedCapabilityGrants.init:2:13: note: 'init(entries:)' declared here
+1 | struct VerifiedCapabilityGrants {
+2 | fileprivate init(entries: [MixerUpdates.VerifiedCapabilityGrant])}
+  |             `- note: 'init(entries:)' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/services/protocol/verification/authority-constructor-negative.swift:7:24: error: 'VerifiedArtifact' initializer is inaccessible due to 'fileprivate' protection level
+5 |     permissions: ["network.https"], origins: ["https://example.com"], methods: ["GET"], namespaces: [])
+6 | let inventedGrants = VerifiedCapabilityGrants(entries: [])
+7 | let inventedArtifact = VerifiedArtifact()
+  |                        `- error: 'VerifiedArtifact' initializer is inaccessible due to 'fileprivate' protection level
+8 | 
+
+MixerUpdates.VerifiedArtifact.init:2:13: note: 'init(manifest:artifactSHA256:payloadSHA256:releaseID:payloadBytes:resourceLimits:capabilityGrants:artifactSignature:)' declared here
+1 | struct VerifiedArtifact {
+2 | fileprivate init(manifest: MixerUpdates.CanonicalValue, artifactSHA256: String, payloadSHA256: String, releaseID: String, payloadBytes: UInt64, resourceLimits: MixerUpdates.ResourceLimits, capabilityGrants: MixerUpdates.VerifiedCapabilityGrants?, artifactSignature: Data)}
+  |             `- note: 'init(manifest:artifactSHA256:payloadSHA256:releaseID:payloadBytes:resourceLimits:capabilityGrants:artifactSignature:)' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/services/protocol/verification/authority-constructor-negative.swift:7:40: error: missing arguments for parameters 'manifest', 'artifactSHA256', 'payloadSHA256', 'releaseID', 'payloadBytes', 'resourceLimits', 'capabilityGrants', 'artifactSignature' in call
+5 |     permissions: ["network.https"], origins: ["https://example.com"], methods: ["GET"], namespaces: [])
+6 | let inventedGrants = VerifiedCapabilityGrants(entries: [])
+7 | let inventedArtifact = VerifiedArtifact()
+  |                                        `- error: missing arguments for parameters 'manifest', 'artifactSHA256', 'payloadSHA256', 'releaseID', 'payloadBytes', 'resourceLimits', 'capabilityGrants', 'artifactSignature' in call
+8 | 
+
+MixerUpdates.VerifiedArtifact.init:2:13: note: 'init(manifest:artifactSHA256:payloadSHA256:releaseID:payloadBytes:resourceLimits:capabilityGrants:artifactSignature:)' declared here
+1 | struct VerifiedArtifact {
+2 | fileprivate init(manifest: MixerUpdates.CanonicalValue, artifactSHA256: String, payloadSHA256: String, releaseID: String, payloadBytes: UInt64, resourceLimits: MixerUpdates.ResourceLimits, capabilityGrants: MixerUpdates.VerifiedCapabilityGrants?, artifactSignature: Data)}
+  |             `- note: 'init(manifest:artifactSHA256:payloadSHA256:releaseID:payloadBytes:resourceLimits:capabilityGrants:artifactSignature:)' declared here
+3 | 

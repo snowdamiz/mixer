@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "root_selection": "docs/hosted-atomic-storage-corrections.md",
+  "root_selection_receipt": "verification/hosted-atomic-storage-root-review/correction-selection.json",
+  "ownership": [
+    "docs/hosted-atomic-storage-corrected-preflight.md",
+    "verification/hosted-atomic-storage-corrected-preflight/**",
+    "unique owned disposable local PostgreSQL/scratch resources"
+  ],
+  "clarifications": [
+    {
+      "topic": "exact counts",
+      "selected": "41 original producer cases and20 independent reviewer cases; stray151 typo is not a requirement"
+    },
+    {
+      "topic": "case39 malformed setup",
+      "selected": "Preserve the rejection assertion using explicit test-only malformed bytes; do not weaken the strict decoder"
+    },
+    {
+      "topic": "time relationships",
+      "selected": "Authentication completion may be decision+30; no completion<=decision/recorded requirement; recorded>=decision"
+    },
+    {
+      "topic": "JSONB schema representation",
+      "selected": "event_from_display(jsonb) validates retained typed JSONB integer representation1. Raw1e0 normalizes to1 before entry and cannot be recovered. Preserve failing run5 lexical oracle, test accepted normalized control and retained noninteger rejection; separate Elixir typed integer1. No raw JSON API or raw-spelling claim."
+    },
+    {
+      "topic": "privileged offline corruption",
+      "selected": "Bounded adjacent-edge/cached semantic checks under immutable runtime rows; no whole-chain scan or proof against coherent offline privileged rewrite"
+    }
+  ],
+  "no_other_lane_or_live_sources_owned": true,
+  "fresh_independent_review_required": true
+}

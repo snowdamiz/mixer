@@ -1,0 +1,34 @@
+--- frozen-producer/lib/codec.ex
++++ corrected-specimen/lib/codec.ex
+@@ -140,9 +140,30 @@
+ 
+   def postgres_display(v) when is_map(v) do
+     "{" <> (v |> Map.to_list() |> Enum.sort_by(fn {k, _} -> {byte_size(k), k} end)
+-      |> Enum.map_join(", ", fn {k, value} -> Jason.encode!(k) <> ": " <> postgres_display(value) end)) <> "}"
++      |> Enum.map_join(", ", fn {k, value} -> postgres_display(k) <> ": " <> postgres_display(value) end)) <> "}"
+   end
+   def postgres_display(v) when is_list(v), do: "[" <> Enum.map_join(v, ", ", &postgres_display/1) <> "]"
++  # PostgreSQL jsonb_out string spelling for this closed retained schema.
++  # Operate on validated source bytes; never substitute inside encoded JSON.
++  def postgres_display(v) when is_binary(v) do
++    ensure(String.valid?(v) and not String.contains?(v, <<0>>), "PostgreSQL text")
++    escaped = for <<c <- v>> do
++      case c do
++        34 -> ~S(\")
++        92 -> ~S(\\)
++        8 -> ~S(\b)
++        12 -> ~S(\f)
++        10 -> ~S(\n)
++        13 -> ~S(\r)
++        9 -> ~S(\t)
++        control when control < 32 ->
++          ["\\u00", binary_part("0123456789abcdef", div(control, 16), 1),
++           binary_part("0123456789abcdef", rem(control, 16), 1)]
++        byte -> <<byte>>
++      end
++    end
++    IO.iodata_to_binary([34, escaped, 34])
++  end
+   def postgres_display(v), do: Jason.encode!(v)
+ 
+   defp ensure(true, _), do: :ok

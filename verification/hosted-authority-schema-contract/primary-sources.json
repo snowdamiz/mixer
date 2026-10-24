@@ -1,0 +1,29 @@
+{
+  "checked_utc": "2026-10-24T08:52:54.335302+00:00",
+  "sources": [
+    {
+      "url": "https://www.postgresql.org/docs/17/sql-createfunction.html",
+      "finding": "Definer ownership, fixed safe search path and closing default PUBLIC execution are required; the installed catalog and executable ACL cases provide candidate evidence."
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/transaction-iso.html",
+      "finding": "READ COMMITTED permits current committed state in later statements; exact deployment behavior still needs provider qualification."
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/xfunc-volatility.html",
+      "finding": "VOLATILE standard-language functions obtain a fresh snapshot for each internal query; a real waiting outer-statement schedule verifies that behavior in this candidate."
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/ddl-rowsecurity.html",
+      "finding": "FORCE RLS, explicit applicable policies and normal role privileges are distinct controls. RLS does not guard whole-table TRUNCATE or REFERENCES."
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/sql-select.html",
+      "finding": "Locking SELECT requires UPDATE privilege; the five policy-removal cases demonstrate that UPDATE RLS visibility is also required in this candidate."
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/libpq-exec.html",
+      "finding": "PQexec executes SQL synchronously and PQresultStatus/PQresultErrorField expose actual result class and SQLSTATE. The test driver binds installed libpq directly without a new Python package."
+    }
+  ]
+}

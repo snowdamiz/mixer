@@ -1,0 +1,1929 @@
+{
+  "database": {
+    "acl": "{andreyyurlov=CTc/andreyyurlov,mixer_hosted_runtime=c/andreyyurlov}",
+    "name": "authority_contract",
+    "owner": "andreyyurlov"
+  },
+  "default_acl": [
+    {
+      "acl": "{mixer_hosted_schema_owner=U/mixer_hosted_schema_owner}",
+      "owner": "mixer_hosted_schema_owner",
+      "schema": "",
+      "type": "T"
+    },
+    {
+      "acl": "{mixer_hosted_schema_owner=X/mixer_hosted_schema_owner}",
+      "owner": "mixer_hosted_schema_owner",
+      "schema": "",
+      "type": "f"
+    }
+  ],
+  "functions": [
+    {
+      "acl": "{mixer_hosted_schema_owner=X/mixer_hosted_schema_owner,mixer_hosted_authz_resolver=X/mixer_hosted_schema_owner}",
+      "config": [
+        "search_path=pg_catalog"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION mixer_authz.assert_transaction(x mixer_authz.transaction_identity_v1)\n RETURNS void\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog'\nAS $function$\nBEGIN\n IF session_user<>'mixer_hosted_runtime' OR current_setting('role')<>'none' OR current_setting('transaction_isolation')<>'read committed' OR x.backend IS DISTINCT FROM pg_backend_pid() OR x.full_xid IS DISTINCT FROM pg_current_xact_id()::text OR x.database_name IS DISTINCT FROM current_database()::name OR x.runtime_role IS DISTINCT FROM session_user::name OR x.nonce IS NULL OR x.nonce !~ '^[0-9a-f]{64}$' OR x.nonce IS DISTINCT FROM nullif(current_setting('mixer_authz.invocation_nonce',true),'') OR x.deadline IS NULL OR NOT isfinite(x.deadline) OR x.deadline<=clock_timestamp() OR x.deadline>clock_timestamp()+interval '5 seconds' OR x.deadline::text IS DISTINCT FROM nullif(current_setting('mixer_authz.deadline',true),'') THEN RAISE EXCEPTION 'transaction context rejected' USING ERRCODE='42501';END IF;\nEND $function$\n",
+      "definition_sha256": "e81e0d3779d9c520df9ac23dfdee3417e5655fc87ba483aba0e4c0b04d59d50f",
+      "identity": "mixer_authz.assert_transaction(mixer_authz.transaction_identity_v1)",
+      "language": "plpgsql",
+      "leakproof": false,
+      "owner": "mixer_hosted_schema_owner",
+      "parallel": "u",
+      "public_execute": false,
+      "runtime_execute": false,
+      "security_definer": false,
+      "volatility": "v",
+      "writer_execute": false
+    },
+    {
+      "acl": "{mixer_hosted_schema_owner=X/mixer_hosted_schema_owner,mixer_hosted_authz_resolver=X/mixer_hosted_schema_owner}",
+      "config": [
+        "search_path=pg_catalog"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION mixer_authz.bounded_text(t text, hi integer)\n RETURNS boolean\n LANGUAGE sql\n IMMUTABLE\n SET search_path TO 'pg_catalog'\nAS $function$ SELECT coalesce(octet_length(t) BETWEEN 1 AND hi,false) $function$\n",
+      "definition_sha256": "07abebf0bab2d48e449efe0ba6f14feb19e1ce6334fa473b7e93291ba56f1d32",
+      "identity": "mixer_authz.bounded_text(text,integer)",
+      "language": "sql",
+      "leakproof": false,
+      "owner": "mixer_hosted_schema_owner",
+      "parallel": "u",
+      "public_execute": false,
+      "runtime_execute": false,
+      "security_definer": false,
+      "volatility": "i",
+      "writer_execute": false
+    },
+    {
+      "acl": "{mixer_hosted_authz_resolver=X/mixer_hosted_authz_resolver,mixer_hosted_runtime=X/mixer_hosted_authz_resolver}",
+      "config": [
+        "search_path=pg_catalog",
+        "row_security=on"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION mixer_authz.decide_current(i mixer_authz.verified_identity_v1, t mixer_authz.target_v1, a mixer_authz.admission_v1, x mixer_authz.transaction_identity_v1)\n RETURNS mixer_authz.decision_v1\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'pg_catalog'\n SET row_security TO 'on'\nAS $function$\nDECLARE locked mixer_authz.admission_v1;\nBEGIN\n IF a.lock_statement_at IS NULL OR NOT isfinite(a.lock_statement_at) OR a.lock_statement_at>=statement_timestamp() THEN RAISE EXCEPTION 'separate lock statement required' USING ERRCODE='42501';END IF;\n -- Admission proves actual cardinality by acquiring every lock again. No tenant head yet.\n locked:=mixer_authz.lock_admission_rows(i,t,a,x);\n IF ROW(a.profile_revision,a.principal_revision,a.family_revision,a.organization_revision,a.project_revision) IS DISTINCT FROM ROW(locked.profile_revision,locked.principal_revision,locked.family_revision,locked.organization_revision,locked.project_revision) THEN RAISE EXCEPTION 'revision substitution/change' USING ERRCODE='42501';END IF;\n RETURN mixer_authz.recheck_current(i,t,a,x);\nEND $function$\n",
+      "definition_sha256": "cf62f14a2a9c85c53b2c2e8ed6b29ed76ec56caa791b923d0e346a8bf4490ae1",
+      "identity": "mixer_authz.decide_current(mixer_authz.verified_identity_v1,mixer_authz.target_v1,mixer_authz.admission_v1,mixer_authz.transaction_identity_v1)",
+      "language": "plpgsql",
+      "leakproof": false,
+      "owner": "mixer_hosted_authz_resolver",
+      "parallel": "u",
+      "public_execute": false,
+      "runtime_execute": true,
+      "security_definer": true,
+      "volatility": "v",
+      "writer_execute": false
+    },
+    {
+      "acl": "{mixer_hosted_schema_owner=X/mixer_hosted_schema_owner,mixer_hosted_authz_resolver=X/mixer_hosted_schema_owner}",
+      "config": [
+        "search_path=pg_catalog"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION mixer_authz.finite_uint(n numeric, lo numeric, hi numeric)\n RETURNS boolean\n LANGUAGE sql\n IMMUTABLE\n SET search_path TO 'pg_catalog'\nAS $function$ SELECT coalesce(n IS NOT NULL AND n::text NOT IN ('NaN','Infinity','-Infinity') AND n BETWEEN lo AND hi AND trunc(n)=n,false) $function$\n",
+      "definition_sha256": "77b599e3c554e793543fb9ee1be270f2085f1e3c5f8d2fb93df28ebd07d945e6",
+      "identity": "mixer_authz.finite_uint(numeric,numeric,numeric)",
+      "language": "sql",
+      "leakproof": false,
+      "owner": "mixer_hosted_schema_owner",
+      "parallel": "u",
+      "public_execute": false,
+      "runtime_execute": false,
+      "security_definer": false,
+      "volatility": "i",
+      "writer_execute": false
+    },
+    {
+      "acl": "{mixer_hosted_schema_owner=X/mixer_hosted_schema_owner}",
+      "config": [
+        "search_path=pg_catalog"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION mixer_authz.guard_lifecycle()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog'\nAS $function$\nBEGIN\n IF TG_OP='DELETE' THEN RAISE EXCEPTION 'hard delete forbidden' USING ERRCODE='23514';END IF;\n IF TG_TABLE_NAME IN ('external_identity_bindings','credential_references') THEN RAISE EXCEPTION 'immutable binding' USING ERRCODE='23514';END IF;\n IF (to_jsonb(NEW)->>'revision')::bigint<>(to_jsonb(OLD)->>'revision')::bigint+1 THEN RAISE EXCEPTION 'revision must increment exactly' USING ERRCODE='23514';END IF;\n IF TG_TABLE_NAME='identity_trust_profiles' THEN\n  IF ROW(NEW.profile_id,NEW.issuer,NEW.client_id,NEW.identity_class) IS DISTINCT FROM ROW(OLD.profile_id,OLD.issuer,OLD.client_id,OLD.identity_class) OR NEW.current_version<OLD.current_version OR (NOT OLD.enabled AND NEW.enabled AND NEW.current_version<=OLD.current_version) THEN RAISE EXCEPTION 'profile identity/version immutable' USING ERRCODE='23514';END IF;\n ELSIF TG_TABLE_NAME='principals' THEN\n  IF ROW(NEW.principal_id,NEW.kind,NEW.owning_organization) IS DISTINCT FROM ROW(OLD.principal_id,OLD.kind,OLD.owning_organization) OR NEW.valid_after<OLD.valid_after THEN RAISE EXCEPTION 'principal immutable/cutoff' USING ERRCODE='23514';END IF;\n ELSIF TG_TABLE_NAME='credential_families' THEN\n  IF ROW(NEW.family_id,NEW.binding_id,NEW.principal_id,NEW.profile_id) IS DISTINCT FROM ROW(OLD.family_id,OLD.binding_id,OLD.principal_id,OLD.profile_id) OR NEW.valid_after<OLD.valid_after OR (OLD.status='revoked' AND NEW.status<>'revoked') THEN RAISE EXCEPTION 'family immutable/cutoff' USING ERRCODE='23514';END IF;\n ELSIF TG_TABLE_NAME='organization_memberships' OR TG_TABLE_NAME='project_memberships' THEN\n  IF (to_jsonb(NEW)-ARRAY['status','not_before','expires_at','revision']) IS DISTINCT FROM (to_jsonb(OLD)-ARRAY['status','not_before','expires_at','revision']) OR (OLD.status='revoked' AND NEW.status<>'revoked') THEN RAISE EXCEPTION 'membership lifecycle immutable' USING ERRCODE='23514';END IF;\n ELSE\n  IF (to_jsonb(NEW)-ARRAY['status','risk_class','revision']) IS DISTINCT FROM (to_jsonb(OLD)-ARRAY['status','risk_class','revision']) OR (to_jsonb(OLD)->>'status'='deleted' AND to_jsonb(NEW)->>'status'<>'deleted') THEN RAISE EXCEPTION 'resource identity immutable' USING ERRCODE='23514';END IF;\n END IF;RETURN NEW;\nEND $function$\n",
+      "definition_sha256": "84836de4d7a05013e7fcdceb9038a555f64c723c0f4e0f56321ec14555305941",
+      "identity": "mixer_authz.guard_lifecycle()",
+      "language": "plpgsql",
+      "leakproof": false,
+      "owner": "mixer_hosted_schema_owner",
+      "parallel": "u",
+      "public_execute": false,
+      "runtime_execute": false,
+      "security_definer": false,
+      "volatility": "v",
+      "writer_execute": false
+    },
+    {
+      "acl": "{mixer_hosted_authz_resolver=X/mixer_hosted_authz_resolver,mixer_hosted_runtime=X/mixer_hosted_authz_resolver}",
+      "config": [
+        "search_path=pg_catalog",
+        "row_security=on"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION mixer_authz.lock_admission_rows(i mixer_authz.verified_identity_v1, t mixer_authz.target_v1, a mixer_authz.admission_v1, x mixer_authz.transaction_identity_v1)\n RETURNS mixer_authz.admission_v1\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'pg_catalog'\n SET row_security TO 'on'\nAS $function$\nDECLARE b mixer_authz.admission_v1;r mixer_authz.admission_v1:=a;\nBEGIN\n b:=mixer_authz.lookup_admission(i,t,x);\n IF a.identity IS DISTINCT FROM i OR a.target IS DISTINCT FROM t OR a.transaction_identity IS DISTINCT FROM x OR ROW(a.principal_id,a.binding_id,a.family_id) IS DISTINCT FROM ROW(b.principal_id,b.binding_id,b.family_id) THEN RAISE EXCEPTION 'admission substitution' USING ERRCODE='42501';END IF;\n SELECT p.revision INTO r.profile_revision FROM mixer_authz.identity_trust_profiles p WHERE p.profile_id=i.profile_id FOR SHARE;IF NOT FOUND THEN RAISE EXCEPTION 'lock row missing' USING ERRCODE='42501';END IF;\n SELECT p.revision INTO r.principal_revision FROM mixer_authz.principals p WHERE p.principal_id=a.principal_id FOR SHARE;IF NOT FOUND THEN RAISE EXCEPTION 'lock row missing' USING ERRCODE='42501';END IF;\n SELECT f.revision INTO r.family_revision FROM mixer_authz.credential_families f WHERE f.family_id=a.family_id AND f.binding_id=a.binding_id AND f.principal_id=a.principal_id AND f.profile_id=i.profile_id FOR SHARE;IF NOT FOUND THEN RAISE EXCEPTION 'lock row missing' USING ERRCODE='42501';END IF;\n SELECT h.revision INTO r.organization_revision FROM mixer_authz.organization_authorization_heads h WHERE h.organization=t.organization FOR SHARE;IF NOT FOUND THEN RAISE EXCEPTION 'lock row missing' USING ERRCODE='42501';END IF;\n SELECT h.revision INTO r.project_revision FROM mixer_authz.project_authorization_heads h WHERE (h.organization,h.project)=(t.organization,t.project) FOR SHARE;IF NOT FOUND THEN RAISE EXCEPTION 'lock row missing' USING ERRCODE='42501';END IF;\n -- Reassert immutable lookup after all locks. No capability is returned.\n b:=mixer_authz.lookup_admission(i,t,x);\n IF ROW(a.principal_id,a.binding_id,a.family_id) IS DISTINCT FROM ROW(b.principal_id,b.binding_id,b.family_id) THEN RAISE EXCEPTION 'mapping changed' USING ERRCODE='42501';END IF;\n r.lock_statement_at:=statement_timestamp();RETURN r;\nEND $function$\n",
+      "definition_sha256": "8aa8c767dbad53efa66ef1944dff9b18f30215d6aa8b0125715f3bb9b7863d0a",
+      "identity": "mixer_authz.lock_admission_rows(mixer_authz.verified_identity_v1,mixer_authz.target_v1,mixer_authz.admission_v1,mixer_authz.transaction_identity_v1)",
+      "language": "plpgsql",
+      "leakproof": false,
+      "owner": "mixer_hosted_authz_resolver",
+      "parallel": "u",
+      "public_execute": false,
+      "runtime_execute": true,
+      "security_definer": true,
+      "volatility": "v",
+      "writer_execute": false
+    },
+    {
+      "acl": "{mixer_hosted_authz_resolver=X/mixer_hosted_authz_resolver,mixer_hosted_runtime=X/mixer_hosted_authz_resolver}",
+      "config": [
+        "search_path=pg_catalog",
+        "row_security=on"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION mixer_authz.lookup_admission(i mixer_authz.verified_identity_v1, t mixer_authz.target_v1, x mixer_authz.transaction_identity_v1)\n RETURNS mixer_authz.admission_v1\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'pg_catalog'\n SET row_security TO 'on'\nAS $function$\nDECLARE a mixer_authz.admission_v1;\nBEGIN\n PERFORM mixer_authz.assert_transaction(x);PERFORM mixer_authz.validate_inputs(i,t);\n SELECT b.principal_id,b.binding_id,c.family_id INTO a.principal_id,a.binding_id,a.family_id FROM mixer_authz.external_identity_bindings b JOIN mixer_authz.credential_references c ON (c.binding_id,c.principal_id,c.profile_id)=(b.binding_id,b.principal_id,b.profile_id) WHERE b.profile_id=i.profile_id AND b.issuer=i.issuer AND b.subject=i.subject AND b.registered_client=i.client_id AND b.identity_class=i.identity_class AND c.jti_sha256=i.credential_sha256 AND c.accepted_issued_at=i.issued_at AND c.accepted_expires_at=i.expires_at;\n IF NOT FOUND THEN RAISE EXCEPTION 'credential rejected' USING ERRCODE='42501';END IF;\n a.identity:=i;a.target:=t;a.transaction_identity:=x;RETURN a;\nEND $function$\n",
+      "definition_sha256": "2a46bca34a88810a898f47e455135b53ba7c605ba0f9fd8f8934f70ff3a8c61c",
+      "identity": "mixer_authz.lookup_admission(mixer_authz.verified_identity_v1,mixer_authz.target_v1,mixer_authz.transaction_identity_v1)",
+      "language": "plpgsql",
+      "leakproof": false,
+      "owner": "mixer_hosted_authz_resolver",
+      "parallel": "u",
+      "public_execute": false,
+      "runtime_execute": true,
+      "security_definer": true,
+      "volatility": "v",
+      "writer_execute": false
+    },
+    {
+      "acl": "{mixer_hosted_authz_resolver=X/mixer_hosted_authz_resolver,mixer_hosted_domain_writer=X/mixer_hosted_authz_resolver}",
+      "config": [
+        "search_path=pg_catalog",
+        "row_security=on"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION mixer_authz.recheck_current(i mixer_authz.verified_identity_v1, t mixer_authz.target_v1, a mixer_authz.admission_v1, x mixer_authz.transaction_identity_v1)\n RETURNS mixer_authz.decision_v1\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'pg_catalog'\n SET row_security TO 'on'\nAS $function$\nDECLARE locked mixer_authz.admission_v1;d mixer_authz.decision_v1;p mixer_authz.identity_trust_profiles;pr mixer_authz.principals;f mixer_authz.credential_families;now_s numeric;final_now numeric;members mixer_authz.membership_witness_v1[];eligible boolean;visible boolean;needed text;\nBEGIN\n IF a.lock_statement_at IS NULL OR NOT isfinite(a.lock_statement_at) OR a.lock_statement_at>=statement_timestamp() THEN RAISE EXCEPTION 'separate lock statement required' USING ERRCODE='42501';END IF;\n -- Writer recheck NEVER acquires a lock: caller already holds canonical locks.\n locked:=mixer_authz.lookup_admission(i,t,x);\n IF a.identity IS DISTINCT FROM i OR a.target IS DISTINCT FROM t OR a.transaction_identity IS DISTINCT FROM x OR ROW(a.principal_id,a.binding_id,a.family_id) IS DISTINCT FROM ROW(locked.principal_id,locked.binding_id,locked.family_id) THEN RAISE EXCEPTION 'admission substitution' USING ERRCODE='42501';END IF;\n SELECT pp.revision,qq.revision,ff.revision,oh.revision,ph.revision INTO locked.profile_revision,locked.principal_revision,locked.family_revision,locked.organization_revision,locked.project_revision FROM mixer_authz.identity_trust_profiles pp CROSS JOIN mixer_authz.principals qq CROSS JOIN mixer_authz.credential_families ff CROSS JOIN mixer_authz.organization_authorization_heads oh CROSS JOIN mixer_authz.project_authorization_heads ph WHERE pp.profile_id=i.profile_id AND qq.principal_id=a.principal_id AND ff.family_id=a.family_id AND oh.organization=t.organization AND (ph.organization,ph.project)=(t.organization,t.project);\n IF NOT FOUND OR ROW(a.profile_revision,a.principal_revision,a.family_revision,a.organization_revision,a.project_revision) IS DISTINCT FROM ROW(locked.profile_revision,locked.principal_revision,locked.family_revision,locked.organization_revision,locked.project_revision) THEN RAISE EXCEPTION 'revision substitution/change' USING ERRCODE='42501';END IF;\n PERFORM mixer_authz.assert_transaction(x);\n -- This VOLATILE internal statement obtains fresh READ COMMITTED current state.\n SELECT pp.* INTO STRICT p FROM mixer_authz.identity_trust_profiles pp WHERE pp.profile_id=i.profile_id;\n SELECT qq.* INTO STRICT pr FROM mixer_authz.principals qq WHERE qq.principal_id=a.principal_id;\n SELECT ff.* INTO STRICT f FROM mixer_authz.credential_families ff WHERE ff.family_id=a.family_id;\n now_s:=floor(extract(epoch FROM clock_timestamp()));\n IF NOT mixer_authz.finite_uint(now_s,0,9007199254740991) OR NOT p.enabled OR p.current_version<>i.profile_version OR ROW(p.issuer,p.client_id,p.identity_class) IS DISTINCT FROM ROW(i.issuer,i.client_id,i.identity_class) OR pr.kind<>'human' OR pr.status<>'active' OR f.status<>'active' OR i.issued_at<pr.valid_after OR i.issued_at<f.valid_after OR now_s>=i.expires_at OR i.authentication_completed_at<now_s-45 OR i.authentication_completed_at>now_s+30 OR EXISTS(SELECT 1 FROM mixer_authz.credential_denials den WHERE den.binding_id=a.binding_id AND den.jti_sha256=i.credential_sha256) THEN RAISE EXCEPTION 'current credential rejected' USING ERRCODE='42501';END IF;\n d.principal_id:=a.principal_id;d.binding_id:=a.binding_id;d.family_id:=a.family_id;d.decision_at:=now_s;d.profile_revision:=locked.profile_revision;d.principal_revision:=locked.principal_revision;d.family_revision:=locked.family_revision;d.organization_revision:=locked.organization_revision;d.project_revision:=locked.project_revision;d.memberships:=ARRAY[]::mixer_authz.membership_witness_v1[];\n IF NOT EXISTS(SELECT 1 FROM mixer_authz.organizations o JOIN mixer_authz.projects pj USING(organization) WHERE o.organization=t.organization AND pj.project=t.project AND o.status='active' AND pj.status='active') OR (t.action<>'audit.read' AND NOT EXISTS(SELECT 1 FROM mixer_authz.applications ap JOIN mixer_authz.environments en USING(organization,project,app) WHERE (ap.organization,ap.project,ap.app,en.environment)=(t.organization,t.project,t.app,t.environment) AND ap.status='active' AND en.status='active')) THEN d.outcome:='not_found';RETURN d;END IF;\n -- Chosen final decision clock: recompute the FULL bounded applicable union at this clock.\n now_s:=floor(extract(epoch FROM clock_timestamp()));d.decision_at:=now_s;\n IF NOT mixer_authz.finite_uint(now_s,0,9007199254740991) OR now_s>=i.expires_at OR i.authentication_completed_at<now_s-45 OR i.authentication_completed_at>now_s+30 THEN RAISE EXCEPTION 'current time rejected' USING ERRCODE='42501';END IF;\n PERFORM mixer_authz.assert_transaction(x);\n SELECT array_agg(ROW(m.lifecycle_id,m.role,m.revision)::mixer_authz.membership_witness_v1 ORDER BY m.lifecycle_id) INTO members FROM (SELECT allm.* FROM (SELECT om.lifecycle_id,om.role,om.revision FROM mixer_authz.organization_memberships om WHERE om.principal_id=a.principal_id AND om.organization=t.organization AND om.project_binding='organization_wide' AND om.status='active' AND (om.not_before IS NULL OR om.not_before<=now_s) AND (om.expires_at IS NULL OR now_s<om.expires_at) UNION ALL SELECT pm.lifecycle_id,pm.role,pm.revision FROM mixer_authz.project_memberships pm WHERE pm.principal_id=a.principal_id AND (pm.organization,pm.project)=(t.organization,t.project) AND pm.status='active' AND (pm.not_before IS NULL OR pm.not_before<=now_s) AND (pm.expires_at IS NULL OR now_s<pm.expires_at)) allm ORDER BY allm.lifecycle_id LIMIT 65) m;\n IF cardinality(members)>64 OR (SELECT count(DISTINCT m.lifecycle_id) FROM unnest(members) m)<>coalesce(cardinality(members),0) THEN d.outcome:='authorization_unavailable';RETURN d;END IF;\n visible:=coalesce(cardinality(members)>0,false);IF NOT visible THEN d.outcome:='not_found';RETURN d;END IF;\n d.memberships:=members;\n SELECT bool_or(m.role IN ('owner','administrator','developer') OR (t.action<>'artifact.upload' AND m.role IN ('release_manager','viewer'))) INTO eligible FROM unnest(members) m;\n needed:=CASE t.action WHEN 'artifact.read' THEN 'mixer.artifact.read' WHEN 'artifact.upload' THEN 'mixer.artifact.upload' WHEN 'audit.read' THEN 'mixer.audit.read' END;\n d.outcome:=CASE WHEN eligible AND needed=ANY(i.scopes) THEN 'allowed' ELSE 'forbidden' END;\n final_now:=floor(extract(epoch FROM clock_timestamp()));\n IF NOT mixer_authz.finite_uint(final_now,0,9007199254740991) OR final_now>=i.expires_at OR i.authentication_completed_at<final_now-45 OR i.authentication_completed_at>final_now+30 THEN RAISE EXCEPTION 'final time rejected' USING ERRCODE='42501';END IF;\n PERFORM mixer_authz.assert_transaction(x);RETURN d;\nEND $function$\n",
+      "definition_sha256": "8c3cddd77097f2262ca5450c5473013cd074c3f9a58b437e4529ced495c5f47c",
+      "identity": "mixer_authz.recheck_current(mixer_authz.verified_identity_v1,mixer_authz.target_v1,mixer_authz.admission_v1,mixer_authz.transaction_identity_v1)",
+      "language": "plpgsql",
+      "leakproof": false,
+      "owner": "mixer_hosted_authz_resolver",
+      "parallel": "u",
+      "public_execute": false,
+      "runtime_execute": false,
+      "security_definer": true,
+      "volatility": "v",
+      "writer_execute": true
+    },
+    {
+      "acl": "{mixer_hosted_schema_owner=X/mixer_hosted_schema_owner,mixer_hosted_authz_resolver=X/mixer_hosted_schema_owner}",
+      "config": [
+        "search_path=pg_catalog"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION mixer_authz.valid_id(t text)\n RETURNS boolean\n LANGUAGE sql\n IMMUTABLE\n SET search_path TO 'pg_catalog'\nAS $function$ SELECT coalesce(octet_length(t) BETWEEN 1 AND 128 AND t COLLATE \"C\" ~ '^[A-Za-z0-9_.-]+$',false) $function$\n",
+      "definition_sha256": "bd7826df0b7fa6883439ceca547f365d7abdb75cf3979d7428a88376623e3e89",
+      "identity": "mixer_authz.valid_id(text)",
+      "language": "sql",
+      "leakproof": false,
+      "owner": "mixer_hosted_schema_owner",
+      "parallel": "u",
+      "public_execute": false,
+      "runtime_execute": false,
+      "security_definer": false,
+      "volatility": "i",
+      "writer_execute": false
+    },
+    {
+      "acl": "{mixer_hosted_schema_owner=X/mixer_hosted_schema_owner,mixer_hosted_authz_resolver=X/mixer_hosted_schema_owner}",
+      "config": [
+        "search_path=pg_catalog"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION mixer_authz.validate_inputs(i mixer_authz.verified_identity_v1, t mixer_authz.target_v1)\n RETURNS void\n LANGUAGE plpgsql\n IMMUTABLE\n SET search_path TO 'pg_catalog'\nAS $function$\nDECLARE sc text;\nBEGIN\n IF NOT mixer_authz.bounded_text(i.profile_id,128) OR i.profile_version IS NULL OR i.profile_version<1 OR NOT mixer_authz.bounded_text(i.issuer,2048) OR NOT mixer_authz.bounded_text(i.subject,256) OR NOT mixer_authz.bounded_text(i.client_id,256) OR i.credential_sha256 IS NULL OR octet_length(i.credential_sha256)<>32 OR i.identity_class IS DISTINCT FROM 'human' OR NOT mixer_authz.finite_uint(i.issued_at,0,9007199254740991) OR NOT mixer_authz.finite_uint(i.expires_at,0,9007199254740991) OR NOT mixer_authz.finite_uint(i.authentication_completed_at,0,9007199254740991) OR i.issued_at>=i.expires_at OR i.authentication_completed_at>=i.expires_at OR i.scopes IS NULL OR cardinality(i.scopes)>3 OR array_ndims(i.scopes)>1 OR (cardinality(i.scopes)>0 AND array_lower(i.scopes,1)<>1) THEN RAISE EXCEPTION 'invalid identity' USING ERRCODE='42501';END IF;\n FOREACH sc IN ARRAY i.scopes LOOP IF sc IS NULL OR sc NOT IN ('mixer.artifact.read','mixer.artifact.upload','mixer.audit.read') THEN RAISE EXCEPTION 'invalid scopes' USING ERRCODE='42501';END IF;END LOOP;\n IF (SELECT count(DISTINCT x) FROM unnest(i.scopes) x)<>cardinality(i.scopes) THEN RAISE EXCEPTION 'duplicate scopes' USING ERRCODE='42501';END IF;\n IF t.action IS NULL OR t.action NOT IN ('artifact.read','artifact.upload','audit.read') OR NOT mixer_authz.valid_id(t.organization) OR NOT mixer_authz.valid_id(t.project) THEN RAISE EXCEPTION 'invalid action/tenant' USING ERRCODE='42501';END IF;\n IF t.action='audit.read' THEN\n  IF t.app IS NOT NULL OR t.environment IS NOT NULL OR t.platform IS NOT NULL OR t.runtime_sha256 IS NOT NULL OR t.manifest_sha256 IS NOT NULL THEN RAISE EXCEPTION 'invalid audit target' USING ERRCODE='42501';END IF;\n ELSIF NOT mixer_authz.valid_id(t.app) OR NOT mixer_authz.valid_id(t.environment) OR t.platform IS NULL OR t.platform NOT IN ('ios','android') OR t.runtime_sha256 IS NULL OR octet_length(t.runtime_sha256)<>32 OR t.manifest_sha256 IS NULL OR octet_length(t.manifest_sha256)<>32 THEN RAISE EXCEPTION 'invalid artifact target' USING ERRCODE='42501';END IF;\nEND $function$\n",
+      "definition_sha256": "fc858c9e74d335f0f0bddb04b430e200e81e2389242e89081f6e1ad7c7fe4005",
+      "identity": "mixer_authz.validate_inputs(mixer_authz.verified_identity_v1,mixer_authz.target_v1)",
+      "language": "plpgsql",
+      "leakproof": false,
+      "owner": "mixer_hosted_schema_owner",
+      "parallel": "u",
+      "public_execute": false,
+      "runtime_execute": false,
+      "security_definer": false,
+      "volatility": "i",
+      "writer_execute": false
+    }
+  ],
+  "memberships": [],
+  "policies": [
+    {
+      "check": null,
+      "command": "SELECT",
+      "name": "resolver_select",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "mixer_hosted_authz_resolver"
+      ],
+      "table": "applications",
+      "using": "true"
+    },
+    {
+      "check": null,
+      "command": "SELECT",
+      "name": "resolver_select",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "mixer_hosted_authz_resolver"
+      ],
+      "table": "credential_denials",
+      "using": "true"
+    },
+    {
+      "check": "true",
+      "command": "UPDATE",
+      "name": "resolver_lock",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "mixer_hosted_authz_resolver"
+      ],
+      "table": "credential_families",
+      "using": "true"
+    },
+    {
+      "check": null,
+      "command": "SELECT",
+      "name": "resolver_select",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "mixer_hosted_authz_resolver"
+      ],
+      "table": "credential_families",
+      "using": "true"
+    },
+    {
+      "check": null,
+      "command": "SELECT",
+      "name": "resolver_select",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "mixer_hosted_authz_resolver"
+      ],
+      "table": "credential_references",
+      "using": "true"
+    },
+    {
+      "check": null,
+      "command": "SELECT",
+      "name": "resolver_select",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "mixer_hosted_authz_resolver"
+      ],
+      "table": "environments",
+      "using": "true"
+    },
+    {
+      "check": null,
+      "command": "SELECT",
+      "name": "resolver_select",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "mixer_hosted_authz_resolver"
+      ],
+      "table": "external_identity_bindings",
+      "using": "true"
+    },
+    {
+      "check": "true",
+      "command": "UPDATE",
+      "name": "resolver_lock",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "mixer_hosted_authz_resolver"
+      ],
+      "table": "identity_trust_profiles",
+      "using": "true"
+    },
+    {
+      "check": null,
+      "command": "SELECT",
+      "name": "resolver_select",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "mixer_hosted_authz_resolver"
+      ],
+      "table": "identity_trust_profiles",
+      "using": "true"
+    },
+    {
+      "check": "true",
+      "command": "UPDATE",
+      "name": "resolver_lock",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "mixer_hosted_authz_resolver"
+      ],
+      "table": "organization_authorization_heads",
+      "using": "true"
+    },
+    {
+      "check": null,
+      "command": "SELECT",
+      "name": "resolver_select",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "mixer_hosted_authz_resolver"
+      ],
+      "table": "organization_authorization_heads",
+      "using": "true"
+    },
+    {
+      "check": null,
+      "command": "SELECT",
+      "name": "resolver_select",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "mixer_hosted_authz_resolver"
+      ],
+      "table": "organization_memberships",
+      "using": "true"
+    },
+    {
+      "check": null,
+      "command": "SELECT",
+      "name": "resolver_select",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "mixer_hosted_authz_resolver"
+      ],
+      "table": "organizations",
+      "using": "true"
+    },
+    {
+      "check": "true",
+      "command": "UPDATE",
+      "name": "resolver_lock",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "mixer_hosted_authz_resolver"
+      ],
+      "table": "principals",
+      "using": "true"
+    },
+    {
+      "check": null,
+      "command": "SELECT",
+      "name": "resolver_select",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "mixer_hosted_authz_resolver"
+      ],
+      "table": "principals",
+      "using": "true"
+    },
+    {
+      "check": "true",
+      "command": "UPDATE",
+      "name": "resolver_lock",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "mixer_hosted_authz_resolver"
+      ],
+      "table": "project_authorization_heads",
+      "using": "true"
+    },
+    {
+      "check": null,
+      "command": "SELECT",
+      "name": "resolver_select",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "mixer_hosted_authz_resolver"
+      ],
+      "table": "project_authorization_heads",
+      "using": "true"
+    },
+    {
+      "check": null,
+      "command": "SELECT",
+      "name": "resolver_select",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "mixer_hosted_authz_resolver"
+      ],
+      "table": "project_memberships",
+      "using": "true"
+    },
+    {
+      "check": null,
+      "command": "SELECT",
+      "name": "resolver_select",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "mixer_hosted_authz_resolver"
+      ],
+      "table": "projects",
+      "using": "true"
+    }
+  ],
+  "roles": [
+    {
+      "bypass": false,
+      "createdb": false,
+      "createrole": false,
+      "inherit": true,
+      "login": false,
+      "name": "mixer_hosted_authz_resolver",
+      "replication": false,
+      "super": false
+    },
+    {
+      "bypass": false,
+      "createdb": false,
+      "createrole": false,
+      "inherit": true,
+      "login": false,
+      "name": "mixer_hosted_domain_writer",
+      "replication": false,
+      "super": false
+    },
+    {
+      "bypass": false,
+      "createdb": false,
+      "createrole": false,
+      "inherit": true,
+      "login": true,
+      "name": "mixer_hosted_runtime",
+      "replication": false,
+      "super": false
+    },
+    {
+      "bypass": false,
+      "createdb": false,
+      "createrole": false,
+      "inherit": true,
+      "login": false,
+      "name": "mixer_hosted_schema_owner",
+      "replication": false,
+      "super": false
+    }
+  ],
+  "runtime_capabilities": {
+    "authz_create": false,
+    "database_create": false,
+    "database_temp": false,
+    "public_create": false,
+    "reachable": []
+  },
+  "runtime_creatable_schemas": [],
+  "runtime_owned_objects": [],
+  "schemas": [
+    {
+      "acl": "{mixer_hosted_schema_owner=UC/mixer_hosted_schema_owner,mixer_hosted_authz_resolver=U/mixer_hosted_schema_owner,mixer_hosted_domain_writer=U/mixer_hosted_schema_owner,mixer_hosted_runtime=U/mixer_hosted_schema_owner}",
+      "name": "mixer_authz",
+      "owner": "mixer_hosted_schema_owner"
+    }
+  ],
+  "server_version": "17.11 (Homebrew)",
+  "tables": [
+    {
+      "acl": "{mixer_hosted_schema_owner=arwdDxtm/mixer_hosted_schema_owner,mixer_hosted_authz_resolver=r/mixer_hosted_schema_owner}",
+      "columns": [
+        {
+          "acl": "",
+          "collation": "\"C\"",
+          "name": "organization",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": "\"C\"",
+          "name": "project",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": "\"C\"",
+          "name": "app",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": "\"default\"",
+          "name": "status",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": null,
+          "name": "revision",
+          "notnull": true,
+          "type": "bigint"
+        }
+      ],
+      "constraints": [
+        {
+          "definition": "CHECK (mixer_authz.valid_id(app))",
+          "name": "applications_app_check"
+        },
+        {
+          "definition": "FOREIGN KEY (organization, project) REFERENCES mixer_authz.projects(organization, project)",
+          "name": "applications_organization_project_fkey"
+        },
+        {
+          "definition": "PRIMARY KEY (organization, project, app)",
+          "name": "applications_pkey"
+        },
+        {
+          "definition": "CHECK (revision > 0)",
+          "name": "applications_revision_check"
+        },
+        {
+          "definition": "CHECK (status = ANY (ARRAY['active'::text, 'deleted'::text]))",
+          "name": "applications_status_check"
+        }
+      ],
+      "force": true,
+      "indexes": [
+        "CREATE UNIQUE INDEX applications_pkey ON mixer_authz.applications USING btree (organization, project, app)"
+      ],
+      "name": "applications",
+      "owner": "mixer_hosted_schema_owner",
+      "rls": true,
+      "triggers": [
+        "CREATE TRIGGER lifecycle_guard BEFORE DELETE OR UPDATE ON mixer_authz.applications FOR EACH ROW EXECUTE FUNCTION mixer_authz.guard_lifecycle()"
+      ]
+    },
+    {
+      "acl": "{mixer_hosted_schema_owner=arwdDxtm/mixer_hosted_schema_owner,mixer_hosted_authz_resolver=r/mixer_hosted_schema_owner}",
+      "columns": [
+        {
+          "acl": "",
+          "collation": null,
+          "name": "binding_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "acl": "",
+          "collation": null,
+          "name": "jti_sha256",
+          "notnull": true,
+          "type": "bytea"
+        },
+        {
+          "acl": "",
+          "collation": null,
+          "name": "accepted_expires_at",
+          "notnull": true,
+          "type": "bigint"
+        },
+        {
+          "acl": "",
+          "collation": null,
+          "name": "denied_at",
+          "notnull": true,
+          "type": "bigint"
+        },
+        {
+          "acl": "",
+          "collation": null,
+          "name": "retain_until",
+          "notnull": true,
+          "type": "bigint"
+        },
+        {
+          "acl": "",
+          "collation": null,
+          "name": "revision",
+          "notnull": true,
+          "type": "bigint"
+        },
+        {
+          "acl": "",
+          "collation": "\"default\"",
+          "name": "reason_code",
+          "notnull": true,
+          "type": "text"
+        }
+      ],
+      "constraints": [
+        {
+          "definition": "FOREIGN KEY (binding_id, jti_sha256, accepted_expires_at) REFERENCES mixer_authz.credential_references(binding_id, jti_sha256, accepted_expires_at)",
+          "name": "credential_denials_binding_id_jti_sha256_accepted_expires__fkey"
+        },
+        {
+          "definition": "CHECK (retain_until >= (accepted_expires_at + 30))",
+          "name": "credential_denials_check"
+        },
+        {
+          "definition": "CHECK (denied_at >= 0 AND denied_at <= '9007199254740991'::bigint)",
+          "name": "credential_denials_denied_at_check"
+        },
+        {
+          "definition": "PRIMARY KEY (binding_id, jti_sha256)",
+          "name": "credential_denials_pkey"
+        },
+        {
+          "definition": "CHECK (reason_code = ANY (ARRAY['revoked'::text, 'incident'::text, 'operator'::text]))",
+          "name": "credential_denials_reason_code_check"
+        },
+        {
+          "definition": "CHECK (retain_until >= 0 AND retain_until <= '9007199254741021'::bigint)",
+          "name": "credential_denials_retain_until_check"
+        },
+        {
+          "definition": "CHECK (revision > 0)",
+          "name": "credential_denials_revision_check"
+        }
+      ],
+      "force": true,
+      "indexes": [
+        "CREATE UNIQUE INDEX credential_denials_pkey ON mixer_authz.credential_denials USING btree (binding_id, jti_sha256)"
+      ],
+      "name": "credential_denials",
+      "owner": "mixer_hosted_schema_owner",
+      "rls": true,
+      "triggers": [
+        "CREATE TRIGGER lifecycle_guard BEFORE DELETE OR UPDATE ON mixer_authz.credential_denials FOR EACH ROW EXECUTE FUNCTION mixer_authz.guard_lifecycle()"
+      ]
+    },
+    {
+      "acl": "{mixer_hosted_schema_owner=arwdDxtm/mixer_hosted_schema_owner,mixer_hosted_authz_resolver=r/mixer_hosted_schema_owner}",
+      "columns": [
+        {
+          "acl": "",
+          "collation": null,
+          "name": "family_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "acl": "",
+          "collation": null,
+          "name": "binding_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "acl": "",
+          "collation": null,
+          "name": "principal_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "acl": "",
+          "collation": "\"C\"",
+          "name": "profile_id",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": "\"default\"",
+          "name": "status",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": null,
+          "name": "valid_after",
+          "notnull": true,
+          "type": "bigint"
+        },
+        {
+          "acl": "{mixer_hosted_authz_resolver=w/mixer_hosted_schema_owner}",
+          "collation": null,
+          "name": "revision",
+          "notnull": true,
+          "type": "bigint"
+        }
+      ],
+      "constraints": [
+        {
+          "definition": "FOREIGN KEY (binding_id, principal_id, profile_id) REFERENCES mixer_authz.external_identity_bindings(binding_id, principal_id, profile_id)",
+          "name": "credential_families_binding_id_principal_id_profile_id_fkey"
+        },
+        {
+          "definition": "UNIQUE (family_id, binding_id, principal_id, profile_id)",
+          "name": "credential_families_family_id_binding_id_principal_id_profi_key"
+        },
+        {
+          "definition": "PRIMARY KEY (family_id)",
+          "name": "credential_families_pkey"
+        },
+        {
+          "definition": "CHECK (revision > 0)",
+          "name": "credential_families_revision_check"
+        },
+        {
+          "definition": "CHECK (status = ANY (ARRAY['active'::text, 'revoked'::text]))",
+          "name": "credential_families_status_check"
+        },
+        {
+          "definition": "CHECK (valid_after >= 0 AND valid_after <= '9007199254740991'::bigint)",
+          "name": "credential_families_valid_after_check"
+        }
+      ],
+      "force": true,
+      "indexes": [
+        "CREATE INDEX credential_families_binding ON mixer_authz.credential_families USING btree (binding_id, principal_id, profile_id)",
+        "CREATE UNIQUE INDEX credential_families_family_id_binding_id_principal_id_profi_key ON mixer_authz.credential_families USING btree (family_id, binding_id, principal_id, profile_id)",
+        "CREATE UNIQUE INDEX credential_families_pkey ON mixer_authz.credential_families USING btree (family_id)"
+      ],
+      "name": "credential_families",
+      "owner": "mixer_hosted_schema_owner",
+      "rls": true,
+      "triggers": [
+        "CREATE TRIGGER lifecycle_guard BEFORE DELETE OR UPDATE ON mixer_authz.credential_families FOR EACH ROW EXECUTE FUNCTION mixer_authz.guard_lifecycle()"
+      ]
+    },
+    {
+      "acl": "{mixer_hosted_schema_owner=arwdDxtm/mixer_hosted_schema_owner,mixer_hosted_authz_resolver=r/mixer_hosted_schema_owner}",
+      "columns": [
+        {
+          "acl": "",
+          "collation": null,
+          "name": "binding_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "acl": "",
+          "collation": null,
+          "name": "jti_sha256",
+          "notnull": true,
+          "type": "bytea"
+        },
+        {
+          "acl": "",
+          "collation": null,
+          "name": "family_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "acl": "",
+          "collation": null,
+          "name": "principal_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "acl": "",
+          "collation": "\"C\"",
+          "name": "profile_id",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": null,
+          "name": "accepted_issued_at",
+          "notnull": true,
+          "type": "bigint"
+        },
+        {
+          "acl": "",
+          "collation": null,
+          "name": "accepted_expires_at",
+          "notnull": true,
+          "type": "bigint"
+        }
+      ],
+      "constraints": [
+        {
+          "definition": "CHECK (accepted_expires_at >= 0 AND accepted_expires_at <= '9007199254740991'::bigint)",
+          "name": "credential_references_accepted_expires_at_check"
+        },
+        {
+          "definition": "CHECK (accepted_issued_at >= 0 AND accepted_issued_at <= '9007199254740991'::bigint)",
+          "name": "credential_references_accepted_issued_at_check"
+        },
+        {
+          "definition": "UNIQUE (binding_id, jti_sha256, accepted_expires_at)",
+          "name": "credential_references_binding_id_jti_sha256_accepted_expire_key"
+        },
+        {
+          "definition": "CHECK (accepted_issued_at < accepted_expires_at)",
+          "name": "credential_references_check"
+        },
+        {
+          "definition": "FOREIGN KEY (family_id, binding_id, principal_id, profile_id) REFERENCES mixer_authz.credential_families(family_id, binding_id, principal_id, profile_id)",
+          "name": "credential_references_family_id_binding_id_principal_id_pr_fkey"
+        },
+        {
+          "definition": "CHECK (octet_length(jti_sha256) = 32)",
+          "name": "credential_references_jti_sha256_check"
+        },
+        {
+          "definition": "PRIMARY KEY (binding_id, jti_sha256)",
+          "name": "credential_references_pkey"
+        }
+      ],
+      "force": true,
+      "indexes": [
+        "CREATE UNIQUE INDEX credential_references_binding_id_jti_sha256_accepted_expire_key ON mixer_authz.credential_references USING btree (binding_id, jti_sha256, accepted_expires_at)",
+        "CREATE UNIQUE INDEX credential_references_pkey ON mixer_authz.credential_references USING btree (binding_id, jti_sha256)"
+      ],
+      "name": "credential_references",
+      "owner": "mixer_hosted_schema_owner",
+      "rls": true,
+      "triggers": [
+        "CREATE TRIGGER lifecycle_guard BEFORE DELETE OR UPDATE ON mixer_authz.credential_references FOR EACH ROW EXECUTE FUNCTION mixer_authz.guard_lifecycle()"
+      ]
+    },
+    {
+      "acl": "{mixer_hosted_schema_owner=arwdDxtm/mixer_hosted_schema_owner,mixer_hosted_authz_resolver=r/mixer_hosted_schema_owner}",
+      "columns": [
+        {
+          "acl": "",
+          "collation": "\"C\"",
+          "name": "organization",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": "\"C\"",
+          "name": "project",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": "\"C\"",
+          "name": "app",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": "\"C\"",
+          "name": "environment",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": "\"default\"",
+          "name": "status",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": "\"default\"",
+          "name": "risk_class",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": null,
+          "name": "revision",
+          "notnull": true,
+          "type": "bigint"
+        }
+      ],
+      "constraints": [
+        {
+          "definition": "CHECK (mixer_authz.valid_id(environment))",
+          "name": "environments_environment_check"
+        },
+        {
+          "definition": "FOREIGN KEY (organization, project, app) REFERENCES mixer_authz.applications(organization, project, app)",
+          "name": "environments_organization_project_app_fkey"
+        },
+        {
+          "definition": "PRIMARY KEY (organization, project, app, environment)",
+          "name": "environments_pkey"
+        },
+        {
+          "definition": "CHECK (revision > 0)",
+          "name": "environments_revision_check"
+        },
+        {
+          "definition": "CHECK (risk_class = ANY (ARRAY['development'::text, 'staging'::text, 'production'::text]))",
+          "name": "environments_risk_class_check"
+        },
+        {
+          "definition": "CHECK (status = ANY (ARRAY['active'::text, 'deleted'::text]))",
+          "name": "environments_status_check"
+        }
+      ],
+      "force": true,
+      "indexes": [
+        "CREATE UNIQUE INDEX environments_pkey ON mixer_authz.environments USING btree (organization, project, app, environment)"
+      ],
+      "name": "environments",
+      "owner": "mixer_hosted_schema_owner",
+      "rls": true,
+      "triggers": [
+        "CREATE TRIGGER lifecycle_guard BEFORE DELETE OR UPDATE ON mixer_authz.environments FOR EACH ROW EXECUTE FUNCTION mixer_authz.guard_lifecycle()"
+      ]
+    },
+    {
+      "acl": "{mixer_hosted_schema_owner=arwdDxtm/mixer_hosted_schema_owner,mixer_hosted_authz_resolver=r/mixer_hosted_schema_owner}",
+      "columns": [
+        {
+          "acl": "",
+          "collation": null,
+          "name": "binding_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "acl": "",
+          "collation": "\"C\"",
+          "name": "profile_id",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": "\"C\"",
+          "name": "issuer",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": "\"C\"",
+          "name": "subject",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": "\"C\"",
+          "name": "registered_client",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": "\"default\"",
+          "name": "identity_class",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": null,
+          "name": "principal_id",
+          "notnull": true,
+          "type": "uuid"
+        }
+      ],
+      "constraints": [
+        {
+          "definition": "UNIQUE (binding_id, principal_id, profile_id)",
+          "name": "external_identity_bindings_binding_id_principal_id_profile__key"
+        },
+        {
+          "definition": "PRIMARY KEY (binding_id)",
+          "name": "external_identity_bindings_pkey"
+        },
+        {
+          "definition": "FOREIGN KEY (principal_id, identity_class) REFERENCES mixer_authz.principals(principal_id, kind)",
+          "name": "external_identity_bindings_principal_id_identity_class_fkey"
+        },
+        {
+          "definition": "FOREIGN KEY (profile_id, issuer, registered_client, identity_class) REFERENCES mixer_authz.identity_trust_profiles(profile_id, issuer, client_id, identity_class)",
+          "name": "external_identity_bindings_profile_id_issuer_registered_cl_fkey"
+        },
+        {
+          "definition": "UNIQUE (profile_id, issuer, subject, registered_client)",
+          "name": "external_identity_bindings_profile_id_issuer_subject_regist_key"
+        },
+        {
+          "definition": "CHECK (mixer_authz.bounded_text(subject, 256))",
+          "name": "external_identity_bindings_subject_check"
+        }
+      ],
+      "force": true,
+      "indexes": [
+        "CREATE INDEX bindings_principal ON mixer_authz.external_identity_bindings USING btree (principal_id, profile_id)",
+        "CREATE UNIQUE INDEX external_identity_bindings_binding_id_principal_id_profile__key ON mixer_authz.external_identity_bindings USING btree (binding_id, principal_id, profile_id)",
+        "CREATE UNIQUE INDEX external_identity_bindings_pkey ON mixer_authz.external_identity_bindings USING btree (binding_id)",
+        "CREATE UNIQUE INDEX external_identity_bindings_profile_id_issuer_subject_regist_key ON mixer_authz.external_identity_bindings USING btree (profile_id, issuer, subject, registered_client)"
+      ],
+      "name": "external_identity_bindings",
+      "owner": "mixer_hosted_schema_owner",
+      "rls": true,
+      "triggers": [
+        "CREATE TRIGGER lifecycle_guard BEFORE DELETE OR UPDATE ON mixer_authz.external_identity_bindings FOR EACH ROW EXECUTE FUNCTION mixer_authz.guard_lifecycle()"
+      ]
+    },
+    {
+      "acl": "{mixer_hosted_schema_owner=arwdDxtm/mixer_hosted_schema_owner,mixer_hosted_authz_resolver=r/mixer_hosted_schema_owner}",
+      "columns": [
+        {
+          "acl": "",
+          "collation": "\"C\"",
+          "name": "profile_id",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": null,
+          "name": "current_version",
+          "notnull": true,
+          "type": "integer"
+        },
+        {
+          "acl": "",
+          "collation": null,
+          "name": "enabled",
+          "notnull": true,
+          "type": "boolean"
+        },
+        {
+          "acl": "",
+          "collation": "\"C\"",
+          "name": "issuer",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": "\"C\"",
+          "name": "client_id",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": "\"default\"",
+          "name": "identity_class",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "{mixer_hosted_authz_resolver=w/mixer_hosted_schema_owner}",
+          "collation": null,
+          "name": "revision",
+          "notnull": true,
+          "type": "bigint"
+        }
+      ],
+      "constraints": [
+        {
+          "definition": "CHECK (mixer_authz.bounded_text(client_id, 256))",
+          "name": "identity_trust_profiles_client_id_check"
+        },
+        {
+          "definition": "CHECK (current_version > 0)",
+          "name": "identity_trust_profiles_current_version_check"
+        },
+        {
+          "definition": "CHECK (identity_class = ANY (ARRAY['human'::text, 'service'::text]))",
+          "name": "identity_trust_profiles_identity_class_check"
+        },
+        {
+          "definition": "CHECK (mixer_authz.bounded_text(issuer, 2048))",
+          "name": "identity_trust_profiles_issuer_check"
+        },
+        {
+          "definition": "PRIMARY KEY (profile_id)",
+          "name": "identity_trust_profiles_pkey"
+        },
+        {
+          "definition": "CHECK (mixer_authz.bounded_text(profile_id, 128))",
+          "name": "identity_trust_profiles_profile_id_check"
+        },
+        {
+          "definition": "UNIQUE (profile_id, issuer, client_id, identity_class)",
+          "name": "identity_trust_profiles_profile_id_issuer_client_id_identit_key"
+        },
+        {
+          "definition": "CHECK (revision > 0)",
+          "name": "identity_trust_profiles_revision_check"
+        }
+      ],
+      "force": true,
+      "indexes": [
+        "CREATE UNIQUE INDEX identity_trust_profiles_pkey ON mixer_authz.identity_trust_profiles USING btree (profile_id)",
+        "CREATE UNIQUE INDEX identity_trust_profiles_profile_id_issuer_client_id_identit_key ON mixer_authz.identity_trust_profiles USING btree (profile_id, issuer, client_id, identity_class)"
+      ],
+      "name": "identity_trust_profiles",
+      "owner": "mixer_hosted_schema_owner",
+      "rls": true,
+      "triggers": [
+        "CREATE TRIGGER lifecycle_guard BEFORE DELETE OR UPDATE ON mixer_authz.identity_trust_profiles FOR EACH ROW EXECUTE FUNCTION mixer_authz.guard_lifecycle()"
+      ]
+    },
+    {
+      "acl": "{mixer_hosted_schema_owner=arwdDxtm/mixer_hosted_schema_owner,mixer_hosted_authz_resolver=r/mixer_hosted_schema_owner}",
+      "columns": [
+        {
+          "acl": "",
+          "collation": "\"C\"",
+          "name": "organization",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "{mixer_hosted_authz_resolver=w/mixer_hosted_schema_owner}",
+          "collation": null,
+          "name": "revision",
+          "notnull": true,
+          "type": "bigint"
+        }
+      ],
+      "constraints": [
+        {
+          "definition": "FOREIGN KEY (organization) REFERENCES mixer_authz.organizations(organization)",
+          "name": "organization_authorization_heads_organization_fkey"
+        },
+        {
+          "definition": "PRIMARY KEY (organization)",
+          "name": "organization_authorization_heads_pkey"
+        },
+        {
+          "definition": "CHECK (revision > 0)",
+          "name": "organization_authorization_heads_revision_check"
+        }
+      ],
+      "force": true,
+      "indexes": [
+        "CREATE UNIQUE INDEX organization_authorization_heads_pkey ON mixer_authz.organization_authorization_heads USING btree (organization)"
+      ],
+      "name": "organization_authorization_heads",
+      "owner": "mixer_hosted_schema_owner",
+      "rls": true,
+      "triggers": [
+        "CREATE TRIGGER lifecycle_guard BEFORE DELETE OR UPDATE ON mixer_authz.organization_authorization_heads FOR EACH ROW EXECUTE FUNCTION mixer_authz.guard_lifecycle()"
+      ]
+    },
+    {
+      "acl": "{mixer_hosted_schema_owner=arwdDxtm/mixer_hosted_schema_owner,mixer_hosted_authz_resolver=r/mixer_hosted_schema_owner}",
+      "columns": [
+        {
+          "acl": "",
+          "collation": null,
+          "name": "lifecycle_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "acl": "",
+          "collation": "\"C\"",
+          "name": "organization",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": "\"default\"",
+          "name": "project_binding",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": null,
+          "name": "principal_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "acl": "",
+          "collation": "\"default\"",
+          "name": "role",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": "\"default\"",
+          "name": "status",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": null,
+          "name": "not_before",
+          "notnull": false,
+          "type": "bigint"
+        },
+        {
+          "acl": "",
+          "collation": null,
+          "name": "expires_at",
+          "notnull": false,
+          "type": "bigint"
+        },
+        {
+          "acl": "",
+          "collation": null,
+          "name": "revision",
+          "notnull": true,
+          "type": "bigint"
+        },
+        {
+          "acl": "",
+          "collation": null,
+          "name": "grant_evidence_sha256",
+          "notnull": true,
+          "type": "bytea"
+        }
+      ],
+      "constraints": [
+        {
+          "definition": "CHECK (not_before IS NULL OR expires_at IS NULL OR not_before < expires_at)",
+          "name": "organization_memberships_check"
+        },
+        {
+          "definition": "CHECK (expires_at >= 0 AND expires_at <= '9007199254740991'::bigint)",
+          "name": "organization_memberships_expires_at_check"
+        },
+        {
+          "definition": "CHECK (octet_length(grant_evidence_sha256) = 32)",
+          "name": "organization_memberships_grant_evidence_sha256_check"
+        },
+        {
+          "definition": "CHECK (not_before >= 0 AND not_before <= '9007199254740991'::bigint)",
+          "name": "organization_memberships_not_before_check"
+        },
+        {
+          "definition": "FOREIGN KEY (organization) REFERENCES mixer_authz.organizations(organization)",
+          "name": "organization_memberships_organization_fkey"
+        },
+        {
+          "definition": "PRIMARY KEY (lifecycle_id)",
+          "name": "organization_memberships_pkey"
+        },
+        {
+          "definition": "FOREIGN KEY (principal_id) REFERENCES mixer_authz.principals(principal_id)",
+          "name": "organization_memberships_principal_id_fkey"
+        },
+        {
+          "definition": "CHECK (project_binding = ANY (ARRAY['organization_wide'::text, 'organization_only'::text]))",
+          "name": "organization_memberships_project_binding_check"
+        },
+        {
+          "definition": "CHECK (revision > 0)",
+          "name": "organization_memberships_revision_check"
+        },
+        {
+          "definition": "CHECK (role = ANY (ARRAY['owner'::text, 'administrator'::text, 'developer'::text, 'release_manager'::text, 'billing_manager'::text, 'viewer'::text]))",
+          "name": "organization_memberships_role_check"
+        },
+        {
+          "definition": "CHECK (status = ANY (ARRAY['invited'::text, 'active'::text, 'revoked'::text]))",
+          "name": "organization_memberships_status_check"
+        }
+      ],
+      "force": true,
+      "indexes": [
+        "CREATE UNIQUE INDEX organization_memberships_active_unique ON mixer_authz.organization_memberships USING btree (principal_id, organization, project_binding, role) WHERE (status = 'active'::text)",
+        "CREATE INDEX organization_memberships_lookup ON mixer_authz.organization_memberships USING btree (principal_id, organization, project_binding, status)",
+        "CREATE UNIQUE INDEX organization_memberships_pkey ON mixer_authz.organization_memberships USING btree (lifecycle_id)"
+      ],
+      "name": "organization_memberships",
+      "owner": "mixer_hosted_schema_owner",
+      "rls": true,
+      "triggers": [
+        "CREATE TRIGGER lifecycle_guard BEFORE DELETE OR UPDATE ON mixer_authz.organization_memberships FOR EACH ROW EXECUTE FUNCTION mixer_authz.guard_lifecycle()"
+      ]
+    },
+    {
+      "acl": "{mixer_hosted_schema_owner=arwdDxtm/mixer_hosted_schema_owner,mixer_hosted_authz_resolver=r/mixer_hosted_schema_owner}",
+      "columns": [
+        {
+          "acl": "",
+          "collation": "\"C\"",
+          "name": "organization",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": "\"default\"",
+          "name": "status",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": null,
+          "name": "revision",
+          "notnull": true,
+          "type": "bigint"
+        }
+      ],
+      "constraints": [
+        {
+          "definition": "CHECK (mixer_authz.valid_id(organization))",
+          "name": "organizations_organization_check"
+        },
+        {
+          "definition": "PRIMARY KEY (organization)",
+          "name": "organizations_pkey"
+        },
+        {
+          "definition": "CHECK (revision > 0)",
+          "name": "organizations_revision_check"
+        },
+        {
+          "definition": "CHECK (status = ANY (ARRAY['active'::text, 'deleted'::text]))",
+          "name": "organizations_status_check"
+        }
+      ],
+      "force": true,
+      "indexes": [
+        "CREATE UNIQUE INDEX organizations_pkey ON mixer_authz.organizations USING btree (organization)"
+      ],
+      "name": "organizations",
+      "owner": "mixer_hosted_schema_owner",
+      "rls": true,
+      "triggers": [
+        "CREATE TRIGGER lifecycle_guard BEFORE DELETE OR UPDATE ON mixer_authz.organizations FOR EACH ROW EXECUTE FUNCTION mixer_authz.guard_lifecycle()"
+      ]
+    },
+    {
+      "acl": "{mixer_hosted_schema_owner=arwdDxtm/mixer_hosted_schema_owner,mixer_hosted_authz_resolver=r/mixer_hosted_schema_owner}",
+      "columns": [
+        {
+          "acl": "",
+          "collation": null,
+          "name": "principal_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "acl": "",
+          "collation": "\"default\"",
+          "name": "kind",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": "\"default\"",
+          "name": "status",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": null,
+          "name": "valid_after",
+          "notnull": true,
+          "type": "bigint"
+        },
+        {
+          "acl": "{mixer_hosted_authz_resolver=w/mixer_hosted_schema_owner}",
+          "collation": null,
+          "name": "revision",
+          "notnull": true,
+          "type": "bigint"
+        },
+        {
+          "acl": "",
+          "collation": "\"C\"",
+          "name": "owning_organization",
+          "notnull": false,
+          "type": "text"
+        }
+      ],
+      "constraints": [
+        {
+          "definition": "CHECK (kind = 'human'::text AND owning_organization IS NULL OR kind = 'service'::text AND owning_organization IS NOT NULL)",
+          "name": "principals_check"
+        },
+        {
+          "definition": "CHECK (kind = ANY (ARRAY['human'::text, 'service'::text]))",
+          "name": "principals_kind_check"
+        },
+        {
+          "definition": "FOREIGN KEY (owning_organization) REFERENCES mixer_authz.organizations(organization)",
+          "name": "principals_owning_organization_fkey"
+        },
+        {
+          "definition": "PRIMARY KEY (principal_id)",
+          "name": "principals_pkey"
+        },
+        {
+          "definition": "UNIQUE (principal_id, kind)",
+          "name": "principals_principal_id_kind_key"
+        },
+        {
+          "definition": "CHECK (revision > 0)",
+          "name": "principals_revision_check"
+        },
+        {
+          "definition": "CHECK (status = ANY (ARRAY['active'::text, 'disabled'::text]))",
+          "name": "principals_status_check"
+        },
+        {
+          "definition": "CHECK (valid_after >= 0 AND valid_after <= '9007199254740991'::bigint)",
+          "name": "principals_valid_after_check"
+        }
+      ],
+      "force": true,
+      "indexes": [
+        "CREATE UNIQUE INDEX principals_pkey ON mixer_authz.principals USING btree (principal_id)",
+        "CREATE UNIQUE INDEX principals_principal_id_kind_key ON mixer_authz.principals USING btree (principal_id, kind)"
+      ],
+      "name": "principals",
+      "owner": "mixer_hosted_schema_owner",
+      "rls": true,
+      "triggers": [
+        "CREATE TRIGGER lifecycle_guard BEFORE DELETE OR UPDATE ON mixer_authz.principals FOR EACH ROW EXECUTE FUNCTION mixer_authz.guard_lifecycle()"
+      ]
+    },
+    {
+      "acl": "{mixer_hosted_schema_owner=arwdDxtm/mixer_hosted_schema_owner,mixer_hosted_authz_resolver=r/mixer_hosted_schema_owner}",
+      "columns": [
+        {
+          "acl": "",
+          "collation": "\"C\"",
+          "name": "organization",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": "\"C\"",
+          "name": "project",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "{mixer_hosted_authz_resolver=w/mixer_hosted_schema_owner}",
+          "collation": null,
+          "name": "revision",
+          "notnull": true,
+          "type": "bigint"
+        }
+      ],
+      "constraints": [
+        {
+          "definition": "FOREIGN KEY (organization, project) REFERENCES mixer_authz.projects(organization, project)",
+          "name": "project_authorization_heads_organization_project_fkey"
+        },
+        {
+          "definition": "PRIMARY KEY (organization, project)",
+          "name": "project_authorization_heads_pkey"
+        },
+        {
+          "definition": "CHECK (revision > 0)",
+          "name": "project_authorization_heads_revision_check"
+        }
+      ],
+      "force": true,
+      "indexes": [
+        "CREATE UNIQUE INDEX project_authorization_heads_pkey ON mixer_authz.project_authorization_heads USING btree (organization, project)"
+      ],
+      "name": "project_authorization_heads",
+      "owner": "mixer_hosted_schema_owner",
+      "rls": true,
+      "triggers": [
+        "CREATE TRIGGER lifecycle_guard BEFORE DELETE OR UPDATE ON mixer_authz.project_authorization_heads FOR EACH ROW EXECUTE FUNCTION mixer_authz.guard_lifecycle()"
+      ]
+    },
+    {
+      "acl": "{mixer_hosted_schema_owner=arwdDxtm/mixer_hosted_schema_owner,mixer_hosted_authz_resolver=r/mixer_hosted_schema_owner}",
+      "columns": [
+        {
+          "acl": "",
+          "collation": null,
+          "name": "lifecycle_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "acl": "",
+          "collation": "\"C\"",
+          "name": "organization",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": "\"C\"",
+          "name": "project",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": null,
+          "name": "principal_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "acl": "",
+          "collation": "\"default\"",
+          "name": "role",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": "\"default\"",
+          "name": "status",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": null,
+          "name": "not_before",
+          "notnull": false,
+          "type": "bigint"
+        },
+        {
+          "acl": "",
+          "collation": null,
+          "name": "expires_at",
+          "notnull": false,
+          "type": "bigint"
+        },
+        {
+          "acl": "",
+          "collation": null,
+          "name": "revision",
+          "notnull": true,
+          "type": "bigint"
+        },
+        {
+          "acl": "",
+          "collation": null,
+          "name": "grant_evidence_sha256",
+          "notnull": true,
+          "type": "bytea"
+        }
+      ],
+      "constraints": [
+        {
+          "definition": "CHECK (not_before IS NULL OR expires_at IS NULL OR not_before < expires_at)",
+          "name": "project_memberships_check"
+        },
+        {
+          "definition": "CHECK (expires_at >= 0 AND expires_at <= '9007199254740991'::bigint)",
+          "name": "project_memberships_expires_at_check"
+        },
+        {
+          "definition": "CHECK (octet_length(grant_evidence_sha256) = 32)",
+          "name": "project_memberships_grant_evidence_sha256_check"
+        },
+        {
+          "definition": "CHECK (not_before >= 0 AND not_before <= '9007199254740991'::bigint)",
+          "name": "project_memberships_not_before_check"
+        },
+        {
+          "definition": "FOREIGN KEY (organization, project) REFERENCES mixer_authz.projects(organization, project)",
+          "name": "project_memberships_organization_project_fkey"
+        },
+        {
+          "definition": "PRIMARY KEY (lifecycle_id)",
+          "name": "project_memberships_pkey"
+        },
+        {
+          "definition": "FOREIGN KEY (principal_id) REFERENCES mixer_authz.principals(principal_id)",
+          "name": "project_memberships_principal_id_fkey"
+        },
+        {
+          "definition": "CHECK (revision > 0)",
+          "name": "project_memberships_revision_check"
+        },
+        {
+          "definition": "CHECK (role = ANY (ARRAY['owner'::text, 'administrator'::text, 'developer'::text, 'release_manager'::text, 'billing_manager'::text, 'viewer'::text]))",
+          "name": "project_memberships_role_check"
+        },
+        {
+          "definition": "CHECK (status = ANY (ARRAY['invited'::text, 'active'::text, 'revoked'::text]))",
+          "name": "project_memberships_status_check"
+        }
+      ],
+      "force": true,
+      "indexes": [
+        "CREATE UNIQUE INDEX project_memberships_active_unique ON mixer_authz.project_memberships USING btree (principal_id, organization, project, role) WHERE (status = 'active'::text)",
+        "CREATE INDEX project_memberships_lookup ON mixer_authz.project_memberships USING btree (principal_id, organization, project, status)",
+        "CREATE UNIQUE INDEX project_memberships_pkey ON mixer_authz.project_memberships USING btree (lifecycle_id)"
+      ],
+      "name": "project_memberships",
+      "owner": "mixer_hosted_schema_owner",
+      "rls": true,
+      "triggers": [
+        "CREATE TRIGGER lifecycle_guard BEFORE DELETE OR UPDATE ON mixer_authz.project_memberships FOR EACH ROW EXECUTE FUNCTION mixer_authz.guard_lifecycle()"
+      ]
+    },
+    {
+      "acl": "{mixer_hosted_schema_owner=arwdDxtm/mixer_hosted_schema_owner,mixer_hosted_authz_resolver=r/mixer_hosted_schema_owner}",
+      "columns": [
+        {
+          "acl": "",
+          "collation": "\"C\"",
+          "name": "organization",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": "\"C\"",
+          "name": "project",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": "\"default\"",
+          "name": "status",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "acl": "",
+          "collation": null,
+          "name": "revision",
+          "notnull": true,
+          "type": "bigint"
+        }
+      ],
+      "constraints": [
+        {
+          "definition": "FOREIGN KEY (organization) REFERENCES mixer_authz.organizations(organization)",
+          "name": "projects_organization_fkey"
+        },
+        {
+          "definition": "PRIMARY KEY (organization, project)",
+          "name": "projects_pkey"
+        },
+        {
+          "definition": "CHECK (mixer_authz.valid_id(project))",
+          "name": "projects_project_check"
+        },
+        {
+          "definition": "CHECK (revision > 0)",
+          "name": "projects_revision_check"
+        },
+        {
+          "definition": "CHECK (status = ANY (ARRAY['active'::text, 'deleted'::text]))",
+          "name": "projects_status_check"
+        }
+      ],
+      "force": true,
+      "indexes": [
+        "CREATE UNIQUE INDEX projects_pkey ON mixer_authz.projects USING btree (organization, project)"
+      ],
+      "name": "projects",
+      "owner": "mixer_hosted_schema_owner",
+      "rls": true,
+      "triggers": [
+        "CREATE TRIGGER lifecycle_guard BEFORE DELETE OR UPDATE ON mixer_authz.projects FOR EACH ROW EXECUTE FUNCTION mixer_authz.guard_lifecycle()"
+      ]
+    }
+  ],
+  "types": [
+    {
+      "acl": "{mixer_hosted_schema_owner=U/mixer_hosted_schema_owner,mixer_hosted_authz_resolver=U/mixer_hosted_schema_owner,mixer_hosted_domain_writer=U/mixer_hosted_schema_owner,mixer_hosted_runtime=U/mixer_hosted_schema_owner}",
+      "fields": [
+        {
+          "name": "identity",
+          "type": "mixer_authz.verified_identity_v1"
+        },
+        {
+          "name": "target",
+          "type": "mixer_authz.target_v1"
+        },
+        {
+          "name": "transaction_identity",
+          "type": "mixer_authz.transaction_identity_v1"
+        },
+        {
+          "name": "principal_id",
+          "type": "uuid"
+        },
+        {
+          "name": "binding_id",
+          "type": "uuid"
+        },
+        {
+          "name": "family_id",
+          "type": "uuid"
+        },
+        {
+          "name": "profile_revision",
+          "type": "bigint"
+        },
+        {
+          "name": "principal_revision",
+          "type": "bigint"
+        },
+        {
+          "name": "family_revision",
+          "type": "bigint"
+        },
+        {
+          "name": "organization_revision",
+          "type": "bigint"
+        },
+        {
+          "name": "project_revision",
+          "type": "bigint"
+        },
+        {
+          "name": "lock_statement_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "name": "admission_v1",
+      "owner": "mixer_hosted_schema_owner"
+    },
+    {
+      "acl": "{mixer_hosted_schema_owner=U/mixer_hosted_schema_owner,mixer_hosted_authz_resolver=U/mixer_hosted_schema_owner,mixer_hosted_domain_writer=U/mixer_hosted_schema_owner,mixer_hosted_runtime=U/mixer_hosted_schema_owner}",
+      "fields": [
+        {
+          "name": "outcome",
+          "type": "text"
+        },
+        {
+          "name": "principal_id",
+          "type": "uuid"
+        },
+        {
+          "name": "binding_id",
+          "type": "uuid"
+        },
+        {
+          "name": "family_id",
+          "type": "uuid"
+        },
+        {
+          "name": "decision_at",
+          "type": "numeric"
+        },
+        {
+          "name": "profile_revision",
+          "type": "bigint"
+        },
+        {
+          "name": "principal_revision",
+          "type": "bigint"
+        },
+        {
+          "name": "family_revision",
+          "type": "bigint"
+        },
+        {
+          "name": "organization_revision",
+          "type": "bigint"
+        },
+        {
+          "name": "project_revision",
+          "type": "bigint"
+        },
+        {
+          "name": "memberships",
+          "type": "mixer_authz.membership_witness_v1[]"
+        }
+      ],
+      "name": "decision_v1",
+      "owner": "mixer_hosted_schema_owner"
+    },
+    {
+      "acl": "{mixer_hosted_schema_owner=U/mixer_hosted_schema_owner,mixer_hosted_authz_resolver=U/mixer_hosted_schema_owner,mixer_hosted_domain_writer=U/mixer_hosted_schema_owner,mixer_hosted_runtime=U/mixer_hosted_schema_owner}",
+      "fields": [
+        {
+          "name": "lifecycle_id",
+          "type": "uuid"
+        },
+        {
+          "name": "role",
+          "type": "text"
+        },
+        {
+          "name": "revision",
+          "type": "bigint"
+        }
+      ],
+      "name": "membership_witness_v1",
+      "owner": "mixer_hosted_schema_owner"
+    },
+    {
+      "acl": "{mixer_hosted_schema_owner=U/mixer_hosted_schema_owner,mixer_hosted_authz_resolver=U/mixer_hosted_schema_owner,mixer_hosted_domain_writer=U/mixer_hosted_schema_owner,mixer_hosted_runtime=U/mixer_hosted_schema_owner}",
+      "fields": [
+        {
+          "name": "action",
+          "type": "text"
+        },
+        {
+          "name": "organization",
+          "type": "text"
+        },
+        {
+          "name": "project",
+          "type": "text"
+        },
+        {
+          "name": "app",
+          "type": "text"
+        },
+        {
+          "name": "environment",
+          "type": "text"
+        },
+        {
+          "name": "platform",
+          "type": "text"
+        },
+        {
+          "name": "runtime_sha256",
+          "type": "bytea"
+        },
+        {
+          "name": "manifest_sha256",
+          "type": "bytea"
+        }
+      ],
+      "name": "target_v1",
+      "owner": "mixer_hosted_schema_owner"
+    },
+    {
+      "acl": "{mixer_hosted_schema_owner=U/mixer_hosted_schema_owner,mixer_hosted_authz_resolver=U/mixer_hosted_schema_owner,mixer_hosted_domain_writer=U/mixer_hosted_schema_owner,mixer_hosted_runtime=U/mixer_hosted_schema_owner}",
+      "fields": [
+        {
+          "name": "backend",
+          "type": "integer"
+        },
+        {
+          "name": "full_xid",
+          "type": "text"
+        },
+        {
+          "name": "database_name",
+          "type": "name"
+        },
+        {
+          "name": "runtime_role",
+          "type": "name"
+        },
+        {
+          "name": "nonce",
+          "type": "text"
+        },
+        {
+          "name": "deadline",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "name": "transaction_identity_v1",
+      "owner": "mixer_hosted_schema_owner"
+    },
+    {
+      "acl": "{mixer_hosted_schema_owner=U/mixer_hosted_schema_owner,mixer_hosted_authz_resolver=U/mixer_hosted_schema_owner,mixer_hosted_domain_writer=U/mixer_hosted_schema_owner,mixer_hosted_runtime=U/mixer_hosted_schema_owner}",
+      "fields": [
+        {
+          "name": "profile_id",
+          "type": "text"
+        },
+        {
+          "name": "profile_version",
+          "type": "integer"
+        },
+        {
+          "name": "issuer",
+          "type": "text"
+        },
+        {
+          "name": "subject",
+          "type": "text"
+        },
+        {
+          "name": "client_id",
+          "type": "text"
+        },
+        {
+          "name": "credential_sha256",
+          "type": "bytea"
+        },
+        {
+          "name": "issued_at",
+          "type": "numeric"
+        },
+        {
+          "name": "expires_at",
+          "type": "numeric"
+        },
+        {
+          "name": "identity_class",
+          "type": "text"
+        },
+        {
+          "name": "scopes",
+          "type": "text[]"
+        },
+        {
+          "name": "authentication_completed_at",
+          "type": "numeric"
+        }
+      ],
+      "name": "verified_identity_v1",
+      "owner": "mixer_hosted_schema_owner"
+    }
+  ]
+}

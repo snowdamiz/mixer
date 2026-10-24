@@ -70,15 +70,31 @@ not bound queued checkout. See
 repository, audit/idempotency atomicity and HTTP integration remain unimplemented.
 The narrow atomic SQL writer, fixed audit/state encodings and bounded local blob
 fixture now have independent mechanics review, with seven mandatory correction
-groups selected in `docs/hosted-atomic-storage-corrections.md`. A corrected
-isolated specimen is assigned; no repository acceptance or migration is applied.
+groups selected in `docs/hosted-atomic-storage-corrections.md`. The corrected
+isolated specimen passes 73 cases and 269 retained bindings. Independent review
+passes the original suite but preserves two failures among 83 adversarial cases:
+valid PostgreSQL control-character display bytes disagree with the Elixir
+formatter. Root selected a focused formatter correction; repository acceptance
+and migration remain pending. See `docs/hosted-atomic-storage-correction-review.md`
+and `docs/hosted-atomic-display-correction-contract.md`.
 Configured identity startup is now integrated after the independently reproduced
 endpoint newline defect was corrected. The corrected source passes 95 Linux
 tests, 31 independent focused cases and 93 root host tests with two explicit
 Linux-only skips; release and cleanup checks pass. See
 `docs/hosted-identity-startup-checkpoint.md`. Authenticated HTTP and current
-database authority remain pending; their exact schema/resolver prerequisite
-is being developed in an isolated PostgreSQL specimen.
+database authority remain pending. The isolated schema/resolver prerequisite
+passes 128 cases, but independent review reproduced three catalog-completeness
+gaps across five drift cases. Root selects trigger/constraint/index enforcement,
+relation persistence and effective parameter privileges/defaults corrections in
+`docs/hosted-authority-schema-corrections.md`; final contract acceptance is pending.
+The startup checkpoint `4250e05a` now passes Linux hosted CI: 93 tests, two
+explicit network-namespace skips, release checks and ten run-local metrics;
+all 62 archived inputs match the pushed commit. Its Swift, VM and Go engine
+jobs also pass.
+The preceding Swift control checkpoint `e58e84ca` passes all three engine jobs.
+See `verification/github-ci-4250e05a-phoenix/receipt.json`,
+`verification/github-ci-4250e05a-engine/receipt.json` and
+`verification/github-ci-e58e84ca-engine/receipt.json`.
 
 The private Swift control candidate 2 now has root source/accounting preflight
 acceptance after fresh independent MIR, eight layout configurations and unchanged
@@ -90,6 +106,12 @@ adversarial groups, full libraries and eight layouts pass; root also verifies
 669 bindings and 52 integrated Release tests. See
 `verification/swift-control-behavior-root-review/acceptance.json`. Memory helpers,
 full dispatch, Ready and public invocation remain next required implementation.
+Root now accepts the isolated Load/Store type, borrow and logical-accounting
+prerequisite after 454 bindings, eight fresh independent library checks, sixteen
+paired metadata layouts and 39 unchanged Frozen methods. All sixteen behavior
+groups remain pending; a new isolated lane is implementing caller failure handling
+and executing that matrix. The live VM is unchanged. See
+`docs/swift-memory-helper-acceptance.md`.
 
 Section 8.3 requires the same shared app design on iOS and Android. Shared theme
 values control layout, typography scale, colors, iconography, spacing and component
@@ -967,3 +989,9 @@ Linux hosted CI at `f18ea41` confirms the 24-test application suite and packaged
 release checks; artifact/source verification is retained at
 `verification/github-ci-f18ea41-phoenix/receipt.json`. This adds Linux host
 evidence only; provider, membership, native and operational gates remain open.
+
+The isolated retained-display formatter correction now passes all 88 full cases
+(including the original 83), with 64 independently reconstructed actual rows.
+Root verified 1,019 candidate and 488 upstream bindings. Fresh independent review
+is running; no repository or complete AS05 acceptance is claimed. See
+`docs/hosted-atomic-display-correction.md`.

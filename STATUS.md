@@ -186,8 +186,13 @@ membership remained pending; startup is now integrated as recorded below. The na
 probe has 41 passing producer cases. Independent review adds 20 cases and
 reproduces seven mandatory validation gaps; its 61 successful observations do
 not turn those gaps into passes. Root selects AS01–AS07 corrections in
-`docs/hosted-atomic-storage-corrections.md`; a new isolated specimen is assigned.
-No repository acceptance or new migration is claimed. Commit `dd604eca`
+`docs/hosted-atomic-storage-corrections.md`. The corrected isolated specimen now
+passes 73 cases and 269 evidence bindings. Independent review reproduces two
+exact-display failures among 83 adversarial cases; actual valid PostgreSQL rows
+are falsely rejected by the Elixir formatter. Root verified 213 review bindings
+and selected a narrow correction in `docs/hosted-atomic-display-correction-contract.md`.
+All four owned review environments were cleaned up. Repository acceptance and
+new migration remain pending. Commit `dd604eca`
 is pushed. Its Phoenix CI passed 44 tests but invalidated 29 identity cases when
 a test fixture tried to create a directory under macOS-only `/private/tmp`; one
 namespace case was skipped. The exact failed artifact and all 56 committed
@@ -234,8 +239,19 @@ configured only for the API; disabled mode remains liveness-only. See
 `docs/hosted-identity-startup-checkpoint.md` and
 `verification/hosted-identity-startup-root-review/acceptance.json`. Current database
 authority, authenticated HTTP, real provider and cloud operations remain pending.
-The schema/resolver contract is being developed in an isolated PostgreSQL probe;
-no authorization migration or full gate acceptance is claimed.
+The frozen authority schema/resolver replays 128 cases. Independent review's
+48 observations include five successful reproductions of three missing catalog
+checks; those are failures of completeness. Root verifies 97 review bindings and
+selects enforcement-state, persistence and effective parameter/default corrections
+in `docs/hosted-authority-schema-corrections.md`. Final contract acceptance,
+authorization migration and full gate acceptance remain pending.
+Checkpoint `4250e05a` passes Linux hosted CI with 93 tests and two explicit
+namespace skips, packaged release checks, ten run-local metrics and owned cleanup.
+Root matches all 62 archived inputs to the exact pushed commit. Its Swift, VM
+and Go engine jobs also pass. The preceding private Swift control checkpoint `e58e84ca` passes
+all three engine jobs. See `verification/github-ci-4250e05a-phoenix/receipt.json`,
+`verification/github-ci-4250e05a-engine/receipt.json` and
+`verification/github-ci-e58e84ca-engine/receipt.json`.
 
 The release server now owns a configuration snapshot before validation/storage
 open. Independent probes reproduced caller mutations changing token permissions,
@@ -1656,3 +1672,16 @@ See `verification/github-ci-8338fa0/receipt.json` and
 Hosted `1b3de6d` passes all three VM, Swift and services jobs; see
 `verification/github-ci-1b3de6d/receipt.json`. This verifies the configured checks
 for the value-operation checkpoint, with complete Swift execution still pending.
+
+Root now accepts the isolated Load/Store type, borrow and logical-accounting
+prerequisite after 454 bindings, eight fresh independent library checks, sixteen
+paired metadata layouts and 39 unchanged Frozen methods. All sixteen behavior
+groups remain pending; a new isolated lane is implementing caller failure handling
+and executing that matrix. The live VM is unchanged. See
+`docs/swift-memory-helper-acceptance.md`.
+
+The isolated retained-display formatter correction now passes all 88 full cases
+(including the original 83), with 64 independently reconstructed actual rows.
+Root verified 1,019 candidate and 488 upstream bindings. Fresh independent review
+is running; no repository or complete AS05 acceptance is claimed. See
+`docs/hosted-atomic-display-correction.md`.

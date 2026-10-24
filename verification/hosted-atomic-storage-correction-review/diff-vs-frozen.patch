@@ -1,0 +1,224 @@
+--- verification/hosted-atomic-storage-corrected-preflight/run-6/inputs/run.py
++++ verification/hosted-atomic-storage-correction-review/run.py
+@@ -26,7 +26,7 @@
+     while (HERE / f"run-{index}").exists(): index += 1
+     out = HERE / f"run-{index}"
+     out.mkdir()
+-    scratch = pathlib.Path(tempfile.mkdtemp(prefix="mxas-correct-", dir="/private/tmp")).resolve()
++    scratch = pathlib.Path(tempfile.mkdtemp(prefix="mxas-creview-", dir="/private/tmp")).resolve()
+     project, deps, data, sock = (scratch / x for x in ("project", "deps", "pg", "socket"))
+     project.mkdir(); deps.mkdir(); sock.mkdir(mode=0o700)
+     commands, packages = [], []
+@@ -165,13 +165,13 @@
+             tests = json.loads((out / "tests.json").read_text())
+             receipt["test_summary"] = tests.get("summary")
+         summary = tests.get("summary", {})
+-        success = (test_run.returncode == 0 and summary.get("total", 0) >= 61
++        success = (test_run.returncode == 0 and summary.get("total", 0) >= 73
+                    and summary.get("failures") == 0 and summary.get("skipped") == 0
+                    and summary.get("excluded") == 0)
+-        if not success: raise RuntimeError(f"probe tests exited {test_run.returncode}")
+         catalog = run(["psql", "-h", sock, "-U", "preflight_owner", "-d", "atomic_preflight", "-At", "-v", "ON_ERROR_STOP=1", "-f", project / "catalog.sql"])
+         (out / "installed-catalog.json").write_text(json.dumps(json.loads(catalog.stdout), indent=2) + "\n")
+         receipt["installed_catalog_sha256"] = sha((out / "installed-catalog.json").read_bytes())
++        if not success: raise RuntimeError(f"probe tests exited {test_run.returncode}")
+     except Exception as exc:
+         error = repr(exc)
+         print(error, file=sys.stderr)
+--- verification/hosted-atomic-storage-corrected-preflight/run-6/inputs/probe/probe_test.exs
++++ verification/hosted-atomic-storage-correction-review/probe/probe_test.exs
+@@ -1651,6 +1651,194 @@
+     observe("corrected_utf8_and_schema_types",%{invalid_utf8: true,json_schema_retained_integer1_only: true,postgres_jsonb_normalizes_raw_exponent_1e0_to_integer1: true,raw_lexical_spelling_not_recoverable_at_jsonb_boundary: true,elixir_typed_float_rejected: true,root_clarification_preserves_failed_run5: true})
+   end
+ 
++  # Independently authored review additions. The producer's 73 cases and all
++  # specimen implementation files remain unchanged in this reviewer copy.
++  defp independent_sql_decode(d) do
++    try do
++      {:ok, scalar("SELECT mixer_hosted_release.event_from_display($1)", [d])}
++    rescue
++      e in Postgrex.Error -> {:rejected, e.postgres.code, e.postgres.message}
++    end
++  end
++
++  defp independent_put(d, path, value), do: put_in(d, Enum.map(path, fn x -> if is_integer(x), do: Access.at(x), else: x end), value)
++
++  test "I01 actual PostgreSQL and Elixir reject newline Unicode and control suffixes in canonical fields" do
++    base = Jason.decode!(File.read!("golden-vectors.json"))["expected_display"]
++    paths = [["id"], ["actor",4], ["actor",10], ["decision",0], ["recorded_at"]] ++
++      Enum.map(1..5, &["decision",&1]) ++ [["decision",6,0,2]] ++
++      [["tenant",0],["tenant",1],["target",0],["target",1],["target",2],["target",3],
++       ["actor",0],["actor",2],["actor",9],["request_id"],["decision",6,0,0],
++       ["target",5],["target",6],["request_hash"],["source_ip"]]
++    suffixes = ["\n", "\r", "\r\n", "\t", "\u000b", "\u0085", "\u00a0", "\u2028", "\u2029", "\u200b", "\u0301", "９"]
++    results = for path <- paths, suffix <- suffixes do
++      original = get_in(base, Enum.map(path, fn x -> if is_integer(x), do: Access.at(x), else: x end))
++      original = if is_nil(original), do: "127.0.0.1", else: original
++      d = independent_put(base,path,original <> suffix)
++      elixir = try do Codec.from_display(d); :accepted rescue ArgumentError -> :rejected end
++      pg = independent_sql_decode(d)
++      %{path: path, suffix_hex: Codec.hex(suffix), elixir: elixir, postgres: if(elem(pg,0)==:ok,do: :accepted,else: :rejected)}
++    end
++    observe("independent_canonical_suffixes", results)
++    assert Enum.all?(results, &(&1.elixir==:rejected and &1.postgres==:rejected))
++  end
++
++  test "I02 actual PostgreSQL display bytes agree for control Unicode and nonnormalized text" do
++    base = Jason.decode!(File.read!("golden-vectors.json"))["expected_display"]
++    texts = Enum.map(1..31, &<<&1>>) ++ ["\"\\/", <<127>>, "\u0080", "\u0085", "\u00a0", "e\u0301", "é", "雪", "😀", "\u2028", "\u2029", "\u2060", "\ufeff", "\uffff"]
++    results = for text <- texts do
++      d = independent_put(Map.put(base,"reason",text),["actor",3],text)
++      encoded = Codec.encode(Codec.from_display(d))
++      {:ok, pg_encoded} = independent_sql_decode(d)
++      pg_display = scalar("SELECT convert_to($1::jsonb::text,'UTF8')",[d])
++      elixir_display = Codec.postgres_display(d)
++      %{text_hex: Codec.hex(text), codecs_equal: pg_encoded==encoded, display_equal: pg_display==elixir_display,
++        postgres_display_hex: Codec.hex(pg_display),elixir_display_hex: Codec.hex(elixir_display)}
++    end
++    observe("independent_unicode_display",results)
++    assert Enum.map(Enum.reject(results,&(&1.codecs_equal and &1.display_equal)),& &1.text_hex)==[]
++  end
++
++  test "I03 actual uploaded control and Unicode reasons retain exact row and replay bytes" do
++    texts = ["\u000b", "\u000e", "\u001f", "\u2028\u2029", "e\u0301", "é", "😀", "\"\\/\b\f\n\r\t"]
++    results = for {text,index} <- Enum.with_index(texts,1) do
++      key = "unicode" <> to_string(index)
++      assert {:ok,[status,body,event,false]} = attempt(key: key,reason: text)
++      assert {:ok,[^status,^body,^event,true]} = attempt(key: key,reason: text)
++      values = sql("SELECT organization,project,event_id::text,event_cbor,event_hash,previous_hash,previous_state,current_state,display_json,display_bytes FROM mixer_hosted_release.audit_events WHERE event_id=$1::text::numeric",[to_string(index)]).rows |> hd()
++      row = Map.new(Enum.zip([:organization,:project,:event_id,:event_cbor,:event_hash,:previous_hash,:previous_state,:current_state,:display_json,:display_bytes],List.update_at(values,2,&String.to_integer/1)))
++      elixir_row = try do Codec.validate_row!(row); :accepted rescue _ -> :rejected end
++      sql_row = scalar("SELECT mixer_hosted_release.row_valid(e) FROM mixer_hosted_release.audit_events e WHERE event_id=$1::text::numeric",[to_string(index)])
++      exact_row=Map.new(row,fn {key,value} ->
++        if key in [:event_cbor,:event_hash,:previous_hash,:previous_state,:current_state,:display_bytes],
++          do: {key,%{encoding: "hex",value: Codec.hex(value)}},else: {key,value}
++      end)
++      %{text_hex: Codec.hex(text),event: index,sql_row: sql_row,elixir_row: elixir_row,exact_replay: true,retained_row: exact_row}
++    end
++    observe("independent_uploaded_unicode",results)
++    assert counts()==[1,8,8,"8"]
++    assert Enum.map(Enum.reject(results,&(&1.sql_row and &1.elixir_row==:accepted)),& &1.text_hex)==[]
++  end
++
++  test "I04 older cached event and nonfirst creation event validate their own predecessor" do
++    assert {:ok,_}=attempt(key: "first")
++    assert {:ok,_}=attempt(key: "second",canonical: <<2>>)
++    assert {:ok,_}=attempt(key: "third",canonical: <<3>>)
++    assert {:ok,_}=attempt(key: "cached-old")
++    for i <- 5..8, do: assert(match?({:ok,_},attempt(key: "tail"<>to_string(i),canonical: <<i>>)))
++    before=counts()
++    original=scalar("SELECT display_json FROM mixer_hosted_release.audit_events WHERE event_id=3")
++    sql("UPDATE mixer_hosted_release.audit_events SET display_json=display_json-'source_ip'||jsonb_build_object('replacement',null) WHERE event_id=3")
++    assert {:rejected,_,_}=attempt(key: "cached-old")
++    sql("UPDATE mixer_hosted_release.audit_events SET display_json=$1 WHERE event_id=3",[original])
++    original=scalar("SELECT display_json FROM mixer_hosted_release.audit_events WHERE event_id=2")
++    sql("UPDATE mixer_hosted_release.audit_events SET display_json=jsonb_set(display_json,'{actor,4}','\"01\"') WHERE event_id=2")
++    assert {:rejected,_,_}=attempt(key: "creation-old",canonical: <<3>>)
++    sql("UPDATE mixer_hosted_release.audit_events SET display_json=$1 WHERE event_id=2",[original])
++    assert counts()==before
++    assert {:ok,[200,_,_,true]}=attempt(key: "cached-old")
++    assert {:ok,[200,_,_,false]}=attempt(key: "creation-old",canonical: <<3>>)
++    observe("independent_nonterminal_edges",%{head: 8,head_predecessor: 7,cached_event: 4,cached_predecessor: 3,creation_event: 3,creation_predecessor: 2,typed_corruption_denied: true,positive_restored: true})
++  end
++
++  test "I05 tiny fractional numeric inputs cannot disappear through the actual SQL input composites" do
++    cases = for {field,values} <- [expires: ["10000.000000000000000000000000000001","9007199254740991.0000000001","-0.0000000000000000000000000001"],input_authenticated_at: ["99.0000000000000000000000000000001","-0.0000000000000000000000000001"],payload_size: ["1.0000000000000000000000000000001","4194304.0000000000000000000000001","0.9999999999999999999999999999999"]], value <- values do
++      assert {:rejected,_,_}=review_raw_attempt([{field,value}])
++      assert counts()==[0,0,0,"0"]
++      %{field: field,value: value}
++    end
++    assert {:ok,[201,_,_,false]}=review_raw_attempt(expires: "10000.0000000000000000000000000000000",payload_size: "1.0000000000000000000000000000000")
++    observe("independent_numeric_precision",%{fractional_rejections: cases,mathematically_integral_scale_control_accepted: true,input_catalog_preserves_scale: true})
++  end
++
++  test "I06 real clock relation wait cannot reuse prewait expiry or completion age" do
++    expires=correction_wait("mixer_authz.fixture_clock","ACCESS EXCLUSIVE",[expires: 140],140,:reject)
++    sql("UPDATE mixer_authz.fixture_clock SET now_s=100")
++    stale=correction_wait("mixer_authz.fixture_clock","ACCESS EXCLUSIVE",[],145,:reject)
++    sql("UPDATE mixer_authz.fixture_clock SET now_s=100")
++    control=correction_wait("mixer_authz.fixture_clock","ACCESS EXCLUSIVE",[],144,:success)
++    observe("independent_clock_read_waits",%{expiry: expires,stale46: stale,age45: control})
++  end
++
++  test "I07 cached validation late wait enforces original SQL deadline and future completion tolerance" do
++    assert {:ok,_}=attempt()
++    deadline=DateTime.add(DateTime.utc_now(),180,:millisecond)
++    expired=correction_wait("mixer_hosted_release.artifacts","ACCESS EXCLUSIVE",[deadline: deadline],nil,:reject,190)
++    future30=correction_wait("mixer_hosted_release.artifacts","ACCESS EXCLUSIVE",[],69,:success)
++    sql("UPDATE mixer_authz.fixture_clock SET now_s=100")
++    future31=correction_wait("mixer_hosted_release.artifacts","ACCESS EXCLUSIVE",[],68,:reject)
++    assert counts()==[1,1,1,"1"]
++    observe("independent_cached_deadline_future",%{expired_original_deadline: expired,completion_future30: future30,completion_future31: future31})
++  end
++
++  test "I08 every actual private helper rejects direct runtime and foreign execution" do
++    rows=sql("SELECT n.nspname,p.proname,ARRAY(SELECT format_type(x,null) FROM unnest(p.proargtypes::oid[]) x),p.oid::regprocedure::text FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='mixer_hosted_release' AND p.proname<>'upload_v1' ORDER BY 4").rows
++    assert length(rows)==19
++    foreign_opts=[socket_dir: System.fetch_env!("MXAS_SOCKET"),username: "mxas_foreign",database: "atomic_preflight",pool_size: 1,timeout: 5000,log: false]
++    {:ok,foreign}=Postgrex.start_link(foreign_opts)
++    results=try do
++      for [schema,name,args,identity] <- rows do
++        query="SELECT "<>schema<>"."<>name<>"("<>Enum.map_join(args,",", &("NULL::"<>&1))<>")"
++        runtime=case Repo.query(query,[],log: false) do {:error,%Postgrex.Error{postgres: %{code: :insufficient_privilege}}}->true;_->false end
++        denied=case Postgrex.query(foreign,query,[]) do {:error,%Postgrex.Error{postgres: %{code: :insufficient_privilege}}}->true;_->false end
++        %{identity: identity,runtime_denied: runtime,foreign_denied: denied}
++      end
++    after
++      GenServer.stop(foreign)
++    end
++    observe("independent_private_execute",results)
++    assert Enum.all?(results,&(&1.runtime_denied and &1.foreign_denied))
++  end
++
++  test "I09 expiry and stale completion after a late wait reject before any attempted domain DML" do
++    # Review-only nontransactional observation: nextval survives an aborted
++    # transaction, unlike the domain rows. Thus a post-DML rollback cannot make
++    # this test appear to prove rejection before the first attempted effect.
++    sql("CREATE SCHEMA correction_review_observation")
++    sql("CREATE SEQUENCE correction_review_observation.before_dml START 1")
++    sql("CREATE FUNCTION correction_review_observation.record_dml() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$ BEGIN PERFORM nextval('correction_review_observation.before_dml'::regclass); RETURN NEW; END $$")
++    sql("REVOKE ALL ON FUNCTION correction_review_observation.record_dml() FROM PUBLIC")
++    sql("CREATE TRIGGER review_before_dml BEFORE INSERT ON mixer_hosted_release.artifacts FOR EACH ROW EXECUTE FUNCTION correction_review_observation.record_dml()")
++    sql("CREATE TRIGGER review_before_dml BEFORE INSERT ON mixer_hosted_release.audit_events FOR EACH ROW EXECUTE FUNCTION correction_review_observation.record_dml()")
++    try do
++      expiry=correction_wait("mixer_authz.fixture_fault","ACCESS EXCLUSIVE",[expires: 140],140,:reject)
++      refute scalar("SELECT is_called FROM correction_review_observation.before_dml")
++      sql("UPDATE mixer_authz.fixture_clock SET now_s=100")
++      stale=correction_wait("mixer_authz.fixture_fault","ACCESS EXCLUSIVE",[],145,:reject)
++      refute scalar("SELECT is_called FROM correction_review_observation.before_dml")
++      sql("UPDATE mixer_authz.fixture_clock SET now_s=100")
++      positive=correction_wait("mixer_authz.fixture_fault","ACCESS EXCLUSIVE",[expires: 140],139,:success)
++      assert scalar("SELECT is_called FROM correction_review_observation.before_dml")
++      assert scalar("SELECT last_value FROM correction_review_observation.before_dml")==2
++      assert scalar("SELECT display_json->'decision'->>0 FROM mixer_hosted_release.audit_events")=="139"
++      assert scalar("SELECT display_json->>'recorded_at' FROM mixer_hosted_release.audit_events")=="139"
++      observe("independent_pre_effect_observation",%{expiry: expiry,stale46: stale,unexpired139: positive,
++        before_dml_trigger_sequence_is_nontransactional: true,rejected_attempts_never_called_trigger: true,
++        positive_insert_and_audit_called_trigger_twice: true,positive_decision_and_recorded: "139",
++        no_candidate_function_was_modified: true,review_instrumentation_dropped_after_case: true})
++    after
++      sql("DROP TRIGGER review_before_dml ON mixer_hosted_release.artifacts")
++      sql("DROP TRIGGER review_before_dml ON mixer_hosted_release.audit_events")
++      sql("DROP SCHEMA correction_review_observation CASCADE")
++    end
++  end
++
++  test "I10 literal backslash-u sequences retain their original case and text bytes" do
++    base=Jason.decode!(File.read!("golden-vectors.json"))["expected_display"]
++    texts=["\\u000B","\\u000b","\\u000E","\\u001F","prefix\\u000B\\u000b\\u000E","\\\\u000B","\\n","\\t","\\u2028","snow雪\\u000B"]
++    for text <- texts do
++      d=independent_put(Map.put(base,"reason",text),["actor",3],text)
++      {:ok,encoded}=independent_sql_decode(d)
++      assert encoded==Codec.encode(Codec.from_display(d))
++      pg=scalar("SELECT convert_to($1::jsonb::text,'UTF8')",[d])
++      assert pg==Codec.postgres_display(d)
++      assert Jason.decode!(pg)["reason"]==text
++    end
++    assert {:ok,_}=attempt(reason: "literal\\u000B\\u000b")
++    assert Codec.validate_row!(retained_row())==:ok
++    observe("independent_literal_escape_control",%{cases: length(texts),postgres_elixir_display_equal: true,literal_case_and_text_unchanged: true,actual_uploaded_row_valid: true})
++  end
++
+ end
+ 
+ result = ExUnit.run()

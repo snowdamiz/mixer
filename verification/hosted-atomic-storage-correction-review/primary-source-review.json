@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "observed_utc": "2026-10-24T08:51:38.577218+00:00",
+  "sources": [
+    {
+      "url": "https://www.postgresql.org/docs/17/functions-matching.html",
+      "reviewed_sections": "9.7.3.4-9.7.3.6",
+      "use": "PostgreSQL default non-newline-sensitive ARE semantics differ from common Perl trailing-newline treatment; actual I01 execution supplies boundary evidence."
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/datatype-json.html",
+      "reviewed_sections": "8.14-8.14.1",
+      "use": "JSONB normalized representation discards raw exponent spelling and object duplication/order/whitespace; trailing fractional zeros may remain. Root-selected retained representation is the input seam. No public raw JSON parser claimed."
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/transaction-iso.html",
+      "reviewed_sections": "13.2.1",
+      "use": "Read Committed statement snapshots motivate separate volatile SQL evidence queries; actual waits and before-effect sequence observations supply executable evidence."
+    }
+  ],
+  "existing_accepted_jason_source": {
+    "path": "hosted/deps/jason/lib/encode.ex",
+    "sha256": "9e8551342f2df4c15f929856bc26f13b9a8bdd49c07092dd6d4702f0cdda782b",
+    "accepted_archive_verified_by_each_run": true,
+    "use": "Jason default JSON string escapes include uppercase hex; actual PostgreSQL and uploaded rows demonstrate resulting exact-byte disagreement."
+  }
+}

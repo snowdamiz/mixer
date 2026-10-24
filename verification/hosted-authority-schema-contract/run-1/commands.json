@@ -1,0 +1,187 @@
+[
+  {
+    "argv": [
+      "git",
+      "rev-parse",
+      "HEAD"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+    "started_utc": "2026-10-24T08:39:43.790083+00:00",
+    "timeout_seconds": 30,
+    "exit_code": 0,
+    "stdout": "4250e05a132c04370d5ccb971c9faaf1b82a9395\n",
+    "stderr": "",
+    "duration_seconds": 0.0070219169137999415
+  },
+  {
+    "argv": [
+      "git",
+      "rev-parse",
+      "HEAD^{tree}"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+    "started_utc": "2026-10-24T08:39:43.797460+00:00",
+    "timeout_seconds": 30,
+    "exit_code": 0,
+    "stdout": "e06c83a5fd5263f13a2ce11803c1b3ab57eead76\n",
+    "stderr": "",
+    "duration_seconds": 0.007176875020377338
+  },
+  {
+    "argv": [
+      "python3",
+      "--version"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+    "started_utc": "2026-10-24T08:39:43.804973+00:00",
+    "timeout_seconds": 30,
+    "exit_code": 0,
+    "stdout": "Python 3.14.8\n",
+    "stderr": "",
+    "duration_seconds": 0.009516292018815875
+  },
+  {
+    "argv": [
+      "postgres",
+      "--version"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+    "started_utc": "2026-10-24T08:39:43.814751+00:00",
+    "timeout_seconds": 30,
+    "exit_code": 0,
+    "stdout": "postgres (PostgreSQL) 17.11 (Homebrew)\n",
+    "stderr": "",
+    "duration_seconds": 0.01636600005440414
+  },
+  {
+    "argv": [
+      "pg_ctl",
+      "--version"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+    "started_utc": "2026-10-24T08:39:43.831366+00:00",
+    "timeout_seconds": 30,
+    "exit_code": 0,
+    "stdout": "pg_ctl (PostgreSQL) 17.11 (Homebrew)\n",
+    "stderr": "",
+    "duration_seconds": 0.005242208018898964
+  },
+  {
+    "argv": [
+      "psql",
+      "--version"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+    "started_utc": "2026-10-24T08:39:43.836853+00:00",
+    "timeout_seconds": 30,
+    "exit_code": 0,
+    "stdout": "psql (PostgreSQL) 17.11 (Homebrew)\n",
+    "stderr": "",
+    "duration_seconds": 0.011059958022087812
+  },
+  {
+    "argv": [
+      "pg_config",
+      "--libdir"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+    "started_utc": "2026-10-24T08:39:43.848197+00:00",
+    "timeout_seconds": 30,
+    "exit_code": 0,
+    "stdout": "/opt/homebrew/lib/postgresql@17\n",
+    "stderr": "",
+    "duration_seconds": 0.010292959050275385
+  },
+  {
+    "argv": [
+      "initdb",
+      "-D",
+      "/private/tmp/mixer-authz-contract-4aqsymye/pg",
+      "-A",
+      "trust",
+      "--no-locale",
+      "--encoding=UTF8"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+    "started_utc": "2026-10-24T08:39:43.863042+00:00",
+    "timeout_seconds": 30,
+    "exit_code": 0,
+    "stdout": "The files belonging to this database system will be owned by user \"andreyyurlov\".\nThis user must also own the server process.\n\nThe database cluster will be initialized with locale \"C\".\nThe default text search configuration will be set to \"english\".\n\nData page checksums are disabled.\n\ncreating directory /private/tmp/mixer-authz-contract-4aqsymye/pg ... ok\ncreating subdirectories ... ok\nselecting dynamic shared memory implementation ... posix\nselecting default \"max_connections\" ... 100\nselecting default \"shared_buffers\" ... 128MB\nselecting default time zone ... America/New_York\ncreating configuration files ... ok\nrunning bootstrap script ... ok\nperforming post-bootstrap initialization ... ok\nsyncing data to disk ... ok\n\nSuccess. You can now start the database server using:\n\n    pg_ctl -D /private/tmp/mixer-authz-contract-4aqsymye/pg -l logfile start\n\n",
+    "stderr": "",
+    "duration_seconds": 0.388522082939744
+  },
+  {
+    "argv": [
+      "pg_ctl",
+      "-D",
+      "/private/tmp/mixer-authz-contract-4aqsymye/pg",
+      "-l",
+      "/private/tmp/mixer-authz-contract-4aqsymye/postgres.log",
+      "-o",
+      "-F -k /private/tmp/mixer-authz-contract-4aqsymye/socket -c listen_addresses='' -c unix_socket_permissions=0700",
+      "-w",
+      "start"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+    "started_utc": "2026-10-24T08:39:44.251917+00:00",
+    "timeout_seconds": 30,
+    "exit_code": 0,
+    "stdout": "waiting for server to start.... done\nserver started\n",
+    "stderr": "",
+    "duration_seconds": 0.1235883750487119
+  },
+  {
+    "argv": [
+      "createdb",
+      "-h",
+      "/private/tmp/mixer-authz-contract-4aqsymye/socket",
+      "authority_contract"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+    "started_utc": "2026-10-24T08:39:44.375958+00:00",
+    "timeout_seconds": 30,
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "",
+    "duration_seconds": 0.04606216703541577
+  },
+  {
+    "argv": [
+      "psql",
+      "-X",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-h",
+      "/private/tmp/mixer-authz-contract-4aqsymye/socket",
+      "-d",
+      "authority_contract",
+      "-f",
+      "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-authority-schema-contract/run-1/source/schema.sql"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+    "started_utc": "2026-10-24T08:39:44.422378+00:00",
+    "timeout_seconds": 30,
+    "exit_code": 3,
+    "stdout": "BEGIN\nCREATE ROLE\nCREATE ROLE\nCREATE ROLE\nCREATE ROLE\nREVOKE\nGRANT\nREVOKE\nCREATE SCHEMA\nREVOKE\nGRANT\nSET\nALTER DEFAULT PRIVILEGES\nALTER DEFAULT PRIVILEGES\nCREATE FUNCTION\nCREATE FUNCTION\nCREATE FUNCTION\nCREATE TYPE\nCREATE TYPE\nCREATE TYPE\nCREATE TYPE\nCREATE TYPE\nCREATE TYPE\nCREATE TABLE\nCREATE TABLE\nCREATE TABLE\nCREATE TABLE\nCREATE TABLE\nCREATE TABLE\nCREATE TABLE\nCREATE TABLE\nCREATE TABLE\nCREATE TABLE\nCREATE TABLE\nCREATE TABLE\nCREATE TABLE\nCREATE INDEX\nCREATE INDEX\nCREATE TABLE\nCREATE INDEX\nCREATE INDEX\nCREATE INDEX\nCREATE INDEX\nALTER TABLE\nALTER TABLE\nGRANT\nCREATE POLICY\nALTER TABLE\nALTER TABLE\nGRANT\nCREATE POLICY\nALTER TABLE\nALTER TABLE\nGRANT\nCREATE POLICY\nALTER TABLE\nALTER TABLE\nGRANT\nCREATE POLICY\nALTER TABLE\nALTER TABLE\nGRANT\nCREATE POLICY\nALTER TABLE\nALTER TABLE\nGRANT\nCREATE POLICY\nALTER TABLE\nALTER TABLE\nGRANT\nCREATE POLICY\nALTER TABLE\nALTER TABLE\nGRANT\nCREATE POLICY\nALTER TABLE\nALTER TABLE\nGRANT\nCREATE POLICY\nALTER TABLE\nALTER TABLE\nGRANT\nCREATE POLICY\nALTER TABLE\nALTER TABLE\nGRANT\nCREATE POLICY\nALTER TABLE\nALTER TABLE\nGRANT\nCREATE POLICY\nALTER TABLE\nALTER TABLE\nGRANT\nCREATE POLICY\nALTER TABLE\nALTER TABLE\nGRANT\nCREATE POLICY\nGRANT\nCREATE POLICY\nGRANT\nCREATE POLICY\nGRANT\nCREATE POLICY\nGRANT\nCREATE POLICY\nGRANT\nCREATE POLICY\nCREATE FUNCTION\nCREATE TRIGGER\nCREATE TRIGGER\nCREATE TRIGGER\nCREATE TRIGGER\nCREATE TRIGGER\nCREATE TRIGGER\nCREATE TRIGGER\nCREATE TRIGGER\nCREATE TRIGGER\nCREATE TRIGGER\nCREATE TRIGGER\nCREATE TRIGGER\nCREATE TRIGGER\nCREATE TRIGGER\nCREATE FUNCTION\nCREATE FUNCTION\nCREATE FUNCTION\nCREATE FUNCTION\n",
+    "stderr": "psql:/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-authority-schema-contract/run-1/source/schema.sql:205: ERROR:  record variable cannot be part of multiple-item INTO list\nLINE 12:  SELECT pp,qq,ff INTO p,pr,f FROM mixer_authz.identity_trust...\n                                ^\n",
+    "duration_seconds": 0.03301087499130517
+  },
+  {
+    "argv": [
+      "pg_ctl",
+      "-D",
+      "/private/tmp/mixer-authz-contract-4aqsymye/pg",
+      "-m",
+      "immediate",
+      "-w",
+      "stop"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+    "started_utc": "2026-10-24T08:39:44.456457+00:00",
+    "timeout_seconds": 30,
+    "exit_code": 0,
+    "stdout": "waiting for server to shut down.... done\nserver stopped\n",
+    "stderr": "",
+    "duration_seconds": 0.11014800006523728
+  }
+]

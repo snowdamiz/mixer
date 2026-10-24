@@ -1,0 +1,1439 @@
+{
+  "schema": 1,
+  "status": "corrected-specimen-frozen-product-manifest-pending-root-selection",
+  "scope": "preimplementation domain atomic writer supplement; no product migration/API/provider or GA acceptance",
+  "product": {
+    "schemas": [
+      "mixer_authz",
+      "mixer_hosted_release"
+    ],
+    "legacy_schema_unchanged": "mixer_release",
+    "entry": "mixer_hosted_release.upload_artifact_v1(mixer_hosted_release.writer_context_v1,mixer_hosted_release.artifact_input_v1,mixer_hosted_release.request_input_v1)",
+    "result": "mixer_hosted_release.upload_result_v1",
+    "overloads": false,
+    "context_fields": [
+      "backend_pid:int4",
+      "full_xid:text",
+      "database_name:name",
+      "runtime_role:name",
+      "invocation_nonce:text",
+      "sql_deadline:timestamptz",
+      "principal_id:uuid",
+      "token_expires_at:numeric",
+      "authentication_completed_at:numeric"
+    ],
+    "artifact_fields": [
+      "organization:text",
+      "project:text",
+      "app:text",
+      "environment:text",
+      "platform:text",
+      "runtime_sha256:bytea",
+      "manifest_sha256:bytea",
+      "canonical_manifest:bytea",
+      "signed_document:bytea",
+      "signature:bytea",
+      "payload_sha256:bytea",
+      "payload_size:numeric",
+      "blob_reference:text"
+    ],
+    "request_fields": [
+      "key:text",
+      "normalized_route:text",
+      "original_body:bytea",
+      "request_sha256:bytea",
+      "reason:text",
+      "request_id:uuid",
+      "source_ip:text|null"
+    ],
+    "result_fields": [
+      "status:int4",
+      "body:bytea",
+      "event_id:numeric(20,0)",
+      "replay:boolean"
+    ],
+    "routine": {
+      "owner": "mixer_hosted_domain_writer",
+      "security": "DEFINER",
+      "volatility": "VOLATILE",
+      "parallel": "UNSAFE",
+      "leakproof": false,
+      "search_path": "pg_catalog",
+      "row_security": "on",
+      "public_execute": false,
+      "dynamic_sql": false,
+      "transaction_control": false,
+      "network_or_signer": false
+    },
+    "roles": {
+      "mixer_hosted_schema_owner": {
+        "login": false,
+        "superuser": false,
+        "bypassrls": false,
+        "createdb": false,
+        "createrole": false,
+        "replication": false,
+        "owns": [
+          "schemas",
+          "types",
+          "tables",
+          "policies",
+          "private pure codecs"
+        ]
+      },
+      "mixer_hosted_authz_resolver": {
+        "login": false,
+        "superuser": false,
+        "bypassrls": false,
+        "createdb": false,
+        "createrole": false,
+        "replication": false,
+        "owns": [
+          "enumerated existing authz resolver/policy functions"
+        ],
+        "grants": "unchanged five-class column lock/select grants in membership contract; no artifact payload read"
+      },
+      "mixer_hosted_domain_writer": {
+        "login": false,
+        "superuser": false,
+        "bypassrls": false,
+        "createdb": false,
+        "createrole": false,
+        "replication": false,
+        "owns_only": [
+          "upload_artifact_v1"
+        ],
+        "select_insert": [
+          "artifacts",
+          "audit_events",
+          "idempotency"
+        ],
+        "head_select_update_columns": [
+          "last_event",
+          "audit_hash",
+          "state_hash"
+        ],
+        "execute": [
+          "private codec functions",
+          "narrow resolver/evidence helpers"
+        ],
+        "forbidden": [
+          "schema CREATE",
+          "table ownership",
+          "role membership",
+          "immutable row UPDATE/DELETE",
+          "head INSERT",
+          "TRUNCATE",
+          "REFERENCES"
+        ]
+      },
+      "configured_runtime_login": {
+        "login": true,
+        "superuser": false,
+        "bypassrls": false,
+        "createdb": false,
+        "createrole": false,
+        "replication": false,
+        "owns": [],
+        "inherits_or_set_role_to_other_roles": false,
+        "schema_usage": [
+          "mixer_authz",
+          "mixer_hosted_release"
+        ],
+        "execute": [
+          "existing enumerated public resolver/read/policy helpers",
+          "upload_artifact_v1"
+        ],
+        "select": [
+          "scoped artifacts",
+          "scoped audit_events"
+        ],
+        "direct_domain_dml": false,
+        "head_or_idempotency_select": false,
+        "database_temp": false,
+        "schema_create": false
+      }
+    },
+    "policies": {
+      "all_private_tables": [
+        "ENABLE ROW LEVEL SECURITY",
+        "FORCE ROW LEVEL SECURITY"
+      ],
+      "authz": "simple resolver-specific SELECT/column UPDATE policies; no domain recursion",
+      "writer_domain": "current authoritative policy and exact actual row tenant/target; idempotency exact locked tenant/key only",
+      "runtime_artifacts": "artifact.read exact current target only",
+      "runtime_audit": "audit.read project-only target only",
+      "immutable": "no UPDATE/DELETE policy/grants",
+      "bootstrap": "offline migration owner only"
+    },
+    "codec_note": "Necessary private pure helpers are allowed under AS07. The exact installed specimen manifest is evidence, not a live product migration or inspector.",
+    "supported_actions": [
+      "artifact.read",
+      "artifact.upload",
+      "audit.read"
+    ],
+    "canonical_roles": [
+      "owner",
+      "administrator",
+      "developer",
+      "release_manager",
+      "billing_manager",
+      "viewer"
+    ],
+    "upload_roles": [
+      "owner",
+      "administrator",
+      "developer"
+    ],
+    "authentication_completion": {
+      "source": "request coordinator captures integer Unix seconds immediately after successful ConfiguredVerifier return; accepted VerifiedIdentity unchanged",
+      "guc": "mixer_hosted.authentication_completed_at",
+      "immutable_context_field": true,
+      "exact_runtime_and_sql_equality": true,
+      "range": [
+        0,
+        9007199254740991
+      ],
+      "completion_lt_token_expiry": true,
+      "dbnow_lt_token_expiry": true,
+      "completion_min": "DBnow-45",
+      "completion_max": "DBnow+30",
+      "not_verifier_internal_evaluation_or_iat": true
+    },
+    "private_helper_selection": "Pending root selection of actual product DDL/identities; no conceptual alias is an installed-object manifest. Complete actual specimen identities/definitions/effective ACLs are bound below."
+  },
+  "encodings": {
+    "audit_schema": 1,
+    "event_array_fields": 15,
+    "actor_array_fields": 11,
+    "decision_array_fields": 7,
+    "target_array_fields": 7,
+    "change_array_fields": 8,
+    "allowed_cbor": [
+      "shortest definite uint64",
+      "definite byte strings",
+      "valid UTF8 text",
+      "definite fixed arrays",
+      "explicit null"
+    ],
+    "forbidden_cbor": [
+      "maps",
+      "negative",
+      "float",
+      "boolean",
+      "tags",
+      "indefinite",
+      "trailing",
+      "overlong"
+    ],
+    "audit_domain_ascii_then_nul": "mixer.hosted.audit.v1",
+    "state_domain_ascii_then_nul": "mixer.hosted.state.v1",
+    "identity_reference_domain_ascii_then_nul": "mixer.hosted.identity-ref.v1",
+    "hash": "standard SHA256; built-in PostgreSQL17 sha256(bytea), OTP crypto and Python hashlib",
+    "state_model": "ordered previous-state plus actual immutable artifact Change1 projection; identical artifact new-key leaves state unchanged; never whole-DB snapshot",
+    "json_integer_policy": "audit_schema integer1; all other uint64/time/revision/profile-version values canonical decimal strings",
+    "display": "closed 16-key object, fixed nested arrays; bytes lowercase hex, UUID lowercase hyphenated, explicit null; exact PostgreSQL17 jsonb::text UTF8 stored immutable",
+    "legacy": "old Go Event JSON/plain hash and signed v3 domains unchanged",
+    "jsonb_boundary": "Exact retained typed JSONB schema integer1 representation; PostgreSQL raw1e0 normalization loses raw spelling before internal helper. No arbitrary public JSON parser.",
+    "audit_time_relationship": "completion in decision-45..decision+30; recorded>=decision; no completion<=decision/recorded requirement"
+  },
+  "budgets": {
+    "public_id_bytes_min_max": [
+      1,
+      128
+    ],
+    "profile_id_utf8_bytes_min_max": [
+      1,
+      128
+    ],
+    "membership_evidence_max": 64,
+    "request_bytes_min_max": [
+      1,
+      6291456
+    ],
+    "signed_document_bytes_min_max": [
+      1,
+      65536
+    ],
+    "canonical_manifest_bytes_min_max": [
+      1,
+      65536
+    ],
+    "signature_bytes": 64,
+    "payload_bytes_min_max": [
+      1,
+      4194304
+    ],
+    "reason_utf8_bytes_max": 512,
+    "source_ip_ascii_bytes_max": 45,
+    "request_lifetime_ms_max": 15000,
+    "accepted_requests_per_node_max": 4,
+    "waiting_admission_queue": 0,
+    "pre_mailbox_http_admission_implemented": false,
+    "transaction_ms_max": 5000,
+    "lock_timeout_ms": 250,
+    "protected_pool_queue": false,
+    "cbor_depth_max": 16,
+    "cbor_container_entries_max": 256,
+    "cbor_items_max": 4096,
+    "audit_cbor_bytes_max": 16384,
+    "audit_display_bytes_max": 32768,
+    "idempotent_response_bytes_max": 4096,
+    "artifact_read_envelope_bytes_max": 6291456,
+    "audit_page_limit_min_max": [
+      1,
+      100
+    ],
+    "audit_page_db_rows_max": 101,
+    "audit_page_encoded_bytes_max": 262144,
+    "audit_cursor_uint64_max": "18446744073709551615",
+    "local_blob_object_count_max": 8,
+    "local_blob_total_bytes_max": 16777216,
+    "local_blob_read_bytes_max": 4194305
+  },
+  "specimen": {
+    "schema_file": "probe/schema.sql",
+    "role_mapping": {
+      "schema_owner": "mxas_schema",
+      "resolver": "mxas_resolver",
+      "writer": "mxas_writer",
+      "runtime": "mxas_runtime",
+      "adversarial_foreign": "mxas_foreign"
+    },
+    "entry": "mixer_hosted_release.upload_v1(call_context,upload_input,upload_request)",
+    "synthetic_only": [
+      "two fixture principals",
+      "one policy row lock instead of full authz lock chain",
+      "controlled clock",
+      "controlled four-boundary faults",
+      "opaque synthetic manifest and signed bytes",
+      "fixed o/p/a/e/ios target",
+      "asserted_display negative-test input",
+      "foreign role deliberately granted entry EXECUTE"
+    ],
+    "no_product_identity_signature_migration_claim": true,
+    "local_blob_scope": "single process trusted owned mode0700 directory; bounded regular-file reads, immutable exclusive creation; File.ls enumeration not adversarial-directory qualified; no directory-entry power-loss or R2 guarantee",
+    "admission_scope": "in-flight Agent references only; no mailbox/HTTP cancellation proof",
+    "uncertain_commit_scope": "real Unix PostgreSQL wire proxy drops server CommandComplete(COMMIT) before client; fresh contexts after actual DB stop/start; not arbitrary provider/deadline failure timing",
+    "installed_catalog": "run-6/installed-catalog.json",
+    "installed_catalog_sha256": "5824cfe3629e65e2da8dcf4d831a10f22589a5b2bd38c02bbf58f90d23971883",
+    "functions": [
+      {
+        "identity": "mixer_authz.allowed(text,text)",
+        "owner": "mxas_resolver",
+        "prosecdef": true,
+        "provolatile": "v",
+        "proparallel": "u",
+        "proleakproof": false,
+        "proconfig": [
+          "search_path=pg_catalog",
+          "row_security=on"
+        ],
+        "acl": "{mxas_resolver=X/mxas_resolver,mxas_runtime=X/mxas_resolver,mxas_writer=X/mxas_resolver}",
+        "acl_entries": [
+          {
+            "grantee": "mxas_resolver",
+            "grantor": "mxas_resolver",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          },
+          {
+            "grantee": "mxas_writer",
+            "grantor": "mxas_resolver",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          },
+          {
+            "grantee": "mxas_runtime",
+            "grantor": "mxas_resolver",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          }
+        ],
+        "effective_execute": [
+          {
+            "role": "mxas_foreign",
+            "execute": false
+          },
+          {
+            "role": "mxas_resolver",
+            "execute": true
+          },
+          {
+            "role": "mxas_runtime",
+            "execute": true
+          },
+          {
+            "role": "mxas_schema",
+            "execute": false
+          },
+          {
+            "role": "mxas_writer",
+            "execute": true
+          }
+        ],
+        "definition_sha256": "1968938c895476f719244af91f60e09a861197838c54c1e5995a630253380045"
+      },
+      {
+        "identity": "mixer_authz.evidence(uuid)",
+        "owner": "mxas_resolver",
+        "prosecdef": true,
+        "provolatile": "v",
+        "proparallel": "u",
+        "proleakproof": false,
+        "proconfig": [
+          "search_path=pg_catalog",
+          "row_security=on"
+        ],
+        "acl": "{mxas_resolver=X/mxas_resolver,mxas_writer=X/mxas_resolver}",
+        "acl_entries": [
+          {
+            "grantee": "mxas_resolver",
+            "grantor": "mxas_resolver",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          },
+          {
+            "grantee": "mxas_writer",
+            "grantor": "mxas_resolver",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          }
+        ],
+        "effective_execute": [
+          {
+            "role": "mxas_foreign",
+            "execute": false
+          },
+          {
+            "role": "mxas_resolver",
+            "execute": true
+          },
+          {
+            "role": "mxas_runtime",
+            "execute": false
+          },
+          {
+            "role": "mxas_schema",
+            "execute": false
+          },
+          {
+            "role": "mxas_writer",
+            "execute": true
+          }
+        ],
+        "definition_sha256": "4954458287c9167b6f1bdd0664341a8e98b6096fd97321bb115208e6f793e62e"
+      },
+      {
+        "identity": "mixer_hosted_release.a(bytea[])",
+        "owner": "mxas_schema",
+        "prosecdef": false,
+        "provolatile": "i",
+        "proparallel": "u",
+        "proleakproof": false,
+        "proconfig": [
+          "search_path=pg_catalog"
+        ],
+        "acl": "{mxas_schema=X/mxas_schema,mxas_writer=X/mxas_schema}",
+        "acl_entries": [
+          {
+            "grantee": "mxas_schema",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          },
+          {
+            "grantee": "mxas_writer",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          }
+        ],
+        "effective_execute": [
+          {
+            "role": "mxas_foreign",
+            "execute": false
+          },
+          {
+            "role": "mxas_resolver",
+            "execute": false
+          },
+          {
+            "role": "mxas_runtime",
+            "execute": false
+          },
+          {
+            "role": "mxas_schema",
+            "execute": true
+          },
+          {
+            "role": "mxas_writer",
+            "execute": true
+          }
+        ],
+        "definition_sha256": "a38874909f59065f773b51cbeef5c61dae53b68a935ee1b8f229a577f16a002e"
+      },
+      {
+        "identity": "mixer_hosted_release.b(bytea)",
+        "owner": "mxas_schema",
+        "prosecdef": false,
+        "provolatile": "i",
+        "proparallel": "u",
+        "proleakproof": false,
+        "proconfig": [
+          "search_path=pg_catalog"
+        ],
+        "acl": "{mxas_schema=X/mxas_schema,mxas_writer=X/mxas_schema}",
+        "acl_entries": [
+          {
+            "grantee": "mxas_schema",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          },
+          {
+            "grantee": "mxas_writer",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          }
+        ],
+        "effective_execute": [
+          {
+            "role": "mxas_foreign",
+            "execute": false
+          },
+          {
+            "role": "mxas_resolver",
+            "execute": false
+          },
+          {
+            "role": "mxas_runtime",
+            "execute": false
+          },
+          {
+            "role": "mxas_schema",
+            "execute": true
+          },
+          {
+            "role": "mxas_writer",
+            "execute": true
+          }
+        ],
+        "definition_sha256": "e499a8aa7bcd918a2d690a265551b35da6a83cb0c6e8a7972f10b17bfaa68ff5"
+      },
+      {
+        "identity": "mixer_hosted_release.changed_state(bytea,mixer_hosted_release.upload_input)",
+        "owner": "mxas_schema",
+        "prosecdef": false,
+        "provolatile": "i",
+        "proparallel": "u",
+        "proleakproof": false,
+        "proconfig": [
+          "search_path=pg_catalog"
+        ],
+        "acl": "{mxas_schema=X/mxas_schema,mxas_writer=X/mxas_schema}",
+        "acl_entries": [
+          {
+            "grantee": "mxas_schema",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          },
+          {
+            "grantee": "mxas_writer",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          }
+        ],
+        "effective_execute": [
+          {
+            "role": "mxas_foreign",
+            "execute": false
+          },
+          {
+            "role": "mxas_resolver",
+            "execute": false
+          },
+          {
+            "role": "mxas_runtime",
+            "execute": false
+          },
+          {
+            "role": "mxas_schema",
+            "execute": true
+          },
+          {
+            "role": "mxas_writer",
+            "execute": true
+          }
+        ],
+        "definition_sha256": "fefd4917851b14272ed27bfeaee584e8b06f08a3bbdb7658b49ebf307ff40488"
+      },
+      {
+        "identity": "mixer_hosted_release.event_from_display(jsonb)",
+        "owner": "mxas_schema",
+        "prosecdef": false,
+        "provolatile": "i",
+        "proparallel": "u",
+        "proleakproof": false,
+        "proconfig": [
+          "search_path=pg_catalog"
+        ],
+        "acl": "{mxas_schema=X/mxas_schema,mxas_writer=X/mxas_schema}",
+        "acl_entries": [
+          {
+            "grantee": "mxas_schema",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          },
+          {
+            "grantee": "mxas_writer",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          }
+        ],
+        "effective_execute": [
+          {
+            "role": "mxas_foreign",
+            "execute": false
+          },
+          {
+            "role": "mxas_resolver",
+            "execute": false
+          },
+          {
+            "role": "mxas_runtime",
+            "execute": false
+          },
+          {
+            "role": "mxas_schema",
+            "execute": true
+          },
+          {
+            "role": "mxas_writer",
+            "execute": true
+          }
+        ],
+        "definition_sha256": "042c91eaf83f8f8a78b5bb62b3c11b79b2076490b8a670c99f81a16ce0b94e36"
+      },
+      {
+        "identity": "mixer_hosted_release.finite_uint(numeric,numeric,numeric)",
+        "owner": "mxas_schema",
+        "prosecdef": false,
+        "provolatile": "i",
+        "proparallel": "u",
+        "proleakproof": false,
+        "proconfig": [
+          "search_path=pg_catalog"
+        ],
+        "acl": "{mxas_schema=X/mxas_schema,mxas_writer=X/mxas_schema}",
+        "acl_entries": [
+          {
+            "grantee": "mxas_schema",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          },
+          {
+            "grantee": "mxas_writer",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          }
+        ],
+        "effective_execute": [
+          {
+            "role": "mxas_foreign",
+            "execute": false
+          },
+          {
+            "role": "mxas_resolver",
+            "execute": false
+          },
+          {
+            "role": "mxas_runtime",
+            "execute": false
+          },
+          {
+            "role": "mxas_schema",
+            "execute": true
+          },
+          {
+            "role": "mxas_writer",
+            "execute": true
+          }
+        ],
+        "definition_sha256": "219cf14f0e47a16970864903a0d21106df3493b879fb41e7c40c81c33f2afa60"
+      },
+      {
+        "identity": "mixer_hosted_release.hash_domain(text,bytea)",
+        "owner": "mxas_schema",
+        "prosecdef": false,
+        "provolatile": "i",
+        "proparallel": "u",
+        "proleakproof": false,
+        "proconfig": [
+          "search_path=pg_catalog"
+        ],
+        "acl": "{mxas_schema=X/mxas_schema,mxas_writer=X/mxas_schema}",
+        "acl_entries": [
+          {
+            "grantee": "mxas_schema",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          },
+          {
+            "grantee": "mxas_writer",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          }
+        ],
+        "effective_execute": [
+          {
+            "role": "mxas_foreign",
+            "execute": false
+          },
+          {
+            "role": "mxas_resolver",
+            "execute": false
+          },
+          {
+            "role": "mxas_runtime",
+            "execute": false
+          },
+          {
+            "role": "mxas_schema",
+            "execute": true
+          },
+          {
+            "role": "mxas_writer",
+            "execute": true
+          }
+        ],
+        "definition_sha256": "41200b7beffdc59d79c3fc3d66e05e2cd502521b8a8d18a2f6a25430d910e1ff"
+      },
+      {
+        "identity": "mixer_hosted_release.hx(text)",
+        "owner": "mxas_schema",
+        "prosecdef": false,
+        "provolatile": "i",
+        "proparallel": "u",
+        "proleakproof": false,
+        "proconfig": [
+          "search_path=pg_catalog"
+        ],
+        "acl": "{mxas_schema=X/mxas_schema,mxas_writer=X/mxas_schema}",
+        "acl_entries": [
+          {
+            "grantee": "mxas_schema",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          },
+          {
+            "grantee": "mxas_writer",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          }
+        ],
+        "effective_execute": [
+          {
+            "role": "mxas_foreign",
+            "execute": false
+          },
+          {
+            "role": "mxas_resolver",
+            "execute": false
+          },
+          {
+            "role": "mxas_runtime",
+            "execute": false
+          },
+          {
+            "role": "mxas_schema",
+            "execute": true
+          },
+          {
+            "role": "mxas_writer",
+            "execute": true
+          }
+        ],
+        "definition_sha256": "030b6fc65da5dbcf4eb2465cefc04268584bb6e5e40753456398a93c79439fdf"
+      },
+      {
+        "identity": "mixer_hosted_release.jarray(jsonb,integer)",
+        "owner": "mxas_schema",
+        "prosecdef": false,
+        "provolatile": "i",
+        "proparallel": "u",
+        "proleakproof": false,
+        "proconfig": [
+          "search_path=pg_catalog"
+        ],
+        "acl": "{mxas_schema=X/mxas_schema,mxas_writer=X/mxas_schema}",
+        "acl_entries": [
+          {
+            "grantee": "mxas_schema",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          },
+          {
+            "grantee": "mxas_writer",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          }
+        ],
+        "effective_execute": [
+          {
+            "role": "mxas_foreign",
+            "execute": false
+          },
+          {
+            "role": "mxas_resolver",
+            "execute": false
+          },
+          {
+            "role": "mxas_runtime",
+            "execute": false
+          },
+          {
+            "role": "mxas_schema",
+            "execute": true
+          },
+          {
+            "role": "mxas_writer",
+            "execute": true
+          }
+        ],
+        "definition_sha256": "6f4ebc3cc1805844799bfceb9216aa0a7dffe2b088a7f9e20380655d1d4befd0"
+      },
+      {
+        "identity": "mixer_hosted_release.jhex(jsonb,integer,integer)",
+        "owner": "mxas_schema",
+        "prosecdef": false,
+        "provolatile": "i",
+        "proparallel": "u",
+        "proleakproof": false,
+        "proconfig": [
+          "search_path=pg_catalog"
+        ],
+        "acl": "{mxas_schema=X/mxas_schema,mxas_writer=X/mxas_schema}",
+        "acl_entries": [
+          {
+            "grantee": "mxas_schema",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          },
+          {
+            "grantee": "mxas_writer",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          }
+        ],
+        "effective_execute": [
+          {
+            "role": "mxas_foreign",
+            "execute": false
+          },
+          {
+            "role": "mxas_resolver",
+            "execute": false
+          },
+          {
+            "role": "mxas_runtime",
+            "execute": false
+          },
+          {
+            "role": "mxas_schema",
+            "execute": true
+          },
+          {
+            "role": "mxas_writer",
+            "execute": true
+          }
+        ],
+        "definition_sha256": "5eb960726a83548c13becd4b2b01b4743533e69b0d8a9dd31c4d85ec55a583a1"
+      },
+      {
+        "identity": "mixer_hosted_release.jid(jsonb)",
+        "owner": "mxas_schema",
+        "prosecdef": false,
+        "provolatile": "i",
+        "proparallel": "u",
+        "proleakproof": false,
+        "proconfig": [
+          "search_path=pg_catalog"
+        ],
+        "acl": "{mxas_schema=X/mxas_schema,mxas_writer=X/mxas_schema}",
+        "acl_entries": [
+          {
+            "grantee": "mxas_schema",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          },
+          {
+            "grantee": "mxas_writer",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          }
+        ],
+        "effective_execute": [
+          {
+            "role": "mxas_foreign",
+            "execute": false
+          },
+          {
+            "role": "mxas_resolver",
+            "execute": false
+          },
+          {
+            "role": "mxas_runtime",
+            "execute": false
+          },
+          {
+            "role": "mxas_schema",
+            "execute": true
+          },
+          {
+            "role": "mxas_writer",
+            "execute": true
+          }
+        ],
+        "definition_sha256": "f3f750fe485437b9e3abc5a3e9303fb1bb132d8b5650a07be71308fe24c01351"
+      },
+      {
+        "identity": "mixer_hosted_release.jip(jsonb)",
+        "owner": "mxas_schema",
+        "prosecdef": false,
+        "provolatile": "i",
+        "proparallel": "u",
+        "proleakproof": false,
+        "proconfig": [
+          "search_path=pg_catalog"
+        ],
+        "acl": "{mxas_schema=X/mxas_schema,mxas_writer=X/mxas_schema}",
+        "acl_entries": [
+          {
+            "grantee": "mxas_schema",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          },
+          {
+            "grantee": "mxas_writer",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          }
+        ],
+        "effective_execute": [
+          {
+            "role": "mxas_foreign",
+            "execute": false
+          },
+          {
+            "role": "mxas_resolver",
+            "execute": false
+          },
+          {
+            "role": "mxas_runtime",
+            "execute": false
+          },
+          {
+            "role": "mxas_schema",
+            "execute": true
+          },
+          {
+            "role": "mxas_writer",
+            "execute": true
+          }
+        ],
+        "definition_sha256": "292abe1b9575b384ec326ba01c2c75738eebb638446c3b3aefc7941bafea73a8"
+      },
+      {
+        "identity": "mixer_hosted_release.jtext(jsonb,integer,integer)",
+        "owner": "mxas_schema",
+        "prosecdef": false,
+        "provolatile": "i",
+        "proparallel": "u",
+        "proleakproof": false,
+        "proconfig": [
+          "search_path=pg_catalog"
+        ],
+        "acl": "{mxas_schema=X/mxas_schema,mxas_writer=X/mxas_schema}",
+        "acl_entries": [
+          {
+            "grantee": "mxas_schema",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          },
+          {
+            "grantee": "mxas_writer",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          }
+        ],
+        "effective_execute": [
+          {
+            "role": "mxas_foreign",
+            "execute": false
+          },
+          {
+            "role": "mxas_resolver",
+            "execute": false
+          },
+          {
+            "role": "mxas_runtime",
+            "execute": false
+          },
+          {
+            "role": "mxas_schema",
+            "execute": true
+          },
+          {
+            "role": "mxas_writer",
+            "execute": true
+          }
+        ],
+        "definition_sha256": "3ce84d718df30d3c175b6fd824d8b36b93439ea2e2a052c4009611fad3a164ce"
+      },
+      {
+        "identity": "mixer_hosted_release.juint(jsonb,numeric,numeric)",
+        "owner": "mxas_schema",
+        "prosecdef": false,
+        "provolatile": "i",
+        "proparallel": "u",
+        "proleakproof": false,
+        "proconfig": [
+          "search_path=pg_catalog"
+        ],
+        "acl": "{mxas_schema=X/mxas_schema,mxas_writer=X/mxas_schema}",
+        "acl_entries": [
+          {
+            "grantee": "mxas_schema",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          },
+          {
+            "grantee": "mxas_writer",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          }
+        ],
+        "effective_execute": [
+          {
+            "role": "mxas_foreign",
+            "execute": false
+          },
+          {
+            "role": "mxas_resolver",
+            "execute": false
+          },
+          {
+            "role": "mxas_runtime",
+            "execute": false
+          },
+          {
+            "role": "mxas_schema",
+            "execute": true
+          },
+          {
+            "role": "mxas_writer",
+            "execute": true
+          }
+        ],
+        "definition_sha256": "aca42e712efa490ccde8f44d6aa37f6fa069c55f972ebb10ac6f26d6998a9b9d"
+      },
+      {
+        "identity": "mixer_hosted_release.juuid(jsonb)",
+        "owner": "mxas_schema",
+        "prosecdef": false,
+        "provolatile": "i",
+        "proparallel": "u",
+        "proleakproof": false,
+        "proconfig": [
+          "search_path=pg_catalog"
+        ],
+        "acl": "{mxas_schema=X/mxas_schema,mxas_writer=X/mxas_schema}",
+        "acl_entries": [
+          {
+            "grantee": "mxas_schema",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          },
+          {
+            "grantee": "mxas_writer",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          }
+        ],
+        "effective_execute": [
+          {
+            "role": "mxas_foreign",
+            "execute": false
+          },
+          {
+            "role": "mxas_resolver",
+            "execute": false
+          },
+          {
+            "role": "mxas_runtime",
+            "execute": false
+          },
+          {
+            "role": "mxas_schema",
+            "execute": true
+          },
+          {
+            "role": "mxas_writer",
+            "execute": true
+          }
+        ],
+        "definition_sha256": "628ee3ac21ccd537a2f4ab6953c26d8d7179e5212c9a0f33bd1180b303bbe928"
+      },
+      {
+        "identity": "mixer_hosted_release.row_valid(mixer_hosted_release.audit_events)",
+        "owner": "mxas_schema",
+        "prosecdef": false,
+        "provolatile": "i",
+        "proparallel": "u",
+        "proleakproof": false,
+        "proconfig": [
+          "search_path=pg_catalog"
+        ],
+        "acl": "{mxas_schema=X/mxas_schema,mxas_writer=X/mxas_schema}",
+        "acl_entries": [
+          {
+            "grantee": "mxas_schema",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          },
+          {
+            "grantee": "mxas_writer",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          }
+        ],
+        "effective_execute": [
+          {
+            "role": "mxas_foreign",
+            "execute": false
+          },
+          {
+            "role": "mxas_resolver",
+            "execute": false
+          },
+          {
+            "role": "mxas_runtime",
+            "execute": false
+          },
+          {
+            "role": "mxas_schema",
+            "execute": true
+          },
+          {
+            "role": "mxas_writer",
+            "execute": true
+          }
+        ],
+        "definition_sha256": "dbc3823122daecbc8fd74024fd44770f05532bf7e158e75f3ad4c5376787cea0"
+      },
+      {
+        "identity": "mixer_hosted_release.t(text)",
+        "owner": "mxas_schema",
+        "prosecdef": false,
+        "provolatile": "i",
+        "proparallel": "u",
+        "proleakproof": false,
+        "proconfig": [
+          "search_path=pg_catalog"
+        ],
+        "acl": "{mxas_schema=X/mxas_schema,mxas_writer=X/mxas_schema}",
+        "acl_entries": [
+          {
+            "grantee": "mxas_schema",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          },
+          {
+            "grantee": "mxas_writer",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          }
+        ],
+        "effective_execute": [
+          {
+            "role": "mxas_foreign",
+            "execute": false
+          },
+          {
+            "role": "mxas_resolver",
+            "execute": false
+          },
+          {
+            "role": "mxas_runtime",
+            "execute": false
+          },
+          {
+            "role": "mxas_schema",
+            "execute": true
+          },
+          {
+            "role": "mxas_writer",
+            "execute": true
+          }
+        ],
+        "definition_sha256": "e3bdcf49a3a460554b3836ee429726ce905372f888235915e30b1cc6e276932a"
+      },
+      {
+        "identity": "mixer_hosted_release.target(mixer_hosted_release.upload_input)",
+        "owner": "mxas_schema",
+        "prosecdef": false,
+        "provolatile": "i",
+        "proparallel": "u",
+        "proleakproof": false,
+        "proconfig": [
+          "search_path=pg_catalog"
+        ],
+        "acl": "{mxas_schema=X/mxas_schema,mxas_writer=X/mxas_schema}",
+        "acl_entries": [
+          {
+            "grantee": "mxas_schema",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          },
+          {
+            "grantee": "mxas_writer",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          }
+        ],
+        "effective_execute": [
+          {
+            "role": "mxas_foreign",
+            "execute": false
+          },
+          {
+            "role": "mxas_resolver",
+            "execute": false
+          },
+          {
+            "role": "mxas_runtime",
+            "execute": false
+          },
+          {
+            "role": "mxas_schema",
+            "execute": true
+          },
+          {
+            "role": "mxas_writer",
+            "execute": true
+          }
+        ],
+        "definition_sha256": "f2bc3514ee2bb162450ed21a2d685156c77d92a5c00927a585b8a82bc7b0d7e4"
+      },
+      {
+        "identity": "mixer_hosted_release.time_valid(mixer_hosted_release.call_context,numeric,timestamp with time zone)",
+        "owner": "mxas_schema",
+        "prosecdef": false,
+        "provolatile": "i",
+        "proparallel": "u",
+        "proleakproof": false,
+        "proconfig": [
+          "search_path=pg_catalog"
+        ],
+        "acl": "{mxas_schema=X/mxas_schema,mxas_writer=X/mxas_schema}",
+        "acl_entries": [
+          {
+            "grantee": "mxas_schema",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          },
+          {
+            "grantee": "mxas_writer",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          }
+        ],
+        "effective_execute": [
+          {
+            "role": "mxas_foreign",
+            "execute": false
+          },
+          {
+            "role": "mxas_resolver",
+            "execute": false
+          },
+          {
+            "role": "mxas_runtime",
+            "execute": false
+          },
+          {
+            "role": "mxas_schema",
+            "execute": true
+          },
+          {
+            "role": "mxas_writer",
+            "execute": true
+          }
+        ],
+        "definition_sha256": "48d15a882fd73601f99aaba7e6b143acd200ffbd43e324a57939ad5d59f6ad45"
+      },
+      {
+        "identity": "mixer_hosted_release.u(numeric)",
+        "owner": "mxas_schema",
+        "prosecdef": false,
+        "provolatile": "i",
+        "proparallel": "u",
+        "proleakproof": false,
+        "proconfig": [
+          "search_path=pg_catalog"
+        ],
+        "acl": "{mxas_schema=X/mxas_schema,mxas_writer=X/mxas_schema}",
+        "acl_entries": [
+          {
+            "grantee": "mxas_schema",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          },
+          {
+            "grantee": "mxas_writer",
+            "grantor": "mxas_schema",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          }
+        ],
+        "effective_execute": [
+          {
+            "role": "mxas_foreign",
+            "execute": false
+          },
+          {
+            "role": "mxas_resolver",
+            "execute": false
+          },
+          {
+            "role": "mxas_runtime",
+            "execute": false
+          },
+          {
+            "role": "mxas_schema",
+            "execute": true
+          },
+          {
+            "role": "mxas_writer",
+            "execute": true
+          }
+        ],
+        "definition_sha256": "9d29f611dec073aed92a2c2c91e5552ec8e017525f5806ff8fdb7eebef5c0c81"
+      },
+      {
+        "identity": "mixer_hosted_release.upload_v1(mixer_hosted_release.call_context,mixer_hosted_release.upload_input,mixer_hosted_release.upload_request)",
+        "owner": "mxas_writer",
+        "prosecdef": true,
+        "provolatile": "v",
+        "proparallel": "u",
+        "proleakproof": false,
+        "proconfig": [
+          "search_path=pg_catalog",
+          "row_security=on"
+        ],
+        "acl": "{mxas_writer=X/mxas_writer,mxas_runtime=X/mxas_writer,mxas_foreign=X/mxas_writer}",
+        "acl_entries": [
+          {
+            "grantee": "mxas_writer",
+            "grantor": "mxas_writer",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          },
+          {
+            "grantee": "mxas_runtime",
+            "grantor": "mxas_writer",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          },
+          {
+            "grantee": "mxas_foreign",
+            "grantor": "mxas_writer",
+            "grantable": false,
+            "privilege": "EXECUTE"
+          }
+        ],
+        "effective_execute": [
+          {
+            "role": "mxas_foreign",
+            "execute": true
+          },
+          {
+            "role": "mxas_resolver",
+            "execute": false
+          },
+          {
+            "role": "mxas_runtime",
+            "execute": true
+          },
+          {
+            "role": "mxas_schema",
+            "execute": false
+          },
+          {
+            "role": "mxas_writer",
+            "execute": true
+          }
+        ],
+        "definition_sha256": "4d07707eb65bc2bed165d981ebcac3c0ea12427a681b6afe22b386343aa5e023"
+      }
+    ],
+    "schema_owner_pure_helpers": [
+      "mixer_hosted_release.a(bytea[])",
+      "mixer_hosted_release.b(bytea)",
+      "mixer_hosted_release.changed_state(bytea,mixer_hosted_release.upload_input)",
+      "mixer_hosted_release.event_from_display(jsonb)",
+      "mixer_hosted_release.finite_uint(numeric,numeric,numeric)",
+      "mixer_hosted_release.hash_domain(text,bytea)",
+      "mixer_hosted_release.hx(text)",
+      "mixer_hosted_release.jarray(jsonb,integer)",
+      "mixer_hosted_release.jhex(jsonb,integer,integer)",
+      "mixer_hosted_release.jid(jsonb)",
+      "mixer_hosted_release.jip(jsonb)",
+      "mixer_hosted_release.jtext(jsonb,integer,integer)",
+      "mixer_hosted_release.juint(jsonb,numeric,numeric)",
+      "mixer_hosted_release.juuid(jsonb)",
+      "mixer_hosted_release.row_valid(mixer_hosted_release.audit_events)",
+      "mixer_hosted_release.t(text)",
+      "mixer_hosted_release.target(mixer_hosted_release.upload_input)",
+      "mixer_hosted_release.time_valid(mixer_hosted_release.call_context,numeric,timestamp with time zone)",
+      "mixer_hosted_release.u(numeric)"
+    ],
+    "single_mutation_entry": "mixer_hosted_release.upload_v1(mixer_hosted_release.call_context,mixer_hosted_release.upload_input,mixer_hosted_release.upload_request)",
+    "table_constraints_and_columns": "Complete actual catalog; all retained artifact/audit/idempotency fields nonnull, artifact creation actor+event and deferred same-tenant FK; semantic typed/hash/transition/edge checks in fixed writer."
+  }
+}

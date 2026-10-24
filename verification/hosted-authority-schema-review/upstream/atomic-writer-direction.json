@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "status": "root-selected-writer-direction-final-contract-and-execution-pending",
+  "sourceRevision": "552d4caecec6550c09af62f03fe6c4ab4842d251",
+  "scope": "Complete the remaining membership/storage contract before assigning the additive migration and repository implementation. This is a design choice, not an executed database receipt.",
+  "supersedes": "The proposed API runtime direct domain INSERT and tenant-head UPDATE grants in docs/hosted-membership-storage-contract.md will be narrowed for the selected atomic writer. Existing authz resolver lock grants remain unchanged.",
+  "decisions": [
+    "Select one narrow artifact-upload SQL mutation routine rather than independent runtime INSERT statements linked only by application convention. Runtime cannot directly INSERT/UPDATE/DELETE artifact, audit, idempotency or tenant-head rows. Grant only the specific writer entry point and required scoped reads.",
+    "Use a separate NOLOGIN, non-owner, non-BYPASSRLS domain-writer role owning only enumerated SECURITY DEFINER routines. Keep authz resolver and schema owner separate. The runtime must not reach the writer role through SET ROLE or membership chains. Revoke PUBLIC execution at creation and retain forced RLS, fixed schema-qualified objects, no dynamic SQL, fixed safe search_path and row_security on.",
+    "The writer executes inside the already selected original Repo/process/backend/full-xid/nonce transaction context, after current authz locks and a fresh decision. It may not start/commit transactions, perform network I/O, run arbitrary SQL/callbacks or manufacture a new authorized context. Recheck context, current policy, exact signed target, decreasing deadline and expiry immediately before persistence.",
+    "Serialize the existing tenant head after authz locks. Recheck authoritative current permission before idempotency lookup. Compare immutable principal/action/exact target/request hash independently. Matching retries return original bytes/status/event; conflicts return no cached body. A new key on an unchanged artifact creates one new successful audit event but no domain-state delta.",
+    "The same routine validates old head/event linkage, chooses the next bounded event ID, determines insert versus identical-existing/conflict, constructs or recomputes fixed audit/state preimages from actual typed values, computes standard SHA-256, inserts domain/audit/idempotency rows and updates the head. No successful early return may bypass required writes; any fault rolls the entire transaction back. Do not trust caller-supplied event/hash/display correspondence without recomputation.",
+    "Use new explicitly versioned deterministic fixed-schema CBOR audit/state encodings. Keep historical Go JSON/hash chains and signed v3 bytes untouched. A new hosted state commitment may preserve the existing rolling previous-state plus actual domain-change model; it must explicitly describe this as an ordered transition commitment, not an order-independent database snapshot hash. Identical-existing uploads do not advance state commitment.",
+    "Freeze finite codec, response, per-request and local-fixture storage budgets in the final contract, with exact boundary and one-over tests. Audit pagination must bound total encoded response bytes as well as row count; idempotent responses must retain exact bounded bytes. No unconstrained metadata maps or arbitrary JSON claim retention.",
+    "A disposable local blob fixture can qualify local development ordering only. Stage and verify bytes before authz locks, commit only immutable checked references, preserve referenced bytes after uncertain COMMIT, and reconcile orphans outside the transaction. Its ownership, create-if-absent, crash/reopen, quota and cleanup rules need an executable bounded fixture. R2 durability and multi-host coordination remain separate.",
+    "Do not add Oban publication/dispatch authority merely to complete this artifact-only writer. If no real product job is inserted, leave product domain/job atomicity and G24 explicitly pending. No new migration may alter legacy mixer_release data or its original migration."
+  ],
+  "requiredNextEvidence": [
+    "Exact function/role/grant/policy manifest, typed input/result and deterministic audit/state schemas with hand-authored vectors and standard hash verification.",
+    "Real PostgreSQL least-privilege probe proving direct runtime writes fail, only the complete routine can mutate, malformed/forged actor/target/hash/body/head linkage fails, and no recursive policy or SECURITY DEFINER role change invalidates the selected transaction checks.",
+    "Concurrent same-key/different-principal and same-artifact/new-key tests, forced failure at each persistence boundary, rollback/restart/uncertain-commit retry without partial events or duplicate success, exact codec/budget edges and owned cleanup.",
+    "Root review of that source-bound contract/probe before applying the full additive schema and repository implementation."
+  ],
+  "primaryReferencesRead": [
+    {
+      "url": "https://www.postgresql.org/docs/17/functions-binarystring.html",
+      "basis": "PostgreSQL 17 documents built-in sha256(bytea) returning bytea, allowing standard hashing without a new extension. Actual selected-server execution remains required."
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/sql-createfunction.html",
+      "basis": "SECURITY DEFINER uses its owner's privileges; safe name resolution and atomic PUBLIC privilege revocation are required. Documentation does not qualify the proposed routine."
+    }
+  ],
+  "productImplementation": false,
+  "databaseProbeExecuted": false,
+  "migrationAuthorized": false,
+  "gaAcceptance": false
+}

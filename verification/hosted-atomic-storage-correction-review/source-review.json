@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "reviewer": "independent hosted_atomic_storage_correction_review lane",
+  "source": "verification/hosted-atomic-storage-corrected-preflight/run-6/inputs/probe",
+  "reviewed": [
+    {
+      "selection": "AS01",
+      "disposition": "supported",
+      "source_location": "schema.sql:20-21,98-111,183,187",
+      "finding": "Unconstrained numeric composites preserve input evidence. Entry finite bounded integral guards precede GUC/context checks and locks. Eight additional tiny-fraction examples reject; mathematically integral scaled numeric control succeeds.",
+      "executed_evidence": "C01,R01-R03,R17-R18,I05"
+    },
+    {
+      "selection": "AS02",
+      "disposition": "supported-within-synthetic-clock-policy-scope",
+      "source_location": "schema.sql:191-197,201-287,305,319-320; lib/context.ex:50-180",
+      "finding": "Every retained-row/predecessor/fault read is followed by a separate evidence/time check; final pre-effect evidence follows last blocking read and supplies encoded decision/recorded time. Remaining work before first DML is bounded pure encoding plus immediate wall-deadline guard. Replay checks again after validation; post-DML checks before return; outer guard retains monotonic deadline. Nontransactional trigger sequence confirms expired/stale late waits reject before first attempted DML. No continuous-time or post-sent-COMMIT guarantee.",
+      "executed_evidence": "R04-R05,R19-R20,C08-C10,I06-I07,I09"
+    },
+    {
+      "selection": "AS03",
+      "disposition": "supported-within-append-only-runtime-scope",
+      "source_location": "schema.sql:222-280",
+      "finding": "Cached typed status/body/id and same-tenant event, principal/action/target/request, creation-derived 201/200, exact response and unchanged-state linkage fail closed. Refreshed immutable principal replay remains valid. No provenance proof against privileged coherent cached-row rewrite.",
+      "executed_evidence": "R06-R07,C04-C05"
+    },
+    {
+      "selection": "AS04",
+      "disposition": "supported-within-specimen",
+      "source_location": "schema.sql:23-28,232-253",
+      "finding": "Server-derived nonnull created_event/actor, deferred same-tenant FK and semantic exact target/actor/Change1 transition checks; immutable fields compare before linkage. Later creation event predecessor independently exercised.",
+      "executed_evidence": "R11,R16,C06,I04"
+    },
+    {
+      "selection": "AS05",
+      "disposition": "correction-required",
+      "source_location": "schema.sql:98-157; lib/codec.ex:67-187",
+      "finding": "Complete typed SQL and Elixir decoders close missing/extra/type/canonicality/time/bound classes. Actual 312 canonical suffix rejections agree. However exact PostgreSQL display string reconstruction differs on nine control characters; actual rows are rejected by independent Elixir oracle. See CR01.",
+      "executed_evidence": "R08-R09,C02-C03,C12,I01-I03,I10"
+    },
+    {
+      "selection": "AS06",
+      "disposition": "supported-with-selected-bounded-history-limitation",
+      "source_location": "schema.sql:198-219,240-270",
+      "finding": "Terminal, cached and creation rows validate their own immediate predecessor typed representation/hash and hash/state edge; first row initial edge checked. Fixed selected-row cache avoids unbounded scan. Fresh nonterminal old cached and later creation predecessor corruptions deny even when head/predecessor unrelated. No whole-history coherent-owner rewrite proof.",
+      "executed_evidence": "R10,C07,I04"
+    },
+    {
+      "selection": "AS07",
+      "disposition": "supported-for-actual-specimen-only",
+      "source_location": "schema.sql:324-363; catalog.sql:1-14",
+      "finding": "Fresh actual catalog matches producer byte-for-byte: 22 exact definitions, 19 private pure helpers, 2 resolver definers and 1 mutation definer; 7 tables FORCE RLS, 4 composites, restrictive individual grants, no memberships. All 19 private helpers actually deny runtime and foreign direct execution. Product DDL/ACL/helper manifest/inspector remain unselected.",
+      "executed_evidence": "R12,C11,I08"
+    }
+  ],
+  "privileged_owner_coherent_history_and_cached_provenance_outside_selected_scope": true,
+  "no_product_code_or_producer_fix": true
+}

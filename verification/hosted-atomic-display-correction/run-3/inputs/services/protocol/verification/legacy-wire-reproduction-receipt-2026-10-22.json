@@ -1,0 +1,142 @@
+{
+  "schema": 1,
+  "status": "observed-before-strict-wire-fix",
+  "scope": "Original public TEST ONLY signed v1 reproducer run before semantic changes; alternate encodings of valid signed bytes, not an established signature or tenant-authority bypass.",
+  "protocolAndVerifierBaselineCommit": "3aade1f3c61acc78e399b0c2c6ee36d73c1bf11f",
+  "tools": {
+    "go": "go1.26.4 darwin/arm64",
+    "swift": "Apple Swift 6.3.3 / Xcode 26.6 (17F113)"
+  },
+  "reproducer": {
+    "goSource": "/tmp/mixer-v1-wire-repro/probe.go",
+    "swiftSource": "/tmp/mixer-v1-wire-repro/Probe/Sources/Probe/main.swift",
+    "originalLocalArtifacts": [
+      {
+        "path": "/tmp/mixer-v1-wire-repro/probe.go",
+        "bytes": 3470,
+        "sha256": "b2d4f373e4ad958da6f802ddef3ece259466370821de355365eab96a49f67f79"
+      },
+      {
+        "path": "/tmp/mixer-v1-wire-repro/Probe/Package.swift",
+        "bytes": 300,
+        "sha256": "fd00e5eb4602d6955e7bad0fc88f3759fa66c8782bbd5e750b8bea4f63b394b6"
+      },
+      {
+        "path": "/tmp/mixer-v1-wire-repro/Probe/Sources/Probe/main.swift",
+        "bytes": 991,
+        "sha256": "149b8425c40bf2c4c6661f76d6463972faa11abaaa85c91d0b8799560e6b445f"
+      },
+      {
+        "path": "/tmp/mixer-v1-wire-repro/cases.json",
+        "bytes": 18050,
+        "sha256": "2f2dce64ede91a91aaa59893c5078206617a4f1a2d82a5fc61a77c5ea2d47706"
+      },
+      {
+        "path": "/tmp/mixer-v1-wire-repro/go-results.log",
+        "bytes": 533,
+        "sha256": "9925e73c59900947e8906c6be755eddd2549f7b1273a415312aafe9ce4376120"
+      },
+      {
+        "path": "/tmp/mixer-v1-wire-repro/swift-results.log",
+        "bytes": 8189,
+        "sha256": "79be503fa3e832ce6915c7f0b8ab53cd981c4cda40de6b28d91f8b92e3da6778"
+      },
+      {
+        "path": "/tmp/mixer-v1-wire-repro/results.json",
+        "bytes": 1874,
+        "sha256": "0cec3cd195701e2a760dd06ce8053300fbea6ce8deb72b3d4f91094ef5e9e2de"
+      }
+    ],
+    "resultMatrix": [
+      {
+        "goAccepted": true,
+        "goError": "",
+        "name": "canonical-dynamic-case-map-keys",
+        "swiftAccepted": true,
+        "swiftError": ""
+      },
+      {
+        "goAccepted": true,
+        "goError": "",
+        "name": "envelope-Manifest-case",
+        "swiftAccepted": false,
+        "swiftError": "Missing or unknown fields: Manifest, manifest"
+      },
+      {
+        "goAccepted": true,
+        "goError": "",
+        "name": "manifest-SCHEMA-case",
+        "swiftAccepted": false,
+        "swiftError": "Missing or unknown fields: SCHEMA, schema"
+      },
+      {
+        "goAccepted": true,
+        "goError": "",
+        "name": "manifest-SCHEMA-alias-zero-before-signed-one",
+        "swiftAccepted": false,
+        "swiftError": "Missing or unknown fields: SCHEMA"
+      },
+      {
+        "goAccepted": true,
+        "goError": "",
+        "name": "scope-Project-case",
+        "swiftAccepted": false,
+        "swiftError": "Missing or unknown fields: Project, project"
+      },
+      {
+        "goAccepted": true,
+        "goError": "",
+        "name": "limits-Fuel-case",
+        "swiftAccepted": false,
+        "swiftError": "Missing or unknown fields: Fuel, fuel"
+      },
+      {
+        "goAccepted": true,
+        "goError": "",
+        "name": "signature-numeric-array",
+        "swiftAccepted": false,
+        "swiftError": "signature must be text"
+      },
+      {
+        "goAccepted": true,
+        "goError": "",
+        "name": "signature-CRLF",
+        "swiftAccepted": false,
+        "swiftError": "Expected a base64 Ed25519 signature"
+      },
+      {
+        "goAccepted": true,
+        "goError": "",
+        "name": "signature-nonzero-pad-bits",
+        "swiftAccepted": true,
+        "swiftError": ""
+      },
+      {
+        "goAccepted": true,
+        "goError": "",
+        "name": "missing-state-min-zero",
+        "swiftAccepted": false,
+        "swiftError": "Missing or unknown fields: state_min"
+      },
+      {
+        "goAccepted": true,
+        "goError": "",
+        "name": "missing-state-max-zero",
+        "swiftAccepted": false,
+        "swiftError": "Missing or unknown fields: state_max"
+      }
+    ],
+    "temporaryPathNote": "Original local execution artifacts are hashed, not product signing material. The committed 271-case generated corpus is the portable regression source."
+  },
+  "findings": [
+    "Go accepted alternate-cased fixed model fields and aliases, numeric signature arrays, CRLF signature text and omitted zero-valued state bounds; Swift rejected those nine forms.",
+    "Both verifiers accepted nonzero signature base64 pad bits.",
+    "Both accepted distinct dynamic capability map keys SCHEMA, Schema and schema; this behavior must remain valid.",
+    "Independent review identified reused Go model receiver map merging and partial mutation after typed decoding errors; fixed closed v1/v2 models now decode into a fresh local alias before assignment."
+  ],
+  "resolution": "See wire-receipt-2026-10-22.json for exact final commands, tool and source hashes, adversarial parity and service regression evidence.",
+  "limitations": [
+    "No physical devices, real PostgreSQL, hosted operations, native capability execution or OTA release qualification.",
+    "No public verified-token constructors added; typed configuration and structural Go decode do not establish execution authority."
+  ]
+}

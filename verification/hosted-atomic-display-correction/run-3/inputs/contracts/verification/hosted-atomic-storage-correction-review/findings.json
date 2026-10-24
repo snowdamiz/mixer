@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "recommendation": "correction-required-before-complete-AS05-or-repository-acceptance",
+  "findings": [
+    {
+      "id": "CR01",
+      "priority": 2,
+      "selection": "AS05",
+      "status": "open",
+      "title": "Elixir exact PostgreSQL display reconstruction rejects valid stored control text",
+      "producer_path": "verification/hosted-atomic-storage-corrected-preflight/run-6/inputs/probe/lib/codec.ex",
+      "lines": [
+        134,
+        141,
+        146
+      ],
+      "actual_trigger": "Valid reason/profile containing U+000B U+000E U+000F or U+001A..U+001F",
+      "observed": "PostgreSQL renders lowercase hexadecimal in control-character escapes; Jason renders uppercase. Both typed decoders produce identical CBOR. SQL writes/replays these valid rows; Elixir validate_row! rejects actual retained rows.",
+      "sql_unauthorized_success_or_corruption_observed": false,
+      "observed_display_mismatch_inputs_hex": [
+        "0b",
+        "0e",
+        "0f",
+        "1a",
+        "1b",
+        "1c",
+        "1d",
+        "1e",
+        "1f"
+      ],
+      "actual_uploaded_elixir_rejected_inputs_hex": [
+        "0b",
+        "0e",
+        "1f"
+      ],
+      "tests": [
+        "I02",
+        "I03"
+      ],
+      "evidence": [
+        "run-2/tests.json",
+        "run-3/tests.json",
+        "run-4/tests.json",
+        "display-counterexamples.json",
+        "retained-row-counterexamples.json"
+      ],
+      "required_change": "Independently implement exact selected PostgreSQL JSON string escaping for typed display/retained-row comparison. Preserve literal backslash-u text and case; do not broadly lowercase escape-like substrings or weaken byte equality. Preserve the existing failing assertions and all original positive/corruption tests. Fresh independent verification remains required."
+    }
+  ],
+  "other_new_blockers": [],
+  "root_acceptance": false,
+  "repository_acceptance": false,
+  "full_as05_acceptance": false
+}
