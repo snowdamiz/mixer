@@ -1123,7 +1123,16 @@
     "evidence": "Record actual environment and exact source; no relabeling simulator results as physical results.",
     "authorization": "Direct user instruction on October 23, 2026.",
     "receipt": "verification/simulator-development-policy/receipt.json",
-    "currentPause": {
+    "iosBaseline": {
+      "minimum": "26.0",
+      "supportedMajors": "26, 27, and subsequent releases; no public upper major cutoff",
+      "authorization": "Direct user instruction: should be iOS 26, 27 and onward.",
+      "qualification": "Minimum 26.0, maintained 26.x, 27 and subsequent stable versions need runtime qualification; beta compatibility is monitored separately. Private appearance prototype admits exercised 26.5 only.",
+      "scope": "Nine parsed package manifests, 19 CLI tests and actual generated unsigned iOS Simulator app cross-build; no simulator/device execution or GA acceptance.",
+      "receipt": "verification/ios26-baseline/candidate-1/receipt.json",
+      "acceptance": "verification/ios26-baseline/acceptance.json"
+    },
+    "previousPause": {
       "scope": [
         "computer use",
         "screen capture",
@@ -1138,16 +1147,27 @@
         "validated commits and pushes"
       ],
       "processState": "All owned native test processes and Simulator frontend stopped; unrelated project processes preserved.",
-      "receipt": "verification/computer-use-pause-2026-10-24/receipt.json"
+      "receipt": "verification/computer-use-pause-2026-10-24/receipt.json",
+      "status": "resumed",
+      "resumedOn": "2026-10-24",
+      "resumeReceipt": "verification/native-testing-resume-2026-10-24/receipt.json"
     },
-    "iosBaseline": {
-      "minimum": "26.0",
-      "supportedMajors": "26, 27, and subsequent releases; no public upper major cutoff",
-      "authorization": "Direct user instruction: should be iOS 26, 27 and onward.",
-      "qualification": "Minimum 26.0, maintained 26.x, 27 and subsequent stable versions need runtime qualification; beta compatibility is monitored separately. Private appearance prototype admits exercised 26.5 only.",
-      "scope": "Nine parsed package manifests, 19 CLI tests and actual generated unsigned iOS Simulator app cross-build; no simulator/device execution or GA acceptance.",
-      "receipt": "verification/ios26-baseline/candidate-1/receipt.json",
-      "acceptance": "verification/ios26-baseline/acceptance.json"
+    "currentNativeTesting": {
+      "status": "authorized",
+      "resumedOn": "2026-10-24",
+      "authorization": [
+        "Direct user instruction: you can now use screen capture and computer use again",
+        "Direct user clarification: Resume simulator/emulator tests"
+      ],
+      "scope": [
+        "computer use",
+        "screen capture",
+        "iOS simulator runtime tests",
+        "Android emulator runtime tests"
+      ],
+      "instancePolicy": "Reuse existing owned instances; normally one active per native lane; shut down disposable instances after evidence including failures; preserve unrelated projects.",
+      "physicalPhones": "Still disconnected; no physical runs or reconnection requests. Final hardware qualification remains pending.",
+      "receipt": "verification/native-testing-resume-2026-10-24/receipt.json"
     }
   },
   "hostedStack": {
@@ -1197,7 +1217,7 @@
     "deliveredCheckpoint": "6df4807c786e5ca8bf127463f6c9df9b4e421ab7",
     "handoff": "docs/implementation-pause-2026-10-24.md",
     "next": "Continue shared Swift control/dispatch and hosted active trust/key transport/cache, then authoritative membership and private artifact integration.",
-    "nativeRuntimePauseStillActive": true,
+    "nativeRuntimePauseStillActive": false,
     "resumedBy": "user",
     "resumedOn": "2026-10-24",
     "status": "resumed"

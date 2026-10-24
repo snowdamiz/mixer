@@ -3,8 +3,9 @@
 Implementation resumed at the user's request on October 24. The saved
 [pause handoff](docs/implementation-pause-2026-10-24.md) remains historical context.
 The private frame entry/return/cleanup slice and bounded hosted RS256 token
-verifier have root host acceptance. Computer use and native runtime tests remain
-paused; the full product scope and all GA gates remain open.
+verifier have root host acceptance. The user has also resumed computer use,
+screen capture and simulator/emulator runtime tests. The full product scope
+and all GA gates remain open.
 
 The complete specification is [mixer-product-plan.md](mixer-product-plan.md).
 All W01–W18 packages, G01–G38 launch gates, and D0–D8 dogfood milestones remain
@@ -86,16 +87,17 @@ both the app Info.plist and Mach-O declare 26.0. Evidence is retained in
 `verification/ios26-baseline/candidate-1/receipt.json`.
 The private appearance prototype still admits only its exercised
 iOS 26.5 runtime; broader version qualification remains pending, and historical
-iOS17 compile receipts are retained as historical evidence. This does not resume
-native testing during the current pause. See product-plan section19.1.
+iOS17 compile receipts are retained as historical evidence. See product-plan
+section19.1.
 
-The latest user instruction pauses computer use, screen capture and native
-simulator/emulator runs until further notice. All owned test processes and the
-Simulator frontend are stopped. Continue implementation with host tests,
-cross-compilation and offline review; new native interaction/visual checks remain
-pending until testing resumes. This pause does not cancel implementation or
-periodic validated Git delivery. See
-`verification/computer-use-pause-2026-10-24/receipt.json`.
+The user resumed computer use and screen capture on October 24 and separately
+confirmed resuming simulator/emulator runtime tests. Reuse existing test instances,
+keep normally one active instance per native lane, and shut down disposable
+instances after collecting evidence, including failed runs. Preserve unrelated
+projects and keep physical-phone qualification deferred. Prior native checks
+remain pending until actually rerun against their current source. See
+`verification/native-testing-resume-2026-10-24/receipt.json`; the earlier
+`verification/computer-use-pause-2026-10-24/receipt.json` remains historical evidence.
 
 Current Android checkpoint: private style consumption, staged JNI ownership and
 generated-app staging exports are implemented. Current source passes Java/DEX,
@@ -104,9 +106,9 @@ build and deliberate missing-export rejection. Root evidence is in
 `verification/android-native-appearance-v2/root-headless-acceptance.json` and
 `verification/android-generated-v2-bridge/acceptance.json`. Historical API37
 native tests do not qualify the later Section/baseline corrections. Resume those
-native regressions and the pending Apple pressed-switch qualification only when
-the user restores native testing; continue coordinator/runtime implementation
-headlessly in the meantime. Public application paths remain V1, and no GA or
+native regressions and the pending Apple pressed-switch qualification under the
+resumed testing authorization. Continue coordinator/runtime implementation in
+parallel. Public application paths remain V1, and no GA or
 dogfood gate is passed.
 
 The Apple private consumer has scoped headless acceptance at

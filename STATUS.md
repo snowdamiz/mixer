@@ -3,10 +3,17 @@
 Implementation resumed at the user's request on October 24. The saved
 [pause handoff](docs/implementation-pause-2026-10-24.md) remains historical context.
 The private frame entry/return/cleanup slice and bounded hosted RS256 token
-verifier have root host acceptance. Computer use and native runtime tests remain
-paused; the full product scope and all GA gates remain open.
+verifier have root host acceptance. The user has also resumed computer use,
+screen capture and simulator/emulator runtime tests. The full product scope
+and all GA gates remain open.
 
 Product status: **in development; no GA or dogfood gate passed**.
+
+The private active-frame checkpoint `ff1bb26` now passes all three GitHub engine
+jobs: Swift, VM and services. The terminal job/step observation is retained in
+`verification/github-ci-ff1bb26-engine/receipt.json`. These are host tests and
+cross-builds; current native behavior still requires its own simulator/emulator
+receipts.
 
 Hosted-stack specification updated October 24: Elixir/Phoenix (Plug/Bandit),
 Ecto/Postgrex and Oban, Neon PostgreSQL, Cloudflare Containers/Workers/R2/CDN,
@@ -28,14 +35,16 @@ The private appearance experiment remains restricted to iOS 26.5;
 minimum/current/future OS runtime qualification is still pending. Earlier iOS17
 compilation evidence is historical and does not define the product minimum.
 
-Current execution constraint: the user paused computer use, screen capture and
-native simulator/emulator runs until further notice. All Mixer test processes
-and the Simulator frontend are stopped; unrelated project processes are
-preserved. Code work, host tests, cross-compilation and offline review continue.
+Current execution authorization: the user resumed computer use, screen capture
+and simulator/emulator runtime tests on October 24. Reuse existing instances,
+keep normally one active per native lane, and shut down disposable instances
+after evidence collection. Preserve unrelated projects. Physical-phone testing
+remains deferred; resuming permission does not itself qualify any native behavior.
 The latest Android Section layout repair has native regression checks pending;
 the Apple pressed-switch paint repair is not yet qualified. Earlier captures
 cannot qualify those later source changes. See
-`verification/computer-use-pause-2026-10-24/receipt.json`.
+`verification/native-testing-resume-2026-10-24/receipt.json`. The previous
+`verification/computer-use-pause-2026-10-24/receipt.json` remains historical evidence.
 
 The repository began with only the product plan on October 22, 2026. It now has
 an owned Swift SDK and native adapters, Rust interpreter, local release service,
