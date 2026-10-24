@@ -1,16 +1,14 @@
 # Execution index
 
-Latest checkpoint: Android authored V2 toggle input remains integrated at
-`a490761`. The private iOS semantic toggle now passes all 13 prior real input
-actions and 36 direct callback cases. A separate fixture with the identical
-carrier passes 16 real drag interruption/no-change cases, 480 native predicates
-and 144 root origin checks; official XCTest reports16passed/0failed/0skipped.
-The original direct suites still fail (15/19 diagnostic,10/12 comparator), and
-their runner timed out after reporting the failures; all observations are kept.
-All three owned iOS simulators and temporary workspaces are cleaned. Keyboard,
-focus, remaining lifecycle cases, visual parity and live Apple integration are
-pending. Swift accounting and Linux isolation continue; no GA/dogfood gate passes.
-See [the latest native checkpoint](docs/apple-toggle-semantic-runtime-checkpoint.md).
+Latest native checkpoint: the private iOS pan-commit carrier passes 43 XCTest
+methods, 45 native input actions and 36 scoped callback components on iOS 26.5.
+Root replays 1,286 verdict predicates and 324 touch-origin checks. All five cleanup
+operations pass; the owned simulator and temporary workspace are absent. The
+first failed run and four original plain-UIKit reference failures remain recorded.
+Keyboard/focus, remaining lifecycle cases, compositor parity and live Apple
+integration are pending. Android authored V2 toggle input remains integrated at
+`a490761`; no GA or dogfood gate passes.
+See [the native checkpoint](docs/apple-toggle-pan-commit-runtime-checkpoint.md).
 
 The console now has its first TypeScript display model for release checks. Nine
 host tests cover 4,096 status combinations, missing/stale results, duplicate and
@@ -1263,8 +1261,8 @@ the failed original assertion, trace and cleanup in
 A fixture-only measured-extent correction precedes the unchanged45-case rerun;
 no product input change or full component acceptance follows from this diagnosis.
 
-The private Swift calls/dispatch candidate at source closure ba9231499244692bbed61f0566ec72864a979df9e3fc71511560ec66a2e00c70 now has independent and root logical-accounting acceptance: 89,124 roles, 1,032 exact finite positions, eight compiler contexts and sixteen layouts. All 39 Frozen methods, the 2,912-byte Frozen bound, original owners and ceilings are preserved. Runtime preflight found an old fixture sum missing the new calls component; an exact test-only correction is being prepared in a separate revision with refreshed candidate evidence. Qualified runtime and live integration remain pending. The last pushed checkpoint cf52825 passes all three engine CI jobs. No native, FieldLog, OTA or GA gate is closed by this accounting checkpoint.
+The private Swift calls/dispatch candidate at source closure ba9231499244692bbed61f0566ec72864a979df9e3fc71511560ec66a2e00c70 now has independent and root logical-accounting acceptance: 89,124 roles, 1,032 exact finite positions, eight compiler contexts and sixteen layouts. All 39 Frozen methods, the 2,912-byte Frozen bound, original owners and ceilings are preserved. Runtime preflight found three original fixture sums missing the new calls component. Exact test-only additions are selected for a separate V7 candidate; all eight implementation files remain unchanged and fresh compiler/accounting evidence is pending. Qualified runtime and live integration remain pending. Accounting checkpoint 3f6be79b is pushed and awaiting terminal engine CI; predecessor cf52825 passes all three jobs. No native, FieldLog, OTA or GA gate is closed by this accounting checkpoint.
 See `docs/swift-dispatch-accounting-checkpoint.md`.
 
-The follow-on private pan-commit repair has not yet passed native qualification. Its first iOS 26.5 simulator run completed 43 XCTest methods: 26 passed and 17 failed. Sixteen verdicts rejected pre-layout startup history under an overly strict attached-view check; one setup hit an observation-file replacement race and produced no action verdict. All five cleanup operations passed, and the owned simulator/workspace are absent. A separate harness revision preserves the app/runner bytes and failed evidence; a complete rerun is required.
+The private iOS pan-commit carrier now passes a fresh iOS 26.5 simulator run:43 XCTest methods,45 native input actions and36 scoped direct callback components. Root replays1286 verdict predicates and324 native touch-origin predicates; zero bridge failures, all5cleanup operations pass, owned simulator/workspace absent. The first26pass/17fail run and four original plain-UIKit reference failures remain recorded. App/runner bytes are unchanged; the new harness corrects startup-history validation and atomic observation reads. Keyboard/focus, remaining lifecycle retirements, compositor parity, live Apple integration, physical final matrix, FieldLog and GA remain pending.
 See `verification/apple-toggle-pan-commit-root-review/failed-runtime-review.json`.
