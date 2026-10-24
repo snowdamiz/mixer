@@ -52,6 +52,7 @@ fresh private Android host runner under Swift 6.2.4. See
 
 Latest hosted evidence: `09dac10`, `958998d`, `0f177ad` and `5988e4a` pass all three
 VM/Swift/services jobs. `7c2baeb`, `aa87c6e`, `d40c540`, `542e040` and `7855754` also pass all three jobs.
+`df97e3f` and `82d520c` also pass all three jobs (see their CI receipts).
 `26943ac` passes VM/services but fails Swift bridge TSan: publication data races
 and an HTTP native-exit test timeout are retained. The repair now passes all 48
 existing tests plus three independent controlled schedules per Debug/Release/TSan,
@@ -103,8 +104,14 @@ Observed implementation and evidence:
   independent descriptors, 100,989 Java geometry cases (100,976 Swift), exact
   parser/ownership and complete byte-boundary checks agree across both modes.
   See `verification/android-appearance-v2-root-review/acceptance.json`.
-  Pure V2 recipe/style resolution is underway; renderers, native resources/support
-  and signed V2 remain pending.
+  Swift V2 recipe/style resolution now has root acceptance with 654 bindings:
+  127 SDK tests per Debug/Release, 133 independent cases per mode and all six
+  deliberate semantic faults detected. All ten kinds preserve identities and
+  exact profile, group and state data. See
+  `verification/ui-appearance-resolution-v2-root-review/acceptance.json`.
+  Android V2 resolution is under verification. Native drawing primitives are
+  underway; renderer consumption, native resources/support and signed V2 remain
+  pending.
 
 - Java shared appearance resolution now has independent and root acceptance as
   immutable data. Root checks 183 bindings across both corpora and all four

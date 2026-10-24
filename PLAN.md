@@ -126,8 +126,18 @@ Independent review executes 6,165 descriptors, 100,989 Java geometry cases
 65,535/65,536/65,537-byte boundaries across both JVM and Swift modes. No Java
 default theme is maintained. See
 `verification/android-appearance-v2-root-review/acceptance.json`.
-The pure V2 identity/recipe/style resolver is in implementation; native consumers, resource/bootstrap support,
-signed V2 installation, interaction and physical design parity remain pending.
+The Swift V2 identity/recipe/style resolver now has root acceptance with 654
+bindings, 127 SDK tests per Debug/Release and 133 independent cases per build.
+The independent oracle detects all six deliberate semantic faults, including lost
+disabled inheritance, profile collapse and alpha loss. See
+`verification/ui-appearance-resolution-v2-root-review/acceptance.json`.
+Android V2 resolution is under verification; the first native drawing primitives
+are underway. Full native consumers, resource/bootstrap support, signed V2
+installation, interaction and physical design parity remain pending.
+Hosted `df97e3f` and `82d520c` pass all three configured jobs; the latter also has
+an isolated Java-to-DEX compile receipt in
+`verification/android-appearance-v2-root-review/dex-compile/receipt.json`. These
+precede the bridge repair and do not qualify its later publication change.
 
 Eight unchanged iOS simulator screenshots are retained in
 `verification/apple-appearance-reference/gallery.html`; root accepts the baseline

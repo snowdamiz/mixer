@@ -1,0 +1,9 @@
+/Users/andreyyurlov/Documents/dev/mixer/verification/ui-appearance-resolution-v2-independent-review/candidate-2/.build/disabled-inheritance/variant-sources/MixerUI/AppearanceResolutionV2.swift:255:26: error: immutable value 'ancestorDisabled' was never used; consider replacing with '_' or removing it [#NoUsage]
+253 |         nodes.reserveCapacity(validated.nodeCount); indices.reserveCapacity(validated.nodeCount)
+254 |         var pending: [(UINode, Bool, UINodeIdentity?)] = [(snapshot.document.root, false, nil)]
+255 |         while let (node, ancestorDisabled, listAncestor) = pending.popLast() {
+    |                          `- error: immutable value 'ancestorDisabled' was never used; consider replacing with '_' or removing it [#NoUsage]
+256 |             guard nodes.count < UIValidationLimits.standard.maximumNodes,
+257 |                   let identity = snapshot.identity(for: node.id) else { throw UIAppearanceErrorV2.shape }
+
+[#NoUsage]: <https://docs.swift.org/compiler/documentation/diagnostics/no-usage>
