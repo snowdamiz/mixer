@@ -1541,7 +1541,7 @@ fn af22_frozen_accounting_and_value_phase_reservations_stay_distinct() {
         }
         Err(_) => panic!("unexpected constructor rejection"),
     }
-    assert_eq!(value_operations::VALUE_OPERATION_BYTES, Some(119576));
+    assert_eq!(value_operations::VALUE_OPERATION_BYTES, Some(119576 + size_of::<DiagnosticValuePositions>()));
     const {
         assert!(PERMANENT_BYTES > FROZEN_PERMANENT_BYTES);
     }
@@ -1550,7 +1550,7 @@ fn af22_frozen_accounting_and_value_phase_reservations_stay_distinct() {
     }
     assert_eq!(
         FRAME_OPERATION_BYTES,
-        Some(ACTIVE_BYTES + 119576 + control_operations::ACTIVE_BYTES + memory_operations::ACTIVE_BYTES + bulk_memory_operations::ACTIVE_BYTES + memory_growth_operations::ACTIVE_BYTES + host_runtime_import::ACTIVE_BYTES)
+        Some(ACTIVE_BYTES + value_operations::VALUE_OPERATION_BYTES.unwrap() + control_operations::ACTIVE_BYTES + memory_operations::ACTIVE_BYTES + bulk_memory_operations::ACTIVE_BYTES + memory_growth_operations::ACTIVE_BYTES + host_runtime_import::ACTIVE_BYTES)
     );
     assert_eq!(FROZEN_ACTIVE_BYTES, 240776);
     println!("AF_LAYOUT permanent={} frozen_permanent={} active={} frozen_active={} frame={} value={} state={}",PERMANENT_BYTES,FROZEN_PERMANENT_BYTES,ACTIVE_BYTES,FROZEN_ACTIVE_BYTES,FRAME_OPERATION_BYTES.unwrap(),value_operations::VALUE_OPERATION_BYTES.unwrap(),size_of::<SwiftExecutionState>());
@@ -1564,7 +1564,8 @@ pub(super) mod control_tests;
 pub(super) fn control_after_value_pop(control: &mut RuntimeControl) {
     let inject = HOOKS.with(|slot| {
         let mut hooks = slot.get();
-        let inject = hooks.push_fault == 5;
+        let inject = hooks.push_fault == 5 || (hooks.push_fault == 14 && hooks.cancel_local == Some(0));
+        if hooks.push_fault == 14 && !inject { hooks.cancel_local=Some(hooks.cancel_local.unwrap_or(0).saturating_sub(1));slot.set(hooks); }
         if inject {
             hooks.push_fault = 0;
             slot.set(hooks);
@@ -2103,3 +2104,48 @@ struct ControlHookActivePositions {
 }
 pub(super) const CONTROL_HOOK_PERMANENT_BYTES: usize = size_of::<ControlHookPermanentPositions>();
 pub(super) const CONTROL_HOOK_ACTIVE_BYTES: usize = size_of::<ControlHookActivePositions>();
+
+// Bounded unit-only fault selector, stored in the already accounted Hooks byte.
+// It drains the original count; the following real checked_sub must reject.
+pub(super) fn diagnostic_before_remove(control:&mut RuntimeControl,resource:Live,route:u8) {
+    let selected=match (route,resource) {
+        (0,Live::Values)=>9,(0,Live::Controls)=>10,(0,Live::Frames)=>11,
+        (1,Live::Values)=>12,(1,Live::Controls)=>13,_=>0,
+    };
+    let inject=HOOKS.with(|slot| {let mut h=slot.get();let yes=selected!=0&&h.push_fault==selected;if yes{h.push_fault=0;slot.set(h);}yes});
+    if inject {let current=match resource {Live::Values=>control.usage(None).live.values.current,Live::Controls=>control.usage(None).live.controls.current,Live::Frames=>control.usage(None).live.frames.current,_=>0};control.remove_live(resource,current).unwrap();}
+}
+pub(super) fn diagnostic_numeric_before_remove(control:&mut RuntimeControl) {
+    let inject=HOOKS.with(|slot|{let mut h=slot.get();let yes=h.push_fault==8;if yes{h.push_fault=0;slot.set(h);}yes});
+    if inject {let n=control.usage(None).live.values.current;control.remove_live(Live::Values,n).unwrap();}
+}
+
+#[test]
+fn cdr10_old_frame_cleanup_helper_ignores_stale_invocation_cursor() {
+    let mut own=owner();let mut prep=Some(own.prepare_frames(cursor()));let mut p=prep.take().unwrap().unwrap();p.enter(34).unwrap();
+    p.phase.operation.cursor=Cursor{stage:SwiftRunStage::Invocation,function:Some(999),offset:Some(999999)};
+    assert!(!p.remove_live(Live::Values,1));let report=p.drain();let f=report.first_failure.unwrap();
+    assert_eq!(f.stage,SwiftRunStage::Cleanup);assert_eq!((f.function,f.offset,f.resource),(None,None,None));assert_eq!((f.attempted,f.limit),(0,0));
+    assert!(report.live_unreconciled);assert!(matches!(p.complete(FrameOperationStorage{preparation:prep,entry:None,returned:None,drained:None,controlled:None}),FrameCompletion::Retained(_)));drop(own);
+}
+
+#[test]
+fn cdr14_value_and_frame_admission_exact_bound_and_one_below() {
+    for frame in [false,true] {for below in [false,true] {
+        let mut own=owner();let before=usage(&own);let added=if frame{FRAME_OPERATION_BYTES.unwrap()}else{value_operations::VALUE_OPERATION_BYTES.unwrap()};
+        let remaining=own.control.as_ref().unwrap().budget().combined_bytes-before.reservations.combined.current;
+        let fill=remaining.checked_sub(added).unwrap()+usize::from(below);
+        let ticket=own.control.as_mut().unwrap().admit_with_wasi(SwiftReservationCategory::Shared,fill,cursor(),Some(own.wasi.as_ref().unwrap().usage())).unwrap();
+        if frame {
+            let mut slot=Some(own.prepare_frames(cursor()));let result=slot.take().unwrap();
+            if below {let failure=result.err().unwrap();assert_eq!(failure.kind,SwiftRunFailureKind::CombinedExhausted);}
+            else {let mut p=result.ok().unwrap();assert_eq!(p.phase.operation.control.usage(None).reservations.combined.current,p.phase.operation.control.budget().combined_bytes);p.drain();assert!(matches!(p.complete(FrameOperationStorage{preparation:slot,entry:None,returned:None,drained:None,controlled:None}),FrameCompletion::Completed));}
+        } else {
+            let mut slot=Some(own.prepare_value_operation(cursor()));let result=slot.take().unwrap();
+            if below {let failure=result.err().unwrap();assert_eq!(failure.kind,SwiftRunFailureKind::CombinedExhausted);}
+            else {let p=result.ok().unwrap();assert_eq!(p.operation.control.usage(None).reservations.combined.current,p.operation.control.budget().combined_bytes);p.complete_values(value_operations::ValueOperationStorage{preparation:slot,outcome:None}).unwrap();}
+        }
+        assert_eq!(usage(&own).reservations.construction.current,before.reservations.construction.current);
+        own.control.as_mut().unwrap().drop_reserved_with_wasi((),ticket,Some(own.wasi.as_ref().unwrap().usage())).unwrap();retire(own);
+    }}
+}

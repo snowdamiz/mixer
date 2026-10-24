@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "scope": "Non-runtime producer helper repairs; no engine or gate qualification from these attempts",
+  "repairs": [
+    {
+      "helper": "validate.py",
+      "failure": "The original type-declaration name matcher treated CacheFailure as a prefix of CacheFailureKind and rejected the identity scan.",
+      "correction": "Require a word boundary after the complete type name. Final validation compares 329 exact preexisting declarations.",
+      "runtimeExecutedByFailure": false
+    },
+    {
+      "helper": "validate.py imported by a formatting helper",
+      "failure": "An additional legacy-MIR loop was inserted with one excess leading space, causing an IndentationError before the formatting helper ran.",
+      "correction": "Fix the loop indentation, rerun the free-function formatting step, and collect fresh final MIR, layouts and behavior against the resulting exact source.",
+      "runtimeExecutedByFailure": false
+    }
+  ],
+  "compilerAndRuntimeFailures": "failed-attempts.json binds every failed compiler/runtime command to retained exact engine source archives and raw outputs",
+  "rejectedProvisionalAccounting": "The first selector omitted unqualified primitive_pop, primitive_numeric and diagnostic_before_remove. All provisional qualification was rejected; the final selector explicitly requires these actual compiler bodies."
+}

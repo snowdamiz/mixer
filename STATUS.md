@@ -1,12 +1,12 @@
 # Implementation status
 
-Latest checkpoint: the integrated private Swift host operation is passing host
-checks; its contextual diagnostic candidate is under independent review. Android
-authored-toggle input repair is in progress after the emulator exposed a drag
-failure. Integrated Stripe body capture passes Linux CI with 142 tests and two
-explicit fixture skips; private transport implementation is next. Owned native
-instances are cleaned, Apple UI access awaits an unlocked Mac, and phones remain
-deferred. No GA or dogfood gate has passed.
+Latest checkpoint: the private Swift contextual diagnostic repair is independently
+reviewed and integrated; 282 library and 16 Frozen Release tests pass. Defined
+and indirect calls plus full dispatch are next. Android authored-toggle repair
+passes independent class/DEX and policy checks; the new emulator runner is being
+prepared. Stripe private transport implementation is in progress on the accepted
+raw-body capture. Owned native instances are cleaned, Apple UI access awaits an
+unlocked Mac, and phones remain deferred. No GA or dogfood gate has passed.
 
 Implementation resumed at the user's request on October 24. The saved
 [pause handoff](docs/implementation-pause-2026-10-24.md) remains historical context.
@@ -1880,3 +1880,16 @@ Checkpoint `2e1931b4` passes all three terminal engine CI jobs (Swift, VM and se
 Root selected the authored-toggle input contract after 16 proposed-policy host tests and 44 input bindings. The root receipt binds 69 actual packet files and records the producer seal membership omission without mutating it. Isolated product implementation is in progress using shared drawing/drag geometry, original admission and ordinary listener ownership, with cancellation on lifecycle/binding/gate changes. The original 20-action native fixture remains immutable. Independent build/source review and a new emulator run remain pending; the prior P03 drag failure is not accepted. See `docs/android-authored-toggle-input-contract.md` and `verification/android-authored-toggle-root-review/selection.json`.
 
 Checkpoint 8c634c49 passes exact-source Linux hosted CI: 142 tests pass, two network-namespace fixture tests remain explicitly skipped, and packaged release checks pass. All 71 archived source inputs match the integrated capture closure ac391070ec439ecfca288b9a7657aac1eada5bc1196efb8735211cc60a6883bc. Root selects the dedicated private transport role, complete configured-sink boundary, whole-connection disposal, 16-connection envelope and fixed stage/outer deadlines after 150 sealed contract files and 228 root bindings. Isolated implementation is in progress. Public admission, resource ceilings, trailer policy, deployed ingress, provider/account/inbox and G23 remain pending. See `verification/github-ci-8c634c49-phoenix/receipt.json`, `docs/stripe-webhook-transport-direction.md` and `verification/stripe-webhook-transport-root-review/selection.json`.
+
+
+The contextual cleanup diagnostic repair is independently reviewed, root accepted
+and integrated without normalization at 128-file source closure
+1e89853d56f0ae46720cb0e9d72a4a2a13003f777e1d01f65db154f30782ed9c.
+Root verifies 2,010 upstream bindings and 31 integration files; fresh 282
+all-feature Release library tests, sixteen Frozen Release tests, Swift Clippy
+and whitespace checks pass. Active live-count failures now retain the current
+instruction/resource/count; legacy cleanup remains cursorless and the first
+failure remains immutable. Owned command groups and 166,955,154 bytes of scratch
+are cleaned. Defined/indirect calls and the full dispatcher contract are next.
+Original-source diagnostics, Ready/public invocation, native/FieldLog/physical
+and G08/GA remain pending. See `docs/swift-cleanup-diagnostic-integration-checkpoint.md`.

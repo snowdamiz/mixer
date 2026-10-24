@@ -278,7 +278,7 @@ struct ActivePositions {
 }
 
 pub(super) const PERMANENT_BYTES: usize = size_of::<PermanentPositions>();
-pub(super) const ACTIVE_BYTES: usize = size_of::<ActivePositions>();
+pub(super) const ACTIVE_BYTES: usize = size_of::<ActivePositions>() + size_of::<super::frame_operations::DiagnosticValuePositions>();
 
 // The named-row traversal must not execute in the pre-admission window. Const
 // evaluation is required in Debug too, rather than relying on optimization.
@@ -561,9 +561,12 @@ fn primitive_pop(
     let value = values.pop().expect("checked operand exists");
     #[cfg(test)]
     super::frame_operations::control_after_value_pop(operation.control);
-    operation
-        .control
-        .remove_live_with_wasi(Live::Values, 1, Some(operation.wasi.usage()))?;
+    operation.control.remove_live_at_with_wasi(
+        Live::Values,
+        1,
+        operation.cursor,
+        Some(operation.wasi.usage()),
+    )?;
     Ok(value)
 }
 
@@ -624,11 +627,16 @@ fn primitive_numeric(
     let Some(removed) = before.checked_sub(values.len()) else {
         return Err(primitive_invariant(operation));
     };
+    #[cfg(test)]
+    super::frame_operations::diagnostic_numeric_before_remove(operation.control);
     // Keep the actual primitive Result alive through after-effect reconciliation.
     // This never checks cancellation/deadline/work or admits increased live data.
-    operation
-        .control
-        .remove_live_with_wasi(Live::Values, removed, Some(operation.wasi.usage()))?;
+    operation.control.remove_live_at_with_wasi(
+        Live::Values,
+        removed,
+        operation.cursor,
+        Some(operation.wasi.usage()),
+    )?;
     match result {
         Ok(()) => Ok(()),
         Err(code) => Err(operation.control.fail(

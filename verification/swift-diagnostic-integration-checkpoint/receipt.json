@@ -1,0 +1,67 @@
+{
+  "schema": 1,
+  "status": "passed-private-diagnostic-integration-checkpoint",
+  "observedUTC": "2026-10-24T14:49:52.463916+00:00",
+  "sourceRevision": "18378bb802259a86dff43d31bf881a6d171bb8f0",
+  "commands": [
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "scripts/check-policy.py"
+      ],
+      "exitCode": 0,
+      "output": "verification/swift-diagnostic-integration-checkpoint/policy.log",
+      "sha256": "83e9d73f7084e17a188fd457d1187d00697a64bc1f34d1e3a09e339c6584919f",
+      "note": "Repeated only to retain complete output after initial terminal output was truncated."
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "verification/swift-cleanup-diagnostic-root-integration/verify.py",
+        "--live"
+      ],
+      "exitCode": 0,
+      "output": "verification/swift-diagnostic-integration-checkpoint/live-bindings.log",
+      "sha256": "42c4128bfd335b8b5a4120a5556be7c6c581b76e89bddbd7190df995f8844737"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "vm",
+        "PLAN.md",
+        "STATUS.md",
+        "work-graph.json",
+        "gates/ga.json"
+      ],
+      "exitCode": 0,
+      "output": "verification/swift-diagnostic-integration-checkpoint/whitespace.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "--version"
+      ],
+      "exitCode": 0,
+      "output": "verification/swift-diagnostic-integration-checkpoint/python-version.log",
+      "sha256": "f615dc9512de8b165e2b595e5cdc608a3ba7927ae92f959c5b42ec3d58e2ffa8"
+    }
+  ],
+  "bindings": {
+    "PLAN.md": "6f8f14f3a9d74184ba6f3bf5f6b5bca2691b18b68c40d0e50693a846e035ccd8",
+    "STATUS.md": "e4dacd5814be93af6c67dbd32002e324d1fc564d6a9ed1a71abc113ab853fc43",
+    "work-graph.json": "8d392df08746073f65f8dd9b951a04fed7b93e0ff3cc45e2202f3debb8e512eb",
+    "gates/ga.json": "320be2ec3b4a2a89205a12ec838ec9da8be0e34dc52c22aae762929abfe5ebfa",
+    "verification/swift-cleanup-diagnostic-root-integration/acceptance.json": "89554709a84852895f7caff5b3e946f454cab22d1b4b3ec3a254977efbd9e570",
+    "verification/swift-cleanup-diagnostic-root-integration/seal.json": "f7ae8e13384cd78c787d7371c69fc773cae809a75c908b654c31ba6de52fbb8b"
+  },
+  "packages": 18,
+  "gaGates": 38,
+  "gaAccepted": false,
+  "scope": "Exact reviewed private source host integration and complete tracker scope. No native or original Swift source diagnostic acceptance."
+}

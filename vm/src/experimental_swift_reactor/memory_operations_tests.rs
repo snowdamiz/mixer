@@ -70,7 +70,7 @@ fn pinned<'a>(p: &mut FrameOperationPhase<'a>, s: &mut FrameOperationStorage<'a>
  FIXTURES.with(|n|n.set(n.get()+1));let mut own=body_owner(BODY,false,&[],SwiftRunBudget{instruction_fuel:0,..SwiftRunBudget::default()});let mut prep=Some(own.prepare_frames(cursor()));let mut p=prep.take().unwrap().unwrap();p.enter(34).unwrap();push(&mut p,&[Value::I32(0)]);p.phase.parts.frames[0].pc=1;let before=observed(&p);let mut s=storage();pinned(&mut p,&mut s).unwrap();assert_eq!(s.entry.unwrap().unwrap_err().kind,SwiftRunFailureKind::FuelExhausted);assert_eq!(p.phase.parts.frames[0].pc,1);assert_eq!(observed(&p).execution_work,before.execution_work);p.drain();assert!(matches!(p.complete(FrameOperationStorage{preparation:prep,..s}),FrameCompletion::Completed));retire(own);
 
 }
-#[test] fn mm08_post_pop_live_fault(){let _b=Bounds::new();fixture(true,None,|p|{p.phase.operation.wasi.dispatch(p.phase.operation.control,crate::experimental_wasi::WasiFunction::ArgsSizesGet,&[Value::I32(0),Value::I32(4)],&mut [0;8],cursor()).unwrap();let wasi=p.phase.operation.wasi.usage();push(p,&[Value::I32(0)]);hooks(Hooks{push_fault:5,..Hooks::default()});let mut slot=None;assert_eq!(p.memory_operation(LOAD,&mut slot),Ok(()));let e=slot.unwrap().unwrap_err();assert_eq!(e.code,"swift_run_live_underflow");assert_eq!(e.stage,SwiftRunStage::Cleanup);assert_eq!((e.function,e.offset,e.resource),(None,None,None));assert_eq!(e.at_failure.wasi,Some(wasi));assert!(p.cleanup.live_unreconciled);assert!(p.phase.parts.values.is_empty());assert_eq!(observed(p).live.values.current,0);assert!(matches!(p.lifecycle,Lifecycle::Terminal));let mut next=None;p.memory_operation(LOAD,&mut next).unwrap();assert_eq!(next.unwrap().unwrap_err().code,e.code);});}
+#[test] fn mm08_post_pop_live_fault(){let _b=Bounds::new();fixture(true,None,|p|{p.phase.operation.wasi.dispatch(p.phase.operation.control,crate::experimental_wasi::WasiFunction::ArgsSizesGet,&[Value::I32(0),Value::I32(4)],&mut [0;8],cursor()).unwrap();let wasi=p.phase.operation.wasi.usage();push(p,&[Value::I32(0)]);hooks(Hooks{push_fault:5,..Hooks::default()});let mut slot=None;assert_eq!(p.memory_operation(LOAD,&mut slot),Ok(()));let e=slot.unwrap().unwrap_err();assert_eq!(e.code,"swift_run_live_underflow");assert_eq!(e.stage,p.phase.operation.cursor.stage);assert_eq!((e.function,e.offset,e.resource),(p.phase.operation.cursor.function,p.phase.operation.cursor.offset,Some(SwiftRunResource::Values)));assert_eq!((e.attempted,e.limit),(1,0));assert_eq!(e.at_failure.wasi,Some(wasi));assert!(p.cleanup.live_unreconciled);assert!(p.phase.parts.values.is_empty());assert_eq!(observed(p).live.values.current,0);assert!(matches!(p.lifecycle,Lifecycle::Terminal));let mut next=None;p.memory_operation(LOAD,&mut next).unwrap();assert_eq!(next.unwrap().unwrap_err().code,e.code);});}
 #[test] fn mm09_held_pin_cleanup(){let _b=Bounds::new();
  for case in 0..10 {
  FIXTURES.with(|n|n.set(n.get()+2));let mut foreign=owner();install_foreign(&mut foreign);let mut own=owner();let mut prep=Some(own.prepare_frames(cursor()));let mut p=prep.take().unwrap().unwrap();p.enter(34).unwrap();p.enter(36).unwrap();p.enter(34).unwrap();let pins=pin_ids(&p);
@@ -110,3 +110,48 @@ fn pinned<'a>(p: &mut FrameOperationPhase<'a>, s: &mut FrameOperationStorage<'a>
 }
 #[test] fn mm15_deferred_fail_closed(){let _b=Bounds::new();for operation in [Operation::MemoryCopy,Operation::MemoryFill,Operation::MemoryGrow,Operation::MemorySize,Operation::Return,Operation::Const(Value::I32(0)),Operation::Nop]{fixture(true,None,|p|{push(p,&[Value::I32(0),Value::I32(1)]);let cap=p.phase.parts.memory.capacity();let before=observed(p);assert_eq!(op(p,operation).unwrap_err().kind,SwiftRunFailureKind::UnsupportedEnvironment);assert_eq!(p.phase.parts.memory.capacity(),cap);assert_eq!(p.phase.parts.values.len(),2);assert_eq!(observed(p).reservations,before.reservations);assert_eq!(observed(p).execution_work,before.execution_work);});}}
 #[test] fn mm16_accounting_restore(){let _b=Bounds::new();fixture(true,None,|p|{let before=observed(p);push(p,&[Value::I32(0)]);op(p,LOAD).unwrap();assert_eq!(observed(p).reservations,before.reservations);assert_eq!(FRAME_OPERATION_BYTES.unwrap(),super::super::ACTIVE_BYTES+value_operations::VALUE_OPERATION_BYTES.unwrap()+control_operations::ACTIVE_BYTES+ACTIVE_BYTES+super::super::bulk_memory_operations::ACTIVE_BYTES+super::super::memory_growth_operations::ACTIVE_BYTES + super::super::host_runtime_import::ACTIVE_BYTES);assert_eq!(SwiftRunBudget::default().state_bytes,128*1024*1024);assert_eq!(SwiftRunBudget::default().combined_bytes,256*1024*1024);println!("MM_EXTERNAL exact MIR inventory and eight actual layouts are bound outside runtime fixture");});}
+
+#[test]
+fn cdr01_actual_pinned_load_34_1713_keeps_source_and_cleanup_snapshot() {
+    let _b=Bounds::new();fixture(true,Some(BODY),|p| {
+        p.phase.operation.wasi.dispatch(p.phase.operation.control,crate::experimental_wasi::WasiFunction::ArgsSizesGet,&[Value::I32(0),Value::I32(4)],&mut [0;8],cursor()).unwrap();
+        let wasi=p.phase.operation.wasi.usage();push(p,&[Value::I32(0)]);p.phase.parts.frames[0].pc=1;
+        let actual={let f=&p.phase.parts.frames[0];(f.function,p.phase.parts.cache.view(&f.pin,p.phase.operation.control,Some(&*p.phase.operation.wasi)).unwrap().instructions[1])};
+        assert_eq!((actual.0,actual.1.offset),(34,1713));let before=observed(p);let pins=pin_ids(p);
+        hooks(Hooks{push_fault:5,..Hooks::default()});let mut s=storage();pinned(p,&mut s).unwrap();hooks(Hooks::default());
+        let failure=s.entry.unwrap().unwrap_err();assert_eq!(failure.stage,SwiftRunStage::Invocation);
+        assert_eq!((failure.function,failure.offset,failure.resource),(Some(34),Some(1713),Some(SwiftRunResource::Values)));
+        assert_eq!((failure.attempted,failure.limit),(1,0));assert_eq!(failure.at_failure.wasi,Some(wasi));
+        assert_eq!(p.phase.parts.frames[0].pc,2);assert_eq!(pin_ids(p),pins);assert!(p.phase.parts.values.is_empty());assert!(p.cleanup.live_unreconciled);
+        assert_eq!((observed(p).instructions-before.instructions,observed(p).instruction_fuel-before.instruction_fuel,observed(p).execution_work-before.execution_work),(1,1,2));
+        p.phase.operation.control.cancellation().cancel();assert_eq!(p.phase.operation.control.check(p.phase.operation.cursor).unwrap_err(),failure);
+        for _ in 0..2 {let report=p.drain();let after=report.first_failure.unwrap();let mut original=after;original.after_cleanup=None;assert_eq!(original,failure);assert!(after.after_cleanup.is_some());assert!(report.live_unreconciled);}
+        println!("CDR01 actualFunction=34 actualOffset=1713 resource=Values attempted=1 available=0 wasiCalls={} firstFailureExact=true cleanupObservationSeparate=true",wasi.calls);
+    });
+}
+#[test]
+fn cdr02_actual_pinned_store_both_pop_prefixes() {
+    let _b=Bounds::new();let body=&[0x41,0,0x41,9,0x36,2,0,0x0b];
+    for second in [false,true] {fixture(true,Some(body),|p| {
+        push(p,&[Value::I32(0),Value::I32(9)]);p.phase.parts.frames[0].pc=2;
+        let actual={let f=&p.phase.parts.frames[0];p.phase.parts.cache.view(&f.pin,p.phase.operation.control,Some(&*p.phase.operation.wasi)).unwrap().instructions[2]};
+        hooks(Hooks{push_fault:if second{14}else{5},cancel_local:if second{Some(1)}else{None},..Hooks::default()});
+        let before=observed(p);let mut s=storage();pinned(p,&mut s).unwrap();hooks(Hooks::default());let f=s.entry.unwrap().unwrap_err();
+        assert_eq!((f.stage,f.function,f.offset,f.resource),(SwiftRunStage::Invocation,Some(34),Some(actual.offset),Some(SwiftRunResource::Values)));
+        assert_eq!((f.attempted,f.limit),(1,0));assert_eq!(p.phase.parts.values.len(),if second{0}else{1});assert_eq!(&p.phase.parts.memory[..4],&[0;4]);
+        assert_eq!(observed(p).execution_work-before.execution_work,if second{3}else{2});assert!(p.cleanup.live_unreconciled);
+    });}
+}
+
+#[test]
+fn cdr11_contextual_cause_exact_through_pin_retry_and_cleanup_reacquisition() {
+    let _b=Bounds::new();let mut foreign=owner();install_foreign(&mut foreign);
+    let mut own=body_owner(BODY,false,&[],SwiftRunBudget::default());let mut prep=Some(own.prepare_frames(cursor()));let mut p=prep.take().unwrap().unwrap();
+    p.enter(34).unwrap();p.enter(36).unwrap();p.enter(34).unwrap();push(&mut p,&[Value::I32(0)]);p.phase.parts.frames[2].pc=1;
+    hooks(Hooks{push_fault:5,..Hooks::default()});let mut s=storage();pinned(&mut p,&mut s).unwrap();hooks(Hooks::default());let first=s.entry.unwrap().unwrap_err();let pins=pin_ids(&p);
+    p.phase.operation.control.cancellation().cancel();hooks(Hooks{release_mask:7,..Hooks::default()});
+    for _ in 0..2 {let report=p.drain();assert_eq!(report.retained_frames,3);assert_eq!(pin_ids(&p),pins);let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,first);assert!(report.live_unreconciled);}
+    assert!(matches!(p.complete(FrameOperationStorage{preparation:prep,..s}),FrameCompletion::Retained(_)));hooks(Hooks::default());
+    let mut resumed=Some(own.resume_frame_cleanup());let mut p=resumed.take().unwrap().unwrap();let report=p.drain();assert_eq!(report.retained_frames,0);let after=report.first_failure.unwrap();let mut exact=after;exact.after_cleanup=None;assert_eq!(exact,first);assert!(after.after_cleanup.is_some());assert!(report.live_unreconciled);
+    assert!(matches!(p.complete(FrameOperationStorage{preparation:resumed,..storage()}),FrameCompletion::Retained(_)));let mut owned=Some(own);assert!(SwiftReactorInstance::cleanup_owned(&mut owned).is_err());assert!(owned.is_some());drop(owned);restore_foreign(&mut foreign);retire(foreign);
+}
