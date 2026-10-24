@@ -1,0 +1,17 @@
+--- original-candidate-2/verification/android-coordinator-join/CoordinatorJoinInstrumentation.java
++++ derived-candidate-1/verification/android-coordinator-join/CoordinatorJoinInstrumentation.java
+@@ -229,7 +229,13 @@
+             Switch toggle = window.root.findViewWithTag("mixer.task.1");
+             check(toggle != null && toggle.isAttachedToWindow() && toggle.isShown()
+                 && toggle.isEnabled() && toggle.hasWindowFocus(), "actual native toggle input eligibility");
+-            check(toggle.performClick(), "actual Switch.performClick");
++            boolean hadOnClickListeners = toggle.hasOnClickListeners();
++            boolean performClickReturned = toggle.performClick();
++            observations.add(Json.map("nativeSwitchPerformClick", "invoked",
++                "hasOnClickListenersBefore", hadOnClickListeners,
++                "performClickReturned", performClickReturned));
++            check(performClickReturned == hadOnClickListeners,
++                "actual Switch.performClick return agrees with pre-click OnClickListener presence");
+             UiPacket next = UiPacket.decode(retained(window.coordinator));
+             check(new BigInteger(next.revision).equals(new BigInteger(previous.revision).add(BigInteger.ONE)),
+                 "one native toggle advances ordinary reducer revision once");

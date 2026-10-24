@@ -1,0 +1,59 @@
+--- accepted-wifi-concrete-runner.py
++++ verification/android-coordinator-click-fixture/transformed_runner.py
+@@ -17,16 +17,21 @@
+ 
+ ROOT = Path(__file__).resolve().parents[2]
+ HERE = Path(__file__).resolve().parent
+-BUILDS = ROOT / 'verification/android-coordinator-join'
++BUILDS = ROOT / 'verification/android-coordinator-click-fixture'
+ ORIGINAL_RUNNER_SHA256 = '8f4caee8c90fb2ab7348403576e56783e7e9ffd0d13a80850398ca4e34ea78d3'
+ PROCESS_HELPER_SHA256 = '209290a7b3638f7510bb1b88dfcdb272f657b89fffe96dcc2f2b631b8f244216'
+-SOURCE_CLOSURE_SHA256 = 'ec2acb7c78862d899a4722d8f2c11d90d47c2cc4726af00976d392536fb85b30'
+-ARCHIVE_SHA256 = '642962760271300298db98efd9f2018c159a2e9767843e4ef2bad84d9f824459'
++SOURCE_CLOSURE_SHA256 = '00c269c70199ffb376b39394db1c2367f8e9053d92ce6a863741d2a154359c04'
++ARCHIVE_SHA256 = 'feaa639b8b719492c5889222246cb62ebd4e9dd807379ccd984c5062f60660a4'
+ BUILD_BINDINGS = {
+-    'receipt.json': '0a2493763af34e9de77fc80a6bf18258ece94d8d30c57ca041c83d6af8d32bb5',
+-    'source-lock.json': '31cb65d8dc08d4741ced3dd7130f418c0805d0ff35760cb85a7895d69733e12f',
+-    'built-artifacts.json': 'c02f45553610fc7c22e168a7d19e306daed148630e67f5b670228ddf278cb77a',
+-    'built-artifacts.tar.gz': ARCHIVE_SHA256,
++    "apk-entries.json": "a9de32ffc7f52ab46dbcbd15ad44acacfe31f3a2acff6ebbea9163f59ce20648",
++    "apk-entry-delta.json": "d180f11033b3e40dedded705ff9ee42590d57753b79b710d359ec314501fcb27",
++    "artifact-delta.json": "865759a0e64655ef53791f79d306c94a243ed4cd279ad9a6a2824b15b9794fd6",
++    "artifact-seal.json": "8f9ee0a71ab77bc1c5dca0990f3ba2507760c586c2514a5cd5707f10e5bb52e5",
++    "built-artifacts.json": "de9b09a497dbd1bf331690652668c542d0c2821a6da85f37354474fd1e23faee",
++    "built-artifacts.tar.gz": "feaa639b8b719492c5889222246cb62ebd4e9dd807379ccd984c5062f60660a4",
++    "instrumentation.diff": "b3159d3c4c0162f9aeeb29da51d0fa3e8a7cdbeec8f12063b74118816d5fc642",
++    "receipt.json": "4945f1c4982ba96f398b25c1a8b059ce3abc85b351a337332dbc386263f8fb85",
++    "source-lock.json": "2fc428653eeceb214894d81db113a2e8312f9cd0353422f224605753a2fa021f"
+ }
+ SDK = Path('/opt/homebrew/share/android-commandlinetools')
+ PACKAGE = 'dev.mixer.android.coordinatorjoin'
+@@ -45,7 +50,7 @@
+ 
+ 
+ def bind_candidate(built):
+-    """Bind the separate runner to the unchanged 105-input candidate2 packet."""
++    """Bind the separate runner to the 105-input test-only corrected candidate1 packet."""
+     if sha(_helper_path) != PROCESS_HELPER_SHA256:
+         raise ValueError('owned process helper changed')
+     for relative, expected in BUILD_BINDINGS.items():
+@@ -153,15 +158,15 @@
+ 
+ def main():
+     parser = argparse.ArgumentParser(description=__doc__)
+-    parser.add_argument('--build', required=True, help='unchanged retained candidate-2 only')
++    parser.add_argument('--build', required=True, help='corrected test-only candidate-1 only')
+     parser.add_argument('--attempt', required=True, help='fresh runtime-N evidence directory')
+     parser.add_argument('--execute-native', action='store_true',
+                         help='required only after explicit root runtime dispatch; headless native runtime starts')
+     args = parser.parse_args()
+     if not args.execute_native:
+         parser.error('runtime is NOT RUN; --execute-native requires explicit root dispatch')
+-    if args.build != 'candidate-2' or not re.fullmatch(r'runtime-[0-9]+', args.attempt):
+-        parser.error('bound candidate-2 and fresh runtime-N required')
++    if args.build != 'candidate-1' or not re.fullmatch(r'runtime-[0-9]+', args.attempt):
++        parser.error('bound corrected candidate-1 and fresh runtime-N required')
+     out = HERE / args.attempt
+     out.mkdir()
+     work = out / '.build'

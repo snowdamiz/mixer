@@ -1,0 +1,155 @@
+//! UNCALLED contract witness. This module is appended inside frame_operations
+//! only in a uniquely owned source snapshot; it is never linked into live VM.
+use super::*;
+use crate::experimental_wasi::WasiFunction;
+
+impl FrameOperationPhase<'_> {
+    /// Outer Ok means the one fixed outcome slot was published, not host success.
+    pub(crate) fn host_contract_operation(
+        &mut self,
+        function: u32,
+        returned: &mut Option<Result<(), SwiftRunFailure>>,
+    ) -> Result<(), SwiftRunFailure> {
+        if returned.is_some() {
+            let failure = self.invariant("swift_host_result_occupied");
+            self.terminal();
+            return Err(failure);
+        }
+        let result = self.host_contract_inner(function);
+        if result.is_err() { self.terminal(); }
+        *returned = Some(result);
+        Ok(())
+    }
+
+    fn host_contract_inner(&mut self, function: u32) -> Result<(), SwiftRunFailure> {
+        self.active()?;
+        self.phase.operation.wasi.checked_usage(
+            self.phase.operation.control, self.phase.operation.cursor,
+        )?;
+        self.phase.parts.cache.check_owner(
+            self.phase.operation.control, Some(&*self.phase.operation.wasi),
+            self.phase.operation.cursor,
+        )?;
+        // No signature/proof/cache view survives this block.
+        let (descriptor, params) = {
+            let descriptor = match self.phase.parts.cache.proof()
+                .execution_imports().get(function as usize).copied() {
+                Some(descriptor) => descriptor,
+                None => return Err(self.invariant("swift_host_import_index")),
+            };
+            let signature = match self.phase.parts.cache.proof().execution_signature(function) {
+                Some(signature) => signature,
+                None => return Err(self.invariant("swift_host_signature")),
+            };
+            if signature.params != descriptor.parameters()
+                || signature.result.as_slice() != descriptor.results() {
+                return Err(self.invariant("swift_host_signature_shape"));
+            }
+            (descriptor, signature.params.len())
+        };
+        // Frozen call charges the parameter scan before deciding its range.
+        self.work(params)?;
+        let base = match self.phase.parts.values.len().checked_sub(params) {
+            Some(base) => base,
+            None => return Err(self.invariant("swift_host_parameters")),
+        };
+        {
+            let frame = match self.phase.parts.frames.last() {
+                Some(frame) => frame,
+                None => return Err(self.invariant("swift_host_frame_missing")),
+            };
+            if frame.base > frame.operands || base < frame.operands
+                || frame.controls >= self.phase.parts.controls.len() {
+                return Err(self.invariant("swift_host_frame_floor"));
+            }
+        }
+        for index in 0..params {
+            if self.phase.parts.values[base + index].ty() != descriptor.parameters()[index] {
+                return Err(self.invariant("swift_host_parameter_type"));
+            }
+        }
+        self.work(1)?;
+        // The actual values and memory owners are disjoint. There is no cache
+        // operation phase or borrowed cache/signature view at this boundary.
+        let errno = {
+            let arguments: &[Value] = &self.phase.parts.values[base..];
+            let memory: &mut [u8] = self.phase.parts.memory.as_mut_slice();
+            self.phase.operation.wasi.dispatch(
+                self.phase.operation.control, descriptor, arguments, memory,
+                self.phase.operation.cursor,
+            )?
+        };
+        // ProcExit has no success ABI. Its actual adapter always returns Exit.
+        if descriptor == WasiFunction::ProcExit {
+            return Err(self.invariant("swift_host_exit_returned"));
+        }
+        // Argument borrows have ended. Host effects already happened; none of
+        // the following failures rolls back memory/output or adapter counters.
+        self.phase.parts.values.truncate(base);
+        if let Err(failure) = self.phase.operation.control.remove_live_with_wasi(
+            Live::Values, params, Some(self.phase.operation.wasi.usage()),
+        ) {
+            self.cleanup.live_unreconciled = true;
+            return Err(failure);
+        }
+        let official_errno: u16 = errno as u16;
+        self.phase.push_value(Value::I32(i32::from(official_errno)))
+    }
+}
+
+/// One imported Call witness, not a general call/indirect instruction loop.
+pub(crate) fn host_contract_pinned_caller(
+    phase: &mut FrameOperationPhase<'_>,
+    storage: &mut FrameOperationStorage<'_>,
+) -> Result<(), SwiftRunFailure> {
+    if storage.entry.is_some() {
+        let failure = phase.invariant("swift_host_result_occupied");
+        phase.terminal();
+        return Err(failure);
+    }
+    let result = host_contract_pinned_step(phase);
+    if result.is_err() { phase.terminal(); }
+    storage.entry = Some(result);
+    Ok(())
+}
+fn host_contract_pinned_step(phase: &mut FrameOperationPhase<'_>) -> Result<(), SwiftRunFailure> {
+    phase.active()?;
+    let (function, instruction) = {
+        let frame = match phase.phase.parts.frames.last() {
+            Some(frame) => frame,
+            None => return Err(phase.invariant("swift_host_caller_frame")),
+        };
+        let view = phase.phase.parts.cache.view(
+            &frame.pin, phase.phase.operation.control, Some(&*phase.phase.operation.wasi),
+        )?;
+        let instruction = match view.instructions.get(frame.pc) {
+            Some(instruction) => *instruction,
+            None => return Err(phase.invariant("swift_host_caller_instruction")),
+        };
+        (frame.function, instruction)
+    };
+    phase.phase.operation.cursor = Cursor {
+        stage: SwiftRunStage::Invocation,
+        function: Some(function), offset: Some(instruction.offset),
+    };
+    let target = match instruction.operation {
+        Operation::Call(target) => target,
+        _ => return Err(phase.invariant("swift_host_caller_operation")),
+    };
+    phase.phase.operation.control.instruction_with_wasi(
+        phase.phase.operation.cursor, Some(phase.phase.operation.wasi.usage()),
+    )?;
+    phase.work(1)?;
+    let current_pc = match phase.phase.parts.frames.last() {
+        Some(frame) => frame.pc,
+        None => return Err(phase.invariant("swift_host_caller_frame")),
+    };
+    let pc = match current_pc.checked_add(1) {
+        Some(pc) => pc,
+        None => return Err(phase.invariant("swift_host_caller_pc")),
+    };
+    phase.phase.parts.frames.last_mut().expect("active original caller").pc = pc;
+    phase.host_contract_inner(target)
+}
+
+// CONTRACT_INVENTORY_INSERT

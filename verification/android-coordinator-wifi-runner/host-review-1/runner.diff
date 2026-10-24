@@ -1,0 +1,96 @@
+--- verification/android-coordinator-runner-cleanup/run.py
++++ verification/android-coordinator-wifi-runner/transformed_runner.py
+@@ -13,7 +13,7 @@
+ import sys
+ import tarfile
+ import time
+-from owned_process import execute, stop_group
++execute, stop_group = _accepted_helper.execute, _accepted_helper.stop_group
+ 
+ ROOT = Path(__file__).resolve().parents[2]
+ HERE = Path(__file__).resolve().parent
+@@ -46,7 +46,7 @@
+ 
+ def bind_candidate(built):
+     """Bind the separate runner to the unchanged 105-input candidate2 packet."""
+-    if sha(HERE / 'owned_process.py') != PROCESS_HELPER_SHA256:
++    if sha(_helper_path) != PROCESS_HELPER_SHA256:
+         raise ValueError('owned process helper changed')
+     for relative, expected in BUILD_BINDINGS.items():
+         if sha(built / relative) != expected:
+@@ -130,14 +130,7 @@
+ 
+ def owned_identity(command, pid):
+     """Require exact PID and individual argv pairs; substrings cannot authorize a stop."""
+-    tokens = shlex.split(command)
+-    if not tokens or tokens[0] != str(pid):
+-        return False
+-    if not any(Path(token).name in ('emulator', 'qemu-system-aarch64') for token in tokens[1:2]):
+-        return False
+-    return all(tokens.count(flag) == 1 and tokens.index(flag) + 1 < len(tokens)
+-               and tokens[tokens.index(flag) + 1] == value
+-               for flag, value in [('-port', str(PORT)), ('-avd', AVD)])
++    return _wifi_identity(command, pid)
+ 
+ 
+ def validate_members(members, expected):
+@@ -182,7 +175,7 @@
+                'observedUTC': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                'runnerSHA256': sha(Path(__file__)), 'build': args.build,
+                'originalFrozenRunnerSHA256': ORIGINAL_RUNNER_SHA256,
+-               'ownedProcessHelperSHA256': sha(HERE / 'owned_process.py'),
++               'ownedProcessHelperSHA256': sha(_helper_path), 'adaptation': _ADAPTATION,
+                'runnerSourceDirectory': str(HERE.relative_to(ROOT)),
+                'buildSourceDirectory': str((BUILDS / args.build).relative_to(ROOT)),
+                'nativeDispatch': 'explicit root dispatch; headless subset has no desktop-unlock dependency',
+@@ -239,10 +232,15 @@
+                          '-no-snapshot', '-no-window', '-no-audio', '-no-boot-anim', '-gpu', 'swiftshader_indirect']
+         if session['argv'] != expected_argv or session['serial'] != SERIAL:
+             raise ValueError('bounded owned-instance contract changed')
++        expected_argv += ['-feature', '-WiFiPacketStream']
+         for path, expected in session['metadataSHA256'].items():
+             if sha(Path(path)) != expected:
+                 raise ValueError('unsupported AVD/toolchain metadata drift ' + path)
+         receipt['metadataSHA256'] = session['metadataSHA256']
++        _, revision = run('runner-source-revision', ['git', 'rev-parse', 'HEAD'])
++        _, tree = run('runner-source-tree', ['git', 'rev-parse', 'HEAD^{tree}'])
++        receipt['adaptation']['runnerSourceRevision'] = revision.decode().strip()
++        receipt['adaptation']['runnerSourceTree'] = tree.decode().strip()
+         run('python-version', [sys.executable, '--version'])
+         run('adb-version', [SDK / 'platform-tools/adb', 'version'])
+         run('emulator-version', [SDK / 'emulator/emulator', '-version'])
+@@ -275,7 +273,7 @@
+             if time.monotonic() >= deadline:
+                 raise RuntimeError('bounded boot deadline exceeded')
+             time.sleep(3)
+-        _, identity = run('owned-process-before-use', ['ps', '-p', str(process.pid), '-o', 'pid=,command='])
++        _, identity = run('owned-process-before-use', ['ps', '-p', str(process.pid), '-o', 'pid=,pgid=,command='])
+         if not owned_identity(identity.decode().strip(), process.pid):
+             raise ValueError('owned process identity changed')
+         target = {}
+@@ -330,7 +328,7 @@
+         if process is not None:
+             try:
+                 if process.poll() is None:
+-                    _, identity = run('owned-process-before-stop', ['ps', '-p', str(process.pid), '-o', 'pid=,command='])
++                    _, identity = run('owned-process-before-stop', ['ps', '-p', str(process.pid), '-o', 'pid=,pgid=,command='])
+                     if not owned_identity(identity.decode().strip(), process.pid):
+                         raise RuntimeError('refuse cleanup: exact owned PID/port/AVD identity no longer matches')
+                     run('stop-only-owned-emulator', adb + ['emu', 'kill'], allow_failure=True)
+@@ -338,14 +336,14 @@
+                         process.wait(timeout=20)
+                     except subprocess.TimeoutExpired:
+                         # Recheck immediately before targeting only our child PID.
+-                        _, identity = run('owned-process-before-terminate', ['ps', '-p', str(process.pid), '-o', 'pid=,command='])
++                        _, identity = run('owned-process-before-terminate', ['ps', '-p', str(process.pid), '-o', 'pid=,pgid=,command='])
+                         if not owned_identity(identity.decode().strip(), process.pid):
+                             raise RuntimeError('refuse PID termination after identity drift')
+                         process.terminate()
+                         try:
+                             process.wait(timeout=15)
+                         except subprocess.TimeoutExpired:
+-                            _, identity = run('owned-process-before-kill', ['ps', '-p', str(process.pid), '-o', 'pid=,command='])
++                            _, identity = run('owned-process-before-kill', ['ps', '-p', str(process.pid), '-o', 'pid=,pgid=,command='])
+                             if not owned_identity(identity.decode().strip(), process.pid):
+                                 raise RuntimeError('refuse PID kill after identity drift')
+                             process.kill()

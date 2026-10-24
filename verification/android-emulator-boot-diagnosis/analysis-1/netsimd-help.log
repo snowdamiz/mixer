@@ -1,0 +1,69 @@
+Usage: netsimd [OPTIONS]
+
+Options:
+  -s, --fd-startup-str <FD_STARTUP_STR>
+          File descriptor start up info proto
+  -c, --connector-instance <CONNECTOR_INSTANCE>
+          Enables connector mode to forward packets to another instance [aliases: --connector_instance_num]
+  -i, --instance <INSTANCE>
+          Netsimd instance number [aliases: --instance_num]
+  -l, --logtostderr
+          Set whether log messages go to stderr instead of logfiles
+  -d, --dev
+          Enable development mode. This will include additional features
+      --no-cli-ui
+          Disable grpc server for CLI
+      --no-web-ui
+          Disable web server No-op: no web UI is currently implemented
+      --http-proxy <HTTP_PROXY>
+          Redirect all TCP connections through the specified HTTP/HTTPS proxy.
+          Can be one of the following:
+              `http://<server>:<port>`
+              `http://<username>:<password>@<server>:<port>`
+              (the 'http://' prefix can be omitted) [env: http_proxy=]
+      --no-shutdown
+          Disable netsimd from shutting down automatically. WARNING: This flag is for development purpose. netsimd will not shutdown without SIGKILL
+      --idle-shutdown-timeout <IDLE_SHUTDOWN_TIMEOUT>
+          Set the idle shutdown timeout in milliseconds
+      --startup-timeout <STARTUP_TIMEOUT>
+          Set the startup timeout in milliseconds
+      --pcap
+          Enable packet capture
+      --disable-address-reuse
+          Disable Address Reuse for Bluetooth test model
+  -v, --verbose
+          Entering Verbose mode
+      --version
+          Print Netsimd version information
+      --grpc-port <GRPC_PORT>
+          gRPC port for the netsim service. Overrides env var NETSIM_GRPC_PORT
+      --grpc-uds-path <GRPC_UDS_PATH>
+          Unix Domain Socket path for the netsim gRPC service
+      --hci-port <HCI_PORT>
+          HCI port for the raw TCP socket. Overrides env var NETSIM_HCI_PORT
+      --tcp-port <TCP_PORT>
+          TCP port for the packet stream service. Overrides env var NETSIM_TCP_PORT
+      --ws-port <WS_PORT>
+          WebSocket port for the web UI. Overrides env var NETSIM_WS_PORT
+      --host-dns <HOST_DNS>
+          DNS server for the host TODO: Not implemented yet
+      --forward-host-mdns
+          Forward mDNS packets from host to guest Wi-Fi medium
+      --test-beacons
+          Start with test beacons
+      --no-test-beacons
+          Do not start with test beacons
+  -h, --help
+          Print help
+
+WiFi Settings:
+      --wifi-ssid <WIFI_SSID>
+          Set the initial SSID for the default Access Point (defaults to 'AndroidWifi')
+      --wifi-password <WIFI_PASSWORD>
+          Set the WPA passphrase for the default Access Point (optional)
+      --wifi-channel <WIFI_CHANNEL>
+          Set the initial radio channel for the default Access Point (defaults to 11)
+      --wifi-beacon-interval <WIFI_BEACON_INTERVAL>
+          Set the beacon interval in TU for the default Access Point (defaults to 100)
+      --wifi-mode <WIFI_MODE>
+          Set the 802.11 mode for the default Access Point (defaults to "g") [possible values: a, b, g, n, ac, ax]

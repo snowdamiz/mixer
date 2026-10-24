@@ -1,0 +1,35 @@
+{
+  "afterTakeSource": "let ticket=slot.take().expect(\"validated original growth ticket\");\n            control.drop_reserved_with_wasi((),ticket,wasi)\n        ",
+  "controllerSHA256": "99835ca8bbb8e9b3cbfff5469e42b6b99f897799189e7073e6ef93bbce72af6b",
+  "exclusiveControlBorrow": true,
+  "foreignNewAndOldTicketNegativeTests": [
+    "mg12_ticket_retention_retry_refusal",
+    "mg17_old_refund_postcommit_retained_retry"
+  ],
+  "growthBodySHA256": "cdd59066b7f46e3917e0274b2ac179889e6f333d44be388f5d0e53bf9dbd155a",
+  "noFallibleGap": true,
+  "predicates": [
+    {
+      "borrowed": "ticket.owner != self.owner || ticket.owner == 0",
+      "equivalent": true,
+      "refund": "same predicate"
+    },
+    {
+      "borrowed": "live_tickets == 0",
+      "equivalent": true,
+      "refund": "live_tickets.checked_sub(1).is_none()"
+    },
+    {
+      "borrowed": "category.current < ticket.bytes",
+      "equivalent": true,
+      "refund": "category.current.checked_sub(ticket.bytes).is_none()"
+    },
+    {
+      "borrowed": "combined.current < ticket.bytes",
+      "equivalent": true,
+      "refund": "combined.current.checked_sub(ticket.bytes).is_none()"
+    }
+  ],
+  "scope": "Unchanged actual controller predicates and executed rejection-before-take behavior; no new release authority",
+  "unitStorageHasNoDestructor": true
+}

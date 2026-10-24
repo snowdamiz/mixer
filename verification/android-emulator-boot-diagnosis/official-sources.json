@@ -1,0 +1,42 @@
+{
+  "collectorSHA256": "0b5cc7f7101e2f926393a9b42c80e30783a105cd58ba7615412354fe82353750",
+  "command": [
+    "python3",
+    "verification/android-emulator-boot-diagnosis/collect_sources.py"
+  ],
+  "schema": 1,
+  "sources": [
+    {
+      "observedControl": [
+        "-feature",
+        "-WiFiPacketStream"
+      ],
+      "responseSHA256": "557e2b22db9f20d779bf3c4b3a001c4101c0b00f4ffa97f65d0baef68a789bd0",
+      "retrievedUTC": "2026-10-24T11:19:39.609859+00:00",
+      "scope": "Official documented per-process fallback to previous emulator networking model",
+      "url": "https://developer.android.com/studio/run/emulator-networking-interconnect"
+    },
+    {
+      "decodedSourceSHA256": "06e93528a6111a2ac714f126cbc723dbb6b4f61ead6ee834acf3ebf1b506a6f5",
+      "implementationCopiedIntoProduct": false,
+      "observations": [
+        "NetsimWifiForwarder::init obtains a channel before creating the Wi-Fi packet stream"
+      ],
+      "retrievedUTC": "2026-10-24T11:19:39.609859+00:00",
+      "revision": "ae9d18d2b6261179fbd57fffec720a04f7bfb053",
+      "url": "https://android.googlesource.com/platform/external/qemu/+/ae9d18d2b6261179fbd57fffec720a04f7bfb053/android-qemu2-glue/netsim/NetsimWifiForwarder.cpp"
+    },
+    {
+      "decodedSourceSHA256": "d80bfe58a447fcb2ce63d5a71e15d4e969a7d26e7e9851225f07193dbeb547eb",
+      "implementationCopiedIntoProduct": false,
+      "observations": [
+        "GetChannel serializes channel setup with a mutex",
+        "GetChannel retries channel readiness and sleeps between retries",
+        "This is current public source; it is not proven identical to installed emulator build 16428233"
+      ],
+      "retrievedUTC": "2026-10-24T11:19:39.609859+00:00",
+      "revision": "aaebb6787db0840a22d417fae5c97655946edbf4",
+      "url": "https://android.googlesource.com/platform/tools/netsim/+/aaebb6787db0840a22d417fae5c97655946edbf4/src/backend/packet_streamer_client.cc"
+    }
+  ]
+}
