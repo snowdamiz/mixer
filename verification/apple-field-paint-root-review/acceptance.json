@@ -1,0 +1,76 @@
+{
+  "status": "accepted-bounded-simulator-feasibility",
+  "reviewer": "root",
+  "observedUTC": "2026-10-24T01:04:45.944140+00:00",
+  "revision": "25c5e03833e04608f6626dc384f330008990fa4c",
+  "commands": [
+    {
+      "command": [
+        "xcrun",
+        "swiftc",
+        "--version"
+      ],
+      "exitCode": 0,
+      "log": "verification/apple-field-paint-root-review/swift-version.log",
+      "sha256": "1b207d5b85484205225f907ee34c5c63fcf5ba15260fad7ceb129191841e9908"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "verification/apple-native-field-paint-probe/verify-artifacts.py"
+      ],
+      "exitCode": 0,
+      "log": "verification/apple-field-paint-root-review/producer-integrity.log",
+      "sha256": "26563af279bdc5b3eb4c7a78bf4943e127f0c29d60cbbc924a247e4d4665961f"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "verification/apple-native-field-paint-probe/analyze.py"
+      ],
+      "exitCode": 0,
+      "log": "verification/apple-field-paint-root-review/producer-pixels.log",
+      "sha256": "be247ea2ae1cd0daacb9ef25bf8feab2824a7eb8b6e42883ec134683a8fc4f69"
+    },
+    {
+      "command": [
+        "xcrun",
+        "swiftc",
+        "-warnings-as-errors",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-field-paint-root-review/DecodeSamples.swift",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-field-paint-root-review/.build/decode"
+      ],
+      "exitCode": 0,
+      "log": "verification/apple-field-paint-root-review/independent-compile.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-field-paint-root-review/.build/decode",
+        "verification/apple-native-field-paint-probe/evidence"
+      ],
+      "exitCode": 0,
+      "log": "verification/apple-field-paint-root-review/independent-pixels.log",
+      "sha256": "ac5d722a4b7517aeacf20b7d6453ec8d9404f1d0c1a0a839b08c31e25aedb837"
+    }
+  ],
+  "inputs": {
+    "verification/apple-native-field-paint-probe/seal.json": "3c2c17c3bbe829c20f439f68f9f8a922036f6fad8104408bdfbee9116d7ed06d",
+    "verification/apple-native-field-paint-probe/evidence/receipt.json": "eaa2f1b0bd4fee43b14e9773b618502de970f2d2f3a069e90438ea6947b4e28d",
+    "verification/apple-native-field-paint-probe/evidence/source-lock.json": "eaa83592a360947f5d9446fc8b9776c2b7a714658d1e73a80db7a1a071469695",
+    "verification/apple-field-paint-root-review/DecodeSamples.swift": "20e5d689cd517f736d6b6ba0b90ed6e967055d2032280ed0a3c7a0afe727b2d6",
+    "docs/apple-native-field-paint-probe.md": "aea2a793f16b83b6963eb5f8a4869af7ee115d96bd6960cc09eac846d4ebfcc1"
+  },
+  "scope": "Producer 25 native stages and 124 artifact bindings replayed. Independent Apple ImageIO decoder checks 731 pixels across 11 retained compositor captures; 6 selection regions of 121 pixels and 5 caret pixels. Source inspection confirms public managed-view installation and same-interaction removal/addition. No second native run. Root viewed selection-alpha128 screenshot.",
+  "limitations": [
+    "Probe explicitly suppresses blinking; no complete native text-field support.",
+    "Programmatic marked-text protocol is not keyboard-driven IME qualification.",
+    "Actual iOS26.5 runtime only; iOS17 deployment compile is not iOS17 execution.",
+    "Physical validation deferred to final acceptance."
+  ],
+  "retainedFailure": "first-attempt/failure.json",
+  "gaPass": false
+}

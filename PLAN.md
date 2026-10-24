@@ -10,8 +10,9 @@ appearance; platform-specific app appearance requires an explicit declaration.
 Native accessibility, navigation, text input and system-owned surfaces retain their
 platform behavior. The existing adapters do not yet satisfy this appearance
 contract. W03/W04/W05 must coordinate its shared schema and renderer changes;
-W17/G06 require side-by-side physical reference-screen review. Those device checks
-remain pending while phones are disconnected. See
+Simulator/emulator reference-screen review is sufficient for development
+acceptance. W17/G06 physical reference-screen review moves to final acceptance
+under the user's October 23 instruction. See
 `verification/ui-design-parity-plan-update/receipt.json`.
 
 Track implementation in `work-graph.json`, evidence in `verification/`, and current
@@ -36,10 +37,15 @@ staged work. Inspect the resulting commit paths before pushing. Failed or unavai
 explicit in the status and receipts. This code-delivery authorization does not
 authorize production deployments, store submissions or messages to customers.
 
-Physical phones are disconnected until the user says otherwise. Continue source
-implementation, host tests, cross-compilation and simulator validation. Preserve
-completed device receipts and mark subsequent physical-device checks pending;
-do not retry devices or request reconnection during this limitation.
+The user accepts iOS simulator and Android emulator tests as sufficient for
+development acceptance and advancing dependent work. Use them for native UI,
+interaction, visual parity and runtime integration now. Physical phones are
+disconnected; defer their validation matrix to final acceptance and correct any
+differences then. Missing phone receipts do not block development slices.
+Preserve completed receipts, record each actual environment, and keep final
+hardware checks pending; do not retry phones or request reconnection. This changes
+test sequencing, not the shared-design contract or untested external launch gates.
+See `verification/simulator-development-policy/receipt.json`.
 
 The private Android host binding is now accepted within its recorded host scope;
 see `verification/android-binding-stage4-root-review/acceptance.json`. Root
@@ -710,3 +716,14 @@ checkpoint verification remains pending; the earlier failure stays recorded.
 Constructor preflight remains under independent
 review after missing whole-value accounting wrappers were found; no constructor
 or full-target acceptance is claimed.
+
+The internal V2 native consumer boundary is now accepted for implementation; see
+`docs/native-appearance-v2-implementation-boundary.md`. The standalone UIKit field
+probe passes 25 simulator stages. Root independently checks 731 pixels in 11
+retained captures with Apple ImageIO; public reinstallation of the same managed
+selection interaction enables separate caret/selection alpha. This accepts a
+bounded iOS26.5 feasibility result; blinking, keyboard-driven IME and complete
+native consumer behavior still require implementation/testing. Both concrete
+native renderer lanes are active. `b858e91`, `2ca44e6` and `ca9f802` pass all three
+hosted jobs. Physical-phone checks move to final acceptance under the user's
+simulator-development policy; none of these slices closes a GA gate.

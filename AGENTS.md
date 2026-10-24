@@ -29,6 +29,10 @@ Root coordinates pushes of coherent validated slices to `origin/main`, without
 force-pushing or sweeping other agents' unfinished files into commits. Inspect CI
 after pushes. Phones are disconnected until further notice: do not attempt new
 physical-device runs or ask to reconnect; keep those checks explicitly pending.
+The user's October 23 instruction accepts simulator/emulator tests as sufficient
+to accept development slices and continue dependent implementation. Do not block
+that progress on phones. Run the physical-phone matrix at final acceptance and
+correct any differences then; preserve the actual environment in every receipt.
 
 Record command, tool version, source revision/tree digest, output, and scope.
 Mac unit tests are not physical iOS/Android receipts. FieldLog must eventually

@@ -16,13 +16,20 @@ Both renderers still need shared style consumption and reference-driven refineme
 Eight unchanged iOS simulator reference screenshots are captured and reviewed.
 Native accessibility, navigation, text input and
 system-owned surfaces remain native. Prior interaction/device receipts are not
-design-parity evidence; physical side-by-side review remains pending while phones
-are disconnected. See `verification/ui-design-parity-plan-update/receipt.json`.
+design-parity evidence. Simulator/emulator visual and interaction tests are now
+sufficient for development acceptance; physical side-by-side review is deferred
+to final acceptance. See `verification/ui-design-parity-plan-update/receipt.json`
+and `verification/simulator-development-policy/receipt.json`.
 
 Active work: native shared-theme renderer integration and failure-atomic
 attachment for W03–W05, plus complete Swift guest execution for W08. Both V2
 data resolvers and native curve primitives are accepted within their recorded
 scopes. Full native style consumption and Swift execution remain incomplete.
+
+The user's October 23 verification instruction removes disconnected phones as
+a development dependency. Continue integration after relevant simulator/emulator
+tests pass; run hardware validation and corrections at final acceptance. This
+does not turn prior host-only checks into native runs or pass untested GA gates.
 
 Earlier Android checkpoint: the private Android host binding and fresh-source host CI
 runner have scoped root and independent acceptance. All 39 ordinary scenarios
@@ -1312,3 +1319,14 @@ Targeted all-feature Clippy and formatting pass. The original timing failure and
 the first run's pre-existing minimal-feature Clippy warning remain recorded.
 Active cache and Android qualification, physical devices, full-target execution,
 immutable published consumers and every specified GA acceptance remain pending.
+
+The internal V2 native consumer boundary is now accepted for implementation; see
+`docs/native-appearance-v2-implementation-boundary.md`. The standalone UIKit field
+probe passes 25 simulator stages. Root independently checks 731 pixels in 11
+retained captures with Apple ImageIO; public reinstallation of the same managed
+selection interaction enables separate caret/selection alpha. This accepts a
+bounded iOS26.5 feasibility result; blinking, keyboard-driven IME and complete
+native consumer behavior still require implementation/testing. Both concrete
+native renderer lanes are active. `b858e91`, `2ca44e6` and `ca9f802` pass all three
+hosted jobs. Physical-phone checks move to final acceptance under the user's
+simulator-development policy; none of these slices closes a GA gate.
