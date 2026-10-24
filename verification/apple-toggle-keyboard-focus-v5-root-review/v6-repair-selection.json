@@ -1,0 +1,29 @@
+{
+  "schema": "mixer.apple-toggle.keyboard-v6-repair-selection.1",
+  "observedUTC": "2026-10-24T20:44:20.405910+00:00",
+  "accountableReviewer": "/root",
+  "status": "selected-host-ordering-repair-only",
+  "reviewSealSHA256": "dbe9f176e1f32d418fb70592b976dcb3ff84789d10104d50816b720c54d7af6d",
+  "rootFindingReviewSHA256": "c9cd038fcb8d874b36efe0eab875913080c88bb0248abef8654584f371b57410",
+  "producerPacketSHA256": "8626e01f8622b0a27176cb37331edd7076d50b566f61b5c52bc5d4b1703770aa",
+  "ownership": [
+    "verification/apple-toggle-keyboard-focus-v6-preparation/**",
+    "docs/apple-toggle-keyboard-focus-v6-preparation.md"
+  ],
+  "selectedCorrection": "Retain exact same-route tap finishedUptime; require it <= route-opened captureStartedUptime before accepting or crediting any destination. Bind route index and tap sequence; reject pre-tap or overlapping captures transactionally in real Bridge and offline replay.",
+  "verification": [
+    "Fresh boundary controls before tap start, during tap, just before completion, equality and just after completion, each route independently and stale other-route completion",
+    "Real Bridge rejection preserves last durable cursor and supplies no route/destination success; exact V5 stale journal replay must reject",
+    "Preserve independent 26-method semantics; adapt changed rejection API transparently without weakening the CONTRACT assertion",
+    "All existing route metadata, initial-enabled and switched anchors, first-error transport, host-clock, bounds, replay and cleanup controls pass"
+  ],
+  "unchanged": [
+    "Exact app/carrier bytes, V2 keyboard oracle, V5 native runner and shared Swift transport bytes",
+    "All request/event/upload/payload/time bounds and three-second switch window",
+    "Six app cases remain unrun; DIAGNOSTIC_ONLY, keyboard/carrier/GA false",
+    "All prior packets/findings/failures remain immutable"
+  ],
+  "nativeRunnerRebuild": "Not needed if exact runner source/product/archive identities remain unchanged; verify all identities. Any runner change requires separate root review.",
+  "nativeExecutionSelected": false,
+  "gaAccepted": false
+}

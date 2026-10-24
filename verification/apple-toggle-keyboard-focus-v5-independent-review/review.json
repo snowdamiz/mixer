@@ -1,0 +1,140 @@
+{
+  "accountableReviewer": "/root/apple_keyboard_v5_independent_review",
+  "applicationCasesExecuted": 0,
+  "applicationCasesUnrun": [
+    "keyboard-disabled-off",
+    "keyboard-disabled-on",
+    "keyboard-enabled-off",
+    "keyboard-enabled-on",
+    "keyboard-stale-off",
+    "keyboard-stale-on"
+  ],
+  "carrierAccepted": false,
+  "doc": "docs/apple-toggle-keyboard-focus-v5-independent-review.md",
+  "findingCount": 1,
+  "findings": [
+    {
+      "actualEffect": {
+        "actualBridgeSummaryEqualsReplay": true,
+        "allOldSelectorsRemainPresent": true,
+        "allThreeDestinationsCredited": true,
+        "selectedRouteEvidenceExpected": true,
+        "setupObservationSatisfied": true
+      },
+      "contractTest": "test_CONTRACT_destination_captured_before_tap_return_cannot_complete",
+      "expectedOrdering": "tap.finishedUptime <= routeOpened.captureStartedUptime <= destination.observedUptime <= routeOpened.captureFinishedUptime <= record.uptime",
+      "id": "V5-IR-01",
+      "lines": [
+        216,
+        217,
+        218,
+        236,
+        237,
+        238,
+        239,
+        285,
+        286,
+        287
+      ],
+      "priority": "P2",
+      "rawJournalRecords": 32,
+      "rawReferencedPayloadFiles": 12,
+      "recommendedCorrection": "Bind same-route tap completion to route-opened capture start before advancing opened routes or crediting the destination. Retain all existing metadata/window/bounds and qualification rules.",
+      "scope": "Synthetic adversarial host and offline replay acceptance hole. Native Swift already captures after tap; no actual native stale sampling is asserted.",
+      "source": "verification/apple-toggle-keyboard-focus-v5-preparation/settings_telemetry.py",
+      "testExitCode": 1,
+      "timeline": [
+        {
+          "destinationObserved": 10.0222,
+          "openedCaptureFinished": 10.0223,
+          "openedHostReceipt": 100.00500000000002,
+          "openedRecordUptime": 10.069999999999999,
+          "openedSequence": 5,
+          "routeIndex": 0,
+          "searchFinished": 10.022,
+          "searchSequence": 2,
+          "tapFinished": 10.043,
+          "tapHostReceipt": 100.00400000000002,
+          "tapRecordUptime": 10.049999999999999,
+          "tapSequence": 4,
+          "tapStarted": 10.042
+        },
+        {
+          "destinationObserved": 10.092199999999998,
+          "openedCaptureFinished": 10.092299999999998,
+          "openedHostReceipt": 100.01000000000005,
+          "openedRecordUptime": 10.139999999999997,
+          "openedSequence": 10,
+          "routeIndex": 1,
+          "searchFinished": 10.091999999999999,
+          "searchSequence": 7,
+          "tapFinished": 10.112999999999998,
+          "tapHostReceipt": 100.00900000000004,
+          "tapRecordUptime": 10.119999999999997,
+          "tapSequence": 9,
+          "tapStarted": 10.111999999999998
+        },
+        {
+          "destinationObserved": 10.162199999999997,
+          "openedCaptureFinished": 10.162299999999997,
+          "openedHostReceipt": 100.01500000000007,
+          "openedRecordUptime": 10.209999999999996,
+          "openedSequence": 15,
+          "routeIndex": 2,
+          "searchFinished": 10.161999999999997,
+          "searchSequence": 12,
+          "tapFinished": 10.182999999999996,
+          "tapHostReceipt": 100.01400000000007,
+          "tapRecordUptime": 10.189999999999996,
+          "tapSequence": 14,
+          "tapStarted": 10.181999999999997
+        }
+      ],
+      "title": "Require route-opened destination capture after the recorded tap finishes",
+      "witnessDirectory": "verification/apple-toggle-keyboard-focus-v5-independent-review/witnesses/pre-tap-destination"
+    }
+  ],
+  "gaAccepted": false,
+  "limitations": [
+    "Synthetic host snapshots/AX/PNG and tap markers are not native environment evidence.",
+    "Generic runner build and historical producer test counts are sealed producer receipts checked by preflight, not independently repeated native execution.",
+    "No device/compiler-signing/store/customer/operational or GA gate is qualified."
+  ],
+  "nativeExecuted": false,
+  "nativeExecutionSelected": false,
+  "nativeInstancesQueried": false,
+  "nativeKeyboardQualification": false,
+  "observedUTC": "2026-10-24T20:42:48.572629+00:00",
+  "ownership": [
+    "verification/apple-toggle-keyboard-focus-v5-independent-review/**",
+    "docs/apple-toggle-keyboard-focus-v5-independent-review.md"
+  ],
+  "physicalPhones": "disconnected-deferred",
+  "producerPacket": {
+    "path": "verification/apple-toggle-keyboard-focus-v5-preparation/packet-seal.json",
+    "sealedFilesVerified": 84,
+    "sha256": "8626e01f8622b0a27176cb37331edd7076d50b566f61b5c52bc5d4b1703770aa"
+  },
+  "rootSelection": {
+    "path": "verification/apple-toggle-keyboard-focus-v4-root-review/v5-preparation-selection.json",
+    "sha256": "d9849baa4dadc9285e5b95f1ec35ff560d9926aec6d66e2d9f9e01e98b1cd8ca"
+  },
+  "schema": "mixer.apple-toggle.keyboard-v5-independent-review.1",
+  "sourceAndHostAccepted": false,
+  "status": "actionable-host-replay-finding-native-not-selected",
+  "verification": {
+    "attemptReceipts": [
+      "attempt-1.json",
+      "offline-supplement.json"
+    ],
+    "failedHostMethods": 1,
+    "frozenV4ReplayAndAnalysisPassed": true,
+    "independentHostMethods": 26,
+    "passedHostMethods": 25,
+    "producerTestSuitesRerun": false,
+    "sealedProducerPreflightPassed": true,
+    "sharedProductionSwiftTransportChecks": 35,
+    "sharedProductionSwiftTransportPassed": true,
+    "unexpectedInfrastructureFailures": 0
+  }
+}

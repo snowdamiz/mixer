@@ -1,10 +1,13 @@
 # Implementation status
 
-The Swift dispatch delivery passed VM and services CI, but its capability archive
-export exceeded the builder's per-file source bound. The bounded repair passes
-52 builder test executions, a fresh archive build and three C consumer checks;
-corrected pushed-source CI is pending. See
-[the repair evidence](docs/capability-builder-source-bound-repair.md).
+The builder repair at `2335207a` passes all three Engine CI jobs: Swift, VM and
+services, with no skipped steps. This resolves the earlier source export failure.
+Its 52 local builder test executions, fresh archive and three C consumer checks
+also pass. See [the repair evidence](docs/capability-builder-source-bound-repair.md)
+and `verification/github-ci-2335207a-engine/receipt.json`.
+The subsequent source/diagnostic checkpoint `fdf59652` also passes all three
+Engine CI jobs, with no skipped steps. See
+`verification/github-ci-fdf59652-engine/receipt.json`.
 
 The next private Swift lifecycle candidate compiles the full original-owner
 initialization/call/cleanup path in four production configurations. Its memory
@@ -19,13 +22,26 @@ six app keyboard cases remain unrun. Five cleanup operations pass, with the owne
 simulator deleted and unrelated instances preserved. See
 `verification/apple-toggle-keyboard-focus-v4-root-review/runtime-review.json`.
 
-The Linux resource artifact preparation is sealed. Two bounded prerequisite
-attempts exposed Docker image-address and container-descriptor mismatches before
-any container start. Their exact temporary resources were removed. Root selected
-the observed parent-index/child-descriptor representation for a separate probe.
-Compilation and all 30 resource runtime rows remain pending; no resource runtime
-authorization or GA acceptance is implied. See
-`verification/stripe-resource-linux-tool-payload-v2/receipt.json`.
+The V5 harness has one independently reproduced timing defect: it accepts a
+destination capture made before the recorded route tap completes. Root replay
+confirms the false diagnostic credit. A V6 host ordering repair is selected; the
+app, native runner and bounds stay fixed. No V5 simulator run was selected. See
+`verification/apple-toggle-keyboard-focus-v5-root-review/finding-review.json`.
+
+The Linux resource prerequisite probe now confirms Elixir 1.20.4, OTP 29.1.1,
+ERTS 17.1 and the pinned runtime image under the selected isolation. That image
+has no C compiler, linker, binary-inspection tools or required system headers;
+no helper/NIF compilation or resource row ran. The owned container and temporary
+inputs were removed. Both earlier pre-start failures remain preserved. Compiler
+payload preparation and all 30 resource runtime rows remain pending. See
+`verification/stripe-webhook-resource-ingress-root-review/linux-tool-payload-v3-review/receipt.json`.
+
+Ubuntu package-metadata verification passes for all three signed indexes and
+21,792,217 expanded bytes. Two isolated attempts stopped on export/fixture
+problems and were cleaned up; APT dependency resolution has not run. One
+corrected offline attempt is selected, with fixed bounded evidence exports.
+Package download, compilation and resource-runtime execution remain pending.
+See `verification/stripe-resource-linux-compiler-metadata/receipt.json`.
 
 Latest native checkpoint: the private iOS pan-commit carrier passes 43 XCTest
 methods, 45 native input actions and 36 scoped callback components on iOS 26.5.

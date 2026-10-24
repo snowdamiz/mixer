@@ -1,0 +1,123 @@
+{
+  "schema": "mixer.private-linux-compiler-metadata-selection.1",
+  "observedUTC": "2026-10-24T20:30:16.345490+00:00",
+  "accountableReviewer": "/root",
+  "preparationSealSHA256": "408e9c893150e9d92788591bae9d200514773e1ddbd94ed04a8ffc61c0157178",
+  "proposalSHA256": "1ee2161e05af2d3bc9e9b7ce9bc93435e85cdde15cc8e3c573ca26b4725f42c7",
+  "status": "selected-C1-through-C3-metadata-only",
+  "ownership": [
+    "verification/stripe-resource-linux-compiler-metadata/**",
+    "docs/stripe-resource-linux-compiler-metadata.md"
+  ],
+  "selectedPhases": [
+    "C1",
+    "C2",
+    "C3"
+  ],
+  "packageRoots": [
+    "gcc:arm64",
+    "libc6-dev:arm64",
+    "binutils:arm64"
+  ],
+  "officialAcquisition": {
+    "allowInsecureOrTrustedYes": false,
+    "allowUnauthenticated": false,
+    "architecture": "arm64",
+    "component": "main",
+    "followUnselectedRedirect": false,
+    "indexPin": "Use strongest collision-resistant hash available in authenticated Release (SHA512 preferred, SHA256 minimum); fetch corresponding by-hash or verify exact signed size/hash before parse",
+    "initialPaths": [
+      "dists/noble/InRelease",
+      "dists/noble-updates/InRelease",
+      "dists/noble-security/InRelease"
+    ],
+    "keyringSha256": null,
+    "keyringURL": "https://archive.ubuntu.com/ubuntu/project/ubuntu-archive-keyring.gpg",
+    "metadataFirst": true,
+    "origin": "https://ports.ubuntu.com/ubuntu-ports/",
+    "packagePinFields": [
+      "name",
+      "architecture",
+      "version",
+      "suite",
+      "component",
+      "filename",
+      "size",
+      "sha256",
+      "dependencyReason",
+      "indexDigest",
+      "releaseDigest"
+    ],
+    "packageURLs": "exact origin plus safe Filename from authenticated arm64/all package stanza; retain complete manifest and cache for offline replay",
+    "requiredSignerFingerprint": "F6ECB3762474EDA9D21B7022871920D1991BC93C",
+    "separateRootSelectionBeforeDebFetch": true,
+    "sharedAptConfigOrState": false,
+    "snapshotEndpointAssumed": false,
+    "suites": [
+      "noble",
+      "noble-updates",
+      "noble-security"
+    ]
+  },
+  "bounds": {
+    "keyringBytes": 1048576,
+    "metadataExpandedBytes": 268435456,
+    "metadataTransferBytes": 33554432,
+    "metadataWallSeconds": 120,
+    "onLimit": "fail-and-report; no automatic expansion",
+    "ownedStorageBytes": 805306368,
+    "packageCount": 48,
+    "packageExpandedBytes": 536870912,
+    "packageTransferBytes": 134217728,
+    "packageWallSeconds": 180,
+    "perRequestSeconds": 30,
+    "requestRetries": 0,
+    "simultaneousFetches": 1,
+    "singleInReleaseBytes": 1048576,
+    "singlePackageBytes": 67108864,
+    "stderrBytes": 524288,
+    "stdoutBytes": 524288
+  },
+  "nativeProbePolicy": {
+    "containerAttempts": 2,
+    "concurrentContainers": 1,
+    "perContainerWallSeconds": 120,
+    "image": "hexpm/elixir@sha256:52ec0f335b9084bcfc0ce3a29b4c0288dc2fc2a07658ff809dc7d07589212cde",
+    "childDigest": "sha256:c2d3bab1f8a854f5ca3bb220e5463f4fe39036caa2ce22dfd7614a30404279de",
+    "platform": "linux/arm64",
+    "parentAndChildIdentityChecks": "Use actual V3 selected parent Image plus child ImageManifestDescriptor, with exact Config.Image and platform.",
+    "isolation": [
+      "--pull=never",
+      "--network=none",
+      "--read-only",
+      "--cap-drop=ALL",
+      "--security-opt=no-new-privileges",
+      "--user=65534:65534",
+      "--pids-limit=128",
+      "--memory=1g",
+      "--cpus=2",
+      "--ulimit=core=0:0",
+      "private bounded tmpfs only; fixed readonly owned input snapshots; no repository/HOME/socket/credentials/writable host mounts"
+    ],
+    "operations": [
+      "Read/hash exact apt/gpgv/dpkg/tool paths, base package status and Ubuntu archive keyring. No install or apt update.",
+      "After bounded host acquisition, verify signatures using the captured trusted base keyring/tool identities; offline dependency resolution against authenticated indexes and captured base status, with no package transfer.",
+      "Verify selected signer fingerprint, signed date/suite/component/architecture and strongest signed index size/hash. Reject missing or changed authority.",
+      "All-outcome exact owned container/group/temp cleanup; retained immutable evidence/package lock allowed within fixed owned directory."
+    ]
+  },
+  "networkPolicy": "Only bounded host-side HTTPS to exact selected official Ubuntu origins and safe authenticated index paths; no credentials, no unselected redirects or retries. Containers remain network-none.",
+  "notSelected": [
+    "C4 .deb transfer",
+    "C5 image/tool payload/rootfs assembly",
+    "C6 compiler/helper/NIF execution",
+    "Resource/application runtime",
+    "Shared/global package installs or apt state changes",
+    "Production/provider changes",
+    "Catalog inspector/authority driver work",
+    "Physical/native devices"
+  ],
+  "runtimeResourceAuthorized": false,
+  "LinuxCompilationAccepted": false,
+  "gaAccepted": false
+}
