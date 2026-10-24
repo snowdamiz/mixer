@@ -1,0 +1,238 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "source": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity-startup-correction-p5iu78m2",
+  "linuxScratch": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity-startup-correction-linux-bgsx_93d",
+  "images": [
+    "hexpm/elixir@sha256:52ec0f335b9084bcfc0ce3a29b4c0288dc2fc2a07658ff809dc7d07589212cde",
+    "postgres@sha256:c961aa287d8698297cb26cdfadfbe9fd2cbaf77e53cfffe9636e8d8a1e4d842c"
+  ],
+  "network": "none; PostgreSQL shares owned namespace; no host mutation",
+  "capabilitiesAdded": [
+    "NET_ADMIN"
+  ],
+  "commands": [
+    {
+      "label": "image-inspect",
+      "argv": [
+        "docker",
+        "image",
+        "inspect",
+        "hexpm/elixir@sha256:52ec0f335b9084bcfc0ce3a29b4c0288dc2fc2a07658ff809dc7d07589212cde",
+        "postgres@sha256:c961aa287d8698297cb26cdfadfbe9fd2cbaf77e53cfffe9636e8d8a1e4d842c"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.07285004190634936,
+      "observedUTC": "2026-10-24T08:19:04.167931+00:00",
+      "output": "linux-1-image-inspect.log",
+      "outputSHA256": "06e5f8ca24e171b42c69f4f396e63ed625205141a3e0a871c3cbc586030c8289"
+    },
+    {
+      "label": "container-start",
+      "argv": [
+        "docker",
+        "run",
+        "--rm",
+        "-d",
+        "--name",
+        "mixer-identity-startup-correction-bgsx_93d",
+        "--network",
+        "none",
+        "--cap-add",
+        "NET_ADMIN",
+        "--memory",
+        "1g",
+        "--cpus",
+        "4",
+        "-v",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity-startup-correction-linux-bgsx_93d:/workspace",
+        "-v",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-identity-startup-correction:/evidence",
+        "-w",
+        "/workspace/hosted",
+        "-e",
+        "MIX_HOME=/workspace/mix",
+        "-e",
+        "MIX_REBAR3=/workspace/rebar3",
+        "-e",
+        "MIXER_ISOLATED_NETNS=1",
+        "-e",
+        "MIX_ENV=test",
+        "-e",
+        "MIXER_TEST_DATABASE_PORT=5432",
+        "-e",
+        "MIXER_TEST_IDENTITY_EVIDENCE=/evidence/linux-1-metrics",
+        "hexpm/elixir@sha256:52ec0f335b9084bcfc0ce3a29b4c0288dc2fc2a07658ff809dc7d07589212cde",
+        "sleep",
+        "infinity"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.13727216597180814,
+      "observedUTC": "2026-10-24T08:19:04.305621+00:00",
+      "output": "linux-1-container-start.log",
+      "outputSHA256": "c6a255a761f98b348d9e9d36df300c15f5608f8ad279f74fbd80fde534d1f132"
+    },
+    {
+      "label": "postgres-start",
+      "argv": [
+        "docker",
+        "run",
+        "--rm",
+        "-d",
+        "--name",
+        "mixer-identity-startup-correction-bgsx_93d-pg",
+        "--network",
+        "container:mixer-identity-startup-correction-bgsx_93d",
+        "--memory",
+        "256m",
+        "-e",
+        "POSTGRES_USER=mixer_fixture",
+        "-e",
+        "POSTGRES_DB=mixer_foundation_test",
+        "-e",
+        "POSTGRES_HOST_AUTH_METHOD=trust",
+        "postgres@sha256:c961aa287d8698297cb26cdfadfbe9fd2cbaf77e53cfffe9636e8d8a1e4d842c",
+        "-c",
+        "listen_addresses=127.0.0.1"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.13846458296757191,
+      "observedUTC": "2026-10-24T08:19:04.444314+00:00",
+      "output": "linux-1-postgres-start.log",
+      "outputSHA256": "96b1e349cb7bce74291b9dbb56ce1e69edb09adadbd75ccaf0a40fd23a7b89fa"
+    },
+    {
+      "label": "startup-createdb",
+      "argv": [
+        "docker",
+        "exec",
+        "mixer-identity-startup-correction-bgsx_93d-pg",
+        "createdb",
+        "-U",
+        "mixer_fixture",
+        "mixer_startup_test"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.08165729197207838,
+      "observedUTC": "2026-10-24T08:19:04.816358+00:00",
+      "output": "linux-1-startup-createdb.log",
+      "outputSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "netns",
+      "argv": [
+        "docker",
+        "exec",
+        "mixer-identity-startup-correction-bgsx_93d",
+        "elixir",
+        "/workspace/linux_netns_setup.exs"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.2386450000340119,
+      "observedUTC": "2026-10-24T08:19:05.055477+00:00",
+      "output": "linux-1-netns.log",
+      "outputSHA256": "f4042bd348258b18bb781bf21a3a86f97bdef65dc32582e313bd27a8760cbec5"
+    },
+    {
+      "label": "tools",
+      "argv": [
+        "docker",
+        "exec",
+        "mixer-identity-startup-correction-bgsx_93d",
+        "bash",
+        "-c",
+        "elixir --version; mix --version; openssl version; uname -a"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.3620348749682307,
+      "observedUTC": "2026-10-24T08:19:05.417996+00:00",
+      "output": "linux-1-tools.log",
+      "outputSHA256": "6554be0e25504bf53549cd37197bdf9f00f74c4c3f0ee64b8a85e42f563b2697"
+    },
+    {
+      "label": "format",
+      "argv": [
+        "docker",
+        "exec",
+        "mixer-identity-startup-correction-bgsx_93d",
+        "mix",
+        "format",
+        "--check-formatted"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.303108915919438,
+      "observedUTC": "2026-10-24T08:19:05.721447+00:00",
+      "output": "linux-1-format.log",
+      "outputSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "tests",
+      "argv": [
+        "docker",
+        "exec",
+        "mixer-identity-startup-correction-bgsx_93d",
+        "mix",
+        "test",
+        "--warnings-as-errors",
+        "--seed",
+        "0",
+        "--trace"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 44.60394516598899,
+      "observedUTC": "2026-10-24T08:19:50.325561+00:00",
+      "output": "linux-1-tests.log",
+      "outputSHA256": "563a350dee732083e51d1a3c27ddf800e041cbf02a0ec6ecc04e508b6cbc0d96"
+    },
+    {
+      "label": "fixture-cleanup",
+      "argv": [
+        "docker",
+        "exec",
+        "mixer-identity-startup-correction-bgsx_93d",
+        "elixir",
+        "-e",
+        "values = Enum.filter(File.ls!(System.tmp_dir!()), &String.starts_with?(&1, \"mixer-key-owner-tls-\")); IO.inspect(values, label: \"retained_fixture_key_directories\"); [] = values"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.1829500829335302,
+      "observedUTC": "2026-10-24T08:19:50.508867+00:00",
+      "output": "linux-1-fixture-cleanup.log",
+      "outputSHA256": "eb298f0e7e39d61eac76d6f88c771cb3230099d0dd3efd9d47f60f67eddaf7dd"
+    },
+    {
+      "label": "cleanup-mixer-identity-startup-correction-bgsx_93d-pg",
+      "argv": [
+        "docker",
+        "rm",
+        "-f",
+        "mixer-identity-startup-correction-bgsx_93d-pg"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.07275058305822313,
+      "observedUTC": "2026-10-24T08:19:50.582325+00:00",
+      "output": "linux-1-cleanup-mixer-identity-startup-correction-bgsx_93d-pg.log",
+      "outputSHA256": "301be4770243cfe7a815035eb1acd794975b13ea245d7e399ac20afaf08e55d8"
+    },
+    {
+      "label": "cleanup-mixer-identity-startup-correction-bgsx_93d",
+      "argv": [
+        "docker",
+        "rm",
+        "-f",
+        "mixer-identity-startup-correction-bgsx_93d"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.0735111670801416,
+      "observedUTC": "2026-10-24T08:19:50.674315+00:00",
+      "output": "linux-1-cleanup-mixer-identity-startup-correction-bgsx_93d.log",
+      "outputSHA256": "916e0819af633015bafd98ca81152371e634a66fa860b3f7a50e67c86a98f4e9"
+    }
+  ],
+  "cleanup": {
+    "mixer-identity-startup-correction-bgsx_93d-pg": true,
+    "mixer-identity-startup-correction-bgsx_93d": true,
+    "ownedScratchRemoved": true
+  },
+  "scope": "Full hosted suite including actual configured application/endpoint, production DNS+HTTPS signed-token admission. Synthetic PostgreSQL without TLS; production DB TLS configuration only. No physical/native/GA qualification."
+}

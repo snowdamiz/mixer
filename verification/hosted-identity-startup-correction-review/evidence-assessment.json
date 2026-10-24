@@ -1,0 +1,132 @@
+{
+  "normalMatrix": "Reused immutable earlier independent normal runtime evidence plus verified fresh corrected-producer matrix; not rerun by this correction reviewer.",
+  "reason": "Only two Manifest anchors differ in production; startup ten-file overlay, transport, owner and dependency bytes are unchanged. Focused independent replay covers the amended boundary; review found no new lifecycle/network concern.",
+  "macOSCorrectedProducer": {
+    "passed": 93,
+    "skipped": 2,
+    "scope": "Linux namespace tests explicitly skipped",
+    "receipt": "verification/hosted-identity-startup-correction/host-1/receipt.json",
+    "hostInputCount": 62,
+    "sourceTreeDigest": "eaec2c76e25da521a7d4405e89878fca0b687eed1e3e2f314c499b0af9078005",
+    "hostArchiveVerified": true
+  },
+  "LinuxCorrectedProducer": {
+    "passed": 95,
+    "skipped": 0,
+    "sourceAndDependencyEntriesVerified": 974,
+    "receipt": "verification/hosted-identity-startup-correction/linux-1-receipt.json"
+  },
+  "priorIndependent": {
+    "receipt": "verification/hosted-identity-startup-review/receipt.json",
+    "macOSPassed": 85,
+    "macOSLinuxOnlySkipped": 2,
+    "LinuxPassed": 87,
+    "actualApplicationEndpointAndPostgreSQL": true,
+    "productionDNS53HTTPS443SyntheticSignedToken": true,
+    "restartOldLeaseAndInflightShutdown": true
+  },
+  "correctedProducerMetrics": {
+    "host-1/identity-metrics/startup-empty-state.json": {
+      "actualApplication": true,
+      "endpointLiveness": 200,
+      "ownerRegistered": true,
+      "initialSnapshots": 0,
+      "initialAttempts": 0,
+      "initialFlights": 0,
+      "startupFetches": 0
+    },
+    "host-1/identity-metrics/startup-lifecycle.json": {
+      "actualApplication": true,
+      "ownerCrashRestart": true,
+      "workerSupervisorReplaced": true,
+      "newEpoch": true,
+      "shutdownAuthorityRemoved": true,
+      "restartEmpty": true
+    },
+    "linux-1-metrics/startup-production-network.json": {
+      "resolver": "127.0.0.1:53",
+      "destination": "8.8.8.8:443",
+      "namespace": "owned Linux network-none NET_ADMIN; 8.8.8.8 on lo:1",
+      "actualApplication": true,
+      "endpointLiveness": 200,
+      "startupDNSQueries": 0,
+      "startupConnections": 0,
+      "coldTokenAdmitted": true,
+      "coldDNSQueries": 2,
+      "coldConnections": 1,
+      "oldLeaseRejectedAfterRestart": true,
+      "restartColdAdmission": true,
+      "shutdownInflightCancelled": true,
+      "allThreeConnectionsClosed": true,
+      "fixtureKeyDirectoryRemoved": true,
+      "publicAdapter": "ConfiguredVerifier.authenticate/2",
+      "productionPolicyBypasses": 0
+    }
+  },
+  "releaseCommandsVerified": [
+    {
+      "label": "release-build",
+      "argv": [
+        "mix",
+        "release",
+        "--overwrite"
+      ],
+      "cwd": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity-startup-correction-p5iu78m2/hosted",
+      "started": "2026-10-24T08:18:47.684702+00:00",
+      "exit_code": 0,
+      "log": "release-build.log",
+      "sha256": "f07b6f5ba8a593df24356b4e3a49cbdfc305904a145ead36b60b606ad762709b"
+    },
+    {
+      "label": "release-missing-config",
+      "argv": [
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity-startup-correction-p5iu78m2/hosted/_build/prod/rel/mixer_hosted/bin/mixer_hosted",
+        "eval",
+        ":ok"
+      ],
+      "cwd": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity-startup-correction-p5iu78m2/hosted",
+      "started": "2026-10-24T08:18:56.726329+00:00",
+      "exit_code": 1,
+      "log": "release-missing-config.log",
+      "sha256": "d2637f5a41f18dbc0d8cc89400c60b605e6a3244ff1c592c52deeb538cdf3788",
+      "expected_exit_code": 1
+    },
+    {
+      "label": "release-test-exclusion",
+      "argv": [
+        "elixir",
+        "-pa",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity-startup-correction-p5iu78m2/hosted/_build/prod/rel/mixer_hosted/lib/mixer_hosted-0.1.0/ebin",
+        "-e",
+        "Code.ensure_loaded!(MixerHosted.Identity.KeyOwner); Code.ensure_loaded!(MixerHosted.Identity.JWKSTransport); values = %{fixture_owner: function_exported?(MixerHosted.Identity.KeyOwner, :start_fixture, 1), fixture_transport: function_exported?(MixerHosted.Identity.JWKSTransport, :fetch_fixture, 6), startup_fixture: Code.ensure_loaded?(MixerHosted.Identity.StartupFixture), startup_dns_fixture: Code.ensure_loaded?(MixerHosted.Identity.StartupDNSFixture)}; IO.inspect(values, label: \"production_test_export_exclusion\"); true = Enum.all?(Map.values(values), &(&1 == false))"
+      ],
+      "cwd": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity-startup-correction-p5iu78m2/hosted",
+      "started": "2026-10-24T08:18:57.278028+00:00",
+      "exit_code": 0,
+      "log": "release-test-exclusion.log",
+      "sha256": "7c0499bea90aa012d58ea21a6ba7acc38f41db4492660230eec8584878799678"
+    }
+  ],
+  "OTPCAInstalledSourceHashesVerified": {
+    "/opt/homebrew/Cellar/erlang/29.1.1_2/lib/erlang/lib/public_key-1.21.7/src/public_key.erl": "7e70d3ba79815525ee74c2b2942f392e93453ca9b8a5ebb58b0df3f6f3f22ce3",
+    "/opt/homebrew/Cellar/erlang/29.1.1_2/lib/erlang/lib/public_key-1.21.7/src/pubkey_os_cacerts.erl": "2c694c5f43f44e336817cd218e140b8b700d1d016cb274ead0b4b95a0480a3aa",
+    "/opt/homebrew/Cellar/erlang/29.1.1_2/lib/erlang/lib/public_key-1.21.7/ebin/public_key.beam": "fe383b2b220ca8dae2d8ac4db36145a65773f654be33f0f0a0d33da6e1584bd5"
+  },
+  "sourceReview": {
+    "staticKnownStringToAtomConversion": true,
+    "singleRuntimeOTPCAFetchAndPreservedDatabaseRoots": true,
+    "pureConstructorRequiresValidDER": true,
+    "closedDuplicateAwareJSONAndFixedErrors": true,
+    "actualApplicationRequiresExplicitSettingBeforeStartingChildren": true,
+    "fixedProductionOwnerBeforeEndpoint": true,
+    "noNewHTTPRouteProviderMembershipOrDiscovery": true
+  },
+  "ownChecks": {
+    "oldAdversarial": 9,
+    "oldMinimal": 4,
+    "correctionFocused": 14,
+    "newIndependentBoundary": 4,
+    "totalPassed": 31
+  },
+  "ownedRuntimeResources": "No PostgreSQL, containers, native or physical instances created by this focused correction review."
+}

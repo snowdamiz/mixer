@@ -6,7 +6,7 @@ defmodule MixerHosted.RuntimeConfig do
   and hostname. Queue limits are per process; they are not organization quotas.
   """
   @derive {Inspect, only: [:role, :database_connection_bound]}
-  @enforce_keys [:role, :repo, :oban, :endpoint, :database_connection_bound]
+  @enforce_keys [:role, :repo, :oban, :endpoint, :database_connection_bound, :identity_startup]
   defstruct @enforce_keys
 
   @queues [:builds, :signing, :submissions, :releases, :telemetry, :billing]
@@ -15,6 +15,16 @@ defmodule MixerHosted.RuntimeConfig do
     role = role!(required!(env, "MIXER_HOSTED_ROLE"))
     hostname = hostname!(required!(env, "MIXER_DATABASE_HOST"))
     pool_size = integer!(env, "MIXER_DATABASE_POOL_SIZE", 8, 2..20)
+
+    ca_roots = :public_key.cacerts_get()
+
+    identity_roots =
+      Enum.map(ca_roots, fn
+        {:cert, der, _decoded} -> der
+        der -> der
+      end)
+
+    identity_startup = MixerHosted.Identity.StartupConfig.load!(env, role, identity_roots)
 
     repo = [
       hostname: hostname,
@@ -31,7 +41,7 @@ defmodule MixerHosted.RuntimeConfig do
       show_sensitive_data_on_connection_error: false,
       ssl: [
         verify: :verify_peer,
-        cacerts: :public_key.cacerts_get(),
+        cacerts: ca_roots,
         server_name_indication: String.to_charlist(hostname),
         customize_hostname_check: [match_fun: :public_key.pkix_verify_hostname_match_fun(:https)]
       ]
@@ -49,6 +59,7 @@ defmodule MixerHosted.RuntimeConfig do
 
     %__MODULE__{
       role: role,
+      identity_startup: identity_startup,
       repo: repo,
       oban: [
         repo: MixerHosted.Repo,

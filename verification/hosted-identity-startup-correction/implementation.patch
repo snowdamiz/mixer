@@ -1,0 +1,1182 @@
+--- a/hosted/config/runtime.exs
++++ b/hosted/config/runtime.exs
+@@ -5,6 +5,7 @@
+ if config_env() != :test do
+   settings = MixerHosted.RuntimeConfig.load!(System.get_env())
+   config :mixer_hosted, :role, settings.role
++  config :mixer_hosted, :identity_startup, settings.identity_startup
+   config :mixer_hosted, MixerHosted.Repo, settings.repo
+   config :mixer_hosted, Oban, settings.oban
+   config :mixer_hosted, MixerHostedWeb.Endpoint, settings.endpoint
+--- a/hosted/lib/mixer_hosted/application.ex
++++ b/hosted/lib/mixer_hosted/application.ex
+@@ -1,17 +1,35 @@
+ defmodule MixerHosted.Application do
+   @moduledoc false
+   use Application
++  alias MixerHosted.Identity.{KeyOwnerSupervisor, StartupConfig}
+ 
+   @impl true
+   def start(_type, _args) do
+     role = Application.fetch_env!(:mixer_hosted, :role)
+-    children = children(role, Application.fetch_env!(:mixer_hosted, Oban))
++
++    children =
++      children(
++        role,
++        Application.fetch_env!(:mixer_hosted, Oban),
++        Application.fetch_env!(:mixer_hosted, :identity_startup)
++      )
++
+     Supervisor.start_link(children, strategy: :one_for_one, name: MixerHosted.Supervisor)
+   end
+ 
+   @doc false
+-  def children(:api, oban), do: [MixerHosted.Repo, {Oban, oban}, MixerHostedWeb.Endpoint]
+-  def children(:processor, oban), do: [MixerHosted.Repo, {Oban, oban}]
++  def children(role, oban),
++    do: children(role, oban, %StartupConfig{mode: :disabled, owner_options: []})
++
++  @doc false
++  def children(:api, oban, %StartupConfig{mode: :disabled}),
++    do: [MixerHosted.Repo, {Oban, oban}, MixerHostedWeb.Endpoint]
++
++  def children(:api, oban, %StartupConfig{mode: :configured, owner_options: options}),
++    do: [MixerHosted.Repo, {Oban, oban}, {KeyOwnerSupervisor, options}, MixerHostedWeb.Endpoint]
++
++  def children(:processor, oban, %StartupConfig{mode: :disabled}),
++    do: [MixerHosted.Repo, {Oban, oban}]
+ 
+   @impl true
+   def config_change(changed, _new, removed) do
+--- a/hosted/lib/mixer_hosted/identity/manifest.ex
++++ b/hosted/lib/mixer_hosted/identity/manifest.ex
+@@ -53,14 +53,14 @@
+ 
+     match?({:error, _}, :inet.parse_address(String.to_charlist(s))) and
+       Enum.all?(labels, fn l ->
+-        byte_size(l) in 1..63 and Regex.match?(~r/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/, l)
++        byte_size(l) in 1..63 and Regex.match?(~r/\A[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\z/, l)
+       end)
+   end
+ 
+   defp host?(_), do: false
+ 
+   defp path?(s) when is_binary(s) and byte_size(s) in 1..2048 do
+-    String.starts_with?(s, "/") and Regex.match?(~r/^[A-Za-z0-9_~.\/-]+$/, s) and
++    String.starts_with?(s, "/") and Regex.match?(~r/\A[A-Za-z0-9_~.\/-]+\z/, s) and
+       not Enum.any?(String.split(s, "/"), &(&1 in [".", ".."]))
+   end
+ 
+--- /dev/null
++++ b/hosted/lib/mixer_hosted/identity/startup_config.ex
+@@ -0,0 +1,152 @@
++defmodule MixerHosted.Identity.StartupConfig do
++  @moduledoc "Validated, restart-scoped operator identity settings."
++  alias MixerHosted.Identity.{BoundedJSON, Manifest}
++  @derive {Inspect, only: [:mode]}
++  @enforce_keys [:mode, :owner_options]
++  defstruct @enforce_keys
++  @envelope ~w(version generation binding profiles resolvers)
++  @entry ~w(profile jwks_endpoint transport)
++  @profile ~w(profile_id profile_version issuer audience client_id identity_class enabled)
++  @endpoint ~w(host port path)
++
++  # Roots are supplied by RuntimeConfig from OTP, never the environment. Keeping
++  # the constructor pure also allows isolated synthetic-CA startup verification.
++  def load!(env, role, roots) when is_map(env) and role in [:api, :processor] do
++    case Map.get(env, "MIXER_IDENTITY_MODE", "disabled") do
++      "disabled" ->
++        if Map.has_key?(env, "MIXER_IDENTITY_CONFIG"), do: invalid!(:unexpected_configuration)
++        %__MODULE__{mode: :disabled, owner_options: []}
++
++      "configured" when role == :api ->
++        configured!(Map.get(env, "MIXER_IDENTITY_CONFIG"), roots)
++
++      "configured" ->
++        invalid!(:role)
++
++      _ ->
++        invalid!(:mode)
++    end
++  end
++
++  defp configured!(raw, roots) do
++    with {:ok, object} <- BoundedJSON.object(raw, 65_536),
++         true <- exact?(object, @envelope),
++         1 <- object["version"],
++         generation when is_integer(generation) and generation in 1..2_147_483_647 <-
++           object["generation"],
++         profiles when is_list(profiles) and length(profiles) in 1..8 <- object["profiles"],
++         {:ok, entries} <- convert_all(profiles, &entry/1),
++         {:ok, manifest} <- Manifest.validate(entries),
++         binding when is_binary(binding) <- object["binding"],
++         true <- Map.has_key?(manifest, binding),
++         addresses when is_list(addresses) and length(addresses) in 1..3 <- object["resolvers"],
++         true <- length(Enum.uniq(addresses)) == length(addresses),
++         {:ok, resolvers} <- convert_all(addresses, &resolver/1) do
++      if not valid_roots?(roots), do: invalid!(:ca_roots)
++
++      %__MODULE__{
++        mode: :configured,
++        owner_options: [
++          manifest: entries,
++          generation: generation,
++          binding: binding,
++          resolvers: resolvers,
++          ca_roots: roots
++        ]
++      }
++    else
++      _ -> invalid!(:configuration)
++    end
++  end
++
++  defp entry(value) when is_map(value) do
++    with true <- exact?(value, @entry),
++         p when is_map(p) <- value["profile"],
++         true <- exact?(p, @profile),
++         endpoint when is_map(endpoint) <- value["jwks_endpoint"],
++         true <- exact?(endpoint, @endpoint),
++         :hosted_https <- transport(value["transport"]),
++         class when class in [:human, :service] <- identity_class(p["identity_class"]) do
++      {:ok,
++       %{
++         profile: %{
++           profile_id: p["profile_id"],
++           profile_version: p["profile_version"],
++           issuer: p["issuer"],
++           audience: p["audience"],
++           client_id: p["client_id"],
++           identity_class: class,
++           enabled: p["enabled"]
++         },
++         jwks_endpoint: %{
++           host: endpoint["host"],
++           port: endpoint["port"],
++           path: endpoint["path"]
++         },
++         transport: :hosted_https
++       }}
++    else
++      _ -> :error
++    end
++  end
++
++  defp entry(_), do: :error
++  defp transport("hosted_https"), do: :hosted_https
++  defp transport(_), do: :error
++  defp identity_class("human"), do: :human
++  defp identity_class("service"), do: :service
++  defp identity_class(_), do: :error
++
++  defp resolver(value) when is_binary(value) and byte_size(value) in 1..45 do
++    with {:ok, address} <- :inet.parse_address(String.to_charlist(value)),
++         true <- tuple_size(address) in [4, 8],
++         ^value <- address |> :inet.ntoa() |> List.to_string() do
++      {:ok, {address, 53}}
++    else
++      _ -> :error
++    end
++  end
++
++  defp resolver(_), do: :error
++  defp exact?(map, keys), do: Enum.sort(Map.keys(map)) == Enum.sort(keys)
++
++  defp convert_all(values, convert) do
++    Enum.reduce_while(values, {:ok, []}, fn value, {:ok, result} ->
++      case convert.(value) do
++        {:ok, converted} -> {:cont, {:ok, [converted | result]}}
++        _ -> {:halt, :error}
++      end
++    end)
++    |> case do
++      {:ok, result} -> {:ok, Enum.reverse(result)}
++      :error -> :error
++    end
++  end
++
++  defp valid_roots?(roots) when is_list(roots) and roots != [] do
++    Enum.all?(roots, fn
++      der when is_binary(der) ->
++        try do
++          :public_key.pkix_decode_cert(der, :otp)
++          true
++        rescue
++          _ -> false
++        end
++
++      _ ->
++        false
++    end)
++  end
++
++  defp valid_roots?(_), do: false
++  defp invalid!(:mode), do: raise(ArgumentError, "invalid identity startup: mode")
++  defp invalid!(:role), do: raise(ArgumentError, "invalid identity startup: role")
++
++  defp invalid!(:configuration),
++    do: raise(ArgumentError, "invalid identity startup: configuration")
++
++  defp invalid!(:ca_roots), do: raise(ArgumentError, "invalid identity startup: ca_roots")
++
++  defp invalid!(:unexpected_configuration),
++    do: raise(ArgumentError, "invalid identity startup: unexpected_configuration")
++end
+--- a/hosted/lib/mixer_hosted/runtime_config.ex
++++ b/hosted/lib/mixer_hosted/runtime_config.ex
+@@ -6,7 +6,7 @@
+   and hostname. Queue limits are per process; they are not organization quotas.
+   """
+   @derive {Inspect, only: [:role, :database_connection_bound]}
+-  @enforce_keys [:role, :repo, :oban, :endpoint, :database_connection_bound]
++  @enforce_keys [:role, :repo, :oban, :endpoint, :database_connection_bound, :identity_startup]
+   defstruct @enforce_keys
+ 
+   @queues [:builds, :signing, :submissions, :releases, :telemetry, :billing]
+@@ -15,6 +15,16 @@
+     role = role!(required!(env, "MIXER_HOSTED_ROLE"))
+     hostname = hostname!(required!(env, "MIXER_DATABASE_HOST"))
+     pool_size = integer!(env, "MIXER_DATABASE_POOL_SIZE", 8, 2..20)
++
++    ca_roots = :public_key.cacerts_get()
++
++    identity_roots =
++      Enum.map(ca_roots, fn
++        {:cert, der, _decoded} -> der
++        der -> der
++      end)
++
++    identity_startup = MixerHosted.Identity.StartupConfig.load!(env, role, identity_roots)
+ 
+     repo = [
+       hostname: hostname,
+@@ -31,7 +41,7 @@
+       show_sensitive_data_on_connection_error: false,
+       ssl: [
+         verify: :verify_peer,
+-        cacerts: :public_key.cacerts_get(),
++        cacerts: ca_roots,
+         server_name_indication: String.to_charlist(hostname),
+         customize_hostname_check: [match_fun: :public_key.pkix_verify_hostname_match_fun(:https)]
+       ]
+@@ -49,6 +59,7 @@
+ 
+     %__MODULE__{
+       role: role,
++      identity_startup: identity_startup,
+       repo: repo,
+       oban: [
+         repo: MixerHosted.Repo,
+--- a/hosted/scripts/test-local.py
++++ b/hosted/scripts/test-local.py
+@@ -85,6 +85,8 @@
+     commands[-1]["expected_exit_code"] = 1
+     if code != 1 or "invalid or missing hosted setting: MIXER_HOSTED_ROLE" not in rejection:
+         raise RuntimeError("release did not reject missing runtime settings as specified")
++    release_code = "Code.ensure_loaded!(MixerHosted.Identity.KeyOwner); Code.ensure_loaded!(MixerHosted.Identity.JWKSTransport); values = %{fixture_owner: function_exported?(MixerHosted.Identity.KeyOwner, :start_fixture, 1), fixture_transport: function_exported?(MixerHosted.Identity.JWKSTransport, :fetch_fixture, 6), startup_fixture: Code.ensure_loaded?(MixerHosted.Identity.StartupFixture), startup_dns_fixture: Code.ensure_loaded?(MixerHosted.Identity.StartupDNSFixture)}; IO.inspect(values, label: \"production_test_export_exclusion\"); true = Enum.all?(Map.values(values), &(&1 == false))"
++    run("release-test-exclusion", ["elixir", "-pa", str(root / "_build/prod/rel/mixer_hosted/lib/mixer_hosted-0.1.0/ebin"), "-e", release_code], prod_env)
+     run("initdb", [str(args.pg_bin / "initdb"), "-D", str(scratch / "data"), "-U", "mixer_fixture",
+                    "--auth-local=trust", "--auth-host=trust", "--no-locale", "-E", "UTF8"])
+     with socket.socket() as candidate:
+@@ -100,7 +102,9 @@
+     env["MIXER_TEST_IDENTITY_EVIDENCE"] = str(identity_evidence)
+     run("createdb", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
+                      "mixer_fixture", "mixer_foundation_test"])
+-    run("tests", ["mix", "test", "--warnings-as-errors", "--trace"], env)
++    run("createdb-startup", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
++                            "mixer_fixture", "mixer_startup_test"])
++    run("tests", ["mix", "test", "--warnings-as-errors", "--seed", "0", "--trace"], env)
+     if before != manifest():
+         raise RuntimeError("source changed during tests")
+     status = "passed"
+--- a/hosted/test/foundation_integration_test.exs
++++ b/hosted/test/foundation_integration_test.exs
+@@ -29,6 +29,7 @@
+   defp boot(role) do
+     settings = settings(role)
+     Application.put_env(:mixer_hosted, :role, settings.role)
++    Application.put_env(:mixer_hosted, :identity_startup, settings.identity_startup)
+     Application.put_env(:mixer_hosted, Repo, local_repo())
+     Application.put_env(:mixer_hosted, Oban, settings.oban)
+ 
+--- /dev/null
++++ b/hosted/test/mixer_hosted/identity/manifest_endpoint_test.exs
+@@ -0,0 +1,172 @@
++defmodule MixerHosted.Identity.ManifestEndpointTest do
++  use ExUnit.Case, async: true
++  alias MixerHosted.Identity.{Manifest, StartupFixture}
++
++  setup_all do
++    {:ok, roots: StartupFixture.standard_roots()}
++  end
++
++  defp entry(host, path) do
++    %{
++      profile: %{
++        profile_id: "endpoint-regression",
++        profile_version: 1,
++        issuer: "https://issuer.regression.invalid",
++        audience: "mixer-api",
++        client_id: "reviewed-client",
++        identity_class: :human,
++        enabled: true
++      },
++      jwks_endpoint: %{host: host, port: 443, path: path},
++      transport: :hosted_https
++    }
++  end
++
++  defp configured(host, path, roots) do
++    StartupFixture.envelope()
++    |> put_in(["profiles", Access.at(0), "jwks_endpoint", "host"], host)
++    |> put_in(["profiles", Access.at(0), "jwks_endpoint", "path"], path)
++    |> StartupFixture.configuration(roots)
++  end
++
++  defp rejected_hosts do
++    [
++      "keys.independent.invalid\n",
++      "keys.independent.invalid\r\n",
++      "keys.independent.invalid\r",
++      "keys.independent.invalid\t",
++      "keys.independent.invalid\0",
++      "\nkeys.independent.invalid",
++      "keys.\nindependent.invalid",
++      "keys\n.independent.invalid",
++      "keys.independent.invalid\nsuffix"
++    ]
++  end
++
++  defp rejected_paths do
++    [
++      "/keys\n",
++      "/keys\r\n",
++      "/keys\r",
++      "/keys\t",
++      "/keys\0",
++      "\n/keys",
++      "/ke\nys",
++      "/keys\nsuffix"
++    ]
++  end
++
++  defp valid_endpoints do
++    [
++      {"a", "/"},
++      {"a-b.c0", "/AZaz09_~.-/keys"},
++      {"keys.independent.invalid", "/keys"},
++      {String.duplicate("a", 63), "/" <> String.duplicate("a", 2047)},
++      {Enum.join(
++         [
++           String.duplicate("a", 63),
++           String.duplicate("b", 63),
++           String.duplicate("c", 63),
++           String.duplicate("d", 61)
++         ],
++         "."
++       ), "/keys"}
++    ]
++  end
++
++  defp outside_bounds do
++    [
++      {"", "/keys"},
++      {String.duplicate("a", 64), "/keys"},
++      {Enum.join(
++         [
++           String.duplicate("a", 63),
++           String.duplicate("b", 63),
++           String.duplicate("c", 63),
++           String.duplicate("d", 62)
++         ],
++         "."
++       ), "/keys"},
++      {"keys.independent.invalid", ""},
++      {"keys.independent.invalid", "/" <> String.duplicate("a", 2048)},
++      {"keys.independent.invalid", "/./keys"},
++      {"keys.independent.invalid", "/a/../keys"},
++      {"keys.independent.invalid", "/keys?query"},
++      {"keys.independent.invalid.", "/keys"},
++      {"Keys.independent.invalid", "/keys"},
++      {"-keys.independent.invalid", "/keys"},
++      {"keys-.independent.invalid", "/keys"}
++    ]
++  end
++
++  test "Manifest rejects terminal LF, CRLF and embedded/control bytes in endpoint host" do
++    for host <- rejected_hosts() do
++      assert {:error, :invalid_manifest} = Manifest.validate([entry(host, "/keys")])
++    end
++  end
++
++  test "Manifest rejects terminal LF, CRLF and embedded/control bytes in endpoint path" do
++    for path <- rejected_paths() do
++      assert {:error, :invalid_manifest} =
++               Manifest.validate([entry("keys.independent.invalid", path)])
++    end
++  end
++
++  test "StartupConfig rejects terminal LF, CRLF and embedded/control bytes in endpoint host", %{
++    roots: roots
++  } do
++    for host <- rejected_hosts() do
++      assert_raise ArgumentError, "invalid identity startup: configuration", fn ->
++        configured(host, "/keys", roots)
++      end
++    end
++  end
++
++  test "StartupConfig rejects terminal LF, CRLF and embedded/control bytes in endpoint path", %{
++    roots: roots
++  } do
++    for path <- rejected_paths() do
++      assert_raise ArgumentError, "invalid identity startup: configuration", fn ->
++        configured("keys.independent.invalid", path, roots)
++      end
++    end
++  end
++
++  test "Manifest preserves valid characters and exact original endpoint bounds" do
++    assert byte_size(elem(List.last(valid_endpoints()), 0)) == 253
++    assert byte_size(elem(Enum.at(valid_endpoints(), 3), 0)) == 63
++    assert byte_size(elem(Enum.at(valid_endpoints(), 3), 1)) == 2048
++
++    for {host, path} <- valid_endpoints() do
++      candidate = entry(host, path)
++      assert {:ok, %{"endpoint-regression" => ^candidate}} = Manifest.validate([candidate])
++    end
++  end
++
++  test "StartupConfig preserves valid characters and exact original endpoint bounds", %{
++    roots: roots
++  } do
++    for {host, path} <- valid_endpoints() do
++      settings = configured(host, path, roots)
++      assert settings.mode == :configured
++      assert [candidate] = settings.owner_options[:manifest]
++      assert candidate.jwks_endpoint == %{host: host, port: 443, path: path}
++    end
++  end
++
++  test "Manifest preserves rejection immediately outside original bounds and grammar" do
++    for {host, path} <- outside_bounds() do
++      assert {:error, :invalid_manifest} = Manifest.validate([entry(host, path)])
++    end
++  end
++
++  test "StartupConfig preserves rejection immediately outside original bounds and grammar", %{
++    roots: roots
++  } do
++    for {host, path} <- outside_bounds() do
++      assert_raise ArgumentError, "invalid identity startup: configuration", fn ->
++        configured(host, path, roots)
++      end
++    end
++  end
++end
+--- /dev/null
++++ b/hosted/test/mixer_hosted/identity/startup_config_test.exs
+@@ -0,0 +1,219 @@
++defmodule MixerHosted.Identity.StartupConfigTest do
++  use ExUnit.Case, async: true
++  alias MixerHosted.Identity.{StartupConfig, StartupFixture}
++
++  setup_all do
++    {:ok, roots: StartupFixture.standard_roots()}
++  end
++
++  defp reject(raw, roots, category \\ "configuration") do
++    assert_raise ArgumentError, "invalid identity startup: " <> category, fn ->
++      StartupConfig.load!(
++        %{"MIXER_IDENTITY_MODE" => "configured", "MIXER_IDENTITY_CONFIG" => raw},
++        :api,
++        roots
++      )
++    end
++  end
++
++  test "IS01 explicit disabled default, role separation and stray configuration", %{roots: roots} do
++    for role <- [:api, :processor], env <- [%{}, %{"MIXER_IDENTITY_MODE" => "disabled"}] do
++      assert %StartupConfig{mode: :disabled, owner_options: []} =
++               StartupConfig.load!(env, role, [])
++    end
++
++    for role <- [:api, :processor], mode <- [nil, "disabled"] do
++      env = %{"MIXER_IDENTITY_CONFIG" => "sensitive-payload"}
++      env = if mode, do: Map.put(env, "MIXER_IDENTITY_MODE", mode), else: env
++
++      assert_raise ArgumentError, "invalid identity startup: unexpected_configuration", fn ->
++        StartupConfig.load!(env, role, roots)
++      end
++    end
++
++    for mode <- [nil, "", "Configured", :configured, 1] do
++      assert_raise ArgumentError, "invalid identity startup: mode", fn ->
++        StartupConfig.load!(%{"MIXER_IDENTITY_MODE" => mode}, :api, roots)
++      end
++    end
++
++    assert_raise ArgumentError, "invalid identity startup: role", fn ->
++      StartupConfig.load!(%{"MIXER_IDENTITY_MODE" => "configured"}, :processor, roots)
++    end
++
++    settings = MixerHosted.RuntimeConfig.load!(StartupFixture.foundation_env())
++    assert settings.identity_startup.mode == :disabled
++
++    for role <- [:api, :processor] do
++      refute Enum.any?(MixerHosted.Application.children(role, settings.oban), fn
++               {MixerHosted.Identity.KeyOwnerSupervisor, _} -> true
++               _ -> false
++             end)
++    end
++  end
++
++  test "IS02 exact conversion both identity classes, boundaries and redacted Inspect", %{
++    roots: roots
++  } do
++    for count <- [1, 8],
++        class <- ["human", "service"],
++        enabled <- [true, false],
++        resolvers <- [["127.0.0.1"], ["8.8.8.8", "2001:4860:4860::8888", "::1"]] do
++      entries =
++        for n <- 1..count do
++          StartupFixture.entry()
++          |> put_in(["profile", "profile_id"], "sensitive-profile-#{n}")
++          |> put_in(["profile", "identity_class"], class)
++          |> put_in(["profile", "enabled"], enabled)
++        end
++
++      object =
++        StartupFixture.envelope()
++        |> Map.merge(%{
++          "generation" => 2_147_483_647,
++          "binding" => "sensitive-profile-1",
++          "profiles" => entries,
++          "resolvers" => resolvers
++        })
++
++      settings = StartupFixture.configuration(object, roots)
++      assert settings.mode == :configured
++      assert settings.owner_options[:generation] == 2_147_483_647
++      assert length(settings.owner_options[:manifest]) == count
++
++      assert hd(settings.owner_options[:manifest]).profile.identity_class ==
++               if(class == "human", do: :human, else: :service)
++
++      assert hd(settings.owner_options[:manifest]).profile.enabled == enabled
++      assert Enum.all?(settings.owner_options[:resolvers], &(elem(&1, 1) == 53))
++      refute inspect(settings) =~ "sensitive"
++      refute inspect(settings) =~ "ca_roots"
++    end
++
++    raw = Jason.encode!(StartupFixture.envelope())
++
++    assert StartupConfig.load!(
++             %{
++               "MIXER_IDENTITY_MODE" => "configured",
++               "MIXER_IDENTITY_CONFIG" => raw <> String.duplicate(" ", 65_536 - byte_size(raw))
++             },
++             :api,
++             roots
++           ).mode == :configured
++
++    reject(raw <> String.duplicate(" ", 65_537 - byte_size(raw)), roots)
++  end
++
++  test "IS02 RuntimeConfig binds configured settings from its single OTP CA source" do
++    env =
++      Map.merge(StartupFixture.foundation_env(), %{
++        "MIXER_IDENTITY_MODE" => "configured",
++        "MIXER_IDENTITY_CONFIG" => Jason.encode!(StartupFixture.envelope())
++      })
++
++    settings = MixerHosted.RuntimeConfig.load!(env)
++    assert settings.identity_startup.mode == :configured
++    assert settings.repo[:ssl][:cacerts] == :public_key.cacerts_get()
++    assert settings.identity_startup.owner_options[:ca_roots] == StartupFixture.standard_roots()
++    assert Enum.all?(settings.identity_startup.owner_options[:ca_roots], &is_binary/1)
++    refute inspect(settings) =~ "startup-fixture"
++    refute inspect(settings) =~ "synthetic"
++  end
++
++  test "IS02 malformed, duplicate and escaped duplicate members fail closed", %{roots: roots} do
++    raw = Jason.encode!(StartupFixture.envelope())
++
++    for value <- [
++          nil,
++          1,
++          "",
++          "[]",
++          "null",
++          "{",
++          <<255>>,
++          String.duplicate("[", 18) <>
++            "0" <>
++            String.duplicate("]", 18),
++          String.replace(raw, "\"version\":1", "\"version\":1,\"version\":1"),
++          String.replace(raw, "\"version\":1", "\"version\":1,\"vers\\u0069on\":1"),
++          String.replace(raw, "\"enabled\":true", "\"enabled\":true,\"enabl\\u0065d\":true")
++        ] do
++      reject(value, roots)
++    end
++  end
++
++  test "IS02 every envelope/profile/endpoint member is complete and closed", %{roots: roots} do
++    object = StartupFixture.envelope()
++    entry = StartupFixture.entry()
++    reject(Jason.encode!(Map.put(object, "sensitive-extra", "sensitive-value")), roots)
++
++    for key <- Map.keys(object), do: reject(Jason.encode!(Map.delete(object, key)), roots)
++
++    for path <- [
++          ["profiles", Access.at(0)],
++          ["profiles", Access.at(0), "profile"],
++          ["profiles", Access.at(0), "jwks_endpoint"]
++        ] do
++      value = get_in(object, path)
++      reject(Jason.encode!(put_in(object, path, Map.put(value, "sensitive-extra", true))), roots)
++
++      for key <- Map.keys(value),
++          do: reject(Jason.encode!(put_in(object, path, Map.delete(value, key))), roots)
++    end
++
++    bad = [
++      Map.put(object, "version", 1.0),
++      Map.put(object, "version", 2),
++      Map.put(object, "generation", 1.0),
++      Map.put(object, "generation", 0),
++      Map.put(object, "generation", 2_147_483_648),
++      Map.put(object, "binding", "absent"),
++      Map.put(object, "binding", 1),
++      Map.put(object, "profiles", []),
++      Map.put(object, "profiles", [entry, entry]),
++      Map.put(object, "profiles", List.duplicate(entry, 9)),
++      Map.put(object, "profiles", [%{}]),
++      Map.put(object, "profiles", "bad"),
++      put_in(object, ["profiles", Access.at(0), "transport"], "fixture"),
++      put_in(object, ["profiles", Access.at(0), "profile", "identity_class"], "arbitrary-atom"),
++      put_in(object, ["profiles", Access.at(0), "profile", "enabled"], "true"),
++      put_in(object, ["profiles", Access.at(0), "profile", "profile_version"], 1.0),
++      put_in(
++        object,
++        ["profiles", Access.at(0), "profile", "audience"],
++        String.duplicate("a", 257)
++      ),
++      put_in(object, ["profiles", Access.at(0), "jwks_endpoint", "host"], "127.0.0.1"),
++      put_in(object, ["profiles", Access.at(0), "jwks_endpoint", "port"], 443.0),
++      put_in(object, ["profiles", Access.at(0), "jwks_endpoint", "port"], 8443),
++      put_in(object, ["profiles", Access.at(0), "jwks_endpoint", "path"], "/keys?secret"),
++      put_in(object, ["profiles", Access.at(0), "jwks_endpoint", "path"], "/a/../keys")
++    ]
++
++    for value <- bad, do: reject(Jason.encode!(value), roots)
++
++    for resolvers <- [
++          [],
++          ["8.8.8.8", "8.8.8.8"],
++          ["1.1.1.1", "8.8.8.8", "::1", "::2"],
++          ["8.8.8.8:53"],
++          ["dns.example"],
++          ["127.1"],
++          ["01.2.3.4"],
++          ["2001:0db8::1"],
++          ["::FFFF:8.8.8.8"],
++          [1],
++          "8.8.8.8"
++        ] do
++      reject(Jason.encode!(Map.put(object, "resolvers", resolvers)), roots)
++    end
++  end
++
++  test "IS02 nonexistent, empty or invalid CA inputs are bounded categories", %{roots: roots} do
++    raw = Jason.encode!(StartupFixture.envelope())
++
++    for value <- [nil, [], "sensitive-cert", ["sensitive-cert"], [nil], roots ++ ["bad"]] do
++      reject(raw, value, "ca_roots")
++    end
++  end
++end
+--- /dev/null
++++ b/hosted/test/mixer_hosted/identity/startup_lifecycle_test.exs
+@@ -0,0 +1,194 @@
++defmodule MixerHosted.Identity.StartupLifecycleTest do
++  use ExUnit.Case, async: false
++
++  alias MixerHosted.Identity.{
++    ConfiguredVerifier,
++    KeyOwner,
++    KeyOwnerSupervisor,
++    StartupConfig,
++    StartupFixture
++  }
++
++  setup_all do
++    StartupFixture.prepare_database()
++    :ok
++  end
++
++  setup do
++    prior = Application.get_all_env(:mixer_hosted)
++
++    on_exit(fn ->
++      Application.stop(:mixer_hosted)
++
++      for {key, _} <- Application.get_all_env(:mixer_hosted),
++          do: Application.delete_env(:mixer_hosted, key)
++
++      for {key, value} <- prior, do: Application.put_env(:mixer_hosted, key, value)
++    end)
++
++    :ok
++  end
++
++  defp start(identity) do
++    StartupFixture.app_settings(identity)
++    assert {:ok, _} = Application.ensure_all_started(:mixer_hosted)
++  end
++
++  defp liveness do
++    {:ok, {_, port}} = MixerHostedWeb.Endpoint.server_info(:http)
++    url = ~c"http://127.0.0.1:" ++ Integer.to_charlist(port) ++ ~c"/health/live"
++    assert {:ok, {{_, 200, _}, _, body}} = :httpc.request(:get, {url, []}, [timeout: 2_000], [])
++    assert Jason.decode!(body) == %{"status" => "alive"}
++  end
++
++  defp eventually(fun, tries \\ 100)
++  defp eventually(fun, 0), do: assert(fun.())
++
++  defp eventually(fun, tries) do
++    if fun.(),
++      do: :ok,
++      else:
++        (
++          Process.sleep(10)
++          eventually(fun, tries - 1)
++        )
++  end
++
++  test "IS01 actual disabled startup has endpoint and no identity owner" do
++    start(StartupConfig.load!(%{}, :api, []))
++    assert Process.whereis(KeyOwner) == nil
++
++    assert {:error, :identity_unavailable} =
++             ConfiguredVerifier.authenticate("synthetic", System.system_time(:second))
++
++    liveness()
++  end
++
++  test "IS01 actual disabled processor starts no endpoint or identity owner" do
++    disabled = StartupConfig.load!(%{}, :processor, [])
++
++    settings =
++      MixerHosted.RuntimeConfig.load!(
++        Map.put(StartupFixture.foundation_env(), "MIXER_HOSTED_ROLE", "processor")
++      )
++
++    StartupFixture.app_settings(disabled)
++    Application.put_env(:mixer_hosted, :role, :processor)
++    Application.put_env(:mixer_hosted, Oban, settings.oban)
++    assert {:ok, _} = Application.ensure_all_started(:mixer_hosted)
++    assert Process.whereis(KeyOwner) == nil
++    assert Process.whereis(MixerHostedWeb.Endpoint) == nil
++
++    assert Enum.map(Oban.config().queues, fn {name, options} -> {name, options[:limit]} end) ==
++             settings.oban[:queues]
++  end
++
++  test "IS03 actual configured application owns an empty bounded component before endpoint" do
++    settings =
++      StartupFixture.configuration(StartupFixture.envelope(), StartupFixture.standard_roots())
++
++    [MixerHosted.Repo, {Oban, _}, {KeyOwnerSupervisor, _}, MixerHostedWeb.Endpoint] =
++      MixerHosted.Application.children(:api, [], settings)
++
++    start(settings)
++    owner = Process.whereis(KeyOwner)
++    assert is_pid(owner)
++    root_children = Supervisor.which_children(MixerHosted.Supervisor)
++
++    assert {KeyOwnerSupervisor, component, :supervisor, _} =
++             List.keyfind(root_children, KeyOwnerSupervisor, 0)
++
++    assert Enum.any?(Supervisor.which_children(component), fn {_, pid, _, _} -> pid == owner end)
++    state = :sys.get_state(owner)
++
++    for key <- [:snapshots, :attempts, :flights, :waiters, :admitted, :negatives],
++        do: assert(state[key] == %{})
++
++    assert DynamicSupervisor.count_children(state.workers).active == 0
++    liveness()
++
++    StartupFixture.evidence("startup-empty-state.json", %{
++      actualApplication: true,
++      endpointLiveness: 200,
++      ownerRegistered: true,
++      initialSnapshots: 0,
++      initialAttempts: 0,
++      initialFlights: 0,
++      startupFetches: 0
++    })
++  end
++
++  test "IS03 missing validated binding and invalid required owner prevent endpoint startup" do
++    StartupFixture.app_settings(StartupConfig.load!(%{}, :api, []))
++    Application.delete_env(:mixer_hosted, :identity_startup)
++    assert {:error, _} = Application.ensure_all_started(:mixer_hosted)
++    assert Process.whereis(MixerHostedWeb.Endpoint) == nil
++    assert Process.whereis(KeyOwner) == nil
++
++    valid =
++      StartupFixture.configuration(StartupFixture.envelope(), StartupFixture.standard_roots())
++
++    # Existing production constructor must reject test-only transport options.
++    bad = %{
++      valid
++      | owner_options: valid.owner_options ++ [fixture: %{ip: {127, 0, 0, 1}, port: 1}]
++    }
++
++    StartupFixture.app_settings(bad)
++    assert {:error, _} = Application.ensure_all_started(:mixer_hosted)
++    assert Process.whereis(MixerHostedWeb.Endpoint) == nil
++    assert Process.whereis(KeyOwner) == nil
++  end
++
++  test "IS04 disabled bound profile rejects via public adapter without any flight" do
++    object =
++      put_in(StartupFixture.envelope(), ["profiles", Access.at(0), "profile", "enabled"], false)
++
++    start(StartupFixture.configuration(object, StartupFixture.standard_roots()))
++
++    assert {:error, :unauthenticated} =
++             ConfiguredVerifier.authenticate("synthetic", System.system_time(:second))
++
++    state = :sys.get_state(KeyOwner)
++    assert state.attempts == %{}
++    assert state.flights == %{}
++    liveness()
++  end
++
++  test "IS05 actual owner supervision restarts empty and application shutdown removes authority" do
++    settings =
++      StartupFixture.configuration(StartupFixture.envelope(), StartupFixture.standard_roots())
++
++    start(settings)
++    owner = Process.whereis(KeyOwner)
++    old_state = :sys.get_state(owner)
++    old_workers = Process.whereis(old_state.workers)
++    Process.exit(owner, :kill)
++    eventually(fn -> is_pid(Process.whereis(KeyOwner)) and Process.whereis(KeyOwner) != owner end)
++    state = :sys.get_state(KeyOwner)
++    refute state.epoch == old_state.epoch
++    assert state.snapshots == %{}
++    assert Process.whereis(state.workers) != old_workers
++    liveness()
++    assert :ok = Application.stop(:mixer_hosted)
++    assert Process.whereis(KeyOwner) == nil
++    assert Process.whereis(state.workers) == nil
++    assert Process.whereis(MixerHostedWeb.Endpoint) == nil
++
++    assert {:error, :identity_unavailable} =
++             ConfiguredVerifier.authenticate("synthetic", System.system_time(:second))
++
++    start(settings)
++    refute :sys.get_state(KeyOwner).epoch == state.epoch
++    assert :sys.get_state(KeyOwner).snapshots == %{}
++
++    StartupFixture.evidence("startup-lifecycle.json", %{
++      actualApplication: true,
++      ownerCrashRestart: true,
++      workerSupervisorReplaced: true,
++      newEpoch: true,
++      shutdownAuthorityRemoved: true,
++      restartEmpty: true
++    })
++  end
++end
+--- /dev/null
++++ b/hosted/test/mixer_hosted/identity/startup_linux_network_test.exs
+@@ -0,0 +1,123 @@
++defmodule MixerHosted.Identity.StartupLinuxNetworkTest do
++  use ExUnit.Case, async: false
++
++  @moduletag skip:
++               not (:os.type() == {:unix, :linux} and
++                      System.get_env("MIXER_ISOLATED_NETNS") == "1")
++  alias MixerHosted.Identity.{
++    Admission,
++    ConfiguredVerifier,
++    KeyOwner,
++    StartupDNSFixture,
++    StartupFixture,
++    TLSFixture
++  }
++
++  defp eventually(fun, tries \\ 250)
++  defp eventually(fun, 0), do: assert(fun.())
++
++  defp eventually(fun, tries) do
++    if fun.(),
++      do: :ok,
++      else:
++        (
++          Process.sleep(10)
++          eventually(fun, tries - 1)
++        )
++  end
++
++  test "IS04 IS05 actual configured startup cold production DNS TLS admission and lifecycle" do
++    prior = Application.get_all_env(:mixer_hosted)
++
++    on_exit(fn ->
++      Application.stop(:mixer_hosted)
++
++      for {key, _} <- Application.get_all_env(:mixer_hosted),
++          do: Application.delete_env(:mixer_hosted, key)
++
++      for {key, value} <- prior, do: Application.put_env(:mixer_hosted, key, value)
++    end)
++
++    StartupFixture.prepare_database()
++    server = start_supervised!({TLSFixture, ip: {8, 8, 8, 8}, port: 443})
++    dns = start_supervised!(StartupDNSFixture)
++    authority = GenServer.call(server, :authority)
++    key = JOSE.JWK.generate_key({:rsa, 2048})
++
++    public =
++      key
++      |> JOSE.JWK.to_public()
++      |> JOSE.JWK.to_map()
++      |> elem(1)
++      |> Map.merge(%{"kid" => "startup-key", "alg" => "RS256", "use" => "sig"})
++
++    TLSFixture.configure(server, {:body, Jason.encode!(%{"keys" => [public]})})
++    settings = StartupFixture.configuration(StartupFixture.envelope(), [authority.ca])
++    assert settings.owner_options[:resolvers] == [{{127, 0, 0, 1}, 53}]
++    StartupFixture.app_settings(settings)
++    assert {:ok, _} = Application.ensure_all_started(:mixer_hosted)
++    assert :sys.get_state(KeyOwner).snapshots == %{}
++    assert GenServer.call(dns, :queries) == []
++    assert TLSFixture.info(server).accepted == 0
++    {:ok, {_, port}} = MixerHostedWeb.Endpoint.server_info(:http)
++    url = ~c"http://127.0.0.1:" ++ Integer.to_charlist(port) ++ ~c"/health/live"
++    assert {:ok, {{_, 200, _}, _, _}} = :httpc.request(:get, {url, []}, [timeout: 2_000], [])
++    token = StartupFixture.token(key)
++    now = System.system_time(:second)
++    assert {:ok, identity} = ConfiguredVerifier.authenticate(token, now)
++    assert identity.subject == "synthetic-startup-subject"
++    assert identity.identity_class == :human
++    assert length(GenServer.call(dns, :queries)) == 2
++    assert TLSFixture.info(server).accepted == 1
++    assert map_size(:sys.get_state(KeyOwner).snapshots) == 1
++    eventually(fn -> TLSFixture.info(server).closed == 1 end)
++    {:ok, permit} = Admission.acquire(KeyOwner, :configured)
++    {:ok, lease} = KeyOwner.checkout(KeyOwner, permit, System.system_time(:second))
++    old_epoch = :sys.get_state(KeyOwner).epoch
++    assert :ok = Application.stop(:mixer_hosted)
++    assert Process.whereis(KeyOwner) == nil
++    assert {:error, :identity_unavailable} = ConfiguredVerifier.authenticate(token, now)
++    assert {:ok, _} = Application.ensure_all_started(:mixer_hosted)
++    assert :sys.get_state(KeyOwner).snapshots == %{}
++    refute :sys.get_state(KeyOwner).epoch == old_epoch
++    assert {:error, :identity_unavailable} = KeyOwner.finish(KeyOwner, lease)
++    Admission.release(permit)
++    assert {:ok, _} = ConfiguredVerifier.authenticate(token, System.system_time(:second))
++    eventually(fn -> TLSFixture.info(server).closed == 2 end)
++    assert :ok = Application.stop(:mixer_hosted)
++    assert {:ok, _} = Application.ensure_all_started(:mixer_hosted)
++    TLSFixture.configure(server, :stall)
++
++    task =
++      Task.async(fn -> ConfiguredVerifier.authenticate(token, System.system_time(:second)) end)
++
++    eventually(fn -> TLSFixture.info(server).accepted == 3 end)
++    assert :ok = Application.stop(:mixer_hosted)
++    assert {:error, :identity_unavailable} = Task.await(task, 3_000)
++    eventually(fn -> TLSFixture.info(server).closed == 3 end)
++    assert TLSFixture.info(server).sockets == %{}
++    assert Process.whereis(KeyOwner) == nil
++    assert Process.whereis(Module.concat(KeyOwner, FetchSupervisor)) == nil
++    assert Process.whereis(MixerHostedWeb.Endpoint) == nil
++
++    StartupFixture.evidence("startup-production-network.json", %{
++      actualApplication: true,
++      endpointLiveness: 200,
++      namespace: "owned Linux network-none NET_ADMIN; 8.8.8.8 on lo:1",
++      resolver: "127.0.0.1:53",
++      destination: "8.8.8.8:443",
++      startupDNSQueries: 0,
++      startupConnections: 0,
++      coldTokenAdmitted: true,
++      coldDNSQueries: 2,
++      coldConnections: 1,
++      oldLeaseRejectedAfterRestart: true,
++      restartColdAdmission: true,
++      shutdownInflightCancelled: true,
++      allThreeConnectionsClosed: true,
++      fixtureKeyDirectoryRemoved: TLSFixture.info(server).key_dir_removed,
++      publicAdapter: "ConfiguredVerifier.authenticate/2",
++      productionPolicyBypasses: 0
++    })
++  end
++end
+--- /dev/null
++++ b/hosted/test/support/identity_startup_fixture.ex
+@@ -0,0 +1,157 @@
++defmodule MixerHosted.Identity.StartupFixture do
++  @moduledoc false
++  alias MixerHosted.Identity.StartupConfig
++
++  def standard_roots do
++    Enum.map(:public_key.cacerts_get(), fn
++      {:cert, der, _} -> der
++      der -> der
++    end)
++  end
++
++  def envelope do
++    %{
++      "version" => 1,
++      "generation" => 1,
++      "binding" => "startup-fixture",
++      "profiles" => [entry()],
++      "resolvers" => ["127.0.0.1"]
++    }
++  end
++
++  def entry do
++    %{
++      "profile" => %{
++        "profile_id" => "startup-fixture",
++        "profile_version" => 1,
++        "issuer" => "https://issuer.fixture.invalid/oauth",
++        "audience" => "mixer-api",
++        "client_id" => "reviewed-client",
++        "identity_class" => "human",
++        "enabled" => true
++      },
++      "jwks_endpoint" => %{"host" => "jwks.fixture.invalid", "port" => 443, "path" => "/keys"},
++      "transport" => "hosted_https"
++    }
++  end
++
++  def configuration(object, roots),
++    do:
++      StartupConfig.load!(
++        %{
++          "MIXER_IDENTITY_MODE" => "configured",
++          "MIXER_IDENTITY_CONFIG" => Jason.encode!(object)
++        },
++        :api,
++        roots
++      )
++
++  def foundation_env do
++    %{
++      "MIXER_HOSTED_ROLE" => "api",
++      "MIXER_DATABASE_HOST" => "db.example.test",
++      "MIXER_DATABASE_NAME" => "mixer_foundation_test",
++      "MIXER_DATABASE_USER" => "mixer_fixture",
++      "MIXER_DATABASE_PASSWORD" => "synthetic",
++      "MIXER_SECRET_KEY_BASE" => String.duplicate("synthetic-", 8)
++    }
++  end
++
++  def app_settings(identity) do
++    settings = MixerHosted.RuntimeConfig.load!(foundation_env())
++    Application.put_env(:mixer_hosted, :role, settings.role)
++    Application.put_env(:mixer_hosted, :identity_startup, identity)
++
++    Application.put_env(:mixer_hosted, MixerHosted.Repo,
++      hostname: "127.0.0.1",
++      port: String.to_integer(System.fetch_env!("MIXER_TEST_DATABASE_PORT")),
++      database: "mixer_startup_test",
++      username: "mixer_fixture",
++      pool_size: 2,
++      ssl: false
++    )
++
++    Application.put_env(:mixer_hosted, Oban, settings.oban)
++
++    endpoint =
++      Application.get_env(:mixer_hosted, MixerHostedWeb.Endpoint)
++      |> Keyword.merge(settings.endpoint)
++      |> Keyword.put(:http, ip: {127, 0, 0, 1}, port: 0)
++
++    Application.put_env(:mixer_hosted, MixerHostedWeb.Endpoint, endpoint)
++    :ok
++  end
++
++  def prepare_database do
++    app_settings(StartupConfig.load!(%{}, :api, []))
++
++    {:ok, repo} =
++      MixerHosted.Repo.start_link(Application.fetch_env!(:mixer_hosted, MixerHosted.Repo))
++
++    path = Application.app_dir(:mixer_hosted, "priv/repo/migrations")
++    Ecto.Migrator.run(MixerHosted.Repo, path, :up, all: true)
++    Supervisor.stop(repo)
++  end
++
++  def token(key) do
++    now = System.system_time(:second)
++
++    claims = %{
++      "iss" => entry()["profile"]["issuer"],
++      "aud" => "mixer-api",
++      "sub" => "synthetic-startup-subject",
++      "client_id" => "reviewed-client",
++      "iat" => now - 1,
++      "exp" => now + 120,
++      "jti" => "synthetic-startup-token"
++    }
++
++    JOSE.JWS.sign(key, Jason.encode!(claims), %{
++      "alg" => "RS256",
++      "typ" => "at+jwt",
++      "kid" => "startup-key"
++    })
++    |> JOSE.JWS.compact()
++    |> elem(1)
++  end
++
++  def evidence(name, value) do
++    case System.get_env("MIXER_TEST_IDENTITY_EVIDENCE") do
++      nil -> :ok
++      dir -> File.write!(Path.join(dir, name), Jason.encode!(value, pretty: true))
++    end
++  end
++end
++
++defmodule MixerHosted.Identity.StartupDNSFixture do
++  @moduledoc false
++  use GenServer
++  def start_link(_), do: GenServer.start_link(__MODULE__, [])
++
++  def init(_) do
++    {:ok, socket} = :gen_udp.open(53, [:binary, ip: {127, 0, 0, 1}, active: true])
++    {:ok, %{socket: socket, queries: []}}
++  end
++
++  def handle_call(:queries, _, s), do: {:reply, s.queries, s}
++
++  def handle_info({:udp, socket, ip, port, raw}, s) do
++    {:ok, message} = :inet_dns.decode(raw)
++    [query] = :inet_dns.msg(message, :qdlist)
++    name = :inet_dns.dns_query(query, :domain)
++    type = :inet_dns.dns_query(query, :type)
++    header = :inet_dns.msg(message, :header)
++    header = :inet_dns.make_header(header, qr: true, aa: false, ra: true)
++
++    answers =
++      if type == :a,
++        do: [:inet_dns.make_rr(domain: name, type: :a, class: :in, ttl: 120, data: {8, 8, 8, 8})],
++        else: []
++
++    reply = :inet_dns.make_msg(message, header: header, anlist: answers) |> :inet_dns.encode()
++    :ok = :gen_udp.send(socket, ip, port, reply)
++    {:noreply, %{s | queries: [{name, type} | s.queries]}}
++  end
++
++  def terminate(_, s), do: :gen_udp.close(s.socket)
++end

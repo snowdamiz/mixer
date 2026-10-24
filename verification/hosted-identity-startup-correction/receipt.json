@@ -1,0 +1,220 @@
+{
+  "schema": 1,
+  "status": "frozen-for-fresh-independent-and-root-review-not-applied",
+  "observedUTC": "2026-10-24T08:20:52.585141+00:00",
+  "sourceRevision": "b0629cf554a1798b2d22ce3e1d349cd1f9504c3a",
+  "liveHostedDigest": "b019e65ea02bb483ffb9e16bd699ee71cbfdf4ac6dd46353430d8d26287d48f9",
+  "frozenSourceDigest": "c844efdf610f66280ef04cd5a47d033aad13105f60823e3eef60ba771fb026e2",
+  "testedSourceDigest": "bfa2dcc1467f524a68fec298bdd098625f450b68ab2bd68b99f2a73d435772c3",
+  "dependencyDigest": "99bc0e5256ca834e5cd24bfcd3a1f5b158d5479af5677cccbe998ee005628452",
+  "sourceArchiveSHA256": "576d4851377f355fa825a505907b1a192c5a3a6ee6cf03ffaac665cc17298ec9",
+  "patchSHA256": "b8e19489a86e4bfe621dc478070f48c4aebad58dc98d950599020eecad0add49",
+  "correctionDeltaSHA256": "1b5fee53a73ddcafb3122c2bad874985a191a67c472b12210cd12b217b1439d1",
+  "overlayFiles": {
+    "hosted/config/runtime.exs": "73cd8edac21bb64c3fba3cd81bb461f2cee651b9f799bd42bfac3e5ffeca6e9f",
+    "hosted/lib/mixer_hosted/application.ex": "bbf02752b982e1437564c266772cd4e5dd7190670a575dd6676dda7fc692803f",
+    "hosted/lib/mixer_hosted/identity/manifest.ex": "4b12b89c3b39177c295f68050aba84dcb2e5ae62421b3ebd4810526d125a30b4",
+    "hosted/lib/mixer_hosted/identity/startup_config.ex": "0c9b11693d34880ca9e9c05fba95e1f3994a0eadd7189a5fde2f65b036ff4d50",
+    "hosted/lib/mixer_hosted/runtime_config.ex": "e3b8ab88ae4c12788b09d470a71d051bd817ee919db5fe6281054231d38f0286",
+    "hosted/scripts/test-local.py": "67656b4836fbfc7cc8e435fc607b9fb67784360ed690686ee1aa8f7e8c8b1564",
+    "hosted/test/foundation_integration_test.exs": "e078b29013547eae82b7b8f3b2e52f531591b53cdcc27e65aad2249f18f9199c",
+    "hosted/test/mixer_hosted/identity/manifest_endpoint_test.exs": "5c41caab26b19f204d386e9051906cabae490044b209e21b2557dfd1244f9be3",
+    "hosted/test/mixer_hosted/identity/startup_config_test.exs": "bb9fc59f47c2c4bb15c42608ff52cd3dbe88ed71e73957bda3c4775b96214c3a",
+    "hosted/test/mixer_hosted/identity/startup_lifecycle_test.exs": "e88301c119b04528879b0b52e896c73075cd2a390bc17ef9b20a2ddf68430ba2",
+    "hosted/test/mixer_hosted/identity/startup_linux_network_test.exs": "7d28b594476d349b3ca6e35c2dbadb21f6e831f53ace235e3a1e8b85cb712480",
+    "hosted/test/support/identity_startup_fixture.ex": "075f77531b83d43567c214777ee458cb630f15e62fbd1f009c46100ccacdd761"
+  },
+  "allTenFrozenOverlayFilesUnchanged": true,
+  "productionCorrection": "Exactly two Manifest regular expression anchor replacements: ^/$ to \\A/\\z. No transport or startup production change against frozen candidate.",
+  "newTests": "Separate manifest_endpoint_test.exs; direct Manifest and configured StartupConfig endpoint regression/valid grammar/boundaries.",
+  "originalPacket": {
+    "path": "verification/hosted-identity-startup-implementation",
+    "receiptSHA256": "35438250c4bd88a4bf162d303b06dccccffba19dde3029194f3f05badeec26de",
+    "archiveSHA256": "ee55d3239e77ae5e63f4c06a1451a698c80d5436d3ed4323d8886433d27fda65",
+    "unchanged": true
+  },
+  "contract": {
+    "path": "docs/hosted-identity-startup-contract.md",
+    "sha256": "2f4d5a8f67cfa0f2fec2e1aac7b938a7ff7b69b63c3d34f0f57f6e0d76ba3841"
+  },
+  "documentation": {
+    "path": "docs/hosted-identity-startup-correction.md",
+    "sha256": "132db78a76a36e75548fbb4c9ecb4e755923a2a5162910eaeac12b231d6d5db5"
+  },
+  "finalResults": {
+    "focusedBaseline": "10/14 passed; 4 expected LF rejection failures on unchanged frozen production source",
+    "focusedCorrected": "14 passed",
+    "macOS": "93 passed; 2 explicit Linux namespace skips",
+    "Linux": "95 passed; zero skips",
+    "releaseBuild": "passed",
+    "missingConfiguration": "expected exit 1",
+    "productionTestOnlyExports": "all four excluded"
+  },
+  "caseEvidence": {
+    "endpointRejection": [
+      "focused-baseline.log",
+      "focused-corrected.log",
+      "overlay/hosted/test/mixer_hosted/identity/manifest_endpoint_test.exs"
+    ],
+    "IS01_IS02": [
+      "host-1/tests.log",
+      "linux-1-tests.log"
+    ],
+    "IS03": [
+      "host-1/identity-metrics/startup-empty-state.json",
+      "host-1/tests.log"
+    ],
+    "IS04": [
+      "linux-1-metrics/startup-production-network.json",
+      "linux-1-tests.log"
+    ],
+    "IS05": [
+      "host-1/identity-metrics/startup-lifecycle.json",
+      "linux-1-metrics/startup-production-network.json"
+    ],
+    "IS06": [
+      "host-1/receipt.json",
+      "host-1/release-build.log",
+      "host-1/release-missing-config.log",
+      "host-1/release-test-exclusion.log",
+      "linux-1-receipt.json"
+    ]
+  },
+  "failedAttempts": [
+    {
+      "evidence": "focused-baseline.log",
+      "expected": true,
+      "reason": "Regression demonstration against the original frozen production source: terminal-LF host and path accepted by both direct Manifest and configured startup. Identical tests then pass with only both anchor replacements."
+    }
+  ],
+  "unexpectedFailedAttempts": [],
+  "limitations": [
+    "Fresh independent correction review and root source/evidence acceptance still required.",
+    "Configuration acceptance defect observed; no unsafe network request, request smuggling, SSRF or successful transport exploit claimed.",
+    "Development evidence only; no GA gate closed.",
+    "Synthetic loopback PostgreSQL has no TLS; production database TLS options are tested configuration only.",
+    "Synthetic CA roots reach only the pure constructor in tests; production roots remain OTP standard source.",
+    "No real identity provider, authenticated HTTP routes, membership, permissions, discovery, native or physical-phone qualification.",
+    "No production publication, customer operation or credential change."
+  ],
+  "cleanup": {
+    "ownedMacSourceScratch": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity-startup-correction-p5iu78m2",
+    "openHandles": {
+      "argv": [
+        "lsof",
+        "-nP",
+        "+D",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity-startup-correction-p5iu78m2"
+      ],
+      "exitCode": 1,
+      "output": "scratch-open-handles.log",
+      "outputSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "observedOpenHandles": false
+    },
+    "ownedMacSourceScratchRemoved": true,
+    "macPostgres": {
+      "postgres_stopped": true,
+      "scratch_removed": true
+    },
+    "linux": {
+      "mixer-identity-startup-correction-bgsx_93d-pg": true,
+      "mixer-identity-startup-correction-bgsx_93d": true,
+      "ownedScratchRemoved": true
+    },
+    "scope": "Only unique producer-owned scratch, PostgreSQL fixtures and containers. Other projects, physical/native instances and live hosted source untouched."
+  },
+  "bindings": {
+    "build_artifacts.py": "71378fec51edb1e00026e08560f648b146f074ba75d4115aca9cf40a7674b70d",
+    "cleanup.json": "feed0d6f0c2bb3fe7ceb6b7b93654d20fb7d2e6f4a35e6e7b3260fc16c4bdae6",
+    "collector-lineage.json": "3b6e0755be8c2e934994c856f882b3ab75fcc9572ba38a738a85f6710568dc06",
+    "correction-vs-frozen.patch": "1b5fee53a73ddcafb3122c2bad874985a191a67c472b12210cd12b217b1439d1",
+    "focused-baseline.log": "38349d2da4337a315e28fdc45eb086ffec9717ff29babe7a211ccaa7b067cd87",
+    "focused-corrected.log": "e2849e0d9947eda7ecd3b13809166de5084d2b200a6e33fc8081a773b7850a03",
+    "format-baseline.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "freeze.py": "d46eb8fcc4cd14de50f63b460cb738505047fae2d353e0ed7bd6021edf72ca72",
+    "host-1/compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "host-1/createdb-startup.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "host-1/createdb.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "host-1/elixir-version.log": "44fe1d5e597ef84e0b6859be8ef275ca7da40d28005c64ea6a103835caa29081",
+    "host-1/format.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "host-1/identity-metrics/chunked-TLS-resources.json": "ae93d211442a50136f98f3551fb9e246fe793e135f7554458adc641a8709a77f",
+    "host-1/identity-metrics/crash-restart-cleanup.json": "9921c230cd62fe6bb14e85ed201fe30cbbe2e5cfb23e76326ffa46fd3de5a69d",
+    "host-1/identity-metrics/handshake-cleanup.json": "366b1b6b382295113dd17badbe2eddefc4965ba186f4db5eab42b810b96535de",
+    "host-1/identity-metrics/history-metadata-size.json": "99ba9f807e92112e5a0719bb9fb9285d3f4fe06881519f455b285e833dcf71df",
+    "host-1/identity-metrics/hostile-fast-TLS-resources.json": "c73a861b0789f45b704f43ae7f945a4f2bb13bf48006cc622682077fa51206d7",
+    "host-1/identity-metrics/owner-four-full-candidate-publication.json": "e6933860a48a577652df5fb85f4ea93bd54d29bb2bc2c80f6a05cdbb2a4f407c",
+    "host-1/identity-metrics/startup-empty-state.json": "497babdfd03d0f73db5180a8f2bfb67cf0bb67dab5101fc2f50c249f595126a1",
+    "host-1/identity-metrics/startup-lifecycle.json": "d4609914e41c74fae4a34b4177e5fe8f46220f565c7dc99bf5c0105d19a2e915",
+    "host-1/identity-metrics/suspended-consumer-TLS-resources.json": "34448e4a72108c5a45828e8f3f3be46a0a8e8759abd7bfdc5ef291ea150fb4a9",
+    "host-1/identity-metrics/transport-metrics.json": "79bcde1207391f63ce4c365cd4b9e5a076ff2eb12788faf14f816446093fcdfd",
+    "host-1/initdb.log": "95c005a35aaaf92f58218b515414ac664860f62fab3ea1e66992ef1f5d983e12",
+    "host-1/postgres-start.log": "66afd0411ccc09366e99fdd99b85f21899c8d2d064f5835126859618802153ad",
+    "host-1/postgres-stop.log": "ca19178a35ab4153b75b494963b66ce8243e1b94c173107c87b44d09db23652d",
+    "host-1/postgres-version.log": "1fb2f20d9f998fb585cf5edb1878e8381f2e78c75597c8a18a19e50178f621b2",
+    "host-1/postgres.log": "3268c52ea808486a9438738b5a5e105ddeac355a9e0e3be32c8c743292cbc951",
+    "host-1/release-build.log": "f07b6f5ba8a593df24356b4e3a49cbdfc305904a145ead36b60b606ad762709b",
+    "host-1/release-missing-config.log": "d2637f5a41f18dbc0d8cc89400c60b605e6a3244ff1c592c52deeb538cdf3788",
+    "host-1/release-test-exclusion.log": "7c0499bea90aa012d58ea21a6ba7acc38f41db4492660230eec8584878799678",
+    "host-1/revision.log": "8bf54b0413462a798eac1b9e7ce88dce14ef79f7393c268d299e4aba34e37454",
+    "host-1/source.tar.gz": "82122c21b183092c01810ce3122eda1182cbfac919fc491a9b23b81af8a8ab2e",
+    "host-1/tests.log": "2767eea8be4bad724bfea71718e2d27386a65bea097275dd95580d8bde17696d",
+    "host-1.log": "b575833fac210cce186850781216aa3b9c16c0d4dabe4909b037626b20c50c51",
+    "implementation.patch": "b8e19489a86e4bfe621dc478070f48c4aebad58dc98d950599020eecad0add49",
+    "inputs.json": "4a827fe82ae72e72765594e97f7558bcd92c06ffbb35f00d8c985735990f1dc8",
+    "linux-1-cleanup-mixer-identity-startup-correction-bgsx_93d-pg.log": "301be4770243cfe7a815035eb1acd794975b13ea245d7e399ac20afaf08e55d8",
+    "linux-1-cleanup-mixer-identity-startup-correction-bgsx_93d.log": "916e0819af633015bafd98ca81152371e634a66fa860b3f7a50e67c86a98f4e9",
+    "linux-1-container-start.log": "c6a255a761f98b348d9e9d36df300c15f5608f8ad279f74fbd80fde534d1f132",
+    "linux-1-fixture-cleanup.log": "eb298f0e7e39d61eac76d6f88c771cb3230099d0dd3efd9d47f60f67eddaf7dd",
+    "linux-1-format.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "linux-1-image-inspect.log": "06e5f8ca24e171b42c69f4f396e63ed625205141a3e0a871c3cbc586030c8289",
+    "linux-1-inputs.json": "09144ce9a36ae8d66c119df5b9d30b15fd63f3549635c219a72d40afbfd3d333",
+    "linux-1-metrics/chunked-TLS-resources.json": "1c1839ec9a68f22d8eac63576574d69f403a7677f25662d45b596943047d5358",
+    "linux-1-metrics/crash-restart-cleanup.json": "8fdaae991692a0fad077302fe9d63fd71b430c194737ddc18ee81944eb88f426",
+    "linux-1-metrics/handshake-cleanup.json": "1626a19ca6b22c85633cd1ae290c81cde6782f926606bf188d26370327537bde",
+    "linux-1-metrics/history-metadata-size.json": "99ba9f807e92112e5a0719bb9fb9285d3f4fe06881519f455b285e833dcf71df",
+    "linux-1-metrics/hostile-fast-TLS-resources.json": "4057a76b9cf36aa157e10dbdb5a2cbe6d60671824ac0bfc5715ce52599fb6ae7",
+    "linux-1-metrics/owner-four-full-candidate-publication.json": "5a86b642a7d23e4edcd34e0f8d97adc04310c9ef133283848306e1bda20dab3e",
+    "linux-1-metrics/production-DNS-rebinding.json": "73702494891ae2a6da35e9e2e6b7e4a0123d4aa09a997a8b94ab1a946322fb33",
+    "linux-1-metrics/startup-empty-state.json": "497babdfd03d0f73db5180a8f2bfb67cf0bb67dab5101fc2f50c249f595126a1",
+    "linux-1-metrics/startup-lifecycle.json": "d4609914e41c74fae4a34b4177e5fe8f46220f565c7dc99bf5c0105d19a2e915",
+    "linux-1-metrics/startup-production-network.json": "75eee1a07295370a90a2297b6b012b2900c17d5bc3a69b22c1d1ade2ea725972",
+    "linux-1-metrics/suspended-consumer-TLS-resources.json": "3810b041fd2fe8254c5408267dc809f1bc29a3e35dce5001d4618dfe7b043546",
+    "linux-1-metrics/transport-metrics.json": "a8473fcf50be0198584627404ef4da5272a36c57397df3bea9a36d83c38b56d6",
+    "linux-1-netns.log": "f4042bd348258b18bb781bf21a3a86f97bdef65dc32582e313bd27a8760cbec5",
+    "linux-1-postgres-start.log": "96b1e349cb7bce74291b9dbb56ce1e69edb09adadbd75ccaf0a40fd23a7b89fa",
+    "linux-1-receipt.json": "e63f9ee8465f997e0341d8eacf080f15212273bcbab5c98ef1b7bc739ab9f2d0",
+    "linux-1-startup-createdb.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "linux-1-tests.log": "563a350dee732083e51d1a3c27ddf800e041cbf02a0ec6ecc04e508b6cbc0d96",
+    "linux-1-tools.log": "6554be0e25504bf53549cd37197bdf9f00f74c4c3f0ee64b8a85e42f563b2697",
+    "linux-collector-vs-original.patch": "c39f200195c86bbc7dfbaaede6e8140a3cb100c65476371b97603f90f13aeec2",
+    "linux_netns_setup.exs": "3983641dbb912c7300ed3aaefda2062171a7ecf5cc28f1bcecd4d782b57fd9a9",
+    "overlay/hosted/config/runtime.exs": "73cd8edac21bb64c3fba3cd81bb461f2cee651b9f799bd42bfac3e5ffeca6e9f",
+    "overlay/hosted/lib/mixer_hosted/application.ex": "bbf02752b982e1437564c266772cd4e5dd7190670a575dd6676dda7fc692803f",
+    "overlay/hosted/lib/mixer_hosted/identity/manifest.ex": "4b12b89c3b39177c295f68050aba84dcb2e5ae62421b3ebd4810526d125a30b4",
+    "overlay/hosted/lib/mixer_hosted/identity/startup_config.ex": "0c9b11693d34880ca9e9c05fba95e1f3994a0eadd7189a5fde2f65b036ff4d50",
+    "overlay/hosted/lib/mixer_hosted/runtime_config.ex": "e3b8ab88ae4c12788b09d470a71d051bd817ee919db5fe6281054231d38f0286",
+    "overlay/hosted/scripts/test-local.py": "67656b4836fbfc7cc8e435fc607b9fb67784360ed690686ee1aa8f7e8c8b1564",
+    "overlay/hosted/test/foundation_integration_test.exs": "e078b29013547eae82b7b8f3b2e52f531591b53cdcc27e65aad2249f18f9199c",
+    "overlay/hosted/test/mixer_hosted/identity/manifest_endpoint_test.exs": "5c41caab26b19f204d386e9051906cabae490044b209e21b2557dfd1244f9be3",
+    "overlay/hosted/test/mixer_hosted/identity/startup_config_test.exs": "bb9fc59f47c2c4bb15c42608ff52cd3dbe88ed71e73957bda3c4775b96214c3a",
+    "overlay/hosted/test/mixer_hosted/identity/startup_lifecycle_test.exs": "e88301c119b04528879b0b52e896c73075cd2a390bc17ef9b20a2ddf68430ba2",
+    "overlay/hosted/test/mixer_hosted/identity/startup_linux_network_test.exs": "7d28b594476d349b3ca6e35c2dbadb21f6e831f53ace235e3a1e8b85cb712480",
+    "overlay/hosted/test/support/identity_startup_fixture.ex": "075f77531b83d43567c214777ee458cb630f15e62fbd1f009c46100ccacdd761",
+    "overlay-manifest.json": "071ed320f9e957bad71d5a46480758029e3fb65f19730baf758adda7334bb8d5",
+    "patch-apply-check.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "prepare.py": "965b5ffdbdefa90eaa7c9bbceeb11bd926ca1f6d2abb5a01759f2cfa7dd9d371",
+    "run.py": "05b9c3a89321d5b34cfc261759b8563936b7f6a3128b9001f62dfbf7b2304aa4",
+    "run_linux.py": "8340ed28c31f4cbfb2a26038372cd15bdc16b12b9172057549afc138f43946b0",
+    "scratch-open-handles.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "state.json": "f0c0d17703e584a66d6e1b30e3ad710ee55671719f69aa9d1431255805bad06d",
+    "tested-source-manifest.json": "03b464b171934fb98baf5b05d9d221a1dd21a486d7e99f1453d80648fee60260",
+    "tested-source.tar.gz": "576d4851377f355fa825a505907b1a192c5a3a6ee6cf03ffaac665cc17298ec9",
+    "tool-docker.log": "9b8f0e1d15b46031ab7b93c2d07aeec29aaccc759f52ebdc0bdbeb160bd79737",
+    "tool-elixir.log": "44fe1d5e597ef84e0b6859be8ef275ca7da40d28005c64ea6a103835caa29081",
+    "tool-kernel.log": "10c12b8125890b3768695048cf390858bb6f17cf67c1f5747e582c221c2932f0",
+    "tool-mix.log": "bc34b129dd989393fed8f2bedf43c844a721626fc44c7e4ce7b70bc2441df63b",
+    "tool-openssl.log": "50bc8ea637df53e57f6a77e21416ec9a320b8123447130cd1be83698a4863c29",
+    "tool-python.log": "f615dc9512de8b165e2b595e5cdc608a3ba7927ae92f959c5b42ec3d58e2ffa8",
+    "tool-versions.json": "d8d3991010cef4464d2abfce6f8a14419c2faad3de7c6de311d3d2e5b26a0c85"
+  }
+}

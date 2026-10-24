@@ -53,14 +53,14 @@ defmodule MixerHosted.Identity.Manifest do
 
     match?({:error, _}, :inet.parse_address(String.to_charlist(s))) and
       Enum.all?(labels, fn l ->
-        byte_size(l) in 1..63 and Regex.match?(~r/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/, l)
+        byte_size(l) in 1..63 and Regex.match?(~r/\A[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\z/, l)
       end)
   end
 
   defp host?(_), do: false
 
   defp path?(s) when is_binary(s) and byte_size(s) in 1..2048 do
-    String.starts_with?(s, "/") and Regex.match?(~r/^[A-Za-z0-9_~.\/-]+$/, s) and
+    String.starts_with?(s, "/") and Regex.match?(~r/\A[A-Za-z0-9_~.\/-]+\z/, s) and
       not Enum.any?(String.split(s, "/"), &(&1 in [".", ".."]))
   end
 

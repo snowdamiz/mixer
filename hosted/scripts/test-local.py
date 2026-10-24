@@ -85,6 +85,8 @@ try:
     commands[-1]["expected_exit_code"] = 1
     if code != 1 or "invalid or missing hosted setting: MIXER_HOSTED_ROLE" not in rejection:
         raise RuntimeError("release did not reject missing runtime settings as specified")
+    release_code = "Code.ensure_loaded!(MixerHosted.Identity.KeyOwner); Code.ensure_loaded!(MixerHosted.Identity.JWKSTransport); values = %{fixture_owner: function_exported?(MixerHosted.Identity.KeyOwner, :start_fixture, 1), fixture_transport: function_exported?(MixerHosted.Identity.JWKSTransport, :fetch_fixture, 6), startup_fixture: Code.ensure_loaded?(MixerHosted.Identity.StartupFixture), startup_dns_fixture: Code.ensure_loaded?(MixerHosted.Identity.StartupDNSFixture)}; IO.inspect(values, label: \"production_test_export_exclusion\"); true = Enum.all?(Map.values(values), &(&1 == false))"
+    run("release-test-exclusion", ["elixir", "-pa", str(root / "_build/prod/rel/mixer_hosted/lib/mixer_hosted-0.1.0/ebin"), "-e", release_code], prod_env)
     run("initdb", [str(args.pg_bin / "initdb"), "-D", str(scratch / "data"), "-U", "mixer_fixture",
                    "--auth-local=trust", "--auth-host=trust", "--no-locale", "-E", "UTF8"])
     with socket.socket() as candidate:
@@ -100,7 +102,9 @@ try:
     env["MIXER_TEST_IDENTITY_EVIDENCE"] = str(identity_evidence)
     run("createdb", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
                      "mixer_fixture", "mixer_foundation_test"])
-    run("tests", ["mix", "test", "--warnings-as-errors", "--trace"], env)
+    run("createdb-startup", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
+                            "mixer_fixture", "mixer_startup_test"])
+    run("tests", ["mix", "test", "--warnings-as-errors", "--seed", "0", "--trace"], env)
     if before != manifest():
         raise RuntimeError("source changed during tests")
     status = "passed"

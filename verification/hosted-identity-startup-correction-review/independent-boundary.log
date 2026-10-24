@@ -1,0 +1,45 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+
+MixerHosted.Identity.ReviewEndpointBoundaryTest [test/mixer_hosted/identity/review_endpoint_boundary_test.exs]
+  * test all ASCII bytes preserve exact middle-label and path grammar [L#47]  * test all ASCII bytes preserve exact middle-label and path grammar (11.5ms) [L#47]
+
+  1) test all ASCII bytes preserve exact middle-label and path grammar (MixerHosted.Identity.ReviewEndpointBoundaryTest)
+     test/mixer_hosted/identity/review_endpoint_boundary_test.exs:47
+     match (=) failed
+     code:  assert {:error, :invalid_manifest} = Manifest.validate([entry(host, path)])
+     left:  {:error, :invalid_manifest}
+     right: {:ok,
+             %{
+               "review-boundary" => %{
+                 profile: %{
+                   enabled: true,
+                   profile_id: "review-boundary",
+                   profile_version: 1,
+                   issuer: "https://issuer.review.invalid",
+                   audience: "review",
+                   client_id: "review",
+                   identity_class: :human
+                 },
+                 transport: :hosted_https,
+                 jwks_endpoint: %{
+                   port: 443,
+                   path: "/keys",
+                   host: "a.b.review.invalid"
+                 }
+               }
+             }}
+     stacktrace:
+       test/mixer_hosted/identity/review_endpoint_boundary_test.exs:39: MixerHosted.Identity.ReviewEndpointBoundaryTest.check/4
+       test/mixer_hosted/identity/review_endpoint_boundary_test.exs:51: anonymous fn/3 in MixerHosted.Identity.ReviewEndpointBoundaryTest."test all ASCII bytes preserve exact middle-label and path grammar"/1
+       (elixir 1.20.4) lib/enum.ex:4659: Enum.reduce_range/5
+       test/mixer_hosted/identity/review_endpoint_boundary_test.exs:48: (test)
+
+  * test all terminal ASCII controls and Unicode newline separators fail closed [L#56]  * test all terminal ASCII controls and Unicode newline separators fail closed (2.2ms) [L#56]
+  * test LF cannot terminate an intermediate hostname label [L#67]  * test LF cannot terminate an intermediate hostname label (0.07ms) [L#67]
+  * test LF within maximum byte bounds rejects alongside exact valid controls [L#73]  * test LF within maximum byte bounds rejects alongside exact valid controls (2.3ms) [L#73]
+
+Finished in 0.06 seconds (0.06s async, 0.00s sync)
+
+Result: 3/4 passed
+Failed: 1 test

@@ -29,6 +29,7 @@ defmodule MixerHosted.FoundationIntegrationTest do
   defp boot(role) do
     settings = settings(role)
     Application.put_env(:mixer_hosted, :role, settings.role)
+    Application.put_env(:mixer_hosted, :identity_startup, settings.identity_startup)
     Application.put_env(:mixer_hosted, Repo, local_repo())
     Application.put_env(:mixer_hosted, Oban, settings.oban)
 

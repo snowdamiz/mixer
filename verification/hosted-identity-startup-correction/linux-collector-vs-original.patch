@@ -1,0 +1,19 @@
+--- verification/hosted-identity-startup-implementation/run_linux.py
++++ verification/hosted-identity-startup-correction/run_linux.py
+@@ -2,13 +2,13 @@
+ import datetime,hashlib,json,os,shutil,subprocess,sys,tempfile,time
+ from pathlib import Path
+ O=Path(__file__).resolve().parent;R=O.parents[1];state=json.loads((O/'state.json').read_text());S=Path(state['scratch']).resolve();attempt=sys.argv[1]
+-L=Path(tempfile.mkdtemp(prefix='mixer-identity-startup-linux-',dir='/private/tmp')).resolve()
++L=Path(tempfile.mkdtemp(prefix='mixer-identity-startup-correction-linux-')).resolve()
+ shutil.copytree(S/'hosted',L/'hosted',ignore=shutil.ignore_patterns('_build','__pycache__','erl_crash.dump'))
+ shutil.copytree(S/'services',L/'services')
+ shutil.copytree(Path.home()/'.mix/archives/hex-2.5.1',L/'mix/archives/hex-2.5.1')
+ shutil.copy2(Path.home()/'.mix/elixir/1-20-otp-29/rebar3',L/'rebar3')
+-shutil.copy2(R/'verification/hosted-key-owner-implementation/linux_netns_setup.exs',L/'linux_netns_setup.exs')
+-name='mixer-identity-startup-'+L.name.rsplit('-',1)[1];pg=name+'-pg';commands=[];cleanup={};status='failed'
++shutil.copy2(O/'linux_netns_setup.exs',L/'linux_netns_setup.exs')
++name='mixer-identity-startup-correction-'+L.name.rsplit('-',1)[1];pg=name+'-pg';commands=[];cleanup={};status='failed'
+ image='hexpm/elixir@sha256:52ec0f335b9084bcfc0ce3a29b4c0288dc2fc2a07658ff809dc7d07589212cde'
+ pgimage='postgres@sha256:c961aa287d8698297cb26cdfadfbe9fd2cbaf77e53cfffe9636e8d8a1e4d842c'
+ def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()

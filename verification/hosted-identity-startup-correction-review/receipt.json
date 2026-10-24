@@ -1,0 +1,126 @@
+{
+  "schema": 1,
+  "status": "accepted-for-root-integration-development-slice",
+  "observedUTC": "2026-10-24T08:27:40.906707+00:00",
+  "reviewer": "hosted_identity_startup_correction_review",
+  "documentation": "docs/hosted-identity-startup-correction-review.md",
+  "documentationSHA256": "771a13f2045cca36e19f4e6a92967b92c6a5c587cc98c5d9231483f5adb132cb",
+  "correctionReceiptSHA256": "e90dc6714ecf1b9fd34786384cce3db0e8ed61af780ee1ebb2a82370e7db25ed",
+  "acceptedHostedBase": "b0629cf554a1798b2d22ce3e1d349cd1f9504c3a",
+  "reviewHead": "e58e84cab016aa4e74d5fa217c33c19d295fa2ee",
+  "correctedSourceDigest": "bfa2dcc1467f524a68fec298bdd098625f450b68ab2bd68b99f2a73d435772c3",
+  "cumulativePatchSHA256": "b8e19489a86e4bfe621dc478070f48c4aebad58dc98d950599020eecad0add49",
+  "correctionDeltaSHA256": "1b5fee53a73ddcafb3122c2bad874985a191a67c472b12210cd12b217b1439d1",
+  "producerBindingsVerified": 92,
+  "originalImplementationBindingsVerified": 197,
+  "originalReviewBindingsVerified": 80,
+  "candidateSourceFiles": 69,
+  "originalStartupOverlayFilesUnchanged": 10,
+  "dependencyFiles": 914,
+  "dependencyDigest": "99bc0e5256ca834e5cd24bfcd3a1f5b158d5479af5677cccbe998ee005628452",
+  "reviewSourceDigest": "1aeffe7cc253fcfe415e9e41988407ffd186312a0d1eb1b008a3c35016bddc74",
+  "sourceArchiveSHA256": "9391b8a0330cd5b6a9eb009a3e3c0136bee910f0eac8ae6879b62eb2fbf490be",
+  "freshTests": {
+    "oldIndependentAdversarial": {
+      "passed": 9,
+      "failed": 0
+    },
+    "oldMinimalRegressions": {
+      "passed": 4,
+      "failed": 0
+    },
+    "correctionFocused": {
+      "passed": 14,
+      "failed": 0
+    },
+    "newIndependentBoundaries": {
+      "passed": 4,
+      "failed": 0
+    },
+    "totalPassed": 31,
+    "platform": "macOS arm64; Elixir 1.20.4; OTP 29"
+  },
+  "reusedEvidence": {
+    "earlierIndependentNormal": "macOS 85 passed + two Linux-only skips; Linux 87 passed; actual Application/Endpoint/PostgreSQL lifecycle and production DNS/HTTPS adapter",
+    "correctedProducerNormal": "macOS 93 passed + two Linux-only skips; Linux 95 passed; source/output/archive/metrics/cleanup independently verified",
+    "correctedProducerRelease": "build pass; expected missing-config exit 1; four test-only exports excluded",
+    "freshIndependentLifecycleOrNetworkReplay": false,
+    "reason": "Exact unchanged startup/transport/owner source and dependencies; no unresolved new concern. Fresh focused independent replay covers both changed anchors."
+  },
+  "findingDisposition": {
+    "IR-F01": "resolved on exact corrected candidate; no malformed endpoint transport exploit claimed"
+  },
+  "unresolvedFindings": [],
+  "recommendation": "Root may integrate the exact cumulative patch as a development slice. No GA acceptance or production authorization.",
+  "failedAttempts": "reviewer-attempts.json; initial reviewer source and output retained. Historical product finding/baseline failures remain in frozen prior packets.",
+  "limitations": [
+    "Normal corrected full matrix/release are verified producer receipts, not fresh independent executions in this review.",
+    "Synthetic loopback PostgreSQL without TLS; production DB TLS configuration only.",
+    "Synthetic CA/DNS/TLS/signed tokens; no real identity provider.",
+    "No authenticated HTTP, membership, permissions, provider selection/discovery, durable registry, Neon/Cloudflare operation, separately published FieldLog, native/physical, customer or GA qualification.",
+    "Physical phones disconnected and deferred; no UI work.",
+    "No live product/tracker/frozen packet changes, commit/push, production publication or credentials."
+  ],
+  "cleanup": {
+    "openHandles": {
+      "argv": [
+        "lsof",
+        "-nP",
+        "+D",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity-startup-correction-review-rllvjohq"
+      ],
+      "exitCode": 1,
+      "output": "scratch-open-handles.log",
+      "outputSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "observedOpenHandles": false
+    },
+    "ownedScratch": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-identity-startup-correction-review-rllvjohq",
+    "ownedScratchRemoved": true,
+    "PostgreSQLCreated": false,
+    "containersCreated": false,
+    "nativeOrPhysicalInstancesCreated": false,
+    "scope": "Only unique reviewer-owned source scratch removed. Other projects and live sources preserved."
+  },
+  "additionalCommand": {
+    "argv": [
+      "python3",
+      "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-identity-startup-correction-review/assess_evidence.py"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+    "exitCode": 0,
+    "output": "evidence-assessment.log",
+    "outputSHA256": "064254e95959c7b6c6d32e0f8f7e94b3bb0af156f459ae2aad32d1d32475bc47"
+  },
+  "bindings": {
+    "assess_evidence.py": "110a71c668b31371e6352474b07e6eed15a4c0fd8b7e886c76bda3a036bad6e4",
+    "boundary-format-2.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "boundary-format.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "cleanup.json": "3a87cab507b1dd6b46628007fd74e766b62ac7318b7d816e7ba3ce47cb0d1da7",
+    "correction-focused.log": "b52583c8353c7d9698d3c2cfa3875408d4a5bc48560a15115d7dd5df1714f4aa",
+    "cumulative-apply.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "endpoint_regression_test.exs": "9d32c0c3c563fa75c94cdde0bc34f0bb21a54f8c3d0bf6eb39bd8638f6954c96",
+    "evidence-assessment.json": "b6e72f55b72ef46d2bdf9924ead74b9fecc838165aac64b54737f2950a8e4560",
+    "evidence-assessment.log": "064254e95959c7b6c6d32e0f8f7e94b3bb0af156f459ae2aad32d1d32475bc47",
+    "freeze.py": "1e04e678683cf61e429e66f7c04bd006f01a5fd4ff5256fbb8c7421f2f40da24",
+    "independent-boundary-2.log": "15753bdbd50135e840ba189972814bedf9281cd4d2e9c537eba31c0ca89b973a",
+    "independent-boundary.log": "0bfccd1f6253b2d5a283612b8d62beac4f7c66eee7cbf9caa6c2774afbdca114",
+    "old-adversarial.log": "68ed60194424747c485a3297b082491f81f46e2a9af4f31a1113eccc63f5adfc",
+    "old-minimal.log": "ec8605d811181c5c34a1dc1f6e8071974fb230faf629c2e433f4e748c3868468",
+    "prepare.py": "52f7fa0186b4aa840eef35edcb2b4bfd97a6ae07b8ac72da13abf0ce809f86f4",
+    "review-source-manifest.json": "d28194eaf1e64f13ab86340474666b95d0a5765a84b251bafe4019f17f079fc5",
+    "review-source.tar.gz": "9391b8a0330cd5b6a9eb009a3e3c0136bee910f0eac8ae6879b62eb2fbf490be",
+    "review_endpoint_boundary_test-attempt1.exs": "81149beba1fe86b980ff4c6b048121346bf19e88221f67ad79e15661f9484b40",
+    "review_endpoint_boundary_test.exs": "f8941c303881183ccc8cfa6241c65b79940af8058ad8e7302f7d40da34e3f3c5",
+    "review_startup_adversarial_test.exs": "933afa1241fd99b6764a5582501c0c118abe6e400c45b0d6d2af420cf4e30ecb",
+    "reviewer-attempts.json": "f7853fa796e2fae86a570d2acef4eb6f2373b085e2b0e6fd5b2f70b8b721d9d3",
+    "run.py": "a0f515a42a42c607f3aa0add79ec426103ce7ad5dee56e142b7335c27092f8d1",
+    "scratch-open-handles.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source-verification.json": "19ff60217efdbc526ab6598fe082c75f6a41daad03c2a30b5b0958691e80c7bc",
+    "state.json": "4c944f204214878e21d8e0e18e46dfea933b594edc36cb8cbb3536138a4e1add",
+    "tool-elixir.log": "44fe1d5e597ef84e0b6859be8ef275ca7da40d28005c64ea6a103835caa29081",
+    "tool-kernel.log": "10c12b8125890b3768695048cf390858bb6f17cf67c1f5747e582c221c2932f0",
+    "tool-mix.log": "bc34b129dd989393fed8f2bedf43c844a721626fc44c7e4ce7b70bc2441df63b",
+    "tool-openssl.log": "50bc8ea637df53e57f6a77e21416ec9a320b8123447130cd1be83698a4863c29",
+    "tool-python.log": "f615dc9512de8b165e2b595e5cdc608a3ba7927ae92f959c5b42ec3d58e2ffa8"
+  }
+}

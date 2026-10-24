@@ -1,0 +1,194 @@
+--- a/hosted/lib/mixer_hosted/identity/manifest.ex
++++ b/hosted/lib/mixer_hosted/identity/manifest.ex
+@@ -53,14 +53,14 @@
+ 
+     match?({:error, _}, :inet.parse_address(String.to_charlist(s))) and
+       Enum.all?(labels, fn l ->
+-        byte_size(l) in 1..63 and Regex.match?(~r/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/, l)
++        byte_size(l) in 1..63 and Regex.match?(~r/\A[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\z/, l)
+       end)
+   end
+ 
+   defp host?(_), do: false
+ 
+   defp path?(s) when is_binary(s) and byte_size(s) in 1..2048 do
+-    String.starts_with?(s, "/") and Regex.match?(~r/^[A-Za-z0-9_~.\/-]+$/, s) and
++    String.starts_with?(s, "/") and Regex.match?(~r/\A[A-Za-z0-9_~.\/-]+\z/, s) and
+       not Enum.any?(String.split(s, "/"), &(&1 in [".", ".."]))
+   end
+ 
+--- /dev/null
++++ b/hosted/test/mixer_hosted/identity/manifest_endpoint_test.exs
+@@ -0,0 +1,172 @@
++defmodule MixerHosted.Identity.ManifestEndpointTest do
++  use ExUnit.Case, async: true
++  alias MixerHosted.Identity.{Manifest, StartupFixture}
++
++  setup_all do
++    {:ok, roots: StartupFixture.standard_roots()}
++  end
++
++  defp entry(host, path) do
++    %{
++      profile: %{
++        profile_id: "endpoint-regression",
++        profile_version: 1,
++        issuer: "https://issuer.regression.invalid",
++        audience: "mixer-api",
++        client_id: "reviewed-client",
++        identity_class: :human,
++        enabled: true
++      },
++      jwks_endpoint: %{host: host, port: 443, path: path},
++      transport: :hosted_https
++    }
++  end
++
++  defp configured(host, path, roots) do
++    StartupFixture.envelope()
++    |> put_in(["profiles", Access.at(0), "jwks_endpoint", "host"], host)
++    |> put_in(["profiles", Access.at(0), "jwks_endpoint", "path"], path)
++    |> StartupFixture.configuration(roots)
++  end
++
++  defp rejected_hosts do
++    [
++      "keys.independent.invalid\n",
++      "keys.independent.invalid\r\n",
++      "keys.independent.invalid\r",
++      "keys.independent.invalid\t",
++      "keys.independent.invalid\0",
++      "\nkeys.independent.invalid",
++      "keys.\nindependent.invalid",
++      "keys\n.independent.invalid",
++      "keys.independent.invalid\nsuffix"
++    ]
++  end
++
++  defp rejected_paths do
++    [
++      "/keys\n",
++      "/keys\r\n",
++      "/keys\r",
++      "/keys\t",
++      "/keys\0",
++      "\n/keys",
++      "/ke\nys",
++      "/keys\nsuffix"
++    ]
++  end
++
++  defp valid_endpoints do
++    [
++      {"a", "/"},
++      {"a-b.c0", "/AZaz09_~.-/keys"},
++      {"keys.independent.invalid", "/keys"},
++      {String.duplicate("a", 63), "/" <> String.duplicate("a", 2047)},
++      {Enum.join(
++         [
++           String.duplicate("a", 63),
++           String.duplicate("b", 63),
++           String.duplicate("c", 63),
++           String.duplicate("d", 61)
++         ],
++         "."
++       ), "/keys"}
++    ]
++  end
++
++  defp outside_bounds do
++    [
++      {"", "/keys"},
++      {String.duplicate("a", 64), "/keys"},
++      {Enum.join(
++         [
++           String.duplicate("a", 63),
++           String.duplicate("b", 63),
++           String.duplicate("c", 63),
++           String.duplicate("d", 62)
++         ],
++         "."
++       ), "/keys"},
++      {"keys.independent.invalid", ""},
++      {"keys.independent.invalid", "/" <> String.duplicate("a", 2048)},
++      {"keys.independent.invalid", "/./keys"},
++      {"keys.independent.invalid", "/a/../keys"},
++      {"keys.independent.invalid", "/keys?query"},
++      {"keys.independent.invalid.", "/keys"},
++      {"Keys.independent.invalid", "/keys"},
++      {"-keys.independent.invalid", "/keys"},
++      {"keys-.independent.invalid", "/keys"}
++    ]
++  end
++
++  test "Manifest rejects terminal LF, CRLF and embedded/control bytes in endpoint host" do
++    for host <- rejected_hosts() do
++      assert {:error, :invalid_manifest} = Manifest.validate([entry(host, "/keys")])
++    end
++  end
++
++  test "Manifest rejects terminal LF, CRLF and embedded/control bytes in endpoint path" do
++    for path <- rejected_paths() do
++      assert {:error, :invalid_manifest} =
++               Manifest.validate([entry("keys.independent.invalid", path)])
++    end
++  end
++
++  test "StartupConfig rejects terminal LF, CRLF and embedded/control bytes in endpoint host", %{
++    roots: roots
++  } do
++    for host <- rejected_hosts() do
++      assert_raise ArgumentError, "invalid identity startup: configuration", fn ->
++        configured(host, "/keys", roots)
++      end
++    end
++  end
++
++  test "StartupConfig rejects terminal LF, CRLF and embedded/control bytes in endpoint path", %{
++    roots: roots
++  } do
++    for path <- rejected_paths() do
++      assert_raise ArgumentError, "invalid identity startup: configuration", fn ->
++        configured("keys.independent.invalid", path, roots)
++      end
++    end
++  end
++
++  test "Manifest preserves valid characters and exact original endpoint bounds" do
++    assert byte_size(elem(List.last(valid_endpoints()), 0)) == 253
++    assert byte_size(elem(Enum.at(valid_endpoints(), 3), 0)) == 63
++    assert byte_size(elem(Enum.at(valid_endpoints(), 3), 1)) == 2048
++
++    for {host, path} <- valid_endpoints() do
++      candidate = entry(host, path)
++      assert {:ok, %{"endpoint-regression" => ^candidate}} = Manifest.validate([candidate])
++    end
++  end
++
++  test "StartupConfig preserves valid characters and exact original endpoint bounds", %{
++    roots: roots
++  } do
++    for {host, path} <- valid_endpoints() do
++      settings = configured(host, path, roots)
++      assert settings.mode == :configured
++      assert [candidate] = settings.owner_options[:manifest]
++      assert candidate.jwks_endpoint == %{host: host, port: 443, path: path}
++    end
++  end
++
++  test "Manifest preserves rejection immediately outside original bounds and grammar" do
++    for {host, path} <- outside_bounds() do
++      assert {:error, :invalid_manifest} = Manifest.validate([entry(host, path)])
++    end
++  end
++
++  test "StartupConfig preserves rejection immediately outside original bounds and grammar", %{
++    roots: roots
++  } do
++    for {host, path} <- outside_bounds() do
++      assert_raise ArgumentError, "invalid identity startup: configuration", fn ->
++        configured(host, path, roots)
++      end
++    end
++  end
++end

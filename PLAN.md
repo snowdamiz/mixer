@@ -51,8 +51,8 @@ resolving the prior milestone busy-admission revalidation. No GA gate is closed.
 The configured key-owner and signed artifact-admission components now have
 root acceptance after independent review and a composed 73-pass host run. The
 artifact overlay is applied exactly; existing v3 bytes and signed authority
-remain unchanged. Application wiring, authenticated HTTP and current database
-membership are still pending. See `docs/hosted-identity-artifact-checkpoint.md`
+remain unchanged. At that component checkpoint, application wiring, authenticated HTTP and current
+database membership remained pending; startup integration is recorded below. See `docs/hosted-identity-artifact-checkpoint.md`
 and `verification/hosted-component-integration-root-review/acceptance.json`.
 The `dd604eca` engine jobs all pass. Its Phoenix CI exposed a platform-specific
 temporary directory in a test fixture. The portable fixture and isolated test
@@ -72,9 +72,13 @@ The narrow atomic SQL writer, fixed audit/state encodings and bounded local blob
 fixture now have independent mechanics review, with seven mandatory correction
 groups selected in `docs/hosted-atomic-storage-corrections.md`. A corrected
 isolated specimen is assigned; no repository acceptance or migration is applied.
-The identity startup candidate also remains isolated: review reproduced an
-inherited endpoint trailing-newline validation defect. A focused correction and
-regressions are assigned; see `docs/hosted-identity-startup-review.md`.
+Configured identity startup is now integrated after the independently reproduced
+endpoint newline defect was corrected. The corrected source passes 95 Linux
+tests, 31 independent focused cases and 93 root host tests with two explicit
+Linux-only skips; release and cleanup checks pass. See
+`docs/hosted-identity-startup-checkpoint.md`. Authenticated HTTP and current
+database authority remain pending; their exact schema/resolver prerequisite
+is being developed in an isolated PostgreSQL specimen.
 
 The private Swift control candidate 2 now has root source/accounting preflight
 acceptance after fresh independent MIR, eight layout configurations and unchanged

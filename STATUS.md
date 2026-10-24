@@ -181,8 +181,8 @@ namespace test is explicitly skipped on macOS and exercised in separate Linux
 runs. Root verifies 308 acceptance bindings and all 56 composed source inputs.
 See `docs/hosted-identity-artifact-checkpoint.md` and
 `verification/hosted-component-integration-root-review/acceptance.json`.
-Application wiring, authenticated HTTP and authoritative database membership
-remain pending. The narrow atomic-writer/audit/blob contract and real PostgreSQL
+At that component checkpoint, application wiring, authenticated HTTP and database
+membership remained pending; startup is now integrated as recorded below. The narrow atomic-writer/audit/blob contract and real PostgreSQL
 probe has 41 passing producer cases. Independent review adds 20 cases and
 reproduces seven mandatory validation gaps; its 61 successful observations do
 not turn those gaps into passes. Root selects AS01–AS07 corrections in
@@ -222,14 +222,20 @@ invocation remain unimplemented. Native UI
 access was rechecked and the Mac remains locked; no new Apple test instance
 was started. Simulator/emulator permission remains active; phones are deferred.
 
-The configured identity startup overlay remains isolated. Its original candidate
-passes 85 macOS tests with two Linux-only skips and 87 Linux tests, including
-actual application startup, cold DNS/TLS authentication and lifecycle cleanup.
-Independent review reproduced a trailing-newline endpoint validation defect in
-the inherited Manifest validator. The original review is correction-required;
-a focused anchor fix and direct Manifest/StartupConfig regressions are assigned
-in a separate candidate. No startup acceptance is claimed. See
-`docs/hosted-identity-startup-review.md`.
+Configured identity startup is accepted and integrated with the strict endpoint
+anchor correction. The original newline failure and review remain preserved.
+Corrected producer evidence passes 93 macOS tests with two explicit Linux-only
+skips and 95 Linux tests; independent correction review passes 31 focused cases.
+Root verifies 403 prior evidence bindings, applies the exact twelve-file overlay
+and separately passes 93 integrated host tests, two explicit Linux-only skips,
+release construction, missing-config rejection and four test-export exclusions.
+Its PostgreSQL instance is stopped and scratch removed. Startup is cold and
+configured only for the API; disabled mode remains liveness-only. See
+`docs/hosted-identity-startup-checkpoint.md` and
+`verification/hosted-identity-startup-root-review/acceptance.json`. Current database
+authority, authenticated HTTP, real provider and cloud operations remain pending.
+The schema/resolver contract is being developed in an isolated PostgreSQL probe;
+no authorization migration or full gate acceptance is claimed.
 
 The release server now owns a configuration snapshot before validation/storage
 open. Independent probes reproduced caller mutations changing token permissions,
