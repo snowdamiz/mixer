@@ -89,15 +89,18 @@ in the public Activity or signed route.
 The W08 control-helper extraction stopped at its accounting prerequisite:
 the proposed fallible adapters add at least 1,176 bytes of named result-transfer
 storage, exceeding the entire 512-byte scalar allowance by 664 bytes before
-other roles. All 116 VM source files remain unchanged. Root retained the rejected
+other roles. That rejected attempt preserved all 116 VM source files. Root retained the rejected
 proposal and four isolated compiler probes at
 `verification/swift-control-extraction/root-rejection.json`. A smaller private
 literal macro has separate implementation authorization at
 `verification/swift-control-macro-extraction/root-freeze.json` after exact compiler
-expansion, unchanged layout/formula and privacy checks. Its executable behavior
-acceptance remains pending.
-Swift active frames and their complete entry/finish/unwind ownership, dispatch,
-memory and host integration remain subsequent work.
+expansion, unchanged layout/formula and privacy checks. That extraction now has
+host implementation acceptance at
+`verification/swift-control-macro-root-review/acceptance.json`: 795 matching
+baseline/candidate control observations per four configurations, independent
+review of 44 binaries, and root replay of eight public/private host tests.
+The complete private active-frame entry/return/unwind ownership contract is next;
+Swift control invocation, dispatch, memory and host integration remain incomplete.
 
 The private Android host binding is now accepted within its recorded host scope;
 see `verification/android-binding-stage4-root-review/acceptance.json`. Root

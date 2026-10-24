@@ -41,13 +41,16 @@ sufficient for development acceptance; physical side-by-side review is deferred
 to final acceptance. See `verification/ui-design-parity-plan-update/receipt.json`
 and `verification/simulator-development-policy/receipt.json`.
 
-The next interpreter control-helper extraction failed its memory-accounting
-preflight before production edits. Four isolated compiler probes preserve the
-unchanged VM source and reservation. A smaller literal macro extraction passed
-its expansion/layout preflight and is now being implemented under a separate
-freeze; executable behavior acceptance remains pending. This rejection is retained in
-`verification/swift-control-extraction/root-rejection.json` and does not change
-the accepted zero-frame value-operation scope.
+The first interpreter control-helper extraction failed its memory-accounting
+preflight before production edits; that rejection remains preserved. The smaller
+private literal macro extraction now has host implementation acceptance: six
+public tests produce 795 identical baseline/candidate observations in each of
+four configurations. Independent review verifies 44 qualifying binaries; root
+replays six public tests and two actual-owner private probes. The original method
+bodies, ownership, failure order and 2,912-byte reservation are unchanged.
+See `verification/swift-control-macro-root-review/acceptance.json`. This enables
+the next active-frame ownership contract; Swift control execution, entry/return/
+unwind and full dispatch remain incomplete.
 
 Active work: native shared-theme renderer integration and failure-atomic
 attachment for W03–W05, plus complete Swift guest execution for W08. Both V2

@@ -568,12 +568,7 @@ impl SpanInstance {
         self.observe();
         Ok(value)
     }
-    fn pop32(&mut self) -> Result<i32, ExecutionFailure> {
-        match self.pop()? {
-            Value::I32(value) => Ok(value),
-            _ => Err(self.invariant()),
-        }
-    }
+    borrowed::frozen_control_methods!();
     fn charge(&mut self, amount: u64, instruction: bool) -> Result<(), ExecutionFailure> {
         self.check()?;
         let limit = self.cache.spans().limits().fuel;
@@ -807,51 +802,6 @@ impl SpanInstance {
         } else {
             self.enter(function)
         }
-    }
-    fn close_control(&mut self, control: Control) -> Result<(), ExecutionFailure> {
-        let value = if control.result {
-            Some(self.pop()?)
-        } else {
-            None
-        };
-        if control.height > self.values.len() {
-            return Err(self.invariant());
-        }
-        self.work(self.values.len() - control.height + 1)?;
-        self.values.truncate(control.height);
-        self.observe();
-        if let Some(value) = value {
-            self.push(value)?;
-        }
-        Ok(())
-    }
-    fn branch(&mut self, depth: u32) -> Result<bool, ExecutionFailure> {
-        let frame = self.frames.last().ok_or_else(|| self.invariant())?;
-        let index = self
-            .controls
-            .len()
-            .checked_sub(depth as usize + 1)
-            .filter(|i| *i >= frame.controls)
-            .ok_or_else(|| self.invariant())?;
-        let mut control = self.controls[index];
-        self.work(self.controls.len() - index)?;
-        if control.kind == Kind::Loop {
-            control.result = false;
-        }
-        self.close_control(control)?;
-        self.controls.truncate(if control.kind == Kind::Loop {
-            index + 1
-        } else {
-            index
-        });
-        let pc = if control.kind == Kind::Loop {
-            control.start
-        } else {
-            control.end + 1
-        };
-        self.frames.last_mut().ok_or_else(unreachable_failure)?.pc = pc;
-        self.observe();
-        Ok(control.kind == Kind::Function)
     }
     fn finish(&mut self) -> Result<Option<Value>, ExecutionFailure> {
         let result = self.frames.last().ok_or_else(|| self.invariant())?.result;
