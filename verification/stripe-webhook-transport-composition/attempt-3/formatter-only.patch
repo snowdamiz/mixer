@@ -1,0 +1,24 @@
+--- reviewed/webhook_transport.ex
++++ normalized/webhook_transport.ex
+@@ -91,7 +91,8 @@
+   defp approved_primary?(
+          {:logger_translator,
+           {fun, %{otp: true, sasl: false, translators: [{Logger.Translator, :translate}]}}}
+-       ), do: identity(fun) == {{:module, Logger.Utils}, {:name, :translator}, {:type, :external}}
++       ),
++       do: identity(fun) == {{:module, Logger.Utils}, {:name, :translator}, {:type, :external}}
+ 
+   defp approved_primary?({:logger_process_level, {fun, []}}),
+     do: identity(fun) == {{:module, Logger.Utils}, {:name, :process_level}, {:type, :external}}
+@@ -671,7 +672,10 @@
+         {DynamicSupervisor, name: __MODULE__.Guards, strategy: :one_for_one},
+         {Owner, plug},
+         listener
+-      ], strategy: :one_for_all, max_restarts: 0)
++      ],
++      strategy: :one_for_all,
++      max_restarts: 0
++    )
+   end
+ 
+   def capture(conn) do

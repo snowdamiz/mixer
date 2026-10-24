@@ -1,0 +1,254 @@
+Running ExUnit with seed: 93296, max_cases: 30
+
+count: 1, reason: started, event: webhook_transport
+count: 1, reason: started, event: webhook_transport
+count: 1, reason: request, event: webhook_transport
+count: 1, reason: request, event: webhook_transport
+count: 1, reason: admitted, event: webhook_transport
+count: 1, reason: admitted, event: webhook_transport
+count: 1, reason: expired, event: webhook_transport
+count: 1, reason: expired, event: webhook_transport
+.
+10:42:48.171 [info] The function passed as a handler with ID "unexpected-private-raw" is a local function.
+This means that it is either an anonymous function or a capture of a function without a module specified. That may cause a performance penalty when calling that handler. For more details see the note in `telemetry:attach/4` documentation.
+
+https://hexdocs.pm/telemetry/telemetry.html#attach/4
+.count: 1, reason: started, event: webhook_transport
+count: 1, reason: started, event: webhook_transport
+count: 1, reason: request, event: webhook_transport
+count: 1, reason: request, event: webhook_transport
+count: 1, reason: started, event: webhook_transport
+count: 1, reason: started, event: webhook_transport
+count: 1, reason: request, event: webhook_transport
+count: 1, reason: request, event: webhook_transport
+
+
+  1) test P03 frozen H2 reader queued DATA and exact five-second disposal (PrivateTransportTest)
+     /var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-webhook-transport-1fywxz6w/source/tests/adversarial.exs:152
+     Expected truthy, got false
+     code: assert Enum.any?(snapshot.history, &(&1.reason == :expired and &1.overshoot_ms <= 100))
+     arguments:
+
+         # 1
+         [
+           %{
+             reason: false,
+             deadline: -576460739201,
+             ended: -576460743150,
+             overshoot_ms: 0
+           }
+         ]
+
+         # 2
+         #Function<26.39484670/1 in PrivateTransportTest."test P03 frozen H2 reader queued DATA and exact five-second disposal"/1>
+
+     stacktrace:
+       /var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-webhook-transport-1fywxz6w/source/tests/adversarial.exs:167: anonymous fn/3 in PrivateTransportTest."test P03 frozen H2 reader queued DATA and exact five-second disposal"/1
+       /var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-webhook-transport-1fywxz6w/source/tests/adversarial.exs:57: PrivateTransportHelpers.role/1
+       /var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-webhook-transport-1fywxz6w/source/tests/adversarial.exs:154: (test)
+
+count: 1, reason: owner_lost, event: webhook_transport
+count: 1, reason: owner_lost, event: webhook_transport
+count: 1, reason: started, event: webhook_transport
+count: 1, reason: started, event: webhook_transport
+count: 1, reason: request, event: webhook_transport
+count: 1, reason: request, event: webhook_transport
+count: 1, reason: started, event: webhook_transport
+count: 1, reason: started, event: webhook_transport
+count: 1, reason: request, event: webhook_transport
+count: 1, reason: request, event: webhook_transport
+count: 1, reason: owner_lost, event: webhook_transport
+count: 1, reason: owner_lost, event: webhook_transport
+
+10:42:49.912 [error] GenServer #PID<0.343.0> terminating
+** (stop) exited in: GenServer.stop(#PID<0.338.0>, :normal, :infinity)
+    ** (EXIT) no process: the process is not alive or there's no process currently associated with the given name, possibly because its application isn't started
+    (elixir 1.20.4) lib/gen_server.ex:1144: GenServer.stop/3
+    (stdlib 8.1) gen_server.erl:2482: :gen_server.try_terminate/3
+    (stdlib 8.1) gen_server.erl:2733: :gen_server.terminate/9
+    (stdlib 8.1) proc_lib.erl:333: :proc_lib.init_p_do_apply/3
+Process Label: {:thousand_island, :shutdown_listener, {0, Bandit.DelegatingHandler}}
+Last message: {:EXIT, #PID<0.337.0>, :killed}
+State: #PID<0.338.0>
+
+10:42:49.912 [error] GenServer #PID<0.339.0> terminating
+** (stop) killed
+Process Label: {:thousand_island, :acceptor_pool_supervisor, {0, Bandit.DelegatingHandler}}
+Last message: {:EXIT, #PID<0.337.0>, :killed}
+State: {:state, {#PID<0.339.0>, ThousandIsland.AcceptorPoolSupervisor}, :one_for_one, {["acceptor-1"], %{"acceptor-1" => {:child, #PID<0.340.0>, "acceptor-1", {ThousandIsland.AcceptorSupervisor, :start_link, [{#PID<0.337.0>, 1, %ThousandIsland.ServerConfig{port: 0, transport_module: ThousandIsland.Transports.TCP, transport_options: [backlog: 128, ip: {127, 0, 0, 1}], handler_module: Bandit.DelegatingHandler, handler_options: %{opts: %{http: [log_protocol_errors: false, log_client_closures: false, log_exceptions_with_status_codes: []], http_1: [max_request_line_length: 512, max_header_length: 8192, max_header_count: 32, max_requests: 1, log_unknown_messages: false], http_2: [max_header_block_size: 16384, max_requests: 1, max_reset_stream_rate: {16, 1000}, default_local_settings: [max_header_list_size: 16384, header_table_size: 4096, max_frame_size: 16384, max_concurrent_streams: 1]], websocket: []}, plug: {PrivateTransportPlug, []}, handler_module: Bandit.InitialHandler, http_1_enabled: true, http_2_enabled: true}, genserver_options: [], supervisor_options: [], num_acceptors: 1, num_listen_sockets: 1, num_connections: 16, max_connections_retry_count: 0, max_connections_retry_wait: 1000, read_timeout: 1000, handshake_timeout: 1000, shutdown_timeout: 1000, silent_terminate_on_error: false}}]}, :permanent, false, :infinity, :supervisor, [ThousandIsland.AcceptorSupervisor]}}}, :undefined, 3, 5, [], 0, 0, :never, 1000, false, #Reference<0.3389701509.964952067.42864>, ThousandIsland.AcceptorPoolSupervisor, {#PID<0.337.0>, %ThousandIsland.ServerConfig{port: 0, transport_module: ThousandIsland.Transports.TCP, transport_options: [backlog: 128, ip: {127, 0, 0, 1}], handler_module: Bandit.DelegatingHandler, handler_options: %{opts: %{http: [log_protocol_errors: false, log_client_closures: false, log_exceptions_with_status_codes: []], http_1: [max_request_line_length: 512, max_header_length: 8192, max_header_count: 32, max_requests: 1, log_unknown_messages: false], http_2: [max_header_block_size: 16384, max_requests: 1, max_reset_stream_rate: {16, 1000}, default_local_settings: [max_header_list_size: 16384, header_table_size: 4096, max_frame_size: 16384, max_concurrent_streams: 1]], websocket: []}, plug: {PrivateTransportPlug, []}, handler_module: Bandit.InitialHandler, http_1_enabled: true, http_2_enabled: true}, genserver_options: [], supervisor_options: [], num_acceptors: 1, num_listen_sockets: 1, num_connections: 16, max_connections_retry_count: 0, max_connections_retry_wait: 1000, read_timeout: 1000, handshake_timeout: 1000, shutdown_timeout: 1000, silent_terminate_on_error: false}}}
+count: 1, reason: started, event: webhook_transport
+count: 1, reason: started, event: webhook_transport
+count: 1, reason: request, event: webhook_transport
+count: 1, reason: request, event: webhook_transport
+.count: 1, reason: started, event: webhook_transport
+count: 1, reason: started, event: webhook_transport
+count: 2, reason: started, event: webhook_transport
+count: 2, reason: started, event: webhook_transport
+count: 3, reason: started, event: webhook_transport
+count: 3, reason: started, event: webhook_transport
+count: 4, reason: started, event: webhook_transport
+count: 4, reason: started, event: webhook_transport
+count: 5, reason: started, event: webhook_transport
+count: 5, reason: started, event: webhook_transport
+count: 6, reason: started, event: webhook_transport
+count: 6, reason: started, event: webhook_transport
+count: 7, reason: started, event: webhook_transport
+count: 7, reason: started, event: webhook_transport
+count: 8, reason: started, event: webhook_transport
+count: 8, reason: started, event: webhook_transport
+count: 9, reason: started, event: webhook_transport
+count: 9, reason: started, event: webhook_transport
+count: 10, reason: started, event: webhook_transport
+count: 10, reason: started, event: webhook_transport
+count: 11, reason: started, event: webhook_transport
+count: 11, reason: started, event: webhook_transport
+count: 12, reason: started, event: webhook_transport
+count: 12, reason: started, event: webhook_transport
+count: 13, reason: started, event: webhook_transport
+count: 13, reason: started, event: webhook_transport
+count: 14, reason: started, event: webhook_transport
+count: 14, reason: started, event: webhook_transport
+count: 15, reason: started, event: webhook_transport
+count: 15, reason: started, event: webhook_transport
+count: 16, reason: started, event: webhook_transport
+count: 16, reason: started, event: webhook_transport
+count: 1, reason: request, event: webhook_transport
+count: 1, reason: request, event: webhook_transport
+count: 2, reason: request, event: webhook_transport
+count: 2, reason: request, event: webhook_transport
+count: 3, reason: request, event: webhook_transport
+count: 3, reason: request, event: webhook_transport
+count: 4, reason: request, event: webhook_transport
+count: 4, reason: request, event: webhook_transport
+count: 5, reason: request, event: webhook_transport
+count: 5, reason: request, event: webhook_transport
+count: 6, reason: request, event: webhook_transport
+count: 6, reason: request, event: webhook_transport
+count: 7, reason: request, event: webhook_transport
+count: 7, reason: request, event: webhook_transport
+count: 8, reason: request, event: webhook_transport
+count: 8, reason: request, event: webhook_transport
+count: 9, reason: request, event: webhook_transport
+count: 9, reason: request, event: webhook_transport
+count: 10, reason: request, event: webhook_transport
+count: 10, reason: request, event: webhook_transport
+count: 11, reason: request, event: webhook_transport
+count: 11, reason: request, event: webhook_transport
+count: 12, reason: request, event: webhook_transport
+count: 12, reason: request, event: webhook_transport
+count: 13, reason: request, event: webhook_transport
+count: 13, reason: request, event: webhook_transport
+count: 14, reason: request, event: webhook_transport
+count: 14, reason: request, event: webhook_transport
+count: 15, reason: request, event: webhook_transport
+count: 15, reason: request, event: webhook_transport
+count: 16, reason: request, event: webhook_transport
+count: 16, reason: request, event: webhook_transport
+count: 17, reason: started, event: webhook_transport
+count: 17, reason: started, event: webhook_transport
+count: 17, reason: request, event: webhook_transport
+count: 17, reason: request, event: webhook_transport
+count: 18, reason: started, event: webhook_transport
+count: 18, reason: started, event: webhook_transport
+count: 18, reason: request, event: webhook_transport
+count: 18, reason: request, event: webhook_transport
+count: 19, reason: started, event: webhook_transport
+count: 19, reason: started, event: webhook_transport
+count: 20, reason: started, event: webhook_transport
+count: 20, reason: started, event: webhook_transport
+.count: 1, reason: started, event: webhook_transport
+count: 1, reason: started, event: webhook_transport
+count: 1, reason: request, event: webhook_transport
+count: 1, reason: request, event: webhook_transport
+count: 1, reason: caller, event: webhook_transport
+count: 1, reason: caller, event: webhook_transport
+count: 2, reason: started, event: webhook_transport
+count: 2, reason: started, event: webhook_transport
+count: 2, reason: request, event: webhook_transport
+count: 2, reason: request, event: webhook_transport
+count: 1, reason: admitted, event: webhook_transport
+count: 1, reason: admitted, event: webhook_transport
+count: 1, reason: replay, event: webhook_transport
+count: 1, reason: replay, event: webhook_transport
+count: 3, reason: started, event: webhook_transport
+count: 3, reason: started, event: webhook_transport
+count: 3, reason: request, event: webhook_transport
+count: 3, reason: request, event: webhook_transport
+count: 2, reason: caller, event: webhook_transport
+count: 2, reason: caller, event: webhook_transport
+count: 4, reason: started, event: webhook_transport
+count: 4, reason: started, event: webhook_transport
+count: 4, reason: request, event: webhook_transport
+count: 4, reason: request, event: webhook_transport
+count: 1, reason: generation, event: webhook_transport
+count: 1, reason: generation, event: webhook_transport
+count: 5, reason: started, event: webhook_transport
+count: 5, reason: started, event: webhook_transport
+count: 5, reason: request, event: webhook_transport
+count: 5, reason: request, event: webhook_transport
+count: 3, reason: caller, event: webhook_transport
+count: 3, reason: caller, event: webhook_transport
+count: 6, reason: started, event: webhook_transport
+count: 6, reason: started, event: webhook_transport
+count: 6, reason: request, event: webhook_transport
+count: 6, reason: request, event: webhook_transport
+count: 1, reason: unknown, event: webhook_transport
+count: 1, reason: unknown, event: webhook_transport
+count: 7, reason: started, event: webhook_transport
+count: 7, reason: started, event: webhook_transport
+count: 7, reason: request, event: webhook_transport
+count: 7, reason: request, event: webhook_transport
+count: 4, reason: caller, event: webhook_transport
+count: 4, reason: caller, event: webhook_transport
+count: 8, reason: started, event: webhook_transport
+count: 8, reason: started, event: webhook_transport
+count: 8, reason: request, event: webhook_transport
+count: 8, reason: request, event: webhook_transport
+count: 1, reason: deadline, event: webhook_transport
+count: 1, reason: deadline, event: webhook_transport
+count: 9, reason: started, event: webhook_transport
+count: 9, reason: started, event: webhook_transport
+count: 9, reason: request, event: webhook_transport
+count: 9, reason: request, event: webhook_transport
+count: 5, reason: caller, event: webhook_transport
+count: 5, reason: caller, event: webhook_transport
+count: 10, reason: started, event: webhook_transport
+count: 10, reason: started, event: webhook_transport
+count: 10, reason: request, event: webhook_transport
+count: 10, reason: request, event: webhook_transport
+count: 1, reason: expired, event: webhook_transport
+count: 1, reason: expired, event: webhook_transport
+count: 2, reason: deadline, event: webhook_transport
+count: 2, reason: deadline, event: webhook_transport
+.count: 1, reason: started, event: webhook_transport
+count: 1, reason: started, event: webhook_transport
+count: 1, reason: expired, event: webhook_transport
+count: 1, reason: expired, event: webhook_transport
+count: 2, reason: started, event: webhook_transport
+count: 2, reason: started, event: webhook_transport
+count: 2, reason: expired, event: webhook_transport
+count: 2, reason: expired, event: webhook_transport
+count: 3, reason: started, event: webhook_transport
+count: 3, reason: started, event: webhook_transport
+count: 3, reason: expired, event: webhook_transport
+count: 3, reason: expired, event: webhook_transport
+.count: 1, reason: admitted, event: webhook_transport
+count: 1, reason: admitted, event: webhook_transport
+count: 1, reason: rejected, event: webhook_transport
+count: 1, reason: rejected, event: webhook_transport
+.
+Finished in 14.2 seconds (0.00s async, 14.2s sync)
+
+Result: 7/8 passed
+Failed: 1 test
+** (Protocol.UndefinedError) protocol Jason.Encoder not implemented for Function, Jason.Encoder protocol must always be explicitly implemented
+
+Got value:
+
+    &:gen_server.format_log/1
+
+    (jason 1.4.5) lib/jason.ex:164: Jason.encode!/2
+    /var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-webhook-transport-1fywxz6w/source/tests/adversarial.exs:333: (file)
+    (elixir 1.20.4) lib/code.ex:1639: Code.require_file/2
+    /var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-webhook-transport-1fywxz6w/source/tests/boot.exs:13: (file)
+    (elixir 1.20.4) lib/code.ex:1639: Code.require_file/2

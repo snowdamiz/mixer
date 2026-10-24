@@ -1,0 +1,127 @@
+{
+  "rows": [
+    {
+      "logger": [
+        {
+          "id": "default",
+          "module": "logger_std_h",
+          "filters": [
+            "mixer_private_schema",
+            "remote_gl"
+          ],
+          "formatter": "logger_formatter"
+        },
+        {
+          "id": "mixer_private_collector",
+          "module": "Elixir.PrivateTransportLogSink",
+          "filters": [
+            "mixer_private_schema"
+          ],
+          "formatter": "logger_formatter"
+        },
+        {
+          "id": "ssl_handler",
+          "module": "logger_std_h",
+          "filters": [
+            "mixer_private_schema",
+            "filter_non_ssl"
+          ],
+          "formatter": "logger_formatter"
+        }
+      ],
+      "stdout": "default_logger_standard_io",
+      "stderr": "owned_child_merged_capture",
+      "kind": "inventory",
+      "telemetry": [
+        {
+          "id": "mixer-private-webhook-control",
+          "event": [
+            "thousand_island",
+            "connection",
+            "stop"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "event": [
+            "thousand_island",
+            "connection",
+            "ready"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "event": [
+            "thousand_island",
+            "connection",
+            "start"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "event": [
+            "thousand_island",
+            "connection",
+            "async_recv"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "event": [
+            "bandit",
+            "request",
+            "start"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "event": [
+            "bandit",
+            "request",
+            "stop"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "event": [
+            "bandit",
+            "request",
+            "exception"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "event": [
+            "thousand_island",
+            "connection",
+            "recv"
+          ]
+        }
+      ],
+      "exporters": "none"
+    },
+    {
+      "kind": "drift_boundary",
+      "already_delivered_bytes_reversible": false,
+      "prevention_claim": false
+    },
+    {
+      "port": 49747,
+      "kind": "cleanup",
+      "refused": true,
+      "role_down": true,
+      "guard_supervisor_down": true,
+      "owner_down": true
+    }
+  ],
+  "hard_memory_ceiling": false,
+  "summary": {
+    "total": 8,
+    "failures": 7,
+    "excluded": 0,
+    "skipped": 0
+  },
+  "logger_events": [],
+  "actual_verifier_calls": 0,
+  "capture_checks": []
+}

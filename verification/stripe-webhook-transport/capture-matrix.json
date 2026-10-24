@@ -1,0 +1,216 @@
+{
+  "allRowsPassed": false,
+  "composedReplay": {
+    "actualVerifierReturns": 27,
+    "clients": 105,
+    "publicIngressStillPending": true,
+    "timingChanges": "baseline-comparison.json",
+    "wireGroups": 13
+  },
+  "evidenceRun": "run-9",
+  "rows": [
+    {
+      "cases": "POST/exact path/empty query; wrong method, Head rewriting boundary, escaped path, slash/query variants; reject before first read",
+      "environment": "real Bandit HTTP1",
+      "evidence": [
+        "run-9/component.log",
+        "run-9/wire.log",
+        "run-9/wire/clients.json",
+        "run-9/wire/events.json"
+      ],
+      "id": "envelope",
+      "limitations": [
+        "Public endpoint first-consumer placement and original-method dispatch remain pending."
+      ],
+      "status": "scoped-pass"
+    },
+    {
+      "cases": "valid JSON media type variants; absent/duplicate/comma/invalid charset/params; all Content-Encoding; Expect/Trailer/Upgrade; zero body reads on reject",
+      "environment": "real Bandit HTTP1 and selected HTTP2",
+      "evidence": [
+        "run-9/component.log",
+        "run-9/wire.log",
+        "run-9/wire/clients.json",
+        "run-9/wire/events.json"
+      ],
+      "id": "metadata",
+      "limitations": [
+        "Public header-read limits and endpoint parser placement remain pending."
+      ],
+      "status": "scoped-pass"
+    },
+    {
+      "cases": "0/1/2 header occurrences, mixed HTTP1 header-name case, comma content in one value, 0/1/4096/4097-byte value; preserve exact exposed values and multiplicity",
+      "environment": "raw TCP plus selected HTTP2",
+      "evidence": [
+        "run-9/component.log",
+        "run-9/wire.log",
+        "run-9/wire/clients.json",
+        "run-9/wire/events.json"
+      ],
+      "id": "signature-occurrences",
+      "limitations": [],
+      "status": "scoped-pass"
+    },
+    {
+      "cases": "synthetic original HMAC bytes, whitespace, CRLF/newline, UTF8 and escaped JSON alternatives; changed byte invalidates original HMAC; no parse/re-encode",
+      "environment": "real Bandit plus existing verifier",
+      "evidence": [
+        "run-9/component.log",
+        "run-9/wire.log",
+        "run-9/wire/clients.json",
+        "run-9/wire/events.json"
+      ],
+      "id": "exact-signature-body",
+      "limitations": [],
+      "status": "scoped-pass"
+    },
+    {
+      "cases": "absent, 0, 1, 1048576, 1048577, canonical digits, signs, leading zeros, comma list, duplicate identical/conflicting occurrences, overflow, length mismatch/early EOF; distinguish framework pre-Plug rejection",
+      "environment": "raw TCP and selected HTTP2",
+      "evidence": [
+        "run-9/component.log",
+        "run-9/wire.log",
+        "run-9/wire/clients.json",
+        "run-9/wire/events.json"
+      ],
+      "id": "content-length",
+      "limitations": [
+        "Real exact-maximum CL evidence is HTTP1; no real maximum-size HTTP2 test claimed."
+      ],
+      "status": "scoped-pass"
+    },
+    {
+      "cases": "CL+TE, repeated TE, unsupported coding/identity, valid chunk boundaries/extensions, malformed/truncated chunk, declared/undeclared trailer, oversized chunk; profile2 rejection leaves profile1 unresolved",
+      "environment": "raw TCP HTTP1",
+      "evidence": [
+        "run-9/component.log",
+        "run-9/wire.log",
+        "run-9/wire/clients.json",
+        "run-9/wire/events.json"
+      ],
+      "id": "framing",
+      "limitations": [
+        "Undeclared HTTP1 trailers are ignored by pinned Bandit and invisible to capture; no trailer-policy enforcement claimed."
+      ],
+      "status": "scoped-pass-with-trailer-limit"
+    },
+    {
+      "cases": "1-byte minimum, exact maximum terminal ok, maximum with more rejects, overlimit more, below-max more than 64 reads, oversize returned chunk despite requested length, no concatenation after rejection",
+      "environment": "real Bandit and separately fake adapter",
+      "evidence": [
+        "run-9/component.log",
+        "run-9/wire.log",
+        "run-9/wire/clients.json",
+        "run-9/wire/events.json"
+      ],
+      "id": "limits",
+      "limitations": [
+        "Requested read size is advisory; adapter/OS buffered memory is not bounded by this component."
+      ],
+      "status": "scoped-pass"
+    },
+    {
+      "cases": "DATA split/coalesced/exceeding read target, END_STREAM, repeated headers, content length mismatch, trailer logging guard; profile2 rejects protocol and leaves support qualification pending",
+      "environment": "actual localhost HTTP2 client and Bandit",
+      "evidence": [
+        "run-9/component.log",
+        "run-9/wire.log",
+        "run-9/wire/clients.json",
+        "run-9/wire/events.json"
+      ],
+      "id": "http2",
+      "limitations": [
+        "TLS/ALPN, deployed ingress, and transport privacy are not qualified."
+      ],
+      "status": "scoped-h2c-pass"
+    },
+    {
+      "cases": "no body, slow body, multiple internal reads, late complete result, no admission at/after monotonic deadline; total cancellation measured separately and never inferred from late-result rejection",
+      "environment": "real slow wire clients plus separate fake adapter",
+      "evidence": [
+        "run-9/component.log",
+        "run-9/wire.log",
+        "run-9/wire/clients.json",
+        "run-9/wire/events.json"
+      ],
+      "id": "deadlines",
+      "limitations": [
+        "Slow HTTP2 completed after five seconds then rejected; forced cancellation is unresolved."
+      ],
+      "status": "scoped-success-admission-pass-cancellation-pending"
+    },
+    {
+      "cases": "updated conn every read, empty more, bounded chunk count, error without conn, malformed shape, nonbinary chunk, raises, late return; harness timeout distinct from product",
+      "environment": "bounded fake adapter only",
+      "evidence": [
+        "run-9/component.log",
+        "run-9/wire.log",
+        "run-9/wire/clients.json",
+        "run-9/wire/events.json"
+      ],
+      "id": "adapter-faults",
+      "limitations": [
+        "Fake adapter evidence is not Bandit/socket evidence; malformed Plug shapes and transport raises propagate."
+      ],
+      "status": "scoped-fake-adapter-pass"
+    },
+    {
+      "cases": "body/signature sentinels absent from app logs and all exported telemetry; cover pre-Plug conn metadata, low-level receive metadata and H2 trailers; redaction owner evidence required",
+      "environment": "real Bandit logger and telemetry capture",
+      "evidence": [
+        "run-9/component.log",
+        "run-9/wire.log",
+        "run-9/wire/clients.json",
+        "run-9/wire/events.json",
+        "run-9/wire/telemetry.json",
+        "run-9/wire/logs.json"
+      ],
+      "id": "logging",
+      "limitations": [
+        "ThousandIsland recv measurements.data and Bandit conn metadata expose synthetic sentinels; H2 trailer logger exposes sentinel."
+      ],
+      "status": "observed-exposure-not-qualified"
+    },
+    {
+      "cases": "every error gives zero 2xx/downstream/domain calls, unused input cannot become second request or trigger unbounded drain, close/reset and cleanup proven including failed scenarios",
+      "environment": "real Bandit wire sockets",
+      "evidence": [
+        "run-9/component.log",
+        "run-9/wire.log",
+        "run-9/wire/clients.json",
+        "run-9/wire/events.json"
+      ],
+      "id": "failure-disposal",
+      "limitations": [
+        "Disposable caller closes HTTP1 responses and all clients/listener are closed; future public endpoint stream/connection disposal and cancellation remain pending."
+      ],
+      "status": "scoped-test-caller-pass-endpoint-pending"
+    },
+    {
+      "cases": "protocol/framing translations, duplicate signature preservation, unchanged bytes, metadata deadlines, concurrency/rate/buffer limits; no local-only provider qualification",
+      "environment": "future selected deployed ingress",
+      "evidence": [
+        "run-9/component.log",
+        "run-9/wire.log",
+        "run-9/wire/clients.json",
+        "run-9/wire/events.json"
+      ],
+      "id": "ingress",
+      "limitations": [
+        "No selected deployed ingress/provider test was run."
+      ],
+      "status": "pending-not-run"
+    }
+  ],
+  "schema": 1,
+  "selection": "profile-1-normal-bandit",
+  "status": "scoped-component-and-localhost-evidence-public-admission-pending",
+  "transportCandidateReplay": "run-14",
+  "unchangedBaseline": {
+    "clients": 105,
+    "componentTests": 14,
+    "rawSinkExposurePreserved": true,
+    "wireGroups": 13
+  }
+}

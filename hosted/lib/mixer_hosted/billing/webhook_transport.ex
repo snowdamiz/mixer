@@ -1,0 +1,724 @@
+defmodule MixerHosted.Billing.WebhookTransport.Sinks do
+  @moduledoc "Dedicated-role sink boundary. Bootstrap and reconfiguration are trusted."
+  use GenServer
+  @id "mixer-private-webhook-control"
+  @events for event <- [:start, :ready, :stop], do: [:thousand_island, :connection, event]
+  @requests for event <- [:start, :stop, :exception], do: [:bandit, :request, event]
+  @reasons [
+    :none,
+    :started,
+    :ready,
+    :request,
+    :admitted,
+    :rejected,
+    :expired,
+    :disposed,
+    :owner_lost,
+    :guard_lost,
+    :listener_lost,
+    :inventory,
+    :registration,
+    :capture,
+    :capacity,
+    :caller,
+    :generation,
+    :replay,
+    :deadline,
+    :unknown
+  ]
+  def start_link(approved), do: GenServer.start_link(__MODULE__, approved, name: __MODULE__)
+
+  def events,
+    do:
+      @events ++
+        @requests ++
+        [[:thousand_island, :connection, :recv], [:thousand_island, :connection, :async_recv]]
+
+  def init(approved) do
+    Process.flag(:trap_exit, true)
+    # This role permits only the explicitly installed control subscriber. Never
+    # attach a second subscriber and claim it sanitizes an existing one.
+    if :telemetry.list_handlers([]) != [], do: raise("unapproved telemetry subscriber")
+    :ok = :telemetry.attach_many(@id, events(), &__MODULE__.control/4, nil)
+    handlers = :logger.get_handler_config()
+    allowed = Map.merge(%{default: :logger_std_h, ssl_handler: :logger_std_h}, approved)
+
+    if handlers == [] or Enum.any?(handlers, &(Map.get(allowed, &1.id) != &1.module)),
+      do: raise("unapproved logger handler")
+
+    primary = :logger.get_primary_config()
+
+    unless primary.metadata == %{} and Enum.all?(primary.filters, &approved_primary?/1),
+      do: raise("unapproved primary callback")
+
+    for handler <- handlers do
+      :ok =
+        :logger.set_handler_config(
+          handler.id,
+          :formatter,
+          {:logger_formatter, %{template: [:msg, ~c"\n"]}}
+        )
+
+      expected = {&__MODULE__.filter/2, nil}
+
+      unless Enum.all?(handler.filters, &approved_handler?/1),
+        do: raise("unapproved handler callback")
+
+      case Keyword.get(handler.filters, :mixer_private_schema) do
+        nil ->
+          :ok =
+            :logger.add_handler_filter(
+              handler.id,
+              :mixer_private_schema,
+              {&__MODULE__.filter/2, nil}
+            )
+
+        ^expected ->
+          :ok
+
+        _ ->
+          raise("unapproved owned filter")
+      end
+    end
+
+    {:ok, %{inventory: inventory(), original_handlers: handlers, counters: %{}, safe: []}}
+  end
+
+  defp identity(fun),
+    do:
+      {:erlang.fun_info(fun, :module), :erlang.fun_info(fun, :name), :erlang.fun_info(fun, :type)}
+
+  defp approved_primary?(
+         {:logger_translator,
+          {fun, %{otp: true, sasl: false, translators: [{Logger.Translator, :translate}]}}}
+       ),
+       do: identity(fun) == {{:module, Logger.Utils}, {:name, :translator}, {:type, :external}}
+
+  defp approved_primary?({:logger_process_level, {fun, []}}),
+    do: identity(fun) == {{:module, Logger.Utils}, {:name, :process_level}, {:type, :external}}
+
+  defp approved_primary?(_), do: false
+
+  defp approved_handler?({:remote_gl, {fun, :stop}}),
+    do: identity(fun) == {{:module, :logger_filters}, {:name, :remote_gl}, {:type, :external}}
+
+  defp approved_handler?({:filter_non_ssl, {fun, {:log, :sub, [:otp, :ssl]}}}),
+    do: identity(fun) == {{:module, :logger_filters}, {:name, :domain}, {:type, :external}}
+
+  defp approved_handler?({:mixer_private_schema, {fun, nil}}), do: fun == (&__MODULE__.filter/2)
+  defp approved_handler?(_), do: false
+
+  def inventory,
+    do: %{
+      telemetry: :telemetry.list_handlers([]),
+      logger: :logger.get_handler_config(),
+      primary: :logger.get_primary_config()
+    }
+
+  def valid?, do: GenServer.call(__MODULE__, :valid, 500)
+  def snapshot, do: GenServer.call(__MODULE__, :snapshot)
+  def record(reason) when reason in @reasons, do: GenServer.cast(__MODULE__, {:record, reason})
+  def handle_call(:valid, _, state), do: {:reply, inventory() == state.inventory, state}
+  def handle_call(:snapshot, _, state), do: {:reply, Map.take(state, [:safe, :counters]), state}
+
+  def handle_cast({:record, reason}, state) do
+    count = min(Map.get(state.counters, reason, 0) + 1, 2_147_483_647)
+    safe = %{event: :webhook_transport, reason: reason, count: count}
+
+    :logger.log(:notice, %{
+      mixer_transport: 1,
+      event: :webhook_transport,
+      reason: reason,
+      count: count
+    })
+
+    {:noreply,
+     %{
+       state
+       | counters: Map.put(state.counters, reason, count),
+         safe: Enum.take([safe | state.safe], 256)
+     }}
+  end
+
+  def filter(
+        %{
+          msg:
+            {:report,
+             %{mixer_transport: 1, event: :webhook_transport, reason: reason, count: count} =
+               report}
+        },
+        _
+      )
+      when reason in @reasons and is_integer(count) and count >= 0 and count <= 2_147_483_647 and
+             map_size(report) == 4 do
+    # Reconstruct both message and metadata. No original term is forwarded.
+    %{
+      level: :notice,
+      msg: {:report, %{event: :webhook_transport, reason: reason, count: count}},
+      meta: %{domain: [:mixer_private_transport]}
+    }
+  end
+
+  def filter(_, _), do: :stop
+
+  def control(event, measurements, metadata, _) do
+    # Only documented references, fixed plug identity and monotonic timestamps
+    # cross into the owner. No data/conn/header/error/stacktrace term is retained.
+    try do
+      unless valid?(), do: throw(:inventory)
+
+      case event do
+        [:thousand_island, :connection, :start] ->
+          started = System.convert_time_unit(measurements.monotonic_time, :native, :millisecond)
+
+          :ok =
+            MixerHosted.Billing.WebhookTransport.Owner.register(
+              self(),
+              metadata.telemetry_span_context,
+              started
+            )
+
+        [:thousand_island, :connection, :ready] ->
+          :ok =
+            MixerHosted.Billing.WebhookTransport.Owner.ready(
+              self(),
+              metadata.telemetry_span_context,
+              System.convert_time_unit(measurements.monotonic_time, :native, :millisecond)
+            )
+
+        [:bandit, :request, :start] ->
+          started = System.convert_time_unit(measurements.monotonic_time, :native, :millisecond)
+
+          {:ok, permit} =
+            MixerHosted.Billing.WebhookTransport.Owner.request(
+              self(),
+              metadata.connection_telemetry_span_context,
+              metadata.plug,
+              started
+            )
+
+          Process.put({MixerHosted.Billing.WebhookTransport, :permit}, permit)
+
+        _ ->
+          :ok
+      end
+    rescue
+      _ -> fail(:registration)
+    catch
+      _, reason -> fail(if(reason == :inventory, do: :inventory, else: :registration))
+    end
+  end
+
+  defp fail(reason) do
+    # Do not throw out of a telemetry callback: telemetry catches/detaches it.
+    # The role is explicitly stopped, and this emitting owner cannot parse/read.
+    if owner = Process.whereis(MixerHosted.Billing.WebhookTransport.Owner),
+      do: GenServer.cast(owner, {:trip, reason})
+
+    Process.exit(self(), :kill)
+  end
+
+  def terminate(_, _) do
+    :telemetry.detach(@id)
+    # Dedicated BEAM sinks remain protected through supervisor crash reports and
+    # VM shutdown. Removing filters during role teardown would reopen the sink.
+    :ok
+  end
+end
+
+defmodule MixerHosted.Billing.WebhookTransport.Guard do
+  @moduledoc false
+  use GenServer
+  def start_link(opts), do: GenServer.start_link(__MODULE__, opts)
+
+  def child_spec(opts),
+    do: %{id: make_ref(), start: {__MODULE__, :start_link, [opts]}, restart: :temporary}
+
+  def init({owner, connection, span, generation, started}) do
+    Process.flag(:trap_exit, true)
+    refs = %{Process.monitor(connection) => connection, Process.monitor(owner) => owner}
+    deadline = min(started + 1_000, started + 7_000)
+    token = make_ref()
+    timer = Process.send_after(self(), {:deadline, generation, token}, deadline, abs: true)
+
+    {:ok,
+     %{
+       owner: owner,
+       connection: connection,
+       span: span,
+       generation: generation,
+       started: started,
+       outer: started + 7_000,
+       deadline: deadline,
+       token: token,
+       timer: timer,
+       refs: refs,
+       requests: [],
+       disposed: false
+     }}
+  end
+
+  def handle_call(
+        {:stage, generation, deadline, request},
+        _,
+        %{generation: generation, disposed: false} = state
+      ) do
+    Process.cancel_timer(state.timer)
+    deadline = min(deadline, state.outer)
+    token = make_ref()
+
+    refs =
+      if is_pid(request) and request != state.connection and request not in state.requests,
+        do: Map.put(state.refs, Process.monitor(request), request),
+        else: state.refs
+
+    timer = Process.send_after(self(), {:deadline, generation, token}, deadline, abs: true)
+    requests = if is_pid(request), do: Enum.uniq([request | state.requests]), else: state.requests
+
+    {:reply, :ok,
+     %{state | deadline: deadline, timer: timer, token: token, refs: refs, requests: requests}}
+  end
+
+  def handle_call(_, _, state), do: {:reply, {:error, :generation}, state}
+  def handle_cast({:dispose, reason}, state), do: {:noreply, kill(state, reason)}
+
+  def handle_info({:deadline, generation, token}, %{generation: generation, token: token} = state) do
+    if now() >= state.deadline do
+      {:noreply, kill(state, :expired)}
+    else
+      timer =
+        Process.send_after(self(), {:deadline, generation, token}, state.deadline, abs: true)
+
+      {:noreply, %{state | timer: timer}}
+    end
+  end
+
+  def handle_info({:DOWN, ref, :process, pid, _}, state) do
+    refs = Map.delete(state.refs, ref)
+    state = %{state | refs: refs}
+
+    state =
+      cond do
+        pid == state.owner ->
+          kill(state, :owner_lost)
+
+        pid == state.connection ->
+          for request <- state.requests, Process.alive?(request), do: Process.exit(request, :kill)
+          state
+
+        pid in state.requests and Process.alive?(state.connection) ->
+          kill(state, :disposed)
+
+        true ->
+          state
+      end
+
+    remaining = Enum.reject(Map.values(refs), &(&1 == state.owner))
+
+    if remaining == [] do
+      Process.cancel_timer(state.timer)
+
+      send(
+        state.owner,
+        {:disposed, state.span, state.generation, self(), now(), state.deadline, state.disposed}
+      )
+
+      {:stop, :normal, state}
+    else
+      {:noreply, state}
+    end
+  end
+
+  def handle_info(_, state), do: {:noreply, state}
+
+  defp kill(state, reason) do
+    if Process.alive?(state.connection), do: Process.exit(state.connection, :kill)
+    MixerHosted.Billing.WebhookTransport.Sinks.record(reason)
+    %{state | disposed: reason}
+  end
+
+  def terminate(_, state) do
+    Process.cancel_timer(state.timer)
+    if Process.alive?(state.connection), do: Process.exit(state.connection, :kill)
+    for p <- state.requests, Process.alive?(p), do: Process.exit(p, :kill)
+    :ok
+  end
+
+  defp now, do: System.monotonic_time(:millisecond)
+end
+
+defmodule MixerHosted.Billing.WebhookTransport.Owner do
+  @moduledoc false
+  use GenServer
+  alias MixerHosted.Billing.WebhookTransport.{Guard, Sinks}
+  def start_link(plug), do: GenServer.start_link(__MODULE__, plug, name: __MODULE__)
+
+  def register(pid, span, started),
+    do: GenServer.call(__MODULE__, {:register, pid, span, started}, 500)
+
+  def ready(pid, span, ready_at),
+    do: GenServer.call(__MODULE__, {:ready, pid, span, ready_at}, 500)
+
+  def request(pid, span, plug, started),
+    do: GenServer.call(__MODULE__, {:request, pid, span, plug, started}, 500)
+
+  def check(permit, phase), do: GenServer.call(__MODULE__, {:check, permit, phase}, 500)
+  def dispose(permit), do: GenServer.cast(__MODULE__, {:dispose, permit})
+  def snapshot, do: GenServer.call(__MODULE__, :snapshot)
+
+  def init(plug) do
+    Process.flag(:trap_exit, true)
+    Process.send_after(self(), :inventory, 25)
+
+    {:ok,
+     %{
+       plug: {plug, []},
+       generation: make_ref(),
+       connections: %{},
+       permits: %{},
+       guards: %{},
+       history: [],
+       peak: 0
+     }}
+  end
+
+  def handle_call({:register, pid, span, started}, {pid, _}, state)
+      when is_reference(span) and is_integer(started) do
+    cond do
+      not Sinks.valid?() ->
+        {:stop, :inventory, {:error, :inventory}, state}
+
+      map_size(state.connections) >= 16 ->
+        Process.exit(pid, :kill)
+        Sinks.record(:capacity)
+        {:reply, {:error, :capacity}, state}
+
+      Map.has_key?(state.connections, span) or now() >= started + 1_000 ->
+        Process.exit(pid, :kill)
+        {:reply, {:error, :deadline}, state}
+
+      true ->
+        generation = make_ref()
+
+        {:ok, guard} =
+          DynamicSupervisor.start_child(
+            MixerHosted.Billing.WebhookTransport.Guards,
+            {Guard, {self(), pid, span, generation, started}}
+          )
+
+        ref = Process.monitor(guard)
+
+        item = %{
+          pid: pid,
+          guard: guard,
+          generation: generation,
+          outer: started + 7_000,
+          deadline: started + 1_000,
+          stage: :handshake
+        }
+
+        connections = Map.put(state.connections, span, item)
+        Sinks.record(:started)
+
+        {:reply, :ok,
+         %{
+           state
+           | connections: connections,
+             guards: Map.put(state.guards, ref, span),
+             peak: max(state.peak, map_size(connections))
+         }}
+    end
+  end
+
+  def handle_call({:ready, pid, span, ready_at}, {pid, _}, state) do
+    case state.connections[span] do
+      %{pid: ^pid, stage: :handshake} = c ->
+        if now() >= c.deadline, do: Process.exit(pid, :kill)
+        deadline = min(ready_at + 1_000, c.outer)
+        :ok = GenServer.call(c.guard, {:stage, c.generation, deadline, nil}, 500)
+
+        {:reply, :ok,
+         put_in(state, [:connections, span], %{c | stage: :headers, deadline: deadline})}
+
+      _ ->
+        {:stop, :registration, {:error, :registration}, state}
+    end
+  end
+
+  def handle_call({:request, pid, span, plug, started}, {pid, _}, state) do
+    case state.connections[span] do
+      %{stage: :headers} = c when plug == state.plug ->
+        deadline = min(started + 5_000, c.outer)
+
+        if Sinks.valid?() and now() < c.deadline and now() < deadline do
+          :ok = GenServer.call(c.guard, {:stage, c.generation, deadline, pid}, 500)
+          token = make_ref()
+          permit = {state.generation, c.generation, token}
+
+          entry = %{
+            pid: pid,
+            span: span,
+            deadline: deadline,
+            state: :issued,
+            generation: c.generation
+          }
+
+          state = %{state | permits: Map.put(state.permits, token, entry)}
+          state = put_in(state, [:connections, span, :stage], :request)
+          Sinks.record(:request)
+          {:reply, {:ok, permit}, state}
+        else
+          GenServer.cast(c.guard, {:dispose, :deadline})
+          {:reply, {:error, :deadline}, state}
+        end
+
+      _ ->
+        {:stop, :registration, {:error, :registration}, state}
+    end
+  end
+
+  def handle_call({:check, {generation, connection_generation, token}, phase}, {caller, _}, state) do
+    entry = state.permits[token]
+
+    reason =
+      cond do
+        not Sinks.valid?() -> :inventory
+        generation != state.generation -> :generation
+        is_nil(entry) -> :unknown
+        entry.generation != connection_generation -> :generation
+        entry.pid != caller -> :caller
+        now() >= entry.deadline -> :deadline
+        phase == :begin and entry.state == :issued -> :none
+        phase == :finish and entry.state == :capturing -> :none
+        true -> :replay
+      end
+
+    if reason == :none do
+      next = if phase == :begin, do: :capturing, else: :consumed
+      state = put_in(state, [:permits, token, :state], next)
+
+      if next == :consumed do
+        c = state.connections[entry.span]
+        :ok = GenServer.call(c.guard, {:stage, c.generation, c.outer, nil}, 500)
+        Sinks.record(:admitted)
+      end
+
+      if now() < entry.deadline do
+        {:reply, if(phase == :finish, do: {:ok, entry.deadline}, else: :ok), state}
+      else
+        deny(caller, entry, state, :deadline)
+        {:reply, {:error, :deadline}, state}
+      end
+    else
+      deny(caller, entry, state, reason)
+
+      if reason == :inventory,
+        do: {:stop, :inventory, {:error, reason}, state},
+        else: {:reply, {:error, reason}, state}
+    end
+  end
+
+  def handle_call({:check, _, _}, {caller, _}, state) do
+    deny(caller, nil, state, :unknown)
+    {:reply, {:error, :unknown}, state}
+  end
+
+  def handle_call(:snapshot, _, state),
+    do:
+      {:reply,
+       %{
+         connections: map_size(state.connections),
+         permits: map_size(state.permits),
+         peak: state.peak,
+         history: Enum.reverse(state.history)
+       }, state}
+
+  def handle_cast({:dispose, {_, _, token}}, state) do
+    if entry = state.permits[token],
+      do: GenServer.cast(state.connections[entry.span].guard, {:dispose, :disposed})
+
+    {:noreply, state}
+  end
+
+  def handle_cast({:trip, reason}, state), do: {:stop, reason, state}
+
+  def handle_info({:disposed, span, generation, guard, ended, deadline, reason}, state) do
+    case state.connections[span] do
+      %{generation: ^generation, guard: ^guard} ->
+        permits = Map.reject(state.permits, fn {_, entry} -> entry.span == span end)
+
+        history =
+          Enum.take(
+            [
+              %{
+                reason: reason,
+                ended: ended,
+                deadline: deadline,
+                overshoot_ms: max(ended - deadline, 0)
+              }
+              | state.history
+            ],
+            512
+          )
+
+        {:noreply,
+         %{
+           state
+           | connections: Map.delete(state.connections, span),
+             permits: permits,
+             history: history
+         }}
+
+      _ ->
+        {:noreply, state}
+    end
+  end
+
+  def handle_info({:DOWN, ref, :process, _, reason}, state) do
+    {span, guards} = Map.pop(state.guards, ref)
+
+    if span && Map.has_key?(state.connections, span) do
+      Process.exit(state.connections[span].pid, :kill)
+      {:stop, :guard_lost, %{state | guards: guards}}
+    else
+      _ = reason
+      {:noreply, %{state | guards: guards}}
+    end
+  end
+
+  def handle_info(:inventory, state) do
+    if Sinks.valid?() do
+      Process.send_after(self(), :inventory, 25)
+      {:noreply, state}
+    else
+      {:stop, :inventory, state}
+    end
+  end
+
+  def handle_info(_, state), do: {:noreply, state}
+
+  def terminate(_, state) do
+    for {_, c} <- state.connections, do: Process.exit(c.pid, :kill)
+    :ok
+  end
+
+  defp deny(caller, entry, state, reason) do
+    entries =
+      if entry, do: [entry], else: Enum.filter(Map.values(state.permits), &(&1.pid == caller))
+
+    for e <- entries,
+        c = state.connections[e.span],
+        not is_nil(c),
+        do: GenServer.cast(c.guard, {:dispose, reason})
+  end
+
+  defp now, do: System.monotonic_time(:millisecond)
+end
+
+defmodule MixerHosted.Billing.WebhookTransport do
+  @moduledoc "Private dedicated-role transport candidate. No public route or billing authority."
+  use Supervisor
+  alias __MODULE__.{Owner, Sinks}
+
+  def start_link(plug, approved_handlers \\ %{}),
+    do: Supervisor.start_link(__MODULE__, {plug, approved_handlers})
+
+  def init({plug, approved_handlers}) do
+    # Fixed profile; no request-selected policy or per-request timeout knobs.
+    listener =
+      {Bandit,
+       [
+         plug: plug,
+         ip: {127, 0, 0, 1},
+         port: 0,
+         startup_log: false,
+         http_options: [
+           log_protocol_errors: false,
+           log_client_closures: false,
+           log_exceptions_with_status_codes: []
+         ],
+         http_1_options: [
+           max_request_line_length: 512,
+           max_header_length: 8_192,
+           max_header_count: 32,
+           max_requests: 1,
+           log_unknown_messages: false
+         ],
+         http_2_options: [
+           max_header_block_size: 16_384,
+           max_requests: 1,
+           max_reset_stream_rate: {16, 1_000},
+           default_local_settings: [
+             max_header_list_size: 16_384,
+             header_table_size: 4_096,
+             max_frame_size: 16_384,
+             max_concurrent_streams: 1
+           ]
+         ],
+         thousand_island_options: [
+           num_acceptors: 1,
+           num_connections: 16,
+           max_connections_retry_count: 0,
+           read_timeout: 1_000,
+           handshake_timeout: 1_000,
+           shutdown_timeout: 1_000,
+           transport_options: [backlog: 128]
+         ]
+       ]}
+
+    Supervisor.init(
+      [
+        {Sinks, approved_handlers},
+        {DynamicSupervisor, name: __MODULE__.Guards, strategy: :one_for_one},
+        {Owner, plug},
+        listener
+      ],
+      strategy: :one_for_all,
+      max_restarts: 0
+    )
+  end
+
+  def capture(conn) do
+    permit = Process.get({__MODULE__, :permit})
+
+    with :ok <- Owner.check(permit, :begin) do
+      case MixerHosted.Billing.RawWebhookCapture.capture(conn) do
+        {:ok, captured, latest} ->
+          case Owner.check(permit, :finish) do
+            {:ok, deadline} ->
+              if System.monotonic_time(:millisecond) < deadline do
+                {:ok, captured, latest}
+              else
+                Owner.dispose(permit)
+                {:error, :read_deadline, Plug.Conn.halt(latest)}
+              end
+
+            {:error, _} ->
+              Owner.dispose(permit)
+              {:error, :unavailable_state, Plug.Conn.halt(latest)}
+          end
+
+        {:error, reason, latest} ->
+          # Dispose after private error response, with the independent deadline
+          # active. Caller's fixed private plug must always execute dispose/0.
+          Sinks.record(:rejected)
+          {:error, reason, latest}
+      end
+    else
+      _ -> {:error, :unavailable_state, Plug.Conn.halt(conn)}
+    end
+  rescue
+    _ ->
+      dispose()
+      reraise RuntimeError, [message: "private transport capture failure"], []
+  catch
+    kind, _ ->
+      dispose()
+      :erlang.raise(kind, :private_transport_failure, [])
+  end
+
+  def dispose do
+    if permit = Process.get({__MODULE__, :permit}), do: Owner.dispose(permit)
+    :ok
+  end
+end

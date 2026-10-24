@@ -1,0 +1,2843 @@
+{
+  "rows": [
+    {
+      "logger": [
+        {
+          "id": "default",
+          "module": "logger_std_h",
+          "config": "%{type: :standard_io, burst_limit_enable: true, drop_mode_qlen: 200, flush_qlen: 1000, sync_mode_qlen: 10, overload_kill_restart_after: 5000, burst_limit_max_count: 500, burst_limit_window_time: 1000, overload_kill_enable: false, overload_kill_mem_size: 3000000, overload_kill_qlen: 20000, filesync_repeat_interval: :no_repeat}",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            },
+            {
+              "id": "remote_gl",
+              "fun": "&:logger_filters.remote_gl/2",
+              "argument": ":stop"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        },
+        {
+          "id": "review_collector",
+          "module": "Elixir.ReviewSink",
+          "config": "nil",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        },
+        {
+          "id": "ssl_handler",
+          "module": "logger_std_h",
+          "config": "%{type: :standard_io, burst_limit_enable: true, drop_mode_qlen: 200, flush_qlen: 1000, sync_mode_qlen: 10, overload_kill_restart_after: 5000, burst_limit_max_count: 500, burst_limit_window_time: 1000, overload_kill_enable: false, overload_kill_mem_size: 3000000, overload_kill_qlen: 20000, filesync_repeat_interval: :no_repeat}",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            },
+            {
+              "id": "filter_non_ssl",
+              "fun": "&:logger_filters.domain/2",
+              "argument": "{:log, :sub, [:otp, :ssl]}"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        }
+      ],
+      "stdout": "logger_std_h_standard_io",
+      "primary": "%{level: :debug, filter_default: :log, filters: [logger_translator: {&Logger.Utils.translator/2, %{otp: true, sasl: false, translators: [{Logger.Translator, :translate}]}}, logger_process_level: {&Logger.Utils.process_level/2, []}], metadata: %{}}",
+      "stderr": "merged_child_output",
+      "kind": "inventory",
+      "telemetry": [
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "stop"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "ready"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "start"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "async_recv"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "start"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "stop"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "exception"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "recv"
+          ]
+        }
+      ],
+      "exporters": []
+    },
+    {
+      "mode": "simultaneous",
+      "peer": {
+        "closed": true,
+        "reason": "closed",
+        "bytes": 60,
+        "elapsed_ms": 28
+      },
+      "kind": "second_stream_race",
+      "verifier_delta": 0
+    },
+    {
+      "kind": "post_eof_write",
+      "send_result": "{:error, :closed}",
+      "eof_preceded_write": true
+    },
+    {
+      "mode": "post_response",
+      "peer": {
+        "closed": true,
+        "reason": "closed",
+        "bytes": 181,
+        "elapsed_ms": 3
+      },
+      "kind": "second_stream_race",
+      "verifier_delta": 1
+    },
+    {
+      "port": 54310,
+      "kind": "cleanup",
+      "filters_retained": true,
+      "role_down": true,
+      "owner_down": true,
+      "guard_supervisor_down": true,
+      "port_refused": true
+    },
+    {
+      "logger": [
+        {
+          "id": "default",
+          "module": "logger_std_h",
+          "config": "%{type: :standard_io, burst_limit_enable: true, drop_mode_qlen: 200, flush_qlen: 1000, sync_mode_qlen: 10, overload_kill_restart_after: 5000, burst_limit_max_count: 500, burst_limit_window_time: 1000, overload_kill_enable: false, overload_kill_mem_size: 3000000, overload_kill_qlen: 20000, filesync_repeat_interval: :no_repeat}",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            },
+            {
+              "id": "remote_gl",
+              "fun": "&:logger_filters.remote_gl/2",
+              "argument": ":stop"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        },
+        {
+          "id": "review_collector",
+          "module": "Elixir.ReviewSink",
+          "config": "nil",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        },
+        {
+          "id": "ssl_handler",
+          "module": "logger_std_h",
+          "config": "%{type: :standard_io, burst_limit_enable: true, drop_mode_qlen: 200, flush_qlen: 1000, sync_mode_qlen: 10, overload_kill_restart_after: 5000, burst_limit_max_count: 500, burst_limit_window_time: 1000, overload_kill_enable: false, overload_kill_mem_size: 3000000, overload_kill_qlen: 20000, filesync_repeat_interval: :no_repeat}",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            },
+            {
+              "id": "filter_non_ssl",
+              "fun": "&:logger_filters.domain/2",
+              "argument": "{:log, :sub, [:otp, :ssl]}"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        }
+      ],
+      "stdout": "logger_std_h_standard_io",
+      "primary": "%{level: :debug, filter_default: :log, filters: [logger_translator: {&Logger.Utils.translator/2, %{otp: true, sasl: false, translators: [{Logger.Translator, :translate}]}}, logger_process_level: {&Logger.Utils.process_level/2, []}], metadata: %{}}",
+      "stderr": "merged_child_output",
+      "kind": "inventory",
+      "telemetry": [
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "stop"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "ready"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "start"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "async_recv"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "start"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "stop"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "exception"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "recv"
+          ]
+        }
+      ],
+      "exporters": []
+    },
+    {
+      "label": "settings_enable_push_2",
+      "peer": {
+        "closed": true,
+        "reason": "closed",
+        "bytes": 47,
+        "elapsed_ms": 0
+      },
+      "kind": "protocol_rejection",
+      "verifier_delta": 0
+    },
+    {
+      "label": "settings_initial_window_overflow",
+      "peer": {
+        "closed": true,
+        "reason": "closed",
+        "bytes": 47,
+        "elapsed_ms": 0
+      },
+      "kind": "protocol_rejection",
+      "verifier_delta": 0
+    },
+    {
+      "label": "settings_frame_below_min",
+      "peer": {
+        "closed": true,
+        "reason": "closed",
+        "bytes": 47,
+        "elapsed_ms": 0
+      },
+      "kind": "protocol_rejection",
+      "verifier_delta": 0
+    },
+    {
+      "label": "settings_frame_above_max",
+      "peer": {
+        "closed": true,
+        "reason": "closed",
+        "bytes": 47,
+        "elapsed_ms": 0
+      },
+      "kind": "protocol_rejection",
+      "verifier_delta": 0
+    },
+    {
+      "label": "settings_ack_payload",
+      "peer": {
+        "closed": true,
+        "reason": "closed",
+        "bytes": 47,
+        "elapsed_ms": 0
+      },
+      "kind": "protocol_rejection",
+      "verifier_delta": 0
+    },
+    {
+      "label": "settings_nonzero_stream",
+      "peer": {
+        "closed": true,
+        "reason": "closed",
+        "bytes": 47,
+        "elapsed_ms": 1
+      },
+      "kind": "protocol_rejection",
+      "verifier_delta": 0
+    },
+    {
+      "label": "settings_bad_length",
+      "peer": {
+        "closed": true,
+        "reason": "closed",
+        "bytes": 47,
+        "elapsed_ms": 0
+      },
+      "kind": "protocol_rejection",
+      "verifier_delta": 0
+    },
+    {
+      "label": "window_zero_connection",
+      "peer": {
+        "closed": true,
+        "reason": "closed",
+        "bytes": 47,
+        "elapsed_ms": 1
+      },
+      "kind": "protocol_rejection",
+      "verifier_delta": 0
+    },
+    {
+      "label": "window_zero_stream",
+      "peer": {
+        "closed": true,
+        "reason": "closed",
+        "bytes": 47,
+        "elapsed_ms": 0
+      },
+      "kind": "protocol_rejection",
+      "verifier_delta": 0
+    },
+    {
+      "label": "window_bad_length",
+      "peer": {
+        "closed": true,
+        "reason": "closed",
+        "bytes": 47,
+        "elapsed_ms": 0
+      },
+      "kind": "protocol_rejection",
+      "verifier_delta": 0
+    },
+    {
+      "label": "window_connection_overflow",
+      "peer": {
+        "closed": true,
+        "reason": "closed",
+        "bytes": 47,
+        "elapsed_ms": 0
+      },
+      "kind": "protocol_rejection",
+      "verifier_delta": 0
+    },
+    {
+      "port": 54314,
+      "kind": "cleanup",
+      "filters_retained": true,
+      "role_down": true,
+      "owner_down": true,
+      "guard_supervisor_down": true,
+      "port_refused": true
+    },
+    {
+      "logger": [
+        {
+          "id": "default",
+          "module": "logger_std_h",
+          "config": "%{type: :standard_io, burst_limit_enable: true, drop_mode_qlen: 200, flush_qlen: 1000, sync_mode_qlen: 10, overload_kill_restart_after: 5000, burst_limit_max_count: 500, burst_limit_window_time: 1000, overload_kill_enable: false, overload_kill_mem_size: 3000000, overload_kill_qlen: 20000, filesync_repeat_interval: :no_repeat}",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            },
+            {
+              "id": "remote_gl",
+              "fun": "&:logger_filters.remote_gl/2",
+              "argument": ":stop"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        },
+        {
+          "id": "review_collector",
+          "module": "Elixir.ReviewSink",
+          "config": "nil",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        },
+        {
+          "id": "ssl_handler",
+          "module": "logger_std_h",
+          "config": "%{type: :standard_io, burst_limit_enable: true, drop_mode_qlen: 200, flush_qlen: 1000, sync_mode_qlen: 10, overload_kill_restart_after: 5000, burst_limit_max_count: 500, burst_limit_window_time: 1000, overload_kill_enable: false, overload_kill_mem_size: 3000000, overload_kill_qlen: 20000, filesync_repeat_interval: :no_repeat}",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            },
+            {
+              "id": "filter_non_ssl",
+              "fun": "&:logger_filters.domain/2",
+              "argument": "{:log, :sub, [:otp, :ssl]}"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        }
+      ],
+      "stdout": "logger_std_h_standard_io",
+      "primary": "%{level: :debug, filter_default: :log, filters: [logger_translator: {&Logger.Utils.translator/2, %{otp: true, sasl: false, translators: [{Logger.Translator, :translate}]}}, logger_process_level: {&Logger.Utils.process_level/2, []}], metadata: %{}}",
+      "stderr": "merged_child_output",
+      "kind": "inventory",
+      "telemetry": [
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "stop"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "ready"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "start"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "async_recv"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "start"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "stop"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "exception"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "recv"
+          ]
+        }
+      ],
+      "exporters": []
+    },
+    {
+      "label": "stream_send_window_overflow",
+      "peer": {
+        "closed": true,
+        "reason": "closed",
+        "bytes": 30,
+        "elapsed_ms": 0
+      },
+      "kind": "window_request",
+      "verifier_delta": 0,
+      "deaths": [
+        {
+          "pid": "#PID<0.295.0>",
+          "reason": ":killed",
+          "down": true
+        },
+        {
+          "pid": "#PID<0.297.0>",
+          "reason": ":killed",
+          "down": true
+        }
+      ],
+      "total_peer_ms": 3
+    },
+    {
+      "label": "connection_window_valid_max",
+      "peer": {
+        "closed": true,
+        "reason": "closed",
+        "bytes": 164,
+        "elapsed_ms": 998
+      },
+      "kind": "window_request",
+      "verifier_delta": 0,
+      "deaths": [
+        {
+          "pid": "#PID<0.298.0>",
+          "reason": ":killed",
+          "down": true
+        },
+        {
+          "pid": "#PID<0.300.0>",
+          "reason": ":normal",
+          "down": true
+        }
+      ],
+      "total_peer_ms": 1002
+    },
+    {
+      "label": "settings_and_window_flood",
+      "peer": {
+        "closed": true,
+        "reason": "closed",
+        "bytes": 623,
+        "elapsed_ms": 1002
+      },
+      "kind": "window_request",
+      "verifier_delta": 0,
+      "deaths": [
+        {
+          "pid": "#PID<0.301.0>",
+          "reason": "{:shutdown, :read_timeout}",
+          "down": true
+        },
+        {
+          "pid": "#PID<0.303.0>",
+          "reason": "{:shutdown, :read_timeout}",
+          "down": true
+        }
+      ],
+      "total_peer_ms": 1005
+    },
+    {
+      "port": 54327,
+      "kind": "cleanup",
+      "filters_retained": true,
+      "role_down": true,
+      "owner_down": true,
+      "guard_supervisor_down": true,
+      "port_refused": true
+    },
+    {
+      "logger": [
+        {
+          "id": "default",
+          "module": "logger_std_h",
+          "config": "%{type: :standard_io, burst_limit_enable: true, drop_mode_qlen: 200, flush_qlen: 1000, sync_mode_qlen: 10, overload_kill_restart_after: 5000, burst_limit_max_count: 500, burst_limit_window_time: 1000, overload_kill_enable: false, overload_kill_mem_size: 3000000, overload_kill_qlen: 20000, filesync_repeat_interval: :no_repeat}",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            },
+            {
+              "id": "remote_gl",
+              "fun": "&:logger_filters.remote_gl/2",
+              "argument": ":stop"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        },
+        {
+          "id": "review_collector",
+          "module": "Elixir.ReviewSink",
+          "config": "nil",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        },
+        {
+          "id": "ssl_handler",
+          "module": "logger_std_h",
+          "config": "%{type: :standard_io, burst_limit_enable: true, drop_mode_qlen: 200, flush_qlen: 1000, sync_mode_qlen: 10, overload_kill_restart_after: 5000, burst_limit_max_count: 500, burst_limit_window_time: 1000, overload_kill_enable: false, overload_kill_mem_size: 3000000, overload_kill_qlen: 20000, filesync_repeat_interval: :no_repeat}",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            },
+            {
+              "id": "filter_non_ssl",
+              "fun": "&:logger_filters.domain/2",
+              "argument": "{:log, :sub, [:otp, :ssl]}"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        }
+      ],
+      "stdout": "logger_std_h_standard_io",
+      "primary": "%{level: :debug, filter_default: :log, filters: [logger_translator: {&Logger.Utils.translator/2, %{otp: true, sasl: false, translators: [{Logger.Translator, :translate}]}}, logger_process_level: {&Logger.Utils.process_level/2, []}], metadata: %{}}",
+      "stderr": "merged_child_output",
+      "kind": "inventory",
+      "telemetry": [
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "stop"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "ready"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "start"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "async_recv"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "start"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "stop"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "exception"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "recv"
+          ]
+        }
+      ],
+      "exporters": []
+    },
+    {
+      "peer": {
+        "closed": true,
+        "reason": "closed",
+        "bytes": 1331,
+        "elapsed_ms": 6997
+      },
+      "history": [
+        {
+          "reason": "expired",
+          "deadline": -576460741741,
+          "ended": -576460741741,
+          "overshoot_ms": 0
+        }
+      ],
+      "kind": "actual_window_block",
+      "verifier_delta": 1,
+      "deaths": [
+        {
+          "pid": "#PID<0.322.0>",
+          "reason": ":killed",
+          "down": true
+        },
+        {
+          "pid": "#PID<0.324.0>",
+          "reason": ":killed",
+          "down": true
+        }
+      ],
+      "total_peer_ms": 7000
+    },
+    {
+      "port": 54348,
+      "kind": "cleanup",
+      "filters_retained": true,
+      "role_down": true,
+      "owner_down": true,
+      "guard_supervisor_down": true,
+      "port_refused": true
+    },
+    {
+      "logger": [
+        {
+          "id": "default",
+          "module": "logger_std_h",
+          "config": "%{type: :standard_io, burst_limit_enable: true, drop_mode_qlen: 200, flush_qlen: 1000, sync_mode_qlen: 10, overload_kill_restart_after: 5000, burst_limit_max_count: 500, burst_limit_window_time: 1000, overload_kill_enable: false, overload_kill_mem_size: 3000000, overload_kill_qlen: 20000, filesync_repeat_interval: :no_repeat}",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            },
+            {
+              "id": "remote_gl",
+              "fun": "&:logger_filters.remote_gl/2",
+              "argument": ":stop"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        },
+        {
+          "id": "review_collector",
+          "module": "Elixir.ReviewSink",
+          "config": "nil",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        },
+        {
+          "id": "ssl_handler",
+          "module": "logger_std_h",
+          "config": "%{type: :standard_io, burst_limit_enable: true, drop_mode_qlen: 200, flush_qlen: 1000, sync_mode_qlen: 10, overload_kill_restart_after: 5000, burst_limit_max_count: 500, burst_limit_window_time: 1000, overload_kill_enable: false, overload_kill_mem_size: 3000000, overload_kill_qlen: 20000, filesync_repeat_interval: :no_repeat}",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            },
+            {
+              "id": "filter_non_ssl",
+              "fun": "&:logger_filters.domain/2",
+              "argument": "{:log, :sub, [:otp, :ssl]}"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        }
+      ],
+      "stdout": "logger_std_h_standard_io",
+      "primary": "%{level: :debug, filter_default: :log, filters: [logger_translator: {&Logger.Utils.translator/2, %{otp: true, sasl: false, translators: [{Logger.Translator, :translate}]}}, logger_process_level: {&Logger.Utils.process_level/2, []}], metadata: %{}}",
+      "stderr": "merged_child_output",
+      "kind": "inventory",
+      "telemetry": [
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "stop"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "ready"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "start"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "async_recv"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "start"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "stop"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "exception"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "recv"
+          ]
+        }
+      ],
+      "exporters": []
+    },
+    {
+      "mode": "before_completion",
+      "peer": {
+        "closed": true,
+        "reason": "closed",
+        "bytes": 47,
+        "elapsed_ms": 0
+      },
+      "kind": "second_stream",
+      "verifier_delta": 0,
+      "deaths": [
+        {
+          "pid": "#PID<0.344.0>",
+          "reason": "{:shutdown, :local_closed}",
+          "down": true
+        },
+        {
+          "pid": "#PID<0.346.0>",
+          "reason": "{:shutdown, :local_closed}",
+          "down": true
+        }
+      ]
+    },
+    {
+      "mode": "after_capture",
+      "peer": {
+        "closed": true,
+        "reason": "closed",
+        "bytes": 60,
+        "elapsed_ms": 0
+      },
+      "kind": "second_stream",
+      "verifier_delta": 1,
+      "deaths": [
+        {
+          "pid": "#PID<0.347.0>",
+          "reason": "{:shutdown, :local_closed}",
+          "down": true
+        },
+        {
+          "pid": "#PID<0.349.0>",
+          "reason": "{:shutdown, :local_closed}",
+          "down": true
+        }
+      ]
+    },
+    {
+      "mode": "after_reset",
+      "peer": {
+        "closed": true,
+        "reason": "closed",
+        "bytes": 47,
+        "elapsed_ms": 0
+      },
+      "kind": "second_stream",
+      "verifier_delta": 0,
+      "deaths": [
+        {
+          "pid": "#PID<0.350.0>",
+          "reason": "{:shutdown, :local_closed}",
+          "down": true
+        },
+        {
+          "pid": "#PID<0.352.0>",
+          "reason": "{:shutdown, :local_closed}",
+          "down": true
+        }
+      ]
+    },
+    {
+      "port": 54397,
+      "kind": "cleanup",
+      "filters_retained": true,
+      "role_down": true,
+      "owner_down": true,
+      "guard_supervisor_down": true,
+      "port_refused": true
+    },
+    {
+      "logger": [
+        {
+          "id": "default",
+          "module": "logger_std_h",
+          "config": "%{type: :standard_io, burst_limit_enable: true, drop_mode_qlen: 200, flush_qlen: 1000, sync_mode_qlen: 10, overload_kill_restart_after: 5000, burst_limit_max_count: 500, burst_limit_window_time: 1000, overload_kill_enable: false, overload_kill_mem_size: 3000000, overload_kill_qlen: 20000, filesync_repeat_interval: :no_repeat}",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            },
+            {
+              "id": "remote_gl",
+              "fun": "&:logger_filters.remote_gl/2",
+              "argument": ":stop"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        },
+        {
+          "id": "review_collector",
+          "module": "Elixir.ReviewSink",
+          "config": "nil",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        },
+        {
+          "id": "ssl_handler",
+          "module": "logger_std_h",
+          "config": "%{type: :standard_io, burst_limit_enable: true, drop_mode_qlen: 200, flush_qlen: 1000, sync_mode_qlen: 10, overload_kill_restart_after: 5000, burst_limit_max_count: 500, burst_limit_window_time: 1000, overload_kill_enable: false, overload_kill_mem_size: 3000000, overload_kill_qlen: 20000, filesync_repeat_interval: :no_repeat}",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            },
+            {
+              "id": "filter_non_ssl",
+              "fun": "&:logger_filters.domain/2",
+              "argument": "{:log, :sub, [:otp, :ssl]}"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        }
+      ],
+      "stdout": "logger_std_h_standard_io",
+      "primary": "%{level: :debug, filter_default: :log, filters: [logger_translator: {&Logger.Utils.translator/2, %{otp: true, sasl: false, translators: [{Logger.Translator, :translate}]}}, logger_process_level: {&Logger.Utils.process_level/2, []}], metadata: %{}}",
+      "stderr": "merged_child_output",
+      "kind": "inventory",
+      "telemetry": [
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "stop"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "ready"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "start"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "async_recv"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "start"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "stop"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "exception"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "recv"
+          ]
+        }
+      ],
+      "exporters": []
+    },
+    {
+      "mode": "active_stream",
+      "peer": {
+        "closed": true,
+        "reason": "closed",
+        "bytes": 47,
+        "elapsed_ms": 0
+      },
+      "kind": "reset_flood",
+      "verifier_delta": 0,
+      "deaths": [
+        {
+          "pid": "#PID<0.371.0>",
+          "reason": "{:shutdown, :local_closed}",
+          "down": true
+        },
+        {
+          "pid": "#PID<0.373.0>",
+          "reason": "{:shutdown, :local_closed}",
+          "down": true
+        }
+      ],
+      "frames_sent": 64,
+      "rate_limiter_isolated": false
+    },
+    {
+      "mode": "idle_new_stream",
+      "peer": {
+        "closed": true,
+        "reason": "closed",
+        "bytes": 47,
+        "elapsed_ms": 0
+      },
+      "kind": "reset_flood",
+      "verifier_delta": 0,
+      "deaths": [
+        {
+          "pid": "#PID<0.374.0>",
+          "reason": "{:shutdown, :local_closed}",
+          "down": true
+        },
+        {
+          "pid": "#PID<0.376.0>",
+          "reason": "{:shutdown, :local_closed}",
+          "down": true
+        }
+      ],
+      "frames_sent": 64,
+      "rate_limiter_isolated": false
+    },
+    {
+      "port": 54404,
+      "kind": "cleanup",
+      "filters_retained": true,
+      "role_down": true,
+      "owner_down": true,
+      "guard_supervisor_down": true,
+      "port_refused": true
+    },
+    {
+      "logger": [
+        {
+          "id": "default",
+          "module": "logger_std_h",
+          "config": "%{type: :standard_io, burst_limit_enable: true, drop_mode_qlen: 200, flush_qlen: 1000, sync_mode_qlen: 10, overload_kill_restart_after: 5000, burst_limit_max_count: 500, burst_limit_window_time: 1000, overload_kill_enable: false, overload_kill_mem_size: 3000000, overload_kill_qlen: 20000, filesync_repeat_interval: :no_repeat}",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            },
+            {
+              "id": "remote_gl",
+              "fun": "&:logger_filters.remote_gl/2",
+              "argument": ":stop"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        },
+        {
+          "id": "review_collector",
+          "module": "Elixir.ReviewSink",
+          "config": "nil",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        },
+        {
+          "id": "ssl_handler",
+          "module": "logger_std_h",
+          "config": "%{type: :standard_io, burst_limit_enable: true, drop_mode_qlen: 200, flush_qlen: 1000, sync_mode_qlen: 10, overload_kill_restart_after: 5000, burst_limit_max_count: 500, burst_limit_window_time: 1000, overload_kill_enable: false, overload_kill_mem_size: 3000000, overload_kill_qlen: 20000, filesync_repeat_interval: :no_repeat}",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            },
+            {
+              "id": "filter_non_ssl",
+              "fun": "&:logger_filters.domain/2",
+              "argument": "{:log, :sub, [:otp, :ssl]}"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        }
+      ],
+      "stdout": "logger_std_h_standard_io",
+      "primary": "%{level: :debug, filter_default: :log, filters: [logger_translator: {&Logger.Utils.translator/2, %{otp: true, sasl: false, translators: [{Logger.Translator, :translate}]}}, logger_process_level: {&Logger.Utils.process_level/2, []}], metadata: %{}}",
+      "stderr": "merged_child_output",
+      "kind": "inventory",
+      "telemetry": [
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "stop"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "ready"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "start"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "async_recv"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "start"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "stop"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "exception"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "recv"
+          ]
+        }
+      ],
+      "exporters": []
+    },
+    {
+      "label": "all_min",
+      "values": [
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          5,
+          16384
+        ],
+        [
+          6,
+          0
+        ]
+      ],
+      "peer": {
+        "closed": true,
+        "reason": "closed",
+        "bytes": 197,
+        "elapsed_ms": 0
+      },
+      "kind": "settings_valid",
+      "verifier_delta": 1
+    },
+    {
+      "label": "all_max",
+      "values": [
+        [
+          1,
+          4294967295
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          3,
+          4294967295
+        ],
+        [
+          4,
+          2147483647
+        ],
+        [
+          5,
+          16777215
+        ],
+        [
+          6,
+          4294967295
+        ]
+      ],
+      "peer": {
+        "closed": true,
+        "reason": "closed",
+        "bytes": 205,
+        "elapsed_ms": 0
+      },
+      "kind": "settings_valid",
+      "verifier_delta": 1
+    },
+    {
+      "label": "unknown_and_duplicate",
+      "values": [
+        [
+          4,
+          0
+        ],
+        [
+          4,
+          65535
+        ],
+        [
+          65535,
+          4294967295
+        ]
+      ],
+      "peer": {
+        "closed": true,
+        "reason": "closed",
+        "bytes": 199,
+        "elapsed_ms": 1
+      },
+      "kind": "settings_valid",
+      "verifier_delta": 1
+    },
+    {
+      "port": 54408,
+      "kind": "cleanup",
+      "filters_retained": true,
+      "role_down": true,
+      "owner_down": true,
+      "guard_supervisor_down": true,
+      "port_refused": true
+    },
+    {
+      "logger": [
+        {
+          "id": "default",
+          "module": "logger_std_h",
+          "config": "%{type: :standard_io, burst_limit_enable: true, drop_mode_qlen: 200, flush_qlen: 1000, sync_mode_qlen: 10, overload_kill_restart_after: 5000, burst_limit_max_count: 500, burst_limit_window_time: 1000, overload_kill_enable: false, overload_kill_mem_size: 3000000, overload_kill_qlen: 20000, filesync_repeat_interval: :no_repeat}",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            },
+            {
+              "id": "remote_gl",
+              "fun": "&:logger_filters.remote_gl/2",
+              "argument": ":stop"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        },
+        {
+          "id": "review_collector",
+          "module": "Elixir.ReviewSink",
+          "config": "nil",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        },
+        {
+          "id": "ssl_handler",
+          "module": "logger_std_h",
+          "config": "%{type: :standard_io, burst_limit_enable: true, drop_mode_qlen: 200, flush_qlen: 1000, sync_mode_qlen: 10, overload_kill_restart_after: 5000, burst_limit_max_count: 500, burst_limit_window_time: 1000, overload_kill_enable: false, overload_kill_mem_size: 3000000, overload_kill_qlen: 20000, filesync_repeat_interval: :no_repeat}",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            },
+            {
+              "id": "filter_non_ssl",
+              "fun": "&:logger_filters.domain/2",
+              "argument": "{:log, :sub, [:otp, :ssl]}"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        }
+      ],
+      "stdout": "logger_std_h_standard_io",
+      "primary": "%{level: :debug, filter_default: :log, filters: [logger_translator: {&Logger.Utils.translator/2, %{otp: true, sasl: false, translators: [{Logger.Translator, :translate}]}}, logger_process_level: {&Logger.Utils.process_level/2, []}], metadata: %{}}",
+      "stderr": "merged_child_output",
+      "kind": "inventory",
+      "telemetry": [
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "stop"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "ready"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "start"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "async_recv"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "start"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "stop"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "exception"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "recv"
+          ]
+        }
+      ],
+      "exporters": []
+    },
+    {
+      "kind": "privacy",
+      "raw_collector_leaks": 0,
+      "safe_counter_observed": true,
+      "ordinary_crash_and_framework_warnings": true
+    },
+    {
+      "port": 54413,
+      "kind": "cleanup",
+      "filters_retained": true,
+      "role_down": true,
+      "owner_down": true,
+      "guard_supervisor_down": true,
+      "port_refused": true
+    },
+    {
+      "logger": [
+        {
+          "id": "default",
+          "module": "logger_std_h",
+          "config": "%{type: :standard_io, burst_limit_enable: true, drop_mode_qlen: 200, flush_qlen: 1000, sync_mode_qlen: 10, overload_kill_restart_after: 5000, burst_limit_max_count: 500, burst_limit_window_time: 1000, overload_kill_enable: false, overload_kill_mem_size: 3000000, overload_kill_qlen: 20000, filesync_repeat_interval: :no_repeat}",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            },
+            {
+              "id": "remote_gl",
+              "fun": "&:logger_filters.remote_gl/2",
+              "argument": ":stop"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        },
+        {
+          "id": "review_collector",
+          "module": "Elixir.ReviewSink",
+          "config": "nil",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        },
+        {
+          "id": "ssl_handler",
+          "module": "logger_std_h",
+          "config": "%{type: :standard_io, burst_limit_enable: true, drop_mode_qlen: 200, flush_qlen: 1000, sync_mode_qlen: 10, overload_kill_restart_after: 5000, burst_limit_max_count: 500, burst_limit_window_time: 1000, overload_kill_enable: false, overload_kill_mem_size: 3000000, overload_kill_qlen: 20000, filesync_repeat_interval: :no_repeat}",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            },
+            {
+              "id": "filter_non_ssl",
+              "fun": "&:logger_filters.domain/2",
+              "argument": "{:log, :sub, [:otp, :ssl]}"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        }
+      ],
+      "stdout": "logger_std_h_standard_io",
+      "primary": "%{level: :debug, filter_default: :log, filters: [logger_translator: {&Logger.Utils.translator/2, %{otp: true, sasl: false, translators: [{Logger.Translator, :translate}]}}, logger_process_level: {&Logger.Utils.process_level/2, []}], metadata: %{}}",
+      "stderr": "merged_child_output",
+      "kind": "inventory",
+      "telemetry": [
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "stop"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "ready"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "start"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "async_recv"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "start"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "stop"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "exception"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "recv"
+          ]
+        }
+      ],
+      "exporters": []
+    },
+    {
+      "first": ":ok",
+      "mode": "pre_expiry",
+      "result": "{:ok, -576460740189}",
+      "deadline": -576460740189,
+      "kind": "permit_boundary",
+      "checked_ms": -576460740339,
+      "checked_at_or_after_deadline": false
+    },
+    {
+      "first": ":ok",
+      "mode": "begin_twice",
+      "result": "{:error, :replay}",
+      "deadline": -576460740186,
+      "kind": "permit_boundary",
+      "checked_ms": -576460740336,
+      "checked_at_or_after_deadline": false
+    },
+    {
+      "first": "nil",
+      "mode": "expired_begin",
+      "result": "{:error, :deadline}",
+      "deadline": -576460740186,
+      "kind": "permit_boundary",
+      "checked_ms": -576460740186,
+      "checked_at_or_after_deadline": true
+    },
+    {
+      "first": ":ok",
+      "mode": "expired_finish",
+      "result": "{:error, :deadline}",
+      "deadline": -576460740036,
+      "kind": "permit_boundary",
+      "checked_ms": -576460740036,
+      "checked_at_or_after_deadline": true
+    },
+    {
+      "first": ":ok",
+      "mode": "delayed_finish",
+      "result": "{:error, :deadline}",
+      "deadline": -576460739883,
+      "kind": "permit_boundary",
+      "checked_ms": -576460739883,
+      "checked_at_or_after_deadline": true
+    },
+    {
+      "mode": "connection_generation",
+      "kind": "permit_boundary",
+      "independent_kill_won": true
+    },
+    {
+      "port": 54419,
+      "kind": "cleanup",
+      "filters_retained": true,
+      "role_down": true,
+      "owner_down": true,
+      "guard_supervisor_down": true,
+      "port_refused": true
+    },
+    {
+      "logger": [
+        {
+          "id": "default",
+          "module": "logger_std_h",
+          "config": "%{type: :standard_io, burst_limit_enable: true, drop_mode_qlen: 200, flush_qlen: 1000, sync_mode_qlen: 10, overload_kill_restart_after: 5000, burst_limit_max_count: 500, burst_limit_window_time: 1000, overload_kill_enable: false, overload_kill_mem_size: 3000000, overload_kill_qlen: 20000, filesync_repeat_interval: :no_repeat}",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            },
+            {
+              "id": "remote_gl",
+              "fun": "&:logger_filters.remote_gl/2",
+              "argument": ":stop"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        },
+        {
+          "id": "review_collector",
+          "module": "Elixir.ReviewSink",
+          "config": "nil",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        },
+        {
+          "id": "ssl_handler",
+          "module": "logger_std_h",
+          "config": "%{type: :standard_io, burst_limit_enable: true, drop_mode_qlen: 200, flush_qlen: 1000, sync_mode_qlen: 10, overload_kill_restart_after: 5000, burst_limit_max_count: 500, burst_limit_window_time: 1000, overload_kill_enable: false, overload_kill_mem_size: 3000000, overload_kill_qlen: 20000, filesync_repeat_interval: :no_repeat}",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            },
+            {
+              "id": "filter_non_ssl",
+              "fun": "&:logger_filters.domain/2",
+              "argument": "{:log, :sub, [:otp, :ssl]}"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        }
+      ],
+      "stdout": "logger_std_h_standard_io",
+      "primary": "%{level: :debug, filter_default: :log, filters: [logger_translator: {&Logger.Utils.translator/2, %{otp: true, sasl: false, translators: [{Logger.Translator, :translate}]}}, logger_process_level: {&Logger.Utils.process_level/2, []}], metadata: %{}}",
+      "stderr": "merged_child_output",
+      "kind": "inventory",
+      "telemetry": [
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "stop"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "ready"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "start"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "async_recv"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "start"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "stop"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "exception"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "recv"
+          ]
+        }
+      ],
+      "exporters": []
+    },
+    {
+      "peer": {
+        "closed": true,
+        "reason": "closed",
+        "bytes": 30,
+        "elapsed_ms": 0
+      },
+      "kind": "h2_failure_domain",
+      "role_down": false,
+      "verifier_delta": 0,
+      "deaths": [
+        {
+          "pid": "#PID<0.478.0>",
+          "reason": ":killed",
+          "down": true
+        },
+        {
+          "pid": "#PID<0.480.0>",
+          "reason": ":killed",
+          "down": true
+        }
+      ],
+      "fault": "reader"
+    },
+    {
+      "port": 54423,
+      "kind": "cleanup",
+      "filters_retained": true,
+      "role_down": true,
+      "owner_down": true,
+      "guard_supervisor_down": true,
+      "port_refused": true
+    },
+    {
+      "logger": [
+        {
+          "id": "default",
+          "module": "logger_std_h",
+          "config": "%{type: :standard_io, burst_limit_enable: true, drop_mode_qlen: 200, flush_qlen: 1000, sync_mode_qlen: 10, overload_kill_restart_after: 5000, burst_limit_max_count: 500, burst_limit_window_time: 1000, overload_kill_enable: false, overload_kill_mem_size: 3000000, overload_kill_qlen: 20000, filesync_repeat_interval: :no_repeat}",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            },
+            {
+              "id": "remote_gl",
+              "fun": "&:logger_filters.remote_gl/2",
+              "argument": ":stop"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        },
+        {
+          "id": "review_collector",
+          "module": "Elixir.ReviewSink",
+          "config": "nil",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        },
+        {
+          "id": "ssl_handler",
+          "module": "logger_std_h",
+          "config": "%{type: :standard_io, burst_limit_enable: true, drop_mode_qlen: 200, flush_qlen: 1000, sync_mode_qlen: 10, overload_kill_restart_after: 5000, burst_limit_max_count: 500, burst_limit_window_time: 1000, overload_kill_enable: false, overload_kill_mem_size: 3000000, overload_kill_qlen: 20000, filesync_repeat_interval: :no_repeat}",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            },
+            {
+              "id": "filter_non_ssl",
+              "fun": "&:logger_filters.domain/2",
+              "argument": "{:log, :sub, [:otp, :ssl]}"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        }
+      ],
+      "stdout": "logger_std_h_standard_io",
+      "primary": "%{level: :debug, filter_default: :log, filters: [logger_translator: {&Logger.Utils.translator/2, %{otp: true, sasl: false, translators: [{Logger.Translator, :translate}]}}, logger_process_level: {&Logger.Utils.process_level/2, []}], metadata: %{}}",
+      "stderr": "merged_child_output",
+      "kind": "inventory",
+      "telemetry": [
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "stop"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "ready"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "start"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "async_recv"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "start"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "stop"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "exception"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "recv"
+          ]
+        }
+      ],
+      "exporters": []
+    },
+    {
+      "peer": {
+        "closed": true,
+        "reason": "closed",
+        "bytes": 30,
+        "elapsed_ms": 0
+      },
+      "kind": "h2_failure_domain",
+      "role_down": true,
+      "verifier_delta": 0,
+      "deaths": [
+        {
+          "pid": "#PID<0.498.0>",
+          "reason": ":killed",
+          "down": true
+        },
+        {
+          "pid": "#PID<0.500.0>",
+          "reason": ":killed",
+          "down": true
+        }
+      ],
+      "fault": "guard"
+    },
+    {
+      "port": 54426,
+      "kind": "cleanup",
+      "filters_retained": true,
+      "role_down": true,
+      "owner_down": true,
+      "guard_supervisor_down": true,
+      "port_refused": true
+    },
+    {
+      "logger": [
+        {
+          "id": "default",
+          "module": "logger_std_h",
+          "config": "%{type: :standard_io, burst_limit_enable: true, drop_mode_qlen: 200, flush_qlen: 1000, sync_mode_qlen: 10, overload_kill_restart_after: 5000, burst_limit_max_count: 500, burst_limit_window_time: 1000, overload_kill_enable: false, overload_kill_mem_size: 3000000, overload_kill_qlen: 20000, filesync_repeat_interval: :no_repeat}",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            },
+            {
+              "id": "remote_gl",
+              "fun": "&:logger_filters.remote_gl/2",
+              "argument": ":stop"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        },
+        {
+          "id": "review_collector",
+          "module": "Elixir.ReviewSink",
+          "config": "nil",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        },
+        {
+          "id": "ssl_handler",
+          "module": "logger_std_h",
+          "config": "%{type: :standard_io, burst_limit_enable: true, drop_mode_qlen: 200, flush_qlen: 1000, sync_mode_qlen: 10, overload_kill_restart_after: 5000, burst_limit_max_count: 500, burst_limit_window_time: 1000, overload_kill_enable: false, overload_kill_mem_size: 3000000, overload_kill_qlen: 20000, filesync_repeat_interval: :no_repeat}",
+          "filters": [
+            {
+              "id": "mixer_private_schema",
+              "fun": "&MixerHosted.Billing.WebhookTransport.Sinks.filter/2",
+              "argument": "nil"
+            },
+            {
+              "id": "filter_non_ssl",
+              "fun": "&:logger_filters.domain/2",
+              "argument": "{:log, :sub, [:otp, :ssl]}"
+            }
+          ],
+          "formatter": "{:logger_formatter, %{template: [:msg, ~c\"\\n\"]}}"
+        }
+      ],
+      "stdout": "logger_std_h_standard_io",
+      "primary": "%{level: :debug, filter_default: :log, filters: [logger_translator: {&Logger.Utils.translator/2, %{otp: true, sasl: false, translators: [{Logger.Translator, :translate}]}}, logger_process_level: {&Logger.Utils.process_level/2, []}], metadata: %{}}",
+      "stderr": "merged_child_output",
+      "kind": "inventory",
+      "telemetry": [
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "stop"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "ready"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "start"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "async_recv"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "start"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "stop"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "bandit",
+            "request",
+            "exception"
+          ]
+        },
+        {
+          "id": "mixer-private-webhook-control",
+          "config": "nil",
+          "callback": "&MixerHosted.Billing.WebhookTransport.Sinks.control/4",
+          "event": [
+            "thousand_island",
+            "connection",
+            "recv"
+          ]
+        }
+      ],
+      "exporters": []
+    },
+    {
+      "peer": {
+        "closed": true,
+        "reason": "closed",
+        "bytes": 30,
+        "elapsed_ms": 0
+      },
+      "kind": "h2_failure_domain",
+      "role_down": true,
+      "verifier_delta": 0,
+      "deaths": [
+        {
+          "pid": "#PID<0.518.0>",
+          "reason": ":killed",
+          "down": true
+        },
+        {
+          "pid": "#PID<0.520.0>",
+          "reason": ":killed",
+          "down": true
+        }
+      ],
+      "fault": "owner"
+    },
+    {
+      "port": 54429,
+      "kind": "cleanup",
+      "filters_retained": true,
+      "role_down": true,
+      "owner_down": true,
+      "guard_supervisor_down": true,
+      "port_refused": true
+    }
+  ],
+  "captures": [
+    {
+      "owner": "#PID<0.236.0>",
+      "bytes": 19,
+      "sha256": "835a4eca32bc993fa6c488a27daeb111c3e60a7083150b56e813335170f06d7c",
+      "original_signature_values": [
+        "REVIEW_PRIVATE_SIGNATURE"
+      ],
+      "verifier_result": "{:error, :invalid_signature}"
+    },
+    {
+      "owner": "#PID<0.324.0>",
+      "bytes": 19,
+      "sha256": "835a4eca32bc993fa6c488a27daeb111c3e60a7083150b56e813335170f06d7c",
+      "original_signature_values": [
+        "REVIEW_PRIVATE_SIGNATURE"
+      ],
+      "verifier_result": "{:error, :invalid_signature}"
+    },
+    {
+      "owner": "#PID<0.349.0>",
+      "bytes": 19,
+      "sha256": "835a4eca32bc993fa6c488a27daeb111c3e60a7083150b56e813335170f06d7c",
+      "original_signature_values": [
+        "REVIEW_PRIVATE_SIGNATURE"
+      ],
+      "verifier_result": "{:error, :invalid_signature}"
+    },
+    {
+      "owner": "#PID<0.397.0>",
+      "bytes": 19,
+      "sha256": "835a4eca32bc993fa6c488a27daeb111c3e60a7083150b56e813335170f06d7c",
+      "original_signature_values": [
+        "REVIEW_PRIVATE_SIGNATURE"
+      ],
+      "verifier_result": "{:error, :invalid_signature}"
+    },
+    {
+      "owner": "#PID<0.400.0>",
+      "bytes": 19,
+      "sha256": "835a4eca32bc993fa6c488a27daeb111c3e60a7083150b56e813335170f06d7c",
+      "original_signature_values": [
+        "REVIEW_PRIVATE_SIGNATURE"
+      ],
+      "verifier_result": "{:error, :invalid_signature}"
+    },
+    {
+      "owner": "#PID<0.403.0>",
+      "bytes": 19,
+      "sha256": "835a4eca32bc993fa6c488a27daeb111c3e60a7083150b56e813335170f06d7c",
+      "original_signature_values": [
+        "REVIEW_PRIVATE_SIGNATURE"
+      ],
+      "verifier_result": "{:error, :invalid_signature}"
+    },
+    {
+      "owner": "#PID<0.425.0>",
+      "bytes": 19,
+      "sha256": "835a4eca32bc993fa6c488a27daeb111c3e60a7083150b56e813335170f06d7c",
+      "original_signature_values": [
+        "REVIEW_PRIVATE_SIGNATURE"
+      ],
+      "verifier_result": "{:error, :invalid_signature}"
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "failures": 0,
+    "excluded": 0,
+    "skipped": 0
+  },
+  "logger_events": [
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 2, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :request, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :admitted, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :disposed, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 2, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 3, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 4, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 5, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 6, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 7, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 8, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 9, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 10, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 11, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :request, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :disposed, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 2, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 2, reason: :request, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :rejected, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 2, reason: :disposed, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 3, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 3, reason: :request, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 2, reason: :rejected, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :request, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :admitted, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :expired, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :request, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 2, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 2, reason: :request, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :admitted, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 3, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 3, reason: :request, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :request, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 2, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 2, reason: :request, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :request, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :admitted, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :disposed, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 2, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 2, reason: :request, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 2, reason: :admitted, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 2, reason: :disposed, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 3, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 3, reason: :request, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 3, reason: :admitted, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 3, reason: :disposed, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :rejected, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :rejected, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :rejected, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :request, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :admitted, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :disposed, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 2, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 2, reason: :request, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 3, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :expired, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :rejected, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :request, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :admitted, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 2, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 2, reason: :request, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :replay, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 3, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 3, reason: :request, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :expired, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :deadline, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 4, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 4, reason: :request, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 2, reason: :expired, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 2, reason: :deadline, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 5, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 5, reason: :request, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 2, reason: :admitted, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 3, reason: :deadline, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 6, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 6, reason: :request, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :generation, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :request, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :disposed, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :request, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :started, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :request, event: :webhook_transport}}, level: :notice}"
+    },
+    {
+      "raw": false,
+      "event": "%{meta: %{domain: [:mixer_private_transport]}, msg: {:report, %{count: 1, reason: :owner_lost, event: :webhook_transport}}, level: :notice}"
+    }
+  ],
+  "inline_verifier_calls": 7,
+  "actual_verifier_returns": 7,
+  "trace_call_arguments_suppressed": true,
+  "arbitrary_privileged_sink_prevention_claim": false,
+  "os_memory_ceiling_claim": false
+}

@@ -1,13 +1,14 @@
 # Implementation status
 
-Latest checkpoint: the Swift diagnostic repair passes all three GitHub engine
-jobs; the full private calls/dispatcher contract is selected. Android authored
-toggle input passes the original 20-action emulator matrix with 429 assertions.
-Its separate component supplement crashed before reporting results, so that
-fixture is being repaired and its checks remain pending. Apple UI access is
-restored and runtime preflight is underway. Webhook transport is under independent
-review. Owned test instances are cleaned; phones and all GA/dogfood gates remain
-pending.
+Latest checkpoint: the private webhook transport is integrated after independent
+review and full hosted composition: 142 tests pass, with two explicit namespace
+fixture skips. Android's original 429-assertion pointer matrix passes; its separate
+component suite now preserves a native scroll failure after seventeen completed
+cases. Apple actual taps and held-touch cancellation pass in the iOS26.5 prototype,
+while programmatic activation, drag, keyboard and pressed-paint checks remain
+unqualified. Diagnostic candidates and the private Swift dispatcher implementation
+are in progress. Owned native instances are cleaned; phones and all GA/dogfood
+gates remain pending.
 
 Implementation resumed at the user's request on October 24. The saved
 [pause handoff](docs/implementation-pause-2026-10-24.md) remains historical context.
@@ -1913,3 +1914,13 @@ compiler contexts and four expected borrow rejections. CD01-CD24 runtime and
 complete positive accounting remain pending; the uncalled compiler witness is
 not execution or reservation evidence. See `docs/swift-calls-dispatch-contract.md`
 and `verification/swift-calls-dispatch-root-review/selection.json`.
+
+The native toggle diagnostic checkpoint is recorded in
+`docs/native-toggle-diagnostics-checkpoint.md`: Apple partial simulator results
+and the Android component scroll failure are preserved separately from the
+accepted Android pointer matrix. All owned test instances are cleaned. The
+private webhook transport is now integrated at72-input closure
+789b7de9b46ef2ce65ad83a4c916dde9a513a8eaa68dfc073e4c65ec97e2ee93;
+see `docs/stripe-webhook-transport-integration.md`. It remains inactive and passes
+no public billing or GA gate. Checkpoint2f715b10 is pushed; VM and service CI jobs
+pass while Swift CI is still running at this observation.
