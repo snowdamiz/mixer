@@ -26,6 +26,17 @@ attachment for W03–W05, plus complete Swift guest execution for W08. Both V2
 data resolvers and native curve primitives are accepted within their recorded
 scopes. Full native style consumption and Swift execution remain incomplete.
 
+
+The ordinary Android checklist library now exposes the registry's private staged
+C prepare/commit/abort decisions. Actual C clients pass 77 assertions per host
+Debug/Release; C++ clients compile/link the same header, and official Swift 6.3.3
+links the arm64 API28 exports. Root replays 79 captured source files, 20 command
+logs and 7 native artifacts. The original NDK-discovery failure is preserved with
+a completion receipt inspecting the unchanged binary using the bundled NDK r27d.
+See `verification/android-engine-v2-c-bridge/acceptance.json`. JNI ownership,
+generated application staging exports, native coordinator integration and final
+hardware qualification remain pending; no public V2 opt-in or GA gate changes.
+
 The user's October 23 verification instruction removes disconnected phones as
 a development dependency. Continue integration after relevant simulator/emulator
 tests pass; run hardware validation and corrections at final acceptance. This
@@ -1365,3 +1376,7 @@ post-run cleanup are now required in AGENTS.md. See
 Hosted `8338fa0` and `a739aa6` now pass all three VM/Swift/services jobs.
 See `verification/github-ci-8338fa0/receipt.json` and
 `verification/github-ci-a739aa6/receipt.json`; these are scoped CI results, not GA acceptance.
+
+Hosted `1b3de6d` passes all three VM, Swift and services jobs; see
+`verification/github-ci-1b3de6d/receipt.json`. This verifies the configured checks
+for the value-operation checkpoint, with complete Swift execution still pending.

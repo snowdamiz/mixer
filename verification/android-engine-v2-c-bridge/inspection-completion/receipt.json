@@ -1,0 +1,51 @@
+{
+  "status": "passed-c-abi-and-android-export-inspection",
+  "observedUTC": "2026-10-24T01:58:29.093522+00:00",
+  "sourceRevision": "1b3de6d5d3fe45b32e507cfdc00eb7d80c7417ce",
+  "verifiedBindings": 106,
+  "originalReceiptSHA256": "5e27c7a887dd73a52e754e3784eb6c5690336114d0db88edc9ddc2b5a135c86c",
+  "originalFailure": "All compilation and execution commands passed; collector searched unrelated Android SDK NDK installations instead of the Swift SDK bundled NDK r27d.",
+  "repair": "Use the official Swift SDK bundled llvm-nm, inspect the unchanged retained arm64 library; preserve the failed original receipt. No product, C client, binary, or previous output changes.",
+  "correctedCollectorSHA256": "6be91be468486fe0ffe33f276dc5ac38331de6fb4a16188fe18f8fb89fc0dc62",
+  "completionScriptSHA256": "f2ce3965c254e09177c5081a5563d1a64b1deacc07e3ec9ecf37105770887a13",
+  "nmSHA256": "0ada73281ce97f8eec87cc3b3ad5f98e774721aca06120606fc5249b412b0d3a",
+  "commands": [
+    {
+      "argv": [
+        "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-nm",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exitCode": 0,
+      "log": "verification/android-engine-v2-c-bridge/inspection-completion/nm-version.log",
+      "sha256": "495c8fcc9a4ef630ad2294f6a7da8068caf80f88bbb4385653dd6cac54b61721"
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-nm",
+        "--defined-only",
+        "--dynamic",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-engine-v2-c-bridge/candidate-1/artifacts/android/libMixerAndroidEngine.so"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exitCode": 0,
+      "log": "verification/android-engine-v2-c-bridge/inspection-completion/android-symbols.log",
+      "sha256": "90ffdfbcf8ae0092d120e1193f44621cb24397e44d7b17d97260941536aa68ba"
+    }
+  ],
+  "hostCAssertionsPerMode": 77,
+  "hostModes": [
+    "debug",
+    "release"
+  ],
+  "cppHeaderAndLinkExecutions": 2,
+  "scope": "Actual C/C++ calls into fresh host Debug/Release Swift libraries; official Android arm64 API28 compilation and symbol inspection. No JNI/native screen/emulator execution or generated-app opt-in.",
+  "pending": [
+    "JNI allocation failure and token ownership",
+    "native coordinator integration",
+    "generated application staging exports",
+    "dynamic counter exhaustion",
+    "final hardware qualification"
+  ],
+  "gaPass": false
+}

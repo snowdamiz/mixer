@@ -762,3 +762,17 @@ These are selected host tests, not full Swift execution. Function entry/dispatch
 active-frame unwind, control flow, memory/growth and host integration remain next.
 All GA and dogfood gates remain open. Hosted `8338fa0` and `a739aa6` now pass all
 three configured VM/Swift/services jobs; their receipts are retained separately.
+
+The ordinary Android checklist library now exposes the registry's private staged
+C prepare/commit/abort decisions. Actual C clients pass 77 assertions per host
+Debug/Release; C++ clients compile/link the same header, and official Swift 6.3.3
+links the arm64 API28 exports. Root replays 79 captured source files, 20 command
+logs and 7 native artifacts. The original NDK-discovery failure is preserved with
+a completion receipt inspecting the unchanged binary using the bundled NDK r27d.
+See `verification/android-engine-v2-c-bridge/acceptance.json`. JNI ownership,
+generated application staging exports, native coordinator integration and final
+hardware qualification remain pending; no public V2 opt-in or GA gate changes.
+
+Hosted `1b3de6d` passes all three VM, Swift and services jobs; see
+`verification/github-ci-1b3de6d/receipt.json`. This verifies the configured checks
+for the value-operation checkpoint, with complete Swift execution still pending.
