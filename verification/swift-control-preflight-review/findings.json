@@ -1,0 +1,58 @@
+[
+  {
+    "candidateVMClosure": "6d9e1b3f5aec1bedf2a8dc773a23c1731ee05e094d69d646ab4db8d397381156",
+    "description": "Swift pop leaf calls existing phase.pop_value. Its primitive_pop removes the actual Value before remove_live_with_wasi can fail; neither this primitive nor the outer terminal call sets cleanup.live_unreconciled. Control-pop/truncation uses control_remove and correctly latches. Condition and saved-result value pops bypass that path.",
+    "evidence": [
+      {
+        "end": 10,
+        "path": "verification/swift-control-accounting-preflight/overlay/src/experimental_swift_reactor/control_operations.rs",
+        "sha256": "62d9b8780a87c2f9bd72a3b7f6fcd34081586de3f2fa69ffd1f10291a005942b",
+        "start": 7,
+        "text": "macro_rules! swift_control_leaf {\n    (pop $s:ident) => {\n        $s.phase.pop_value()\n    };"
+      },
+      {
+        "end": 562,
+        "path": "vm/src/experimental_swift_reactor/value_operations.rs",
+        "sha256": "fe86c51f9eb816761b3d1f353f96ed55fbd310c9363cf133e7c177833cd8d234",
+        "start": 542,
+        "text": "fn primitive_pop(\n    values: &mut Vec<Value>,\n    operand_base: usize,\n    operation: &mut SwiftExecutionOperation<'_>,\n) -> Result<Value, SwiftRunFailure> {\n    operation.control.work_with_wasi(\n        Work::Execution,\n        1,\n        operation.cursor,\n        Some(operation.wasi.usage()),\n    )?;\n    primitive_values_match(values, operation)?;\n    if values.len() <= operand_base {\n        return Err(primitive_invariant(operation));\n    }\n    let value = values.pop().expect(\"checked operand exists\");\n    operation\n        .control\n        .remove_live_with_wasi(Live::Values, 1, Some(operation.wasi.usage()))?;\n    Ok(value)\n}"
+      },
+      {
+        "end": 257,
+        "path": "verification/swift-control-accounting-preflight/overlay/src/experimental_swift_reactor/control_operations.rs",
+        "sha256": "62d9b8780a87c2f9bd72a3b7f6fcd34081586de3f2fa69ffd1f10291a005942b",
+        "start": 247,
+        "text": "    fn control_remove(&mut self, resource: Live, amount: usize) -> Result<(), SwiftRunFailure> {\n        let result = self.phase.operation.control.remove_live_with_wasi(\n            resource,\n            amount,\n            Some(self.phase.operation.wasi.usage()),\n        );\n        if result.is_err() {\n            self.cleanup.live_unreconciled = true;\n        }\n        result\n    }"
+      },
+      {
+        "end": 325,
+        "path": "verification/swift-control-accounting-preflight/overlay/src/experimental_swift_reactor/control_operations.rs",
+        "sha256": "62d9b8780a87c2f9bd72a3b7f6fcd34081586de3f2fa69ffd1f10291a005942b",
+        "start": 315,
+        "text": "    pub(crate) fn control_operation(\n        &mut self,\n        operation: Operation,\n        selected_target: Option<u32>,\n    ) -> Result<bool, SwiftRunFailure> {\n        let result = self.control_operation_inner(operation, selected_target);\n        if result.is_err() {\n            self.terminal();\n        }\n        result\n    }"
+      },
+      {
+        "end": 345,
+        "path": "verification/swift-control-accounting-preflight/overlay/src/experimental_swift_reactor/frame_operations.rs",
+        "sha256": "857cf895f91f576e84a31b379091f922a330af46d9e81bce4424eca5573f7393",
+        "start": 329,
+        "text": "    fn terminal(&mut self) {\n        *self.lifecycle = Lifecycle::Terminal;\n        if self.cleanup.disposition == FrameDisposition::Active {\n            self.cleanup.disposition = FrameDisposition::Draining;\n            self.cleanup.unvisited = self.phase.parts.frames.len();\n        }\n    }\n    fn active(&mut self) -> Result<(), SwiftRunFailure> {\n        if self.cleanup.disposition != FrameDisposition::Active\n            || matches!(self.lifecycle, Lifecycle::Terminal)\n            || self.cleanup.entry.is_some()\n            || self.cleanup.nested_restore.is_some()\n            || self.cleanup.live_unreconciled\n        {\n            return Err(self.invariant(\"swift_frame_inactive\"));\n        }\n        self.agreement()"
+      },
+      {
+        "end": 190,
+        "path": "docs/swift-control-invocation-contract.md",
+        "sha256": "0c920e4c69a20b394a40df20c032dc429c8a5d51df21cb7c37eef5abd77a3783",
+        "start": 175,
+        "text": "For every successful pop/truncation, remove **exact actual** Values/Controls\nafter the effect using `remove_live_with_wasi`, with no intervening cancellation,\ndeadline, work, admission or cache check. A removal rejection sets existing\n`cleanup.live_unreconciled` and returns its actual failure. Observation uses\nexisting agreement checks; it never debits a second time or repairs live counts.\nRetain accepted push/pop work/limit ordering, including work before pop effects\nand saved-result push failures after close truncation. Never refund work.\n\nEvery control-operation error calls existing `terminal()` and returns the first\nfailure observed by the original control with the real WASI usage/cursor. No\nReady transition, retry, control rollback or replacement diagnostic is allowed.\nAccepted `drain` clears actual residual arenas and attempts every real frame pin\ndeepest first despite failure/cancellation/work exhaustion. Rejected releases,\nunpublished guard authority, sticky mismatch and nested/outer restore debt retain\ntheir existing State slots, charges and explicit cleanup-only reacquisition.\nThe new Result slot must be empty and passed through fixed completion before"
+      }
+    ],
+    "id": "SCPR-01",
+    "normalReachabilityLimitation": "Existing primitive_values_match makes underflow unreachable for uncorrupted ordinary counts; contract nevertheless requires the after-effect removal rejection latch and SC09 fault path.",
+    "observedNormalFailure": false,
+    "priority": 2,
+    "requiredAction": "Preserve existing value primitive ordering and original first failure; make after-effect pop mismatch sticky without repairing/debiting again or adding work/cancellation. Regenerate typed source/MIR inventories and all exact layouts for new wrapper/receiver/scalar/failure/lifecycle roles; request root preflight re-review before any SC execution.",
+    "scope": "source-contract defensive/fault-injection path; no control execution",
+    "status": "required-revision",
+    "title": "Latch rejected after-effect value-pop removal on the original frame cleanup state"
+  }
+]

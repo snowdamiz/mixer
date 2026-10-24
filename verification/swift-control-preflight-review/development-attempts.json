@@ -1,0 +1,23 @@
+[
+  {
+    "attempt": 1,
+    "command": "python3 -B verification/swift-control-preflight-review/review.py",
+    "controlOperationsExecuted": false,
+    "exitCode": 1,
+    "reason": "Independent closure enumerator initially included only Rust sources, omitting include, C smoke sources and generated JSON. Baseline guard rejected the incomplete enumeration before any compiler probe or scratch creation. Enumerator corrected to all source/test/include files."
+  },
+  {
+    "attempt": 2,
+    "command": "python3 -B verification/swift-control-preflight-review/review.py",
+    "controlOperationsExecuted": false,
+    "exitCode": 1,
+    "reason": "Independent metadata probe successfully compiled and ran metadata only, then expected all 44 containing positions in producer layouts.containing; four frozen positions were only in producer all-enlarged-containing-positions.json. Revised comparison checks their exact compiled type size directly and retains independent offsets. Not a producer source defect. All scratch removed."
+  },
+  {
+    "attempt": 3,
+    "command": "python3 -B verification/swift-control-preflight-review/review.py",
+    "controlOperationsExecuted": false,
+    "exitCode": 1,
+    "reason": "Independent metadata unit test succeeds, but libtest prefixes the first printed metadata line with test name. Parser only accepted line starts and missed the storage row. Parser corrected to locate REVIEW marker anywhere in a line. Source/probes unchanged; all scratch removed."
+  }
+]

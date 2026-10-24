@@ -1,0 +1,48 @@
+    Checking mixer-vm v0.1.0 (/private/tmp/mixer-control-privacy-20261024T063405846695Z/vm)
+error[E0603]: enum `Kind` is private
+   --> src/experimental_swift_reactor/value_operations.rs:666:45
+    |
+666 |     let _ = crate::experimental::execution::Kind::Function;
+    |                                             ^^^^  -------- unit variant `Function` is not publicly re-exported
+    |                                             |
+    |                                             private enum
+    |
+note: the enum `Kind` is defined here
+   --> src/experimental/execution/mod.rs:112:1
+    |
+112 | enum Kind {
+    | ^^^^^^^^^
+
+error[E0616]: field `kind` of struct `experimental::execution::Control` is private
+   --> src/experimental_swift_reactor/value_operations.rs:667:21
+    |
+667 |     let _ = control.kind;
+    |                     ^^^^ private field
+
+error[E0616]: field `start` of struct `experimental::execution::Control` is private
+   --> src/experimental_swift_reactor/value_operations.rs:668:13
+    |
+668 |     control.start = 0;
+    |             ^^^^^ private field
+
+error[E0616]: field `end` of struct `experimental::execution::Control` is private
+   --> src/experimental_swift_reactor/value_operations.rs:669:13
+    |
+669 |     control.end = 0;
+    |             ^^^ private field
+
+error[E0616]: field `height` of struct `experimental::execution::Control` is private
+   --> src/experimental_swift_reactor/value_operations.rs:670:13
+    |
+670 |     control.height = 0;
+    |             ^^^^^^ private field
+
+error[E0616]: field `result` of struct `experimental::execution::Control` is private
+   --> src/experimental_swift_reactor/value_operations.rs:671:13
+    |
+671 |     control.result = false;
+    |             ^^^^^^ private field
+
+Some errors have detailed explanations: E0603, E0616.
+For more information about an error, try `rustc --explain E0603`.
+error: could not compile `mixer-vm` (lib) due to 6 previous errors

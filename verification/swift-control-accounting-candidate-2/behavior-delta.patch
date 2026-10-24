@@ -1,0 +1,29 @@
+--- candidate1/control_operations.rs
++++ candidate2/control_operations.rs
+@@ -6,7 +6,7 @@
+ 
+ macro_rules! swift_control_leaf {
+     (pop $s:ident) => {
+-        $s.phase.pop_value()
++        $s.control_pop_value()
+     };
+     (push $s:ident, $v:expr) => {
+         $s.phase.push_value($v)
+@@ -126,6 +126,17 @@
+             self.control_close_guard(control)?;
+         }
+     );
++
++    /// Preserve the accepted value primitive and its original first failure.
++    /// An error after an actual pop is its rejected live removal; retain that debt.
++    fn control_pop_value(&mut self) -> Result<Value, SwiftRunFailure> {
++        let previous_length = self.phase.parts.values.len();
++        let result = self.phase.pop_value();
++        if result.is_err() && self.phase.parts.values.len() != previous_length {
++            self.cleanup.live_unreconciled = true;
++        }
++        result
++    }
+ 
+     /// No borrowed frame/pin survives any mutable leaf or accounted operation.
+     fn control_frame_scalars(&mut self) -> Result<FrameScalars, SwiftRunFailure> {

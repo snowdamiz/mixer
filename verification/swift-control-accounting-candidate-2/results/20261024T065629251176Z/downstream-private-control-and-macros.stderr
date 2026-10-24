@@ -1,0 +1,39 @@
+error[E0603]: struct `Control` is private
+   --> /tmp/mixer-control-privacy-20261024T070301595936Z/external.rs:1:41
+    |
+  1 | use mixer_vm::experimental::execution::{Control, Kind};
+    |                                         ^^^^^^^ private struct
+    |
+note: the struct `Control` is defined here
+   --> src/experimental/execution/mod.rs:120:1
+    |
+120 | pub(crate) struct Control {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0603]: enum `Kind` is private
+   --> /tmp/mixer-control-privacy-20261024T070301595936Z/external.rs:1:50
+    |
+  1 | use mixer_vm::experimental::execution::{Control, Kind};
+    |                                                  ^^^^ private enum
+    |
+note: the enum `Kind` is defined here
+   --> src/experimental/execution/mod.rs:112:1
+    |
+112 | enum Kind {
+    | ^^^^^^^^^
+
+error[E0603]: module `borrowed` is private
+    --> /tmp/mixer-control-privacy-20261024T070301595936Z/external.rs:2:40
+     |
+   2 | use mixer_vm::experimental::execution::borrowed::shared_control_methods;
+     |                                        ^^^^^^^^ private module
+     |
+note: the module `borrowed` is defined here
+    --> src/experimental/execution/mod.rs:1283:1
+     |
+1283 | pub(crate) mod borrowed;
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 3 previous errors
+
+For more information about this error, try `rustc --explain E0603`.
