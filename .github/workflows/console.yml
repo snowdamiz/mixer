@@ -1,9 +1,9 @@
-name: Console domain checks
+name: Console checks
 on:
   push:
-    paths: ['console/**', '.github/workflows/console.yml']
+    paths: ['console/**', 'website/src/styles.css', 'website/public/assets/flick-128.webp', 'website/public/assets/favicon-32.png', '.github/workflows/console.yml']
   pull_request:
-    paths: ['console/**', '.github/workflows/console.yml']
+    paths: ['console/**', 'website/src/styles.css', 'website/public/assets/flick-128.webp', 'website/public/assets/favicon-32.png', '.github/workflows/console.yml']
 permissions:
   contents: read
 jobs:
@@ -23,8 +23,9 @@ jobs:
           git rev-parse HEAD
           node --version
           npm --version
-      - name: Release-check display model
+      - name: Release-check model and Solid view
         run: |
           npm ci --ignore-scripts --no-audit --no-fund
           npm run typecheck
           npm test
+          npm run build

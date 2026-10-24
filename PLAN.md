@@ -70,13 +70,8 @@ integration are pending. Android authored V2 toggle input remains integrated at
 `a490761`; no GA or dogfood gate passes.
 See [the native checkpoint](docs/apple-toggle-pan-commit-runtime-checkpoint.md).
 
-The console now has its first TypeScript display model for release checks. Nine
-host tests cover 4,096 status combinations, missing/stale results, duplicate and
-malformed input, and immutable rows. A current platform failure remains visible
-and dominates the aggregate; missing or unrun results remain incomplete. This
-adds no API, permission or release authority. SolidJS UI, Phoenix integration,
-and deployment remain pending; strict TypeScript 5.9.3 checks pass. See
-[the console summary contract](docs/console-release-check-summary.md).
+The first SolidJS release-check view now matches the website’s exact Flick/logo assets, effective cream-and-orange palette and typography. Seventeen repository tests and six independent compiled-view tests pass, alongside strict application typechecking and production builds. Browser checks cover six reactive states, production preview exclusion, skip-link focus and a 375-pixel layout without overflow. This is a local display slice; Phoenix API/auth, full hosted-build workflows and Cloudflare deployment remain pending. No GA or dogfood gate passes. See
+[the console view checkpoint](docs/console-release-check-view.md).
 
 Implementation resumed at the user's request on October 24. The saved
 [pause handoff](docs/implementation-pause-2026-10-24.md) remains historical context.

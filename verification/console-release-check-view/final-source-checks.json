@@ -1,0 +1,40 @@
+{
+  "observedAt": "2026-10-24T21:47:39.568Z",
+  "scope": "console final source/evidence and repository policy checks",
+  "commands": [
+    {
+      "command": "python3 verification/console-release-check-view/audit.py",
+      "exitCode": 0,
+      "result": "{\n  \"outcome\": \"passed\",\n  \"scope\": \"saved evidence and current source/output bindings only\",\n  \"sources\": 27,\n  \"evidenceFiles\": 97,\n  \"buildArtifacts\": 6,\n  \"independentSourceFiles\": 14,\n  \"runtimeBrowserStatesRecorded\": 6,\n  \"nativeSelectArrowKeys\": \"unverified\"\n}\n"
+    },
+    {
+      "command": "python3 scripts/check-policy.py",
+      "exitCode": 0,
+      "result": "passed; zero failures; full manifest listing truncated in tool output"
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "result": "no diagnostics"
+    },
+    {
+      "command": "git diff --cached --check",
+      "exitCode": 2,
+      "result": "Raw captured stdout has original blank/trailing whitespace. Evidence bytes preserved; no source diagnostics."
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--cached",
+        "--check",
+        "--",
+        ".",
+        ":(exclude,glob)verification/console-release-check-view/**/*.stdout",
+        ":(exclude,glob)verification/console-release-view-independent-review/**/*.stdout"
+      ],
+      "exitCode": 0,
+      "result": "All staged files except the two packets raw stdout logs pass whitespace validation."
+    }
+  ]
+}

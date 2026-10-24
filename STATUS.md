@@ -74,13 +74,8 @@ See [the accounting checkpoint](docs/swift-dispatch-accounting-checkpoint.md).
 
 The private Linux resource harness V5 now has independent and root source/host-method acceptance with no open findings. All 82 producer controls and eight independent controls pass. V4 repaired child-PID-namespace lifetime tracking and immutable retry history; V5 additionally preserves each successful descriptor observation before a later read error, deadline or proved exit. Final physical-zero proof stays separate from historical positive counts. All prior packets and unchanged C/NIF/role/signal bytes remain preserved. No Linux compilation or runtime row has executed; all 30 runtime rows remain pending. See docs/stripe-resource-harness-v5-source-checkpoint.md and verification/stripe-webhook-resource-ingress-root-review/v5-source-acceptance/receipt.json. No production transport, provider or GA acceptance.
 
-The console now has its first TypeScript display model for release checks. Nine
-host tests cover 4,096 status combinations, missing/stale results, duplicate and
-malformed input, and immutable rows. A current platform failure remains visible
-and dominates the aggregate; missing or unrun results remain incomplete. This
-adds no API, permission or release authority. SolidJS UI, Phoenix integration,
-and deployment remain pending; strict TypeScript 5.9.3 checks pass. See
-[the console summary contract](docs/console-release-check-summary.md).
+The first SolidJS release-check view now matches the website’s exact Flick/logo assets, effective cream-and-orange palette and typography. Seventeen repository tests and six independent compiled-view tests pass, alongside strict application typechecking and production builds. Browser checks cover six reactive states, production preview exclusion, skip-link focus and a 375-pixel layout without overflow. This is a local display slice; Phoenix API/auth, full hosted-build workflows and Cloudflare deployment remain pending. No GA or dogfood gate passes. See
+[the console view checkpoint](docs/console-release-check-view.md).
 
 Implementation resumed at the user's request on October 24. The saved
 [pause handoff](docs/implementation-pause-2026-10-24.md) remains historical context.

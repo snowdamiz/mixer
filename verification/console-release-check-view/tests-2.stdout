@@ -1,0 +1,188 @@
+
+> mixer-console@0.0.0 test
+> node --test tests/*.test.mjs
+
+TAP version 13
+# Subtest: only a complete current set passes, preserving target and check order
+ok 1 - only a complete current set passes, preserving target and check order
+  ---
+  duration_ms: 0.881167
+  type: 'test'
+  ...
+# Subtest: a platform failure stays visible even when another check is pending
+ok 2 - a platform failure stays visible even when another check is pending
+  ---
+  duration_ms: 0.084125
+  type: 'test'
+  ...
+# Subtest: every missing expected result remains an explicit unrun row
+ok 3 - every missing expected result remains an explicit unrun row
+  ---
+  duration_ms: 0.259958
+  type: 'test'
+  ...
+# Subtest: stale passing and failing results cannot describe the selected revision
+ok 4 - stale passing and failing results cannot describe the selected revision
+  ---
+  duration_ms: 0.110667
+  type: 'test'
+  ...
+# Subtest: all 4096 combinations preserve failure precedence and incomplete states
+ok 5 - all 4096 combinations preserve failure precedence and incomplete states
+  ---
+  duration_ms: 22.145708
+  type: 'test'
+  ...
+# Subtest: duplicate, unexpected, unknown and malformed results cannot pass
+ok 6 - duplicate, unexpected, unknown and malformed results cannot pass
+  ---
+  duration_ms: 0.330875
+  type: 'test'
+  ...
+# Subtest: empty, duplicate, unsupported and oversized expectation sets fail closed
+ok 7 - empty, duplicate, unsupported and oversized expectation sets fail closed
+  ---
+  duration_ms: 0.491416
+  type: 'test'
+  ...
+# Subtest: result rows are immutable snapshots without caller-owned aliases
+ok 8 - result rows are immutable snapshots without caller-owned aliases
+  ---
+  duration_ms: 0.135875
+  type: 'test'
+  ...
+# Subtest: identifiers containing separators cannot collide across target/check pairs
+ok 9 - identifiers containing separators cannot collide across target/check pairs
+  ---
+  duration_ms: 0.451917
+  type: 'test'
+  ...
+# Subtest: the actual Solid view keeps a failed Android target visible beside pending iOS
+not ok 10 - the actual Solid view keeps a failed Android target visible beside pending iOS
+  ---
+  duration_ms: 1.407459
+  type: 'test'
+  location: '/Users/andreyyurlov/Documents/dev/mixer/console/tests/release-check-view.test.mjs:19:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 6
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 6
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/andreyyurlov/Documents/dev/mixer/console/tests/release-check-view.test.mjs:25:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: stale failures do not describe the current revision; every missing check has a row
+not ok 11 - stale failures do not describe the current revision; every missing check has a row
+  ---
+  duration_ms: 0.491208
+  type: 'test'
+  location: '/Users/andreyyurlov/Documents/dev/mixer/console/tests/release-check-view.test.mjs:29:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /Previously failed\. Does not cover the selected revision\./. Input:
+    
+    '<section data-hk="00" aria-labelledby="release-checks-heading" class="release-checks"><header class="page-heading"><p class="eyebrow">Release review</p><h1 id="release-checks-heading">Release checks</h1><p>One revision. Every target. A clear result for each required check.</p></header><!--$--><div data-hk="0140" class="summary-banner summary-incomplete" role="status" aria-live="polite" aria-atomic="true"><div><p class="eyebrow">Required checks</p><h2>Checks incomplete</h2><p>Some required results are pending, missing, or from a previous revision.</p></div><!--$--><span data-hk="01410" class="status status-incomplete"><span class="status-dot" aria-hidden="true"></span><!--$-->Incomplete<!--/--></span><!--/--></div><dl data-hk="0142" class="release-context"><div><dt>Selected source revision</dt><dd><code>sample-current-7c81d9a</code></dd></div><div><dt>Target binaries</dt><dd>2</dd></div><div><dt>Required results</dt><dd>6</dd></div></dl><div data-hk="0143" class="target-list"><section data-hk="01440" class="target-card" aria-label="iOS target ios-26-build-42"><header class="target-heading"><div class="target-identity"><span class="platform-symbol" aria-hidden="true">i</span><div><h2>iOS</h2><p class="target-id">ios-26-build-42</p></div></div><!--$--><span data-hk="014410" class="status status-incomplete"><span class="status-dot" aria-hidden="true"></span><!--$-->Incomplete<!--/--></span><!--/--></header><table><caption class="sr-only">Required checks for <!--$-->ios-26-build-42<!--/--></caption><thead><tr><th scope="col">Check</th><th scope="col">Result</th><th scope="col">Reported evidence</th></tr></thead><tbody><tr data-hk="014420" class="check-stale"><th scope="row">Compatibility</th><td><span data-hk="0144210" class="status status-stale"><span class="status-dot" aria-hidden="true"></span><!--$-->Previous revision<!--/--></span></td><td class="evidence-cell"><p data-hk="01442203">Previously <!--$-->failed<!--/-->. Does not cover the selected revision.</p><code data-hk="0144221">sample-previous-391dbf0</code></td></tr><tr data-hk="014423" class="check-pending"><th scope="row">Policy review</th><td><span data-hk="0144240" class="status status-pending"><span class="status-dot" aria-hidden="true"></span><!--$-->Pending<!--/--></span></td><td class="evidence-cell"><p data-hk="01442503">Waiting for completion.</p><code data-hk="0144251">sample-current-7c81d9a</code></td></tr><tr data-hk="014426" class="check-passed"><th scope="row">Regression tests</th><td><span data-hk="0144270" class="status status-passed"><span class="status-dot" aria-hidden="true"></span><!--$-->Passed<!--/--></span></td><td class="evidence-cell"><code data-hk="0144281">sample-current-7c81d9a</code></td></tr></tbody></table></section><section data-hk="01443" class="target-card" aria-label="Android target android-build-42"><header class="target-heading"><div class="target-identity"><span class="platform-symbol" aria-hidden="true">A</span><div><h2>Android</h2><p class="target-id">android-build-42</p></div></div><!--$--><span data-hk="014440" class="status status-incomplete"><span class="status-dot" aria-hidden="true"></span><!--$-->Incomplete<!--/--></span><!--/--></header><table><caption class="sr-only">Required checks for <!--$-->android-build-42<!--/--></caption><thead><tr><th scope="col">Check</th><th scope="col">Result</th><th scope="col">Reported evidence</th></tr></thead><tbody><tr data-hk="014450" class="check-passed"><th scope="row">Compatibility</th><td><span data-hk="0144510" class="status status-passed"><span class="status-dot" aria-hidden="true"></span><!--$-->Passed<!--/--></span></td><td class="evidence-cell"><code data-hk="0144521">sample-current-7c81d9a</code></td></tr><tr data-hk="014453" class="check-not_run"><th scope="row">Policy review</th><td><span data-hk="0144540" class="status status-not_run"><span class="status-dot" aria-hidden="true"></span><!--$-->Not run<!--/--></span></td><td class="evidence-cell"><p data-hk="01445503">Reported as not run.</p><code data-hk="0144551">sample-current-7c81d9a</code></td></tr><tr data-hk="014456" class="check-not_run"><th scope="row">Regression tests</th><td><span data-hk="0144570" class="status status-not_run"><span class="status-dot" aria-hidden="true"></span><!--$-->Not run<!--/--></span></td><td class="evidence-cell"><span data-hk="0144580">No result received</span></td></tr></tbody></table></section></div><p data-hk="0145" class="page-note">Results apply to the source revision shown. Missing and previous-revision results do not count as a pass.</p><!--/--></section>'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: '<section data-hk="00" aria-labelledby="release-checks-heading" class="release-checks"><header class="page-heading"><p class="eyebrow">Release review</p><h1 id="release-checks-heading">Release checks</h1><p>One revision. Every target. A clear result for each required check.</p></header><!--$--><div data-hk="0140" class="summary-banner summary-incomplete" role="status" aria-live="polite" aria-atomic="true"><div><p class="eyebrow">Required checks</p><h2>Checks incomplete</h2><p>Some required results are pending, missing, or from a previous revision.</p></div><!--$--><span data-hk="01410" class="status status-incomplete"><span class="status-dot" aria-hidden="true"></span><!--$-->Incomplete<!--/--></span><!--/--></div><dl data-hk="0142" class="release-context"><div><dt>Selected source revision</dt><dd><code>sample-current-7c81d9a</code></dd></div><div><dt>Target binaries</dt><dd>2</dd></div><div><dt>Required results</dt><dd>6</dd></div></dl><div data-hk="0143" class="target-list"><section data-hk="01440" class="target-card" aria-label="iOS target ios-26-build-42"><header class="target-heading"><div class="target-identity"><span class="platform-symbol" aria-hidden="true">i</span><div><h2>iOS</h2><p class="target-id">ios-26-build-42</p></div></div><!--$--><span data-hk="014410" class="status status-incomplete"><span class="status-dot" aria-hidden="true"></span><!--$-->Incomplete<!--/--></span><!--/--></header><table><caption class="sr-only">Required checks for <!--$-->ios-26-build-42<!--/--></caption><thead><tr><th scope="col">Check</th><th scope="col">Result</th><th scope="col">Reported evidence</th></tr></thead><tbody><tr data-hk="014420" class="check-stale"><th scope="row">Compatibility</th><td><span data-hk="0144210" class="status status-stale"><span class="status-dot" aria-hidden="true"></span><!--$-->Previous revision<!--/--></span></td><td class="evidence-cell"><p data-hk="01442203">Previously <!--$-->failed<!--/-->. Does not cover the selected revision.</p><code data-hk="0144221">sample-previous-391dbf0</code></td></tr><tr data-hk="014423" class="check-pending"><th scope="row">Policy review</th><td><span data-hk="0144240" class="status status-pending"><span class="status-dot" aria-hidden="true"></span><!--$-->Pending<!--/--></span></td><td class="evidence-cell"><p data-hk="01442503">Waiting for completion.</p><code data-hk="0144251">sample-current-7c81d9a</code></td></tr><tr data-hk="014426" class="check-passed"><th scope="row">Regression tests</th><td><span data-hk="0144270" class="status status-passed"><span class="status-dot" aria-hidden="true"></span><!--$-->Passed<!--/--></span></td><td class="evidence-cell"><code data-hk="0144281">sample-current-7c81d9a</code></td></tr></tbody></table></section><section data-hk="01443" class="target-card" aria-label="Android target android-build-42"><header class="target-heading"><div class="target-identity"><span class="platform-symbol" aria-hidden="true">A</span><div><h2>Android</h2><p class="target-id">android-build-42</p></div></div><!--$--><span data-hk="014440" class="status status-incomplete"><span class="status-dot" aria-hidden="true"></span><!--$-->Incomplete<!--/--></span><!--/--></header><table><caption class="sr-only">Required checks for <!--$-->android-build-42<!--/--></caption><thead><tr><th scope="col">Check</th><th scope="col">Result</th><th scope="col">Reported evidence</th></tr></thead><tbody><tr data-hk="014450" class="check-passed"><th scope="row">Compatibility</th><td><span data-hk="0144510" class="status status-passed"><span class="status-dot" aria-hidden="true"></span><!--$-->Passed<!--/--></span></td><td class="evidence-cell"><code data-hk="0144521">sample-current-7c81d9a</code></td></tr><tr data-hk="014453" class="check-not_run"><th scope="row">Policy review</th><td><span data-hk="0144540" class="status status-not_run"><span class="status-dot" aria-hidden="true"></span><!--$-->Not run<!--/--></span></td><td class="evidence-cell"><p data-hk="01445503">Reported as not run.</p><code data-hk="0144551">sample-current-7c81d9a</code></td></tr><tr data-hk="014456" class="check-not_run"><th scope="row">Regression tests</th><td><span data-hk="0144570" class="status status-not_run"><span class="status-dot" aria-hidden="true"></span><!--$-->Not run<!--/--></span></td><td class="evidence-cell"><span data-hk="0144580">No result received</span></td></tr></tbody></table></section></div><p data-hk="0145" class="page-note">Results apply to the source revision shown. Missing and previous-revision results do not count as a pass.</p><!--/--></section>'
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/andreyyurlov/Documents/dev/mixer/console/tests/release-check-view.test.mjs:33:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: all current passes describe check completion without granting release approval
+not ok 12 - all current passes describe check completion without granting release approval
+  ---
+  duration_ms: 0.454375
+  type: 'test'
+  location: '/Users/andreyyurlov/Documents/dev/mixer/console/tests/release-check-view.test.mjs:41:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 6
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 6
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/andreyyurlov/Documents/dev/mixer/console/tests/release-check-view.test.mjs:45:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: malformed data removes all summary and target results
+ok 13 - malformed data removes all summary and target results
+  ---
+  duration_ms: 0.314334
+  type: 'test'
+  ...
+# Subtest: loading and unavailable states cannot retain a passing summary
+ok 14 - loading and unavailable states cannot retain a passing summary
+  ---
+  duration_ms: 0.1265
+  type: 'test'
+  ...
+# Subtest: untrusted identifiers are escaped as text in headings, attributes and evidence
+not ok 15 - untrusted identifiers are escaped as text in headings, attributes and evidence
+  ---
+  duration_ms: 0.154375
+  type: 'test'
+  location: '/Users/andreyyurlov/Documents/dev/mixer/console/tests/release-check-view.test.mjs:66:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input was expected to not match the regular expression /<img|<script/. Input:
+    
+    '<section data-hk="00" aria-labelledby="release-checks-heading" class="release-checks"><header class="page-heading"><p class="eyebrow">Release review</p><h1 id="release-checks-heading">Release checks</h1><p>One revision. Every target. A clear result for each required check.</p></header><!--$--><div data-hk="0140" class="summary-banner summary-passed" role="status" aria-live="polite" aria-atomic="true"><div><p class="eyebrow">Required checks</p><h2>Checks passed</h2><p>Every required check reports a pass for this revision. Release approval is evaluated separately.</p></div><!--$--><span data-hk="01410" class="status status-passed"><span class="status-dot" aria-hidden="true"></span><!--$-->Passed<!--/--></span><!--/--></div><dl data-hk="0142" class="release-context"><div><dt>Selected source revision</dt><dd><code>&lt;img src=x onerror="alert(1)"></code></dd></div><div><dt>Target binaries</dt><dd>1</dd></div><div><dt>Required results</dt><dd>1</dd></div></dl><div data-hk="0143" class="target-list"><section data-hk="01440" class="target-card" aria-label="iOS target <img src=x onerror=&quot;alert(1)&quot;>"><header class="target-heading"><div class="target-identity"><span class="platform-symbol" aria-hidden="true">i</span><div><h2>iOS</h2><p class="target-id">&lt;img src=x onerror="alert(1)"></p></div></div><!--$--><span data-hk="014410" class="status status-passed"><span class="status-dot" aria-hidden="true"></span><!--$-->Passed<!--/--></span><!--/--></header><table><caption class="sr-only">Required checks for <!--$-->&lt;img src=x onerror="alert(1)"><!--/--></caption><thead><tr><th scope="col">Check</th><th scope="col">Result</th><th scope="col">Reported evidence</th></tr></thead><tbody><tr data-hk="014420" class="check-passed"><th scope="row">&lt;img src=x onerror="alert(1)"></th><td><span data-hk="0144210" class="status status-passed"><span class="status-dot" aria-hidden="true"></span><!--$-->Passed<!--/--></span></td><td class="evidence-cell"><code data-hk="0144221">&lt;img src=x onerror="alert(1)"></code></td></tr></tbody></table></section></div><p data-hk="0145" class="page-note">Results apply to the source revision shown. Missing and previous-revision results do not count as a pass.</p><!--/--></section>'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: '<section data-hk="00" aria-labelledby="release-checks-heading" class="release-checks"><header class="page-heading"><p class="eyebrow">Release review</p><h1 id="release-checks-heading">Release checks</h1><p>One revision. Every target. A clear result for each required check.</p></header><!--$--><div data-hk="0140" class="summary-banner summary-passed" role="status" aria-live="polite" aria-atomic="true"><div><p class="eyebrow">Required checks</p><h2>Checks passed</h2><p>Every required check reports a pass for this revision. Release approval is evaluated separately.</p></div><!--$--><span data-hk="01410" class="status status-passed"><span class="status-dot" aria-hidden="true"></span><!--$-->Passed<!--/--></span><!--/--></div><dl data-hk="0142" class="release-context"><div><dt>Selected source revision</dt><dd><code>&lt;img src=x onerror="alert(1)"></code></dd></div><div><dt>Target binaries</dt><dd>1</dd></div><div><dt>Required results</dt><dd>1</dd></div></dl><div data-hk="0143" class="target-list"><section data-hk="01440" class="target-card" aria-label="iOS target <img src=x onerror=&quot;alert(1)&quot;>"><header class="target-heading"><div class="target-identity"><span class="platform-symbol" aria-hidden="true">i</span><div><h2>iOS</h2><p class="target-id">&lt;img src=x onerror="alert(1)"></p></div></div><!--$--><span data-hk="014410" class="status status-passed"><span class="status-dot" aria-hidden="true"></span><!--$-->Passed<!--/--></span><!--/--></header><table><caption class="sr-only">Required checks for <!--$-->&lt;img src=x onerror="alert(1)"><!--/--></caption><thead><tr><th scope="col">Check</th><th scope="col">Result</th><th scope="col">Reported evidence</th></tr></thead><tbody><tr data-hk="014420" class="check-passed"><th scope="row">&lt;img src=x onerror="alert(1)"></th><td><span data-hk="0144210" class="status status-passed"><span class="status-dot" aria-hidden="true"></span><!--$-->Passed<!--/--></span></td><td class="evidence-cell"><code data-hk="0144221">&lt;img src=x onerror="alert(1)"></code></td></tr></tbody></table></section></div><p data-hk="0145" class="page-note">Results apply to the source revision shown. Missing and previous-revision results do not count as a pass.</p><!--/--></section>'
+  operator: 'doesNotMatch'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/andreyyurlov/Documents/dev/mixer/console/tests/release-check-view.test.mjs:72:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: table relationships and textual statuses are available without color
+ok 16 - table relationships and textual statuses are available without color
+  ---
+  duration_ms: 0.280125
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 12
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 275.597959

@@ -1,0 +1,90 @@
+
+> mixer-console@0.0.0 test
+> node --test tests/*.test.mjs
+
+TAP version 13
+# Subtest: only a complete current set passes, preserving target and check order
+ok 1 - only a complete current set passes, preserving target and check order
+  ---
+  duration_ms: 0.861833
+  type: 'test'
+  ...
+# Subtest: a platform failure stays visible even when another check is pending
+ok 2 - a platform failure stays visible even when another check is pending
+  ---
+  duration_ms: 0.079916
+  type: 'test'
+  ...
+# Subtest: every missing expected result remains an explicit unrun row
+ok 3 - every missing expected result remains an explicit unrun row
+  ---
+  duration_ms: 0.256084
+  type: 'test'
+  ...
+# Subtest: stale passing and failing results cannot describe the selected revision
+ok 4 - stale passing and failing results cannot describe the selected revision
+  ---
+  duration_ms: 0.067542
+  type: 'test'
+  ...
+# Subtest: all 4096 combinations preserve failure precedence and incomplete states
+ok 5 - all 4096 combinations preserve failure precedence and incomplete states
+  ---
+  duration_ms: 15.070542
+  type: 'test'
+  ...
+# Subtest: duplicate, unexpected, unknown and malformed results cannot pass
+ok 6 - duplicate, unexpected, unknown and malformed results cannot pass
+  ---
+  duration_ms: 0.276167
+  type: 'test'
+  ...
+# Subtest: empty, duplicate, unsupported and oversized expectation sets fail closed
+ok 7 - empty, duplicate, unsupported and oversized expectation sets fail closed
+  ---
+  duration_ms: 0.232917
+  type: 'test'
+  ...
+# Subtest: result rows are immutable snapshots without caller-owned aliases
+ok 8 - result rows are immutable snapshots without caller-owned aliases
+  ---
+  duration_ms: 0.071875
+  type: 'test'
+  ...
+# Subtest: identifiers containing separators cannot collide across target/check pairs
+ok 9 - identifiers containing separators cannot collide across target/check pairs
+  ---
+  duration_ms: 0.199875
+  type: 'test'
+  ...
+# node:internal/test_runner/harness:99
+#       throw err;
+#       ^
+# Error: Client-only API called on the server side. Run client-only code in onMount, or conditionally run client-only component with <Show>.
+#     at notSup (file:///Users/andreyyurlov/Documents/dev/mixer/console/node_modules/solid-js/web/dist/server.js:804:9)
+#     at file:///Users/andreyyurlov/Documents/dev/mixer/console/node_modules/.cache/mixer-render-o06c2s/render-release-checks.js:82:28
+#     at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+#     at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+#     at async file:///Users/andreyyurlov/Documents/dev/mixer/console/tests/release-check-view.test.mjs:17:35
+# Node.js v22.23.3
+# Subtest: tests/release-check-view.test.mjs
+not ok 2 - tests/release-check-view.test.mjs
+  ---
+  duration_ms: 592.475916
+  type: 'test'
+  location: '/Users/andreyyurlov/Documents/dev/mixer/console/tests/release-check-view.test.mjs:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 7
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 9
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 597.216541

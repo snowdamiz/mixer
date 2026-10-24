@@ -609,6 +609,8 @@ An export is considered working only when FieldLog builds and launches through a
 
 Build the console with **SolidJS, TypeScript, Vite, and Solid Router**, served by Cloudflare Workers Static Assets. Keep privileged operations in the Phoenix API. The console uses ordinary customer API authorization, and renders precise pending/failed states when a provider or queued operation has not completed. [SolidJS setup](https://docs.solidjs.com/quick-start), [Workers Static Assets](https://developers.cloudflare.com/workers/static-assets/)
 
+Use the existing Mixer website's visual identity throughout the hosted builds platform: the same Flick logo, lowercase Mixer wordmark, current color palette, typography, and visual styling. Aim for the clarity and polish of Expo's hosted console, with readable build and release information, consistent navigation, accessible controls, and responsive layouts. The website is the branding source of truth; do not introduce a separate console brand.
+
 Implement complete workflows for onboarding, project creation/import, repository connection, runtime inspection, builds, signing setup, test distribution, release diff, staged promotion, rollback, incident review, member management, invoices, quotas, support, and deletion/export.
 
 Roles include owner, administrator, developer, release manager, billing manager, and viewer. Environment-specific release rights, service accounts, short-lived CI credentials, and optional two-person production approval are first-class. Respect a customer's configured authorization policy without inserting an additional manual step into already authorized automation.
