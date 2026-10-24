@@ -1,0 +1,137 @@
+Running ExUnit with seed: 701437, max_cases: 4
+
+
+
+  1) test compiler, test, policy and unknown failures never blindly retry (MixerHosted.Builds.LifecycleTest)
+     hosted/test/mixer_hosted/builds/lifecycle_test.exs:261
+     match (=) failed
+     code:  assert {:ok, updated, :applied} = Lifecycle.transition(build, id, event, now)
+     left:  {:ok, updated, :applied}
+     right: {:error, :invalid_event}
+     stacktrace:
+       hosted/test/mixer_hosted/builds/lifecycle_test.exs:33: MixerHosted.Builds.LifecycleTest.apply!/4
+       hosted/test/mixer_hosted/builds/lifecycle_test.exs:265: anonymous fn/2 in MixerHosted.Builds.LifecycleTest."test compiler, test, policy and unknown failures never blindly retry"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       hosted/test/mixer_hosted/builds/lifecycle_test.exs:262: (test)
+
+..
+
+  2) test per-platform customer projection preserves a failure and never invents measured queue data (MixerHosted.Builds.LifecycleTest)
+     hosted/test/mixer_hosted/builds/lifecycle_test.exs:340
+     match (=) failed
+     code:  assert {:ok, updated, :applied} = Lifecycle.transition(build, id, event, now)
+     left:  {:ok, updated, :applied}
+     right: {:error, :invalid_event}
+     stacktrace:
+       hosted/test/mixer_hosted/builds/lifecycle_test.exs:33: MixerHosted.Builds.LifecycleTest.apply!/4
+       hosted/test/mixer_hosted/builds/lifecycle_test.exs:343: (test)
+
+
+
+  3) test new events require bounded monotonic time and safe deadline, backoff and fence arithmetic (MixerHosted.Builds.LifecycleTest)
+     hosted/test/mixer_hosted/builds/lifecycle_test.exs:307
+     match (=) failed
+     code:  assert {:ok, updated, :applied} = Lifecycle.transition(build, id, event, now)
+     left:  {:ok, updated, :applied}
+     right: {:error, :invalid_event}
+     stacktrace:
+       hosted/test/mixer_hosted/builds/lifecycle_test.exs:33: MixerHosted.Builds.LifecycleTest.apply!/4
+       hosted/test/mixer_hosted/builds/lifecycle_test.exs:318: (test)
+
+
+
+  4) test cancellation fences result authority while retaining uncertainty and exact stop identity (MixerHosted.Builds.LifecycleTest)
+     hosted/test/mixer_hosted/builds/lifecycle_test.exs:144
+     match (=) failed
+     code:  assert {:error, :stale_worker_ref} =
+              Lifecycle.transition(pending, "wrong-stop", stop(%{ref | fence: 2}), 3)
+     left:  {:error, :stale_worker_ref}
+     right: {:error, :invalid_event}
+     stacktrace:
+       hosted/test/mixer_hosted/builds/lifecycle_test.exs:154: (test)
+
+.
+
+  5) test cancel during timeout reconciliation preserves cancellation priority until definite stop (MixerHosted.Builds.LifecycleTest)
+     hosted/test/mixer_hosted/builds/lifecycle_test.exs:202
+     match (=) failed
+     code:  assert {:ok, updated, :applied} = Lifecycle.transition(build, id, event, now)
+     left:  {:ok, updated, :applied}
+     right: {:error, :invalid_event}
+     stacktrace:
+       hosted/test/mixer_hosted/builds/lifecycle_test.exs:33: MixerHosted.Builds.LifecycleTest.apply!/4
+       hosted/test/mixer_hosted/builds/lifecycle_test.exs:208: anonymous fn/2 in MixerHosted.Builds.LifecycleTest."test cancel during timeout reconciliation preserves cancellation priority until definite stop"/1
+       (elixir 1.20.4) lib/enum.ex:1725: Enum."-map/2-lists^map/1-1-"/2
+       hosted/test/mixer_hosted/builds/lifecycle_test.exs:207: (test)
+
+.
+
+  6) test expiry does not permit replacement until definitive matching worker completion (MixerHosted.Builds.LifecycleTest)
+     hosted/test/mixer_hosted/builds/lifecycle_test.exs:164
+     match (=) failed
+     code:  assert {:ok, updated, :applied} = Lifecycle.transition(build, id, event, now)
+     left:  {:ok, updated, :applied}
+     right: {:error, :invalid_event}
+     stacktrace:
+       hosted/test/mixer_hosted/builds/lifecycle_test.exs:33: MixerHosted.Builds.LifecycleTest.apply!/4
+       hosted/test/mixer_hosted/builds/lifecycle_test.exs:174: (test)
+
+
+
+  7) test exact worker scope rejects numerically equal references from all other scopes (MixerHosted.Builds.LifecycleTest)
+     hosted/test/mixer_hosted/builds/lifecycle_test.exs:213
+     ** (FunctionClauseError) no function clause matching in anonymous fn/3 in MixerHosted.Builds.LifecycleTest."test exact worker scope rejects numerically equal references from all other scopes"/1
+
+     
+     code: for {key, value} <- [organization_id: "org-2", project_id: "project-2", application_id: "app-2",
+     stacktrace:
+       hosted/test/mixer_hosted/builds/lifecycle_test.exs:218: anonymous fn/3 in MixerHosted.Builds.LifecycleTest."test exact worker scope rejects numerically equal references from all other scopes"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       hosted/test/mixer_hosted/builds/lifecycle_test.exs:215: (test)
+
+
+
+  8) test new input is closed, typed and bounded with no source or identity inference (MixerHosted.Builds.LifecycleTest)
+     hosted/test/mixer_hosted/builds/lifecycle_test.exs:89
+     ** (FunctionClauseError) no function clause matching in anonymous fn/2 in MixerHosted.Builds.LifecycleTest."test new input is closed, typed and bounded with no source or identity inference"/1
+
+     
+     code: for key <- Map.keys(spec()) do
+     stacktrace:
+       hosted/test/mixer_hosted/builds/lifecycle_test.exs:91: anonymous fn/2 in MixerHosted.Builds.LifecycleTest."test new input is closed, typed and bounded with no source or identity inference"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       hosted/test/mixer_hosted/builds/lifecycle_test.exs:90: (test)
+
+.
+
+  9) test infrastructure allowlist retries with backoff and stops at finite attempt cap (MixerHosted.Builds.LifecycleTest)
+     hosted/test/mixer_hosted/builds/lifecycle_test.exs:239
+     match (=) failed
+     code:  assert {:ok, updated, :applied} = Lifecycle.transition(build, id, event, now)
+     left:  {:ok, updated, :applied}
+     right: {:error, :invalid_event}
+     stacktrace:
+       hosted/test/mixer_hosted/builds/lifecycle_test.exs:33: MixerHosted.Builds.LifecycleTest.apply!/4
+       hosted/test/mixer_hosted/builds/lifecycle_test.exs:244: anonymous fn/3 in MixerHosted.Builds.LifecycleTest."test infrastructure allowlist retries with backoff and stops at finite attempt cap"/1
+       (elixir 1.20.4) lib/enum.ex:4659: Enum.reduce/3
+       hosted/test/mixer_hosted/builds/lifecycle_test.exs:241: anonymous fn/2 in MixerHosted.Builds.LifecycleTest."test infrastructure allowlist retries with backoff and stops at finite attempt cap"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       hosted/test/mixer_hosted/builds/lifecycle_test.exs:240: (test)
+
+
+
+ 10) test duplicates ignore delivery time, preserve first observation, and never revert newer attempts (MixerHosted.Builds.LifecycleTest)
+     hosted/test/mixer_hosted/builds/lifecycle_test.exs:223
+     match (=) failed
+     code:  assert {:ok, updated, :applied} = Lifecycle.transition(build, id, event, now)
+     left:  {:ok, updated, :applied}
+     right: {:error, :invalid_event}
+     stacktrace:
+       hosted/test/mixer_hosted/builds/lifecycle_test.exs:33: MixerHosted.Builds.LifecycleTest.apply!/4
+       hosted/test/mixer_hosted/builds/lifecycle_test.exs:226: (test)
+
+..
+Finished in 0.2 seconds (0.2s on load, 0.04s async, 0.00s sync)
+
+Result: 7/17 passed
+Failed: 10 tests

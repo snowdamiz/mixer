@@ -1,0 +1,164 @@
+{
+  "schema": "mixer.hosted-build-lifecycle.independent-review-results.v1",
+  "created_at_utc": "2026-10-24T23:29:29.258307+00:00",
+  "result": "pure_review_passed_root_acceptance_pending",
+  "source_revision": "ccd8e4c3d96f96876a1339a51dc4297f4175d4fc",
+  "host": {
+    "system": "Darwin",
+    "node": "Andreys-MacBook-Pro.local",
+    "release": "27.0.0",
+    "version": "Darwin Kernel Version 27.0.0: Tue Aug 11 21:06:40 PDT 2026; root:xnu-13432.1.9~1/RELEASE_ARM64_T6050",
+    "machine": "arm64",
+    "processor": "arm"
+  },
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "producer_seal_sha256": "15f20b5a536876be48acdfa36d155b15b74b4b66c4fddbec9eb56846c6f4779e",
+  "tested_source_tree_sha256": "c00622e2b2794ca647130a4cbf7622faffaccd4ad2c89e49f38daa50419e7aea",
+  "input_sha256": {
+    "verification/hosted-build-lifecycle-independent-review/accepted-source/hosted/lib/mixer_hosted/builds/lifecycle.ex": "e203ffe0134be5278d9b66f0eb8dadc260d7ffb259d11135dcc4665feb1e72a9",
+    "verification/hosted-build-lifecycle-independent-review/accepted-source/hosted/test/mixer_hosted/builds/lifecycle_test.exs": "6c286694447daa100fe487267b483a75b896109b95c1d8b10144f22d24c84881",
+    "verification/hosted-build-lifecycle-independent-review/controls_test.exs": "4c8f05564665cdc9aa4b49caeb90f8cec4316d1e1f4b9c3ec1092a971b121ee1",
+    "verification/hosted-build-lifecycle-independent-review/run_review.py": "414ad9dcfad4aead18fa5af67385fde53103fc92577a713b652d5f81e2bbfd15"
+  },
+  "input_tree_sha256": "eb350283483e953711300b9c5fed86038d5023cfdda43cf330079bf74d85b1da",
+  "toolchain": {
+    "command": [
+      "/opt/homebrew/bin/elixir",
+      "--version"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+    "environment_override": {
+      "ERL_FLAGS": "+S 2:2"
+    },
+    "timeout_seconds": 10,
+    "elapsed_seconds": 0.12567762495018542,
+    "exit_code": 0,
+    "timed_out": false,
+    "stdout_file": "commands/toolchain.stdout",
+    "stderr_file": "commands/toolchain.stderr",
+    "stdout": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:2:2] [ds:2:2:10] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)\n",
+    "stderr": ""
+  },
+  "precise_versions": {
+    "command": [
+      "/opt/homebrew/bin/elixir",
+      "-e",
+      "IO.puts(\"elixir=\" <> System.version()); IO.puts(\"otp=\" <> File.read!(Path.join([to_string(:code.root_dir()), \"releases\", to_string(:erlang.system_info(:otp_release)), \"OTP_VERSION\"])))"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+    "environment_override": {
+      "ERL_FLAGS": "+S 2:2"
+    },
+    "timeout_seconds": 10,
+    "elapsed_seconds": 0.16562599991448224,
+    "exit_code": 0,
+    "timed_out": false,
+    "stdout_file": "commands/precise-versions-corrected.stdout",
+    "stderr_file": "commands/precise-versions-corrected.stderr",
+    "stdout": "elixir=1.20.4\notp=29.1.1\n\n",
+    "stderr": ""
+  },
+  "producer_suite": {
+    "command": [
+      "/opt/homebrew/bin/elixir",
+      "-r",
+      "verification/hosted-build-lifecycle-independent-review/accepted-source/hosted/lib/mixer_hosted/builds/lifecycle.ex",
+      "-e",
+      "ExUnit.start(); Code.require_file(\"verification/hosted-build-lifecycle-independent-review/accepted-source/hosted/test/mixer_hosted/builds/lifecycle_test.exs\")"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+    "environment_override": {
+      "ERL_FLAGS": "+S 2:2"
+    },
+    "timeout_seconds": 120,
+    "elapsed_seconds": 0.6501080000307411,
+    "exit_code": 0,
+    "timed_out": false,
+    "stdout_file": "commands/producer-suite.stdout",
+    "stderr_file": "commands/producer-suite.stderr",
+    "stdout": "Running ExUnit with seed: 583592, max_cases: 4\n\n.....................\nFinished in 0.2 seconds (0.2s on load, 0.04s async, 0.00s sync)\n\nResult: 21 passed\n",
+    "stderr": "",
+    "counts": {
+      "tests": 21,
+      "failures": 0
+    }
+  },
+  "independent_controls": {
+    "command": [
+      "/opt/homebrew/bin/elixir",
+      "-r",
+      "verification/hosted-build-lifecycle-independent-review/accepted-source/hosted/lib/mixer_hosted/builds/lifecycle.ex",
+      "-e",
+      "ExUnit.start(seed: 0, trace: true); Code.require_file(\"verification/hosted-build-lifecycle-independent-review/controls_test.exs\")"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+    "environment_override": {
+      "ERL_FLAGS": "+S 2:2"
+    },
+    "timeout_seconds": 120,
+    "elapsed_seconds": 0.6174389170482755,
+    "exit_code": 0,
+    "timed_out": false,
+    "stdout_file": "commands/independent-controls.stdout",
+    "stderr_file": "commands/independent-controls.stderr",
+    "stdout": "Running ExUnit with seed: 0, max_cases: 1\n\n\nMixerHosted.Builds.LifecycleIndependentControlsTest [verification/hosted-build-lifecycle-independent-review/controls_test.exs]\n  * test all seven worker-reference fields fence start, completion, stop and expiry [L#94]\r  * test all seven worker-reference fields fence start, completion, stop and expiry (2.7ms) [L#94]\n  * test old exact events remain duplicates of the latest successful retry independent of delivery time [L#128]\r  * test old exact events remain duplicates of the latest successful retry independent of delivery time (0.2ms) [L#128]\n  * test synthetic full trusted ledger rejects fresh work while exact and conflicting duplicates are readable [L#155]\r  * test synthetic full trusted ledger rejects fresh work while exact and conflicting duplicates are readable (0.06ms) [L#155]\n  * test elapsed cancellation and expiry never permit replacement without exact terminal evidence [L#187]\r  * test elapsed cancellation and expiry never permit replacement without exact terminal evidence (0.2ms) [L#187]\n  * test every known noninfrastructure failure stays nonretryable before, at and after deadline and reconciliation [L#246]\r  * test every known noninfrastructure failure stays nonretryable before, at and after deadline and reconciliation (0.2ms) [L#246]\n  * test all infrastructure codes obey explicit backoff and finite exhaustion while mismatched classifications reject [L#271]\r  * test all infrastructure codes obey explicit backoff and finite exhaustion while mismatched classifications reject (0.3ms) [L#271]\n  * test five uncertainty cycles bound history and every old accepted event remains harmless after exhaustion [L#300]\r  * test five uncertainty cycles bound history and every old accepted event remains harmless after exhaustion (0.4ms) [L#300]\n  * test signed64 limits preserve definitive results while blocking deadline, backoff and synthetic fence overflow [L#341]\r  * test signed64 limits preserve definitive results while blocking deadline, backoff and synthetic fence overflow (0.1ms) [L#341]\n  * test seven typed immutable roles allow consistent shared bytes and reject shape or size conflicts [L#381]\r  * test seven typed immutable roles allow consistent shared bytes and reject shape or size conflicts (0.1ms) [L#381]\n  * test per-platform projection preserves Android failure beside successful iOS with no invented release or billing authority [L#411]\r  * test per-platform projection preserves Android failure beside successful iOS with no invented release or billing authority (0.07ms) [L#411]\n\nFinished in 0.1 seconds (0.1s on load, 0.00s async, 0.00s sync)\n\nResult: 10 passed\n",
+    "stderr": "",
+    "counts": {
+      "tests": 10,
+      "failures": 0
+    }
+  },
+  "all_producer_handoff_files_unchanged_after_review": true,
+  "snapshot_and_review_inputs_unchanged_during_tests": true,
+  "scope": "Darwin arm64 host-only pure in-memory Elixir lifecycle decisions. Standalone elixir only; no Mix, test_helper, application, database, network, provider, native harness or frozen authority lane.",
+  "trusted_build_boundary": "Build is trusted in-memory application state. Synthetic event-ledger and fence bounds are arithmetic/boundedness controls only; no untrusted hydration, auth, durable CAS or distributed lock acceptance.",
+  "cleanup": {
+    "native_instances_created": 0,
+    "containers_created": 0,
+    "persistent_services_started": 0,
+    "other_project_processes_changed": false,
+    "reviewer_generated_bytecode_removed": true
+  },
+  "not_verified": [
+    "HTTP, tenant and worker authentication/authorization",
+    "durable event/request uniqueness, CAS, Ecto.Multi/Oban atomic commit",
+    "dispatch, actual worker termination, orphan rescue and global quotas",
+    "provider/network/isolation/resource operation",
+    "source/toolchain/dependency resolution and native compilation",
+    "artifact content, provenance truth, publication and tenant access",
+    "signing, stores, releases, charging and reconciliation",
+    "W12, hosted, G22, physical-phone or GA acceptance"
+  ],
+  "initial_precise_versions_error": {
+    "command": [
+      "/opt/homebrew/bin/elixir",
+      "-e",
+      "IO.puts(\"elixir=\" <> System.version()); IO.puts(\"otp=\" <> File.read!(Path.join([to_string(:code.root_dir()), \"releases\", \"OTP_VERSION\"])))"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+    "environment_override": {
+      "ERL_FLAGS": "+S 2:2"
+    },
+    "timeout_seconds": 10,
+    "elapsed_seconds": 0.14425279095303267,
+    "exit_code": 1,
+    "timed_out": false,
+    "stdout_file": "commands/precise-versions.stdout",
+    "stderr_file": "commands/precise-versions.stderr",
+    "stdout": "elixir=1.20.4\n",
+    "stderr": "** (File.Error) could not read file \"/opt/homebrew/Cellar/erlang/29.1.1_2/lib/erlang/releases/OTP_VERSION\": no such file or directory\n    (elixir 1.20.4) lib/file.ex:451: File.read!/2\n    (stdlib 8.1) erl_eval.erl:1048: :erl_eval.do_apply/7\n    (stdlib 8.1) eval_bits.erl:111: :eval_bits.eval_field/5\n    (stdlib 8.1) eval_bits.erl:76: :eval_bits.expr_grp1/6\n    (stdlib 8.1) eval_bits.erl:72: :eval_bits.expr_grp/5\n    (stdlib 8.1) erl_eval.erl:843: :erl_eval.expr/6\n"
+  },
+  "metadata_correction": {
+    "corrected_at_utc": "2026-10-24T23:30:28.066334+00:00",
+    "reason": "Recorder expected obsolete ExUnit summary format and OTP_VERSION at releases root instead of releases/29; both test processes had already exited zero.",
+    "original_attempt": "verification/hosted-build-lifecycle-independent-review/attempts/initial-harness-version-and-summary-error",
+    "original_recorder_copy": "verification/hosted-build-lifecycle-independent-review/attempts/initial-harness-version-and-summary-error/run_review.py",
+    "original_recorder_sha256": "414ad9dcfad4aead18fa5af67385fde53103fc92577a713b652d5f81e2bbfd15",
+    "corrected_recorder_sha256": "a11173beb9748820d09732d9d4fa2c74ee4b67fae10728fcadde57d073d8afdf",
+    "tests_rerun": false,
+    "source_or_tests_changed": false,
+    "scope": "Read retained passing stdout/exit codes and perform one read-only exact-version query; preserve all original raw evidence and elapsed times.",
+    "final_recorder_sha256": "678e7e574e9e1fcb2315028f061de6181e2838ca22aac27323361a272a7b5a23",
+    "repair_script_sha256": "efada34f972a041f65b92f633818a1f6b724e6c343541ffa34dbd8bd9fd9b117"
+  }
+}

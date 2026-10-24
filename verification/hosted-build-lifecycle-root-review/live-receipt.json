@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "observedUTC": "2026-10-24T23:29:30.259096+00:00",
+  "reviewer": "/root",
+  "sourceRevision": "ccd8e4c3d96f96876a1339a51dc4297f4175d4fc",
+  "producerManifestSHA256": "15f20b5a536876be48acdfa36d155b15b74b4b66c4fddbec9eb56846c6f4779e",
+  "verifiedFiles": 21,
+  "commands": [
+    {
+      "label": "tools",
+      "argv": [
+        "/opt/homebrew/bin/elixir",
+        "-e",
+        "IO.puts(System.version()); IO.puts(:erlang.system_info(:otp_release)); IO.puts(File.read!(Path.join([:code.root_dir(), \"releases\", :erlang.system_info(:otp_release), \"OTP_VERSION\"])))"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environmentOverride": {
+        "ERL_FLAGS": "+S 2:2"
+      },
+      "timeoutSeconds": 120,
+      "exitCode": 0,
+      "exitCodeEvidence": "Original recorder asserted subprocess exit zero before reaching failed summary-text assertion.",
+      "stdoutSHA256": "6cfd6649be45cb8d9bcf2196341c7fa8f4c79b514535586e65d49969653f2441",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsedSeconds": null
+    },
+    {
+      "label": "pure-tests",
+      "argv": [
+        "/opt/homebrew/bin/elixir",
+        "-r",
+        "hosted/lib/mixer_hosted/builds/lifecycle.ex",
+        "-e",
+        "ExUnit.start(); Code.require_file(\"hosted/test/mixer_hosted/builds/lifecycle_test.exs\")"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environmentOverride": {
+        "ERL_FLAGS": "+S 2:2"
+      },
+      "timeoutSeconds": 120,
+      "exitCode": 0,
+      "exitCodeEvidence": "Original recorder asserted subprocess exit zero before reaching failed summary-text assertion.",
+      "stdoutSHA256": "9e2b1d62083a3cc1b674aa8ea765c85ddb3775a0cc5b6089b7d8843867960f31",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsedSeconds": null
+    }
+  ],
+  "toolVersions": "1.20.4\n29\n29.1.1\n\n",
+  "elixirLauncherSHA256": "5cb23d89a78f75589b06fade3097e217b77e63416d61c1800f674579748c4307",
+  "pythonVersion": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "testsPassed": 21,
+  "sourcesUnchanged": true,
+  "acceptance": "independent review pending",
+  "recorderFailure": {
+    "originalExitCode": 1,
+    "cause": "Root recorder expected old ExUnit summary \"21 tests, 0 failures\"; installed ExUnit emitted \"Result: 21 passed\". Both commands returned zero, raw output and rechecked source hashes are retained.",
+    "correction": "Recorded actual new summary without rerunning either command or changing product/test code.",
+    "limitation": "Per-command elapsed time was computed but not persisted before the recorder assertion; no timing claim is made."
+  },
+  "scope": "Pure deterministic Elixir host tests only; no Mix application, DB, native, worker, provider or GA verification."
+}

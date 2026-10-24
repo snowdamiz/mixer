@@ -1,0 +1,93 @@
+{
+  "schema": "mixer.hosted-build-lifecycle.pure-receipt.v1",
+  "created_at_utc": "2026-10-24T23:26:46.279208+00:00",
+  "result": "producer_pure_contract_tests_passed_independent_root_review_pending",
+  "product_plan_sections": [
+    "13.2",
+    "14",
+    "17"
+  ],
+  "source_revision": "ccd8e4c3d96f96876a1339a51dc4297f4175d4fc",
+  "tested_source_tree_sha256": "c00622e2b2794ca647130a4cbf7622faffaccd4ad2c89e49f38daa50419e7aea",
+  "owned_files_sha256": {
+    "hosted/lib/mixer_hosted/builds/lifecycle.ex": "e203ffe0134be5278d9b66f0eb8dadc260d7ffb259d11135dcc4665feb1e72a9",
+    "hosted/test/mixer_hosted/builds/lifecycle_test.exs": "6c286694447daa100fe487267b483a75b896109b95c1d8b10144f22d24c84881",
+    "docs/hosted-build-lifecycle.md": "c58e55facde2e3586f555e712e55a21a1cbd01ffad02ad0c8b1736516aa091a6",
+    "verification/hosted-build-lifecycle/run_pure_tests.py": "0a53ff4643dfca5f1ef346173665c448842a388f68b0152e3b6b6da7cbe392df"
+  },
+  "accepted_contract": {
+    "exact_scoped_worker_ref": true,
+    "delivery_time_excluded_from_event_idempotency": true,
+    "event_ledger_limit": 32,
+    "max_attempts": 5,
+    "max_successful_transitions": 20,
+    "pending_worker_uncertainty_preserved": true,
+    "known_nonretryable_failures_never_promoted_to_retryable_timeout": true,
+    "same_digest_across_kinds_requires_same_size": true
+  },
+  "verification": {
+    "test_count": 21,
+    "state_event_matrix_cases": 56,
+    "generated_schedules": 64,
+    "candidate_events_per_schedule": 40,
+    "exact_command_and_output": "verification/hosted-build-lifecycle/attempts/20261024T232556057731Z/command.json",
+    "command": [
+      "elixir",
+      "-r",
+      "hosted/lib/mixer_hosted/builds/lifecycle.ex",
+      "-e",
+      "ExUnit.start(); Code.require_file(\"hosted/test/mixer_hosted/builds/lifecycle_test.exs\")"
+    ],
+    "environment_override": {
+      "ERL_FLAGS": "+S 2:2"
+    },
+    "timeout_seconds": 120,
+    "elapsed_seconds": 0.684373291907832,
+    "exit_code": 0,
+    "host": {
+      "system": "Darwin",
+      "node": "Andreys-MacBook-Pro.local",
+      "release": "27.0.0",
+      "version": "Darwin Kernel Version 27.0.0: Tue Aug 11 21:06:40 PDT 2026; root:xnu-13432.1.9~1/RELEASE_ARM64_T6050",
+      "machine": "arm64",
+      "processor": "arm"
+    },
+    "elixir_path": "/opt/homebrew/bin/elixir",
+    "elixir_version": "1.20.4",
+    "otp_version": "29.1.1",
+    "source_unchanged_during_run": true
+  },
+  "historical_failed_attempts": [
+    {
+      "path": "verification/hosted-build-lifecycle/test-attempt-01.json",
+      "result": "test_source_default_argument_escape_syntax_error",
+      "limitation": "initial manual failure captured raw command/output but did not snapshot source digest; it is not acceptance evidence"
+    },
+    {
+      "path": "verification/hosted-build-lifecycle/attempts/20261024T232235996960Z/command.json",
+      "result": "10_of_17_failed_due_to_uppercase_test_sha_fixture_and_nonstring_assertion_messages",
+      "source_and_command_recorded": true
+    }
+  ],
+  "scope": "Darwin arm64 host-only pure deterministic Elixir lifecycle decisions and ExUnit; no Mix/test_helper/application, database, provider, resource, cloud, native phone, simulator or emulator harness",
+  "dependencies_added": [],
+  "cleanup": {
+    "native_instances_created": 0,
+    "containers_created": 0,
+    "persistent_services_started": 0,
+    "other_project_processes_changed": false
+  },
+  "not_verified": [
+    "HTTP/tenant/worker authentication and authorization",
+    "durable CAS and atomic Ecto.Multi/Oban commit",
+    "global quotas and worker dispatch/termination",
+    "provider/network/isolation/resource behavior",
+    "source/toolchain/dependency resolution",
+    "artifact content/provenance/publication verification",
+    "signing/store/release authority",
+    "billing charges and reconciliation",
+    "full W12/hosted/G22/GA gates"
+  ],
+  "frozen_authority_lane": "not inspected, executed, retried, integrated or bypassed",
+  "integration_ownership": "Root owns acceptance, trackers, Git, commits/pushes and any external adapter integration"
+}

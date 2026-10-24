@@ -1,0 +1,17 @@
+{
+  "scope": "Review recorder failures only; product source and tests unchanged, no test rerun",
+  "attempts": [
+    {
+      "command": ["python3", "verification/hosted-build-lifecycle-independent-review/run_review.py"],
+      "exit_code": 1,
+      "raw_evidence": "attempts/initial-harness-version-and-summary-error/",
+      "reason": "Tests both exited zero, but precise OTP version query used an incorrect file location and ExUnit 1.20 summary parsing returned null counts."
+    },
+    {
+      "command": ["python3", "verification/hosted-build-lifecycle-independent-review/repair_review_metadata.py"],
+      "exit_code": 1,
+      "stderr": "AssertionError at line 35: assert results[key][\"stdout\"] == (here / f\"commands/{label}.stdout\").read_text()",
+      "reason": "Text-mode reading normalized carriage returns in retained traced ExUnit stdout; corrected comparison decodes the original raw bytes instead. No product test process was started."
+    }
+  ]
+}
