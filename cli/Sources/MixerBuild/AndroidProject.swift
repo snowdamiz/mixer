@@ -34,6 +34,9 @@ public enum AndroidProject {
             "app/src/dev/mixer/android/Json.java", "app/src/dev/mixer/android/UiPacket.java",
             "app/src/dev/mixer/android/NativeRenderer.java", "app/src/dev/mixer/android/NativeBridge.java",
             "app/src/dev/mixer/android/MixerActivity.java",
+            // Private coordinator source is available for compilation; the
+            // public Activity continues to use the V1 exchange/bootstrap.
+            "app/src/dev/mixer/android/NativeCoordinatorV2.java",
             // Compile dependencies of the internal renderer. Including them does
             // not opt generated applications into V2 or package appearance data.
             "app/src/dev/mixer/android/AppearanceDescriptorV2.java",

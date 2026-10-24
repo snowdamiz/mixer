@@ -1,0 +1,159 @@
+Compiled from "MixerActivity.java"
+public final class dev.mixer.android.MixerActivity extends android.app.Activity {
+  long session;
+
+  dev.mixer.android.NativeRenderer renderer;
+
+  private android.widget.FrameLayout root;
+
+  public dev.mixer.android.MixerActivity();
+    Code:
+         0: aload_0
+         1: invokespecial #1                  // Method android/app/Activity."<init>":()V
+         4: return
+
+  public void onCreate(android.os.Bundle);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: invokespecial #7                  // Method android/app/Activity.onCreate:(Landroid/os/Bundle;)V
+         5: getstatic     #11                 // Field android/os/Build$VERSION.SDK_INT:I
+         8: bipush        30
+        10: if_icmplt     32
+        13: aload_0
+        14: invokevirtual #17                 // Method getWindow:()Landroid/view/Window;
+        17: invokevirtual #23                 // Method android/view/Window.getInsetsController:()Landroid/view/WindowInsetsController;
+        20: bipush        24
+        22: bipush        24
+        24: invokeinterface #31,  3           // InterfaceMethod android/view/WindowInsetsController.setSystemBarsAppearance:(II)V
+        29: goto          45
+        32: aload_0
+        33: invokevirtual #17                 // Method getWindow:()Landroid/view/Window;
+        36: invokevirtual #35                 // Method android/view/Window.getDecorView:()Landroid/view/View;
+        39: sipush        8208
+        42: invokevirtual #41                 // Method android/view/View.setSystemUiVisibility:(I)V
+        45: aload_0
+        46: new           #45                 // class android/widget/FrameLayout
+        49: dup
+        50: aload_0
+        51: invokespecial #47                 // Method android/widget/FrameLayout."<init>":(Landroid/content/Context;)V
+        54: putfield      #50                 // Field root:Landroid/widget/FrameLayout;
+        57: aload_0
+        58: getfield      #50                 // Field root:Landroid/widget/FrameLayout;
+        61: ldc           #54                 // int -328966
+        63: invokevirtual #55                 // Method android/widget/FrameLayout.setBackgroundColor:(I)V
+        66: aload_0
+        67: getfield      #50                 // Field root:Landroid/widget/FrameLayout;
+        70: invokedynamic #58,  0             // InvokeDynamic #0:onApplyWindowInsets:()Landroid/view/View$OnApplyWindowInsetsListener;
+        75: invokevirtual #62                 // Method android/widget/FrameLayout.setOnApplyWindowInsetsListener:(Landroid/view/View$OnApplyWindowInsetsListener;)V
+        78: aload_0
+        79: aload_0
+        80: getfield      #50                 // Field root:Landroid/widget/FrameLayout;
+        83: invokevirtual #66                 // Method setContentView:(Landroid/view/View;)V
+        86: aload_0
+        87: invokestatic  #70                 // Method dev/mixer/android/NativeBridge.create:()J
+        90: putfield      #76                 // Field session:J
+        93: aload_0
+        94: new           #80                 // class dev/mixer/android/NativeRenderer
+        97: dup
+        98: aload_0
+        99: aload_0
+       100: invokedynamic #82,  0             // InvokeDynamic #1:send:(Ldev/mixer/android/MixerActivity;)Ldev/mixer/android/NativeRenderer$Events;
+       105: invokespecial #86                 // Method dev/mixer/android/NativeRenderer."<init>":(Landroid/content/Context;Ldev/mixer/android/NativeRenderer$Events;)V
+       108: putfield      #89                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+       111: aload_0
+       112: aload_0
+       113: getfield      #76                 // Field session:J
+       116: iconst_0
+       117: aconst_null
+       118: invokestatic  #93                 // Method dev/mixer/android/NativeBridge.exchange:(JI[B)[B
+       121: invokevirtual #97                 // Method render:([B)V
+       124: return
+
+  private void render(byte[]);
+    Code:
+         0: aload_1
+         1: invokestatic  #101                // Method dev/mixer/android/UiPacket.decode:([B)Ldev/mixer/android/UiPacket;
+         4: astore_2
+         5: aload_0
+         6: getfield      #89                 // Field renderer:Ldev/mixer/android/NativeRenderer;
+         9: aload_2
+        10: invokevirtual #107                // Method dev/mixer/android/NativeRenderer.apply:(Ldev/mixer/android/UiPacket;)Landroid/view/View;
+        13: astore_3
+        14: aload_3
+        15: invokevirtual #111                // Method android/view/View.getParent:()Landroid/view/ViewParent;
+        18: aload_0
+        19: getfield      #50                 // Field root:Landroid/widget/FrameLayout;
+        22: if_acmpeq     49
+        25: aload_0
+        26: getfield      #50                 // Field root:Landroid/widget/FrameLayout;
+        29: invokevirtual #115                // Method android/widget/FrameLayout.removeAllViews:()V
+        32: aload_0
+        33: getfield      #50                 // Field root:Landroid/widget/FrameLayout;
+        36: aload_3
+        37: new           #118                // class android/widget/FrameLayout$LayoutParams
+        40: dup
+        41: iconst_m1
+        42: iconst_m1
+        43: invokespecial #120                // Method android/widget/FrameLayout$LayoutParams."<init>":(II)V
+        46: invokevirtual #122                // Method android/widget/FrameLayout.addView:(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V
+        49: return
+
+  private void event(byte[]);
+    Code:
+         0: aload_0
+         1: aload_0
+         2: getfield      #76                 // Field session:J
+         5: iconst_1
+         6: aload_1
+         7: invokestatic  #93                 // Method dev/mixer/android/NativeBridge.exchange:(JI[B)[B
+        10: invokevirtual #97                 // Method render:([B)V
+        13: goto          36
+        16: astore_2
+        17: ldc           #128                // String MixerAndroid
+        19: ldc           #130                // String Input rejected
+        21: aload_2
+        22: invokestatic  #132                // Method android/util/Log.e:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)I
+        25: pop
+        26: aload_0
+        27: ldc           #138                // String Couldn\'t apply that edit
+        29: iconst_0
+        30: invokestatic  #142                // Method android/widget/Toast.makeText:(Landroid/content/Context;Ljava/lang/CharSequence;I)Landroid/widget/Toast;
+        33: invokevirtual #146                // Method android/widget/Toast.show:()V
+        36: return
+      Exception table:
+         from    to  target type
+             0    13    16   Class java/lang/RuntimeException
+
+  public void onDestroy();
+    Code:
+         0: aload_0
+         1: getfield      #76                 // Field session:J
+         4: lconst_0
+         5: lcmp
+         6: ifeq          21
+         9: aload_0
+        10: getfield      #76                 // Field session:J
+        13: invokestatic  #149                // Method dev/mixer/android/NativeBridge.destroy:(J)V
+        16: aload_0
+        17: lconst_0
+        18: putfield      #76                 // Field session:J
+        21: aload_0
+        22: invokespecial #153                // Method android/app/Activity.onDestroy:()V
+        25: return
+
+  private static android.view.WindowInsets lambda$onCreate$0(android.view.View, android.view.WindowInsets);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: invokevirtual #156                // Method android/view/WindowInsets.getSystemWindowInsetLeft:()I
+         5: aload_1
+         6: invokevirtual #162                // Method android/view/WindowInsets.getSystemWindowInsetTop:()I
+         9: aload_1
+        10: invokevirtual #165                // Method android/view/WindowInsets.getSystemWindowInsetRight:()I
+        13: aload_1
+        14: invokevirtual #168                // Method android/view/WindowInsets.getSystemWindowInsetBottom:()I
+        17: invokevirtual #171                // Method android/view/View.setPadding:(IIII)V
+        20: aload_1
+        21: areturn
+}

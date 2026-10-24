@@ -101,8 +101,12 @@ review verifies 488 bindings and reproduces the same output. The coordinator
 owns engine preparation, native attachment, commit and retirement; uncertain
 outcomes retire both owners, and rejected native input cannot reopen a stale
 presentation. Actual JNI/Swift/native-window integration remains unexecuted.
-Generated source export is in progress; public V1 Activity and signed bootstrap
-remain unchanged. See
+Generated source export now has cross-build acceptance: snapshot/lock tests,
+two real tamper rejections and a fresh unsigned arm64/API28 APK pass. Root checks
+159 captured inputs and inspects the archived APK's coordinator DEX class and
+six native C exports; coordinator class bytes match the accepted native-source
+compilation. Public V1 Activity and signed bootstrap remain unchanged. See
+`verification/android-coordinator-generated-export/root-acceptance.json` and
 `verification/android-native-v2-coordinator-root-review/acceptance.json`.
 
 

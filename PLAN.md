@@ -85,8 +85,11 @@ native paint/input/RTL qualification remains pending. The ordinary Android
 coordinator now has host/cross-build acceptance under
 `verification/android-native-v2-coordinator-root-review/acceptance.json`:
 133 scenarios/2,087 checks replay the SDK-produced class with test-only leaves.
-Generated source export is next. Joined native execution, public Activity opt-in
-and signed integration remain pending.
+Generated source export now passes snapshot/lock tests, tamper rejection and a
+fresh unsigned arm64/API28 APK cross-build; root inspects its DEX/native exports
+at `verification/android-coordinator-generated-export/root-acceptance.json`.
+Joined native execution, public Activity opt-in and signed integration remain
+pending.
 
 The W08 control-helper extraction stopped at its accounting prerequisite:
 the proposed fallible adapters add at least 1,176 bytes of named result-transfer
