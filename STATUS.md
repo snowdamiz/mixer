@@ -66,8 +66,14 @@ Hosted revalidation at 931414f passes VM, Swift and services. See
 `verification/github-ci-931414f/receipt.json`. The later 6bee951 checkpoint passes
 VM/services but fails a Swift cold-start milestone test at the busy admission
 guard; Android-binding and generated-consumer steps are skipped in that run.
-That separate failure is under investigation, not a passing checkpoint. See
-`verification/github-ci-6bee951/receipt.json`.
+That separate failure has a test-only repair: milestone tests retry only the
+documented busy rejection, with an eight-second deadline. Debug/Release/TSan
+qualification passes 24 unchanged fixture tests and 12 controlled repaired checks;
+three controlled original calls fail at the actual busy guard as expected. Root
+audited the source and verified the saved archive/log bindings; it did not rerun
+the cleaned test binaries. Hosted revalidation is pending. See
+`verification/github-ci-6bee951/receipt.json` and
+`verification/cold-start-milestone-ci-repair/root-acceptance.json`.
 
 Active work: native shared-theme renderer integration and failure-atomic
 attachment for W03–W05, plus complete Swift guest execution for W08. Both V2

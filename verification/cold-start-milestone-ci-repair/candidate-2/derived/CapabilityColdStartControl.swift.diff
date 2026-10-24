@@ -1,0 +1,19 @@
+--- frozen/CapabilityColdStartControl.swift
++++ derived/CapabilityColdStartControl.swift
+@@ -99,7 +99,7 @@
+     func admit(_ kind: CapabilityColdStartOperationKind) throws -> CapabilityColdStartOperation {
+         lock.lock(); defer { lock.unlock() }
+         guard !closed else { throw coldStartError("closed") }
+-        guard ordinary == nil, cancellation == nil, !notificationBusy else { throw coldStartError("busy") }
++        guard ordinary == nil, cancellation == nil, !notificationBusy else { MilestoneCIProbe.shared.recordBusy(kind); throw coldStartError("busy") }
+         guard observation?.signals.snapshot.stopped != true else { throw coldStartError("terminal") }
+         switch kind {
+         case .opening: break
+@@ -167,6 +167,7 @@
+             }
+         }
+         observation = CapabilityColdStartObservation(signals: signals, consumer: consumer)
++        MilestoneCIProbe.shared.install(self, signals)
+         lastSignalObject = nil; lastSignal = nil
+         candidateID = candidate; launchID = launch; phase = .starting
+     }

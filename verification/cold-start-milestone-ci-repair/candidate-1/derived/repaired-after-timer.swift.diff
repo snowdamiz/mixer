@@ -1,0 +1,41 @@
+--- frozen/repaired-after-timer.swift
++++ derived/repaired-after-timer.swift
+@@ -144,6 +144,7 @@
+         while true {
+             do { try await runtime.reportMilestone(id); return }
+             catch let error as UpdateError where error.code == "capability.runtime.busy" {
++                MilestoneCIProbe.shared.recordRetry()
+                 guard ContinuousClock.now < cutoff else { throw UpdateError("test.timeout", "Milestone admission remained busy: \(id)") }
+                 try await Task.sleep(for: .milliseconds(2))
+             }
+@@ -155,15 +156,29 @@
+     }
+     func testEarlyInstalledMilestonesWakeAutomaticHealthAndStartupAloneDoesNot() async throws {
+         let baseline = CapabilityAttemptReservation.occupiedSlots, f = try fixture(), runtime = try await opened(f)
++        let probe = MilestoneCIProbe.shared
++        addTeardownBlock { probe.release(); await runtime.close(); probe.reset() }
+         try await stage(f,runtime); let initial = try await runtime.start()
+         XCTAssertEqual(initial.phase,.provisionalGuest); XCTAssertTrue(initial.effectsMayHaveOpened)
+         let noHealth = await runtime.recoverySnapshot(); XCTAssertNil(noHealth.healthy)
+         do { try await reportInstalledMilestone("guest_supplied", to: runtime); XCTFail("Unknown native milestone accepted") }
+         catch let error as UpdateError { XCTAssertEqual(error.code, "capability.runtime.milestone") }
+         try await reportInstalledMilestone("feature_started", to: runtime)
++        probe.arm()
+         try await Task.sleep(for: .milliseconds(1100))
++        try await eventually("timer notification not admitted") { probe.isEntered }
++        XCTAssertTrue(probe.timerFired)
+         let stillNoHealth = await runtime.recoverySnapshot(); XCTAssertNil(stillNoHealth.healthy)
+-        try await reportInstalledMilestone("first_screen", to: runtime)
++        let returned = MilestoneCIReturnFlag()
++        let reporting = Task { defer { returned.record() }; try await reportInstalledMilestone("first_screen", to: runtime) }
++        try await eventually("real busy retry not observed") { probe.retryCount >= 3 }
++        XCTAssertGreaterThanOrEqual(probe.actualBusyCount, 3)
++        XCTAssertFalse(returned.didReturn); XCTAssertEqual(probe.reported, [])
++        let held = await runtime.recoverySnapshot(); XCTAssertNil(held.healthy)
++        print("first_screen_CI held after-timer retries=\(probe.retryCount) reported=\(probe.reported) returned=\(returned.didReturn) timerFired=\(probe.timerFired)")
++        probe.release(); try await reporting.value
++        XCTAssertEqual(probe.reported, ["first_screen"])
++        print("first_screen_CI released after-timer reported=\(probe.reported) returned=\(returned.didReturn) timerFired=\(probe.timerFired)")
+         try await eventually("health missing after actual reports and interval") { (await runtime.recoverySnapshot()).activation.phase == .healthyGuest }
+         let snapshot = await runtime.recoverySnapshot(); XCTAssertEqual(snapshot.healthy,initial.candidateID)
+         try await close(runtime,baseline: baseline)

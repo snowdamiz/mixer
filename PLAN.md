@@ -112,6 +112,15 @@ return, retained multiple-pin cleanup and both owner barriers are being implemen
 all AF01–AF22 runtime cases and actual-source accounting review remain pending.
 Swift control invocation, dispatch, memory and host integration remain incomplete.
 
+The separate Swift milestone CI test failure has a bounded test-only busy retry;
+production admission and health behavior are unchanged. Debug/Release/TSan
+qualification passes the eight-test fixture in each mode and controlled overlap,
+error-propagation and deadline cases. Root source/evidence acceptance is recorded
+at `verification/cold-start-milestone-ci-repair/root-acceptance.json`; hosted
+revalidation remains pending. Completed contract and CI-repair compiler scratch
+was removed after checking for open files, while preserving source archives and
+qualifying evidence. No native testing was resumed.
+
 The private Android host binding is now accepted within its recorded host scope;
 see `verification/android-binding-stage4-root-review/acceptance.json`. Root
 verified 4,149 acceptance bindings after independent review of 3,182 files and

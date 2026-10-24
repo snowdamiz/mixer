@@ -1,0 +1,18 @@
+--- frozen/CapabilityColdStartWorker.swift
++++ derived/CapabilityColdStartWorker.swift
+@@ -207,6 +207,7 @@
+         guard configuration.requiredMilestones.contains(id) else { throw coldStartError("milestone") }
+         try requireAttempt(op, signals)
+         try await store.reportMilestone(active, id: id)
++        MilestoneCIProbe.shared.recordReport(id)
+         milestones.insert(id)
+         try control.requireCurrent(op)
+         return await reconcileOwned(fromConsumer: false)
+@@ -219,6 +220,7 @@
+     private func notification(_ generation: UInt64) async {
+         guard control.beginNotification(generation) else { return }
+         defer { control.finishNotification() }
++        await MilestoneCIProbe.shared.pauseNotification()
+         _ = await reconcileOwned(fromConsumer: true)
+     }
+     private func reconcileOwned(fromConsumer: Bool) async -> CapabilityColdStartObservation? {

@@ -137,6 +137,18 @@ final class CapabilityColdStartRuntimeTests: XCTestCase, @unchecked Sendable {
             try await Task.sleep(for: .milliseconds(2))
         }
     }
+    private func reportInstalledMilestone(_ id: String, to runtime: CapabilityColdStartRuntime) async throws {
+        // The automatic notification consumer shares bounded admission with
+        // public mutations. Its timer/wake may overlap even sequential callers.
+        let cutoff = ContinuousClock.now.advanced(by: .seconds(8))
+        while true {
+            do { try await runtime.reportMilestone(id); return }
+            catch let error as UpdateError where error.code == "capability.runtime.busy" {
+                guard ContinuousClock.now < cutoff else { throw UpdateError("test.timeout", "Milestone admission remained busy: \(id)") }
+                try await Task.sleep(for: .milliseconds(2))
+            }
+        }
+    }
     private func close(_ runtime: CapabilityColdStartRuntime, baseline: Int) async throws {
         await runtime.close()
         try await eventually("real cleanup did not return capacity") { CapabilityAttemptReservation.occupiedSlots == baseline }
@@ -146,11 +158,12 @@ final class CapabilityColdStartRuntimeTests: XCTestCase, @unchecked Sendable {
         try await stage(f,runtime); let initial = try await runtime.start()
         XCTAssertEqual(initial.phase,.provisionalGuest); XCTAssertTrue(initial.effectsMayHaveOpened)
         let noHealth = await runtime.recoverySnapshot(); XCTAssertNil(noHealth.healthy)
-        do { try await runtime.reportMilestone("guest_supplied"); XCTFail("Unknown native milestone accepted") } catch {}
-        try await runtime.reportMilestone("feature_started")
+        do { try await reportInstalledMilestone("guest_supplied", to: runtime); XCTFail("Unknown native milestone accepted") }
+        catch let error as UpdateError { XCTAssertEqual(error.code, "capability.runtime.milestone") }
+        try await reportInstalledMilestone("feature_started", to: runtime)
         try await Task.sleep(for: .milliseconds(1100))
         let stillNoHealth = await runtime.recoverySnapshot(); XCTAssertNil(stillNoHealth.healthy)
-        try await runtime.reportMilestone("first_screen")
+        try await reportInstalledMilestone("first_screen", to: runtime)
         try await eventually("health missing after actual reports and interval") { (await runtime.recoverySnapshot()).activation.phase == .healthyGuest }
         let snapshot = await runtime.recoverySnapshot(); XCTAssertEqual(snapshot.healthy,initial.candidateID)
         try await close(runtime,baseline: baseline)
@@ -158,7 +171,7 @@ final class CapabilityColdStartRuntimeTests: XCTestCase, @unchecked Sendable {
     func testBothReportsBeforeTimerPromoteWithoutFurtherPublicCalls() async throws {
         let baseline = CapabilityAttemptReservation.occupiedSlots, f = try fixture(), runtime = try await opened(f)
         try await stage(f,runtime); _ = try await runtime.start()
-        try await runtime.reportMilestone("feature_started"); try await runtime.reportMilestone("first_screen")
+        try await reportInstalledMilestone("feature_started", to: runtime); try await reportInstalledMilestone("first_screen", to: runtime)
         let before = await runtime.recoverySnapshot(); XCTAssertNil(before.healthy)
         try await eventually("one-shot timer failed to re-poke existing consumer") { (await runtime.recoverySnapshot()).healthy != nil }
         try await close(runtime,baseline: baseline)

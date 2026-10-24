@@ -1,0 +1,50 @@
+--- frozen/repaired-errors.swift
++++ derived/repaired-errors.swift
+@@ -144,6 +144,7 @@
+         while true {
+             do { try await runtime.reportMilestone(id); return }
+             catch let error as UpdateError where error.code == "capability.runtime.busy" {
++                MilestoneCIProbe.shared.recordRetry()
+                 guard ContinuousClock.now < cutoff else { throw UpdateError("test.timeout", "Milestone admission remained busy: \(id)") }
+                 try await Task.sleep(for: .milliseconds(2))
+             }
+@@ -263,4 +264,38 @@
+             try await eventually("cancelled open leaked") { CapabilityAttemptReservation.occupiedSlots == baseline }
+         }
+     }
+-}
++
++    func testControlledInvalidAndClosedErrorsPropagate() async throws {
++        let baseline = CapabilityAttemptReservation.occupiedSlots, f = try fixture(), runtime = try await opened(f), probe = MilestoneCIProbe.shared
++        addTeardownBlock { probe.release(); await runtime.close(); probe.reset() }
++        try await stage(f,runtime); _ = try await runtime.start()
++        probe.arm(); probe.wake()
++        try await eventually("notification missing") { probe.isEntered }
++        let invalid = Task { try await reportInstalledMilestone("guest_supplied", to: runtime) }
++        try await eventually("invalid report did not meet real busy") { probe.retryCount >= 3 }
++        XCTAssertEqual(probe.reported, []); probe.release()
++        do { try await invalid.value; XCTFail("invalid accepted") }
++        catch let error as UpdateError { XCTAssertEqual(error.code,"capability.runtime.milestone"); print("MILESTONE_CI invalid-propagated \(error.code)") }
++        try await close(runtime,baseline: baseline)
++        let retries = probe.retryCount
++        do { try await reportInstalledMilestone("feature_started", to: runtime); XCTFail("closed accepted") }
++        catch let error as UpdateError { XCTAssertEqual(error.code,"capability.runtime.closed"); print("MILESTONE_CI closed-propagated \(error.code)") }
++        XCTAssertEqual(probe.retryCount,retries); XCTAssertEqual(probe.reported, [])
++    }
++    func testControlledBusyDeadlineRemainsBounded() async throws {
++        let baseline = CapabilityAttemptReservation.occupiedSlots, f = try fixture(), runtime = try await opened(f), probe = MilestoneCIProbe.shared
++        addTeardownBlock { probe.release(); await runtime.close(); probe.reset() }
++        try await stage(f,runtime); _ = try await runtime.start()
++        probe.arm(); probe.wake()
++        try await eventually("notification missing") { probe.isEntered }
++        let started = ContinuousClock.now
++        do { try await reportInstalledMilestone("feature_started", to: runtime); XCTFail("held report accepted") }
++        catch let error as UpdateError { XCTAssertEqual(error.code,"test.timeout") }
++        let elapsed = started.duration(to: .now)
++        XCTAssertGreaterThanOrEqual(elapsed,.seconds(8)); XCTAssertLessThan(elapsed,.seconds(12))
++        XCTAssertGreaterThan(probe.actualBusyCount,1); XCTAssertEqual(probe.actualBusyCount,probe.retryCount); XCTAssertEqual(probe.reported, [])
++        let held = await runtime.recoverySnapshot(); XCTAssertNil(held.healthy)
++        print("MILESTONE_CI deadline actualBusy=\(probe.actualBusyCount) reports=\(probe.reported) elapsed=\(elapsed)")
++        probe.release(); try await close(runtime,baseline: baseline)
++    }
++}

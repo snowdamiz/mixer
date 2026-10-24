@@ -1,0 +1,34 @@
+--- frozen/repaired-before-timer.swift
++++ derived/repaired-before-timer.swift
+@@ -144,6 +144,7 @@
+         while true {
+             do { try await runtime.reportMilestone(id); return }
+             catch let error as UpdateError where error.code == "capability.runtime.busy" {
++                MilestoneCIProbe.shared.recordRetry()
+                 guard ContinuousClock.now < cutoff else { throw UpdateError("test.timeout", "Milestone admission remained busy: \(id)") }
+                 try await Task.sleep(for: .milliseconds(2))
+             }
+@@ -170,8 +171,22 @@
+     }
+     func testBothReportsBeforeTimerPromoteWithoutFurtherPublicCalls() async throws {
+         let baseline = CapabilityAttemptReservation.occupiedSlots, f = try fixture(), runtime = try await opened(f)
++        let probe = MilestoneCIProbe.shared
++        addTeardownBlock { probe.release(); await runtime.close(); probe.reset() }
+         try await stage(f,runtime); _ = try await runtime.start()
+-        try await reportInstalledMilestone("feature_started", to: runtime); try await reportInstalledMilestone("first_screen", to: runtime)
++        probe.arm(); probe.wake()
++        try await eventually("pre-timer notification not admitted") { probe.isEntered }
++        XCTAssertFalse(probe.timerFired)
++        let returned = MilestoneCIReturnFlag()
++        let reporting = Task { defer { returned.record() }; try await reportInstalledMilestone("feature_started", to: runtime) }
++        try await eventually("real busy retry not observed") { probe.retryCount >= 3 }
++        XCTAssertGreaterThanOrEqual(probe.actualBusyCount, 3)
++        XCTAssertFalse(returned.didReturn); XCTAssertEqual(probe.reported, [])
++        let held = await runtime.recoverySnapshot(); XCTAssertNil(held.healthy)
++        print("feature_started_CI held before-timer retries=\(probe.retryCount) reported=\(probe.reported) returned=\(returned.didReturn) timerFired=\(probe.timerFired)")
++        probe.release(); try await reporting.value
++        XCTAssertEqual(probe.reported, ["feature_started"])
++        print("feature_started_CI released before-timer reported=\(probe.reported) returned=\(returned.didReturn) timerFired=\(probe.timerFired)"); try await reportInstalledMilestone("first_screen", to: runtime)
+         let before = await runtime.recoverySnapshot(); XCTAssertNil(before.healthy)
+         try await eventually("one-shot timer failed to re-poke existing consumer") { (await runtime.recoverySnapshot()).healthy != nil }
+         try await close(runtime,baseline: baseline)

@@ -1,0 +1,22 @@
+--- frozen/original-after-timer.swift
++++ derived/original-after-timer.swift
+@@ -143,13 +143,19 @@
+     }
+     func testEarlyInstalledMilestonesWakeAutomaticHealthAndStartupAloneDoesNot() async throws {
+         let baseline = CapabilityAttemptReservation.occupiedSlots, f = try fixture(), runtime = try await opened(f)
++        let probe = MilestoneCIProbe.shared
++        addTeardownBlock { probe.release(); await runtime.close(); probe.reset() }
+         try await stage(f,runtime); let initial = try await runtime.start()
+         XCTAssertEqual(initial.phase,.provisionalGuest); XCTAssertTrue(initial.effectsMayHaveOpened)
+         let noHealth = await runtime.recoverySnapshot(); XCTAssertNil(noHealth.healthy)
+         do { try await runtime.reportMilestone("guest_supplied"); XCTFail("Unknown native milestone accepted") } catch {}
+         try await runtime.reportMilestone("feature_started")
++        probe.arm()
+         try await Task.sleep(for: .milliseconds(1100))
++        try await eventually("timer notification not admitted") { probe.isEntered }
++        XCTAssertTrue(probe.timerFired)
+         let stillNoHealth = await runtime.recoverySnapshot(); XCTAssertNil(stillNoHealth.healthy)
++        print("MILESTONE_CI original-call notificationHeld=\(probe.isEntered) timerFired=\(probe.timerFired)")
+         try await runtime.reportMilestone("first_screen")
+         try await eventually("health missing after actual reports and interval") { (await runtime.recoverySnapshot()).activation.phase == .healthyGuest }
+         let snapshot = await runtime.recoverySnapshot(); XCTAssertEqual(snapshot.healthy,initial.candidateID)
