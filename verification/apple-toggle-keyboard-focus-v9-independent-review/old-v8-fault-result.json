@@ -1,0 +1,76 @@
+{
+  "beforeSequence": 19,
+  "body": {
+    "accepted": true,
+    "diagnosticOnly": true,
+    "pending": [],
+    "sequence": 20
+  },
+  "committedSequence": 20,
+  "fired": [
+    [
+      "guard-clear",
+      "actual-unlink"
+    ],
+    [
+      "guard-lstat",
+      "EIO-after-irrevocable-commit"
+    ]
+  ],
+  "guardPresentAfterACK": false,
+  "hostEvidenceEntry": "host-scratch/attempt-2/0003-exact-v8-real-unlink-lstat-eio-rollback-eio/independent-control.json",
+  "liveRetirementPendingAfterACK": true,
+  "liveSequenceAfterACK": 20,
+  "name": "exact-v8-real-unlink-lstat-eio-rollback-eio",
+  "noRollback": true,
+  "operations": [
+    [
+      "write",
+      "guard"
+    ],
+    [
+      "sync",
+      "guard-directory"
+    ],
+    [
+      "write",
+      "journal"
+    ],
+    [
+      "sync",
+      "staging-directory"
+    ],
+    [
+      "publish",
+      "journal"
+    ],
+    [
+      "sync",
+      "publication-directory"
+    ],
+    [
+      "unlink",
+      "guard-clear"
+    ],
+    [
+      "write",
+      "attempt-outcome"
+    ],
+    [
+      "sync",
+      "attempt-outcome-directory"
+    ]
+  ],
+  "replaySequenceAfterACK": 20,
+  "retirementContinuation": {
+    "blockedBody": {
+      "error": "PersistenceUncertain: Terminal unresolved diagnostic transaction guard"
+    },
+    "blockedStatus": 400,
+    "finalSequence": 21,
+    "resolutionSucceeded": true,
+    "validNextRetryStatus": 200
+  },
+  "rollbackFaultArmed": true,
+  "status": 200
+}

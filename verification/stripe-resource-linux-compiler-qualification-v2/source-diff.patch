@@ -1,0 +1,49 @@
+--- verification/stripe-resource-linux-compiler-qualification-preparation/run_qualification.py
++++ verification/stripe-resource-linux-compiler-qualification-v2/run_qualification.py
+@@ -20,7 +20,7 @@
+ import qualification as q
+ 
+ HERE, ROOT = prepare.HERE, prepare.ROOT
+-SELECTION = ROOT/"verification/stripe-webhook-resource-ingress-root-review/linux-compiler-qualification-selection.json"
++SELECTION = ROOT/"verification/stripe-webhook-resource-ingress-root-review/linux-compiler-qualification-v2-selection.json"
+ LABEL = "com.mixer.private-compiler-qualification.owner"
+ SOURCES = ["prepare.py", "qualification.py", "run_qualification.py", "native-qualify.sh", "test_preparation.py"]
+ 
+@@ -221,7 +221,7 @@
+         prepare.require(storage_ceiling <= q.BOUNDS["ownedStorageBytes"], "C6 conservative owned storage ceiling")
+         receipt["conservativeOwnedStorageCeilingBytes"] = storage_ceiling
+         run("docker-version", ["docker", "version", "--format", "{{json .}}"])
+-        image = json.loads(run("image-inspect", ["docker", "image", "inspect", prepare.IMAGE]))[0]
++        image = json.loads(run("image-inspect", ["docker", "image", "inspect", "--platform=linux/arm64", prepare.IMAGE]))[0]
+         checked_image(image)
+         # Random identity plus explicit observed absence, never adopt an existing name.
+         before = run("name-before", ["docker", "inspect", name], check=False)
+--- verification/stripe-resource-linux-compiler-qualification-preparation/test_preparation.py
++++ verification/stripe-resource-linux-compiler-qualification-v2/test_preparation.py
+@@ -205,6 +205,26 @@
+ 
+ 
+ class AuthorityControls(unittest.TestCase):
++
++    def test_actual_runner_image_inspect_argv_selects_arm64_explicitly(self):
++        # Inspect the real call site; validators and native commands are not run.
++        import ast
++        tree = ast.parse(Path(run.__file__).read_text())
++        calls = [value for value in ast.walk(tree) if isinstance(value, ast.Call)
++                 and isinstance(value.func, ast.Name) and value.func.id == "run"
++                 and value.args and isinstance(value.args[0], ast.Constant)
++                 and value.args[0].value == "image-inspect"]
++        self.assertEqual(len(calls), 1)
++        self.assertIsInstance(calls[0].args[1], ast.List)
++        actual = []
++        for value in calls[0].args[1].elts:
++            if isinstance(value, ast.Constant):
++                actual.append(value.value)
++            else:
++                self.assertIsInstance(value, ast.Attribute)
++                self.assertEqual(ast.dump(value), ast.dump(ast.parse("prepare.IMAGE", mode="eval").body))
++                actual.append(p.IMAGE)
++        self.assertEqual(actual, ["docker", "image", "inspect", "--platform=linux/arm64", p.IMAGE])
+     def test_exact_selection_is_accepted(self):
+         self.assertTrue(q.validate_selection(selection(), {"bounds": q.BOUNDS}, "a"*64, "b"*64))
+ 

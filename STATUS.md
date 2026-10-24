@@ -1,5 +1,11 @@
 # Implementation status
 
+Checkpoint `67d6d045` passes Console CI (typecheck, 17 tests and production build)
+and all three Engine jobs, with all 38 steps successful. The earlier `c628863f`
+Engine checkpoint also passes. See `verification/github-ci-67d6d045-console/receipt.json`,
+`verification/github-ci-67d6d045-engine/receipt.json` and
+`verification/github-ci-c628863f-engine/receipt.json`.
+
 The builder repair at `2335207a` passes all three Engine CI jobs: Swift, VM and
 services, with no skipped steps. This resolves the earlier source export failure.
 Its 52 local builder test executions, fresh archive and three C consumer checks
@@ -11,28 +17,14 @@ Engine CI jobs, with no skipped steps. See
 Checkpoint `06147f0e` also passes all three Engine jobs, with all 38 returned
 steps successful and none skipped. See `verification/github-ci-06147f0e-engine/receipt.json`.
 
-The private Swift lifecycle candidate now has independent and root source and
-logical-accounting acceptance: 268 bodies, 21,364 roles, 256 selected finite
-positions, 384 individual CTFE proofs, 16 paired layouts and 39 unchanged Frozen
-methods. The first actual Swift Debug run passes 21 of 23 authored tests and
-fails two fixture expectations: a zero-work limit is exhausted during initial
-instantiation, and the expected cumulative cache-work count differs by ten.
-The failures are retained; diagnosis precedes any changed candidate. Other
-runtime configurations and the full matrix remain pending. The live VM is
-unchanged. See `verification/swift-reactor-lifecycle-accounting-root-review/runtime-selection.json`
-and `verification/swift-reactor-lifecycle-runtime/receipt.json`. A test-only
-SL09/SL13 correction is selected; exact accounting impact and fresh runtime
-checks are required before acceptance.
+The private Swift lifecycle V3 candidate now has root acceptance for its selected host matrix: all 30 rows pass, comprising 1,602 test executions and four compile checks. The four focused contexts pass 23 lifecycle tests each; Swift and all-feature libraries, Frozen regressions and both qualified Node oracle runs also pass. Root verifies all 978 sealed files and all 30 target cleanups. V2’s failed ticket assertion remains preserved; V3 changes its expectation to match retained decoded-cache ownership without changing engine limits. The exact three-file private implementation is now integrated: the full 132-file VM source closure matches the tested candidate, and 23 focused live tests plus Swift-only Clippy pass. Its fresh target is removed. The complete SL matrix, guest table mutation, real full reactor, native execution, FieldLog and GA remain pending. See
+`verification/swift-reactor-lifecycle-runtime-v3/runtime-receipt.json` and
+`verification/swift-reactor-lifecycle-runtime-v3-root-review/live-integration-acceptance.json` and
+[the integration checkpoint](docs/swift-reactor-lifecycle-v3-integration.md).
 
-The latest setup-only iOS 26.5 diagnostic reaches Full Keyboard Access with no
-bridge failures and complete evidence. XCTest fails because the switch remains
-off after the test tap. Exact offline replay and all five cleanup operations
-pass; the owned simulator is deleted and unrelated instances are preserved.
-All six app keyboard cases remain unrun. Exported native events prove the tap
-landed in the composite row center, outside the child switch. A public-query
-leaf-target and exact route-label repair is selected for host tests and compilation. See
-`verification/apple-toggle-keyboard-focus-v6-root-review/runtime-review.json`.
-Earlier V4 routing failure remains preserved.
+V9 repairs the diagnostic harness commit boundary: after durable evidence publication, cleanup errors preserve the acknowledgement and live cursor while unresolved retirement blocks new work and setup credit. Producer checks pass 21 Session methods, 20 persistence methods covering 68 actual HTTP controls, 71 resolver checks and 16/35 transport checks. Independent and root review now accept the selected host persistence contract after 72 controls and 1,546 actual HTTP requests. One unchanged-binary setup-only simulator diagnostic is selected; its native outcome remains pending. The V7/V8 persistence failures and prior iOS 26.5 setup failure remain preserved. All six app keyboard cases remain unrun. See
+`verification/apple-toggle-keyboard-focus-v9-preparation/packet-seal.json` and
+`verification/apple-toggle-keyboard-focus-v8-root-review/v9-commit-point-selection.json`.
 
 The V6 host ordering repair passes independent review: 269 existing Python
 methods, ten fresh methods over 15 route/time boundaries and 16 + 35 reused
@@ -49,15 +41,9 @@ inputs were removed. Both earlier pre-start failures remain preserved. Compiler
 payload preparation and all 30 resource runtime rows remain pending. See
 `verification/stripe-webhook-resource-ingress-root-review/linux-tool-payload-v3-review/receipt.json`.
 
-The isolated native APT metadata simulation now succeeds. Root verifies an
-exact lock of 36 packages, 50,997,408 prospective download bytes and 54 matching
-signed stanzas, with zero upgrades or removals from the 98-package base runtime.
-The sole command change removes the cached-archive restriction while retaining
-simulation and network isolation; earlier failures remain preserved. All 36 official archives have been acquired and their signed sizes/hashes
-verified; 15 host controls pass. The archives remain local verification inputs.
-Bounded offline static payload assembly is selected. Installation, compilation
-and all 30 resource-runtime rows remain pending. See
-`verification/stripe-webhook-resource-ingress-root-review/linux-compiler-metadata-v3-review.json`.
+All 36 official compiler/header archives are verified against the signed lock. Root accepts the bounded assembly’s 2,313-path byte/type/link graph as a static prerequisite. The C6 harness passes 33 host controls, but its selected attempt stops before container creation because Docker reports the parent image index instead of the pinned arm64 child manifest. No compiler, helper, NIF, BEAM or resource row ran; the input snapshot is removed. Root preserves the failure; explicit arm64 inspection returns the exact original C5 output and passes the unchanged identity validator. The separate correction passes 34 root host controls and is selected for one compiler-only attempt, with unchanged isolation and bounds; its outcome is pending. Compiler/sysroot qualification, /usr/bin/cc controller integration and all 30 resource rows remain pending. See
+`verification/stripe-webhook-resource-ingress-root-review/linux-compiler-assembly-review/receipt.json` and
+`verification/stripe-webhook-resource-ingress-root-review/linux-compiler-qualification-review/failed-outcome-review.json`.
 
 Latest native checkpoint: the private iOS pan-commit carrier passes 43 XCTest
 methods, 45 native input actions and 36 scoped callback components on iOS 26.5.

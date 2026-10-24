@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "observedAt": "2026-10-24T21:56:15.634665+00:00",
+  "sourceRevisionContext": "67d6d0455c64ccb454c2e06e11edbdca2836a1cd",
+  "producerSealSHA256": "46e2c5a61fcce4137595da36af6d120ef476b2fb5889a1bd8cfb38d70f7a9b0f",
+  "independentReviewSealSHA256": "ed10da1e0da527a1771b76b857047044a72db98bb24765ffa6c2a2840589eca4",
+  "reviewReplayCommand": [
+    "python3",
+    "-B",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-keyboard-focus-v8-independent-review/seal_review.py",
+    "check"
+  ],
+  "reviewReplayExitCode": 0,
+  "failureProbeSHA256": "2eef6bdb56f773785049422a1606707656bdd0caf0f6f46906ebdbf300687214",
+  "v8Accepted": false,
+  "finding": "Guard unlink followed by lstat EIO and rollback unlink EIO: rejected HTTP400/live19 but unguarded replay20 and fresh store accepted.",
+  "selection": "Fresh V9 diagnostic persistence repair and host verification only",
+  "newCommitContract": [
+    "Successful payload/journal file fsync, exact publication checks, and publication-directory fsync form irrevocable commit.",
+    "Before that point, retain guarded rollback/retry rules and fail-closed uncertain rollback.",
+    "After that point, no guard unlink/stat/directory sync/receipt/summary failure may roll back evidence, reject the committed request, or prevent Session cursor advance and ACK200.",
+    "Postcommit retirement failure is visible and conservatively prevents new work/setup credit until positively resolved; a present guard still rejects replay/startup.",
+    "When the guard was actually removed, later offline replay may accept the already-ACKed committed journal after absence is established. Do not claim transient live retirement uncertainty survives restart without persistent evidence."
+  ],
+  "requiredChecks": [
+    "Exact reproduced V8 double-fault plus guard retirement errors before/after unlink/stat, directory and ancillary reporting faults through actualHTTP.",
+    "Assert ACK/cursor/journal/replay alignment and no rollback after commit; guard-present refusal and live warning/setup disqualification remain visible.",
+    "Retain original precommit partial write/fsync/publication/rollback failures, payload+journal retry behavior, unchanged limits, app/runner/oracle/transport proofs."
+  ],
+  "preserve": [
+    "V7/V8 sources/failures/review packets",
+    "V7 unchanged app/runner binaries and source",
+    "No native rebuild/query/run or phone activity",
+    "No production/shared tracker/Git mutations by delegated lane"
+  ],
+  "nativeSelected": false,
+  "gaAccepted": false
+}

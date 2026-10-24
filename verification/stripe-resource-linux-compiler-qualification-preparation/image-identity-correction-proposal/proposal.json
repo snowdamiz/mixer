@@ -1,0 +1,138 @@
+{
+  "CLIHelpCommand": {
+    "bytes": 1000,
+    "path": "verification/stripe-resource-linux-compiler-qualification-preparation/image-identity-correction-proposal/command.json",
+    "sha256": "d2a8f2ed9be42a4a2d91525114ac02b2a9a4bf9c453cbadc09de4864bb71920a"
+  },
+  "DockerVersionOutput": {
+    "bytes": 1108,
+    "path": "verification/stripe-resource-linux-compiler-qualification-preparation/attempt-1/00-docker-version.stdout",
+    "sha256": "108de8598b9d8aef34e3a3aa543ba3f384e9bda8b4728f60d6a2967fdd09e5ac"
+  },
+  "actualFailedC6ImageOutput": {
+    "bytes": 1811,
+    "path": "verification/stripe-resource-linux-compiler-qualification-preparation/attempt-1/01-image-inspect.stdout",
+    "sha256": "0a72e0c7eccfc3675b8b99b1c7d20fe886681213090ee47796cec697594407dc"
+  },
+  "exactNextReadOnlyCommand": [
+    "docker",
+    "image",
+    "inspect",
+    "--platform=linux/arm64",
+    "hexpm/elixir@sha256:52ec0f335b9084bcfc0ce3a29b4c0288dc2fc2a07658ff809dc7d07589212cde"
+  ],
+  "exactObservedMetadataDiff": {
+    "C5": {
+      "Descriptor": {
+        "digest": "sha256:c2d3bab1f8a854f5ca3bb220e5463f4fe39036caa2ce22dfd7614a30404279de",
+        "mediaType": "application/vnd.oci.image.manifest.v1+json",
+        "platform": {
+          "architecture": "arm64",
+          "os": "linux"
+        },
+        "size": 1059
+      },
+      "Id": "sha256:c2d3bab1f8a854f5ca3bb220e5463f4fe39036caa2ce22dfd7614a30404279de"
+    },
+    "onlyChangedTopLevelKeys": [
+      "Descriptor",
+      "Id"
+    ],
+    "selectedC6": {
+      "Descriptor": {
+        "digest": "sha256:52ec0f335b9084bcfc0ce3a29b4c0288dc2fc2a07658ff809dc7d07589212cde",
+        "mediaType": "application/vnd.oci.image.index.v1+json",
+        "size": 647
+      },
+      "Id": "sha256:52ec0f335b9084bcfc0ce3a29b4c0288dc2fc2a07658ff809dc7d07589212cde"
+    },
+    "unchangedTopLevelFields": [
+      "Architecture",
+      "Comment",
+      "Config",
+      "Created",
+      "Identity",
+      "Metadata",
+      "Os",
+      "RepoDigests",
+      "RepoTags",
+      "RootFS",
+      "Size"
+    ]
+  },
+  "execution": {
+    "explicitPlatformInspectCommandsRun": 0,
+    "helpCommandsRun": 1,
+    "newC6AttemptsRun": 0,
+    "newContainerActions": 0
+  },
+  "helpSupport": "Installed official CLI documents --platform string for inspecting a specific multi-platform image platform; it says a nonmatching unsupported platform errors.",
+  "installedClientVersion": "29.8.2",
+  "installedOfficialCLIHelp": {
+    "bytes": 965,
+    "path": "verification/stripe-resource-linux-compiler-qualification-preparation/image-identity-correction-proposal/docker-image-inspect-help.stdout",
+    "sha256": "5672b00cb768ad8737664fda20ae9a2b14826a06368ad6b646f93badb55840b4"
+  },
+  "installedServerVersion": "29.8.2",
+  "interpretation": "Unqualified image inspect produced the parent OCI index projection in C6. Current evidence alone does not establish underlying arm64-child byte drift or absence.",
+  "observedUTC": "2026-10-24T22:18:10.061130+00:00",
+  "outcomes": [
+    {
+      "condition": "Explicit platform returns the exact original child identity and unchanged parent binding.",
+      "meaning": "Evidence supports a difference in unqualified index-vs-child projection. It establishes current local child identity only, not a compiler or runtime pass."
+    },
+    {
+      "condition": "Result is an index, missing descriptor/platform, unsupported-platform error, other child/platform/address, nonzero exit or bound failure.",
+      "meaning": "Preserve output and keep strict child identity unproved. Do not normalize metadata, replace digests or continue C6."
+    }
+  ],
+  "possibleFutureSourceCorrectionAfterSeparateReview": "Only add --platform=linux/arm64 to the adapter image-inspect argv if the read-only result proves the exact unchanged pins. Do not change checked_image/checked_policy/cleanup digest or platform predicates. Any further C6 attempt also requires a separate immutable attempt path and new root source/attempt selection.",
+  "preservation": [
+    "Original prepared27bindings and document unchanged.",
+    "Failed C6 attempt-1 and execution-seal40bindings unchanged.",
+    "No prepared source file modified.",
+    "Frozen catalog/authority lane untouched."
+  ],
+  "proposedBounds": {
+    "C6Retries": 0,
+    "aggregateOutputBytes": 131072,
+    "commandSeconds": 10,
+    "compilerInvocations": 0,
+    "containerCreates": 0,
+    "containerStarts": 0,
+    "imageInspectCommands": 1,
+    "registryOrPackageAcquisition": 0,
+    "stderrBytes": 65536,
+    "stdoutBytes": 65536
+  },
+  "requiredParent": "hexpm/elixir@sha256:52ec0f335b9084bcfc0ce3a29b4c0288dc2fc2a07658ff809dc7d07589212cde",
+  "requiredPlatform": {
+    "architecture": "arm64",
+    "os": "linux"
+  },
+  "requiredPlatformChild": "sha256:c2d3bab1f8a854f5ca3bb220e5463f4fe39036caa2ce22dfd7614a30404279de",
+  "requiredResult": {
+    "Architecture": "arm64",
+    "Descriptor": {
+      "digest": "sha256:c2d3bab1f8a854f5ca3bb220e5463f4fe39036caa2ce22dfd7614a30404279de",
+      "mediaType": "application/vnd.oci.image.manifest.v1+json",
+      "platform": {
+        "architecture": "arm64",
+        "os": "linux"
+      }
+    },
+    "Id": "sha256:c2d3bab1f8a854f5ca3bb220e5463f4fe39036caa2ce22dfd7614a30404279de",
+    "Os": "linux",
+    "RepoDigestsMustContain": "hexpm/elixir@sha256:52ec0f335b9084bcfc0ce3a29b4c0288dc2fc2a07658ff809dc7d07589212cde",
+    "cardinality": 1,
+    "existingCheckedImageFunctionMustPassUnchanged": true
+  },
+  "retainedC5ImageOutput": {
+    "bytes": 1927,
+    "path": "verification/stripe-resource-linux-compiler-assembly/attempt/01-image-inspect.stdout",
+    "sha256": "2a07514cc042c9fc5e768124689fda0a0817882021d9dc09dc675ee773d8e7b3"
+  },
+  "schema": 1,
+  "scope": "Distinguish Docker OCI index metadata projection from actual pinned arm64-child identity drift; no C6 retry or validator relaxation",
+  "status": "proposed-single-read-only-explicit-platform-image-inspection-root-selection-pending"
+}

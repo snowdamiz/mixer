@@ -1,0 +1,32 @@
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-keyboard-focus-v7-independent-review/persistence_probes.py", line 70, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-keyboard-focus-v7-independent-review/persistence_probes.py", line 28, in main
+    f=h.Flow('postwrite-journal'); f.before(); r=f.action(send=False); before=capture(f); save=f.bridge.save
+                                   ~~~~~~~~^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-keyboard-focus-v7-independent-review/host_checks.py", line 132, in before
+    self.routes(suffix)
+    ~~~~~~~~~~~^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-keyboard-focus-v7-independent-review/host_checks.py", line 129, in routes
+    self.observe('route-opened', index=i)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-keyboard-focus-v7-independent-review/host_checks.py", line 117, in observe
+    self.send(r)
+    ~~~~~~~~~^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-keyboard-focus-v7-independent-review/host_checks.py", line 59, in send
+    return self.bridge.request('evaluate', json.loads(json.dumps({'settingsDiagnostic': record})))
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-pan-origin-correction/bridge.py", line 118, in request
+    result = self._request(op, body)
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-keyboard-focus-v7-preparation/settings_telemetry.py", line 413, in _request
+    return self.settings.request(body['settingsDiagnostic'])
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-keyboard-focus-v7-preparation/settings_telemetry.py", line 198, in request
+    result = draft._request(value)
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-keyboard-focus-v7-preparation/settings_telemetry.py", line 266, in _request
+    require(value['captureStartedUptime'] <= nested['observedUptime'] <= value['captureFinishedUptime'], 'Route witness capture time')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-keyboard-focus-v7-preparation/settings_telemetry.py", line 27, in require
+    raise ValueError(reason)
+ValueError: Route witness capture time

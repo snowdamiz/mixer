@@ -1,0 +1,432 @@
+--- v6/settings_telemetry.py
++++ v7/settings_telemetry.py
+@@ -106,10 +106,47 @@
+         return all(container[k] == target[k] for k in fields)
+     if witness['relation'] != 'descendant':
+         return False
+-    context = container['elementType'] == 75 and container['identifier'] in ids and container['label'] in ['', ROUTE[index]] and container['appState'] == 4 and all(container[k] is True for k in ['exists', 'enabled', 'foreground'])
++    context = container['elementType'] == 75 and container['identifier'] in ids and (container['label'] in ['', ROUTE[index]] or (index == 2 and container['identifier'] == 'FULL_KEYBOARD_ACCESS' and container['label'] in ['Full Keyboard Access, Off', 'Full Keyboard Access, On'])) and container['appState'] == 4 and all(container[k] is True for k in ['exists', 'enabled', 'foreground'])
+     c, t = container['frame'], target['frame']
+     contained = c['width'] > 0 and c['height'] > 0 and c['x'] <= t['x'] and c['y'] <= t['y'] and t['x'] + t['width'] <= c['x'] + c['width'] and t['y'] + t['height'] <= c['y'] + c['height']
+     return context and contained
++
++
++def frame(value):
++    require(type(value) is dict and set(value) == {'x', 'y', 'width', 'height'} and all(type(v) in (int, float) and math.isfinite(v) and abs(v) <= 10000 for v in value.values()) and value['width'] > 0 and value['height'] > 0, 'Switch positive frame')
++    return value
++
++
++def inside(point, rect):
++    return rect['x'] < point['x'] < rect['x'] + rect['width'] and rect['y'] < point['y'] < rect['y'] + rect['height']
++
++
++def switch_witness(parent, witness, started, finished):
++    require(type(witness) is dict and set(witness) == {'relation', 'parentCount', 'leafCount', 'leafSwitchChildCount', 'leafSwitchDescendantCount', 'leaf', 'screen', 'hitPoint'}, 'Switch witness fields')
++    require(witness['relation'] == 'immediate-child-switch', 'Switch public query relation')
++    for key, expected in [('parentCount', 1), ('leafCount', 1), ('leafSwitchChildCount', 0), ('leafSwitchDescendantCount', 0)]:
++        require(type(witness[key]) is int and witness[key] == expected, 'Switch public query count')
++    leaf = snapshot(witness['leaf'])
++    require(expected_switch(parent, 'FKAEnabledSwitch'), 'Exact public switch parent')
++    require(leaf['bundle'] == 'com.apple.Preferences' and leaf['identifier'] == leaf['label'] == '' and leaf['elementType'] == 40 and leaf['appState'] == 4 and all(leaf[k] is True for k in ['exists', 'hittable', 'enabled', 'foreground']), 'Exact public switch leaf')
++    require(parent['valueKind'] == leaf['valueKind'] == 'string' and parent['value'] == leaf['value'] and parent['value'] in ['0', '1'], 'Switch parent leaf raw value agreement')
++    require(started <= parent['observedUptime'] <= leaf['observedUptime'] <= finished, 'Switch fresh public snapshot timing')
++    p, l, screen = frame(parent['frame']), frame(leaf['frame']), frame(witness['screen'])
++    point = witness['hitPoint']
++    require(type(point) is dict and set(point) == {'x', 'y'} and all(type(v) in (int, float) and math.isfinite(v) for v in point.values()), 'Switch hit point shape')
++    require(point == {'x': l['x'] + l['width'] / 2, 'y': l['y'] + l['height'] / 2}, 'Switch leaf center')
++    require(max(p['x'], l['x']) < min(p['x'] + p['width'], l['x'] + l['width']) and max(p['y'], l['y']) < min(p['y'] + p['height'], l['y'] + l['height']), 'Switch parent leaf overlap')
++    require(all(inside(point, rect) for rect in [p, l, screen]), 'Switch strict interior hit point')
++    return witness
++
++
++def same_snapshot(a, b):
++    return all(a[key] == b[key] for key in set(a) - {'observedUptime'})
++
++
++def same_switch_binding(parent, witness, before):
++    old = before['switchWitness']
++    return same_snapshot(parent, before['snapshot']) and same_snapshot(witness['leaf'], old['leaf']) and all(witness[key] == old[key] for key in set(old) - {'leaf'})
+ 
+ 
+ def destination(value, index):
+@@ -145,6 +182,7 @@
+         self.anchor = None
+         self.observation_deadline = None
+         self.action = None
++        self.action_binding = None
+         self.terminate = []
+         self.completions = []
+         self.enabled_samples = []
+@@ -205,7 +243,7 @@
+                 self.pending.pop(0)
+         elif kind == 'observe':
+             route_stage = value.get('stage') in ['route-search', 'route-opened']
+-            extra = {'routeWitness'} if route_stage else set()
++            extra = {'routeWitness'} if route_stage else {'switchWitness'}
+             require(set(value) == FIELDS | {'stage', 'routeIndex', 'attempt', 'captureStartedUptime', 'captureFinishedUptime', 'snapshot', 'files'} | extra and not self.pending, 'Observation shape/pending upload')
+             require(self.terminal is None and not self.terminate, 'Observation after terminal/termination')
+             require(len(self.events) < MAX_EVENTS, 'Event cap')
+@@ -243,6 +281,10 @@
+                     self.route_opened_bindings.append({'routeIndex': index, 'sequence': value['sequence'], 'tapSequence': tap['tapSequence'], 'tapFinishedUptime': tap['finishedUptime'], 'captureStartedUptime': value['captureStartedUptime'], 'destinationMatched': destination(nested, index), 'oldSelectorAbsent': absent_opened_row(snap)})
+             else:
+                 require(value['routeIndex'] == 3 and value['attempt'] == 0, 'Switch capture binding')
++                switch_witness(snap, value['switchWitness'], value['captureStartedUptime'], value['captureFinishedUptime'])
++                if stage in ['after-switch', 'poll'] or (stage == 'terminal' and self.action_binding is not None):
++                    require(self.action_binding is not None and self.action_binding['actionSequence'] < value['sequence'] and self.action_binding['finishedUptime'] <= value['captureStartedUptime'], 'Switch capture precedes action completion')
++                    require(same_snapshot({**snap, 'value': self.before['snapshot']['value']}, self.before['snapshot']) and same_snapshot({**value['switchWitness']['leaf'], 'value': self.before['switchWitness']['leaf']['value']}, self.before['switchWitness']['leaf']) and all(value['switchWitness'][key] == self.before['switchWitness'][key] for key in set(value['switchWitness']) - {'leaf'}), 'Switch observation public binding changed')
+                 if stage != 'poll':
+                     require(set(files) == {'ax', 'png'}, 'Required screenshot/AX')
+                 else:
+@@ -290,20 +332,26 @@
+                 same_target = all(target[k] == search['routeWitness']['target'][k] for k in set(target) - {'observedUptime'})
+                 self.route_bindings.append({'routeIndex': detail['routeIndex'], 'searchSequence': search['sequence'], 'tapSequence': value['sequence'], 'finishedUptime': detail['finishedUptime'], 'samePublicTargetMetadata': same_target, 'rowMatched': same_target and route_target(search['snapshot'], search['routeWitness'], detail['routeIndex'])})
+             elif stage == 'switch-action':
+-                require(set(detail) == {'action', 'anchorUptime', 'deadlineUptime'} and self.before is not None and self.anchor is None, 'Switch action shape/order')
++                require(set(detail) == {'action', 'anchorUptime', 'deadlineUptime', 'beforeSequence', 'parent', 'switchWitness', 'startedUptime', 'finishedUptime'} and self.before is not None and self.anchor is None and self.after is None, 'Switch action shape/order')
++                require(type(detail['beforeSequence']) is int and detail['beforeSequence'] == self.before['sequence'], 'Switch before sequence binding')
++                require(all(number(detail[k]) for k in ['startedUptime', 'finishedUptime']) and self.before['captureFinishedUptime'] <= detail['startedUptime'] <= detail['finishedUptime'] <= value['uptime'], 'Switch action completion timing')
++                parent = snapshot(detail['parent'])
++                switch_witness(parent, detail['switchWitness'], self.before['captureFinishedUptime'], detail['startedUptime'])
++                require(same_switch_binding(parent, detail['switchWitness'], self.before), 'Switch action public binding changed')
+                 initial = self.before['snapshot']
+                 require(initial['valueKind'] == 'string' and initial['value'] in ['0', '1'], 'Initial switch raw value')
+                 expected = 'tap' if initial['value'] == '0' else 'no-tap'
+                 require(detail['action'] == expected and number(detail['anchorUptime']) and number(detail['deadlineUptime']) and detail['deadlineUptime'] == detail['anchorUptime'] + 3.0, 'Anchored three second window')
+                 require(self.start_runner <= detail['anchorUptime'] <= value['uptime'], 'Action time')
+                 if expected == 'tap':
+-                    require(detail['anchorUptime'] >= self.before['captureFinishedUptime'], 'Tap after before capture')
++                    require(detail['anchorUptime'] == detail['finishedUptime'], 'Tap completion anchor')
+                 else:
+-                    require(detail['anchorUptime'] == initial['observedUptime'], 'Initial enabled anchor')
++                    require(detail['anchorUptime'] == initial['observedUptime'] and detail['startedUptime'] == detail['finishedUptime'], 'Initial enabled anchor/no tap')
+                     if expected_switch(initial):
+                         self.enabled_samples.append(self.before['sequence'])
+                     else:
+                         self.invalid_enabled_samples.append(self.before['sequence'])
++                self.action_binding = {'beforeSequence': detail['beforeSequence'], 'actionSequence': value['sequence'], 'startedUptime': detail['startedUptime'], 'finishedUptime': detail['finishedUptime'], 'parent': parent, 'switchWitness': detail['switchWitness']}
+                 self.action = expected
+                 self.anchor = detail['anchorUptime']
+                 self.observation_deadline = detail['deadlineUptime']
+@@ -331,7 +379,7 @@
+         metadata = all(value and expected_switch(value['snapshot'], self.before['snapshot']['identifier']) for value in required) if self.before is not None else False
+         routes = len(self.route_bindings) == len(self.route_opened_bindings) == 3 and all(row['rowMatched'] for row in self.route_bindings) and all(row['destinationMatched'] for row in self.route_opened_bindings)
+         enabled = bool(self.enabled_samples) and self.terminal is not None and self.terminal['snapshot']['valueKind'] == 'string' and self.terminal['snapshot']['value'] == '1'
+-        return {'status': 'DIAGNOSTIC_ONLY', 'settingsReportedEnabled': enabled, 'settingsEvidenceComplete': bool(complete), 'settingsMetadataExpected': bool(metadata), 'selectedRouteEvidenceExpected': routes, 'routeTapBindings': self.route_bindings, 'routeOpenedBindings': self.route_opened_bindings, 'setupObservationSatisfied': bool(complete and metadata and routes and enabled), 'routeTaps': [row['routeIndex'] for row in self.route_bindings if row['rowMatched']], 'claimedRouteTapIndices': self.routes, 'switchAction': self.action, 'anchorUptime': self.anchor, 'observationDeadlineUptime': self.observation_deadline, 'enabledWithinWindowSequences': self.enabled_samples, 'invalidEnabledWithinWindowSequences': self.invalid_enabled_samples, 'lastAcceptedHostReceiptUptime': self.last_host, 'sequence': self.sequence, 'requests': self.requests, 'decodedBytesDeclared': self.total, 'pendingSlots': self.pending, 'uploads': {k: {a: b for a, b in v.items() if a != 'parts'} for k, v in self.uploads.items()}, 'terminationMarkers': self.terminate, 'completionMarkers': self.completions, 'applicationCasesExecuted': 0, 'nativeKeyboardQualification': False, 'runPassed': False}
++        return {'status': 'DIAGNOSTIC_ONLY', 'settingsReportedEnabled': enabled, 'settingsEvidenceComplete': bool(complete), 'settingsMetadataExpected': bool(metadata), 'selectedRouteEvidenceExpected': routes, 'routeTapBindings': self.route_bindings, 'routeOpenedBindings': self.route_opened_bindings, 'setupObservationSatisfied': bool(complete and metadata and routes and enabled), 'routeTaps': [row['routeIndex'] for row in self.route_bindings if row['rowMatched']], 'claimedRouteTapIndices': self.routes, 'switchAction': self.action, 'switchActionBinding': self.action_binding, 'anchorUptime': self.anchor, 'observationDeadlineUptime': self.observation_deadline, 'enabledWithinWindowSequences': self.enabled_samples, 'invalidEnabledWithinWindowSequences': self.invalid_enabled_samples, 'lastAcceptedHostReceiptUptime': self.last_host, 'sequence': self.sequence, 'requests': self.requests, 'decodedBytesDeclared': self.total, 'pendingSlots': self.pending, 'uploads': {k: {a: b for a, b in v.items() if a != 'parts'} for k, v in self.uploads.items()}, 'terminationMarkers': self.terminate, 'completionMarkers': self.completions, 'applicationCasesExecuted': 0, 'nativeKeyboardQualification': False, 'runPassed': False}
+ 
+ 
+ def diagnostic_bridge(base):
+--- v6/run.py
++++ v7/run.py
+@@ -1,5 +1,5 @@
+ #!/usr/bin/env python3
+-"""Root-selected setup diagnostic; verify/build never address native instances."""
++"""V7 sealed setup diagnostic. Verify/build do not query native instances."""
+ import argparse
+ import hashlib
+ import importlib.util
+@@ -8,115 +8,64 @@
+ import signal
+ import subprocess
+ import sys
+-
+-BASE = pathlib.Path(__file__).resolve().parent
+-ROOT = BASE.parents[1]
+-PREVIOUS = BASE.parent / 'apple-toggle-keyboard-focus'
+-V2 = BASE.parent / 'apple-toggle-keyboard-focus-v2'
+-V3 = BASE.parent / 'apple-toggle-keyboard-focus-v3-preparation'
+-V4 = BASE.parent / 'apple-toggle-keyboard-focus-v4'
+-V5 = BASE.parent / 'apple-toggle-keyboard-focus-v5-preparation'
++BASE=pathlib.Path(__file__).resolve().parent
++ROOT=BASE.parents[1]
++V6=BASE.parent/'apple-toggle-keyboard-focus-v6-preparation'
++PREVIOUS=BASE.parent/'apple-toggle-keyboard-focus'
+ sys.path.append(str(PREVIOUS))
+ import keyboard_oracle
+ import settings_telemetry
+-spec = importlib.util.spec_from_file_location('immutable_keyboard_diagnostic_runtime', PREVIOUS / 'run.py')
+-runtime = importlib.util.module_from_spec(spec)
+-spec.loader.exec_module(runtime)
+-h = runtime.inherited
+-sha, read, require = runtime.sha, runtime.read, runtime.require
+-runtime.BASE = BASE
+-h.BASE = BASE
+-h.PRODUCTS = BASE / 'build/Build/Products'
+-h.PRODUCT_ARCHIVE = BASE / 'test-runner-products.tar.gz'
+-h.SOURCE_REVISION_CONTEXT = '9a9c0e000234b07a92c4484979d3587f7f24df48'
+-h.Bridge = settings_telemetry.diagnostic_bridge(h.Bridge)
+-h.SCOPES = {'interaction': {'cases': keyboard_oracle.CASES, 'methods': ['test000PublicSettingsFullKeyboardAccess']}}
+-
++spec=importlib.util.spec_from_file_location('immutable_keyboard_diagnostic_runtime_v7',PREVIOUS/'run.py')
++runtime=importlib.util.module_from_spec(spec);spec.loader.exec_module(runtime)
++h=runtime.inherited
++sha,read,require=runtime.sha,runtime.read,runtime.require
++runtime.BASE=BASE;h.BASE=BASE
++h.PRODUCTS=BASE/'build/Build/Products';h.PRODUCT_ARCHIVE=BASE/'test-runner-products.tar.gz'
++h.Bridge=settings_telemetry.diagnostic_bridge(h.Bridge)
++h.SCOPES={'interaction':{'cases':keyboard_oracle.CASES,'methods':['test000PublicSettingsFullKeyboardAccess']}}
+ 
+ def verify():
+-    seal = read(BASE / 'packet-seal.json')
+-    require(seal['schema'] == 'mixer.apple-toggle.keyboard-v6-diagnostic.1', 'Wrong diagnostic seal')
+-    for name, expected in seal['files'].items():
+-        p = ROOT / runtime.artifact.relative_name(name)
+-        require(p.is_file() and not p.is_symlink() and sha(p) == expected, 'Sealed diagnostic file changed: ' + name)
+-    old = subprocess.run([sys.executable, '-B', str(V5 / 'run.py'), 'verify'], cwd=ROOT, capture_output=True, text=True, timeout=60)
+-    require(old.returncode == 0, 'Immutable v5 preflight failed: ' + old.stderr)
+-    require(json.loads(old.stdout)['sealSHA256'] == '8626e01f8622b0a27176cb37331edd7076d50b566f61b5c52bc5d4b1703770aa', 'V5 seal changed')
+-    reuse = read(BASE / 'immutable-reuse.json')
+-    require(all(sha(ROOT / name) == digest for group in ['copiedFiles', 'previousBindings'] for name, digest in reuse[group].items()), 'Immutable app/oracle/selection changed')
+-    require(all(sha(ROOT / name) == sha(ROOT / source) for name, source in reuse['exactCopySources'].items()), 'V5 runner/app/transport copies changed')
+-    review_v5 = BASE.parent / 'apple-toggle-keyboard-focus-v5-independent-review/review-seal.json'
+-    require(sha(review_v5) == 'dbe9f176e1f32d418fb70592b976dcb3ff84789d10104d50816b720c54d7af6d', 'V5 independent review seal changed')
+-    require(all(sha(ROOT / name) == digest for name, digest in read(review_v5)['files'].items()), 'V5 independent review changed')
+-    review_seal = read(BASE.parent / 'apple-toggle-keyboard-focus-v3-independent-review/review-seal.json')
+-    require(all(sha(ROOT / name) == digest for name, digest in review_seal['files'].items()), 'Sealed independent V3 review changed')
+-    lock = read(BASE / 'source-lock.json')
+-    actual = {str(p.relative_to(BASE / 'source')): sha(p) for p in sorted((BASE / 'source').rglob('*')) if p.is_file()}
+-    closure = hashlib.sha256(h.json_bytes(actual)).hexdigest()
+-    require(actual == lock['sha256'] and closure == seal['candidateSourceClosureSHA256'] == 'f9ddf3e2615a80930d551351e1496f12ea476cac3e8d1bfd38d8cd101a1d2a46', 'App closure changed')
+-    app = read(BASE / 'built-app-manifest.json')
+-    require(app['archiveSHA256'] == seal['candidateArchiveSHA256'] == 'b9a864d11182ac546d76110d7d4ea342821df98d1e32b3474e57cf07de04b393', 'App archive identity')
+-    runtime.artifact.archive_payload(BASE / 'built-app.tar.gz', app, runtime.artifact.CONFIGS['diagnostic'])
+-    runner = read(BASE / 'build-products-manifest.json')
+-    require(h.tree(h.PRODUCTS) == runner['products'] and hashlib.sha256(h.json_bytes(runner['products'])).hexdigest() == runner['productTreeSHA256'] == seal['testRunnerProductTreeSHA256'], 'Runner tree changed')
++    seal=read(BASE/'packet-seal.json')
++    require(seal['schema']=='mixer.apple-toggle.keyboard-v7-diagnostic.1','Wrong v7 seal')
++    for name,digest in seal['files'].items():
++        p=ROOT/runtime.artifact.relative_name(name)
++        require(p.is_file() and not p.is_symlink() and sha(p)==digest,'Sealed file changed: '+name)
++    reuse=read(BASE/'immutable-reuse.json')
++    for name,source in reuse['exactCopySources'].items():
++        require(sha(ROOT/name)==sha(ROOT/source)==reuse['copiedFiles'][name],'Immutable source changed: '+name)
++    for name,digest in reuse['historicalBindings'].items():
++        require(sha(ROOT/name)==digest,'Historical input changed: '+name)
++    app=read(BASE/'built-app-manifest.json')
++    runtime.artifact.archive_payload(BASE/'built-app.tar.gz',app,runtime.artifact.CONFIGS['diagnostic'])
++    runner=read(BASE/'build-products-manifest.json')
++    require(h.tree(h.PRODUCTS)==runner['products'],'Runner tree changed')
++    require(hashlib.sha256(h.json_bytes(runner['products'])).hexdigest()==runner['productTreeSHA256']==seal['testRunnerProductTreeSHA256'],'Runner tree digest changed')
+     h.product_archive_payload(runner)
+-    require(all(sha(ROOT / name) == digest for name, digest in runner['sourceFiles'].items()), 'New runner sources changed')
+-    require(all(sha(pathlib.Path(name)) == digest for name, digest in runner['toolFiles'].items()), 'Official tools changed')
+-    for header in read(BASE / 'official/manifest.json')['installedOfficialHeaders']:
+-        require(sha(pathlib.Path(header['source'])) == header['sha256'] == sha(BASE / 'official' / header['snapshot']), 'Official declaration changed')
+-    controls = read(BASE / 'host-controls.json')
+-    require(controls['exitCode'] == 0 and controls['testsRun'] == controls['expectedTestsRun'] and controls['stderr'].rstrip().endswith('OK'), 'Diagnostic controls failed')
+-    require(all(sha(ROOT / name) == digest for name, digest in controls['sourceFiles'].items()), 'Diagnostic control sources changed')
+-    require(controls['allRequiredGroupsPassed'] is True, 'Required V6 replay groups incomplete')
+-    return {'schema': 'mixer.apple-toggle.keyboard-v6-diagnostic-preflight.1', 'sealSHA256': sha(BASE / 'packet-seal.json'), 'candidateSourceClosureSHA256': closure, 'candidateArchiveSHA256': app['archiveSHA256'], 'testRunnerSourceTreeSHA256': runner['sourceTreeSHA256'], 'testRunnerProductTreeSHA256': runner['productTreeSHA256'], 'testRunnerArchiveSHA256': runner['productArchiveSHA256'], 'sourceRevisionContext': h.SOURCE_REVISION_CONTEXT, 'expectedXCTestMethods': 1, 'applicationCasesUnrun': sorted(keyboard_oracle.CASES), 'panPrerequisite': runtime.prerequisite(), 'status': 'DIAGNOSTIC_ONLY', 'nativeExecution': False, 'gaAccepted': False}
++    require(all(sha(ROOT/name)==digest for name,digest in runner['sourceFiles'].items()),'Runner source changed')
++    require(all(sha(pathlib.Path(name))==digest for name,digest in runner['toolFiles'].items()),'Official tool changed')
++    for header in read(BASE/'official/manifest.json')['installedOfficialHeaders']:
++        require(sha(pathlib.Path(header['source']))==header['sha256']==sha(BASE/'official'/header['snapshot']),'Official public API changed')
++    controls=read(BASE/'host-controls.json')
++    require(controls['allRequiredGroupsPassed'] and all(sha(ROOT/name)==digest for name,digest in controls['sourceFiles'].items()),'Host controls incomplete/changed')
++    return {'schema':'mixer.apple-toggle.keyboard-v7-preflight.1','sealSHA256':sha(BASE/'packet-seal.json'),'candidateSourceClosureSHA256':seal['candidateSourceClosureSHA256'],'candidateArchiveSHA256':app['archiveSHA256'],'testRunnerSourceTreeSHA256':runner['sourceTreeSHA256'],'testRunnerProductTreeSHA256':runner['productTreeSHA256'],'testRunnerArchiveSHA256':runner['productArchiveSHA256'],'sourceRevisionContext':runner['sourceRevisionContext'],'expectedXCTestMethods':1,'applicationCasesUnrun':sorted(keyboard_oracle.CASES),'panPrerequisite':runtime.prerequisite(),'status':'DIAGNOSTIC_ONLY','nativeExecution':False,'gaAccepted':False}
+ 
++def summary(scope,bridge,xctest_exit,failure,cleanup_results):
++    settings=None if bridge is None else bridge.settings.summary()
++    export=read(BASE/'runtime/attachment-export.json') if (BASE/'runtime/attachment-export.json').is_file() else None
++    boundary=failure is not None and failure['type']=='ValueError' and failure['message']=='Strict XCTest result failed; preserved evidence is authoritative' and xctest_exit==0
++    return {'schema':'mixer.apple-toggle.keyboard-v7-runtime.1','status':'DIAGNOSTIC_ONLY','scope':scope,'xcodebuildExitCode':xctest_exit,'xcodebuildTerminalResultAvailable':xctest_exit is not None,'diagnosticCompleted':xctest_exit is not None and settings is not None and settings['settingsEvidenceComplete'] is True and settings['terminationMarkers']==['terminate-before','terminate-after'] and settings['completionMarkers']==['test-case-finished','suite-finished','bundle-finished'],'setupEvidenceComplete':settings is not None and settings['settingsEvidenceComplete'] is True,'settingsDiagnostic':settings,'expectedDiagnosticQualificationBoundary':boundary,'sessionFailure':failure,'sessionFailureClassification':'expected-diagnostic-only-inherited-qualification-boundary' if boundary else None if failure is None else 'observed-command-or-session-failure','strictNativeVerdictsPassed':False,'bridgeFailures':None if bridge is None else list(bridge.failures),'expectedXCTestMethods':1,'actualNativeInputActions':0,'nativeUserInteractionVerdicts':[],'applicationCasesExecuted':0,'dependentCasesUnrun':sorted(keyboard_oracle.CASES),'nativeKeyboardQualification':False,'attachmentExport':export,'officialSummaryAvailable':(BASE/'runtime/xctest-summary.json').is_file(),'officialTestsAvailable':(BASE/'runtime/xctest-tests.json').is_file(),'cleanupResults':cleanup_results,'runPassed':False,'carrierAccepted':False,'physicalPhones':'disconnected-deferred','gaAccepted':False}
+ 
+-def summary(scope, bridge, xctest_exit, failure, cleanup_results):
+-    settings = None if bridge is None else bridge.settings.summary()
+-    export = read(BASE / 'runtime/attachment-export.json') if (BASE / 'runtime/attachment-export.json').is_file() else None
+-    boundary = failure is not None and failure['type'] == 'ValueError' and failure['message'] == 'Strict XCTest result failed; preserved evidence is authoritative' and xctest_exit == 0
+-    return {'schema': 'mixer.apple-toggle.keyboard-v6-diagnostic-runtime.1', 'status': 'DIAGNOSTIC_ONLY', 'scope': scope,
+-            'xcodebuildExitCode': xctest_exit, 'xcodebuildTerminalResultAvailable': xctest_exit is not None,
+-            'diagnosticCompleted': xctest_exit is not None and settings is not None and settings['settingsEvidenceComplete'] is True and settings['terminationMarkers'] == ['terminate-before', 'terminate-after'] and settings['completionMarkers'] == ['test-case-finished', 'suite-finished', 'bundle-finished'],
+-            'setupEvidenceComplete': settings is not None and settings['settingsEvidenceComplete'] is True,
+-            'settingsDiagnostic': settings, 'expectedDiagnosticQualificationBoundary': boundary,
+-            'sessionFailure': failure, 'sessionFailureClassification': 'expected-diagnostic-only-inherited-qualification-boundary' if boundary else None if failure is None else 'observed-command-or-session-failure',
+-            'strictNativeVerdictsPassed': False, 'bridgeFailures': None if bridge is None else list(bridge.failures),
+-            'expectedXCTestMethods': 1, 'actualNativeInputActions': 0, 'nativeUserInteractionVerdicts': [], 'applicationCasesExecuted': 0,
+-            'dependentCasesUnrun': sorted(keyboard_oracle.CASES), 'nativeKeyboardQualification': False,
+-            'attachmentExport': export, 'officialSummaryAvailable': (BASE / 'runtime/xctest-summary.json').is_file(), 'officialTestsAvailable': (BASE / 'runtime/xctest-tests.json').is_file(),
+-            'cleanupResults': cleanup_results, 'runPassed': False, 'carrierAccepted': False, 'physicalPhones': 'disconnected-deferred', 'gaAccepted': False}
+-
+-
+-h.verify = verify
+-h.runtime_summary = summary
+-
++h.verify=verify;h.runtime_summary=summary
+ 
+ def main():
+-    p = argparse.ArgumentParser()
+-    p.add_argument('action', choices=['verify', 'run', 'cleanup'])
+-    p.add_argument('--scope', choices=['interaction'], default='interaction')
+-    p.add_argument('--reviewed-seal')
+-    a = p.parse_args()
+-    if a.action == 'verify':
+-        print(json.dumps(verify(), sort_keys=True))
+-    elif a.action == 'run':
+-        runtime.prerequisite()
+-        h.run(a.reviewed_seal, a.scope)
++    p=argparse.ArgumentParser();p.add_argument('action',choices=['verify','run','cleanup']);p.add_argument('--scope',choices=['interaction'],default='interaction');p.add_argument('--reviewed-seal');a=p.parse_args()
++    if a.action=='verify':print(json.dumps(verify(),sort_keys=True))
++    elif a.action=='run':runtime.prerequisite();h.run(a.reviewed_seal,a.scope)
+     else:
+-        h.RUN_DIR = h.select_runtime_directory(a.scope)
+-        life = read(h.RUN_DIR / 'lifecycle.json')
+-        require(life['verifiedHandoff']['sealSHA256'] == verify()['sealSHA256'], 'Diagnostic cleanup handoff changed')
+-        commands = runtime.ExportingCommands(h.RUN_DIR / 'recovery-commands.json')
+-        values = h.cleanup_independently([('owned-simulator-and-baseline-reconciliation', lambda: h.cleanup(life, commands)), ('ephemeral-capability-workspace-removal', lambda: h.remove_ephemeral(life))])
+-        life.update(cleanedUp=all(x['passed'] for x in values), recoveryCleanupResults=values)
+-        h.write(h.RUN_DIR / 'lifecycle.json', life)
+-        require(life['cleanedUp'], 'Diagnostic recovery cleanup incomplete')
++        h.RUN_DIR=h.select_runtime_directory(a.scope);life=read(h.RUN_DIR/'lifecycle.json');require(life['verifiedHandoff']['sealSHA256']==verify()['sealSHA256'],'Cleanup handoff changed')
++        commands=runtime.ExportingCommands(h.RUN_DIR/'recovery-commands.json')
++        values=h.cleanup_independently([('owned-simulator-and-baseline-reconciliation',lambda:h.cleanup(life,commands)),('ephemeral-capability-workspace-removal',lambda:h.remove_ephemeral(life))]);life.update(cleanedUp=all(x['passed'] for x in values),recoveryCleanupResults=values);h.write(h.RUN_DIR/'lifecycle.json',life);require(life['cleanedUp'],'Cleanup incomplete')
+ 
+-
+-if __name__ == '__main__':
+-    def stop(signum, frame):
+-        raise KeyboardInterrupt('Root diagnostic interrupted')
+-    signal.signal(signal.SIGINT, stop)
+-    signal.signal(signal.SIGTERM, stop)
+-    main()
++if __name__=='__main__':
++    def stop(signum,frame):raise KeyboardInterrupt('Root diagnostic interrupted')
++    signal.signal(signal.SIGINT,stop);signal.signal(signal.SIGTERM,stop);main()
+--- v6/harness/UITests/ToggleUITests.swift
++++ v7/harness/UITests/ToggleUITests.swift
+@@ -50,7 +50,7 @@
+         print("MIXER_SETTINGS_DIAGNOSTIC " + stage)
+     }
+     func bestEffortMark(_ stage: String) { do { try mark(stage) } catch { print("MIXER_SETTINGS_DIAGNOSTIC_UNAVAILABLE " + stage + " " + String(describing: error)) } }
+-    func observe(_ stage: String, routeIndex: Int, attempt: Int, snapshot: [String: Any], started: Double, finished: Double, ax: Data?, png: Data?, routeWitness: [String: Any]? = nil) throws -> Int {
++    func observe(_ stage: String, routeIndex: Int, attempt: Int, snapshot: [String: Any], started: Double, finished: Double, ax: Data?, png: Data?, routeWitness: [String: Any]? = nil, switchWitness: [String: Any]? = nil) throws -> Int {
+         lock.lock(); defer { lock.unlock() }
+         var files: [String: Any] = [:]; var payloads: [String: Data] = [:]
+         for (form, payload, limit) in [("ax", ax, 200_000), ("png", png, 2_000_000)] {
+@@ -63,6 +63,7 @@
+         var record: [String: Any] = ["kind": "observe", "stage": stage, "routeIndex": routeIndex, "attempt": attempt,
+                                "captureStartedUptime": started, "captureFinishedUptime": finished, "snapshot": snapshot, "files": files]
+         if let routeWitness { record["routeWitness"] = routeWitness }
++        if let switchWitness { record["switchWitness"] = switchWitness }
+         let eventSequence = sequence + 1
+         let result = try send(record)
+         guard let slots = result["pending"] as? [String] else { throw Failure.bridge }
+@@ -112,6 +113,36 @@
+                 "valueKind": !exists ? "absent" : raw is String ? "string" : "unsupported", "value": raw as? String ?? "",
+                 "frame": ["x": frame.minX, "y": frame.minY, "width": frame.width, "height": frame.height]]
+     }
++    private struct SwitchQuery: PublicSwitchQuery {
++        let settings: XCUIApplication
++        let takeSnapshot: (XCUIElement) -> [String: Any]
++        private var parents: XCUIElementQuery {
++            settings.switches.matching(NSPredicate(format: "identifier == %@ AND label == %@", "FKAEnabledSwitch", "Full Keyboard Access"))
++        }
++        func parentCount() -> Int { parents.count }
++        func parent(at index: Int) -> XCUIElement { parents.element(boundBy: index) }
++        func childSwitchCount(_ parent: XCUIElement) -> Int { parent.children(matching: .switch).count }
++        func childSwitch(_ parent: XCUIElement, at index: Int) -> XCUIElement { parent.children(matching: .switch).element(boundBy: index) }
++        func descendantSwitchCount(_ leaf: XCUIElement) -> Int { leaf.descendants(matching: .switch).count }
++        func snapshot(_ element: XCUIElement) -> [String: Any] { takeSnapshot(element) }
++        func screenFrame() -> [String: Double] {
++            let f = settings.frame
++            return ["x": f.minX, "y": f.minY, "width": f.width, "height": f.height]
++        }
++    }
++    private func resolveSwitch(_ settings: XCUIApplication) throws -> PublicSwitchSelection.Resolved<XCUIElement> {
++        try PublicSwitchSelection.resolve(SwitchQuery(settings: settings, takeSnapshot: { self.snapshot(settings, $0) }))
++    }
++    private struct SwitchCapture { let state: [String: Any]; let witness: [String: Any]; let sequence: Int; let finished: Double }
++    @discardableResult private func captureSwitch(_ settings: XCUIApplication, stage: String, image: Bool = false, tree: Bool = true) throws -> SwitchCapture {
++        let started = now
++        let resolved = try resolveSwitch(settings)
++        let ax = tree ? Data(settings.debugDescription.utf8) : nil
++        let png = image ? settings.screenshot().pngRepresentation : nil
++        let finished = now
++        let sequence = try telemetry.observe(stage, routeIndex: 3, attempt: 0, snapshot: resolved.parentState, started: started, finished: finished, ax: ax, png: png, switchWitness: resolved.witness)
++        return SwitchCapture(state: resolved.parentState, witness: resolved.witness, sequence: sequence, finished: finished)
++    }
+     private struct Capture { let state: [String: Any]; let targetState: [String: Any]?; let sequence: Int }
+     private struct RouteTarget { let container: XCUIElement; let target: XCUIElement; let searchSequence: Int }
+     @discardableResult private func capture(_ settings: XCUIApplication, _ raw: XCUIElement, stage: String, route: Int = 3, attempt: Int = 0, image: Bool = false, tree: Bool = true, target: XCUIElement? = nil, relation: String? = nil, destination: XCUIElement? = nil) throws -> Capture {
+@@ -158,7 +189,7 @@
+             settings.terminate()
+             telemetry.bestEffortMark("terminate-after")
+         }
+-        let control = settings.switches["Full Keyboard Access"].firstMatch
++        let control = settings.switches.matching(NSPredicate(format: "identifier == %@ AND label == %@", "FKAEnabledSwitch", "Full Keyboard Access")).firstMatch
+         var terminalRecorded = false
+         do {
+             try telemetry.mark("settings-launched")
+@@ -171,31 +202,39 @@
+                 try capture(settings, row.container, stage: "route-opened", route: index, destination: settings.navigationBars[label].firstMatch)
+             }
+             guard control.waitForExistence(timeout: 3), control.isHittable else { throw SettingsTelemetry.Failure.setup("Public switch unavailable") }
+-            let before = try capture(settings, control, stage: "before-switch", image: true)
++            let before = try captureSwitch(settings, stage: "before-switch", image: true)
+             guard let initial = before.state["value"] as? String, before.state["valueKind"] as? String == "string", ["0", "1"].contains(initial) else { throw SettingsTelemetry.Failure.setup("Public switch value unavailable") }
+-            let anchor: Double
+-            if initial == "0" { control.tap(); anchor = now }
+-            else { anchor = before.state["observedUptime"] as! Double }
++            // Re-query and snapshot after the before capture/uploads. The host binds
++            // these fresh public handles/frames/values to that exact before record.
++            let actionTarget = try resolveSwitch(settings)
++            let started = now
++            try PublicSwitchSelection.validateAction(actionTarget, beforeParent: before.state, beforeWitness: before.witness, beforeFinished: before.finished, started: started)
++            let finished: Double
++            if initial == "0" {
++                actionTarget.leaf.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
++                finished = now
++            } else { finished = started }
++            let anchor = initial == "0" ? finished : before.state["observedUptime"] as! Double
+             let end = anchor + 3.0
+-            try telemetry.mark("switch-action", ["action": initial == "0" ? "tap" : "no-tap", "anchorUptime": anchor, "deadlineUptime": end])
+-            let after = try capture(settings, control, stage: "after-switch", image: true)
++            try telemetry.mark("switch-action", ["action": initial == "0" ? "tap" : "no-tap", "anchorUptime": anchor, "deadlineUptime": end, "beforeSequence": before.sequence, "parent": actionTarget.parentState, "switchWitness": actionTarget.witness, "startedUptime": started, "finishedUptime": finished])
++            let after = try captureSwitch(settings, stage: "after-switch", image: true)
+             var observedEnabled = initial == "1" || (after.state["value"] as? String == "1" && (after.state["observedUptime"] as! Double) <= end)
+             var polls = 0
+             while now < end && !observedEnabled && polls < 40 {
+                 RunLoop.current.run(until: Date(timeIntervalSinceNow: min(0.05, max(0, end - now))))
+                 guard now < end else { break }
+-                let state = try capture(settings, control, stage: "poll", tree: false)
++                let state = try captureSwitch(settings, stage: "poll", tree: false)
+                 observedEnabled = state.state["valueKind"] as? String == "string" && state.state["value"] as? String == "1" && (state.state["observedUptime"] as! Double) <= end
+                 polls += 1
+             }
+-            let terminal = try capture(settings, control, stage: "terminal", image: true)
++            let terminal = try captureSwitch(settings, stage: "terminal", image: true)
+             terminalRecorded = true
+             guard observedEnabled && terminal.state["value"] as? String == "1" else { throw SettingsTelemetry.Failure.setup("Full Keyboard Access did not enable within unchanged3second public observation window") }
+             print("MIXER_SETTINGS_DIAGNOSTIC enabled observed; six application cases remain unrun")
+         } catch {
+             let originalSetupError = error
+             print("MIXER_SETTINGS_DIAGNOSTIC first setup error " + String(describing: originalSetupError))
+-            if !terminalRecorded { do { try capture(settings, control, stage: "terminal", image: true) } catch { print("MIXER_SETTINGS_DIAGNOSTIC terminal evidence incomplete " + String(describing: error)) } }
++            if !terminalRecorded { do { try captureSwitch(settings, stage: "terminal", image: true) } catch { print("MIXER_SETTINGS_DIAGNOSTIC terminal evidence incomplete " + String(describing: error)) } }
+             throw originalSetupError
+         }
+     }
+--- v6/harness/MixerToggleUITests.xcodeproj/project.pbxproj
++++ v7/harness/MixerToggleUITests.xcodeproj/project.pbxproj
+@@ -5,19 +5,21 @@
+  objects = {
+   A00000000000000000000001 = { isa = PBXProject; attributes = { LastUpgradeCheck = 2600; }; buildConfigurationList = A00000000000000000000002; compatibilityVersion = "Xcode 15.0"; developmentRegion = en; hasScannedForEncodings = 0; knownRegions = (en, Base); mainGroup = A00000000000000000000003; productRefGroup = A00000000000000000000004; projectDirPath = ""; projectRoot = ""; targets = (A00000000000000000000005); };
+   A00000000000000000000002 = { isa = XCConfigurationList; buildConfigurations = (A00000000000000000000006); defaultConfigurationIsVisible = 0; defaultConfigurationName = Debug; };
+-  A00000000000000000000003 = { isa = PBXGroup; children = (A00000000000000000000017,A00000000000000000000008,A00000000000000000000004); sourceTree = "<group>"; };
++  A00000000000000000000003 = { isa = PBXGroup; children = (A00000000000000000000019,A00000000000000000000017,A00000000000000000000008,A00000000000000000000004); sourceTree = "<group>"; };
+   A00000000000000000000004 = { isa = PBXGroup; name = Products; children = (A00000000000000000000009); sourceTree = "<group>"; };
+   A00000000000000000000005 = { isa = PBXNativeTarget; buildConfigurationList = A00000000000000000000010; buildPhases = (A00000000000000000000011,A00000000000000000000012,A00000000000000000000013); buildRules = (); dependencies = (); name = MixerToggleUITests; productName = MixerToggleUITests; productReference = A00000000000000000000009; productType = "com.apple.product-type.bundle.ui-testing"; };
+   A00000000000000000000006 = { isa = XCBuildConfiguration; buildSettings = { SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = 26.0; SWIFT_VERSION = 6.0; CLANG_ENABLE_MODULES = YES; ONLY_ACTIVE_ARCH = YES; }; name = Debug; };
+   A00000000000000000000008 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITests/ToggleUITests.swift; sourceTree = "<group>"; };
+   A00000000000000000000009 = { isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MixerToggleUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+   A00000000000000000000010 = { isa = XCConfigurationList; buildConfigurations = (A00000000000000000000014); defaultConfigurationIsVisible = 0; defaultConfigurationName = Debug; };
+-  A00000000000000000000011 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000016,A00000000000000000000018); runOnlyForDeploymentPostprocessing = 0; };
++  A00000000000000000000011 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000020,A00000000000000000000016,A00000000000000000000018); runOnlyForDeploymentPostprocessing = 0; };
+   A00000000000000000000012 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+   A00000000000000000000013 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+   A00000000000000000000014 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.verification.toggle.xctests; PRODUCT_NAME = MixerToggleUITests; GENERATE_INFOPLIST_FILE = YES; TARGETED_DEVICE_FAMILY = 1; CODE_SIGNING_ALLOWED = NO; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; ENABLE_USER_SCRIPT_SANDBOXING = YES; INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsLocalNetworking = YES; }; name = Debug; };
+   A00000000000000000000017 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITests/DiagnosticTransport.swift; sourceTree = "<group>"; };
+   A00000000000000000000018 = { isa = PBXBuildFile; fileRef = A00000000000000000000017; };
++  A00000000000000000000019 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITests/PublicSwitchSelection.swift; sourceTree = "<group>"; };
++  A00000000000000000000020 = { isa = PBXBuildFile; fileRef = A00000000000000000000019; };
+   A00000000000000000000016 = { isa = PBXBuildFile; fileRef = A00000000000000000000008; };
+  };
+  rootObject = A00000000000000000000001;

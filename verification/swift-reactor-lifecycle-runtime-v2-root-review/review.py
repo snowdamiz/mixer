@@ -1,0 +1,174 @@
+#!/usr/bin/env python3
+"""Replay the finite test-only compiler comparison; execute no guest/runtime."""
+import collections
+import datetime
+import gzip
+import hashlib
+import json
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parents[1]
+NEW = ROOT / 'verification/swift-reactor-lifecycle-runtime-v2'
+OLD = ROOT / 'verification/swift-reactor-lifecycle-accounting'
+
+def sha(data):
+    return hashlib.sha256(data).hexdigest()
+
+def read(path):
+    return json.loads(path.read_bytes())
+
+def packed(name):
+    return json.loads(gzip.decompress((NEW / name).read_bytes()))
+
+def enc(value):
+    return (json.dumps(value, sort_keys=True, indent=2) + '\n').encode()
+
+freeze = read(NEW / 'pre-runtime-freeze.json')
+assert sha((NEW / 'pre-runtime-freeze.json').read_bytes()) == '6a2c7fcaab728127d95e8763a5747829ccf7817746481b1c2dbcacbefb2664b5'
+for name, digest in freeze['files'].items():
+    path = NEW / name
+    assert not path.is_symlink() and sha(path.read_bytes()) == digest, name
+assert sha(enc(freeze['files'])) == freeze['closureSHA256']
+command = [sys.executable, '-B', str(NEW / 'verify_pre_runtime.py')]
+result = subprocess.run(command, cwd=ROOT, capture_output=True)
+(HERE / 'producer-verify.stdout').write_bytes(result.stdout)
+(HERE / 'producer-verify.stderr').write_bytes(result.stderr)
+assert result.returncode == 0
+
+proof = read(NEW / 'unchanged-runtime-proof.json')
+supplement_path = NEW / 'occurrence-supplement-freeze.json'
+assert sha(supplement_path.read_bytes()) == 'a3546a13bb53ad96fa1831c7b122e2f6f774522752878d5b29792c34c50cf331'
+supplement = read(supplement_path)
+for name, digest in supplement['files'].items():
+    assert sha((NEW / name).read_bytes()) == digest
+assert sha(enc(supplement['files'])) == supplement['closureSHA256']
+contexts = {row['config']: row for row in proof['contexts']}
+raw = {}
+ordered_raw = {}
+for config in contexts:
+    for side, directory in [('old', OLD), ('new', NEW)]:
+        query = read(directory / ('exact-query-' + config + '.json'))
+        data = gzip.decompress((directory / query['attempt'] / 'exact-layouts.jsonl.gz').read_bytes())
+        assert sha(data) == query['sha256'] == contexts[config][side + 'QuerySHA256']
+        # Membership is joined to actual compiler rows, not producer booleans.
+        ordered_raw[(config, side)] = [json.loads(line) for line in data.splitlines()]
+        raw[(config, side)] = collections.Counter(enc(row) for row in ordered_raw[(config, side)])
+
+def bound(row, key_old='old', key_new='new'):
+    left = raw[(row['config'], 'old')][enc(row[key_old])]
+    right = raw[(row['config'], 'new')][enc(row[key_new])]
+    assert left > 0 and left == right
+
+def allocations(text, mapping):
+    tokens = set(re.findall(r'\balloc\d+\b', text))
+    assert tokens <= mapping.keys()
+    return re.sub(r'\balloc\d+\b', lambda match: mapping[match[0]], text)
+
+def walk(before, after, field, config):
+    assert type(before) is type(after)
+    if isinstance(before, dict):
+        assert before.keys() == after.keys()
+        for key in before:
+            walk(before[key], after[key], key, config)
+    elif isinstance(before, list):
+        assert len(before) == len(after)
+        for left, right in zip(before, after):
+            walk(left, right, field, config)
+    elif isinstance(before, str):
+        adjusted = before
+        if field in ('sourceInfo', 'span'):
+            mapping = config['finiteSourceHygieneIndexBijection']
+            adjusted = re.sub(r'\(#(\d+)\)', lambda match: '(#' + mapping[match[1]] + ')', adjusted)
+        if field == 'constant':
+            adjusted = allocations(adjusted, config['finiteAllocationBijection'])
+        # Numeric session DefIds are diagnostic indices, not stable DefPathHash.
+        # Retain the complete displayed definition path and all stable identities.
+        normalize = lambda value: re.sub(r'DefId\(\d+:\d+ ~ ', 'DefId(<session-index> ~ ', value)
+        assert normalize(adjusted) == normalize(after), (field, before, after)
+    else:
+        assert before == after
+
+for context in contexts.values():
+    for key in ['finiteAllocationBijection', 'finiteSourceHygieneIndexBijection']:
+        mapping = context[key]
+        assert len(mapping) == len(set(mapping.values()))
+
+bodies = packed('runtime-body-reconciliation.json.gz')
+assert len(bodies) == 160
+assert len({(r['config'], r['path'], r['promoted']) for r in bodies}) == len(bodies)
+for row in bodies:
+    bound(row, 'oldBody', 'newBody')
+    assert row['oldBody']['defPathHash'] == row['newBody']['defPathHash']
+    mapping = contexts[row['config']]['finiteAllocationBijection']
+    assert allocations(row['oldBody']['mir'], mapping) == row['newBody']['mir']
+    for allocation in row['allocationGraphProof']:
+        assert allocations(allocation['oldFullAllocation'], mapping) == allocation['newFullAllocation']
+
+counts = {}
+covered_positions = collections.defaultdict(collections.Counter)
+for name, expected in [('occurrence-complete-positions.json.gz', 2744),
+                       ('owner-carrier-layout-reconciliation.json.gz', 116),
+                       ('actual-type-graph-reconciliation.json.gz', 2330)]:
+    rows = packed(name)
+    assert len(rows) == expected
+    for row in rows:
+        bound(row)
+        walk(row['old'], row['new'], None, contexts[row['config']])
+        if name == 'occurrence-complete-positions.json.gz':
+            for side in ['old', 'new']:
+                assert ordered_raw[(row['config'], side)][row[side + 'RawRecordIndex']] == row[side]
+                covered_positions[(row['config'], side)][enc(row[side])] += 1
+    counts[name] = len(rows)
+
+# A MIR statement may contain the same constant operand twice. Preserve and
+# compare that multiplicity, and prove no actual selected position is omitted.
+position_occurrences = {}
+for config in contexts:
+    body_keys = {(row['path'], row['promoted']) for row in bodies if row['config'] == config}
+    for side in ['old', 'new']:
+        selected = collections.Counter()
+        for encoded, multiplicity in raw[(config, side)].items():
+            record = json.loads(encoded)
+            if record['kind'] in ['local', 'constant-operand', 'FnDef'] and (record.get('path'), record.get('promoted')) in body_keys:
+                selected[encoded] = multiplicity
+        assert selected == covered_positions[(config, side)]
+        position_occurrences[config + '-' + side] = sum(selected.values())
+    assert position_occurrences[config + '-old'] == position_occurrences[config + '-new']
+
+roles = packed('unit-four-role-reconciliation.json.gz')
+assert len(roles) == 11760 and sum(row['sourceInfoChanged'] for row in roles) == 632
+assert all(row['numericCreditAdded'] is False for row in roles)
+join_rows = packed('occurrence-complete-role-joins.json.gz')
+assert len(join_rows) == 11760
+for role in join_rows:
+    before = ordered_raw[(role['config'], 'old')][role['oldRawRecordIndex']]
+    after = ordered_raw[(role['config'], 'new')][role['newRawRecordIndex']]
+    walk(before, after, None, contexts[role['config']])
+    assert role['noNumericCreditAdded'] is True
+frozen = read(NEW / 'frozen-identity-proof.json')
+assert len(frozen['oldExpandedMethods']) == 39 and frozen['oldExpandedMethods'] == frozen['newExpandedMethods']
+selection = {
+    'schema': 'mixer.swift-lifecycle-test-repair-runtime-selection.1',
+    'observedAt': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+    'sourceRevisionContext': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
+    'candidateClosure': '0fa7ae254ac2b3aa3390e6fbc935e920422fc9024db220256074ec6ef4e3cd56',
+    'preRuntimeFreezeSHA256': sha((NEW / 'pre-runtime-freeze.json').read_bytes()),
+    'occurrenceSupplementFreezeSHA256': sha(supplement_path.read_bytes()),
+    'producerCommand': command, 'producerExitCode': result.returncode,
+    'rootTool': sys.version, 'rootReviewScriptSHA256': sha(Path(__file__).read_bytes()),
+    'frozenFilesVerified': len(freeze['files']), 'rawCompilerRowsJoined': counts,
+    'wholeRuntimeBodiesCompared': len(bodies), 'unitRoleRows': len(roles),
+    'actualPositionOccurrences': position_occurrences,
+    'formerProofGap': 'The initial dictionary omitted 108 constant occurrences at shared statement locations. The supplement and root multiset comparison now cover every one of 2744 actual positions and all 11760 role joins. Original proof and failed root checks are retained.',
+    'finiteRepresentationAccepted': True, 'additionalAccountingCredit': 0,
+    'reason': 'Only the selected two test bodies changed. Full executable MIR including allocation payloads and reference graphs matches under the enumerated injective maps. Actual stable identities, source coordinates/scopes and full layouts remain equal. Numeric hygiene indices are accepted solely for these bound compiler outputs; full expansion-chain equivalence is not claimed or required to execute the unchanged production implementation tests.',
+    'limitations': ['Full macro expansion chains were not queried.', 'No general normalization exemption.', 'SL12 guest table mutation and the full SL matrix remain pending.', 'No live integration, full real Swift reactor execution, native acceptance or GA qualification selected.'],
+    'selectedNext': ['Run 23 authored lifecycle tests in Swift and all-feature Debug/Release contexts.', 'If these pass, run the previously selected Frozen, complete Swift/all Debug/Release, default/span regression checks with qualified pinned compiler and Node environment.', 'Retain failures and stop dependent promotion on any failed check. Preserve every frozen file; clean owned targets.'],
+    'runtimeResult': 'pending',
+}
+(HERE / 'runtime-selection.json').write_bytes(enc(selection))
+print(json.dumps({'accepted': True, 'selectionSHA256': sha(enc(selection)), 'files': len(freeze['files']), 'bodies': len(bodies), 'counts': counts}, indent=2))

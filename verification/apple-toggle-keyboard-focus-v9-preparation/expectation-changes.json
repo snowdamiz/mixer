@@ -1,0 +1,41 @@
+{
+  "changes": [
+    {
+      "controls": [
+        "action-guard-clear-before-unlink",
+        "payload-guard-clear-before-unlink"
+      ],
+      "reason": "Guard retirement moved outside irrevocable commit; rollback/rejection is forbidden after that boundary.",
+      "v8": "HTTP400/cursor-unchanged/guard-cleared/retry",
+      "v9": "HTTP200/cursor-advanced/exact-journal-and-payload-kept/guard-present/replay-and-startup-refused/live-new-work-and-setup-blocked-until-positive-retirement"
+    },
+    {
+      "controls": [
+        "postcommit-guard-directory-before",
+        "postcommit-guard-directory-after",
+        "postcommit-guard-stat-EIO-guard-absent"
+      ],
+      "reason": "Live uncertainty blocks new work and setup; offline replay is allowed once absence is positively established. Transient live state has no restart guarantee without durable evidence.",
+      "v8": "Directory failures were warning-only; exact regression allowed rollback on guard-stat failure.",
+      "v9": "ACK200/cursor-and-journal-aligned/live-retirement-block/guard-absent-offline-replay-can-accept-ACKed-commit"
+    },
+    {
+      "comparison": "Every field exact except persistenceUncertain and persistenceRetirementPending. Exact equality restored after positive retirement.",
+      "controls": [
+        "live-vs-offline-summary-during-pending-retirement"
+      ],
+      "reason": "These two fields describe transient live retirement, not a different protocol/evidence journal."
+    }
+  ],
+  "commitPoint": "successful-file-fsyncs-exact-publication-checks-publication-directory-fsync-return",
+  "finalPersistenceConcreteHTTPControls": 68,
+  "finalPersistenceMethods": 20,
+  "finalRetainedSessionMethods": 21,
+  "nativeExecuted": false,
+  "originalV7V8PacketsPreserved": true,
+  "precommitExpectationsRelaxed": false,
+  "replacedV8GuardClearControls": 2,
+  "retainedV8PersistenceConcreteControls": 47,
+  "schema": "mixer.apple-keyboard.v9-explicit-expectation-changes.1",
+  "selection": "verification/apple-toggle-keyboard-focus-v8-root-review/v9-commit-point-selection.json"
+}

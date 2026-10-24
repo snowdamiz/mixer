@@ -1,0 +1,74 @@
+{
+  "actualObservedFailure": {
+    "initializedTickets": 22,
+    "secondCorpusTickets": 24
+  },
+  "coldDecodedFunctionsByPhase": {
+    "constructed": [],
+    "firstCorpus": [
+      62,
+      36
+    ],
+    "initialize": [
+      35
+    ],
+    "secondCorpus": []
+  },
+  "expectedLiveCacheEntries": [
+    0,
+    1,
+    3,
+    3
+  ],
+  "expectedRelativeTicketTrace": [
+    "T0",
+    "T0+1",
+    "T0+3",
+    "T0+3"
+  ],
+  "expectedTicketDeltas": [
+    1,
+    2,
+    0
+  ],
+  "method": "Count actual cold entry admissions retained by SwiftResident; pin release refunds no resident ticket. No new execution.",
+  "schema": "mixer.swift-lifecycle.cache-entry-ticket-source-trace.1",
+  "sourceBindings": [
+    {
+      "fileSHA256": "0db1fe8de6bfb987acd5fc6e4a74719a9be8332c64006a3fce9e73451303320f",
+      "firstLine": 1945,
+      "lastLine": 1988,
+      "path": "src/experimental_swift_reactor/cache.rs",
+      "text": "    }\n    fn build(\n        snapshot: &ValidatedSwiftReactor,\n        body: FunctionSpanView<'_>,\n        counts: decode::Counts,\n        scratch: &mut &mut [decode::Patch],\n        meter: &mut SwiftMeter<'_, '_>,\n    ) -> Result<SwiftResident, SwiftRunFailure> {\n        let bytes = counts.bytes(meter)?;\n        checkpoint(meter.operation.control, meter.operation.cursor);\n        let ticket = meter.operation.control.admit_cache_entry_with_wasi(\n            bytes,\n            meter.operation.cursor,\n            meter.operation.observation(),\n        )?;\n        checkpoint(meter.operation.control, meter.operation.cursor);\n        if let Err(error) = meter.operation.control.add_live_with_wasi(\n            Live::CacheEntries,\n            1,\n            meter.operation.cursor,\n            meter.operation.observation(),\n        ) {\n            let _ = meter.operation.drop_reserved((), ticket);\n            return Err(error);\n        }\n        let result = Self::build_payload(snapshot, body, counts, scratch, meter);\n        match result {\n            Ok(decoded) => Ok(SwiftResident { decoded, ticket }),\n            Err(error) => {\n                let _ = meter.operation.drop_reserved((), ticket);\n                let _ = meter.operation.remove_live(Live::CacheEntries);\n                Err(error)\n            }\n        }\n    }\n    fn drop_entry(\n        entry: SwiftResident,\n        meter: &mut SwiftMeter<'_, '_>,\n    ) -> Result<(), SwiftRunFailure> {\n        let dropped = meter.operation.drop_reserved(entry.decoded, entry.ticket);\n        let removed = meter.operation.remove_live(Live::CacheEntries);\n        dropped.and(removed)\n    }\n}\n"
+    },
+    {
+      "fileSHA256": "5001f7d9b6e9ea6792c9952ad5fd35f19f0124da8751e941debd2ee59dbac1ec",
+      "firstLine": 644,
+      "lastLine": 671,
+      "path": "src/experimental/cache/borrowed.rs",
+      "text": "pub(crate) fn release<M: CacheMode>(\n    parts: CacheParts<'_, M>,\n    pin: M::Pin,\n    operation: &mut impl ReleaseControl<M::Failure>,\n) -> Result<(), (M::Failure, M::Pin)> {\n    let record = match checked_record::<M>(\n        CacheViewParts {\n            slots: parts.slots,\n            pins: parts.pins,\n            owner: parts.owner,\n        },\n        &pin,\n        operation,\n    ) {\n        Ok(r) => r,\n        Err(e) => return Err((e, pin)),\n    };\n    if let Err(e) = operation.release_pin() {\n        return Err((e, pin));\n    }\n    let slot = &mut parts.slots[record.entry];\n    parts\n        .usage\n        .release(slot.entry().expect(\"checked entry\").bytes, slot.pins() == 1);\n    slot.set_pins(slot.pins() - 1);\n    parts.pins[pin.slot()] = PinRecord::default();\n    Ok(())\n}\n"
+    },
+    {
+      "fileSHA256": "5001f7d9b6e9ea6792c9952ad5fd35f19f0124da8751e941debd2ee59dbac1ec",
+      "firstLine": 731,
+      "lastLine": 853,
+      "path": "src/experimental/cache/borrowed.rs",
+      "text": "fn pin_acquired<M: CacheMode>(\n    parts: &mut CacheFields<'_, M>,\n    meter: &mut M::Meter<'_, '_>,\n    defined: FunctionSpanView<'_>,\n    pin_slot: usize,\n    nonce: u64,\n) -> Result<M::Pin, M::Failure> {\n    let function = defined.absolute_index;\n    let mut hit = None;\n    for (index, slot) in parts.slots.iter().enumerate() {\n        meter.work(1)?;\n        if slot.entry().is_some_and(|e| e.function == function) {\n            hit = Some(index);\n            break;\n        }\n    }\n    let index = if let Some(index) = hit {\n        meter.check()?;\n        let hits = meter\n            .usage()\n            .hits()\n            .checked_add(1)\n            .ok_or_else(|| meter.error(CacheFailureKind::WorkExhausted, \"hits_overflow\"))?;\n        meter.usage_mut().hit(hits);\n        index\n    } else {\n        let misses = meter\n            .usage()\n            .misses()\n            .checked_add(1)\n            .ok_or_else(|| meter.error(CacheFailureKind::WorkExhausted, \"misses_overflow\"))?;\n        meter.usage_mut().miss(misses);\n        let next_decodes = meter\n            .usage()\n            .decodes()\n            .checked_add(1)\n            .ok_or_else(|| meter.error(CacheFailureKind::WorkExhausted, \"decodes_overflow\"))?;\n        let counts = M::scan(parts.snapshot, defined, &mut parts.scratch, meter)?;\n        let bytes = counts.bytes(meter)?;\n        if bytes > meter.entry_capacity() {\n            return Err(meter.detailed(\n                CacheFailureKind::EntryOversize,\n                \"entry_bytes\",\n                bytes as u64,\n                meter.entry_capacity() as u64,\n            ));\n        }\n        let base = meter.base();\n        let capacity = meter.capacity();\n        if base.checked_add(bytes).is_none_or(|n| n > capacity) {\n            return Err(meter.error(CacheFailureKind::Capacity, \"entry_cannot_fit\"));\n        }\n        meter.step(CacheStep::Planning);\n        let mut plan = [false; MAX_ENTRIES];\n        let mut remaining = meter.usage().resident();\n        meter.work(parts.slots.len() as u64)?;\n        let mut empty = parts.slots.iter().position(|slot| slot.entry().is_none());\n        while empty.is_none() || base + remaining + bytes > capacity {\n            let mut oldest: Option<usize> = None;\n            for (index, slot) in parts.slots.iter().enumerate() {\n                meter.work(1)?;\n                if !plan[index]\n                    && slot.pins() == 0\n                    && slot.entry().is_some()\n                    && oldest.is_none_or(|p| slot.last_used() < parts.slots[p].last_used())\n                {\n                    oldest = Some(index);\n                }\n            }\n            let victim = oldest\n                .ok_or_else(|| meter.error(CacheFailureKind::AllPinned, \"all_entries_pinned\"))?;\n            plan[victim] = true;\n            remaining -= parts.slots[victim].entry().expect(\"selected entry\").bytes;\n            empty = Some(victim);\n        }\n        meter.work(MAX_ENTRIES as u64)?;\n        let mut evictions = 0u64;\n        for selected in &plan {\n            evictions += u64::from(*selected);\n        }\n        meter\n            .usage()\n            .evictions()\n            .checked_add(evictions)\n            .ok_or_else(|| meter.error(CacheFailureKind::WorkExhausted, \"evictions_overflow\"))?;\n        meter.check()?;\n        for (index, selected) in plan.iter().enumerate().take(parts.slots.len()) {\n            if *selected {\n                let bytes = parts.slots[index].entry().expect(\"planned entry\").bytes;\n                let old = parts.slots[index].take().expect(\"planned entry\");\n                M::drop_entry(old, meter)?;\n                meter.usage_mut().evicted(bytes);\n            }\n        }\n        let index =\n            empty.ok_or_else(|| meter.error(CacheFailureKind::Capacity, \"no_entry_slot\"))?;\n        meter.construction(bytes)?;\n        let decoded = M::build(parts.snapshot, defined, counts, &mut parts.scratch, meter);\n        let entry = match decoded {\n            Ok(entry) => entry,\n            Err(error) => {\n                let _ = meter.construction(0);\n                return Err(error);\n            }\n        };\n        meter.step(CacheStep::Publication);\n        if let Err(error) = meter.check() {\n            let _ = M::drop_entry(entry, meter);\n            let _ = meter.construction(0);\n            return Err(error);\n        }\n        meter.usage_mut().decoded(next_decodes, bytes);\n        parts.slots[index].set(entry);\n        index\n    };\n    let slot = &mut parts.slots[index];\n    meter.usage_mut().pin(\n        slot.entry().expect(\"resident entry\").bytes,\n        slot.pins() == 0,\n    );\n    slot.set_pins(slot.pins() + 1);\n    slot.set_last_used(meter.work_used());\n    parts.pins[pin_slot] = PinRecord {\n"
+    },
+    {
+      "fileSHA256": "02d61cc1702801869bdf77298a6b27ddaa266fd34e3115f5f9cb66c7221ab69f",
+      "firstLine": 978,
+      "lastLine": 1048,
+      "path": "src/experimental_swift_reactor/control.rs",
+      "text": "\n    pub(crate) fn admit_with_wasi(\n        &mut self,\n        category: SwiftReservationCategory,\n        bytes: usize,\n        cursor: Cursor,\n        wasi: Option<WasiUsage>,\n    ) -> Result<ReservationTicket, SwiftRunFailure> {\n        self.check_with_wasi(cursor, wasi)?;\n        if self.reservations.live_tickets >= MAX_RESERVATION_TICKETS {\n            return Err(self.fail(\n                cursor,\n                Fault::new(\n                    SwiftRunFailureKind::ResourceExhausted,\n                    \"swift_run_ticket_inventory\",\n                )\n                .limit(\n                    SwiftRunResource::TicketInventory,\n                    self.reservations.live_tickets as u64 + 1,\n                    MAX_RESERVATION_TICKETS as u64,\n                ),\n                wasi,\n            ));\n        }\n        let (category_next, combined_next) = self.preflight_bytes(category, bytes, cursor, wasi)?;\n        self.commit_bytes(category, category_next, combined_next);\n        self.reservations.live_tickets += 1;\n        self.reservations.peak_tickets = self\n            .reservations\n            .peak_tickets\n            .max(self.reservations.live_tickets);\n        Ok(ReservationTicket {\n            owner: self.owner,\n            category,\n            bytes,\n        })\n    }\n\n    /// Aggregate locals/instructions/targets before allocating the first vector.\n    /// This only admits payload bytes; fixed cache/header/scratch are additional.\n    pub(crate) fn admit_cache_entry(\n        &mut self,\n        bytes: usize,\n        cursor: Cursor,\n    ) -> Result<ReservationTicket, SwiftRunFailure> {\n        self.admit_cache_entry_with_wasi(bytes, cursor, None)\n    }\n\n    pub(crate) fn admit_cache_entry_with_wasi(\n        &mut self,\n        bytes: usize,\n        cursor: Cursor,\n        wasi: Option<WasiUsage>,\n    ) -> Result<ReservationTicket, SwiftRunFailure> {\n        self.check_with_wasi(cursor, wasi)?;\n        if bytes > self.budget.cache_entry_bytes {\n            return Err(self.fail(\n                cursor,\n                Fault::new(\n                    SwiftRunFailureKind::ResourceExhausted,\n                    \"swift_run_cache_entry_capacity\",\n                )\n                .limit(\n                    SwiftRunResource::CacheEntryBytes,\n                    bytes as u64,\n                    self.budget.cache_entry_bytes as u64,\n                ),\n                wasi,\n            ));\n        }\n        self.admit_with_wasi(SwiftReservationCategory::Cache, bytes, cursor, wasi)\n"
+    },
+    {
+      "fileSHA256": "0db1fe8de6bfb987acd5fc6e4a74719a9be8332c64006a3fce9e73451303320f",
+      "firstLine": 1422,
+      "lastLine": 1482,
+      "path": "src/experimental_swift_reactor/cache.rs",
+      "text": "    pub(crate) fn cleanup<'a>(\n        owned: &mut Option<Self>,\n        control: &'a mut RuntimeControl,\n        wasi: Option<&'a AccountedWasi>,\n    ) -> Result<CacheCleanupTail<'a>, SwiftRunFailure> {\n        let cursor = Cursor {\n            stage: SwiftRunStage::Cleanup,\n            function: None,\n            offset: None,\n        };\n        let observation = pairing(control, wasi, cursor)?;\n        let cache = owned\n            .as_ref()\n            .ok_or_else(|| layout_failure(control, observation, cursor))?;\n        let header = cache\n            .header\n            .as_ref()\n            .ok_or_else(|| layout_failure(control, observation, cursor))?;\n        control.check_reservation_owner(header, cursor, observation)?;\n        // No owner has moved until every provenance check above succeeded.\n        let mut cache = owned.take().expect(\"preflight retained owner\");\n        let mut failure = None;\n        for record in &mut cache.pins {\n            if record.nonce != 0 {\n                *record = PinRecord::default();\n                capture(\n                    &mut failure,\n                    control.remove_live_with_wasi(\n                        Live::ActivePins,\n                        1,\n                        wasi.map(AccountedWasi::usage),\n                    ),\n                );\n            }\n        }\n        for slot in &mut cache.slots {\n            slot.pins = 0;\n            if let Some(resident) = slot.resident.take() {\n                capture(\n                    &mut failure,\n                    control.drop_reserved_with_wasi(\n                        resident.decoded,\n                        resident.ticket,\n                        wasi.map(AccountedWasi::usage),\n                    ),\n                );\n                capture(\n                    &mut failure,\n                    control.remove_live_with_wasi(\n                        Live::CacheEntries,\n                        1,\n                        wasi.map(AccountedWasi::usage),\n                    ),\n                );\n            }\n        }\n        if let Some(ticket) = cache.buffers[0].take() {\n            capture(\n                &mut failure,\n                control.drop_reserved_with_wasi(\n                    take(&mut cache.slots),\n"
+    }
+  ],
+  "sourceClosure": "0fa7ae254ac2b3aa3390e6fbc935e920422fc9024db220256074ec6ef4e3cd56"
+}

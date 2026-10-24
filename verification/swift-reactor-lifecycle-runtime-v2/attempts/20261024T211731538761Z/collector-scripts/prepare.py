@@ -1,0 +1,251 @@
+#!/usr/bin/env python3
+"""Apply exactly the two root-selected test body repairs in an isolated copy."""
+from pathlib import Path
+import hashlib,json,shutil,subprocess,difflib
+HERE=Path(__file__).resolve().parent
+ROOT=HERE.parents[1]
+OLD=ROOT/'verification/swift-reactor-lifecycle-accounting'
+SELECTION=ROOT/'verification/swift-reactor-lifecycle-accounting-root-review/test-repair-selection.json'
+def sha(raw):return hashlib.sha256(raw).hexdigest()
+def enc(value):return (json.dumps(value,sort_keys=True,indent=2)+'\n').encode()
+def manifest(tree):return {str(p.relative_to(tree)):sha(p.read_bytes())for p in sorted(tree.rglob('*'))if p.is_file()}
+assert sha(SELECTION.read_bytes())=='8712df6cbe4ec813b3e5e40169425711b0b3aeb298411d99a06c60232d796a46'
+assert not (HERE/'candidate').exists()
+shutil.copytree(OLD/'candidate',HERE/'candidate')
+for name in ['authored-coverage.json','planned-matrix-unchanged.json']:(HERE/name).write_bytes((OLD/name).read_bytes())
+(HERE/'test-repair-selection.json').write_bytes(SELECTION.read_bytes())
+(HERE/'accounting-seal.json').write_bytes((OLD/'seal.json').read_bytes())
+(HERE/'failed-runtime-seal.json').write_bytes((ROOT/'verification/swift-reactor-lifecycle-runtime/seal.json').read_bytes())
+relative='src/experimental_swift_reactor/lifecycle_tests.rs'
+path=HERE/'candidate'/relative
+before=path.read_text()
+
+def bounds(text,name):
+    start=text.index('fn '+name+'(');opening=text.index('{',start);cursor=opening+1;depth=1
+    while depth:
+        depth+=(text[cursor]=='{')-(text[cursor]=='}');cursor+=1
+    return opening,cursor
+
+changes={
+'swift_lifecycle_sl09_initializer_exact_resource_failures':r'''{
+    // The same original work budget covers construction and Initialize.
+    // Memory/table/globals + four initializers + data range and payload.
+    const CONSTRUCTOR_WORK: u64 = 584 * 65_536 + 46_713 + 4 + 4 * 16 + 1 + 17;
+    assert_eq!(CONSTRUCTOR_WORK, 38_319_823);
+    let spec = [(1, Function::void(&[0x41, 1, 0x1a, 0x0b]))];
+    let (bytes, starts) = module(&spec, &[]);
+    let first_opcode = starts[1];
+
+    // Zero lifetime work correctly fails before a runnable owner exists.
+    let proof = validate_swift_reactor(
+        &bytes,
+        SwiftValidationBudget::default(),
+        &Cancellation::default(),
+    )
+    .unwrap();
+    let mut pair = Some(
+        RuntimeControl::adopt(
+            proof,
+            SwiftRunBudget {
+                execution_work: 0,
+                ..SwiftRunBudget::default()
+            },
+            Instant::now(),
+            Cancellation::default(),
+        )
+        .unwrap(),
+    );
+    let mut returned = Some(SwiftReactorInstance::construct(
+        &mut pair,
+        WasiGrants::default(),
+        WasiBudget::default(),
+        Instant::now(),
+        frame_tests::cursor(),
+    ));
+    let tail = match returned.take().unwrap() {
+        Err(crate::experimental_swift_reactor::execution::ConstructionFailure::Cleanup(tail)) => tail,
+        _ => panic!("expected original constructor cleanup authority"),
+    };
+    assert!(pair.is_none());
+    let failure = tail.tail.failure.expect("actual constructor first failure");
+    assert_eq!(failure.stage, SwiftRunStage::Invocation);
+    assert_eq!(failure.function, Some(34));
+    assert_eq!(failure.offset, Some(211));
+    assert_eq!(failure.kind, SwiftRunFailureKind::WorkExhausted);
+    assert_eq!(failure.code, "swift_run_work");
+    assert_eq!(failure.resource, Some(SwiftRunResource::ExecutionWork));
+    assert_eq!((failure.attempted, failure.limit), (38_319_741, 0));
+    let mut outcome = None;
+    let mut final_usage = None;
+    tail.complete((pair, returned), &mut outcome, &mut final_usage);
+    let cleaned_failure = outcome.expect("original constructor failure remains authoritative");
+    assert_eq!(cleaned_failure.kind, failure.kind);
+    assert_eq!(cleaned_failure.code, failure.code);
+    assert_eq!(cleaned_failure.resource, failure.resource);
+    assert_eq!(cleaned_failure.attempted, failure.attempted);
+    assert_eq!(cleaned_failure.limit, failure.limit);
+    let cleaned = final_usage.unwrap();
+    assert_eq!(cleaned.reservations.combined.current, 0);
+    assert_eq!(cleaned.reservations.live_tickets, 0);
+    assert_eq!(cleaned.live.frames.current, 0);
+    assert_eq!(cleaned.live.values.current, 0);
+    assert_eq!(cleaned.live.controls.current, 0);
+    assert_eq!(cleaned.live.active_pins.current, 0);
+    assert_eq!(cleaned.live.cache_entries.current, 0);
+    assert_eq!(cleaned.live.memory_pages.current, 0);
+
+    for dimension in 0..5 {
+        let mut budget = SwiftRunBudget::default();
+        let (kind, code, resource, attempted, limit, offset) = match dimension {
+            0 => {
+                budget.instruction_fuel = 0;
+                (SwiftRunFailureKind::FuelExhausted, "swift_run_fuel",
+                 SwiftRunResource::InstructionFuel, 1, 0, Some(first_opcode))
+            }
+            1 => {
+                budget.execution_work = CONSTRUCTOR_WORK;
+                (SwiftRunFailureKind::WorkExhausted, "swift_run_work",
+                 SwiftRunResource::ExecutionWork, CONSTRUCTOR_WORK + 1, CONSTRUCTOR_WORK, None)
+            }
+            2 => {
+                budget.frames = 0;
+                (SwiftRunFailureKind::FrameLimit, "swift_frame_depth",
+                 SwiftRunResource::Frames, 1, 0, None)
+            }
+            3 => {
+                budget.values = 0;
+                (SwiftRunFailureKind::ValueLimit, "swift_execution_value_capacity",
+                 SwiftRunResource::Values, 1, 0, Some(first_opcode))
+            }
+            _ => {
+                budget.controls = 0;
+                (SwiftRunFailureKind::ControlLimit, "swift_frame_control_capacity",
+                 SwiftRunResource::Controls, 1, 0, None)
+            }
+        };
+        let mut o = owner_with(&spec, &[], budget, WasiGrants::default(), WasiBudget::default());
+        let constructed = observed(&o);
+        assert_eq!(constructed.execution_work, CONSTRUCTOR_WORK);
+        let bound = constructed.reservations.construction.current;
+        let failure = failed(&mut o, Request::Initialize);
+        assert_eq!(failure.stage, SwiftRunStage::Initialization);
+        assert_eq!(failure.function, Some(35));
+        assert_eq!(failure.offset, offset);
+        assert_eq!(failure.kind, kind);
+        assert_eq!(failure.code, code);
+        assert_eq!(failure.resource, Some(resource));
+        assert_eq!((failure.attempted, failure.limit), (attempted, limit));
+        if dimension == 1 {
+            assert_eq!(failure.at_failure.execution_work, CONSTRUCTOR_WORK);
+            assert_eq!(failure.at_failure.instructions, 0);
+            assert_eq!(failure.at_failure.instruction_fuel, 0);
+        }
+        if dimension == 0 {
+            assert_eq!(failure.at_failure.instructions, 0);
+            assert_eq!(failure.at_failure.instruction_fuel, 0);
+        }
+        assert_eq!(failure.at_failure.host_calls, 0);
+        let after = observed(&o);
+        assert_eq!(after.live.frames.current, 0);
+        assert_eq!(after.live.values.current, 0);
+        assert_eq!(after.live.controls.current, 0);
+        assert_eq!(after.live.active_pins.current, 0);
+        assert_eq!(after.reservations.construction.current, bound);
+        assert!(o.state.as_ref().unwrap().frame_cleanup.bound.is_none());
+        assert!(matches!(o.lifecycle, Lifecycle::Terminal));
+        retire(o);
+    }
+    let host_spec = [(1, wasi_call(WasiFunction::FdWrite, &[1, 0, 1, 8], true, &[]))];
+    let (_, host_starts) = module(&host_spec, &[]);
+    let mut o = owner_with(
+        &host_spec,
+        &[],
+        SwiftRunBudget {
+            host_calls: 0,
+            ..SwiftRunBudget::default()
+        },
+        WasiGrants { stdout: true, ..WasiGrants::default() },
+        WasiBudget::default(),
+    );
+    let failure = failed(&mut o, Request::Initialize);
+    assert_eq!(failure.stage, SwiftRunStage::Initialization);
+    assert_eq!(failure.function, Some(35));
+    // Four original two-byte i32.const arguments precede the call opcode.
+    assert_eq!(failure.offset, Some(host_starts[1] + 8));
+    assert_eq!(failure.kind, SwiftRunFailureKind::HostCallLimit);
+    assert_eq!(failure.code, "swift_run_host_calls");
+    assert_eq!(failure.resource, Some(SwiftRunResource::HostCalls));
+    assert_eq!((failure.attempted, failure.limit), (1, 0));
+    assert_eq!(failure.at_failure.host_calls, 0);
+    assert_eq!(o.wasi.as_ref().unwrap().usage().calls, 0);
+    assert!(o.wasi.as_ref().unwrap().stdout().is_empty());
+    assert!(matches!(o.lifecycle, Lifecycle::Terminal));
+    retire(o);
+}''',
+'swift_lifecycle_sl13_cumulative_instruction_host_and_cache_usage':r'''{
+    let mut o = owner_with(
+        &state_spec(),
+        &[36],
+        SwiftRunBudget::default(),
+        WasiGrants::default(),
+        WasiBudget::default(),
+    );
+    let deadline = o.control.as_ref().unwrap().deadline();
+    let start = observed(&o);
+    // Constructor writes 29 slots, 64 pin records and 512 patch entries.
+    assert_eq!(start.cache_work, 29 + 64 + 512);
+    assert_eq!(success(&mut o, Request::Initialize), Reply::Initialized);
+    let initialized = observed(&o);
+    assert_eq!(initialized.instructions - start.instructions, 6);
+    // Cold cost = 1151 + pin records + 2*encoded body bytes + 3*instructions.
+    // Init35: B14/I6/P1; corpus62: B7/I3/P1; callee36: B19/I9/P2.
+    assert_eq!(initialized.cache_work - start.cache_work, 1151 + 1 + 2*14 + 3*6);
+    assert_eq!(initialized.cache_work, 1803);
+    assert_eq!(success(&mut o, Request::Corpus), Reply::Corpus(2));
+    let first = observed(&o);
+    let first_cache = o.cache.as_ref().unwrap().usage();
+    assert_eq!(first.cache_work - initialized.cache_work,
+        (1151 + 1 + 2*7 + 3*3) + (1151 + 2 + 2*19 + 3*9));
+    assert_eq!(first.cache_work, 4196);
+    assert_eq!(success(&mut o, Request::Corpus), Reply::Corpus(3));
+    let second = observed(&o);
+    let second_cache = o.cache.as_ref().unwrap().usage();
+    // Corpus: const+indirect+end (3); callee: get,const,add,set,const,get,store,get,end (9).
+    assert_eq!(first.instructions - initialized.instructions, 12);
+    assert_eq!(second.instructions - first.instructions, 12);
+    assert!(second.execution_work > first.execution_work && first.execution_work > initialized.execution_work);
+    // Resident order35@0,62@1,36@2. Outer pin record0 stays live for callee.
+    // Lookup + pin-record scan + resident scan: outer1+1+2, nested1+2+3.
+    assert_eq!(second.cache_work - first.cache_work, (1+1+2) + (1+2+3));
+    assert_eq!(second.cache_work, 4206);
+    assert_eq!(second_cache.hits - first_cache.hits, 2);
+    assert_eq!(second_cache.misses, first_cache.misses);
+    assert_eq!(second_cache.decodes, first_cache.decodes);
+    assert_eq!(second_cache.evictions, first_cache.evictions);
+    assert_eq!(second_cache.resident_bytes, first_cache.resident_bytes);
+    assert_eq!(second_cache.active_pins, first_cache.active_pins);
+    assert_eq!(second.host_calls, 0);
+    assert_eq!(second.reservations.live_tickets, first.reservations.live_tickets);
+    assert_eq!(second.reservations.live_tickets, initialized.reservations.live_tickets);
+    assert_eq!(o.control.as_ref().unwrap().deadline(), deadline);
+    retire(o);
+}'''
+}
+after=before
+for name,body in changes.items():
+    a,b=bounds(after,name);after=after[:a]+body+after[b:]
+path.write_text(after)
+result=subprocess.run(['/opt/homebrew/opt/rustup/bin/rustfmt','--edition','2021',str(path)],capture_output=True)
+(HERE/'format.stdout').write_bytes(result.stdout);(HERE/'format.stderr').write_bytes(result.stderr);assert result.returncode==0
+after=path.read_text()
+def mask(text):
+    for name in changes:
+        a,b=bounds(text,name);text=text[:a]+'{SELECTED_BODY}'+text[b:]
+    return text
+assert mask(before)==mask(after),'unselected imports/helpers/hooks/test bytes changed'
+old=manifest(OLD/'candidate');new=manifest(HERE/'candidate')
+assert [n for n in new if old[n]!=new[n]]==[relative]
+(HERE/'candidate-manifest.json').write_bytes(enc(new))
+(HERE/'candidate.diff').write_text(''.join(difflib.unified_diff(before.splitlines(True),after.splitlines(True),fromfile='sealed/'+relative,tofile='candidate/'+relative)))
+(HERE/'source-delta.json').write_bytes(enc({'candidateClosure':sha(enc(new)),'previousClosure':sha(enc(old)),'changedFile':relative,'changedBodies':list(changes),'unchangedFiles':131,'allOtherFileAndHelperImportHookTestBytesExact':True,'productionLifecycleGrowthAccountingAndFrozenSourceExact':True}))
+print((HERE/'source-delta.json').read_text())

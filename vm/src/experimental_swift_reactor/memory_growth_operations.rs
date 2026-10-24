@@ -206,15 +206,44 @@ pub(crate) enum GrowthCompletion<'a> {
         preparation:Option<Result<(FrameOperationPhase<'a>,SwiftGrowthContext<'a>),SwiftRunFailure>>,
     },
 }
-pub(crate) fn complete_growth<'a>(mut phase:FrameOperationPhase<'a>,context:SwiftGrowthContext<'a>,growth:SwiftGrowthStorage,storage:FrameOperationStorage<'a>,preparation:Option<Result<(FrameOperationPhase<'a>,SwiftGrowthContext<'a>),SwiftRunFailure>>) -> GrowthCompletion<'a> {
+#[path = "lifecycle.rs"]
+pub(super) mod lifecycle;
+
+// Closed publication goal; ordinary callers retain Preserve semantics.
+enum CompletionGoal {
+    Preserve,
+    Initialize,
+}
+#[derive(Clone, Copy)]
+enum PreparationGoal {
+    Preserve,
+    Terminalize,
+}
+pub(crate) fn complete_growth<'a>(phase:FrameOperationPhase<'a>,context:SwiftGrowthContext<'a>,growth:SwiftGrowthStorage,storage:FrameOperationStorage<'a>,preparation:Option<Result<(FrameOperationPhase<'a>,SwiftGrowthContext<'a>),SwiftRunFailure>>) -> GrowthCompletion<'a> {
+    complete_growth_with_goal(phase,context,growth,storage,preparation,CompletionGoal::Preserve)
+}
+fn complete_growth_with_goal<'a>(mut phase:FrameOperationPhase<'a>,context:SwiftGrowthContext<'a>,growth:SwiftGrowthStorage,storage:FrameOperationStorage<'a>,preparation:Option<Result<(FrameOperationPhase<'a>,SwiftGrowthContext<'a>),SwiftRunFailure>>,goal:CompletionGoal) -> GrowthCompletion<'a> {
     if !growth.vacant() || preparation.is_some() {
         phase.terminal();
         return GrowthCompletion::Retained{phase,context,growth,storage,preparation};
     }
+    let initialize = matches!(goal,CompletionGoal::Initialize)
+        && matches!(phase.lifecycle,Lifecycle::Uninitialized)
+        && matches!(storage.returned,Some(Ok(FrameReturn::Outermost(None))))
+        && storage.entry.is_none() && storage.controlled.is_none() && storage.drained.is_none();
     // Explicitly destroy every growth/preparation wrapper while the original
     // frame envelope still covers it; then use original fixed completion.
     drop((context,growth,preparation));
-    GrowthCompletion::Completed(phase.complete(storage))
+    let FrameOperationPhase { phase, cleanup, lifecycle } = phase;
+    let completed = FrameOperationPhase {
+        phase,
+        cleanup,
+        lifecycle: &mut *lifecycle,
+    }.complete(storage);
+    if initialize && matches!(completed,FrameCompletion::Completed) {
+        *lifecycle = Lifecycle::Ready;
+    }
+    GrowthCompletion::Completed(completed)
 }
 
 #[cfg(test)] #[path="memory_growth_operations_tests.rs"] mod tests;
@@ -223,6 +252,13 @@ impl SwiftReactorInstance {
         &mut self,
         cursor: Cursor,
     ) -> Result<(FrameOperationPhase<'_>, SwiftGrowthContext<'_>), SwiftRunFailure> {
+        self.prepare_growth_with_goal(cursor, PreparationGoal::Preserve)
+    }
+    fn prepare_growth_with_goal(
+        &mut self,
+        cursor: Cursor,
+        goal: PreparationGoal,
+    ) -> Result<(FrameOperationPhase<'_>, SwiftGrowthContext<'_>), SwiftRunFailure> {
         let Self {
             control,
             cache,
@@ -230,25 +266,39 @@ impl SwiftReactorInstance {
             state,
             lifecycle,
         } = self;
+        // Rejection runs before constructing any phase borrow. Preserve callers
+        // retain the existing state; lifecycle callers terminalize this same
+        // original owner's already-split lifecycle without another control call.
+        macro_rules! rejected {
+            ($failure:expr) => {{
+                let failure = $failure;
+                if matches!(goal, PreparationGoal::Terminalize) {
+                    *lifecycle = Lifecycle::Terminal;
+                }
+                return Err(failure);
+            }};
+        }
         // The private constructor supplies RuntimeControl. No admitted route
         // can manufacture a replacement if that unique authority is absent.
         let control = control.as_mut().expect("constructed control");
         let wasi = match wasi.as_mut() {
             Some(wasi) => wasi,
-            None => return Err(control.fail(cursor,
+            None => rejected!(control.fail(cursor,
                 Fault::new(SwiftRunFailureKind::Invariant,"swift_dispatch_wasi_missing"),None)),
         };
         let cache = match cache.as_mut() {
             Some(cache) => cache,
-            None => return Err(control.fail(cursor,
+            None => rejected!(control.fail(cursor,
                 Fault::new(SwiftRunFailureKind::Invariant,"swift_dispatch_cache_missing"),Some(wasi.usage()))),
         };
         let state = match state.as_mut() {
             Some(state) => state,
-            None => return Err(control.fail(cursor,
+            None => rejected!(control.fail(cursor,
                 Fault::new(SwiftRunFailureKind::Invariant,"swift_dispatch_state_missing"),Some(wasi.usage()))),
         };
-        original_owners(control, cache, wasi, state, cursor)?;
+        if let Err(failure) = original_owners(control, cache, wasi, state, cursor) {
+            rejected!(failure);
+        }
         let live = control.usage(Some(wasi.usage())).live;
         if matches!(lifecycle, Lifecycle::Terminal)
             || !state.frame_cleanup.is_empty()
@@ -261,7 +311,7 @@ impl SwiftReactorInstance {
             || live.frames.current != 0
             || live.active_pins.current != 0
         {
-            return Err(construction_failure(
+            rejected!(construction_failure(
                 control,
                 wasi,
                 cursor,
@@ -276,9 +326,11 @@ impl SwiftReactorInstance {
             .current;
         let admitted = match FRAME_OPERATION_BYTES.and_then(|bytes| previous.checked_add(bytes)) {
             Some(admitted) => admitted,
-            None => return Err(layout_failure(control, wasi, cursor)),
+            None => rejected!(layout_failure(control, wasi, cursor)),
         };
-        control.enlarge_construction_with_wasi(admitted, cursor, Some(wasi.usage()))?;
+        if let Err(failure) = control.enlarge_construction_with_wasi(admitted, cursor, Some(wasi.usage())) {
+            rejected!(failure);
+        }
         // No fallible boundary exists after admission and before its State record.
         state.frame_cleanup.bound = Some(FrameBound { previous, admitted });
         state.frame_cleanup.disposition = FrameDisposition::Active;
@@ -15492,7 +15544,7 @@ struct ActivePositions {
     source_release_growth_pending_result_returned: Result<(),SwiftRunFailure>,
     source_release_growth_pending_result_caller: Result<(),SwiftRunFailure>,
 }
-pub(in crate::experimental_swift_reactor::execution) const PERMANENT_BYTES:usize=size_of::<PermanentPositions>();
-pub(super) const ACTIVE_BYTES:usize=size_of::<ActivePositions>();
+pub(in crate::experimental_swift_reactor::execution) const PERMANENT_BYTES:usize=size_of::<PermanentPositions>() + lifecycle::PERMANENT_BYTES;
+pub(super) const ACTIVE_BYTES:usize=size_of::<ActivePositions>() + lifecycle::ACTIVE_BYTES;
 
 #[cfg(test)] pub(super) use tests::{dispatch_old_refund,dispatch_growth_check};

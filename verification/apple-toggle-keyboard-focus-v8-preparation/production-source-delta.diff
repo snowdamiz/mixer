@@ -1,0 +1,234 @@
+--- v7/settings_telemetry.py
++++ v8/settings_telemetry.py
+@@ -1,6 +1,7 @@
+ """Closed setup-only durable diagnostic telemetry; never an input command."""
+ import base64
+ import copy
++import json
+ import hashlib
+ import math
+ import os
+@@ -154,9 +155,10 @@
+ 
+ 
+ class Session:
+-    def __init__(self, persist, persist_file, deadline, now=time.monotonic, token=None):
++    def __init__(self, persist, persist_file, deadline, now=time.monotonic, token=None, transaction=None):
+         self.persist = persist
+         self.persist_file = persist_file
++        self.transaction = transaction
+         self.deadline = deadline
+         self.now = now
+         self.token = token or str(uuid.uuid4())
+@@ -190,12 +192,22 @@
+         self.last_capture_finished = None
+ 
+     def request(self, value):
+-        # Validate on a copy. An unsuccessful persistence/ACK preparation cannot
+-        # advance the accepted cursor or make a partial upload appear complete.
++        # Validate and assemble a complete intent without persistent side effects.
+         draft = copy.copy(self)
+         for key in ['events', 'pending', 'uploads', 'routes', 'opened_routes', 'route_attempts', 'route_searches', 'route_bindings', 'route_opened_bindings', 'terminate', 'completions', 'enabled_samples', 'invalid_enabled_samples']:
+             setattr(draft, key, copy.deepcopy(getattr(self, key)))
+-        result = draft._request(value)
++        records, files = [], []
++        draft.persist = lambda suffix, record: records.append((suffix, record))
++        draft.persist_file = lambda slot, form, payload: files.append((slot, form, payload))
++        result = draft._request(copy.deepcopy(value))
++        require(len(records) == 1, 'Exactly one diagnostic journal intent')
++        if self.transaction is not None:
++            self.transaction.commit(records[0], files)
++        else:
++            for slot, form, payload in files:
++                self.persist_file(slot, form, payload)
++            self.persist(*records[0])
++        draft.persist, draft.persist_file = self.persist, self.persist_file
+         self.__dict__.update(draft.__dict__)
+         return result
+ 
+@@ -379,33 +391,45 @@
+         metadata = all(value and expected_switch(value['snapshot'], self.before['snapshot']['identifier']) for value in required) if self.before is not None else False
+         routes = len(self.route_bindings) == len(self.route_opened_bindings) == 3 and all(row['rowMatched'] for row in self.route_bindings) and all(row['destinationMatched'] for row in self.route_opened_bindings)
+         enabled = bool(self.enabled_samples) and self.terminal is not None and self.terminal['snapshot']['valueKind'] == 'string' and self.terminal['snapshot']['value'] == '1'
+-        return {'status': 'DIAGNOSTIC_ONLY', 'settingsReportedEnabled': enabled, 'settingsEvidenceComplete': bool(complete), 'settingsMetadataExpected': bool(metadata), 'selectedRouteEvidenceExpected': routes, 'routeTapBindings': self.route_bindings, 'routeOpenedBindings': self.route_opened_bindings, 'setupObservationSatisfied': bool(complete and metadata and routes and enabled), 'routeTaps': [row['routeIndex'] for row in self.route_bindings if row['rowMatched']], 'claimedRouteTapIndices': self.routes, 'switchAction': self.action, 'switchActionBinding': self.action_binding, 'anchorUptime': self.anchor, 'observationDeadlineUptime': self.observation_deadline, 'enabledWithinWindowSequences': self.enabled_samples, 'invalidEnabledWithinWindowSequences': self.invalid_enabled_samples, 'lastAcceptedHostReceiptUptime': self.last_host, 'sequence': self.sequence, 'requests': self.requests, 'decodedBytesDeclared': self.total, 'pendingSlots': self.pending, 'uploads': {k: {a: b for a, b in v.items() if a != 'parts'} for k, v in self.uploads.items()}, 'terminationMarkers': self.terminate, 'completionMarkers': self.completions, 'applicationCasesExecuted': 0, 'nativeKeyboardQualification': False, 'runPassed': False}
++        return {'persistenceUncertain': bool(self.transaction and self.transaction.uncertain), 'status': 'DIAGNOSTIC_ONLY', 'settingsReportedEnabled': enabled, 'settingsEvidenceComplete': bool(complete), 'settingsMetadataExpected': bool(metadata), 'selectedRouteEvidenceExpected': routes, 'routeTapBindings': self.route_bindings, 'routeOpenedBindings': self.route_opened_bindings, 'setupObservationSatisfied': bool(complete and metadata and routes and enabled and not (self.transaction and self.transaction.uncertain)), 'routeTaps': [row['routeIndex'] for row in self.route_bindings if row['rowMatched']], 'claimedRouteTapIndices': self.routes, 'switchAction': self.action, 'switchActionBinding': self.action_binding, 'anchorUptime': self.anchor, 'observationDeadlineUptime': self.observation_deadline, 'enabledWithinWindowSequences': self.enabled_samples, 'invalidEnabledWithinWindowSequences': self.invalid_enabled_samples, 'lastAcceptedHostReceiptUptime': self.last_host, 'sequence': self.sequence, 'requests': self.requests, 'decodedBytesDeclared': self.total, 'pendingSlots': self.pending, 'uploads': {k: {a: b for a, b in v.items() if a != 'parts'} for k, v in self.uploads.items()}, 'terminationMarkers': self.terminate, 'completionMarkers': self.completions, 'applicationCasesExecuted': 0, 'nativeKeyboardQualification': False, 'runPassed': False}
+ 
+ 
+ def diagnostic_bridge(base):
++    from durable_settings import TransactionStore
+     class DiagnosticBridge(base):
+         def __init__(self, *args, **kwargs):
+             super().__init__(*args, **kwargs)
+-            def persist_file(slot, form, payload):
+-                path = self.output / (slot + ('.png' if form == 'png' else '.txt'))
+-                require(path.parent == self.output and not path.exists() and not path.is_symlink(), 'Fixed fresh telemetry artifact')
+-                with path.open('xb') as stream:
+-                    stream.write(payload)
+-                    stream.flush()
+-                    os.fsync(stream.fileno())
+-                fd = os.open(self.output, os.O_RDONLY)
++            self.persistence = TransactionStore(self.output, self.identity)
++            self.ancillary_failures = []
++            self.settings = Session(None, None, self.deadline, transaction=self.persistence)
++
++        def request(self, op, body):
++            # Only this setup-only diagnostic overrides ACK ownership. The inherited
++            # Bridge and every application protocol remain byte-exact and untouched.
++            try:
++                result = self._request(op, body)
++            except BaseException as error:
++                # Failure reporting is ancillary and must not replace the first error.
+                 try:
+-                    os.fsync(fd)
+-                finally:
+-                    os.close(fd)
+-            def persist(suffix, value):
+-                self.save(suffix, {**value, 'ownedSimulatorIdentity': self.identity})
+-                fd = os.open(self.output, os.O_RDONLY)
+-                try:
+-                    os.fsync(fd)
+-                finally:
+-                    os.close(fd)
+-            self.settings = Session(persist, persist_file, self.deadline)
++                    self.record_failure(op, error)
++                except BaseException as reporting_error:
++                    self._ancillary('rejection-reporting', reporting_error)
++                raise
++            try:
++                self.persist_summary()
++            except BaseException as error:
++                self._ancillary('postcommit-summary', error)
++            return result
++
++        def _ancillary(self, operation, error):
++            reason = (type(error).__name__ + ': ' + str(error)).replace(self.capability, '[ephemeral-capability-redacted]')
++            entry = {'operation': operation, 'reason': reason, 'acceptedSequence': self.settings.sequence, 'protocolOutcomeUnchanged': True}
++            self.ancillary_failures.append(entry)
++            self.failures.append(entry)
++            try:
++                self.persistence.record_ancillary(entry)
++            except BaseException as receipt_error:
++                self.ancillary_failures.append({'operation': 'ancillary-receipt-unavailable', 'reason': type(receipt_error).__name__ + ': ' + str(receipt_error), 'protocolOutcomeUnchanged': True})
+ 
+         def _request(self, op, body):
+             if op == 'evaluate' and type(body) is dict and set(body) == {'settingsDiagnostic'}:
+--- v7/replay.py
++++ v8/replay.py
+@@ -7,6 +7,9 @@
+ 
+ 
+ def replay(folder):
++    from durable_settings import unresolved, PersistenceUncertain
++    if unresolved(folder):
++        raise PersistenceUncertain('Terminal unresolved diagnostic transaction guard; replay refuses qualification')
+     paths = sorted(folder.glob('0000-settings-*.json'))
+     t.require(paths and paths[0].name == '0000-settings-0000.json', 'Durable setup start missing')
+     first = json.loads(paths[0].read_bytes())
+--- v7/run.py
++++ v8/run.py
+@@ -1,5 +1,5 @@
+ #!/usr/bin/env python3
+-"""V7 sealed setup diagnostic. Verify/build do not query native instances."""
++"""V8 sealed setup diagnostic. Verify/build do not query native instances."""
+ import argparse
+ import hashlib
+ import importlib.util
+@@ -11,49 +11,30 @@
+ BASE=pathlib.Path(__file__).resolve().parent
+ ROOT=BASE.parents[1]
+ V6=BASE.parent/'apple-toggle-keyboard-focus-v6-preparation'
++V7=BASE.parent/'apple-toggle-keyboard-focus-v7-preparation'
+ PREVIOUS=BASE.parent/'apple-toggle-keyboard-focus'
+ sys.path.append(str(PREVIOUS))
+ import keyboard_oracle
+ import settings_telemetry
+-spec=importlib.util.spec_from_file_location('immutable_keyboard_diagnostic_runtime_v7',PREVIOUS/'run.py')
++spec=importlib.util.spec_from_file_location('immutable_keyboard_diagnostic_runtime_v8',PREVIOUS/'run.py')
+ runtime=importlib.util.module_from_spec(spec);spec.loader.exec_module(runtime)
+ h=runtime.inherited
+ sha,read,require=runtime.sha,runtime.read,runtime.require
+ runtime.BASE=BASE;h.BASE=BASE
+-h.PRODUCTS=BASE/'build/Build/Products';h.PRODUCT_ARCHIVE=BASE/'test-runner-products.tar.gz'
++h.PRODUCTS=V7/'build/Build/Products';h.PRODUCT_ARCHIVE=V7/'test-runner-products.tar.gz'
+ h.Bridge=settings_telemetry.diagnostic_bridge(h.Bridge)
+ h.SCOPES={'interaction':{'cases':keyboard_oracle.CASES,'methods':['test000PublicSettingsFullKeyboardAccess']}}
+ 
+ def verify():
+-    seal=read(BASE/'packet-seal.json')
+-    require(seal['schema']=='mixer.apple-toggle.keyboard-v7-diagnostic.1','Wrong v7 seal')
+-    for name,digest in seal['files'].items():
+-        p=ROOT/runtime.artifact.relative_name(name)
+-        require(p.is_file() and not p.is_symlink() and sha(p)==digest,'Sealed file changed: '+name)
+-    reuse=read(BASE/'immutable-reuse.json')
+-    for name,source in reuse['exactCopySources'].items():
+-        require(sha(ROOT/name)==sha(ROOT/source)==reuse['copiedFiles'][name],'Immutable source changed: '+name)
+-    for name,digest in reuse['historicalBindings'].items():
+-        require(sha(ROOT/name)==digest,'Historical input changed: '+name)
+-    app=read(BASE/'built-app-manifest.json')
+-    runtime.artifact.archive_payload(BASE/'built-app.tar.gz',app,runtime.artifact.CONFIGS['diagnostic'])
+-    runner=read(BASE/'build-products-manifest.json')
+-    require(h.tree(h.PRODUCTS)==runner['products'],'Runner tree changed')
+-    require(hashlib.sha256(h.json_bytes(runner['products'])).hexdigest()==runner['productTreeSHA256']==seal['testRunnerProductTreeSHA256'],'Runner tree digest changed')
+-    h.product_archive_payload(runner)
+-    require(all(sha(ROOT/name)==digest for name,digest in runner['sourceFiles'].items()),'Runner source changed')
+-    require(all(sha(pathlib.Path(name))==digest for name,digest in runner['toolFiles'].items()),'Official tool changed')
+-    for header in read(BASE/'official/manifest.json')['installedOfficialHeaders']:
+-        require(sha(pathlib.Path(header['source']))==header['sha256']==sha(BASE/'official'/header['snapshot']),'Official public API changed')
+-    controls=read(BASE/'host-controls.json')
+-    require(controls['allRequiredGroupsPassed'] and all(sha(ROOT/name)==digest for name,digest in controls['sourceFiles'].items()),'Host controls incomplete/changed')
+-    return {'schema':'mixer.apple-toggle.keyboard-v7-preflight.1','sealSHA256':sha(BASE/'packet-seal.json'),'candidateSourceClosureSHA256':seal['candidateSourceClosureSHA256'],'candidateArchiveSHA256':app['archiveSHA256'],'testRunnerSourceTreeSHA256':runner['sourceTreeSHA256'],'testRunnerProductTreeSHA256':runner['productTreeSHA256'],'testRunnerArchiveSHA256':runner['productArchiveSHA256'],'sourceRevisionContext':runner['sourceRevisionContext'],'expectedXCTestMethods':1,'applicationCasesUnrun':sorted(keyboard_oracle.CASES),'panPrerequisite':runtime.prerequisite(),'status':'DIAGNOSTIC_ONLY','nativeExecution':False,'gaAccepted':False}
++    from packet import verify_packet
++    return verify_packet()
++
+ 
+ def summary(scope,bridge,xctest_exit,failure,cleanup_results):
+     settings=None if bridge is None else bridge.settings.summary()
+     export=read(BASE/'runtime/attachment-export.json') if (BASE/'runtime/attachment-export.json').is_file() else None
+     boundary=failure is not None and failure['type']=='ValueError' and failure['message']=='Strict XCTest result failed; preserved evidence is authoritative' and xctest_exit==0
+-    return {'schema':'mixer.apple-toggle.keyboard-v7-runtime.1','status':'DIAGNOSTIC_ONLY','scope':scope,'xcodebuildExitCode':xctest_exit,'xcodebuildTerminalResultAvailable':xctest_exit is not None,'diagnosticCompleted':xctest_exit is not None and settings is not None and settings['settingsEvidenceComplete'] is True and settings['terminationMarkers']==['terminate-before','terminate-after'] and settings['completionMarkers']==['test-case-finished','suite-finished','bundle-finished'],'setupEvidenceComplete':settings is not None and settings['settingsEvidenceComplete'] is True,'settingsDiagnostic':settings,'expectedDiagnosticQualificationBoundary':boundary,'sessionFailure':failure,'sessionFailureClassification':'expected-diagnostic-only-inherited-qualification-boundary' if boundary else None if failure is None else 'observed-command-or-session-failure','strictNativeVerdictsPassed':False,'bridgeFailures':None if bridge is None else list(bridge.failures),'expectedXCTestMethods':1,'actualNativeInputActions':0,'nativeUserInteractionVerdicts':[],'applicationCasesExecuted':0,'dependentCasesUnrun':sorted(keyboard_oracle.CASES),'nativeKeyboardQualification':False,'attachmentExport':export,'officialSummaryAvailable':(BASE/'runtime/xctest-summary.json').is_file(),'officialTestsAvailable':(BASE/'runtime/xctest-tests.json').is_file(),'cleanupResults':cleanup_results,'runPassed':False,'carrierAccepted':False,'physicalPhones':'disconnected-deferred','gaAccepted':False}
++    return {'schema':'mixer.apple-toggle.keyboard-v8-runtime.1','status':'DIAGNOSTIC_ONLY','scope':scope,'xcodebuildExitCode':xctest_exit,'xcodebuildTerminalResultAvailable':xctest_exit is not None,'diagnosticCompleted':xctest_exit is not None and settings is not None and settings['settingsEvidenceComplete'] is True and settings['persistenceUncertain'] is False and settings['terminationMarkers']==['terminate-before','terminate-after'] and settings['completionMarkers']==['test-case-finished','suite-finished','bundle-finished'],'setupEvidenceComplete':settings is not None and settings['settingsEvidenceComplete'] is True and settings['persistenceUncertain'] is False,'settingsDiagnostic':settings,'expectedDiagnosticQualificationBoundary':boundary,'sessionFailure':failure,'sessionFailureClassification':'expected-diagnostic-only-inherited-qualification-boundary' if boundary else None if failure is None else 'observed-command-or-session-failure','strictNativeVerdictsPassed':False,'bridgeFailures':None if bridge is None else list(bridge.failures),'persistenceWarnings':None if bridge is None else list(bridge.persistence.ancillary),'persistenceUncertainty':None if bridge is None else bridge.persistence.uncertainty,'ancillaryFailures':None if bridge is None else list(bridge.ancillary_failures),'expectedXCTestMethods':1,'actualNativeInputActions':0,'nativeUserInteractionVerdicts':[],'applicationCasesExecuted':0,'dependentCasesUnrun':sorted(keyboard_oracle.CASES),'nativeKeyboardQualification':False,'attachmentExport':export,'officialSummaryAvailable':(BASE/'runtime/xctest-summary.json').is_file(),'officialTestsAvailable':(BASE/'runtime/xctest-tests.json').is_file(),'cleanupResults':cleanup_results,'runPassed':False,'carrierAccepted':False,'physicalPhones':'disconnected-deferred','gaAccepted':False}
+ 
+ h.verify=verify;h.runtime_summary=summary
+ 
+--- v7/fixtures.py
++++ v8/fixtures.py
+@@ -1,5 +1,5 @@
+ #!/usr/bin/env python3
+-"""V7 synthetic journal emitter through the actual Bridge/Session. No native evidence."""
++"""V8 synthetic journal emitter through the actual Bridge/Session. No native evidence."""
+ import base64
+ import copy
+ import hashlib
+@@ -20,11 +20,11 @@
+ ROOT = HERE.parents[1]
+ PRODUCER = HERE
+ sys.path.insert(0, str(PRODUCER))
+-spec = importlib.util.spec_from_file_location('reviewed_v7_run', PRODUCER / 'run.py')
++spec = importlib.util.spec_from_file_location('reviewed_v8_run', PRODUCER / 'run.py')
+ producer = importlib.util.module_from_spec(spec)
+ spec.loader.exec_module(producer)
+ t = producer.settings_telemetry
+-spec = importlib.util.spec_from_file_location('reviewed_v7_replay', PRODUCER / 'replay.py')
++spec = importlib.util.spec_from_file_location('reviewed_v8_replay', PRODUCER / 'replay.py')
+ replay = importlib.util.module_from_spec(spec)
+ spec.loader.exec_module(replay)
+ SCRATCH = HERE / '.scratch'
+@@ -39,8 +39,7 @@
+ 
+ class Flow:
+     def __init__(self):
+-        self.temporary = tempfile.TemporaryDirectory(prefix='real-v7-', dir=SCRATCH)
+-        self.root = pathlib.Path(self.temporary.name)
++        self.root = pathlib.Path(tempfile.mkdtemp(prefix='real-v8-', dir=SCRATCH))
+         docs = self.root / 'Documents'
+         docs.mkdir()
+         self.bridge = producer.h.Bridge({'diagnostic': docs, 'comparator': docs}, self.root / 'captures', 'independent-review-capability', {'scope': 'synthetic-host-only'}, allowed_cases=producer.keyboard_oracle.CASES)
+@@ -53,7 +52,7 @@
+         self.taps = {}
+ 
+     def close(self):
+-        self.temporary.cleanup()
++        pass  # Retain every synthetic attempt for the sealed evidence archive.
+ 
+     def send(self, record):
+         return self.bridge.request('evaluate', {'settingsDiagnostic': record})

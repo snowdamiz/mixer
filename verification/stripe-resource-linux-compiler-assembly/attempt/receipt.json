@@ -1,0 +1,536 @@
+{
+  "BEAMExecuted": false,
+  "LinuxArtifactAccepted": false,
+  "LinuxResourceRuntimeAccepted": false,
+  "acquisitionSealSha256": "8a95b1b94b8f1911aa53e161fe54534777987d1dc5eb04aa3494ee2593b649f3",
+  "artifacts": {
+    "compiler-payload.tar": {
+      "available": true,
+      "bytes": 177326080,
+      "path": "verification/stripe-resource-linux-compiler-assembly/attempt/exports/compiler-payload.tar",
+      "sha256": "30583d60dc1206350578b75b34aa93af77de321c6efb606fe51c5c5371e1347b"
+    },
+    "control-inventory.json": {
+      "available": true,
+      "bytes": 883843,
+      "path": "verification/stripe-resource-linux-compiler-assembly/attempt/exports/control-inventory.json",
+      "sha256": "8772e697d167496f4fb28e3f9dcb6ff15229f14ed4f786d7cf9899b86d198208"
+    },
+    "notice-inventory.json": {
+      "available": true,
+      "bytes": 166253,
+      "path": "verification/stripe-resource-linux-compiler-assembly/attempt/exports/notice-inventory.json",
+      "sha256": "7652e363a1bf374afa59271de539f3d6dc40f07218dc86596b9ae4962169909e"
+    },
+    "payload-manifest.json": {
+      "available": true,
+      "bytes": 511712,
+      "path": "verification/stripe-resource-linux-compiler-assembly/attempt/exports/payload-manifest.json",
+      "sha256": "609aa44c6d20166b30a16b0ac731bc8a00f141cb9cffa265bc128a32867f52d5"
+    }
+  },
+  "assemblyExitCode": 0,
+  "assemblyScriptSha256": "bf80e2df6faa32bfc1fda38a9b93559be662134b6f98615d5968beb85cae47a0",
+  "cleanup": {
+    "ownedContainerAbsent": true,
+    "temporaryInputSnapshotRemoved": true
+  },
+  "commands": [
+    {
+      "argv": [
+        "docker",
+        "version",
+        "--format",
+        "{{json .}}"
+      ],
+      "budget": "ordinary-cumulative",
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "elapsedSeconds": 0.026654249988496304,
+      "exitCode": 0,
+      "label": "docker-version",
+      "observedUTC": "2026-10-24T21:25:59.666051+00:00",
+      "outputs": {
+        "stderr": {
+          "bytes": 0,
+          "path": "verification/stripe-resource-linux-compiler-assembly/attempt/00-docker-version.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "bytes": 1108,
+          "path": "verification/stripe-resource-linux-compiler-assembly/attempt/00-docker-version.stdout",
+          "sha256": "108de8598b9d8aef34e3a3aa543ba3f384e9bda8b4728f60d6a2967fdd09e5ac"
+        }
+      },
+      "refusal": null
+    },
+    {
+      "argv": [
+        "docker",
+        "image",
+        "inspect",
+        "--platform",
+        "linux/arm64",
+        "hexpm/elixir@sha256:52ec0f335b9084bcfc0ce3a29b4c0288dc2fc2a07658ff809dc7d07589212cde"
+      ],
+      "budget": "ordinary-cumulative",
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "elapsedSeconds": 0.026854125084355474,
+      "exitCode": 0,
+      "label": "image-inspect",
+      "observedUTC": "2026-10-24T21:25:59.693108+00:00",
+      "outputs": {
+        "stderr": {
+          "bytes": 0,
+          "path": "verification/stripe-resource-linux-compiler-assembly/attempt/01-image-inspect.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "bytes": 1927,
+          "path": "verification/stripe-resource-linux-compiler-assembly/attempt/01-image-inspect.stdout",
+          "sha256": "2a07514cc042c9fc5e768124689fda0a0817882021d9dc09dc675ee773d8e7b3"
+        }
+      },
+      "refusal": null
+    },
+    {
+      "argv": [
+        "docker",
+        "container",
+        "inspect",
+        "mixer-private-compiler-assembly-af639b81b17b"
+      ],
+      "budget": "ordinary-cumulative",
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "elapsedSeconds": 0.01625541690737009,
+      "exitCode": 1,
+      "label": "name-before",
+      "observedUTC": "2026-10-24T21:25:59.720243+00:00",
+      "outputs": {
+        "stderr": {
+          "bytes": 92,
+          "path": "verification/stripe-resource-linux-compiler-assembly/attempt/02-name-before.stderr",
+          "sha256": "1127f27361eefbe9287a3b15e4e454d57df98f4c1fad67953db4ec974cf8f3ed"
+        },
+        "stdout": {
+          "bytes": 3,
+          "path": "verification/stripe-resource-linux-compiler-assembly/attempt/02-name-before.stdout",
+          "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+        }
+      },
+      "refusal": null
+    },
+    {
+      "argv": [
+        "docker",
+        "create",
+        "--name",
+        "mixer-private-compiler-assembly-af639b81b17b",
+        "--label",
+        "com.mixer.private-compiler-assembly.owner=af639b81b17b4e8db571fec6cb2fcd21",
+        "--label",
+        "com.mixer.private-assembly.selection=448788d165d55f062d56eda8f0c10403b7258127dae0aa9d33fc957341490f4b",
+        "--label",
+        "com.mixer.private-assembly.inputs=233f7b03fbedefe0428a774f211059165a288fda09c9826b1d7ef0eb457dfeef",
+        "--pull=never",
+        "--platform",
+        "linux/arm64",
+        "--network=none",
+        "--read-only",
+        "--cap-drop=ALL",
+        "--security-opt=no-new-privileges",
+        "--user=65534:65534",
+        "--pids-limit=128",
+        "--memory=1g",
+        "--cpus=2",
+        "--ulimit=core=0:0",
+        "--log-driver=none",
+        "--tmpfs",
+        "/tmp:rw,noexec,nosuid,nodev,size=536870912,mode=1777",
+        "--mount",
+        "type=bind,src=/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-private-compiler-assembly-inputs-ez8l0ps4,dst=/inputs,readonly",
+        "--entrypoint",
+        "/bin/sh",
+        "hexpm/elixir@sha256:52ec0f335b9084bcfc0ce3a29b4c0288dc2fc2a07658ff809dc7d07589212cde",
+        "-c",
+        "exec sleep 120"
+      ],
+      "budget": "ordinary-cumulative",
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "elapsedSeconds": 0.0506924589863047,
+      "exitCode": 0,
+      "label": "create",
+      "observedUTC": "2026-10-24T21:25:59.736849+00:00",
+      "outputs": {
+        "stderr": {
+          "bytes": 0,
+          "path": "verification/stripe-resource-linux-compiler-assembly/attempt/03-create.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "bytes": 65,
+          "path": "verification/stripe-resource-linux-compiler-assembly/attempt/03-create.stdout",
+          "sha256": "9aa8380fe9ef4b5f1bdae970b08ca2d24c63d6dd3bb1b5b474ae41afc059f9f4"
+        }
+      },
+      "refusal": null
+    },
+    {
+      "argv": [
+        "docker",
+        "container",
+        "inspect",
+        "c4c257c088a000b242f2cf6b7f305489e5dbb5d871dc343ac43f1d951f213fbf"
+      ],
+      "budget": "ordinary-cumulative",
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "elapsedSeconds": 0.021697042044252157,
+      "exitCode": 0,
+      "label": "policy-before",
+      "observedUTC": "2026-10-24T21:25:59.788814+00:00",
+      "outputs": {
+        "stderr": {
+          "bytes": 0,
+          "path": "verification/stripe-resource-linux-compiler-assembly/attempt/04-policy-before.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "bytes": 7548,
+          "path": "verification/stripe-resource-linux-compiler-assembly/attempt/04-policy-before.stdout",
+          "sha256": "fcf1f90fc70b8ef50ea5c5e52ae5bfbf9ef46074e532c31b90c9f3659a258529"
+        }
+      },
+      "refusal": null
+    },
+    {
+      "argv": [
+        "docker",
+        "start",
+        "c4c257c088a000b242f2cf6b7f305489e5dbb5d871dc343ac43f1d951f213fbf"
+      ],
+      "budget": "ordinary-cumulative",
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "elapsedSeconds": 0.07255866599734873,
+      "exitCode": 0,
+      "label": "start",
+      "observedUTC": "2026-10-24T21:25:59.811564+00:00",
+      "outputs": {
+        "stderr": {
+          "bytes": 0,
+          "path": "verification/stripe-resource-linux-compiler-assembly/attempt/05-start.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "bytes": 65,
+          "path": "verification/stripe-resource-linux-compiler-assembly/attempt/05-start.stdout",
+          "sha256": "9aa8380fe9ef4b5f1bdae970b08ca2d24c63d6dd3bb1b5b474ae41afc059f9f4"
+        }
+      },
+      "refusal": null
+    },
+    {
+      "argv": [
+        "docker",
+        "exec",
+        "c4c257c088a000b242f2cf6b7f305489e5dbb5d871dc343ac43f1d951f213fbf",
+        "/bin/sh",
+        "/inputs/assemble.sh"
+      ],
+      "budget": "ordinary-cumulative",
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "elapsedSeconds": 0.7237852080725133,
+      "exitCode": 0,
+      "label": "assemble",
+      "observedUTC": "2026-10-24T21:25:59.883922+00:00",
+      "outputs": {
+        "stderr": {
+          "bytes": 0,
+          "path": "verification/stripe-resource-linux-compiler-assembly/attempt/06-assemble.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "bytes": 3954,
+          "path": "verification/stripe-resource-linux-compiler-assembly/attempt/06-assemble.stdout",
+          "sha256": "88aabeeba9c4a5e4cdc87411caac3f8c17a9ebc07a6986235cb77aae42b02c93"
+        }
+      },
+      "refusal": null
+    },
+    {
+      "argv": [
+        "docker",
+        "exec",
+        "c4c257c088a000b242f2cf6b7f305489e5dbb5d871dc343ac43f1d951f213fbf",
+        "/bin/cat",
+        "/tmp/compiler-payload/payload-manifest.json"
+      ],
+      "budget": "fixed-named-artifact",
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "elapsedSeconds": 0.04200370900798589,
+      "exitCode": 0,
+      "label": "export-payload-manifest.json",
+      "observedUTC": "2026-10-24T21:26:00.610656+00:00",
+      "outputs": {
+        "stderr": {
+          "bytes": 0,
+          "path": "verification/stripe-resource-linux-compiler-assembly/attempt/07-export-payload-manifest.json.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "bytes": 511712,
+          "path": "verification/stripe-resource-linux-compiler-assembly/attempt/exports/payload-manifest.json",
+          "sha256": "609aa44c6d20166b30a16b0ac731bc8a00f141cb9cffa265bc128a32867f52d5"
+        }
+      },
+      "refusal": null
+    },
+    {
+      "argv": [
+        "docker",
+        "exec",
+        "c4c257c088a000b242f2cf6b7f305489e5dbb5d871dc343ac43f1d951f213fbf",
+        "/bin/cat",
+        "/tmp/compiler-payload/notice-inventory.json"
+      ],
+      "budget": "fixed-named-artifact",
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "elapsedSeconds": 0.03694033401552588,
+      "exitCode": 0,
+      "label": "export-notice-inventory.json",
+      "observedUTC": "2026-10-24T21:26:00.651983+00:00",
+      "outputs": {
+        "stderr": {
+          "bytes": 0,
+          "path": "verification/stripe-resource-linux-compiler-assembly/attempt/08-export-notice-inventory.json.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "bytes": 166253,
+          "path": "verification/stripe-resource-linux-compiler-assembly/attempt/exports/notice-inventory.json",
+          "sha256": "7652e363a1bf374afa59271de539f3d6dc40f07218dc86596b9ae4962169909e"
+        }
+      },
+      "refusal": null
+    },
+    {
+      "argv": [
+        "docker",
+        "exec",
+        "c4c257c088a000b242f2cf6b7f305489e5dbb5d871dc343ac43f1d951f213fbf",
+        "/bin/cat",
+        "/tmp/compiler-payload/control-inventory.json"
+      ],
+      "budget": "fixed-named-artifact",
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "elapsedSeconds": 0.03677333297673613,
+      "exitCode": 0,
+      "label": "export-control-inventory.json",
+      "observedUTC": "2026-10-24T21:26:00.689823+00:00",
+      "outputs": {
+        "stderr": {
+          "bytes": 0,
+          "path": "verification/stripe-resource-linux-compiler-assembly/attempt/09-export-control-inventory.json.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "bytes": 883843,
+          "path": "verification/stripe-resource-linux-compiler-assembly/attempt/exports/control-inventory.json",
+          "sha256": "8772e697d167496f4fb28e3f9dcb6ff15229f14ed4f786d7cf9899b86d198208"
+        }
+      },
+      "refusal": null
+    },
+    {
+      "argv": [
+        "docker",
+        "exec",
+        "c4c257c088a000b242f2cf6b7f305489e5dbb5d871dc343ac43f1d951f213fbf",
+        "/bin/cat",
+        "/tmp/compiler-payload/compiler-payload.tar"
+      ],
+      "budget": "fixed-named-artifact",
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "elapsedSeconds": 0.711178916040808,
+      "exitCode": 0,
+      "label": "export-compiler-payload.tar",
+      "observedUTC": "2026-10-24T21:26:00.726098+00:00",
+      "outputs": {
+        "stderr": {
+          "bytes": 0,
+          "path": "verification/stripe-resource-linux-compiler-assembly/attempt/10-export-compiler-payload.tar.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "bytes": 177326080,
+          "path": "verification/stripe-resource-linux-compiler-assembly/attempt/exports/compiler-payload.tar",
+          "sha256": "30583d60dc1206350578b75b34aa93af77de321c6efb606fe51c5c5371e1347b"
+        }
+      },
+      "refusal": null
+    },
+    {
+      "argv": [
+        "docker",
+        "container",
+        "inspect",
+        "c4c257c088a000b242f2cf6b7f305489e5dbb5d871dc343ac43f1d951f213fbf"
+      ],
+      "budget": "ordinary-cumulative",
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "elapsedSeconds": 0.017737583024427295,
+      "exitCode": 0,
+      "label": "cleanup-identity",
+      "observedUTC": "2026-10-24T21:26:01.509086+00:00",
+      "outputs": {
+        "stderr": {
+          "bytes": 0,
+          "path": "verification/stripe-resource-linux-compiler-assembly/attempt/11-cleanup-identity.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "bytes": 8086,
+          "path": "verification/stripe-resource-linux-compiler-assembly/attempt/11-cleanup-identity.stdout",
+          "sha256": "5ff80159dea1e007af9a33af915eb649fa13a359d287a8ea3bd1b18b389c930d"
+        }
+      },
+      "refusal": null
+    },
+    {
+      "argv": [
+        "docker",
+        "rm",
+        "--force",
+        "c4c257c088a000b242f2cf6b7f305489e5dbb5d871dc343ac43f1d951f213fbf"
+      ],
+      "budget": "ordinary-cumulative",
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "elapsedSeconds": 0.07899795798584819,
+      "exitCode": 0,
+      "label": "cleanup-remove",
+      "observedUTC": "2026-10-24T21:26:01.527452+00:00",
+      "outputs": {
+        "stderr": {
+          "bytes": 0,
+          "path": "verification/stripe-resource-linux-compiler-assembly/attempt/12-cleanup-remove.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "bytes": 65,
+          "path": "verification/stripe-resource-linux-compiler-assembly/attempt/12-cleanup-remove.stdout",
+          "sha256": "9aa8380fe9ef4b5f1bdae970b08ca2d24c63d6dd3bb1b5b474ae41afc059f9f4"
+        }
+      },
+      "refusal": null
+    },
+    {
+      "argv": [
+        "docker",
+        "container",
+        "inspect",
+        "c4c257c088a000b242f2cf6b7f305489e5dbb5d871dc343ac43f1d951f213fbf"
+      ],
+      "budget": "ordinary-cumulative",
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "elapsedSeconds": 0.022726707975380123,
+      "exitCode": 1,
+      "label": "cleanup-absence",
+      "observedUTC": "2026-10-24T21:26:01.607384+00:00",
+      "outputs": {
+        "stderr": {
+          "bytes": 112,
+          "path": "verification/stripe-resource-linux-compiler-assembly/attempt/13-cleanup-absence.stderr",
+          "sha256": "9fdb71517ebf8b13df0376181c992e8cb9399c42674e86a89ed00815bf3c0a14"
+        },
+        "stdout": {
+          "bytes": 3,
+          "path": "verification/stripe-resource-linux-compiler-assembly/attempt/13-cleanup-absence.stdout",
+          "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+        }
+      },
+      "refusal": null
+    }
+  ],
+  "compilerExecuted": false,
+  "containerId": "c4c257c088a000b242f2cf6b7f305489e5dbb5d871dc343ac43f1d951f213fbf",
+  "containerName": "mixer-private-compiler-assembly-af639b81b17b",
+  "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+  "elapsedSecondsIncludingCleanup": 2.008299042005092,
+  "fixedArtifactExportBytes": 178887888,
+  "gaAccepted": false,
+  "gitOperations": 0,
+  "helperExecuted": false,
+  "image": "hexpm/elixir@sha256:52ec0f335b9084bcfc0ce3a29b4c0288dc2fc2a07658ff809dc7d07589212cde",
+  "markers": [
+    "MIXER_TOOL=/usr/bin/dpkg-deb",
+    "MIXER_TOOL=/usr/bin/tar",
+    "MIXER_TOOL=/usr/bin/find",
+    "MIXER_TOOL=/usr/bin/sort",
+    "MIXER_TOOL=/usr/bin/sha256sum",
+    "MIXER_TOOL=/usr/bin/awk",
+    "MIXER_DATA_EXTRACTION_COMPLETED=1",
+    "MIXER_COMPILER_PAYLOAD_TAR_BYTES=177326080",
+    "MIXER_ARCHIVED_CC_PRESENT=0",
+    "MIXER_STATIC_ASSEMBLY_COMPLETED=1"
+  ],
+  "nifLoaded": false,
+  "observedUTC": "2026-10-24T21:26:01.628375+00:00",
+  "ordinaryStreamBytes": {
+    "stderr": 204,
+    "stdout": 22824
+  },
+  "ownerToken": "af639b81b17b4e8db571fec6cb2fcd21",
+  "packageLockSha256": "4db8b41afffdf796acaec18bcc3b5574be593af0c11c4cb860b39da5d64a36b4",
+  "packageScriptsExecuted": false,
+  "policyVerifiedBeforeStart": true,
+  "requiredChild": "sha256:c2d3bab1f8a854f5ca3bb220e5463f4fe39036caa2ce22dfd7614a30404279de",
+  "resourceRuntimeRowsExecuted": 0,
+  "rootfsOrRunnableImageConstructed": false,
+  "runnerSha256": "f3afc7a826cf5c601c1301d4e462d1dfcab322a71084dfe0437a2539c3ebc79c",
+  "schema": 1,
+  "scope": "one selected offline static compiler/header assembly",
+  "selectionSha256": "448788d165d55f062d56eda8f0c10403b7258127dae0aa9d33fc957341490f4b",
+  "snapshotDigest": "233f7b03fbedefe0428a774f211059165a288fda09c9826b1d7ef0eb457dfeef",
+  "snapshotFiles": {
+    "assemble.sh": "bf80e2df6faa32bfc1fda38a9b93559be662134b6f98615d5968beb85cae47a0",
+    "binutils-aarch64-linux-gnu_2.42-4ubuntu2.10_arm64.deb": "b5311d11d56f2daa82e952612b9578ef675af67714edb9aef7e3dc6cf2531575",
+    "binutils-common_2.42-4ubuntu2.10_arm64.deb": "e2930005b9e4d599cfa8ebddd1d888cbcef7ebec38c8c7dfbc4babbdeaa52c3b",
+    "binutils_2.42-4ubuntu2.10_arm64.deb": "f3333e2ef1b857f35905194f42e9541ff6a42bef8fbba6d8bb56abff460d4fa2",
+    "control-inventory.json": "8772e697d167496f4fb28e3f9dcb6ff15229f14ed4f786d7cf9899b86d198208",
+    "cpp-13-aarch64-linux-gnu_13.3.0-6ubuntu2~24.04.1_arm64.deb": "5de37686322fdee9432cabbab469088fe15ff99323fd0302139fd73ddb83e0fe",
+    "cpp-13_13.3.0-6ubuntu2~24.04.1_arm64.deb": "0f3245c804313d970a2eabb72b68b0f6d8119905e1babdccfcf66f771fa3d9f1",
+    "cpp-aarch64-linux-gnu_13.2.0-7ubuntu1_arm64.deb": "52822e3b33c0ccf29b86c6366683ebf61549973b02eda0643437a1fe8a099b9a",
+    "cpp_13.2.0-7ubuntu1_arm64.deb": "133d40380f18509cf137347f7c470d87ccaf75fd1fa488c3b42b7d6ca3c09d30",
+    "expected-manifest.json": "2c688e892c8147746be5698b72e7a1a53d5ec8ea79e9dacd9c450bf60841ccf2",
+    "gcc-13-aarch64-linux-gnu_13.3.0-6ubuntu2~24.04.1_arm64.deb": "618086c3f64d780d0d8ffff2a07bef6115a301e71ee364bcf92c10b9b7dd499c",
+    "gcc-13-base_13.3.0-6ubuntu2~24.04.1_arm64.deb": "1c1ca489da0d48237036318189a9b6525abe7703b75495f257f68bccae8c45a7",
+    "gcc-13_13.3.0-6ubuntu2~24.04.1_arm64.deb": "04b729a6c728b92c941926be688f8c1a90a89602b10f131516a1e7574cc5b418",
+    "gcc-aarch64-linux-gnu_13.2.0-7ubuntu1_arm64.deb": "14bd5f429f7e91c23fcae70ddc1acf1438adfe246fa3078273f5a0629f64e2dc",
+    "gcc_13.2.0-7ubuntu1_arm64.deb": "11dec7614bba0bd5b7cfad6a9890a4680dac5de6908ae625dd07105679bad67c",
+    "libasan8_14.2.0-4ubuntu2~24.04.1_arm64.deb": "0b7957bc5bbc5d30eabe8b71bab06e624ac530be7b1b1315d2bd54629cf2559f",
+    "libatomic1_14.2.0-4ubuntu2~24.04.1_arm64.deb": "fdeab74e7ad8572cf69c7024e8040c7ac851f6e667d35f0d429e7a0352840f73",
+    "libbinutils_2.42-4ubuntu2.10_arm64.deb": "c86634a7471aa27439b9bef7bd91ca8136f01f938c93bf6abe16a8fca758e849",
+    "libc-dev-bin_2.39-0ubuntu8.9_arm64.deb": "85564f1ba7dce372d0fdec055986b428f72cd9c235af1dd29950f589562d19bc",
+    "libc6-dev_2.39-0ubuntu8.9_arm64.deb": "9bf6acb8a3433ffe561182517640970d324425fabbbeb54a24d737ba1f3c816b",
+    "libcc1-0_14.2.0-4ubuntu2~24.04.1_arm64.deb": "a72eb7353138e671ce46cdb7afc09cd400eaa8ae20e2e7750d40fbbdf63a3811",
+    "libcrypt-dev_4.4.36-4build1_arm64.deb": "cadcc00021aa1082a8cb5cd1c2686b25b7a4d396f2029eaa1b12159ca46f1766",
+    "libctf-nobfd0_2.42-4ubuntu2.10_arm64.deb": "c80063890a430e42181e7ad3f0277bb563abc22d556fd5e65c798c4ee8318684",
+    "libctf0_2.42-4ubuntu2.10_arm64.deb": "2516f90d292d01eefe9207a623251550d93665f25d262f206f5c6b803389ed6b",
+    "libgcc-13-dev_13.3.0-6ubuntu2~24.04.1_arm64.deb": "609a9410d9a1f25a1cb7847de92ee9f438336a0a3a82d282c3686f52ddd61526",
+    "libgomp1_14.2.0-4ubuntu2~24.04.1_arm64.deb": "cd49d2e8834d41a6618f097b678980defeebc47271bc7c5aa8ea2c2f1a53b7a6",
+    "libgprofng0_2.42-4ubuntu2.10_arm64.deb": "ee37f8539eab25c43bd622589932006c6ba90d44e2b7442325fc237f01a3ab5b",
+    "libhwasan0_14.2.0-4ubuntu2~24.04.1_arm64.deb": "44851293eede488ad89fd12db1bd8bfcb2b732f68ad4c13b83d6e0ce5d7b4bfa",
+    "libisl23_0.26-3build1.1_arm64.deb": "250bff60f1405c2fa7cd8cdd839f83105c7fec9b42ed6cb5f62e1bcda709bbc2",
+    "libitm1_14.2.0-4ubuntu2~24.04.1_arm64.deb": "7f7d7c5a26888e5e34eb62a193762eb6a8d5805c5d6f22248f638193d1804993",
+    "libjansson4_2.14-2build2_arm64.deb": "a9d513eae76f4efb1c7370413bd21634fcfc0955e103d26af95f298af6c90abd",
+    "liblsan0_14.2.0-4ubuntu2~24.04.1_arm64.deb": "21bb80325192b0cce6ccd041a8d823609c5e656bdda43368db6cdfe501593188",
+    "libmpc3_1.3.1-1build1.1_arm64.deb": "efc4a44fb7382db33bf3adbfd0058201fd73d0e56fd48662d653e9a93f6139da",
+    "libmpfr6_4.2.1-1build1.1_arm64.deb": "83517e4377082a35dcce66ec5310881a848486279f64d737919d1819b7884201",
+    "libsframe1_2.42-4ubuntu2.10_arm64.deb": "4e2ef8c92da324c7f8e8f055c8c698e37c93b886602766e7e72ac178835c9a31",
+    "libtsan2_14.2.0-4ubuntu2~24.04.1_arm64.deb": "00beb501f4979c7fd3a978b52a489ea7dbfc1203e5c56936e4c0ea5c2032fb3d",
+    "libubsan1_14.2.0-4ubuntu2~24.04.1_arm64.deb": "a5b4383f70f41cd949315c89e99e6416a0ee48037f7c5ea6b33f88f3c733757a",
+    "linux-libc-dev_6.8.0-147.147_arm64.deb": "e489840ff836f22ae92c1bc3534ea8c68bcce2c4500e39ba560bbefc1b25e359",
+    "notice-inventory.json": "7652e363a1bf374afa59271de539f3d6dc40f07218dc86596b9ae4962169909e",
+    "packages.sha256": "045879b81705e64a091ff7da5fdffae734981c5ec868f631aa62725ff0cd9e18",
+    "rpcsvc-proto_1.4.2-0ubuntu7_arm64.deb": "ae527152fc2bf9c1a645c2620d802b0849db32c8aa48328b4ae94c59cc57bcc9"
+  },
+  "status": "native-static-assembly-completed-host-validation-pending"
+}
