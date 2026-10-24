@@ -290,6 +290,40 @@ pub(crate) struct ReservationTicket {
     category: SwiftReservationCategory,
     bytes: usize,
 }
+impl ReservationTicket {
+    /// Read-only layout evidence. The original owner check remains mandatory;
+    /// this comparison grants no authority to debit, refund or repair a ledger.
+    pub(crate) fn matches_layout(&self, category: SwiftReservationCategory, bytes: usize) -> bool {
+        self.category == category && self.bytes == bytes
+    }
+}
+
+#[cfg(test)]
+impl RuntimeControl {
+    /// Derived boundary fault injection only. Returns the actual replaced
+    /// authority; fixtures must restore it before consuming owner cleanup.
+    pub(crate) fn test_replace_construction(
+        &mut self,
+        ticket: Option<ReservationTicket>,
+    ) -> Option<ReservationTicket> {
+        std::mem::replace(&mut self.construction, ticket)
+    }
+    /// Temporarily narrow one actual live budget, then restore the returned
+    /// scalar. Never changes live usage or repairs a cleanup mismatch.
+    pub(crate) fn test_replace_live_limit(&mut self, resource: Live, ceiling: usize) -> usize {
+        let destination = match resource {
+            Live::Values => &mut self.budget.values,
+            Live::Controls => &mut self.budget.controls,
+            Live::Frames => &mut self.budget.frames,
+            Live::ActivePins => &mut self.budget.active_pins,
+            _ => panic!("unsupported boundary fixture"),
+        };
+        std::mem::replace(destination, ceiling)
+    }
+    pub(crate) fn test_replace_execution_work_limit(&mut self, ceiling: u64) -> u64 {
+        std::mem::replace(&mut self.budget.execution_work, ceiling)
+    }
+}
 /// The actual proof moves with both adopted tickets. This does not modify the
 /// sealed proof's layout or manufacture independently executable authority.
 pub(crate) struct AdoptedProof {
@@ -1202,6 +1236,57 @@ impl RuntimeControl {
             ))
         } else {
             None
+        };
+        if let Some((invariant, code)) = violation {
+            self.cleanup_invariant.get_or_insert(invariant);
+            return Err(self.fail(
+                cursor,
+                Fault::new(SwiftRunFailureKind::Invariant, code),
+                wasi,
+            ));
+        }
+        Ok(())
+    }
+
+    /// Cleanup-independent validation of the actual retained construction
+    /// authority. This borrows its original ticket and records no live change,
+    /// checkpoint, admission, refund or ledger repair.
+    pub(crate) fn check_construction_owner(
+        &mut self,
+        cursor: Cursor,
+        wasi: Option<WasiUsage>,
+    ) -> Result<(), SwiftRunFailure> {
+        let violation = match self.construction.as_ref() {
+            None => Some((
+                SwiftCleanupInvariant::MissingConstruction,
+                "swift_run_missing_construction",
+            )),
+            Some(ticket) if ticket.owner == 0 || ticket.owner != self.owner => Some((
+                SwiftCleanupInvariant::ReservationOwner,
+                "swift_run_construction_owner",
+            )),
+            Some(ticket)
+                if self.reservations.live_tickets == 0
+                    || self.reservations.category(ticket.category).current < ticket.bytes
+                    || self.reservations.combined.current < ticket.bytes =>
+            {
+                Some((
+                    SwiftCleanupInvariant::ReservationUnderflow,
+                    "swift_run_construction_underflow",
+                ))
+            }
+            Some(ticket)
+                if !ticket.matches_layout(
+                    SwiftReservationCategory::Construction,
+                    self.reservations.construction.current,
+                ) =>
+            {
+                Some((
+                    SwiftCleanupInvariant::ConstructionBound,
+                    "swift_run_construction_layout",
+                ))
+            }
+            Some(_) => None,
         };
         if let Some((invariant, code)) = violation {
             self.cleanup_invariant.get_or_insert(invariant);

@@ -23,6 +23,8 @@ use crate::{Type, Value};
 use std::mem::{size_of, take};
 use std::time::Instant;
 
+#[path = "frame_operations.rs"]
+pub(crate) mod frame_operations;
 #[path = "value_operations.rs"]
 pub(crate) mod value_operations;
 
@@ -57,6 +59,7 @@ pub(crate) struct SwiftExecutionState {
     pub frames: Vec<SwiftFrame>,
     pub buffers: [Option<ReservationTicket>; 6],
     pub execution_header: Option<ReservationTicket>,
+    pub frame_cleanup: frame_operations::FrameCleanupState,
 }
 #[allow(dead_code)] // Chosen private type/layout prerequisite; no executable owner route yet.
 pub(crate) enum Lifecycle {
@@ -685,7 +688,12 @@ const EXECUTION_HEADER_BYTES: Option<usize> = {
                             Some(header) => {
                                 match header.checked_add(CONSTRUCTION_POSITIVE_CLEANUP_BYTES) {
                                     Some(header) => {
-                                        header.checked_add(value_operations::PERMANENT_BYTES)
+                                        match header.checked_add(value_operations::PERMANENT_BYTES)
+                                        {
+                                            Some(header) => header
+                                                .checked_add(frame_operations::PERMANENT_BYTES),
+                                            None => None,
+                                        }
                                     }
                                     None => None,
                                 }
@@ -1019,6 +1027,7 @@ impl SwiftExecutionState {
             frames: Vec::new(),
             buffers: std::array::from_fn(|_| None),
             execution_header: None,
+            frame_cleanup: const { frame_operations::FrameCleanupState::empty() },
         }
     }
     /// Only this constructor's unpublished State is accepted. Its last fallible
@@ -1653,7 +1662,20 @@ impl SwiftReactorInstance {
                 })?;
                 control.check_reservation_owner(ticket, cleanup_cursor(), Some(wasi.usage()))?;
             }
-            if !state.frames.is_empty()
+            frame_operations::original_owners(
+                control,
+                owner.cache.as_ref().unwrap(),
+                wasi,
+                state,
+                cleanup_cursor(),
+            )?;
+            let live = control.usage(Some(wasi.usage())).live;
+            if !state.frame_cleanup.is_empty()
+                || live.values.current != 0
+                || live.controls.current != 0
+                || live.frames.current != 0
+                || live.active_pins.current != 0
+                || !state.frames.is_empty()
                 || !state.values.is_empty()
                 || !state.controls.is_empty()
                 || owner.cache.as_ref().unwrap().usage().active_pins != 0

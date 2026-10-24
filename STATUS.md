@@ -1,9 +1,10 @@
 # Implementation status
 
-Implementation paused at the user's request after the pushed Phoenix foundation.
-See [pause and resume handoff](docs/implementation-pause-2026-10-24.md). Private
-frame source/evidence is preserved pending root acceptance; the next hosted
-identity implementation has not started. The full product scope remains open.
+Implementation resumed at the user's request on October 24. The saved
+[pause handoff](docs/implementation-pause-2026-10-24.md) remains historical context.
+The private frame entry/return/cleanup slice has root host acceptance; the
+bounded hosted token verifier is in independent review. Computer use and native runtime tests remain
+paused; the full product scope and all GA gates remain open.
 
 Product status: **in development; no GA or dogfood gate passed**.
 
@@ -70,8 +71,11 @@ active-frame ownership contract now has root acceptance after 81 declaration/
 compiler/layout/privacy commands, two independent fresh compilations and sixteen
 root metadata replays. Saved entry lengths and exact reservation layout checks are
 accounted separately; retained pins stay in original frame/guard owners. Actual
-entry/return/unwind code and its AF01–AF22 tests are in progress; actual-source
-accounting, Swift control execution and full dispatch remain incomplete. See
+entry/return/terminal cleanup now has source-bound host evidence: 904 producer
+executions, 682 independent candidate executions and 40 adversarial probes.
+Root accepted the exact frozen private slice after source review and 2,148
+evidence bindings; see `verification/swift-active-frames-root-review/acceptance.json`.
+Swift control execution and full dispatch remain incomplete. See
 `verification/swift-active-frame-contract-root-review/acceptance.json`.
 
 Hosted VM CI at 6172e65 exposed test-observer interference under concurrent
@@ -102,6 +106,11 @@ API/processor separation, PostgreSQL transaction commit/rollback and delayed
 Oban execution are exercised. The only route is process liveness; identity,
 product release operations, Neon TLS, Cloudflare and production readiness remain
 pending. See `docs/phoenix-foundation.md`. The Go reference remains intact.
+Its Linux hosted CI and the separate VM/Swift/Go workflow at `6df4807` now
+all pass. See `verification/github-ci-6df4807-phoenix/receipt.json` and
+`verification/github-ci-6df4807-engine/receipt.json`. The RS256 token-verifier
+component is being implemented with JOSE 1.11.12; identity HTTP routes, key
+transport/cache and authoritative membership remain pending.
 
 The release server now owns a configuration snapshot before validation/storage
 open. Independent probes reproduced caller mutations changing token permissions,

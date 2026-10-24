@@ -1,0 +1,43 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/vm)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.00s
+     Running unittests src/lib.rs (verification/swift-active-frames-implementation/build/initial-target/debug/deps/mixer_vm-31ac86bb7e3dcf7f)
+
+running 22 tests
+test experimental_swift_reactor::execution::frame_operations::tests::af01_real_nested_recursive_entry_and_parameter_ownership ... AF01_DEFAULT state_current=41195296 state_peak=41195296 construction_current=1894104 construction_peak=2413040 combined_current=43181692 combined_peak=43700544 state_limit=134217728 combined_limit=268435456
+ok
+test experimental_swift_reactor::execution::frame_operations::tests::af02_nested_zero_single_and_outer_results_exact_order ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af03_real_call_depth_and_pin_limits ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af04_actual_255_256_locals_and_real_257_validation_rejection ... AF04 invalid257 rejected by real validation before owner construction; actual255/256 frames executed
+ok
+test experimental_swift_reactor::execution::frame_operations::tests::af05_real_decoded_control_inclusive_and_aggregate_boundaries ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af06_every_entry_work_prefix_preserves_caller_and_work ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af07_exact_predebit_faults_and_narrow_capacity_admission ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af08_cancellation_at_every_actual_local_check_rolls_back_only_new_effects ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af09_real_pin_and_nested_completion_failure_coexist ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af10_entry_guard_rejected_release_retains_actual_pin_and_cleanup_barrier ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af11_mixed_releases_keep_same_actual_frames_pins_in_order ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af12_all_release_rejections_retain_real_headers_frames_and_charges ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af13_guard_and_multiple_frames_keep_independent_actual_pins ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af14_finish_release_failure_is_processed_suffix_and_never_reinterpreted ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af15_failed_result_push_happens_after_callee_release ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af16_cleanup_undercount_zero_is_sticky_and_blocks_consuming_cleanup ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af17_real_prior_wasi_effect_and_sticky_first_failure ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af18_dropped_phase_cleanup_resume_has_no_admission_work_or_value_access ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af19_exact_fixed_storage_outer_restore_rejection_and_retry ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af20_original_provenance_layout_and_consuming_barriers_preserve_owners ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af21_warm_paths_refuse_first_allocation_and_cold_decode_is_separate ... AF21 cold decode requests=2 warm entry/finish/drain/completion requests=0
+ok
+test experimental_swift_reactor::execution::frame_operations::tests::af22_frozen_accounting_and_value_phase_reservations_stay_distinct ... 
+thread 'experimental_swift_reactor::execution::frame_operations::tests::af22_frozen_accounting_and_value_phase_reservations_stay_distinct' (57472436) panicked at src/experimental_swift_reactor/frame_operations_tests.rs:353:6:
+called `Result::unwrap()` on an `Err` value: Cleanup(Some(SwiftRunFailure { stage: Invocation, kind: CombinedExhausted, code: "swift_run_combined_capacity", function: Some(34), offset: Some(211), resource: Some(Combined), attempted: 43326830, limit: 43181597, observed_capacity: None, deadline_origin: Run, wasi_failure: None, guest_exit: None, at_failure: SwiftRunUsage { reservations: SwiftReservations { retained_source: SwiftReservationUsage { current: 1798, peak: 1798 }, retained_metadata: SwiftReservationUsage { current: 2312, peak: 2312 }, cache: SwiftReservationUsage { current: 83776, peak: 83776 }, state: SwiftReservationUsage { current: 2548568, peak: 2548568 }, wasi: SwiftReservationUsage { current: 2568, peak: 2568 }, shared: SwiftReservationUsage { current: 1744, peak: 1744 }, construction: SwiftReservationUsage { current: 2413040, peak: 2413040 }, combined: SwiftReservationUsage { current: 5053806, peak: 5053806 }, live_tickets: 18, peak_tickets: 18 }, live: SwiftLiveUsage { cache_entries: SwiftReservationUsage { current: 0, peak: 0 }, active_pins: SwiftReservationUsage { current: 0, peak: 0 }, frames: SwiftReservationUsage { current: 0, peak: 0 }, values: SwiftReservationUsage { current: 0, peak: 0 }, controls: SwiftReservationUsage { current: 0, peak: 0 }, memory_pages: SwiftReservationUsage { current: 0, peak: 0 } }, cache_work: 605, execution_work: 0, instruction_fuel: 0, instructions: 0, host_calls: 0, cleanup_invariant: None, elapsed_micros: 60, deadline_ms: 30000, deadline_origin: Run, deadline_overshoot_micros: 0, validation: SwiftValidationUsage { input_visible_bytes: 1798, source_bytes: 1798, metadata_reserved: 2312, scratch_reserved: 0, metadata_peak_reserved: 2312, scratch_peak_reserved: 1056, total_peak_reserved: 5166, work_used: 10289, elapsed_micros: 125, deadline_ms: 120000 }, wasi: Some(WasiUsage { calls: 0, work: 0, transfer_bytes: 0, random_bytes: 0, log_bytes: 0, failures: 0, reservations: WasiReservations { fixed_state_bytes: 1368, staging_bytes: 64, rollback_bytes: 64, stdout_bytes: 64, stderr_bytes: 64, current_bytes: 1624, peak_bytes: 1624 } }) }, after_cleanup: Some(SwiftRunUsage { reservations: SwiftReservations { retained_source: SwiftReservationUsage { current: 0, peak: 1798 }, retained_metadata: SwiftReservationUsage { current: 0, peak: 2312 }, cache: SwiftReservationUsage { current: 0, peak: 83776 }, state: SwiftReservationUsage { current: 0, peak: 2548568 }, wasi: SwiftReservationUsage { current: 2568, peak: 2568 }, shared: SwiftReservationUsage { current: 1744, peak: 1744 }, construction: SwiftReservationUsage { current: 1341136, peak: 2413040 }, combined: SwiftReservationUsage { current: 1345448, peak: 5053806 }, live_tickets: 8, peak_tickets: 18 }, live: SwiftLiveUsage { cache_entries: SwiftReservationUsage { current: 0, peak: 0 }, active_pins: SwiftReservationUsage { current: 0, peak: 0 }, frames: SwiftReservationUsage { current: 0, peak: 0 }, values: SwiftReservationUsage { current: 0, peak: 0 }, controls: SwiftReservationUsage { current: 0, peak: 0 }, memory_pages: SwiftReservationUsage { current: 0, peak: 0 } }, cache_work: 605, execution_work: 0, instruction_fuel: 0, instructions: 0, host_calls: 0, cleanup_invariant: None, elapsed_micros: 64, deadline_ms: 30000, deadline_origin: Run, deadline_overshoot_micros: 0, validation: SwiftValidationUsage { input_visible_bytes: 1798, source_bytes: 1798, metadata_reserved: 2312, scratch_reserved: 0, metadata_peak_reserved: 2312, scratch_peak_reserved: 1056, total_peak_reserved: 5166, work_used: 10289, elapsed_micros: 125, deadline_ms: 120000 }, wasi: Some(WasiUsage { calls: 0, work: 0, transfer_bytes: 0, random_bytes: 0, log_bytes: 0, failures: 0, reservations: WasiReservations { fixed_state_bytes: 1368, staging_bytes: 64, rollback_bytes: 64, stdout_bytes: 64, stderr_bytes: 64, current_bytes: 1624, peak_bytes: 1624 } }) }) }))
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    experimental_swift_reactor::execution::frame_operations::tests::af22_frozen_accounting_and_value_phase_reservations_stay_distinct
+
+test result: FAILED. 21 passed; 1 failed; 0 ignored; 0 measured; 134 filtered out; finished in 9.61s
+
+error: test failed, to rerun pass `--lib`

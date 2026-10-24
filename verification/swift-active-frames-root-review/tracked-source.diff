@@ -1,0 +1,305 @@
+diff --git a/vm/src/experimental/execution/mod.rs b/vm/src/experimental/execution/mod.rs
+index 7dec6b9..e38c712 100644
+--- a/vm/src/experimental/execution/mod.rs
++++ b/vm/src/experimental/execution/mod.rs
+@@ -122,6 +122,39 @@ pub(crate) struct Control {
+     height: usize,
+     result: bool,
+ }
++impl Control {
++    pub(crate) const fn function_entry(end: usize, height: usize, result: bool) -> Self {
++        Self {
++            kind: Kind::Function,
++            start: 0,
++            end,
++            height,
++            result,
++        }
++    }
++    /// Budget-only fixture leaf; callers supply metadata copied from a real
++    /// decoded block. This does not implement or invoke Swift block dispatch.
++    #[cfg(all(test, feature = "experimental-swift-reactor"))]
++    pub(crate) const fn decoded_fixture(
++        kind: ControlKind,
++        end: usize,
++        height: usize,
++        result: bool,
++    ) -> Self {
++        let kind = match kind {
++            ControlKind::Block => Kind::Block,
++            ControlKind::Loop => Kind::Loop,
++            ControlKind::If => Kind::If,
++        };
++        Self {
++            kind,
++            start: 0,
++            end,
++            height,
++            result,
++        }
++    }
++}
+ #[cfg_attr(not(feature = "experimental-span-execution"), allow(dead_code))]
+ pub(crate) struct Frame {
+     function: u32,
+diff --git a/vm/src/experimental_swift_reactor/cache.rs b/vm/src/experimental_swift_reactor/cache.rs
+index f3021b6..8a47468 100644
+--- a/vm/src/experimental_swift_reactor/cache.rs
++++ b/vm/src/experimental_swift_reactor/cache.rs
+@@ -2040,6 +2040,21 @@ fn test_step(step: CacheStep) {
+ #[cfg(test)]
+ pub(super) mod inspection {
+     use super::*;
++    /// Swaps actual header authority, preserving the replaced original token.
++    pub fn replace_header(
++        cache: &mut SwiftFunctionCache,
++        ticket: Option<ReservationTicket>,
++    ) -> Option<ReservationTicket> {
++        std::mem::replace(&mut cache.header, ticket)
++    }
++    /// A derived pre-effect completion fault at the actual original phase.
++    /// No ticket or ledger changes; the original restoration API rejects zero.
++    pub fn replace_operation_restore_bound(
++        phase: &mut CacheOperationPhase<'_>,
++        bound: usize,
++    ) -> usize {
++        std::mem::replace(&mut phase.previous_bound, bound)
++    }
+     pub fn with_owner_counter<T>(seed: u64, body: impl FnOnce() -> T) -> T {
+         struct RestoreOwnerCounter(u64);
+         impl Drop for RestoreOwnerCounter {
+diff --git a/vm/src/experimental_swift_reactor/control.rs b/vm/src/experimental_swift_reactor/control.rs
+index a1567f7..f2f5e75 100644
+--- a/vm/src/experimental_swift_reactor/control.rs
++++ b/vm/src/experimental_swift_reactor/control.rs
+@@ -290,6 +290,40 @@ pub(crate) struct ReservationTicket {
+     category: SwiftReservationCategory,
+     bytes: usize,
+ }
++impl ReservationTicket {
++    /// Read-only layout evidence. The original owner check remains mandatory;
++    /// this comparison grants no authority to debit, refund or repair a ledger.
++    pub(crate) fn matches_layout(&self, category: SwiftReservationCategory, bytes: usize) -> bool {
++        self.category == category && self.bytes == bytes
++    }
++}
++
++#[cfg(test)]
++impl RuntimeControl {
++    /// Derived boundary fault injection only. Returns the actual replaced
++    /// authority; fixtures must restore it before consuming owner cleanup.
++    pub(crate) fn test_replace_construction(
++        &mut self,
++        ticket: Option<ReservationTicket>,
++    ) -> Option<ReservationTicket> {
++        std::mem::replace(&mut self.construction, ticket)
++    }
++    /// Temporarily narrow one actual live budget, then restore the returned
++    /// scalar. Never changes live usage or repairs a cleanup mismatch.
++    pub(crate) fn test_replace_live_limit(&mut self, resource: Live, ceiling: usize) -> usize {
++        let destination = match resource {
++            Live::Values => &mut self.budget.values,
++            Live::Controls => &mut self.budget.controls,
++            Live::Frames => &mut self.budget.frames,
++            Live::ActivePins => &mut self.budget.active_pins,
++            _ => panic!("unsupported boundary fixture"),
++        };
++        std::mem::replace(destination, ceiling)
++    }
++    pub(crate) fn test_replace_execution_work_limit(&mut self, ceiling: u64) -> u64 {
++        std::mem::replace(&mut self.budget.execution_work, ceiling)
++    }
++}
+ /// The actual proof moves with both adopted tickets. This does not modify the
+ /// sealed proof's layout or manufacture independently executable authority.
+ pub(crate) struct AdoptedProof {
+@@ -1214,6 +1248,57 @@ impl RuntimeControl {
+         Ok(())
+     }
+ 
++    /// Cleanup-independent validation of the actual retained construction
++    /// authority. This borrows its original ticket and records no live change,
++    /// checkpoint, admission, refund or ledger repair.
++    pub(crate) fn check_construction_owner(
++        &mut self,
++        cursor: Cursor,
++        wasi: Option<WasiUsage>,
++    ) -> Result<(), SwiftRunFailure> {
++        let violation = match self.construction.as_ref() {
++            None => Some((
++                SwiftCleanupInvariant::MissingConstruction,
++                "swift_run_missing_construction",
++            )),
++            Some(ticket) if ticket.owner == 0 || ticket.owner != self.owner => Some((
++                SwiftCleanupInvariant::ReservationOwner,
++                "swift_run_construction_owner",
++            )),
++            Some(ticket)
++                if self.reservations.live_tickets == 0
++                    || self.reservations.category(ticket.category).current < ticket.bytes
++                    || self.reservations.combined.current < ticket.bytes =>
++            {
++                Some((
++                    SwiftCleanupInvariant::ReservationUnderflow,
++                    "swift_run_construction_underflow",
++                ))
++            }
++            Some(ticket)
++                if !ticket.matches_layout(
++                    SwiftReservationCategory::Construction,
++                    self.reservations.construction.current,
++                ) =>
++            {
++                Some((
++                    SwiftCleanupInvariant::ConstructionBound,
++                    "swift_run_construction_layout",
++                ))
++            }
++            Some(_) => None,
++        };
++        if let Some((invariant, code)) = violation {
++            self.cleanup_invariant.get_or_insert(invariant);
++            return Err(self.fail(
++                cursor,
++                Fault::new(SwiftRunFailureKind::Invariant, code),
++                wasi,
++            ));
++        }
++        Ok(())
++    }
++
+     // Only after actual storage drop. A mismatch consumes the unusable token but
+     // conservatively retains the complete charge; it cannot create new room.
+     fn refund(&mut self, ticket: ReservationTicket) -> Result<(), SwiftRunFailure> {
+diff --git a/vm/src/experimental_swift_reactor/execution.rs b/vm/src/experimental_swift_reactor/execution.rs
+index ee2d25c..12c7477 100644
+--- a/vm/src/experimental_swift_reactor/execution.rs
++++ b/vm/src/experimental_swift_reactor/execution.rs
+@@ -23,6 +23,8 @@ use crate::{Type, Value};
+ use std::mem::{size_of, take};
+ use std::time::Instant;
+ 
++#[path = "frame_operations.rs"]
++pub(crate) mod frame_operations;
+ #[path = "value_operations.rs"]
+ pub(crate) mod value_operations;
+ 
+@@ -57,6 +59,7 @@ pub(crate) struct SwiftExecutionState {
+     pub frames: Vec<SwiftFrame>,
+     pub buffers: [Option<ReservationTicket>; 6],
+     pub execution_header: Option<ReservationTicket>,
++    pub frame_cleanup: frame_operations::FrameCleanupState,
+ }
+ #[allow(dead_code)] // Chosen private type/layout prerequisite; no executable owner route yet.
+ pub(crate) enum Lifecycle {
+@@ -685,7 +688,12 @@ const EXECUTION_HEADER_BYTES: Option<usize> = {
+                             Some(header) => {
+                                 match header.checked_add(CONSTRUCTION_POSITIVE_CLEANUP_BYTES) {
+                                     Some(header) => {
+-                                        header.checked_add(value_operations::PERMANENT_BYTES)
++                                        match header.checked_add(value_operations::PERMANENT_BYTES)
++                                        {
++                                            Some(header) => header
++                                                .checked_add(frame_operations::PERMANENT_BYTES),
++                                            None => None,
++                                        }
+                                     }
+                                     None => None,
+                                 }
+@@ -1019,6 +1027,7 @@ impl SwiftExecutionState {
+             frames: Vec::new(),
+             buffers: std::array::from_fn(|_| None),
+             execution_header: None,
++            frame_cleanup: const { frame_operations::FrameCleanupState::empty() },
+         }
+     }
+     /// Only this constructor's unpublished State is accepted. Its last fallible
+@@ -1653,7 +1662,20 @@ impl SwiftReactorInstance {
+                 })?;
+                 control.check_reservation_owner(ticket, cleanup_cursor(), Some(wasi.usage()))?;
+             }
+-            if !state.frames.is_empty()
++            frame_operations::original_owners(
++                control,
++                owner.cache.as_ref().unwrap(),
++                wasi,
++                state,
++                cleanup_cursor(),
++            )?;
++            let live = control.usage(Some(wasi.usage())).live;
++            if !state.frame_cleanup.is_empty()
++                || live.values.current != 0
++                || live.controls.current != 0
++                || live.frames.current != 0
++                || live.active_pins.current != 0
++                || !state.frames.is_empty()
+                 || !state.values.is_empty()
+                 || !state.controls.is_empty()
+                 || owner.cache.as_ref().unwrap().usage().active_pins != 0
+diff --git a/vm/src/experimental_swift_reactor/execution_tests.rs b/vm/src/experimental_swift_reactor/execution_tests.rs
+index a5b1cd5..20fc77c 100644
+--- a/vm/src/experimental_swift_reactor/execution_tests.rs
++++ b/vm/src/experimental_swift_reactor/execution_tests.rs
+@@ -257,6 +257,7 @@ fn swift_executor_layout_six_requested_vector_shapes_allocate_exactly() {
+             frames: Vec::new(),
+             buffers: std::array::from_fn(|_| None),
+             execution_header: None,
++            frame_cleanup: Default::default(),
+         };
+         // This is a storage-layout witness with no initialization/dispatch.
+         state.values.try_reserve_exact(16).unwrap();
+diff --git a/vm/src/experimental_swift_reactor/value_operations.rs b/vm/src/experimental_swift_reactor/value_operations.rs
+index da37dde..cc8aa33 100644
+--- a/vm/src/experimental_swift_reactor/value_operations.rs
++++ b/vm/src/experimental_swift_reactor/value_operations.rs
+@@ -282,7 +282,7 @@ pub(super) const ACTIVE_BYTES: usize = size_of::<ActivePositions>();
+ 
+ // The named-row traversal must not execute in the pre-admission window. Const
+ // evaluation is required in Debug too, rather than relying on optimization.
+-const VALUE_OPERATION_BYTES: Option<usize> = match named_bytes("operation") {
++pub(super) const VALUE_OPERATION_BYTES: Option<usize> = match named_bytes("operation") {
+     Some(declared) => declared.checked_add(ACTIVE_BYTES),
+     None => None,
+ };
+@@ -312,6 +312,7 @@ impl SwiftReactorInstance {
+         let state = state.as_mut().expect("constructed state");
+         let live = control.usage(Some(wasi.usage())).live;
+         if matches!(lifecycle, Lifecycle::Terminal)
++            || !state.frame_cleanup.is_empty()
+             || !state.frames.is_empty()
+             || !state.controls.is_empty()
+             || !state.values.is_empty()
+@@ -319,6 +320,7 @@ impl SwiftReactorInstance {
+             || live.values.current != 0
+             || live.controls.current != 0
+             || live.frames.current != 0
++            || live.active_pins.current != 0
+         {
+             return Err(construction_failure(
+                 control,
+@@ -340,6 +342,7 @@ impl SwiftReactorInstance {
+             };
+             control.check_reservation_owner(ticket, cursor, Some(wasi.usage()))?;
+         }
++        frame_operations::original_owners(control, cache, wasi, state, cursor)?;
+         let previous_bound = control
+             .usage(Some(wasi.usage()))
+             .reservations
+@@ -504,7 +507,16 @@ fn primitive_push(
+             .control
+             .fail(operation.cursor, fault, Some(operation.wasi.usage())));
+     }
+-    if values.len() == values.capacity() {
++    if values.len() == {
++        #[cfg(test)]
++        {
++            super::frame_operations::observed_push_capacity(values.capacity(), values.len())
++        }
++        #[cfg(not(test))]
++        {
++            values.capacity()
++        }
++    } {
+         let mut fault = Fault::new(
+             SwiftRunFailureKind::ValueLimit,
+             "swift_execution_value_capacity",

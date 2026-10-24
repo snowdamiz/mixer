@@ -1,0 +1,397 @@
+    Checking mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-active-frames-implementation/build/20261024T050444826239Z/candidate/vm)
+error: field assignment outside of initializer for an instance created with Default::default()
+  --> tests/experimental_guest_ui_allocations.rs:80:5
+   |
+80 |     p.memory = Some(vec![1, 1, 32, 32]);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: consider initializing the variable with `fixture::Program { memory: Some(vec![1, 1, 32, 32]), ..Default::default() }` and removing relevant reassignments
+  --> tests/experimental_guest_ui_allocations.rs:79:5
+   |
+79 |     let mut p = fixture::Program::default();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#field_reassign_with_default
+   = note: `-D clippy::field-reassign-with-default` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::field_reassign_with_default)]`
+
+error: could not compile `mixer-vm` (test "experimental_guest_ui_allocations") due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: field assignment outside of initializer for an instance created with Default::default()
+   --> tests/experimental_guest_ui_validation.rs:123:5
+    |
+123 |     p.unknown_import = true;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+note: consider initializing the variable with `fixture::Program { unknown_import: true, ..Default::default() }` and removing relevant reassignments
+   --> tests/experimental_guest_ui_validation.rs:122:5
+    |
+122 |     let mut p = Program::default();
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#field_reassign_with_default
+    = note: `-D clippy::field-reassign-with-default` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::field_reassign_with_default)]`
+
+error: field assignment outside of initializer for an instance created with Default::default()
+   --> tests/experimental_guest_ui_validation.rs:128:5
+    |
+128 |     p.start_section = true;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^
+    |
+note: consider initializing the variable with `fixture::Program { start_section: true, ..Default::default() }` and removing relevant reassignments
+   --> tests/experimental_guest_ui_validation.rs:127:5
+    |
+127 |     let mut p = Program::default();
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#field_reassign_with_default
+
+error: field assignment outside of initializer for an instance created with Default::default()
+   --> tests/experimental_guest_ui_validation.rs:145:5
+    |
+145 |     p.memory = Some(vec![1, 1, 0, 0]);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+note: consider initializing the variable with `fixture::Program { memory: Some(vec![1, 1, 0, 0]), ..Default::default() }` and removing relevant reassignments
+   --> tests/experimental_guest_ui_validation.rs:144:5
+    |
+144 |     let mut p = Program::default();
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#field_reassign_with_default
+
+error: field assignment outside of initializer for an instance created with Default::default()
+   --> tests/experimental_guest_ui_validation.rs:161:9
+    |
+161 |         p.memory = Some(memory);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+note: consider initializing the variable with `fixture::Program { memory: Some(memory), ..Default::default() }` and removing relevant reassignments
+   --> tests/experimental_guest_ui_validation.rs:160:9
+    |
+160 |         let mut p = Program::default();
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#field_reassign_with_default
+
+error: manual creation of a dangling pointer
+   --> tests/experimental_guest_ui_validation.rs:225:17
+    |
+225 |                 1usize as *const u8,
+    |                 ^^^^^^^^^^^^^^^^^^^ help: use: `std::ptr::dangling::<u8>()`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#manual_dangling_ptr
+    = note: `-D clippy::manual-dangling-ptr` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::manual_dangling_ptr)]`
+
+error: could not compile `mixer-vm` (test "experimental_guest_ui_validation") due to 5 previous errors
+error: the `Err`-variant returned from this function is very large
+   --> src/experimental_swift_reactor/cache_tests.rs:223:6
+    |
+223 | ) -> Result<SwiftFunctionCache, SwiftRunFailure> {
+    |      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the `Err`-variant is at least 1096 bytes
+    |
+    = help: try reducing the size of `experimental_swift_reactor::control::SwiftRunFailure`, for example by boxing large elements or replacing it with `Box<experimental_swift_reactor::control::SwiftRunFailure>`
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#result_large_err
+    = note: `-D clippy::result-large-err` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::result_large_err)]`
+
+error: the `Err`-variant returned from this function is very large
+   --> src/experimental_swift_reactor/cache_tests.rs:258:6
+    |
+258 | ) -> Result<SwiftFunctionPin, SwiftRunFailure> {
+    |      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the `Err`-variant is at least 1096 bytes
+    |
+    = help: try reducing the size of `experimental_swift_reactor::control::SwiftRunFailure`, for example by boxing large elements or replacing it with `Box<experimental_swift_reactor::control::SwiftRunFailure>`
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#result_large_err
+
+error: the `Err`-variant returned from this closure is very large
+   --> src/experimental_swift_reactor/cache_tests.rs:316:45
+    |
+316 |           let (result, allocations) = measure(|| match rejected_owner {
+    |  _____________________________________________^
+317 | |             0 => cache.check_owner(&mut control, Some(&context), cache_cursor()),
+318 | |             1 => cache.check_owner(&mut control, Some(&other_context), cache_cursor()),
+319 | |             _ => other_cache.check_owner(&mut control, Some(&context), cache_cursor()),
+320 | |         });
+    | |_________^ the `Err`-variant is at least 1096 bytes
+    |
+    = help: try reducing the size of `experimental_swift_reactor::control::SwiftRunFailure`, for example by boxing large elements or replacing it with `Box<experimental_swift_reactor::control::SwiftRunFailure>`
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#result_large_err
+
+error: the `Err`-variant returned from this closure is very large
+   --> src/experimental_swift_reactor/cache_tests.rs:342:25
+    |
+342 |                 measure(|| cache.check_owner(&mut control, Some(&context), cache_cursor()));
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the `Err`-variant is at least 1096 bytes
+    |
+    = help: try reducing the size of `experimental_swift_reactor::control::SwiftRunFailure`, for example by boxing large elements or replacing it with `Box<experimental_swift_reactor::control::SwiftRunFailure>`
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#result_large_err
+
+error: this OR pattern can be rewritten using a range
+   --> src/experimental_swift_reactor/cache_tests.rs:425:28
+    |
+425 |         if matches!(opcode,0x45..=0x5a|0x67..=0x8a|0xa7|0xac|0xad|0xc0..=0xc4|0x5b..=0x66|0x8b..=0xa6|0xa8..=0xab|0xae..=0xbf)
+    |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `0x45..=0xc4`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#manual_range_patterns
+    = note: `-D clippy::manual-range-patterns` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::manual_range_patterns)]`
+
+error: the `Err`-variant returned from this closure is very large
+   --> src/experimental_swift_reactor/cache_tests.rs:548:31
+    |
+548 |     let (result, s) = measure(|| pin(&mut cache, &mut c, 34, None));
+    |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the `Err`-variant is at least 1096 bytes
+    |
+    = help: try reducing the size of `experimental_swift_reactor::control::SwiftRunFailure`, for example by boxing large elements or replacing it with `Box<experimental_swift_reactor::control::SwiftRunFailure>`
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#result_large_err
+
+error: the `Err`-variant returned from this closure is very large
+   --> src/experimental_swift_reactor/cache_tests.rs:575:31
+    |
+575 |     let (result, s) = measure(|| pin(&mut cache, &mut c, 34, None));
+    |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the `Err`-variant is at least 1096 bytes
+    |
+    = help: try reducing the size of `experimental_swift_reactor::control::SwiftRunFailure`, for example by boxing large elements or replacing it with `Box<experimental_swift_reactor::control::SwiftRunFailure>`
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#result_large_err
+
+error: the `Err`-variant returned from this closure is very large
+   --> src/experimental_swift_reactor/cache_tests.rs:736:31
+    |
+736 |     let (result, s) = measure(|| SwiftFunctionCache::cleanup(&mut owned, &mut foreign, None));
+    |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the `Err`-variant is at least 1096 bytes
+    |
+    = help: try reducing the size of `experimental_swift_reactor::control::SwiftRunFailure`, for example by boxing large elements or replacing it with `Box<experimental_swift_reactor::control::SwiftRunFailure>`
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#result_large_err
+
+error: call to `std::mem::drop` with a value that does not implement `Drop`. Dropping such a type only extends its contained lifetimes
+   --> src/experimental_swift_reactor/cache_tests.rs:802:5
+    |
+802 |     drop(phase);
+    |     ^^^^^^^^^^^
+    |
+note: argument has type `experimental_swift_reactor::cache::CacheConstructionPhase<'_>`
+   --> src/experimental_swift_reactor/cache_tests.rs:802:10
+    |
+802 |     drop(phase);
+    |          ^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#drop_non_drop
+    = note: `-D clippy::drop-non-drop` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::drop_non_drop)]`
+
+error: call to `std::mem::drop` with a value that does not implement `Drop`. Dropping such a type only extends its contained lifetimes
+   --> src/experimental_swift_reactor/cache_tests.rs:811:5
+    |
+811 |     drop(operation);
+    |     ^^^^^^^^^^^^^^^
+    |
+note: argument has type `experimental_swift_reactor::cache::CacheOperationPhase<'_>`
+   --> src/experimental_swift_reactor/cache_tests.rs:811:10
+    |
+811 |     drop(operation);
+    |          ^^^^^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#drop_non_drop
+
+error: the `Err`-variant returned from this closure is very large
+   --> src/experimental_swift_reactor/cache_tests.rs:855:59
+    |
+855 |         let (result, s) = measure_extended(Some(ordinal), || construct(&mut c, a, None));
+    |                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the `Err`-variant is at least 1096 bytes
+    |
+    = help: try reducing the size of `experimental_swift_reactor::control::SwiftRunFailure`, for example by boxing large elements or replacing it with `Box<experimental_swift_reactor::control::SwiftRunFailure>`
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#result_large_err
+
+error: the `Err`-variant returned from this closure is very large
+   --> src/experimental_swift_reactor/cache_tests.rs:906:63
+    |
+906 |             let (result, s) = measure_extended(Some(ordinal), || pin(&mut cache, &mut c, 34, None));
+    |                                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the `Err`-variant is at least 1096 bytes
+    |
+    = help: try reducing the size of `experimental_swift_reactor::control::SwiftRunFailure`, for example by boxing large elements or replacing it with `Box<experimental_swift_reactor::control::SwiftRunFailure>`
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#result_large_err
+
+error: the `Err`-variant returned from this closure is very large
+   --> src/experimental_swift_reactor/cache_tests.rs:956:63
+    |
+956 |         let (result, stats) = measure_extended(Some(ordinal), || pin(&mut cache, &mut c, 34, None));
+    |                                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the `Err`-variant is at least 1096 bytes
+    |
+    = help: try reducing the size of `experimental_swift_reactor::control::SwiftRunFailure`, for example by boxing large elements or replacing it with `Box<experimental_swift_reactor::control::SwiftRunFailure>`
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#result_large_err
+
+error: this OR pattern can be rewritten using a range
+    --> src/experimental_swift_reactor/cache_tests.rs:2010:28
+     |
+2010 |         if matches!(opcode,0x45..=0x5a|0x67..=0x8a|0xa7|0xac|0xad|0xc0..=0xc4|0x5b..=0x66|0x8b..=0xa6|0xa8..=0xab|0xae..=0xbf)
+     |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `0x45..=0xc4`
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#manual_range_patterns
+
+error: the `Err`-variant returned from this closure is very large
+    --> src/experimental_swift_reactor/cache_tests.rs:2306:39
+     |
+2306 |         let (result, stats) = measure(|| construct(&mut c, a, None));
+     |                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the `Err`-variant is at least 1096 bytes
+     |
+     = help: try reducing the size of `experimental_swift_reactor::control::SwiftRunFailure`, for example by boxing large elements or replacing it with `Box<experimental_swift_reactor::control::SwiftRunFailure>`
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#result_large_err
+
+error: the `Err`-variant returned from this function is very large
+   --> src/experimental_swift_reactor/execution_tests.rs:579:6
+    |
+579 | ) -> Result<SwiftReactorInstance, ConstructionFailure> {
+    |      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+   ::: src/experimental_swift_reactor/execution.rs:159:5
+    |
+159 |     Rejected(SwiftRunFailure),
+    |     ------------------------- the variant `Rejected` contains at least 1096 bytes
+160 |     Cleanup(ConstructionCleanupTail),
+    |     -------------------------------- the largest variant contains at least 2960 bytes
+    |
+    = help: try reducing the size of `experimental_swift_reactor::execution::ConstructionFailure`, for example by boxing large elements or replacing it with `Box<experimental_swift_reactor::execution::ConstructionFailure>`
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#result_large_err
+
+error: the `Err`-variant returned from this closure is very large
+   --> src/experimental_swift_reactor/execution_tests.rs:796:37
+    |
+796 |     let (returned, stats) = measure(|| construct_owned(&mut pair));
+    |                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+   ::: src/experimental_swift_reactor/execution.rs:159:5
+    |
+159 |     Rejected(SwiftRunFailure),
+    |     ------------------------- the variant `Rejected` contains at least 1096 bytes
+160 |     Cleanup(ConstructionCleanupTail),
+    |     -------------------------------- the largest variant contains at least 2960 bytes
+    |
+    = help: try reducing the size of `experimental_swift_reactor::execution::ConstructionFailure`, for example by boxing large elements or replacing it with `Box<experimental_swift_reactor::execution::ConstructionFailure>`
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#result_large_err
+
+error: call to `std::mem::drop` with a value that does not implement `Drop`. Dropping such a type only extends its contained lifetimes
+    --> src/experimental_swift_reactor/execution_tests.rs:1325:5
+     |
+1325 |     drop(original);
+     |     ^^^^^^^^^^^^^^
+     |
+note: argument has type `experimental_swift_reactor::control::ReservationTicket`
+    --> src/experimental_swift_reactor/execution_tests.rs:1325:10
+     |
+1325 |     drop(original);
+     |          ^^^^^^^^
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#drop_non_drop
+
+error: returning the result of a `let` binding from a block
+   --> src/experimental_wasi/accounted_tests.rs:262:13
+    |
+181 | /             let result = match point {
+182 | |                 0 => (
+183 | |                     control
+184 | |                         .work_with_wasi(Work::Cache, budget.cache_work + 1, cursor(), wasi)
+...   |
+260 | |                 _ => unreachable!(),
+261 | |             };
+    | |______________- unnecessary `let` binding
+262 |               result
+    |               ^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#let_and_return
+    = note: `-D clippy::let-and-return` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::let_and_return)]`
+help: return the expression directly
+    |
+181 ~             
+182 ~             match point {
+183 +                 0 => (
+184 +                     control
+185 +                         .work_with_wasi(Work::Cache, budget.cache_work + 1, cursor(), wasi)
+186 +                         .unwrap_err(),
+187 +                     SwiftRunFailureKind::WorkExhausted,
+188 +                 ),
+189 +                 1 => (
+190 +                     control
+191 +                         .admit_with_wasi(
+192 +                             SwiftReservationCategory::Cache,
+193 +                             budget.cache_bytes + 1,
+194 +                             cursor(),
+195 +                             wasi,
+196 +                         )
+197 +                         .unwrap_err(),
+198 +                     SwiftRunFailureKind::CategoryExhausted,
+199 +                 ),
+200 +                 2 => (
+201 +                     control
+202 +                         .admit_with_wasi(
+203 +                             SwiftReservationCategory::Shared,
+204 +                             budget.combined_bytes - before.reservations.combined.current + 1,
+205 +                             cursor(),
+206 +                             wasi,
+207 +                         )
+208 +                         .unwrap_err(),
+209 +                     SwiftRunFailureKind::CombinedExhausted,
+210 +                 ),
+211 +                 3 => (
+212 +                     control
+213 +                         .admit_cache_entry_with_wasi(budget.cache_entry_bytes + 1, cursor(), wasi)
+214 +                         .unwrap_err(),
+215 +                     SwiftRunFailureKind::ResourceExhausted,
+216 +                 ),
+217 +                 4 => (
+218 +                     control
+219 +                         .enlarge_construction_with_wasi(budget.combined_bytes, cursor(), wasi)
+220 +                         .unwrap_err(),
+221 +                     SwiftRunFailureKind::CombinedExhausted,
+222 +                 ),
+223 +                 5 => (
+224 +                     control
+225 +                         .exact_capacity_with_wasi(1, 2, cursor(), wasi)
+226 +                         .unwrap_err(),
+227 +                     SwiftRunFailureKind::Allocation,
+228 +                 ),
+229 +                 6 => (
+230 +                     control
+231 +                         .add_live_with_wasi(
+232 +                             Live::CacheEntries,
+233 +                             budget.cache_entries + 1,
+234 +                             cursor(),
+235 +                             wasi,
+236 +                         )
+237 +                         .unwrap_err(),
+238 +                     SwiftRunFailureKind::ResourceExhausted,
+239 +                 ),
+240 +                 7 => (
+241 +                     control
+242 +                         .remove_live_with_wasi(Live::ActivePins, 1, wasi)
+243 +                         .unwrap_err(),
+244 +                     SwiftRunFailureKind::Invariant,
+245 +                 ),
+246 +                 8 => (
+247 +                     control
+248 +                         .end_construction_phase_with_wasi((), 0, wasi)
+249 +                         .unwrap_err(),
+250 +                     SwiftRunFailureKind::Invariant,
+251 +                 ),
+252 +                 9 => {
+253 +                     control.cancellation().cancel();
+254 +                     (
+255 +                         control
+256 +                             .work_with_wasi(Work::Cache, 1, cursor(), wasi)
+257 +                             .unwrap_err(),
+258 +                         SwiftRunFailureKind::Cancelled,
+259 +                     )
+260 +                 }
+261 +                 _ => unreachable!(),
+262 +             }
+    |
+
+error: call to `std::mem::drop` with a value that does not implement `Drop`. Dropping such a type only extends its contained lifetimes
+   --> src/experimental_wasi/accounted_tests.rs:563:5
+    |
+563 |     drop(phase);
+    |     ^^^^^^^^^^^
+    |
+note: argument has type `experimental_wasi::accounted::WasiConstructionPhase<'_>`
+   --> src/experimental_wasi/accounted_tests.rs:563:10
+    |
+563 |     drop(phase);
+    |          ^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#drop_non_drop
+
+error: could not compile `mixer-vm` (lib test) due to 20 previous errors

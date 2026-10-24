@@ -1,0 +1,60 @@
+{
+  "correctedBeforeFinalFreeze": [
+    {
+      "correction": "Active check precedes snapshot capture; fresh agreement failure terminalizes without rollback; inactive rejection preserves guard",
+      "finding": "Fresh entry snapshots could be applied to a pre-existing retained guard on inactive rejection",
+      "id": "R01"
+    },
+    {
+      "correction": "Frame phase parts are module private; independent negative compilation checks parent access",
+      "finding": "Cleanup-only phase exposed inherited value/complete_values methods through public crate fields",
+      "id": "R02"
+    },
+    {
+      "correction": "Full exact typed MIR arguments/locals/returns and source bindings receive distinct additional fields; captures separately mapped",
+      "finding": "Heuristic usage call typing conflated nested WASI and runtime usages and omitted transfers",
+      "id": "R03"
+    },
+    {
+      "correction": "Primitive and unit hook roles use permanent reservation; original zero-frame119576 component preserved",
+      "finding": "Shared primitive hook slots were charged only in frame active envelope, excluding zero-frame callers",
+      "id": "R04"
+    },
+    {
+      "correction": "Inline field initializer is const-evaluated; State construction payload growth stays separately accounted",
+      "finding": "New cleanup-state initializer helper ran before execution-header reservation",
+      "id": "R05"
+    },
+    {
+      "correction": "Remove min(actual reduction, acquired debit), retain difference and irreversible mismatch latch",
+      "finding": "Rollback mismatch could remove actual delta beyond acquired guard debits",
+      "id": "R06"
+    },
+    {
+      "correction": "Fresh controls and intended diagnostic/effect assertions per path",
+      "finding": "Earlier first failure could mask later AF20 checks on reused controls",
+      "id": "R07"
+    },
+    {
+      "correction": "Root-approved read-only cleanup-independent actual ticket check enforces owner/sufficiency/exact layout before State effects; original ticket authority retained",
+      "finding": "Cleanup-only reacquisition did not validate actual construction ticket provenance before State transition",
+      "id": "R08"
+    }
+  ],
+  "observedUTC": "2026-10-24T05:18:05.469755+00:00",
+  "schema": 1,
+  "scope": "Private host original-owner entry/return/drain only; no public invocation, native runtime, immutable FieldLog package or GA acceptance",
+  "sourceTreeSHA256": "4f16367b0985d924564b80b00b556f799cb42e3426a9b08fd8aca53b2a0015a4",
+  "status": "review-complete-no-remaining-blocking-finding-root-acceptance-pending-at-user-pause",
+  "unchangedSourceChecks": [
+    "Cargo.toml",
+    "Cargo.lock",
+    "include/mixer_vm.h",
+    "include/mixer_vm_capability.h",
+    "include/mixer_vm_guest_ui.h",
+    "src/experimental/execution/borrowed.rs",
+    "src/experimental/policy.rs",
+    "src/lib.rs",
+    "src/ffi.rs"
+  ]
+}

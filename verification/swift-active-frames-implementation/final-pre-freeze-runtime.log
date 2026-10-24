@@ -1,0 +1,47 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/vm)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.38s
+     Running unittests src/lib.rs (verification/swift-active-frames-implementation/build/initial-target/debug/deps/mixer_vm-31ac86bb7e3dcf7f)
+
+running 22 tests
+test experimental_swift_reactor::execution::frame_operations::tests::af01_real_nested_recursive_entry_and_parameter_ownership ... AF01_DEFAULT state_current=41255280 state_peak=41255280 construction_current=1894104 construction_peak=2413040 combined_current=43241676 combined_peak=43760528 state_limit=134217728 combined_limit=268435456
+ok
+test experimental_swift_reactor::execution::frame_operations::tests::af02_nested_zero_single_and_outer_results_exact_order ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af03_real_call_depth_and_pin_limits ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af04_actual_255_256_locals_and_real_257_validation_rejection ... AF04 invalid257 rejected by real validation before owner construction; actual255/256 frames executed
+ok
+test experimental_swift_reactor::execution::frame_operations::tests::af05_real_decoded_control_inclusive_and_aggregate_boundaries ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af06_every_entry_work_prefix_preserves_caller_and_work ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af07_exact_predebit_faults_and_narrow_capacity_admission ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af08_cancellation_at_every_actual_local_check_rolls_back_only_new_effects ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af09_real_pin_and_nested_completion_failure_coexist ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af10_entry_guard_rejected_release_retains_actual_pin_and_cleanup_barrier ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af11_mixed_releases_keep_same_actual_frames_pins_in_order ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af12_all_release_rejections_retain_real_headers_frames_and_charges ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af13_guard_and_multiple_frames_keep_independent_actual_pins ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af14_finish_release_failure_is_processed_suffix_and_never_reinterpreted ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af15_failed_result_push_happens_after_callee_release ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af16_cleanup_undercount_zero_is_sticky_and_blocks_consuming_cleanup ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af17_real_prior_wasi_effect_and_sticky_first_failure ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af18_dropped_phase_cleanup_resume_has_no_admission_work_or_value_access ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af19_exact_fixed_storage_outer_restore_rejection_and_retry ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af20_original_provenance_layout_and_consuming_barriers_preserve_owners ... 
+thread 'experimental_swift_reactor::execution::frame_operations::tests::af20_original_provenance_layout_and_consuming_barriers_preserve_owners' (57486704) panicked at src/experimental_swift_reactor/frame_operations_tests.rs:1350:13:
+assertion `left == right` failed
+  left: "swift_execution_layout_overflow"
+ right: "swift_run_construction_layout"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+test experimental_swift_reactor::execution::frame_operations::tests::af21_warm_paths_refuse_first_allocation_and_cold_decode_is_separate ... AF21 cold decode requests=2 warm entry/finish/drain/completion requests=0
+ok
+test experimental_swift_reactor::execution::frame_operations::tests::af22_frozen_accounting_and_value_phase_reservations_stay_distinct ... AF22_NARROW constructor_rejection combined_limit=43241581 attempted=43386814 frame_admitted=false
+AF_LAYOUT permanent=1918392 frozen_permanent=175336 active=1505296 frozen_active=240776 frame=1624872 value=119576 state=424
+ok
+
+failures:
+
+failures:
+    experimental_swift_reactor::execution::frame_operations::tests::af20_original_provenance_layout_and_consuming_barriers_preserve_owners
+
+test result: FAILED. 21 passed; 1 failed; 0 ignored; 0 measured; 134 filtered out; finished in 11.01s
+
+error: test failed, to rerun pass `--lib`

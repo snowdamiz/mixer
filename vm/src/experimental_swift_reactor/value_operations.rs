@@ -282,7 +282,7 @@ pub(super) const ACTIVE_BYTES: usize = size_of::<ActivePositions>();
 
 // The named-row traversal must not execute in the pre-admission window. Const
 // evaluation is required in Debug too, rather than relying on optimization.
-const VALUE_OPERATION_BYTES: Option<usize> = match named_bytes("operation") {
+pub(super) const VALUE_OPERATION_BYTES: Option<usize> = match named_bytes("operation") {
     Some(declared) => declared.checked_add(ACTIVE_BYTES),
     None => None,
 };
@@ -312,6 +312,7 @@ impl SwiftReactorInstance {
         let state = state.as_mut().expect("constructed state");
         let live = control.usage(Some(wasi.usage())).live;
         if matches!(lifecycle, Lifecycle::Terminal)
+            || !state.frame_cleanup.is_empty()
             || !state.frames.is_empty()
             || !state.controls.is_empty()
             || !state.values.is_empty()
@@ -319,6 +320,7 @@ impl SwiftReactorInstance {
             || live.values.current != 0
             || live.controls.current != 0
             || live.frames.current != 0
+            || live.active_pins.current != 0
         {
             return Err(construction_failure(
                 control,
@@ -340,6 +342,7 @@ impl SwiftReactorInstance {
             };
             control.check_reservation_owner(ticket, cursor, Some(wasi.usage()))?;
         }
+        frame_operations::original_owners(control, cache, wasi, state, cursor)?;
         let previous_bound = control
             .usage(Some(wasi.usage()))
             .reservations
@@ -504,7 +507,16 @@ fn primitive_push(
             .control
             .fail(operation.cursor, fault, Some(operation.wasi.usage())));
     }
-    if values.len() == values.capacity() {
+    if values.len() == {
+        #[cfg(test)]
+        {
+            super::frame_operations::observed_push_capacity(values.capacity(), values.len())
+        }
+        #[cfg(not(test))]
+        {
+            values.capacity()
+        }
+    } {
         let mut fault = Fault::new(
             SwiftRunFailureKind::ValueLimit,
             "swift_execution_value_capacity",

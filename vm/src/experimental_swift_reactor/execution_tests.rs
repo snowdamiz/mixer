@@ -257,6 +257,7 @@ fn swift_executor_layout_six_requested_vector_shapes_allocate_exactly() {
             frames: Vec::new(),
             buffers: std::array::from_fn(|_| None),
             execution_header: None,
+            frame_cleanup: Default::default(),
         };
         // This is a storage-layout witness with no initialization/dispatch.
         state.values.try_reserve_exact(16).unwrap();

@@ -1,0 +1,108 @@
+"""Positive implementation supplement; never credits the frozen1061 rows.
+
+Each named actual local/parameter/call edge below receives distinct source,
+argument, returned and caller fields. All fields are reserved simultaneously.
+The repetitive call-edge rows deliberately also reserve complete borrowed
+receivers, copied observations, cursor, Fault and failure transfers for every
+call occurrence, rather than aliasing the frozen map or another helper window.
+This source-linked conservative map requires independent completeness review.
+"""
+from pathlib import Path
+import importlib.util,re,json
+ROOT=Path(__file__).resolve().parents[2]
+spec=importlib.util.spec_from_file_location('frozen', ROOT/'verification/swift-active-frame-contract/inventory.py')
+frozen=importlib.util.module_from_spec(spec);spec.loader.exec_module(frozen)
+REF="&'static mut FrameOperationPhase<'static>"
+LOCALS={
+'original_owners': [('control',"&'static mut RuntimeControl"),('cache',"&'static SwiftFunctionCache"),('wasi',"&'static AccountedWasi"),('state',"&'static SwiftExecutionState"),('cursor','Cursor'),('header',"&'static ReservationTicket"),('requests','[usize; 6]'),('requests_option','Option<[usize; 6]>'),('budget','SwiftRunBudget'),('ticket_iterator',"std::iter::Enumerate<std::slice::Iter<'static, Option<ReservationTicket>>>"),('index','usize'),('ticket_option',"&'static Option<ReservationTicket>"),('ticket',"&'static ReservationTicket")],
+'prepare_frames':[('self',"&'static mut SwiftReactorInstance"),('control_option',"&'static mut Option<RuntimeControl>"),('cache_option',"&'static mut Option<SwiftFunctionCache>"),('wasi_option',"&'static mut Option<AccountedWasi>"),('state_option',"&'static mut Option<SwiftExecutionState>"),('lifecycle',"&'static mut Lifecycle"),('control',"&'static mut RuntimeControl"),('cache',"&'static mut SwiftFunctionCache"),('wasi',"&'static mut AccountedWasi"),('state',"&'static mut SwiftExecutionState"),('cursor','Cursor'),('live','SwiftLiveUsage'),('previous','usize'),('admitted','usize'),('bytes','usize'),('bound','FrameBound'),('phase',"FrameOperationPhase<'static>"),('result',"Result<FrameOperationPhase<'static>, SwiftRunFailure>")],
+'resume_frame_cleanup':[('self',"&'static mut SwiftReactorInstance"),('control',"&'static mut RuntimeControl"),('cache',"&'static mut SwiftFunctionCache"),('wasi',"&'static mut AccountedWasi"),('state',"&'static mut SwiftExecutionState"),('lifecycle',"&'static mut Lifecycle"),('cursor','Cursor'),('bound','FrameBound'),('bytes','usize'),('phase',"FrameOperationPhase<'static>"),('result',"Result<FrameOperationPhase<'static>, SwiftRunFailure>")],
+'invariant':[('self',REF),('code',"&'static str"),('fault','Fault'),('failure','SwiftRunFailure')],
+'limit':[('self',REF),('kind','SwiftRunFailureKind'),('resource','SwiftRunResource'),('code',"&'static str"),('attempted','usize'),('limit','usize'),('fault','Fault'),('failure','SwiftRunFailure')],
+'active':[('self',REF),('result','Result<(), SwiftRunFailure>')],
+'agreement':[('self',REF),('live','SwiftLiveUsage')],
+'work':[('self',REF),('amount','usize')],
+'acquire_pin':[('self',REF),('function','u32'),('frame_bound','usize'),('preparation',"Option<Result<CacheOperationPhase<'static>, SwiftRunFailure>>"),('phase',"CacheOperationPhase<'static>"),('returned','Option<Result<SwiftFunctionPin, SwiftRunFailure>>'),('pin','Option<SwiftFunctionPin>'),('failure','Option<SwiftRunFailure>'),('completion','Result<(), SwiftRunFailure>'),('completion_failure','SwiftRunFailure'),('nested_restore','Option<usize>'),('attempt','PinAttempt')],
+'enter':[('self',REF),('function','u32'),('pre_values_len','usize'),('pre_controls_len','usize'),('result','Result<(), SwiftRunFailure>')],
+'enter_inner':[('self',REF),('function','u32'),('frame_limit','usize'),('params','usize'),('result','bool'),('signature',"SignatureView<'static>"),('base','usize'),('operands','usize'),('parameter_index','usize'),('parameter_type','Option<Type>'),('parameter_value',"Option<&'static Value>"),('pin','Option<SwiftFunctionPin>'),('failure','Option<SwiftRunFailure>'),('nested_restore','Option<usize>'),('guard_shared',"&'static EntryGuard"),('guard_pin',"&'static SwiftFunctionPin"),('view',"FunctionView<'static>"),('locals','usize'),('end','usize'),('total_locals','usize'),('value_capacity','usize'),('control_capacity','usize'),('caller',"&'static SwiftFrame"),('index','usize'),('borrowed','Option<&\'static Type>'),('ty','Option<Type>'),('value','Value'),('controls','usize'),('function_control','Control'),('guard','EntryGuard'),('guard_pin_take','SwiftFunctionPin'),('frame','SwiftFrame')],
+'add_live':[('self',REF),('resource','Live'),('result','Result<(), SwiftRunFailure>')],
+'remove_live':[('self',REF),('resource','Live'),('amount','usize'),('result','bool')],
+'release':[('self',REF),('pin','SwiftFunctionPin'),('function','u32'),('result','Result<(), SwiftReleaseFailure>')],
+'rollback_entry':[('self',REF),('pre_values_len','usize'),('pre_controls_len','usize'),('values','Option<usize>'),('controls','Option<usize>'),('value_delta','usize'),('control_delta','usize')],
+'retire_entry':[('self',REF),('pin','Option<SwiftFunctionPin>'),('actual_pin','SwiftFunctionPin'),('rejected','SwiftReleaseFailure'),('failure','SwiftRunFailure'),('guard',"&'static EntryGuard")],
+'finish':[('self',REF),('result','Result<FrameReturn, SwiftRunFailure>')],
+'finish_inner':[('self',REF),('result','bool'),('saved','Option<Value>'),('frame_borrow',"&'static SwiftFrame"),('base','usize'),('controls','usize'),('values_removed','usize'),('controls_removed','usize'),('work','usize'),('n','usize'),('frame','SwiftFrame'),('function','u32'),('pc','usize'),('operands','usize'),('pin','SwiftFunctionPin'),('rejected','SwiftReleaseFailure'),('failure','SwiftRunFailure'),('returned_pin','SwiftFunctionPin'),('restored_frame','SwiftFrame'),('value','Value'),('pushed','Result<(), SwiftRunFailure>'),('returned','FrameReturn')],
+'restore_nested':[('self',REF),('bound','usize')],
+'report':[('self',REF),('first_failure','Option<SwiftRunFailure>'),('usage','SwiftRunUsage'),('report','FrameDrainReport')],
+'drain':[('self',REF),('live','SwiftLiveUsage'),('values','usize'),('controls','usize'),('index','usize'),('frame','SwiftFrame'),('function','u32'),('pc','usize'),('base','usize'),('operands','usize'),('frame_controls','usize'),('result','bool'),('pin','SwiftFunctionPin'),('rejected','SwiftReleaseFailure'),('failure','SwiftRunFailure'),('returned_pin','SwiftFunctionPin'),('restored_frame','SwiftFrame')],
+'complete':[('self',"FrameOperationPhase<'static>"),('storage',"FrameOperationStorage<'static>"),('phase',"ExecutionOperationPhase<'static>"),('cleanup',"&'static mut FrameCleanupState"),('lifecycle',"&'static mut Lifecycle"),('parts',"ExecutionParts<'static, SwiftMode>"),('operation',"SwiftExecutionOperation<'static>"),('control',"&'static mut RuntimeControl"),('wasi',"&'static mut AccountedWasi"),('live','SwiftLiveUsage'),('clean','bool'),('report','FrameDrainReport'),('bound','FrameBound'),('previous','usize'),('restored','Result<(), SwiftRunFailure>'),('drop_pair',"(ExecutionParts<'static, SwiftMode>, FrameOperationStorage<'static>)"),('completion','FrameCompletion')],
+}
+RETURNS={'checked_usage':'Result<WasiUsage, SwiftRunFailure>', 'prepare_operation':"Result<CacheOperationPhase<'static>, SwiftRunFailure>", 'pin':'Result<SwiftFunctionPin, SwiftRunFailure>', 'view':"Result<FunctionView<'static>, SwiftRunFailure>", 'pop_value':'Result<Value, SwiftRunFailure>', 'release':'Result<(), SwiftReleaseFailure>', 'execution_signature':"Option<SignatureView<'static>>", 'proof':"&'static crate::experimental_swift_reactor::ValidatedSwiftReactor", 'budget':'SwiftRunBudget', 'record_cleanup':'Option<SwiftRunFailure>', 'acquire_pin':'PinAttempt','report':'FrameDrainReport','finish_inner':'Result<FrameReturn, SwiftRunFailure>', 'enter_inner':'Result<(), SwiftRunFailure>', 'invariant':'SwiftRunFailure','limit':'SwiftRunFailure','fail':'SwiftRunFailure','layout_failure':'SwiftRunFailure','construction_failure':'SwiftRunFailure', 'matches_layout':'bool', 'arena_bytes':'Option<[usize; 6]>', 'execution_header_bytes':'Option<usize>', 'checked_add':'Option<usize>','checked_sub':'Option<usize>', 'function_entry':'Control', 'zero':'Value', 'is_empty':'bool','is_some':'bool','is_none':'bool','is_some_and':'bool','is_ok':'bool','is_err':'bool','len':'usize','capacity':'usize','saturating_sub':'usize','saturating_add':'usize','parameters_plus_locals':'usize','control_depth':'usize','ty':'Type','min':'usize'}
+UNITS={'original_owners','check_owner','check_reservation_owner','enlarge_construction_with_wasi','active','agreement','work','work_with_wasi','check_with_wasi','add_live','add_live_with_wasi','remove_live_with_wasi','end_construction_phase_with_wasi','push_value','complete'}
+
+def rows():
+ text=(ROOT/'vm/src/experimental_swift_reactor/frame_operations.rs').read_text().split('// ACCOUNTING_GENERATED_START')[0]
+ result=[]
+ def add(env,window,binding,ty,source,positions=('source','argument','returned','caller')):
+  for pos in positions:result.append(dict(envelope=env,window=window,binding=binding,position=pos,rustType=ty,source=source,field=f'{window}_{binding}_{pos}'))
+ for window,locals in LOCALS.items():
+  env='permanent' if window in ['original_owners','prepare_frames','resume_frame_cleanup','complete'] else 'active'
+  for name,ty in locals:add(env,window,name,ty,window+'::'+name)
+ # Four independent caller/body copies reserve original_owners across all four
+ # actual call paths including the two pre-enlargement barriers.
+ for call in ['prepare_frames','resume_frame_cleanup','prepare_value_operation','cleanup_owned']:
+  for name,ty in LOCALS['original_owners']:add('permanent','owner_edge_'+call,name,ty,'original_owners caller '+call)
+ # Every authored call receives fresh full receiver/reborrow/observation/failure
+ # fields. These are additional to every frozen and local-position field.
+ window='types'; counters={}
+ for line_no,line in enumerate(text.splitlines(),1):
+  found=re.search(r'\bfn (\w+)\(',line)
+  if found:window=found.group(1)
+  if window not in LOCALS:continue
+  if '#[cfg(test)]' in line or 'tests::' in line:continue
+  env='permanent' if window in ['original_owners','prepare_frames','resume_frame_cleanup','complete'] else 'active'
+  for call in re.finditer(r'\b([a-z][a-z_0-9]*)\s*\(',line):
+   name=call.group(1)
+   if name not in RETURNS and name not in UNITS and name!='usage':continue
+   key=(window,name);n=counters.get(key,0);counters[key]=n+1
+   ty=RETURNS.get(name,'Result<(), SwiftRunFailure>')
+   if name=='usage':ty='super::super::cache::SwiftCacheUsage' if 'cache.usage()' in line else 'WasiUsage' if re.search(r'(?:wasi|operation.wasi)\.usage\(\)',line) and not '.control.usage(' in line else 'SwiftRunUsage'
+   site=f'call_{name}_{n}'
+   add(env,window,site,ty,f'frame_operations.rs:{line_no} {line.strip()}')
+   for role,rolety in [('receiver',REF),('control',"&'static mut RuntimeControl"),('wasi',"&'static AccountedWasi"),('observation','Option<WasiUsage>'),('cursor','Cursor'),('fault','Fault'),('failure','SwiftRunFailure')]:
+    add(env,window,site+'_'+role,rolety,f'frame_operations.rs:{line_no} conservative complete call-edge '+role)
+   if name in UNITS or ty.startswith('Result<'):
+    payload=ty[len('Result<'):ty.rfind(', SwiftRunFailure>')] if ty.startswith('Result<') and ty.endswith(', SwiftRunFailure>') else '()'
+    if 'SwiftReleaseFailure' in ty:continue
+    add(env,window,site+'_try','ControlFlow<Result<Infallible, SwiftRunFailure>, '+payload+'>',f'frame_operations.rs:{line_no} complete Try transfer')
+    add(env,window,site+'_residual','Result<Infallible, SwiftRunFailure>',f'frame_operations.rs:{line_no} complete residual transfer')
+  # Reserve each authored closure's capture tuple and returned Option/Result
+  # independently. All potential closures are included, not just `?` closures.
+  for n in range(line.count('|')):
+   site=f'closure_{line_no}_{n}'
+   for role,ty in [('capture',"(&'static mut RuntimeControl, &'static AccountedWasi, Cursor, &'static usize, &'static SwiftFrame)"),('option','Option<usize>'),('failure','SwiftRunFailure'),('signature',"Option<SignatureView<'static>>"),('ty','Option<Type>'),('bool','bool')]:add(env,window,site+'_'+role,ty,f'frame_operations.rs:{line_no} closure capture/transfer')
+ return result
+
+def render():
+ out=[]
+ for env,cls in [('permanent','ImplementationPermanentPositions'),('active','ImplementationActivePositions')]:
+  out.append('struct '+cls+' {')
+  out += ['    '+row['field']+': '+row['rustType']+',' for row in rows() if row['envelope']==env]
+  out.append('}')
+ return '\n'.join(out)
+if __name__=='__main__':
+ out=ROOT/'vm/src/experimental_swift_reactor/frame_operations.rs'
+ text=out.read_text().split('// ACCOUNTING_GENERATED_START')[0]
+ accepted=frozen.render().replace('pub(super) const PERMANENT_BYTES:', 'pub(super) const FROZEN_PERMANENT_BYTES:').replace('pub(super) const ACTIVE_BYTES:', 'pub(super) const FROZEN_ACTIVE_BYTES:')
+ text+='// ACCOUNTING_GENERATED_START\n'+accepted+'\n'+render()+'''
+/// Frozen declarations remain fully occupied; actual implementation positions
+/// are fresh positive additions, never alternate aliases or subtraction.
+pub(super) const PERMANENT_BYTES: usize = FROZEN_PERMANENT_BYTES + size_of::<ImplementationPermanentPositions>();
+pub(super) const ACTIVE_BYTES: usize = FROZEN_ACTIVE_BYTES + size_of::<ImplementationActivePositions>();
+pub(super) const FRAME_OPERATION_BYTES: Option<usize> = match value_operations::VALUE_OPERATION_BYTES {
+    Some(nested) => ACTIVE_BYTES.checked_add(nested), None => None,
+};
+'''
+ out.write_text(text)
+ (Path(__file__).parent/'implementation-inventory-schema.json').write_text(json.dumps(rows(),sort_keys=True,indent=2)+'\n')
+ (Path(__file__).parent/'frozen-inventory-schema.json').write_text(json.dumps(frozen.rows(),sort_keys=True,indent=2)+'\n')

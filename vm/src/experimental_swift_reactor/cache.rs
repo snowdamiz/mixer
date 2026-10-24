@@ -2040,6 +2040,21 @@ fn test_step(step: CacheStep) {
 #[cfg(test)]
 pub(super) mod inspection {
     use super::*;
+    /// Swaps actual header authority, preserving the replaced original token.
+    pub fn replace_header(
+        cache: &mut SwiftFunctionCache,
+        ticket: Option<ReservationTicket>,
+    ) -> Option<ReservationTicket> {
+        std::mem::replace(&mut cache.header, ticket)
+    }
+    /// A derived pre-effect completion fault at the actual original phase.
+    /// No ticket or ledger changes; the original restoration API rejects zero.
+    pub fn replace_operation_restore_bound(
+        phase: &mut CacheOperationPhase<'_>,
+        bound: usize,
+    ) -> usize {
+        std::mem::replace(&mut phase.previous_bound, bound)
+    }
     pub fn with_owner_counter<T>(seed: u64, body: impl FnOnce() -> T) -> T {
         struct RestoreOwnerCounter(u64);
         impl Drop for RestoreOwnerCounter {

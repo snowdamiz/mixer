@@ -1,0 +1,50 @@
+    Checking mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/vm)
+error[E0624]: method `limit` is private
+   --> src/experimental_swift_reactor/frame_operations.rs:184:36
+    |
+184 |             Fault::new(kind, code).limit(resource, attempted as u64, limit as u64), Some(self.phase.operation.wasi.usage()))
+    |                                    ^^^^^ private method
+    |
+   ::: src/experimental_swift_reactor/control.rs:277:5
+    |
+277 |     fn limit(mut self, resource: SwiftRunResource, attempted: u64, limit: u64) -> Self {
+    |     ---------------------------------------------------------------------------------- private method defined here
+
+error[E0500]: closure requires unique access to `*self` but it is already borrowed
+   --> src/experimental_swift_reactor/frame_operations.rs:307:52
+    |
+307 |         self.work(locals.checked_add(1).ok_or_else(|| self.invariant("swift_frame_work_overflow"))?)?;
+    |         ---- ----                                  ^^ ---- second borrow occurs due to use of `*self` in closure
+    |         |    |                                     |
+    |         |    first borrow later used by call       closure construction occurs here
+    |         borrow occurs here
+
+warning: value assigned to `guard` is never read
+   --> src/experimental_swift_reactor/frame_operations.rs:333:9
+    |
+333 |         guard.values_debited = 0; guard.controls_debited = 0; guard.frame_debited = false;
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: maybe it is overwritten before being read?
+    = note: `#[warn(unused_assignments)]` (part of `#[warn(unused)]`) on by default
+
+warning: value assigned to `guard` is never read
+   --> src/experimental_swift_reactor/frame_operations.rs:333:35
+    |
+333 |         guard.values_debited = 0; guard.controls_debited = 0; guard.frame_debited = false;
+    |                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: maybe it is overwritten before being read?
+
+warning: value assigned to `guard` is never read
+   --> src/experimental_swift_reactor/frame_operations.rs:333:63
+    |
+333 |         guard.values_debited = 0; guard.controls_debited = 0; guard.frame_debited = false;
+    |                                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: maybe it is overwritten before being read?
+
+Some errors have detailed explanations: E0500, E0624.
+For more information about an error, try `rustc --explain E0500`.
+warning: `mixer-vm` (lib) generated 3 warnings
+error: could not compile `mixer-vm` (lib) due to 2 previous errors; 3 warnings emitted

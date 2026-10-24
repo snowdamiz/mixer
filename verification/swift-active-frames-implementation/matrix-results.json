@@ -1,0 +1,405 @@
+{
+  "caseCount": 22,
+  "cases": [
+    {
+      "configurations": [
+        "candidate-swift-debug",
+        "candidate-swift-release",
+        "candidate-all-debug",
+        "candidate-all-release"
+      ],
+      "executed": true,
+      "id": "AF01",
+      "name": "real_nested_and_recursive_entry",
+      "qualification": "Completed target execution with zero failures; exact test identity added in each final-source config; receipt records actual invocation origin.",
+      "required": "Frame, cache PinRecord, cache usage, ActivePins and live Frames increase once per entered frame; parameters are not appended twice; actual locals and function controls match decoded source.",
+      "scope": "future host original-owner runtime",
+      "setup": "Construct original SwiftReactorInstance; enter two different real decoded functions and the same function recursively via private phase, with real caller parameter/operand values.",
+      "sourceLine": 442,
+      "sourceTreeSHA256": "4f16367b0985d924564b80b00b556f799cb42e3426a9b08fd8aca53b2a0015a4",
+      "testIdentity": "experimental_swift_reactor::execution::frame_operations::tests::af01_real_nested_recursive_entry_and_parameter_ownership"
+    },
+    {
+      "configurations": [
+        "candidate-swift-debug",
+        "candidate-swift-release",
+        "candidate-all-debug",
+        "candidate-all-release"
+      ],
+      "executed": true,
+      "id": "AF02",
+      "name": "normal_nested_and_outer_return",
+      "qualification": "Completed target execution with zero failures; exact test identity added in each final-source config; receipt records actual invocation origin.",
+      "required": "Callee locals/parameters/controls and one actual pin retire; caller gets exactly one value via existing push; only outermost copied result escapes; exact work/pop/release/push order.",
+      "scope": "future host original-owner runtime",
+      "setup": "Return zero-result and single-result real frames through finish.",
+      "sourceLine": 494,
+      "sourceTreeSHA256": "4f16367b0985d924564b80b00b556f799cb42e3426a9b08fd8aca53b2a0015a4",
+      "testIdentity": "experimental_swift_reactor::execution::frame_operations::tests::af02_nested_zero_single_and_outer_results_exact_order"
+    },
+    {
+      "configurations": [
+        "candidate-swift-debug",
+        "candidate-swift-release",
+        "candidate-all-debug",
+        "candidate-all-release"
+      ],
+      "executed": true,
+      "id": "AF03",
+      "name": "call_depth_and_pin_ceilings",
+      "qualification": "Completed target execution with zero failures; exact test identity added in each final-source config; receipt records actual invocation origin.",
+      "required": "Failure occurs before prohibited publication/acquisition; all prior actual frame pins survive then drain; no allocation or new frame after ceiling.",
+      "scope": "future host original-owner runtime",
+      "setup": "Narrow frames and active_pins independently; use bounded recursion until each limit.",
+      "sourceLine": 534,
+      "sourceTreeSHA256": "4f16367b0985d924564b80b00b556f799cb42e3426a9b08fd8aca53b2a0015a4",
+      "testIdentity": "experimental_swift_reactor::execution::frame_operations::tests::af03_real_call_depth_and_pin_limits"
+    },
+    {
+      "configurations": [
+        "candidate-swift-debug",
+        "candidate-swift-release",
+        "candidate-all-debug",
+        "candidate-all-release"
+      ],
+      "executed": true,
+      "id": "AF04",
+      "name": "parameters_locals_255_256_257",
+      "qualification": "Completed target execution with zero failures; exact test identity added in each final-source config; receipt records actual invocation origin.",
+      "required": "256 succeeds under legal signature count; 257 fails before local publication; zero-value bits exact; 128 parameter ceiling remains sealed.",
+      "scope": "future host original-owner runtime",
+      "setup": "Decode real functions near 256 combined parameters/locals; include values of all four scalar types.",
+      "sourceLine": 561,
+      "sourceTreeSHA256": "4f16367b0985d924564b80b00b556f799cb42e3426a9b08fd8aca53b2a0015a4",
+      "testIdentity": "experimental_swift_reactor::execution::frame_operations::tests::af04_actual_255_256_locals_and_real_257_validation_rejection"
+    },
+    {
+      "configurations": [
+        "candidate-swift-debug",
+        "candidate-swift-release",
+        "candidate-all-debug",
+        "candidate-all-release"
+      ],
+      "executed": true,
+      "id": "AF05",
+      "name": "function_control_and_aggregate_controls",
+      "qualification": "Completed target execution with zero failures; exact test identity added in each final-source config; receipt records actual invocation origin.",
+      "required": "Function entry consumes its real control slot; aggregate4096 boundary and next-entry rejection are executable within this ownership slice using original-owner setup. Per-function512-inclusive depth rejects513. Test-only Control setup does not claim Swift block/control dispatcher acceptance.",
+      "scope": "future host original-owner runtime",
+      "setup": "Use at most nine actual entry-created frames. A cfg(test)-only setup helper publishes actual common Controls representing decoded nested blocks, with exact original live predebits and scoped no-dispatch provenance. Use eight callers at512 controls for ninth-entry aggregate4097 rejection, and a separate4095-plus-one accepted entry; exercise narrowed aggregate cases too.",
+      "sourceLine": 641,
+      "sourceTreeSHA256": "4f16367b0985d924564b80b00b556f799cb42e3426a9b08fd8aca53b2a0015a4",
+      "testIdentity": "experimental_swift_reactor::execution::frame_operations::tests::af05_real_decoded_control_inclusive_and_aggregate_boundaries"
+    },
+    {
+      "configurations": [
+        "candidate-swift-debug",
+        "candidate-swift-release",
+        "candidate-all-debug",
+        "candidate-all-release"
+      ],
+      "executed": true,
+      "id": "AF06",
+      "name": "every_entry_work_prefix",
+      "qualification": "Completed target execution with zero failures; exact test identity added in each final-source config; receipt records actual invocation origin.",
+      "required": "Original 1 then locals+1 charges preserved; completed work never refunded; prior caller arena unchanged on rejection; first cause uses actual WASI.",
+      "scope": "future host original-owner runtime",
+      "setup": "For fixed small real functions enumerate all execution_work ceilings from 0 through successful entry work total and local check boundaries.",
+      "sourceLine": 698,
+      "sourceTreeSHA256": "4f16367b0985d924564b80b00b556f799cb42e3426a9b08fd8aca53b2a0015a4",
+      "testIdentity": "experimental_swift_reactor::execution::frame_operations::tests::af06_every_entry_work_prefix_preserves_caller_and_work"
+    },
+    {
+      "configurations": [
+        "candidate-swift-debug",
+        "candidate-swift-release",
+        "candidate-all-debug",
+        "candidate-all-release"
+      ],
+      "executed": true,
+      "id": "AF07",
+      "name": "predebit_and_capacity_faults",
+      "qualification": "Completed target execution with zero failures; exact test identity added in each final-source config; receipt records actual invocation origin.",
+      "required": "No matching publication on failed debit; successful earlier local/control effects removed; guard tracks only acquired counts; zero allocator requests in warm phase. Synchronous rollback uses dedicated actual pre_values_len/pre_controls_len captured before publication, never ledger-derived offsets; retained guard has no snapshot and resume performs no stale-offset retry.",
+      "scope": "future host original-owner runtime",
+      "setup": "Force each exact Values/Controls/Frames predebit and fixed room check to reject using narrower budgets and isolated private hooks.",
+      "sourceLine": 739,
+      "sourceTreeSHA256": "4f16367b0985d924564b80b00b556f799cb42e3426a9b08fd8aca53b2a0015a4",
+      "testIdentity": "experimental_swift_reactor::execution::frame_operations::tests::af07_exact_predebit_faults_and_narrow_capacity_admission"
+    },
+    {
+      "configurations": [
+        "candidate-swift-debug",
+        "candidate-swift-release",
+        "candidate-all-debug",
+        "candidate-all-release"
+      ],
+      "executed": true,
+      "id": "AF08",
+      "name": "local_initialization_cancellation",
+      "qualification": "Completed target execution with zero failures; exact test identity added in each final-source config; receipt records actual invocation origin.",
+      "required": "No locals view crosses mutation; only actual appended locals removed; all caller params/control untouched; acquired pin returned or retained explicitly.",
+      "scope": "future host original-owner runtime",
+      "setup": "Cancel at every before-local initialization check after a bounded number of successful real local pushes.",
+      "sourceLine": 787,
+      "sourceTreeSHA256": "4f16367b0985d924564b80b00b556f799cb42e3426a9b08fd8aca53b2a0015a4",
+      "testIdentity": "experimental_swift_reactor::execution::frame_operations::tests::af08_cancellation_at_every_actual_local_check_rolls_back_only_new_effects"
+    },
+    {
+      "configurations": [
+        "candidate-swift-debug",
+        "candidate-swift-release",
+        "candidate-all-debug",
+        "candidate-all-release"
+      ],
+      "executed": true,
+      "id": "AF09",
+      "name": "pin_and_phase_completion_failure",
+      "qualification": "Completed target execution with zero failures; exact test identity added in each final-source config; receipt records actual invocation origin.",
+      "required": "PinAttempt contains pin and failure simultaneously; empty return slots consumed; nested exact bound recorded; first failure unchanged; no frame published.",
+      "scope": "future host original-owner runtime",
+      "setup": "Acquire actual cache pin then inject original construction completion rejection before refund; also pin failure plus completion rejection.",
+      "sourceLine": 813,
+      "sourceTreeSHA256": "4f16367b0985d924564b80b00b556f799cb42e3426a9b08fd8aca53b2a0015a4",
+      "testIdentity": "experimental_swift_reactor::execution::frame_operations::tests::af09_real_pin_and_nested_completion_failure_coexist"
+    },
+    {
+      "configurations": [
+        "candidate-swift-debug",
+        "candidate-swift-release",
+        "candidate-all-debug",
+        "candidate-all-release"
+      ],
+      "executed": true,
+      "id": "AF10",
+      "name": "entry_guard_release_rejection",
+      "qualification": "Completed target execution with zero failures; exact test identity added in each final-source config; receipt records actual invocation origin.",
+      "required": "Actual guard pin stays in State.entry with unresolved charges; no token drop; guard attempted at most once in pass; consuming cleanup rejects intact.",
+      "scope": "future host original-owner runtime",
+      "setup": "After real acquired pin and partial entry effects force same-owner cache release pre-effect rejection.",
+      "sourceLine": 849,
+      "sourceTreeSHA256": "4f16367b0985d924564b80b00b556f799cb42e3426a9b08fd8aca53b2a0015a4",
+      "testIdentity": "experimental_swift_reactor::execution::frame_operations::tests::af10_entry_guard_rejected_release_retains_actual_pin_and_cleanup_barrier"
+    },
+    {
+      "configurations": [
+        "candidate-swift-debug",
+        "candidate-swift-release",
+        "candidate-all-debug",
+        "candidate-all-release"
+      ],
+      "executed": true,
+      "id": "AF11",
+      "name": "several_frame_release_rejections",
+      "qualification": "Completed target execution with zero failures; exact test identity added in each final-source config; receipt records actual invocation origin.",
+      "required": "Actual rejected frames and same pins survive in order; unvisited prefix invariant holds; all four original frames attempted deepest first exactly once.",
+      "scope": "future host original-owner runtime",
+      "setup": "Create bounded 4-frame real nested/recursive chain; make releases at deepest/third positions reject while other actual releases succeed.",
+      "sourceLine": 887,
+      "sourceTreeSHA256": "4f16367b0985d924564b80b00b556f799cb42e3426a9b08fd8aca53b2a0015a4",
+      "testIdentity": "experimental_swift_reactor::execution::frame_operations::tests::af11_mixed_releases_keep_same_actual_frames_pins_in_order"
+    },
+    {
+      "configurations": [
+        "candidate-swift-debug",
+        "candidate-swift-release",
+        "candidate-all-debug",
+        "candidate-all-release"
+      ],
+      "executed": true,
+      "id": "AF12",
+      "name": "all_frames_release_reject",
+      "qualification": "Completed target execution with zero failures; exact test identity added in each final-source config; receipt records actual invocation origin.",
+      "required": "All three actual pins/frames and charges remain, terminal only; all attempts occur; no cache cleanup or header refund.",
+      "scope": "future host original-owner runtime",
+      "setup": "Create three actual frames; corrupt original cache header pairing through held test-only original ticket replacement so all releases reject pre-effect.",
+      "sourceLine": 921,
+      "sourceTreeSHA256": "4f16367b0985d924564b80b00b556f799cb42e3426a9b08fd8aca53b2a0015a4",
+      "testIdentity": "experimental_swift_reactor::execution::frame_operations::tests::af12_all_release_rejections_retain_real_headers_frames_and_charges"
+    },
+    {
+      "configurations": [
+        "candidate-swift-debug",
+        "candidate-swift-release",
+        "candidate-all-debug",
+        "candidate-all-release"
+      ],
+      "executed": true,
+      "id": "AF13",
+      "name": "guard_plus_multiple_rejected_frames",
+      "qualification": "Completed target execution with zero failures; exact test identity added in each final-source config; receipt records actual invocation origin.",
+      "required": "One actual State guard pin and at least two frame pins survive simultaneously; no lone Option overwrite; all pinned/resident and live charges remain observable.",
+      "scope": "future host original-owner runtime",
+      "setup": "Create three actual caller frames then acquire fourth entry pin and fail nested completion/entry; reject guard plus at least two frame releases.",
+      "sourceLine": 964,
+      "sourceTreeSHA256": "4f16367b0985d924564b80b00b556f799cb42e3426a9b08fd8aca53b2a0015a4",
+      "testIdentity": "experimental_swift_reactor::execution::frame_operations::tests::af13_guard_and_multiple_frames_keep_independent_actual_pins"
+    },
+    {
+      "configurations": [
+        "candidate-swift-debug",
+        "candidate-swift-release",
+        "candidate-all-debug",
+        "candidate-all-release"
+      ],
+      "executed": true,
+      "id": "AF14",
+      "name": "release_failure_then_finish_drain",
+      "qualification": "Completed target execution with zero failures; exact test identity added in each final-source config; receipt records actual invocation origin.",
+      "required": "Rejected top frame begins in processed suffix, not attempted twice; stale base/operands/controls are never reused; lower frames still drain.",
+      "scope": "future host original-owner runtime",
+      "setup": "Make finish release fail after actual arena truncation; call drain.",
+      "sourceLine": 1018,
+      "sourceTreeSHA256": "4f16367b0985d924564b80b00b556f799cb42e3426a9b08fd8aca53b2a0015a4",
+      "testIdentity": "experimental_swift_reactor::execution::frame_operations::tests::af14_finish_release_failure_is_processed_suffix_and_never_reinterpreted"
+    },
+    {
+      "configurations": [
+        "candidate-swift-debug",
+        "candidate-swift-release",
+        "candidate-all-debug",
+        "candidate-all-release"
+      ],
+      "executed": true,
+      "id": "AF15",
+      "name": "failed_result_push",
+      "qualification": "Completed target execution with zero failures; exact test identity added in each final-source config; receipt records actual invocation origin.",
+      "required": "Callee already retired and pin released; result does not publish; original push failure remains first while remaining callers drain.",
+      "scope": "future host original-owner runtime",
+      "setup": "Use actual result-returning callee; fail caller result push work/operand/capacity/predebit boundary separately.",
+      "sourceLine": 1048,
+      "sourceTreeSHA256": "4f16367b0985d924564b80b00b556f799cb42e3426a9b08fd8aca53b2a0015a4",
+      "testIdentity": "experimental_swift_reactor::execution::frame_operations::tests::af15_failed_result_push_happens_after_callee_release"
+    },
+    {
+      "configurations": [
+        "candidate-swift-debug",
+        "candidate-swift-release",
+        "candidate-all-debug",
+        "candidate-all-release"
+      ],
+      "executed": true,
+      "id": "AF16",
+      "name": "cleanup_live_undercount_reads_zero",
+      "qualification": "Completed target execution with zero failures; exact test identity added in each final-source config; receipt records actual invocation origin.",
+      "required": "Cleanup continues; live_unreconciled latches even when ledger reads zero; no completion/header refund or generic cleanup bypass.",
+      "scope": "future host original-owner runtime",
+      "setup": "Corrupt actual live Values/Controls/Frames accounting immediately before their actual cleanup removal.",
+      "sourceLine": 1090,
+      "sourceTreeSHA256": "4f16367b0985d924564b80b00b556f799cb42e3426a9b08fd8aca53b2a0015a4",
+      "testIdentity": "experimental_swift_reactor::execution::frame_operations::tests::af16_cleanup_undercount_zero_is_sticky_and_blocks_consuming_cleanup"
+    },
+    {
+      "configurations": [
+        "candidate-swift-debug",
+        "candidate-swift-release",
+        "candidate-all-debug",
+        "candidate-all-release"
+      ],
+      "executed": true,
+      "id": "AF17",
+      "name": "prior_wasi_effect_and_first_failure",
+      "qualification": "Completed target execution with zero failures; exact test identity added in each final-source config; receipt records actual invocation origin.",
+      "required": "Real WASI counters/bytes/denials are preserved in at_failure and after_cleanup; first cause/code/cursor remains unchanged; no fabricated WasiUsage default.",
+      "scope": "future host original-owner runtime",
+      "setup": "Perform a real permitted accounted WASI effect through existing direct host test boundary before entering real frames, then force trap/cancel/work failure and cleanup faults.",
+      "sourceLine": 1135,
+      "sourceTreeSHA256": "4f16367b0985d924564b80b00b556f799cb42e3426a9b08fd8aca53b2a0015a4",
+      "testIdentity": "experimental_swift_reactor::execution::frame_operations::tests::af17_real_prior_wasi_effect_and_sticky_first_failure"
+    },
+    {
+      "configurations": [
+        "candidate-swift-debug",
+        "candidate-swift-release",
+        "candidate-all-debug",
+        "candidate-all-release"
+      ],
+      "executed": true,
+      "id": "AF18",
+      "name": "dropped_phase_and_cleanup_resume",
+      "qualification": "Completed target execution with zero failures; exact test identity added in each final-source config; receipt records actual invocation origin.",
+      "required": "No fresh admission/ordinary check/work; exact saved bound reused; each retained pin attempted once in new pass; no enter/finish/value access; terminal retained frames never interpreted.",
+      "scope": "future host original-owner runtime",
+      "setup": "Drop Active phase at completed method boundary; reacquire cleanup-only using State record; also resume Retained and RestorePending with real original slots.",
+      "sourceLine": 1187,
+      "sourceTreeSHA256": "4f16367b0985d924564b80b00b556f799cb42e3426a9b08fd8aca53b2a0015a4",
+      "testIdentity": "experimental_swift_reactor::execution::frame_operations::tests::af18_dropped_phase_cleanup_resume_has_no_admission_work_or_value_access"
+    },
+    {
+      "configurations": [
+        "candidate-swift-debug",
+        "candidate-swift-release",
+        "candidate-all-debug",
+        "candidate-all-release"
+      ],
+      "executed": true,
+      "id": "AF19",
+      "name": "final_bound_restore_and_return_storage",
+      "qualification": "Completed target execution with zero failures; exact test identity added in each final-source config; receipt records actual invocation origin.",
+      "required": "Every named large wrapper ends before shrink; exact previous bound restored only after all pin/live/nested obligations resolved; failure retains State bound and charge.",
+      "scope": "future host original-owner runtime",
+      "setup": "Consume fixed actual preparation/entry/finish/drain Option slots; force outer restore rejection before refund and exercise cleanup-only retry.",
+      "sourceLine": 1215,
+      "sourceTreeSHA256": "4f16367b0985d924564b80b00b556f799cb42e3426a9b08fd8aca53b2a0015a4",
+      "testIdentity": "experimental_swift_reactor::execution::frame_operations::tests::af19_exact_fixed_storage_outer_restore_rejection_and_retry"
+    },
+    {
+      "configurations": [
+        "candidate-swift-debug",
+        "candidate-swift-release",
+        "candidate-all-debug",
+        "candidate-all-release"
+      ],
+      "executed": true,
+      "id": "AF20",
+      "name": "provenance_and_consuming_barrier",
+      "qualification": "Completed target execution with zero failures; exact test identity added in each final-source config; receipt records actual invocation origin.",
+      "required": "Reject before owner take/admission; retain original ticket/pin/arena owners; no direct cache teardown while frames/guard/bound/live latch present. Require matches_layout(category,bytes) in addition to the original owner check before any admission/use; read-only equality cannot authorize refund or ticket creation.",
+      "scope": "future host original-owner runtime",
+      "setup": "Cross-pair original WASI/cache/state tickets while preserving all replaced authority in test fixtures; attempt prepare, resume, value operation and cleanup_owned. Separately cross-substitute two real same-owner differently sized/category tickets while retaining the displaced originals, so owner/ledger sufficiency alone can pass but exact layout differs.",
+      "sourceLine": 1251,
+      "sourceTreeSHA256": "4f16367b0985d924564b80b00b556f799cb42e3426a9b08fd8aca53b2a0015a4",
+      "testIdentity": "experimental_swift_reactor::execution::frame_operations::tests::af20_original_provenance_layout_and_consuming_barriers_preserve_owners"
+    },
+    {
+      "configurations": [
+        "candidate-swift-debug",
+        "candidate-swift-release",
+        "candidate-all-debug",
+        "candidate-all-release"
+      ],
+      "executed": true,
+      "id": "AF21",
+      "name": "warm_allocator_refusal",
+      "qualification": "Completed target execution with zero failures; exact test identity added in each final-source config; receipt records actual invocation origin.",
+      "required": "Zero allocation requests in those intervals; cold cache decode allocations reported separately with ordinal source boundaries.",
+      "scope": "future host original-owner runtime",
+      "setup": "Warm actual functions before frame operation; install existing allocation observer rejecting first request during selected entry/return/drain/completion paths.",
+      "sourceLine": 1431,
+      "sourceTreeSHA256": "4f16367b0985d924564b80b00b556f799cb42e3426a9b08fd8aca53b2a0015a4",
+      "testIdentity": "experimental_swift_reactor::execution::frame_operations::tests::af21_warm_paths_refuse_first_allocation_and_cold_decode_is_separate"
+    },
+    {
+      "configurations": [
+        "candidate-swift-debug",
+        "candidate-swift-release",
+        "candidate-all-debug",
+        "candidate-all-release"
+      ],
+      "executed": true,
+      "id": "AF22",
+      "name": "frozen_and_existing_value_regressions",
+      "qualification": "Completed target execution with zero failures; exact test identity added in each final-source config; receipt records actual invocation origin.",
+      "required": "Original frozen work/fuel/failure/allocation/observations/reservation unchanged; previously accepted zero-frame preparation remains strict; no new public route.",
+      "scope": "future host original-owner runtime",
+      "setup": "Run actual existing frozen and Swift owner/construction/cache/value tests, and public traces, minimal/all Debug/Release against exact baseline/candidate.",
+      "sourceLine": 1480,
+      "sourceTreeSHA256": "4f16367b0985d924564b80b00b556f799cb42e3426a9b08fd8aca53b2a0015a4",
+      "testIdentity": "experimental_swift_reactor::execution::frame_operations::tests::af22_frozen_accounting_and_value_phase_reservations_stay_distinct"
+    }
+  ],
+  "gaGatePassed": false,
+  "nativeRuntime": false,
+  "sourceTreeSHA256": "4f16367b0985d924564b80b00b556f799cb42e3426a9b08fd8aca53b2a0015a4",
+  "status": "AF01-AF22-executed-host-only"
+}

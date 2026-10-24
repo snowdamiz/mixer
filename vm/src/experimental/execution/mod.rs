@@ -122,6 +122,39 @@ pub(crate) struct Control {
     height: usize,
     result: bool,
 }
+impl Control {
+    pub(crate) const fn function_entry(end: usize, height: usize, result: bool) -> Self {
+        Self {
+            kind: Kind::Function,
+            start: 0,
+            end,
+            height,
+            result,
+        }
+    }
+    /// Budget-only fixture leaf; callers supply metadata copied from a real
+    /// decoded block. This does not implement or invoke Swift block dispatch.
+    #[cfg(all(test, feature = "experimental-swift-reactor"))]
+    pub(crate) const fn decoded_fixture(
+        kind: ControlKind,
+        end: usize,
+        height: usize,
+        result: bool,
+    ) -> Self {
+        let kind = match kind {
+            ControlKind::Block => Kind::Block,
+            ControlKind::Loop => Kind::Loop,
+            ControlKind::If => Kind::If,
+        };
+        Self {
+            kind,
+            start: 0,
+            end,
+            height,
+            result,
+        }
+    }
+}
 #[cfg_attr(not(feature = "experimental-span-execution"), allow(dead_code))]
 pub(crate) struct Frame {
     function: u32,

@@ -1,9 +1,10 @@
 # Execution index
 
-Implementation paused at the user's request after the pushed Phoenix foundation.
-See [pause and resume handoff](docs/implementation-pause-2026-10-24.md). Private
-frame source/evidence is preserved pending root acceptance; the next hosted
-identity implementation has not started. The full product scope remains open.
+Implementation resumed at the user's request on October 24. The saved
+[pause handoff](docs/implementation-pause-2026-10-24.md) remains historical context.
+The private frame entry/return/cleanup slice has root host acceptance; the
+bounded hosted token verifier is in independent review. Computer use and native runtime tests remain
+paused; the full product scope and all GA gates remain open.
 
 The complete specification is [mixer-product-plan.md](mixer-product-plan.md).
 All W01–W18 packages, G01–G38 launch gates, and D0–D8 dogfood milestones remain
@@ -139,8 +140,13 @@ The complete private active-frame entry/return/unwind ownership contract now has
 root acceptance at `verification/swift-active-frame-contract-root-review/acceptance.json`.
 The amended original-owner declarations pass 81 compiler/layout/privacy commands,
 two independent fresh compilations, and sixteen root metadata replays. Entry,
-return, retained multiple-pin cleanup and both owner barriers are being implemented;
-all AF01–AF22 runtime cases and actual-source accounting review remain pending.
+return, retained multiple-pin cleanup and both owner barriers now have root host
+acceptance at `verification/swift-active-frames-root-review/acceptance.json`: 904
+producer executions, 682 independent candidate executions, 40 adversarial probes,
+eight producer layouts and two independent fresh layouts. Root reviewed the
+actual methods and verified 2,148 source/evidence bindings, including the exact
+229-command reuse lineage. No historical candidate result substitutes for the
+final frozen source. Broad Clippy retains its 26 baseline diagnostics.
 Swift control invocation, dispatch, memory and host integration remain incomplete.
 
 The separate Swift milestone CI test failure has a bounded test-only busy retry;
