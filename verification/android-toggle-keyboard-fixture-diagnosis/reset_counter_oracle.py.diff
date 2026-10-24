@@ -1,0 +1,28 @@
+--- sealed-original-export-oracle
++++ reset_counter_oracle.py
+@@ -36,7 +36,7 @@
+ def need(value, message):
+     if not value: raise ValueError(message)
+ 
+-def validate(native, out, metadata):
++def _validate_original(native, out, metadata):
+     need(type(native) is dict and set(native) == {'schema','scope','status','failure','apkSHA256','sourceClosureSHA256','cases','observations','assertions','events','durationMilliseconds','rawCheckedListenerCallbacks','authoritativeCommits','physicalPhones','TalkBackServiceWorkflow'} and native['schema'] == 1 and type(native['schema']) is int, 'supplement schema')
+     need(native['status'] == 'passed-component-only' and native['failure'] is None, 'component native fixture failed')
+     need(native['scope'] == SCOPE and native['rawCheckedListenerCallbacks'] is None and native['authoritativeCommits'] is None, 'component scope cannot imply engine authority')
+@@ -98,3 +98,16 @@
+     need(set(screenshots) == set(SCREENSHOTS), 'four actual PNG exports required')
+     need(code == 0 and b'INSTRUMENTATION_RESULT: status=passed-component-only' in instrument and b'INSTRUMENTATION_CODE: -1' in instrument, 'component instrumentation failed')
+     return result
++
++RESET_FIELDS={'schema','scope','status','failure','apkSHA256','sourceClosureSHA256','cases','observations','assertions','events','durationMilliseconds','rawCheckedListenerCallbacks','authoritativeCommits','physicalPhones','TalkBackServiceWorkflow','addedSetupAssertions','originalAssertionCounter'}
++def validate(native,out,metadata):
++    need(type(native) is dict and set(native)==RESET_FIELDS,'reset supplement exact schema')
++    for key in ('assertions','addedSetupAssertions','originalAssertionCounter'):
++        need(type(native[key]) is int and 0<=native[key]<=512,'reset integer counter '+key)
++    need(native['assertions']==native['originalAssertionCounter']+native['addedSetupAssertions'] and native['addedSetupAssertions']<=6,'reset assertion counter sum')
++    original={key:value for key,value in native.items() if key not in ('addedSetupAssertions','originalAssertionCounter')}
++    original['assertions']=native['originalAssertionCounter']
++    result=_validate_original(original,out,metadata)
++    need(native['addedSetupAssertions']==6,'all six scroll setup assertions required')
++    result.update(assertions=native['assertions'],originalAssertionCounter=native['originalAssertionCounter'],addedSetupAssertions=native['addedSetupAssertions'])
++    return result

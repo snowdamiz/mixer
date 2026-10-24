@@ -1,0 +1,30 @@
+--- sealed-keyboard-oracle
++++ separate-corrected-keyboard-oracle
+@@ -107,7 +107,7 @@
+ GEOMETRY_FIELDS={'decor','root','scroll','content','toggle','windowVisibleFrame','systemBarInsets','contentLayoutHeight','viewportHeight','contentHeight','positiveContentExtent','computedRange','computedExtent','computedOffset','canScrollUp','canScrollDown','density'}
+ OBSERVATION_FIELDS={'case','stage','uptime','requestReturned','state','inputOpen','permit','proposals','fixtureAcknowledgements','nativeChecked','boundChecked','pressed','stableToggle','quiet','addedKeyboardSetupAssertionsBefore','addedSetupAssertionsBefore'}
+ REQUEST_FIELDS={'case','action','keyCode','source','repeat','downTime','eventTime','dispatched'}
+-TRACE_FIELDS={'stage','case','uptime','returned','action','keyCode','source','repeat','canceled','downTime','eventTime','deviceId'}
++TRACE_FIELDS={'stage','case','uptime','returned','action','keyCode','source','repeat','canceled','downTime','eventTime','deviceId','sequence'}
+ 
+ def _view(value,nullable=False):
+     if value is None:
+@@ -126,6 +126,9 @@
+     need(type(setup['dropped']) is int and setup['dropped']==0 and type(setup['modeDropped']) is int and setup['modeDropped']==0 and type(setup['observerFailures']) is int and setup['observerFailures']==0,'keyboard trace loss/failure')
+     requests=setup['requests'];trace=setup['nativeKeyTrace'];modes=setup['nativeModeTrace'];rows=setup['observations']
+     need(type(requests) is list and len(requests)==8 and type(trace) is list and 8<=len(trace)<=16 and type(modes) is list and 0<=len(modes)<=4 and type(rows) is list and len(rows)==32,'complete bounded keyboard setup evidence')
++    for label,entries in (('key',trace),('mode',modes)):
++        for sequence,entry in enumerate(entries):
++            need(type(entry) is dict and type(entry.get('sequence')) is int and entry['sequence']==sequence,'native '+label+' trace contiguous integer sequence')
+     for index,request in enumerate(requests):
+         case=40+index//2;action=index%2
+         need(type(request) is dict and set(request)==REQUEST_FIELDS,'keyboard request exact schema')
+@@ -140,7 +143,7 @@
+         if beforeInTouch:
+             need(modeIndex<len(modes),'native touch-mode transition required')
+             mode=modes[modeIndex];modeIndex+=1
+-            need(type(mode) is dict and set(mode)=={'stage','case','uptime','inTouchMode','rootInTouchMode','mainThread'},'native mode trace exact schema')
++            need(type(mode) is dict and set(mode)=={'stage','case','uptime','inTouchMode','rootInTouchMode','mainThread','sequence'},'native mode trace exact schema')
+             need(type(mode['case']) is int and mode['case']==case and mode['stage']=='window.touchMode.changed' and type(mode['uptime']) is int and mode['uptime']>0 and mode['inTouchMode'] is False and mode['rootInTouchMode'] is False and mode['mainThread'] is True,'actual window transition out of touch mode')
+             need(rows[8*helper+1]['uptime']<=mode['uptime']<=rows[8*helper+2]['uptime'],'mode transition inside actual navigation interval')
+         need(len(caseTrace)==4 or beforeInTouch,'Activity DOWN omission requires actual initial touch mode and native mode transition')

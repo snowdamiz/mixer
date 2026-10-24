@@ -1,16 +1,15 @@
 # Implementation status
 
-Latest checkpoint: the private Android component fixture completes 39 of 45
-cases. Both original scroll-cancellation cases now pass; case 40 cannot acquire
-keyboard focus, and the host collector separately rejects new setup counters.
-The iOS 26.5 comparison retains eight failed direct-activation expectations and
-shows that computer-use drags delivered no movement events. Official XCTest
-movement checks and Android focus setup are being prepared. Both owned native
-instances are cleaned. Commit bbed074d passes Engine CI and 149 Phoenix tests
-with two explicit namespace skips. Swift exact-type accounting and the private
-Linux resource harness remain under implementation/review. Phones, full product
-qualification and every GA/dogfood gate remain pending. See
-[the diagnostic checkpoint](docs/native-toggle-diagnostics-progress.md).
+Latest checkpoint: Android authored V2 toggle input is integrated after all 45
+private component cases and the 429-assertion coordinator matrix pass. All 89
+product inputs match the native-tested candidate; the live build reproduces
+163 class artifacts and DEX bytes. Original collection failures are preserved.
+iOS XCTest now proves native movement and nine passing action evaluations, but
+four directional pans reject admission and the direct diagnostic suite is
+incomplete. A separate pan-origin correction is being prepared. Both owned
+native instances are cleaned. Console CI passes; Swift dispatch accounting,
+Linux resource isolation, full product qualification and every GA/dogfood gate
+remain pending. See [the current checkpoint](docs/native-toggle-input-integration-checkpoint.md).
 
 The console now has its first TypeScript display model for release checks. Nine
 host tests cover 4,096 status combinations, missing/stale results, duplicate and
@@ -85,9 +84,12 @@ The updated section 8.3 requires shared-theme design parity on iOS and Android,
 with platform-specific app appearance only when explicitly declared. Public Apple
 and Android application paths still use platform defaults and do not meet this requirement.
 The shared appearance data foundation now has independent and root acceptance.
-The private Android consumer implements shared style consumption; its latest
-source has scoped API37 emulator acceptance at
-`verification/android-native-appearance-v2/candidate-16-root-review/acceptance.json`.
+The private Android consumer implements shared style consumption. Its earlier
+geometry/measurement evidence is retained at
+`verification/android-native-appearance-v2/candidate-16-root-review/acceptance.json`;
+the authored toggle input now has additional exact-source emulator and live
+integration acceptance at
+`verification/android-authored-toggle-integration/acceptance.json`.
 The private
 Apple consumer now has scoped headless acceptance; native appearance remains
 unqualified.

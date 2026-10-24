@@ -1,0 +1,229 @@
+--- sealed-reset/build.py
++++ keyboard-fixture/build.py
+@@ -1,5 +1,5 @@
+ #!/usr/bin/env python3
+-"""Build fixture-only fresh scroll container reset correction over exact selected production bytes; host only."""
++"""Build fixture-only public keyboard-mode setup correction over exact selected production bytes; host only."""
+ import argparse,gzip,json,os,re,secrets,shutil,tarfile,traceback,zipfile
+ from pathlib import Path
+ import support as common
+--- sealed-reset/verify.py
++++ keyboard-fixture/verify.py
+@@ -1,5 +1,5 @@
+ #!/usr/bin/env python3
+-"""Fresh host-only replay of fixture-only scroll reset correction and exact APK composition."""
++"""Fresh host-only replay of fixture-only keyboard setup correction and exact APK composition."""
+ import argparse,json,os,re,shutil,sys,traceback,zipfile
+ from pathlib import Path
+ import support
+@@ -19,7 +19,7 @@
+     try:
+         receipt['upstreamBefore']=support.upstream();receipt['candidate']=support.frozen();receipt['runnerContract']=support.bind(support.HERE/'runner-contract.json')
+         used=out/'source-used';used.mkdir()
+-        for name in ('support.py','run.py','diagnostics.py','test_host.py','verify.py','runner-contract.json','derived-runner.py','stage_sources.py','source-adaptation.json'):(used/name).write_bytes((support.HERE/name).read_bytes())
++        for name in ('support.py','run.py','diagnostics.py','test_host.py','verify.py','runner-contract.json','derived-runner.py','stage_sources.py','source-adaptation.json','oracle_adapter.py','keyboard_oracle.py','reset_counter_oracle.py','oracle-adaptation.json'):(used/name).write_bytes((support.HERE/name).read_bytes())
+         for name in ('FixtureFailuresTest.java','ScrollTraceBufferTest.java','FixtureInputBoundsTest.java'):(used/name).write_bytes((support.HERE/'host-tests'/name).read_bytes())
+         for name,argv in [('python',[sys.executable,'--version']),('java',[support.JDK/'bin/java','--version']),('javac',[support.JDK/'bin/javac','--version']),('d8',[support.BT/'d8','--version']),('aapt2',[support.BT/'aapt2','version']),('apksigner',[support.BT/'apksigner','version'])]:command(name+'-version',argv)
+         support.save(out/'payload-inventory.json',support.extract(work));production=work/'production-classes';fresh=work/'fresh-fixture';fresh.mkdir();host=work/'host';host.mkdir();dex=work/'fresh-dex';dex.mkdir()
+@@ -45,7 +45,7 @@
+         if entries!=support.read(support.candidate()/'apk-entries.json'):raise ValueError('APK entry replay drift')
+         original=support.read(support.PRODUCER/'supplement-3/production-class-inventory.json');actual={str(p.relative_to(work)):support.bind(p) for p in production.rglob('*.class')}
+         if actual!=original or len(actual)!=159:raise ValueError('production classes changed')
+-        support.save(out/'host-controls.json',test_host.test());receipt['upstreamAfter']=support.upstream();receipt.update({'status':'passed-fresh-host-fixture-only-scroll-reset-correction-and-exact-apk-composition-native-NOT-RUN','unchangedProductionClasses':159,'unchangedNativeLibraries':18,'replayedFixtureClasses':fixtureCount,'exactDexReplay':True,'sourceSnapshots':{p.name:support.bind(p) for p in used.iterdir()}})
++        support.save(out/'host-controls.json',test_host.test());receipt['upstreamAfter']=support.upstream();receipt.update({'status':'passed-fresh-host-fixture-only-keyboard-setup-correction-and-exact-apk-composition-native-NOT-RUN','unchangedProductionClasses':159,'unchangedNativeLibraries':18,'replayedFixtureClasses':fixtureCount,'exactDexReplay':True,'sourceSnapshots':{p.name:support.bind(p) for p in used.iterdir()}})
+     except BaseException as failure:
+         receipt['status']='failed-host-review-retained';receipt['failure']=repr(failure);(out/'failure.log').write_text(traceback.format_exc());raise
+     finally:
+--- sealed-reset/fixture/AndroidManifest.xml
++++ keyboard-fixture/fixture/AndroidManifest.xml
+@@ -1,9 +1,9 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <!-- Separate private component fixture; no public activity or release transport. -->
+-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="dev.mixer.android.authoredtogglescrollresetfix">
++<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="dev.mixer.android.authoredtogglekeyboardfixture">
+   <uses-sdk android:minSdkVersion="36" android:targetSdkVersion="37" />
+-  <application android:theme="@android:style/Theme.Material.Light.NoActionBar" android:label="Mixer private scroll reset fix" android:debuggable="true" android:allowBackup="false" android:supportsRtl="true" android:extractNativeLibs="true">
++  <application android:theme="@android:style/Theme.Material.Light.NoActionBar" android:label="Mixer private keyboard setup fixture" android:debuggable="true" android:allowBackup="false" android:supportsRtl="true" android:extractNativeLibs="true">
+     <activity android:name="dev.mixer.android.AuthoredToggleSupplementActivity" android:exported="false" />
+   </application>
+-  <instrumentation android:name="dev.mixer.android.AuthoredToggleSupplementInstrumentation" android:targetPackage="dev.mixer.android.authoredtogglescrollresetfix" />
++  <instrumentation android:name="dev.mixer.android.AuthoredToggleSupplementInstrumentation" android:targetPackage="dev.mixer.android.authoredtogglekeyboardfixture" />
+ </manifest>
+--- sealed-reset/fixture/AuthoredToggleSupplementActivity.java
++++ keyboard-fixture/fixture/AuthoredToggleSupplementActivity.java
+@@ -108,6 +108,79 @@
+             "toggleVisibleScreen",List.of(toggleVisible.left,toggleVisible.top,toggleVisible.right,toggleVisible.bottom),"decorScreen",List.of(decorRect[0],decorRect[1],decorRect[2],decorRect[3]),
+             "systemBarInsets",List.of(system[0],system[1],system[2],system[3]),"ownedVisibleScreen",List.of(owned[0],owned[1],owned[2],owned[3]),"firstPoint",List.of(x,y),"lastPoint",List.of(lastX,lastY));
+     }
++    final ScrollTraceBuffer keyboardTrace=new ScrollTraceBuffer(64),keyboardModeTrace=new ScrollTraceBuffer(16);
++    boolean observingKeyboard;
++    int keyboardCase,keyboardObserverFailures;
++    @Override public void onAttachedToWindow(){super.onAttachedToWindow();getWindow().getDecorView().getViewTreeObserver().addOnTouchModeChangeListener(this::observeKeyboardMode);}
++    private void observeKeyboardMode(boolean inTouchMode){
++        if(!observingKeyboard)return;
++        try{keyboardModeTrace.add(Json.map("stage","window.touchMode.changed","case",keyboardCase,"uptime",SystemClock.uptimeMillis(),"inTouchMode",inTouchMode,"rootInTouchMode",root.isInTouchMode(),"mainThread",android.os.Looper.myLooper()==getMainLooper()));}
++        catch(RuntimeException failure){keyboardObserverFailures++;}
++    }
++    @Override public boolean dispatchKeyEvent(android.view.KeyEvent event){
++        observeKeyboardKey("activity.key.before",event,null);
++        boolean returned=super.dispatchKeyEvent(event);
++        observeKeyboardKey("activity.key.after",event,returned);
++        return returned;
++    }
++    private void observeKeyboardKey(String stage,android.view.KeyEvent event,Boolean returned){
++        if(!observingKeyboard)return;
++        try{keyboardTrace.add(Json.map("stage",stage,"case",keyboardCase,"uptime",SystemClock.uptimeMillis(),"returned",returned,
++            "action",event.getAction(),"keyCode",event.getKeyCode(),"source",event.getSource(),"repeat",event.getRepeatCount(),
++            "canceled",event.isCanceled(),"downTime",event.getDownTime(),"eventTime",event.getEventTime(),"deviceId",event.getDeviceId()));}
++        catch(RuntimeException failure){keyboardObserverFailures++;}
++    }
++    boolean deliveredKeyboardPair(int start,int modeStart,int which,boolean beforeInTouch){
++        List<Map<String,Object>> entries=keyboardTrace.snapshot(),modes=keyboardModeTrace.snapshot();int count=entries.size()-start;
++        if((count!=2&&count!=4)||keyboardTrace.dropped()!=0||keyboardModeTrace.dropped()!=0||keyboardObserverFailures!=0)return false;
++        if(modes.size()!=modeStart+(beforeInTouch?1:0)||count==2&&!beforeInTouch)return false;
++        if(beforeInTouch){Map<String,Object> row=modes.get(modeStart);
++            if(!Integer.valueOf(which).equals(row.get("case"))||!Boolean.FALSE.equals(row.get("inTouchMode"))||!Boolean.FALSE.equals(row.get("rootInTouchMode"))||!Boolean.TRUE.equals(row.get("mainThread")))return false;}
++        for(int i=0;i<count;i++){
++            Map<String,Object> row=entries.get(start+i);int action=count==2?1:i/2;
++            if(!Integer.valueOf(which).equals(row.get("case"))||!(i%2==0?"activity.key.before":"activity.key.after").equals(row.get("stage"))||
++                !Integer.valueOf(action).equals(row.get("action"))||!Integer.valueOf(android.view.KeyEvent.KEYCODE_DPAD_DOWN).equals(row.get("keyCode"))||
++                !Integer.valueOf(android.view.InputDevice.SOURCE_KEYBOARD).equals(row.get("source"))||!Integer.valueOf(0).equals(row.get("repeat"))||!Boolean.FALSE.equals(row.get("canceled")))return false;
++        }
++        return true;
++    }
++    boolean ownedFocusVisible(View view){
++        if(view==null||!view.isAttachedToWindow()||!view.isShown()||!view.hasWindowFocus()||!view.isEnabled()||view.getVisibility()!=View.VISIBLE||view.getWindowVisibility()!=View.VISIBLE)return false;
++        Rect local=new Rect();if(!view.getLocalVisibleRect(local)||local.isEmpty()||view.getWidth()<=0||view.getHeight()<=0)return false;
++        int[] screen=new int[2];view.getLocationOnScreen(screen);double x=screen[0]+local.exactCenterX(),y=screen[1]+local.exactCenterY();
++        Map<String,Object> owned=ownedInputGeometry(view,x,y,false);
++        return Boolean.TRUE.equals(owned.get("windowOwned"))&&Boolean.TRUE.equals(owned.get("firstOnVisibleToggle"))&&
++            FixtureInputBounds.contains(((List<?>)owned.get("ownedVisibleScreen")).stream().mapToInt(v->((Number)v).intValue()).toArray(),x,y);
++    }
++    static Map<String,Object> focusView(View view){
++        if(view==null)return null;
++        Map<String,Object> value=viewState(view);
++        value.putAll(Json.map("class",view.getClass().getName(),"identity",System.identityHashCode(view),"id",view.getId(),
++            "focusable",view.isFocusable(),"focusableInTouchMode",view.isFocusableInTouchMode(),"inTouchMode",view.isInTouchMode(),
++            "hasFocus",view.hasFocus(),"visibility",view.getVisibility(),"windowVisibility",view.getWindowVisibility()));
++        if(view instanceof android.view.ViewGroup group)value.put("descendantFocusability",group.getDescendantFocusability());
++        return value;
++    }
++    static boolean ancestorFocusBlocked(View view){
++        android.view.ViewParent parent=view.getParent();int count=0;
++        while(parent instanceof View ancestor){
++            if(++count>16)return true;
++            if(ancestor instanceof android.view.ViewGroup group&&group.getDescendantFocusability()==android.view.ViewGroup.FOCUS_BLOCK_DESCENDANTS)return true;
++            parent=ancestor.getParent();
++        }
++        return false;
++    }
++    Map<String,Object> focusState(View toggle,View control){
++        java.util.ArrayList<Object> ancestors=new java.util.ArrayList<>();android.view.ViewParent parent=toggle.getParent();int count=0;
++        while(parent instanceof View ancestor&&count++<16){ancestors.add(focusView(ancestor));parent=ancestor.getParent();}
++        View decor=getWindow().getDecorView(),owner=decor.findFocus(),activityOwner=getCurrentFocus();
++        return Json.map("toggle",focusView(toggle),"control",focusView(control),"ancestors",ancestors,"ancestorChainComplete",!(parent instanceof View),
++            "ancestorFocusBlocked",ancestorFocusBlocked(toggle),"toggleOwnedVisible",ownedFocusVisible(toggle),"controlOwnedVisible",ownedFocusVisible(control),
++            "controlPresent",control!=null&&control.getParent()!=null,"decorFocusOwner",focusView(owner),"activityFocusOwner",focusView(activityOwner),
++            "toggleIsFocusOwner",owner==toggle&&activityOwner==toggle,"controlIsFocusOwner",control!=null&&owner==control&&activityOwner==control,
++            "geometry",geometry(toggle));
++    }
++
+     Map<String,Object> exportTrace(){return Json.map("schema",1,"mode","original-protocol","entries",trace.snapshot(),"dropped",trace.dropped(),
+         "observerFailures",observerFailures,"entryLimit",2048,"byteLimit",524288,"listenerConsumes",false,
+         "observerPerturbation","Public queries and Map allocation add time on dispatch; no sleep, coordinate or timestamp schedule changes");}
+--- sealed-reset/fixture/AuthoredToggleSupplementInstrumentation.java
++++ keyboard-fixture/fixture/AuthoredToggleSupplementInstrumentation.java
+@@ -33,7 +33,8 @@
+     private Switch toggle;
+     private boolean permit,rtl,dark;
+     private int proposals,fixtureAcks,epochs,checks,events,cases;
+-    private int setupChecks;
++    private int setupChecks,keyboardSetupChecks,keyboardSetupEvents;
++    private final List<Object> keyboardSetupObservations=new ArrayList<>(),keyboardSetupRequests=new ArrayList<>();
+     private int mode,overflowAt=-1; // 0 fixture accepts, 1 fixture rejects, 2 closes, 3 newer bind, 4 replacement.
+     private long down,started,lastDeliveredTime;
+     private final List<Object> results=new ArrayList<>();
+@@ -91,7 +92,73 @@
+         Bitmap image=getUiAutomation().takeScreenshot();if(image==null)throw new AssertionError("screenshot unavailable");try(var stream=Files.newOutputStream(getTargetContext().getFilesDir().toPath().resolve(name+".png"),StandardOpenOption.CREATE_NEW)){if(!image.compress(Bitmap.CompressFormat.PNG,100,stream))throw new AssertionError("PNG");}catch(java.io.IOException e){throw new AssertionError(e);}finally{image.recycle();}observations.add(state.get());
+     }
+     private void key(int action,int repeat,boolean cancelled){main(()->{var e=new KeyEvent(down,SystemClock.uptimeMillis(),action,KeyEvent.KEYCODE_DPAD_CENTER,repeat,0,android.view.KeyCharacterMap.VIRTUAL_KEYBOARD,0,cancelled?KeyEvent.FLAG_CANCELED:0,InputDevice.SOURCE_KEYBOARD);toggle.dispatchKeyEvent(e);});}
+-    private void focus(){main(()->require(toggle.requestFocus(),"native focus admitted"));idle();}
++    private record FocusBaseline(android.view.ViewParent parent,List<Integer> frame,List<Integer> screen,boolean focusable,boolean touchFocusable,boolean enabled,boolean checked,boolean boundChecked,boolean inTouchMode) {}
++    private static List<Integer> focusFrame(View view){return List.of(view.getLeft(),view.getTop(),view.getRight(),view.getBottom(),view.getWidth(),view.getHeight(),view.getMeasuredWidth(),view.getMeasuredHeight());}
++    private static List<Integer> focusScreen(View view){int[] point=new int[2];view.getLocationOnScreen(point);return List.of(point[0],point[1]);}
++    private FocusBaseline focusBaseline(){return new FocusBaseline(toggle.getParent(),focusFrame(toggle),focusScreen(toggle),toggle.isFocusable(),toggle.isFocusableInTouchMode(),toggle.isEnabled(),toggle.isChecked(),record.binding.nativeToggleValue(),toggle.isInTouchMode());}
++    private boolean stableFocusPolicy(FocusBaseline before){return toggle.getParent()==before.parent()&&focusFrame(toggle).equals(before.frame())&&focusScreen(toggle).equals(before.screen())&&toggle.isFocusable()==before.focusable()&&toggle.isFocusableInTouchMode()==before.touchFocusable()&&toggle.isEnabled()==before.enabled();}
++    private boolean keyboardQuiet(FocusBaseline before){return proposals==0&&fixtureAcks==0&&!toggle.isPressed()&&toggle.isChecked()==before.checked()&&record.binding.nativeToggleValue()==before.boundChecked();}
++    private void keyboardRequire(boolean value,String label){keyboardSetupChecks++;setupRequire(value,label);}
++    private void keyboardObserve(String stage,Button control,FocusBaseline before,Boolean admitted){
++        if(keyboardSetupObservations.size()>=32)throw new AssertionError("32 keyboard setup observations");
++        keyboardSetupObservations.add(Json.map("case",cases,"stage",stage,"uptime",SystemClock.uptimeMillis(),"requestReturned",admitted,
++            "state",window.focusState(toggle,control),"inputOpen",input.open(record),"permit",permit,"proposals",proposals,"fixtureAcknowledgements",fixtureAcks,
++            "nativeChecked",toggle.isChecked(),"boundChecked",record.binding.nativeToggleValue(),"pressed",toggle.isPressed(),
++            "stableToggle",before!=null&&stableFocusPolicy(before),"quiet",before!=null&&keyboardQuiet(before),
++            "addedKeyboardSetupAssertionsBefore",keyboardSetupChecks,"addedSetupAssertionsBefore",setupChecks));
++    }
++    private void focus(){
++        AtomicReference<Button> ownedControl=new AtomicReference<>();AtomicReference<FocusBaseline> baseline=new AtomicReference<>();
++        int traceStart=window.keyboardTrace.snapshot().size(),modeStart=window.keyboardModeTrace.snapshot().size();Throwable failure=null;
++        try{
++            main(()->{baseline.set(focusBaseline());keyboardObserve("keyboard.control.install.before",null,baseline.get(),null);Button control=new Button(window);ownedControl.set(control);control.setText("Keyboard focus control");window.place(control,600);});idle();
++            main(()->{
++                Button control=ownedControl.get();window.keyboardCase=cases;window.observingKeyboard=true;
++                keyboardObserve("keyboard.before",control,baseline.get(),null);
++                keyboardRequire(window.ownedFocusVisible(toggle)&&window.ownedFocusVisible(control)&&toggle.isFocusable()&&control.isFocusable()&&
++                    control.getClass()==Button.class&&stableFocusPolicy(baseline.get())&&!AuthoredToggleSupplementActivity.ancestorFocusBlocked(toggle)&&!AuthoredToggleSupplementActivity.ancestorFocusBlocked(control)&&input.open(record)&&keyboardQuiet(baseline.get()),"fixture keyboard owned visible focusable window and native control before navigation");
++            });
++            long time=SystemClock.uptimeMillis();
++            for(int action=0;action<=1;action++){
++                long eventTime=Math.max(time,SystemClock.uptimeMillis());
++                Map<String,Object> request=Json.map("case",cases,"action",action,"keyCode",KeyEvent.KEYCODE_DPAD_DOWN,"source",InputDevice.SOURCE_KEYBOARD,"repeat",0,"downTime",time,"eventTime",eventTime,"dispatched",false);
++                keyboardSetupRequests.add(request);
++                sendKeySync(new KeyEvent(time,eventTime,action,KeyEvent.KEYCODE_DPAD_DOWN,0,0,android.view.KeyCharacterMap.VIRTUAL_KEYBOARD,0,0,InputDevice.SOURCE_KEYBOARD));
++                keyboardSetupEvents++;request.put("dispatched",true);
++            }
++            idle();
++            main(()->{
++                Button control=ownedControl.get();keyboardObserve("keyboard.navigation.after",control,baseline.get(),null);
++                keyboardRequire(!toggle.isInTouchMode()&&!control.isInTouchMode()&&window.deliveredKeyboardPair(traceStart,modeStart,cases,baseline.get().inTouchMode())&&
++                    window.ownedFocusVisible(toggle)&&window.ownedFocusVisible(control)&&input.open(record)&&stableFocusPolicy(baseline.get())&&keyboardQuiet(baseline.get()),"fixture actual keyboard navigation leaves touch mode without activation or policy change");
++                boolean admitted=control.requestFocus();keyboardObserve("keyboard.control.focus.after",control,baseline.get(),admitted);
++                keyboardRequire(admitted&&control.isFocused()&&window.getWindow().getDecorView().findFocus()==control&&window.getCurrentFocus()==control&&
++                    !control.isInTouchMode()&&stableFocusPolicy(baseline.get())&&keyboardQuiet(baseline.get()),"fixture unmodified native Button focus positive control");
++                if(control.getParent() instanceof android.view.ViewGroup parent)parent.removeView(control);
++            });idle();
++            main(()->{
++                Button control=ownedControl.get();keyboardObserve("keyboard.control.removed",control,baseline.get(),null);
++                keyboardRequire(control.getParent()==null&&!control.isAttachedToWindow()&&stableFocusPolicy(baseline.get())&&!toggle.isInTouchMode()&&
++                    window.ownedFocusVisible(toggle)&&input.open(record)&&keyboardQuiet(baseline.get()),"fixture native focus control removed and original toggle policy geometry retained");
++                boolean admitted=toggle.requestFocus();keyboardObserve("keyboard.toggle.focus.after",control,baseline.get(),admitted);
++                require(admitted,"native focus admitted");
++            });idle();
++            main(()->{
++                keyboardObserve("keyboard.toggle.focus.settled",ownedControl.get(),baseline.get(),null);
++                keyboardRequire(toggle.isFocused()&&window.getWindow().getDecorView().findFocus()==toggle&&window.getCurrentFocus()==toggle&&!toggle.isInTouchMode()&&
++                    window.ownedFocusVisible(toggle)&&input.open(record)&&stableFocusPolicy(baseline.get())&&keyboardQuiet(baseline.get()),"fixture original native toggle owns settled keyboard focus without activation");
++            });
++        }catch(Throwable caught){failure=caught;}
++        finally{
++            failure=FixtureFailures.attempt(failure,()->main(()->{
++                Button control=ownedControl.get();if(control!=null&&control.getParent() instanceof android.view.ViewGroup parent)parent.removeView(control);
++                window.observingKeyboard=false;keyboardObserve("keyboard.cleanup",control,baseline.get(),null);
++            }));
++        }
++        if(failure instanceof Error error)throw error;
++        if(failure instanceof RuntimeException exception)throw exception;
++        if(failure!=null)throw new AssertionError(failure);
++    }
+     private void cancelCase(String name,Runnable mutation){caseRun(name,()->{reset(false,false,false);double x=end();drag(x,66);main(mutation);touch(MotionEvent.ACTION_UP,x,66);main(()->require(proposals==0&&!toggle.isPressed(),"cancellation emits no proposal or resurrected pressed"));});}
+     private Map<String,Object> scrollState(){
+         int viewport=window.scroll.getHeight()-window.scroll.getPaddingTop()-window.scroll.getPaddingBottom();
+@@ -171,7 +238,7 @@
+             final Throwable retained=failure;
+             Bundle bundle=new Bundle();
+             failure=FixtureFailures.attempt(failure,()->{
+-                Map<String,Object> export=Json.map("schema",1,"scope","actual native View component fixture; fixture Input acknowledgements are not authoritative engine commits","status",retained==null?"passed-component-only":"failed-retained","failure",retained==null?null:retained.toString(),"apkSHA256",arguments==null?null:arguments.getString("apkSHA256"),"sourceClosureSHA256",arguments==null?null:arguments.getString("sourceClosureSHA256"),"cases",results,"observations",observations,"assertions",checks,"addedSetupAssertions",setupChecks,"originalAssertionCounter",checks-setupChecks,"events",events,"durationMilliseconds",SystemClock.uptimeMillis()-started,"rawCheckedListenerCallbacks",null,"authoritativeCommits",null,"physicalPhones","deferred disconnected","TalkBackServiceWorkflow","NOT RUN");
++                Map<String,Object> export=Json.map("schema",1,"scope","actual native View component fixture; fixture Input acknowledgements are not authoritative engine commits","status",retained==null?"passed-component-only":"failed-retained","failure",retained==null?null:retained.toString(),"apkSHA256",arguments==null?null:arguments.getString("apkSHA256"),"sourceClosureSHA256",arguments==null?null:arguments.getString("sourceClosureSHA256"),"cases",results,"observations",observations,"assertions",checks,"addedSetupAssertions",setupChecks,"originalAssertionCounter",checks-setupChecks,"addedScrollSetupAssertions",setupChecks-keyboardSetupChecks,"addedKeyboardSetupAssertions",keyboardSetupChecks,"keyboardSetupEvents",keyboardSetupEvents,"keyboardSetup",Json.map("schema",1,"requests",keyboardSetupRequests,"observations",keyboardSetupObservations,"nativeKeyTrace",window==null?List.of():window.keyboardTrace.snapshot(),"nativeModeTrace",window==null?List.of():window.keyboardModeTrace.snapshot(),"modeDropped",window==null?0:window.keyboardModeTrace.dropped(),"dropped",window==null?0:window.keyboardTrace.dropped(),"observerFailures",window==null?0:window.keyboardObserverFailures),"events",events,"durationMilliseconds",SystemClock.uptimeMillis()-started,"rawCheckedListenerCallbacks",null,"authoritativeCommits",null,"physicalPhones","deferred disconnected","TalkBackServiceWorkflow","NOT RUN");
+                 try{byte[] bytes=new org.json.JSONObject(export).toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);if(bytes.length>8388608)throw new AssertionError("8MiB export");Files.write(getTargetContext().getFilesDir().toPath().resolve("toggle-supplement-results.json"),bytes,StandardOpenOption.CREATE_NEW);bundle.putString("exportSHA256",sha(bytes));}catch(java.io.IOException e){throw new AssertionError(e);}
+             });
+             failure=FixtureFailures.attempt(failure,()->{

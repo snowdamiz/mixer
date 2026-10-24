@@ -1,0 +1,53 @@
+--- verification/android-authored-toggle-input-review/review_baseline.py
++++ verification/android-authored-toggle-integration/verify_live.py
+@@ -1,4 +1,4 @@
+-"""Independent candidate-3 rebuild and APK checks; never dispatches native input."""
++"""Live integrated-source compositional rebuild; no native input or source mutation."""
+ from pathlib import Path
+ import datetime
+ import hashlib
+@@ -29,7 +29,7 @@
+     module=importlib.util.module_from_spec(spec);sys.modules[name]=module;spec.loader.exec_module(module);return module
+ 
+ def main():
+-    out=HERE/'baseline-2';out.mkdir(exist_ok=False)
++    out=HERE/'host-1';out.mkdir(exist_ok=False)
+     helper=ROOT/'verification/android-coordinator-runner-cleanup/owned_process.py'
+     assert sha(helper)=='209290a7b3638f7510bb1b88dfcdb272f657b89fffe96dcc2f2b631b8f244216'
+     owned=load('authored_review_owned',helper)
+@@ -50,6 +50,10 @@
+         locked=read(CANDIDATE/'source-lock.json')
+         assert locked['sourceClosureSHA256']=='509ef6a00bbaf034ebbe9dd6d8d3b8716fe96d9600e7fe8fa92fac41ebca3f99'
+         assert len(locked['files'])==106
++        live_product={name:digest for name,digest in locked['files'].items() if name.startswith(('native/','sdk/'))}
++        assert len(live_product)==89
++        assert all(sha(ROOT/name)==digest for name,digest in live_product.items()), 'Live product source differs from native-tested candidate'
++        receipt['liveProductInputs']=live_product
+         for name,digest in locked['files'].items():assert sha(CANDIDATE/'inputs'/name)==digest,name
+         candidate=read(CANDIDATE/'built-artifacts.json');baseline=read(BASE/'built-artifacts.json')
+         expected_apk='24d75ecc19d08f44adc95e2db123936687929ca5a9fcd71f19189865240f6d18'
+@@ -79,7 +83,7 @@
+         families=['NativeAppearanceViewsV2','NativeRenderer','AuthoredToggleInputV2']
+         for p in production.rglob('*.class'):
+             if p.name.split('$')[0].split('.')[0]in families:p.unlink()
+-        paths=[CANDIDATE/'inputs'/(prefix+n+'.java')for n in families]
++        paths=[ROOT/(prefix+n+'.java')for n in families]
+         run('compile-production',[JDK/'bin/javac','--release','17','-Xlint:all','-Werror','-sourcepath',empty,'-classpath',os.pathsep.join(map(str,[production,JAR])),'-d',production,*paths])
+         fixtures=[CANDIDATE/'inputs/verification/android-coordinator-join'/n for n in ['CoordinatorJoinActivity.java','CoordinatorJoinInstrumentation.java']]
+         originals=[ROOT/'verification/android-pointer-oracle-repair'/p.name for p in fixtures]
+@@ -102,12 +106,13 @@
+                 for p in sorted(directory.rglob('*')):
+                     if p.is_file():t.add(p,arcname=str(p.relative_to(work)),recursive=False)
+         write(out/'fresh-artifacts.json',{str(p.relative_to(work)):bind(p)for d in [production,tests,dex,host]for p in sorted(d.rglob('*'))if p.is_file()})
+-        receipt.update(status='passed-independent-host-build-and-artifact-review',candidate='candidate-3',sourceClosureSHA256=locked['sourceClosureSHA256'],apkSHA256=expected_apk,sourceInputs=106,matchedClasses=len(rebuilt),changedAPKEntries=sorted(changed),baselineFixtureBytesUnchanged=True,unchangedNativeLibraries=18)
++        assert all(sha(ROOT/name)==digest for name,digest in live_product.items()), 'Live product changed during build'
++        receipt.update(status='passed-live-integrated-source-build-and-artifact-review',candidate='candidate-3',sourceClosureSHA256=locked['sourceClosureSHA256'],apkSHA256=expected_apk,sourceInputs=106,matchedClasses=len(rebuilt),changedAPKEntries=sorted(changed),baselineFixtureBytesUnchanged=True,unchangedNativeLibraries=18)
+         receipt['candidateBindings']={str((CANDIDATE/n).relative_to(ROOT)):e for n,e in seal['files'].items()}
+         receipt['candidateBindings'][str((CANDIDATE/'artifact-seal.json').relative_to(ROOT))]=bind(CANDIDATE/'artifact-seal.json')
+         receipt['tools']={str(p):bind(p)for p in [JDK/'bin/java',JDK/'bin/javac',BT/'d8',BT/'lib/d8.jar',BT/'zipalign',BT/'apksigner',BT/'lib/apksigner.jar',JAR,helper,Path(sys.executable)]}
+     except BaseException as failure:
+-        receipt['status']='failed-independent-review';receipt['failure']=repr(failure);raise
++        receipt['status']='failed-live-integrated-source-build-review';receipt['failure']=repr(failure);raise
+     finally:
+         try:
+             holders=run('scratch-holders',['lsof','-nP','+D',work],allowed=(1,));assert not holders

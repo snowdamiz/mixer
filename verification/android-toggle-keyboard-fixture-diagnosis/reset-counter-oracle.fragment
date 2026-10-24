@@ -1,0 +1,13 @@
+
+RESET_FIELDS={'schema','scope','status','failure','apkSHA256','sourceClosureSHA256','cases','observations','assertions','events','durationMilliseconds','rawCheckedListenerCallbacks','authoritativeCommits','physicalPhones','TalkBackServiceWorkflow','addedSetupAssertions','originalAssertionCounter'}
+def validate(native,out,metadata):
+    need(type(native) is dict and set(native)==RESET_FIELDS,'reset supplement exact schema')
+    for key in ('assertions','addedSetupAssertions','originalAssertionCounter'):
+        need(type(native[key]) is int and 0<=native[key]<=512,'reset integer counter '+key)
+    need(native['assertions']==native['originalAssertionCounter']+native['addedSetupAssertions'] and native['addedSetupAssertions']<=6,'reset assertion counter sum')
+    original={key:value for key,value in native.items() if key not in ('addedSetupAssertions','originalAssertionCounter')}
+    original['assertions']=native['originalAssertionCounter']
+    result=_validate_original(original,out,metadata)
+    need(native['addedSetupAssertions']==6,'all six scroll setup assertions required')
+    result.update(assertions=native['assertions'],originalAssertionCounter=native['originalAssertionCounter'],addedSetupAssertions=native['addedSetupAssertions'])
+    return result

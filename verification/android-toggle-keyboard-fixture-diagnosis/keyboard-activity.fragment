@@ -1,0 +1,73 @@
+    final ScrollTraceBuffer keyboardTrace=new ScrollTraceBuffer(64),keyboardModeTrace=new ScrollTraceBuffer(16);
+    boolean observingKeyboard;
+    int keyboardCase,keyboardObserverFailures;
+    @Override public void onAttachedToWindow(){super.onAttachedToWindow();getWindow().getDecorView().getViewTreeObserver().addOnTouchModeChangeListener(this::observeKeyboardMode);}
+    private void observeKeyboardMode(boolean inTouchMode){
+        if(!observingKeyboard)return;
+        try{keyboardModeTrace.add(Json.map("stage","window.touchMode.changed","case",keyboardCase,"uptime",SystemClock.uptimeMillis(),"inTouchMode",inTouchMode,"rootInTouchMode",root.isInTouchMode(),"mainThread",android.os.Looper.myLooper()==getMainLooper()));}
+        catch(RuntimeException failure){keyboardObserverFailures++;}
+    }
+    @Override public boolean dispatchKeyEvent(android.view.KeyEvent event){
+        observeKeyboardKey("activity.key.before",event,null);
+        boolean returned=super.dispatchKeyEvent(event);
+        observeKeyboardKey("activity.key.after",event,returned);
+        return returned;
+    }
+    private void observeKeyboardKey(String stage,android.view.KeyEvent event,Boolean returned){
+        if(!observingKeyboard)return;
+        try{keyboardTrace.add(Json.map("stage",stage,"case",keyboardCase,"uptime",SystemClock.uptimeMillis(),"returned",returned,
+            "action",event.getAction(),"keyCode",event.getKeyCode(),"source",event.getSource(),"repeat",event.getRepeatCount(),
+            "canceled",event.isCanceled(),"downTime",event.getDownTime(),"eventTime",event.getEventTime(),"deviceId",event.getDeviceId()));}
+        catch(RuntimeException failure){keyboardObserverFailures++;}
+    }
+    boolean deliveredKeyboardPair(int start,int modeStart,int which,boolean beforeInTouch){
+        List<Map<String,Object>> entries=keyboardTrace.snapshot(),modes=keyboardModeTrace.snapshot();int count=entries.size()-start;
+        if((count!=2&&count!=4)||keyboardTrace.dropped()!=0||keyboardModeTrace.dropped()!=0||keyboardObserverFailures!=0)return false;
+        if(modes.size()!=modeStart+(beforeInTouch?1:0)||count==2&&!beforeInTouch)return false;
+        if(beforeInTouch){Map<String,Object> row=modes.get(modeStart);
+            if(!Integer.valueOf(which).equals(row.get("case"))||!Boolean.FALSE.equals(row.get("inTouchMode"))||!Boolean.FALSE.equals(row.get("rootInTouchMode"))||!Boolean.TRUE.equals(row.get("mainThread")))return false;}
+        for(int i=0;i<count;i++){
+            Map<String,Object> row=entries.get(start+i);int action=count==2?1:i/2;
+            if(!Integer.valueOf(which).equals(row.get("case"))||!(i%2==0?"activity.key.before":"activity.key.after").equals(row.get("stage"))||
+                !Integer.valueOf(action).equals(row.get("action"))||!Integer.valueOf(android.view.KeyEvent.KEYCODE_DPAD_DOWN).equals(row.get("keyCode"))||
+                !Integer.valueOf(android.view.InputDevice.SOURCE_KEYBOARD).equals(row.get("source"))||!Integer.valueOf(0).equals(row.get("repeat"))||!Boolean.FALSE.equals(row.get("canceled")))return false;
+        }
+        return true;
+    }
+    boolean ownedFocusVisible(View view){
+        if(view==null||!view.isAttachedToWindow()||!view.isShown()||!view.hasWindowFocus()||!view.isEnabled()||view.getVisibility()!=View.VISIBLE||view.getWindowVisibility()!=View.VISIBLE)return false;
+        Rect local=new Rect();if(!view.getLocalVisibleRect(local)||local.isEmpty()||view.getWidth()<=0||view.getHeight()<=0)return false;
+        int[] screen=new int[2];view.getLocationOnScreen(screen);double x=screen[0]+local.exactCenterX(),y=screen[1]+local.exactCenterY();
+        Map<String,Object> owned=ownedInputGeometry(view,x,y,false);
+        return Boolean.TRUE.equals(owned.get("windowOwned"))&&Boolean.TRUE.equals(owned.get("firstOnVisibleToggle"))&&
+            FixtureInputBounds.contains(((List<?>)owned.get("ownedVisibleScreen")).stream().mapToInt(v->((Number)v).intValue()).toArray(),x,y);
+    }
+    static Map<String,Object> focusView(View view){
+        if(view==null)return null;
+        Map<String,Object> value=viewState(view);
+        value.putAll(Json.map("class",view.getClass().getName(),"identity",System.identityHashCode(view),"id",view.getId(),
+            "focusable",view.isFocusable(),"focusableInTouchMode",view.isFocusableInTouchMode(),"inTouchMode",view.isInTouchMode(),
+            "hasFocus",view.hasFocus(),"visibility",view.getVisibility(),"windowVisibility",view.getWindowVisibility()));
+        if(view instanceof android.view.ViewGroup group)value.put("descendantFocusability",group.getDescendantFocusability());
+        return value;
+    }
+    static boolean ancestorFocusBlocked(View view){
+        android.view.ViewParent parent=view.getParent();int count=0;
+        while(parent instanceof View ancestor){
+            if(++count>16)return true;
+            if(ancestor instanceof android.view.ViewGroup group&&group.getDescendantFocusability()==android.view.ViewGroup.FOCUS_BLOCK_DESCENDANTS)return true;
+            parent=ancestor.getParent();
+        }
+        return false;
+    }
+    Map<String,Object> focusState(View toggle,View control){
+        java.util.ArrayList<Object> ancestors=new java.util.ArrayList<>();android.view.ViewParent parent=toggle.getParent();int count=0;
+        while(parent instanceof View ancestor&&count++<16){ancestors.add(focusView(ancestor));parent=ancestor.getParent();}
+        View decor=getWindow().getDecorView(),owner=decor.findFocus(),activityOwner=getCurrentFocus();
+        return Json.map("toggle",focusView(toggle),"control",focusView(control),"ancestors",ancestors,"ancestorChainComplete",!(parent instanceof View),
+            "ancestorFocusBlocked",ancestorFocusBlocked(toggle),"toggleOwnedVisible",ownedFocusVisible(toggle),"controlOwnedVisible",ownedFocusVisible(control),
+            "controlPresent",control!=null&&control.getParent()!=null,"decorFocusOwner",focusView(owner),"activityFocusOwner",focusView(activityOwner),
+            "toggleIsFocusOwner",owner==toggle&&activityOwner==toggle,"controlIsFocusOwner",control!=null&&owner==control&&activityOwner==control,
+            "geometry",geometry(toggle));
+    }
+

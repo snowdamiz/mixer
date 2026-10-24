@@ -1,0 +1,67 @@
+    private record FocusBaseline(android.view.ViewParent parent,List<Integer> frame,List<Integer> screen,boolean focusable,boolean touchFocusable,boolean enabled,boolean checked,boolean boundChecked,boolean inTouchMode) {}
+    private static List<Integer> focusFrame(View view){return List.of(view.getLeft(),view.getTop(),view.getRight(),view.getBottom(),view.getWidth(),view.getHeight(),view.getMeasuredWidth(),view.getMeasuredHeight());}
+    private static List<Integer> focusScreen(View view){int[] point=new int[2];view.getLocationOnScreen(point);return List.of(point[0],point[1]);}
+    private FocusBaseline focusBaseline(){return new FocusBaseline(toggle.getParent(),focusFrame(toggle),focusScreen(toggle),toggle.isFocusable(),toggle.isFocusableInTouchMode(),toggle.isEnabled(),toggle.isChecked(),record.binding.nativeToggleValue(),toggle.isInTouchMode());}
+    private boolean stableFocusPolicy(FocusBaseline before){return toggle.getParent()==before.parent()&&focusFrame(toggle).equals(before.frame())&&focusScreen(toggle).equals(before.screen())&&toggle.isFocusable()==before.focusable()&&toggle.isFocusableInTouchMode()==before.touchFocusable()&&toggle.isEnabled()==before.enabled();}
+    private boolean keyboardQuiet(FocusBaseline before){return proposals==0&&fixtureAcks==0&&!toggle.isPressed()&&toggle.isChecked()==before.checked()&&record.binding.nativeToggleValue()==before.boundChecked();}
+    private void keyboardRequire(boolean value,String label){keyboardSetupChecks++;setupRequire(value,label);}
+    private void keyboardObserve(String stage,Button control,FocusBaseline before,Boolean admitted){
+        if(keyboardSetupObservations.size()>=32)throw new AssertionError("32 keyboard setup observations");
+        keyboardSetupObservations.add(Json.map("case",cases,"stage",stage,"uptime",SystemClock.uptimeMillis(),"requestReturned",admitted,
+            "state",window.focusState(toggle,control),"inputOpen",input.open(record),"permit",permit,"proposals",proposals,"fixtureAcknowledgements",fixtureAcks,
+            "nativeChecked",toggle.isChecked(),"boundChecked",record.binding.nativeToggleValue(),"pressed",toggle.isPressed(),
+            "stableToggle",before!=null&&stableFocusPolicy(before),"quiet",before!=null&&keyboardQuiet(before),
+            "addedKeyboardSetupAssertionsBefore",keyboardSetupChecks,"addedSetupAssertionsBefore",setupChecks));
+    }
+    private void focus(){
+        AtomicReference<Button> ownedControl=new AtomicReference<>();AtomicReference<FocusBaseline> baseline=new AtomicReference<>();
+        int traceStart=window.keyboardTrace.snapshot().size(),modeStart=window.keyboardModeTrace.snapshot().size();Throwable failure=null;
+        try{
+            main(()->{baseline.set(focusBaseline());keyboardObserve("keyboard.control.install.before",null,baseline.get(),null);Button control=new Button(window);ownedControl.set(control);control.setText("Keyboard focus control");window.place(control,600);});idle();
+            main(()->{
+                Button control=ownedControl.get();window.keyboardCase=cases;window.observingKeyboard=true;
+                keyboardObserve("keyboard.before",control,baseline.get(),null);
+                keyboardRequire(window.ownedFocusVisible(toggle)&&window.ownedFocusVisible(control)&&toggle.isFocusable()&&control.isFocusable()&&
+                    control.getClass()==Button.class&&stableFocusPolicy(baseline.get())&&!AuthoredToggleSupplementActivity.ancestorFocusBlocked(toggle)&&!AuthoredToggleSupplementActivity.ancestorFocusBlocked(control)&&input.open(record)&&keyboardQuiet(baseline.get()),"fixture keyboard owned visible focusable window and native control before navigation");
+            });
+            long time=SystemClock.uptimeMillis();
+            for(int action=0;action<=1;action++){
+                long eventTime=Math.max(time,SystemClock.uptimeMillis());
+                Map<String,Object> request=Json.map("case",cases,"action",action,"keyCode",KeyEvent.KEYCODE_DPAD_DOWN,"source",InputDevice.SOURCE_KEYBOARD,"repeat",0,"downTime",time,"eventTime",eventTime,"dispatched",false);
+                keyboardSetupRequests.add(request);
+                sendKeySync(new KeyEvent(time,eventTime,action,KeyEvent.KEYCODE_DPAD_DOWN,0,0,android.view.KeyCharacterMap.VIRTUAL_KEYBOARD,0,0,InputDevice.SOURCE_KEYBOARD));
+                keyboardSetupEvents++;request.put("dispatched",true);
+            }
+            idle();
+            main(()->{
+                Button control=ownedControl.get();keyboardObserve("keyboard.navigation.after",control,baseline.get(),null);
+                keyboardRequire(!toggle.isInTouchMode()&&!control.isInTouchMode()&&window.deliveredKeyboardPair(traceStart,modeStart,cases,baseline.get().inTouchMode())&&
+                    window.ownedFocusVisible(toggle)&&window.ownedFocusVisible(control)&&input.open(record)&&stableFocusPolicy(baseline.get())&&keyboardQuiet(baseline.get()),"fixture actual keyboard navigation leaves touch mode without activation or policy change");
+                boolean admitted=control.requestFocus();keyboardObserve("keyboard.control.focus.after",control,baseline.get(),admitted);
+                keyboardRequire(admitted&&control.isFocused()&&window.getWindow().getDecorView().findFocus()==control&&window.getCurrentFocus()==control&&
+                    !control.isInTouchMode()&&stableFocusPolicy(baseline.get())&&keyboardQuiet(baseline.get()),"fixture unmodified native Button focus positive control");
+                if(control.getParent() instanceof android.view.ViewGroup parent)parent.removeView(control);
+            });idle();
+            main(()->{
+                Button control=ownedControl.get();keyboardObserve("keyboard.control.removed",control,baseline.get(),null);
+                keyboardRequire(control.getParent()==null&&!control.isAttachedToWindow()&&stableFocusPolicy(baseline.get())&&!toggle.isInTouchMode()&&
+                    window.ownedFocusVisible(toggle)&&input.open(record)&&keyboardQuiet(baseline.get()),"fixture native focus control removed and original toggle policy geometry retained");
+                boolean admitted=toggle.requestFocus();keyboardObserve("keyboard.toggle.focus.after",control,baseline.get(),admitted);
+                require(admitted,"native focus admitted");
+            });idle();
+            main(()->{
+                keyboardObserve("keyboard.toggle.focus.settled",ownedControl.get(),baseline.get(),null);
+                keyboardRequire(toggle.isFocused()&&window.getWindow().getDecorView().findFocus()==toggle&&window.getCurrentFocus()==toggle&&!toggle.isInTouchMode()&&
+                    window.ownedFocusVisible(toggle)&&input.open(record)&&stableFocusPolicy(baseline.get())&&keyboardQuiet(baseline.get()),"fixture original native toggle owns settled keyboard focus without activation");
+            });
+        }catch(Throwable caught){failure=caught;}
+        finally{
+            failure=FixtureFailures.attempt(failure,()->main(()->{
+                Button control=ownedControl.get();if(control!=null&&control.getParent() instanceof android.view.ViewGroup parent)parent.removeView(control);
+                window.observingKeyboard=false;keyboardObserve("keyboard.cleanup",control,baseline.get(),null);
+            }));
+        }
+        if(failure instanceof Error error)throw error;
+        if(failure instanceof RuntimeException exception)throw exception;
+        if(failure!=null)throw new AssertionError(failure);
+    }

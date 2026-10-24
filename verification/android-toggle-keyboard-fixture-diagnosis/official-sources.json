@@ -1,0 +1,38 @@
+{
+  "authority": "Current official Android documentation read with web tool; source summaries are requirements input, not runtime evidence",
+  "inference": "Touch mode is a plausible unobserved fixture precondition in the failed run, not an established product cause.",
+  "observedDate": "2026-10-24",
+  "schema": 1,
+  "sources": [
+    {
+      "finding": "Screen input enters touch mode; directional input exits it. Touch-mode focus requires isFocusableInTouchMode. Mode persists across windows and activities and is queried using isInTouchMode.",
+      "title": "Input events overview: Touch mode and Handling focus",
+      "url": "https://developer.android.com/develop/ui/views/touch-and-input/input-events#TouchMode"
+    },
+    {
+      "finding": "A focus request can fail for non-focusability, touch-mode restrictions, invisibility or ancestor FOCUS_BLOCK_DESCENDANTS. getDescendantFocusability exposes the ancestor policy.",
+      "title": "ViewGroup requestFocus and descendantFocusability",
+      "url": "https://developer.android.com/reference/android/view/ViewGroup#requestFocus(int,%20android.graphics.Rect)"
+    },
+    {
+      "finding": "sendKeySync targets the currently focused window and waits for event handling; display reaction can continue afterwards, so native idle and actual state remain separate observations.",
+      "title": "Instrumentation sendKeySync",
+      "url": "https://developer.android.com/reference/android/app/Instrumentation#sendKeySync(android.view.KeyEvent)"
+    },
+    {
+      "finding": "The public global-mode setup API requires the originating process to have internal MODIFY_TOUCH_MODE_STATE on Android 13 and later; shell has that permission. Selected fixture uses ordinary directional navigation input instead.",
+      "title": "Instrumentation setInTouchMode",
+      "url": "https://developer.android.com/reference/android/app/Instrumentation#setInTouchMode(boolean)"
+    },
+    {
+      "finding": "Navigation DOWN can be consumed before Activity dispatch when leaving touch mode selects focus. An absent Activity DOWN alone is not evidence of consumption.",
+      "title": "Official framework checkForLeavingTouchModeAndConsume",
+      "url": "https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/view/ViewRootImpl.java"
+    },
+    {
+      "finding": "The public callback reports whether the view hierarchy is now in touch mode after a mode change.",
+      "title": "Public touch-mode observer",
+      "url": "https://developer.android.com/reference/android/view/ViewTreeObserver.OnTouchModeChangeListener"
+    }
+  ]
+}

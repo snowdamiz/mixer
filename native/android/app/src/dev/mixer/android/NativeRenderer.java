@@ -98,7 +98,7 @@ final class NativeRenderer {
     }
     void environmentInvalidatedV2(){
         NativeEnvironmentV2.requireMain();if(v2Plan==null)return;
-        v2Open=false;if(v2Gate!=null){v2Gate.open=false;v2Gate.invalidate();}
+        v2Open=false;if(v2Gate!=null){v2Gate.open=false;v2Gate.invalidate();}cancelToggleInputV2();
     }
     boolean presentationCurrentV2(){
         NativeEnvironmentV2.requireMain();if(!v2Open||v2Retired)return false;
@@ -287,7 +287,7 @@ final class NativeRenderer {
     }
     AttachmentJournal attachV2(Candidate c,FrameLayout root){
         validateV2(c,false);if(root!=c.environment.root())throw Json.bad("foreign V2 root");preflightEditorsV2(c);
-        v2Open=false;c.gate.open=false;if(v2Gate!=null)v2Gate.open=false;c.gate.canvasColor=NativeAppearanceViewsV2.color(c.plan.canvas);v2Steps=0;
+        v2Open=false;c.gate.open=false;if(v2Gate!=null)v2Gate.open=false;cancelToggleInputV2();c.gate.canvasColor=NativeAppearanceViewsV2.color(c.plan.canvas);v2Steps=0;
         try {
             for(var entry:c.targets.entrySet()){
                 var target=entry.getValue();var shadow=c.detached.get(entry.getKey());
@@ -321,7 +321,7 @@ final class NativeRenderer {
     void validateAttachedV2(Candidate c,AttachmentJournal journal){validateV2(c,true);if(journal!=c.journal||journal.complete)throw Json.bad("foreign V2 journal");}
     void rollbackV2(Candidate c,AttachmentJournal journal){
         NativeEnvironmentV2.requireMain();if(c==null||c.owner!=this||v2Pending!=c||c.used||journal!=c.journal||journal.complete)throw Json.bad("invalid V2 rollback");
-        v2Open=false;c.gate.open=false;
+        v2Open=false;c.gate.open=false;cancelToggleInputV2();
         try{restoreV2(c);c.used=true;journal.complete=true;v2Pending=null;}
         catch(RuntimeException|java.lang.Error failure){retireV2();c.used=true;v2Pending=null;throw failure;}
     }
@@ -333,7 +333,8 @@ final class NativeRenderer {
                 if(text instanceof EditText edit&&state.selectionStart>=0)edit.setSelection(state.selectionStart,state.selectionEnd);}finally{r.changing=false;}}
         }
         for(NativeState state:c.journal.previous){var r=state.record;
-            r.changing=true;try{if(r.view instanceof Switch value)value.setChecked(state.checked);r.view.setPressed(state.pressed);}finally{r.changing=false;}}
+            r.changing=true;try{if(r.view instanceof Switch value)value.setChecked(state.checked);r.view.setPressed(state.pressed);}finally{r.changing=false;}
+            r.cancelToggleInput();}
         for(ParentState parent:c.journal.parents)restoreParentV2(parent.parent,parent.children);
         for(var old:c.baseRecords.values())if(old.group!=null)old.group.records=c.baseRecords;
         restoreParentV2(c.environment.root(),c.journal.rootChildren);
@@ -351,7 +352,12 @@ final class NativeRenderer {
             if(view.getParent() instanceof ViewGroup previous)previous.removeView(view);parent.addView(view,i);}
     }
     void disposeV2(){NativeEnvironmentV2.requireMain();retireV2();if(v2Environment!=null)v2Environment.close();}
-    void retireV2(){v2Retired=true;v2Open=false;if(v2Gate!=null){v2Gate.open=false;v2Gate.setVisibility(View.INVISIBLE);}if(v2Pending!=null){v2Pending.gate.open=false;v2Pending.gate.setVisibility(View.INVISIBLE);}}
+    private void cancelToggleInputV2(){
+        for(var record:v2Records.values())record.cancelToggleInput();
+        if(v2Pending!=null){for(var record:v2Pending.targets.values())record.cancelToggleInput();for(var record:v2Pending.detached.values())record.cancelToggleInput();}
+    }
+    void retireV2(){v2Retired=true;v2Open=false;if(v2Gate!=null)v2Gate.open=false;if(v2Pending!=null)v2Pending.gate.open=false;
+        cancelToggleInputV2();if(v2Gate!=null)v2Gate.setVisibility(View.INVISIBLE);if(v2Pending!=null)v2Pending.gate.setVisibility(View.INVISIBLE);}
     private void requireV2Live(){
         if(Build.VERSION.SDK_INT<36)throw new AppearanceDescriptorV2.Failure(AppearanceDescriptorV2.Error.unsupportedNativeOperation);
         if(v2Retired)throw Json.bad("V2 owner retired");
