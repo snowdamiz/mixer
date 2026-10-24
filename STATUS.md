@@ -94,8 +94,12 @@ Observed implementation and evidence:
   passes106 SDK tests and5,584 independent schema/roundtrip cases per mode, plus
   public iOS/Android module checks. See
   `verification/ui-appearance-descriptor-v2-root-review/acceptance.json`. Android
-  V2 data implementation is under independent review; renderers, native resources/support and
-  signed V2 remain pending.
+  V2 reader and geometry now have root acceptance with 387 bindings: 6,165
+  independent descriptors, 100,989 Java geometry cases (100,976 Swift), exact
+  parser/ownership and complete byte-boundary checks agree across both modes.
+  See `verification/android-appearance-v2-root-review/acceptance.json`.
+  Pure V2 recipe/style resolution is underway; renderers, native resources/support
+  and signed V2 remain pending.
 
 - Java shared appearance resolution now has independent and root acceptance as
   immutable data. Root checks 183 bindings across both corpora and all four

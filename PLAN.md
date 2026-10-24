@@ -120,7 +120,13 @@ unchanged. The Swift V2 codec now passes106 SDK tests per mode and an independen
 5,584-case corpus (973 accepted/4,611 rejected), with exact canonical roundtrips.
 Public constructors and iOS/officialAndroid modules compile; see
 `verification/ui-appearance-descriptor-v2-root-review/acceptance.json`. Android
-V2 data implementation is under independent review. Native consumers, resource/bootstrap support,
+V2 reader and geometry now have scoped root acceptance with 387 bindings.
+Independent review executes 6,165 descriptors, 100,989 Java geometry cases
+(100,976 representable Swift cases), parser/ownership checks and exact complete
+65,535/65,536/65,537-byte boundaries across both JVM and Swift modes. No Java
+default theme is maintained. See
+`verification/android-appearance-v2-root-review/acceptance.json`.
+The pure V2 identity/recipe/style resolver is in implementation; native consumers, resource/bootstrap support,
 signed V2 installation, interaction and physical design parity remain pending.
 
 Eight unchanged iOS simulator screenshots are retained in

@@ -1,0 +1,7 @@
+/Users/andreyyurlov/Documents/dev/mixer/verification/android-appearance-v2-data/candidate-1/inputs/verification/android-appearance-v2-data/SwiftDataProbe.swift:32:91: error: type 'UIAppearanceConfigurationV2' has no member 'mixerDefaultV2'
+30 |         guard v1.count == 1906, try UIAppearanceDescriptorCodecV1.canonicalData(UIAppearanceDescriptorCodecV1.decode(v1)) == v1 else { fatalError("V1 golden changed") }
+31 |         let expected = try Data(contentsOf: URL(fileURLWithPath: CommandLine.arguments[4]))
+32 |         guard try UIAppearanceDescriptorCodecV2.canonicalData(UIAppearanceConfigurationV2.mixerDefaultV2()) == expected else { fatalError("actual Swift default differs") }
+   |                                                                                           `- error: type 'UIAppearanceConfigurationV2' has no member 'mixerDefaultV2'
+33 |         FileHandle.standardError.write(Data("PASS Swift descriptor cases=\(lines.count) accepted=\(accepted) rejected=\(lines.count-accepted); actual default and V1 golden preserved\n".utf8))
+34 |     }
