@@ -1,0 +1,58 @@
+COMMAND: go test -count=1 -v ./reviewprobe -run TestPublicConfig(Token|Trust|Host|V3)
+=== RUN   TestPublicConfigTokenRoleScopeCredentialAndActorOwnership
+=== RUN   TestPublicConfigTokenRoleScopeCredentialAndActorOwnership/role
+    config_ownership_public_test.go:105: reader before mutation: HTTP 403; expected 403; {"error":{"code":"role_denied","message":"project permission denied"},"request_id":"8b5b916cbf0dc92b46f3d7b1d4071972"}
+    config_ownership_public_test.go:107: reader after caller elevates role: HTTP 201; expected 403; {"artifact_sha256":"f2732034f8aa5342b5e5c35d2268e5339aa3e68e78c86cae1512664a8b61e0db","immutable":true}
+    config_ownership_public_test.go:107: reader after caller elevates role: got HTTP 201, want 403
+=== RUN   TestPublicConfigTokenRoleScopeCredentialAndActorOwnership/scope
+    config_ownership_public_test.go:113: original scope remains authorized: HTTP 403; expected 200; {"error":{"code":"scope_denied","message":"project access denied"},"request_id":"f1e48cd281a6a6dcbb020b7e4be52bf8"}
+    config_ownership_public_test.go:113: original scope remains authorized: got HTTP 403, want 200
+    config_ownership_public_test.go:114: caller cannot retarget token scope: HTTP 200; expected 403; {"events":[],"next":0}
+    config_ownership_public_test.go:114: caller cannot retarget token scope: got HTTP 200, want 403
+=== RUN   TestPublicConfigTokenRoleScopeCredentialAndActorOwnership/credential
+    config_ownership_public_test.go:120: original bearer remains authorized: HTTP 401; expected 200; {"error":{"code":"unauthenticated","message":"invalid bearer credential"},"request_id":"c45f0449d09763e6b588fd5d20ccdb10"}
+    config_ownership_public_test.go:120: original bearer remains authorized: got HTTP 401, want 200
+    config_ownership_public_test.go:121: caller cannot install another bearer: HTTP 200; expected 401; {"events":[],"next":0}
+    config_ownership_public_test.go:121: caller cannot install another bearer: got HTTP 200, want 401
+=== RUN   TestPublicConfigTokenRoleScopeCredentialAndActorOwnership/actor
+    config_ownership_public_test.go:127: upload after caller changes actor: HTTP 201; expected 201; {"artifact_sha256":"f4545c2e02d18b84d50497b01c4a3ad9535ca86dbc04c80e56f77d3761e7645e","immutable":true}
+    config_ownership_public_test.go:129: audit available: HTTP 200; expected 200; {"events":[{"id":1,"organization":"review-org","project":"review-project","actor":"forged-actor","action":"PUT /v1/orgs/review-org/projects/review-project/artifacts/f4545c2e02d18b84d50497b01c4a3ad9535ca86dbc04c80e56f77d3761e7645e","reason":"local development operation","previous":"a78de718cd334f2a976f3d3819bd3985d4dc328cc4891abff9eb6b2cbc721e16","current":"2f54110397d2b5baf087299fa035acd146ac890dede1fda59d489ac146232f9e","source_ip":"192.0.2.1","request_id":"ca56f316406c3c29bbb5f21e148686f9","created_at_unix":1792816513,"previous_hash":"","hash":"520d6bd2324aaf44910ea233c16fe41505fa7c41ef334278d4f41def75927c9c"}],"next":1}
+    config_ownership_public_test.go:131: audit actor changed through caller-owned token: {"events":[{"id":1,"organization":"review-org","project":"review-project","actor":"forged-actor","action":"PUT /v1/orgs/review-org/projects/review-project/artifacts/f4545c2e02d18b84d50497b01c4a3ad9535ca86dbc04c80e56f77d3761e7645e","reason":"local development operation","previous":"a78de718cd334f2a976f3d3819bd3985d4dc328cc4891abff9eb6b2cbc721e16","current":"2f54110397d2b5baf087299fa035acd146ac890dede1fda59d489ac146232f9e","source_ip":"192.0.2.1","request_id":"ca56f316406c3c29bbb5f21e148686f9","created_at_unix":1792816513,"previous_hash":"","hash":"520d6bd2324aaf44910ea233c16fe41505fa7c41ef334278d4f41def75927c9c"}],"next":1}
+--- FAIL: TestPublicConfigTokenRoleScopeCredentialAndActorOwnership (0.05s)
+    --- FAIL: TestPublicConfigTokenRoleScopeCredentialAndActorOwnership/role (0.02s)
+    --- FAIL: TestPublicConfigTokenRoleScopeCredentialAndActorOwnership/scope (0.01s)
+    --- FAIL: TestPublicConfigTokenRoleScopeCredentialAndActorOwnership/credential (0.01s)
+    --- FAIL: TestPublicConfigTokenRoleScopeCredentialAndActorOwnership/actor (0.01s)
+=== RUN   TestPublicConfigTrustRootBytesAndSliceOwnership
+=== RUN   TestPublicConfigTrustRootBytesAndSliceOwnership/public-key-bytes
+    config_ownership_public_test.go:142: foreign signer before mutation: HTTP 422; expected 422; {"error":{"code":"artifact_invalid","message":"artifact signature invalid"},"request_id":"5743b32ea152d845063b5c5fdc42755f"}
+    config_ownership_public_test.go:144: foreign signer after caller replaces trusted bytes: HTTP 201; expected 422; {"artifact_sha256":"3e36cebe50cb2354e4cea8b6e83781b170a5337faf3f66b889b81d447658ac40","immutable":true}
+    config_ownership_public_test.go:144: foreign signer after caller replaces trusted bytes: got HTTP 201, want 422
+    config_ownership_public_test.go:145: original signer remains trusted: HTTP 422; expected 201; {"error":{"code":"artifact_invalid","message":"artifact signature invalid"},"request_id":"57e2671857a9bdcec56647e3813bcea3"}
+    config_ownership_public_test.go:145: original signer remains trusted: got HTTP 422, want 201
+=== RUN   TestPublicConfigTrustRootBytesAndSliceOwnership/root-slice-element
+    config_ownership_public_test.go:151: caller cannot revoke server-owned root: HTTP 422; expected 201; {"error":{"code":"artifact_invalid","message":"signing authority denied"},"request_id":"bbfd698f84ddad0a89a686868b8580f7"}
+    config_ownership_public_test.go:151: caller cannot revoke server-owned root: got HTTP 422, want 201
+--- FAIL: TestPublicConfigTrustRootBytesAndSliceOwnership (0.02s)
+    --- FAIL: TestPublicConfigTrustRootBytesAndSliceOwnership/public-key-bytes (0.01s)
+    --- FAIL: TestPublicConfigTrustRootBytesAndSliceOwnership/root-slice-element (0.01s)
+=== RUN   TestPublicConfigHostMapAndSliceOwnership
+=== RUN   TestPublicConfigHostMapAndSliceOwnership/capability-map
+    config_ownership_public_test.go:161: substituted schema before mutation: HTTP 422; expected 422; {"error":{"code":"artifact_invalid","message":"host contract mismatch"},"request_id":"72dd19b1d623d3ac297a362c283263d2"}
+    config_ownership_public_test.go:163: substituted schema after caller changes map: HTTP 201; expected 422; {"artifact_sha256":"764dfaa0302dc7ac9651fb5302a2d9eddbd2f4f4743223e9bb876b9dfeca54e5","immutable":true}
+    config_ownership_public_test.go:163: substituted schema after caller changes map: got HTTP 201, want 422
+    config_ownership_public_test.go:164: original schema remains compatible: HTTP 422; expected 201; {"error":{"code":"artifact_invalid","message":"host contract mismatch"},"request_id":"7b5ba75b542ce1fa0e970c076d0ecc95"}
+    config_ownership_public_test.go:164: original schema remains compatible: got HTTP 422, want 201
+=== RUN   TestPublicConfigHostMapAndSliceOwnership/host-slice-element
+    config_ownership_public_test.go:170: caller cannot replace installed state version: HTTP 422; expected 201; {"error":{"code":"artifact_invalid","message":"state schema incompatible"},"request_id":"635203ed7b392c82034321a101e5887f"}
+    config_ownership_public_test.go:170: caller cannot replace installed state version: got HTTP 422, want 201
+--- FAIL: TestPublicConfigHostMapAndSliceOwnership (0.03s)
+    --- FAIL: TestPublicConfigHostMapAndSliceOwnership/capability-map (0.02s)
+    --- FAIL: TestPublicConfigHostMapAndSliceOwnership/host-slice-element (0.01s)
+=== RUN   TestPublicConfigV3MapAndNestedRequestGrantControl
+    config_ownership_public_test.go:197: v3 original host survives caller map deletion: HTTP 422; expected 201; {"error":{"code":"artifact_invalid","message":"v3 host contract mismatch"},"request_id":"4a0c073d06a055628e70f6506f7d563a"}
+    config_ownership_public_test.go:197: v3 original host survives caller map deletion: got HTTP 422, want 201
+--- FAIL: TestPublicConfigV3MapAndNestedRequestGrantControl (0.01s)
+FAIL
+FAIL	mixer/services/reviewprobe	0.247s
+FAIL

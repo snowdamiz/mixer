@@ -75,6 +75,16 @@ the cleaned test binaries. Hosted revalidation is pending. See
 `verification/github-ci-6bee951/receipt.json` and
 `verification/cold-start-milestone-ci-repair/root-acceptance.json`.
 
+The release server now owns a configuration snapshot before validation/storage
+open. Independent probes reproduced caller mutations changing token permissions,
+trust keys and host policy, plus five data races; the fixed v1/v2/v3 workflows
+preserve their original authority. Five focused tests/30 subtests, the complete
+61-test service race suite and vet pass, with independent review. Root verifies
+the exact archived source and logs at
+`verification/release-config-ownership/root-acceptance.json`.
+Hosted identity, real PostgreSQL integration for this slice and full W11/W16
+qualification remain pending; production hosting stays disabled.
+
 Active work: native shared-theme renderer integration and failure-atomic
 attachment for W03–W05, plus complete Swift guest execution for W08. Both V2
 data resolvers and native curve primitives are accepted within their recorded

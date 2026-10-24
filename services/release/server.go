@@ -129,8 +129,12 @@ func ValidateConfig(c Config) error {
 	}
 	return nil
 }
+
+// New validates and retains an owned snapshot of cfg. Keep cfg stable during
+// construction; changes to the caller's configuration after return have no effect.
 func New(cfg Config) (*Server, error) { return NewWithFault(cfg, nil) }
 func NewWithFault(cfg Config, fault durable.Fault) (*Server, error) {
+	cfg = snapshotConfig(cfg)
 	if e := ValidateConfig(cfg); e != nil {
 		return nil, e
 	}

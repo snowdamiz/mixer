@@ -121,6 +121,13 @@ revalidation remains pending. Completed contract and CI-repair compiler scratch
 was removed after checking for open files, while preserving source archives and
 qualifying evidence. No native testing was resumed.
 
+W11/W16 configuration ownership repair: the release server snapshots caller-owned
+tokens, trust roots and registered hosts before validation. Public v1/v2/v3 and
+race regressions plus independent review pass; root source/evidence acceptance is
+at `verification/release-config-ownership/root-acceptance.json`. This closes the
+constructor alias defect while hosted identity, delivery and operational
+qualification remain open.
+
 The private Android host binding is now accepted within its recorded host scope;
 see `verification/android-binding-stage4-root-review/acceptance.json`. Root
 verified 4,149 acceptance bindings after independent review of 3,182 files and

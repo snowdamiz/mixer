@@ -1,0 +1,84 @@
+[
+  {
+    "name": "candidate-public-race",
+    "command": [
+      "go",
+      "test",
+      "-race",
+      "-count=1",
+      "-v",
+      "./reviewprobe"
+    ],
+    "working_directory": "candidate/services",
+    "started_utc": "2026-10-24T04:36:45.088641+00:00",
+    "finished_utc": "2026-10-24T04:36:48.590498+00:00",
+    "exit_code": 0,
+    "log": "candidate-public-race.log",
+    "expected": "Pass"
+  },
+  {
+    "name": "candidate-config-race",
+    "command": [
+      "go",
+      "test",
+      "-race",
+      "-count=1",
+      "-v",
+      "./release",
+      "-run",
+      "Test(ConfigOwnership|IndependentSnapshot)"
+    ],
+    "working_directory": "candidate/services",
+    "started_utc": "2026-10-24T04:36:48.590852+00:00",
+    "finished_utc": "2026-10-24T04:36:52.696729+00:00",
+    "exit_code": 0,
+    "log": "candidate-config-race.log",
+    "expected": "Pass"
+  },
+  {
+    "name": "candidate-services-race",
+    "command": [
+      "go",
+      "test",
+      "-race",
+      "-count=1",
+      "./..."
+    ],
+    "working_directory": "candidate/services",
+    "started_utc": "2026-10-24T04:36:52.697011+00:00",
+    "finished_utc": "2026-10-24T04:37:14.241572+00:00",
+    "exit_code": 1,
+    "log": "candidate-services-race.log",
+    "expected": "Pass"
+  },
+  {
+    "name": "candidate-vet",
+    "command": [
+      "go",
+      "vet",
+      "./..."
+    ],
+    "working_directory": "candidate/services",
+    "started_utc": "2026-10-24T04:37:14.241947+00:00",
+    "finished_utc": "2026-10-24T04:37:15.212467+00:00",
+    "exit_code": 0,
+    "log": "candidate-vet.log",
+    "expected": "Pass"
+  },
+  {
+    "name": "candidate-services-race-with-contract",
+    "command": [
+      "go",
+      "test",
+      "-race",
+      "-count=1",
+      "./..."
+    ],
+    "working_directory": "candidate/services",
+    "started_utc": "2026-10-24T04:37:30.317003+00:00",
+    "finished_utc": "2026-10-24T04:37:51.325198+00:00",
+    "exit_code": 0,
+    "log": "candidate-services-race-with-contract.log",
+    "expected": "Pass; prior run omitted frozen contracts/release-v2.json from isolated fixture closure"
+  }
+]

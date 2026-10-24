@@ -1,0 +1,49 @@
+COMMAND: go test -race -count=1 -v ./reviewprobe -run TestPublicConfigConcurrentCallerMutationAfterConstruction/token$
+=== RUN   TestPublicConfigConcurrentCallerMutationAfterConstruction
+=== RUN   TestPublicConfigConcurrentCallerMutationAfterConstruction/token
+==================
+WARNING: DATA RACE
+Read at 0x00c00021e330 by goroutine 9:
+  mixer/services/release.(*Server).auth()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/release/server.go:243 +0x1c8
+  mixer/services/release.(*Server).route()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/release/server.go:315 +0x1140
+  mixer/services/release.(*Server).ServeHTTP()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/release/server.go:200 +0x454
+  mixer/services/reviewprobe_test.request()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/reviewprobe/config_ownership_public_test.go:67 +0x534
+  mixer/services/reviewprobe_test.TestPublicConfigConcurrentCallerMutationAfterConstruction.func1()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/reviewprobe/config_ownership_public_test.go:260 +0x454
+  testing.tRunner()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/testing/testing.go:2036 +0x164
+  testing.(*T).Run.gowrap1()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/testing/testing.go:2101 +0x34
+
+Previous write at 0x00c00021e330 by goroutine 10:
+  mixer/services/reviewprobe_test.TestPublicConfigConcurrentCallerMutationAfterConstruction.func1.1()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/reviewprobe/config_ownership_public_test.go:243 +0x11c
+
+Goroutine 9 (running) created at:
+  testing.(*T).Run()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/testing/testing.go:2101 +0x7bc
+  mixer/services/reviewprobe_test.TestPublicConfigConcurrentCallerMutationAfterConstruction()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/reviewprobe/config_ownership_public_test.go:221 +0xcc
+  testing.tRunner()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/testing/testing.go:2036 +0x164
+  testing.(*T).Run.gowrap1()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/testing/testing.go:2101 +0x34
+
+Goroutine 10 (running) created at:
+  mixer/services/reviewprobe_test.TestPublicConfigConcurrentCallerMutationAfterConstruction.func1()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/reviewprobe/config_ownership_public_test.go:232 +0x3b8
+  testing.tRunner()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/testing/testing.go:2036 +0x164
+  testing.(*T).Run.gowrap1()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/testing/testing.go:2101 +0x34
+==================
+    testing.go:1712: race detected during execution of test
+--- FAIL: TestPublicConfigConcurrentCallerMutationAfterConstruction (0.02s)
+    --- FAIL: TestPublicConfigConcurrentCallerMutationAfterConstruction/token (0.02s)
+FAIL
+FAIL	mixer/services/reviewprobe	0.176s
+FAIL

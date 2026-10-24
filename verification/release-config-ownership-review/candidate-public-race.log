@@ -1,0 +1,58 @@
+COMMAND: go test -race -count=1 -v ./reviewprobe
+=== RUN   TestPublicConfigTokenRoleScopeCredentialAndActorOwnership
+=== RUN   TestPublicConfigTokenRoleScopeCredentialAndActorOwnership/role
+    config_ownership_public_test.go:105: reader before mutation: HTTP 403; expected 403; {"error":{"code":"role_denied","message":"project permission denied"},"request_id":"8807dbe81de063c1d3e9e419c932aa93"}
+    config_ownership_public_test.go:107: reader after caller elevates role: HTTP 403; expected 403; {"error":{"code":"role_denied","message":"project permission denied"},"request_id":"e0e2424357d9613514bfbb7d016c422c"}
+=== RUN   TestPublicConfigTokenRoleScopeCredentialAndActorOwnership/scope
+    config_ownership_public_test.go:113: original scope remains authorized: HTTP 200; expected 200; {"events":[],"next":0}
+    config_ownership_public_test.go:114: caller cannot retarget token scope: HTTP 403; expected 403; {"error":{"code":"scope_denied","message":"project access denied"},"request_id":"c87aaa28ef5f4332dd8b2d52a90299d5"}
+=== RUN   TestPublicConfigTokenRoleScopeCredentialAndActorOwnership/credential
+    config_ownership_public_test.go:120: original bearer remains authorized: HTTP 200; expected 200; {"events":[],"next":0}
+    config_ownership_public_test.go:121: caller cannot install another bearer: HTTP 401; expected 401; {"error":{"code":"unauthenticated","message":"invalid bearer credential"},"request_id":"6b43723791f4f94e3548afc0770ae924"}
+=== RUN   TestPublicConfigTokenRoleScopeCredentialAndActorOwnership/actor
+    config_ownership_public_test.go:127: upload after caller changes actor: HTTP 201; expected 201; {"artifact_sha256":"f4545c2e02d18b84d50497b01c4a3ad9535ca86dbc04c80e56f77d3761e7645e","immutable":true}
+    config_ownership_public_test.go:129: audit available: HTTP 200; expected 200; {"events":[{"id":1,"organization":"review-org","project":"review-project","actor":"review-actor","action":"PUT /v1/orgs/review-org/projects/review-project/artifacts/f4545c2e02d18b84d50497b01c4a3ad9535ca86dbc04c80e56f77d3761e7645e","reason":"local development operation","previous":"a78de718cd334f2a976f3d3819bd3985d4dc328cc4891abff9eb6b2cbc721e16","current":"2f54110397d2b5baf087299fa035acd146ac890dede1fda59d489ac146232f9e","source_ip":"192.0.2.1","request_id":"23bf362c48be6691836ac88dbf56fa89","created_at_unix":1792816606,"previous_hash":"","hash":"9f709adf65161f27378ff81286f81a3c21b87586ca3130f70ea9fee053c26268"}],"next":1}
+--- PASS: TestPublicConfigTokenRoleScopeCredentialAndActorOwnership (0.05s)
+    --- PASS: TestPublicConfigTokenRoleScopeCredentialAndActorOwnership/role (0.01s)
+    --- PASS: TestPublicConfigTokenRoleScopeCredentialAndActorOwnership/scope (0.01s)
+    --- PASS: TestPublicConfigTokenRoleScopeCredentialAndActorOwnership/credential (0.01s)
+    --- PASS: TestPublicConfigTokenRoleScopeCredentialAndActorOwnership/actor (0.02s)
+=== RUN   TestPublicConfigTrustRootBytesAndSliceOwnership
+=== RUN   TestPublicConfigTrustRootBytesAndSliceOwnership/public-key-bytes
+    config_ownership_public_test.go:142: foreign signer before mutation: HTTP 422; expected 422; {"error":{"code":"artifact_invalid","message":"artifact signature invalid"},"request_id":"65f9fbd00bff4349f783e37b6c255cee"}
+    config_ownership_public_test.go:144: foreign signer after caller replaces trusted bytes: HTTP 422; expected 422; {"error":{"code":"artifact_invalid","message":"artifact signature invalid"},"request_id":"7a49933a3453b65b1aca1e89d49f9af7"}
+    config_ownership_public_test.go:145: original signer remains trusted: HTTP 201; expected 201; {"artifact_sha256":"a508396cb1a8efa892b9cf85574803229aded0f2d0c2ffdb2804657bca7cb3c8","immutable":true}
+=== RUN   TestPublicConfigTrustRootBytesAndSliceOwnership/root-slice-element
+    config_ownership_public_test.go:151: caller cannot revoke server-owned root: HTTP 201; expected 201; {"artifact_sha256":"9ea911163528907a2765101ea81076ad264bf2a3a1f2a6d121e96df1779ab950","immutable":true}
+--- PASS: TestPublicConfigTrustRootBytesAndSliceOwnership (0.04s)
+    --- PASS: TestPublicConfigTrustRootBytesAndSliceOwnership/public-key-bytes (0.02s)
+    --- PASS: TestPublicConfigTrustRootBytesAndSliceOwnership/root-slice-element (0.02s)
+=== RUN   TestPublicConfigHostMapAndSliceOwnership
+=== RUN   TestPublicConfigHostMapAndSliceOwnership/capability-map
+    config_ownership_public_test.go:161: substituted schema before mutation: HTTP 422; expected 422; {"error":{"code":"artifact_invalid","message":"host contract mismatch"},"request_id":"67592853546548bc8b33ac3478af86b6"}
+    config_ownership_public_test.go:163: substituted schema after caller changes map: HTTP 422; expected 422; {"error":{"code":"artifact_invalid","message":"host contract mismatch"},"request_id":"0798ad893b477f33c10d8ff9e112922f"}
+    config_ownership_public_test.go:164: original schema remains compatible: HTTP 201; expected 201; {"artifact_sha256":"32f16ed2ef204087143ae26380b863a1ff0256790dc9db7cc9d2941aae4320b0","immutable":true}
+=== RUN   TestPublicConfigHostMapAndSliceOwnership/host-slice-element
+    config_ownership_public_test.go:170: caller cannot replace installed state version: HTTP 201; expected 201; {"artifact_sha256":"3c01f921a4dbce472ec2150c90d1b07eff613f2b708e043e9af00765dd210710","immutable":true}
+--- PASS: TestPublicConfigHostMapAndSliceOwnership (0.04s)
+    --- PASS: TestPublicConfigHostMapAndSliceOwnership/capability-map (0.02s)
+    --- PASS: TestPublicConfigHostMapAndSliceOwnership/host-slice-element (0.02s)
+=== RUN   TestPublicConfigV3MapAndNestedRequestGrantControl
+    config_ownership_public_test.go:197: v3 original host survives caller map deletion: HTTP 201; expected 201; {"artifact_sha256":"c451ab0c9c4d65c832e7bbf648ca2a1a81428206e1505fc6d6fde9fd5bb8454c","immutable":true}
+    config_ownership_public_test.go:206: persisted request validates after DTO mutation: HTTP 200; expected 200; {"artifact_sha256":"c451ab0c9c4d65c832e7bbf648ca2a1a81428206e1505fc6d6fde9fd5bb8454c","compiler_eligibility_verified":false,"mobile_qualified":false,"policy_approved":false,"protocol_valid":true}
+    config_ownership_public_test.go:208: persisted v3 available: HTTP 200; expected 200; {"signed_manifest":{"manifest":{"schema":3,"scope":{"organization":"review-org","project":"review-project","app":"review-app","environment":"development","platform":"ios"},"release_id":"review-v3","source_commit":"dddddddddddddddddddddddddddddddddddddddd","provenance_id":"review-build-v3","runtime":"4f8b1007b1c171838d17617c624be7e06b56f7ed875a60685ae9e7f0f61eb2ee","protocol":3,"guest_abi":2,"ui_schema":1,"capability_hashes":{"network.http.v1":"fa1549c0a1e2e6b3bf4a83af1a6d37730bbefc8cddc3ffbe3c807d5e7af503f3","storage.keyValue.v1":"4a311222c978ddd0982e8dfbcf3d4864b856a80bcc1efb3b725adede7f8e22fd"},"capability_grants":{"schema":1,"schema_sha256":"b394ffd165ef28977de9743b1c1a98c419504787f2912e30d419cfb1582e15e1","entries":[{"capability_id":"network.http.v1","schema_sha256":"fa1549c0a1e2e6b3bf4a83af1a6d37730bbefc8cddc3ffbe3c807d5e7af503f3","permissions":["network.https"],"origins":["https://review.example"],"methods":["GET"],"namespaces":[]},{"capability_id":"storage.keyValue.v1","schema_sha256":"4a311222c978ddd0982e8dfbcf3d4864b856a80bcc1efb3b725adede7f8e22fd","permissions":["storage.appPrivate"],"origins":[],"methods":[],"namespaces":["review"]}]},"state_min":1,"state_max":1,"payload_sha256":"20abd427907f860c7fc3aee2ec2d7b0e0e50a44192ca578a2b34e61cec83636f","compressed_bytes":32,"expanded_bytes":32,"compression":"none","asset_hashes":{},"source_map_sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","limits":{"memory_bytes":512,"fuel":100,"startup_milliseconds":100},"key_id":"review-key","created_at_unix":1},"signature":"kdwOUNTRructgMG9Vc3SaKFAKmx7iZW306wZ0EOEhRmh9YD7fpN2TFds4rnWZYwIl2pYST71yBlRfNdY+7ESAg=="},"payload":"VEVTVCBPTkxZIGluZGVwZW5kZW50IHYzIHBheWxvYWQ="}
+--- PASS: TestPublicConfigV3MapAndNestedRequestGrantControl (0.04s)
+=== RUN   TestPublicConfigConcurrentCallerMutationAfterConstruction
+=== RUN   TestPublicConfigConcurrentCallerMutationAfterConstruction/token
+=== RUN   TestPublicConfigConcurrentCallerMutationAfterConstruction/root-slice
+=== RUN   TestPublicConfigConcurrentCallerMutationAfterConstruction/root-key
+=== RUN   TestPublicConfigConcurrentCallerMutationAfterConstruction/host-slice
+=== RUN   TestPublicConfigConcurrentCallerMutationAfterConstruction/host-map
+--- PASS: TestPublicConfigConcurrentCallerMutationAfterConstruction (1.15s)
+    --- PASS: TestPublicConfigConcurrentCallerMutationAfterConstruction/token (0.01s)
+    --- PASS: TestPublicConfigConcurrentCallerMutationAfterConstruction/root-slice (0.28s)
+    --- PASS: TestPublicConfigConcurrentCallerMutationAfterConstruction/root-key (0.29s)
+    --- PASS: TestPublicConfigConcurrentCallerMutationAfterConstruction/host-slice (0.29s)
+    --- PASS: TestPublicConfigConcurrentCallerMutationAfterConstruction/host-map (0.28s)
+PASS
+ok  	mixer/services/reviewprobe	2.516s

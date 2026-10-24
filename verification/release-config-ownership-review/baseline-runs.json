@@ -1,0 +1,109 @@
+[
+  {
+    "name": "baseline-public",
+    "command": [
+      "go",
+      "test",
+      "-count=1",
+      "-v",
+      "./reviewprobe",
+      "-run",
+      "TestPublicConfig(Token|Trust|Host|V3)"
+    ],
+    "working_directory": "baseline-services/services",
+    "started_utc": "2026-10-24T04:35:11.023683+00:00",
+    "exit_code": 1,
+    "log": "baseline-public.log",
+    "expected": "Failure demonstrates retained caller ownership on committed baseline"
+  },
+  {
+    "name": "baseline-race-token",
+    "command": [
+      "go",
+      "test",
+      "-race",
+      "-count=1",
+      "-v",
+      "./reviewprobe",
+      "-run",
+      "TestPublicConfigConcurrentCallerMutationAfterConstruction/token$"
+    ],
+    "working_directory": "baseline-services/services",
+    "started_utc": "2026-10-24T04:35:13.582252+00:00",
+    "exit_code": 1,
+    "log": "baseline-race-token.log",
+    "expected": "Failure demonstrates retained caller ownership on committed baseline"
+  },
+  {
+    "name": "baseline-race-root-slice",
+    "command": [
+      "go",
+      "test",
+      "-race",
+      "-count=1",
+      "-v",
+      "./reviewprobe",
+      "-run",
+      "TestPublicConfigConcurrentCallerMutationAfterConstruction/root-slice$"
+    ],
+    "working_directory": "baseline-services/services",
+    "started_utc": "2026-10-24T04:35:19.445473+00:00",
+    "exit_code": 1,
+    "log": "baseline-race-root-slice.log",
+    "expected": "Failure demonstrates retained caller ownership on committed baseline"
+  },
+  {
+    "name": "baseline-race-root-key",
+    "command": [
+      "go",
+      "test",
+      "-race",
+      "-count=1",
+      "-v",
+      "./reviewprobe",
+      "-run",
+      "TestPublicConfigConcurrentCallerMutationAfterConstruction/root-key$"
+    ],
+    "working_directory": "baseline-services/services",
+    "started_utc": "2026-10-24T04:35:20.141844+00:00",
+    "exit_code": 1,
+    "log": "baseline-race-root-key.log",
+    "expected": "Failure demonstrates retained caller ownership on committed baseline"
+  },
+  {
+    "name": "baseline-race-host-slice",
+    "command": [
+      "go",
+      "test",
+      "-race",
+      "-count=1",
+      "-v",
+      "./reviewprobe",
+      "-run",
+      "TestPublicConfigConcurrentCallerMutationAfterConstruction/host-slice$"
+    ],
+    "working_directory": "baseline-services/services",
+    "started_utc": "2026-10-24T04:35:20.822113+00:00",
+    "exit_code": 1,
+    "log": "baseline-race-host-slice.log",
+    "expected": "Failure demonstrates retained caller ownership on committed baseline"
+  },
+  {
+    "name": "baseline-race-host-map",
+    "command": [
+      "go",
+      "test",
+      "-race",
+      "-count=1",
+      "-v",
+      "./reviewprobe",
+      "-run",
+      "TestPublicConfigConcurrentCallerMutationAfterConstruction/host-map$"
+    ],
+    "working_directory": "baseline-services/services",
+    "started_utc": "2026-10-24T04:35:21.497073+00:00",
+    "exit_code": 1,
+    "log": "baseline-race-host-map.log",
+    "expected": "Failure demonstrates retained caller ownership on committed baseline"
+  }
+]

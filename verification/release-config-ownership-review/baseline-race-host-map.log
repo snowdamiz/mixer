@@ -1,0 +1,248 @@
+COMMAND: go test -race -count=1 -v ./reviewprobe -run TestPublicConfigConcurrentCallerMutationAfterConstruction/host-map$
+=== RUN   TestPublicConfigConcurrentCallerMutationAfterConstruction
+=== RUN   TestPublicConfigConcurrentCallerMutationAfterConstruction/host-map
+==================
+WARNING: DATA RACE
+Read at 0x00c0000bf9e0 by goroutine 9:
+  reflect.mapdelete_faststr()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/runtime/map.go:270 +0x4c
+  reflect.Value.lenNonSlice()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/reflect/value.go:1866 +0x1bc
+  reflect.Value.Len()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/reflect/value.go:1855 +0x11dc
+  reflect.deepValueEqual()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/reflect/deepequal.go:139 +0x11cc
+  reflect.DeepEqual()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/reflect/deepequal.go:238 +0x1cc
+  mixer/services/protocol.Compatible()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/protocol/protocol.go:196 +0x130
+  mixer/services/protocol.VerifyManifestHeader()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/protocol/protocol.go:262 +0xec
+  mixer/services/protocol.VerifyManifest()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/protocol/protocol.go:252 +0x128
+  mixer/services/release.Record.verify()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/release/versioned.go:366 +0x264
+  mixer/services/release.(*Server).mutate.func2()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/release/server.go:395 +0x6e4
+  mixer/services/release.(*store).transaction()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/release/store.go:173 +0x54c
+  mixer/services/release.(*Server).mutate.func1()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/release/server.go:377 +0x28c
+  mixer/services/release.(*Server).mutate()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/release/server.go:384 +0x6a0
+  mixer/services/release.(*Server).route()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/release/server.go:333 +0x1678
+  mixer/services/release.(*Server).ServeHTTP()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/release/server.go:200 +0x454
+  mixer/services/reviewprobe_test.request()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/reviewprobe/config_ownership_public_test.go:67 +0x534
+  mixer/services/reviewprobe_test.upload()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/reviewprobe/config_ownership_public_test.go:97 +0x1dc
+  mixer/services/reviewprobe_test.TestPublicConfigConcurrentCallerMutationAfterConstruction.func1()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/reviewprobe/config_ownership_public_test.go:262 +0x588
+  testing.tRunner()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/testing/testing.go:2036 +0x164
+  testing.(*T).Run.gowrap1()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/testing/testing.go:2101 +0x34
+
+Previous write at 0x00c0000bf9e0 by goroutine 10:
+  runtime.mapaccess2_faststr()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/internal/runtime/maps/runtime_faststr.go:161 +0x2ac
+  mixer/services/reviewprobe_test.TestPublicConfigConcurrentCallerMutationAfterConstruction.func1.1()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/reviewprobe/config_ownership_public_test.go:251 +0x21c
+
+Goroutine 9 (running) created at:
+  testing.(*T).Run()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/testing/testing.go:2101 +0x7bc
+  mixer/services/reviewprobe_test.TestPublicConfigConcurrentCallerMutationAfterConstruction()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/reviewprobe/config_ownership_public_test.go:221 +0xcc
+  testing.tRunner()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/testing/testing.go:2036 +0x164
+  testing.(*T).Run.gowrap1()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/testing/testing.go:2101 +0x34
+
+Goroutine 10 (running) created at:
+  mixer/services/reviewprobe_test.TestPublicConfigConcurrentCallerMutationAfterConstruction.func1()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/reviewprobe/config_ownership_public_test.go:232 +0x3b8
+  testing.tRunner()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/testing/testing.go:2036 +0x164
+  testing.(*T).Run.gowrap1()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/testing/testing.go:2101 +0x34
+==================
+==================
+WARNING: DATA RACE
+Read at 0x00c0000bf9e0 by goroutine 9:
+  runtime.mapaccess1_faststr()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/internal/runtime/maps/runtime_faststr.go:101 +0x28c
+  reflect.mapaccess_faststr()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/runtime/map.go:236 +0x1c
+  reflect.deepValueEqual()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/reflect/deepequal.go:148 +0x1ac8
+  reflect.DeepEqual()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/reflect/deepequal.go:238 +0x1cc
+  mixer/services/protocol.Compatible()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/protocol/protocol.go:196 +0x130
+  mixer/services/protocol.VerifyManifestHeader()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/protocol/protocol.go:262 +0xec
+  mixer/services/protocol.VerifyManifest()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/protocol/protocol.go:252 +0x128
+  mixer/services/release.Record.verify()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/release/versioned.go:366 +0x264
+  mixer/services/release.(*Server).mutate.func2()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/release/server.go:395 +0x6e4
+  mixer/services/release.(*store).transaction()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/release/store.go:173 +0x54c
+  mixer/services/release.(*Server).mutate.func1()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/release/server.go:377 +0x28c
+  mixer/services/release.(*Server).mutate()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/release/server.go:384 +0x6a0
+  mixer/services/release.(*Server).route()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/release/server.go:333 +0x1678
+  mixer/services/release.(*Server).ServeHTTP()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/release/server.go:200 +0x454
+  mixer/services/reviewprobe_test.request()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/reviewprobe/config_ownership_public_test.go:67 +0x534
+  mixer/services/reviewprobe_test.upload()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/reviewprobe/config_ownership_public_test.go:97 +0x1dc
+  mixer/services/reviewprobe_test.TestPublicConfigConcurrentCallerMutationAfterConstruction.func1()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/reviewprobe/config_ownership_public_test.go:262 +0x588
+  testing.tRunner()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/testing/testing.go:2036 +0x164
+  testing.(*T).Run.gowrap1()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/testing/testing.go:2101 +0x34
+
+Previous write at 0x00c0000bf9e0 by goroutine 10:
+  runtime.mapaccess2_faststr()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/internal/runtime/maps/runtime_faststr.go:161 +0x2ac
+  mixer/services/reviewprobe_test.TestPublicConfigConcurrentCallerMutationAfterConstruction.func1.1()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/reviewprobe/config_ownership_public_test.go:251 +0x21c
+
+Goroutine 9 (running) created at:
+  testing.(*T).Run()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/testing/testing.go:2101 +0x7bc
+  mixer/services/reviewprobe_test.TestPublicConfigConcurrentCallerMutationAfterConstruction()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/reviewprobe/config_ownership_public_test.go:221 +0xcc
+  testing.tRunner()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/testing/testing.go:2036 +0x164
+  testing.(*T).Run.gowrap1()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/testing/testing.go:2101 +0x34
+
+Goroutine 10 (running) created at:
+  mixer/services/reviewprobe_test.TestPublicConfigConcurrentCallerMutationAfterConstruction.func1()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/reviewprobe/config_ownership_public_test.go:232 +0x3b8
+  testing.tRunner()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/testing/testing.go:2036 +0x164
+  testing.(*T).Run.gowrap1()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/testing/testing.go:2101 +0x34
+==================
+==================
+WARNING: DATA RACE
+Read at 0x00c000214378 by goroutine 9:
+  runtime.typedmemmove()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/runtime/mbarrier.go:152 +0x7c
+  reflect.copyVal()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/reflect/value.go:1886 +0x98
+  reflect.Value.MapIndex()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/reflect/map.go:171 +0x2ac
+  reflect.deepValueEqual()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/reflect/deepequal.go:148 +0x1ac8
+  reflect.DeepEqual()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/reflect/deepequal.go:238 +0x1cc
+  mixer/services/protocol.Compatible()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/protocol/protocol.go:196 +0x130
+  mixer/services/protocol.VerifyManifestHeader()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/protocol/protocol.go:262 +0xec
+  mixer/services/protocol.VerifyManifest()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/protocol/protocol.go:252 +0x128
+  mixer/services/release.Record.verify()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/release/versioned.go:366 +0x264
+  mixer/services/release.(*Server).mutate.func2()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/release/server.go:395 +0x6e4
+  mixer/services/release.(*store).transaction()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/release/store.go:173 +0x54c
+  mixer/services/release.(*Server).mutate.func1()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/release/server.go:377 +0x28c
+  mixer/services/release.(*Server).mutate()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/release/server.go:384 +0x6a0
+  mixer/services/release.(*Server).route()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/release/server.go:333 +0x1678
+  mixer/services/release.(*Server).ServeHTTP()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/release/server.go:200 +0x454
+  mixer/services/reviewprobe_test.request()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/reviewprobe/config_ownership_public_test.go:67 +0x534
+  mixer/services/reviewprobe_test.upload()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/reviewprobe/config_ownership_public_test.go:97 +0x1dc
+  mixer/services/reviewprobe_test.TestPublicConfigConcurrentCallerMutationAfterConstruction.func1()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/reviewprobe/config_ownership_public_test.go:262 +0x588
+  testing.tRunner()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/testing/testing.go:2036 +0x164
+  testing.(*T).Run.gowrap1()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/testing/testing.go:2101 +0x34
+
+Previous write at 0x00c000214378 by goroutine 10:
+  mixer/services/reviewprobe_test.TestPublicConfigConcurrentCallerMutationAfterConstruction.func1.1()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/reviewprobe/config_ownership_public_test.go:251 +0x228
+
+Goroutine 9 (running) created at:
+  testing.(*T).Run()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/testing/testing.go:2101 +0x7bc
+  mixer/services/reviewprobe_test.TestPublicConfigConcurrentCallerMutationAfterConstruction()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/reviewprobe/config_ownership_public_test.go:221 +0xcc
+  testing.tRunner()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/testing/testing.go:2036 +0x164
+  testing.(*T).Run.gowrap1()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/testing/testing.go:2101 +0x34
+
+Goroutine 10 (running) created at:
+  mixer/services/reviewprobe_test.TestPublicConfigConcurrentCallerMutationAfterConstruction.func1()
+      /private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/reviewprobe/config_ownership_public_test.go:232 +0x3b8
+  testing.tRunner()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/testing/testing.go:2036 +0x164
+  testing.(*T).Run.gowrap1()
+      /Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/testing/testing.go:2101 +0x34
+==================
+fatal error: concurrent map read and map write
+
+goroutine 6 [running]:
+internal/runtime/maps.fatal({0x104e15cee?, 0x1048a7ca8?})
+	/Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/runtime/panic.go:1181 +0x20
+reflect.mapaccess_faststr(0x1052d9fe0?, 0xc0000bf9e0?, {0xc000302b8b?, 0x104910094?})
+	/Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/runtime/map.go:236 +0x20
+reflect.Value.MapIndex({0x1052d9fe0?, 0xc0000bf9e0?, 0xc000274558?}, {0x10529d480, 0xc000340d40, 0x98})
+	/Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/reflect/map.go:154 +0x1bc
+reflect.deepValueEqual({0x1052d9fe0?, 0xc000523b90?, 0xc000302b36?}, {0x1052d9fe0?, 0xc0000bf9e0?, 0xb?}, 0xc000274768)
+	/Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/reflect/deepequal.go:148 +0x1acc
+reflect.DeepEqual({0x1052d9fe0, 0xc000523b90}, {0x1052d9fe0, 0xc0000bf9e0})
+	/Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/reflect/deepequal.go:238 +0x1d0
+mixer/services/protocol.Compatible({0x1, {{0xc000302b16, 0xa}, {0xc000302b22, 0xe}, {0xc000302b36, 0xa}, {0xc000302b45, 0xb}, {0xc000302b5d, ...}}, ...}, ...)
+	/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/protocol/protocol.go:196 +0x134
+mixer/services/protocol.VerifyManifestHeader({{0x1, {{0xc000302b16, 0xa}, {0xc000302b22, 0xe}, {0xc000302b36, 0xa}, {0xc000302b45, 0xb}, {0xc000302b5d, ...}}, ...}, ...}, ...)
+	/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/protocol/protocol.go:262 +0xf0
+mixer/services/protocol.VerifyManifest({{0x1, {{0xc000302b16, 0xa}, {0xc000302b22, 0xe}, {0xc000302b36, 0xa}, {0xc000302b45, 0xb}, {0xc000302b5d, ...}}, ...}, ...}, ...)
+	/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/protocol/protocol.go:252 +0x12c
+mixer/services/release.Record.verify({{{{0x1, {...}, {...}, {...}, {...}, {...}, 0x1, 0x1, 0x1, 0xc000523b90, ...}, ...}, ...}, ...}, ...)
+	/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/release/versioned.go:366 +0x268
+mixer/services/release.(*Server).mutate.func2({0x105381578, 0xc00021e0f0})
+	/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/release/server.go:395 +0x6e8
+mixer/services/release.(*store).transaction(0xc000056c80, {0x105394c38?, 0xc000288008?}, {{{0xc0003802dd, _}, {_, _}}, {_, _}, {_, ...}}, ...)
+	/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/release/store.go:173 +0x550
+mixer/services/release.(*Server).mutate.func1({0xc000297200, 0x440, 0xa?}, 0xc00038a6c0)
+	/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/release/server.go:377 +0x290
+mixer/services/release.(*Server).mutate(0xc0000f2180, 0xc000579180, {0xc0003c2000, 0x7, _}, {{{_, _}, {_, _}}, {_, ...}, ...}, ...)
+	/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/release/server.go:384 +0x6a4
+mixer/services/release.(*Server).route(0xc0000f2180, 0xc000579180, {0xc00039e400, 0x20}, {0x104e0a090, 0x9})
+	/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/release/server.go:333 +0x167c
+mixer/services/release.(*Server).ServeHTTP(0xc0000f2180, {0x10537fe10, 0xc00038e4c0}, 0xc000579180)
+	/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/release/server.go:200 +0x458
+mixer/services/reviewprobe_test.request(0xc0002166c8, {0x105379640, 0xc0000f2180}, {0x104e053ca, 0x3}, {0xc000387080, 0x76}, {0x104e20e11, 0x38}, {0xc000126390, ...}, ...)
+	/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/reviewprobe/config_ownership_public_test.go:67 +0x538
+mixer/services/reviewprobe_test.upload(_, {_, _}, {{0x1, {0x104e08517, 0xb}, {0xc00004a800, 0x7d}, {0x0, 0x0}, ...}, ...}, ...)
+	/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/reviewprobe/config_ownership_public_test.go:97 +0x1e0
+mixer/services/reviewprobe_test.TestPublicConfigConcurrentCallerMutationAfterConstruction.func1(0xc0002166c8)
+	/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-release-config-review-v7j3sd16/services/reviewprobe/config_ownership_public_test.go:262 +0x58c
+testing.tRunner(0xc0002166c8, 0xc000010258)
+	/Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/testing/testing.go:2036 +0x168
+created by testing.(*T).Run in goroutine 5
+	/Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/src/testing/testing.go:2101 +0x7c0
+FAIL	mixer/services/reviewprobe	0.227s
+FAIL
