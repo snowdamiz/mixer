@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "status": "passed-checkpoint-validation",
+  "observedUTC": "2026-10-24T13:06:00.963081+00:00",
+  "parent": "d4909e275df7e757a5218cc0a88112f4fc3f088b",
+  "commands": [
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "verification/stripe-webhook-signature-integration/verify.py",
+        "--live"
+      ],
+      "exitCode": 0,
+      "output": "verification/stripe-signature-checkpoint/source-binding.log",
+      "sha256": "1e8bbf0e47d468bbe50f291c61bfca5d800579d7c2e25de261257eede865d018"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "verification/android-pointer-fixture/check_packet.py"
+      ],
+      "exitCode": 0,
+      "output": "verification/stripe-signature-checkpoint/pointer-host-binding.log",
+      "sha256": "b4761ebd321b4ec6815f5f82f4174c0fe2071730fa8e035a2af9d7a93d97d195"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exitCode": 0,
+      "output": "verification/stripe-signature-checkpoint/whitespace.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "policy": {
+    "argv": [
+      "python3",
+      "-B",
+      "scripts/check-policy.py"
+    ],
+    "exitCode": 0,
+    "output": "verification/stripe-signature-checkpoint/policy.log",
+    "sha256": "fc80d73dc859c7e2b752f94b881acc3b307a5241d5f9859de10b000cda625df3"
+  },
+  "scope": "Accepted signature integration plus frozen review/diagnostic/cleanup receipts. Pointer oracle has five rejected cases; its repair and native run remain pending. Active host-operation, pointer repair and Apple work are excluded."
+}

@@ -1,0 +1,45 @@
+    warning: the variable "offset" is accessed inside size(...) of a bitstring but it was defined outside of the match. You must precede it with the pin operator
+    │
+ 51 │       <<before::binary-size(offset), byte, after_bytes::binary>> = @body
+    │                             ~
+    │
+    └─ webhook_signature_test.exs:51:29: MixerWebhookSignatureTest."test every signed body byte is authenticated; normalized JSON is not equivalent"/1
+
+    warning: the variable "offset" is accessed inside size(...) of a bitstring but it was defined outside of the match. You must precede it with the pin operator
+    │
+ 66 │       <<before::binary-size(offset), byte, after_bytes::binary>> = signed
+    │                             ~
+    │
+    └─ webhook_signature_test.exs:66:29: MixerWebhookSignatureTest."test timestamp mutation cannot reuse a signature; each signature byte matters"/1
+
+Running ExUnit with seed: 1, max_cases: 30
+
+.............
+
+  1) test independent Python vector: maximum_body (MixerWebhookSignatureTest)
+     webhook_signature_test.exs:28
+     ** (FunctionClauseError) no function clause matching in Base.decode16!/2
+
+     The following arguments were given to Base.decode16!/2:
+
+         # 1
+         :null
+
+         # 2
+         [case: :lower]
+
+     Attempted function clauses (showing 2 out of 2):
+
+         def decode16!(string, opts) when -is_binary(string)- and -rem(byte_size(string), 2) == 0-
+         def decode16!(string, _opts) when -is_binary(string)-
+
+     code: do: Base.decode16!(vector["body_hex"], case: :lower),
+     stacktrace:
+       (elixir 1.20.4) lib/base.ex:557: Base.decode16!/2
+       webhook_signature_test.exs:33: (test)
+
+........
+Finished in 0.1 seconds (0.06s on load, 0.00s async, 0.04s sync)
+
+Result: 21/22 passed
+Failed: 1 test

@@ -1,0 +1,384 @@
+package dev.mixer.android;
+
+import android.app.Activity;
+import android.app.Instrumentation;
+import android.content.Intent;
+import android.graphics.Rect;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.SystemClock;
+import android.text.Layout;
+import android.view.InputDevice;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewConfiguration;
+import android.view.inputmethod.BaseInputConnection;
+import android.widget.EditText;
+import android.widget.ScrollView;
+import android.widget.Switch;
+import android.widget.TextView;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Field;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+
+/** Real worker pointer injection; passive Activity delivery and ordinary committed-state oracle. */
+@SuppressWarnings("deprecation")
+public final class CoordinatorJoinInstrumentation extends Instrumentation {
+    private static final int MAX_ACTIONS=20, MAX_EVENTS=320, MAX_CHECKS=512, MAX_ROWS=2048;
+    private static final long MAX_LOG=8388608, MAX_METADATA=33554432;
+    private final IdentityHashMap<Object,String> tokens=new IdentityHashMap<>();
+    private final Map<String,Object> exported=new LinkedHashMap<>();
+    private final List<Object> summaries=new ArrayList<>();
+    private final List<Map<String,Object>> delivered=new ArrayList<>();
+    private final List<Object> assertions=new ArrayList<>();
+    private CoordinatorJoinActivity window;
+    private String expectedDescriptor, expectedAPK, expectedClosure, expectedFixture, expectedRevision, expectedTree;
+    private int checks, actions, injected, cleanupInjected, setupCommits, owners, rows;
+    private long logBytes, metadataBytes, started, sequence;
+    private volatile String activeAction;
+    private NativeAppearanceViewsV2.Record observedRecord;
+    private NativeRenderer observedRenderer;
+
+    @Override public void onCreate(Bundle arguments) {
+        super.onCreate(arguments);
+        expectedDescriptor=arguments==null?null:arguments.getString("descriptorSHA256");
+        expectedAPK=arguments==null?null:arguments.getString("apkSHA256");
+        expectedClosure=arguments==null?null:arguments.getString("sourceClosureSHA256");
+        expectedFixture=arguments==null?null:arguments.getString("fixtureSHA256");
+        expectedRevision=arguments==null?null:arguments.getString("sourceRevision");
+        expectedTree=arguments==null?null:arguments.getString("sourceTree");
+        start();
+    }
+    private static Object field(Object owner,String name) {
+        try { Field f=owner.getClass().getDeclaredField(name);f.setAccessible(true);return f.get(owner); }
+        catch(ReflectiveOperationException failure){throw new AssertionError(name,failure);}
+    }
+    private static String sha(byte[] bytes) {
+        try { StringBuilder value=new StringBuilder();for(byte b:MessageDigest.getInstance("SHA-256").digest(bytes))
+            value.append(String.format(java.util.Locale.ROOT,"%02x",b&255));return value.toString(); }
+        catch(NoSuchAlgorithmException failure){throw new AssertionError(failure);}
+    }
+    private static byte[] json(Map<String,Object> value){return new org.json.JSONObject(value).toString().getBytes(StandardCharsets.UTF_8);}
+    private String token(Object object){if(object==null)return null;String value=tokens.get(object);if(value==null){value="identity-"+(tokens.size()+1);tokens.put(object,value);}return value;}
+    private void deadline(){if(SystemClock.uptimeMillis()-started>180000)throw new AssertionError("instrumentation 180s budget");}
+    private void ensure(boolean condition,String message){deadline();if(!condition)throw new AssertionError(message);}
+    private void require(boolean condition,String message){deadline();if(++checks>MAX_CHECKS)throw new AssertionError("512 assertion budget");assertions.add(Json.map("check",message,"passed",condition));if(!condition)throw new AssertionError(message);}
+    private void main(Runnable operation){
+        if(Looper.myLooper()==Looper.getMainLooper())throw new AssertionError("worker-only probe entry");
+        CountDownLatch done=new CountDownLatch(1);AtomicReference<Throwable> failure=new AtomicReference<>();
+        new Handler(Looper.getMainLooper()).post(()->{try{operation.run();}catch(RuntimeException|Error e){failure.set(e);}finally{done.countDown();}});
+        try{if(!done.await(2000,TimeUnit.MILLISECONDS))throw new AssertionError("main probe exceeded 2s");}
+        catch(InterruptedException e){Thread.currentThread().interrupt();throw new AssertionError(e);}
+        if(failure.get() instanceof RuntimeException e)throw e;if(failure.get() instanceof Error e)throw e;
+    }
+    private void idle(){
+        CountDownLatch done=new CountDownLatch(1);
+        main(()->Looper.myQueue().addIdleHandler(()->{done.countDown();return false;}));
+        try{if(!done.await(2000,TimeUnit.MILLISECONDS))throw new AssertionError("idle settle exceeded 2s");}
+        catch(InterruptedException e){Thread.currentThread().interrupt();throw new AssertionError(e);}
+    }
+    private byte[] asset(String path){try(InputStream stream=getTargetContext().getAssets().open(path)){return stream.readNBytes(65537);}catch(IOException e){throw new AssertionError(path,e);}}
+    private void write(String name,byte[] data){
+        if(!name.matches("pointer-[a-z0-9-]+\\.(json|bin|jsonl)"))throw new AssertionError("export name");
+        if(exported.containsKey(name))throw new AssertionError("immutable export already exists "+name);
+        metadataBytes+=data.length;if(metadataBytes>MAX_METADATA)throw new AssertionError("32MiB metadata budget");
+        try{Files.write(getTargetContext().getFilesDir().toPath().resolve(name),data,StandardOpenOption.CREATE_NEW);}
+        catch(IOException e){throw new AssertionError(name,e);}
+        exported.put(name,Json.map("bytes",data.length,"sha256",sha(data)));
+    }
+    private void log(Map<String,Object> row){
+        byte[] data=(new org.json.JSONObject(row).toString()+"\n").getBytes(StandardCharsets.UTF_8);
+        logBytes+=data.length;if(logBytes>MAX_LOG)throw new AssertionError("8MiB observation budget");
+        try{Files.write(getTargetContext().getFilesDir().toPath().resolve("pointer-observations.jsonl"),data,StandardOpenOption.CREATE,StandardOpenOption.APPEND);}
+        catch(IOException e){throw new AssertionError(e);}
+    }
+    private byte[] packet(){return(byte[])field(window.coordinator,"committedPacket");}
+    private NativeRenderer renderer(){return(NativeRenderer)field(window.coordinator,"renderer");}
+    private void savePacket(byte[] bytes){
+        if(bytes==null)return;if(bytes.length>262144)throw new AssertionError("256KiB packet budget");
+        String name="pointer-packet-"+sha(bytes)+".bin";if(!exported.containsKey(name))write(name,bytes);
+    }
+    private static Map<String,Object> rectangle(Rect r){return Json.map("left",r.left,"top",r.top,"right",r.right,"bottom",r.bottom);}
+    private static Map<String,Object> box(double l,double t,double r,double b){return Json.map("left",l,"top",t,"right",r,"bottom",b);}
+    private Map<String,Object> viewGeometry(View view){
+        int[] location=new int[2];view.getLocationOnScreen(location);Rect visible=new Rect();boolean hasVisible=view.getGlobalVisibleRect(visible);
+        return Json.map("screenX",location[0],"screenY",location[1],"width",view.getWidth(),"height",view.getHeight(),
+            "globalVisible",rectangle(visible),"hasGlobalVisible",hasVisible,"attached",view.isAttachedToWindow(),"shown",view.isShown(),
+            "enabled",view.isEnabled(),"windowFocus",view.hasWindowFocus(),"focused",view.isFocused(),"windowToken",token(view.getWindowToken()));
+    }
+    private Map<String,Object> environment(NativeEnvironmentV2 capture){
+        var e=capture.value;return Json.map("captureToken",token(capture),"generation",field(capture,"generation").toString(),"current",capture.current(renderer()),
+            "widthPixels",capture.width,"heightPixels",capture.height,"scheme",e.scheme().name(),"direction",e.direction().name(),"profile",e.profile().name(),
+            "density1024",e.density1024(),"viewport",Json.map("width64",e.viewport().width64(),"height64",e.viewport().height64()),
+            "safeArea",Json.map("top64",e.safeArea64().top(),"leading64",e.safeArea64().leading(),"bottom64",e.safeArea64().bottom(),"trailing64",e.safeArea64().trailing()),
+            "locale",e.localeIdentifier(),"accessibility",Json.map("bold",e.accessibility().boldText(),"contrast",e.accessibility().increasedContrast(),"reduceMotion",e.accessibility().reduceMotion()),
+            "fontScale",window.getResources().getConfiguration().fontScale);
+    }
+    private void qualifyEnvironment(NativeEnvironmentV2 capture){
+        var e=capture.value;
+        ensure(Build.VERSION.SDK_INT==37&&Build.SUPPORTED_ABIS[0].equals("arm64-v8a")&&capture.width==1206&&capture.height==2622
+            &&e.density1024()==3072&&e.scheme()==AppearanceResolverV2.Scheme.light&&e.direction()==AppearanceResolverV2.Direction.leftToRight
+            &&e.profile()==AppearanceDescriptorV2.Profile.l&&e.viewport().width64()==25728&&e.viewport().height64()==55936
+            &&e.safeArea64().top()==2816&&e.safeArea64().bottom()==1536&&e.safeArea64().leading()==0&&e.safeArea64().trailing()==0
+            &&e.localeIdentifier().equals("en-US")&&!e.accessibility().boldText()&&!e.accessibility().increasedContrast()&&!e.accessibility().reduceMotion()
+            &&Float.compare(window.getResources().getConfiguration().fontScale,1f)==0,"exact supported actual API37 environment");
+    }
+    private Map<String,Object> editors(){
+        Map<String,Object> result=new LinkedHashMap<>();for(var r:observedRenderer.inspectV2().values())if(r.view instanceof EditText edit){
+            result.put(r.id,Json.map("record",token(r),"view",token(edit),"editable",token(edit.getText()),"text",edit.getText().toString(),
+                "selectionStart",edit.getSelectionStart(),"selectionEnd",edit.getSelectionEnd(),"composingStart",BaseInputConnection.getComposingSpanStart(edit.getText()),
+                "composingEnd",BaseInputConnection.getComposingSpanEnd(edit.getText()),"focus",edit.hasFocus()));}return result;
+    }
+    private ScrollView list(){return(ScrollView)observedRenderer.view("checklist");}
+    private Map<String,Object> snapshot(){
+        byte[] bytes=packet();UiPacket current=bytes==null?null:UiPacket.decode(bytes);
+        Map<String,Object> values=new LinkedHashMap<>(),nativeValues=new LinkedHashMap<>(),identities=new LinkedHashMap<>();
+        if(current!=null)for(var n:current.nodes.values())if(n.kind.equals("toggle"))values.put(n.id,n.flag("value",false));
+        for(var r:observedRenderer.inspectV2().values())if(r.view instanceof Switch s){nativeValues.put(r.id,s.isChecked());identities.put(r.id,Json.map("record",token(r),"view",token(s),"generation",r.generation));}
+        NativeEnvironmentV2 capture=(NativeEnvironmentV2)field(observedRenderer,"v2CommittedEnvironment");
+        return Json.map("packetReference",token(bytes),"packetSHA256",bytes==null?null:sha(bytes),"revision",current==null?null:current.revision,
+            "values",values,"nativeValues",nativeValues,"taskIdentities",identities,"targetRecord",token(observedRecord),"targetView",observedRecord==null?null:token(observedRecord.view),
+            "targetSameRecord",observedRecord!=null&&observedRenderer.inspectV2().get(observedRecord.id)==observedRecord,
+            "targetSameView",observedRecord!=null&&observedRenderer.inspectV2().get(observedRecord.id)!=null&&observedRenderer.inspectV2().get(observedRecord.id).view==observedRecord.view,
+            "targetGeneration",observedRecord==null?null:observedRecord.generation,"nativeChecked",observedRecord!=null&&observedRecord.view instanceof Switch s?s.isChecked():null,
+            "scrollY",list().getScrollY(),"current",observedRenderer.presentationCurrentV2(),"retired",window.coordinator.isRetired(),"rendererRetired",observedRenderer.testRetiredV2(),
+            "hasCommittedPresentation",window.coordinator.hasCommittedPresentation(),"lastNativeInputFailure",window.coordinator.lastNativeInputFailure()==null?null:window.coordinator.lastNativeInputFailure().toString(),
+            "capture",capture==null?null:environment(capture),"editors",editors(),"root",viewGeometry(window.root),"target",observedRecord==null?null:viewGeometry(observedRecord.view));
+    }
+    private Map<String,Object> probe(){AtomicReference<Map<String,Object>> value=new AtomicReference<>();main(()->value.set(snapshot()));return value.get();}
+    private Map<String,Object> motion(MotionEvent event){
+        List<Object> points=new ArrayList<>(),history=new ArrayList<>();
+        for(int p=0;p<event.getPointerCount();p++)points.add(Json.map("id",event.getPointerId(p),"toolType",event.getToolType(p),"x",event.getX(p),"y",event.getY(p),"rawX",event.getRawX(p),"rawY",event.getRawY(p),"pressure",event.getPressure(p),"size",event.getSize(p)));
+        for(int h=0;h<event.getHistorySize();h++){if(++rows>MAX_ROWS)throw new AssertionError("delivery/history 2048 budget");List<Object> samples=new ArrayList<>();for(int p=0;p<event.getPointerCount();p++)samples.add(Json.map("id",event.getPointerId(p),"x",event.getHistoricalX(p,h),"y",event.getHistoricalY(p,h),"pressure",event.getHistoricalPressure(p,h)));history.add(Json.map("eventTime",event.getHistoricalEventTime(h),"pointers",samples));}
+        return Json.map("action",event.getActionMasked(),"actionIndex",event.getActionIndex(),"source",event.getSource(),"downTime",event.getDownTime(),"eventTime",event.getEventTime(),"flags",event.getFlags(),"deviceId",event.getDeviceId(),"pointerCount",event.getPointerCount(),"pointers",points,"history",history);
+    }
+    private void observe(){
+        window.observer=new CoordinatorJoinActivity.Observer(){
+            public long before(MotionEvent event){
+                if(++rows>MAX_ROWS)throw new AssertionError("delivery/history 2048 budget");long seq=++sequence;
+                Map<String,Object> row=Json.map("kind","activity-entry","actionId",activeAction,"sequence",seq,"workerIndependentUptime",SystemClock.uptimeMillis(),"event",motion(event),"state",snapshot());
+                delivered.add(row);log(row);return seq;
+            }
+            public void after(long seq,MotionEvent event,Boolean returned,Throwable thrown){log(Json.map("kind","activity-exit","actionId",activeAction,"sequence",seq,"uptime",SystemClock.uptimeMillis(),"event",motion(event),"returned",returned,"exception",thrown==null?null:thrown.toString(),"state",snapshot()));}
+        };
+    }
+    private void launch(){
+        if(++owners>3)throw new AssertionError("three owner budget");
+        window=(CoordinatorJoinActivity)startActivitySync(new Intent(getTargetContext(),CoordinatorJoinActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        long until=SystemClock.uptimeMillis()+8000;AtomicReference<Boolean> ready=new AtomicReference<>(false);
+        do{main(()->ready.set(window.root.isAttachedToWindow()&&window.root.getWidth()>0&&window.root.hasWindowFocus()));if(ready.get())break;SystemClock.sleep(20);}while(SystemClock.uptimeMillis()<until);
+        require(ready.get(),"attached focused Activity ready");
+        main(()->{window.root.requestFocus();window.coordinator=new NativeCoordinatorV2(window,window.root);window.coordinator.renderInitial();observedRenderer=renderer();observedRecord=observedRenderer.inspectV2().get("task.1");
+            require(((InstalledAppearanceV2)field(observedRenderer,"v2Installed")).sha256.equals(expectedDescriptor),"installed descriptor exact hash");observe();});
+        refresh();
+    }
+    private void refresh(){idle();main(()->{window.coordinator.refreshEnvironment();qualifyEnvironment(observedRenderer.captureEnvironmentV2(window,window.root));ensure(observedRenderer.presentationCurrentV2(),"actual current forwarding capture");});}
+    private void finishWindow(){
+        CoordinatorJoinActivity old=window;main(()->{old.observer=null;if(!old.coordinator.isRetired())old.coordinator.close();old.finish();});
+        long until=SystemClock.uptimeMillis()+8000;AtomicReference<Boolean> ended=new AtomicReference<>(false);
+        do{main(()->ended.set(old.destroyed));if(ended.get())break;SystemClock.sleep(20);}while(SystemClock.uptimeMillis()<until);require(ended.get(),"old Activity destroyed");window=null;
+    }
+    private static boolean inside(Map<String,Object> b,double x,double y){return x>=((Number)b.get("left")).doubleValue()&&x<((Number)b.get("right")).doubleValue()&&y>=((Number)b.get("top")).doubleValue()&&y<((Number)b.get("bottom")).doubleValue();}
+    private Map<String,Object> geometry(NativeAppearanceViewsV2.Record r,boolean fullyVisible){
+        View view=r.view;int[] xy=new int[2];view.getLocationOnScreen(xy);Rect visible=new Rect();boolean shown=view.getGlobalVisibleRect(visible);
+        Rect full=new Rect(xy[0],xy[1],xy[0]+view.getWidth(),xy[1]+view.getHeight());Rect root=new Rect();window.root.getGlobalVisibleRect(root);
+        require(shown&&view.isAttachedToWindow()&&view.isShown()&&view.hasWindowFocus()&&root.contains(full)&&(!fullyVisible||visible.equals(full)),"attached unobscured in-window target geometry");
+        Map<String,Object> result=Json.map("view",viewGeometry(view),"root",viewGeometry(window.root),"globalVisible",rectangle(visible),"viewBounds",rectangle(full),"coordinateSpace","screen pixels");
+        if(view instanceof Switch s){
+            var recipe=(AppearanceResolverV2.ToggleRecipe)r.binding.node().recipe();var m=recipe.metrics();int density=r.binding.density();
+            double tw=AppearanceGeometryV2.pixelEdge(m.trackWidth64(),density),th=AppearanceGeometryV2.pixelEdge(m.trackHeight64(),density);
+            double left=xy[0]+view.getWidth()-tw,top=xy[1]+(view.getHeight()-th)/2.0;
+            Layout label=s.getLayout();require(label!=null&&label.getLineCount()==1,"single-line actual toggle label");
+            double labelWidth=label.getLineWidth(0),labelTop=xy[1]+(view.getHeight()-label.getHeight())/2.0;
+            Map<String,Object> track=box(left,top,left+tw,top+th),text=box(xy[0],labelTop,xy[0]+labelWidth,labelTop+label.getHeight());
+            double off=left+AppearanceGeometryV2.pixelCoordinate(128+2368/2,density),on=left+AppearanceGeometryV2.pixelCoordinate(1536+2368/2,density),cy=top+AppearanceGeometryV2.pixelCoordinate(128+1536/2,density);
+            result.put("track",track);result.put("label",text);result.put("offThumb",box(left+AppearanceGeometryV2.pixelCoordinate(128,density),top+AppearanceGeometryV2.pixelCoordinate(128,density),left+AppearanceGeometryV2.pixelCoordinate(128+2368,density),top+AppearanceGeometryV2.pixelCoordinate(128+1536,density)));
+            result.put("onThumb",box(left+AppearanceGeometryV2.pixelCoordinate(1536,density),top+AppearanceGeometryV2.pixelCoordinate(128,density),left+AppearanceGeometryV2.pixelCoordinate(1536+2368,density),top+AppearanceGeometryV2.pixelCoordinate(128+1536,density)));
+            result.put("offX",off);result.put("onX",on);result.put("thumbY",cy);result.put("labelX",xy[0]+labelWidth/2);result.put("labelY",labelTop+label.getHeight()/2.0);
+            require(visible.contains((int)off,(int)cy)&&visible.contains((int)on,(int)cy)&&!inside(track,((Number)result.get("labelX")).doubleValue(),((Number)result.get("labelY")).doubleValue()),"authored thumb centers and separate label are visible");
+        }else{result.put("labelX",full.exactCenterX());result.put("labelY",full.exactCenterY());}
+        return result;
+    }
+    private static double number(Map<String,Object> m,String key){return((Number)m.get(key)).doubleValue();}
+    private static Map<String,Object> event(int action,long offset,double x,double y){return Json.map("action",action,"offsetMilliseconds",offset,"x",x,"y",y,"pressure",action==MotionEvent.ACTION_UP||action==MotionEvent.ACTION_CANCEL?0:1);}
+    private List<Map<String,Object>> events(String id,Map<String,Object> g,int hold,int slop){
+        double x=number(g,"labelX"),y=number(g,"labelY");List<Map<String,Object>> result=new ArrayList<>();
+        if(id.equals("P03")||id.equals("P04")||id.equals("P05")){
+            double from=number(g,id.equals("P04")?"onX":"offX"),to=number(g,id.equals("P04")?"offX":"onX"),cy=number(g,"thumbY");
+            require(Math.abs(to-from)>slop,"authored horizontal path crosses actual slop");result.add(event(0,0,from,cy));
+            for(int i=1;i<=8;i++)result.add(event(2,i*80,from+(to-from)*i/8,cy));
+            result.add(event(id.equals("P05")?3:1,790,to,cy));
+        }else if(id.equals("P06")){
+            @SuppressWarnings("unchecked") Map<String,Object> root=(Map<String,Object>)g.get("root");
+            double travel=Math.min(240,y-((Number)root.get("screenY")).doubleValue()-8);
+            require(travel>4*slop,"vertical label-start travel exceeds four slops and remains in window");
+            result.add(event(0,0,x,y));for(int i=1;i<=12;i++)result.add(event(2,i*80,x,y-travel*i/12));result.add(event(1,1110,x,y-travel));
+        }else{result.add(event(0,0,x,y));result.add(event(1,id.equals("P02")?hold:80,x,y));}
+        require(result.size()<=16,"16 event action budget");return List.copyOf(result);
+    }
+    private MotionEvent obtain(Map<String,Object> step,long down){
+        MotionEvent.PointerProperties property=new MotionEvent.PointerProperties();property.id=0;property.toolType=MotionEvent.TOOL_TYPE_FINGER;
+        MotionEvent.PointerCoords point=new MotionEvent.PointerCoords();point.x=(float)number(step,"x");point.y=(float)number(step,"y");point.pressure=(float)number(step,"pressure");point.size=1;
+        return MotionEvent.obtain(down,down+((Number)step.get("offsetMilliseconds")).longValue(),((Number)step.get("action")).intValue(),1,new MotionEvent.PointerProperties[]{property},new MotionEvent.PointerCoords[]{point},0,0,1f,1f,0,0,InputDevice.SOURCE_TOUCHSCREEN,0);
+    }
+    private void action(String id,int repetition,String target,boolean expected,boolean commit,Map<String,Object> savedGeometry){
+        long actionStart=SystemClock.uptimeMillis();if(++actions>MAX_ACTIONS)throw new AssertionError("20 actions budget");activeAction=id+"-"+repetition;
+        AtomicReference<Map<String,Object>> geometry=new AtomicReference<>(),beforeRef=new AtomicReference<>();AtomicReference<List<Map<String,Object>>> planned=new AtomicReference<>();AtomicReference<Long> downRef=new AtomicReference<>();
+        main(()->{
+            if(!id.equals("G03"))observedRecord=observedRenderer.inspectV2().get(target);
+            NativeEnvironmentV2 capture=id.equals("G03")?(NativeEnvironmentV2)field(observedRenderer,"v2CommittedEnvironment"):observedRenderer.captureEnvironmentV2(window,window.root);
+            if(!id.equals("G03"))qualifyEnvironment(capture);
+            Map<String,Object> g=savedGeometry==null?geometry(observedRecord,true):savedGeometry;geometry.set(g);ViewConfiguration config=ViewConfiguration.get(window);
+            int timeout=ViewConfiguration.getLongPressTimeout();require(timeout<=1500,"bounded platform long press timeout");
+            List<Map<String,Object>> steps=events(id,g,timeout+100,config.getScaledTouchSlop());planned.set(steps);
+            Map<String,Object> before=snapshot();beforeRef.set(before);savePacket(packet());
+            long scheduledDown=SystemClock.uptimeMillis()+200;downRef.set(scheduledDown);
+            Map<String,Object> sealed=Json.map("sourceRevision",expectedRevision,"sourceTree",expectedTree,"downTime",scheduledDown,"schema",1,"actionId",id,"repetition",repetition,"ordinal",actions,"sourceClosureSHA256",expectedClosure,"fixtureSHA256",expectedFixture,
+                "apkSHA256",expectedAPK,"descriptorSHA256",expectedDescriptor,"targetId",observedRecord.id,"kind",observedRecord.kind,"generation",observedRecord.generation,
+                "recordToken",token(observedRecord),"viewToken",token(observedRecord.view),"geometry",g,"capture",environment(capture),"before",before,
+                "thresholds",Json.map("touchSlop",config.getScaledTouchSlop(),"minimumFlingVelocity",config.getScaledMinimumFlingVelocity(),"tapTimeout",ViewConfiguration.getTapTimeout(),"longPressTimeout",timeout),
+                "pointer",Json.map("count",1,"id",0,"toolType",MotionEvent.TOOL_TYPE_FINGER,"source",InputDevice.SOURCE_TOUCHSCREEN,"coordinateSpace","screen pixels","clock","SystemClock.uptimeMillis","maxLatenessMilliseconds",100),"events",steps);
+            byte[] frozen=json(sealed);String filename="pointer-sequence-"+actions+".json";write(filename,frozen);log(Json.map("kind","sealed-sequence","actionId",activeAction,"file",filename,"sha256",sha(frozen)));
+        });
+        Map<String,Object> before=beforeRef.get();List<Map<String,Object>> steps=planned.get();int deliveryStart=delivered.size();long down=downRef.get();boolean pointerDown=false;List<Object> sends=new ArrayList<>();
+        try{
+            for(Map<String,Object> step:steps){
+                long due=down+((Number)step.get("offsetMilliseconds")).longValue(),remaining=due-SystemClock.uptimeMillis();if(remaining>0)SystemClock.sleep(remaining);
+                long actual=SystemClock.uptimeMillis();if(actual-due>100)throw new AssertionError("immutable schedule lateness exceeds 100ms");
+                if(Looper.myLooper()==Looper.getMainLooper())throw new AssertionError("sendPointerSync requires instrumentation worker");
+                if(++injected>MAX_EVENTS)throw new AssertionError("320 injected event budget");
+                MotionEvent input=obtain(step,down);int kind=input.getActionMasked();Map<String,Object> requested=motion(input);String thrown=null;
+                try{if(kind==MotionEvent.ACTION_DOWN)pointerDown=true;sendPointerSync(input);if(kind==MotionEvent.ACTION_UP||kind==MotionEvent.ACTION_CANCEL)pointerDown=false;}
+                catch(RuntimeException|Error e){thrown=e.toString();throw e;}
+                finally{input.recycle();log(Json.map("kind","worker-send","actionId",activeAction,"scheduledUptime",due,"workerBefore",actual,"workerAfter",SystemClock.uptimeMillis(),"exception",thrown,"event",requested));}
+                Map<String,Object> after=probe();sends.add(after);log(Json.map("kind","after-send","actionId",activeAction,"state",after));
+                if(SystemClock.uptimeMillis()-actionStart>5000)throw new AssertionError("5s action wall budget");
+                if(kind!=MotionEvent.ACTION_UP&&kind!=MotionEvent.ACTION_CANCEL)ensure(before.get("revision")==null?after.get("revision")==null:before.get("revision").equals(after.get("revision")),"no acknowledgement before terminal event");
+                main(()->ensure(window.observationFailure==null,"passive Activity observation succeeded"));
+            }
+            idle();Map<String,Object> after=probe();main(()->savePacket(packet()));
+            require(SystemClock.uptimeMillis()-actionStart<=5000,"action including settle within five seconds");
+            List<Map<String,Object>> actual=List.copyOf(delivered.subList(deliveryStart,delivered.size()));
+            require(actual.size()>=2,"Activity delivered DOWN and terminal");
+            @SuppressWarnings("unchecked") Map<String,Object> first=(Map<String,Object>)actual.get(0).get("event");
+            @SuppressWarnings("unchecked") Map<String,Object> last=(Map<String,Object>)actual.get(actual.size()-1).get("event");
+            int terminal=((Number)steps.get(steps.size()-1).get("action")).intValue();
+            require(((Number)first.get("action")).intValue()==0&&((Number)last.get("action")).intValue()==terminal,"actual matched DOWN and terminal action");
+            for(Map<String,Object> row:actual){@SuppressWarnings("unchecked") Map<String,Object> e=(Map<String,Object>)row.get("event");ensure(((Number)e.get("source")).intValue()==InputDevice.SOURCE_TOUCHSCREEN&&((Number)e.get("pointerCount")).intValue()==1&&((Number)e.get("downTime")).longValue()==down,"actual one touchscreen pointer and matching downTime");}
+            long previousTime=down-1;for(int i=0;i<actual.size();i++){@SuppressWarnings("unchecked") Map<String,Object> e=(Map<String,Object>)actual.get(i).get("event");long time=((Number)e.get("eventTime")).longValue();int kind=((Number)e.get("action")).intValue();ensure(time>=previousTime&&time>=down&&time<=down+((Number)steps.get(steps.size()-1).get("offsetMilliseconds")).longValue()&&(i==0?kind==0:i==actual.size()-1?kind==terminal:kind==2),"actual monotonic complete gesture delivery without extra terminal");previousTime=time;}
+            verifyEndpoints(first,steps.get(0));verifyEndpoints(last,steps.get(steps.size()-1));
+            boolean retired=id.equals("G03");String delta=retired?null:new BigInteger((String)after.get("revision")).subtract(new BigInteger((String)before.get("revision"))).toString();
+            require(retired?after.get("revision")==null:delta.equals(commit?"1":"0"),"exact authoritative revision acknowledgement count");
+            if(!retired&&!commit)require(before.get("packetReference").equals(after.get("packetReference"))&&before.get("packetSHA256").equals(after.get("packetSHA256")),"no-commit exact authoritative packet identity and bytes");
+            require(before.get("editors").equals(after.get("editors")),"unintended editor mutation absent");
+            require(Boolean.TRUE.equals(after.get("targetSameRecord"))&&Boolean.TRUE.equals(after.get("targetSameView"))&&before.get("targetGeneration").equals(after.get("targetGeneration")),"actual record view and generation survive");
+            if(!retired){
+                @SuppressWarnings("unchecked") Map<String,Object> wanted=new LinkedHashMap<>((Map<String,Object>)before.get("values"));if(commit)wanted.put(target,expected);
+                require(wanted.equals(after.get("values"))&&after.get("values").equals(after.get("nativeValues")),"exact all task and native checked values agree");
+                require(after.get("lastNativeInputFailure")==null&&!Boolean.TRUE.equals(after.get("retired")),"no contained failure or retirement");
+                if(id.equals("G02a"))require(Boolean.FALSE.equals(after.get("current")),"explicit invalidation remains closed");else require(Boolean.TRUE.equals(after.get("current")),"actual current capture remains open");
+            }else require(Boolean.TRUE.equals(after.get("retired"))&&Boolean.TRUE.equals(after.get("rendererRetired"))&&Boolean.FALSE.equals(after.get("hasCommittedPresentation"))&&Boolean.FALSE.equals(after.get("current"))&&before.get("nativeValues").equals(after.get("nativeValues")),"retired owner stays closed with old native value unchanged");
+            int scrollBefore=((Number)before.get("scrollY")).intValue(),scrollAfter=((Number)after.get("scrollY")).intValue();
+            if(id.equals("P06")){AtomicReference<Integer> slop=new AtomicReference<>();main(()->slop.set(ViewConfiguration.get(window).getScaledTouchSlop()));require(scrollAfter-scrollBefore>slop.get(),"actual label-start ScrollView arbitration increases scroll beyond slop");}
+            else require(scrollAfter==scrollBefore,"non-scroll gesture preserves scrollY");
+            summaries.add(Json.map("actionId",id,"repetition",repetition,"ordinal",actions,"status","passed","nativeDeliveryCount",actual.size(),"commitAcknowledgementCount",delta,"directNativeCallbackCount",null,"before",before,"after",after,"injectedEvents",steps.size()));
+        }finally{
+            if(pointerDown){
+                Map<String,Object> last=steps.get(steps.size()-1);MotionEvent cancel=obtain(event(3,Math.max(0,SystemClock.uptimeMillis()-down),number(last,"x"),number(last,"y")),down);
+                cleanupInjected++;if(++injected>MAX_EVENTS)throw new AssertionError("cleanup crosses global pointer budget");
+                try{sendPointerSync(cancel);log(Json.map("kind","cleanup-terminal-cancel","actionId",activeAction,"acceptanceContribution",false,"event",motion(cancel)));}finally{cancel.recycle();}
+            }
+            activeAction=null;
+        }
+    }
+    private void verifyEndpoints(Map<String,Object> actual,Map<String,Object> planned){
+        @SuppressWarnings("unchecked") List<Map<String,Object>> pointers=(List<Map<String,Object>>)actual.get("pointers");Map<String,Object> p=pointers.get(0);
+        require(((Number)p.get("id")).intValue()==0&&Math.abs(number(p,"rawX")-number(planned,"x"))<=1&&Math.abs(number(p,"rawY")-number(planned,"y"))<=1,"actual pointer identity and intended screen endpoint");
+    }
+    private void setupScroll(){
+        long setupStart=SystemClock.uptimeMillis();for(int i=0;i<18;i++){
+            final String text="Fixture "+(i+3);for(String event:List.of("draft","add")){
+                refresh();main(()->{
+                    ensure(window.root.requestFocus(),"private root holds focus for ordinary setup");
+                    for(var r:renderer().inspectV2().values())if(r.view instanceof EditText edit)ensure(!edit.hasFocus(),"setup editor unfocused");
+                    byte[] previous=packet();UiPacket p=UiPacket.decode(previous);UiPacket.Node n=p.nodes.get(event);
+                    byte[] envelope=p.event(n.id,n.generation,event.equals("draft")?"textChange":"activate",event.equals("draft")?text:null);
+                    window.coordinator.dispatchInput(envelope);if(++setupCommits>36)throw new AssertionError("36 setup commit budget");
+                    UiPacket next=UiPacket.decode(packet());require(new BigInteger(next.revision).equals(new BigInteger(p.revision).add(BigInteger.ONE)),"ordinary setup advances once");
+                    savePacket(previous);savePacket(packet());log(Json.map("kind","ordinary-setup","ordinal",setupCommits,"envelopeSHA256",sha(envelope),"event",event,"beforeRevision",p.revision,"after",snapshot(),"pointerEvidence",false));
+                });if(SystemClock.uptimeMillis()-setupStart>30000)throw new AssertionError("30s setup budget");
+            }
+        }
+        refresh();main(()->{
+            UiPacket p=UiPacket.decode(packet());long count=p.nodes.values().stream().filter(n->n.kind.equals("toggle")).count();ScrollView scroll=list();
+            require(count==20&&scroll.getChildCount()==1&&scroll.getChildAt(0).getHeight()-scroll.getHeight()>=128,"exact 20 tasks and actual overflow at least 128px");
+            // This separate setup scroll does not supply pointer evidence or mutate reducer state.
+            scroll.scrollTo(0,0);window.root.requestFocus();
+        });idle();refresh();
+        main(()->{
+            NativeAppearanceViewsV2.Record candidate=renderer().inspectV2().get("task.1");Rect visible=new Rect();candidate.view.getGlobalVisibleRect(visible);
+            require(!visible.isEmpty()&&list().getChildAt(0).getHeight()-list().getHeight()-list().getScrollY()>=128,"visible toggle with remaining scroll range");
+            observedRecord=candidate;log(Json.map("kind","scroll-setup-complete","setupCommits",setupCommits,"state",snapshot()));
+        });
+    }
+    private void gates(){
+        finishWindow();launch();
+        main(()->{observedRecord=renderer().inspectV2().get("add");require(UiPacket.decode(packet()).nodes.get("add").disabled&&!observedRecord.view.isEnabled(),"ordinary packet and native add disabled");});
+        action("G01",1,"add",false,false,null);refresh();
+        AtomicReference<byte[]> retained=new AtomicReference<>();AtomicReference<Map<String,Object>> saved=new AtomicReference<>();
+        main(()->{observedRecord=renderer().inspectV2().get("task.1");retained.set(packet());saved.set(geometry(observedRecord,true));renderer().environmentInvalidatedV2();require(!renderer().presentationCurrentV2(),"explicit existing closure seam closes forwarding");});
+        action("G02a",1,"task.1",false,false,saved.get());
+        main(()->{window.coordinator.refreshEnvironment();require(packet()==retained.get()&&Arrays.equals(packet(),retained.get()),"refresh retains exact packet object bytes");});refresh();
+        action("G02b",1,"task.1",true,true,null);
+        finishWindow();launch();AtomicReference<byte[]> old=new AtomicReference<>();AtomicReference<String> oldHash=new AtomicReference<>();
+        main(()->{observedRecord=renderer().inspectV2().get("task.1");saved.set(geometry(observedRecord,true));old.set(packet());oldHash.set(sha(old.get()));window.coordinator.close();require(packet()==null,"close has no authoritative packet");});
+        action("G03",1,"task.1",false,false,saved.get());
+        main(()->{require(sha(old.get()).equals(oldHash.get()),"saved immutable pre-retirement bytes unchanged");boolean rejected=false;try{window.coordinator.refreshEnvironment();}catch(IllegalStateException expected){rejected=true;}require(rejected&&window.coordinator.isRetired(),"refresh rejects closed owner without reopening");});
+    }
+    @Override public void onStart(){
+        started=SystemClock.uptimeMillis();Bundle result=new Bundle();String outcome="failed";int code=Activity.RESULT_CANCELED;
+        try{
+            byte[] fixture=asset("CoordinatorJoin/operations.json");Map<String,Object> f=Json.object(Json.parse(fixture));
+            require(sha(fixture).equals(expectedFixture)&&Json.string(f.get("format")).equals("mixer-private-actual-pointer-1")&&Json.uint(f.get("gestureActions")).equals("20")&&Json.uint(f.get("maxInjectedMotionEvents")).equals("320"),"exact frozen pointer fixture");
+            require(expectedAPK!=null&&expectedAPK.matches("[0-9a-f]{64}")&&expectedClosure!=null&&expectedClosure.matches("[0-9a-f]{64}"),"runner supplies frozen APK and source identities");
+            launch();
+            for(int repetition=1;repetition<=3;repetition++){
+                for(String id:List.of("P01","P02","P03","P04","P05")){refresh();action(id,repetition,"task.1",id.equals("P01")||id.equals("P03"),!id.equals("P05"),null);}
+            }
+            setupScroll();action("P06",1,"task.1",false,false,null);gates();
+            require(actions==20&&setupCommits==36&&owners==3&&injected<=320&&cleanupInjected==0,"exact complete action setup owner budgets");outcome="passed";code=Activity.RESULT_OK;
+        }catch(RuntimeException|Error failure){result.putString("failure",failure.toString());log(Json.map("kind","failure","exception",failure.toString(),"actionId",activeAction));}
+        finally{
+            if(window!=null)try{finishWindow();}catch(RuntimeException|Error failure){outcome="failed";code=Activity.RESULT_CANCELED;result.putString("cleanupFailure",failure.toString());}
+            try{
+                byte[] observations=Files.readAllBytes(getTargetContext().getFilesDir().toPath().resolve("pointer-observations.jsonl"));
+                exported.put("pointer-observations.jsonl",Json.map("bytes",observations.length,"sha256",sha(observations)));
+                Map<String,Object> nativeResult=Json.map("schema",1,"status",outcome,"checks",checks,"operations",actions,"gestureActions",actions,"injectedMotionEvents",injected,"cleanupInjectedMotionEvents",cleanupInjected,
+                    "setupOrdinaryCommits",setupCommits,"activityOwners",owners,"deliveryAndHistoryRows",rows,"directNativeCallbackCount",null,"directNativeCallbackObservation","unobserved",
+                    "sourceRevision",expectedRevision,"sourceTree",expectedTree,"sourceClosureSHA256",expectedClosure,"fixtureSHA256",expectedFixture,"apkSHA256",expectedAPK,"descriptorSHA256",expectedDescriptor,"summaries",summaries,"assertions",assertions,
+                    "exports",exported,"packets",Map.of(),"failure",result.getString("failure"),"cleanupFailure",result.getString("cleanupFailure"),"durationMilliseconds",SystemClock.uptimeMillis()-started,
+                    "scope","private API37 actual-pointer development subset only; physical, system IME, accessibility, public, signed OTA, FieldLog, store, operational and GA pending");
+                byte[] bytes=json(nativeResult);if(bytes.length+metadataBytes>MAX_METADATA)throw new AssertionError("result metadata bound");
+                Files.write(getTargetContext().getFilesDir().toPath().resolve("native-results.json"),bytes,StandardOpenOption.CREATE_NEW);
+            }catch(IOException|RuntimeException|Error failure){outcome="failed";code=Activity.RESULT_CANCELED;result.putString("exportFailure",failure.toString());}
+            result.putString("status",outcome);result.putInt("checks",checks);result.putInt("operations",actions);finish(code,result);
+        }
+    }
+}

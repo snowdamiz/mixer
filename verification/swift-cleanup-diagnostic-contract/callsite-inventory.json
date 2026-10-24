@@ -1,0 +1,289 @@
+{
+  "authorization": "audit only; source inventory is not release authorization",
+  "baselineSourceSHA256": "a0bbe77aca3021e48f1fb76dc97cfbc0406c24e5ba7eacdd33d5dabe8f998d9b",
+  "frameAdapterCallers": {
+    "activeFinishNewContextualHelper": [
+      811,
+      813,
+      832
+    ],
+    "drainOldHelper": [
+      923,
+      926,
+      941
+    ],
+    "rollbackOldHelper": [
+      714,
+      727,
+      737
+    ]
+  },
+  "productionCallsiteCount": 12,
+  "productionCallsites": [
+    {
+      "actualCursor": "operation.cursor",
+      "actualResource": "Values",
+      "decision": "contextual-active",
+      "enclosing": "primitive_pop",
+      "excerpt": [
+        "    operation",
+        "        .control",
+        "        .remove_live_with_wasi(Live::Values, 1, Some(operation.wasi.usage()))?;",
+        "    Ok(value)",
+        "}",
+        "",
+        "fn primitive_numeric(",
+        "    values: &mut Vec<Value>,"
+      ],
+      "excerptFirstLine": 564,
+      "line": 566,
+      "rationale": "After actual pop; preserve existing debt behavior in original caller.",
+      "source": "src/experimental_swift_reactor/value_operations.rs",
+      "sourceSHA256": "4465e45a4df56f5b5fd2ca8f89ea4b503e746e63cfe0ab944256be966fd00227"
+    },
+    {
+      "actualCursor": "operation.cursor",
+      "actualResource": "Values",
+      "decision": "contextual-active",
+      "enclosing": "primitive_numeric",
+      "excerpt": [
+        "    operation",
+        "        .control",
+        "        .remove_live_with_wasi(Live::Values, removed, Some(operation.wasi.usage()))?;",
+        "    match result {",
+        "        Ok(()) => Ok(()),",
+        "        Err(code) => Err(operation.control.fail(",
+        "            operation.cursor,",
+        "            Fault::new(SwiftRunFailureKind::GuestTrap, code),"
+      ],
+      "excerptFirstLine": 629,
+      "line": 631,
+      "rationale": "After shared arithmetic result; original reconciliation precedes result mapping.",
+      "source": "src/experimental_swift_reactor/value_operations.rs",
+      "sourceSHA256": "4465e45a4df56f5b5fd2ca8f89ea4b503e746e63cfe0ab944256be966fd00227"
+    },
+    {
+      "actualCursor": null,
+      "actualResource": "Values",
+      "decision": "preserve-cleanup",
+      "enclosing": "primitive_clear",
+      "excerpt": [
+        "    let removed = values.len();",
+        "    values.clear();",
+        "    let removal = operation.control.remove_live_with_wasi(",
+        "        Live::Values,",
+        "        removed,",
+        "        Some(operation.wasi.usage()),",
+        "    );",
+        "    mismatch.and(removal)"
+      ],
+      "excerptFirstLine": 647,
+      "line": 649,
+      "rationale": "Completion clear; stored operation cursor can be stale.",
+      "source": "src/experimental_swift_reactor/value_operations.rs",
+      "sourceSHA256": "4465e45a4df56f5b5fd2ca8f89ea4b503e746e63cfe0ab944256be966fd00227"
+    },
+    {
+      "actualCursor": "self.phase.operation.cursor",
+      "actualResource": "Values or Controls",
+      "decision": "contextual-active",
+      "enclosing": "control_remove",
+      "excerpt": [
+        "    }",
+        "    fn control_remove(&mut self, resource: Live, amount: usize) -> Result<(), SwiftRunFailure> {",
+        "        let result = self.phase.operation.control.remove_live_with_wasi(",
+        "            resource,",
+        "            amount,",
+        "            Some(self.phase.operation.wasi.usage()),",
+        "        );",
+        "        if result.is_err() {"
+      ],
+      "excerptFirstLine": 257,
+      "line": 259,
+      "rationale": "Active shared-control pop/truncate leaf; retain debt latch.",
+      "source": "src/experimental_swift_reactor/control_operations.rs",
+      "sourceSHA256": "e9ce774bcbcceaa83fa6f610cc1e2120e0b8d948c68aed68304e975e49bcfb00"
+    },
+    {
+      "actualCursor": null,
+      "actualResource": "Values or Controls or Frames",
+      "decision": "preserve-cleanup-split-active-finish",
+      "enclosing": "remove_live",
+      "excerpt": [
+        "            .operation",
+        "            .control",
+        "            .remove_live_with_wasi(resource, amount, Some(self.phase.operation.wasi.usage()))",
+        "            .is_err()",
+        "        {",
+        "            self.cleanup.live_unreconciled = true;",
+        "            false",
+        "        } else {"
+      ],
+      "excerptFirstLine": 669,
+      "line": 671,
+      "rationale": "Shared rollback/drain/finish adapter: no blanket cursor propagation.",
+      "source": "src/experimental_swift_reactor/frame_operations.rs",
+      "sourceSHA256": "c7261431e7a29f50c6f2ce9fb470ed76238b9c606990a90428d1cd98832d9195"
+    },
+    {
+      "actualCursor": null,
+      "actualResource": "ActivePins or CacheEntries",
+      "decision": "preserve-cleanup-defer-cache-seam",
+      "enclosing": "CacheControl::remove_live",
+      "excerpt": [
+        "    fn remove_live(&mut self, kind: Live) -> Result<(), SwiftRunFailure> {",
+        "        self.control",
+        "            .remove_live_with_wasi(kind, 1, self.observation())",
+        "    }",
+        "    fn check_header(&mut self, cache: &SwiftFunctionCache) -> Result<(), SwiftRunFailure> {",
+        "        pairing(self.control, self.wasi, self.cursor)?;",
+        "        let Some(header) = cache.header.as_ref() else {",
+        "            return Err(self.error(CacheFailureKind::InvalidPin, \"swift_cache_missing_header\"));"
+      ],
+      "excerptFirstLine": 1233,
+      "line": 1235,
+      "rationale": "Shared release/abandon/build-rollback/eviction; cache cursor is not current invocation proof.",
+      "source": "src/experimental_swift_reactor/cache.rs",
+      "sourceSHA256": "0db1fe8de6bfb987acd5fc6e4a74719a9be8332c64006a3fce9e73451303320f"
+    },
+    {
+      "actualCursor": null,
+      "actualResource": "ActivePins",
+      "decision": "preserve-cleanup",
+      "enclosing": "SwiftFunctionCache::cleanup pin inventory",
+      "excerpt": [
+        "                capture(",
+        "                    &mut failure,",
+        "                    control.remove_live_with_wasi(",
+        "                        Live::ActivePins,",
+        "                        1,",
+        "                        wasi.map(AccountedWasi::usage),",
+        "                    ),",
+        "                );"
+      ],
+      "excerptFirstLine": 1447,
+      "line": 1449,
+      "rationale": "Actual owner cleanup.",
+      "source": "src/experimental_swift_reactor/cache.rs",
+      "sourceSHA256": "0db1fe8de6bfb987acd5fc6e4a74719a9be8332c64006a3fce9e73451303320f"
+    },
+    {
+      "actualCursor": null,
+      "actualResource": "CacheEntries",
+      "decision": "preserve-cleanup",
+      "enclosing": "SwiftFunctionCache::cleanup resident inventory",
+      "excerpt": [
+        "                capture(",
+        "                    &mut failure,",
+        "                    control.remove_live_with_wasi(",
+        "                        Live::CacheEntries,",
+        "                        1,",
+        "                        wasi.map(AccountedWasi::usage),",
+        "                    ),",
+        "                );"
+      ],
+      "excerptFirstLine": 1468,
+      "line": 1470,
+      "rationale": "Actual owner cleanup.",
+      "source": "src/experimental_swift_reactor/cache.rs",
+      "sourceSHA256": "0db1fe8de6bfb987acd5fc6e4a74719a9be8332c64006a3fce9e73451303320f"
+    },
+    {
+      "actualCursor": null,
+      "actualResource": "MemoryPages",
+      "decision": "preserve-cleanup",
+      "enclosing": "SwiftReactorInstance::cleanup_owned",
+      "excerpt": [
+        "        let pages = state.memory.len() / PAGE;",
+        "        state.drop_arenas(&mut control, &wasi);",
+        "        let _ = control.remove_live_with_wasi(Live::MemoryPages, pages, Some(wasi.usage()));",
+        "        let header = state.execution_header.take();",
+        "        // State and its empty Vec handles end while the one header stays live.",
+        "        drop(state);",
+        "        let mut outcome = None;",
+        "        match SwiftFunctionCache::cleanup(&mut owner.cache, &mut control, Some(&wasi)) {"
+      ],
+      "excerptFirstLine": 1698,
+      "line": 1700,
+      "rationale": "Consuming State memory cleanup.",
+      "source": "src/experimental_swift_reactor/execution.rs",
+      "sourceSHA256": "ed3172001d0382a400689c5f9899f9fe2b3207cfd3e99be2a8f0dbf896930e31"
+    },
+    {
+      "actualCursor": null,
+      "actualResource": "MemoryPages",
+      "decision": "preserve-cleanup",
+      "enclosing": "PartialInstance::cleanup_failed",
+      "excerpt": [
+        "            let pages = state.memory.len() / PAGE;",
+        "            state.drop_arenas(&mut control, wasi);",
+        "            let _ = control.remove_live_with_wasi(Live::MemoryPages, pages, Some(wasi.usage()));",
+        "            header = state.execution_header.take();",
+        "            drop(state);",
+        "        }",
+        "        let mut outcome = None;",
+        "        if self.cache.is_some() {"
+      ],
+      "excerptFirstLine": 1809,
+      "line": 1811,
+      "rationale": "Partial-construction cleanup.",
+      "source": "src/experimental_swift_reactor/execution.rs",
+      "sourceSHA256": "ed3172001d0382a400689c5f9899f9fe2b3207cfd3e99be2a8f0dbf896930e31"
+    },
+    {
+      "actualCursor": null,
+      "actualResource": "MemoryPages",
+      "decision": "preserve-cleanup",
+      "enclosing": "SwiftGrowthExecution::release_pending",
+      "excerpt": [
+        "        if self.storage.live_unreconciled {return Err(self.phase.invariant(\"swift_growth_live_debt\"));}",
+        "        if self.storage.pages_debited!=0 {",
+        "            let result=self.phase.phase.operation.control.remove_live_with_wasi(Live::MemoryPages,self.storage.pages_debited,Some(self.phase.phase.operation.wasi.usage()));",
+        "            if let Err(error)=result {self.storage.live_unreconciled=true;return Err(error);}",
+        "            self.storage.pages_debited=0;",
+        "        }",
+        "        self.release_ticket(false)?;",
+        "        self.release_ticket(true)"
+      ],
+      "excerptFirstLine": 113,
+      "line": 115,
+      "rationale": "Uncommitted pending-memory cleanup reused by explicit cleanup; cursor can be stale.",
+      "source": "src/experimental_swift_reactor/memory_growth_operations.rs",
+      "sourceSHA256": "2d3200dbdf6b934d03a10c3dea4a8ef9a48ed14e75fc31fbb5566d8b7e1523c6"
+    },
+    {
+      "actualCursor": null,
+      "actualResource": "caller supplied Live",
+      "decision": "preserve-cleanup",
+      "enclosing": "RuntimeControl::remove_live",
+      "excerpt": [
+        "        amount: usize,",
+        "    ) -> Result<(), SwiftRunFailure> {",
+        "        self.remove_live_with_wasi(resource, amount, None)",
+        "    }",
+        "",
+        "    pub(crate) fn remove_live_with_wasi(",
+        "        &mut self,",
+        "        resource: Live,"
+      ],
+      "excerptFirstLine": 1600,
+      "line": 1602,
+      "rationale": "Existing no-WASI convenience wrapper.",
+      "source": "src/experimental_swift_reactor/control.rs",
+      "sourceSHA256": "99835ca8bbb8e9b3cbfff5469e42b6b99f897799189e7073e6ef93bbce72af6b"
+    }
+  ],
+  "relatedCleanupFaults": {
+    "end_construction_phase_with_wasi": [
+      1125,
+      1132,
+      1140,
+      1154
+    ],
+    "refund_with_wasi": [
+      1320,
+      1334
+    ]
+  },
+  "schema": 1
+}

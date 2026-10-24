@@ -1,0 +1,222 @@
+{
+  "acceptedBindSource": "def bind_candidate(built):\n    \"\"\"Bind the separate runner to the 105-input APK-only packaging-corrected candidate1 packet.\"\"\"\n    if sha(_helper_path) != PROCESS_HELPER_SHA256:\n        raise ValueError('owned process helper changed')\n    for relative, expected in BUILD_BINDINGS.items():\n        if sha(built / relative) != expected:\n            raise ValueError('frozen candidate2 binding changed ' + relative)\n    metadata = json.loads((built / 'receipt.json').read_text())\n    locked = json.loads((built / 'source-lock.json').read_text())['files']\n    closure = hashlib.sha256(json.dumps(locked, sort_keys=True, separators=(',', ':')).encode()).hexdigest()\n    if len(locked) != 105 or closure != SOURCE_CLOSURE_SHA256 or metadata['sourceClosureSHA256'] != closure:\n        raise ValueError('frozen candidate2 source closure changed')\n    if locked.get('verification/android-coordinator-join/run.py') != ORIGINAL_RUNNER_SHA256:\n        raise ValueError('original candidate2 runner derivation changed')\n    for relative, expected in locked.items():\n        if sha(built / 'inputs' / relative) != expected:\n            raise ValueError('frozen candidate2 input changed ' + relative)\n    metadata['packagingPreDispatch'] = _packaging_check_archive(built, metadata)\n    return metadata\n\n\n",
+  "acceptedBuildBindings": {
+    "apk-entries.json": "e1afb858d6d5d777057253c30c3d6bf1575781ac0141d33f922940f00da89132",
+    "apk-entry-delta.json": "4c95d665f5ebbd6ae6e02bb1ca625641e6d616f606fb729a62d2cf9efdf983b0",
+    "artifact-delta.json": "6f324334aaf7a9ecf9089a5883fd262283ff8569c53f2147bd82bf9373ce9914",
+    "artifact-seal.json": "c52ab01219f03c36914fc49cc4d0677a6a8d7e093e384f46910b677d1a0930aa",
+    "built-artifacts.json": "47bb6c59290105fe00be199e769de28f8c79b5ebfc72a84083a57144de6770fc",
+    "built-artifacts.tar.gz": "7305ff2bd05843ea26b7e82429767416ec219ec35e0587d4bcdc273204b9f4de",
+    "post-sign-official-zipalign.log": "9ae1e2e728cf4b6be77607e6bc4cd19afe52fde569660dd4ca56d35ebbb58618",
+    "post-sign-packaging.json": "8fbac73454e2f2f76a7d37a99664084f08a684f1b7ae8fdfe48d00664b978f28",
+    "pre-sign-official-zipalign.log": "43651642eb5f7bbf50956504db6ce0de9c93eb1f558868ae79c6d6d5d11530d9",
+    "pre-sign-packaging.json": "67b3b60eb8fbc305e386e3e5dc7c411ac048e802868cfb27e3573da54a8eaf65",
+    "private-debug-signature-cert.log": "fab2337a2d192aab44fa791d78070e7cb7e672fd5b72696e5fef701cb89b8c25",
+    "receipt.json": "05f6c39f435da3b87e6faafee5810e6aafc341f94f49139586ee9dd3e44c0776",
+    "source-lock.json": "2fc428653eeceb214894d81db113a2e8312f9cd0353422f224605753a2fa021f"
+  },
+  "acceptedConcreteRunnerSHA256": "ef1596316533a14bf54040565f00c1edef8b56e3ccbfd297c3681daa6c56a2c3",
+  "acceptedExportSource": "            for name, packet in native['packets'].items():\n                filename = packet['file']\n                if not re.fullmatch(r'(jni|joined)-[a-z]+\\.bin', filename):\n                    raise ValueError('unexpected packet export')\n                _, packet_bytes = run('packet-' + name, adb + ['exec-out', 'run-as', PACKAGE, 'cat', 'files/' + filename])\n                (out / filename).write_bytes(packet_bytes)\n                if hashlib.sha256(packet_bytes).hexdigest() != packet['sha256']:\n                    raise ValueError('actual native packet export differs')\n",
+  "bounds": {
+    "actionWallMilliseconds": 5000,
+    "cycle": [
+      "P01",
+      "P02",
+      "P03",
+      "P04",
+      "P05"
+    ],
+    "cycleRepetitions": 3,
+    "directNativeCallbackCount": null,
+    "format": "mixer-private-actual-pointer-1",
+    "gestureActions": 20,
+    "instrumentationWallMilliseconds": 180000,
+    "mainProbeOrSettleMilliseconds": 2000,
+    "maxActivityOwners": 3,
+    "maxAssertions": 512,
+    "maxDeliveryAndHistoryRows": 2048,
+    "maxEventsPerAction": 16,
+    "maxInjectedMotionEvents": 320,
+    "maxObservationJSONLBytes": 8388608,
+    "maxPacketAndMetadataBytes": 33554432,
+    "maxPacketBytes": 262144,
+    "maxRunnerLogBytes": 33554432,
+    "maximumInjectionLatenessMilliseconds": 100,
+    "setupAdditionalTasks": 18,
+    "setupOrdinaryDispatches": 36,
+    "setupWallMilliseconds": 30000,
+    "singleActions": [
+      "P06",
+      "G01",
+      "G02a",
+      "G02b",
+      "G03"
+    ]
+  },
+  "buildBindings": {
+    "apk-entries.json": "90955c28ce3e0707585ffb15e164c39623b8a4795b51a245f20cf8b193a45009",
+    "apk-entry-delta.json": "5f0b0d75dba5b899602d0d9725f7ac11a778272b712ebbb04ceeea820263b54a",
+    "artifact-delta.json": "8d1691bbb434977aa22414194659be6c1ccce7a62828dffe84792db219580d6b",
+    "artifact-seal.json": "593e7fa35df1c92ba7e1df60f940b78efe068759d06a624f03822e2cde40b139",
+    "built-artifacts.json": "27732f592af2c9f9bb7f618996ab06ab601245a0fed817b085448c0a5f183c2e",
+    "built-artifacts.tar.gz": "cf94dbd10b1a5cec25fe6cee029ec3a33493211435d604a804c381edf833ad3a",
+    "post-sign-official-zipalign.log": "aab2284dc85ec384e1193a94af44d5969fe93a53bf240dfaa1024ad1632abd22",
+    "post-sign-packaging.json": "83ff93226ff4bc16b3e8a9c557497d068c2a53ff79074692e3c463a7b4c02fe0",
+    "pre-sign-official-zipalign.log": "9b1ed702969cb68fb5f527a9fd9a0c6235c242b0d7b739033fcfe30ce54904f6",
+    "pre-sign-packaging.json": "c08cd7a3622495bb4c70ac0a8d15284f5ea4d9f4a295488a425fa42348b777dc",
+    "private-debug-signature-cert.log": "b0efafd9fdb5858281ae3fe4c2a39d0ea92763c0f536f737225f84da0e22d770",
+    "receipt.json": "e4d844f049d8ed2855cfbee0f01761347c6646d956deff5f7bf5ae316a7081eb",
+    "source-lock.json": "faaa382a19b50bc7552462817b49bd296c086085cb18f9969d689b9516f54db7"
+  },
+  "candidate": "candidate-3",
+  "directNativeCallbackCount": null,
+  "frozenAPK_SHA256": "ef5dded4276df3b278d90a5c7c770db884c3b8ff341d51480df7b78f405ae15a",
+  "implementationBindings": {
+    "CoordinatorJoinActivity.java": "60aab513b5827cfc2c67ae12552e653923e0b692a019fa95507d8dd41391a1b0",
+    "CoordinatorJoinInstrumentation.java": "5ca943435463a4e4d95eea295e843aa610c141763270a5c1a6447d7dcf3fd622",
+    "bounded_output.py": "e492bba086e41480cc483f3a85ce3ec799801d3a5adfb7b90b127c061a57ed6e",
+    "build.py": "5762a6296f4abf9975f8b1f5f416aa038079a493b54e3efc952fa08cd6b838e0",
+    "common.py": "fd879a82c3e6926bddcc066eb0179b54d2b644229e7cab0d71a5a22ecc0e3e9e",
+    "operations.json": "c230ebb07206f60b02ef6d622e369a184c6d8338943dad33a206edafc43cb59f",
+    "oracle.py": "14cbf9aee55cc1e7ee6da4f692db8e81443c6d26a2b37edf1fc5db0e882ceb2b"
+  },
+  "nativeRuntime": "NOT RUN",
+  "schema": 1,
+  "scope": "exact twenty private actual-pointer actions, at most320 events; root dispatch only; no physical or GA acceptance",
+  "sourceClosureSHA256": "85ecab1637a15345d588a968d7ab80a3c3a4ece40a68d9125cc41a17ec2cee3b",
+  "sourceDeltas": [
+    {
+      "afterSHA256": "da44b88e02a9cde414f3c944866804d813f2cea39e889cbbcaa8f2c57e96c4dc",
+      "beforeSHA256": "9648175af61a7685d7741c489eacb40361665329f626757c3cc746940ae8adac",
+      "count": 1,
+      "name": "pointer-build-directory"
+    },
+    {
+      "afterSHA256": "8dbef57346537e5fac97616d46d979f19b6836269466814ce355c6c07b3662eb",
+      "beforeSHA256": "6fa2913b2174b9b78377c16e31988ad61eb971f421447c3788361ece0e9d882f",
+      "count": 1,
+      "name": "pointer-source-closure"
+    },
+    {
+      "afterSHA256": "4dca95b284dd9de491082aef182722d9f2e7779ae7ae7d0096843c094cb85875",
+      "beforeSHA256": "ec814ea4300720c628e56aa687b2570379eddcab015fbe5d3a3e9b437dcc3cd3",
+      "count": 1,
+      "name": "pointer-archive"
+    },
+    {
+      "afterSHA256": "65330c3bb1c45d5d7293c5af95b578ccf4fa4ae38d53d33c4ff2147e0a4d5ea1",
+      "beforeSHA256": "c56f99646f0947e8aa8bc42269ae968ab0a7add57c3ad91e58f45a8df0a4458b",
+      "count": 1,
+      "name": "pointer-build-bindings"
+    },
+    {
+      "afterSHA256": "31562298d67f145c0e25313e4b58ed656663490dbc4bf46b10b45821e5d3944c",
+      "beforeSHA256": "c41c759f89c29e72c7cef6fb88bc35462e934747cc26f0b277075934a6723954",
+      "count": 1,
+      "name": "pointer-bind-function"
+    },
+    {
+      "afterSHA256": "8297548703dcbc079be5cf6bd1deadeb91e41cdfd1a2ad451a5714095b6de6c0",
+      "beforeSHA256": "ce76357443e0b4ddc110f93bf6d621fb378aa79650ad5a3940bd4f577c2eb757",
+      "count": 1,
+      "name": "pointer-cli-help"
+    },
+    {
+      "afterSHA256": "09b4ed756a299ee22b24082682ab0cac397da0c37cfa5919ab9f548a88126e92",
+      "beforeSHA256": "3d400f4536540581b4f82ae613660cc5d6b5bab80e322ae4a3d789fa97effaf9",
+      "count": 1,
+      "name": "pointer-cli-candidate"
+    },
+    {
+      "afterSHA256": "85efbcae785a4eab7206806bfdd791b8425bfabdeae9653fa2b3d58933a5c541",
+      "beforeSHA256": "ed41862c5819f18ada8070c18a928b2d11a75613113db2284b55da79751ace04",
+      "count": 1,
+      "name": "pointer-cli-error"
+    },
+    {
+      "afterSHA256": "102fcd1bab55bcc7a2b02308e9a3d5062fb1966f1e221b2aaa4262336260f4b8",
+      "beforeSHA256": "8f30cfb557d3e14e7f5c3a9211f8c6daa345702a2e4a6cb63e7c39ec86e886df",
+      "count": 1,
+      "name": "pointer-log-budget-state"
+    },
+    {
+      "afterSHA256": "5fa231da86b7635ce3af3f1944d416b4a62cda6c37824c176bccdcffa3ce03e9",
+      "beforeSHA256": "113b1d883c84c923030434af6f2a30132dbe55f5ffcae81a212be916ba7524b8",
+      "count": 1,
+      "name": "pointer-bounded-command-output"
+    },
+    {
+      "afterSHA256": "dfd8db9be2c445cc09260fd5771bc7c01a8ae41ae6fc4c487c73ab3b31d7f1b8",
+      "beforeSHA256": "25f69dd49df3b48d9fcf004226ba8e352b6cca6f986c7a53cb375b9c023a0d8b",
+      "count": 1,
+      "name": "pointer-log-budget-failure"
+    },
+    {
+      "afterSHA256": "f692b57637dc407cabe30430d2d6aec07bb9f59bd9ccec552665a082dd9f32ad",
+      "beforeSHA256": "22731758d1d69e82b97bafb293ffef5b1655a34637bba3081d912a74abff55ef",
+      "count": 1,
+      "name": "pointer-emulator-bounded-reader"
+    },
+    {
+      "afterSHA256": "9cf81c6bbf5a07f2575df4eec6a49412fc6c9d12f1067dcbf01a23715596d28e",
+      "beforeSHA256": "540819c61fc7fd3d6074a9eed415db5f8b3704cee188377da38b0a8918733ee5",
+      "count": 1,
+      "name": "pointer-instrumentation-arguments"
+    },
+    {
+      "afterSHA256": "668d07a9af7911af70619e089897e672a2a1021f3c503669461e7554bab97ffd",
+      "beforeSHA256": "54f6764686fc9c253b32366e047cc1618e06d73371bf38bec9a73df9132af544",
+      "count": 1,
+      "name": "pointer-bound-private-exports"
+    },
+    {
+      "afterSHA256": "1508fa02d4fbf2cca1cd873ac6e9221eec4c2660b071a3943f3e8882dfb6c001",
+      "beforeSHA256": "c05004b820915255311378dd932205a48fc7a68d39834accc925abc4d0ecd7e7",
+      "count": 1,
+      "name": "pointer-native-budgets"
+    },
+    {
+      "afterSHA256": "47d0153441a5f8eb1884c5f701d96cc8fd96d9ead2a214092f18e033d524e2b6",
+      "beforeSHA256": "07d870fba8d78559797539e17a5233b7afdba96763315346cfc5398434aadb1d",
+      "count": 1,
+      "name": "pointer-success-scope"
+    },
+    {
+      "afterSHA256": "330b973476220cf4ae7a5d0002938ddb67d73fee55ae8fcf291c8d02d0d610d4",
+      "beforeSHA256": "6e1793769c351564338cecd98f151fcb58fb798e0f6abef0513ee6431930c411",
+      "count": 1,
+      "name": "pointer-runner-scope"
+    },
+    {
+      "afterSHA256": "b47ec158ae4b9aad7751354b23abae356884e2bd306e9af9e1853d85a5cc85bb",
+      "beforeSHA256": "be5418fc4ce8306026a011956ad65c1cade12f7f73626cd5cfa2f9b9abc3d5e7",
+      "count": 1,
+      "name": "pointer-output-reader-cleanup"
+    },
+    {
+      "afterSHA256": "782592c8a165806154cca70644c559cffa75aa7b05641133618be7c7d5a4a391",
+      "beforeSHA256": "f4729a57e648f40ab385ea434b404ba621d018a8b4a2fc1b6605307b2a5a473f",
+      "count": 1,
+      "name": "pointer-final-output-budget"
+    },
+    {
+      "afterSHA256": "021e7edb0c894165ef8484ec4ffc681d52871ed46671eb3270545b710e9fd0b6",
+      "beforeSHA256": "5b60c14c0f3fb1bfc229f9ee7b87a7acba672d65a00d267ae4376b6a9de944ba",
+      "count": 1,
+      "name": "pointer-exact-root-seal"
+    }
+  ],
+  "toolBindings": {
+    "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/java": "9ef6c1a939343ac850811551a8b88d4b877630ab2c94ac38c541e25ccc8cf0a5",
+    "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/javac": "e9fb09ca9cb259a164a32c9055931a865943d25c66800996183c86e527ca0688",
+    "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/keytool": "96f266f60caf23bfc9a5ab9b653d844258723d76443f149c2842277c46aed1ca",
+    "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0/apksigner": "b47549e373b895ce6ca620d0c7887e674d9615ffa837a86ac601dcfd04adb0f0",
+    "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0/d8": "b773a721be3d4988dea9660815a9e441b76100e5b0f5c72b5893cfadadc76c6f",
+    "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0/lib/apksigner.jar": "2defad215d7ff52968a409cde528cdaef7918b115e276b8e3378ca7a178e4180",
+    "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0/lib/d8.jar": "a26ee56252adcff6752c379ae255a0ad538ebec60189e078ec6855487107637d",
+    "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0/source.properties": "fbd87c8567afbc6dc78e140097fcde234f4a61fa7065e85081d43e442ccd3d24",
+    "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0/zipalign": "6d99a9d16c7116850414910b04cffd5ba3aaff86db7a6346179d678abe6d25d1",
+    "/opt/homebrew/share/android-commandlinetools/platforms/android-37.0/android.jar": "bf1b4387cc7ca94fc6ef684f040d9d16fbf16248e181819f020736ea2053f177"
+  },
+  "transformedRunnerSHA256": "b12cc6224c63ec783733c4093f001ad4c31e3abe647e919e9d6cef25b498aefe"
+}

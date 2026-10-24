@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "status": "five-replayed-oracle-findings-block-native-dispatch",
+  "producerPacketSealSHA256": "317de5fb8a7e8ac7249bbb0fc49a17ba2f38a048ab6edfc1b27e24abc5ae6b52",
+  "oracleSHA256": "31d28709e876274a49e4736ad6e35f024f336474cee946e461f2fd534c6ef21b",
+  "evidence": "verification/android-pointer-fixture-review/host-review-1/receipt.json",
+  "rootAcceptedBlockingFindings": true,
+  "nativeDispatchAllowed": false,
+  "syntheticControlsAreNativeEvidence": false,
+  "findings": [
+    {"id": "F01", "probe": "obscured-activity-input", "unexpectedAcceptance": true, "requirement": "Environment and input delivery: reject an obscured, clipped, unfocused or out-of-window target", "repair": "Reject FLAG_WINDOW_IS_OBSCURED and FLAG_WINDOW_IS_PARTIALLY_OBSCURED; validate actual actionIndex"},
+    {"id": "F02", "probe": "move-pressure-zero", "unexpectedAcceptance": true, "requirement": "One touchscreen pointer with stable pointer ID and pressure 1 until release", "repair": "Compare actual pointer pressure and actionIndex with the sealed event"},
+    {"id": "F03", "probe": "history-outside-sealed-path", "unexpectedAcceptance": true, "requirement": "Retain actual historical MOVE samples, intended path endpoints and documented timing bounds", "repair": "Map historical local coordinates through observed raw/local offset; require strictly ordered sealed MOVE times and coordinates"},
+    {"id": "F04", "probe": "drag-without-any-delivered-move", "unexpectedAcceptance": true, "requirement": "Real horizontal drag and actual intended path endpoint; batching may change delivered event count", "repair": "Require the final MOVE endpoint in actual current or historical MOVE samples while allowing batching and dropped intermediate samples; add valid coalesced positive control"},
+    {"id": "F05", "probe": "worker-send-finish-beyond-action-deadline", "unexpectedAcceptance": true, "requirement": "Action wall time 5 seconds including hold and settle", "repair": "Fresh candidate5 exports actionStart/actionEnd/duration; oracle bounds worker and Activity timestamps inside the interval"}
+  ],
+  "passingNegativeControls": ["duplicate-acknowledgement-control", "retirement-saved-packet-control"],
+  "preservation": "No producer source, original packet, product, tracker or Git mutation; no native discovery or dispatch"
+}
