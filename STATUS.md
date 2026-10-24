@@ -16,15 +16,16 @@ Observed implementation and evidence:
   light design now has refined typography, depth, responsive spacing, and bounded
   pointer motion with reduced-motion support. The hero and platform section show
   one illustrative app design on both iOS and Android next to real MixerUI
-  declarations; they are not device screenshots. Thirty-two website tests and
+  declarations; they are not device screenshots. Thirty-six website tests and
   responsive browser checks pass. Copy intentionally presents
   the completed product at the user's request; it does not change engineering
   readiness. No public domain, deployment, store listing, or GA acceptance is
   claimed. See `verification/website-launch/receipt.json`,
   `verification/website-light-refinement/receipt.json`,
   `verification/website-design-elevation/receipt.json`,
-  `verification/website-design-simplification/receipt.json`, and
-  `verification/website-same-app-visuals/receipt.json`.
+  `verification/website-design-simplification/receipt.json`,
+  `verification/website-same-app-visuals/receipt.json`, and
+  `verification/website-cursor-glow-docs/receipt.json`.
 - Swift state/effects, generation-checked resources, bounded UI documents,
   reconciliation and native Apple controls pass host tests and iOS compilation.
   Raw UI decoding requires strict duplicate-key/Unicode/resource validation.

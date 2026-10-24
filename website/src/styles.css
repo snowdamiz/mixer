@@ -50,6 +50,7 @@ p { color: var(--muted); }
 pre b { font-weight: inherit; }
 main { overflow-x: clip; }
 .icon-library { position: absolute; width: 0; height: 0; overflow: hidden; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .skip-link { position: fixed; top: -100px; left: 16px; z-index: 100; padding: 12px 20px; border-radius: 8px; background: var(--ink); color: #fff; }
 .skip-link:focus { top: 12px; }
 .container { width: min(1240px, calc(100% - 96px)); margin-inline: auto; }
@@ -104,7 +105,6 @@ main { overflow-x: clip; }
 
 /* Hero scene: measured in em so one font size scales the editor and both devices together. */
 .hero-art { position: relative; isolation: isolate; height: 43em; margin-top: 96px; font-size: clamp(7px, calc((100vw - 64px) / 78), 14px); text-align: left; }
-.hero-art::before { content: ""; position: absolute; inset: -6em 0 -2em; z-index: -2; pointer-events: none; background: radial-gradient(ellipse 34em 24em at var(--spotlight-x, 50%) var(--spotlight-y, 45%), #f2c8a74d, transparent 70%); }
 .hero-art::after { content: ""; position: absolute; inset: -4em 0 0; z-index: -1; pointer-events: none; background-image: radial-gradient(#d0ccbc 1px, transparent 1.3px); background-size: 24px 24px; -webkit-mask-image: radial-gradient(ellipse 46em 26em at 50% 40%, #000 20%, transparent 72%); mask-image: radial-gradient(ellipse 46em 26em at 50% 40%, #000 20%, transparent 72%); opacity: .7; }
 .hero-fox { position: absolute; left: 50%; top: -5.6em; z-index: 0; width: 8.6em; margin-left: 8.5em; transform: rotate(7deg); filter: drop-shadow(0 .5em .8em #7a4e2914); }
 .editor { position: absolute; left: 50%; top: 0; z-index: 1; width: 46em; height: 33em; margin-left: -23em; overflow: hidden; border-radius: 1.15em; background: var(--code-bg); box-shadow: 0 0 0 1px #0d120f, inset 0 1px 0 #ffffff12, 0 .5em 1em #1f2a2420, 0 2.4em 4.4em -.8em #1f2a2459; transform: translate(calc(var(--hero-x, 0px) * .2), calc(var(--hero-y, 0px) * .2)); transition: transform .35s cubic-bezier(.2, .7, .2, 1); }
@@ -192,7 +192,7 @@ main { overflow-x: clip; }
 .app-filled { display: grid; place-items: center; height: 48px; border-radius: 14px; background: var(--app-tint); color: #fff; font-weight: 600; }
 
 /* Workflow */
-.workflow-section { background: var(--paper-deep); }
+.workflow-section { background: #e9e7dc73; }
 .workbench { overflow: hidden; border-radius: 28px; background: var(--code-bg); box-shadow: var(--shadow-lg); }
 .workbench-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 16px 14px 14px; border-bottom: 1px solid var(--code-line); background: #212b25; }
 .workbench-tabs { display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: #2b3630; }
@@ -322,6 +322,8 @@ details p { margin: -6px 56px 26px 0; font-size: 16px; line-height: 1.75; }
 .footer-bottom > a:hover { color: var(--orange-deep); }
 
 /* Feedback and motion */
+.cursor-glow { position: fixed; left: 0; top: 0; z-index: -1; width: 960px; height: 960px; margin: -480px 0 0 -480px; border-radius: 50%; background: radial-gradient(closest-side, #f1c09c66, #f5d6bf33 45%, #faf9f600); opacity: 0; pointer-events: none; transition: opacity .5s ease; will-change: transform; }
+.cursor-glow.is-visible { opacity: 1; }
 .toast { position: fixed; bottom: 24px; left: 50%; z-index: 80; padding: 12px 20px; border-radius: 12px; background: #27342b; color: #fff; font-size: 14px; box-shadow: 0 6px 20px #12201430; opacity: 0; pointer-events: none; transform: translate(-50%, 15px); transition: opacity .2s, transform .2s; }
 .toast.visible { opacity: 1; transform: translate(-50%, 0); }
 .js-ready .reveal { opacity: 0; transform: translateY(22px); transition: opacity .75s ease, transform .75s cubic-bezier(.2, .65, .2, 1); }

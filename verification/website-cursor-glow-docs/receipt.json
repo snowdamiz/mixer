@@ -1,0 +1,64 @@
+{
+  "schema": 1,
+  "recorded_at": "2026-10-24T00:34:25.770975+00:00",
+  "scope": "Remove the docs page intro and replace the hero's clipped pointer glow with a site-wide cursor glow. No engine, release, legal, physical-device or GA qualification.",
+  "status": "passed-scoped-website-validation",
+  "source_revision_base": "4a93c96",
+  "source_tree_sha256": "5e2562017fc7bedbfb429b24cb1816eecd00a9b62d1dbfbb02401cf39e772e61",
+  "source_manifest": "source-manifest.json",
+  "changed_sources": [
+    "website/README.md",
+    "website/src/app.js",
+    "website/src/docs.css",
+    "website/src/docs/index.html",
+    "website/src/styles.css",
+    "website/tests/motion.test.mjs"
+  ],
+  "tools": {
+    "node": "v22.23.3",
+    "npm": "10.9.9",
+    "browser": "Claude desktop in-app browser; Google Chrome 155.0.8059.82 headless"
+  },
+  "changes": [
+    "Docs page: removed the eyebrow, title and lede intro; kept a visually hidden h1 so the page still has a top-level heading.",
+    "Removed the hero's bounded pointer glow, whose box edges showed as hard lines.",
+    "Added one fixed cursor glow behind content on every page, created on first fine-pointer movement, moved by transform through one animation frame per burst of events, and hidden when the pointer leaves the window, on reduced motion, or without a fine pointer.",
+    "Workflow band background made translucent so the glow shows through it with the same apparent color."
+  ],
+  "commands": [
+    {
+      "command": "npm --prefix website test",
+      "exit": 0,
+      "tests": 36,
+      "passed": 36,
+      "failed": 0,
+      "skipped": 0,
+      "output": "node-tests.log"
+    },
+    {
+      "command": "npm --prefix website run build",
+      "exit": 0,
+      "files": 27,
+      "output": "build.log"
+    },
+    {
+      "command": "node --check website/src/app.js",
+      "exit": 0,
+      "output": "No diagnostics"
+    },
+    {
+      "command": "git diff --check -- website",
+      "exit": 0,
+      "output": "No whitespace diagnostics"
+    }
+  ],
+  "automated_scope": [
+    "Four new motion tests: frame coalescing and element reuse, window exit, reduced-motion/coarse/touch exclusion, and preference changes hiding the glow. Hero spotlight assertions removed with the feature."
+  ],
+  "browser_evidence": "browser-checks.json",
+  "limitations": [
+    "No public domain or production deployment; preview remains noindex.",
+    "Pointer checks used a desktop mouse; physical phones remain disconnected.",
+    "No GA gate or accountable reviewer acceptance changed."
+  ]
+}

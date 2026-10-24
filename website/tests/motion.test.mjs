@@ -66,9 +66,15 @@ function motionPage({ reduced = false, fine = true, intersectionObserver = true 
     },
     cancelAnimationFrame: id => frames.delete(id)
   };
+  const appended = [];
   const document = {
     ...eventTarget(),
     documentElement: root,
+    body: { append: element => appended.push(element) },
+    createElement: () => {
+      const attributes = new Map();
+      return { classList: classList(), style: {}, setAttribute: (name, value) => attributes.set(name, value), getAttribute: name => attributes.get(name) };
+    },
     querySelector: selector => selector === '.hero-art' ? hero : null,
     querySelectorAll: selector => selector === '.reveal' ? reveals : [],
     getElementById: () => null
@@ -89,7 +95,13 @@ function motionPage({ reduced = false, fine = true, intersectionObserver = true 
   if (intersectionObserver) window.IntersectionObserver = IntersectionObserver;
   vm.runInNewContext(source, { window, document, IntersectionObserver });
   return {
-    root, hero, frames, properties, reveals, observers, reducedMotion, finePointer,
+    root, hero, frames, properties, reveals, observers, reducedMotion, finePointer, appended,
+    point(x, y, pointerType = 'mouse') {
+      document.dispatch('pointermove', { clientX: x, clientY: y, pointerType });
+    },
+    leaveWindow() {
+      document.dispatch('pointerout', { relatedTarget: null });
+    },
     move(x, y, pointerType = 'mouse') {
       hero.dispatch('pointermove', { clientX: x, clientY: y, pointerType });
     },
@@ -116,8 +128,6 @@ test('pointer movement coalesces, stays bounded, and leaves no idle animation', 
   page.renderFrame();
   assert.equal(parseFloat(page.properties.get('--hero-x')), 8);
   assert.equal(parseFloat(page.properties.get('--hero-y')), -6);
-  assert.equal(parseFloat(page.properties.get('--spotlight-x')), 100);
-  assert.equal(parseFloat(page.properties.get('--spotlight-y')), 0);
   assert.equal(page.frames.size, 0, 'rendering must not schedule an idle loop');
 });
 
@@ -131,8 +141,6 @@ test('leaving or cancelling a pointer cancels pending work and restores the hero
     assert.equal(page.frames.size, 0, `${event} cancels the pending frame`);
     assert.equal(page.properties.get('--hero-x'), '0px');
     assert.equal(page.properties.get('--hero-y'), '0px');
-    assert.equal(page.properties.get('--spotlight-x'), '50%');
-    assert.equal(page.properties.get('--spotlight-y'), '50%');
   }
 });
 
@@ -180,4 +188,59 @@ test('losing fine-pointer capability cancels motion until it is available again'
   page.finePointer.setMatches(true);
   page.move(200, 200);
   assert.equal(page.frames.size, 1);
+});
+
+test('the page glow follows the pointer through one frame and one decorative element', () => {
+  const page = motionPage();
+  assert.equal(page.appended.length, 0, 'no glow exists before the pointer moves');
+  page.point(10, 20);
+  page.point(300.4, 150.6);
+  assert.equal(page.frames.size, 1, 'many pointer events need one frame');
+  page.renderFrame();
+  assert.equal(page.appended.length, 1);
+  const [glow] = page.appended;
+  assert.equal(glow.className, 'cursor-glow');
+  assert.equal(glow.getAttribute('aria-hidden'), 'true');
+  assert.equal(glow.style.transform, 'translate3d(300px, 151px, 0)');
+  assert.ok(glow.classList.contains('is-visible'));
+  assert.equal(page.frames.size, 0, 'rendering must not schedule an idle loop');
+  page.point(40, 50);
+  page.renderFrame();
+  assert.equal(page.appended.length, 1, 'later movement reuses the same element');
+  assert.equal(glow.style.transform, 'translate3d(40px, 50px, 0)');
+});
+
+test('leaving the window hides the glow and cancels pending work', () => {
+  const page = motionPage();
+  page.point(100, 100);
+  page.renderFrame();
+  page.point(200, 200);
+  page.leaveWindow();
+  assert.equal(page.frames.size, 0);
+  assert.equal(page.appended[0].classList.contains('is-visible'), false);
+});
+
+test('reduced motion, coarse pointers and touch never show the glow', () => {
+  for (const options of [{ reduced: true }, { fine: false }]) {
+    const page = motionPage(options);
+    page.point(100, 100);
+    assert.equal(page.frames.size, 0);
+    assert.equal(page.appended.length, 0);
+  }
+  const page = motionPage();
+  page.point(100, 100, 'touch');
+  assert.equal(page.frames.size, 0);
+  assert.equal(page.appended.length, 0);
+});
+
+test('turning on reduced motion or losing a fine pointer hides a visible glow', () => {
+  for (const preference of ['reducedMotion', 'finePointer']) {
+    const page = motionPage();
+    page.point(100, 100);
+    page.renderFrame();
+    page.point(120, 120);
+    page[preference].setMatches(preference === 'reducedMotion');
+    assert.equal(page.frames.size, 0, `${preference} cancels the pending frame`);
+    assert.equal(page.appended[0].classList.contains('is-visible'), false);
+  }
 });

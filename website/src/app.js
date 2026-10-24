@@ -59,8 +59,6 @@
     if (!heroArt) return;
     heroArt.style.setProperty('--hero-x', '0px');
     heroArt.style.setProperty('--hero-y', '0px');
-    heroArt.style.setProperty('--spotlight-x', '50%');
-    heroArt.style.setProperty('--spotlight-y', '50%');
   }
   function renderHeroMotion() {
     heroFrame = null;
@@ -71,8 +69,6 @@
     const y = Math.max(0, Math.min(1, (heroPointer.y - bounds.top) / bounds.height));
     heroArt.style.setProperty('--hero-x', `${((x - 0.5) * 16).toFixed(2)}px`);
     heroArt.style.setProperty('--hero-y', `${((y - 0.5) * 12).toFixed(2)}px`);
-    heroArt.style.setProperty('--spotlight-x', `${(x * 100).toFixed(2)}%`);
-    heroArt.style.setProperty('--spotlight-y', `${(y * 100).toFixed(2)}%`);
   }
   heroArt?.addEventListener('pointermove', event => {
     if (reducedMotion.matches || !finePointer.matches || event.pointerType === 'touch') return;
@@ -81,9 +77,39 @@
   }, { passive: true });
   heroArt?.addEventListener('pointerleave', resetHeroMotion);
   heroArt?.addEventListener('pointercancel', resetHeroMotion);
-  finePointer.addEventListener('change', resetHeroMotion);
+
+  let glow = null;
+  let glowFrame = null;
+  let glowPointer = null;
+  function hideGlow() {
+    if (glowFrame !== null) window.cancelAnimationFrame(glowFrame);
+    glowFrame = null;
+    glowPointer = null;
+    glow?.classList.remove('is-visible');
+  }
+  function renderGlow() {
+    glowFrame = null;
+    if (!glowPointer || reducedMotion.matches || !finePointer.matches) return;
+    if (!glow) {
+      glow = document.createElement('div');
+      glow.className = 'cursor-glow';
+      glow.setAttribute('aria-hidden', 'true');
+      document.body.append(glow);
+    }
+    glow.style.transform = `translate3d(${Math.round(glowPointer.x)}px, ${Math.round(glowPointer.y)}px, 0)`;
+    glow.classList.add('is-visible');
+  }
+  document.addEventListener('pointermove', event => {
+    if (reducedMotion.matches || !finePointer.matches || event.pointerType === 'touch') return;
+    glowPointer = { x: event.clientX, y: event.clientY };
+    if (glowFrame === null) glowFrame = window.requestAnimationFrame(renderGlow);
+  }, { passive: true });
+  document.addEventListener('pointerout', event => { if (!event.relatedTarget) hideGlow(); });
+
+  finePointer.addEventListener('change', () => { resetHeroMotion(); hideGlow(); });
   reducedMotion.addEventListener('change', () => {
     resetHeroMotion();
+    hideGlow();
     if (reducedMotion.matches) showReveals();
   });
 
