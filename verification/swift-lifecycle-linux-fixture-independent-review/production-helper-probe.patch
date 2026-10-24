@@ -1,0 +1,13 @@
+--- final-candidate/control.rs
++++ ordinary-build-probe/control.rs
+@@ -1766,3 +1766,10 @@
+ mod tests;
+ 
+ #[cfg(test)] impl RuntimeControl {pub(crate) fn host_test_counter(&mut self,value:u64){self.host_calls=value;}}
++
++// Independent negative compiler control, appended only to an owned source copy.
++// A same-module caller must still be unable to reach a cfg(test)-only method.
++#[allow(dead_code)]
++fn review_ordinary_build_must_not_have_expiry_helper(control: &mut RuntimeControl) {
++    control.test_expire_deadline();
++}

@@ -1,0 +1,177 @@
+--- baseline/src/experimental_swift_reactor/control.rs
++++ candidate/src/experimental_swift_reactor/control.rs
+@@ -328,6 +328,15 @@
+     }
+     pub(crate) fn test_replace_execution_work_limit(&mut self, ceiling: u64) -> u64 {
+         std::mem::replace(&mut self.budget.execution_work, ceiling)
++    }
++    /// Expire a healthy prepared fixture without racing its construction time.
++    /// Keep its actual origin, budgets, counters and first-failure state intact.
++    pub(crate) fn test_expire_deadline(&mut self) -> Instant {
++        assert!(self.first_failure.is_none());
++        let expired = Instant::now();
++        assert!(expired < self.deadline);
++        self.deadline = expired;
++        expired
+     }
+ }
+ /// The actual proof moves with both adopted tickets. This does not modify the
+--- baseline/src/experimental_swift_reactor/lifecycle_tests.rs
++++ candidate/src/experimental_swift_reactor/lifecycle_tests.rs
+@@ -1317,24 +1317,14 @@
+         retire(o);
+     }
+     for initialized in [false, true] {
+-        let mut o = owner_with(
+-            &[],
+-            &[],
+-            SwiftRunBudget {
+-                deadline_ms: 200,
+-                ..SwiftRunBudget::default()
+-            },
+-            WasiGrants::default(),
+-            WasiBudget::default(),
+-        );
++        let mut o = owner(&[]);
+         if initialized {
+             success(&mut o, Request::Initialize);
+         }
+-        let until = o.control.as_ref().unwrap().deadline();
+-        std::thread::sleep(
+-            until.saturating_duration_since(Instant::now()) + Duration::from_millis(2),
+-        );
+         let before = normalized(observed(&o));
++        assert_eq!(before.deadline_origin, SwiftDeadlineOrigin::Run);
++        let until = o.control.as_mut().unwrap().test_expire_deadline();
++        assert_eq!(normalized(observed(&o)), before);
+         assert!(matches!(
+             request(
+                 &mut o,
+@@ -1347,18 +1337,19 @@
+             Completion::Rejected(_)
+         ));
+         assert_eq!(normalized(observed(&o)), before);
+-        assert_eq!(
+-            failed(
+-                &mut o,
+-                if initialized {
+-                    Request::Corpus
+-                } else {
+-                    Request::Initialize
+-                }
+-            )
+-            .kind,
+-            SwiftRunFailureKind::Deadline
++        let failure = failed(
++            &mut o,
++            if initialized {
++                Request::Corpus
++            } else {
++                Request::Initialize
++            },
+         );
++        assert_eq!(failure.kind, SwiftRunFailureKind::Deadline);
++        assert_eq!(failure.deadline_origin, SwiftDeadlineOrigin::Run);
++        assert_eq!(failure.at_failure.instructions, before.instructions);
++        assert_eq!(failure.at_failure.host_calls, before.host_calls);
++        assert_eq!(o.control.as_ref().unwrap().deadline(), until);
+         retire(o);
+     }
+ }
+@@ -1585,26 +1576,49 @@
+     assert_eq!(observed(&o).instructions, before.instructions);
+     assert_eq!(observed(&o).host_calls, 0);
+     retire(o);
+-    let mut o = owner_with(
+-        &[],
+-        &[],
+-        SwiftRunBudget {
+-            deadline_ms: 1000,
+-            ..SwiftRunBudget::default()
+-        },
++    let (bytes, _) = module(&[], &[]);
++    let proof = validate_swift_reactor(
++        &bytes,
++        SwiftValidationBudget::default(),
++        &Cancellation::default(),
++    )
++    .unwrap();
++    let started = Instant::now();
++    let mut pair = Some(
++        RuntimeControl::adopt(
++            proof,
++            SwiftRunBudget::default(),
++            started,
++            Cancellation::default(),
++        )
++        .unwrap(),
++    );
++    let run_deadline = pair.as_ref().unwrap().0.deadline();
++    let mut o = SwiftReactorInstance::construct(
++        &mut pair,
+         WasiGrants::default(),
+         WasiBudget {
+-            deadline_ms: 200,
++            deadline_ms: 20_000,
+             ..WasiBudget::default()
+         },
+-    );
+-    assert_eq!(observed(&o).deadline_origin, SwiftDeadlineOrigin::Wasi);
+-    let until = o.control.as_ref().unwrap().deadline();
+-    std::thread::sleep(until.saturating_duration_since(Instant::now()) + Duration::from_millis(2));
++        started,
++        frame_tests::cursor(),
++    )
++    .unwrap();
++    let carried = o.control.as_ref().unwrap().deadline();
++    assert_eq!(carried, started + Duration::from_secs(20));
++    assert!(carried < run_deadline);
++    let before = normalized(observed(&o));
++    assert_eq!(before.deadline_origin, SwiftDeadlineOrigin::Wasi);
++    let until = o.control.as_mut().unwrap().test_expire_deadline();
++    assert_eq!(normalized(observed(&o)), before);
+     let f = failed(&mut o, Request::Initialize);
+     assert_eq!(f.kind, SwiftRunFailureKind::Deadline);
++    assert_eq!(f.deadline_origin, SwiftDeadlineOrigin::Wasi);
+     assert_eq!(f.at_failure.deadline_origin, SwiftDeadlineOrigin::Wasi);
+     assert_eq!(f.at_failure.instructions, 0);
++    assert_eq!(f.at_failure.host_calls, 0);
++    assert_eq!(o.control.as_ref().unwrap().deadline(), until);
+     retire(o);
+ }
+ 
+@@ -1764,22 +1778,22 @@
+     assert_eq!(f.at_failure.cache_work, 1764);
+     assert_eq!(f.at_failure.instructions, 1);
+     retire(o);
+-    let mut o = owner_with(
+-        &[],
+-        &[],
+-        SwiftRunBudget {
+-            deadline_ms: 200,
+-            ..SwiftRunBudget::default()
+-        },
+-        WasiGrants::default(),
+-        WasiBudget::default(),
+-    );
++    let mut o = owner(&[]);
++    let prepared_deadline = o.control.as_ref().unwrap().deadline();
+     success(&mut o, Request::Initialize);
+-    let until = o.control.as_ref().unwrap().deadline();
+-    std::thread::sleep(until.saturating_duration_since(Instant::now()) + Duration::from_millis(2));
++    assert_eq!(o.control.as_ref().unwrap().deadline(), prepared_deadline);
++    let before = normalized(observed(&o));
++    assert_eq!(before.instructions, 1);
++    assert_eq!(before.deadline_origin, SwiftDeadlineOrigin::Run);
++    let until = o.control.as_mut().unwrap().test_expire_deadline();
++    assert_eq!(normalized(observed(&o)), before);
+     let f = failed(&mut o, Request::Corpus);
+     assert_eq!(f.kind, SwiftRunFailureKind::Deadline);
++    assert_eq!(f.deadline_origin, SwiftDeadlineOrigin::Run);
+     assert_eq!(f.at_failure.instructions, 1);
++    assert_eq!(f.at_failure.execution_work, before.execution_work);
++    assert_eq!(f.at_failure.cache_work, before.cache_work);
++    assert_eq!(f.at_failure.host_calls, 0);
+     assert_eq!(o.control.as_ref().unwrap().deadline(), until);
+     retire(o);
+ }

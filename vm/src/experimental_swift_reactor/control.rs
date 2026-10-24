@@ -329,6 +329,15 @@ impl RuntimeControl {
     pub(crate) fn test_replace_execution_work_limit(&mut self, ceiling: u64) -> u64 {
         std::mem::replace(&mut self.budget.execution_work, ceiling)
     }
+    /// Expire a healthy prepared fixture without racing its construction time.
+    /// Keep its actual origin, budgets, counters and first-failure state intact.
+    pub(crate) fn test_expire_deadline(&mut self) -> Instant {
+        assert!(self.first_failure.is_none());
+        let expired = Instant::now();
+        assert!(expired < self.deadline);
+        self.deadline = expired;
+        expired
+    }
 }
 /// The actual proof moves with both adopted tickets. This does not modify the
 /// sealed proof's layout or manufacture independently executable authority.

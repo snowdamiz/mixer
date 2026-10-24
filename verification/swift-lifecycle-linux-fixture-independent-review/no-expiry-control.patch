@@ -1,0 +1,12 @@
+--- final-candidate/control.rs
++++ no-expiry-control/control.rs
+@@ -335,8 +335,7 @@
+         assert!(self.first_failure.is_none());
+         let expired = Instant::now();
+         assert!(expired < self.deadline);
+-        self.deadline = expired;
+-        expired
++        self.deadline
+     }
+ }
+ /// The actual proof moves with both adopted tickets. This does not modify the
