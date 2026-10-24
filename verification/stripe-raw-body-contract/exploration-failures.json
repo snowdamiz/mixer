@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "scope": "Historical read-only exploration failures; no mutation/service or test attempt failed in these commands",
+  "attempts": [
+    {"command": "git rev-parse HEAD && git status --short -- docs/stripe-raw-body-contract.md verification/stripe-raw-body-contract hosted && command -v elixir mix asdf && elixir --version && python3 --version && rg -n 'def recv|read_timeout' hosted/deps/thousand_island/lib/thousand_island/socket.ex && sed -n '1,135p' hosted/deps/bandit/lib/bandit/pipeline.ex && cat hosted/.hex.config 2>/dev/null", "exitCode": 1, "output": "11133e60551c46c9ea3aa4eac7356ea32d44fc72\n/opt/homebrew/bin/elixir\n/opt/homebrew/bin/mix\n", "cause": "asdf not present; shell && stopped later reads; tools then run independently"},
+    {"command": "rg -n -A 25 'def recv|read_timeout' hosted/deps/thousand_island/lib/thousand_island/socket.ex && sed -n '1,134p' hosted/deps/bandit/lib/bandit/pipeline.ex && rg -n 'elixir|ERL|PATH|mise|tool' scripts/verify-hosted* verification/stripe-webhook-signature-integration/attempt-1/receipt.json hosted/README.md", "exitCode": 1, "outputTail": "zsh:1: no matches found: scripts/verify-hosted*", "cause": "Unmatched optional shell glob after successful source reads; no probe required this path"}
+  ]
+}

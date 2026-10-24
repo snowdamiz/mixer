@@ -1,0 +1,27 @@
+--- reviewed-candidate5-oracle.py
++++ timing-corrected-oracle.py
+@@ -105,11 +105,13 @@
+         intervals=[r for r in rows if r['kind']=='action-interval' and r['actionId']==action]
+         need(len(intervals)==1 and intervals[0]['completed'] is True and all(intervals[0][k]==summary[k] for k in ('actionStartUptime','actionEndUptime','durationMilliseconds')),'independent action interval row missing or differs')
+         previous_action_end=end
+-        previous_worker_after=start
++        previous_worker_after=start;workers_by_time={}
+         for sent,expected in zip(sends,planned):
+             need(all(uptime(sent[k]) and start<=sent[k]<=end for k in ('scheduledUptime','workerBefore','workerAfter')),'worker timestamp outside bounded action interval')
+             need(previous_worker_after<=sent['workerBefore'],'single-worker send intervals overlap or backtrack');previous_worker_after=sent['workerAfter']
++            need(sent['event']['history']==[],'requested worker events must be unbatched with empty history')
+             point(sent['event'],expected,down);need(sent['exception'] is None and sent['scheduledUptime']==down+expected['offsetMilliseconds'] and 0<=sent['workerBefore']-sent['scheduledUptime']<=100 and sent['workerAfter']>=sent['workerBefore'],'actual worker injection timing/exception differs')
++            workers_by_time[sent['event']['eventTime']]=sent
+         entries=[r for r in rows if r['kind']=='activity-entry' and r['actionId']==action];exits=[r for r in rows if r['kind']=='activity-exit' and r['actionId']==action]
+         need(len(entries)==len(exits)==summary['nativeDeliveryCount'] and len(entries)>=2,'Activity entry/exit count differs')
+         need([r['sequence'] for r in entries]==[r['sequence'] for r in exits],'Activity entry/exit pairing differs');delivery+=len(entries)
+@@ -119,6 +121,9 @@
+             need(uptime(entry_time) and uptime(exit_time) and start<=previous_dispatch<=entry_time<=exit_time<=end,'Activity timestamp outside bounded action interval or dispatch order')
+             previous_dispatch=exit_time
+             e=entry['event'];need(uptime(e['eventTime']) and e['eventTime'] in times,'actual delivery time outside sealed events');point(e,times[e['eventTime']],down)
++            worker=workers_by_time[e['eventTime']]
++            need(worker['workerBefore']<=entry_time<=exit_time<=worker['workerAfter'] and e['eventTime']<=entry_time,'Activity dispatch outside matching current-event synchronous worker interval or before event time')
++            need(e['action']==2 or e['history']==[],'non-MOVE Activity event history must be empty')
+             need(exit_['exception'] is None and type(exit_['returned']) is bool,'Activity must preserve successful Boolean super return')
+             need(exit_['event']==e,'Activity observation transformed event')
+             need(e['action']==(0 if i==0 else planned[-1]['action'] if i==len(entries)-1 else 2),'unexpected terminal or unpaired gesture')

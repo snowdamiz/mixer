@@ -11,6 +11,8 @@ enum Service {
     ClockError,
     CancelClock,
     ExpireClock,
+    SlowRealClock,
+    CancelRealClock,
 }
 #[derive(Default)]
 pub(super) struct TestState {
@@ -64,6 +66,8 @@ impl TestState {
     ) -> Result<u64, Errno> {
         self.services.set(self.services.get() + 1);
         match self.service {
+            Service::SlowRealClock => {let result=platform::clock(clock,resolution);std::thread::sleep(Duration::from_millis(600));result},
+            Service::CancelRealClock => {let result=platform::clock(clock,resolution);cancellation.cancel();result},
             Service::ClockError => Err(Errno::Io),
             Service::CancelClock => {
                 cancellation.cancel();
@@ -356,4 +360,10 @@ fn invalid_args_precede_budget_and_terminal_precedes_invalid_args() {
         WasiOutcome::Failure(WasiFailure::InvalidArguments)
     );
     assert_eq!(ctx.usage.calls, 0);
+}
+
+impl TestState {
+ pub(super) fn host_set_cancel(&self,at:usize){self.cancel_at.set(Some(at));}
+ pub(super) fn host_set_service(&mut self,kind:u8){self.service=match kind{1=>Service::PartialRandomError,5=>Service::CancelRandom,8=>Service::SlowRealClock,9=>Service::CancelRealClock,_=>Service::Os};}
+ pub(super) fn host_services(&self)->usize{self.services.get()}
 }

@@ -1,0 +1,106 @@
+{
+  "status": "passed-host-checkpoint-with-explicit-failed-android-pointer-runtime",
+  "sourceParent": "11133e60551c46c9ea3aa4eac7356ea32d44fc72",
+  "commandRecords": [
+    {
+      "name": "python-version",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "--version"
+      ],
+      "startedUTC": "2026-10-24T13:53:49.336369+00:00",
+      "finishedUTC": "2026-10-24T13:53:49.344664+00:00",
+      "exitCode": 0,
+      "log": "python-version.log",
+      "sha256": "f615dc9512de8b165e2b595e5cdc608a3ba7927ae92f959c5b42ec3d58e2ffa8"
+    },
+    {
+      "name": "swift-integration-replay",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "verification/swift-host-operation-root-integration/verify.py",
+        "--live"
+      ],
+      "startedUTC": "2026-10-24T13:53:49.344820+00:00",
+      "finishedUTC": "2026-10-24T13:53:49.668948+00:00",
+      "exitCode": 0,
+      "log": "swift-integration-replay.log",
+      "sha256": "7a7868aef6e78b2bd677cc3b822d73c57ce72cf073936c034a02a57eef41fa56"
+    },
+    {
+      "name": "android-failed-run-replay",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "verification/android-pointer-native-root-review/review.py"
+      ],
+      "startedUTC": "2026-10-24T13:53:49.669117+00:00",
+      "finishedUTC": "2026-10-24T13:53:49.699371+00:00",
+      "exitCode": 0,
+      "log": "android-failed-run-replay.log",
+      "sha256": "3cc536856158e7227b26466f2ba96e606236fb1baf17e8fd0c3e2eec9cae126d"
+    },
+    {
+      "name": "raw-body-producer-replay",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "verification/stripe-raw-body-capture/verify.py"
+      ],
+      "startedUTC": "2026-10-24T13:53:49.699519+00:00",
+      "finishedUTC": "2026-10-24T13:53:50.110157+00:00",
+      "exitCode": 0,
+      "log": "raw-body-producer-replay.log",
+      "sha256": "70420b4639e70ca10616f276a46d91a605e11c6f172df8a74d921709ddb0b168"
+    },
+    {
+      "name": "policy",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "scripts/check-policy.py"
+      ],
+      "startedUTC": "2026-10-24T13:53:50.110582+00:00",
+      "finishedUTC": "2026-10-24T13:53:53.775312+00:00",
+      "exitCode": 0,
+      "log": "policy.log",
+      "sha256": "2e9b81c8b311f32c7c1988ec9f177c966d3c8bdba056b26d24673968bcbd497a"
+    },
+    {
+      "name": "whitespace",
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "vm",
+        "docs",
+        "PLAN.md",
+        "STATUS.md",
+        "work-graph.json",
+        "gates/ga.json"
+      ],
+      "startedUTC": "2026-10-24T13:53:53.775753+00:00",
+      "finishedUTC": "2026-10-24T13:53:53.796133+00:00",
+      "exitCode": 0,
+      "log": "whitespace.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "selectedInputSHA256": {
+    "PLAN.md": "33ea0fb50902e1cfff666cbfe909b61778721e20e212e8bc0d379754b04296fb",
+    "STATUS.md": "9d08d3b0601078421ba3cf8890339142dc4cbfa3790e9dfa427185fe7416f4f3",
+    "work-graph.json": "c4a9ae552a964118f69a20a39445f83e96d8ad229291806abf51eb90d8b6c0d8",
+    "gates/ga.json": "4ed76d2960eb13f0e92d643886415d84b625224baebd708e50ba3d3201092f79",
+    "docs/android-pointer-native-checkpoint.md": "b8b400f9a8a1f377a992952ee0dbff6d77387fff0b2ac36454f88fc6621be08b",
+    "verification/swift-host-operation-root-integration/acceptance.json": "a1bfad97a9f836bc9720f4fd275e657a2acc75aaaa9ac094bc887505260f9011",
+    "verification/swift-host-operation-root-integration/seal.json": "5d25edcad8bbcef0f138cdffbce2a41680b0ec8ca1dd07f5ae079a24d0ba9d9e",
+    "verification/android-pointer-native-root-review/receipt.json": "afb68253186e0aac3612800626a90b43f92170f9852c735899f7c4f5ef39bab9",
+    "verification/stripe-raw-body-capture/seal.json": "52f4c4aadd5ee949521c906bf2306ad5a77d0f4f61b53db2cee054ac38bd3c31"
+  },
+  "swiftLiveIntegrated": true,
+  "androidFullPointerMatrixAccepted": false,
+  "stripeRawCaptureLiveIntegrated": false,
+  "gaAccepted": false,
+  "phones": "deferred"
+}

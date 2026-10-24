@@ -1,5 +1,11 @@
 # Implementation status
 
+Latest checkpoint: the private imported-host operation is integrated and passes
+265 Release library tests, sixteen Frozen tests and Swift Clippy. Android tap
+and hold pass on the emulator; its first drag fails and is under diagnosis.
+The private Stripe body-capture candidate awaits independent review. All owned
+native test instances are cleaned; physical phones remain deferred.
+
 Implementation resumed at the user's request on October 24. The saved
 [pause handoff](docs/implementation-pause-2026-10-24.md) remains historical context.
 The private frame entry/return/cleanup slice and bounded hosted RS256 token
@@ -1828,3 +1834,30 @@ The first Stripe signature component now passes 22 isolated host tests, seven in
 The private Android pointer candidate4 passes independent build/DEX/packaging checks, but its oracle review reproduces five invalid acceptances involving obscured flags, pressure, MOVE history, missing actual MOVE samples and timing. Root retains both sealed packets and holds native dispatch for isolated candidate5 repair; no pointer runtime was attempted or accepted. See `verification/android-pointer-fixture-root-review/selection.json`.
 
 Root accepted and integrated the bounded Stripe signature component after independent review: 2,352 adversarial cases plus late crypto-failure checks pass, and the exact composed hosted source passes 127 tests with two existing Linux-only skips on macOS. Production release build/configuration rejection/test-export checks pass; private PostgreSQL, command groups and scratch are cleaned. Three tested files are applied with 337 evidence bindings and 69 source inputs matched. See `docs/stripe-webhook-signature-integration.md` and `verification/stripe-webhook-signature-integration/acceptance.json`. Raw-body HTTP admission, endpoint ownership, durable inbox/Oban, real provider reconciliation and G23 remain open; exact-head Linux CI follows delivery.
+
+Pushed signature checkpoint `11133e60` passes its terminal Phoenix/Linux CI run. The downloaded receipt and source archive match all 69 integrated inputs and digest exactly; 127 tests and release checks pass, with two existing isolated-network-namespace tests explicitly skipped because that separate fixture is not enabled. See `verification/github-ci-11133e60-phoenix/receipt.json`. Engine CI is still in progress; broader billing/G23 remains open.
+
+
+Latest isolated follow-on work: Private host-operation candidate is frozen at 128-file closure 7ee6194584a5029ff2bbbcb94f8286295411cb3441a04db30c8fd4036d851329. Producer 1,014 library, 64 host-probe and 64 Frozen executions pass; root replays 1,671 sealed evidence files, 285 commands, 91 artifacts and sixteen layout contexts. Independent review is active; live integration remains pending. Owned 14.85 GB logical scratch is removed. G08 diagnostic repair remains serialized after integration.
+
+Root selects normal Bandit HTTP/1.1 and HTTP/2 framing for an isolated raw-body capture component. Nine dependency API probes replay with 49 root bindings and 69 exact hosted inputs. Capture implementation and real localhost wire/fake-adapter matrix are underway; endpoint transport privacy/cancellation, ingress, public admission, durable inbox/Oban, provider reconciliation and G23 remain pending.
+
+Android pointer candidate5 is frozen with 42 host tests and byte-exact fresh private Java/DEX replay. Root verifies 284 repaired host bindings plus unchanged 507 producer/42 prior-review bindings. Independent oracle review remains active; no pointer native run or acceptance. Apple UI remains unavailable because the Mac is locked; no instance started by the latest check.
+
+
+Checkpoint `11133e60` now passes all three terminal engine CI jobs (Swift, VM and services), with all 38 steps successful and none skipped. See `verification/github-ci-11133e60-engine/receipt.json`. Its newer isolated host-operation, pointer-oracle repair and raw-body capture candidates are outside that CI scope.
+
+
+Independent Android pointer candidate5 review confirms F06/F07: Activity delivery was not matched to its synchronous worker interval, and impossible UP/CANCEL history could replace all MOVE deliveries. Five synthetic false acceptances are retained; these are oracle findings, not observed Android defects. Root verifies 1,121 producer/review bindings and selects an oracle/runner-only correction on the identical APK and gesture schedule. All 42 prior tests and source/archive/signature/alignment checks pass; no pointer runtime is authorized yet. See docs/android-pointer-oracle-repair-review.md and verification/android-pointer-oracle-root-review/correction-selection.json.
+
+
+Private imported-host operation is independently reviewed, root accepted and integrated byte-exactly at 128-file closure7ee6194584a5029ff2bbbcb94f8286295411cb3441a04db30c8fd4036d851329. Root verifies1910 upstream/30 integration bindings; fresh265all-feature Release library tests,16Frozen Release tests, Swift Clippy and whitespace pass. Independent302executions,62fresh MIR bodies,16layout replays,4876positions and39unchanged Frozen methods remain scoped host evidence. Root scratch161551623bytes removed. G08 contextual diagnostic repair now proceeds on this baseline, including the new active host removal; full calls/dispatch/Ready/public/native/FieldLog/physical/GA remain open. See docs/swift-host-operation-integration-checkpoint.md.
+
+
+Latest Android native result:
+
+The unchanged candidate-5 APK now has an actual API37 arm64 pointer attempt after the timing/history oracle passed 55 host tests and 12 independent root controls. P01 tap and P02 hold each commit one revision. P03 rightward drag receives all ten events including UP, but remains off at revision3; 52 assertions pass and one fails, so the full20-action matrix is not accepted. Root verifies61 runtime files/43command outputs/7exports/14synchronous deliveries. Owned emulator group, ports and172952201-byte extraction are cleaned; unrelated emulator preserved. Read-only diagnosis precedes any changed experiment. See docs/android-pointer-native-checkpoint.md and verification/android-pointer-native-root-review/receipt.json.
+
+Latest private Stripe capture candidate:
+
+Root-selected normal HTTP1.1/HTTP2 raw-body capture candidate is sealed in isolation: root replays273 producer files, nine attempts and dependency/source pins. Final14 component tests and13 wire groups cover105 localhost clients (70H1/35h2c), with measured verifier calls and all responses non2xx. Independent implementation review is active; no live integration or public admission. Actual slow h2 rejects after5564ms; telemetry/log exposure and absent hard cancellation remain endpoint requirements. TLS/ALPN/ingress, durable inbox/Oban, provider reconciliation and G23 remain pending.

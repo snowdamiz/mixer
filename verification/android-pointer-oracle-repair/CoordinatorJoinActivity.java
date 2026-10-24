@@ -1,0 +1,60 @@
+package dev.mixer.android;
+
+import android.app.Activity;
+import android.os.Bundle;
+import android.view.MotionEvent;
+import android.widget.FrameLayout;
+
+/** Private owner only. Observation never changes delivery, return values, or exceptions. */
+@SuppressWarnings("deprecation")
+public final class CoordinatorJoinActivity extends Activity {
+    interface Observer {
+        long before(MotionEvent event);
+        void after(long sequence, MotionEvent event, Boolean returned, Throwable thrown);
+    }
+    FrameLayout root;
+    NativeCoordinatorV2 coordinator;
+    boolean destroyed;
+    Observer observer;
+    Throwable observationFailure;
+
+    @Override public void onCreate(Bundle state) {
+        super.onCreate(state);
+        getWindow().setDecorFitsSystemWindows(false);
+        root = new FrameLayout(this);
+        root.setFocusableInTouchMode(true);
+        setContentView(root);
+    }
+
+    @Override public boolean dispatchTouchEvent(MotionEvent event) {
+        long sequence = -1;
+        if (observer != null) {
+            try { sequence = observer.before(event); }
+            catch (RuntimeException | Error failure) { observationFailure = failure; }
+        }
+        Boolean returned = null;
+        Throwable thrown = null;
+        try {
+            boolean result = super.dispatchTouchEvent(event);
+            returned = result;
+            return result;
+        } catch (RuntimeException | Error failure) {
+            thrown = failure;
+            throw failure;
+        } finally {
+            if (observer != null) {
+                try { observer.after(sequence, event, returned, thrown); }
+                catch (RuntimeException | Error failure) { observationFailure = failure; }
+            }
+        }
+    }
+
+    @Override public void onDestroy() {
+        try {
+            if (coordinator != null && !coordinator.isRetired()) coordinator.close();
+        } finally {
+            destroyed = true;
+            super.onDestroy();
+        }
+    }
+}

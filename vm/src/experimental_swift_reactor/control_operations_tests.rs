@@ -1583,3 +1583,5 @@ fn sc12_allocation_shared_source() {
         retire(owner);
     }
 }
+
+pub(in crate::experimental_swift_reactor::execution::frame_operations) fn host_test_bytes(body:&[u8],result:bool,locals:&[Type])->Vec<u8>{body_fixture(body,result,locals)}

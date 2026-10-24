@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "selection": "root-pending",
+  "status": "required-next-implementation-tests-not-run",
+  "rows": [
+    {"id": "envelope", "environment": "real Bandit HTTP1", "cases": "POST/exact path/empty query; wrong method, Head rewriting boundary, escaped path, slash/query variants; reject before first read", "status": "pending"},
+    {"id": "metadata", "environment": "real Bandit HTTP1 and selected HTTP2", "cases": "valid JSON media type variants; absent/duplicate/comma/invalid charset/params; all Content-Encoding; Expect/Trailer/Upgrade; zero body reads on reject", "status": "pending"},
+    {"id": "signature-occurrences", "environment": "raw TCP plus selected HTTP2", "cases": "0/1/2 header occurrences, mixed HTTP1 header-name case, comma content in one value, 0/1/4096/4097-byte value; preserve exact exposed values and multiplicity", "status": "pending"},
+    {"id": "exact-signature-body", "environment": "real Bandit plus existing verifier", "cases": "synthetic original HMAC bytes, whitespace, CRLF/newline, UTF8 and escaped JSON alternatives; changed byte invalidates original HMAC; no parse/re-encode", "status": "pending"},
+    {"id": "content-length", "environment": "raw TCP and selected HTTP2", "cases": "absent, 0, 1, 1048576, 1048577, canonical digits, signs, leading zeros, comma list, duplicate identical/conflicting occurrences, overflow, length mismatch/early EOF; distinguish framework pre-Plug rejection", "status": "pending"},
+    {"id": "framing", "environment": "raw TCP HTTP1", "cases": "CL+TE, repeated TE, unsupported coding/identity, valid chunk boundaries/extensions, malformed/truncated chunk, declared/undeclared trailer, oversized chunk; profile2 rejection leaves profile1 unresolved", "status": "pending"},
+    {"id": "limits", "environment": "real Bandit and separately fake adapter", "cases": "1-byte minimum, exact maximum terminal ok, maximum with more rejects, overlimit more, below-max more than 64 reads, oversize returned chunk despite requested length, no concatenation after rejection", "status": "pending"},
+    {"id": "http2", "environment": "actual localhost HTTP2 client and Bandit", "cases": "DATA split/coalesced/exceeding read target, END_STREAM, repeated headers, content length mismatch, trailer logging guard; profile2 rejects protocol and leaves support qualification pending", "status": "pending"},
+    {"id": "deadlines", "environment": "real slow wire clients plus separate fake adapter", "cases": "no body, slow body, multiple internal reads, late complete result, no admission at/after monotonic deadline; total cancellation measured separately and never inferred from late-result rejection", "status": "pending"},
+    {"id": "adapter-faults", "environment": "bounded fake adapter only", "cases": "updated conn every read, empty more, bounded chunk count, error without conn, malformed shape, nonbinary chunk, raises, late return; harness timeout distinct from product", "status": "pending"},
+    {"id": "logging", "environment": "real Bandit logger and telemetry capture", "cases": "body/signature sentinels absent from app logs and all exported telemetry; cover pre-Plug conn metadata, low-level receive metadata and H2 trailers; redaction owner evidence required", "status": "pending"},
+    {"id": "failure-disposal", "environment": "real Bandit wire sockets", "cases": "every error gives zero 2xx/downstream/domain calls, unused input cannot become second request or trigger unbounded drain, close/reset and cleanup proven including failed scenarios", "status": "pending"},
+    {"id": "ingress", "environment": "future selected deployed ingress", "cases": "protocol/framing translations, duplicate signature preservation, unchanged bytes, metadata deadlines, concurrency/rate/buffer limits; no local-only provider qualification", "status": "pending"}
+  ]
+}

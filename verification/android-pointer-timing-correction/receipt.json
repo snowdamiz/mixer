@@ -1,0 +1,193 @@
+{
+  "GitCommandsExecuted": 0,
+  "cleanup": "both attempts removed scratch after empty lsof, unchanged device/inode, and no symlinks; every owned command group ended empty",
+  "exploratoryReadFailure": {
+    "error": "TypeError: list indices must be integers or slices, not dict",
+    "exitCode": 1,
+    "nativeCommands": 0,
+    "scope": "read-only summary of findings.json incorrectly treated its list as an object; repeated with correct list handling before implementation"
+  },
+  "failedAttempt": "host-1 retained with exact sources/logs and hash-verified reconstructed original contract",
+  "finalReplayCommands": [
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-pointer-oracle-repair/check_packet.py"
+      ],
+      "bytes": 907,
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exitCode": 0,
+      "output": "verification/android-pointer-timing-correction/finalization/producer-final-replay.log",
+      "ownedCommandGroupCleanup": {
+        "after": [],
+        "before": [],
+        "group": 56527,
+        "signals": []
+      },
+      "sha256": "3d798f61fe98b4bf61ae93d20a6e17e02297eaf89694e3cd8ff79d496f603f68"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/android-pointer-oracle-repair-review/check_review.py"
+      ],
+      "bytes": 208,
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exitCode": 0,
+      "output": "verification/android-pointer-timing-correction/finalization/review-final-replay.log",
+      "ownedCommandGroupCleanup": {
+        "after": [],
+        "before": [],
+        "group": 56529,
+        "signals": []
+      },
+      "sha256": "836bf301b115131265d0cd6e2d6f176403fcaf3069b04c0472da3e0e3b204f37"
+    }
+  ],
+  "hostTests": {
+    "correctionTests": 13,
+    "errors": 0,
+    "exactFiveControls": [
+      {
+        "case": "new-F06-delivery-before-worker",
+        "correctedOracleAccepted": false,
+        "exactFixture": "verification/android-pointer-oracle-repair-review/host-review-2/reproductions/new-F06-delivery-before-worker",
+        "finding": "F06",
+        "metadata": {
+          "bytes": 480,
+          "sha256": "77620a9466a7dcac8d00f1eafafd583381c711d0e89c7aaa51edef79fac8c2bc"
+        },
+        "nativeEvidence": false,
+        "nativeFixture": {
+          "bytes": 74467,
+          "sha256": "2ca7c91e6a2cfaffb53d9fe810ed903d80a43cf7b1b38b7b2f8912ac64c5e3e3"
+        },
+        "oldOracleAccepted": "passed-independent-private-pointer-export-oracle",
+        "rejection": "Activity dispatch outside matching current-event synchronous worker interval or before event time",
+        "syntheticOnly": true
+      },
+      {
+        "case": "new-F06-delivery-before-eventtime",
+        "correctedOracleAccepted": false,
+        "exactFixture": "verification/android-pointer-oracle-repair-review/host-review-2/reproductions/new-F06-delivery-before-eventtime",
+        "finding": "F06",
+        "metadata": {
+          "bytes": 480,
+          "sha256": "77620a9466a7dcac8d00f1eafafd583381c711d0e89c7aaa51edef79fac8c2bc"
+        },
+        "nativeEvidence": false,
+        "nativeFixture": {
+          "bytes": 74467,
+          "sha256": "fd3e768d54484bd3c9d972bbca4204555d4fa00fb024612bf68e796c6f8201b2"
+        },
+        "oldOracleAccepted": "passed-independent-private-pointer-export-oracle",
+        "rejection": "Activity dispatch outside matching current-event synchronous worker interval or before event time",
+        "syntheticOnly": true
+      },
+      {
+        "case": "new-F06-delivery-after-sync-return",
+        "correctedOracleAccepted": false,
+        "exactFixture": "verification/android-pointer-oracle-repair-review/host-review-2/reproductions/new-F06-delivery-after-sync-return",
+        "finding": "F06",
+        "metadata": {
+          "bytes": 480,
+          "sha256": "77620a9466a7dcac8d00f1eafafd583381c711d0e89c7aaa51edef79fac8c2bc"
+        },
+        "nativeEvidence": false,
+        "nativeFixture": {
+          "bytes": 74467,
+          "sha256": "dda447d7f4be62dfaa12e35edbc42747a745d10c5d9166b42db3e8c9fc7cae1d"
+        },
+        "oldOracleAccepted": "passed-independent-private-pointer-export-oracle",
+        "rejection": "Activity dispatch outside matching current-event synchronous worker interval or before event time",
+        "syntheticOnly": true
+      },
+      {
+        "case": "new-F07-all-moves-only-UP-history",
+        "correctedOracleAccepted": false,
+        "exactFixture": "verification/android-pointer-oracle-repair-review/host-review-2/reproductions/new-F07-all-moves-only-UP-history",
+        "finding": "F07",
+        "metadata": {
+          "bytes": 480,
+          "sha256": "77620a9466a7dcac8d00f1eafafd583381c711d0e89c7aaa51edef79fac8c2bc"
+        },
+        "nativeEvidence": false,
+        "nativeFixture": {
+          "bytes": 74466,
+          "sha256": "43084cec9cbd4433e45bf396d830b1d2e85a8319d5fa96f57f86136692080e19"
+        },
+        "oldOracleAccepted": "passed-independent-private-pointer-export-oracle",
+        "rejection": "non-MOVE Activity event history must be empty",
+        "syntheticOnly": true
+      },
+      {
+        "case": "new-F07-all-moves-only-CANCEL-history",
+        "correctedOracleAccepted": false,
+        "exactFixture": "verification/android-pointer-oracle-repair-review/host-review-2/reproductions/new-F07-all-moves-only-CANCEL-history",
+        "finding": "F07",
+        "metadata": {
+          "bytes": 480,
+          "sha256": "77620a9466a7dcac8d00f1eafafd583381c711d0e89c7aaa51edef79fac8c2bc"
+        },
+        "nativeEvidence": false,
+        "nativeFixture": {
+          "bytes": 74466,
+          "sha256": "59dc9c80aeeeecebbaa0df6d4e2241910f2af67a2885e7a3197d8f05dc2f36b6"
+        },
+        "oldOracleAccepted": "passed-independent-private-pointer-export-oracle",
+        "rejection": "non-MOVE Activity event history must be empty",
+        "syntheticOnly": true
+      }
+    ],
+    "executed": 55,
+    "failures": 0,
+    "nativeCommands": 0,
+    "priorTests": 42,
+    "status": "passed",
+    "syntheticOnly": true
+  },
+  "nativeCommandsExecuted": 0,
+  "nativeRuntime": "NOT RUN",
+  "packetSHA256": "c5a611b990653fd0982aec053a58a9011e954c28c82ac05d2b8abf78a40b9e1b",
+  "physicalTargetsQueried": false,
+  "schema": 1,
+  "sourceIdentity": {
+    "sourceClosureSHA256": "9082e2de1327bd0784d752db5dfbe4484751d565b3410e01e78664321467f5ce",
+    "sourceRevision": "d4909e275df7e757a5218cc0a88112f4fc3f088b",
+    "sourceTree": "5344a10fa8641d537c2e4699811262d162c6ff2f"
+  },
+  "status": "sealed-host-only-F06-F07-correction-root-independent-review-pending",
+  "toolVersions": "host-2/*-version.log",
+  "upstream": {
+    "independentReview": {
+      "files": 835,
+      "nativeDispatchAuthorized": false,
+      "sealSHA256": "de633fb09dc23c98e43ef0b125b87754554e4d6089a61ec60067c68529f2cd70",
+      "status": "passed-independent-pointer-oracle-repair-review-seal"
+    },
+    "producer": {
+      "concreteRunnerSHA256": "bd7cd16883a831aac29fa13d162eabf6fae78c88c6b523919e4d9b38c0103b31",
+      "hostFiles": 284,
+      "nativeDispatchAuthorizedByThisPacket": false,
+      "nativeRuntime": "NOT RUN",
+      "packetSealSHA256": "275e733bbc31262c12bf65402fc12e110a43c9f5d14cb41ad157be7a5d755fd5",
+      "runnerContractSHA256": "a757865ecd435422d3cc1da98d4a0669d34ab7a5b0d14c3ed6ed97265541b63f",
+      "runtimeSubtreeExcluded": "verification/android-pointer-oracle-repair/runtime",
+      "status": "passed-exact-recursive-pointer-oracle-repair-host-packet",
+      "upstream": {
+        "candidate4Files": 507,
+        "candidate4PacketSealSHA256": "317de5fb8a7e8ac7249bbb0fc49a17ba2f38a048ab6edfc1b27e24abc5ae6b52",
+        "originalContractAcceptanceSHA256": "86c8c3e0aa8f9af12b8b853fcde3cd5dbc9d0c24bd29d3f732dac07895afd0cd",
+        "reviewFiles": 42,
+        "reviewSealSHA256": "0942e53a9de5b6fcf87255b7324ced091cd42b4ae42c7628c4698164a2c21f13"
+      }
+    },
+    "rootSelection": {
+      "bytes": 250172,
+      "sha256": "da02a8c702222a2e052d7c9dd31448995110004f61470a05e8bdb399b204aec1"
+    },
+    "rootSelectionBindings": 1121
+  }
+}

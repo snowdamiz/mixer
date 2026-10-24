@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "scope": "Manual pinned-source review with read-only API probes; source analysis is not HTTP qualification",
+  "observations": [
+    {"source": "hosted/deps/plug/lib/plug/conn.ex", "lines": [1135, 1195], "finding": "read_body delegates options/results, caches nothing, lengths documented approximate, errors lack updated conn"},
+    {"source": "hosted/deps/plug/lib/plug/conn.ex", "lines": [692, 697], "finding": "get_req_header returns all matching header values without merge"},
+    {"source": "hosted/deps/bandit/lib/bandit/http1/socket.ex", "lines": [173, 205], "finding": "HTTP1 lowercases names and retains separate ordered header occurrences"},
+    {"source": "hosted/deps/bandit/lib/bandit/headers.ex", "lines": [200, 225], "finding": "multiple Content-Length occurrences reject; one identical comma list accepted"},
+    {"source": "hosted/deps/bandit/lib/bandit/http1/socket.ex", "lines": [62, 94], "finding": "CL plus TE rejects at framework framing before Plug"},
+    {"source": "hosted/deps/bandit/lib/bandit/http1/socket.ex", "lines": [304, 417], "finding": "chunk payload decoded, extensions/trailers ignored; terminal trailer read uses socket defaults; exact-limit more can need EOF read"},
+    {"source": "hosted/deps/bandit/lib/bandit/http1/socket.ex", "lines": [454, 510], "finding": "read_exactly can recursively receive with same per-receive timeout; timeout raises HTTP/transport error"},
+    {"source": "hosted/deps/bandit/lib/bandit/http2/stream.ex", "lines": [303, 336], "finding": "DATA can exceed requested length, timeout renews per receive, trailers logged with inspect"},
+    {"source": "hosted/deps/bandit/lib/bandit/adapter.ex", "lines": [68, 95], "finding": "read body validates owner before transport; adapter flattens transport result before capture can inspect"},
+    {"source": "hosted/deps/bandit/lib/bandit/adapter.ex", "lines": [351, 352], "finding": "stream owner process enforced; Task cannot substitute"},
+    {"source": "hosted/deps/bandit/lib/bandit/pipeline.ex", "lines": [35, 53], "finding": "request telemetry includes full connection metadata before application plug"},
+    {"source": "hosted/deps/thousand_island/lib/thousand_island/socket.ex", "lines": [119, 128], "finding": "receive telemetry metadata includes exact received data; downstream exporters must not retain it"}
+  ],
+  "officialDocumentation": [
+    {"url": "https://hexdocs.pm/plug/1.20.3/Plug.Conn.html#read_body/2", "observed": "2026-10-24", "result": "web open succeeded; versioned Plug API corroboration; pinned installed source retained"},
+    {"url": "https://hexdocs.pm/bandit/1.13.1/Bandit.html", "observed": "2026-10-24", "result": "web open failed as inaccessible; no claim derived from unavailable page; installed pinned official library source used"}
+  ]
+}

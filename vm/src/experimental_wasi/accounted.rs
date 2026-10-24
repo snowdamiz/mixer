@@ -420,3 +420,11 @@ impl WasiConstructionPhase<'_> {
 #[cfg(test)]
 #[path = "accounted_tests.rs"]
 mod tests;
+
+#[cfg(test)] impl AccountedWasi {
+ pub(crate) fn host_test_header(&mut self,next:Option<ReservationTicket>)->Option<ReservationTicket>{std::mem::replace(&mut self.header,next)}
+ pub(crate) fn host_test_dispatch(&mut self,before:bool,after:bool){self.test.cancel_before=before;self.test.cancel_after=after;}
+ pub(crate) fn host_test_cancel_at(&mut self,at:usize){self.context.test.host_set_cancel(at);}
+ pub(crate) fn host_test_service(&mut self,kind:u8){self.context.test.host_set_service(kind);}
+ pub(crate) fn host_test_services(&self)->usize{self.context.test.host_services()}
+}
