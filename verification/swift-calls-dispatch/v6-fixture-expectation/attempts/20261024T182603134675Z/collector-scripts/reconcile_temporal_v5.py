@@ -1,0 +1,14 @@
+import collect as c
+import json,gzip,collections
+old=c.read_json(c.HERE/'inventory-v4.json');new=c.read_json(c.HERE/'inventory-v5.json');a={r['field']:r for r in old};b={r['field']:r for r in new};assert len(a)==89156 and len(b)==89124
+removed=[a[k]for k in sorted(a.keys()-b.keys())];added=[b[k]for k in sorted(b.keys()-a.keys())];assert len(removed)==32 and not added
+assert all(r['body'].endswith('::signature_mismatch')and r['method']=='exact-typed'and r['ownerClass']=='active'for r in removed)
+rows=[];changed=[]
+for field in sorted(b):
+ x=a[field];y=b[field];assert x['ownerClass']==y['ownerClass']
+ stable=all(x.get(k)==y.get(k)for k in ['config','body','promoted','kind','binding','position','local','capture','actualIdentity','type','method'])
+ if not stable:
+  assert y['body'].endswith('::signature_mismatch')and {x['method'],y['method']}<={'exact-typed','exact-inferred-never'};changed.append(field)
+ rows.append({'field':field,'config':y['config'],'oldClass':x['ownerClass'],'finalClass':y['ownerClass'],'oldBody':x.get('body'),'finalBody':y.get('body'),'oldBinding':x.get('binding'),'finalBinding':y.get('binding'),'oldIdentity':x.get('actualIdentity'),'finalIdentity':y.get('actualIdentity'),'oldBodySHA256':x.get('bodySHA256'),'finalBodySHA256':y.get('bodySHA256'),'oldQuerySHA256':x.get('querySHA256'),'finalQuerySHA256':y.get('querySHA256'),'position':y['position'],'oldMethod':x['method'],'finalMethod':y['method'],'sameSemanticRoleDescriptor':stable,'oldCandidateUnaccepted':True,'baselinePriorRowsReused':False})
+raw=c.enc(rows);c.save(c.HERE/'temporal-v4-to-v5-reconciliation.json.gz',gzip.compress(raw,mtime=0));summary={'oldSourceClosure':'3d0840b8366b3d72dc1474cb6546c71ba49f66fc7c002704a508c272166b0041','finalSourceClosure':c.read_json(c.HERE/'candidate-final-source.json')['sourceClosure'],'oldRoles':len(a),'finalRoles':len(b),'removedScannerOnlyTypedRoles':removed,'addedRoles':added,'scannerRoleDescriptorsChanged':changed,'phaseCounts':dict(collections.Counter(r['ownerClass']for r in new)),'retainedWholeCarrierRows':sum(r['config']=='source'for r in new),'finiteRoles':1032,'finiteMapping':'finite-exception-reconciliation-v5.json','phaseMapping':'temporal-position-mapping-v5.json','completeReconciliation':{'path':'temporal-v4-to-v5-reconciliation.json.gz','logicalSHA256':c.sha(raw),'gzipSHA256':c.sha((c.HERE/'temporal-v4-to-v5-reconciliation.json.gz').read_bytes())},'newRuntimeSourceReason':'Move signature checkpoint after each64 successful param comparisons so optional result never becomes scalar65','oldCandidateWasRejectedAndUnaccepted':True,'allBaselinePriorClassesVerifiedSeparately':True,'independentAcceptancePending':True}
+c.save(c.HERE/'v4-to-v5-mapping-summary.json',summary);print('V4→V5 role mapping complete:',len(removed),'scanner roles removed,',len(changed),'scanner descriptors recompiled; no phase change or numeric widening')

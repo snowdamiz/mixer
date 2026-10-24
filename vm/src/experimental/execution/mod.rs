@@ -21,7 +21,7 @@
 use super::cache::{CacheFailure, CacheUsage, ControlKind, FunctionCache, FunctionPin, Operation};
 use crate::{Cancellation, Value};
 #[allow(unused_imports)]
-use borrowed::{control_record, frozen_control_leaf, shared_control_methods, frozen_memory_leaf, frozen_bulk_memory_leaf, frozen_growth_leaf};
+use borrowed::{frozen_dispatch_leaf, shared_indirect, shared_control_arm, control_record, frozen_control_leaf, shared_control_methods, frozen_memory_leaf, frozen_bulk_memory_leaf, frozen_growth_leaf};
 #[cfg(feature = "experimental-span-execution")]
 use std::mem::size_of;
 
@@ -808,35 +808,7 @@ impl SpanInstance {
         }
     }
     fn call(&mut self, function: u32) -> Result<(), ExecutionFailure> {
-        let params = self
-            .cache
-            .spans()
-            .execution_signature(function)
-            .ok_or_else(|| self.invariant())?
-            .params
-            .len();
-        self.work(params)?;
-        let base = self
-            .values
-            .len()
-            .checked_sub(params)
-            .ok_or_else(|| self.invariant())?;
-        let frame = self.frames.last().ok_or_else(|| self.invariant())?;
-        if base < frame.operands {
-            return Err(self.invariant());
-        }
-        if self.cache.spans().execution_import(function).is_some() {
-            // The Call instruction was already charged, exactly as in eager.
-            let value = self.import(function)?;
-            self.values.truncate(base);
-            self.observe();
-            if let Some(value) = value {
-                self.push(value)?;
-            }
-            Ok(())
-        } else {
-            self.enter(function)
-        }
+        borrowed::shared_call!{self, frozen_dispatch_leaf, function}
     }
     fn finish(&mut self) -> Result<Option<Value>, ExecutionFailure> {
         let result = self.frames.last().ok_or_else(|| self.invariant())?.result;
@@ -860,168 +832,7 @@ impl SpanInstance {
     }
     #[rustfmt::skip] // Preserve the accepted inline-arm expansion, including expression arms.
     fn run(&mut self) -> Result<Option<Value>, ExecutionFailure> {
-        loop {
-            let frame = self.frames.last().ok_or_else(|| self.invariant())?;
-            let view = self
-                .cache
-                .view(&frame.pin)
-                .map_err(|error| self.cache_error(error))?;
-            let instruction = *view
-                .instructions
-                .get(frame.pc)
-                .ok_or_else(|| self.invariant())?;
-            // Copy one selected br_table scalar before ending the cache borrow.
-            let target = if let Operation::BrTable {
-                first,
-                count,
-                default,
-            } = instruction.operation
-            {
-                let selector = match self.values.last() {
-                    Some(Value::I32(n)) => *n as u32 as usize,
-                    _ => return Err(self.invariant()),
-                };
-                Some(if selector < count {
-                    *view
-                        .branch_targets
-                        .get(first + selector)
-                        .ok_or_else(|| self.invariant())?
-                } else {
-                    default
-                })
-            } else {
-                None
-            };
-            self.function = Some(frame.function);
-            self.offset = instruction.offset;
-            self.charge(1, true)?;
-            self.work(1)?;
-            self.frames.last_mut().ok_or_else(unreachable_failure)?.pc += 1;
-            let mut finished = false;
-            match instruction.operation {
-                Operation::Unreachable => return Err(self.trap("unreachable")),
-                Operation::Nop => {}
-                Operation::Const(value) => self.push(value)?,
-                Operation::Drop => {
-                    self.pop()?;
-                }
-                Operation::Select => {
-                    let cond = self.pop32()?;
-                    let b = self.pop()?;
-                    let a = self.pop()?;
-                    self.push(if cond != 0 { a } else { b })?;
-                }
-                Operation::LocalGet(index) => {
-                    let frame = self.frames.last().ok_or_else(|| self.invariant())?;
-                    let value = *self
-                        .values
-                        .get(frame.base + index as usize)
-                        .filter(|_| frame.base + (index as usize) < frame.operands)
-                        .ok_or_else(|| self.invariant())?;
-                    self.push(value)?;
-                }
-                Operation::LocalSet(index) | Operation::LocalTee(index) => {
-                    let value = if matches!(instruction.operation, Operation::LocalTee(_)) {
-                        self.work(1)?;
-                        *self.values.last().ok_or_else(|| self.invariant())?
-                    } else {
-                        self.pop()?
-                    };
-                    let frame = self.frames.last().ok_or_else(|| self.invariant())?;
-                    let slot = frame.base + index as usize;
-                    if slot >= frame.operands {
-                        return Err(self.invariant());
-                    }
-                    self.values[slot] = value;
-                }
-                Operation::GlobalGet(index) => {
-                    let value = *self
-                        .globals
-                        .get(index as usize)
-                        .ok_or_else(|| self.invariant())?;
-                    self.push(value)?;
-                }
-                Operation::GlobalSet(index) => {
-                    let value = self.pop()?;
-                    let desc = self
-                        .cache
-                        .spans()
-                        .execution_global(index as usize)
-                        .ok_or_else(|| self.invariant())?;
-                    if !desc.mutable || value.ty() != desc.ty {
-                        return Err(self.invariant());
-                    }
-                    self.globals[index as usize] = value;
-                }
-                Operation::Block {
-                    kind,
-                    result,
-                    end,
-                    alternative,
-                } => {
-                    borrowed::shared_control_arm! {Block, self, frozen_control_leaf, finished, kind, result, end, alternative}
-                }
-                Operation::Else { end } => {
-                    borrowed::shared_control_arm! {Else, self, frozen_control_leaf, finished, end}
-                }
-                Operation::End => {
-                    borrowed::shared_control_arm! {End, self, frozen_control_leaf, finished}
-                }
-                Operation::Br(depth) => borrowed::shared_control_arm!(Br, self, frozen_control_leaf, finished, depth),
-                Operation::BrIf(depth) => {
-                    borrowed::shared_control_arm! {BrIf, self, frozen_control_leaf, finished, depth}
-                }
-                Operation::BrTable { .. } => {
-                    borrowed::shared_control_arm! {BrTable, self, frozen_control_leaf, finished, target}
-                }
-                Operation::Return => borrowed::shared_control_arm!(Return, self, frozen_control_leaf, finished),
-                Operation::Call(function) => self.call(function)?,
-                Operation::CallIndirect(index) => {
-                    let selector = self.pop32()? as u32 as usize;
-                    let function = self
-                        .table
-                        .get(selector)
-                        .ok_or_else(|| self.trap("table_out_of_bounds"))?
-                        .ok_or_else(|| self.trap("indirect_call_null"))?;
-                    let expected = self
-                        .cache
-                        .spans()
-                        .execution_type(index)
-                        .ok_or_else(|| self.invariant())?;
-                    let actual = self
-                        .cache
-                        .spans()
-                        .execution_signature(function)
-                        .ok_or_else(|| self.invariant())?;
-                    let scan = expected
-                        .params
-                        .len()
-                        .checked_add(actual.params.len())
-                        .ok_or_else(|| self.invariant())?;
-                    self.work(scan)?;
-                    if self.cache.spans().execution_type(index)
-                        != self.cache.spans().execution_signature(function)
-                    {
-                        return Err(self.trap("indirect_call_type_mismatch"));
-                    }
-                    self.call(function)?;
-                }
-                Operation::MemorySize => borrowed::shared_memory_size!(self, frozen_bulk_memory_leaf)?,
-                Operation::MemoryGrow => self.grow()?,
-                Operation::MemoryCopy => self.copy()?,
-                Operation::MemoryFill => self.fill()?,
-                Operation::Load { opcode, offset } => self.load(opcode, offset)?,
-                Operation::Store { opcode, offset } => self.store(opcode, offset)?,
-                Operation::Numeric(opcode) => self.numeric(opcode, false)?,
-                Operation::Saturating(opcode) => self.numeric(opcode, true)?,
-            }
-            if finished {
-                let result = self.finish()?;
-                if self.frames.is_empty() {
-                    return Ok(result);
-                }
-            }
-        }
+        borrowed::shared_run!(self, frozen_dispatch_leaf, shared_control_arm, frozen_control_leaf)
     }
     fn numeric(&mut self, opcode: u8, saturating: bool) -> Result<(), ExecutionFailure> {
         let (ty, count, _) = if saturating {

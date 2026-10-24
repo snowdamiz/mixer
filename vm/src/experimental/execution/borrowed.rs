@@ -576,3 +576,326 @@ macro_rules! frozen_growth_leaf {
 }
 #[allow(unused_imports)]
 pub(super) use frozen_growth_leaf;
+
+#[allow(unused_macros)]
+macro_rules! shared_indirect {
+    ($this:ident,$leaf:ident,$index:ident) => {
+                    let selector = $leaf!(pop32 $this)? as u32 as usize;
+                    let function = $leaf!(table_target $this, selector);
+                    let expected = $leaf!(expected_type $this, $index);
+                    let actual = $leaf!(actual_type $this, function);
+                    let scan = expected
+                        .params
+                        .len()
+                        .checked_add(actual.params.len())
+                        .ok_or_else(|| $leaf!(invariant $this))?;
+                    $this.work(scan)?;
+                    if $leaf!(signature_mismatch $this, $index, function)
+                    {
+                        return Err($leaf!(trap $this, "indirect_call_type_mismatch"));
+                    }
+                    $leaf!(call $this, function)?;
+
+    };
+}
+pub(crate) use shared_indirect;
+
+// Complete static run/call orchestration; original Frozen tokens are retained.
+#[allow(unused_macros)]
+macro_rules! frozen_dispatch_leaf {
+    (fetch $s:ident, $instruction:ident, $target:ident, $frame:ident) => {            let $frame = $s.frames.last().ok_or_else(|| $s.invariant())?;
+            let view = $s
+                .cache
+                .view(&$frame.pin)
+                .map_err(|error| $s.cache_error(error))?;
+            let $instruction = *view
+                .instructions
+                .get($frame.pc)
+                .ok_or_else(|| $s.invariant())?;
+            // Copy one selected br_table scalar before ending the cache borrow.
+            let $target = if let Operation::BrTable {
+                first,
+                count,
+                default,
+            } = $instruction.operation
+            {
+                let selector = match $s.values.last() {
+                    Some(Value::I32(n)) => *n as u32 as usize,
+                    _ => return Err($s.invariant()),
+                };
+                Some(if selector < count {
+                    *view
+                        .branch_targets
+                        .get(first + selector)
+                        .ok_or_else(|| $s.invariant())?
+                } else {
+                    default
+                })
+            } else {
+                None
+            };
+
+    };
+    (prefix $s:ident, $instruction:ident, $frame:ident) => {            $s.function = Some($frame.function);
+            $s.offset = $instruction.offset;
+            $s.charge(1, true)?;
+            $s.work(1)?;
+            $s.frames.last_mut().ok_or_else(unreachable_failure)?.pc += 1;
+
+    };
+    (local_get $s:ident, $index:ident) => {
+                    let frame = $s.frames.last().ok_or_else(|| $s.invariant())?;
+                    let value = *$s
+                        .values
+                        .get(frame.base + $index as usize)
+                        .filter(|_| frame.base + ($index as usize) < frame.operands)
+                        .ok_or_else(|| $s.invariant())?;
+                    $s.push(value)?;
+
+    };
+    (local_set $s:ident, $index:ident, $instruction:ident) => {
+                    let value = if matches!($instruction.operation, Operation::LocalTee(_)) {
+                        $s.work(1)?;
+                        *$s.values.last().ok_or_else(|| $s.invariant())?
+                    } else {
+                        $s.pop()?
+                    };
+                    let frame = $s.frames.last().ok_or_else(|| $s.invariant())?;
+                    let slot = frame.base + $index as usize;
+                    if slot >= frame.operands {
+                        return Err($s.invariant());
+                    }
+                    $s.values[slot] = value;
+
+    };
+    (global_get $s:ident, $index:ident) => {
+                    let value = *$s
+                        .globals
+                        .get($index as usize)
+                        .ok_or_else(|| $s.invariant())?;
+                    $s.push(value)?;
+
+    };
+    (global_set $s:ident, $index:ident) => {
+                    let value = $s.pop()?;
+                    let desc = $s
+                        .cache
+                        .spans()
+                        .execution_global($index as usize)
+                        .ok_or_else(|| $s.invariant())?;
+                    if !desc.mutable || value.ty() != desc.ty {
+                        return Err($s.invariant());
+                    }
+                    $s.globals[$index as usize] = value;
+
+    };
+    (finish $s:ident, $finished:ident) => {            if $finished {
+                let result = $s.finish()?;
+                if $s.frames.is_empty() {
+                    return Ok(result);
+                }
+            }
+
+    };
+    (parameters $s:ident, $function:ident) => {         $s
+            .cache
+            .spans()
+            .execution_signature($function)
+            .ok_or_else(|| $s.invariant())?
+            .params
+            .len()
+    };
+    (base $s:ident, $params:ident, $base:ident) => {        let $base = $s
+            .values
+            .len()
+            .checked_sub($params)
+            .ok_or_else(|| $s.invariant())?;
+        let frame = $s.frames.last().ok_or_else(|| $s.invariant())?;
+        if $base < frame.operands {
+            return Err($s.invariant());
+        }
+
+    };
+    (import $s:ident, $function:ident, $base:ident) => {            // The Call instruction was already charged, exactly as in eager.
+            let value = $s.import($function)?;
+            $s.values.truncate($base);
+            $s.observe();
+            if let Some(value) = value {
+                $s.push(value)?;
+            }
+            Ok(())
+
+    };
+    (table_target $s:ident, $selector:ident) => {                     $s
+                        .table
+                        .get($selector)
+                        .ok_or_else(|| $s.trap("table_out_of_bounds"))?
+                        .ok_or_else(|| $s.trap("indirect_call_null"))?
+    };
+    (expected_type $s:ident, $index:ident) => {                     $s
+                        .cache
+                        .spans()
+                        .execution_type($index)
+                        .ok_or_else(|| $s.invariant())?
+    };
+    (actual_type $s:ident, $function:ident) => {                     $s
+                        .cache
+                        .spans()
+                        .execution_signature($function)
+                        .ok_or_else(|| $s.invariant())?
+    };
+    (signature_mismatch $s:ident, $index:ident, $function:ident) => {$s.cache.spans().execution_type($index)
+                        != $s.cache.spans().execution_signature($function)
+    };
+    (indirect $s:ident, $index:ident) => {shared_indirect!{$s,frozen_dispatch_leaf,$index}};
+    (invariant $s:ident) => {$s.invariant()};
+    (select_guard $s:ident) => {};
+    (publication $s:ident) => {};
+    (trap $s:ident, $code:expr) => {$s.trap($code)};
+    (push $s:ident, $value:expr) => {$s.push($value)};
+    (pop $s:ident) => {$s.pop()};
+    (pop32 $s:ident) => {$s.pop32()};
+    (call $s:ident, $function:ident) => {$s.call($function)};
+    (parameter_work $s:ident, $params:ident, $function:ident) => {$s.work($params)};
+    (is_import $s:ident, $function:ident) => {$s.cache.spans().execution_import($function).is_some()};
+    (memory_size $s:ident) => {borrowed::shared_memory_size!($s, frozen_bulk_memory_leaf)};
+    (growth $s:ident) => {$s.grow()};
+    (copy $s:ident) => {$s.copy()};
+    (fill $s:ident) => {$s.fill()};
+    (load $s:ident, $opcode:ident, $offset:ident) => {$s.load($opcode,$offset)};
+    (store $s:ident, $opcode:ident, $offset:ident) => {$s.store($opcode,$offset)};
+    (numeric $s:ident, $opcode:ident) => {$s.numeric($opcode,false)};
+    (saturating $s:ident, $opcode:ident) => {$s.numeric($opcode,true)};
+}
+pub(crate) use frozen_dispatch_leaf;
+
+#[allow(unused_macros)]
+macro_rules! shared_run {
+    ($this:ident,$leaf:ident,$control:ident,$control_leaf:ident) => {
+        loop {
+            $leaf!{fetch $this, instruction, target, frame}
+            $leaf!{prefix $this, instruction, frame}
+            let mut finished = false;
+            match instruction.operation {
+                Operation::Unreachable => return Err($leaf!(trap $this, "unreachable")),
+                Operation::Nop => {}
+                Operation::Const(value) => $leaf!(push $this, value)?,
+                Operation::Drop => {
+                    $leaf!(pop $this)?;
+                }
+                Operation::Select => {
+                    $leaf!{select_guard $this}
+                    let cond = $leaf!(pop32 $this)?;
+                    let b = $leaf!(pop $this)?;
+                    let a = $leaf!(pop $this)?;
+                    $leaf!(push $this, if cond != 0 { a } else { b })?;
+                }
+                Operation::LocalGet(index) => {
+                    $leaf!{local_get $this, index}
+                },
+                Operation::LocalSet(index) | Operation::LocalTee(index) => {
+                    $leaf!{local_set $this, index, instruction}
+                },
+                Operation::GlobalGet(index) => {
+                    $leaf!{global_get $this, index}
+                },
+                Operation::GlobalSet(index) => {
+                    $leaf!{global_set $this, index}
+                },
+                Operation::Block {
+                    kind,
+                    result,
+                    end,
+                    alternative,
+                } => {
+                    $control! {Block, $this, $control_leaf, finished, kind, result, end, alternative}
+                }
+                Operation::Else { end } => {
+                    $control! {Else, $this, $control_leaf, finished, end}
+                }
+                Operation::End => {
+                    $control! {End, $this, $control_leaf, finished}
+                }
+                Operation::Br(depth) => $control!(Br, $this, $control_leaf, finished, depth),
+                Operation::BrIf(depth) => {
+                    $control! {BrIf, $this, $control_leaf, finished, depth}
+                }
+                Operation::BrTable { .. } => {
+                    $control! {BrTable, $this, $control_leaf, finished, target}
+                }
+                Operation::Return => $control!(Return, $this, $control_leaf, finished),
+                Operation::Call(function) => $leaf!(call $this, function)?,
+                Operation::CallIndirect(index) => {
+                    $leaf!{indirect $this, index}
+                },
+                Operation::MemorySize => $leaf!(memory_size $this)?,
+                Operation::MemoryGrow => $leaf!(growth $this)?,
+                Operation::MemoryCopy => $leaf!(copy $this)?,
+                Operation::MemoryFill => $leaf!(fill $this)?,
+                Operation::Load { opcode, offset } => $leaf!(load $this, opcode, offset)?,
+                Operation::Store { opcode, offset } => $leaf!(store $this, opcode, offset)?,
+                Operation::Numeric(opcode) => $leaf!(numeric $this, opcode)?,
+                Operation::Saturating(opcode) => $leaf!(saturating $this, opcode)?,
+            }
+            $leaf!{publication $this}
+            $leaf!{finish $this, finished}
+        }
+
+    };
+}
+pub(crate) use shared_run;
+
+#[allow(unused_macros)]
+macro_rules! shared_call {
+    ($this:ident,$leaf:ident,$function:ident) => {
+        let params = $leaf!(parameters $this, $function);
+        $leaf!(parameter_work $this, params, $function)?;
+        $leaf!{base $this, params, base}
+        if $leaf!(is_import $this, $function) {
+            $leaf!{import $this, $function, base}
+        } else {
+            $this.enter($function)
+        }
+
+    };
+}
+pub(crate) use shared_call;
+
+// CALL_DISPATCH_KIND_ACCOUNTING_BEGIN
+// Private Kind fields remain in the original defining-module child.
+#[allow(dead_code)]
+pub(crate) mod calls_kind_accounting {
+#[allow(dead_code)]
+pub(super) struct CallsKindActivePositions {
+    m_swift_release_production_984df387ff44_43_source: super::super::Kind,
+    m_swift_release_production_984df387ff44_43_argument: super::super::Kind,
+    m_swift_release_production_984df387ff44_43_returned: super::super::Kind,
+    m_swift_release_production_984df387ff44_43_caller: super::super::Kind,
+    #[cfg(test)]
+    m_swift_release_unit_984df387ff44_43_source: super::super::Kind,
+    #[cfg(test)]
+    m_swift_release_unit_984df387ff44_43_argument: super::super::Kind,
+    #[cfg(test)]
+    m_swift_release_unit_984df387ff44_43_returned: super::super::Kind,
+    #[cfg(test)]
+    m_swift_release_unit_984df387ff44_43_caller: super::super::Kind,
+    m_all_release_production_984df387ff44_43_source: super::super::Kind,
+    m_all_release_production_984df387ff44_43_argument: super::super::Kind,
+    m_all_release_production_984df387ff44_43_returned: super::super::Kind,
+    m_all_release_production_984df387ff44_43_caller: super::super::Kind,
+    #[cfg(test)]
+    m_all_release_unit_984df387ff44_43_source: super::super::Kind,
+    #[cfg(test)]
+    m_all_release_unit_984df387ff44_43_argument: super::super::Kind,
+    #[cfg(test)]
+    m_all_release_unit_984df387ff44_43_returned: super::super::Kind,
+    #[cfg(test)]
+    m_all_release_unit_984df387ff44_43_caller: super::super::Kind,
+}
+pub(crate) const ACTIVE_BYTES:usize=std::mem::size_of::<CallsKindActivePositions>();
+#[allow(dead_code)]
+pub(super) struct CallsKindPermanentPositions {
+}
+pub(crate) const PERMANENT_BYTES:usize=std::mem::size_of::<CallsKindPermanentPositions>();
+}
+// CALL_DISPATCH_KIND_ACCOUNTING_END

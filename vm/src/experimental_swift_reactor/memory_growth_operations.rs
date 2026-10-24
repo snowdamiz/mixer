@@ -1,4 +1,4 @@
-//! Private original-owner memory.grow. No public or full-dispatch route.
+//! Private original-owner memory.grow, also used by the private full dispatcher.
 #![allow(dead_code, clippy::result_large_err, clippy::large_enum_variant, clippy::type_complexity)]
 use super::*;
 use crate::experimental::execution::CHUNK;
@@ -230,10 +230,24 @@ impl SwiftReactorInstance {
             state,
             lifecycle,
         } = self;
+        // The private constructor supplies RuntimeControl. No admitted route
+        // can manufacture a replacement if that unique authority is absent.
         let control = control.as_mut().expect("constructed control");
-        let cache = cache.as_mut().expect("constructed cache");
-        let wasi = wasi.as_mut().expect("constructed WASI");
-        let state = state.as_mut().expect("constructed State");
+        let wasi = match wasi.as_mut() {
+            Some(wasi) => wasi,
+            None => return Err(control.fail(cursor,
+                Fault::new(SwiftRunFailureKind::Invariant,"swift_dispatch_wasi_missing"),None)),
+        };
+        let cache = match cache.as_mut() {
+            Some(cache) => cache,
+            None => return Err(control.fail(cursor,
+                Fault::new(SwiftRunFailureKind::Invariant,"swift_dispatch_cache_missing"),Some(wasi.usage()))),
+        };
+        let state = match state.as_mut() {
+            Some(state) => state,
+            None => return Err(control.fail(cursor,
+                Fault::new(SwiftRunFailureKind::Invariant,"swift_dispatch_state_missing"),Some(wasi.usage()))),
+        };
         original_owners(control, cache, wasi, state, cursor)?;
         let live = control.usage(Some(wasi.usage())).live;
         if matches!(lifecycle, Lifecycle::Terminal)
@@ -15480,3 +15494,5 @@ struct ActivePositions {
 }
 pub(in crate::experimental_swift_reactor::execution) const PERMANENT_BYTES:usize=size_of::<PermanentPositions>();
 pub(super) const ACTIVE_BYTES:usize=size_of::<ActivePositions>();
+
+#[cfg(test)] pub(super) use tests::{dispatch_old_refund,dispatch_growth_check};

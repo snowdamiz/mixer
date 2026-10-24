@@ -77,3 +77,39 @@ fn seed(p:&mut FrameOperationPhase<'_>){for at in[0,CHUNK-8,PAGE-8,584*PAGE-8]{p
 #[test]fn mg20_frozen_targeted_growth_semantics(){let _b=Bounds::new();use crate::experimental::{cache::{FunctionCache,CacheBudget},execution::{SpanInstance,ExecutionBudget},validate_spans,ValidationBudget};for(delta,encoded,answer,pages)in[(0,0,1,1),(1,1,1,2),(2,2,1,3),(3,3,-1,1),(-1,0x7f,-1,1)]{let body=[0,0x41,encoded,0x40,0,0x0b];let mut bytes=b"\0asm\x01\0\0\0".to_vec();bytes.extend_from_slice(&[1,5,1,0x60,0,1,0x7f,3,2,1,0,5,4,1,1,1,3,7,7,1,3,b'r',b'u',b'n',0,0,10,8,1,6]);bytes.extend_from_slice(&body);let limits=crate::Limits{profile:crate::Profile::TableMemoryV3,..crate::Limits::default()};let cancel=crate::Cancellation::default();let spans=validate_spans(&bytes,limits,ValidationBudget::default(),&cancel).unwrap();let cache=FunctionCache::new(spans,CacheBudget::default(),&cancel).unwrap();let mut frozen=SpanInstance::new(cache,ExecutionBudget::default(),cancel).unwrap();assert_eq!(frozen.invoke("run",&[]).unwrap(),Some(Value::I32(answer)));assert_eq!(frozen.memory().len(),pages*PAGE);assert!(frozen.memory().iter().all(|byte|*byte==0));println!("MG_FROZEN delta={} answer={} pages={} work={} fuel={}",delta,answer,pages,frozen.usage().work_used,frozen.usage().fuel_used);}}
 
 #[test] fn cdr04_actual_pinned_growth_pop_attribution(){let _b=Bounds::new();fixture(|p,c,g|{push(p,1);p.phase.parts.frames[0].pc=1;let actual={let f=&p.phase.parts.frames[0];p.phase.parts.cache.view(&f.pin,p.phase.operation.control,Some(&*p.phase.operation.wasi)).unwrap().instructions[1]};hooks(Hooks{push_fault:5,..Hooks::default()});let mut s=frame_storage();growth_pinned_caller(p,c,g,&mut s).unwrap();let failure=s.entry.unwrap().unwrap_err();assert_eq!((failure.stage,failure.function,failure.offset,failure.resource),(SwiftRunStage::Invocation,Some(34),Some(actual.offset),Some(SwiftRunResource::Values)));assert_eq!((failure.attempted,failure.limit),(1,0));assert!(p.cleanup.live_unreconciled);assert_eq!(p.phase.parts.memory.len(),584*PAGE);assert!(g.vacant());});}
+
+// CALL_DISPATCH_FIXTURE_HELPERS_BEGIN
+// Called only before/after the admitted loop. Existing runtime hook bodies and
+// TLS owners above are unchanged. RAII restores hook state even on test unwind.
+pub(in super::super) struct DispatchOldRefund<'s> {
+    foreign: &'s mut SwiftReactorInstance,
+    growth: &'s mut SwiftGrowthStorage,
+}
+pub(in super::super) fn dispatch_old_refund<'s>(foreign: &'s mut SwiftReactorInstance, growth: &'s mut SwiftGrowthStorage) -> DispatchOldRefund<'s> {
+    assert!(!SWAP_OLD.with(Cell::get));
+    assert!(FOREIGN_OLD.with(|x| x.borrow().is_none()));
+    assert!(ACTUAL_OLD.with(|x| x.borrow().is_none()));
+    let ticket=foreign.state.as_mut().unwrap().buffers[3].take();
+    FOREIGN_OLD.with(|x| *x.borrow_mut()=ticket);
+    SWAP_OLD.with(|x|x.set(true));
+    DispatchOldRefund{foreign,growth}
+}
+impl DispatchOldRefund<'_> {
+    pub(in super::super) fn growth(&mut self) -> &mut SwiftGrowthStorage {self.growth}
+}
+impl Drop for DispatchOldRefund<'_> {
+    fn drop(&mut self) {
+        SWAP_OLD.with(|x|x.set(false));
+        let actual=ACTUAL_OLD.with(|x|x.borrow_mut().take());
+        let foreign=if actual.is_some() {std::mem::replace(&mut self.growth.transfer.old_ticket,actual)} else {FOREIGN_OLD.with(|x|x.borrow_mut().take())};
+        self.foreign.state.as_mut().unwrap().buffers[3]=foreign;
+    }
+}
+pub(in super::super) struct DispatchGrowthCheck {cancel:Option<usize>,expire:Option<usize>,checks:usize}
+pub(in super::super) fn dispatch_growth_check(at:usize,expire:bool) -> DispatchGrowthCheck {
+    let old=DispatchGrowthCheck{cancel:CHECK_CANCEL.with(Cell::get),expire:CHECK_EXPIRE.with(Cell::get),checks:CHECKS.with(Cell::get)};
+    CHECK_CANCEL.with(|x|x.set(if expire{None}else{Some(at)}));
+    CHECK_EXPIRE.with(|x|x.set(if expire{Some(at)}else{None}));CHECKS.with(|x|x.set(0));old
+}
+impl Drop for DispatchGrowthCheck {fn drop(&mut self){CHECK_CANCEL.with(|x|x.set(self.cancel));CHECK_EXPIRE.with(|x|x.set(self.expire));CHECKS.with(|x|x.set(self.checks));}}
+// CALL_DISPATCH_FIXTURE_HELPERS_END

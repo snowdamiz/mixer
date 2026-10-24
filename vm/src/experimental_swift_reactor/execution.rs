@@ -1,6 +1,6 @@
 //! Private bounded construction of an uninitialized Swift reactor owner.
 //! Private accounted zero-frame value operations are also implemented.
-//! No initialize, invoke, or interpreter loop is provided.
+//! A private original-owner dispatcher exists; initialization/public invoke remain absent.
 #![allow(dead_code)] // The constructor remains private, with no activation route.
 #![allow(clippy::result_large_err)]
 
@@ -691,7 +691,7 @@ const EXECUTION_HEADER_BYTES: Option<usize> = {
                                         match header.checked_add(value_operations::PERMANENT_BYTES)
                                         {
                                             Some(header) => match header.checked_add(frame_operations::PERMANENT_BYTES) {
-                                                Some(header) => match header.checked_add(frame_operations::control_operations::PERMANENT_BYTES) { Some(header) => match header.checked_add(frame_operations::memory_operations::PERMANENT_BYTES) { Some(header) => match header.checked_add(frame_operations::bulk_memory_operations::PERMANENT_BYTES) {Some(header)=>match header.checked_add(frame_operations::memory_growth_operations::PERMANENT_BYTES) {Some(header)=>header.checked_add(frame_operations::host_runtime_import::PERMANENT_BYTES),None=>None},None=>None}, None => None }, None => None }, None => None,
+                                                Some(header) => match header.checked_add(frame_operations::control_operations::PERMANENT_BYTES) { Some(header) => match header.checked_add(frame_operations::memory_operations::PERMANENT_BYTES) { Some(header) => match header.checked_add(frame_operations::bulk_memory_operations::PERMANENT_BYTES) {Some(header)=>match header.checked_add(frame_operations::memory_growth_operations::PERMANENT_BYTES) {Some(header)=>match header.checked_add(frame_operations::host_runtime_import::PERMANENT_BYTES) { Some(header)=>match frame_operations::CALLS_PERMANENT_BYTES {Some(calls)=>header.checked_add(calls),None=>None},None=>None },None=>None},None=>None}, None => None }, None => None }, None => None,
                                             },
                                             None => None,
                                         }

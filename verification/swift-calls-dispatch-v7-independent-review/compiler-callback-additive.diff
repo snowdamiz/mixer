@@ -1,0 +1,40 @@
+--- v5/layout_driver.rs
++++ v7/layout_driver.rs
+@@ -118,6 +118,20 @@
+   }
+   TYPE_LAYOUTS.with(|m|for(identity,actual)in m.borrow().iter(){writeln!(file,"{{\"kind\":\"type-layout\",\"identity\":{},\"layout\":{}}}",j(identity),actual).unwrap();});
+   TYPE_GRAPHS.with(|m|for(identity,actual)in m.borrow().iter(){writeln!(file,"{{\"kind\":\"type-graph\",\"identity\":{},\"graph\":{}}}",j(identity),actual).unwrap();});
++  // Additive diagnostic graph work occurs only after every original body, local,
++  // constant, declaration, layout and graph record has been emitted. This keeps
++  // compiler allocation-display numbering in the accepted primary query order.
++  for &id in tcx.mir_keys(()){
++   let path=tcx.def_path_str(id.to_def_id());let kind=tcx.def_kind(id);
++   let body=if matches!(kind,rustc_hir::def::DefKind::Fn|rustc_hir::def::DefKind::AssocFn|rustc_hir::def::DefKind::Closure){tcx.optimized_mir(id.to_def_id())}else{tcx.mir_for_ctfe(id.to_def_id())};
++   emit_scope_graph(tcx,id.to_def_id(),&path,None,body,&mut file);
++   for (index,promoted)in tcx.promoted_mir(id.to_def_id()).iter_enumerated(){emit_scope_graph(tcx,id.to_def_id(),&path,Some(index.as_usize()),promoted,&mut file);}
++   if ["experimental_swift_reactor::execution::frame_operations::tests::","experimental_swift_reactor::execution::frame_operations::memory_operations::tests::","experimental_swift_reactor::execution::frame_operations::bulk_memory_operations::tests::"].iter().any(|prefix|path.starts_with(prefix)){
++    let mut rendered=Vec::new();rustc_middle::mir::pretty::MirWriter::new(tcx).write_mir_fn(body,&mut rendered).expect("additional prior frame body MIR");
++    writeln!(file,"{{\"kind\":\"partition-body\",\"partition\":\"prior-selected-test-body-preserve-original-classification\",\"path\":{},\"defPathHash\":{},\"defKind\":{},\"span\":{},\"mir\":{}}}",j(&path),j(&format!("{:?}",tcx.def_path_hash(id.to_def_id()))),j(&format!("{kind:?}")),j(&format!("{:?}",tcx.def_span(id))),j(std::str::from_utf8(&rendered).unwrap())).unwrap();
++   }
++  }
++
+   Compilation::Continue
+  }
+ }
+@@ -143,3 +157,16 @@
+  Operands{tcx,env,path,promoted,file}.visit_body(body);
+ }
+ fn main(){let mut args=env::args().collect::<Vec<_>>();if args.get(1).is_some_and(|s|s.ends_with("rustc")){args.remove(1);}if let Some(root)=env::var_os("MIXER_LAYOUT_SYSROOT"){args.extend(["--sysroot".into(),root.to_str().unwrap().into()]);}rustc_driver::run_compiler(&args,&mut Query);}
++
++// This conservative function-item-use graph includes constants and function
++// pointers as well as direct calls. It supplies no layout/accounting exemption.
++fn emit_scope_graph<'tcx>(tcx:TyCtxt<'tcx>,id:rustc_hir::def_id::DefId,path:&str,promoted:Option<usize>,body:&mir::Body<'tcx>,file:&mut std::fs::File){
++ let mut rendered=Vec::new();rustc_middle::mir::pretty::MirWriter::new(tcx).write_mir_fn(body,&mut rendered).expect("whole source graph MIR header");
++ let text=std::str::from_utf8(&rendered).unwrap();
++ writeln!(file,"{{\"kind\":\"scope-graph-body\",\"promoted\":{},\"path\":{},\"defPathHash\":{},\"defKind\":{},\"span\":{},\"header\":{},\"mirSHA256DeferredToEmittedArchive\":true}}",promoted.map_or("null".into(),|n|n.to_string()),j(path),j(&format!("{:?}",tcx.def_path_hash(id))),j(&format!("{:?}",tcx.def_kind(id))),j(&format!("{:?}",tcx.def_span(id))),j(text.lines().next().expect("MIR header"))).unwrap();
++ struct Uses<'a,'tcx>{tcx:TyCtxt<'tcx>,path:&'a str,id:rustc_hir::def_id::DefId,promoted:Option<usize>,file:&'a mut std::fs::File}
++ impl<'tcx> Visitor<'tcx>for Uses<'_,'tcx>{fn visit_const_operand(&mut self,c:&mir::ConstOperand<'tcx>,at:mir::Location){
++  if let ty::FnDef(d,_) = c.const_.ty().kind(){writeln!(self.file,"{{\"kind\":\"scope-graph-function-item-use\",\"promoted\":{},\"path\":{},\"bodyDefPathHash\":{},\"location\":{},\"span\":{},\"actualType\":{},\"calleePath\":{},\"calleeDefPathHash\":{}}}",self.promoted.map_or("null".into(),|n|n.to_string()),j(self.path),j(&format!("{:?}",self.tcx.def_path_hash(self.id))),j(&format!("{at:?}")),j(&format!("{:?}",c.span)),j(&format!("{:?}",c.const_.ty())),j(&self.tcx.def_path_str(*d)),j(&format!("{:?}",self.tcx.def_path_hash(*d)))).unwrap();}
++ }}
++ Uses{tcx,path,id,promoted,file}.visit_body(body);
++}

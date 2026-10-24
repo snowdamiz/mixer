@@ -1,0 +1,20 @@
+--- original/review.py
++++ v7-copy/review.py
+@@ -3,7 +3,7 @@
+ from pathlib import Path
+ import argparse, collections, copy, datetime, gzip, hashlib, json, re, sys, tarfile
+ BASE=Path(__file__).resolve().parents[2]
+-PACKET=BASE/'verification/swift-calls-dispatch'
++PACKET=BASE/'verification/swift-calls-dispatch/v7-fixture-expectations'
+ ROLES={'source','argument','returned','caller'}
+ DEFINITION_CACHE={}
+ SOURCE_HASH_CACHE={}
+@@ -75,7 +75,7 @@
+  require(sha(raw)==pointer['sha256'],'compiler query hash')
+  rs=[json.loads(s)for s in raw.splitlines()]
+  require(len(rs)==pointer['records']and len(raw)==pointer['bytes'],'query extent mismatch')
+- result={k:[]for k in ['context','body','local','constant-operand','FnDef','partition-body','declaration','generic-declaration','type-graph','type-layout']}
++ result={k:[]for k in ['context','body','local','constant-operand','FnDef','partition-body','declaration','generic-declaration','type-graph','type-layout','scope-graph-body','scope-graph-function-item-use']}
+  for r in rs:
+   require(r['kind']in result,'unknown compiler record kind '+r['kind']);result[r['kind']].append(r)
+  require(len(result['context'])==1,'missing compiler target context')

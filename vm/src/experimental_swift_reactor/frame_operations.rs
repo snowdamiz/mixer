@@ -1,5 +1,5 @@
 //! Private original-owner function entry, return and terminal pin retirement.
-//! No instruction dispatcher, public invocation or initialized lifecycle exists.
+//! The private dispatcher is a child; no public invocation or initialized lifecycle exists.
 #![allow(dead_code, clippy::result_large_err)]
 // The reservation map spells complete concrete transfer types deliberately.
 #![allow(clippy::type_complexity)]
@@ -467,7 +467,9 @@ impl FrameOperationPhase<'_> {
         if base < operands {
             return Err(self.invariant("swift_frame_parameter_boundary"));
         }
+        call_dispatch::check(self)?;
         for index in 0..params {
+            if index != 0 && index % 64 == 0 { call_dispatch::check(self)?; }
             let ty = self
                 .phase
                 .parts
@@ -483,9 +485,11 @@ impl FrameOperationPhase<'_> {
                     .get(base + index)
                     .map(|value| value.ty())
             {
+                call_dispatch::check(self)?;
                 return Err(self.invariant("swift_frame_parameter_type"));
             }
         }
+        call_dispatch::check(self)?;
         let PinAttempt {
             pin,
             failure,
@@ -27504,7 +27508,7 @@ pub(super) const ACTIVE_BYTES: usize =
 pub(super) const FRAME_OPERATION_BYTES: Option<usize> =
     match value_operations::VALUE_OPERATION_BYTES {
         Some(nested) => match ACTIVE_BYTES.checked_add(nested) {
-            Some(bytes) => match bytes.checked_add(control_operations::ACTIVE_BYTES) { Some(bytes) => match bytes.checked_add(memory_operations::ACTIVE_BYTES) { Some(bytes) => match bytes.checked_add(bulk_memory_operations::ACTIVE_BYTES) {Some(bytes)=>match bytes.checked_add(memory_growth_operations::ACTIVE_BYTES) {Some(bytes)=>bytes.checked_add(host_runtime_import::ACTIVE_BYTES),None=>None},None=>None}, None => None }, None => None },
+            Some(bytes) => match bytes.checked_add(control_operations::ACTIVE_BYTES) { Some(bytes) => match bytes.checked_add(memory_operations::ACTIVE_BYTES) { Some(bytes) => match bytes.checked_add(bulk_memory_operations::ACTIVE_BYTES) {Some(bytes)=>match bytes.checked_add(memory_growth_operations::ACTIVE_BYTES) {Some(bytes)=>match bytes.checked_add(host_runtime_import::ACTIVE_BYTES) {Some(bytes)=>match call_dispatch::ACTIVE_BYTES {Some(calls)=>bytes.checked_add(calls),None=>None},None=>None},None=>None},None=>None}, None => None }, None => None },
             None => None,
         },
         None => None,
@@ -27575,11 +27579,15 @@ impl FrameOperationPhase<'_> {
                 return Err(self.invariant("swift_host_frame_floor"));
             }
         }
+        call_dispatch::check(self)?;
         for index in 0..params {
+            if index != 0 && index % 64 == 0 { call_dispatch::check(self)?; }
             if self.phase.parts.values[base + index].ty() != descriptor.parameters()[index] {
+                call_dispatch::check(self)?;
                 return Err(self.invariant("swift_host_parameter_type"));
             }
         }
+        call_dispatch::check(self)?;
         self.work(1)?;
         // The actual values and memory owners are disjoint. There is no cache
         // operation phase or borrowed cache/signature view at this boundary.
@@ -43690,3 +43698,8 @@ pub(in crate::experimental_swift_reactor) struct DiagnosticPermanentPositions {
     retained_cursor_returned: Cursor,
     retained_cursor_caller: Cursor,
 }
+
+#[path="call_dispatch.rs"]
+mod call_dispatch;
+
+pub(super) const CALLS_PERMANENT_BYTES:Option<usize>=call_dispatch::PERMANENT_BYTES;
