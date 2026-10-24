@@ -131,8 +131,12 @@ bindings, 127 SDK tests per Debug/Release and 133 independent cases per build.
 The independent oracle detects all six deliberate semantic faults, including lost
 disabled inheritance, profile collapse and alpha loss. See
 `verification/ui-appearance-resolution-v2-root-review/acceptance.json`.
-Android V2 resolution is under verification; the first native drawing primitives
-are underway. Full native consumers, resource/bootstrap support, signed V2
+Android V2 resolution is under independent review. Closed native drawing
+primitives now have root acceptance with 195 bindings: actual macOS CoreGraphics
+checks, 131 SDK tests per Debug/Release, iOS17 compilation and 5,610 Android
+API37 emulator checks across 45 paths. See
+`verification/native-appearance-paths-v2-root-review/acceptance.json`.
+Full native consumers, resource/bootstrap support, signed V2
 installation, interaction and physical design parity remain pending.
 Hosted `df97e3f` and `82d520c` pass all three configured jobs; the latter also has
 an isolated Java-to-DEX compile receipt in
@@ -209,7 +213,9 @@ HTTP native-exit fixture timeout. The scoped repair now has 875 root bindings:
 explicit locked session publication, real native-request preconditions and an
 explicit construction-permit lifetime in the test. All 48 existing bridge tests
 plus three independent controlled schedules pass per Debug/Release/TSan.
-Pinned Swift 6.2.4 hosted replay remains pending. Exact hosted timeout cause is
+Hosted `b6a7972` now passes all three jobs, including all 48 bridge tests per
+Debug/Release/TSan under pinned Swift 6.2.4, with no TSan warning; see
+`verification/github-ci-b6a7972/receipt.json`. Exact historical timeout cause is
 unproved; demonstrated expiry and optimized lifetime hazards remain separately
 scoped. See `verification/github-ci-26943ac/receipt.json` and
 `verification/bridge-publication-root-review/acceptance.json`.

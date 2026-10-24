@@ -58,8 +58,10 @@ and an HTTP native-exit test timeout are retained. The repair now passes all 48
 existing tests plus three independent controlled schedules per Debug/Release/TSan,
 with 875 root bindings. Explicit locked publication and an observed-request test
 precondition preserve native exit; a lifetime pin keeps the reserved constructions
-alive. Pinned Swift 6.2.4 replay remains pending; the exact hosted timeout route
-is unproved. See `verification/github-ci-26943ac/receipt.json` and
+alive. Hosted `b6a7972` now passes all three jobs, including all 48 bridge tests
+per Debug/Release/TSan under pinned Swift 6.2.4, with no TSan warning. See
+`verification/github-ci-b6a7972/receipt.json`. The exact historical timeout route
+remains unproved. See `verification/github-ci-26943ac/receipt.json` and
 `verification/bridge-publication-root-review/acceptance.json`. The earlier
 `c687e69` run failed TSan `fault-leave` with an observation deadline; a test-only
 precondition repair now has scoped root acceptance with 1,157 exact bindings,
@@ -109,9 +111,12 @@ Observed implementation and evidence:
   deliberate semantic faults detected. All ten kinds preserve identities and
   exact profile, group and state data. See
   `verification/ui-appearance-resolution-v2-root-review/acceptance.json`.
-  Android V2 resolution is under verification. Native drawing primitives are
-  underway; renderer consumption, native resources/support and signed V2 remain
-  pending.
+  Android V2 resolution is under independent review. Closed native curve
+  adapters now have root acceptance with 195 bindings: 131 full SDK tests per
+  Debug/Release and iOS17 compilation; 5,610 actual Android API37 emulator checks
+  across 45 native paths. See
+  `verification/native-appearance-paths-v2-root-review/acceptance.json`.
+  Renderer consumption, native resources/support and signed V2 remain pending.
 
 - Java shared appearance resolution now has independent and root acceptance as
   immutable data. Root checks 183 bindings across both corpora and all four
