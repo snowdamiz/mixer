@@ -1,0 +1,59 @@
+{
+  "schema": "mixer.apple-toggle.keyboard-v2-root-selection.1",
+  "observedUTC": "2026-10-24T19:16:11.967905+00:00",
+  "accountableReviewer": "/root",
+  "status": "selected-private-simulator-keyboard-replay",
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "-B",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "verification/apple-toggle-keyboard-focus-v2",
+    "-p",
+    "test_*.py",
+    "-v"
+  ],
+  "exitCode": 0,
+  "testsRun": 29,
+  "tool": {
+    "path": "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+    "version": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "sha256": "e401ac7a95cda75dee34a0cfe1e4faf0a6df1a501cf67887f177fb78cd4eb60a"
+  },
+  "revisionContext": "9a9c0e000234b07a92c4484979d3587f7f24df48",
+  "producerSealSHA256": "23a3aa081d186e7598e1dabbc23ba57c47606dbd842c561ef29d0ed9859b4e2a",
+  "bindings": {
+    "verification/apple-toggle-keyboard-focus-v2/packet-seal.json": "23a3aa081d186e7598e1dabbc23ba57c47606dbd842c561ef29d0ed9859b4e2a",
+    "verification/apple-toggle-keyboard-focus-v2/keyboard_oracle.py": "feefd59c5796966f68fd9b342f9eae396779cccea4ee74031f6623f203318582",
+    "verification/apple-toggle-keyboard-focus-v2/run.py": "25f9fd9cb8163bd2c7116e951f8d7f58abc56895cf7b469629a3cdfdd7e51ae1",
+    "verification/apple-toggle-keyboard-focus-v2-root-review/preflight.json": "6cd6dc047c27536d608ed7b19751545a967a151084bd35473918f53bcb6cd874",
+    "verification/apple-toggle-keyboard-focus-v2-root-review/host.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/apple-toggle-keyboard-focus-v2-root-review/host.stderr": "5cac314f6c9982efb6dce6b78a953b827347c7911f121369cef20e718b91ae8c",
+    "verification/apple-toggle-keyboard-focus-root-review/v2-repair-selection.json": "d3f709973ba6ba9d2e7dd58d88d2046293c2e87de08d737331c65d8fe63d9e61"
+  },
+  "appAndRunnerUnchanged": true,
+  "reviewFindingsResolved": [
+    "Paired app focus and native AX focus required before/after, no platform-equivalence waiver.",
+    "Native authored labels match current app labels; all3IDs/labels stable within and between keyboard actions.",
+    "App focus changes require fresh captured didUpdateFocus event matching final state."
+  ],
+  "selectedRuntimeCommand": [
+    "python3",
+    "-B",
+    "verification/apple-toggle-keyboard-focus-v2/run.py",
+    "run",
+    "--scope",
+    "interaction",
+    "--reviewed-seal",
+    "23a3aa081d186e7598e1dabbc23ba57c47606dbd842c561ef29d0ed9859b4e2a"
+  ],
+  "instancePolicy": "One new owned disposable simulator; all-outcome cleanup and preserve unrelated devices/frontends.",
+  "scope": "Seven XCTest methods: public simulator Settings setup plus six dependent native keyboard cases. Setup failure leaves app cases skipped/unrun. Strict fixed-three-element acquisition only.",
+  "nativeRuntimeSelected": true,
+  "nativeRuntimeAccepted": false,
+  "physicalPhones": "disconnected-deferred",
+  "liveProductIntegrationSelected": false,
+  "gaAccepted": false
+}

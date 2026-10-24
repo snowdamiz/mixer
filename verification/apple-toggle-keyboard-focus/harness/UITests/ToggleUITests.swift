@@ -1,0 +1,189 @@
+import XCTest
+import Foundation
+import UIKit
+
+/// Only public XCTest input. The loopback bridge supplies observations, never input.
+@MainActor final class ToggleUITests: XCTestCase {
+    private var app: XCUIApplication?
+    private let diagnostic = "dev.mixer.verification.authoredtoggle.diagnostics"
+    private static var settingsReady = false
+    private var caseName = ""
+
+    override func setUpWithError() throws { continueAfterFailure = true }
+    override func tearDownWithError() throws { app?.terminate(); app = nil }
+
+    private func bridge(_ op: String, _ fields: [String: Any] = [:]) throws -> [String: Any] {
+        let env = ProcessInfo.processInfo.environment
+        guard let endpoint = env["MIXER_BRIDGE_URL"], let capability = env["MIXER_BRIDGE_CAPABILITY"],
+              let url = URL(string: endpoint + "/" + op) else { throw Failure.invalidBridge }
+        var request = URLRequest(url: url, timeoutInterval: 12)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(capability, forHTTPHeaderField: "X-Mixer-Capability")
+        request.httpBody = try JSONSerialization.data(withJSONObject: fields, options: [.sortedKeys])
+        let done = DispatchSemaphore(value: 0)
+        let box = ResponseBox()
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            box.data = data; box.status = (response as? HTTPURLResponse)?.statusCode; box.error = error
+            done.signal()
+        }.resume()
+        guard done.wait(timeout: .now() + 13) == .success else { throw Failure.timeout }
+        if let error = box.error { throw error }
+        guard let data = box.data, data.count <= 2_000_000,
+              let result = try JSONSerialization.jsonObject(with: data) as? [String: Any] else { throw Failure.invalidResponse }
+        guard box.status == 200 else {
+            throw Failure.bridgeRejected(status: box.status, reason: result["error"] as? String ?? "Unavailable bridge reason; inspect durable bridge failure receipt")
+        }
+        return result
+    }
+    private enum Failure: Error { case invalidBridge, invalidResponse, timeout, geometry
+        case bridgeRejected(status: Int?, reason: String)
+        case settings(String), focus(String) }
+    private final class ResponseBox: @unchecked Sendable { var data: Data?; var status: Int?; var error: Error? }
+
+    private let ids = ["authored-toggle", "plain-uibutton-reference", "next-focus"]
+    private func jsonAttachment(_ name: String, _ value: [String: Any]) throws {
+        let data = try JSONSerialization.data(withJSONObject: value, options: [.sortedKeys, .prettyPrinted])
+        let attachment = XCTAttachment(data: data, uniformTypeIdentifier: "public.json")
+        attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
+    }
+    private func settingsObservation(_ settings: XCUIApplication, _ step: String, passed: Bool = false) throws {
+        let tree = settings.debugDescription
+        guard tree.utf8.count <= 200_000 else { throw Failure.settings("Settings observation exceeded fixed bound") }
+        try jsonAttachment("Public Settings " + step, ["schema": "mixer.apple-toggle.keyboard-settings.1", "step": step,
+            "uptime": ProcessInfo.processInfo.systemUptime, "bundle": "com.apple.Preferences", "passed": passed,
+            "route": ["Accessibility", "Keyboards & Typing", "Full Keyboard Access"],
+            "fullKeyboardAccessValue": settings.switches["Full Keyboard Access"].firstMatch.exists ? (settings.switches["Full Keyboard Access"].firstMatch.value as? String ?? "unavailable") : "absent", "tree": tree])
+        let picture = XCTAttachment(screenshot: settings.screenshot()); picture.name = "Public Settings " + step; picture.lifetime = .keepAlways; add(picture)
+    }
+    private func settingsRow(_ settings: XCUIApplication, _ label: String) throws -> XCUIElement {
+        for attempt in 0...5 {
+            try settingsObservation(settings, "find-" + label + "-" + String(attempt))
+            let row = settings.cells.containing(.staticText, identifier: label).firstMatch
+            if row.exists && row.isHittable { return row }
+            let text = settings.staticTexts[label].firstMatch
+            if text.exists && text.isHittable { return text }
+            if attempt < 5 { settings.swipeUp() }
+        }
+        throw Failure.settings("Required public Settings row absent: " + label)
+    }
+    func test000PublicSettingsFullKeyboardAccess() throws {
+        Self.settingsReady = false
+        let settings = XCUIApplication(bundleIdentifier: "com.apple.Preferences")
+        settings.launch()
+        defer { settings.terminate() }
+        do {
+            guard settings.wait(for: .runningForeground, timeout: 5) else { throw Failure.settings("Settings did not foreground") }
+            for label in ["Accessibility", "Keyboards & Typing", "Full Keyboard Access"] {
+                let row = try settingsRow(settings, label); row.tap()
+                try settingsObservation(settings, "opened-" + label)
+            }
+            let control = settings.switches["Full Keyboard Access"].firstMatch
+            guard control.waitForExistence(timeout: 3), control.isHittable,
+                  let initial = control.value as? String, ["0", "1"].contains(initial) else { throw Failure.settings("Public Full Keyboard Access switch unavailable") }
+            try settingsObservation(settings, "before-switch")
+            if initial == "0" { control.tap() }
+            let end = ProcessInfo.processInfo.systemUptime + 3
+            while ProcessInfo.processInfo.systemUptime < end && (control.value as? String) != "1" { RunLoop.current.run(until: Date(timeIntervalSinceNow: 0.05)) }
+            guard (control.value as? String) == "1" else { throw Failure.settings("Full Keyboard Access did not enable through public UI") }
+            try settingsObservation(settings, "setup-enabled", passed: true)
+            Self.settingsReady = true
+        } catch {
+            try? settingsObservation(settings, "setup-failed")
+            throw error
+        }
+    }
+    private func launchCase(_ name: String, initial: Bool) throws -> XCUIApplication {
+        guard Self.settingsReady else { throw XCTSkip("Public Settings setup did not pass; dependent application input remains unrun") }
+        caseName = name
+        let target = XCUIApplication(bundleIdentifier: diagnostic); target.terminate()
+        _ = try bridge("begin", ["candidate": "diagnostic", "case": name])
+        target.launch(); guard target.wait(for: .runningForeground, timeout: 5) else { throw Failure.timeout }
+        app = target; _ = try bridge("ready")
+        for command in ["resume", "reset"] + (initial ? ["set-on"] : []) { _ = try bridge("command", ["command": command]) }
+        return target
+    }
+    private func rectangle(_ f: CGRect) -> [String: Double] { ["x": f.minX, "y": f.minY, "width": f.width, "height": f.height] }
+    private func ax() throws -> [String: Any] {
+        guard let app else { throw Failure.invalidResponse }
+        var rows: [String: Any] = [:]
+        for id in ids {
+            let element = app.descendants(matching: .any)[id].firstMatch
+            guard element.waitForExistence(timeout: 2) else { throw Failure.focus("Fixed native element absent: " + id) }
+            rows[id] = ["identifier": element.identifier, "exists": element.exists, "hittable": element.isHittable,
+                        "enabled": element.isEnabled, "selected": element.isSelected, "hasFocus": element.hasFocus,
+                        "label": element.label, "frame": rectangle(element.frame)]
+        }
+        return ["uptime": ProcessInfo.processInfo.systemUptime, "appForeground": app.state == .runningForeground, "elements": rows]
+    }
+    private func focus(_ snapshot: [String: Any]) throws -> String? {
+        guard let rows = snapshot["elements"] as? [String: [String: Any]] else { throw Failure.invalidResponse }
+        let names = ids.filter { rows[$0]?["hasFocus"] as? Bool == true }
+        guard names.count <= 1 else { throw Failure.focus("Multiple native elements report focus") }
+        return names.first
+    }
+    @discardableResult private func key(_ phase: String, _ value: String, expectedFocus: String? = nil, expectedSelection: Bool? = nil) throws -> [String: Any] {
+        guard let app else { throw Failure.invalidResponse }
+        let toggle = app.descendants(matching: .any)["authored-toggle"].firstMatch
+        let baseline = try bridge("baseline", ["action": "native-keyboard", "geometry": ["app": rectangle(app.frame), "target": rectangle(toggle.frame)]])
+        let before = try ax()
+        try jsonAttachment("Before public key " + phase, ["case": caseName, "phase": phase, "key": value, "generation": baseline["generation"]!, "actionIndex": baseline["actionIndex"]!, "before": before])
+        let start = ProcessInfo.processInfo.systemUptime
+        if value == "shift-tab" { app.typeKey(XCUIKeyboardKey.tab, modifierFlags: [.shift]) }
+        else { app.typeKey(value == "space" ? XCUIKeyboardKey.space : XCUIKeyboardKey.tab, modifierFlags: []) }
+        let finished = ProcessInfo.processInfo.systemUptime
+        var after = try ax(); let end = ProcessInfo.processInfo.systemUptime + 1
+        while ProcessInfo.processInfo.systemUptime < end {
+            let matchesFocus = try expectedFocus == nil || focus(after) == expectedFocus
+            let matchesSelection = expectedSelection == nil || toggle.isSelected == expectedSelection
+            if matchesFocus && matchesSelection { break }
+            RunLoop.current.run(until: Date(timeIntervalSinceNow: 0.05)); after = try ax()
+        }
+        let witness: [String: Any] = ["case": caseName, "generation": baseline["generation"]!, "actionIndex": baseline["actionIndex"]!,
+            "phase": phase, "key": value, "publicAPI": "XCUIElement.typeKey(_:modifierFlags:)", "returned": true,
+            "before": before, "startedUptime": start, "finishedUptime": finished, "after": after]
+        try jsonAttachment("Public keyboard " + phase, witness)
+        let result = try bridge("evaluate", ["keyboardWitness": witness])
+        try jsonAttachment("Strict keyboard verdict " + phase, result)
+        guard result["passed"] as? Bool == true else { XCTFail("Strict native keyboard evidence failed: \(result)"); throw Failure.focus("Strict keyboard verdict failed") }
+        return after
+    }
+    private func acquire() throws {
+        for _ in 0..<12 {
+            let after = try key("acquire", "tab")
+            if try focus(after) == "authored-toggle" { return }
+        }
+        throw Failure.focus("Native Tab never reached authored toggle within 12 steps")
+    }
+    private func enabled(_ initial: Bool) throws {
+        _ = try launchCase("keyboard-enabled-" + (initial ? "on" : "off"), initial: initial); try acquire()
+        try key("space-first", "space", expectedFocus: "authored-toggle", expectedSelection: !initial)
+        try key("space-reverse", "space", expectedFocus: "authored-toggle", expectedSelection: initial)
+        try key("tab-reference", "tab", expectedFocus: "plain-uibutton-reference")
+        try key("tab-next", "tab", expectedFocus: "next-focus")
+        try key("reverse-reference", "shift-tab", expectedFocus: "plain-uibutton-reference")
+        try key("reverse-toggle", "shift-tab", expectedFocus: "authored-toggle")
+    }
+    private func stale(_ initial: Bool) throws {
+        _ = try launchCase("keyboard-stale-" + (initial ? "on" : "off"), initial: initial); try acquire()
+        _ = try bridge("command", ["command": "stale"])
+        try key("stale-space", "space", expectedFocus: "authored-toggle", expectedSelection: initial)
+        _ = try bridge("command", ["command": "resume"])
+        try key("resumed-space", "space", expectedFocus: "authored-toggle", expectedSelection: !initial)
+    }
+    private func disabled(_ initial: Bool) throws {
+        _ = try launchCase("keyboard-disabled-" + (initial ? "on" : "off"), initial: initial); try acquire()
+        _ = try bridge("command", ["command": "disable"])
+        let immediatelyDisabled = try ax(); try jsonAttachment("Actual native focus immediately after disable", immediatelyDisabled)
+        if try focus(immediatelyDisabled) == "authored-toggle" { try key("disabled-held-space", "space", expectedSelection: initial) }
+        try key("disabled-navigation", "tab", expectedSelection: initial)
+        try key("disabled-space", "space", expectedSelection: initial)
+        try key("disabled-reverse", "shift-tab", expectedSelection: initial)
+    }
+    func test010EnabledFromOff() throws { try enabled(false) }
+    func test020EnabledFromOn() throws { try enabled(true) }
+    func test030StaleFromOff() throws { try stale(false) }
+    func test040StaleFromOn() throws { try stale(true) }
+    func test050DisabledFromOff() throws { try disabled(false) }
+    func test060DisabledFromOn() throws { try disabled(true) }
+}

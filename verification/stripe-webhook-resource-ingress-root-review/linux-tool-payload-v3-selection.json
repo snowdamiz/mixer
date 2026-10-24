@@ -1,0 +1,70 @@
+{
+  "schema": "mixer.private-linux-tool-payload-v3-selection.1",
+  "observedUTC": "2026-10-24T20:17:33.000936+00:00",
+  "accountableReviewer": "/root",
+  "preparationSealSHA256": "e72d9e750aceba69d22ec01d2e41d64897db60de37e48482aae944030fe53f9b",
+  "status": "selected-nonprivileged-local-tool-and-compile-prerequisite",
+  "image": "hexpm/elixir@sha256:52ec0f335b9084bcfc0ce3a29b4c0288dc2fc2a07658ff809dc7d07589212cde",
+  "platform": "linux/arm64",
+  "requiredContainerOptions": [
+    "--pull=never",
+    "--network=none",
+    "--read-only",
+    "--cap-drop=ALL",
+    "--security-opt=no-new-privileges",
+    "--user=65534:65534",
+    "--pids-limit=128",
+    "--memory=1g",
+    "--cpus=2",
+    "--ulimit=core=0:0",
+    "owned fixed identity name and labels; remove only matching container on all outcomes",
+    "bounded private tmpfs only; readonly bind only exact owned input snapshot; no Docker socket, credentials, project root, host HOME or writable host mount"
+  ],
+  "selectedOperations": [
+    "Verify exact local image identity before start",
+    "Record Linux executable versions/content identities for elixir/erl/ERTS, cc, linker and binary-inspection tools plus exact NIF/system headers and library dependency discovery",
+    "Nonprivileged compile exact V5 helper/NIF using unchanged compiler argv where tools exist; inspect ELF bytes without executing helper/NIF or loading it",
+    "Bound stdout/stderr/time; retain explicit missing-tool failures; no downloads/install/imagebuild or changed image fallback",
+    "Dispose exact owned container and temporary inputs, retaining commands/source/tool/artifact hash/output receipts"
+  ],
+  "limits": {
+    "containerAttempts": 1,
+    "wallSeconds": 120,
+    "stdoutBytes": 524288,
+    "stderrBytes": 524288,
+    "tmpfsBytes": 134217728
+  },
+  "notSelected": [
+    "Application or resource matrix execution",
+    "Helper execution or NIF loading",
+    "Namespaces/cgroups/delegation/core policy changes",
+    "Privileged containers",
+    "Release/rootfs construction",
+    "External network/provider/publication",
+    "Catalog inspector or authority driver lane",
+    "Native/physical devices"
+  ],
+  "runtimeResourceAuthorized": false,
+  "sourceHostReviewScope": "Root selection relies on bound source contract and read-only image/input preparation; tool availability not yet verified.",
+  "gaAccepted": false,
+  "previousSelectionSHA256": "ac0d22b65171950bb448ae2b777243c1c2908165b654aa8a4a4d390d1bac9caf",
+  "requiredPlatformDescriptorDigest": "sha256:c2d3bab1f8a854f5ca3bb220e5463f4fe39036caa2ce22dfd7614a30404279de",
+  "localImageAddressReview": {
+    "path": "verification/stripe-webhook-resource-ingress-root-review/linux-image-address-review/receipt.json",
+    "sha256": "ea450083989d8f0ecc6780fee7e13c56dea73aa9f7a6c4737664903f58752655"
+  },
+  "reason": "Bind the actual Docker container representation: image retains parent index and ImageManifestDescriptor binds the selected linux/arm64 child. Same image bytes and isolation. Preserve previous pre-start failure.",
+  "ownership": [
+    "verification/stripe-resource-linux-tool-payload-v3/**",
+    "docs/stripe-resource-linux-tool-payload-v3.md"
+  ],
+  "additionalChecks": [
+    "Before create require image inspect Descriptor.digest and Id equal pinned child with exact linux/arm64.",
+    "Before start require Config.Image equal exact parent repository reference, Image equal parent sha256, ImageManifestDescriptor.digest equal pinned child with linux/arm64 platform, and Platform linux. Missing or changed fields fail closed.",
+    "Check exact same container identity and complete isolation policy before start. One bounded probe, all unchanged limits and forbidden operations apply."
+  ],
+  "previousAttemptObservation": {
+    "path": "verification/stripe-resource-linux-tool-payload-v2/attempt-1/04-policy-before.stdout",
+    "sha256": "e358c97972b0d856578d4f206a90ed51bef0f4f8b71c24ae81a0f0f10dae3b25"
+  }
+}

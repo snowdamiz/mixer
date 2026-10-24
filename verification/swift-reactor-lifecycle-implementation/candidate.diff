@@ -1,0 +1,262 @@
+--- baseline/src/experimental_swift_reactor/lifecycle.rs
++++ candidate/src/experimental_swift_reactor/lifecycle.rs
+@@ -0,0 +1,129 @@
++//! Private fixed-target lifecycle over the one original reactor owner.
++//! Isolated uncalled candidate: new positions are not yet reservation-authorized.
++use super::*;
++
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++pub(super) enum Request {
++    Initialize,
++    Corpus,
++}
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++pub(super) enum Rejection {
++    AlreadyInitialized,
++    NotInitialized,
++}
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++pub(super) enum Reply {
++    Initialized,
++    Corpus(i32),
++}
++#[must_use = "Failed completion retains the actual original cleanup authority"]
++pub(super) enum Completion<'a> {
++    Rejected(Rejection),
++    BlockedTerminal,
++    PreparationFailed(SwiftRunFailure),
++    Completed(Reply),
++    Failed {
++        failure: Option<SwiftRunFailure>,
++        cleanup: GrowthCompletion<'a>,
++    },
++}
++
++#[derive(Clone, Copy)]
++enum Admission {
++    Allowed,
++    Rejected(Rejection),
++    BlockedTerminal,
++}
++// Ordinary refusals read only lifecycle. No control observation or allocation.
++fn precondition(owner: &SwiftReactorInstance, request: Request) -> Admission {
++    match (&owner.lifecycle, request) {
++        (Lifecycle::Uninitialized, Request::Initialize) | (Lifecycle::Ready, Request::Corpus) => Admission::Allowed,
++        (Lifecycle::Ready, Request::Initialize) => Admission::Rejected(Rejection::AlreadyInitialized),
++        (Lifecycle::Uninitialized, Request::Corpus) => Admission::Rejected(Rejection::NotInitialized),
++        (Lifecycle::Terminal, _) => Admission::BlockedTerminal,
++    }
++}
++
++pub(super) fn request<'a>(owner: &'a mut SwiftReactorInstance, request: Request) -> Completion<'a> {
++    match precondition(owner, request) {
++        Admission::Allowed => (),
++        Admission::Rejected(rejection) => return Completion::Rejected(rejection),
++        Admission::BlockedTerminal => return Completion::BlockedTerminal,
++    }
++    let (function, stage) = match request {
++        Request::Initialize => (35, SwiftRunStage::Initialization),
++        Request::Corpus => (62, SwiftRunStage::Invocation),
++    };
++    let cursor = Cursor { stage, function: Some(function), offset: None };
++    let mut preparation = Some(owner.prepare_growth_with_goal(cursor, PreparationGoal::Terminalize));
++    let (mut phase, mut context) = match preparation.take().expect("actual preparation result") {
++        Ok(prepared) => prepared,
++        Err(failure) => {
++            // The selected preparation seam has already terminalized the same
++            // original lifecycle before constructing any admitted phase borrow.
++            return Completion::PreparationFailed(failure);
++        }
++    };
++    let mut pending = SwiftGrowthStorage::empty();
++    let mut storage = FrameOperationStorage {
++        preparation: None,
++        entry: None,
++        returned: None,
++        drained: None,
++        controlled: None,
++    };
++    let entered = phase.enter(function);
++    let execution = match entered {
++        Ok(()) => call_dispatch::run(&mut phase, &mut context, &mut pending, &mut storage),
++        Err(failure) => Err(failure),
++    };
++    let mut outcome = match execution {
++        Err(failure) => Err(failure),
++        Ok(()) => match (request, storage.returned) {
++            (_, Some(Err(failure))) => Err(failure),
++            (Request::Initialize, Some(Ok(FrameReturn::Outermost(None)))) => Ok(Reply::Initialized),
++            (Request::Corpus, Some(Ok(FrameReturn::Outermost(Some(Value::I32(value)))))) => Ok(Reply::Corpus(value)),
++            _ => Err(phase.invariant("swift_lifecycle_result_shape")),
++        },
++    };
++    if outcome.is_ok() {
++        if matches!(phase.lifecycle, Lifecycle::Terminal) {
++            outcome = Err(phase.invariant("swift_lifecycle_terminal_outcome"));
++        } else {
++            // Actual final observation while the original admitted phase exists.
++            // This fixed cursor restores the request's lifecycle stage/target.
++            outcome = match phase.phase.operation.control.check_with_wasi(
++                cursor, Some(phase.phase.operation.wasi.usage()),
++            ) {
++                Ok(()) => outcome,
++                Err(failure) => Err(failure),
++            };
++        }
++    }
++    if outcome.is_err() {
++        phase.terminal();
++    }
++    let released = release_growth_pending(&mut phase, &mut context, &mut pending);
++    if let Err(failure) = released {
++        if outcome.is_ok() {
++            outcome = Err(failure);
++        }
++        phase.terminal();
++    }
++    if outcome.is_err() {
++        storage.drained = Some(phase.drain());
++    }
++    let goal = match request {
++        Request::Initialize => CompletionGoal::Initialize,
++        Request::Corpus => CompletionGoal::Preserve,
++    };
++    // The i32 remains local through the consuming barrier and cannot escape on
++    // a retained/restore-rejected branch. No whole-owner access follows prepare.
++    let completed = complete_growth_with_goal(phase, context, pending, storage, preparation, goal);
++    match (outcome, completed) {
++        (Ok(reply), GrowthCompletion::Completed(FrameCompletion::Completed)) => Completion::Completed(reply),
++        (Err(failure), cleanup) => Completion::Failed { failure: Some(failure), cleanup },
++        (Ok(_), cleanup) => Completion::Failed { failure: None, cleanup },
++    }
++}
+--- baseline/src/experimental_swift_reactor/memory_growth_operations.rs
++++ candidate/src/experimental_swift_reactor/memory_growth_operations.rs
+@@ -206,15 +206,44 @@
+         preparation:Option<Result<(FrameOperationPhase<'a>,SwiftGrowthContext<'a>),SwiftRunFailure>>,
+     },
+ }
+-pub(crate) fn complete_growth<'a>(mut phase:FrameOperationPhase<'a>,context:SwiftGrowthContext<'a>,growth:SwiftGrowthStorage,storage:FrameOperationStorage<'a>,preparation:Option<Result<(FrameOperationPhase<'a>,SwiftGrowthContext<'a>),SwiftRunFailure>>) -> GrowthCompletion<'a> {
++#[path = "lifecycle.rs"]
++pub(super) mod lifecycle;
++
++// Closed publication goal; ordinary callers retain Preserve semantics.
++enum CompletionGoal {
++    Preserve,
++    Initialize,
++}
++#[derive(Clone, Copy)]
++enum PreparationGoal {
++    Preserve,
++    Terminalize,
++}
++pub(crate) fn complete_growth<'a>(phase:FrameOperationPhase<'a>,context:SwiftGrowthContext<'a>,growth:SwiftGrowthStorage,storage:FrameOperationStorage<'a>,preparation:Option<Result<(FrameOperationPhase<'a>,SwiftGrowthContext<'a>),SwiftRunFailure>>) -> GrowthCompletion<'a> {
++    complete_growth_with_goal(phase,context,growth,storage,preparation,CompletionGoal::Preserve)
++}
++fn complete_growth_with_goal<'a>(mut phase:FrameOperationPhase<'a>,context:SwiftGrowthContext<'a>,growth:SwiftGrowthStorage,storage:FrameOperationStorage<'a>,preparation:Option<Result<(FrameOperationPhase<'a>,SwiftGrowthContext<'a>),SwiftRunFailure>>,goal:CompletionGoal) -> GrowthCompletion<'a> {
+     if !growth.vacant() || preparation.is_some() {
+         phase.terminal();
+         return GrowthCompletion::Retained{phase,context,growth,storage,preparation};
+     }
++    let initialize = matches!(goal,CompletionGoal::Initialize)
++        && matches!(phase.lifecycle,Lifecycle::Uninitialized)
++        && matches!(storage.returned,Some(Ok(FrameReturn::Outermost(None))))
++        && storage.entry.is_none() && storage.controlled.is_none() && storage.drained.is_none();
+     // Explicitly destroy every growth/preparation wrapper while the original
+     // frame envelope still covers it; then use original fixed completion.
+     drop((context,growth,preparation));
+-    GrowthCompletion::Completed(phase.complete(storage))
++    let FrameOperationPhase { phase, cleanup, lifecycle } = phase;
++    let completed = FrameOperationPhase {
++        phase,
++        cleanup,
++        lifecycle: &mut *lifecycle,
++    }.complete(storage);
++    if initialize && matches!(completed,FrameCompletion::Completed) {
++        *lifecycle = Lifecycle::Ready;
++    }
++    GrowthCompletion::Completed(completed)
+ }
+ 
+ #[cfg(test)] #[path="memory_growth_operations_tests.rs"] mod tests;
+@@ -223,6 +252,13 @@
+         &mut self,
+         cursor: Cursor,
+     ) -> Result<(FrameOperationPhase<'_>, SwiftGrowthContext<'_>), SwiftRunFailure> {
++        self.prepare_growth_with_goal(cursor, PreparationGoal::Preserve)
++    }
++    fn prepare_growth_with_goal(
++        &mut self,
++        cursor: Cursor,
++        goal: PreparationGoal,
++    ) -> Result<(FrameOperationPhase<'_>, SwiftGrowthContext<'_>), SwiftRunFailure> {
+         let Self {
+             control,
+             cache,
+@@ -230,25 +266,39 @@
+             state,
+             lifecycle,
+         } = self;
++        // Rejection runs before constructing any phase borrow. Preserve callers
++        // retain the existing state; lifecycle callers terminalize this same
++        // original owner's already-split lifecycle without another control call.
++        macro_rules! rejected {
++            ($failure:expr) => {{
++                let failure = $failure;
++                if matches!(goal, PreparationGoal::Terminalize) {
++                    *lifecycle = Lifecycle::Terminal;
++                }
++                return Err(failure);
++            }};
++        }
+         // The private constructor supplies RuntimeControl. No admitted route
+         // can manufacture a replacement if that unique authority is absent.
+         let control = control.as_mut().expect("constructed control");
+         let wasi = match wasi.as_mut() {
+             Some(wasi) => wasi,
+-            None => return Err(control.fail(cursor,
++            None => rejected!(control.fail(cursor,
+                 Fault::new(SwiftRunFailureKind::Invariant,"swift_dispatch_wasi_missing"),None)),
+         };
+         let cache = match cache.as_mut() {
+             Some(cache) => cache,
+-            None => return Err(control.fail(cursor,
++            None => rejected!(control.fail(cursor,
+                 Fault::new(SwiftRunFailureKind::Invariant,"swift_dispatch_cache_missing"),Some(wasi.usage()))),
+         };
+         let state = match state.as_mut() {
+             Some(state) => state,
+-            None => return Err(control.fail(cursor,
++            None => rejected!(control.fail(cursor,
+                 Fault::new(SwiftRunFailureKind::Invariant,"swift_dispatch_state_missing"),Some(wasi.usage()))),
+         };
+-        original_owners(control, cache, wasi, state, cursor)?;
++        if let Err(failure) = original_owners(control, cache, wasi, state, cursor) {
++            rejected!(failure);
++        }
+         let live = control.usage(Some(wasi.usage())).live;
+         if matches!(lifecycle, Lifecycle::Terminal)
+             || !state.frame_cleanup.is_empty()
+@@ -261,7 +311,7 @@
+             || live.frames.current != 0
+             || live.active_pins.current != 0
+         {
+-            return Err(construction_failure(
++            rejected!(construction_failure(
+                 control,
+                 wasi,
+                 cursor,
+@@ -276,9 +326,11 @@
+             .current;
+         let admitted = match FRAME_OPERATION_BYTES.and_then(|bytes| previous.checked_add(bytes)) {
+             Some(admitted) => admitted,
+-            None => return Err(layout_failure(control, wasi, cursor)),
++            None => rejected!(layout_failure(control, wasi, cursor)),
+         };
+-        control.enlarge_construction_with_wasi(admitted, cursor, Some(wasi.usage()))?;
++        if let Err(failure) = control.enlarge_construction_with_wasi(admitted, cursor, Some(wasi.usage())) {
++            rejected!(failure);
++        }
+         // No fallible boundary exists after admission and before its State record.
+         state.frame_cleanup.bound = Some(FrameBound { previous, admitted });
+         state.frame_cleanup.disposition = FrameDisposition::Active;

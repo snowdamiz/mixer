@@ -6,6 +6,27 @@ export exceeded the builder's per-file source bound. The bounded repair passes
 corrected pushed-source CI is pending. See
 [the repair evidence](docs/capability-builder-source-bound-repair.md).
 
+The next private Swift lifecycle candidate compiles the full original-owner
+initialization/call/cleanup path in four production configurations. Its memory
+accounting and behavior tests are in progress; it has not executed or changed
+the live VM. See [the source checkpoint](docs/swift-lifecycle-source-checkpoint.md).
+
+The keyboard/focus preparation now retains a failed setup-only iOS 26.5 diagnostic.
+XCTest returned 65 with one failed method; the host rejected off-screen Settings
+geometry before the Full Keyboard Access observation window. Offline replay of
+22 durable records and two accessibility trees matches the runtime result. All
+six app keyboard cases remain unrun. Five cleanup operations pass, with the owned
+simulator deleted and unrelated instances preserved. See
+`verification/apple-toggle-keyboard-focus-v4-root-review/runtime-review.json`.
+
+The Linux resource artifact preparation is sealed. Two bounded prerequisite
+attempts exposed Docker image-address and container-descriptor mismatches before
+any container start. Their exact temporary resources were removed. Root selected
+the observed parent-index/child-descriptor representation for a separate probe.
+Compilation and all 30 resource runtime rows remain pending; no resource runtime
+authorization or GA acceptance is implied. See
+`verification/stripe-resource-linux-tool-payload-v2/receipt.json`.
+
 Latest native checkpoint: the private iOS pan-commit carrier passes 43 XCTest
 methods, 45 native input actions and 36 scoped callback components on iOS 26.5.
 Root replays 1,286 verdict predicates and 324 touch-origin checks. All five cleanup

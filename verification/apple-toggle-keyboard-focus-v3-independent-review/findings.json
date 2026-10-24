@@ -1,0 +1,50 @@
+{
+  "schema": "mixer.apple-toggle.keyboard-v3-independent-findings.1",
+  "status": "CHANGES_REQUIRED_DIAGNOSTIC_CONTRACT",
+  "preparationSealSHA256": "85534f657be3e1a0bda34fe830dc29636065eb602401b4386b3076c35a108c21",
+  "selectedNativeExecution": false,
+  "qualificationEscapedFalse": false,
+  "findings": [
+    {
+      "id": "V3-IR-01",
+      "priority": "P2",
+      "title": "Bind every enabled-window poll to the expected foreground switch",
+      "file": "verification/apple-toggle-keyboard-focus-v3-preparation/settings_telemetry.py",
+      "line": 201,
+      "relatedLines": [259, 260, 261],
+      "reproductionMethod": "test_CONTRACT_wrong_target_poll_cannot_supply_enabled_window",
+      "observed": "A correct after-switch0, an in-window String1 poll for another switch, and a correct terminal1 after the deadline produce settingsReportedEnabled=true and setupObservationSatisfied=true. Wrong element type and background/nonforeground state reproduce the same result.",
+      "cause": "enabled_samples validates raw value and time without expected switch identity/label/type/state. summary checks metadata on before/after/terminal only, so an invalid poll can supply the only timely enabled sample.",
+      "requiredChange": "Require expected Settings switch metadata and stable identity on every sample eligible to satisfy the window. Preserve contradictory observations as diagnostic evidence but exclude them from enabled-window success. Add adversarial controls for wrong identifier/label/type/foreground/state and late terminal1.",
+      "scopeLimit": "All release/carrier/native-qualification fields remain false. Synthetic host input proves a diagnostic witness-verification gap, not an observed native switch failure or release bypass."
+    },
+    {
+      "id": "V3-IR-02",
+      "priority": "P2",
+      "title": "Bind route-tap evidence to the selected public row",
+      "file": "verification/apple-toggle-keyboard-focus-v3-preparation/settings_telemetry.py",
+      "line": 179,
+      "relatedLines": [181, 182, 222, 259],
+      "reproductionMethod": "test_CONTRACT_wrong_route_search_cannot_satisfy_selected_route",
+      "observed": "All three route-search snapshots can report identifier and label Unselected public row. Fixed route indices and route-tap markers still progress and setupObservationSatisfied becomes true.",
+      "cause": "Route progression validates indices/attempts but never binds the tappable route-search observation to the selected row metadata. The summary validates only the three switch snapshots.",
+      "requiredChange": "Validate the successful route-search/tap witness against the selected public route contract before allowing selected-route success. Preserve failed or missing row observations diagnostically. Treat route-opened separately: the previous selector can legitimately disappear after navigation and must not be required to retain the old row label/identifier.",
+      "scopeLimit": "The frozen Swift caller selects the three intended labels. This finding concerns host witness verification and truthful route qualification, not evidence of an actual wrong native tap."
+    },
+    {
+      "id": "V3-IR-03",
+      "priority": "P2",
+      "title": "Enforce ordered host receipt times during replay",
+      "file": "verification/apple-toggle-keyboard-focus-v3-preparation/settings_telemetry.py",
+      "line": 132,
+      "relatedLines": [122, 123, 135],
+      "replayFile": "verification/apple-toggle-keyboard-focus-v3-preparation/replay.py",
+      "replayLine": 27,
+      "reproductionMethod": "test_CONTRACT_replay_rejects_regressing_host_receipt_time",
+      "observed": "A complete synthetic journal starts with receivedUptime100. After sequence1 receivedUptime is changed to99, replay returns a complete successful setup observation without rejection.",
+      "cause": "Session checks host is finite and before deadline, then only checks host-start<=29. It does not reject negative elapsed time or regressions against the previous accepted host receipt. replay feeds saved receivedUptime into this unchecked clock.",
+      "requiredChange": "Track the last accepted host receipt time transactionally and reject time earlier than setup start or the last accepted record. Preserve the existing absolute session/diagnostic limits; add complete-journal replay mutations for first and later regressions.",
+      "scopeLimit": "The real host uses time.monotonic; this finding demonstrates replay accepting contradictory persisted timing, not an observed reversal of the running host clock. It does not show a network-capability or release-authorization bypass."
+    }
+  ]
+}

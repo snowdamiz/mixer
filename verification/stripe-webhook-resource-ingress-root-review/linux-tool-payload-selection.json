@@ -1,0 +1,50 @@
+{
+  "schema": "mixer.private-linux-tool-payload-selection.1",
+  "observedUTC": "2026-10-24T20:05:33.283736+00:00",
+  "accountableReviewer": "/root",
+  "preparationSealSHA256": "e72d9e750aceba69d22ec01d2e41d64897db60de37e48482aae944030fe53f9b",
+  "status": "selected-nonprivileged-local-tool-and-compile-prerequisite",
+  "image": "hexpm/elixir@sha256:c2d3bab1f8a854f5ca3bb220e5463f4fe39036caa2ce22dfd7614a30404279de",
+  "platform": "linux/arm64",
+  "requiredContainerOptions": [
+    "--pull=never",
+    "--network=none",
+    "--read-only",
+    "--cap-drop=ALL",
+    "--security-opt=no-new-privileges",
+    "--user=65534:65534",
+    "--pids-limit=128",
+    "--memory=1g",
+    "--cpus=2",
+    "--ulimit=core=0:0",
+    "owned fixed identity name and labels; remove only matching container on all outcomes",
+    "bounded private tmpfs only; readonly bind only exact owned input snapshot; no Docker socket, credentials, project root, host HOME or writable host mount"
+  ],
+  "selectedOperations": [
+    "Verify exact local image identity before start",
+    "Record Linux executable versions/content identities for elixir/erl/ERTS, cc, linker and binary-inspection tools plus exact NIF/system headers and library dependency discovery",
+    "Nonprivileged compile exact V5 helper/NIF using unchanged compiler argv where tools exist; inspect ELF bytes without executing helper/NIF or loading it",
+    "Bound stdout/stderr/time; retain explicit missing-tool failures; no downloads/install/imagebuild or changed image fallback",
+    "Dispose exact owned container and temporary inputs, retaining commands/source/tool/artifact hash/output receipts"
+  ],
+  "limits": {
+    "containerAttempts": 1,
+    "wallSeconds": 120,
+    "stdoutBytes": 524288,
+    "stderrBytes": 524288,
+    "tmpfsBytes": 134217728
+  },
+  "notSelected": [
+    "Application or resource matrix execution",
+    "Helper execution or NIF loading",
+    "Namespaces/cgroups/delegation/core policy changes",
+    "Privileged containers",
+    "Release/rootfs construction",
+    "External network/provider/publication",
+    "Catalog inspector or authority driver lane",
+    "Native/physical devices"
+  ],
+  "runtimeResourceAuthorized": false,
+  "sourceHostReviewScope": "Root selection relies on bound source contract and read-only image/input preparation; tool availability not yet verified.",
+  "gaAccepted": false
+}

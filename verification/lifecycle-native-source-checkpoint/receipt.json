@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "observedUTC": "2026-10-24T20:18:46.871008+00:00",
+  "sourceRevisionContext": "2335207af993da913c7e6665eff551f05a7c9fd4",
+  "pythonVersion": "Python 3.14.8",
+  "accountableReviewer": "/root",
+  "status": "source-and-diagnostic-checkpoint",
+  "commands": [
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "scripts/check-policy.py"
+      ],
+      "exitCode": 0,
+      "scope": "manifest-and-gate-guardrail-only",
+      "stdout": "policy.stdout",
+      "stderr": "policy.stderr"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "verification/swift-reactor-lifecycle-implementation/verify.py",
+        "--live"
+      ],
+      "exitCode": 0,
+      "scope": "source/compiler-receipt replay only, no VM execution",
+      "stdout": "lifecycle.stdout",
+      "stderr": "lifecycle.stderr"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exitCode": 0,
+      "stdout": "diff-check.stdout",
+      "stderr": "diff-check.stderr"
+    }
+  ],
+  "seals": [
+    {
+      "path": "verification/apple-toggle-keyboard-focus/packet-seal.json",
+      "sha256": "da6c8a03853d8fa3b3a0361030d063d841efe510eff8a6e8bc81ff36dc7e5378",
+      "files": 81
+    },
+    {
+      "path": "verification/apple-toggle-keyboard-focus-v2/packet-seal.json",
+      "sha256": "23a3aa081d186e7598e1dabbc23ba57c47606dbd842c561ef29d0ed9859b4e2a",
+      "files": 70
+    },
+    {
+      "path": "verification/apple-toggle-keyboard-focus-v3-preparation/packet-seal.json",
+      "sha256": "85534f657be3e1a0bda34fe830dc29636065eb602401b4386b3076c35a108c21",
+      "files": 92
+    },
+    {
+      "path": "verification/apple-toggle-keyboard-focus-v3-independent-review/review-seal.json",
+      "sha256": "1bdd1261e466f241e63dfeec41c2d4d4baa0d6a4a1c93b39d0e34d7e3f6b0c39",
+      "files": 10
+    },
+    {
+      "path": "verification/apple-toggle-keyboard-focus-v4/packet-seal.json",
+      "sha256": "b2b5630c09f3fbe0e0567ff118e88e75ccb5277ea1e1637915c6b3066e9616e3",
+      "files": 76
+    },
+    {
+      "path": "verification/swift-reactor-lifecycle-contract/seal.json",
+      "sha256": "bee5dd7ee357a8d19458bbd925b4ddfbc74e0641bede0ab9ab7ee26e197ff8ff",
+      "files": 47
+    },
+    {
+      "path": "verification/swift-reactor-lifecycle-implementation/seal.json",
+      "sha256": "9ffa6cec71330bbad583340054add8dc0752ddaf85867deff71de09fe70ac72e",
+      "files": 172
+    },
+    {
+      "path": "verification/stripe-resource-linux-artifact-preparation/seal.json",
+      "sha256": "e72d9e750aceba69d22ec01d2e41d64897db60de37e48482aae944030fe53f9b",
+      "files": 22
+    },
+    {
+      "path": "verification/stripe-resource-linux-tool-payload/seal.json",
+      "sha256": "b63ac384fcfa6648321c4708d1b560dd2aa7d1001fc4306899a7b39d8289a340",
+      "files": 21
+    },
+    {
+      "path": "verification/stripe-resource-linux-tool-payload-v2/seal.json",
+      "sha256": "06e3a6e1306820f7fb9678687f33b4da9ed9e04915941b19bb375d55ffb14c58",
+      "files": 27
+    }
+  ],
+  "checks": {
+    "policyPassed": true,
+    "lifecycleCompilerEvidenceReplayed": true,
+    "keyboardV4Runtime": "failed setup-only diagnostic; six app cases unrun; all cleanup passed",
+    "linuxToolProbeV1": "failed before create",
+    "linuxToolProbeV2": "failed before start; owned resources removed"
+  },
+  "gaAccepted": false,
+  "physicalPhones": "disconnected-deferred",
+  "outputBindings": {
+    "diff-check.stdout": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "lifecycle.stdout": {
+      "sha256": "5e7314f3d5ca86e379769c78adcf23eef5c144b20897835b30debe4670d49651",
+      "bytes": 450
+    },
+    "policy.stdout": {
+      "sha256": "da0897072a8f28932d1c75bd594d56c344268ca0846445e6b4313569332a3967",
+      "bytes": 69114
+    },
+    "policy.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "lifecycle.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "diff-check.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  }
+}

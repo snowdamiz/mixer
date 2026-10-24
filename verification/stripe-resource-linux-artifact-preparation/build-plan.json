@@ -1,0 +1,217 @@
+{
+  "LinuxCompilationAccepted": false,
+  "LinuxRuntimeAccepted": false,
+  "all30RuntimeMatrixRows": "pending",
+  "artifactBlockers": [
+    {
+      "evidence": "Image metadata and macOS installed paths do not inspect Linux payload",
+      "id": "A1",
+      "requirement": "Exact compiler/linker/sysroot/inspector availability and hashes on selected Linux builder/controller",
+      "status": "pending"
+    },
+    {
+      "evidence": "Pinned image tag is not executable version proof",
+      "id": "A2",
+      "requirement": "Observed Linux Elixir/OTP/ERTS and matching NIF header bytes",
+      "status": "pending"
+    },
+    {
+      "evidence": "No build or BEAM execution in this packet",
+      "id": "A3",
+      "requirement": "Fresh Linux production release, exports/exclusions and immutable build receipts",
+      "status": "pending"
+    },
+    {
+      "evidence": "No rootfs materialized or accepted",
+      "id": "A4",
+      "requirement": "Rootfs complete interpreter/ELF/native closure, ownership/mode/link/mount checks",
+      "status": "pending"
+    },
+    {
+      "evidence": "Source/host acceptance supplies no Linux binary provenance",
+      "id": "A5",
+      "requirement": "Exact helper/NIF command output identity across distinct scratch paths, production build replay and independent artifact review",
+      "status": "pending"
+    }
+  ],
+  "candidatePlatformImage": "hexpm/elixir@sha256:c2d3bab1f8a854f5ca3bb220e5463f4fe39036caa2ce22dfd7614a30404279de",
+  "catalogInspectorOrAuthorityDriverWork": false,
+  "containerPolicy": {
+    "NET_ADMIN": false,
+    "capDrop": [
+      "ALL"
+    ],
+    "cgroupDelegation": false,
+    "cpus": 2,
+    "dockerSocketMount": false,
+    "hostPidNamespace": false,
+    "memoryBytes": 4294967296,
+    "network": "none",
+    "pidsLimit": 256,
+    "platform": "linux/arm64",
+    "privileged": false,
+    "providerEnvironment": false,
+    "pull": "never",
+    "readOnlyInputMount": "new owned source/tool snapshot only",
+    "readOnlyRoot": true,
+    "securityOpt": [
+      "no-new-privileges:true"
+    ],
+    "tmpfs": "/tmp:rw,noexec,nosuid,nodev,size=256m",
+    "user": "65534:65534",
+    "writableMount": "new owned staging only"
+  },
+  "gaAccepted": false,
+  "phases": [
+    {
+      "action": "Root selects compilation-only tool inspection in this isolated policy",
+      "buildOrRuntimeAuthorizationHere": false,
+      "commandsProposed": [
+        "/usr/bin/cc --version",
+        "elixir --version",
+        "read matching OTP_VERSION, ERTS identity and three NIF headers",
+        "read static inspector, driver, linker, sysroot and runtime library metadata"
+      ],
+      "id": "P1"
+    },
+    {
+      "action": "Create owned staging from pinned source/dependency/Hex/rebar inputs without _build/native products",
+      "historicalPlanMapRetained": true,
+      "id": "P2",
+      "lockSha256": "59e6fe5d6bc76ae0057745fe7eb3fb292f225b6a37cd1c99c214f9447c60ff8a",
+      "sourceClosureDigest": "93b25f059192187ca6376bb843fcf2a6c7647dd569fd322a43b8cf81e65eff74"
+    },
+    {
+      "action": "Build fresh production dependencies/release with exact lock and existing Mix release command",
+      "commandsProposed": [
+        [
+          "mix",
+          "deps.get",
+          "--check-locked"
+        ],
+        [
+          "mix",
+          "deps.compile"
+        ],
+        [
+          "mix",
+          "compile",
+          "--warnings-as-errors"
+        ],
+        [
+          "mix",
+          "release",
+          "--overwrite"
+        ]
+      ],
+      "cwd": "<owned-stage>/hosted",
+      "environment": {
+        "ERL_CRASH_DUMP": "/dev/null",
+        "ERL_CRASH_DUMP_SECONDS": "0",
+        "MIX_BUILD_PATH": "<owned-stage>/build/prod",
+        "MIX_ENV": "prod",
+        "MIX_HOME": "<owned-stage>/mix",
+        "MIX_REBAR3": "<owned-stage>/rebar3"
+      },
+      "id": "P3",
+      "networkFallbackAllowed": false
+    },
+    {
+      "action": "Capture production-only BEAM export/test-helper exclusion report without app/role/provider/listener startup",
+      "executed": false,
+      "id": "P4",
+      "reuseAssertionsFrom": "hosted/scripts/test-local.py"
+    },
+    {
+      "action": "Materialize symlink/hardlink/device-free minimal rootfs with launcher/interpreter/ELF/native closure and exact three ERTS headers",
+      "id": "P5",
+      "rawImageExportSufficient": false,
+      "runtimeLibrariesMinimum": [
+        "libc",
+        "libcrypto",
+        "libssl",
+        "beam.smp"
+      ],
+      "staticELFChecks": [
+        "ELF64",
+        "little-endian",
+        "e_machine 183",
+        "PT_INTERP",
+        "DT_NEEDED",
+        "RUNPATH/RPATH",
+        "symbol versions",
+        "runtime native-library closure"
+      ]
+    },
+    {
+      "action": "Compile exact V5 helper/NIF using controller /usr/bin/cc and fixed environment at distinct owned scratch paths; compare hashes, stderr/stdout, ABI and <=20 second elapsed",
+      "emptyPlaceholdersAllowed": false,
+      "executeHelperOrLoadNif": false,
+      "extraFlagsOrWrapperAllowed": false,
+      "id": "P6",
+      "outputPaths": [
+        "opt/harness/fault_helper",
+        "opt/harness/control_nif.so"
+      ],
+      "source": "verification/stripe-webhook-linux-resource-harness/v5/linux_backend.py:242"
+    },
+    {
+      "action": "Bind observed Linux build/export receipts and every rootfs file; later selected materialization proves actual UID0 and permitted modes",
+      "archiveUidHeadersSufficient": false,
+      "id": "P7",
+      "rootfsOwnershipChangesToSharedCheckout": false,
+      "topLevelManifest": "release-manifest.json"
+    },
+    {
+      "action": "Independent provenance replay and actual release_manifest / validate_release tests on selected Linux artifact, including failures",
+      "compileAcceptanceInThisPacket": false,
+      "id": "P8"
+    },
+    {
+      "action": "Root separately selects resource environment and exact fresh V5 runtime authorization only after artifact acceptance",
+      "id": "P9",
+      "runtimeSelected": false
+    }
+  ],
+  "requiredToolVersions": {
+    "ccResolvedExecutableSha256": null,
+    "ccVersionFirstLine": null,
+    "elixir": "1.20.4",
+    "erts": "17.1",
+    "hex": "2.5.1",
+    "libc": null,
+    "linkerAndCompilerHelpers": null,
+    "openssl": null,
+    "otp": "29.1.1",
+    "rebar3Sha256": "8dead71212b8008ec830c085607c23ec2997ab1c36a3c91901ac42c9814ee08c",
+    "staticElfInspector": null
+  },
+  "runtimeAuthorized": false,
+  "runtimeBlockers": [
+    {
+      "id": "R1",
+      "requirement": "Dedicated delegated cgroup v2 with memory/cpu/pids and matching ancestor/profile readbacks/cgroup.kill",
+      "status": "pending"
+    },
+    {
+      "id": "R2",
+      "requirement": "Actual setup capability mask bits 5,6,7,8,12,18,19,21 and namespace/pidfd/per-TID metadata operations",
+      "status": "pending"
+    },
+    {
+      "id": "R3",
+      "requirement": "Observed core_pattern core, suid_dumpable 0 and no unknown core retention without mutating policy here",
+      "status": "pending"
+    },
+    {
+      "id": "R4",
+      "requirement": "Fresh closed V5 review/authorization matching current harness/source/profile/fault/checkpoint digests",
+      "status": "pending"
+    }
+  ],
+  "runtimeRowsExecuted": 0,
+  "schema": 1,
+  "scope": "Offline nonprivileged Linux artifact compilation prerequisite, followed by independent artifact acceptance; no resource runtime",
+  "selected": false,
+  "status": "proposal-not-executed"
+}

@@ -1,0 +1,65 @@
+--- qualified/src/experimental/execution/borrowed.rs
++++ integrated/src/experimental/execution/borrowed.rs
+@@ -595,7 +595,7 @@
+                         return Err($leaf!(trap $this, "indirect_call_type_mismatch"));
+                     }
+                     $leaf!(call $this, function)?;
+-                
++
+     };
+ }
+ pub(crate) use shared_indirect;
+@@ -651,7 +651,7 @@
+                         .filter(|_| frame.base + ($index as usize) < frame.operands)
+                         .ok_or_else(|| $s.invariant())?;
+                     $s.push(value)?;
+-                
++
+     };
+     (local_set $s:ident, $index:ident, $instruction:ident) => {
+                     let value = if matches!($instruction.operation, Operation::LocalTee(_)) {
+@@ -666,7 +666,7 @@
+                         return Err($s.invariant());
+                     }
+                     $s.values[slot] = value;
+-                
++
+     };
+     (global_get $s:ident, $index:ident) => {
+                     let value = *$s
+@@ -674,7 +674,7 @@
+                         .get($index as usize)
+                         .ok_or_else(|| $s.invariant())?;
+                     $s.push(value)?;
+-                
++
+     };
+     (global_set $s:ident, $index:ident) => {
+                     let value = $s.pop()?;
+@@ -687,7 +687,7 @@
+                         return Err($s.invariant());
+                     }
+                     $s.globals[$index as usize] = value;
+-                
++
+     };
+     (finish $s:ident, $finished:ident) => {            if $finished {
+                 let result = $s.finish()?;
+@@ -840,7 +840,7 @@
+             $leaf!{publication $this}
+             $leaf!{finish $this, finished}
+         }
+-    
++
+     };
+ }
+ pub(crate) use shared_run;
+@@ -856,7 +856,7 @@
+         } else {
+             $this.enter($function)
+         }
+-    
++
+     };
+ }
+ pub(crate) use shared_call;

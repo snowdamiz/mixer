@@ -1,0 +1,27 @@
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-keyboard-focus-v2/run.py", line 64, in <module>
+    signal.signal(signal.SIGINT,stop);signal.signal(signal.SIGTERM,stop);main()
+                                                                         ~~~~^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-keyboard-focus-v2/run.py", line 58, in main
+    elif a.action=='run':runtime.prerequisite();runtime.inherited.run(a.reviewed_seal,a.scope)
+                                                ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-pan-origin-correction/harness.py", line 365, in run
+    xctest_exit = commands.run(argv, timeout=600, check=False)[0]
+                  ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-keyboard-focus/run.py", line 110, in run
+    try:return super().run(argv,*args,**kwargs)
+               ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-pan-origin-correction/harness.py", line 124, in run
+    stdout, stderr = process.communicate(timeout=timeout)
+                     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 1221, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 2154, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 1268, in _check_timeout
+    raise TimeoutExpired(
+    ...<2 lines>...
+            stderr=b''.join(stderr_seq) if stderr_seq else None)
+subprocess.TimeoutExpired: Command '['/Applications/Xcode_26.6.app/Contents/Developer/usr/bin/xcodebuild', 'test-without-building', '-xctestrun', '/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-toggle-xctest-z7ji23_r/session.xctestrun', '-destination', 'platform=iOS Simulator,id=B92E8710-B8EC-4A68-AA3A-463AF34D2C52', '-parallel-testing-enabled', 'NO', '-maximum-concurrent-test-simulator-destinations', '1', '-resultBundlePath', '/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-toggle-xctest-z7ji23_r/session.xcresult', '-only-testing:MixerToggleUITests/ToggleUITests/test000PublicSettingsFullKeyboardAccess', '-only-testing:MixerToggleUITests/ToggleUITests/test010EnabledFromOff', '-only-testing:MixerToggleUITests/ToggleUITests/test020EnabledFromOn', '-only-testing:MixerToggleUITests/ToggleUITests/test030StaleFromOff', '-only-testing:MixerToggleUITests/ToggleUITests/test040StaleFromOn', '-only-testing:MixerToggleUITests/ToggleUITests/test050DisabledFromOff', '-only-testing:MixerToggleUITests/ToggleUITests/test060DisabledFromOn']' timed out after 600 seconds
