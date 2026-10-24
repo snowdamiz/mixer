@@ -1,7 +1,7 @@
 # Private native V2 transaction independent review
 
-The bounded JNI/CLI source audit and final Android/Apple headless source/evidence
-reviews pass. **Current native acceptance is pending.** Apple switch paint/input
+The bounded JNI/CLI source audit and Android/Apple headless source/evidence
+reviews below passed for their recorded closures. **Current native acceptance is pending.** Apple switch paint/input
 qualification remains unresolved, and current Android Section/baseline
 regressions have compiled but have not run on Android. The user paused computer
 use, screen capture and native simulator/emulator runtime work before those
@@ -199,3 +199,57 @@ nonempty RTL and long-label exclusions remain explicit; no guard was relaxed
 to force a fixture through. No native acceptance is issued by this continuation.
 Prior Android/JNI seals and `completion.json` remain unchanged; the subsequent
 Apple completion seal is `completion-apple-headless-1.json`.
+
+## Subsequent private Android coordinator review
+
+The final package-private coordinator, frozen root contract, concrete owner APIs,
+explicit host leaves, host fault matrix and future native test sources were read.
+No blocking source finding was identified in the requested sequencing and
+ownership scope. The important failure boundaries are explicit:
+
+- Engine token is retained before the defensive packet copy. Native final
+  validation immediately precedes scalar commit, and successful commit immediately
+  enters prepared native finish. The exact packet is published only afterward.
+- Unknown prepare delivery, thrown/unexpected commit, failed post-commit finish
+  and uncertain cleanup retire both owners. Known rejection cleans up only after
+  abort status zero; closed status still retires. No unknown outcome attempts
+  rollback or claims that the prior presentation is authoritative.
+- Any attempted attachment that throws retires after engine abort attempt. A
+  missing journal does not distinguish the concrete renderer's pre-handler
+  rejection from its consumed/cleaned-up failure path.
+- Failed native input retires even after known transaction cleanup. Ordinary
+  callback RuntimeException is contained only after retirement and retained in
+  the confined diagnostic; programmatic calls still throw. Primary and nested
+  Error/OOM propagate. Unexpected native callback reentrancy retires and prevents
+  outer publication. Reentrant/retired mutations and repeated close reject.
+- Retirement publishes closed local state first and attempts native disposal
+  and engine destruction independently. Environment refresh uses the exact
+  retained packet with fresh captures and no engine preparation/commit/reducer;
+  a failed refresh retires, including destruction of its owned engine session.
+
+`verification/native-v2-transaction-independent-review/coordinator-review-1/receipt.json`
+passes **488 binding checks across 340 evidence files**: all 43 captured/current
+source inputs, 272 sealed artifacts, 13 retained command logs, tool files and
+root contract bindings. The production Java17/SDK37 class and host execution
+class are byte-identical:
+`14a1210ca4208b3eb58a5d70db893b5f1729f5d7587c887cd16f37c18b758992`.
+
+The reviewer copied those exact class bytes and explicit test-only leaves into
+its own directory, then independently ran all **133 host scenarios / 2,087
+checks** once. Output is byte-identical to the producer run. JVM class-loading
+logs bind the coordinator and substitute NativeBridge/NativeRenderer origins to
+that copied directory. The tests rethrow assertion failures and assert ordering,
+owner disposition, engine effects, consumed/unconsumed attach paths, callback
+containment/reentrancy, cleanup Errors and no synthetic input restoration.
+
+No compilation or native/JNI execution was rerun by the reviewer. Actual-SDK DEX
+and the two future integration classes are retained compile evidence only. Host
+substitutes cannot establish native gating, rollback, IME, lifecycle, actual
+JNI/Swift/native integration or physical acceptance. Public Activity/bootstrap,
+signed delivery and GA remain unchanged and pending.
+
+The user's later iOS 26 minimum belongs to root's separate source/receipt work;
+the earlier Apple minimum-17 binary receipts above remain historical evidence for
+their recorded closure. This Android review neither requalifies those artifacts
+nor rewrites prior completion/seal files. Its new completion append is
+`completion-coordinator-1.json`.

@@ -85,8 +85,18 @@ Generated applications now capture the header and all six C exports; actual
 generated Swift host tests and the official arm64 API28 unsigned APK build pass.
 A removed C export causes a real linker rejection and removes stale success
 artifacts. Root verifies 543 bindings, with a separate independent source audit.
-See `verification/android-generated-v2-bridge/acceptance.json`. Native coordinator
-attachment, V2 Activity opt-in and Android runtime qualification remain pending.
+See `verification/android-generated-v2-bridge/acceptance.json`.
+
+The private Android coordinator now has scoped host/cross-build acceptance.
+Root verifies 349 bindings and replays all 133 scenarios/2,087 checks using the
+same SDK-produced class bytes and explicit test-only JVM leaves. Independent
+review verifies 488 bindings and reproduces the same output. The coordinator
+owns engine preparation, native attachment, commit and retirement; uncertain
+outcomes retire both owners, and rejected native input cannot reopen a stale
+presentation. Actual JNI/Swift/native-window integration remains unexecuted.
+Generated source export is in progress; public V1 Activity and signed bootstrap
+remain unchanged. See
+`verification/android-native-v2-coordinator-root-review/acceptance.json`.
 
 
 The ordinary Android checklist library now exposes the registry's private staged

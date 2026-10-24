@@ -1,0 +1,95 @@
+{
+  "requestedBy": "User: pause computer use or screen capture, turn off the processes manually as well until further notice, continue working on it",
+  "startedUTC": "2026-10-24T02:30:27.302802+00:00",
+  "commands": [
+    {
+      "argv": [
+        "xcrun",
+        "simctl",
+        "list",
+        "devices",
+        "booted",
+        "--json"
+      ],
+      "exitCode": 0,
+      "log": "before-booted.log",
+      "sha256": "6872d0d16182ae7ddb335427ffa7ac797dc377df6331a94f530ede30a2097e67"
+    },
+    {
+      "argv": [
+        "xcrun",
+        "simctl",
+        "shutdown",
+        "B5513F55-39E7-476A-A6D2-5A81E3FEE22B"
+      ],
+      "exitCode": 148,
+      "log": "shutdown-owned-ios.log",
+      "sha256": "7f61628eda5ed023dbd2c8adbe08bc3776229d4967663ce8f8953ec8dd151193"
+    },
+    {
+      "argv": [
+        "xcrun",
+        "simctl",
+        "list",
+        "devices",
+        "booted",
+        "--json"
+      ],
+      "exitCode": 0,
+      "log": "after-booted.log",
+      "sha256": "6872d0d16182ae7ddb335427ffa7ac797dc377df6331a94f530ede30a2097e67"
+    }
+  ],
+  "scope": "Pause this task computer interaction and capture; shut down owned native runtime and Simulator frontend. Preserve unrelated active project processes. Continue headless implementation/verification.",
+  "terminatedSimulatorFrontendPID": 16773,
+  "unrelatedAndroidPreserved": {
+    "pid": 18715,
+    "avd": "morse-api37"
+  },
+  "pausedUntilFurtherNotice": [
+    "computer use",
+    "screen capture",
+    "native simulator/emulator runtime tests"
+  ],
+  "continue": [
+    "source implementation",
+    "host tests",
+    "cross-compilation",
+    "offline evidence review",
+    "authorized commits/pushes"
+  ],
+  "processChecks": {
+    "owned-ios-harness": {
+      "pid": 54245,
+      "exitCode": 1,
+      "absent": true,
+      "log": "owned-ios-harness.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "simulator-frontend": {
+      "pid": 16773,
+      "exitCode": 1,
+      "absent": true,
+      "log": "simulator-frontend.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "last-owned-android": {
+      "pid": 47382,
+      "exitCode": 1,
+      "absent": true,
+      "log": "last-owned-android.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "shutdownRace": "Apple owner concurrently shut down and deleted the owned simulator successfully; root repeated shutdown returned148. Both raw outcomes retained.",
+  "appleOwnerCleanup": {
+    "path": "verification/apple-native-appearance-v2/user-stop-native-cleanup.json",
+    "sha256": "dbc4ebc61d98db8bf92c8765cd42ff9ba8ea65c5f378c1bd544f3dafcf86ab08"
+  },
+  "androidOwnerCleanup": {
+    "path": "verification/android-native-appearance-v2/computer-use-pause-cleanup.json",
+    "sha256": "538b33a1414ce074652e1653bf823dbe2fc7211824afb02a5959c3e06cd72152"
+  },
+  "completedUTC": "2026-10-24T02:31:04.431418+00:00",
+  "status": "owned-native-processes-stopped"
+}

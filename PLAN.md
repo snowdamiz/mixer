@@ -82,9 +82,11 @@ The Apple private consumer has scoped headless acceptance at
 placements are shared by detached validation and attachment, eight production
 CoreGraphics math checks pass, and the iOS17 consumer/harness compiles. Current
 native paint/input/RTL qualification remains pending. The ordinary Android
-coordinator is now an independent private implementation lane under
-`verification/android-native-v2-coordinator/root-contract.json`; it does not opt
-in the public Activity or signed route.
+coordinator now has host/cross-build acceptance under
+`verification/android-native-v2-coordinator-root-review/acceptance.json`:
+133 scenarios/2,087 checks replay the SDK-produced class with test-only leaves.
+Generated source export is next. Joined native execution, public Activity opt-in
+and signed integration remain pending.
 
 The W08 control-helper extraction stopped at its accounting prerequisite:
 the proposed fallible adapters add at least 1,176 bytes of named result-transfer

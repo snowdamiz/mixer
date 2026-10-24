@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "status": "bounded-private-implementation-contract",
+  "reviewer": "root",
+  "observedUTC": "2026-10-24T03:11:08.774713+00:00",
+  "sourceRevision": "6341a5633b98f8c698c1234e533d0387cc01e81a",
+  "bindings": {
+    "docs/android-native-v2-coordinator-contract.md": "5461386e11568f11f780401f1ed251edd0d8da3a8b1f0fb8ed75c3f85b082bbd",
+    "native/android/app/src/dev/mixer/android/NativeRenderer.java": "e639dd37d4430b0ddac220541c91bcebe06c5ea8e57c73bad3bbf9ffa2f4d36a",
+    "native/android/app/src/dev/mixer/android/NativeBridge.java": "3e7faa3904fef5955426b9fa9993c77b61203fe605f675d73cd81bcf073306a3",
+    "native/android/app/src/dev/mixer/android/NativeEnvironmentV2.java": "4910cfe6e01862c23c737e4c455af6071a0be5dc2140c851d36b502d8b4599f5",
+    "native/android/bridge/jni.c": "a3d410605636074cc5fa01cc06ea65f75d9b71837752bb51506497d4634a9d80",
+    "native/android/engine/Sources/MixerAndroidRuntime/SessionRegistry.swift": "977bb8790cb822467c31c7a24ffebe96ea364067a3637bf90464ba4060b77b67"
+  },
+  "scope": "New package-private concrete main-Looper coordinator joins existing NativeBridge and NativeRenderer; no modifications to those accepted owners, no public Activity/bootstrap/signed integration.",
+  "requirements": [
+    "Retain engine token before packet-copy allocation; validateAttached immediately precedes scalar commit; native finish immediately follows successful commit.",
+    "Unknown prepare delivery or commit outcome, post-commit finish throw, failed abort or cleanup retire both sides.",
+    "Set attachAttempted before native attach; any thrown attachment retires both sides after engine abort attempt because renderer pre-try and internally handled failures have different consumption states.",
+    "Reentrancy and retired calls reject. Environment refresh uses retained exact committed packet and no engine calls. Failed native input retires; do not synthesize IME restoration.",
+    "Use executable production-class decision tests with explicitly identified test-only leaves plus actual SDK/DEX compilation. Keep native/JNI joined execution pending during pause."
+  ],
+  "sourceAudit": "Independent native transaction reviewer inspected contract and confirmed sequencing; attach pre-try ambiguity resolved to unconditional retirement on throw.",
+  "implementationAcceptance": false,
+  "nativeAcceptance": false,
+  "gaAcceptance": false
+}
