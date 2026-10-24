@@ -55,6 +55,18 @@ pending until testing resumes. This pause does not cancel implementation or
 periodic validated Git delivery. See
 `verification/computer-use-pause-2026-10-24/receipt.json`.
 
+Current Android checkpoint: private style consumption, staged JNI ownership and
+generated-app staging exports are implemented. Current source passes Java/DEX,
+host JNI and generated Swift tests, plus an inspected unsigned arm64 API28 APK
+build and deliberate missing-export rejection. Root evidence is in
+`verification/android-native-appearance-v2/root-headless-acceptance.json` and
+`verification/android-generated-v2-bridge/acceptance.json`. Historical API37
+native tests do not qualify the later Section/baseline corrections. Resume those
+native regressions and the pending Apple pressed-switch qualification only when
+the user restores native testing; continue coordinator/runtime implementation
+headlessly in the meantime. Public application paths remain V1, and no GA or
+dogfood gate is passed.
+
 The private Android host binding is now accepted within its recorded host scope;
 see `verification/android-binding-stage4-root-review/acceptance.json`. Root
 verified 4,149 acceptance bindings after independent review of 3,182 files and

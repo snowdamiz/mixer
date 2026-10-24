@@ -255,7 +255,7 @@ def build(root):
         path.mkdir()
     libdir = output / 'apk/lib/arm64-v8a'
     libdir.mkdir(parents=True)
-    run([NDK / 'bin/aarch64-linux-android28-clang', '-shared', '-fPIC', '-O2', '-Wall', '-Wextra', '-Werror', '-I', adapter / 'bridge', adapter / 'bridge/jni.c', '-L', bin_path, '-lAppAndroid', '-Wl,-z,max-page-size=16384', '-o', libdir / 'libmixer_android_jni.so'])
+    run([NDK / 'bin/aarch64-linux-android28-clang', '-shared', '-fPIC', '-O2', '-Wall', '-Wextra', '-Werror', '-I', adapter / 'bridge', adapter / 'bridge/jni.c', '-L', bin_path, '-lAppAndroid', '-Wl,--no-undefined', '-Wl,-z,max-page-size=16384', '-o', libdir / 'libmixer_android_jni.so'])
     shutil.copy2(engine, libdir / engine.name)
     system = {'libc.so', 'libdl.so', 'libm.so', 'liblog.so', 'libandroid.so'}
     pending = list(libdir.glob('*.so'))
@@ -300,7 +300,7 @@ def build(root):
         if descriptor not in dex_dump:
             raise RuntimeError('Required owned Android class absent from dex: ' + descriptor)
     symbols = run([NDK / 'bin/llvm-nm', '-D', '--defined-only', engine])
-    for symbol in ['mixer_android_create', 'mixer_android_exchange', 'mixer_android_destroy', 'AppFeatures', 'AppModels']:
+    for symbol in ['mixer_android_create', 'mixer_android_exchange', 'mixer_android_destroy', 'mixer_android_prepare_v2', 'mixer_android_commit_v2', 'mixer_android_abort_v2', 'AppFeatures', 'AppModels']:
         if symbol not in symbols:
             raise RuntimeError('App shared feature/model or ABI symbol missing: ' + symbol)
     with zipfile.ZipFile(apk_path) as archive:

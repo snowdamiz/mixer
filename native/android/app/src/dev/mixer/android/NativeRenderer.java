@@ -17,9 +17,9 @@ final class NativeRenderer {
     private final Context context;private final Events events;private Map<String,Record>records=new HashMap<>();UiPacket packet;
     NativeRenderer(Context c,Events e){context=c;events=e;}
     private int dp(double value){return(int)Math.round(value*context.getResources().getDisplayMetrics().density);}
-    View view(String id){Record r=records.get(id);if(r==null)throw Json.bad("missing native ID "+id);return r.view;}
+    View view(String id){if(v2Records.containsKey(id))return v2Records.get(id).view;Record r=records.get(id);if(r==null)throw Json.bad("missing native ID "+id);return r.view;}
     View apply(UiPacket next){
-        if(android.os.Looper.myLooper()!=android.os.Looper.getMainLooper())throw new IllegalStateException("renderer requires UI thread");next.requireSuccessor(packet);
+        if(android.os.Looper.myLooper()!=android.os.Looper.getMainLooper())throw new IllegalStateException("renderer requires UI thread");if(v2Pending!=null||v2Plan!=null||v2Installed!=null||v2Environment!=null)throw Json.bad("V2 owner cannot use legacy apply");next.requireSuccessor(packet);
         if(Build.VERSION.SDK_INT<30)for(UiPacket.Node n:next.nodes.values())if(n.properties.containsKey("accessibilityValue"))throw Json.bad("accessibilityValue requires API30");
         Map<String,Record>candidate=new HashMap<>();for(UiPacket.Node n:next.nodes.values()){Record old=records.get(n.id);candidate.put(n.id,old!=null&&old.kind.equals(n.kind)&&old.generation.equals(n.generation)?old:create(n));}
         for(UiPacket.Node n:next.nodes.values())bind(candidate.get(n.id),n,next);
@@ -61,4 +61,307 @@ final class NativeRenderer {
         for(int i=0;i<n.children.size();i++){View view=candidate.get(n.children.get(i).id).view;if(i>=parent.getChildCount()||parent.getChildAt(i)!=view){if(view.getParent()instanceof ViewGroup)((ViewGroup)view.getParent()).removeView(view);parent.addView(view,i);}
             if(parent instanceof FrameLayout){FrameLayout.LayoutParams lp=new FrameLayout.LayoutParams(-2,-2,gravity(n.text("alignment","center")));view.setLayoutParams(lp);}else{boolean horizontal=n.kind.equals("hStack");int height=n.kind.equals("navigation")?-1:-2;LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(horizontal?-2:-1,height);int spacing=dp(n.number("spacing",n.kind.equals("list")?8:0));if(i+1<n.children.size()){if(horizontal)lp.setMarginEnd(spacing);else lp.bottomMargin=spacing;}view.setLayoutParams(lp);}}
     }
+
+    // Ordinary private V2 lane. Existing apply()/signed/V1 behavior is unchanged.
+    private Map<String,NativeAppearanceViewsV2.Record> v2Records=Collections.emptyMap();
+    private AppearanceResolverV2.Plan v2Plan;
+    private byte[] v2PacketBytes;
+    private InstalledAppearanceV2 v2Installed;
+    private NativeEnvironmentV2.Observer v2Environment;
+    private NativeEnvironmentV2 v2CommittedEnvironment;
+    private NativeAppearanceViewsV2.Gate v2Gate;
+    private Candidate v2Pending;
+    private boolean v2Open=true,v2Retired;
+    private long v2Interaction;
+    private int v2Fault=-1,v2Steps;
+    private boolean v2RollbackFault;
+    private NativeAppearanceViewsV2.Input v2Input;
+    private NativeAppearanceViewsV2.Input inputV2(){if(v2Input==null)v2Input=new NativeAppearanceViewsV2.Input(){
+        public boolean open(NativeAppearanceViewsV2.Record record){
+            return presentationCurrentV2()&&v2Records.get(record.id)==record&&record.view.isEnabled()&&record.view.isAttachedToWindow()&&record.view.isShown()&&record.view.hasWindowFocus();
+        }
+        public void event(NativeAppearanceViewsV2.Record record,String name,Object value){
+            if(!open(record))return;interaction();if(v2Open&&!v2Retired)events.send(packet.event(record.id,record.generation,name,value));
+        }
+        public void interaction(){if(!v2Open)return;if(v2Interaction==Long.MAX_VALUE){retireV2();return;}v2Interaction++;}
+    };return v2Input;}
+    InstalledAppearanceV2 captureInstalledV2(){
+        requireV2Live();NativeEnvironmentV2.requireMain();
+        InstalledAppearanceV2 capture=InstalledAppearanceV2.capture(context,this);
+        v2Installed=capture;return capture;
+    }
+    NativeEnvironmentV2 captureEnvironmentV2(android.app.Activity activity,FrameLayout root){
+        requireV2Live();NativeEnvironmentV2.requireMain();
+        if(v2Environment==null)v2Environment=new NativeEnvironmentV2.Observer(this,activity,root);
+        else if(v2Environment.activity!=activity||v2Environment.root!=root)throw Json.bad("foreign V2 window");
+        try{return v2Environment.capture();}catch(RuntimeException|java.lang.Error failure){if(v2Plan!=null)retireV2();throw failure;}
+    }
+    void environmentInvalidatedV2(){
+        NativeEnvironmentV2.requireMain();if(v2Plan==null)return;
+        v2Open=false;if(v2Gate!=null){v2Gate.open=false;v2Gate.invalidate();}
+    }
+    boolean presentationCurrentV2(){
+        NativeEnvironmentV2.requireMain();if(!v2Open||v2Retired)return false;
+        if(v2CommittedEnvironment==null||!v2CommittedEnvironment.current(this)){environmentInvalidatedV2();return false;}return true;
+    }
+    static final class Candidate {
+        private final NativeRenderer owner;
+        private final UiPacket base,next;
+        private final byte[] bytes;
+        private final Map<String,NativeAppearanceViewsV2.Record> baseRecords,targets,detached;
+        private final AppearanceResolverV2.Plan plan;
+        private final InstalledAppearanceV2 installed;
+        private final NativeEnvironmentV2 environment;
+        private final long interaction;
+        private final NativeAppearanceViewsV2.Gate gate;
+        private final AttachmentJournal journal;
+        private boolean used,attached;
+        private Candidate(NativeRenderer owner,UiPacket next,byte[] bytes,Map<String,NativeAppearanceViewsV2.Record> targets,
+                          Map<String,NativeAppearanceViewsV2.Record> detached,AppearanceResolverV2.Plan plan,
+                          InstalledAppearanceV2 installed,NativeEnvironmentV2 environment,NativeAppearanceViewsV2.Gate gate){
+            this.owner=owner;this.base=owner.packet;this.next=next;this.bytes=bytes;this.baseRecords=owner.v2Records;
+            this.targets=targets;this.detached=detached;this.plan=plan;this.installed=installed;
+            this.environment=environment;this.interaction=owner.v2Interaction;this.gate=gate;
+            journal=new AttachmentJournal(this);
+        }
+    }
+    static final class AttachmentJournal {
+        private final Candidate candidate;
+        private final List<NativeState> previous;
+        private final List<ParentState> parents;
+        private final View[] rootChildren;
+        private final NativeAppearanceViewsV2.Gate oldGate;
+        private final int rootWidth,rootHeight,oldCanvas;
+        private boolean complete;
+        private AttachmentJournal(Candidate candidate){
+            this.candidate=candidate;previous=new ArrayList<>();parents=new ArrayList<>();
+            for(var record:candidate.baseRecords.values()){
+                previous.add(new NativeState(record));
+                if(record.group!=null)parents.add(new ParentState(record.group));
+            }
+            FrameLayout root=candidate.environment.root();rootChildren=childrenV2(root);
+            rootWidth=root.getWidth();rootHeight=root.getHeight();oldGate=candidate.owner.v2Gate;oldCanvas=oldGate==null?0:oldGate.canvasColor;if(oldGate!=null)parents.add(new ParentState(oldGate));
+        }
+    }
+    private static final class NativeState {
+        final NativeAppearanceViewsV2.Record record;
+        final NativeAppearanceViewsV2.Binding binding;
+        final NativeAppearanceViewsV2.Geometry geometry;
+        final CharSequence text,nativeBuffer;
+        final List<CompositionSpan> composition;
+        final int[] drawableState,windowPosition;
+        final int left,top,right,bottom,measuredWidth,measuredHeight;
+        final boolean enabled;
+        final int selectionStart,selectionEnd,scrollX,scrollY;final boolean active,checked,focused,pressed;
+        NativeState(NativeAppearanceViewsV2.Record record){
+            this.record=record;binding=record.binding;geometry=record.geometry;active=record.view instanceof EditText e&&(e.hasFocus()||android.view.inputmethod.BaseInputConnection.getComposingSpanStart(e.getText())>=0)||record.view instanceof TextView t&&t.isTextSelectable()&&t.getSelectionStart()>=0;
+            nativeBuffer=record.view instanceof TextView t?t.getText():null;
+            // Copy only text value. Copying native watcher spans can notify the live editor.
+            text=nativeBuffer==null?null:nativeBuffer.toString();
+            composition=compositionV2(nativeBuffer);
+            drawableState=record.view.getDrawableState().clone();windowPosition=new int[2];record.view.getLocationInWindow(windowPosition);
+            left=record.view.getLeft();top=record.view.getTop();right=record.view.getRight();bottom=record.view.getBottom();
+            measuredWidth=record.view.getMeasuredWidth();measuredHeight=record.view.getMeasuredHeight();enabled=record.view.isEnabled();
+            selectionStart=record.view instanceof TextView t?t.getSelectionStart():-1;
+            selectionEnd=record.view instanceof TextView t?t.getSelectionEnd():-1;
+            scrollX=record.view.getScrollX();scrollY=record.view.getScrollY();checked=record.view instanceof Switch value&&value.isChecked();focused=record.view.hasFocus();pressed=record.view.isPressed();
+        }
+    }
+    private record CompositionSpan(Object object,int start,int end,int flags) {}
+    private static List<CompositionSpan> compositionV2(CharSequence value){
+        List<CompositionSpan> result=new ArrayList<>();
+        if(value instanceof android.text.Spanned spans)for(Object span:spans.getSpans(0,spans.length(),Object.class)){
+            int flags=spans.getSpanFlags(span);if((flags&android.text.Spanned.SPAN_COMPOSING)!=0)
+                result.add(new CompositionSpan(span,spans.getSpanStart(span),spans.getSpanEnd(span),flags));
+        }return result;
+    }
+    private static boolean sameNativeBaseV2(NativeState state){
+        var record=state.record;View view=record.view;int[] position=new int[2];view.getLocationInWindow(position);
+        if(record.binding!=state.binding||record.geometry!=state.geometry||view.isEnabled()!=state.enabled||view.hasFocus()!=state.focused||view.isPressed()!=state.pressed||
+            view.getLeft()!=state.left||view.getTop()!=state.top||view.getRight()!=state.right||view.getBottom()!=state.bottom||
+            view.getMeasuredWidth()!=state.measuredWidth||view.getMeasuredHeight()!=state.measuredHeight||
+            view.getScrollX()!=state.scrollX||view.getScrollY()!=state.scrollY||!Arrays.equals(position,state.windowPosition)||!Arrays.equals(view.getDrawableState(),state.drawableState))return false;
+        if(view instanceof Switch toggle&&toggle.isChecked()!=state.checked)return false;
+        if(view instanceof TextView text){
+            if(text.getText()!=state.nativeBuffer||!text.getText().toString().contentEquals(state.text)||
+                text.getSelectionStart()!=state.selectionStart||text.getSelectionEnd()!=state.selectionEnd)return false;
+            List<CompositionSpan> current=compositionV2(text.getText());if(current.size()!=state.composition.size())return false;
+            for(int i=0;i<current.size();i++){CompositionSpan a=current.get(i),b=state.composition.get(i);
+                if(a.object()!=b.object()||a.start()!=b.start()||a.end()!=b.end()||a.flags()!=b.flags())return false;}
+        }return true;
+    }
+    private static boolean sameNativeBaseV2(AttachmentJournal journal){
+        if(!Arrays.equals(childrenV2(journal.candidate.environment.root()),journal.rootChildren))throw Json.bad("stale native root membership");
+        for(ParentState parent:journal.parents)if(!Arrays.equals(childrenV2(parent.parent),parent.children))throw Json.bad("stale native parent membership");
+        for(NativeState state:journal.previous)if(!sameNativeBaseV2(state))throw Json.bad("stale native snapshot: "+state.record.id+" "+snapshotDifferenceV2(state));
+        return journal.oldGate==null||journal.oldGate.canvasColor==journal.oldCanvas;
+    }
+    private static String snapshotDifferenceV2(NativeState state){
+        var r=state.record;View v=r.view;int[] p=new int[2];v.getLocationInWindow(p);
+        return "binding="+(r.binding==state.binding)+",geometry="+(r.geometry==state.geometry)+",enabled="+(v.isEnabled()==state.enabled)+
+            ",focus="+(v.hasFocus()==state.focused)+",pressed="+(v.isPressed()==state.pressed)+",frame="+(v.getLeft()==state.left&&v.getTop()==state.top&&v.getRight()==state.right&&v.getBottom()==state.bottom)+
+            ",measure="+(v.getMeasuredWidth()==state.measuredWidth&&v.getMeasuredHeight()==state.measuredHeight)+",scroll="+(v.getScrollX()==state.scrollX&&v.getScrollY()==state.scrollY)+
+            ",position="+Arrays.equals(p,state.windowPosition)+",drawable="+Arrays.equals(v.getDrawableState(),state.drawableState)+
+            (v instanceof TextView t?",buffer="+(t.getText()==state.nativeBuffer)+",text="+t.getText().toString().contentEquals(state.text)+",selection="+(t.getSelectionStart()==state.selectionStart&&t.getSelectionEnd()==state.selectionEnd):"");
+    }
+    private record ParentState(ViewGroup parent,View[] children) {
+        ParentState(ViewGroup parent){this(parent,childrenV2(parent));}
+    }
+    private static View[] childrenV2(ViewGroup parent){View[] result=new View[parent.getChildCount()];for(int i=0;i<result.length;i++)result[i]=parent.getChildAt(i);return result;}
+    Candidate prepareV2(byte[] bytes,InstalledAppearanceV2 installed,NativeEnvironmentV2 environment){
+        requireV2Live();NativeEnvironmentV2.requireMain();
+        if(v2Pending!=null)throw Json.bad("V2 candidate already pending");
+        if(installed==null||installed!=v2Installed||!installed.belongsTo(this)||environment==null||!environment.current(this))throw Json.bad("stale/foreign V2 capture");
+        if(bytes==null||bytes.length>1048576)throw Json.bad("V2 packet byte limit");byte[] owned=bytes.clone();UiPacket next=UiPacket.decode(owned);
+        boolean environmentOnly=v2Plan!=null&&Arrays.equals(owned,v2PacketBytes);
+        if(environmentOnly)next=packet;else next.requireSuccessor(packet);
+        AppearanceResolverV2.Plan plan=AppearanceResolverV2.prepare(owned,installed.descriptorCopy(),environment.value,AppearanceResolverV2.Platform.android);
+        for(var node:plan.nodes)if(node.recipe() instanceof AppearanceResolverV2.ButtonRecipe||node.recipe() instanceof AppearanceResolverV2.FieldRecipe||node.recipe() instanceof AppearanceResolverV2.ToggleRecipe){
+            String ancestor=parentV2(next,node.identity().id());while(ancestor!=null){if(plan.node(ancestor).rowPlacement()!=null)throw new AppearanceDescriptorV2.Failure(AppearanceDescriptorV2.Error.unsupportedNativeOperation);ancestor=parentV2(next,ancestor);}}
+        for(var node:plan.nodes)if(node.recipe() instanceof AppearanceResolverV2.NavigationRecipe){UiPacket.Node child=next.nodes.get(node.childIDs().get(0));
+            if(!child.kind.equals("list")&&containsKindV2(child,"list"))throw new AppearanceDescriptorV2.Failure(AppearanceDescriptorV2.Error.unsupportedNativeOperation);}
+        Map<String,NativeAppearanceViewsV2.Record> detached=new LinkedHashMap<>(),targets=new LinkedHashMap<>();
+        for(var node:plan.nodes){UiPacket.Node source=next.nodes.get(node.identity().id());
+            NativeAppearanceViewsV2.Record shadow=new NativeAppearanceViewsV2.Record(context,source,inputV2());
+            NativeAppearanceViewsV2.Geometry geometry=new NativeAppearanceViewsV2.Geometry();
+            var old=v2Records.get(source.id);var binding=new NativeAppearanceViewsV2.Binding(plan,node,source,installed.configuration.android);
+            if(environmentOnly&&old!=null)binding=new NativeAppearanceViewsV2.Binding(plan,node,source,installed.configuration.android,
+                old.view instanceof EditText editor?editor.getText().toString():binding.nativeFieldValue(),
+                old.view instanceof Switch toggle?Boolean.valueOf(toggle.isChecked()):binding.nativeToggleValue());
+            shadow.bind(binding,geometry,false);
+            detached.put(source.id,shadow);
+            if(old!=null)shadow.preparedScrollY=old.view.getScrollY();targets.put(source.id,old!=null&&old.kind.equals(source.kind)&&old.generation.equals(source.generation)?old:shadow);
+        }
+        for(var record:detached.values())NativeAppearanceViewsV2.installChildren(record,detached);
+        var safe=environment.value.safeArea64();long width=environment.value.viewport().width64()-safe.leading()-safe.trailing();
+        long height=environment.value.viewport().height64()-safe.top()-safe.bottom();
+        NativeAppearanceViewsV2.measure(detached.get(next.root.id),detached,width,height);
+        NativeAppearanceViewsV2.layoutRoot(detached.get(next.root.id),environment.width,environment.height,safe);
+        NativeAppearanceViewsV2.Gate gate=v2Gate==null?new NativeAppearanceViewsV2.Gate(context,this):v2Gate;
+        Candidate candidate=new Candidate(this,next,owned,Collections.unmodifiableMap(targets),Collections.unmodifiableMap(detached),plan,installed,environment,gate);
+        preflightEditorsV2(candidate);
+        v2Pending=candidate;return candidate;
+    }
+    private void preflightEditorsV2(Candidate c){
+        for(var previous:v2Records.values()){
+            boolean active=previous.view instanceof EditText edit&&(edit.hasFocus()||android.view.inputmethod.BaseInputConnection.getComposingSpanStart(edit.getText())>=0);
+            boolean selecting=previous.view instanceof TextView text&&text.isTextSelectable()&&text.getSelectionStart()>=0;
+            if(!active&&!selecting)continue;
+            var shadow=c.detached.get(previous.id);
+            if(c.targets.get(previous.id)!=previous||shadow==null||!sameEditorBindingV2(previous,shadow)||!sameAncestorsV2(c,previous.id)||
+                !sameFrameV2(previous.view,shadow.view))throw new AppearanceDescriptorV2.Failure(AppearanceDescriptorV2.Error.unsupportedNativeOperation);
+        }
+    }
+    private static boolean sameEditorBindingV2(NativeAppearanceViewsV2.Record old,NativeAppearanceViewsV2.Record next){
+        // Engine echo can acknowledge the current native buffer without calling setText or replacing Editable.
+        if(!(old.view instanceof TextView text)||!text.getText().toString().equals(((TextView)next.view).getText().toString()))return false;
+        var a=old.binding;var b=next.binding;
+        if(old.view instanceof Switch value&&value.isChecked()!=b.nativeToggleValue())return false;
+        boolean recipe=a.node().recipe().equals(b.node().recipe());
+        Map<String,Object> ap=new HashMap<>(a.source().properties),bp=new HashMap<>(b.source().properties);
+        if(a.node().recipe() instanceof AppearanceResolverV2.FieldRecipe x&&b.node().recipe() instanceof AppearanceResolverV2.FieldRecipe y){
+            recipe=x.label().equals(y.label())&&x.metrics().equals(y.metrics())&&x.text().role()==y.text().role()&&x.text().metrics().equals(y.text().metrics());ap.remove("value");bp.remove("value");}
+        return recipe&&a.node().disabled()==b.node().disabled()&&ap.equals(bp)&&
+            a.plan().environment.scheme()==b.plan().environment.scheme()&&a.plan().environment.profile()==b.plan().environment.profile()&&
+            a.plan().environment.direction()==b.plan().environment.direction()&&a.plan().environment.density1024()==b.plan().environment.density1024()&&
+            a.plan().environment.localeIdentifier().equals(b.plan().environment.localeIdentifier())&&a.theme().equals(b.theme());
+    }
+    private static boolean sameFrameV2(View a,View b){
+        int[] ap=positionV2(a),bp=positionV2(b);return Arrays.equals(ap,bp)&&a.getWidth()==b.getWidth()&&a.getHeight()==b.getHeight();
+    }
+    private static int[] positionV2(View view){int x=view.getLeft(),y=view.getTop();for(var parent=view.getParent();parent instanceof View v;parent=v.getParent()){
+        if(v instanceof NativeAppearanceViewsV2.Gate||v instanceof FrameLayout)break;x+=v.getLeft();y+=v.getTop();}return new int[]{x,y};}
+    private static String parentV2(UiPacket packet,String id){if(packet==null)return null;for(var n:packet.nodes.values())for(var c:n.children)if(c.id.equals(id))return n.id;return null;}
+    private static boolean containsKindV2(UiPacket.Node node,String kind){if(node.kind.equals(kind))return true;for(var child:node.children)if(containsKindV2(child,kind))return true;return false;}
+    private static boolean sameAncestorsV2(Candidate c,String id){String current=id;
+        while(current!=null){String before=parentV2(c.base,current),after=parentV2(c.next,current);if(!Objects.equals(before,after))return false;
+            if(before!=null){UiPacket.Node a=c.base.nodes.get(before),b=c.next.nodes.get(after);if(b==null||!a.kind.equals(b.kind)||!a.generation.equals(b.generation))return false;
+                List<String> ac=new ArrayList<>(),bc=new ArrayList<>();for(var n:a.children)ac.add(n.id);for(var n:b.children)bc.add(n.id);if(!ac.equals(bc))return false;}
+            current=before;}return true;}
+    private void validateV2(Candidate c,boolean attached){
+        requireV2Live();NativeEnvironmentV2.requireMain();
+        if(c==null||c.owner!=this||v2Pending!=c||c.used||c.attached!=attached||packet!=c.base||v2Records!=c.baseRecords||v2Installed!=c.installed)throw Json.bad("stale/foreign/consumed V2 candidate");
+        if(v2Interaction!=c.interaction)throw Json.bad("stale V2 native interaction epoch "+c.interaction+" -> "+v2Interaction);
+        if(!c.environment.current(this))throw Json.bad("stale V2 native environment");
+        if(!attached&&!sameNativeBaseV2(c.journal))throw Json.bad("stale V2 native canvas");
+    }
+    AttachmentJournal attachV2(Candidate c,FrameLayout root){
+        validateV2(c,false);if(root!=c.environment.root())throw Json.bad("foreign V2 root");preflightEditorsV2(c);
+        v2Open=false;c.gate.open=false;if(v2Gate!=null)v2Gate.open=false;c.gate.canvasColor=NativeAppearanceViewsV2.color(c.plan.canvas);v2Steps=0;
+        try {
+            for(var entry:c.targets.entrySet()){
+                var target=entry.getValue();var shadow=c.detached.get(entry.getKey());
+                if(target!=shadow){boolean preserve=target.view instanceof TextView&&sameEditorBindingV2(target,shadow);
+                    target.bind(shadow.binding,shadow.geometry,preserve);}
+                faultV2();
+            }
+            for(var target:c.targets.values()){NativeAppearanceViewsV2.installChildren(target,c.targets);faultV2();}
+            View desired=c.targets.get(c.next.root.id).view;
+            if(desired.getParent()!=c.gate){if(desired.getParent() instanceof ViewGroup previous)previous.removeView(desired);c.gate.addView(desired);}
+            for(int i=c.gate.getChildCount()-1;i>=0;i--)if(c.gate.getChildAt(i)!=desired)c.gate.removeViewAt(i);
+            faultV2();
+            if(c.gate.getParent()!=root){if(c.gate.getParent() instanceof ViewGroup previous)previous.removeView(c.gate);root.addView(c.gate,new FrameLayout.LayoutParams(-1,-1));}
+            for(int i=root.getChildCount()-1;i>=0;i--)if(root.getChildAt(i)!=c.gate)root.removeViewAt(i);
+            c.gate.measure(View.MeasureSpec.makeMeasureSpec(root.getWidth(),View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(root.getHeight(),View.MeasureSpec.EXACTLY));
+            c.gate.layout(0,0,root.getWidth(),root.getHeight());
+            NativeAppearanceViewsV2.layoutRoot(c.targets.get(c.next.root.id),root.getWidth(),root.getHeight(),c.environment.value.safeArea64());
+            faultV2();c.attached=true;return c.journal;
+        }catch(RuntimeException|java.lang.Error failure){try{restoreV2(c);}catch(RuntimeException|java.lang.Error rollback){retireV2();failure.addSuppressed(rollback);}c.used=true;v2Pending=null;throw failure;}
+    }
+    /** Scalar/reference checks and prepared swaps only. Coordinator commits engine immediately before this call. */
+    void finishV2(Candidate c,AttachmentJournal journal){
+        NativeEnvironmentV2.requireMain();
+        // The coordinator must call validateAttachedV2 immediately before its scalar engine commit.
+        // Never read resources or invoke native layout/setters/JNI after that commit boundary.
+        if(c==null||c.owner!=this||v2Pending!=c||c.used||!c.attached||journal!=c.journal||journal.complete||v2Retired)
+            throw Json.bad("invalid V2 finish");
+        packet=c.next;v2PacketBytes=c.bytes;v2Records=c.targets;v2Plan=c.plan;v2Gate=c.gate;v2CommittedEnvironment=c.environment;
+        c.used=true;journal.complete=true;v2Pending=null;v2Open=true;c.gate.open=true;
+    }
+    void validateAttachedV2(Candidate c,AttachmentJournal journal){validateV2(c,true);if(journal!=c.journal||journal.complete)throw Json.bad("foreign V2 journal");}
+    void rollbackV2(Candidate c,AttachmentJournal journal){
+        NativeEnvironmentV2.requireMain();if(c==null||c.owner!=this||v2Pending!=c||c.used||journal!=c.journal||journal.complete)throw Json.bad("invalid V2 rollback");
+        v2Open=false;c.gate.open=false;
+        try{restoreV2(c);c.used=true;journal.complete=true;v2Pending=null;}
+        catch(RuntimeException|java.lang.Error failure){retireV2();c.used=true;v2Pending=null;throw failure;}
+    }
+    void discardV2(Candidate c){NativeEnvironmentV2.requireMain();if(c==null||c.owner!=this||v2Pending!=c||c.used||c.attached)throw Json.bad("invalid V2 discard");c.used=true;v2Pending=null;}
+    private void restoreV2(Candidate c){
+        if(v2RollbackFault)throw new IllegalStateException("test-only rollback fault");
+        for(NativeState state:c.journal.previous){var r=state.record;boolean preserve=state.active;r.bind(state.binding,state.geometry,preserve);
+            if(!preserve&&r.view instanceof TextView text&&state.text!=null){r.changing=true;try{text.setText(state.text);
+                if(text instanceof EditText edit&&state.selectionStart>=0)edit.setSelection(state.selectionStart,state.selectionEnd);}finally{r.changing=false;}}
+        }
+        for(NativeState state:c.journal.previous){var r=state.record;
+            r.changing=true;try{if(r.view instanceof Switch value)value.setChecked(state.checked);r.view.setPressed(state.pressed);}finally{r.changing=false;}}
+        for(ParentState parent:c.journal.parents)restoreParentV2(parent.parent,parent.children);
+        for(var old:c.baseRecords.values())if(old.group!=null)old.group.records=c.baseRecords;
+        restoreParentV2(c.environment.root(),c.journal.rootChildren);
+        if(c.journal.oldGate!=null)c.journal.oldGate.canvasColor=c.journal.oldCanvas;
+        if(c.journal.oldGate!=null&&c.base!=null){var old=v2Records.get(c.base.root.id);
+            NativeAppearanceViewsV2.layoutRoot(old,c.journal.rootWidth,c.journal.rootHeight,old.binding.plan().environment.safeArea64());}
+        for(NativeState state:c.journal.previous)if(state.focused&&!state.record.view.hasFocus())state.record.view.requestFocus();
+        for(NativeState state:c.journal.previous)if(state.record.view.getScrollX()!=state.scrollX||state.record.view.getScrollY()!=state.scrollY)
+            state.record.view.scrollTo(state.scrollX,state.scrollY);
+        v2Open=v2CommittedEnvironment!=null&&v2CommittedEnvironment.current(this);if(c.journal.oldGate!=null)c.journal.oldGate.open=v2Open;
+    }
+    private static void restoreParentV2(ViewGroup parent,View[] children){
+        for(int i=parent.getChildCount()-1;i>=0;i--)if(!Arrays.asList(children).contains(parent.getChildAt(i)))parent.removeViewAt(i);
+        for(int i=0;i<children.length;i++){View view=children[i];if(i<parent.getChildCount()&&parent.getChildAt(i)==view)continue;
+            if(view.getParent() instanceof ViewGroup previous)previous.removeView(view);parent.addView(view,i);}
+    }
+    void disposeV2(){NativeEnvironmentV2.requireMain();retireV2();if(v2Environment!=null)v2Environment.close();}
+    void retireV2(){v2Retired=true;v2Open=false;if(v2Gate!=null){v2Gate.open=false;v2Gate.setVisibility(View.INVISIBLE);}if(v2Pending!=null){v2Pending.gate.open=false;v2Pending.gate.setVisibility(View.INVISIBLE);}}
+    private void requireV2Live(){
+        if(Build.VERSION.SDK_INT<36)throw new AppearanceDescriptorV2.Failure(AppearanceDescriptorV2.Error.unsupportedNativeOperation);
+        if(v2Retired)throw Json.bad("V2 owner retired");
+        if(packet!=null&&v2Plan==null)throw Json.bad("V2 requires a fresh native owner");
+    }
+    private void faultV2(){if(v2Fault>=0&&v2Steps++==v2Fault)throw new IllegalStateException("test-only V2 attachment fault");}
+    // Package-private fault injection is confined to this concrete owner; it grants no native support authority.
+    void testFaultV2(int attachmentStep,boolean rollback){v2Fault=attachmentStep;v2RollbackFault=rollback;}
+    void testExhaustInteractionV2(){v2Interaction=Long.MAX_VALUE;}
+    boolean testRetiredV2(){return v2Retired;}
+    Map<String,NativeAppearanceViewsV2.Record> inspectV2(){NativeEnvironmentV2.requireMain();return v2Records;}
+
 }

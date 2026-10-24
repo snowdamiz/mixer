@@ -10,8 +10,14 @@ private let repository = URL(fileURLWithPath: #filePath).deletingLastPathCompone
     let adapter = repository.appendingPathComponent("native/android")
     let digest = try AndroidProject.snapshot(adapter: adapter, destination: root)
     #expect(try SourceDigest.tree(root) == digest)
-    for name in ["Json.java", "UiPacket.java", "NativeRenderer.java", "NativeBridge.java", "MixerActivity.java"] {
+    for name in ["Json.java", "UiPacket.java", "NativeRenderer.java", "NativeBridge.java", "MixerActivity.java",
+                 "AppearanceDescriptorV2.java", "AppearanceGeometryV2.java", "AppearanceResolverV2.java",
+                 "AppearanceNativePathsV2.java", "InstalledAppearanceV2.java", "NativeEnvironmentV2.java",
+                 "NativeAppearanceViewsV2.java"] {
         let relative = "app/src/dev/mixer/android/\(name)"
+        #expect(try Data(contentsOf: root.appendingPathComponent(relative)) == Data(contentsOf: adapter.appendingPathComponent(relative)))
+    }
+    for relative in ["bridge/jni.c", "bridge/mixer_android.h", "bridge/mixer_android_v2.h"] {
         #expect(try Data(contentsOf: root.appendingPathComponent(relative)) == Data(contentsOf: adapter.appendingPathComponent(relative)))
     }
     #expect(!FileManager.default.fileExists(atPath: root.appendingPathComponent("app/src/dev/mixer/android/AdapterInstrumentation.java").path))

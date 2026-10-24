@@ -30,10 +30,19 @@ public enum AndroidProject {
     static func snapshot(adapter: URL, destination: URL) throws -> String {
         let adapter = adapter.resolvingSymlinksInPath().standardizedFileURL
         let expected = [
-            "bridge/jni.c", "bridge/mixer_android.h", "contracts/android-profile-v1.json",
+            "bridge/jni.c", "bridge/mixer_android.h", "bridge/mixer_android_v2.h", "contracts/android-profile-v1.json",
             "app/src/dev/mixer/android/Json.java", "app/src/dev/mixer/android/UiPacket.java",
             "app/src/dev/mixer/android/NativeRenderer.java", "app/src/dev/mixer/android/NativeBridge.java",
-            "app/src/dev/mixer/android/MixerActivity.java"
+            "app/src/dev/mixer/android/MixerActivity.java",
+            // Compile dependencies of the internal renderer. Including them does
+            // not opt generated applications into V2 or package appearance data.
+            "app/src/dev/mixer/android/AppearanceDescriptorV2.java",
+            "app/src/dev/mixer/android/AppearanceGeometryV2.java",
+            "app/src/dev/mixer/android/AppearanceResolverV2.java",
+            "app/src/dev/mixer/android/AppearanceNativePathsV2.java",
+            "app/src/dev/mixer/android/InstalledAppearanceV2.java",
+            "app/src/dev/mixer/android/NativeEnvironmentV2.java",
+            "app/src/dev/mixer/android/NativeAppearanceViewsV2.java"
         ]
         let runtime = adapter.appendingPathComponent("engine/Sources/MixerAndroidRuntime")
         let runtimeFiles = try SourceDigest.files(in: runtime)
@@ -130,7 +139,7 @@ public enum AndroidProject {
     }
     private static let entry = """
     import AppFeatures
-    import MixerAndroidRuntime
+    @_spi(MixerNativeAppearanceV2) import MixerAndroidRuntime
     // App-owned native entry point; state, document and reducer live in shared Swift.
     // State must remain a value type; callbacks are synchronous, non-reentrant and
     // free of I/O/async/shared mutable references. Sendable alone is insufficient.
@@ -148,6 +157,20 @@ public enum AndroidProject {
         _ input: UnsafePointer<UInt8>?, _ inputLength: Int,
         _ output: UnsafeMutablePointer<UInt8>?, _ capacity: Int, _ written: UnsafeMutablePointer<Int>?
     ) -> Int32 { sessions.exchange(handle, operation, input, inputLength, output, capacity, written) }
+    // Private ordinary-native staging. This does not opt the Activity into V2.
+    @_spi(MixerNativeAppearanceV2)
+    @_cdecl("mixer_android_prepare_v2")
+    public func mixerAndroidPrepareV2(_ handle: UInt64, _ operation: UInt32,
+        _ input: UnsafePointer<UInt8>?, _ inputLength: Int,
+        _ output: UnsafeMutablePointer<UInt8>?, _ capacity: Int,
+        _ written: UnsafeMutablePointer<Int>?, _ token: UnsafeMutablePointer<UInt64>?
+    ) -> Int32 { sessions.prepareV2(handle, operation, input, inputLength, output, capacity, written, token) }
+    @_spi(MixerNativeAppearanceV2)
+    @_cdecl("mixer_android_commit_v2")
+    public func mixerAndroidCommitV2(_ handle: UInt64, _ token: UInt64) -> Int32 { sessions.commitV2(handle, token) }
+    @_spi(MixerNativeAppearanceV2)
+    @_cdecl("mixer_android_abort_v2")
+    public func mixerAndroidAbortV2(_ handle: UInt64, _ token: UInt64) -> Int32 { sessions.abortV2(handle, token) }
     """ + "\n"
     private static let readme = """
     # Android local development host
@@ -165,6 +188,8 @@ public enum AndroidProject {
     There is no persistence, process restoration, navigation/back/sheets, native
     capabilities, lifecycle/effects, resource copying, production signing, store,
     accessibility or performance qualification. Unsupported UI/events fail closed.
+    The generated JNI closure includes private staged prepare/commit/abort exports;
+    the Activity still uses legacy exchange and does not opt into V2 rendering.
     Runtime state must preserve value semantics without shared mutable references.
     Callbacks run synchronously under a non-reentrant lock; they must not perform
     I/O, asynchronous work or external side effects. Sendable alone cannot ensure
@@ -184,7 +209,7 @@ public enum AndroidProject {
     import Foundation
     import Testing
     import MixerUI
-    @testable import AppAndroid
+    @_spi(MixerNativeAppearanceV2) @testable import AppAndroid
     @Suite(.serialized) struct ApplicationSessionTests {
         func exchange(_ handle: UInt64, _ input: Data? = nil, capacity: Int = 1_048_576) -> (Int32, Data) {
             var buffer = [UInt8](repeating: 0, count: capacity), written = 0
@@ -224,6 +249,35 @@ public enum AndroidProject {
                 #expect(exchange(handle, bad).0 != 0)
                 #expect(exchange(handle).1 == toggled.1)
             }
+        }
+        @Test func stagedDecisionsPreserveCommittedState() throws {
+            let handle = mixerAndroidCreate(); #expect(handle != 0)
+            defer { #expect(mixerAndroidDestroy(handle) == 0) }
+            let initial = exchange(handle); #expect(initial.0 == 0)
+            let edit = try event(initial.1, id: "draft", kind: .textChange, value: .string("Staged café 東京"))
+            func prepare() -> (Int32, Data, UInt64) {
+                var buffer = [UInt8](repeating: 0, count: 1_048_576), written = 0
+                var token: UInt64 = 0
+                let status = buffer.withUnsafeMutableBufferPointer { output in
+                    edit.withUnsafeBytes { input in
+                        mixerAndroidPrepareV2(handle, 1, input.bindMemory(to: UInt8.self).baseAddress,
+                            input.count, output.baseAddress, output.count, &written, &token)
+                    }
+                }
+                return (status, Data(buffer.prefix(min(written, buffer.count))), token)
+            }
+            let aborted = prepare(); #expect(aborted.0 == 0); #expect(aborted.2 != 0)
+            #expect(exchange(handle).0 == 5)
+            #expect(mixerAndroidAbortV2(handle, aborted.2) == 0)
+            #expect(mixerAndroidAbortV2(handle, aborted.2) == 0)
+            #expect(exchange(handle).1 == initial.1)
+            let committed = prepare(); #expect(committed.0 == 0); #expect(committed.2 != aborted.2)
+            #expect(mixerAndroidAbortV2(handle, aborted.2) == 0)
+            #expect(exchange(handle).0 == 5)
+            #expect(mixerAndroidCommitV2(handle, committed.2) == 0)
+            #expect(mixerAndroidCommitV2(handle, committed.2) == 6)
+            #expect(exchange(handle).1 == committed.1)
+            #expect(String(decoding: committed.1, as: UTF8.self).contains("Staged café 東京"))
         }
         @Test func boundedHandlesAndDestruction() {
             let handles = (0..<16).map { _ in mixerAndroidCreate() }

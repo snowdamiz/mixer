@@ -1,0 +1,64 @@
+{
+  "commands": [
+    {
+      "argv": [
+        "xcrun",
+        "simctl",
+        "get_app_container",
+        "A7B60132-3718-4C21-B70D-42F35A13419F",
+        "dev.mixer.verification.appearancev2",
+        "app"
+      ],
+      "exitCode": 0,
+      "stdout": "/Users/andreyyurlov/Library/Developer/CoreSimulator/Devices/A7B60132-3718-4C21-B70D-42F35A13419F/data/Containers/Bundle/Application/52746583-3A0A-4EB5-985A-FD46B9AE0E7D/MixerAppearanceV2.app\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "xcrun",
+        "vtool",
+        "-show-build",
+        "/Users/andreyyurlov/Library/Developer/CoreSimulator/Devices/A7B60132-3718-4C21-B70D-42F35A13419F/data/Containers/Bundle/Application/52746583-3A0A-4EB5-985A-FD46B9AE0E7D/MixerAppearanceV2.app/MixerAppearanceV2Harness"
+      ],
+      "exitCode": 0,
+      "stdout": "/Users/andreyyurlov/Library/Developer/CoreSimulator/Devices/A7B60132-3718-4C21-B70D-42F35A13419F/data/Containers/Bundle/Application/52746583-3A0A-4EB5-985A-FD46B9AE0E7D/MixerAppearanceV2.app/MixerAppearanceV2Harness:\nLoad command 11\n      cmd LC_BUILD_VERSION\n  cmdsize 32\n platform IOSSIMULATOR\n    minos 17.0\n      sdk 27.0\n   ntools 1\n     tool LD\n  version 27037.1\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-c",
+        "import sys,PIL,importlib.metadata; print(sys.version); print(\"Pillow\",PIL.__version__); m=importlib.metadata.metadata(\"Pillow\"); print(\"License\",m.get(\"License\"),m.get(\"License-Expression\"))"
+      ],
+      "exitCode": 0,
+      "stdout": "3.12.14 (main, Aug 25 2026, 13:50:33) [Clang 22.1.3 ]\nPillow 12.3.0\nLicense None MIT-CMU\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "verification/apple-native-appearance-v2/verify.py",
+        "--check-live"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\n  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/apple-native-appearance-v2/verify.py\", line 13, in <module>\n    if args.check_live: assert sha(REPO/name)==digest,('live input changed',name)\n                               ^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ('live input changed', 'AGENTS.md')\n"
+    }
+  ],
+  "actualInstalledSHA256": {
+    "MixerAppearanceV2Harness": "4387b87fbe11c554b27826f7e6f79467f0bac8038e32794e93ebe3606d9c1e2c",
+    "MixerAppearanceV2/descriptor.json": "1aeab75c457c21e5c801ab8b446490971d510021c945d0841252360becd8ead3",
+    "Frameworks/libMixerAppearanceInternal.dylib": "f160bafac6b10be05b597b990f1860dfe6e543bf82254844f980bdafacae7d23",
+    "Frameworks/libMixerCore.dylib": "b01a15e28640f3ab33656958b9b70588849ee01299e5af9741a6cfaf7f246ce9",
+    "Frameworks/libMixerUI.dylib": "fbadb507c00128a3066a4c7d87ec51dc12af9793b7e8917c74f7d1d31349031c"
+  },
+  "systemPythonPillowAttempt": {
+    "argv": [
+      "python3",
+      "verification/apple-native-appearance-v2/verify.py",
+      "--check-live"
+    ],
+    "exitCode": 1,
+    "error": "ModuleNotFoundError: No module named PIL; replayed successfully with bundled dependency runtime"
+  }
+}

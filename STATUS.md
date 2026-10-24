@@ -18,10 +18,12 @@ native Swift signature verifier, CLI, and a separate FieldLog repository.
 open. Implemented slices do not replace their complete acceptance requirements.
 
 The updated section 8.3 requires shared-theme design parity on iOS and Android,
-with platform-specific app appearance only when explicitly declared. Current Apple
-and Android adapters still use platform defaults and do not meet this requirement.
+with platform-specific app appearance only when explicitly declared. Public Apple
+and Android application paths still use platform defaults and do not meet this requirement.
 The shared appearance data foundation now has independent and root acceptance.
-Both renderers still need shared style consumption and reference-driven refinement.
+The private Android consumer now implements shared style consumption; its latest
+source has headless acceptance, with native revalidation pending. The private
+Apple consumer is still being refined and is not accepted.
 Eight unchanged iOS simulator reference screenshots are captured and reviewed.
 Native accessibility, navigation, text input and
 system-owned surfaces remain native. Prior interaction/device receipts are not
@@ -33,7 +35,27 @@ and `verification/simulator-development-policy/receipt.json`.
 Active work: native shared-theme renderer integration and failure-atomic
 attachment for W03–W05, plus complete Swift guest execution for W08. Both V2
 data resolvers and native curve primitives are accepted within their recorded
-scopes. Full native style consumption and Swift execution remain incomplete.
+scopes. Full native qualification and Swift execution remain incomplete.
+
+The private Android consumer now has scoped headless implementation acceptance:
+885 root bindings cover independent review, current Java17/DEX artifacts and the
+exact generated app source closure. Historical API37 native checks (460 main,
+14 button-inset and five negative cases) are retained; newer Section sizing and
+baseline changes have not run natively. Required Button/Toggle/Field text baselines
+reject in the bounded shared subset. The consumer supports systemSans and an
+empty resource catalog only, with a private runtime floor of API36. Public V1
+behavior is unchanged; this is not shared-design or G06 acceptance. See
+`verification/android-native-appearance-v2/root-headless-acceptance.json`.
+
+Private JNI preparation now owns delivered packet copies, aborts failed delivery
+and retires uncertain cleanup. Root replay reproduces 585 production and 199
+derived failure assertions in each Debug/Release × normal/interpreted JVM mode.
+Generated applications now capture the header and all six C exports; actual
+generated Swift host tests and the official arm64 API28 unsigned APK build pass.
+A removed C export causes a real linker rejection and removes stale success
+artifacts. Root verifies 543 bindings, with a separate independent source audit.
+See `verification/android-generated-v2-bridge/acceptance.json`. Native coordinator
+attachment, V2 Activity opt-in and Android runtime qualification remain pending.
 
 
 The ordinary Android checklist library now exposes the registry's private staged
@@ -42,9 +64,10 @@ Debug/Release; C++ clients compile/link the same header, and official Swift 6.3.
 links the arm64 API28 exports. Root replays 79 captured source files, 20 command
 logs and 7 native artifacts. The original NDK-discovery failure is preserved with
 a completion receipt inspecting the unchanged binary using the bundled NDK r27d.
-See `verification/android-engine-v2-c-bridge/acceptance.json`. JNI ownership,
-generated application staging exports, native coordinator integration and final
-hardware qualification remain pending; no public V2 opt-in or GA gate changes.
+See `verification/android-engine-v2-c-bridge/acceptance.json`. JNI ownership and
+generated staging exports now have the host/cross-build evidence described above;
+native coordinator integration and final hardware qualification remain pending.
+There is no public V2 opt-in or GA gate change.
 
 The user's October 23 verification instruction removes disconnected phones as
 a development dependency. Continue integration after relevant simulator/emulator

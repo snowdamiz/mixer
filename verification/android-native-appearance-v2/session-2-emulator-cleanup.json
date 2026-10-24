@@ -1,0 +1,60 @@
+{
+  "status": "stopped",
+  "observedUTC": "2026-10-24T02:03:46.008162+00:00",
+  "serial": "emulator-5586",
+  "pid": 41794,
+  "commands": [
+    {
+      "name": "owned-process-before",
+      "argv": [
+        "ps",
+        "-p",
+        "41794",
+        "-o",
+        "pid=,command="
+      ],
+      "exitCode": 0,
+      "stdout": "41794 /opt/homebrew/share/android-commandlinetools/emulator/qemu/darwin-aarch64/qemu-system-aarch64-headless -avd megpt-parity-api37 -port 5586 -read-only -no-snapshot -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect\n",
+      "stderr": ""
+    },
+    {
+      "name": "stop-owned-emulator",
+      "argv": [
+        "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+        "-s",
+        "emulator-5586",
+        "emu",
+        "kill"
+      ],
+      "exitCode": 0,
+      "stdout": "OK: killing emulator, bye bye\nOK\n",
+      "stderr": ""
+    },
+    {
+      "name": "owned-process-after",
+      "argv": [
+        "ps",
+        "-p",
+        "41794",
+        "-o",
+        "pid=,command="
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "owned-console-port-after",
+      "argv": [
+        "lsof",
+        "-nP",
+        "-iTCP:5586",
+        "-sTCP:LISTEN"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "scope": "Stopped only lane-owned read-only/no-snapshot replacement after candidate14 native assertions/screenshots/state receipts. Build artifacts retained. Existing AVD and other projects untouched; no target discovery."
+}
