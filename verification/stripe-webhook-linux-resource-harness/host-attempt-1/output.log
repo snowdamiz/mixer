@@ -1,0 +1,88 @@
+test_control_ready_stop_stopped_exact (__main__.HostControls.test_control_ready_stop_stopped_exact) ... ERROR
+test_control_wrong_generation_closed_types_and_lengths (__main__.HostControls.test_control_wrong_generation_closed_types_and_lengths) ... ERROR
+test_counter_parser_exact (__main__.HostControls.test_counter_parser_exact) ... ok
+test_credentials_are_unexpected_ancillary (__main__.HostControls.test_credentials_are_unexpected_ancillary) ... skipped 'Linux SCM_CREDENTIALS unavailable on this host'
+test_json_duplicate_and_nonfinite_rejected (__main__.HostControls.test_json_duplicate_and_nonfinite_rejected) ... ok
+test_output_allowlist_reconstructs_and_fragments (__main__.HostControls.test_output_allowlist_reconstructs_and_fragments) ... ok
+test_output_numeric_types_and_unknown_fields_rejected (__main__.HostControls.test_output_numeric_types_and_unknown_fields_rejected) ... ok
+test_output_overflow_separate_pipes_and_unterminated (__main__.HostControls.test_output_overflow_separate_pipes_and_unterminated) ... ok
+test_profile_exact_and_no_boolean_integer_confusion (__main__.HostControls.test_profile_exact_and_no_boolean_integer_confusion) ... ok
+test_receipt_closed_shape_and_unavailable_not_pass (__main__.HostControls.test_receipt_closed_shape_and_unavailable_not_pass) ... ok
+test_relative_paths_fail_closed (__main__.HostControls.test_relative_paths_fail_closed) ... ok
+test_replayed_control_rejected (__main__.HostControls.test_replayed_control_rejected) ... ERROR
+test_rights_rejected_and_received_descriptor_closed (__main__.HostControls.test_rights_rejected_and_received_descriptor_closed) ... ERROR
+test_unknown_raw_output_not_retained (__main__.HostControls.test_unknown_raw_output_not_retained) ... FAIL
+
+======================================================================
+ERROR: test_control_ready_stop_stopped_exact (__main__.HostControls.test_control_ready_stop_stopped_exact)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/stripe-webhook-linux-resource-harness/test_host.py", line 56, in test_control_ready_stop_stopped_exact
+    channel, peer = self.channel()
+                    ~~~~~~~~~~~~^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/stripe-webhook-linux-resource-harness/test_host.py", line 28, in channel
+    a, b = socket.socketpair(socket.AF_UNIX, socket.SOCK_SEQPACKET)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socket.py", line 669, in socketpair
+    a, b = _socket.socketpair(family, type, proto)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 43] Protocol not supported
+
+======================================================================
+ERROR: test_control_wrong_generation_closed_types_and_lengths (__main__.HostControls.test_control_wrong_generation_closed_types_and_lengths)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/stripe-webhook-linux-resource-harness/test_host.py", line 71, in test_control_wrong_generation_closed_types_and_lengths
+    channel, peer = self.channel()
+                    ~~~~~~~~~~~~^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/stripe-webhook-linux-resource-harness/test_host.py", line 28, in channel
+    a, b = socket.socketpair(socket.AF_UNIX, socket.SOCK_SEQPACKET)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socket.py", line 669, in socketpair
+    a, b = _socket.socketpair(family, type, proto)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 43] Protocol not supported
+
+======================================================================
+ERROR: test_replayed_control_rejected (__main__.HostControls.test_replayed_control_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/stripe-webhook-linux-resource-harness/test_host.py", line 76, in test_replayed_control_rejected
+    channel, peer = self.channel()
+                    ~~~~~~~~~~~~^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/stripe-webhook-linux-resource-harness/test_host.py", line 28, in channel
+    a, b = socket.socketpair(socket.AF_UNIX, socket.SOCK_SEQPACKET)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socket.py", line 669, in socketpair
+    a, b = _socket.socketpair(family, type, proto)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 43] Protocol not supported
+
+======================================================================
+ERROR: test_rights_rejected_and_received_descriptor_closed (__main__.HostControls.test_rights_rejected_and_received_descriptor_closed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/stripe-webhook-linux-resource-harness/test_host.py", line 83, in test_rights_rejected_and_received_descriptor_closed
+    channel, peer = self.channel()
+                    ~~~~~~~~~~~~^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/stripe-webhook-linux-resource-harness/test_host.py", line 28, in channel
+    a, b = socket.socketpair(socket.AF_UNIX, socket.SOCK_SEQPACKET)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socket.py", line 669, in socketpair
+    a, b = _socket.socketpair(family, type, proto)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 43] Protocol not supported
+
+======================================================================
+FAIL: test_unknown_raw_output_not_retained (__main__.HostControls.test_unknown_raw_output_not_retained)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/stripe-webhook-linux-resource-harness/test_host.py", line 118, in test_unknown_raw_output_not_retained
+    self.assertNotIn(raw.decode().strip(), json.dumps(audit.receipt()))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'MIXER_BODY_SENTINEL' unexpectedly found in '{"allowedSchemaCount": 0, "rejectedOutputCount": 1, "stdoutBytes": 0, "stderrBytes": 20, "sentinelMatches": {"MIXER_BODY_SENTINEL": true, "MIXER_SIGNATURE_SENTINEL": false, "MIXER_TRAILER_SENTINEL": false}}'
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.003s
+
+FAILED (failures=1, errors=4, skipped=1)

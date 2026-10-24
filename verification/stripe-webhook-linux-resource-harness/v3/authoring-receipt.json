@@ -1,0 +1,123 @@
+{
+  "amendmentSha256": "ee81c0f255a4850eb7eeb7b9d9fc08560870f2f56d82ad72a14e9593b32d1fb7",
+  "cleanup": {
+    "cgroupCreated": false,
+    "daemonStarted": false,
+    "listenerStarted": false,
+    "namespaceCreated": false,
+    "nativeInstanceStarted": false,
+    "ownedScratchRemains": false,
+    "providerContacted": false,
+    "roleStarted": false,
+    "runtimeScratchCreated": false,
+    "stressHelperStarted": false
+  },
+  "commands": [
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "-c",
+        "import json,unittest,test_host,test_repairs; r=unittest.TextTestRunner(verbosity=2).run(unittest.TestSuite([unittest.defaultTestLoader.loadTestsFromModule(test_host),unittest.defaultTestLoader.loadTestsFromModule(test_repairs)])); print(json.dumps({'run':r.testsRun,'passed':r.testsRun-len(r.failures)-len(r.errors)-len(r.skipped),'failed':len(r.failures),'errors':len(r.errors),'skipped':len(r.skipped)})); raise SystemExit(0 if r.wasSuccessful() else 1)"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/stripe-webhook-linux-resource-harness/v3",
+      "exitCode": 0,
+      "output": "verification/stripe-webhook-linux-resource-harness/v3/host-attempt-3/host-tests.log"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/stripe-webhook-linux-resource-harness/v3/run.py",
+        "--output",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/stripe-webhook-linux-resource-harness/v3/results/author-preflight-3"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exitCode": 78,
+      "output": "verification/stripe-webhook-linux-resource-harness/v3/host-attempt-3/preflight.log"
+    }
+  ],
+  "dependenciesAdded": [],
+  "faultEnumDigest": "3fea63bd9a41a3e91b8eb7922f87d52711c7d61b93c524d12c7bfaf6789b23e2",
+  "gaAccepted": false,
+  "harnessDigest": "c57c99a7743a29da0ffc2422cdacb21a79e672ef2ae9ca9a180b355aa4a4483f",
+  "hostScope": "actual old/repaired scheduler with mocked execution and writes; per-TID metadata model, pure lifecycle/cleanup validators, mocked pidfd fences and immutable binding checks; no live proc or Linux enforcement",
+  "hostTests": {
+    "errors": 0,
+    "failed": 0,
+    "passed": 52,
+    "run": 52,
+    "skipped": 0
+  },
+  "implementationComplete": false,
+  "independentImplementationAndEnumReview": "pending",
+  "inheritedHostControls": 31,
+  "observedUTC": "2026-10-24T18:41:27.010235+00:00",
+  "preservedSources": {
+    "control_nif.c": "ffbb62dc0d5853a70a56b54565bfbe011b00e193adc2fb995e4d2c1645b212fb",
+    "fault_helper.c": "d0ffe3524d3ae41d95a4cffebb40806bc11f8a3a9361151490832761d64f17c8",
+    "role.exs": "43f5c3b5f7285b9670c506308389f75af285199503364b82c5a8cace56a5bd02",
+    "signal-authority.json": "d0e7f3061e422ec93d06dbdb8d1ea9eb1f4ea541228892265083f5521fde3d83"
+  },
+  "profileDigest": "65adc0ed279a6acd9ba13af2445294b2e6bea3016aa91d29dbadbbc6642a3aec",
+  "publicTrailerPolicy": "unselected",
+  "r14SourcePhaseNames": [
+    "idle",
+    "h1_body",
+    "h2_reader_frozen",
+    "blocked_response"
+  ],
+  "r18SourceFaultBoundaries": 34,
+  "repairHostControls": 21,
+  "repairSelectionSha256": "c9559f73209ec01110f58299cdc5d10d72202975c45b036c79435871684a4b62",
+  "repairedFindings": [
+    "F1: suite and backend cleanup admission barriers",
+    "F2: per-TID namespace and unshared descriptor metadata inventory"
+  ],
+  "runtimeRowsExecuted": 0,
+  "schema": 1,
+  "selectedClosureDigest": "93b25f059192187ca6376bb843fcf2a6c7647dd569fd322a43b8cf81e65eff74",
+  "signalAmendmentSha256": "0813ca7940559092d2fe1bad6b97da6ce28f9b4a1b185645ab9147dff05fc634",
+  "sourceDigest": "1b2f03d474f825a6265e0a10f9baf2adda62dffe6c747542207f32753b4df997",
+  "sourceInputs": {
+    "README.md": "c6cb400ff410dbd896f81ffe92083adf25ac2de1819d589b5008f6ac9299e0ac",
+    "author.py": "28d7d44942269a1eb4ec755da71a8939f0bafe95e1943af2bf5223a15bc06ccf",
+    "checkpoint.py": "cd3d88e67c10c2b4f58f0e5375fcba5515d51686044aa18018f43f9078f22d86",
+    "control_nif.c": "ffbb62dc0d5853a70a56b54565bfbe011b00e193adc2fb995e4d2c1645b212fb",
+    "fault_helper.c": "d0ffe3524d3ae41d95a4cffebb40806bc11f8a3a9361151490832761d64f17c8",
+    "lifecycle.py": "ca3816fdce313aceeb8ccaaa7f86e78aebcbc7454a85c046657342c61552479d",
+    "linux_backend.py": "da3a453af76909211385bfcfd173e8ce292512a34b4af94661ed2be03027340c",
+    "proc_inventory.py": "699f7fe9f3ba1840e45891d1f48f8a5f4f9bd8afe7ce999cffd5a37dc85ee3a3",
+    "role.exs": "43f5c3b5f7285b9670c506308389f75af285199503364b82c5a8cace56a5bd02",
+    "run.py": "c42b605e63560a55d806e9c2ba228d332bdeb446536f2be65480ded534e8de82",
+    "signal-authority.json": "d0e7f3061e422ec93d06dbdb8d1ea9eb1f4ea541228892265083f5521fde3d83",
+    "test_host.py": "8a4b54d6ed59d893efa08de42fe7809a2f2bfe958455dbb8efa79d0b883fac1f",
+    "test_repairs.py": "cd6f30fcb063d908fc0d46c152d2b09eaa124d48c170945a88eb3f6ed652e411",
+    "verify.py": "01caafe85b1e5c6bba8d68f234c796b43c2315d2d415e14f12f8d6ef99dcf3ff"
+  },
+  "sourceRevisionContextOnly": {
+    "gitOperationPerformed": false,
+    "rootReportedMain": "cf52825",
+    "selectedContract": "bbed074d3bd2453bbcc0807f05219d042cedd738"
+  },
+  "sourceTreeDigest": "14dfbc8c780d3c943c9471afb586dcfd6bae7c51081efc5020f726dfb8e4ecbd",
+  "status": "passed-host-controls-only-linux-runtime-unavailable",
+  "tools": {
+    "LinuxCOrNIFOrBEAMCompiled": false,
+    "compilerRun": false,
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "pythonExecutableSha256": "e401ac7a95cda75dee34a0cfe1e4faf0a6df1a501cf67887f177fb78cd4eb60a"
+  },
+  "v1Checkpoint": {
+    "archiveMemberFiles": 99,
+    "implementationComplete": false,
+    "independentReviewSealSha256": "f32581490682397d10a26ffbc6250d129cab754782139d4f8b27711d6d209e48",
+    "runtimeCasesExecuted": 0,
+    "schema": 1,
+    "sealedFiles": 98,
+    "status": "passed-immutable-checkpoint-bindings-only",
+    "v2SealSha256": "35813b1f5194eeea3317f3e926ebde0f8a6a589d6f5724c69e27fd4c58a424b3",
+    "v2SealedFiles": 104
+  }
+}

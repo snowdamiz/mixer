@@ -1266,3 +1266,6 @@ See `docs/swift-dispatch-accounting-checkpoint.md`.
 
 The private iOS pan-commit carrier now passes a fresh iOS 26.5 simulator run:43 XCTest methods,45 native input actions and36 scoped direct callback components. Root replays1286 verdict predicates and324 native touch-origin predicates; zero bridge failures, all5cleanup operations pass, owned simulator/workspace absent. The first26pass/17fail run and four original plain-UIKit reference failures remain recorded. App/runner bytes are unchanged; the new harness corrects startup-history validation and atomic observation reads. Keyboard/focus, remaining lifecycle retirements, compositor parity, live Apple integration, physical final matrix, FieldLog and GA remain pending.
 See `verification/apple-toggle-pan-commit-root-review/failed-runtime-review.json`.
+
+
+The private Linux resource harness remains under repair after independent review. V3 fixes the cleanup admission barrier, but still misses child-PID-namespace lifetime references and overwrites failed cleanup evidence after a successful retry. Fifty-two producer host controls and eight independent mock controls reproduce the current scope; no Linux runtime row has executed. A separate V4 repair is selected. See [the resource review checkpoint](docs/stripe-resource-harness-review-checkpoint.md).

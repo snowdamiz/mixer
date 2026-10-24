@@ -1,0 +1,320 @@
+{
+  "LinuxCompilationAccepted": false,
+  "LinuxRuntimeAccepted": false,
+  "all30RuntimeMatrixRows": "pending",
+  "artifactFinalizationCommand": {
+    "argv": [
+      "/opt/homebrew/opt/python@3.14/bin/python3.14",
+      "-B",
+      "/Users/andreyyurlov/Documents/dev/mixer/verification/stripe-resource-harness-v3-independent-review/seal_review.py"
+    ],
+    "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+    "scope": "owned review artifact validation/finalization and one-time seal only"
+  },
+  "checks": {
+    "independentHostControls": {
+      "passed": 8,
+      "remainingSourceDefectsReproduced": 2,
+      "run": 8
+    },
+    "inspectedExistingMacOSPreflight": {
+      "exitCode": 78,
+      "failed": 0,
+      "passed": 0,
+      "rerun": false,
+      "runtimeRowsExecuted": 0,
+      "unavailable": 18
+    },
+    "producerHostControls": {
+      "errors": 0,
+      "failed": 0,
+      "passed": 52,
+      "run": 52,
+      "skipped": 0
+    },
+    "sealedReadOnlyVerifierExit": 0
+  },
+  "cleanup": {
+    "allModeledInventoryHandlesClosed": true,
+    "ownedRuntimeResourceRemains": false,
+    "reviewArtifactsOnly": true,
+    "runtimeResourceCreated": false
+  },
+  "commands": [
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/stripe-webhook-linux-resource-harness/v3/verify.py",
+        "--live"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exitCode": 0,
+      "output": "verification/stripe-resource-harness-v3-independent-review/sealed-verifier.log",
+      "outputSha256": "b9c2d696b14ed17e34f75a55a8349d6a37c3725e5a9b84d4a3afbb3ac84782dc"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "-c",
+        "import json,unittest,test_host,test_repairs; r=unittest.TextTestRunner(verbosity=2).run(unittest.TestSuite([unittest.defaultTestLoader.loadTestsFromModule(test_host),unittest.defaultTestLoader.loadTestsFromModule(test_repairs)])); print(json.dumps({'run':r.testsRun,'passed':r.testsRun-len(r.failures)-len(r.errors)-len(r.skipped),'failed':len(r.failures),'errors':len(r.errors),'skipped':len(r.skipped)})); raise SystemExit(0 if r.wasSuccessful() else 1)"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/stripe-webhook-linux-resource-harness/v3",
+      "exitCode": 0,
+      "output": "verification/stripe-resource-harness-v3-independent-review/producer-host-controls.log",
+      "outputSha256": "b98800127e59eb9e9e89241e78c97be72caf7c3fcda8fc94e431485e1c6c861d"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/stripe-resource-harness-v3-independent-review/review_controls.py"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exitCode": 0,
+      "output": "verification/stripe-resource-harness-v3-independent-review/independent-host-controls.json",
+      "outputSha256": "ab22f8fd4a80d68d8a887fd2cdef83d4f332a9a0832222a25a48f627a3cff9e3"
+    }
+  ],
+  "evidenceScope": "Independent sealed source/contract/differential control-flow review, primary Linux/CPython API source inspection, immutable checks and pure/mock host controls only",
+  "faultEnumDigest": "3fea63bd9a41a3e91b8eb7922f87d52711c7d61b93c524d12c7bfaf6789b23e2",
+  "faultEnumReview": {
+    "artifact": "verification/stripe-resource-harness-v3-independent-review/enum-review.json",
+    "runtimeBoundariesReached": 0,
+    "sourceBoundariesReviewed": 34
+  },
+  "findings": [
+    {
+      "contractBreach": "Complete namespace-holder teardown can become accepted zero while a nonleader thread retains the owned PID namespace through ns/pid_for_children; five current namespace names alone are incomplete.",
+      "id": "V3-F1",
+      "lineEnd": 14,
+      "lineStart": 14,
+      "observed": "Actual ProcMetadata adapter with low-level OS calls mocked returned zero and numeric cleanup accepted despite modeled TID101 pid_for_children referencing owned PID namespace777.",
+      "primarySources": [
+        "https://man7.org/linux/man-pages/man7/namespaces.7.html",
+        "https://man7.org/linux/man-pages/man7/pid_namespaces.7.html",
+        "https://github.com/torvalds/linux/blob/v6.18/kernel/pid_namespace.c#L401"
+      ],
+      "priority": 1,
+      "relatedSourceLines": [
+        [
+          109,
+          117
+        ],
+        [
+          230,
+          244
+        ]
+      ],
+      "reproduction": "verification/stripe-resource-harness-v3-independent-review/review_controls.py:210",
+      "requiredCorrection": "Retain only owned mount/net/pid/ipc/uts kinds; include pid_for_children for owned PID namespace references under original identity/deadline/race rules. Absent, unreadable or ambiguous child-namespace metadata must refuse zero; only explicitly proved task exits may use existing exit-race handling. Do not signal foreign holders.",
+      "source": "verification/stripe-webhook-linux-resource-harness/v3/proc_inventory.py",
+      "title": "Observe pid_for_children lifetime references for owned PID namespaces"
+    },
+    {
+      "contractBreach": "Root repair selection separately requires actual failed evidence to survive cleanup retries; replacing last_counts and retaining only successful cleanup loses the first positive holder observation despite the correct admission latch.",
+      "id": "V3-F2",
+      "lineEnd": 575,
+      "lineStart": 564,
+      "observed": "First actual Session.cleanup observed namespaceHolders=1 and raised; second observed zero, overwrote last_counts, retained only one zero-holder history entry, and left session.failed=false/error_reason=completed. Backend admission remained blocked.",
+      "priority": 2,
+      "relatedSourceLines": [
+        [
+          581,
+          585
+        ],
+        [
+          632,
+          644
+        ]
+      ],
+      "reproduction": "verification/stripe-resource-harness-v3-independent-review/review_controls.py:179",
+      "requiredCorrection": "Preserve a sanitized immutable record of every observed attempt, including positive/partial counts, failure reason and causal timing, before any retry. Keep original failure and admission latch even after physical disposal succeeds.",
+      "source": "verification/stripe-webhook-linux-resource-harness/v3/linux_backend.py",
+      "title": "Preserve each observed failed cleanup attempt when a later retry succeeds"
+    }
+  ],
+  "findingsCount": 2,
+  "forbiddenActionsPerformed": {
+    "COrNIFOrBEAMCompilation": false,
+    "LinuxContainerDaemonVMStartOrPull": false,
+    "installsProviderCloudStress": false,
+    "liveProcInventoryOrSignals": false,
+    "nativeDevicePhysicalQueriesOrRuns": false,
+    "producerV1V2V3OrPriorReviewMutations": false,
+    "rootTrackerOrGitMutations": false
+  },
+  "gaAccepted": false,
+  "harnessDigest": "c57c99a7743a29da0ffc2422cdacb21a79e672ef2ae9ca9a180b355aa4a4483f",
+  "implementationComplete": false,
+  "observedUTC": "2026-10-24T18:53:40.402806+00:00",
+  "originalLimits": {
+    "emptyAndAllResourcesByMs": 2500,
+    "maxStderrBytesPerRow": 1048576,
+    "maxStdoutBytesPerRow": 1048576,
+    "resetPermitted": false,
+    "rowSharedMs": 120000,
+    "suiteSharedMs": 900000,
+    "termGraceMs": 2000
+  },
+  "phaseReview": {
+    "gateTermAndCallbackLines": [
+      [
+        130,
+        148
+      ],
+      [
+        327,
+        385
+      ]
+    ],
+    "phases": {
+      "blocked_response": {
+        "armLines": [
+          252,
+          295
+        ],
+        "obligation": "Exact synthetic capture; original response owner waiting; unchanged response chunk count for>=200ms and positive kernel send queue; rechecked at TERM.",
+        "termLines": [
+          321,
+          326
+        ]
+      },
+      "h1_body": {
+        "armLines": [
+          221,
+          228
+        ],
+        "obligation": "Original active incomplete fixed-length body owner, no capture, still waiting at actual TERM.",
+        "termLines": [
+          310,
+          313
+        ]
+      },
+      "h2_reader_frozen": {
+        "armLines": [
+          230,
+          250
+        ],
+        "obligation": "Original owner actually suspended, positive queued messages after bounded DATA/PING traffic, no capture, still suspended/queued at TERM.",
+        "termLines": [
+          314,
+          320
+        ]
+      },
+      "idle": {
+        "armLines": [
+          217,
+          219
+        ],
+        "obligation": "Actual listener, zero active owners/captures.",
+        "termLines": [
+          309,
+          309
+        ]
+      }
+    },
+    "source": "verification/stripe-webhook-linux-resource-harness/v3/role.exs",
+    "sourceByteIdenticalToReviewedV2": true,
+    "status": "four-fixed-phase-source-contracts-reviewed-runtime-unverified",
+    "validator": "verification/stripe-webhook-linux-resource-harness/v3/lifecycle.py:191"
+  },
+  "preservedCheckpointBindings": {
+    "v1ArchiveMembers": 99,
+    "v1Files": 98,
+    "v1SealSha256": "0af22f84b6129b781f7af970cafdc71bf208f86f63275e4584a79875ce1c7dfe",
+    "v2Files": 104,
+    "v2IndependentReviewSealSha256": "f32581490682397d10a26ffbc6250d129cab754782139d4f8b27711d6d209e48",
+    "v2SealSha256": "35813b1f5194eeea3317f3e926ebde0f8a6a589d6f5724c69e27fd4c58a424b3"
+  },
+  "privateRuntimeApproved": false,
+  "procApiReview": {
+    "actualAdapterExercisedWithMockedOSCalls": true,
+    "presumedScandirOffsetDefect": "not-reported-source-confirms-dup-and-rewind",
+    "primarySourceEvidence": "verification/stripe-resource-harness-v3-independent-review/api-source-review.json",
+    "producerProcModelNotSubstitutedForIndependentAdapterControls": true
+  },
+  "profileDigest": "65adc0ed279a6acd9ba13af2445294b2e6bea3016aa91d29dbadbbc6642a3aec",
+  "remaining": "Preserve v3 and repair the two findings in a new immutable candidate; independent focused re-review required. Root owns runtime selection.",
+  "reviewArtifactBindings": {
+    "docs/stripe-resource-harness-v3-independent-review.md": "946f3079f4815a0ceca10065bb8fe8453ba20571a2e11bd2f10f6d04477cb9e1",
+    "verification/stripe-resource-harness-v3-independent-review/api-source-review.json": "47f790d3521f0c4c6c3a772cab8392cb9c3f018f118fe80acdb8f672f507cfe6",
+    "verification/stripe-resource-harness-v3-independent-review/command-receipt.json": "bbb3ebcb64e4b9e41677b4360b9f92549db8979489557bcb70a9f191a2264caf",
+    "verification/stripe-resource-harness-v3-independent-review/enum-review.json": "e740335a5abd1471469fa0b9128f400227f148e22dbd373fae408fd1243508f9",
+    "verification/stripe-resource-harness-v3-independent-review/independent-host-controls.json": "ab22f8fd4a80d68d8a887fd2cdef83d4f332a9a0832222a25a48f627a3cff9e3",
+    "verification/stripe-resource-harness-v3-independent-review/producer-host-controls.log": "b98800127e59eb9e9e89241e78c97be72caf7c3fcda8fc94e431485e1c6c861d",
+    "verification/stripe-resource-harness-v3-independent-review/review_controls.py": "cf1fe6c2be3a945aa4d52d1cb3af5c4c21ea152b69c8632327b739c2a26ea193",
+    "verification/stripe-resource-harness-v3-independent-review/seal_review.py": "976e0905313fcdd01343fe266a135ffdae5c319f63dc2f89f30f0dc532ebc502",
+    "verification/stripe-resource-harness-v3-independent-review/sealed-verifier.log": "b9c2d696b14ed17e34f75a55a8349d6a37c3725e5a9b84d4a3afbb3ac84782dc"
+  },
+  "reviewedSourceBindings": {
+    "verification/stripe-webhook-linux-resource-harness/v3/README.md": "c6cb400ff410dbd896f81ffe92083adf25ac2de1819d589b5008f6ac9299e0ac",
+    "verification/stripe-webhook-linux-resource-harness/v3/author.py": "28d7d44942269a1eb4ec755da71a8939f0bafe95e1943af2bf5223a15bc06ccf",
+    "verification/stripe-webhook-linux-resource-harness/v3/authoring-receipt.json": "7dffd6e0df60476f7a72f2b45beb2b7801f7166bb42ad9c82da5e03f2e8f1b20",
+    "verification/stripe-webhook-linux-resource-harness/v3/checkpoint.py": "cd3d88e67c10c2b4f58f0e5375fcba5515d51686044aa18018f43f9078f22d86",
+    "verification/stripe-webhook-linux-resource-harness/v3/contract-table.json": "d2d49a67b39ccaaafab7f508a6750a14629002e42dbef22a28cc2b8b1b40008b",
+    "verification/stripe-webhook-linux-resource-harness/v3/control_nif.c": "ffbb62dc0d5853a70a56b54565bfbe011b00e193adc2fb995e4d2c1645b212fb",
+    "verification/stripe-webhook-linux-resource-harness/v3/fault_helper.c": "d0ffe3524d3ae41d95a4cffebb40806bc11f8a3a9361151490832761d64f17c8",
+    "verification/stripe-webhook-linux-resource-harness/v3/lifecycle.py": "ca3816fdce313aceeb8ccaaa7f86e78aebcbc7454a85c046657342c61552479d",
+    "verification/stripe-webhook-linux-resource-harness/v3/linux_backend.py": "da3a453af76909211385bfcfd173e8ce292512a34b4af94661ed2be03027340c",
+    "verification/stripe-webhook-linux-resource-harness/v3/proc_inventory.py": "699f7fe9f3ba1840e45891d1f48f8a5f4f9bd8afe7ce999cffd5a37dc85ee3a3",
+    "verification/stripe-webhook-linux-resource-harness/v3/role.exs": "43f5c3b5f7285b9670c506308389f75af285199503364b82c5a8cace56a5bd02",
+    "verification/stripe-webhook-linux-resource-harness/v3/run.py": "c42b605e63560a55d806e9c2ba228d332bdeb446536f2be65480ded534e8de82",
+    "verification/stripe-webhook-linux-resource-harness/v3/signal-authority.json": "d0e7f3061e422ec93d06dbdb8d1ea9eb1f4ea541228892265083f5521fde3d83",
+    "verification/stripe-webhook-linux-resource-harness/v3/test_host.py": "8a4b54d6ed59d893efa08de42fe7809a2f2bfe958455dbb8efa79d0b883fac1f",
+    "verification/stripe-webhook-linux-resource-harness/v3/test_repairs.py": "cd6f30fcb063d908fc0d46c152d2b09eaa124d48c170945a88eb3f6ed652e411",
+    "verification/stripe-webhook-linux-resource-harness/v3/verify.py": "01caafe85b1e5c6bba8d68f234c796b43c2315d2d415e14f12f8d6ef99dcf3ff"
+  },
+  "reviewer": "stripe-resource-harness-v3-independent-review",
+  "rootBindings": {
+    "verification/stripe-webhook-resource-ingress-root-review/r14-r18-private-interface-amendment.json": "ee81c0f255a4850eb7eeb7b9d9fc08560870f2f56d82ad72a14e9593b32d1fb7",
+    "verification/stripe-webhook-resource-ingress-root-review/r14-real-signal-amendment.json": "0813ca7940559092d2fe1bad6b97da6ce28f9b4a1b185645ab9147dff05fc634",
+    "verification/stripe-webhook-resource-ingress-root-review/v2-cleanup-review-repair-selection.json": "c9559f73209ec01110f58299cdc5d10d72202975c45b036c79435871684a4b62"
+  },
+  "rootReviewClarifications": "Owned namespace kinds remain mount/net/pid/ipc/uts; pid_for_children absence/unreadability/ambiguity refuses zero; preserve every observed cleanup attempt even if later disposal succeeds.",
+  "runtimeRowsExecuted": 0,
+  "schema": 1,
+  "selectedClosureDigest": "93b25f059192187ca6376bb843fcf2a6c7647dd569fd322a43b8cf81e65eff74",
+  "sourceDigest": "1b2f03d474f825a6265e0a10f9baf2adda62dffe6c747542207f32753b4df997",
+  "sourceRevisionContextOnly": {
+    "authoritativeIdentity": "sealed file hashes",
+    "gitQueriesPerformed": false,
+    "producerReportedMain": "cf52825"
+  },
+  "sourceTreeDigest": "14dfbc8c780d3c943c9471afb586dcfd6bae7c51081efc5020f726dfb8e4ecbd",
+  "status": "independent-source-review-changes-required-private-runtime-not-approved",
+  "tools": {
+    "executable": "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+    "executableSha256": "e401ac7a95cda75dee34a0cfe1e4faf0a6df1a501cf67887f177fb78cd4eb60a",
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "uname": [
+      "Darwin",
+      "Andreys-MacBook-Pro.local",
+      "27.0.0",
+      "Darwin Kernel Version 27.0.0: Tue Aug 11 21:06:40 PDT 2026; root:xnu-13432.1.9~1/RELEASE_ARM64_T6050",
+      "arm64"
+    ]
+  },
+  "unchangedOwnedRuntimeSources": {
+    "control_nif.c": "ffbb62dc0d5853a70a56b54565bfbe011b00e193adc2fb995e4d2c1645b212fb",
+    "fault_helper.c": "d0ffe3524d3ae41d95a4cffebb40806bc11f8a3a9361151490832761d64f17c8",
+    "role.exs": "43f5c3b5f7285b9670c506308389f75af285199503364b82c5a8cace56a5bd02",
+    "signal-authority.json": "d0e7f3061e422ec93d06dbdb8d1ea9eb1f4ea541228892265083f5521fde3d83"
+  },
+  "v2FindingDisposition": {
+    "F1": {
+      "fullEvidencePreservation": "still-open-under-V3-F2",
+      "physicalRetryDoesNotReopenAdmission": true,
+      "suiteAndBackendAdmissionMechanism": "corrected-in-source-and-mocked-host-controls"
+    },
+    "F2": {
+      "completeNamespaceLifetimeProof": "still-open-under-V3-F1",
+      "nonleaderAndUnsharedFDTraversal": "corrected-in-source-and-actual-adapter-mocked-controls"
+    },
+    "withdrawnNifSourceMismatch": "remains-withdrawn-no-NIF-repair-claimed"
+  },
+  "v3SealSha256": "567139b93da497f8cfce6ce5f34aa5029b357e6b9f28a80cc7d70d077461608f",
+  "v3SealTreeDigest": "efd298f88df06bb70e95ee810df0401e2b61f0a5cb7cc16e681a3f6802a4d7c5",
+  "v3SealedBindings": 90
+}

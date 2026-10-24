@@ -1,0 +1,118 @@
+{
+  "LinuxEnforcementVerified": false,
+  "actualProcMetadataAdapterExercised": true,
+  "compilerRun": false,
+  "controlsPassed": 8,
+  "controlsRun": 8,
+  "results": [
+    {
+      "blockedAfterCase": "R14",
+      "executeRowCalls": [
+        "R14"
+      ],
+      "name": "suite-barrier-preserves-failed-row-and-suppresses-R18",
+      "passed": true
+    },
+    {
+      "adapter": "actual ProcMetadata with mocked os.open/stat/fstat/scandir/readlink/close",
+      "counts": {
+        "listenerHolders": 0,
+        "namespaceHolders": 0,
+        "pipeHolders": 0,
+        "socketHolders": 0
+      },
+      "liveProcQueried": false,
+      "name": "complete-stable-per-TID-zero",
+      "passed": true
+    },
+    {
+      "adapter": "actual ProcMetadata with mocked os.open/stat/fstat/scandir/readlink/close",
+      "counts": {
+        "listenerHolders": 0,
+        "namespaceHolders": 1,
+        "pipeHolders": 0,
+        "socketHolders": 0
+      },
+      "liveProcQueried": false,
+      "name": "nonleader-netns-detected",
+      "passed": true
+    },
+    {
+      "adapter": "actual ProcMetadata with mocked os.open/stat/fstat/scandir/readlink/close",
+      "counts": {
+        "listenerHolders": 1,
+        "namespaceHolders": 1,
+        "pipeHolders": 1,
+        "socketHolders": 1
+      },
+      "liveProcQueried": false,
+      "name": "unshared-nonleader-pipe-socket-namespace-FDs-detected",
+      "passed": true
+    },
+    {
+      "adapter": "actual ProcMetadata with mocked os.open/stat/fstat/scandir/readlink/close",
+      "counts": null,
+      "liveProcQueried": false,
+      "name": "nonleader-permission-fails-closed",
+      "passed": true
+    },
+    {
+      "adapter": "actual ProcMetadata with mocked os.open/stat/fstat/scandir/readlink/close",
+      "counts": null,
+      "liveProcQueried": false,
+      "name": "changed-namespace-fails-closed",
+      "passed": true
+    },
+    {
+      "admissionStillBlocked": true,
+      "afterRetryLastCounts": {
+        "listenerHolders": 0,
+        "namespaceHolders": 0,
+        "pipeHolders": 0,
+        "socketHolders": 0
+      },
+      "errorReasonAfterRetry": "completed",
+      "finding": "V3-F2",
+      "firstCounts": {
+        "listenerHolders": 0,
+        "namespaceHolders": 1,
+        "pipeHolders": 0,
+        "socketHolders": 0
+      },
+      "name": "retry-latch-blocks-new-session-but-overwrites-failed-holder-evidence",
+      "passed": true,
+      "retainedHistoryCleanupCounts": [
+        0
+      ],
+      "scope": "actual Session/LinuxBackend cleanup with disposal and holder counts mocked",
+      "sessionFailedAfterRetry": false
+    },
+    {
+      "actualQueriedNamespaceNames": [
+        "pid",
+        "mnt",
+        "net",
+        "ipc",
+        "uts"
+      ],
+      "apiBasis": "namespaces(7) Namespace lifetime and pid_namespaces(7) setns/unshare semantics",
+      "finding": "V3-F1",
+      "liveProcQueried": false,
+      "modeledHoldingTid": 101,
+      "name": "owned-pid-namespace-pinned-only-by-pid-for-children-is-missed",
+      "numericCleanupValidatorAccepted": true,
+      "ownedPidNamespaceInode": 777,
+      "passed": true,
+      "pidForChildrenQueried": false,
+      "reported": {
+        "listenerHolders": 0,
+        "namespaceHolders": 0,
+        "pipeHolders": 0,
+        "socketHolders": 0
+      }
+    }
+  ],
+  "runtimeRowsExecuted": 0,
+  "schema": 1,
+  "status": "eight-host-controls-complete-two-v3-defects-reproduced"
+}

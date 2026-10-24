@@ -1,0 +1,53 @@
+{
+  "LinuxEnforcementVerified": false,
+  "compilerRun": false,
+  "findings": [
+    {
+      "exitCode": 1,
+      "finding": "F1",
+      "modeledWritesSuppressed": 19,
+      "nextExecuteRowCalls": [
+        "R14",
+        "R18"
+      ],
+      "r14CleanupComplete": false,
+      "reproduced": true,
+      "runtimeRowsExecuted": 0,
+      "scope": "actual main scheduler with mocked row execution and writes"
+    },
+    {
+      "finding": "F2",
+      "liveProcQueried": false,
+      "metadataPathsVisited": [
+        "/proc",
+        "/proc/123/ns/pid",
+        "/proc/123/ns/mnt",
+        "/proc/123/ns/net",
+        "/proc/123/ns/ipc",
+        "/proc/123/ns/uts",
+        "/proc/123/fd"
+      ],
+      "modelHasSurvivingNamespaceHolder": true,
+      "modeledHoldingTid": 124,
+      "modeledOwnedNetnsInode": 777,
+      "numericCleanupValidatorAccepted": true,
+      "reported": {
+        "listenerHolders": 0,
+        "namespaceHolders": 0,
+        "pipeHolders": 0,
+        "socketHolders": 0
+      },
+      "reproduced": true,
+      "scope": "actual holder_counts with mocked per-thread proc metadata"
+    }
+  ],
+  "nifBinding": {
+    "finding": false,
+    "interpretation": "inherited source binding is consistent; initial reviewer premise withdrawn",
+    "sourceSha256": "ffbb62dc0d5853a70a56b54565bfbe011b00e193adc2fb995e4d2c1645b212fb",
+    "v1AndV2NifSourcesByteIdentical": true
+  },
+  "runtimeRowsExecuted": 0,
+  "schema": 1,
+  "status": "two-source-defects-reproduced-with-host-models-only"
+}

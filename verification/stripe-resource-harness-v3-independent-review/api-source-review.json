@@ -1,0 +1,90 @@
+{
+  "commandArgv": [
+    "python3",
+    "-B",
+    "-"
+  ],
+  "manuals": [
+    {
+      "sections": [
+        "The /proc/pid/ns/ directory: pid_for_children",
+        "Namespace lifetime: PID namespace references through pid_for_children"
+      ],
+      "supports": "pid_for_children can differ from pid and can pin a PID namespace with no member processes",
+      "url": "https://man7.org/linux/man-pages/man7/namespaces.7.html",
+      "version": "Linux man-pages 6.19"
+    },
+    {
+      "sections": [
+        "setns(2) and unshare(2) semantics"
+      ],
+      "supports": "changing child PID namespace does not change caller active PID namespace",
+      "url": "https://man7.org/linux/man-pages/man7/pid_namespaces.7.html",
+      "version": "Linux man-pages 6.19"
+    },
+    {
+      "sections": [
+        "/proc/pid/task",
+        "/proc/tid"
+      ],
+      "supports": "nonleader task metadata must be enumerated separately from top-level proc entries",
+      "url": "https://man7.org/linux/man-pages/man5/proc_pid_task.5.html",
+      "version": "Linux man-pages 6.19"
+    }
+  ],
+  "maxSourceBytesPerRawSource": 1048576,
+  "observedUTC": "2026-10-24T18:52:14.927180+00:00",
+  "runtimeRowsExecuted": 0,
+  "schema": 1,
+  "scope": "API source/reference inspection only; not evidence of any actual target kernel, Linux adapter execution or namespace disposal",
+  "sources": [
+    {
+      "bytes": 12006,
+      "name": "linux-v6.18-pid-namespace",
+      "sha256": "5176a10ff37810d64ffe06668bd37dd37c0a76c0c9943f1f987bca2ecc66e839",
+      "sourceAnchorLines": {
+        "pidns_for_children_get": [
+          361,
+          462
+        ],
+        "pidns_install": [
+          401,
+          454,
+          464
+        ]
+      },
+      "sourceCopiedIntoHarness": false,
+      "sourceExecuted": false,
+      "url": "https://raw.githubusercontent.com/torvalds/linux/v6.18/kernel/pid_namespace.c"
+    },
+    {
+      "bytes": 493061,
+      "name": "cpython-v3.14.0-posix-scandir",
+      "sha256": "1d7d6dc77a28d0cbc16054a3e382a1d50cc60656ac6ea7beb38baa88b2bac86a",
+      "sourceAnchorLines": {
+        "ScandirIterator_closedir": [
+          16220,
+          16274,
+          16287,
+          16353,
+          16363,
+          16377,
+          16389
+        ],
+        "fdopendir(fd)": [
+          4573,
+          16523
+        ],
+        "rewinddir(dirp)": [
+          4654,
+          16298
+        ]
+      },
+      "sourceCopiedIntoHarness": false,
+      "sourceExecuted": false,
+      "url": "https://raw.githubusercontent.com/python/cpython/v3.14.0/Modules/posixmodule.c"
+    }
+  ],
+  "timeoutSeconds": 15,
+  "tool": "web.run open/find primary manuals, plus Python urllib.request.urlopen/hashlib.sha256 on two fixed versioned raw sources"
+}

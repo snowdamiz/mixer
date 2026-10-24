@@ -1,0 +1,80 @@
+{
+  "schema": "mixer.stripe-resource-v3-review-repair-selection.1",
+  "observedUTC": "2026-10-24T18:55:25.340805+00:00",
+  "accountableReviewer": "/root",
+  "status": "selected-separate-v4-source-repairs-runtime-not-approved",
+  "bindings": {
+    "verification/stripe-resource-harness-v3-independent-review/review-seal.json": "63c7da620a9abefa65b2dbe536b25d733d0299bf14aaaaaebef028924065d642",
+    "verification/stripe-webhook-linux-resource-harness/v3/seal.json": "567139b93da497f8cfce6ce5f34aa5029b357e6b9f28a80cc7d70d077461608f",
+    "verification/stripe-resource-harness-v3-independent-review/receipt.json": "b3835a607f44c01814d232867c114b5627770f0de548b5b547772918bf478981",
+    "verification/stripe-resource-harness-v3-independent-review/independent-host-controls.json": "ab22f8fd4a80d68d8a887fd2cdef83d4f332a9a0832222a25a48f627a3cff9e3",
+    "verification/stripe-webhook-resource-ingress-root-review/v2-cleanup-review-repair-selection.json": "c9559f73209ec01110f58299cdc5d10d72202975c45b036c79435871684a4b62"
+  },
+  "independentReviewBindingsVerified": 10,
+  "findings": [
+    {
+      "contractBreach": "Complete namespace-holder teardown can become accepted zero while a nonleader thread retains the owned PID namespace through ns/pid_for_children; five current namespace names alone are incomplete.",
+      "id": "V3-F1",
+      "lineEnd": 14,
+      "lineStart": 14,
+      "observed": "Actual ProcMetadata adapter with low-level OS calls mocked returned zero and numeric cleanup accepted despite modeled TID101 pid_for_children referencing owned PID namespace777.",
+      "primarySources": [
+        "https://man7.org/linux/man-pages/man7/namespaces.7.html",
+        "https://man7.org/linux/man-pages/man7/pid_namespaces.7.html",
+        "https://github.com/torvalds/linux/blob/v6.18/kernel/pid_namespace.c#L401"
+      ],
+      "priority": 1,
+      "relatedSourceLines": [
+        [
+          109,
+          117
+        ],
+        [
+          230,
+          244
+        ]
+      ],
+      "reproduction": "verification/stripe-resource-harness-v3-independent-review/review_controls.py:210",
+      "requiredCorrection": "Retain only owned mount/net/pid/ipc/uts kinds; include pid_for_children for owned PID namespace references under original identity/deadline/race rules. Absent, unreadable or ambiguous child-namespace metadata must refuse zero; only explicitly proved task exits may use existing exit-race handling. Do not signal foreign holders.",
+      "source": "verification/stripe-webhook-linux-resource-harness/v3/proc_inventory.py",
+      "title": "Observe pid_for_children lifetime references for owned PID namespaces"
+    },
+    {
+      "contractBreach": "Root repair selection separately requires actual failed evidence to survive cleanup retries; replacing last_counts and retaining only successful cleanup loses the first positive holder observation despite the correct admission latch.",
+      "id": "V3-F2",
+      "lineEnd": 575,
+      "lineStart": 564,
+      "observed": "First actual Session.cleanup observed namespaceHolders=1 and raised; second observed zero, overwrote last_counts, retained only one zero-holder history entry, and left session.failed=false/error_reason=completed. Backend admission remained blocked.",
+      "priority": 2,
+      "relatedSourceLines": [
+        [
+          581,
+          585
+        ],
+        [
+          632,
+          644
+        ]
+      ],
+      "reproduction": "verification/stripe-resource-harness-v3-independent-review/review_controls.py:179",
+      "requiredCorrection": "Preserve a sanitized immutable record of every observed attempt, including positive/partial counts, failure reason and causal timing, before any retry. Keep original failure and admission latch even after physical disposal succeeds.",
+      "source": "verification/stripe-webhook-linux-resource-harness/v3/linux_backend.py",
+      "title": "Preserve each observed failed cleanup attempt when a later retry succeeds"
+    }
+  ],
+  "ownedNewSubtree": "verification/stripe-webhook-linux-resource-harness/v4/",
+  "requirements": [
+    "Preserve v1/v2/v3 and all review packets byte-for-byte.",
+    "Add per-TID pid_for_children lifetime references only for owned PID namespace IDs, with original identity, complete two-pass inventory and shared deadline rules. Missing, unreadable or ambiguous metadata cannot become zero except an explicitly proved task exit.",
+    "Record each cleanup attempt before a retry: actual available counts, partial/unknown status, failure reason, attempt identity and causal timestamps. Preserve first failure and sticky admission barrier after physical cleanup succeeds. Never replace failed history with final-zero success.",
+    "Retain four R14 phases,34 R18 boundaries, every resource/deadline/FD-control limit and independent all-outcome cleanup.",
+    "Keep C launcher,NIF,role and signal-authority bytes unchanged for these two repairs.",
+    "Add pure actual-adapter and actual-session regressions for both independently reproduced failures, metadata missing/error cases, positive-to-zero retry and failure-to-success retry preservation.",
+    "Host preparation only; new independent sealed review required before any Linux compiler/runtime qualification."
+  ],
+  "linuxRuntimeRowsExecuted": 0,
+  "privateRuntimeSelected": false,
+  "nativeSelected": false,
+  "liveProductIntegrationSelected": false,
+  "gaAccepted": false
+}
