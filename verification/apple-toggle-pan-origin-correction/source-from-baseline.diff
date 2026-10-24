@@ -1,0 +1,232 @@
+--- immutable-baseline/AuthoredToggleCarrier.swift
++++ private-candidate/AuthoredToggleCarrier.swift
+@@ -5,7 +5,7 @@
+ /// tracking, cancellation, focus, keyboard and assistive-technology input.
+ /// Mixer owns the public selected-state mapping and closed authored paint.
+ @MainActor final class AuthoredToggleCarrier: UIButton, UIGestureRecognizerDelegate {
+-    var inputAllowed: (() -> Bool)? { didSet { if inputAllowed?() != true { cancelAuthoredInteraction() } } }
++    var inputAllowed: (() -> Bool)? { didSet { cancelAuthoredInteraction() } }
+     var stateChanged: ((String) -> Void)?
+     var authoredAccessibility: [String: String] = [:]
+     var paints: UIToggleValuesV2!
+@@ -28,9 +28,13 @@
+     private var bindingGeneration: UInt64 = 0
+     private var panBindingGeneration: UInt64?
+     private var panStartThumbX: CGFloat = 2
++    private var admission = TogglePanAdmission()
++    private weak var admissionTouch: UITouch?
++    private weak var admissionWindow: UIWindow?
+     private weak var verticalScrollPan: UIPanGestureRecognizer?
+     // Native pan recognition threshold is additionally bounded by this explicit
+-    // public-delegate admission policy. Translation is in native UIKit points.
++    // public-delegate admission policy. Admission uses initial native touch
++    // displacement; preview and commit keep native UIPan translation unchanged.
+     var isOn: Bool { isSelected }
+     var authoredPressed: Bool { isHighlighted || panActive }
+ 
+@@ -80,27 +84,81 @@
+     }
+ 
+     func cancelAuthoredInteraction() {
++        let hadPendingOrigin = admission.origin != nil || admission.invalidated
++        resetAdmission("interaction-invalidated")
+         cancelTracking(with: nil)
+-        if slidePan.state == .began || slidePan.state == .changed {
++        if hadPendingOrigin || slidePan.state == .began || slidePan.state == .changed {
+             slidePan.isEnabled = false
+             slidePan.isEnabled = isEnabled
+         }
+         if panActive || previewThumbX != nil { restorePan("panInvalidated") }
+     }
+ 
++    private func admissionContext(in window: UIWindow) -> TogglePanAdmission.Context {
++        TogglePanAdmission.Context(carrier: String(describing: ObjectIdentifier(self)), window: String(describing: ObjectIdentifier(window)),
++            binding: bindingGeneration, frameInWindow: convert(bounds, to: window), carrierBounds: bounds,
++            carrierTransform: transform, windowBounds: window.bounds,
++            basisInWindow: [.zero, CGPoint(x: 1, y: 0), CGPoint(x: 0, y: 1)].map { convert($0, to: window) })
++    }
++    private func resetAdmission(_ reason: String) {
++        DiagnosticTrace.shared.append("panOriginReset", ["reason": reason, "attempt": admission.attempt, "hadOrigin": admission.origin != nil])
++        admission.reset(); admissionTouch = nil; admissionWindow = nil
++    }
++    override func layoutSubviews() {
++        super.layoutSubviews()
++        if let origin = admission.origin, let window, origin.context != admissionContext(in: window) { admission.invalidate() }
++    }
++    override func didMoveToWindow() {
++        super.didMoveToWindow()
++        if admissionWindow != nil && admissionWindow !== window { cancelAuthoredInteraction() }
++    }
+     override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+-        let result: Bool
+-        if gestureRecognizer === slidePan {
+-            result = isEnabled && inputAllowed?() == true && TogglePanPolicy.admits(slidePan.translation(in: self))
+-        } else { result = super.gestureRecognizerShouldBegin(gestureRecognizer) }
+-        DiagnosticTrace.shared.append("shouldBeginDecision", ["gesture": DiagnosticTrace.shared.gesture(gestureRecognizer), "isAuthoredPan": gestureRecognizer === slidePan, "translationInCarrier": DiagnosticTrace.shared.point(slidePan.translation(in: self)), "enabled": isEnabled, "inputAllowed": inputAllowed?() == true, "result": result])
+-        return result
++        guard gestureRecognizer === slidePan else { return super.gestureRecognizerShouldBegin(gestureRecognizer) }
++        let current = admissionWindow.map { slidePan.location(in: $0) } ?? CGPoint(x: CGFloat.nan, y: CGFloat.nan)
++        let touch = admissionTouch
++        let context = (window != nil && window === admissionWindow) ? admissionContext(in: window!) : nil
++        let active = touch.map { ($0.phase == .began || $0.phase == .moved || $0.phase == .stationary) && $0.window === admissionWindow } ?? false
++        let decision = admission.decide(touch: touch.map { String(describing: ObjectIdentifier($0)) }, current: current,
++            timestamp: touch?.timestamp ?? .nan, context: context, touchCount: slidePan.numberOfTouches,
++            touchActive: active, enabled: isEnabled, allowed: inputAllowed?() == true)
++        func point(_ value: CGPoint?) -> Any { value.map { $0.x.isFinite && $0.y.isFinite ? DiagnosticTrace.shared.point($0) as Any : NSNull() } ?? NSNull() }
++        func geometry(_ context: TogglePanAdmission.Context?) -> Any {
++            guard let context else { return NSNull() }
++            return ["frameInWindow": NSCoder.string(for: context.frameInWindow), "carrierBounds": NSCoder.string(for: context.carrierBounds),
++                "windowBounds": NSCoder.string(for: context.windowBounds), "carrierTransform": NSCoder.string(for: context.carrierTransform),
++                "basisInWindow": context.basisInWindow.map { DiagnosticTrace.shared.point($0) }]
++        }
++        DiagnosticTrace.shared.append("shouldBeginDecision", ["gesture": DiagnosticTrace.shared.gesture(gestureRecognizer), "isAuthoredPan": true,
++            "translationInCarrier": DiagnosticTrace.shared.point(slidePan.translation(in: self)), "enabled": isEnabled, "inputAllowed": inputAllowed?() == true,
++            "admissionOriginInWindow": point(decision.origin?.point), "admissionCurrentInWindow": point(current), "admissionDisplacementInWindow": point(decision.displacement),
++            "admissionAttempt": decision.attempt, "admissionOriginAttempt": decision.origin?.attempt as Any? ?? NSNull(),
++            "admissionTouchIdentity": decision.origin?.touch as Any? ?? NSNull(), "admissionWindowIdentity": decision.origin?.context.window as Any? ?? NSNull(),
++            "admissionCarrierIdentity": decision.origin?.context.carrier as Any? ?? NSNull(), "admissionBindingGeneration": decision.origin?.context.binding as Any? ?? NSNull(),
++            "admissionContextMatches": decision.origin?.context == context, "admissionOriginGeometry": geometry(decision.origin?.context), "admissionCurrentGeometry": geometry(context),
++            "admissionOriginTimestamp": decision.origin?.timestamp as Any? ?? NSNull(), "admissionTouchTimestamp": touch?.timestamp as Any? ?? NSNull(),
++            "admissionTouchPhase": touch?.phase.rawValue as Any? ?? NSNull(), "admissionReason": decision.reason, "result": decision.accepted])
++        return decision.accepted
+     }
+ 
+     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+         DiagnosticTrace.shared.touches("recognizerShouldReceiveTouch", [touch], nil, in: self)
++        if gestureRecognizer === slidePan {
++            if let prior = admissionTouch, prior !== touch,
++               prior.phase == .ended || prior.phase == .cancelled { resetAdmission("prior-native-touch-terminal") }
++            else if admissionTouch == nil && (admission.origin != nil || admission.invalidated) { resetAdmission("prior-native-touch-released") }
++            if let window, touch.window === window, touch.phase == .began {
++                admission.capture(touch: String(describing: ObjectIdentifier(touch)), point: touch.location(in: window),
++                    timestamp: touch.timestamp, context: admissionContext(in: window))
++                if admissionTouch == nil { admissionTouch = touch; admissionWindow = window }
++            } else { admission.invalidate() }
++            DiagnosticTrace.shared.append("panOriginCapture", ["attempt": admission.attempt, "origin": admission.origin.map { DiagnosticTrace.shared.point($0.point) as Any } ?? NSNull(),
++                "touchIdentity": String(describing: ObjectIdentifier(touch)), "windowIdentity": window.map { String(describing: ObjectIdentifier($0)) } as Any? ?? NSNull(),
++                "bindingGeneration": bindingGeneration, "invalidated": admission.invalidated])
++        }
++        // The native maximumNumberOfTouches=1 sees every touch and owns failure;
++        // an additional received touch invalidates this admission origin.
+         DiagnosticTrace.shared.append("recognizerReceiveDecision", ["gesture": DiagnosticTrace.shared.gesture(gestureRecognizer), "result": true])
+-        return true // UIKit's default admission; no additional filter.
++        return true
+     }
+ 
+     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive event: UIEvent) -> Bool {
+@@ -128,6 +186,7 @@
+             guard isEnabled, inputAllowed?() == true, panBindingGeneration == bindingGeneration else { cancelAuthoredInteraction(); return }
+             updatePanPreview()
+         case .ended:
++            resetAdmission("native-pan-ended")
+             guard isEnabled, inputAllowed?() == true, panBindingGeneration == bindingGeneration else { restorePan("panEndRejected"); return }
+             let point = slidePan.location(in: self)
+             guard TogglePanPolicy.permitsRelease(y:point.y, height:bounds.height) else { restorePan("panVerticalExit"); return }
+@@ -142,6 +201,7 @@
+             } else { panNoChangeCount += 1; stateChanged?("panNoChange") }
+             setNeedsDisplay()
+         case .cancelled, .failed:
++            resetAdmission("native-pan-cancelled-or-failed")
+             if panActive || previewThumbX != nil { restorePan("panCancelled") }
+         default: break
+         }
+@@ -153,6 +213,7 @@
+     }
+ 
+     @objc private func primaryAction() {
++        resetAdmission("native-primary-action")
+         DiagnosticTrace.shared.append("carrierPrimaryTarget", ["selectedOnEntry": isSelected, "retainedOnEntry": retainedOn, "enabled": isEnabled, "inputAllowed": inputAllowed?() == true])
+         primaryCount += 1
+         guard isEnabled, inputAllowed?() == true else {
+@@ -213,8 +274,8 @@
+     }
+     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) { DiagnosticTrace.shared.touches("carrierTouchesBegan", touches, event, in: self); super.touchesBegan(touches, with: event) }
+     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) { DiagnosticTrace.shared.touches("carrierTouchesMoved", touches, event, in: self); super.touchesMoved(touches, with: event) }
+-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) { DiagnosticTrace.shared.touches("carrierTouchesEnded", touches, event, in: self); super.touchesEnded(touches, with: event) }
+-    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) { DiagnosticTrace.shared.touches("carrierTouchesCancelled", touches, event, in: self); super.touchesCancelled(touches, with: event) }
++    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) { DiagnosticTrace.shared.touches("carrierTouchesEnded", touches, event, in: self); resetAdmission("view-touch-ended"); super.touchesEnded(touches, with: event) }
++    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) { DiagnosticTrace.shared.touches("carrierTouchesCancelled", touches, event, in: self); if slidePan.state != .began && slidePan.state != .changed { resetAdmission("view-touch-cancelled") }; super.touchesCancelled(touches, with: event) }
+     override func beginTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
+         beginCount += 1
+         guard isEnabled, inputAllowed?() == true else { stateChanged?("beginRejected"); return false }
+--- immutable-baseline/TogglePanAdmission.swift
++++ private-candidate/TogglePanAdmission.swift
+@@ -0,0 +1,78 @@
++import CoreGraphics
++import Foundation
++
++/// Private qualification admission state. UIKit still owns recognition and all
++/// post-admission translation. Coordinates are public UIWindow points.
++struct TogglePanAdmission {
++    struct Context: Equatable {
++        let carrier: String
++        let window: String
++        let binding: UInt64
++        let frameInWindow: CGRect
++        let carrierBounds: CGRect
++        let carrierTransform: CGAffineTransform
++        let windowBounds: CGRect
++        let basisInWindow: [CGPoint]
++
++        var finite: Bool {
++            let numbers = [frameInWindow.minX, frameInWindow.minY, frameInWindow.width, frameInWindow.height,
++                           carrierBounds.minX, carrierBounds.minY, carrierBounds.width, carrierBounds.height,
++                           carrierTransform.a, carrierTransform.b, carrierTransform.c, carrierTransform.d,
++                           carrierTransform.tx, carrierTransform.ty,
++                           windowBounds.minX, windowBounds.minY, windowBounds.width, windowBounds.height]
++            return numbers.allSatisfy(\.isFinite) && basisInWindow.count == 3 && basisInWindow.allSatisfy { $0.x.isFinite && $0.y.isFinite } && frameInWindow.width > 0 && frameInWindow.height > 0
++                && carrierBounds.width > 0 && carrierBounds.height > 0 && windowBounds.width > 0 && windowBounds.height > 0
++        }
++    }
++    struct Origin {
++        let touch: String
++        let point: CGPoint
++        let timestamp: TimeInterval
++        let context: Context
++        let attempt: UInt64
++    }
++    struct Decision {
++        let origin: Origin?
++        let current: CGPoint
++        let displacement: CGPoint?
++        let accepted: Bool
++        let reason: String
++        let attempt: UInt64
++    }
++    private(set) var origin: Origin?
++    private(set) var invalidated = false
++    private(set) var attempt: UInt64 = 0
++    private var initialPolicyDecision: Bool?
++
++    mutating func reset() { origin = nil; invalidated = false; initialPolicyDecision = nil; attempt &+= 1 }
++    mutating func invalidate() { invalidated = true }
++    mutating func capture(touch: String, point: CGPoint, timestamp: TimeInterval, context: Context) {
++        guard origin == nil, !invalidated, point.x.isFinite, point.y.isFinite,
++              timestamp.isFinite, context.finite else { invalidated = true; return }
++        attempt &+= 1
++        origin = Origin(touch: touch, point: point, timestamp: timestamp, context: context, attempt: attempt)
++    }
++    mutating func decide(touch: String?, current: CGPoint, timestamp: TimeInterval,
++                         context: Context?, touchCount: Int, touchActive: Bool, enabled: Bool, allowed: Bool) -> Decision {
++        let captured = origin
++        let displacement = captured.map { CGPoint(x: current.x - $0.point.x, y: current.y - $0.point.y) }
++        let reason: String
++        if invalidated { reason = "invalidated-or-multiple-touches" }
++        else if captured == nil { reason = "missing-origin" }
++        else if !enabled || !allowed { reason = "input-gate" }
++        else if touchCount != 1 || !touchActive || touch != captured?.touch { reason = "touch-identity-or-lifecycle" }
++        else if context != captured?.context || context?.finite != true { reason = "carrier-window-binding-or-geometry-changed" }
++        else if !current.x.isFinite || !current.y.isFinite || !timestamp.isFinite || timestamp < captured!.timestamp { reason = "invalid-point-or-time" }
++        else {
++            // UIView and delegate routing may ask more than once. A repeated
++            // query rechecks every fence and keeps this attempt's initial policy
++            // result; it cannot authorize a new touch, geometry or binding.
++            if initialPolicyDecision == nil { initialPolicyDecision = TogglePanPolicy.admits(displacement!) }
++            reason = initialPolicyDecision == true ? "accepted" : "horizontal-policy"
++        }
++        if reason != "accepted" && reason != "horizontal-policy" { invalidated = true }
++        let decision = Decision(origin: captured, current: current, displacement: displacement,
++                                accepted: reason == "accepted", reason: reason, attempt: attempt)
++        return decision
++    }
++}

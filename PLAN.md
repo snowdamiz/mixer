@@ -1,15 +1,14 @@
 # Execution index
 
-Latest checkpoint: Android authored V2 toggle input is integrated after all 45
-private component cases and the 429-assertion coordinator matrix pass. All 89
-product inputs match the native-tested candidate; the live build reproduces
-163 class artifacts and DEX bytes. Original collection failures are preserved.
-iOS XCTest now proves native movement and nine passing action evaluations, but
-four directional pans reject admission and the direct diagnostic suite is
-incomplete. A separate pan-origin correction is being prepared. Both owned
-native instances are cleaned. Console CI passes; Swift dispatch accounting,
-Linux resource isolation, full product qualification and every GA/dogfood gate
-remain pending. See [the current checkpoint](docs/native-toggle-input-integration-checkpoint.md).
+Latest checkpoint: Android authored V2 toggle input is integrated at `a490761`
+after all 45 component cases and 429 coordinator assertions pass. The private
+iOS pan-origin correction now passes ten XCTest methods, all 13 interaction
+evaluations and 167 original assertions, plus 36 root origin checks. Its separate
+direct API replay is complete but failed: 11/19 diagnostic and 10/12 comparator
+checks pass. Both owned iOS instances and the prior Android instance are cleaned.
+Swift dispatch repair/accounting, Linux resource isolation, Apple adapter
+integration, full product qualification and every GA/dogfood gate remain pending.
+See [the latest native checkpoint](docs/apple-toggle-pan-origin-runtime-checkpoint.md).
 
 The console now has its first TypeScript display model for release checks. Nine
 host tests cover 4,096 status combinations, missing/stale results, duplicate and
