@@ -1,0 +1,51 @@
+{
+  "schema": "mixer.stripe-resource-v4-review-repair-selection.1",
+  "observedUTC": "2026-10-24T19:24:12.091123+00:00",
+  "accountableReviewer": "/root",
+  "status": "selected-narrow-v5-source-repair-runtime-not-approved",
+  "bindings": {
+    "verification/stripe-resource-harness-v4-independent-review/review-seal.json": "7ad2c07f01f9644453dadcaf748f396172d084c4a9b8a8ada779b2e1f13cd737",
+    "verification/stripe-resource-harness-v4-independent-review/receipt.json": "5c32fa549392a919c729ed207307f70da608bdcd2cd77aad18ef13c40e64b9c3",
+    "verification/stripe-resource-harness-v4-independent-review/independent-host-controls.json": "6a44b54235040b7df81183fc47734fa83fe98f274b2950204a6e97b7f6e84233",
+    "verification/stripe-webhook-linux-resource-harness/v4/seal.json": "309bbd3b0b4fb56ec9d3545204a5be24f1664fe5274ca873c610d18e77dc7f9e"
+  },
+  "verifiedReviewFiles": 9,
+  "priorFindingsCorrected": [
+    "V3-F1",
+    "V3-F2"
+  ],
+  "remainingFinding": {
+    "contractBreach": "Available owned descriptor references successfully returned by readlink are buffered locally and discarded if a later read fails; partial/error and proved-exit historical observation records then lose actual known references.",
+    "id": "V4-F1",
+    "lineEnd": 90,
+    "lineStart": 79,
+    "observed": "Actual adapter read FD7 as owned socket inode999. FD8 PermissionError led actual Session to freeze partial observed/reference socket counts0; FD8 ENOENT with proved TID exit led final zero plus historical observed socket counts0. No live proc used.",
+    "priority": 2,
+    "qualificationImpact": "Permission failures refuse runtime qualification, and final zero after proved exit remains valid. The defect is loss of mandatory partial/history evidence, not a manufactured runtime pass.",
+    "relatedSourceLines": [
+      [
+        169,
+        176
+      ],
+      [
+        118,
+        123
+      ]
+    ],
+    "reproduction": "verification/stripe-resource-harness-v4-independent-review/review_controls.py:partial_descriptor_error and partial_descriptor_exit",
+    "requiredCorrection": "Use a fixed internal finite observation handoff for each sanitized successful descriptor read, or carry bounded immutable partial descriptor observations when a later read fails. Preserve them across explicit exits, exceptions and retries. Do not add arbitrary callback/FD/path/HTTP/signal/command authority or relax deadlines/final-zero rules.",
+    "source": "verification/stripe-webhook-linux-resource-harness/v4/proc_inventory.py",
+    "title": "Preserve successful descriptor reads before a later entry error or proved task exit"
+  },
+  "ownedNewSubtree": "verification/stripe-webhook-linux-resource-harness/v5/",
+  "requirements": [
+    "Preserve every earlier producer/review byte.",
+    "Retain each sanitized successful descriptor reference before later entry reads can fail, including proof of a task exit. Use a fixed internal observation handoff or bounded immutable partial exception data.",
+    "Keep available partial/reference observations through actual Session cleanup retries and detached receipt views. Unknown is never zero; physical final-zero evidence remains separate.",
+    "Preserve current task identity/two-pass/deadline requirements, sticky failure/admission, no foreign process signals, same four phases34boundaries and C/NIF/role/signalauthority bytes.",
+    "Add actual ProcMetadata low-level syscall mock and actual Session regressions for later PermissionError, proved-exit ENOENT, malformed descriptor metadata and retry retention.",
+    "Host preparation and fresh independent review only; no Linux/compiler/runtime/native/provider/Git or root tracker operations."
+  ],
+  "privateRuntimeSelected": false,
+  "gaAccepted": false
+}

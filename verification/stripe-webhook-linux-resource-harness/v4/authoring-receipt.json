@@ -1,0 +1,128 @@
+{
+  "amendmentSha256": "ee81c0f255a4850eb7eeb7b9d9fc08560870f2f56d82ad72a14e9593b32d1fb7",
+  "cleanup": {
+    "cgroupCreated": false,
+    "daemonStarted": false,
+    "listenerStarted": false,
+    "namespaceCreated": false,
+    "nativeInstanceStarted": false,
+    "ownedScratchRemains": false,
+    "providerContacted": false,
+    "roleStarted": false,
+    "runtimeScratchCreated": false,
+    "stressHelperStarted": false
+  },
+  "commands": [
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "-c",
+        "import json,unittest,test_host,test_repairs,test_v4; r=unittest.TextTestRunner(verbosity=2).run(unittest.TestSuite([unittest.defaultTestLoader.loadTestsFromModule(test_host),unittest.defaultTestLoader.loadTestsFromModule(test_repairs),unittest.defaultTestLoader.loadTestsFromModule(test_v4)])); print(json.dumps({'run':r.testsRun,'passed':r.testsRun-len(r.failures)-len(r.errors)-len(r.skipped),'failed':len(r.failures),'errors':len(r.errors),'skipped':len(r.skipped)})); raise SystemExit(0 if r.wasSuccessful() else 1)"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/stripe-webhook-linux-resource-harness/v4",
+      "exitCode": 0,
+      "output": "verification/stripe-webhook-linux-resource-harness/v4/host-attempt-1/host-tests.log"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/stripe-webhook-linux-resource-harness/v4/run.py",
+        "--output",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/stripe-webhook-linux-resource-harness/v4/results/author-preflight-1"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exitCode": 78,
+      "output": "verification/stripe-webhook-linux-resource-harness/v4/host-attempt-1/preflight.log"
+    }
+  ],
+  "dependenciesAdded": [],
+  "faultEnumDigest": "3fea63bd9a41a3e91b8eb7922f87d52711c7d61b93c524d12c7bfaf6789b23e2",
+  "gaAccepted": false,
+  "harnessDigest": "64768849091ac048d91c2679303506a40b18633a5982cc8f25683ff7f2b117ec",
+  "hostScope": "actual ProcMetadata with low-level OS mocks and actual Session cleanup sequences; inherited scheduling/metadata models, validators, mocked pidfd fences and immutable bindings; no live proc or Linux enforcement",
+  "hostTests": {
+    "errors": 0,
+    "failed": 0,
+    "passed": 66,
+    "run": 66,
+    "skipped": 0
+  },
+  "implementationComplete": false,
+  "independentImplementationAndEnumReview": "pending",
+  "inheritedHostControls": 52,
+  "observedUTC": "2026-10-24T19:08:56.405237+00:00",
+  "preservedSources": {
+    "control_nif.c": "ffbb62dc0d5853a70a56b54565bfbe011b00e193adc2fb995e4d2c1645b212fb",
+    "fault_helper.c": "d0ffe3524d3ae41d95a4cffebb40806bc11f8a3a9361151490832761d64f17c8",
+    "role.exs": "43f5c3b5f7285b9670c506308389f75af285199503364b82c5a8cace56a5bd02",
+    "signal-authority.json": "d0e7f3061e422ec93d06dbdb8d1ea9eb1f4ea541228892265083f5521fde3d83"
+  },
+  "profileDigest": "65adc0ed279a6acd9ba13af2445294b2e6bea3016aa91d29dbadbbc6642a3aec",
+  "publicTrailerPolicy": "unselected",
+  "r14SourcePhaseNames": [
+    "idle",
+    "h1_body",
+    "h2_reader_frozen",
+    "blocked_response"
+  ],
+  "r18SourceFaultBoundaries": 34,
+  "repairHostControls": 14,
+  "repairSelectionSha256": "c9559f73209ec01110f58299cdc5d10d72202975c45b036c79435871684a4b62",
+  "repairedFindings": [
+    "V3-F1: mandatory owned-PID pid_for_children reference inventory",
+    "V3-F2: immutable cleanup-attempt observations and sticky first failure"
+  ],
+  "runtimeRowsExecuted": 0,
+  "schema": 1,
+  "selectedClosureDigest": "93b25f059192187ca6376bb843fcf2a6c7647dd569fd322a43b8cf81e65eff74",
+  "signalAmendmentSha256": "0813ca7940559092d2fe1bad6b97da6ce28f9b4a1b185645ab9147dff05fc634",
+  "sourceDigest": "1b2f03d474f825a6265e0a10f9baf2adda62dffe6c747542207f32753b4df997",
+  "sourceInputs": {
+    "README.md": "680456aa6e154e70e169cb7b0a25a7687c53cc6e2fa0440f74c1f8c3fa08c3d0",
+    "author.py": "d363167b62d6d33799ef6a8e2f07856061db7d176f25130b51d20cc2aa76ddab",
+    "checkpoint.py": "58fb699ab2137f8c069ae6f190cf3fbd6b373449bbb2f88ea110b750b24324de",
+    "control_nif.c": "ffbb62dc0d5853a70a56b54565bfbe011b00e193adc2fb995e4d2c1645b212fb",
+    "fault_helper.c": "d0ffe3524d3ae41d95a4cffebb40806bc11f8a3a9361151490832761d64f17c8",
+    "lifecycle.py": "ca3816fdce313aceeb8ccaaa7f86e78aebcbc7454a85c046657342c61552479d",
+    "linux_backend.py": "1c4ddee6b77f14bc566df546edbf4bdca82cffb8c8f2f8467bf2c8525a204a21",
+    "proc_inventory.py": "192d84ec7a0359b44c88824841d83107371e0dc03c6a3209dc4bea6884a8b8d5",
+    "role.exs": "43f5c3b5f7285b9670c506308389f75af285199503364b82c5a8cace56a5bd02",
+    "run.py": "d38724e9292146cc10048922310ea839fe50fb0ec4e414039c72e5c7b496513e",
+    "signal-authority.json": "d0e7f3061e422ec93d06dbdb8d1ea9eb1f4ea541228892265083f5521fde3d83",
+    "test_host.py": "8a4b54d6ed59d893efa08de42fe7809a2f2bfe958455dbb8efa79d0b883fac1f",
+    "test_repairs.py": "cd6f30fcb063d908fc0d46c152d2b09eaa124d48c170945a88eb3f6ed652e411",
+    "test_v4.py": "0c57bba62deceff26b8a27b5528876890ffe8dd4b2f9b612e9626e89668f9572",
+    "verify.py": "092d20392fb11e96a1c2bba1bc406871eccb8e35521cebe5422dc9c4968b0a8f"
+  },
+  "sourceRevisionContextOnly": {
+    "gitOperationPerformed": false,
+    "rootReportedMain": "cf52825",
+    "selectedContract": "bbed074d3bd2453bbcc0807f05219d042cedd738"
+  },
+  "sourceTreeDigest": "f3d10bfb156fce46e62c98edd3cf8b40b050e9d73368daf0efdc105e4088e00c",
+  "status": "passed-host-controls-only-linux-runtime-unavailable",
+  "tools": {
+    "LinuxCOrNIFOrBEAMCompiled": false,
+    "compilerRun": false,
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "pythonExecutableSha256": "e401ac7a95cda75dee34a0cfe1e4faf0a6df1a501cf67887f177fb78cd4eb60a"
+  },
+  "v1Checkpoint": {
+    "archiveMemberFiles": 99,
+    "implementationComplete": false,
+    "independentReviewSealSha256": "f32581490682397d10a26ffbc6250d129cab754782139d4f8b27711d6d209e48",
+    "runtimeCasesExecuted": 0,
+    "schema": 1,
+    "sealedFiles": 98,
+    "status": "passed-immutable-checkpoint-bindings-only",
+    "v2SealSha256": "35813b1f5194eeea3317f3e926ebde0f8a6a589d6f5724c69e27fd4c58a424b3",
+    "v2SealedFiles": 104,
+    "v3IndependentReviewSealSha256": "63c7da620a9abefa65b2dbe536b25d733d0299bf14aaaaaebef028924065d642",
+    "v3SealSha256": "567139b93da497f8cfce6ce5f34aa5029b357e6b9f28a80cc7d70d077461608f",
+    "v3SealedFiles": 90
+  },
+  "v4RepairSelectionSha256": "35758c19f017c1bb6db5b5ccf60fee1b14fb3d9c30f68f6e86b0029d304e7158"
+}
