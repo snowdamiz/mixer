@@ -1,0 +1,15 @@
+/Users/andreyyurlov/Documents/dev/mixer/verification/android-engine-v2-transactions/OrdinaryClient.swift:4:18: error: 'commitV2' is inaccessible due to '@_spi' protection level
+2 | 
+3 | func cannotCommit<E: AndroidApplicationEngine>(_ registry: AndroidSessionRegistry<E>) {
+4 |     _ = registry.commitV2(1, 1)
+  |                  `- error: 'commitV2' is inaccessible due to '@_spi' protection level
+5 | }
+6 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/android-engine-v2-transactions/candidate-1/.build/source/native/android/engine/Sources/MixerAndroidRuntime/SessionRegistry.swift:127:17: note: 'commitV2' declared here
+125 |     /// native coordinator rather than guessing which screen is authoritative.
+126 |     @_spi(MixerNativeAppearanceV2)
+127 |     public func commitV2(_ handle: UInt64, _ token: UInt64) -> Int32 {
+    |                 `- note: 'commitV2' declared here
+128 |         lock.lock(); defer { lock.unlock() }
+129 |         guard var session = sessions[handle] else { return 2 }

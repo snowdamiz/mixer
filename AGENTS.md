@@ -33,6 +33,11 @@ The user's October 23 instruction accepts simulator/emulator tests as sufficient
 to accept development slices and continue dependent implementation. Do not block
 that progress on phones. Run the physical-phone matrix at final acceptance and
 correct any differences then; preserve the actual environment in every receipt.
+Keep simulator/emulator use bounded: normally one active test instance per native
+lane. Reuse it, retire an obsolete owned instance before booting its replacement,
+and shut down disposable test instances after evidence collection, including
+failed runs. Record cleanup; preserve other projects' active instances and their
+data. The user explicitly requested cleanup of unused simulators.
 
 Record command, tool version, source revision/tree digest, output, and scope.
 Mac unit tests are not physical iOS/Android receipts. FieldLog must eventually

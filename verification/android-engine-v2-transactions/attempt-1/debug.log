@@ -1,0 +1,398 @@
+Building for debugging...
+[Pre-planning 1 / 242]
+[Planning deferred tasks]
+[57 / 125]
+[58 / 126] MixerCore
+[68 / 166]
+[73 / 166]
+[76 / 166]
+[77 / 166]
+[81 / 166]
+[84 / 166]
+[89 / 166]
+[91 / 166]
+[92 / 166]
+[98 / 166] MixerCore
+[105 / 167] MixerCore
+[118 / 183] MixerUI
+[120 / 183] MixerUI
+[128 / 184] MixerUI
+[128 / 184] MixerAndroidRuntime
+[131 / 187] MixerAndroidRuntime
+[140 / 188]
+[143 / 188] MixerAndroidEngine
+[149 / 191] MixerAndroidEngine
+[163 / 192] MixerAndroidEngine
+[170 / 199] MixerAndroidEngine-product
+[172 / 202]
+[180 / 202] MixerAndroidRuntimeTests-product
+[190 / 202] MixerAndroidRuntimeTests-product
+error: SwiftCompile normal arm64 /Users/andreyyurlov/Documents/dev/mixer/native/android/engine/Tests/MixerAndroidRuntimeTests/TransactionTests.swift failed with a nonzero exit code. Command line:     cd /Users/andreyyurlov/Documents/dev/mixer/native/android
+    builtin-SwiftPerFileCompile TransactionTests.swift
+/Users/andreyyurlov/Documents/dev/mixer/native/android/engine/Tests/MixerAndroidRuntimeTests/TransactionTests.swift:34:37: error: 'prepareV2' is inaccessible due to '@_spi' protection level
+ 32 |             output.withUnsafeMutableBufferPointer { buffer in
+ 33 |                 if staged {
+ 34 |                     return registry.prepareV2(handle, operation, raw.bindMemory(to: UInt8.self).baseAddress,
+    |                                     `- error: 'prepareV2' is inaccessible due to '@_spi' protection level
+ 35 |                                               input.count, buffer.baseAddress, capacity, &written, &token)
+ 36 |                 }
+
+MixerAndroidRuntime.AndroidSessionRegistry.prepareV2:2:13: note: 'prepareV2' declared here
+1 | generic class AndroidSessionRegistry {
+2 | public func prepareV2(_ handle: UInt64, _ operation: UInt32, _ input: UnsafePointer<UInt8>?, _ inputLength: Int, _ output: UnsafeMutablePointer<UInt8>?, _ capacity: Int, _ written: UnsafeMutablePointer<Int>?, _ token: UnsafeMutablePointer<UInt64>?) -> Int32}
+  |             `- note: 'prepareV2' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/native/android/engine/Tests/MixerAndroidRuntimeTests/TransactionTests.swift:58:26: error: 'abortV2' is inaccessible due to '@_spi' protection level
+ 56 |         let blocked = call(registry, handle, staged: true)
+ 57 |         #expect(blocked.status == 5 && blocked.token == 0 && blocked.written == 0)
+ 58 |         #expect(registry.abortV2(handle, first.token) == 0)
+    |                          `- error: 'abortV2' is inaccessible due to '@_spi' protection level
+ 59 |         #expect(registry.abortV2(handle, first.token) == 0)
+ 60 |         #expect(registry.commitV2(handle, first.token) == 6)
+
+MixerAndroidRuntime.AndroidSessionRegistry.abortV2:2:13: note: 'abortV2' declared here
+1 | generic class AndroidSessionRegistry {
+2 | public func abortV2(_ handle: UInt64, _ token: UInt64) -> Int32}
+  |             `- note: 'abortV2' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/native/android/engine/Tests/MixerAndroidRuntimeTests/TransactionTests.swift:59:26: error: 'abortV2' is inaccessible due to '@_spi' protection level
+ 57 |         #expect(blocked.status == 5 && blocked.token == 0 && blocked.written == 0)
+ 58 |         #expect(registry.abortV2(handle, first.token) == 0)
+ 59 |         #expect(registry.abortV2(handle, first.token) == 0)
+    |                          `- error: 'abortV2' is inaccessible due to '@_spi' protection level
+ 60 |         #expect(registry.commitV2(handle, first.token) == 6)
+ 61 |         #expect(render(registry, handle).bytes == Data("0".utf8))
+
+MixerAndroidRuntime.AndroidSessionRegistry.abortV2:2:13: note: 'abortV2' declared here
+1 | generic class AndroidSessionRegistry {
+2 | public func abortV2(_ handle: UInt64, _ token: UInt64) -> Int32}
+  |             `- note: 'abortV2' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/native/android/engine/Tests/MixerAndroidRuntimeTests/TransactionTests.swift:60:26: error: 'commitV2' is inaccessible due to '@_spi' protection level
+ 58 |         #expect(registry.abortV2(handle, first.token) == 0)
+ 59 |         #expect(registry.abortV2(handle, first.token) == 0)
+ 60 |         #expect(registry.commitV2(handle, first.token) == 6)
+    |                          `- error: 'commitV2' is inaccessible due to '@_spi' protection level
+ 61 |         #expect(render(registry, handle).bytes == Data("0".utf8))
+ 62 |         let second = call(registry, handle, staged: true)
+
+MixerAndroidRuntime.AndroidSessionRegistry.commitV2:2:13: note: 'commitV2' declared here
+1 | generic class AndroidSessionRegistry {
+2 | public func commitV2(_ handle: UInt64, _ token: UInt64) -> Int32}
+  |             `- note: 'commitV2' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/native/android/engine/Tests/MixerAndroidRuntimeTests/TransactionTests.swift:64:26: error: 'abortV2' is inaccessible due to '@_spi' protection level
+ 62 |         let second = call(registry, handle, staged: true)
+ 63 |         #expect(second.token > first.token)
+ 64 |         #expect(registry.abortV2(handle, first.token) == 0)
+    |                          `- error: 'abortV2' is inaccessible due to '@_spi' protection level
+ 65 |         #expect(render(registry, handle).status == 5) // Old abort did not discard the new candidate.
+ 66 |         #expect(registry.commitV2(handle, second.token) == 0)
+
+MixerAndroidRuntime.AndroidSessionRegistry.abortV2:2:13: note: 'abortV2' declared here
+1 | generic class AndroidSessionRegistry {
+2 | public func abortV2(_ handle: UInt64, _ token: UInt64) -> Int32}
+  |             `- note: 'abortV2' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/native/android/engine/Tests/MixerAndroidRuntimeTests/TransactionTests.swift:66:26: error: 'commitV2' is inaccessible due to '@_spi' protection level
+ 64 |         #expect(registry.abortV2(handle, first.token) == 0)
+ 65 |         #expect(render(registry, handle).status == 5) // Old abort did not discard the new candidate.
+ 66 |         #expect(registry.commitV2(handle, second.token) == 0)
+    |                          `- error: 'commitV2' is inaccessible due to '@_spi' protection level
+ 67 |         #expect(registry.commitV2(handle, second.token) == 6)
+ 68 |         #expect(registry.abortV2(handle, second.token) == 6)
+
+MixerAndroidRuntime.AndroidSessionRegistry.commitV2:2:13: note: 'commitV2' declared here
+1 | generic class AndroidSessionRegistry {
+2 | public func commitV2(_ handle: UInt64, _ token: UInt64) -> Int32}
+  |             `- note: 'commitV2' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/native/android/engine/Tests/MixerAndroidRuntimeTests/TransactionTests.swift:67:26: error: 'commitV2' is inaccessible due to '@_spi' protection level
+ 65 |         #expect(render(registry, handle).status == 5) // Old abort did not discard the new candidate.
+ 66 |         #expect(registry.commitV2(handle, second.token) == 0)
+ 67 |         #expect(registry.commitV2(handle, second.token) == 6)
+    |                          `- error: 'commitV2' is inaccessible due to '@_spi' protection level
+ 68 |         #expect(registry.abortV2(handle, second.token) == 6)
+ 69 |         #expect(render(registry, handle).bytes == Data("1".utf8))
+
+MixerAndroidRuntime.AndroidSessionRegistry.commitV2:2:13: note: 'commitV2' declared here
+1 | generic class AndroidSessionRegistry {
+2 | public func commitV2(_ handle: UInt64, _ token: UInt64) -> Int32}
+  |             `- note: 'commitV2' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/native/android/engine/Tests/MixerAndroidRuntimeTests/TransactionTests.swift:68:26: error: 'abortV2' is inaccessible due to '@_spi' protection level
+ 66 |         #expect(registry.commitV2(handle, second.token) == 0)
+ 67 |         #expect(registry.commitV2(handle, second.token) == 6)
+ 68 |         #expect(registry.abortV2(handle, second.token) == 6)
+    |                          `- error: 'abortV2' is inaccessible due to '@_spi' protection level
+ 69 |         #expect(render(registry, handle).bytes == Data("1".utf8))
+ 70 |         #expect(registry.destroy(handle) == 0)
+
+MixerAndroidRuntime.AndroidSessionRegistry.abortV2:2:13: note: 'abortV2' declared here
+1 | generic class AndroidSessionRegistry {
+2 | public func abortV2(_ handle: UInt64, _ token: UInt64) -> Int32}
+  |             `- note: 'abortV2' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/native/android/engine/Tests/MixerAndroidRuntimeTests/TransactionTests.swift:78:26: error: 'commitV2' is inaccessible due to '@_spi' protection level
+ 76 |         let first = call(registry, a, staged: true), second = call(registry, b, staged: true)
+ 77 |         #expect(first.token != second.token)
+ 78 |         #expect(registry.commitV2(a, second.token) == 6)
+    |                          `- error: 'commitV2' is inaccessible due to '@_spi' protection level
+ 79 |         #expect(registry.abortV2(b, first.token) == 6)
+ 80 |         #expect(registry.commitV2(a, 0) == 6)
+
+MixerAndroidRuntime.AndroidSessionRegistry.commitV2:2:13: note: 'commitV2' declared here
+1 | generic class AndroidSessionRegistry {
+2 | public func commitV2(_ handle: UInt64, _ token: UInt64) -> Int32}
+  |             `- note: 'commitV2' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/native/android/engine/Tests/MixerAndroidRuntimeTests/TransactionTests.swift:79:26: error: 'abortV2' is inaccessible due to '@_spi' protection level
+ 77 |         #expect(first.token != second.token)
+ 78 |         #expect(registry.commitV2(a, second.token) == 6)
+ 79 |         #expect(registry.abortV2(b, first.token) == 6)
+    |                          `- error: 'abortV2' is inaccessible due to '@_spi' protection level
+ 80 |         #expect(registry.commitV2(a, 0) == 6)
+ 81 |         #expect(registry.abortV2(a, .max) == 6)
+
+MixerAndroidRuntime.AndroidSessionRegistry.abortV2:2:13: note: 'abortV2' declared here
+1 | generic class AndroidSessionRegistry {
+2 | public func abortV2(_ handle: UInt64, _ token: UInt64) -> Int32}
+  |             `- note: 'abortV2' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/native/android/engine/Tests/MixerAndroidRuntimeTests/TransactionTests.swift:80:26: error: 'commitV2' is inaccessible due to '@_spi' protection level
+ 78 |         #expect(registry.commitV2(a, second.token) == 6)
+ 79 |         #expect(registry.abortV2(b, first.token) == 6)
+ 80 |         #expect(registry.commitV2(a, 0) == 6)
+    |                          `- error: 'commitV2' is inaccessible due to '@_spi' protection level
+ 81 |         #expect(registry.abortV2(a, .max) == 6)
+ 82 |         #expect(registry.destroy(a) == 0)
+
+MixerAndroidRuntime.AndroidSessionRegistry.commitV2:2:13: note: 'commitV2' declared here
+1 | generic class AndroidSessionRegistry {
+2 | public func commitV2(_ handle: UInt64, _ token: UInt64) -> Int32}
+  |             `- note: 'commitV2' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/native/android/engine/Tests/MixerAndroidRuntimeTests/TransactionTests.swift:81:26: error: 'abortV2' is inaccessible due to '@_spi' protection level
+ 79 |         #expect(registry.abortV2(b, first.token) == 6)
+ 80 |         #expect(registry.commitV2(a, 0) == 6)
+ 81 |         #expect(registry.abortV2(a, .max) == 6)
+    |                          `- error: 'abortV2' is inaccessible due to '@_spi' protection level
+ 82 |         #expect(registry.destroy(a) == 0)
+ 83 |         #expect(registry.commitV2(a, first.token) == 2)
+
+MixerAndroidRuntime.AndroidSessionRegistry.abortV2:2:13: note: 'abortV2' declared here
+1 | generic class AndroidSessionRegistry {
+2 | public func abortV2(_ handle: UInt64, _ token: UInt64) -> Int32}
+  |             `- note: 'abortV2' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/native/android/engine/Tests/MixerAndroidRuntimeTests/TransactionTests.swift:83:26: error: 'commitV2' is inaccessible due to '@_spi' protection level
+ 81 |         #expect(registry.abortV2(a, .max) == 6)
+ 82 |         #expect(registry.destroy(a) == 0)
+ 83 |         #expect(registry.commitV2(a, first.token) == 2)
+    |                          `- error: 'commitV2' is inaccessible due to '@_spi' protection level
+ 84 |         #expect(registry.abortV2(a, first.token) == 2)
+ 85 |         let c = registry.create()
+
+MixerAndroidRuntime.AndroidSessionRegistry.commitV2:2:13: note: 'commitV2' declared here
+1 | generic class AndroidSessionRegistry {
+2 | public func commitV2(_ handle: UInt64, _ token: UInt64) -> Int32}
+  |             `- note: 'commitV2' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/native/android/engine/Tests/MixerAndroidRuntimeTests/TransactionTests.swift:84:26: error: 'abortV2' is inaccessible due to '@_spi' protection level
+ 82 |         #expect(registry.destroy(a) == 0)
+ 83 |         #expect(registry.commitV2(a, first.token) == 2)
+ 84 |         #expect(registry.abortV2(a, first.token) == 2)
+    |                          `- error: 'abortV2' is inaccessible due to '@_spi' protection level
+ 85 |         let c = registry.create()
+ 86 |         #expect(c > b)
+
+MixerAndroidRuntime.AndroidSessionRegistry.abortV2:2:13: note: 'abortV2' declared here
+1 | generic class AndroidSessionRegistry {
+2 | public func abortV2(_ handle: UInt64, _ token: UInt64) -> Int32}
+  |             `- note: 'abortV2' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/native/android/engine/Tests/MixerAndroidRuntimeTests/TransactionTests.swift:87:26: error: 'commitV2' is inaccessible due to '@_spi' protection level
+ 85 |         let c = registry.create()
+ 86 |         #expect(c > b)
+ 87 |         #expect(registry.commitV2(c, first.token) == 6)
+    |                          `- error: 'commitV2' is inaccessible due to '@_spi' protection level
+ 88 |         #expect(registry.commitV2(b, second.token) == 0)
+ 89 |         #expect(render(registry, b).bytes == Data("1".utf8))
+
+MixerAndroidRuntime.AndroidSessionRegistry.commitV2:2:13: note: 'commitV2' declared here
+1 | generic class AndroidSessionRegistry {
+2 | public func commitV2(_ handle: UInt64, _ token: UInt64) -> Int32}
+  |             `- note: 'commitV2' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/native/android/engine/Tests/MixerAndroidRuntimeTests/TransactionTests.swift:88:26: error: 'commitV2' is inaccessible due to '@_spi' protection level
+ 86 |         #expect(c > b)
+ 87 |         #expect(registry.commitV2(c, first.token) == 6)
+ 88 |         #expect(registry.commitV2(b, second.token) == 0)
+    |                          `- error: 'commitV2' is inaccessible due to '@_spi' protection level
+ 89 |         #expect(render(registry, b).bytes == Data("1".utf8))
+ 90 |         #expect(render(registry, c).bytes == Data("0".utf8))
+
+MixerAndroidRuntime.AndroidSessionRegistry.commitV2:2:13: note: 'commitV2' declared here
+1 | generic class AndroidSessionRegistry {
+2 | public func commitV2(_ handle: UInt64, _ token: UInt64) -> Int32}
+  |             `- note: 'commitV2' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/native/android/engine/Tests/MixerAndroidRuntimeTests/TransactionTests.swift:107:26: error: 'commitV2' is inaccessible due to '@_spi' protection level
+105 |         let accepted = call(registry, handle, staged: true)
+106 |         #expect(accepted.status == 0 && accepted.token == 1)
+107 |         #expect(registry.commitV2(handle, accepted.token) == 0)
+    |                          `- error: 'commitV2' is inaccessible due to '@_spi' protection level
+108 |         #expect(render(registry, handle).bytes == Data("1".utf8))
+109 |         #expect(registry.destroy(handle) == 0)
+
+MixerAndroidRuntime.AndroidSessionRegistry.commitV2:2:13: note: 'commitV2' declared here
+1 | generic class AndroidSessionRegistry {
+2 | public func commitV2(_ handle: UInt64, _ token: UInt64) -> Int32}
+  |             `- note: 'commitV2' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/native/android/engine/Tests/MixerAndroidRuntimeTests/TransactionTests.swift:119:30: error: 'prepareV2' is inaccessible due to '@_spi' protection level
+117 |             var written = 99
+118 |             var token: UInt64 = 99
+119 |             #expect(registry.prepareV2(handle, operation, nil, length, nil, capacity, &written, &token) == 1)
+    |                              `- error: 'prepareV2' is inaccessible due to '@_spi' protection level
+120 |             #expect(written == 0 && token == 0)
+121 |         }
+
+MixerAndroidRuntime.AndroidSessionRegistry.prepareV2:2:13: note: 'prepareV2' declared here
+1 | generic class AndroidSessionRegistry {
+2 | public func prepareV2(_ handle: UInt64, _ operation: UInt32, _ input: UnsafePointer<UInt8>?, _ inputLength: Int, _ output: UnsafeMutablePointer<UInt8>?, _ capacity: Int, _ written: UnsafeMutablePointer<Int>?, _ token: UnsafeMutablePointer<UInt64>?) -> Int32}
+  |             `- note: 'prepareV2' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/native/android/engine/Tests/MixerAndroidRuntimeTests/TransactionTests.swift:123:26: error: 'prepareV2' is inaccessible due to '@_spi' protection level
+121 |         }
+122 |         var token: UInt64 = 99
+123 |         #expect(registry.prepareV2(handle, 0, nil, 0, nil, 0, nil, &token) == 1)
+    |                          `- error: 'prepareV2' is inaccessible due to '@_spi' protection level
+124 |         #expect(token == 0)
+125 |         var written = 99
+
+MixerAndroidRuntime.AndroidSessionRegistry.prepareV2:2:13: note: 'prepareV2' declared here
+1 | generic class AndroidSessionRegistry {
+2 | public func prepareV2(_ handle: UInt64, _ operation: UInt32, _ input: UnsafePointer<UInt8>?, _ inputLength: Int, _ output: UnsafeMutablePointer<UInt8>?, _ capacity: Int, _ written: UnsafeMutablePointer<Int>?, _ token: UnsafeMutablePointer<UInt64>?) -> Int32}
+  |             `- note: 'prepareV2' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/native/android/engine/Tests/MixerAndroidRuntimeTests/TransactionTests.swift:126:26: error: 'prepareV2' is inaccessible due to '@_spi' protection level
+124 |         #expect(token == 0)
+125 |         var written = 99
+126 |         #expect(registry.prepareV2(handle, 0, nil, 0, nil, 0, &written, nil) == 1)
+    |                          `- error: 'prepareV2' is inaccessible due to '@_spi' protection level
+127 |         #expect(written == 0)
+128 |         #expect(registry.prepareV2(0, 0, nil, 0, nil, 0, &written, &token) == 2)
+
+MixerAndroidRuntime.AndroidSessionRegistry.prepareV2:2:13: note: 'prepareV2' declared here
+1 | generic class AndroidSessionRegistry {
+2 | public func prepareV2(_ handle: UInt64, _ operation: UInt32, _ input: UnsafePointer<UInt8>?, _ inputLength: Int, _ output: UnsafeMutablePointer<UInt8>?, _ capacity: Int, _ written: UnsafeMutablePointer<Int>?, _ token: UnsafeMutablePointer<UInt64>?) -> Int32}
+  |             `- note: 'prepareV2' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/native/android/engine/Tests/MixerAndroidRuntimeTests/TransactionTests.swift:128:26: error: 'prepareV2' is inaccessible due to '@_spi' protection level
+126 |         #expect(registry.prepareV2(handle, 0, nil, 0, nil, 0, &written, nil) == 1)
+127 |         #expect(written == 0)
+128 |         #expect(registry.prepareV2(0, 0, nil, 0, nil, 0, &written, &token) == 2)
+    |                          `- error: 'prepareV2' is inaccessible due to '@_spi' protection level
+129 |         #expect(written == 0 && token == 0)
+130 |         #expect(render(registry, handle).bytes == Data("0".utf8))
+
+MixerAndroidRuntime.AndroidSessionRegistry.prepareV2:2:13: note: 'prepareV2' declared here
+1 | generic class AndroidSessionRegistry {
+2 | public func prepareV2(_ handle: UInt64, _ operation: UInt32, _ input: UnsafePointer<UInt8>?, _ inputLength: Int, _ output: UnsafeMutablePointer<UInt8>?, _ capacity: Int, _ written: UnsafeMutablePointer<Int>?, _ token: UnsafeMutablePointer<UInt64>?) -> Int32}
+  |             `- note: 'prepareV2' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/native/android/engine/Tests/MixerAndroidRuntimeTests/TransactionTests.swift:143:30: error: 'commitV2' is inaccessible due to '@_spi' protection level
+141 |         #expect(registry.create() == 0)
+142 |         for (handle, candidate) in zip(handles, pending) {
+143 |             #expect(registry.commitV2(handle, candidate.token) == 0)
+    |                              `- error: 'commitV2' is inaccessible due to '@_spi' protection level
+144 |             #expect(render(registry, handle).bytes == Data("0".utf8))
+145 |             #expect(registry.destroy(handle) == 0)
+
+MixerAndroidRuntime.AndroidSessionRegistry.commitV2:2:13: note: 'commitV2' declared here
+1 | generic class AndroidSessionRegistry {
+2 | public func commitV2(_ handle: UInt64, _ token: UInt64) -> Int32}
+  |             `- note: 'commitV2' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/native/android/engine/Tests/MixerAndroidRuntimeTests/TransactionTests.swift:160:26: error: 'abortV2' is inaccessible due to '@_spi' protection level
+158 |         let aborted = call(registry, handle, staged: true, input: event)
+159 |         #expect(aborted.status == 0 && aborted.bytes != initial)
+160 |         #expect(registry.abortV2(handle, aborted.token) == 0)
+    |                          `- error: 'abortV2' is inaccessible due to '@_spi' protection level
+161 |         #expect(render(registry, handle).bytes == initial)
+162 |         let accepted = call(registry, handle, staged: true, input: event)
+
+MixerAndroidRuntime.AndroidSessionRegistry.abortV2:2:13: note: 'abortV2' declared here
+1 | generic class AndroidSessionRegistry {
+2 | public func abortV2(_ handle: UInt64, _ token: UInt64) -> Int32}
+  |             `- note: 'abortV2' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/native/android/engine/Tests/MixerAndroidRuntimeTests/TransactionTests.swift:164:26: error: 'commitV2' is inaccessible due to '@_spi' protection level
+162 |         let accepted = call(registry, handle, staged: true, input: event)
+163 |         #expect(accepted.status == 0 && accepted.bytes == aborted.bytes)
+164 |         #expect(registry.commitV2(handle, accepted.token) == 0)
+    |                          `- error: 'commitV2' is inaccessible due to '@_spi' protection level
+165 |         #expect(render(registry, handle).bytes == accepted.bytes)
+166 |         let stale = call(registry, handle, staged: true, input: event)
+
+MixerAndroidRuntime.AndroidSessionRegistry.commitV2:2:13: note: 'commitV2' declared here
+1 | generic class AndroidSessionRegistry {
+2 | public func commitV2(_ handle: UInt64, _ token: UInt64) -> Int32}
+  |             `- note: 'commitV2' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/native/android/engine/Tests/MixerAndroidRuntimeTests/TransactionTests.swift:188:51: error: 'commitV2' is inaccessible due to '@_spi' protection level
+186 |             let results = Decisions()
+187 |             DispatchQueue.concurrentPerform(iterations: 2) { index in
+188 |                 results.set(index == 0 ? registry.commitV2(handle, candidate.token)
+    |                                                   `- error: 'commitV2' is inaccessible due to '@_spi' protection level
+189 |                                       : registry.abortV2(handle, candidate.token), commit: index == 0)
+190 |             }
+
+MixerAndroidRuntime.AndroidSessionRegistry.commitV2:2:13: note: 'commitV2' declared here
+1 | generic class AndroidSessionRegistry {
+2 | public func commitV2(_ handle: UInt64, _ token: UInt64) -> Int32}
+  |             `- note: 'commitV2' declared here
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/native/android/engine/Tests/MixerAndroidRuntimeTests/TransactionTests.swift:189:50: error: 'abortV2' is inaccessible due to '@_spi' protection level
+187 |             DispatchQueue.concurrentPerform(iterations: 2) { index in
+188 |                 results.set(index == 0 ? registry.commitV2(handle, candidate.token)
+189 |                                       : registry.abortV2(handle, candidate.token), commit: index == 0)
+    |                                                  `- error: 'abortV2' is inaccessible due to '@_spi' protection level
+190 |             }
+191 |             #expect((results.commit == 0 && results.abort == 6) || (results.commit == 6 && results.abort == 0))
+
+MixerAndroidRuntime.AndroidSessionRegistry.abortV2:2:13: note: 'abortV2' declared here
+1 | generic class AndroidSessionRegistry {
+2 | public func abortV2(_ handle: UInt64, _ token: UInt64) -> Int32}
+  |             `- note: 'abortV2' declared here
+3 | 
+Failed frontend command:
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift-frontend -frontend -c /tmp/mixer-engine-v2-transactions-debug/out/Intermediates.noindex/MixerAndroidEngine.build/Debug/MixerAndroidRuntimeTests-p.build/DerivedSources/test_entry_point.swift /Users/andreyyurlov/Documents/dev/mixer/native/android/engine/Tests/MixerAndroidRuntimeTests/RuntimeTests.swift -primary-file /Users/andreyyurlov/Documents/dev/mixer/native/android/engine/Tests/MixerAndroidRuntimeTests/TransactionTests.swift -emit-dependencies-path /tmp/mixer-engine-v2-transactions-debug/out/Intermediates.noindex/MixerAndroidEngine.build/Debug/MixerAndroidRuntimeTests-p.build/Objects-normal/arm64/TransactionTests.d -emit-const-values-path /tmp/mixer-engine-v2-transactions-debug/out/Intermediates.noindex/MixerAndroidEngine.build/Debug/MixerAndroidRuntimeTests-p.build/Objects-normal/arm64/TransactionTests.swiftconstvalues -emit-reference-dependencies-path /tmp/mixer-engine-v2-transactions-debug/out/Intermediates.noindex/MixerAndroidEngine.build/Debug/MixerAndroidRuntimeTests-p.build/Objects-normal/arm64/TransactionTests.swiftdeps -serialize-diagnostics-path /tmp/mixer-engine-v2-transactions-debug/out/Intermediates.noindex/MixerAndroidEngine.build/Debug/MixerAndroidRuntimeTests-p.build/Objects-normal/arm64/TransactionTests.dia -target arm64-apple-macos14.0 -module-can-import-version Testing 2084 0 -module-can-import-version XCTest 25229 0 -disable-cross-import-overlay-search -swift-module-cross-import Testing /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/Testing.framework/Modules/Testing.swiftcrossimport/AppKit.swiftoverlay -swift-module-cross-import Testing /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/Testing.framework/Modules/Testing.swiftcrossimport/CoreGraphics.swiftoverlay -swift-module-cross-import Testing /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/Testing.framework/Modules/Testing.swiftcrossimport/CoreImage.swiftoverlay -swift-module-cross-import Testing /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/Testing.framework/Modules/Testing.swiftcrossimport/CoreTransferable.swiftoverlay -swift-module-cross-import Testing /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/Testing.framework/Modules/Testing.swiftcrossimport/Foundation.swiftoverlay -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libFoundationMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#FoundationMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libObservationMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#ObservationMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libSwiftMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#SwiftMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing/libTestingMacros.dylib\#\#TestingMacros -disable-implicit-swift-modules -Xcc -fno-implicit-modules -Xcc -fno-implicit-module-maps -explicit-swift-module-map-file /tmp/mixer-engine-v2-transactions-debug/out/Intermediates.noindex/MixerAndroidEngine.build/Debug/MixerAndroidRuntimeTests-p.build/Objects-normal/arm64/MixerAndroidRuntimeTests-dependencies-1.json -Xllvm -aarch64-use-tbi -enable-objc-interop -stack-check -sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk -I /tmp/mixer-engine-v2-transactions-debug/out/Products/Debug -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib -F /tmp/mixer-engine-v2-transactions-debug/out/Products/Debug/PackageFrameworks -F /tmp/mixer-engine-v2-transactions-debug/out/Products/Debug -F /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks -module-cache-path /tmp/mixer-engine-v2-transactions-debug/out/Intermediates.noindex/SwiftExplicitPrecompiledModules -no-color-diagnostics -Xcc -fno-color-diagnostics -enable-testing -g -debug-info-format\=dwarf -dwarf-version\=4 -swift-version 6 -Onone -D SWIFT_PACKAGE -D DEBUG -D Xcode -serialize-debugging-options -enable-experimental-feature DebugDescriptionMacro -empty-abi-descriptor -validate-clang-modules-once -clang-build-session-file /tmp/mixer-engine-v2-transactions-debug/out/ModuleCache.noindex/Session.modulevalidation -Xcc -working-directory -Xcc /Users/andreyyurlov/Documents/dev/mixer/native/android -enable-anonymous-context-mangled-names -file-compilation-dir /Users/andreyyurlov/Documents/dev/mixer/native/android -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -Xcc -ivfsstatcache -Xcc /tmp/mixer-engine-v2-transactions-debug/out/SDKStatCaches.noindex/macosx27.0-26A425-80c5bbf1d171475443272936d42f90a37231f6df4def33e022ae2eb8f782df1a.sdkstatcache -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -Xcc -I/tmp/mixer-engine-v2-transactions-debug/out/Products/Debug/include -Xcc -I/tmp/mixer-engine-v2-transactions-debug/out/Intermediates.noindex/MixerAndroidEngine.build/Debug/MixerAndroidRuntimeTests-p.build/DerivedSources-normal/arm64 -Xcc -I/tmp/mixer-engine-v2-transactions-debug/out/Intermediates.noindex/MixerAndroidEngine.build/Debug/MixerAndroidRuntimeTests-p.build/DerivedSources/arm64 -Xcc -I/tmp/mixer-engine-v2-transactions-debug/out/Intermediates.noindex/MixerAndroidEngine.build/Debug/MixerAndroidRuntimeTests-p.build/DerivedSources -Xcc -DSWIFT_PACKAGE -Xcc -DDEBUG\=1 -no-auto-bridging-header-chaining -module-name MixerAndroidRuntimeTests -package-name engine -const-gather-protocols-file /tmp/mixer-engine-v2-transactions-debug/out/Intermediates.noindex/MixerAndroidEngine.build/Debug/MixerAndroidRuntimeTests-p.build/Objects-normal/arm64/MixerAndroidRuntimeTests_const_extract_protocols.json -disable-clang-spi -clang-target arm64-apple-macos27.0 -target-sdk-version 27.0 -target-sdk-name macosx27.0 -in-process-plugin-server-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/libSwiftInProcPluginServer.dylib -parse-as-library -o /tmp/mixer-engine-v2-transactions-debug/out/Intermediates.noindex/MixerAndroidEngine.build/Debug/MixerAndroidRuntimeTests-p.build/Objects-normal/arm64/TransactionTests.o -debug-module-path /tmp/mixer-engine-v2-transactions-debug/out/Intermediates.noindex/MixerAndroidEngine.build/Debug/MixerAndroidRuntimeTests-p.build/Objects-normal/arm64/MixerAndroidRuntimeTests.swiftmodule -index-unit-output-path /MixerAndroidEngine.build/Debug/MixerAndroidRuntimeTests-p.build/Objects-normal/arm64/TransactionTests.o -index-store-path /tmp/mixer-engine-v2-transactions-debug/out -index-system-modules
+error: Build failed
+error: fatalError

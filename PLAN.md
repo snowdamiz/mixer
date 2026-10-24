@@ -727,3 +727,25 @@ native consumer behavior still require implementation/testing. Both concrete
 native renderer lanes are active. `b858e91`, `2ca44e6` and `ca9f802` pass all three
 hosted jobs. Physical-phone checks move to final acceptance under the user's
 simulator-development policy; none of these slices closes a GA gate.
+
+The ordinary Android engine now retains one value-owned candidate until explicit
+commit/abort after native attachment. Its private SPI blocks legacy exchange
+while pending; failed preparation, stale/foreign tokens, duplicate decisions and
+session destruction preserve the documented state boundary. Independent source
+review has no findings; all sixteen engine tests pass per Debug/Release/TSan and
+the official Swift6.3.3 Android API28 library links. See
+`verification/android-engine-v2-transactions/root-review/acceptance.json`.
+The JNI/Activity/native-renderer join remains next; no ordinary V2 bootstrap or
+signed presentation is enabled. Native renderer candidates now execute on their
+dedicated simulator/emulator and are undergoing common-fixture visual review.
+Initial nested interactive list rows reject before attachment as recorded in
+`docs/native-appearance-v2-nested-row-limitation.md`. Hosted `25c5e03` passes all
+three jobs; `8338fa0` VM/services pass and its Swift job is still running.
+
+Unused simulator cleanup is complete for this checkpoint: root shut down the two
+older Mixer measurement/reference instances, and the Apple lane deleted its three
+obsolete disposable instances. Only the current Mixer final test and an unrelated
+active MeGPT iOS simulator remain booted. The current Android test emulator is
+also retained until capture completes. One active instance per native lane and
+post-run cleanup are now required in AGENTS.md. See
+`verification/simulator-cleanup-2026-10-24/receipt.json`.

@@ -1,0 +1,87 @@
+{
+  "observedUTC": "2026-10-24T01:21:46.720436+00:00",
+  "authorization": "User requested cleanup of unused simulators.",
+  "action": "Shut down two completed Mixer measurement/reference simulators; preserve their data.",
+  "commands": [
+    {
+      "argv": [
+        "xcrun",
+        "simctl",
+        "list",
+        "devices",
+        "booted",
+        "--json"
+      ],
+      "exitCode": 0,
+      "stdout": "{\n  \"devices\" : {\n    \"com.apple.CoreSimulator.SimRuntime.iOS-27-0\" : [\n      {\n        \"dataPath\" : \"\\/Users\\/andreyyurlov\\/Library\\/Developer\\/CoreSimulator\\/Devices\\/24DD0059-D1DD-456D-ADF9-0946595DDE66\\/data\",\n        \"dataPathSize\" : 3348807680,\n        \"logPath\" : \"\\/Users\\/andreyyurlov\\/Library\\/Logs\\/CoreSimulator\\/24DD0059-D1DD-456D-ADF9-0946595DDE66\",\n        \"udid\" : \"24DD0059-D1DD-456D-ADF9-0946595DDE66\",\n        \"lastUsedAt\" : \"2026-10-23T16:52:30Z\",\n        \"isAvailable\" : true,\n        \"logPathSize\" : 225280,\n        \"deviceTypeIdentifier\" : \"com.apple.CoreSimulator.SimDeviceType.iPhone-18-Pro\",\n        \"state\" : \"Booted\",\n        \"name\" : \"MeGPT worktree 6ad5a3e8d05866b6\"\n      },\n      {\n        \"dataPath\" : \"\\/Users\\/andreyyurlov\\/Library\\/Developer\\/CoreSimulator\\/Devices\\/1A7E942B-CF97-4DBB-8786-1D982744EBE4\\/data\",\n        \"dataPathSize\" : 3031908352,\n        \"logPath\" : \"\\/Users\\/andreyyurlov\\/Library\\/Logs\\/CoreSimulator\\/1A7E942B-CF97-4DBB-8786-1D982744EBE4\",\n        \"udid\" : \"1A7E942B-CF97-4DBB-8786-1D982744EBE4\",\n        \"lastUsedAt\" : \"2026-10-23T21:33:59Z\",\n        \"isAvailable\" : true,\n        \"logPathSize\" : 253952,\n        \"deviceTypeIdentifier\" : \"com.apple.CoreSimulator.SimDeviceType.iPhone-18-Pro\",\n        \"state\" : \"Booted\",\n        \"name\" : \"MixerAppearanceMeasurement\"\n      },\n      {\n        \"dataPath\" : \"\\/Users\\/andreyyurlov\\/Library\\/Developer\\/CoreSimulator\\/Devices\\/D55AD884-6D5A-4403-9D16-A0FEE48A29C5\\/data\",\n        \"dataPathSize\" : 2787753984,\n        \"logPath\" : \"\\/Users\\/andreyyurlov\\/Library\\/Logs\\/CoreSimulator\\/D55AD884-6D5A-4403-9D16-A0FEE48A29C5\",\n        \"udid\" : \"D55AD884-6D5A-4403-9D16-A0FEE48A29C5\",\n        \"lastUsedAt\" : \"2026-10-23T21:05:36Z\",\n        \"isAvailable\" : true,\n        \"logPathSize\" : 217088,\n        \"deviceTypeIdentifier\" : \"com.apple.CoreSimulator.SimDeviceType.iPhone-18-Pro\",\n        \"state\" : \"Booted\",\n        \"name\" : \"MixerAppearanceReference\"\n      }\n    ],\n    \"com.apple.CoreSimulator.SimRuntime.iOS-26-5\" : [\n      {\n        \"dataPath\" : \"\\/Users\\/andreyyurlov\\/Library\\/Developer\\/CoreSimulator\\/Devices\\/A7B60132-3718-4C21-B70D-42F35A13419F\\/data\",\n        \"dataPathSize\" : 1981317120,\n        \"logPath\" : \"\\/Users\\/andreyyurlov\\/Library\\/Logs\\/CoreSimulator\\/A7B60132-3718-4C21-B70D-42F35A13419F\",\n        \"udid\" : \"A7B60132-3718-4C21-B70D-42F35A13419F\",\n        \"lastUsedAt\" : \"2026-10-24T01:18:42Z\",\n        \"isAvailable\" : true,\n        \"logPathSize\" : 176128,\n        \"deviceTypeIdentifier\" : \"com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro\",\n        \"state\" : \"Booted\",\n        \"name\" : \"MixerAppearanceV2Final\"\n      }\n    ]\n  }\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "xcrun",
+        "simctl",
+        "shutdown",
+        "1A7E942B-CF97-4DBB-8786-1D982744EBE4"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "xcrun",
+        "simctl",
+        "shutdown",
+        "D55AD884-6D5A-4403-9D16-A0FEE48A29C5"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "xcrun",
+        "simctl",
+        "list",
+        "devices",
+        "booted",
+        "--json"
+      ],
+      "exitCode": 0,
+      "stdout": "{\n  \"devices\" : {\n    \"com.apple.CoreSimulator.SimRuntime.iOS-27-0\" : [\n      {\n        \"dataPath\" : \"\\/Users\\/andreyyurlov\\/Library\\/Developer\\/CoreSimulator\\/Devices\\/24DD0059-D1DD-456D-ADF9-0946595DDE66\\/data\",\n        \"dataPathSize\" : 3348807680,\n        \"logPath\" : \"\\/Users\\/andreyyurlov\\/Library\\/Logs\\/CoreSimulator\\/24DD0059-D1DD-456D-ADF9-0946595DDE66\",\n        \"udid\" : \"24DD0059-D1DD-456D-ADF9-0946595DDE66\",\n        \"lastUsedAt\" : \"2026-10-23T16:52:30Z\",\n        \"isAvailable\" : true,\n        \"logPathSize\" : 225280,\n        \"deviceTypeIdentifier\" : \"com.apple.CoreSimulator.SimDeviceType.iPhone-18-Pro\",\n        \"state\" : \"Booted\",\n        \"name\" : \"MeGPT worktree 6ad5a3e8d05866b6\"\n      }\n    ],\n    \"com.apple.CoreSimulator.SimRuntime.iOS-26-5\" : [\n      {\n        \"dataPath\" : \"\\/Users\\/andreyyurlov\\/Library\\/Developer\\/CoreSimulator\\/Devices\\/A7B60132-3718-4C21-B70D-42F35A13419F\\/data\",\n        \"dataPathSize\" : 1981317120,\n        \"logPath\" : \"\\/Users\\/andreyyurlov\\/Library\\/Logs\\/CoreSimulator\\/A7B60132-3718-4C21-B70D-42F35A13419F\",\n        \"udid\" : \"A7B60132-3718-4C21-B70D-42F35A13419F\",\n        \"lastUsedAt\" : \"2026-10-24T01:18:42Z\",\n        \"isAvailable\" : true,\n        \"logPathSize\" : 176128,\n        \"deviceTypeIdentifier\" : \"com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro\",\n        \"state\" : \"Booted\",\n        \"name\" : \"MixerAppearanceV2Final\"\n      }\n    ]\n  }\n}\n",
+      "stderr": ""
+    }
+  ],
+  "remainingAtRootCheck": [
+    [
+      "MeGPT worktree 6ad5a3e8d05866b6",
+      "24DD0059-D1DD-456D-ADF9-0946595DDE66"
+    ],
+    [
+      "MixerAppearanceV2Final",
+      "A7B60132-3718-4C21-B70D-42F35A13419F"
+    ]
+  ],
+  "preserved": "Active Apple final simulator and Android emulator; unrelated MeGPT simulator has a live Claude-owned log stream, and unrelated morse emulator retained. Apple lane separately retires its three obsolete disposable simulators.",
+  "scope": "Simulator-only; no phone discovery or operation.",
+  "afterLaneCleanup": {
+    "command": [
+      "xcrun",
+      "simctl",
+      "list",
+      "devices",
+      "booted",
+      "--json"
+    ],
+    "exitCode": 0,
+    "file": "after-lane-cleanup.json",
+    "sha256": "1d06bb7b607d9e7e4120705bfa8d4305994adefd93f03116c7454b60e0823385",
+    "bootedCount": 2
+  },
+  "appleOwnedCleanup": {
+    "path": "verification/apple-native-appearance-v2/owned-simulator-cleanup.json",
+    "sha256": "247b7cd08c1b372f392ce171f44ffb54f46c1eb0e1dbee213df404024e800048",
+    "retainedSnapshot": "verification/simulator-cleanup-2026-10-24/apple-owned-cleanup-at-root-check.json",
+    "snapshotSHA256": "247b7cd08c1b372f392ce171f44ffb54f46c1eb0e1dbee213df404024e800048"
+  }
+}
