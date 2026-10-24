@@ -1,0 +1,931 @@
+{
+  "schema": 1,
+  "status": "passed-local-http-v1-v2-public-swift-verification",
+  "scope": "Real loopback HTTP v1/v2 -> public Swift verifier; small TEST fixtures only.",
+  "commands": [
+    {
+      "name": "swift-version",
+      "command": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift",
+        "--version"
+      ],
+      "executable": {
+        "path": "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift",
+        "resolvedPath": "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift-frontend",
+        "bytes": 171036592,
+        "sha256": "2ed38571e92c0283091838c1649e27650ad9c99950288e883c7b2dc6c4ce89fb"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "elapsedSeconds": 0.247,
+      "stdout": {
+        "path": "swift-version.stdout",
+        "bytes": 98,
+        "sha256": "71be90a5e9e6674cb83ea2ae25abc40f48dd9621fa2a69f70bc2b464b68a3b13"
+      },
+      "stderr": {
+        "path": "swift-version.stderr",
+        "bytes": 30,
+        "sha256": "542ca724f46d8a3dffb85c3cd4b6e0d2fdf6c1bd4c484e6978dd9ed2f22cd639"
+      },
+      "workingDirectory": "/Users/andreyyurlov/Documents/dev/mixer",
+      "expectedExitCode": 0
+    },
+    {
+      "name": "go-version",
+      "command": [
+        "/Users/andreyyurlov/.local/bin/go",
+        "version"
+      ],
+      "executable": {
+        "path": "/Users/andreyyurlov/.local/bin/go",
+        "resolvedPath": "/Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/bin/go",
+        "bytes": 14500160,
+        "sha256": "e61851b2c0cde9b9ac4ae044fcce6ba9d55cb15f98ded3964793acaa8632242f"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "elapsedSeconds": 0.065,
+      "stdout": {
+        "path": "go-version.stdout",
+        "bytes": 33,
+        "sha256": "36849436282e424cf1142184057f25a7bd6845d03b16fedbb1071bc6722524c4"
+      },
+      "stderr": {
+        "path": "go-version.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "workingDirectory": "/Users/andreyyurlov/Documents/dev/mixer/services",
+      "expectedExitCode": 0
+    },
+    {
+      "name": "xcode-version",
+      "command": [
+        "/usr/bin/xcodebuild",
+        "-version"
+      ],
+      "executable": {
+        "path": "/usr/bin/xcodebuild",
+        "resolvedPath": "/usr/bin/xcodebuild",
+        "bytes": 217120,
+        "sha256": "7d9561a7f8e3c5d70a571422a4522de986c003879dab3bf7562963b6cdc3e658"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "elapsedSeconds": 0.128,
+      "stdout": {
+        "path": "xcode-version.stdout",
+        "bytes": 32,
+        "sha256": "18730ed2ae28a2c9cf0c2d5db549033a4f07089331391a7133b7b32187454fa9"
+      },
+      "stderr": {
+        "path": "xcode-version.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "workingDirectory": "/Users/andreyyurlov/Documents/dev/mixer",
+      "expectedExitCode": 0
+    },
+    {
+      "name": "build-service",
+      "command": [
+        "/Users/andreyyurlov/.local/bin/go",
+        "build",
+        "-trimpath",
+        "-o",
+        "/private/tmp/mixer-http-v2-frozen/mixer-service",
+        "./cmd/mixer-service"
+      ],
+      "executable": {
+        "path": "/Users/andreyyurlov/.local/bin/go",
+        "resolvedPath": "/Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/bin/go",
+        "bytes": 14500160,
+        "sha256": "e61851b2c0cde9b9ac4ae044fcce6ba9d55cb15f98ded3964793acaa8632242f"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "elapsedSeconds": 1.759,
+      "stdout": {
+        "path": "build-service.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "build-service.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "workingDirectory": "/Users/andreyyurlov/Documents/dev/mixer/services",
+      "expectedExitCode": 0
+    },
+    {
+      "name": "build-swift-consumer",
+      "command": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift",
+        "build",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/tests/integration/http-v2-consumer",
+        "--scratch-path",
+        "/private/tmp/mixer-http-v2-frozen/swift-build"
+      ],
+      "executable": {
+        "path": "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift",
+        "resolvedPath": "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift-frontend",
+        "bytes": 171036592,
+        "sha256": "2ed38571e92c0283091838c1649e27650ad9c99950288e883c7b2dc6c4ce89fb"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "elapsedSeconds": 19.848,
+      "stdout": {
+        "path": "build-swift-consumer.stdout",
+        "bytes": 5372,
+        "sha256": "a213878e6d32760d9991ac14512913818d2e40c4a9dc01bdfbfc7adb54e183a4"
+      },
+      "stderr": {
+        "path": "build-swift-consumer.stderr",
+        "bytes": 542,
+        "sha256": "08422a54c14302a04da8a5747ea09b8c1370c995c7ab5728c8c045df67df8a07"
+      },
+      "workingDirectory": "/Users/andreyyurlov/Documents/dev/mixer",
+      "expectedExitCode": 0
+    },
+    {
+      "name": "swift-bin-path",
+      "command": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift",
+        "build",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/tests/integration/http-v2-consumer",
+        "--scratch-path",
+        "/private/tmp/mixer-http-v2-frozen/swift-build",
+        "--show-bin-path"
+      ],
+      "executable": {
+        "path": "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift",
+        "resolvedPath": "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift-frontend",
+        "bytes": 171036592,
+        "sha256": "2ed38571e92c0283091838c1649e27650ad9c99950288e883c7b2dc6c4ce89fb"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "elapsedSeconds": 0.592,
+      "stdout": {
+        "path": "swift-bin-path.stdout",
+        "bytes": 71,
+        "sha256": "cf92c18a989220f57f36d1b890f4bd679b78a3301b2278a5b72de5d65f681e75"
+      },
+      "stderr": {
+        "path": "swift-bin-path.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "workingDirectory": "/Users/andreyyurlov/Documents/dev/mixer",
+      "expectedExitCode": 0
+    },
+    {
+      "name": "legacy-source-archive",
+      "command": [
+        "/opt/homebrew/bin/git",
+        "archive",
+        "--format=tar",
+        "--output",
+        "/private/tmp/mixer-http-v2-frozen/legacy-source.tar",
+        "6cb27591319a2066e1eb8b3025400137373cb2d6",
+        "services"
+      ],
+      "executable": {
+        "path": "/opt/homebrew/bin/git",
+        "resolvedPath": "/opt/homebrew/Cellar/git/2.56.0/bin/git",
+        "bytes": 3758960,
+        "sha256": "92229f2456a49561ac5d614bbed775224e2fc32a8eca22ac41aeb3ce47d7899c"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "elapsedSeconds": 0.106,
+      "stdout": {
+        "path": "legacy-source-archive.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "legacy-source-archive.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "workingDirectory": "/Users/andreyyurlov/Documents/dev/mixer",
+      "expectedExitCode": 0
+    },
+    {
+      "name": "build-v1-only-service",
+      "command": [
+        "/Users/andreyyurlov/.local/bin/go",
+        "build",
+        "-trimpath",
+        "-o",
+        "/private/tmp/mixer-http-v2-frozen/mixer-service-v1-only",
+        "./cmd/mixer-service"
+      ],
+      "executable": {
+        "path": "/Users/andreyyurlov/.local/bin/go",
+        "resolvedPath": "/Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/bin/go",
+        "bytes": 14500160,
+        "sha256": "e61851b2c0cde9b9ac4ae044fcce6ba9d55cb15f98ded3964793acaa8632242f"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "elapsedSeconds": 1.293,
+      "stdout": {
+        "path": "build-v1-only-service.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "build-v1-only-service.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "workingDirectory": "/private/tmp/mixer-http-v2-frozen/legacy-source/services",
+      "expectedExitCode": 0
+    },
+    {
+      "name": "swift-http-v1",
+      "command": [
+        "/private/tmp/mixer-http-v2-frozen/swift-build/arm64-apple-macosx/debug/http-release-check",
+        "http://127.0.0.1:59280",
+        "/Users/andreyyurlov/Documents/dev/mixer/services/protocol/testdata/signed-release-v1.json",
+        "1",
+        "0"
+      ],
+      "executable": {
+        "path": "/private/tmp/mixer-http-v2-frozen/swift-build/arm64-apple-macosx/debug/http-release-check",
+        "resolvedPath": "/private/tmp/mixer-http-v2-frozen/swift-build/arm64-apple-macosx/debug/http-release-check",
+        "bytes": 937600,
+        "sha256": "37c30f9a1ef3db1ba51821f2370dc2ea33d0e63855cf4f6ead72f688132732fe"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "elapsedSeconds": 0.101,
+      "stdout": {
+        "path": "swift-http-v1.stdout",
+        "bytes": 442,
+        "sha256": "37d3747b6c78d49d8902edbe72840dfb543dea0b5c01980bd2fb787d44456f52"
+      },
+      "stderr": {
+        "path": "swift-http-v1.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "workingDirectory": "/Users/andreyyurlov/Documents/dev/mixer",
+      "expectedExitCode": 0
+    },
+    {
+      "name": "swift-replay-v1",
+      "command": [
+        "/private/tmp/mixer-http-v2-frozen/swift-build/arm64-apple-macosx/debug/http-release-check",
+        "http://127.0.0.1:59280",
+        "/Users/andreyyurlov/Documents/dev/mixer/services/protocol/testdata/signed-release-v1.json",
+        "1",
+        "7"
+      ],
+      "executable": {
+        "path": "/private/tmp/mixer-http-v2-frozen/swift-build/arm64-apple-macosx/debug/http-release-check",
+        "resolvedPath": "/private/tmp/mixer-http-v2-frozen/swift-build/arm64-apple-macosx/debug/http-release-check",
+        "bytes": 937600,
+        "sha256": "37c30f9a1ef3db1ba51821f2370dc2ea33d0e63855cf4f6ead72f688132732fe"
+      },
+      "exitCode": 1,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "elapsedSeconds": 0.052,
+      "stdout": {
+        "path": "swift-replay-v1.stdout",
+        "bytes": 66,
+        "sha256": "caf9206fd183a52bbb158c36688ef2ebeddaa1db38e251f9746f237ee8e1d034"
+      },
+      "stderr": {
+        "path": "swift-replay-v1.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "workingDirectory": "/Users/andreyyurlov/Documents/dev/mixer",
+      "expectedExitCode": 1
+    },
+    {
+      "name": "swift-http-v2",
+      "command": [
+        "/private/tmp/mixer-http-v2-frozen/swift-build/arm64-apple-macosx/debug/http-release-check",
+        "http://127.0.0.1:59280",
+        "/Users/andreyyurlov/Documents/dev/mixer/services/protocol/testdata/signed-release-v2.json",
+        "2",
+        "0"
+      ],
+      "executable": {
+        "path": "/private/tmp/mixer-http-v2-frozen/swift-build/arm64-apple-macosx/debug/http-release-check",
+        "resolvedPath": "/private/tmp/mixer-http-v2-frozen/swift-build/arm64-apple-macosx/debug/http-release-check",
+        "bytes": 937600,
+        "sha256": "37c30f9a1ef3db1ba51821f2370dc2ea33d0e63855cf4f6ead72f688132732fe"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "elapsedSeconds": 0.053,
+      "stdout": {
+        "path": "swift-http-v2.stdout",
+        "bytes": 944,
+        "sha256": "d25a1f4837e006153578ca589c0648fc6eefce3e9679866acb34a5ed000b8e7d"
+      },
+      "stderr": {
+        "path": "swift-http-v2.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "workingDirectory": "/Users/andreyyurlov/Documents/dev/mixer",
+      "expectedExitCode": 0
+    },
+    {
+      "name": "swift-replay-v2",
+      "command": [
+        "/private/tmp/mixer-http-v2-frozen/swift-build/arm64-apple-macosx/debug/http-release-check",
+        "http://127.0.0.1:59280",
+        "/Users/andreyyurlov/Documents/dev/mixer/services/protocol/testdata/signed-release-v2.json",
+        "2",
+        "7"
+      ],
+      "executable": {
+        "path": "/private/tmp/mixer-http-v2-frozen/swift-build/arm64-apple-macosx/debug/http-release-check",
+        "resolvedPath": "/private/tmp/mixer-http-v2-frozen/swift-build/arm64-apple-macosx/debug/http-release-check",
+        "bytes": 937600,
+        "sha256": "37c30f9a1ef3db1ba51821f2370dc2ea33d0e63855cf4f6ead72f688132732fe"
+      },
+      "exitCode": 1,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "elapsedSeconds": 0.05,
+      "stdout": {
+        "path": "swift-replay-v2.stdout",
+        "bytes": 66,
+        "sha256": "caf9206fd183a52bbb158c36688ef2ebeddaa1db38e251f9746f237ee8e1d034"
+      },
+      "stderr": {
+        "path": "swift-replay-v2.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "workingDirectory": "/Users/andreyyurlov/Documents/dev/mixer",
+      "expectedExitCode": 1
+    },
+    {
+      "name": "swift-explicit-version-mismatch",
+      "command": [
+        "/private/tmp/mixer-http-v2-frozen/swift-build/arm64-apple-macosx/debug/http-release-check",
+        "http://127.0.0.1:59280",
+        "/Users/andreyyurlov/Documents/dev/mixer/services/protocol/testdata/signed-release-v2.json",
+        "1",
+        "0"
+      ],
+      "executable": {
+        "path": "/private/tmp/mixer-http-v2-frozen/swift-build/arm64-apple-macosx/debug/http-release-check",
+        "resolvedPath": "/private/tmp/mixer-http-v2-frozen/swift-build/arm64-apple-macosx/debug/http-release-check",
+        "bytes": 937600,
+        "sha256": "37c30f9a1ef3db1ba51821f2370dc2ea33d0e63855cf4f6ead72f688132732fe"
+      },
+      "exitCode": 1,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "elapsedSeconds": 0.029,
+      "stdout": {
+        "path": "swift-explicit-version-mismatch.stdout",
+        "bytes": 135,
+        "sha256": "5ffc3fb2f0f8532ca59f30deb0c865f27b9ad6f7c24141842095081fea18cf1c"
+      },
+      "stderr": {
+        "path": "swift-explicit-version-mismatch.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "workingDirectory": "/Users/andreyyurlov/Documents/dev/mixer",
+      "expectedExitCode": 1
+    },
+    {
+      "name": "old-service-refuses-schema2",
+      "command": [
+        "/private/tmp/mixer-http-v2-frozen/mixer-service-v1-only"
+      ],
+      "executable": {
+        "path": "/private/tmp/mixer-http-v2-frozen/mixer-service-v1-only",
+        "resolvedPath": "/private/tmp/mixer-http-v2-frozen/mixer-service-v1-only",
+        "bytes": 15112226,
+        "sha256": "1cc17a6c9be51a7023a9bb997454df3f16972409253757d024d776241a901c67"
+      },
+      "exitCode": 1,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "elapsedSeconds": 0.179,
+      "stdout": {
+        "path": "old-service-refuses-schema2.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "old-service-refuses-schema2.stderr",
+        "bytes": 82,
+        "sha256": "c45361eaee0790d029664110df3ba12a3ea9cb18e3b5cbede5fc35f3510687f0"
+      },
+      "workingDirectory": "/Users/andreyyurlov/Documents/dev/mixer",
+      "expectedExitCode": 1
+    },
+    {
+      "name": "swift-v2-after-restart",
+      "command": [
+        "/private/tmp/mixer-http-v2-frozen/swift-build/arm64-apple-macosx/debug/http-release-check",
+        "http://127.0.0.1:59280",
+        "/Users/andreyyurlov/Documents/dev/mixer/services/protocol/testdata/signed-release-v2.json",
+        "2",
+        "0"
+      ],
+      "executable": {
+        "path": "/private/tmp/mixer-http-v2-frozen/swift-build/arm64-apple-macosx/debug/http-release-check",
+        "resolvedPath": "/private/tmp/mixer-http-v2-frozen/swift-build/arm64-apple-macosx/debug/http-release-check",
+        "bytes": 937600,
+        "sha256": "37c30f9a1ef3db1ba51821f2370dc2ea33d0e63855cf4f6ead72f688132732fe"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "elapsedSeconds": 0.05,
+      "stdout": {
+        "path": "swift-v2-after-restart.stdout",
+        "bytes": 944,
+        "sha256": "d25a1f4837e006153578ca589c0648fc6eefce3e9679866acb34a5ed000b8e7d"
+      },
+      "stderr": {
+        "path": "swift-v2-after-restart.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "workingDirectory": "/Users/andreyyurlov/Documents/dev/mixer",
+      "expectedExitCode": 0
+    }
+  ],
+  "requests": [
+    {
+      "method": "PUT",
+      "path": "/v1/orgs/org-a/projects/project-a/artifacts/35bb6afad8192dca714bb056a4eedab8153c35ef50fe5b77bb72d96ca3be3193",
+      "status": 201,
+      "bodySHA256": "a2aeb234b28f24877d9702805ddaf7a88adec810c3877fcf13adc61239bde2fa",
+      "responseSHA256": "d95c4d9b3987bc1840a8711a75d2467d5d5af6e76a4d3e4eb02fe9cc68f6a739"
+    },
+    {
+      "method": "PUT",
+      "path": "/v1/orgs/org-a/projects/project-a/artifacts/35bb6afad8192dca714bb056a4eedab8153c35ef50fe5b77bb72d96ca3be3193",
+      "status": 201,
+      "bodySHA256": "a2aeb234b28f24877d9702805ddaf7a88adec810c3877fcf13adc61239bde2fa",
+      "responseSHA256": "d95c4d9b3987bc1840a8711a75d2467d5d5af6e76a4d3e4eb02fe9cc68f6a739"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/orgs/org-a/projects/project-a/releases/validate",
+      "status": 200,
+      "bodySHA256": "920546de1d64bb567db104c8e85157684905e0205076c7c6b0a9828e6e8966ae",
+      "responseSHA256": "60fa0233ec16425f60650fce033addd65e52e9e2a854e9d52a1602253b5a6d34"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/orgs/org-a/projects/project-a/channels/beta/publish",
+      "status": 200,
+      "bodySHA256": "4d62f12ce1a914bd65141311a424546e9dde7727b9666d2a50ffcd0d1cc118bb",
+      "responseSHA256": "03e7d7976cce9f6685efc5d9e8d4e43efb178c5bf9787fb528f9174b2936bda6"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/artifacts/35bb6afad8192dca714bb056a4eedab8153c35ef50fe5b77bb72d96ca3be3193?organization=org-a&project=project-a",
+      "status": 200,
+      "bodySHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "responseSHA256": "a2aeb234b28f24877d9702805ddaf7a88adec810c3877fcf13adc61239bde2fa"
+    },
+    {
+      "method": "PUT",
+      "path": "/v2/orgs/org-a/projects/project-a/artifacts/a26a4657320c4388f2f9867b5c70fd8f214904cbe2f4b42eb88935e43e90c37f",
+      "status": 401,
+      "bodySHA256": "3f08142a529fdd898e0cd3eda7c2ee56847e2813476b03e122171355a0f34a5f",
+      "responseSHA256": "6ba9a99d27d48b1ffe34fb2f59f1e815232ba5a7f603cf4d56ee0f0efcd4cbbb"
+    },
+    {
+      "method": "PUT",
+      "path": "/v1/orgs/org-a/projects/project-a/artifacts/a26a4657320c4388f2f9867b5c70fd8f214904cbe2f4b42eb88935e43e90c37f",
+      "status": 400,
+      "bodySHA256": "3f08142a529fdd898e0cd3eda7c2ee56847e2813476b03e122171355a0f34a5f",
+      "responseSHA256": "9dbb1e0cf0c89d0261f93181c8044e7be068d8a77a4427e91dad41746bdbad6f"
+    },
+    {
+      "method": "PUT",
+      "path": "/v2/orgs/org-a/projects/project-a/artifacts/a26a4657320c4388f2f9867b5c70fd8f214904cbe2f4b42eb88935e43e90c37f",
+      "status": 409,
+      "bodySHA256": "3f08142a529fdd898e0cd3eda7c2ee56847e2813476b03e122171355a0f34a5f",
+      "responseSHA256": "4660666caea8c2a5e488f42b6f19303213615de147036389414273872e216522"
+    },
+    {
+      "method": "PUT",
+      "path": "/v2/orgs/org-a/projects/project-a/artifacts/a26a4657320c4388f2f9867b5c70fd8f214904cbe2f4b42eb88935e43e90c37f",
+      "status": 201,
+      "bodySHA256": "3f08142a529fdd898e0cd3eda7c2ee56847e2813476b03e122171355a0f34a5f",
+      "responseSHA256": "5cba496174d9a349cdaeca849aa97dd3358d873d29b9297ce8070ddcdfdc7154"
+    },
+    {
+      "method": "PUT",
+      "path": "/v2/orgs/org-a/projects/project-a/artifacts/a26a4657320c4388f2f9867b5c70fd8f214904cbe2f4b42eb88935e43e90c37f",
+      "status": 201,
+      "bodySHA256": "3f08142a529fdd898e0cd3eda7c2ee56847e2813476b03e122171355a0f34a5f",
+      "responseSHA256": "5cba496174d9a349cdaeca849aa97dd3358d873d29b9297ce8070ddcdfdc7154"
+    },
+    {
+      "method": "POST",
+      "path": "/v2/orgs/org-a/projects/project-a/releases/validate",
+      "status": 200,
+      "bodySHA256": "64161d6836660102c471a7ace86cb9ae9b66dec17c86cadd89fa5c0c2620995d",
+      "responseSHA256": "eeb367dd6b35773de7cab0b971f7ec43a73246d6061b1f96fcbeb80bcd643c78"
+    },
+    {
+      "method": "POST",
+      "path": "/v2/orgs/org-a/projects/project-a/channels/beta/publish",
+      "status": 200,
+      "bodySHA256": "3c0581de22c436ef07b46e7bbed8fb2722c7b2cd4af3b90a5aa4d204b168aa10",
+      "responseSHA256": "18cb43118a4fa266db9df62787bca9c28eaa9dfa6dc5735fb6707f8b14e239bb"
+    },
+    {
+      "method": "GET",
+      "path": "/v2/artifacts/a26a4657320c4388f2f9867b5c70fd8f214904cbe2f4b42eb88935e43e90c37f?organization=org-a&project=project-a",
+      "status": 200,
+      "bodySHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "responseSHA256": "3f08142a529fdd898e0cd3eda7c2ee56847e2813476b03e122171355a0f34a5f"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/artifacts/a26a4657320c4388f2f9867b5c70fd8f214904cbe2f4b42eb88935e43e90c37f?organization=org-a&project=project-a",
+      "status": 404,
+      "bodySHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "responseSHA256": "c8346d162b20121eb1280d9b27e6a10ad7bbc426c6eb02ada8e243c9547567bd"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/updates?organization=org-a&project=project-a&app=fieldlog&environment=development&platform=ios&runtime=efb0f56bc96c447612d4abfb1fc411a3336f64d2b865628976e6486d2519f5cb&channel=beta&installation=fixture-installation-v2",
+      "status": 204,
+      "bodySHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "responseSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/artifacts/35bb6afad8192dca714bb056a4eedab8153c35ef50fe5b77bb72d96ca3be3193?organization=org-a&project=project-a",
+      "status": 200,
+      "bodySHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "responseSHA256": "a2aeb234b28f24877d9702805ddaf7a88adec810c3877fcf13adc61239bde2fa"
+    }
+  ],
+  "sourceRevision": "c01e8016880dcbf1c15010142ad856327d7ba0f8",
+  "testedSource": {
+    "algorithm": "SHA256 of compact sorted JSON path/hash array",
+    "files": [
+      {
+        "path": "compiler/qualification_support.py",
+        "sha256": "e4d862f7671e94da0a0181313022d195b62cb592eed69f1c491ca0c11dd537c4"
+      },
+      {
+        "path": "contracts/release-v1.json",
+        "sha256": "ff899af876c1bb28b0c65c913702b22af9e7031537f5d37ff36f41bf88e12769"
+      },
+      {
+        "path": "contracts/release-v2.json",
+        "sha256": "ab4f5d881b1fd0cb91d01bd1da25a0b864690d29936063e0144304bfd275ba4b"
+      },
+      {
+        "path": "services/README.md",
+        "sha256": "b8f1939549474fd5965f65fc39da2ae6198b8f926aa699420a94bc095e6d67ec"
+      },
+      {
+        "path": "services/cmd/mixer-service/main.go",
+        "sha256": "a97229a3b6c85b0842ec5fd00e4c26edb271bcec24dc188541ea174b73508f12"
+      },
+      {
+        "path": "services/go.mod",
+        "sha256": "5ec375e73b588601bfe5b9a7a29e6cf10b6401c9e5e7fc355673ee678cbd5d38"
+      },
+      {
+        "path": "services/go.sum",
+        "sha256": "a5e7a8db07eba28dbde48bf9a54c4e9084a5a95ded581c0ff44c08b74e3dfe69"
+      },
+      {
+        "path": "services/internal/durable/free_unix.go",
+        "sha256": "b3d2e6f312a06482f156511301b799ec5f0d018c6ae29ed2e1f9b56f5a760499"
+      },
+      {
+        "path": "services/internal/durable/store.go",
+        "sha256": "66ef3f2f9dfb08c87c9448bf40d1844a7358438e524101240646fcec4112f374"
+      },
+      {
+        "path": "services/internal/testutil/fixture.go",
+        "sha256": "c726ca5132599fc0d1ba4bf7b73983fbcc9347c94266afd88e0eb9b991dc57cb"
+      },
+      {
+        "path": "services/internal/testutil/v2.go",
+        "sha256": "9a2c344c1f696ff18ac067d4ddaea25562c8585d0673013cfffb02524d923509"
+      },
+      {
+        "path": "services/protocol/README.md",
+        "sha256": "37065be21be1478816b68a271dc912d2acee70411c0c760516b070332f5af410"
+      },
+      {
+        "path": "services/protocol/cbor.go",
+        "sha256": "fcef8b1e7047c5559d6e85c67389da5210a6b8bce7c0f0e668d8c382f0c651ef"
+      },
+      {
+        "path": "services/protocol/http_shape_test.go",
+        "sha256": "8bb92acde637db94d56f921a3637b4804dbe4ee4f2afea49df0bfb1114ac6fc0"
+      },
+      {
+        "path": "services/protocol/json_shape.go",
+        "sha256": "7dd4dbfce8c802fa11aa99a9f4081cf47c7b8518f623038b15163400c4510cf5"
+      },
+      {
+        "path": "services/protocol/legacy_wire_test.go",
+        "sha256": "5131e7167e6dff3ecb5a526d6ccd09d7fa84ffbebafc5fc52ee1f196620adc02"
+      },
+      {
+        "path": "services/protocol/protocol.go",
+        "sha256": "a116ae466c4dbb636be571b66f6f4f82107ccf57b606a193836f7b4738c05431"
+      },
+      {
+        "path": "services/protocol/protocol_test.go",
+        "sha256": "34b9a72abc9b8517c02ef60654e83448a77e8234c767a051ce14295e8048621f"
+      },
+      {
+        "path": "services/protocol/testdata/generate-v1-wire.go",
+        "sha256": "7f253f6b93df5f0bfddd9e00a576ee744268b2b702cecbdff5cfb4db99ca182e"
+      },
+      {
+        "path": "services/protocol/testdata/generate-v2.go",
+        "sha256": "3aeea14665c4bec0bb998a4b1baf4bd4afedc2c9a078719f9e3f7a61ff1ff25d"
+      },
+      {
+        "path": "services/protocol/testdata/signed-release-v1.json",
+        "sha256": "d9bfa9505a83898c7ca397719e5ca6794d39e28eb8d3bd5897f1958f7801e2d7"
+      },
+      {
+        "path": "services/protocol/testdata/signed-release-v2.json",
+        "sha256": "37d9ac75bad95f68a74f779d647c74134f0b49be0eedf4dfb6a9f0beed9717f7"
+      },
+      {
+        "path": "services/protocol/v1_json.go",
+        "sha256": "3ee82ab67a31ebb2898d80ff7e3eca4c7e36f1800a223de29e5adc72610e66bb"
+      },
+      {
+        "path": "services/protocol/v2.go",
+        "sha256": "14830254bdc75cdd3413fb9d7b3accd02220f2527cc8850e39ceff917b9cbd49"
+      },
+      {
+        "path": "services/protocol/v2_test.go",
+        "sha256": "f7ed9af9c55f44269defeb9f1a30bf4deb2f245f9ea3c34d00a56888133caeef"
+      },
+      {
+        "path": "services/release/POSTGRES.md",
+        "sha256": "abc22bc5ceeaf7b9de102c7c66727999dbe4ca8912ff95d69ad8de0f06ed86fa"
+      },
+      {
+        "path": "services/release/migrations/001_release.sql",
+        "sha256": "c352755698244eff1a5d65ac32d0255478ea270be1fc143a94bdbba876b47605"
+      },
+      {
+        "path": "services/release/postgres.go",
+        "sha256": "7649c08117984a3e520c75ced7a91f15b90c8fc7d7315e7db4bd212979d9d068"
+      },
+      {
+        "path": "services/release/postgres_guards_integration_test.go",
+        "sha256": "c20c3bbcefe0615d37d7ec8e2f4a57d52e786da3b4ea040426a30fd8e566c375"
+      },
+      {
+        "path": "services/release/postgres_integration_test.go",
+        "sha256": "e9a069e85ac7cd5ef9a1f1cff15374bd762e93bd414dc0f4bb756d6736b0e024"
+      },
+      {
+        "path": "services/release/postgres_v2_integration_test.go",
+        "sha256": "b49f8215e61a92f7fa7f979546b67a1f759506d3fc743545932b2d242c7efa3f"
+      },
+      {
+        "path": "services/release/server.go",
+        "sha256": "9916297614010b89f48f9026ea4a8101d9913e754ab6dd947ade37dc705022db"
+      },
+      {
+        "path": "services/release/server_test.go",
+        "sha256": "519dde552e48cd875f4c27b8e4158dfd9e79f12c70c6c331eac8eaf8f0da68ca"
+      },
+      {
+        "path": "services/release/storage.go",
+        "sha256": "fe5705f0a51a2d871947aab29b50ce55c62a04e20d2e550293d3e3f0b672da66"
+      },
+      {
+        "path": "services/release/storage_test.go",
+        "sha256": "7e07434387817a407c3a9f29c110fc61c598b0780c078c848e7e9cb20666b877"
+      },
+      {
+        "path": "services/release/store.go",
+        "sha256": "003e09ec337bc594f37e9fa26adfb82800c32cd493a44619ab9486117e904bc0"
+      },
+      {
+        "path": "services/release/v2_test.go",
+        "sha256": "9a5b11d31704797668a286dd7d5ddf0aaedf04fae926f0f49a1660c99c9765fd"
+      },
+      {
+        "path": "services/release/versioned.go",
+        "sha256": "5f32cb4388bf720b757e9b874a02f72a75038bfa9eb5635df13b9af1c23e5443"
+      },
+      {
+        "path": "services/updater/updater.go",
+        "sha256": "437f16ecb3ab1d7df87118502094e3e98653e2e37213b1d322cd990641b63818"
+      },
+      {
+        "path": "services/updater/updater_test.go",
+        "sha256": "e3208c65fffc8b667dd4c0ee68e5df68804d0ee0289f0c4c0af0b0a2353b99f3"
+      },
+      {
+        "path": "tests/integration/README.md",
+        "sha256": "aab9ec668273b371ce60f93e6fa0b0118ff59de52f79a71eebd0f6096ba8acdc"
+      },
+      {
+        "path": "tests/integration/http-v2-consumer/Package.resolved",
+        "sha256": "c1af693916d54bae510cefd617a879f2794fdfa9e6bbebb4a77f75fdd03f3622"
+      },
+      {
+        "path": "tests/integration/http-v2-consumer/Package.swift",
+        "sha256": "ea4c646d9304ac67e93c272acf485a093949c90f2f6044dbb9340b1f77665858"
+      },
+      {
+        "path": "tests/integration/http-v2-consumer/Sources/http-release-check/main.swift",
+        "sha256": "16a57e3cb349c9c6960e45b0110fbb6866a64ec3d4f74637216c2ee3982be5fa"
+      },
+      {
+        "path": "tests/integration/release-v2-workflow.py",
+        "sha256": "af6942c1b511a585c9e1e53302e95510c81cb672423227a743d75cabcb728f87"
+      },
+      {
+        "path": "updates/Package.resolved",
+        "sha256": "e7dfdfed9b632538cd61bdff7bc705cb2a30cc7be661f31d6076f18b58d3f1ab"
+      },
+      {
+        "path": "updates/Package.swift",
+        "sha256": "d75de1e5a9b3e3db7e7a6ce3845df39fb9afe81b1e51ac29e0a33f43e0b4f658"
+      },
+      {
+        "path": "updates/Sources/MixerDurableIO/include/MixerDurableIO.h",
+        "sha256": "9b34b963e739b61a4220113ea36b569fe59d23b775da46789dc079be4c333ada"
+      },
+      {
+        "path": "updates/Sources/MixerDurableIO/lock.c",
+        "sha256": "ca2e421d23ec1981fc9825871229b4c1cd92b5aee711e4f77ce62df85571b493"
+      },
+      {
+        "path": "updates/Sources/MixerUpdateTool/main.swift",
+        "sha256": "38e244f41b1c12ef3c3f01838cc7aa360a6cba5955f4a07e3673c70ac54ac98f"
+      },
+      {
+        "path": "updates/Sources/MixerUpdates/CanonicalValue.swift",
+        "sha256": "9d378b14b7a768fe2a176b888b668ce33bcbb7fca79df2c5647197cacadcf954"
+      },
+      {
+        "path": "updates/Sources/MixerUpdates/ColdStartModels.swift",
+        "sha256": "92f78089c6db400306231f1d231a2dd76d7becc689a70ce1626f2964a1f64f6c"
+      },
+      {
+        "path": "updates/Sources/MixerUpdates/ColdStartUpdater.swift",
+        "sha256": "91f66219305adcf3419115007165ba2c1ef1b68287ac6544f54bfb53f220d3c4"
+      },
+      {
+        "path": "updates/Sources/MixerUpdates/DurableDirectory.swift",
+        "sha256": "08126d6a57a83fce3229284c1f0267f496cd6352ce095f74855f1cabe04528bc"
+      },
+      {
+        "path": "updates/Sources/MixerUpdates/StrictJSON.swift",
+        "sha256": "52952e49cc90961e3179d82809219b817b1bd4c3cb55613d2c732b62d05dcdf6"
+      },
+      {
+        "path": "updates/Sources/MixerUpdates/UpdateInputFile.swift",
+        "sha256": "da5e0b63641842ec56cc3b9610cc4378ce24084dc0d28d2fa05ce00a6e1b4ea9"
+      },
+      {
+        "path": "updates/Sources/MixerUpdates/Verifier.swift",
+        "sha256": "3886a064552bdd0573362909f4f6fe0973ddf5a6982cb4369c5a92b328a52d60"
+      }
+    ],
+    "sha256": "15a98c124cbe66d7b1d4635f58d57aaff6e0d6512141e531042a295c8e16ac36"
+  },
+  "limitations": [
+    "Local checkout dependencies, not immutable published consumer adoption.",
+    "Public TEST roots/non-executable payloads only; no production credential, native capability execution, activation or device/OTA qualification.",
+    "Swift HTTP test consumer accepts small fixtures up to 96KiB and uses the metadata string bound; this is not a production large-payload downloader.",
+    "This HTTP harness uses the local snapshot store; real PostgreSQL is exercised by the separate isolated-cluster runner.",
+    "No new CLI publication command, hosted deployment, outbox dispatch or production readiness."
+  ],
+  "swiftVersion": "Apple Swift version 6.3.3 (swiftlang-6.3.3.1.3 clang-2100.1.1.101)\nTarget: arm64-apple-macosx28.0\n",
+  "goVersion": "go version go1.26.4 darwin/arm64\n",
+  "xcodeVersion": "Xcode 26.6\nBuild version 17F113\n",
+  "builtBinaries": {
+    "serviceSHA256": "dffa2c412014b82e3902b114e633ce2c3e2ae9560cbe3703bf85e25c444feec0",
+    "swiftConsumerSHA256": "37c30f9a1ef3db1ba51821f2370dc2ea33d0e63855cf4f6ead72f688132732fe"
+  },
+  "legacyBinary": {
+    "sourceCommit": "6cb27591319a2066e1eb8b3025400137373cb2d6",
+    "sha256": "1cc17a6c9be51a7023a9bb997454df3f16972409253757d024d776241a901c67"
+  },
+  "serverRuns": [
+    {
+      "binarySHA256": "dffa2c412014b82e3902b114e633ce2c3e2ae9560cbe3703bf85e25c444feec0",
+      "configPath": "/private/tmp/mixer-http-v2-frozen/service.json",
+      "credentialStorage": "only scoped token hashes in config; ephemeral bearer values never logged",
+      "pid": 78407,
+      "exitCode": 0
+    },
+    {
+      "binarySHA256": "dffa2c412014b82e3902b114e633ce2c3e2ae9560cbe3703bf85e25c444feec0",
+      "configPath": "/private/tmp/mixer-http-v2-frozen/service.json",
+      "credentialStorage": "only scoped token hashes in config; ephemeral bearer values never logged",
+      "pid": 78418,
+      "exitCode": 0
+    }
+  ],
+  "swiftHTTP": [
+    {
+      "artifactSHA256": "35bb6afad8192dca714bb056a4eedab8153c35ef50fe5b77bb72d96ca3be3193",
+      "protocol": 1,
+      "redirects": false,
+      "resourceLimits": {
+        "fuel": 1000,
+        "memoryBytes": 1048576,
+        "startupMilliseconds": 1000
+      },
+      "schema": 1,
+      "scope": "actual loopback HTTP to public Swift signature verifier and typed metadata only; no guest/native import, activation, device or hosted qualification",
+      "sequence": 7,
+      "status": "passed",
+      "verifiedGrants": [],
+      "versionFallback": false
+    },
+    {
+      "artifactSHA256": "a26a4657320c4388f2f9867b5c70fd8f214904cbe2f4b42eb88935e43e90c37f",
+      "protocol": 2,
+      "redirects": false,
+      "resourceLimits": {
+        "fuel": 1000,
+        "memoryBytes": 1048576,
+        "startupMilliseconds": 1000
+      },
+      "schema": 1,
+      "scope": "actual loopback HTTP to public Swift signature verifier and typed metadata only; no guest/native import, activation, device or hosted qualification",
+      "sequence": 7,
+      "status": "passed",
+      "verifiedGrants": [
+        {
+          "capabilityID": "network.http.v1",
+          "methods": [
+            "GET",
+            "POST"
+          ],
+          "namespaces": [],
+          "origins": [
+            "https://api.fieldlog.example",
+            "https://uploads.fieldlog.example:8443"
+          ],
+          "permissions": [
+            "network.https"
+          ],
+          "schemaSHA256": "fa1549c0a1e2e6b3bf4a83af1a6d37730bbefc8cddc3ffbe3c807d5e7af503f3"
+        },
+        {
+          "capabilityID": "storage.keyValue.v1",
+          "methods": [],
+          "namespaces": [
+            "Drafts",
+            "drafts",
+            "outbox"
+          ],
+          "origins": [],
+          "permissions": [
+            "storage.appPrivate"
+          ],
+          "schemaSHA256": "4a311222c978ddd0982e8dfbcf3d4864b856a80bcc1efb3b725adede7f8e22fd"
+        }
+      ],
+      "versionFallback": false
+    }
+  ],
+  "oldBinaryRefusesUpgradedSnapshotWithoutMutation": true,
+  "restartPreservesV1BytesAndV2VerifiedGrants": true
+}

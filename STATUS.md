@@ -1680,8 +1680,35 @@ groups remain pending; a new isolated lane is implementing caller failure handli
 and executing that matrix. The live VM is unchanged. See
 `docs/swift-memory-helper-acceptance.md`.
 
-The isolated retained-display formatter correction now passes all 88 full cases
-(including the original 83), with 64 independently reconstructed actual rows.
-Root verified 1,019 candidate and 488 upstream bindings. Fresh independent review
-is running; no repository or complete AS05 acceptance is claimed. See
-`docs/hosted-atomic-display-correction.md`.
+Root accepts the isolated retained-display formatter correction after an exact
+88-case replay and 94-case independent suite, both without skips or exclusions.
+A separate oracle reconstructs 185 actual chain rows. Root verifies 625 review
+and 1,509 reviewed input bindings; CR01 is resolved within the specimen. Complete
+production AS05, catalog and repository integration remain pending. See
+`docs/hosted-atomic-display-acceptance.md`.
+
+The authority catalog correction now replays the original 128 cases and 43 review
+controls, preserves five historical gap observations, and passes 67 new correction
+cases. Root verifies 789 bindings; fresh independent review is running. Actual
+Ecto/Postgrex authorization-driver implementation is also underway in isolation,
+with no SQL signature changes or live migration. See
+`docs/hosted-authority-catalog-correction.md` and
+`docs/hosted-authority-driver-contract.md`.
+
+Checkpoint `f044e6db` passes all three Swift, VM and Go service engine jobs.
+See `verification/github-ci-f044e6db-engine/receipt.json`; no GA gate changes.
+
+The catalog's independent review verifies 489 bindings and reproduces ACR01:
+21 malformed raw metadata admissions across 126 boundary models. Ordinary
+PostgreSQL changes remain detected in the tested scope; no ordinary-runtime
+bypass was demonstrated. Root selected complete raw validation before lossy
+normalization in `docs/hosted-authority-catalog-shape-direction.md`; correction
+and fresh independent review remain pending.
+
+The isolated Ecto/Postgrex authority driver passes 56 actual-driver cases and
+711 source/evidence bindings. Fresh independent review is running. The isolated
+hosted audit codec candidate preserves 185 captured PostgreSQL rows and passes
+11 focused tests plus 104 full hosted tests with two explicit Linux-only skips;
+its independent review is pending. See `docs/hosted-authority-driver.md` and
+`docs/hosted-audit-codec-integration.md`. No live authority/domain migration,
+HTTP or GA acceptance is claimed.

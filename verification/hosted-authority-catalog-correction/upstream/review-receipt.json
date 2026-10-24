@@ -1,0 +1,153 @@
+{
+  "schema": 1,
+  "status": "correction-required-before-final-contract-selection",
+  "frozen_utc": "2026-10-24T09:04:55.177114+00:00",
+  "scope": "Independent current-authority schema/resolver prerequisite review for root contract selection only",
+  "observed_head": "4250e05a132c04370d5ccb971c9faaf1b82a9395",
+  "observed_tree": "e06c83a5fd5263f13a2ce11803c1b3ab57eead76",
+  "producer": {
+    "contract_sha256": "d12d3b3a0484289f9990990f104bd3aaaff19eb4488caa6eca730ecdc938fbbd",
+    "receipt_sha256": "ab20a2694c537ee04f2a07c0e1208ff44a24f7e7c78d930fab9591803b28e9cb",
+    "source_digest": "ebaae05f782695d3cd9d1fcedc535f0b47cdb736167384b7dc6d8a09fa16b0de",
+    "frozen_run": "run-9",
+    "integrity_bindings": 240
+  },
+  "execution": {
+    "replay": {
+      "passed": 128,
+      "total": 128,
+      "skipped": 0,
+      "excluded": 0
+    },
+    "new_review_oracles": {
+      "passed": 48,
+      "total": 48,
+      "skipped": 0,
+      "excluded": 0,
+      "expected_behavior_controls": 43,
+      "gap_reproductions": 5,
+      "gap_reproduction_is_not_security_pass": true
+    },
+    "baseline_catalog_matches_frozen_producer": true,
+    "actual_enforcement_baseline": {
+      "relations": 14,
+      "constraints": 89,
+      "indexes": 26,
+      "user_and_internal_triggers": 74,
+      "permanent_default_replica_identity": true,
+      "constraints_validated_nondeferrable": true,
+      "indexes_valid_ready_live_immediate": true,
+      "triggers_enabled_origin": true,
+      "effective_privileged_parameter_acl": []
+    }
+  },
+  "findings": [
+    {
+      "id": "ASR01",
+      "severity": "correction-required",
+      "scope": "ordinary privileged schema drift missed by catalog",
+      "reproductions": [
+        "disabled lifecycle trigger preserves manifest; immutable subject update succeeds",
+        "disabled all triggers preserves manifest; absent profile/principal FK insert succeeds"
+      ],
+      "baseline_runtime_bypass_claim": false
+    },
+    {
+      "id": "ASR02",
+      "severity": "correction-required",
+      "scope": "relation persistence/replica identity omitted",
+      "reproductions": [
+        "denial relation SET UNLOGGED preserves manifest",
+        "denial relation REPLICA IDENTITY NOTHING preserves manifest"
+      ],
+      "logical_replication_qualified": false,
+      "baseline_runtime_bypass_claim": false
+    },
+    {
+      "id": "ASR03",
+      "severity": "correction-required",
+      "scope": "effective privileged parameter grant omitted",
+      "reproductions": [
+        "GRANT SET ON PARAMETER session_replication_role TO runtime preserves manifest; actual runtime SET LOCAL replica succeeds"
+      ],
+      "baseline_runtime_has_grant": false,
+      "baseline_runtime_bypass_claim": false
+    }
+  ],
+  "additional_correction_guidance_not_reproduced": [
+    "Inspect effective SET/ALTER SYSTEM privileges including PUBLIC/reachable roles, role/database startup defaults and actual session settings; pg_parameter_acl alone is insufficient",
+    "Include explicit constraint validation/deferrability and index valid/ready/live/immediate states; observed baseline flags are safe",
+    "Select relation kind/persistence and deployment-applicable replica identity"
+  ],
+  "positive_manifest_drift_controls": [
+    "RLS predicate",
+    "policy roles",
+    "policy permissiveness",
+    "CHECK validation",
+    "FK deferrability",
+    "index predicate"
+  ],
+  "tools": {
+    "python3": "Python 3.14.8",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "pg_ctl": "pg_ctl (PostgreSQL) 17.11 (Homebrew)",
+    "psql": "psql (PostgreSQL) 17.11 (Homebrew)",
+    "pg_config": "/opt/homebrew/lib/postgresql@17",
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "libpq": {
+      "path": "/opt/homebrew/Cellar/postgresql@17/17.11/lib/postgresql/libpq.5.dylib",
+      "sha256": "f87ff277a68971b58b6cc2262040abb8bdef050891a2ee395cc62cab98833a21",
+      "version": 170011
+    }
+  },
+  "attempts": [
+    {
+      "path": "attempt-1",
+      "frozen_replay_passed": 128,
+      "review_passed": 7,
+      "review_total": 39,
+      "success": false,
+      "cause": "Reviewer global field loop variable shadowed libpq error-field symbol; no producer failure"
+    },
+    {
+      "path": "attempt-2",
+      "frozen_replay_passed": 128,
+      "review_passed": 39,
+      "review_total": 39,
+      "success": true
+    },
+    {
+      "path": "attempt-3",
+      "frozen_replay_passed": 128,
+      "review_passed": 47,
+      "review_total": 48,
+      "success": false,
+      "cause": "Reviewer independent inspection query used unsupported OID has_parameter_privilege overload; no producer failure"
+    },
+    {
+      "path": ".",
+      "frozen_replay_passed": 128,
+      "review_passed": 48,
+      "review_total": 48,
+      "success": true
+    }
+  ],
+  "cleanup": {
+    "all_four_owned_clusters_stopped": true,
+    "all_four_owned_scratch_roots_removed": true,
+    "tcp_listener_opened": false,
+    "other_projects_processes_touched": false,
+    "native_ui_or_phone_runs": false
+  },
+  "producer_modified": false,
+  "product_implementation_accepted": false,
+  "migration_applied": false,
+  "ga_acceptance": false,
+  "pending": [
+    "Root exact catalog/startup correction selection and separately frozen corrected packet review",
+    "Product migration/coordinator/combined startup inspector/management and credential lifecycle",
+    "Stored artifact target resolver/domain RLS/atomic writer and signed HTTP composition",
+    "Provider, Neon/Cloudflare/R2/Oban G24 and operational/security/customer qualification",
+    "Physical final matrix, published-package FieldLog and accountable GA acceptance"
+  ]
+}

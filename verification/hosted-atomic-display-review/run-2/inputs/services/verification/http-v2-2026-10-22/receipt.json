@@ -1,0 +1,387 @@
+{
+  "schema": 1,
+  "status": "passed-local-development-http-v2-composition",
+  "model": "gpt-6.1-sol",
+  "reasoningEffort": "xhigh",
+  "pythonVersion": "3.14.8",
+  "scope": "Explicit local HTTP service composition for signed release-v2 with v1 compatibility, durable local/real-PG transactions and public Swift typed verification. No hosted/OTA/device qualification.",
+  "testedSource": {
+    "algorithm": "SHA256 of compact sorted JSON path/hash array",
+    "files": [
+      {
+        "path": "compiler/qualification_support.py",
+        "sha256": "e4d862f7671e94da0a0181313022d195b62cb592eed69f1c491ca0c11dd537c4"
+      },
+      {
+        "path": "contracts/release-v1.json",
+        "sha256": "ff899af876c1bb28b0c65c913702b22af9e7031537f5d37ff36f41bf88e12769"
+      },
+      {
+        "path": "contracts/release-v2.json",
+        "sha256": "ab4f5d881b1fd0cb91d01bd1da25a0b864690d29936063e0144304bfd275ba4b"
+      },
+      {
+        "path": "services/README.md",
+        "sha256": "b8f1939549474fd5965f65fc39da2ae6198b8f926aa699420a94bc095e6d67ec"
+      },
+      {
+        "path": "services/cmd/mixer-service/main.go",
+        "sha256": "a97229a3b6c85b0842ec5fd00e4c26edb271bcec24dc188541ea174b73508f12"
+      },
+      {
+        "path": "services/go.mod",
+        "sha256": "5ec375e73b588601bfe5b9a7a29e6cf10b6401c9e5e7fc355673ee678cbd5d38"
+      },
+      {
+        "path": "services/go.sum",
+        "sha256": "a5e7a8db07eba28dbde48bf9a54c4e9084a5a95ded581c0ff44c08b74e3dfe69"
+      },
+      {
+        "path": "services/internal/durable/free_unix.go",
+        "sha256": "b3d2e6f312a06482f156511301b799ec5f0d018c6ae29ed2e1f9b56f5a760499"
+      },
+      {
+        "path": "services/internal/durable/store.go",
+        "sha256": "66ef3f2f9dfb08c87c9448bf40d1844a7358438e524101240646fcec4112f374"
+      },
+      {
+        "path": "services/internal/testutil/fixture.go",
+        "sha256": "c726ca5132599fc0d1ba4bf7b73983fbcc9347c94266afd88e0eb9b991dc57cb"
+      },
+      {
+        "path": "services/internal/testutil/v2.go",
+        "sha256": "9a2c344c1f696ff18ac067d4ddaea25562c8585d0673013cfffb02524d923509"
+      },
+      {
+        "path": "services/protocol/README.md",
+        "sha256": "37065be21be1478816b68a271dc912d2acee70411c0c760516b070332f5af410"
+      },
+      {
+        "path": "services/protocol/cbor.go",
+        "sha256": "fcef8b1e7047c5559d6e85c67389da5210a6b8bce7c0f0e668d8c382f0c651ef"
+      },
+      {
+        "path": "services/protocol/http_shape_test.go",
+        "sha256": "8bb92acde637db94d56f921a3637b4804dbe4ee4f2afea49df0bfb1114ac6fc0"
+      },
+      {
+        "path": "services/protocol/json_shape.go",
+        "sha256": "7dd4dbfce8c802fa11aa99a9f4081cf47c7b8518f623038b15163400c4510cf5"
+      },
+      {
+        "path": "services/protocol/legacy_wire_test.go",
+        "sha256": "5131e7167e6dff3ecb5a526d6ccd09d7fa84ffbebafc5fc52ee1f196620adc02"
+      },
+      {
+        "path": "services/protocol/protocol.go",
+        "sha256": "a116ae466c4dbb636be571b66f6f4f82107ccf57b606a193836f7b4738c05431"
+      },
+      {
+        "path": "services/protocol/protocol_test.go",
+        "sha256": "34b9a72abc9b8517c02ef60654e83448a77e8234c767a051ce14295e8048621f"
+      },
+      {
+        "path": "services/protocol/testdata/generate-v1-wire.go",
+        "sha256": "7f253f6b93df5f0bfddd9e00a576ee744268b2b702cecbdff5cfb4db99ca182e"
+      },
+      {
+        "path": "services/protocol/testdata/generate-v2.go",
+        "sha256": "3aeea14665c4bec0bb998a4b1baf4bd4afedc2c9a078719f9e3f7a61ff1ff25d"
+      },
+      {
+        "path": "services/protocol/testdata/signed-release-v1.json",
+        "sha256": "d9bfa9505a83898c7ca397719e5ca6794d39e28eb8d3bd5897f1958f7801e2d7"
+      },
+      {
+        "path": "services/protocol/testdata/signed-release-v2.json",
+        "sha256": "37d9ac75bad95f68a74f779d647c74134f0b49be0eedf4dfb6a9f0beed9717f7"
+      },
+      {
+        "path": "services/protocol/v1_json.go",
+        "sha256": "3ee82ab67a31ebb2898d80ff7e3eca4c7e36f1800a223de29e5adc72610e66bb"
+      },
+      {
+        "path": "services/protocol/v2.go",
+        "sha256": "14830254bdc75cdd3413fb9d7b3accd02220f2527cc8850e39ceff917b9cbd49"
+      },
+      {
+        "path": "services/protocol/v2_test.go",
+        "sha256": "f7ed9af9c55f44269defeb9f1a30bf4deb2f245f9ea3c34d00a56888133caeef"
+      },
+      {
+        "path": "services/release/POSTGRES.md",
+        "sha256": "abc22bc5ceeaf7b9de102c7c66727999dbe4ca8912ff95d69ad8de0f06ed86fa"
+      },
+      {
+        "path": "services/release/migrations/001_release.sql",
+        "sha256": "c352755698244eff1a5d65ac32d0255478ea270be1fc143a94bdbba876b47605"
+      },
+      {
+        "path": "services/release/postgres.go",
+        "sha256": "7649c08117984a3e520c75ced7a91f15b90c8fc7d7315e7db4bd212979d9d068"
+      },
+      {
+        "path": "services/release/postgres_guards_integration_test.go",
+        "sha256": "c20c3bbcefe0615d37d7ec8e2f4a57d52e786da3b4ea040426a30fd8e566c375"
+      },
+      {
+        "path": "services/release/postgres_integration_test.go",
+        "sha256": "e9a069e85ac7cd5ef9a1f1cff15374bd762e93bd414dc0f4bb756d6736b0e024"
+      },
+      {
+        "path": "services/release/postgres_v2_integration_test.go",
+        "sha256": "b49f8215e61a92f7fa7f979546b67a1f759506d3fc743545932b2d242c7efa3f"
+      },
+      {
+        "path": "services/release/server.go",
+        "sha256": "9916297614010b89f48f9026ea4a8101d9913e754ab6dd947ade37dc705022db"
+      },
+      {
+        "path": "services/release/server_test.go",
+        "sha256": "519dde552e48cd875f4c27b8e4158dfd9e79f12c70c6c331eac8eaf8f0da68ca"
+      },
+      {
+        "path": "services/release/storage.go",
+        "sha256": "fe5705f0a51a2d871947aab29b50ce55c62a04e20d2e550293d3e3f0b672da66"
+      },
+      {
+        "path": "services/release/storage_test.go",
+        "sha256": "7e07434387817a407c3a9f29c110fc61c598b0780c078c848e7e9cb20666b877"
+      },
+      {
+        "path": "services/release/store.go",
+        "sha256": "003e09ec337bc594f37e9fa26adfb82800c32cd493a44619ab9486117e904bc0"
+      },
+      {
+        "path": "services/release/v2_test.go",
+        "sha256": "9a5b11d31704797668a286dd7d5ddf0aaedf04fae926f0f49a1660c99c9765fd"
+      },
+      {
+        "path": "services/release/versioned.go",
+        "sha256": "5f32cb4388bf720b757e9b874a02f72a75038bfa9eb5635df13b9af1c23e5443"
+      },
+      {
+        "path": "services/updater/updater.go",
+        "sha256": "437f16ecb3ab1d7df87118502094e3e98653e2e37213b1d322cd990641b63818"
+      },
+      {
+        "path": "services/updater/updater_test.go",
+        "sha256": "e3208c65fffc8b667dd4c0ee68e5df68804d0ee0289f0c4c0af0b0a2353b99f3"
+      },
+      {
+        "path": "tests/integration/README.md",
+        "sha256": "aab9ec668273b371ce60f93e6fa0b0118ff59de52f79a71eebd0f6096ba8acdc"
+      },
+      {
+        "path": "tests/integration/http-v2-consumer/Package.resolved",
+        "sha256": "c1af693916d54bae510cefd617a879f2794fdfa9e6bbebb4a77f75fdd03f3622"
+      },
+      {
+        "path": "tests/integration/http-v2-consumer/Package.swift",
+        "sha256": "ea4c646d9304ac67e93c272acf485a093949c90f2f6044dbb9340b1f77665858"
+      },
+      {
+        "path": "tests/integration/http-v2-consumer/Sources/http-release-check/main.swift",
+        "sha256": "16a57e3cb349c9c6960e45b0110fbb6866a64ec3d4f74637216c2ee3982be5fa"
+      },
+      {
+        "path": "tests/integration/release-v2-workflow.py",
+        "sha256": "af6942c1b511a585c9e1e53302e95510c81cb672423227a743d75cabcb728f87"
+      },
+      {
+        "path": "updates/Package.resolved",
+        "sha256": "e7dfdfed9b632538cd61bdff7bc705cb2a30cc7be661f31d6076f18b58d3f1ab"
+      },
+      {
+        "path": "updates/Package.swift",
+        "sha256": "d75de1e5a9b3e3db7e7a6ce3845df39fb9afe81b1e51ac29e0a33f43e0b4f658"
+      },
+      {
+        "path": "updates/Sources/MixerDurableIO/include/MixerDurableIO.h",
+        "sha256": "9b34b963e739b61a4220113ea36b569fe59d23b775da46789dc079be4c333ada"
+      },
+      {
+        "path": "updates/Sources/MixerDurableIO/lock.c",
+        "sha256": "ca2e421d23ec1981fc9825871229b4c1cd92b5aee711e4f77ce62df85571b493"
+      },
+      {
+        "path": "updates/Sources/MixerUpdateTool/main.swift",
+        "sha256": "38e244f41b1c12ef3c3f01838cc7aa360a6cba5955f4a07e3673c70ac54ac98f"
+      },
+      {
+        "path": "updates/Sources/MixerUpdates/CanonicalValue.swift",
+        "sha256": "9d378b14b7a768fe2a176b888b668ce33bcbb7fca79df2c5647197cacadcf954"
+      },
+      {
+        "path": "updates/Sources/MixerUpdates/ColdStartModels.swift",
+        "sha256": "92f78089c6db400306231f1d231a2dd76d7becc689a70ce1626f2964a1f64f6c"
+      },
+      {
+        "path": "updates/Sources/MixerUpdates/ColdStartUpdater.swift",
+        "sha256": "91f66219305adcf3419115007165ba2c1ef1b68287ac6544f54bfb53f220d3c4"
+      },
+      {
+        "path": "updates/Sources/MixerUpdates/DurableDirectory.swift",
+        "sha256": "08126d6a57a83fce3229284c1f0267f496cd6352ce095f74855f1cabe04528bc"
+      },
+      {
+        "path": "updates/Sources/MixerUpdates/StrictJSON.swift",
+        "sha256": "52952e49cc90961e3179d82809219b817b1bd4c3cb55613d2c732b62d05dcdf6"
+      },
+      {
+        "path": "updates/Sources/MixerUpdates/UpdateInputFile.swift",
+        "sha256": "da5e0b63641842ec56cc3b9610cc4378ce24084dc0d28d2fa05ce00a6e1b4ea9"
+      },
+      {
+        "path": "updates/Sources/MixerUpdates/Verifier.swift",
+        "sha256": "3886a064552bdd0573362909f4f6fe0973ddf5a6982cb4369c5a92b328a52d60"
+      }
+    ],
+    "sha256": "15a98c124cbe66d7b1d4635f58d57aaff6e0d6512141e531042a295c8e16ac36"
+  },
+  "httpInvocation": {
+    "command": [
+      "python3",
+      "-O",
+      "tests/integration/release-v2-workflow.py",
+      "--swift",
+      "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift",
+      "--output-dir",
+      "/tmp/mixer-http-v2-frozen"
+    ],
+    "workingDirectory": "/Users/andreyyurlov/Documents/dev/mixer",
+    "environment": {
+      "DEVELOPER_DIR": "/Applications/Xcode_26.6.app/Contents/Developer"
+    },
+    "exitCode": 0
+  },
+  "services": {
+    "passedExecutions": 839,
+    "failed": [],
+    "skippedTests": []
+  },
+  "cliTests": 15,
+  "unitPostprocessorCorrection": {
+    "observed": "RuntimeError: CLI expected test summary absent",
+    "cause": "Expected literal omitted the actual optional text in 0 suites; actual command exited0 and reported Test run with 15 tests in 0 suites passed.",
+    "resolution": "Reprocessed retained stdout/stderr with bounded numeric summary parsing. No test rerun, source edit, suppressed test failure or invented timing."
+  },
+  "postgres": {
+    "version": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "mockDatabase": false,
+    "topLevelFunctions": 13,
+    "realDatabaseFunctions": 12,
+    "nonDatabaseConfigFunctions": 1,
+    "allExecutionsIncludingNested": 46,
+    "skipped": 0,
+    "failed": 0,
+    "privateClusterRemoved": true,
+    "migration001SHA256": "c352755698244eff1a5d65ac32d0255478ea270be1fc143a94bdbba876b47605",
+    "migrationVersion": 1,
+    "DDLChanges": false
+  },
+  "http": {
+    "status": "passed-local-http-v1-v2-public-swift-verification",
+    "requestChecks": 16,
+    "publicSwiftReports": [
+      {
+        "artifactSHA256": "35bb6afad8192dca714bb056a4eedab8153c35ef50fe5b77bb72d96ca3be3193",
+        "protocol": 1,
+        "redirects": false,
+        "resourceLimits": {
+          "fuel": 1000,
+          "memoryBytes": 1048576,
+          "startupMilliseconds": 1000
+        },
+        "schema": 1,
+        "scope": "actual loopback HTTP to public Swift signature verifier and typed metadata only; no guest/native import, activation, device or hosted qualification",
+        "sequence": 7,
+        "status": "passed",
+        "verifiedGrants": [],
+        "versionFallback": false
+      },
+      {
+        "artifactSHA256": "a26a4657320c4388f2f9867b5c70fd8f214904cbe2f4b42eb88935e43e90c37f",
+        "protocol": 2,
+        "redirects": false,
+        "resourceLimits": {
+          "fuel": 1000,
+          "memoryBytes": 1048576,
+          "startupMilliseconds": 1000
+        },
+        "schema": 1,
+        "scope": "actual loopback HTTP to public Swift signature verifier and typed metadata only; no guest/native import, activation, device or hosted qualification",
+        "sequence": 7,
+        "status": "passed",
+        "verifiedGrants": [
+          {
+            "capabilityID": "network.http.v1",
+            "methods": [
+              "GET",
+              "POST"
+            ],
+            "namespaces": [],
+            "origins": [
+              "https://api.fieldlog.example",
+              "https://uploads.fieldlog.example:8443"
+            ],
+            "permissions": [
+              "network.https"
+            ],
+            "schemaSHA256": "fa1549c0a1e2e6b3bf4a83af1a6d37730bbefc8cddc3ffbe3c807d5e7af503f3"
+          },
+          {
+            "capabilityID": "storage.keyValue.v1",
+            "methods": [],
+            "namespaces": [
+              "Drafts",
+              "drafts",
+              "outbox"
+            ],
+            "origins": [],
+            "permissions": [
+              "storage.appPrivate"
+            ],
+            "schemaSHA256": "4a311222c978ddd0982e8dfbcf3d4864b856a80bcc1efb3b725adede7f8e22fd"
+          }
+        ],
+        "versionFallback": false
+      }
+    ],
+    "oldBinaryRefusesSchema2WithoutMutation": true,
+    "restartPreservesV1BytesAndV2VerifiedGrants": true,
+    "optimizedPythonChecks": true
+  },
+  "legacyIntegration": {
+    "status": "passed",
+    "scope": "Existing v1 loopback service -> linked Swift CLI verifier -> trusted local integer VM regression; binaries frozen by original harness, not source-build attested",
+    "platformScopes": [
+      "ios",
+      "android"
+    ],
+    "physicalDevices": false
+  },
+  "historicalWireReceipt": {
+    "path": "services/protocol/verification/wire-receipt-2026-10-22.json",
+    "sha256": "a4210e5fd22a55b06aad1114d4f28d8762791d709768711db616b136c6c950f2",
+    "changed": false
+  },
+  "contractChanges": [
+    "Explicit /v2 route family; route/registered-host/signed protocol must agree with no fallback.",
+    "Legacy local schema1 remains readable and byte-compatible; successful durable v2 domain write upgrades atomically to schema2; mixed/unknown/missing record variants reject on decode/reopen.",
+    "Both protocols share scoped RBAC, tenant idempotency/audit/outbox, immutable content identities and sequence locks.",
+    "Runtime-qualified channel heads remain separate across fingerprints. Rollback requires a fresh greater assignment sequence.",
+    "PostgreSQL opaque signed bytes dispatch exact schema before complete typed interpretation; migration001 bytes, FORCE RLS and role guards unchanged.",
+    "Go reference updater explicitly rejects non-v1 before creating state. Existing CLI publication remains v1."
+  ],
+  "limitations": [
+    "Local checkout dependencies, not immutable published consumer adoption.",
+    "Public TEST roots/non-executable payloads only; no production credential, native capability execution, activation or device/OTA qualification.",
+    "Swift HTTP test consumer accepts small fixtures up to 96KiB and uses the metadata string bound; this is not a production large-payload downloader.",
+    "This HTTP harness uses the local snapshot store; real PostgreSQL is exercised by the separate isolated-cluster runner.",
+    "No new CLI publication command, hosted deployment, outbox dispatch or production readiness.",
+    "PostgreSQL test cluster uses private Unix sockets and is deleted; no external/user database or credential changes.",
+    "Unit command outputs passed; a wrapper summary pattern was corrected from retained output without rerunning tests. Command durations lost by that wrapper are explicitly null, not invented.",
+    "Legacy integration removes its private intermediate logs; the preserved outer output contains its semantic receipt and binary hashes, with no source-build attestation of the pre-existing VM executable."
+  ]
+}

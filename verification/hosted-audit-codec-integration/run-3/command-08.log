@@ -1,0 +1,29 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+
+MixerHosted.Audit.UploadEventTest [test/mixer_hosted/audit/upload_event_test.exs]
+  * test 185 captured real PostgreSQL rows retain exact bytes and all six adjacent chains [L#37]  * test 185 captured real PostgreSQL rows retain exact bytes and all six adjacent chains (59.8ms) [L#37]
+  * test display shape is closed and rejects source values before rendering [L#60]  * test display shape is closed and rejects source values before rendering (13.6ms) [L#60]
+  * test fixed arrays, member lists and entry shapes are bounded and proper [L#76]  * test fixed arrays, member lists and entry shapes are bounded and proper (9.3ms) [L#76]
+  * test unsigned display fields retain decimal spelling and domain bounds [L#99]  * test unsigned display fields retain decimal spelling and domain bounds (7.2ms) [L#99]
+  * test UUID, hex, identity class, platform and role are closed [L#146]  * test UUID, hex, identity class, platform and role are closed (5.2ms) [L#146]
+  * test UTF8 and source text limits reject malformed, NUL and oversized bytes [L#186]  * test UTF8 and source text limits reject malformed, NUL and oversized bytes (4.9ms) [L#186]
+  * test audit schema action time relationships and IP spelling fail closed [L#210]  * test audit schema action time relationships and IP spelling fail closed (4.9ms) [L#210]
+  * test row hash, projection, encoding and exact display bytes cannot be substituted [L#235]  * test row hash, projection, encoding and exact display bytes cannot be substituted (7.2ms) [L#235]
+  * test only the immediate valid same-tenant predecessor is accepted [L#265]  * test only the immediate valid same-tenant predecessor is accepted (11.4ms) [L#265]
+
+  1) test only the immediate valid same-tenant predecessor is accepted (MixerHosted.Audit.UploadEventTest)
+     test/mixer_hosted/audit/upload_event_test.exs:265
+     Assertion with == failed
+     code:  assert UploadEvent.validate_edge(second, foreign) == @error
+     left:  :ok
+     right: {:error, :invalid_audit_event}
+     stacktrace:
+       test/mixer_hosted/audit/upload_event_test.exs:273: (test)
+
+  * test equivalent display spellings remain invalid retained bytes [L#278]  * test equivalent display spellings remain invalid retained bytes (7.0ms) [L#278]
+
+Finished in 0.1 seconds (0.1s async, 0.00s sync)
+
+Result: 9/10 passed
+Failed: 1 test

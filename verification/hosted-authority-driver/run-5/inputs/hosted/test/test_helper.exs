@@ -1,0 +1,7 @@
+ExUnit.start()
+Logger.configure(level: :warning)
+Application.ensure_all_started(:phoenix)
+Application.ensure_all_started(:ecto_sql)
+Application.ensure_all_started(:postgrex)
+Application.ensure_all_started(:oban)
+Application.ensure_all_started(:inets)

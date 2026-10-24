@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "started_utc": "2026-10-24T09:13:23.248871+00:00",
+  "scope": "isolated current-authority catalog correction prerequisite only",
+  "scratch": "/private/tmp/mixer-authority-correction-ckhh_xbu",
+  "selection": true,
+  "oid_padding_objects": 0,
+  "source_digest": "6a5b1a51a067533735e75c5fa6eb3cfede544a3c7e1ff132669452e04bfbf6dc",
+  "observed_head": "f044e6db2bbf0d76d521d0741ce9545de91cadda",
+  "observed_tree": "21ab5ac3c94b960f9276e6271d757ce951a80f36",
+  "tools": {
+    "python3": "Python 3.14.8",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "pg_ctl": "pg_ctl (PostgreSQL) 17.11 (Homebrew)",
+    "psql": "psql (PostgreSQL) 17.11 (Homebrew)",
+    "pg_config": "/opt/homebrew/lib/postgresql@17"
+  },
+  "producer_integrity": "{\n  \"integrity\": \"passed\",\n  \"bindings\": 240,\n  \"final_run\": \"run-9\",\n  \"tests\": 128,\n  \"source_digest\": \"ebaae05f782695d3cd9d1fcedc535f0b47cdb736167384b7dc6d8a09fa16b0de\",\n  \"all_owned_cleanup\": true,\n  \"scope\": \"isolated prerequisite only; acceptance and product migration pending\"\n}\n",
+  "review_integrity": "{\n  \"integrity\": \"passed\",\n  \"bindings\": 97,\n  \"frozen_replay\": 128,\n  \"reviewer_oracles\": 48,\n  \"gap_reproductions\": 5,\n  \"findings\": [\n    \"ASR01\",\n    \"ASR02\",\n    \"ASR03\"\n  ],\n  \"recommendation\": \"correction-required-before-final-contract-selection\",\n  \"owned_cleanup\": true\n}\n",
+  "error": "RuntimeError({'argv': ['python3', '-B', '-c', \"import json,pathlib,sys\\nsys.path.insert(0,'/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-authority-catalog-correction/selection/source')\\nsource=pathlib.Path('/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-authority-catalog-correction/selection/source/frozen/tests.py').read_text()\\nexec(compile(source[:source.index('def success(')],'frozen-fixture','exec'),globals())\\nfrom inspector import inspect,safe_selection,validate\\nwith DB('mixer_hosted_runtime') as runtime:raw=inspect(ADMIN,runtime)\\nnormalized=safe_selection(raw)\\npathlib.Path('/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-authority-catalog-correction/selection/raw-baseline.json').write_text(json.dumps(raw,sort_keys=True,indent=2)+'\\\\n')\\npathlib.Path('/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-authority-catalog-correction/selection/normalized-baseline.json').write_text(json.dumps(normalized,sort_keys=True,indent=2)+'\\\\n')\\nADMIN.close()\\n\"], 'cwd': '/Users/andreyyurlov/Documents/dev/mixer', 'started_utc': '2026-10-24T09:13:24.429492+00:00', 'timeout_seconds': 30, 'environment_overrides': {'MIXER_AUTHZ_SOCKET': '/private/tmp/mixer-authority-correction-ckhh_xbu/socket', 'MIXER_AUTHZ_OUT': '/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-authority-catalog-correction/selection', 'MIXER_AUTHZ_EXPECTED': '/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-authority-catalog-correction/selected-expected.json', 'PYTHONDONTWRITEBYTECODE': '1'}, 'exit_code': 1, 'stdout': '', 'stderr': 'Traceback (most recent call last):\\n  File \"<string>\", line 7, in <module>\\n    normalized=safe_selection(raw)\\n  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-authority-catalog-correction/selection/source/inspector.py\", line 72, in safe_selection\\n    x=normalize(raw);e=x[\\'enforcement\\'];c=x[\\'legacy\\'];s=x[\\'fresh_session\\']\\n  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-authority-catalog-correction/selection/source/inspector.py\", line 42, in normalize\\n    if k==\\'oid\\' or k.endswith(\\'_oid\\'):oid(row[k],group+\\'.\\'+k)\\n                                      ~~~^^^^^^^^^^^^^^^^^^^^\\n  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-authority-catalog-correction/selection/source/inspector.py\", line 20, in oid\\n    if type(value) is not int or value<0:fail(\\'malformed OID: \\'+where)\\n                                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-authority-catalog-correction/selection/source/inspector.py\", line 16, in fail\\n    def fail(message):raise ValueError(message)\\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^\\nValueError: malformed OID: relations.oid\\n', 'seconds': 0.13333458302076906})",
+  "success": false,
+  "finished_utc": "2026-10-24T09:13:24.903574+00:00",
+  "cleanup": {
+    "owned_cluster_stopped": true,
+    "owned_scratch_removed": true,
+    "tcp_listener_opened": false,
+    "other_processes_touched": false,
+    "native_or_phone_runs": false
+  }
+}

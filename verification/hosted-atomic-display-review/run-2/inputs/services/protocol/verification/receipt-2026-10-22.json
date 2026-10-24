@@ -1,0 +1,708 @@
+{
+  "schema": 1,
+  "status": "passed-local-host-protocol-scope",
+  "scope": "Local signed-grants protocol qualification; no device, HTTP v2 or OTA claim.",
+  "pythonVersion": "3.14.8",
+  "sourceRevision": "b492da32e3a02b97ad24df088f7aec797e94a06c",
+  "commands": [
+    {
+      "name": "swift-version",
+      "command": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift",
+        "--version"
+      ],
+      "workingDirectory": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 0.13,
+      "outputPath": "/private/tmp/mixer-release-v2-base64-final/swift-version.log",
+      "outputBytes": 128,
+      "outputSHA256": "fccc73515642539c6245fc264ebd4a652bb68f6a5a375d4dc8b8d6f08b71cfef"
+    },
+    {
+      "name": "xcode-version",
+      "command": [
+        "/usr/bin/xcodebuild",
+        "-version"
+      ],
+      "workingDirectory": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 0.076,
+      "outputPath": "/private/tmp/mixer-release-v2-base64-final/xcode-version.log",
+      "outputBytes": 32,
+      "outputSHA256": "18730ed2ae28a2c9cf0c2d5db549033a4f07089331391a7133b7b32187454fa9"
+    },
+    {
+      "name": "go-version",
+      "command": [
+        "go",
+        "version"
+      ],
+      "workingDirectory": "/Users/andreyyurlov/Documents/dev/mixer/services",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 0.021,
+      "outputPath": "/private/tmp/mixer-release-v2-base64-final/go-version.log",
+      "outputBytes": 33,
+      "outputSHA256": "36849436282e424cf1142184057f25a7bd6845d03b16fedbb1071bc6722524c4"
+    },
+    {
+      "name": "go-root",
+      "command": [
+        "go",
+        "env",
+        "GOROOT"
+      ],
+      "workingDirectory": "/Users/andreyyurlov/Documents/dev/mixer/services",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 0.019,
+      "outputPath": "/private/tmp/mixer-release-v2-base64-final/go-root.log",
+      "outputBytes": 81,
+      "outputSHA256": "98c7f71528c815dd8412ddcf93556424ff334137157bea95adca85cd2e8fa5fe"
+    },
+    {
+      "name": "macos-sdk",
+      "command": [
+        "/usr/bin/xcrun",
+        "--sdk",
+        "macosx",
+        "--show-sdk-path"
+      ],
+      "workingDirectory": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 0.011,
+      "outputPath": "/private/tmp/mixer-release-v2-base64-final/macos-sdk.log",
+      "outputBytes": 104,
+      "outputSHA256": "0f808f2e6b513e3677dcb3492d4b0577b7f2680ca95d988f4ea653b04edc4a89"
+    },
+    {
+      "name": "go-vet",
+      "command": [
+        "go",
+        "vet",
+        "./protocol"
+      ],
+      "workingDirectory": "/Users/andreyyurlov/Documents/dev/mixer/services",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 0.186,
+      "outputPath": "/private/tmp/mixer-release-v2-base64-final/go-vet.log",
+      "outputBytes": 0,
+      "outputSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "go-race",
+      "command": [
+        "go",
+        "test",
+        "-count=1",
+        "-race",
+        "-json",
+        "./protocol"
+      ],
+      "workingDirectory": "/Users/andreyyurlov/Documents/dev/mixer/services",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 2.109,
+      "outputPath": "/private/tmp/mixer-release-v2-base64-final/go-race.log",
+      "outputBytes": 155935,
+      "outputSHA256": "aa4fb87a606cf2dbd8adaf6e7c1c8b7efe73177ccb14a1843e368edc59a89e04"
+    },
+    {
+      "name": "go-v2-fuzz",
+      "command": [
+        "go",
+        "test",
+        "./protocol",
+        "-run",
+        "^$",
+        "-fuzz",
+        "^FuzzV2SignedManifestTransport$",
+        "-fuzztime=15s",
+        "-parallel=2"
+      ],
+      "workingDirectory": "/Users/andreyyurlov/Documents/dev/mixer/services",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 16.735,
+      "outputPath": "/private/tmp/mixer-release-v2-base64-final/go-v2-fuzz.log",
+      "outputBytes": 660,
+      "outputSHA256": "956e8031ad6cdfec84743f04002791f71b718c323d76f9a88f78a28c48946089"
+    },
+    {
+      "name": "swift-updates-debug",
+      "command": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift",
+        "test",
+        "--package-path",
+        "updates",
+        "-c",
+        "debug"
+      ],
+      "workingDirectory": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 4.012,
+      "outputPath": "/private/tmp/mixer-release-v2-base64-final/swift-updates-debug.log",
+      "outputBytes": 10171,
+      "outputSHA256": "27fec93d79b1ff7a0c5a03acdfd7aa998198e7cb693ad21381703455c4d8c49d"
+    },
+    {
+      "name": "swift-updates-release",
+      "command": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift",
+        "test",
+        "--package-path",
+        "updates",
+        "-c",
+        "release"
+      ],
+      "workingDirectory": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 14.989,
+      "outputPath": "/private/tmp/mixer-release-v2-base64-final/swift-updates-release.log",
+      "outputBytes": 10094,
+      "outputSHA256": "ecb4f084aff2220c013e1f767b812e70fa858c7a1f3dfe8eed50a96f38222cf9"
+    },
+    {
+      "name": "fixture-generator",
+      "command": [
+        "go",
+        "run",
+        "./protocol/testdata/generate-v2.go",
+        "--test-fixtures-only",
+        "--repository",
+        "/private/tmp/mixer-release-v2-base64-final/fixture-reproduction"
+      ],
+      "workingDirectory": "/Users/andreyyurlov/Documents/dev/mixer/services",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 0.287,
+      "outputPath": "/private/tmp/mixer-release-v2-base64-final/fixture-generator.log",
+      "outputBytes": 181,
+      "outputSHA256": "35d1846f8101a77e9d3a3e5e3214d0bd494ebd003a7a8f35a3fa446fb30da508"
+    },
+    {
+      "name": "public-policy-consumer",
+      "command": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift",
+        "run",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/services/protocol/verification/policy-consumer",
+        "--scratch-path",
+        "/private/tmp/mixer-release-v2-base64-final/policy-build",
+        "grant-policy-check",
+        "/Users/andreyyurlov/Documents/dev/mixer/services/protocol/testdata"
+      ],
+      "workingDirectory": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 7.489,
+      "outputPath": "/private/tmp/mixer-release-v2-base64-final/public-policy-consumer.log",
+      "outputBytes": 7290,
+      "outputSHA256": "9c03bb4084be845a0847b912733e08f3fdac4032c8f3160591550a80c0c6d191"
+    },
+    {
+      "name": "consumer-bin-path",
+      "command": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift",
+        "build",
+        "--package-path",
+        "/Users/andreyyurlov/Documents/dev/mixer/services/protocol/verification/policy-consumer",
+        "--scratch-path",
+        "/private/tmp/mixer-release-v2-base64-final/policy-build",
+        "--show-bin-path"
+      ],
+      "workingDirectory": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 0.41,
+      "outputPath": "/private/tmp/mixer-release-v2-base64-final/consumer-bin-path.log",
+      "outputBytes": 81,
+      "outputSHA256": "bd3157f0fe7064dc8fa359e5457ee416f9d89be69cc1541b58fddb2be3c728b5"
+    },
+    {
+      "name": "external-constructor-negative",
+      "command": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+        "-typecheck",
+        "/Users/andreyyurlov/Documents/dev/mixer/services/protocol/verification/authority-constructor-negative.swift",
+        "-target",
+        "arm64-apple-macosx14.0",
+        "-sdk",
+        "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-I",
+        "/private/tmp/mixer-release-v2-base64-final/policy-build/arm64-apple-macosx/debug/Modules",
+        "-Xcc",
+        "-fmodule-map-file=/private/tmp/mixer-release-v2-base64-final/policy-build/arm64-apple-macosx/debug/MixerCapabilityIO.build/module.modulemap",
+        "-Xcc",
+        "-fmodule-map-file=/private/tmp/mixer-release-v2-base64-final/policy-build/arm64-apple-macosx/debug/MixerDurableIO.build/module.modulemap"
+      ],
+      "workingDirectory": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "timedOut": false,
+      "elapsedSeconds": 0.239,
+      "outputPath": "/private/tmp/mixer-release-v2-base64-final/external-constructor-negative.log",
+      "outputBytes": 4709,
+      "outputSHA256": "74b2d4e39608ef72f92823e85989335b64f69eaea04fe12d6432c0d3c63e9e00"
+    }
+  ],
+  "limitations": [
+    "Local checkout dependencies, not immutable published consumer adoption.",
+    "Test-only signing roots and non-executable fixture payloads; never product authorities.",
+    "No service HTTP v2 acceptance, device run, native capability execution, OTA or production qualification.",
+    "Installed fingerprint/configuration composition and VM import authorization remain separate host responsibilities."
+  ],
+  "testedDependencySource": {
+    "algorithm": "SHA256 of compact sorted JSON file path/hash array",
+    "sha256": "d22bdf81d716d0a74ac5aba96e9752f5e0891327dd6892b5cd2685ff8c01b3e7",
+    "files": [
+      {
+        "path": "sdk/Package.swift",
+        "sha256": "46142dce793b107bdc2f46a38f51900d80b27e5365baa836f59edeafd7098105"
+      },
+      {
+        "path": "sdk/README.md",
+        "sha256": "dbb153cd83f544864f65b64d81c52cc0dcb2a2b0392ea6869b1436387251624d"
+      },
+      {
+        "path": "sdk/Sources/MixerApple/MixerNativeView.swift",
+        "sha256": "72ee0d83a4e6b8019ef541abcff31e6e1668f2fe692b2b8cdc6c8febe52d9120"
+      },
+      {
+        "path": "sdk/Sources/MixerCapabilities/AppPrivateKeyValueStore.swift",
+        "sha256": "a2f5378900f257e4f2806fd3568a683d9808f15debcb186be94dfb9aa44f3be7"
+      },
+      {
+        "path": "sdk/Sources/MixerCapabilities/GeneratedGuestAdapters.swift",
+        "sha256": "eb0d26e832ccaeacfd1c79b60ec51fa3ba60706de3668def7571be0ec95b91be"
+      },
+      {
+        "path": "sdk/Sources/MixerCapabilities/GeneratedHostAdapters.swift",
+        "sha256": "cc0d4fb317684bf3b848d914e67201b21acda717a29a79e4531baaae69690d41"
+      },
+      {
+        "path": "sdk/Sources/MixerCapabilities/GeneratedIdentity.swift",
+        "sha256": "c1d5880ae3caadbfe3571890227701d40e896062d1518fd5f264135836c80e81"
+      },
+      {
+        "path": "sdk/Sources/MixerCapabilities/GeneratedModels.swift",
+        "sha256": "8f8533f45bcd195212e589c23349309870577b3e72ea0b3b75d2538bfba8056f"
+      },
+      {
+        "path": "sdk/Sources/MixerCapabilities/GuestClient.swift",
+        "sha256": "529c03e57861f2d33b3358c6ecfeba4b1b01dbd751e3a004c48ba25a77aada3e"
+      },
+      {
+        "path": "sdk/Sources/MixerCapabilities/Host.swift",
+        "sha256": "e603568d64b73513c27d72a6bfef7d82fadad3e1dc5344bd52a1ac93899805a6"
+      },
+      {
+        "path": "sdk/Sources/MixerCapabilities/NativeIO/include/MixerCapabilityIO.h",
+        "sha256": "a56788d09419a0a437f0ba26fbc1934005da4c7a343d0c72ae72f6e637519d3b"
+      },
+      {
+        "path": "sdk/Sources/MixerCapabilities/NativeIO/lock.c",
+        "sha256": "984b40388c210fd12414dc6afac3fbee2316b9b3baaf594a0fb6fba4a0151f4e"
+      },
+      {
+        "path": "sdk/Sources/MixerCapabilities/Wire.swift",
+        "sha256": "6628b5fb2f4ef70e58ea80af01e4ff2969d71da0ff13253081d196a082b3de89"
+      },
+      {
+        "path": "sdk/Sources/MixerCore/FeatureStore.swift",
+        "sha256": "3fb26a1b1ce6a8863ea53d0c5751b3229ddad1113b486cb2c430d1d0dbcb385f"
+      },
+      {
+        "path": "sdk/Sources/MixerCore/JSONInputGuard.swift",
+        "sha256": "c01ae7ad973dcfc40d2b4ecef3fb8091d1c94484410621f28e77096e952de07c"
+      },
+      {
+        "path": "sdk/Sources/MixerCore/Lifecycle.swift",
+        "sha256": "67d6dc636bb36ce765e5a0c4ee9db93d61ce7b17938e3d9a1a0ff84020927a91"
+      },
+      {
+        "path": "sdk/Sources/MixerCore/Navigation.swift",
+        "sha256": "6197c48eeb03aa6eeb94c3ca9a674c451deb83df9f662177014f70b866ef94d2"
+      },
+      {
+        "path": "sdk/Sources/MixerCore/Resources.swift",
+        "sha256": "2e9cd272144237f9fc76c3c7e46add88f43395a60ed83db24f5cd454ae7b7dca"
+      },
+      {
+        "path": "sdk/Sources/MixerGuest/GuestUICodec.swift",
+        "sha256": "99a16418a1e2acf7f232c8032cb92d40b0abdf6bedfe61366a0705344f0c5252"
+      },
+      {
+        "path": "sdk/Sources/MixerUI/Authoring.swift",
+        "sha256": "9af3f4621930c92e9a5947132e1ed1c232ea81a3c9168bc57d9aa540dd96f954"
+      },
+      {
+        "path": "sdk/Sources/MixerUI/Protocol.swift",
+        "sha256": "542c5076b4146f0229c89cec70848b42c0434637724f3ca9c42e1d45e2d55d42"
+      },
+      {
+        "path": "sdk/Sources/MixerUI/Reconciliation.swift",
+        "sha256": "c00a6e70b7550d0e5247b1b0bb5683f97b7fc93dbf42fe0363b4c4ceb7498403"
+      },
+      {
+        "path": "sdk/Sources/MixerUI/Validation.swift",
+        "sha256": "bcb612d78434e2c88b349209e6794e777572780decae3d3a70dda837827fbbde"
+      },
+      {
+        "path": "sdk/Tests/MixerAppleTests/AppleTests.swift",
+        "sha256": "838338c9e5992c14ff9483d93e4e40e40c7e712be62b13ea5ec35354bd41148b"
+      },
+      {
+        "path": "sdk/Tests/MixerCoreTests/CoreTests.swift",
+        "sha256": "0cad203104b3086ea3d224e4eddb6ca5818a62823d71d74029f555e32002ba88"
+      },
+      {
+        "path": "sdk/Tests/MixerCoreTests/JSONInputGuardTests.swift",
+        "sha256": "e71c4fa50c1ebc776d4d7cbe6b531bc9f3c0e95e42037bde9f0537a52654b543"
+      },
+      {
+        "path": "sdk/Tests/MixerUITests/RawJSONTests.swift",
+        "sha256": "2707e74b7d14cac958ab5a24130cce8f243fbf1d88369f938b8853c9b54d5df5"
+      },
+      {
+        "path": "sdk/Tests/MixerUITests/UITests.swift",
+        "sha256": "094b87c89d1dbced075816a06c4c3c117f84f61eb052365e3b5cb4059c8d665c"
+      },
+      {
+        "path": "sdk/verification/current/ios-build.log",
+        "sha256": "7d72476f0e4f3ccc94f5ff323f7a7c644537592f699c94c1c4f787ace0d88429"
+      },
+      {
+        "path": "sdk/verification/current/receipt.json",
+        "sha256": "c6514c570050bcfc43c24e1950e3586ffb879bf4795c590bb6d6807266b6aee0"
+      },
+      {
+        "path": "sdk/verification/current/swift-test.log",
+        "sha256": "5dce274603331bcc99ba9fa0e9333be528a92b1c3d6fe1bc189fdc8220bcec3f"
+      },
+      {
+        "path": "sdk/verification/verify.py",
+        "sha256": "40e01a7f45ec31418c61b8da8328c7fb0d5a64b5109ce3d93a2be288223f828b"
+      },
+      {
+        "path": "updates/Package.resolved",
+        "sha256": "e7dfdfed9b632538cd61bdff7bc705cb2a30cc7be661f31d6076f18b58d3f1ab"
+      },
+      {
+        "path": "updates/Package.swift",
+        "sha256": "d75de1e5a9b3e3db7e7a6ce3845df39fb9afe81b1e51ac29e0a33f43e0b4f658"
+      },
+      {
+        "path": "updates/Sources/MixerDurableIO/include/MixerDurableIO.h",
+        "sha256": "9b34b963e739b61a4220113ea36b569fe59d23b775da46789dc079be4c333ada"
+      },
+      {
+        "path": "updates/Sources/MixerDurableIO/lock.c",
+        "sha256": "ca2e421d23ec1981fc9825871229b4c1cd92b5aee711e4f77ce62df85571b493"
+      },
+      {
+        "path": "updates/Sources/MixerUpdateTool/main.swift",
+        "sha256": "38e244f41b1c12ef3c3f01838cc7aa360a6cba5955f4a07e3673c70ac54ac98f"
+      },
+      {
+        "path": "updates/Sources/MixerUpdates/CanonicalValue.swift",
+        "sha256": "9d378b14b7a768fe2a176b888b668ce33bcbb7fca79df2c5647197cacadcf954"
+      },
+      {
+        "path": "updates/Sources/MixerUpdates/ColdStartModels.swift",
+        "sha256": "92f78089c6db400306231f1d231a2dd76d7becc689a70ce1626f2964a1f64f6c"
+      },
+      {
+        "path": "updates/Sources/MixerUpdates/ColdStartUpdater.swift",
+        "sha256": "91f66219305adcf3419115007165ba2c1ef1b68287ac6544f54bfb53f220d3c4"
+      },
+      {
+        "path": "updates/Sources/MixerUpdates/DurableDirectory.swift",
+        "sha256": "08126d6a57a83fce3229284c1f0267f496cd6352ce095f74855f1cabe04528bc"
+      },
+      {
+        "path": "updates/Sources/MixerUpdates/StrictJSON.swift",
+        "sha256": "52952e49cc90961e3179d82809219b817b1bd4c3cb55613d2c732b62d05dcdf6"
+      },
+      {
+        "path": "updates/Sources/MixerUpdates/UpdateInputFile.swift",
+        "sha256": "56d5221c04a2015cf9f8d5ab66c1a60bbf3cacd20854d10c194c7c514eb91c5d"
+      },
+      {
+        "path": "updates/Sources/MixerUpdates/Verifier.swift",
+        "sha256": "eb94bf777d97b11553b99185cd4ba47d9827f84081eb5b61f61085039f9f57e2"
+      }
+    ]
+  },
+  "swift": "swift-driver version: 1.148.6 Apple Swift version 6.3.3 (swiftlang-6.3.3.1.3 clang-2100.1.1.101)\nTarget: arm64-apple-macosx28.0\n",
+  "swiftSHA256": "2ed38571e92c0283091838c1649e27650ad9c99950288e883c7b2dc6c4ce89fb",
+  "swiftFrontendSHA256": "2ed38571e92c0283091838c1649e27650ad9c99950288e883c7b2dc6c4ce89fb",
+  "xcode": "Xcode 26.6\nBuild version 17F113\n",
+  "go": "go version go1.26.4 darwin/arm64\n",
+  "goSHA256": "e61851b2c0cde9b9ac4ae044fcce6ba9d55cb15f98ded3964793acaa8632242f",
+  "developerDirectory": "/Applications/Xcode_26.6.app/Contents/Developer",
+  "goTests": {
+    "passedExecutions": 199,
+    "failed": 0,
+    "skipped": 0,
+    "passedTopLevelFunctions": 14
+  },
+  "swiftUpdatesDebug": {
+    "passedFunctions": 38,
+    "passedExecutions": 51
+  },
+  "swiftUpdatesRelease": {
+    "passedFunctions": 38,
+    "passedExecutions": 51
+  },
+  "fixturesReproducedByteExactly": true,
+  "policyConsumer": {
+    "grantDescriptorSHA256": "b394ffd165ef28977de9743b1c1a98c419504787f2912e30d419cfb1582e15e1",
+    "httpSchemaSHA256": "fa1549c0a1e2e6b3bf4a83af1a6d37730bbefc8cddc3ffbe3c807d5e7af503f3",
+    "namespaceCases": 14,
+    "originCases": 39,
+    "schema": 1,
+    "scope": "local checkout public verifier-to-policy mapping and grammar parity only; no guest/device/publication qualification",
+    "signedCases": 115,
+    "status": "passed",
+    "storageSchemaSHA256": "4a311222c978ddd0982e8dfbcf3d4864b856a80bcc1efb3b725adede7f8e22fd"
+  },
+  "externalAuthorityConstructorsDenied": true,
+  "ownedSource": {
+    "algorithm": "SHA256 of compact sorted JSON file path/hash array",
+    "sha256": "c4df5978e16cbda0fa29bacb4c7ada510cbac7da5195a0fca4804252a7210c63",
+    "files": [
+      {
+        "path": "contracts/release-v2.json",
+        "sha256": "e87d6b44d1e4a96f9d9a3596b594c2c7d1e124812a0eeaa088c1a405586f2296"
+      },
+      {
+        "path": "services/protocol/README.md",
+        "sha256": "c1be1716e73f80d3f59171a98ae0d1164183fcdf5011b787c504b36afd0bd47c"
+      },
+      {
+        "path": "services/protocol/cbor.go",
+        "sha256": "fcef8b1e7047c5559d6e85c67389da5210a6b8bce7c0f0e668d8c382f0c651ef"
+      },
+      {
+        "path": "services/protocol/protocol.go",
+        "sha256": "441f041f2df19f6ca100e9425f41823af2b58c818afc4f1f1f2782c5455019d9"
+      },
+      {
+        "path": "services/protocol/protocol_test.go",
+        "sha256": "b561e8070fec89c7d584a98d9c43350007b908605a6d64ccee37829e26264570"
+      },
+      {
+        "path": "services/protocol/testdata/capability-grant-cases-v1.json",
+        "sha256": "a87a4eb20b83e5ef159d95091e8e3ea919db4a8b952c16df98c2854e09e891ea"
+      },
+      {
+        "path": "services/protocol/testdata/generate-v2.go",
+        "sha256": "3aeea14665c4bec0bb998a4b1baf4bd4afedc2c9a078719f9e3f7a61ff1ff25d"
+      },
+      {
+        "path": "services/protocol/testdata/signed-release-v1.json",
+        "sha256": "d9bfa9505a83898c7ca397719e5ca6794d39e28eb8d3bd5897f1958f7801e2d7"
+      },
+      {
+        "path": "services/protocol/testdata/signed-release-v2.json",
+        "sha256": "37d9ac75bad95f68a74f779d647c74134f0b49be0eedf4dfb6a9f0beed9717f7"
+      },
+      {
+        "path": "services/protocol/v2.go",
+        "sha256": "eb159317cf6cf96f7240b33bb3e8d0ad18619b3161a15a9b5cd7aba3348761db"
+      },
+      {
+        "path": "services/protocol/v2_test.go",
+        "sha256": "f7ed9af9c55f44269defeb9f1a30bf4deb2f245f9ea3c34d00a56888133caeef"
+      },
+      {
+        "path": "services/protocol/verification/authority-constructor-negative.swift",
+        "sha256": "19f93ff1314a1866d72e40615f45ef921246610429240bb91055342894c080e3"
+      },
+      {
+        "path": "services/protocol/verification/policy-consumer/Package.resolved",
+        "sha256": "dea8571f209e965cf33ebcd33b70412558222ab3ba9e755f31d7d8fe2a7d6ebe"
+      },
+      {
+        "path": "services/protocol/verification/policy-consumer/Package.swift",
+        "sha256": "59f5d0f403e01e4078d01f38b594b387f0f6f03ecba034bb300901dddafffb88"
+      },
+      {
+        "path": "services/protocol/verification/policy-consumer/Sources/grant-policy-check/main.swift",
+        "sha256": "ade063b937d93381bd56fa454b0900a7e39d35d3e504dfdc5e1622bdaf9bab98"
+      },
+      {
+        "path": "services/protocol/verification/verify-v2.py",
+        "sha256": "59f9142121af99360439bbe29ebcf0bfb95a88a8f78b017b7455af6b25f0003d"
+      },
+      {
+        "path": "updates/Sources/MixerUpdates/Verifier.swift",
+        "sha256": "eb94bf777d97b11553b99185cd4ba47d9827f84081eb5b61f61085039f9f57e2"
+      },
+      {
+        "path": "updates/Tests/MixerUpdatesTests/Fixtures/capability-grant-cases-v1.json",
+        "sha256": "a87a4eb20b83e5ef159d95091e8e3ea919db4a8b952c16df98c2854e09e891ea"
+      },
+      {
+        "path": "updates/Tests/MixerUpdatesTests/Fixtures/signed-release-v1.json",
+        "sha256": "d9bfa9505a83898c7ca397719e5ca6794d39e28eb8d3bd5897f1958f7801e2d7"
+      },
+      {
+        "path": "updates/Tests/MixerUpdatesTests/Fixtures/signed-release-v2.json",
+        "sha256": "37d9ac75bad95f68a74f779d647c74134f0b49be0eedf4dfb6a9f0beed9717f7"
+      },
+      {
+        "path": "updates/Tests/MixerUpdatesTests/VerifierV2Tests.swift",
+        "sha256": "eadc7e8cb65aa00cb6e6d23f78ef89a6767063303a4d405d088903ff5e354f2f"
+      }
+    ]
+  },
+  "date": "2026-10-22",
+  "harnessInvocation": {
+    "command": [
+      "python3",
+      "protocol/verification/verify-v2.py",
+      "--swift",
+      "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift",
+      "--output-dir",
+      "/tmp/mixer-release-v2-base64-final"
+    ],
+    "workingDirectory": "/Users/andreyyurlov/Documents/dev/mixer/services",
+    "environment": {
+      "DEVELOPER_DIR": "/Applications/Xcode_26.6.app/Contents/Developer"
+    },
+    "exitCode": 0
+  },
+  "developmentRegression": {
+    "scope": "Initial uncommitted v2 implementation; repaired before this receipt/commit",
+    "issue": "Go numeric byte-array/CRLF signature decoding and Go/Swift nonzero base64 pad bits accepted noncanonical transport of valid signature bytes",
+    "goBeforeFix": {
+      "command": [
+        "go",
+        "test",
+        "./protocol",
+        "-run",
+        "TestV2SharedSignedGrantCorpus"
+      ],
+      "workingDirectory": "/Users/andreyyurlov/Documents/dev/mixer/services",
+      "environment": {
+        "GOTOOLCHAIN": "go1.26.4"
+      },
+      "exitCode": 1,
+      "incorrectlyAcceptedCases": [
+        "signature-as-numeric-array",
+        "signature-ignored-newline",
+        "signature-nonzero-pad-bits"
+      ],
+      "outputPath": "/tmp/mixer-v2-base64-before-fix-go.log",
+      "outputSHA256": "cef33a36857f5b5d7dc5784c32a6d3dc2dd4582d2eea8b678c1bc357a3eb2a57"
+    },
+    "swiftBeforeFix": {
+      "command": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift",
+        "test",
+        "--package-path",
+        "updates",
+        "--filter",
+        "sharedSignedGrantCorpusRejectsHostileValuesWithoutNormalizing"
+      ],
+      "environment": {
+        "DEVELOPER_DIR": "/Applications/Xcode_26.6.app/Contents/Developer"
+      },
+      "workingDirectory": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exitCode": 1,
+      "incorrectlyAcceptedCases": [
+        "signature-nonzero-pad-bits"
+      ],
+      "outputPath": "/tmp/mixer-v2-base64-before-fix-swift.log",
+      "outputSHA256": "182610d058c5687f6f731461dc0f61e5710aba59623e0b35460ad93d3b0d70ab"
+    },
+    "fix": "V2 signed wrappers require canonical padded base64 text of exactly64 bytes; arrays, ignored newlines and nonzero pad bits reject. Both artifact and assignment paths covered. V1 behavior unchanged."
+  },
+  "legacyPreservation": {
+    "unchangedGoAndStaticFixtureBytes": [
+      {
+        "path": "services/protocol/protocol.go",
+        "sha256": "441f041f2df19f6ca100e9425f41823af2b58c818afc4f1f1f2782c5455019d9",
+        "unchangedFromHead": true
+      },
+      {
+        "path": "services/protocol/cbor.go",
+        "sha256": "fcef8b1e7047c5559d6e85c67389da5210a6b8bce7c0f0e668d8c382f0c651ef",
+        "unchangedFromHead": true
+      },
+      {
+        "path": "services/protocol/protocol_test.go",
+        "sha256": "b561e8070fec89c7d584a98d9c43350007b908605a6d64ccee37829e26264570",
+        "unchangedFromHead": true
+      },
+      {
+        "path": "services/protocol/testdata/signed-release-v1.json",
+        "sha256": "d9bfa9505a83898c7ca397719e5ca6794d39e28eb8d3bd5897f1958f7801e2d7",
+        "unchangedFromHead": true
+      },
+      {
+        "path": "updates/Tests/MixerUpdatesTests/Fixtures/signed-release-v1.json",
+        "sha256": "d9bfa9505a83898c7ca397719e5ca6794d39e28eb8d3bd5897f1958f7801e2d7",
+        "unchangedFromHead": true
+      }
+    ],
+    "existingSwiftUpdateExecutionsIncluded": 40,
+    "knownOpenHardening": "Legacy Go generic struct JSON decoding retains encoding/json case-insensitive field matching. V2 has exact-field preflight. No signature or tenant authority bypass demonstrated; legacy hardening remains separately assigned."
+  },
+  "sharedVectors": {
+    "signedCases": 115,
+    "acceptedCases": 18,
+    "rejectedCases": 97,
+    "originCases": 39,
+    "namespaceCases": 14,
+    "artifactSHA256": "a26a4657320c4388f2f9867b5c70fd8f214904cbe2f4b42eb88935e43e90c37f",
+    "grantDescriptorSHA256": "b394ffd165ef28977de9743b1c1a98c419504787f2912e30d419cfb1582e15e1"
+  },
+  "cliCompatibility": {
+    "command": [
+      "/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift",
+      "test",
+      "--package-path",
+      "cli"
+    ],
+    "environment": {
+      "DEVELOPER_DIR": "/Applications/Xcode_26.6.app/Contents/Developer"
+    },
+    "workingDirectory": "/Users/andreyyurlov/Documents/dev/mixer",
+    "exitCode": 0,
+    "passedFunctions": 15,
+    "outputPath": "/tmp/mixer-v2-cli-compatibility.log",
+    "outputSHA256": "79f63055ff253fa9c73624a09bc45268093097ea16ab30cd78a19d5cd9fa1d99"
+  },
+  "policyGuardrail": {
+    "command": [
+      "python3",
+      "scripts/check-policy.py"
+    ],
+    "exitCode": 0,
+    "scope": "manifest-and-gate-guardrail-only",
+    "outputPath": "/tmp/mixer-release-v2-policy.log",
+    "outputSHA256": "1fcfa8b023b246ed5e72c6d341a1157048cec2f43a1497502934ec5a25950b8d"
+  }
+}
