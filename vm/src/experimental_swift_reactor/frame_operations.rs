@@ -105,6 +105,7 @@ pub(crate) struct FrameOperationStorage<'a> {
     pub entry: Option<Result<(), SwiftRunFailure>>,
     pub returned: Option<Result<FrameReturn, SwiftRunFailure>>,
     pub drained: Option<FrameDrainReport>,
+    pub controlled: Option<Result<bool, SwiftRunFailure>>,
 }
 
 /// This helper performs cleanup-independent provenance and layout checks only.
@@ -362,6 +363,8 @@ impl FrameOperationPhase<'_> {
         Ok(())
     }
     fn work(&mut self, amount: usize) -> Result<(), SwiftRunFailure> {
+        #[cfg(test)]
+        tests::control_work_checkpoint(self.phase.operation.control);
         self.phase.operation.control.work_with_wasi(
             Work::Execution,
             amount as u64,
@@ -973,7 +976,8 @@ impl<'a> FrameOperationPhase<'a> {
         } = phase;
         let SwiftExecutionOperation { control, wasi, .. } = operation;
         let live = control.usage(Some(wasi.usage())).live;
-        let clean = parts.frames.is_empty()
+        let clean = storage.controlled.is_none()
+            && parts.frames.is_empty()
             && parts.values.is_empty()
             && parts.controls.is_empty()
             && cleanup.entry.is_none()
@@ -1040,6 +1044,16 @@ mod tests;
 pub(super) fn observed_push_capacity(capacity: usize, length: usize) -> usize {
     tests::observed_push_capacity(capacity, length)
 }
+#[cfg(test)]
+pub(super) fn control_after_value_pop(control: &mut RuntimeControl) {
+    tests::control_after_value_pop(control);
+}
+#[cfg(test)]
+pub(super) fn control_work_checkpoint(control: &RuntimeControl) {
+    tests::control_work_checkpoint(control);
+}
+#[path = "control_operations.rs"]
+pub(super) mod control_operations;
 // ACCOUNTING_GENERATED_START
 struct PermanentPositions {
     owner_instance_source: SwiftReactorInstance,
@@ -27462,6 +27476,9 @@ pub(super) const ACTIVE_BYTES: usize =
     FROZEN_ACTIVE_BYTES + size_of::<ImplementationActivePositions>();
 pub(super) const FRAME_OPERATION_BYTES: Option<usize> =
     match value_operations::VALUE_OPERATION_BYTES {
-        Some(nested) => ACTIVE_BYTES.checked_add(nested),
+        Some(nested) => match ACTIVE_BYTES.checked_add(nested) {
+            Some(bytes) => bytes.checked_add(control_operations::ACTIVE_BYTES),
+            None => None,
+        },
         None => None,
     };

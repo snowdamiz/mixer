@@ -1,0 +1,87 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+
+MixerHosted.Identity.ReviewEndpointRegressionTest [test/mixer_hosted/identity/endpoint_regression_test.exs]
+  * test Manifest rejects LF in endpoint host [L#8]  * test Manifest rejects LF in endpoint host (5.1ms) [L#8]
+
+  1) test Manifest rejects LF in endpoint host (MixerHosted.Identity.ReviewEndpointRegressionTest)
+     test/mixer_hosted/identity/endpoint_regression_test.exs:8
+     match (=) failed
+     code:  assert {:error, :invalid_manifest} = Manifest.validate([candidate])
+     left:  {:error, :invalid_manifest}
+     right: {:ok,
+             %{
+               "startup-fixture" => %{
+                 profile: %{
+                   enabled: true,
+                   profile_id: "startup-fixture",
+                   profile_version: 1,
+                   issuer: "https://issuer.fixture.invalid/oauth",
+                   audience: "mixer-api",
+                   client_id: "reviewed-client",
+                   identity_class: :human
+                 },
+                 transport: :hosted_https,
+                 jwks_endpoint: %{
+                   port: 443,
+                   path: "/keys",
+                   host: "keys.independent.invalid\n"
+                 }
+               }
+             }}
+     stacktrace:
+       test/mixer_hosted/identity/endpoint_regression_test.exs:37: (test)
+
+  * test StartupConfig rejects LF in endpoint host [L#40]  * test StartupConfig rejects LF in endpoint host (35.0ms) [L#40]
+
+  2) test StartupConfig rejects LF in endpoint host (MixerHosted.Identity.ReviewEndpointRegressionTest)
+     test/mixer_hosted/identity/endpoint_regression_test.exs:40
+     Expected exception ArgumentError but nothing was raised
+     code: assert_raise ArgumentError, "invalid identity startup: configuration", fn ->
+     stacktrace:
+       test/mixer_hosted/identity/endpoint_regression_test.exs:50: (test)
+
+  * test Manifest rejects LF in endpoint path [L#8]  * test Manifest rejects LF in endpoint path (0.01ms) [L#8]
+
+  3) test Manifest rejects LF in endpoint path (MixerHosted.Identity.ReviewEndpointRegressionTest)
+     test/mixer_hosted/identity/endpoint_regression_test.exs:8
+     match (=) failed
+     code:  assert {:error, :invalid_manifest} = Manifest.validate([candidate])
+     left:  {:error, :invalid_manifest}
+     right: {:ok,
+             %{
+               "startup-fixture" => %{
+                 profile: %{
+                   enabled: true,
+                   profile_id: "startup-fixture",
+                   profile_version: 1,
+                   issuer: "https://issuer.fixture.invalid/oauth",
+                   audience: "mixer-api",
+                   client_id: "reviewed-client",
+                   identity_class: :human
+                 },
+                 transport: :hosted_https,
+                 jwks_endpoint: %{
+                   port: 443,
+                   path: "/keys\n",
+                   host: "jwks.fixture.invalid"
+                 }
+               }
+             }}
+     stacktrace:
+       test/mixer_hosted/identity/endpoint_regression_test.exs:37: (test)
+
+  * test StartupConfig rejects LF in endpoint path [L#40]  * test StartupConfig rejects LF in endpoint path (1.1ms) [L#40]
+
+  4) test StartupConfig rejects LF in endpoint path (MixerHosted.Identity.ReviewEndpointRegressionTest)
+     test/mixer_hosted/identity/endpoint_regression_test.exs:40
+     Expected exception ArgumentError but nothing was raised
+     code: assert_raise ArgumentError, "invalid identity startup: configuration", fn ->
+     stacktrace:
+       test/mixer_hosted/identity/endpoint_regression_test.exs:50: (test)
+
+
+Finished in 0.05 seconds (0.05s async, 0.00s sync)
+
+Result: 0/4 passed
+Failed: 4 tests

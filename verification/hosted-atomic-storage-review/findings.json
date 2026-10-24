@@ -1,0 +1,175 @@
+{
+  "schema": 1,
+  "status": "mandatory-corrections-retained-no-product-corrections",
+  "runtime_can_perform_owner_corruption": false,
+  "findings": [
+    {
+      "id": "F01",
+      "class": "specimen-boundary-gap",
+      "cases": [
+        "R03"
+      ],
+      "observation_key": "review_expiry_validation_gap",
+      "required": "Non-null finite integer expiry and completion 0..2^53-1 at trusted boundary and SQL entry; exact context/GUC equality alone is insufficient.",
+      "required_before_repository_acceptance": true,
+      "reproduced": true,
+      "corrected_in_this_review": false,
+      "evidence": "run-3/tests.json",
+      "actual_observation": {
+        "fractional": "10000.5",
+        "nan": "NaN",
+        "over_integer53": "9007199254740992",
+        "all_accepted_by_specimen": true,
+        "required_product_fix": "validate finite integer expiry 0..2^53-1 before cast and inside SQL"
+      }
+    },
+    {
+      "id": "F02",
+      "class": "contract-input-coercion-correction",
+      "cases": [
+        "R17",
+        "R18"
+      ],
+      "observation_key": "review_numeric_typmod_rounding",
+      "required": "Root-selected direction is unconstrained numeric context inputs for field8 expiry and field9 completion, with explicit finite/integer/range guards before coercion. Stored validated numeric(20,0) is allowed.",
+      "required_before_repository_acceptance": true,
+      "reproduced": true,
+      "corrected_in_this_review": false,
+      "evidence": "run-3/tests.json",
+      "actual_observation": {
+        "raw_inputs": [
+          "149.5",
+          "-0.1"
+        ],
+        "post_cast": [
+          [
+            "150",
+            "0",
+            true,
+            true
+          ]
+        ],
+        "catalog_fields": [
+          [
+            "expires_at",
+            "numeric(20,0)"
+          ],
+          [
+            "authentication_completed_at",
+            "numeric(20,0)"
+          ]
+        ],
+        "trunc_guard_after_cast_can_miss_invalid_input": true,
+        "product_recommendation": "unconstrained numeric context inputs plus explicit finite integer 0..2^53-1 guards"
+      }
+    },
+    {
+      "id": "F03",
+      "class": "specimen-pre-effect-freshness-gap",
+      "cases": [
+        "R19"
+      ],
+      "observation_key": "review_expiry_before_effect_gap",
+      "required": "Fresh independent DB clock/expiry/completion/original deadline immediately before first persistence after later potentially blocking SQL, distinct from possible COMMIT-after-expiry.",
+      "required_before_repository_acceptance": true,
+      "reproduced": true,
+      "corrected_in_this_review": false,
+      "evidence": "run-3/tests.json",
+      "actual_observation": {
+        "expiry": "140",
+        "psql_argv": [
+          "-h",
+          "/private/tmp/mxas-review-c3umfrxp/socket",
+          "-U",
+          "preflight_owner",
+          "-d",
+          "atomic_preflight",
+          "-At",
+          "-c",
+          "SELECT count(*) FROM pg_locks WHERE relation='mixer_authz.fixture_fault'::regclass AND NOT granted"
+        ],
+        "completion_still_within_age45": true,
+        "actual_relation_lock_wait_confirmed": true,
+        "lock_relation": "mixer_authz.fixture_fault",
+        "clock_at_insert": "140",
+        "event_decision_time": "100",
+        "inserted_after_expiry": true,
+        "product_fresh_time_before_persistence_required": true
+      }
+    },
+    {
+      "id": "F04",
+      "class": "mandatory-result-linkage-gate",
+      "cases": [
+        "R06",
+        "R07"
+      ],
+      "observation_key": "review_idempotency_event_gap",
+      "required": "Typed immutable result/status/body/event/tenant/principal/action/target/request linkage and corruption regressions before any repository acceptance.",
+      "required_before_repository_acceptance": true,
+      "reproduced": true,
+      "corrected_in_this_review": false,
+      "evidence": "run-3/tests.json",
+      "actual_observation": {
+        "response_event_id": "1",
+        "returned_event_id": "2",
+        "wrong_existing_event_accepted": true,
+        "immutable_runtime_rows": true
+      }
+    },
+    {
+      "id": "F05",
+      "class": "mandatory-artifact-row-linkage-gate",
+      "cases": [
+        "R11",
+        "R16"
+      ],
+      "observation_key": "review_artifact_creation_link_gap",
+      "required": "Complete creation event/actor/target/material immutable row linkage and constraints before repository acceptance.",
+      "required_before_repository_acceptance": true,
+      "reproduced": true,
+      "corrected_in_this_review": false,
+      "evidence": "run-3/tests.json",
+      "actual_observation": {
+        "nonexistent_creation_event_accepted": true,
+        "complete_row_constraints_pending": true
+      }
+    },
+    {
+      "id": "F06",
+      "class": "known-incomplete-decoder-mandatory-gate",
+      "cases": [
+        "R08",
+        "R09"
+      ],
+      "observation_key": "review_closed_display_gap",
+      "required": "Closed exact keys/array lengths/types/absent-versus-null/canonical decimal UUID hex/required values; complete public decoder before repository acceptance.",
+      "required_before_repository_acceptance": true,
+      "reproduced": true,
+      "corrected_in_this_review": false,
+      "evidence": "run-3/tests.json",
+      "actual_observation": {
+        "same_count_extra_and_missing_null_accepted": true,
+        "known_partial_decoder_only": true
+      }
+    },
+    {
+      "id": "F07",
+      "class": "known-incomplete-predecessor-mandatory-gate",
+      "cases": [
+        "R10"
+      ],
+      "observation_key": "review_predecessor_edge_gap",
+      "required": "Typed terminal/predecessor state/event linkage before repository acceptance; self-consistency does not verify historical edges.",
+      "required_before_repository_acceptance": true,
+      "reproduced": true,
+      "corrected_in_this_review": false,
+      "evidence": "run-3/tests.json",
+      "actual_observation": {
+        "coherent_wrong_predecessor_accepted": true,
+        "documented_historical_verification_pending": true
+      }
+    }
+  ],
+  "interpretation": "Observed-limitation cases pass only when the gap is reproduced; they are not safety validation passes."
+}

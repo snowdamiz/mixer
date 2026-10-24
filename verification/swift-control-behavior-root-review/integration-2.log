@@ -1,0 +1,99 @@
+
+running 46 tests
+test experimental_swift_reactor::execution::frame_operations::tests::af01_real_nested_recursive_entry_and_parameter_ownership ... AF01_DEFAULT state_current=41453224 state_peak=41453224 construction_current=4219360 construction_peak=4299926 combined_current=45764876 combined_peak=45845442 state_limit=134217728 combined_limit=268435456
+ok
+test experimental_swift_reactor::execution::frame_operations::tests::af02_nested_zero_single_and_outer_results_exact_order ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af03_real_call_depth_and_pin_limits ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af04_actual_255_256_locals_and_real_257_validation_rejection ... AF04 invalid257 rejected by real validation before owner construction; actual255/256 frames executed
+ok
+test experimental_swift_reactor::execution::frame_operations::tests::af05_real_decoded_control_inclusive_and_aggregate_boundaries ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af06_every_entry_work_prefix_preserves_caller_and_work ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af07_exact_predebit_faults_and_narrow_capacity_admission ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af08_cancellation_at_every_actual_local_check_rolls_back_only_new_effects ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af09_real_pin_and_nested_completion_failure_coexist ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af10_entry_guard_rejected_release_retains_actual_pin_and_cleanup_barrier ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af11_mixed_releases_keep_same_actual_frames_pins_in_order ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af12_all_release_rejections_retain_real_headers_frames_and_charges ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af13_guard_and_multiple_frames_keep_independent_actual_pins ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af14_finish_release_failure_is_processed_suffix_and_never_reinterpreted ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af15_failed_result_push_happens_after_callee_release ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af16_cleanup_undercount_zero_is_sticky_and_blocks_consuming_cleanup ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af17_real_prior_wasi_effect_and_sticky_first_failure ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af18_dropped_phase_cleanup_resume_has_no_admission_work_or_value_access ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af19_exact_fixed_storage_outer_restore_rejection_and_retry ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af20_original_provenance_layout_and_consuming_barriers_preserve_owners ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::af21_warm_paths_refuse_first_allocation_and_cold_decode_is_separate ... AF21 cold decode requests=2 warm entry/finish/drain/completion requests=0
+ok
+test experimental_swift_reactor::execution::frame_operations::tests::af22_frozen_accounting_and_value_phase_reservations_stay_distinct ... AF22_NARROW phase_rejection combined_limit=45764781 attempted=45764782 frame_admitted=false
+AF_LAYOUT permanent=1993880 frozen_permanent=179720 active=1505296 frozen_active=240776 frame=3950128 value=119576 state=424
+ok
+test experimental_swift_reactor::execution::frame_operations::tests::control_tests::sc01_decoded_block_loop_if ... SC_TRACE empty_block steps=3 expected=[(1, 0, 2, 1), (2, 0, 1, 2), (3, 0, 0, 2)]
+SC_TRACE result_block steps=4 expected=[(1, 0, 2, 1), (2, 1, 2, 1), (3, 1, 1, 4), (4, 1, 0, 4)]
+SC_TRACE empty_loop steps=3 expected=[(1, 0, 2, 1), (2, 0, 1, 2), (3, 0, 0, 2)]
+SC_TRACE result_loop steps=4 expected=[(1, 0, 2, 1), (2, 1, 2, 1), (3, 1, 1, 4), (4, 1, 0, 4)]
+SC_TRACE if_true_else steps=6 expected=[(1, 1, 1, 1), (2, 0, 2, 2), (3, 1, 2, 1), (5, 1, 2, 0), (6, 1, 1, 4), (7, 1, 0, 4)]
+SC_TRACE if_false_else steps=5 expected=[(1, 1, 1, 1), (4, 0, 2, 2), (5, 1, 2, 1), (6, 1, 1, 4), (7, 1, 0, 4)]
+SC_TRACE if_false_no_else steps=4 expected=[(1, 1, 1, 1), (3, 0, 2, 2), (4, 0, 1, 2), (5, 0, 0, 2)]
+ok
+test experimental_swift_reactor::execution::frame_operations::tests::control_tests::sc02_end_else_return ... SC_TRACE empty_block steps=3 expected=[(1, 0, 2, 1), (2, 0, 1, 2), (3, 0, 0, 2)]
+SC_TRACE if_true_else steps=6 expected=[(1, 1, 1, 1), (2, 0, 2, 2), (3, 1, 2, 1), (5, 1, 2, 0), (6, 1, 1, 4), (7, 1, 0, 4)]
+SC_TRACE nested_end steps=5 expected=[(1, 0, 2, 1), (2, 0, 3, 1), (3, 0, 2, 2), (4, 0, 1, 2), (5, 0, 0, 2)]
+SC_TRACE return_open steps=3 expected=[(1, 0, 2, 1), (2, 1, 2, 1), (3, 1, 2, 0)]
+ok
+test experimental_swift_reactor::execution::frame_operations::tests::control_tests::sc03_branch_targets ... SC_TRACE br_block steps=4 expected=[(1, 0, 2, 1), (2, 1, 2, 1), (4, 1, 1, 4), (5, 1, 0, 4)]
+SC_TRACE br_function steps=3 expected=[(1, 0, 2, 1), (2, 1, 2, 1), (6, 1, 0, 5)]
+SC_TRACE br_if_true steps=5 expected=[(1, 0, 2, 1), (2, 1, 2, 1), (3, 2, 2, 1), (5, 1, 1, 5), (6, 1, 0, 4)]
+SC_TRACE br_if_false steps=6 expected=[(1, 0, 2, 1), (2, 1, 2, 1), (3, 2, 2, 1), (4, 1, 2, 1), (5, 1, 1, 4), (6, 1, 0, 4)]
+SC_TRACE br_table_first steps=7 expected=[(1, 0, 2, 1), (2, 0, 3, 1), (3, 1, 3, 1), (4, 2, 3, 1), (6, 1, 2, 5), (7, 1, 1, 4), (8, 1, 0, 4)]
+SC_TRACE br_table_last steps=6 expected=[(1, 0, 2, 1), (2, 0, 3, 1), (3, 1, 3, 1), (4, 2, 3, 1), (7, 1, 1, 6), (8, 1, 0, 4)]
+SC_TRACE br_table_default_unsigned steps=6 expected=[(1, 0, 2, 1), (2, 0, 3, 1), (3, 1, 3, 1), (4, 2, 3, 1), (7, 1, 1, 6), (8, 1, 0, 4)]
+ok
+test experimental_swift_reactor::execution::frame_operations::tests::control_tests::sc04_current_frame_floors ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::control_tests::sc05_control_limits ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::control_tests::sc06_value_limits_types ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::control_tests::sc07_exact_work_prefixes ... SC07 exhaustive fixture work prefixes=252
+ok
+test experimental_swift_reactor::execution::frame_operations::tests::control_tests::sc08_cancellation_first_failure ... SC08 caller cancellation boundaries=74 helper work checkpoints=154 control predebits=3
+ok
+test experimental_swift_reactor::execution::frame_operations::tests::control_tests::sc09_defensive_live_faults ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::control_tests::sc10_retained_cleanup ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::control_tests::sc11_completion_accounting ... AF22_NARROW phase_rejection combined_limit=45764781 attempted=45764782 frame_admitted=false
+AF_LAYOUT permanent=1993880 frozen_permanent=179720 active=1505296 frozen_active=240776 frame=3950128 value=119576 state=424
+SC11 header=2409184 frame=3950128 slot=1096 production/unit layouts separately measured
+ok
+test experimental_swift_reactor::execution::frame_operations::tests::control_tests::sc12_allocation_shared_source ... SC12 empty_block cold=1 warm=0 completion=0
+SC12 result_block cold=1 warm=0 completion=0
+SC12 empty_loop cold=1 warm=0 completion=0
+SC12 result_loop cold=1 warm=0 completion=0
+SC12 if_true_else cold=1 warm=0 completion=0
+SC12 if_false_else cold=1 warm=0 completion=0
+SC12 if_false_no_else cold=1 warm=0 completion=0
+SC12 nested_end cold=1 warm=0 completion=0
+SC12 return_open cold=1 warm=0 completion=0
+SC12 br_block cold=1 warm=0 completion=0
+SC12 br_function cold=1 warm=0 completion=0
+SC12 br_if_true cold=1 warm=0 completion=0
+SC12 br_if_false cold=1 warm=0 completion=0
+SC12 br_table_first cold=2 warm=0 completion=0
+SC12 br_table_last cold=2 warm=0 completion=0
+SC12 br_table_default_unsigned cold=2 warm=0 completion=0
+ok
+test experimental_swift_reactor::execution::value_operations::tests::swift_values_bad_opcode_type_and_underflow_fail_before_primitive_effects ... ok
+test experimental_swift_reactor::execution::value_operations::tests::swift_values_cancelled_operation_cleanup_ignores_terminal_checkpoint ... ok
+test experimental_swift_reactor::execution::value_operations::tests::swift_values_every_numeric_shape_and_saturating_shape_executes ... ok
+test experimental_swift_reactor::execution::value_operations::tests::swift_values_known_numeric_semantics_and_float_bits_without_allocations ... ok
+test experimental_swift_reactor::execution::value_operations::tests::swift_values_live_corruption_fails_closed_and_cleanup_retains_first_failure ... ok
+test experimental_swift_reactor::execution::value_operations::tests::swift_values_numeric_traps_reconcile_actual_zero_output_before_latching ... ok
+test experimental_swift_reactor::execution::value_operations::tests::swift_values_operand_ceiling_and_narrow_value_capacity_reject_publication ... ok
+test experimental_swift_reactor::execution::value_operations::tests::swift_values_operation_admission_failure_preserves_all_owners_and_previous_bound ... ok
+test experimental_swift_reactor::execution::value_operations::tests::swift_values_original_owner_prepares_completes_and_restores_exact_bound ... ok
+test experimental_swift_reactor::execution::value_operations::tests::swift_values_positive_operation_layout_inventory ... value_operation permanent 82184 active 103248 phase 119576 header 2409184 construction 1071904
+ok
+test experimental_swift_reactor::execution::value_operations::tests::swift_values_preparation_failure_preserves_real_owner ... ok
+test experimental_swift_reactor::execution::value_operations::tests::swift_values_work_exhaustion_preserves_operands_and_cleanup_is_free ... ok
+
+test result: ok. 46 passed; 0 failed; 0 ignored; 0 measured; 151 filtered out; finished in 1.08s
+
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/vm)
+    Finished `release` profile [optimized] target(s) in 3.64s
+     Running unittests src/lib.rs (/private/tmp/mixer-control-root-4udawat7/target/release/deps/mixer_vm-e633425abeb5c97b)

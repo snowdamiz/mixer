@@ -1,0 +1,327 @@
+{
+  "schema": 1,
+  "status": "producer-contract-candidate-root-approval-pending",
+  "scope": "preimplementation domain atomic writer supplement; no product migration/API/provider or GA acceptance",
+  "product": {
+    "schemas": [
+      "mixer_authz",
+      "mixer_hosted_release"
+    ],
+    "legacy_schema_unchanged": "mixer_release",
+    "entry": "mixer_hosted_release.upload_artifact_v1(mixer_hosted_release.writer_context_v1,mixer_hosted_release.artifact_input_v1,mixer_hosted_release.request_input_v1)",
+    "result": "mixer_hosted_release.upload_result_v1",
+    "overloads": false,
+    "context_fields": [
+      "backend_pid:int4",
+      "full_xid:text",
+      "database_name:name",
+      "runtime_role:name",
+      "invocation_nonce:text",
+      "sql_deadline:timestamptz",
+      "principal_id:uuid",
+      "token_expires_at:numeric(20,0)",
+      "authentication_completed_at:numeric(20,0)"
+    ],
+    "artifact_fields": [
+      "organization:text",
+      "project:text",
+      "app:text",
+      "environment:text",
+      "platform:text",
+      "runtime_sha256:bytea",
+      "manifest_sha256:bytea",
+      "canonical_manifest:bytea",
+      "signed_document:bytea",
+      "signature:bytea",
+      "payload_sha256:bytea",
+      "payload_size:numeric(20,0)",
+      "blob_reference:text"
+    ],
+    "request_fields": [
+      "key:text",
+      "normalized_route:text",
+      "original_body:bytea",
+      "request_sha256:bytea",
+      "reason:text",
+      "request_id:uuid",
+      "source_ip:text|null"
+    ],
+    "result_fields": [
+      "status:int4",
+      "body:bytea",
+      "event_id:numeric(20,0)",
+      "replay:boolean"
+    ],
+    "routine": {
+      "owner": "mixer_hosted_domain_writer",
+      "security": "DEFINER",
+      "volatility": "VOLATILE",
+      "parallel": "UNSAFE",
+      "leakproof": false,
+      "search_path": "pg_catalog",
+      "row_security": "on",
+      "public_execute": false,
+      "dynamic_sql": false,
+      "transaction_control": false,
+      "network_or_signer": false
+    },
+    "roles": {
+      "mixer_hosted_schema_owner": {
+        "login": false,
+        "superuser": false,
+        "bypassrls": false,
+        "createdb": false,
+        "createrole": false,
+        "replication": false,
+        "owns": [
+          "schemas",
+          "types",
+          "tables",
+          "policies",
+          "private pure codecs"
+        ]
+      },
+      "mixer_hosted_authz_resolver": {
+        "login": false,
+        "superuser": false,
+        "bypassrls": false,
+        "createdb": false,
+        "createrole": false,
+        "replication": false,
+        "owns": [
+          "enumerated existing authz resolver/policy functions"
+        ],
+        "grants": "unchanged five-class column lock/select grants in membership contract; no artifact payload read"
+      },
+      "mixer_hosted_domain_writer": {
+        "login": false,
+        "superuser": false,
+        "bypassrls": false,
+        "createdb": false,
+        "createrole": false,
+        "replication": false,
+        "owns_only": [
+          "upload_artifact_v1"
+        ],
+        "select_insert": [
+          "artifacts",
+          "audit_events",
+          "idempotency"
+        ],
+        "head_select_update_columns": [
+          "last_event",
+          "audit_hash",
+          "state_hash"
+        ],
+        "execute": [
+          "private codec functions",
+          "narrow resolver/evidence helpers"
+        ],
+        "forbidden": [
+          "schema CREATE",
+          "table ownership",
+          "role membership",
+          "immutable row UPDATE/DELETE",
+          "head INSERT",
+          "TRUNCATE",
+          "REFERENCES"
+        ]
+      },
+      "configured_runtime_login": {
+        "login": true,
+        "superuser": false,
+        "bypassrls": false,
+        "createdb": false,
+        "createrole": false,
+        "replication": false,
+        "owns": [],
+        "inherits_or_set_role_to_other_roles": false,
+        "schema_usage": [
+          "mixer_authz",
+          "mixer_hosted_release"
+        ],
+        "execute": [
+          "existing enumerated public resolver/read/policy helpers",
+          "upload_artifact_v1"
+        ],
+        "select": [
+          "scoped artifacts",
+          "scoped audit_events"
+        ],
+        "direct_domain_dml": false,
+        "head_or_idempotency_select": false,
+        "database_temp": false,
+        "schema_create": false
+      }
+    },
+    "policies": {
+      "all_private_tables": [
+        "ENABLE ROW LEVEL SECURITY",
+        "FORCE ROW LEVEL SECURITY"
+      ],
+      "authz": "simple resolver-specific SELECT/column UPDATE policies; no domain recursion",
+      "writer_domain": "current authoritative policy and exact actual row tenant/target; idempotency exact locked tenant/key only",
+      "runtime_artifacts": "artifact.read exact current target only",
+      "runtime_audit": "audit.read project-only target only",
+      "immutable": "no UPDATE/DELETE policy/grants",
+      "bootstrap": "offline migration owner only"
+    },
+    "private_codec_manifest": [
+      "uint64_v1(numeric)->bytea",
+      "bytes_v1(bytea|null)->bytea",
+      "text_v1(text|null)->bytea",
+      "array_v1(bytea[])->bytea",
+      "target_v1(artifact_input_v1)->bytea",
+      "event_v1(authoritative_typed_event_v1)->bytea",
+      "state_v1(authoritative_typed_change_v1)->bytea",
+      "display_v1(authoritative_typed_event_v1,event_hash)->jsonb+bytea",
+      "verify_terminal_v1(typed_terminal_rows)->boolean"
+    ],
+    "codec_note": "Private pure helper names/signatures are owned implementation details, not extra callable runtime interfaces. Future migration manifest must enumerate their complete SQL identities/owners/ACLs and startup must compare exact definitions. This supplement freezes sole public mutation identity and composite fields; full authz/private helper migration remains pending.",
+    "supported_actions": [
+      "artifact.read",
+      "artifact.upload",
+      "audit.read"
+    ],
+    "canonical_roles": [
+      "owner",
+      "administrator",
+      "developer",
+      "release_manager",
+      "billing_manager",
+      "viewer"
+    ],
+    "upload_roles": [
+      "owner",
+      "administrator",
+      "developer"
+    ],
+    "authentication_completion": {
+      "source": "request coordinator captures integer Unix seconds immediately after successful ConfiguredVerifier return; accepted VerifiedIdentity unchanged",
+      "guc": "mixer_hosted.authentication_completed_at",
+      "immutable_context_field": true,
+      "exact_runtime_and_sql_equality": true,
+      "range": [
+        0,
+        9007199254740991
+      ],
+      "completion_lt_token_expiry": true,
+      "dbnow_lt_token_expiry": true,
+      "completion_min": "DBnow-45",
+      "completion_max": "DBnow+30",
+      "not_verifier_internal_evaluation_or_iat": true
+    }
+  },
+  "encodings": {
+    "audit_schema": 1,
+    "event_array_fields": 15,
+    "actor_array_fields": 11,
+    "decision_array_fields": 7,
+    "target_array_fields": 7,
+    "change_array_fields": 8,
+    "allowed_cbor": [
+      "shortest definite uint64",
+      "definite byte strings",
+      "valid UTF8 text",
+      "definite fixed arrays",
+      "explicit null"
+    ],
+    "forbidden_cbor": [
+      "maps",
+      "negative",
+      "float",
+      "boolean",
+      "tags",
+      "indefinite",
+      "trailing",
+      "overlong"
+    ],
+    "audit_domain_ascii_then_nul": "mixer.hosted.audit.v1",
+    "state_domain_ascii_then_nul": "mixer.hosted.state.v1",
+    "identity_reference_domain_ascii_then_nul": "mixer.hosted.identity-ref.v1",
+    "hash": "standard SHA256; built-in PostgreSQL17 sha256(bytea), OTP crypto and Python hashlib",
+    "state_model": "ordered previous-state plus actual immutable artifact Change1 projection; identical artifact new-key leaves state unchanged; never whole-DB snapshot",
+    "json_integer_policy": "audit_schema integer1; all other uint64/time/revision/profile-version values canonical decimal strings",
+    "display": "closed 16-key object, fixed nested arrays; bytes lowercase hex, UUID lowercase hyphenated, explicit null; exact PostgreSQL17 jsonb::text UTF8 stored immutable",
+    "legacy": "old Go Event JSON/plain hash and signed v3 domains unchanged"
+  },
+  "budgets": {
+    "public_id_bytes_min_max": [
+      1,
+      128
+    ],
+    "profile_id_utf8_bytes_min_max": [
+      1,
+      128
+    ],
+    "membership_evidence_max": 64,
+    "request_bytes_min_max": [
+      1,
+      6291456
+    ],
+    "signed_document_bytes_min_max": [
+      1,
+      65536
+    ],
+    "canonical_manifest_bytes_min_max": [
+      1,
+      65536
+    ],
+    "signature_bytes": 64,
+    "payload_bytes_min_max": [
+      1,
+      4194304
+    ],
+    "reason_utf8_bytes_max": 512,
+    "source_ip_ascii_bytes_max": 45,
+    "request_lifetime_ms_max": 15000,
+    "accepted_requests_per_node_max": 4,
+    "waiting_admission_queue": 0,
+    "pre_mailbox_http_admission_implemented": false,
+    "transaction_ms_max": 5000,
+    "lock_timeout_ms": 250,
+    "protected_pool_queue": false,
+    "cbor_depth_max": 16,
+    "cbor_container_entries_max": 256,
+    "cbor_items_max": 4096,
+    "audit_cbor_bytes_max": 16384,
+    "audit_display_bytes_max": 32768,
+    "idempotent_response_bytes_max": 4096,
+    "artifact_read_envelope_bytes_max": 6291456,
+    "audit_page_limit_min_max": [
+      1,
+      100
+    ],
+    "audit_page_db_rows_max": 101,
+    "audit_page_encoded_bytes_max": 262144,
+    "audit_cursor_uint64_max": "18446744073709551615",
+    "local_blob_object_count_max": 8,
+    "local_blob_total_bytes_max": 16777216,
+    "local_blob_read_bytes_max": 4194305
+  },
+  "specimen": {
+    "schema_file": "probe/schema.sql",
+    "role_mapping": {
+      "schema_owner": "mxas_schema",
+      "resolver": "mxas_resolver",
+      "writer": "mxas_writer",
+      "runtime": "mxas_runtime",
+      "adversarial_foreign": "mxas_foreign"
+    },
+    "entry": "mixer_hosted_release.upload_v1(call_context,upload_input,upload_request)",
+    "synthetic_only": [
+      "two fixture principals",
+      "one policy row lock instead of full authz lock chain",
+      "controlled clock",
+      "controlled four-boundary faults",
+      "opaque synthetic manifest and signed bytes",
+      "fixed o/p/a/e/ios target",
+      "asserted_display negative-test input",
+      "foreign role deliberately granted entry EXECUTE"
+    ],
+    "no_product_identity_signature_migration_claim": true,
+    "local_blob_scope": "single process trusted owned mode0700 directory; bounded regular-file reads, immutable exclusive creation; File.ls enumeration not adversarial-directory qualified; no directory-entry power-loss or R2 guarantee",
+    "admission_scope": "in-flight Agent references only; no mailbox/HTTP cancellation proof",
+    "uncertain_commit_scope": "real Unix PostgreSQL wire proxy drops server CommandComplete(COMMIT) before client; fresh contexts after actual DB stop/start; not arbitrary provider/deadline failure timing"
+  }
+}

@@ -183,7 +183,11 @@ See `docs/hosted-identity-artifact-checkpoint.md` and
 `verification/hosted-component-integration-root-review/acceptance.json`.
 Application wiring, authenticated HTTP and authoritative database membership
 remain pending. The narrow atomic-writer/audit/blob contract and real PostgreSQL
-probe are assigned in isolation; no new migration is applied. Commit `dd604eca`
+probe has 41 passing producer cases. Independent review adds 20 cases and
+reproduces seven mandatory validation gaps; its 61 successful observations do
+not turn those gaps into passes. Root selects AS01–AS07 corrections in
+`docs/hosted-atomic-storage-corrections.md`; a new isolated specimen is assigned.
+No repository acceptance or new migration is claimed. Commit `dd604eca`
 is pushed. Its Phoenix CI passed 44 tests but invalidated 29 identity cases when
 a test fixture tried to create a directory under macOS-only `/private/tmp`; one
 namespace case was skipped. The exact failed artifact and all 56 committed
@@ -193,9 +197,11 @@ macOS and 46 Linux identity cases pass, the full host suite passes 73 with one
 explicit namespace skip, and a final 46-case Linux run writes all nine metrics
 only into its own directory. Root verifies 152 evidence bindings; production
 code and dependencies are unchanged. See
-`verification/hosted-tls-fixture-ci-root-review/acceptance.json`. New hosted CI
-remains pending delivery. The separate Swift, VM and Go jobs at `dd604eca` all
-pass; see `verification/github-ci-dd604eca-engine/receipt.json`. The original
+`verification/hosted-tls-fixture-ci-root-review/acceptance.json`. Commit `b0629cf5` now passes Linux hosted CI: 73 tests, one explicitly skipped
+namespace case, release checks and eight run-local metrics. All 56 archived
+inputs match the pushed commit; see
+`verification/github-ci-b0629cf5-phoenix/receipt.json`. Its Swift, VM and Go
+engine jobs also pass; see `verification/github-ci-b0629cf5-engine/receipt.json`. The Swift, VM and Go jobs at `dd604eca` all pass; see `verification/github-ci-dd604eca-engine/receipt.json`. The original
 Phoenix failure is retained as a failure. All GA gates remain open.
 
 Swift control candidate 2 now has root source/accounting preflight acceptance:
@@ -203,10 +209,27 @@ Swift control candidate 2 now has root source/accounting preflight acceptance:
 and unchanged Frozen expansions. The repaired after-effect pop latches existing
 cleanup debt while preserving the original failure. See
 `verification/swift-control-invocation-root-review/candidate-2-acceptance.json`.
-SC01–SC12 behavior and regression work is now assigned in an isolated overlay;
-complete behavior acceptance and live VM integration remain pending. Native UI
+The exact 121-file control closure now has root host acceptance and is integrated.
+Producer and independent review each pass four 46-test frame/value/control runs
+and four six-test Frozen runs. Review adds seven adversarial groups in four
+configurations, full 168/197-test Swift/all-feature libraries in Debug/Release,
+eight exact layouts and canonical accounting checks. Root verifies 669 evidence
+bindings, reviews the source and passes 46 integrated Release tests plus six
+Frozen tests. Owned build scratch is removed. See
+`verification/swift-control-behavior-root-review/acceptance.json` and
+`docs/swift-control-behavior-checkpoint.md`. Full dispatcher, Ready and public
+invocation remain unimplemented. Native UI
 access was rechecked and the Mac remains locked; no new Apple test instance
 was started. Simulator/emulator permission remains active; phones are deferred.
+
+The configured identity startup overlay remains isolated. Its original candidate
+passes 85 macOS tests with two Linux-only skips and 87 Linux tests, including
+actual application startup, cold DNS/TLS authentication and lifecycle cleanup.
+Independent review reproduced a trailing-newline endpoint validation defect in
+the inherited Manifest validator. The original review is correction-required;
+a focused anchor fix and direct Manifest/StartupConfig regressions are assigned
+in a separate candidate. No startup acceptance is claimed. See
+`docs/hosted-identity-startup-review.md`.
 
 The release server now owns a configuration snapshot before validation/storage
 open. Independent probes reproduced caller mutations changing token permissions,

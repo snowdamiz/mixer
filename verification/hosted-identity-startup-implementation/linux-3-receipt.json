@@ -1,0 +1,238 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "source": "/private/tmp/mixer-identity-startup-pa6uhsc7",
+  "linuxScratch": "/private/tmp/mixer-identity-startup-linux-1ahkc1sm",
+  "images": [
+    "hexpm/elixir@sha256:52ec0f335b9084bcfc0ce3a29b4c0288dc2fc2a07658ff809dc7d07589212cde",
+    "postgres@sha256:c961aa287d8698297cb26cdfadfbe9fd2cbaf77e53cfffe9636e8d8a1e4d842c"
+  ],
+  "network": "none; PostgreSQL shares owned namespace; no host mutation",
+  "capabilitiesAdded": [
+    "NET_ADMIN"
+  ],
+  "commands": [
+    {
+      "label": "image-inspect",
+      "argv": [
+        "docker",
+        "image",
+        "inspect",
+        "hexpm/elixir@sha256:52ec0f335b9084bcfc0ce3a29b4c0288dc2fc2a07658ff809dc7d07589212cde",
+        "postgres@sha256:c961aa287d8698297cb26cdfadfbe9fd2cbaf77e53cfffe9636e8d8a1e4d842c"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.07775029097683728,
+      "observedUTC": "2026-10-24T08:03:40.045102+00:00",
+      "output": "linux-3-image-inspect.log",
+      "outputSHA256": "06e5f8ca24e171b42c69f4f396e63ed625205141a3e0a871c3cbc586030c8289"
+    },
+    {
+      "label": "container-start",
+      "argv": [
+        "docker",
+        "run",
+        "--rm",
+        "-d",
+        "--name",
+        "mixer-identity-startup-1ahkc1sm",
+        "--network",
+        "none",
+        "--cap-add",
+        "NET_ADMIN",
+        "--memory",
+        "1g",
+        "--cpus",
+        "4",
+        "-v",
+        "/private/tmp/mixer-identity-startup-linux-1ahkc1sm:/workspace",
+        "-v",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-identity-startup-implementation:/evidence",
+        "-w",
+        "/workspace/hosted",
+        "-e",
+        "MIX_HOME=/workspace/mix",
+        "-e",
+        "MIX_REBAR3=/workspace/rebar3",
+        "-e",
+        "MIXER_ISOLATED_NETNS=1",
+        "-e",
+        "MIX_ENV=test",
+        "-e",
+        "MIXER_TEST_DATABASE_PORT=5432",
+        "-e",
+        "MIXER_TEST_IDENTITY_EVIDENCE=/evidence/linux-3-metrics",
+        "hexpm/elixir@sha256:52ec0f335b9084bcfc0ce3a29b4c0288dc2fc2a07658ff809dc7d07589212cde",
+        "sleep",
+        "infinity"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.13741349999327213,
+      "observedUTC": "2026-10-24T08:03:40.182895+00:00",
+      "output": "linux-3-container-start.log",
+      "outputSHA256": "17cc0a7c3927b157e02a0cc008bd959c70dfd5d26d4ac34cd0ddbe73c463d4bd"
+    },
+    {
+      "label": "postgres-start",
+      "argv": [
+        "docker",
+        "run",
+        "--rm",
+        "-d",
+        "--name",
+        "mixer-identity-startup-1ahkc1sm-pg",
+        "--network",
+        "container:mixer-identity-startup-1ahkc1sm",
+        "--memory",
+        "256m",
+        "-e",
+        "POSTGRES_USER=mixer_fixture",
+        "-e",
+        "POSTGRES_DB=mixer_foundation_test",
+        "-e",
+        "POSTGRES_HOST_AUTH_METHOD=trust",
+        "postgres@sha256:c961aa287d8698297cb26cdfadfbe9fd2cbaf77e53cfffe9636e8d8a1e4d842c",
+        "-c",
+        "listen_addresses=127.0.0.1"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.12100233405362815,
+      "observedUTC": "2026-10-24T08:03:40.304115+00:00",
+      "output": "linux-3-postgres-start.log",
+      "outputSHA256": "3843dc1842f0c7754d663934f4ba21edff15bd98729c0db3b8626e163e0a8386"
+    },
+    {
+      "label": "startup-createdb",
+      "argv": [
+        "docker",
+        "exec",
+        "mixer-identity-startup-1ahkc1sm-pg",
+        "createdb",
+        "-U",
+        "mixer_fixture",
+        "mixer_startup_test"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.06994487496558577,
+      "observedUTC": "2026-10-24T08:03:41.177924+00:00",
+      "output": "linux-3-startup-createdb.log",
+      "outputSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "netns",
+      "argv": [
+        "docker",
+        "exec",
+        "mixer-identity-startup-1ahkc1sm",
+        "elixir",
+        "/workspace/linux_netns_setup.exs"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.2407483330462128,
+      "observedUTC": "2026-10-24T08:03:41.418984+00:00",
+      "output": "linux-3-netns.log",
+      "outputSHA256": "f4042bd348258b18bb781bf21a3a86f97bdef65dc32582e313bd27a8760cbec5"
+    },
+    {
+      "label": "tools",
+      "argv": [
+        "docker",
+        "exec",
+        "mixer-identity-startup-1ahkc1sm",
+        "bash",
+        "-c",
+        "elixir --version; mix --version; openssl version; uname -a"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.4128515829797834,
+      "observedUTC": "2026-10-24T08:03:41.832026+00:00",
+      "output": "linux-3-tools.log",
+      "outputSHA256": "c662a0949b19b8acf9370287ae53b3d85812112a4a8423696d0749b2b66c6cf2"
+    },
+    {
+      "label": "format",
+      "argv": [
+        "docker",
+        "exec",
+        "mixer-identity-startup-1ahkc1sm",
+        "mix",
+        "format",
+        "--check-formatted"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.3462064169580117,
+      "observedUTC": "2026-10-24T08:03:42.178532+00:00",
+      "output": "linux-3-format.log",
+      "outputSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "tests",
+      "argv": [
+        "docker",
+        "exec",
+        "mixer-identity-startup-1ahkc1sm",
+        "mix",
+        "test",
+        "--warnings-as-errors",
+        "--seed",
+        "0",
+        "--trace"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 45.06453479093034,
+      "observedUTC": "2026-10-24T08:04:27.243318+00:00",
+      "output": "linux-3-tests.log",
+      "outputSHA256": "7dc6e0040f0d96a5e01be593d2b98e45d8644075e0d2a09208afd2400db1c99d"
+    },
+    {
+      "label": "fixture-cleanup",
+      "argv": [
+        "docker",
+        "exec",
+        "mixer-identity-startup-1ahkc1sm",
+        "elixir",
+        "-e",
+        "values = Enum.filter(File.ls!(System.tmp_dir!()), &String.starts_with?(&1, \"mixer-key-owner-tls-\")); IO.inspect(values, label: \"retained_fixture_key_directories\"); [] = values"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.23684783303178847,
+      "observedUTC": "2026-10-24T08:04:27.480942+00:00",
+      "output": "linux-3-fixture-cleanup.log",
+      "outputSHA256": "eb298f0e7e39d61eac76d6f88c771cb3230099d0dd3efd9d47f60f67eddaf7dd"
+    },
+    {
+      "label": "cleanup-mixer-identity-startup-1ahkc1sm-pg",
+      "argv": [
+        "docker",
+        "rm",
+        "-f",
+        "mixer-identity-startup-1ahkc1sm-pg"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.07540866697672755,
+      "observedUTC": "2026-10-24T08:04:27.556832+00:00",
+      "output": "linux-3-cleanup-mixer-identity-startup-1ahkc1sm-pg.log",
+      "outputSHA256": "d2179b88ac13d147523e9246a38987649f1c401b321072a4802aa8c06e0e2305"
+    },
+    {
+      "label": "cleanup-mixer-identity-startup-1ahkc1sm",
+      "argv": [
+        "docker",
+        "rm",
+        "-f",
+        "mixer-identity-startup-1ahkc1sm"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.07541670801583678,
+      "observedUTC": "2026-10-24T08:04:27.652943+00:00",
+      "output": "linux-3-cleanup-mixer-identity-startup-1ahkc1sm.log",
+      "outputSHA256": "f9f31cebdd02d0204ee0262993903f2a0fa4c753a26451086e618bddf9e6d582"
+    }
+  ],
+  "cleanup": {
+    "mixer-identity-startup-1ahkc1sm-pg": true,
+    "mixer-identity-startup-1ahkc1sm": true,
+    "ownedScratchRemoved": true
+  },
+  "scope": "Full hosted suite including actual configured application/endpoint, production DNS+HTTPS signed-token admission. Synthetic PostgreSQL without TLS; production DB TLS configuration only. No physical/native/GA qualification."
+}

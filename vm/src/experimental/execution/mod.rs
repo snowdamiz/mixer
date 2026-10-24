@@ -20,6 +20,8 @@
 #[cfg_attr(not(feature = "experimental-span-execution"), allow(unused_imports))]
 use super::cache::{CacheFailure, CacheUsage, ControlKind, FunctionCache, FunctionPin, Operation};
 use crate::{Cancellation, Value};
+#[allow(unused_imports)]
+use borrowed::{control_record, frozen_control_leaf, shared_control_methods};
 #[cfg(feature = "experimental-span-execution")]
 use std::mem::size_of;
 
@@ -856,6 +858,7 @@ impl SpanInstance {
         }
         Ok(value)
     }
+    #[rustfmt::skip] // Preserve the accepted inline-arm expansion, including expression arms.
     fn run(&mut self) -> Result<Option<Value>, ExecutionFailure> {
         loop {
             let frame = self.frames.last().ok_or_else(|| self.invariant())?;
@@ -956,62 +959,22 @@ impl SpanInstance {
                     end,
                     alternative,
                 } => {
-                    let cond = if kind == ControlKind::If {
-                        self.pop32()? != 0
-                    } else {
-                        true
-                    };
-                    self.room_control()?;
-                    self.work(1)?;
-                    let frame = self.frames.last().ok_or_else(|| self.invariant())?;
-                    if self.controls.len() - frame.controls
-                        >= self.cache.spans().limits().control_depth
-                    {
-                        return Err(self.error(
-                            ExecutionFailureKind::ControlExhausted,
-                            "control_depth_exceeded",
-                            (self.controls.len() - frame.controls + 1) as u64,
-                            self.cache.spans().limits().control_depth as u64,
-                        ));
-                    }
-                    self.controls.push(Control {
-                        kind: match kind {
-                            ControlKind::Block => Kind::Block,
-                            ControlKind::Loop => Kind::Loop,
-                            ControlKind::If => Kind::If,
-                        },
-                        start: frame.pc,
-                        end,
-                        height: self.values.len(),
-                        result: result.is_some(),
-                    });
-                    if !cond {
-                        self.frames.last_mut().ok_or_else(unreachable_failure)?.pc =
-                            alternative.map_or(end, |v| v + 1);
-                    }
-                    self.observe();
+                    borrowed::shared_control_arm! {Block, self, frozen_control_leaf, finished, kind, result, end, alternative}
                 }
                 Operation::Else { end } => {
-                    self.frames.last_mut().ok_or_else(unreachable_failure)?.pc = end
+                    borrowed::shared_control_arm! {Else, self, frozen_control_leaf, finished, end}
                 }
                 Operation::End => {
-                    self.work(1)?;
-                    let control = self.controls.pop().ok_or_else(|| self.invariant())?;
-                    self.close_control(control)?;
-                    finished = control.kind == Kind::Function;
-                    self.observe();
+                    borrowed::shared_control_arm! {End, self, frozen_control_leaf, finished}
                 }
-                Operation::Br(depth) => finished = self.branch(depth)?,
+                Operation::Br(depth) => borrowed::shared_control_arm!(Br, self, frozen_control_leaf, finished, depth),
                 Operation::BrIf(depth) => {
-                    if self.pop32()? != 0 {
-                        finished = self.branch(depth)?;
-                    }
+                    borrowed::shared_control_arm! {BrIf, self, frozen_control_leaf, finished, depth}
                 }
                 Operation::BrTable { .. } => {
-                    self.pop32()?;
-                    finished = self.branch(target.ok_or_else(|| self.invariant())?)?;
+                    borrowed::shared_control_arm! {BrTable, self, frozen_control_leaf, finished, target}
                 }
-                Operation::Return => finished = true,
+                Operation::Return => borrowed::shared_control_arm!(Return, self, frozen_control_leaf, finished),
                 Operation::Call(function) => self.call(function)?,
                 Operation::CallIndirect(index) => {
                     let selector = self.pop32()? as u32 as usize;
@@ -1318,3 +1281,130 @@ fn initializer(bytes: &[u8]) -> Option<Value> {
     feature = "experimental-swift-reactor"
 ))]
 pub(crate) mod borrowed;
+
+#[cfg(feature = "experimental-swift-reactor")]
+impl Control {
+    pub(crate) fn result(self) -> bool {
+        self.result
+    }
+    pub(crate) fn height(self) -> usize {
+        self.height
+    }
+    pub(crate) fn start(self) -> usize {
+        self.start
+    }
+    pub(crate) fn end(self) -> usize {
+        self.end
+    }
+    pub(crate) fn is_loop(self) -> bool {
+        self.kind == Kind::Loop
+    }
+    pub(crate) fn is_function(self) -> bool {
+        self.kind == Kind::Function
+    }
+    pub(crate) fn is_if(self) -> bool {
+        self.kind == Kind::If
+    }
+    pub(crate) fn clear_result(&mut self) {
+        self.result = false;
+    }
+    pub(crate) fn decoded(
+        kind: ControlKind,
+        start: usize,
+        end: usize,
+        height: usize,
+        result: bool,
+    ) -> Self {
+        borrowed::control_record!(kind, start, end, height, result)
+    }
+}
+
+// CONTROL_PRIVATE_ACCOUNTING_START
+#[cfg(feature = "experimental-swift-reactor")]
+#[allow(dead_code)]
+pub(crate) struct SwiftControlPrivatePositions {
+    mir_production_4_2_source: &'static Kind,
+    mir_production_4_2_argument: &'static Kind,
+    mir_production_4_2_returned: &'static Kind,
+    mir_production_4_2_caller: &'static Kind,
+    mir_production_4_3_source: &'static Kind,
+    mir_production_4_3_argument: &'static Kind,
+    mir_production_4_3_returned: &'static Kind,
+    mir_production_4_3_caller: &'static Kind,
+    mir_production_5_2_source: &'static Kind,
+    mir_production_5_2_argument: &'static Kind,
+    mir_production_5_2_returned: &'static Kind,
+    mir_production_5_2_caller: &'static Kind,
+    mir_production_5_3_source: &'static Kind,
+    mir_production_5_3_argument: &'static Kind,
+    mir_production_5_3_returned: &'static Kind,
+    mir_production_5_3_caller: &'static Kind,
+    mir_production_6_2_source: &'static Kind,
+    mir_production_6_2_argument: &'static Kind,
+    mir_production_6_2_returned: &'static Kind,
+    mir_production_6_2_caller: &'static Kind,
+    mir_production_6_3_source: &'static Kind,
+    mir_production_6_3_argument: &'static Kind,
+    mir_production_6_3_returned: &'static Kind,
+    mir_production_6_3_caller: &'static Kind,
+    mir_production_8_6_source: Kind,
+    mir_production_8_6_argument: Kind,
+    mir_production_8_6_returned: Kind,
+    mir_production_8_6_caller: Kind,
+    #[cfg(test)]
+    mir_unit_4_2_source: &'static Kind,
+    #[cfg(test)]
+    mir_unit_4_2_argument: &'static Kind,
+    #[cfg(test)]
+    mir_unit_4_2_returned: &'static Kind,
+    #[cfg(test)]
+    mir_unit_4_2_caller: &'static Kind,
+    #[cfg(test)]
+    mir_unit_4_3_source: &'static Kind,
+    #[cfg(test)]
+    mir_unit_4_3_argument: &'static Kind,
+    #[cfg(test)]
+    mir_unit_4_3_returned: &'static Kind,
+    #[cfg(test)]
+    mir_unit_4_3_caller: &'static Kind,
+    #[cfg(test)]
+    mir_unit_5_2_source: &'static Kind,
+    #[cfg(test)]
+    mir_unit_5_2_argument: &'static Kind,
+    #[cfg(test)]
+    mir_unit_5_2_returned: &'static Kind,
+    #[cfg(test)]
+    mir_unit_5_2_caller: &'static Kind,
+    #[cfg(test)]
+    mir_unit_5_3_source: &'static Kind,
+    #[cfg(test)]
+    mir_unit_5_3_argument: &'static Kind,
+    #[cfg(test)]
+    mir_unit_5_3_returned: &'static Kind,
+    #[cfg(test)]
+    mir_unit_5_3_caller: &'static Kind,
+    #[cfg(test)]
+    mir_unit_6_2_source: &'static Kind,
+    #[cfg(test)]
+    mir_unit_6_2_argument: &'static Kind,
+    #[cfg(test)]
+    mir_unit_6_2_returned: &'static Kind,
+    #[cfg(test)]
+    mir_unit_6_2_caller: &'static Kind,
+    #[cfg(test)]
+    mir_unit_6_3_source: &'static Kind,
+    #[cfg(test)]
+    mir_unit_6_3_argument: &'static Kind,
+    #[cfg(test)]
+    mir_unit_6_3_returned: &'static Kind,
+    #[cfg(test)]
+    mir_unit_6_3_caller: &'static Kind,
+    #[cfg(test)]
+    mir_unit_8_6_source: Kind,
+    #[cfg(test)]
+    mir_unit_8_6_argument: Kind,
+    #[cfg(test)]
+    mir_unit_8_6_returned: Kind,
+    #[cfg(test)]
+    mir_unit_8_6_caller: Kind,
+}

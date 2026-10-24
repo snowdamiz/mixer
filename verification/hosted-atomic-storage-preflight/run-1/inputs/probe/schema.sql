@@ -1,0 +1,172 @@
+-- SYNTHETIC PREIMPLEMENTATION ONLY. Not a product migration or full authz schema.
+BEGIN;
+CREATE ROLE mxas_schema NOLOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE NOREPLICATION;
+CREATE ROLE mxas_resolver NOLOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE NOREPLICATION;
+CREATE ROLE mxas_writer NOLOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE NOREPLICATION;
+CREATE ROLE mxas_runtime LOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE NOREPLICATION;
+CREATE ROLE mxas_foreign LOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE NOREPLICATION;
+REVOKE ALL ON DATABASE atomic_preflight FROM PUBLIC;
+GRANT CONNECT ON DATABASE atomic_preflight TO mxas_runtime, mxas_foreign;
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+CREATE SCHEMA mixer_authz AUTHORIZATION mxas_schema;
+CREATE SCHEMA mixer_hosted_release AUTHORIZATION mxas_schema;
+REVOKE ALL ON SCHEMA mixer_authz,mixer_hosted_release FROM PUBLIC;
+GRANT USAGE ON SCHEMA mixer_authz,mixer_hosted_release TO mxas_resolver,mxas_writer,mxas_runtime,mxas_foreign;
+SET ROLE mxas_schema;
+ALTER DEFAULT PRIVILEGES REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC;
+CREATE TABLE mixer_authz.fixture_policy(actor uuid PRIMARY KEY, role text NOT NULL, active boolean NOT NULL DEFAULT true, revision bigint NOT NULL DEFAULT 1 CHECK(revision>0));
+CREATE TABLE mixer_authz.fixture_clock(id int PRIMARY KEY CHECK(id=1), now_s numeric(20,0) NOT NULL);
+CREATE TABLE mixer_authz.fixture_fault(id int PRIMARY KEY CHECK(id=1), boundary text NOT NULL);
+INSERT INTO mixer_authz.fixture_policy VALUES('00000000-0000-0000-0000-000000000001','developer',true,1),('00000000-0000-0000-0000-000000000002','developer',true,1);
+INSERT INTO mixer_authz.fixture_clock VALUES(1,100);
+INSERT INTO mixer_authz.fixture_fault VALUES(1,'');
+CREATE TYPE mixer_hosted_release.call_context AS (backend int, full_xid text, database_name name, runtime_role name, nonce text, deadline timestamptz, actor uuid, expires_at numeric);
+CREATE TYPE mixer_hosted_release.upload_input AS (organization text, project text, app text, environment text, platform text, runtime bytea, manifest bytea, canonical_manifest bytea, signed_document bytea, signature bytea, payload_hash bytea, payload_size numeric, blob_ref text);
+CREATE TYPE mixer_hosted_release.upload_request AS (key text, path text, body bytea, request_hash bytea, reason text, request_id uuid, source_ip text, asserted_display jsonb);
+CREATE TYPE mixer_hosted_release.upload_result AS (status int, body bytea, event_id numeric, replay boolean);
+CREATE TABLE mixer_hosted_release.tenant_heads(organization text,project text,last_event numeric(20,0) NOT NULL DEFAULT 0 CHECK(last_event BETWEEN 0 AND 18446744073709551615),audit_hash bytea NOT NULL DEFAULT ''::bytea,state_hash bytea NOT NULL,PRIMARY KEY(organization,project));
+CREATE TABLE mixer_hosted_release.artifacts(organization text,project text,manifest bytea,app text,environment text,platform text,runtime bytea,canonical_manifest bytea,signed_document bytea,signature bytea,payload_hash bytea,payload_size numeric,blob_ref text,created_event numeric,PRIMARY KEY(organization,project,manifest));
+CREATE TABLE mixer_hosted_release.audit_events(organization text,project text,event_id numeric,event_cbor bytea,event_hash bytea,previous_hash bytea,previous_state bytea,current_state bytea,display_json jsonb,display_bytes bytea,PRIMARY KEY(organization,project,event_id));
+CREATE TABLE mixer_hosted_release.idempotency(organization text,project text,key text,actor uuid,action text,target bytea,request_hash bytea,status int,response bytea,event_id numeric,PRIMARY KEY(organization,project,key),FOREIGN KEY(organization,project,event_id) REFERENCES mixer_hosted_release.audit_events);
+CREATE FUNCTION mixer_hosted_release.u(n numeric) RETURNS bytea LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $$
+DECLARE width int; h int; x numeric; result bytea; i int;
+BEGIN
+ IF n IS NULL OR n<0 OR n>18446744073709551615 OR trunc(n)<>n THEN RAISE EXCEPTION 'uint64'; END IF;
+ IF n<24 THEN RETURN set_byte(decode('00','hex'),0,n::int); END IF;
+ IF n<=255 THEN width:=1;h:=24; ELSIF n<=65535 THEN width:=2;h:=25;ELSIF n<=4294967295 THEN width:=4;h:=26;ELSE width:=8;h:=27;END IF;
+ result:=set_byte(decode('00','hex'),0,h);x:=n;
+ FOR i IN REVERSE width-1..0 LOOP result:=result||set_byte(decode('00','hex'),0,mod(trunc(x/power(256::numeric,i)),256)::int);END LOOP;
+ RETURN result;
+END $$;
+CREATE FUNCTION mixer_hosted_release.b(v bytea) RETURNS bytea LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $$
+DECLARE h bytea;
+BEGIN IF v IS NULL THEN RETURN decode('f6','hex');END IF;h:=mixer_hosted_release.u(octet_length(v));RETURN set_byte(h,0,get_byte(h,0)+64)||v;END $$;
+CREATE FUNCTION mixer_hosted_release.t(v text) RETURNS bytea LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $$
+DECLARE vbytes bytea;h bytea;
+BEGIN IF v IS NULL THEN RETURN decode('f6','hex');END IF;vbytes:=convert_to(v,'UTF8');h:=mixer_hosted_release.u(octet_length(vbytes));RETURN set_byte(h,0,get_byte(h,0)+96)||vbytes;END $$;
+CREATE FUNCTION mixer_hosted_release.a(parts bytea[]) RETURNS bytea LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $$
+DECLARE h bytea; result bytea;part bytea;
+BEGIN h:=mixer_hosted_release.u(cardinality(parts));result:=set_byte(h,0,get_byte(h,0)+128);FOREACH part IN ARRAY parts LOOP IF part IS NULL THEN RAISE EXCEPTION 'implicit null';END IF;result:=result||part;END LOOP;RETURN result;END $$;
+CREATE FUNCTION mixer_hosted_release.hash_domain(domain_name text, encoded bytea) RETURNS bytea LANGUAGE sql IMMUTABLE SET search_path=pg_catalog AS $$ SELECT sha256(convert_to(domain_name,'UTF8')||decode('00','hex')||encoded) $$;
+CREATE FUNCTION mixer_hosted_release.target(i mixer_hosted_release.upload_input) RETURNS bytea LANGUAGE sql IMMUTABLE SET search_path=pg_catalog AS $$ SELECT mixer_hosted_release.a(ARRAY[mixer_hosted_release.t(i.organization),mixer_hosted_release.t(i.project),mixer_hosted_release.t(i.app),mixer_hosted_release.t(i.environment),mixer_hosted_release.t(i.platform),mixer_hosted_release.b(i.runtime),mixer_hosted_release.b(i.manifest)]) $$;
+CREATE FUNCTION mixer_hosted_release.hx(v text) RETURNS bytea LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $$
+DECLARE b bytea; BEGIN IF v IS NULL THEN RETURN NULL;END IF;b:=decode(v,'hex');IF encode(b,'hex')<>v THEN RAISE EXCEPTION 'hex';END IF;RETURN b;END $$;
+CREATE FUNCTION mixer_hosted_release.event_from_display(d jsonb) RETURNS bytea LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $$
+DECLARE actor jsonb:=d->'actor';decision jsonb:=d->'decision';target jsonb:=d->'target';members bytea[]:=ARRAY[]::bytea[];m jsonb; a bytea; de bytea;ta bytea;
+BEGIN
+ IF (SELECT count(*) FROM jsonb_object_keys(d))<>16 THEN RAISE EXCEPTION 'display keys';END IF;
+ FOR m IN SELECT value FROM jsonb_array_elements(decision->6) LOOP
+ members:=array_append(members,mixer_hosted_release.a(ARRAY[mixer_hosted_release.b(uuid_send((m->>0)::uuid)),mixer_hosted_release.t(m->>1),mixer_hosted_release.u((m->>2)::numeric)]));END LOOP;
+ a:=mixer_hosted_release.a(ARRAY[mixer_hosted_release.b(uuid_send((actor->>0)::uuid)),mixer_hosted_release.t(actor->>1),mixer_hosted_release.b(uuid_send((actor->>2)::uuid)),mixer_hosted_release.t(actor->>3),mixer_hosted_release.u((actor->>4)::numeric),mixer_hosted_release.b(mixer_hosted_release.hx(actor->>5)),mixer_hosted_release.b(mixer_hosted_release.hx(actor->>6)),mixer_hosted_release.b(mixer_hosted_release.hx(actor->>7)),mixer_hosted_release.b(mixer_hosted_release.hx(actor->>8)),mixer_hosted_release.b(uuid_send((actor->>9)::uuid)),mixer_hosted_release.u((actor->>10)::numeric)]);
+ de:=mixer_hosted_release.a(ARRAY[mixer_hosted_release.u((decision->>0)::numeric),mixer_hosted_release.u((decision->>1)::numeric),mixer_hosted_release.u((decision->>2)::numeric),mixer_hosted_release.u((decision->>3)::numeric),mixer_hosted_release.u((decision->>4)::numeric),mixer_hosted_release.u((decision->>5)::numeric),mixer_hosted_release.a(members)]);
+ ta:=mixer_hosted_release.a(ARRAY[mixer_hosted_release.t(target->>0),mixer_hosted_release.t(target->>1),mixer_hosted_release.t(target->>2),mixer_hosted_release.t(target->>3),mixer_hosted_release.t(target->>4),mixer_hosted_release.b(mixer_hosted_release.hx(target->>5)),mixer_hosted_release.b(mixer_hosted_release.hx(target->>6))]);
+ RETURN mixer_hosted_release.a(ARRAY[mixer_hosted_release.u((d->>'audit_schema')::numeric),mixer_hosted_release.u((d->>'id')::numeric),mixer_hosted_release.a(ARRAY[mixer_hosted_release.t(d->'tenant'->>0),mixer_hosted_release.t(d->'tenant'->>1)]),a,de,ta,mixer_hosted_release.t(d->>'action'),mixer_hosted_release.t(d->>'reason'),mixer_hosted_release.b(uuid_send((d->>'request_id')::uuid)),mixer_hosted_release.t(d->>'source_ip'),mixer_hosted_release.u((d->>'recorded_at')::numeric),mixer_hosted_release.b(mixer_hosted_release.hx(d->>'previous_state')),mixer_hosted_release.b(mixer_hosted_release.hx(d->>'current_state')),mixer_hosted_release.b(mixer_hosted_release.hx(d->>'previous_hash')),mixer_hosted_release.b(mixer_hosted_release.hx(d->>'request_hash'))]);
+END $$;
+-- Dedicated nonrecursive resolver reads only synthetic fixture policy. No domain query.
+CREATE FUNCTION mixer_authz.allowed(o text,p text) RETURNS boolean LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=pg_catalog SET row_security=on AS $$
+DECLARE ok boolean;
+BEGIN
+ IF session_user<>'mxas_runtime' OR current_setting('role')<>'none' OR o IS DISTINCT FROM 'o' OR p IS DISTINCT FROM 'p' OR nullif(current_setting('mixer_atomic.invocation_nonce',true),'') IS NULL OR current_setting('mixer_atomic.action',true) NOT IN ('artifact.upload','artifact.read','audit.read') THEN RETURN false;END IF;
+ SELECT f.active AND f.role IN ('owner','administrator','developer','release_manager','viewer') AND (current_setting('mixer_atomic.action',true)<>'artifact.upload' OR f.role IN ('owner','administrator','developer')) INTO ok FROM mixer_authz.fixture_policy f WHERE f.actor::text=current_setting('mixer_atomic.actor',true);
+ RETURN coalesce(ok,false);
+END $$;
+CREATE FUNCTION mixer_authz.evidence(actor_id uuid) RETURNS TABLE(role text,revision bigint,now_s numeric) LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=pg_catalog SET row_security=on AS $$
+BEGIN
+ IF actor_id::text IS DISTINCT FROM current_setting('mixer_atomic.actor',true) OR NOT mixer_authz.allowed('o','p') THEN RAISE EXCEPTION 'policy denied' USING ERRCODE='42501';END IF;
+ RETURN QUERY SELECT f.role,f.revision,c.now_s FROM mixer_authz.fixture_policy f CROSS JOIN mixer_authz.fixture_clock c WHERE f.actor=actor_id AND c.id=1;
+ IF NOT FOUND THEN RAISE EXCEPTION 'missing policy';END IF;
+END $$;
+RESET ROLE;
+ALTER FUNCTION mixer_authz.allowed(text,text) OWNER TO mxas_resolver;
+ALTER FUNCTION mixer_authz.evidence(uuid) OWNER TO mxas_resolver;
+GRANT SELECT ON mixer_authz.fixture_policy,mixer_authz.fixture_clock TO mxas_resolver;
+GRANT EXECUTE ON FUNCTION mixer_authz.allowed(text,text) TO mxas_runtime,mxas_writer,mxas_resolver;
+GRANT EXECUTE ON FUNCTION mixer_authz.evidence(uuid) TO mxas_writer;
+SET ROLE mxas_schema;
+CREATE FUNCTION mixer_hosted_release.upload_v1(c mixer_hosted_release.call_context,i mixer_hosted_release.upload_input,r mixer_hosted_release.upload_request) RETURNS mixer_hosted_release.upload_result LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=pg_catalog SET row_security=on AS $$
+DECLARE h mixer_hosted_release.tenant_heads%ROWTYPE;d mixer_hosted_release.idempotency%ROWTYPE;old mixer_hosted_release.artifacts%ROWTYPE;prior mixer_hosted_release.audit_events%ROWTYPE;ev record;target_bytes bytea;event_bytes bytea;state_bytes bytea;state_next bytea;event_hash bytea;event_id numeric;result_body bytea;status int;display jsonb;actual_change boolean;fault text;actor_bytes bytea;decision_bytes bytea;target_display jsonb;zero bytea:=decode(repeat('00',32),'hex');
+BEGIN
+ -- current_user intentionally changed by SECURITY DEFINER; never compare it with captured runtime.
+ IF current_user<>'mxas_writer' OR session_user<>'mxas_runtime' OR current_setting('role')<>'none' OR c.runtime_role IS DISTINCT FROM 'mxas_runtime'::name OR c.backend IS DISTINCT FROM pg_backend_pid() OR c.full_xid IS DISTINCT FROM pg_current_xact_id()::text OR c.database_name IS DISTINCT FROM current_database() OR c.nonce IS NULL OR octet_length(c.nonce)<>64 OR c.nonce IS DISTINCT FROM current_setting('mixer_atomic.invocation_nonce',true) OR c.deadline IS NULL OR c.deadline<=clock_timestamp() OR c.deadline>clock_timestamp()+interval '5 seconds' OR c.actor::text IS DISTINCT FROM current_setting('mixer_atomic.actor',true) OR current_setting('mixer_atomic.action',true) IS DISTINCT FROM 'artifact.upload' THEN RAISE EXCEPTION 'context rejected' USING ERRCODE='42501';END IF;
+ IF i.organization IS DISTINCT FROM 'o' OR i.project IS DISTINCT FROM 'p' OR i.app IS DISTINCT FROM 'a' OR i.environment IS DISTINCT FROM 'e' OR i.platform IS DISTINCT FROM 'ios' OR i.app IS DISTINCT FROM current_setting('mixer_atomic.app',true) OR i.environment IS DISTINCT FROM current_setting('mixer_atomic.environment',true) OR i.platform IS DISTINCT FROM current_setting('mixer_atomic.platform',true) OR encode(i.runtime,'hex') IS DISTINCT FROM current_setting('mixer_atomic.runtime',true) OR encode(i.manifest,'hex') IS DISTINCT FROM current_setting('mixer_atomic.manifest',true) THEN RAISE EXCEPTION 'target rejected' USING ERRCODE='42501';END IF;
+ IF octet_length(i.runtime) IS DISTINCT FROM 32 OR octet_length(i.manifest) IS DISTINCT FROM 32 OR i.canonical_manifest IS NULL OR octet_length(i.canonical_manifest)>65536 OR sha256(i.canonical_manifest) IS DISTINCT FROM i.manifest OR i.signed_document IS NULL OR octet_length(i.signed_document)>65536 OR octet_length(i.signature) IS DISTINCT FROM 64 OR octet_length(i.payload_hash) IS DISTINCT FROM 32 OR i.payload_size IS NULL OR i.payload_size<1 OR i.payload_size>4194304 OR trunc(i.payload_size)<>i.payload_size OR i.blob_ref IS DISTINCT FROM 'sha256:'||encode(i.payload_hash,'hex') THEN RAISE EXCEPTION 'artifact rejected';END IF;
+ IF r.key IS NULL OR octet_length(r.key) NOT BETWEEN 1 AND 128 OR r.key!~'^[A-Za-z0-9_.-]+$' OR r.path IS DISTINCT FROM '/v3/private/artifacts' OR r.body IS NULL OR octet_length(r.body)>6291456 OR octet_length(r.request_hash) IS DISTINCT FROM 32 OR r.request_hash IS DISTINCT FROM sha256(convert_to('POST '||r.path,'UTF8')||decode('00','hex')||r.body) OR r.reason IS NULL OR octet_length(r.reason)>512 OR r.request_id IS NULL OR (r.source_ip IS NOT NULL AND (octet_length(r.source_ip)>45 OR r.source_ip::inet::text IS DISTINCT FROM r.source_ip)) THEN RAISE EXCEPTION 'request rejected';END IF;
+ target_bytes:=mixer_hosted_release.target(i);
+ -- Synthetic canonical auth lock; full five-class lock chain belongs to next product lane.
+ PERFORM 1 FROM mixer_authz.fixture_policy f WHERE f.actor=c.actor FOR SHARE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'missing policy lock';END IF;
+ SELECT * INTO h FROM mixer_hosted_release.tenant_heads x WHERE x.organization=i.organization AND x.project=i.project FOR UPDATE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'missing tenant head';END IF;
+ -- Separate volatile SQL statement after all locks, before ANY idempotency lookup.
+ SELECT * INTO ev FROM mixer_authz.evidence(c.actor);
+ IF ev.now_s>=c.expires_at OR c.expires_at IS NULL OR c.expires_at::text IS DISTINCT FROM current_setting('mixer_atomic.expires',true) OR c.deadline<=clock_timestamp() THEN RAISE EXCEPTION 'expired' USING ERRCODE='42501';END IF;
+ IF h.last_event=0 THEN
+  IF h.audit_hash<>''::bytea OR h.state_hash<>mixer_hosted_release.hash_domain('mixer.hosted.state.v1',mixer_hosted_release.a(ARRAY[mixer_hosted_release.u(1),mixer_hosted_release.t(i.organization),mixer_hosted_release.t(i.project)])) THEN RAISE EXCEPTION 'initial head corrupt';END IF;
+ ELSE
+  SELECT * INTO prior FROM mixer_hosted_release.audit_events x WHERE x.organization=i.organization AND x.project=i.project AND x.event_id=h.last_event;
+  IF NOT FOUND OR prior.event_hash IS DISTINCT FROM h.audit_hash OR prior.event_hash IS DISTINCT FROM mixer_hosted_release.hash_domain('mixer.hosted.audit.v1',prior.event_cbor) OR mixer_hosted_release.event_from_display(prior.display_json) IS DISTINCT FROM prior.event_cbor OR prior.previous_hash IS DISTINCT FROM mixer_hosted_release.hx(prior.display_json->>'previous_hash') OR prior.previous_state IS DISTINCT FROM mixer_hosted_release.hx(prior.display_json->>'previous_state') OR prior.current_state IS DISTINCT FROM h.state_hash OR convert_to(prior.display_json::text,'UTF8') IS DISTINCT FROM prior.display_bytes OR prior.display_json->>'hash' IS DISTINCT FROM encode(prior.event_hash,'hex') THEN RAISE EXCEPTION 'head corrupt';END IF;
+ END IF;
+ SELECT * INTO d FROM mixer_hosted_release.idempotency x WHERE x.organization=i.organization AND x.project=i.project AND x.key=r.key;
+ IF FOUND THEN
+  IF d.actor IS DISTINCT FROM c.actor OR d.action IS DISTINCT FROM 'artifact.upload' OR d.target IS DISTINCT FROM target_bytes OR d.request_hash IS DISTINCT FROM r.request_hash THEN RAISE EXCEPTION 'idempotency conflict' USING ERRCODE='23505';END IF;
+  RETURN (d.status,d.response,d.event_id,true)::mixer_hosted_release.upload_result;
+ END IF;
+ IF h.last_event=18446744073709551615 THEN RAISE EXCEPTION 'event exhausted';END IF;
+ event_id:=h.last_event+1;
+ SELECT * INTO old FROM mixer_hosted_release.artifacts x WHERE x.organization=i.organization AND x.project=i.project AND x.manifest=i.manifest;
+ actual_change:=NOT FOUND;
+ IF NOT actual_change AND (old.app,old.environment,old.platform,old.runtime,old.canonical_manifest,old.signed_document,old.signature,old.payload_hash,old.payload_size,old.blob_ref) IS DISTINCT FROM (i.app,i.environment,i.platform,i.runtime,i.canonical_manifest,i.signed_document,i.signature,i.payload_hash,i.payload_size,i.blob_ref) THEN RAISE EXCEPTION 'immutable artifact conflict' USING ERRCODE='23505';END IF;
+ state_next:=h.state_hash;
+ IF actual_change THEN
+  state_bytes:=mixer_hosted_release.a(ARRAY[mixer_hosted_release.u(1),mixer_hosted_release.b(h.state_hash), mixer_hosted_release.a(ARRAY[mixer_hosted_release.a(ARRAY[mixer_hosted_release.u(1),mixer_hosted_release.b(i.manifest),mixer_hosted_release.b(i.payload_hash),mixer_hosted_release.u(i.payload_size),mixer_hosted_release.t(i.blob_ref),target_bytes,mixer_hosted_release.b(sha256(i.signed_document)),mixer_hosted_release.b(i.signature)])])]);
+  state_next:=mixer_hosted_release.hash_domain('mixer.hosted.state.v1',state_bytes);
+ END IF;
+ -- Fixed synthetic evidence stands in for the full schema1 fields, retaining exact shape.
+ actor_bytes:=mixer_hosted_release.a(ARRAY[mixer_hosted_release.b(uuid_send(c.actor)),mixer_hosted_release.t('human'),mixer_hosted_release.b(uuid_send('00000000-0000-0000-0000-000000000010'::uuid)),mixer_hosted_release.t('fixture'),mixer_hosted_release.u(1),mixer_hosted_release.b(zero),mixer_hosted_release.b(zero),mixer_hosted_release.b(zero),mixer_hosted_release.b(zero),mixer_hosted_release.b(uuid_send('00000000-0000-0000-0000-000000000020'::uuid)),mixer_hosted_release.u(99)]);
+ decision_bytes:=mixer_hosted_release.a(ARRAY[mixer_hosted_release.u(ev.now_s),mixer_hosted_release.u(1),mixer_hosted_release.u(1),mixer_hosted_release.u(1),mixer_hosted_release.u(1),mixer_hosted_release.u(1),mixer_hosted_release.a(ARRAY[mixer_hosted_release.a(ARRAY[mixer_hosted_release.b(uuid_send(c.actor)),mixer_hosted_release.t(ev.role),mixer_hosted_release.u(ev.revision)])])]);
+ event_bytes:=mixer_hosted_release.a(ARRAY[mixer_hosted_release.u(1),mixer_hosted_release.u(event_id),mixer_hosted_release.a(ARRAY[mixer_hosted_release.t(i.organization),mixer_hosted_release.t(i.project)]),actor_bytes,decision_bytes,target_bytes,mixer_hosted_release.t('artifact.upload'),mixer_hosted_release.t(r.reason),mixer_hosted_release.b(uuid_send(r.request_id)),mixer_hosted_release.t(r.source_ip),mixer_hosted_release.u(ev.now_s),mixer_hosted_release.b(h.state_hash),mixer_hosted_release.b(state_next),mixer_hosted_release.b(h.audit_hash),mixer_hosted_release.b(r.request_hash)]);
+ IF octet_length(event_bytes)>16384 THEN RAISE EXCEPTION 'event budget';END IF;
+ event_hash:=mixer_hosted_release.hash_domain('mixer.hosted.audit.v1',event_bytes);
+ target_display:=jsonb_build_array(i.organization,i.project,i.app,i.environment,i.platform,encode(i.runtime,'hex'),encode(i.manifest,'hex'));
+ display:=jsonb_build_object('audit_schema',1,'id',event_id::text,'tenant',jsonb_build_array(i.organization,i.project),'actor',jsonb_build_array(c.actor::text,'human','00000000-0000-0000-0000-000000000010','fixture','1',encode(zero,'hex'),encode(zero,'hex'),encode(zero,'hex'),encode(zero,'hex'),'00000000-0000-0000-0000-000000000020','99'),'decision',jsonb_build_array(ev.now_s::text,'1','1','1','1','1',jsonb_build_array(jsonb_build_array(c.actor::text,ev.role,ev.revision::text))),'target',target_display,'action','artifact.upload','reason',r.reason,'request_id',r.request_id::text,'source_ip',r.source_ip,'recorded_at',ev.now_s::text,'previous_state',encode(h.state_hash,'hex'),'current_state',encode(state_next,'hex'),'previous_hash',encode(h.audit_hash,'hex'),'request_hash',encode(r.request_hash,'hex'),'hash',encode(event_hash,'hex'));
+ IF r.asserted_display IS NOT NULL AND r.asserted_display IS DISTINCT FROM display THEN RAISE EXCEPTION 'display mismatch';END IF;
+ IF octet_length(convert_to(display::text,'UTF8'))>32768 THEN RAISE EXCEPTION 'display budget';END IF;
+ SELECT boundary INTO fault FROM mixer_authz.fixture_fault WHERE id=1;
+ IF c.deadline<=clock_timestamp() THEN RAISE EXCEPTION 'deadline';END IF;
+ IF actual_change THEN INSERT INTO mixer_hosted_release.artifacts VALUES(i.organization,i.project,i.manifest,i.app,i.environment,i.platform,i.runtime,i.canonical_manifest,i.signed_document,i.signature,i.payload_hash,i.payload_size,i.blob_ref,event_id);END IF;
+ IF fault='artifact' THEN RAISE EXCEPTION 'fault artifact';END IF;
+ INSERT INTO mixer_hosted_release.audit_events VALUES(i.organization,i.project,event_id,event_bytes,event_hash,h.audit_hash,h.state_hash,state_next,display,convert_to(display::text,'UTF8'));
+ IF fault='audit' THEN RAISE EXCEPTION 'fault audit';END IF;
+ status:=CASE WHEN actual_change THEN 201 ELSE 200 END;
+ result_body:=convert_to('{"manifest_sha256":"'||encode(i.manifest,'hex')||'","event_id":"'||event_id::text||'"}','UTF8');
+ IF octet_length(result_body)>4096 THEN RAISE EXCEPTION 'response budget';END IF;
+ INSERT INTO mixer_hosted_release.idempotency VALUES(i.organization,i.project,r.key,c.actor,'artifact.upload',target_bytes,r.request_hash,status,result_body,event_id);
+ IF fault='idempotency' THEN RAISE EXCEPTION 'fault idempotency';END IF;
+ UPDATE mixer_hosted_release.tenant_heads x SET last_event=event_id,audit_hash=event_hash,state_hash=state_next WHERE x.organization=i.organization AND x.project=i.project;
+ IF NOT FOUND THEN RAISE EXCEPTION 'missing head update';END IF;
+ IF fault='head' THEN RAISE EXCEPTION 'fault head';END IF;
+ RETURN (status,result_body,event_id,false)::mixer_hosted_release.upload_result;
+END $$;
+RESET ROLE;
+ALTER FUNCTION mixer_hosted_release.upload_v1(mixer_hosted_release.call_context,mixer_hosted_release.upload_input,mixer_hosted_release.upload_request) OWNER TO mxas_writer;
+REVOKE ALL ON ALL FUNCTIONS IN SCHEMA mixer_authz,mixer_hosted_release FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION mixer_authz.allowed(text,text) TO mxas_resolver,mxas_writer,mxas_runtime;
+GRANT EXECUTE ON FUNCTION mixer_authz.evidence(uuid) TO mxas_writer;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA mixer_hosted_release TO mxas_writer;
+GRANT EXECUTE ON FUNCTION mixer_hosted_release.upload_v1(mixer_hosted_release.call_context,mixer_hosted_release.upload_input,mixer_hosted_release.upload_request) TO mxas_runtime,mxas_foreign;
+-- Foreign EXECUTE is a deliberate adversarial privilege used only to prove session gate.
+GRANT SELECT,INSERT ON mixer_hosted_release.artifacts,mixer_hosted_release.audit_events,mixer_hosted_release.idempotency TO mxas_writer;
+GRANT SELECT,UPDATE(last_event,audit_hash,state_hash) ON mixer_hosted_release.tenant_heads TO mxas_writer;
+GRANT SELECT ON mixer_authz.fixture_policy,mixer_authz.fixture_fault TO mxas_writer;
+GRANT UPDATE(revision) ON mixer_authz.fixture_policy TO mxas_writer;
+GRANT SELECT ON mixer_hosted_release.artifacts,mixer_hosted_release.audit_events TO mxas_runtime;
+SET ROLE mxas_schema;
+DO $$ DECLARE n text;BEGIN FOREACH n IN ARRAY ARRAY['fixture_policy','fixture_clock','fixture_fault'] LOOP EXECUTE format('ALTER TABLE mixer_authz.%I ENABLE ROW LEVEL SECURITY',n);EXECUTE format('ALTER TABLE mixer_authz.%I FORCE ROW LEVEL SECURITY',n);EXECUTE format('CREATE POLICY fixture_owner ON mixer_authz.%I TO mxas_schema USING(true) WITH CHECK(true)',n);EXECUTE format('CREATE POLICY resolver_read ON mixer_authz.%I FOR SELECT TO mxas_resolver USING(true)',n);END LOOP;END $$;
+CREATE POLICY writer_read ON mixer_authz.fixture_policy FOR SELECT TO mxas_writer USING(true);
+CREATE POLICY writer_lock ON mixer_authz.fixture_policy FOR UPDATE TO mxas_writer USING(true) WITH CHECK(true);
+CREATE POLICY writer_fault ON mixer_authz.fixture_fault FOR SELECT TO mxas_writer USING(true);
+DO $$ DECLARE n text;BEGIN FOREACH n IN ARRAY ARRAY['tenant_heads','artifacts','audit_events','idempotency'] LOOP EXECUTE format('ALTER TABLE mixer_hosted_release.%I ENABLE ROW LEVEL SECURITY',n);EXECUTE format('ALTER TABLE mixer_hosted_release.%I FORCE ROW LEVEL SECURITY',n);EXECUTE format('CREATE POLICY fixture_owner ON mixer_hosted_release.%I TO mxas_schema USING(true) WITH CHECK(true)',n);EXECUTE format('CREATE POLICY writer_scope ON mixer_hosted_release.%I TO mxas_writer USING(mixer_authz.allowed(organization,project)) WITH CHECK(mixer_authz.allowed(organization,project))',n);END LOOP;END $$;
+CREATE POLICY runtime_artifact ON mixer_hosted_release.artifacts FOR SELECT TO mxas_runtime USING(current_setting('mixer_atomic.action',true)='artifact.read' AND mixer_authz.allowed(organization,project));
+CREATE POLICY runtime_audit ON mixer_hosted_release.audit_events FOR SELECT TO mxas_runtime USING(current_setting('mixer_atomic.action',true)='audit.read' AND mixer_authz.allowed(organization,project));
+INSERT INTO mixer_hosted_release.tenant_heads(organization,project,state_hash) VALUES('o','p',mixer_hosted_release.hash_domain('mixer.hosted.state.v1',mixer_hosted_release.a(ARRAY[mixer_hosted_release.u(1),mixer_hosted_release.t('o'),mixer_hosted_release.t('p')])));
+COMMIT;

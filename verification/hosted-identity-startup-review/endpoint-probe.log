@@ -1,0 +1,21 @@
+%{
+  field: "host",
+  syntheticValue: "keys.independent.invalid\n",
+  startupResult: {:accepted, 1}
+}
+%{
+  field: "host",
+  syntheticValue: "keys.independent.invalid\r\n",
+  startupResult: {:rejected, "invalid identity startup: configuration"}
+}
+%{field: "path", syntheticValue: "/keys\n", startupResult: {:accepted, 1}}
+%{
+  field: "path",
+  syntheticValue: "/keys\r\n",
+  startupResult: {:rejected, "invalid identity startup: configuration"}
+}
+%{
+  field: "host",
+  syntheticValue: "keys.independent.invalid",
+  startupResult: {:accepted, 1}
+}

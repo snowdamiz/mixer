@@ -70,6 +70,9 @@ fn resource_code(resource: Live) -> u8 {
     }
 }
 pub(super) fn before_predebit(control: &mut RuntimeControl, resource: Live) -> Option<usize> {
+    if HOOKS.with(|slot| slot.get().push_fault == 7) {
+        control.cancellation().cancel();
+    }
     let selected = HOOKS.with(|slot| {
         let mut hooks = slot.get();
         if hooks.predebit_resource != Some(resource_code(resource)) {
@@ -362,6 +365,7 @@ fn complete<'a>(
         entry: None,
         returned: None,
         drained: None,
+        controlled: None,
     })
 }
 fn complete_ok<'a>(
@@ -1235,6 +1239,7 @@ fn af19_exact_fixed_storage_outer_restore_rejection_and_retry() {
         entry,
         returned,
         drained,
+        controlled: None,
     });
     assert!(matches!(result, FrameCompletion::RestoreRejected(_)));
     assert_eq!(
@@ -1510,22 +1515,32 @@ fn af22_frozen_accounting_and_value_phase_reservations_stay_distinct() {
         Instant::now(),
         cursor(),
     ));
-    let tail = match returned.take().unwrap() {
-        Err(ConstructionFailure::Cleanup(tail)) => tail,
-        _ => {
-            panic!("narrow combined budget rejects actual constructor peak before frame admission")
+    match returned.take().unwrap() {
+        Err(ConstructionFailure::Cleanup(tail)) => {
+            let mut failure = None;
+            let mut final_usage = None;
+            tail.complete((pair, returned), &mut failure, &mut final_usage);
+            let failure = failure.unwrap();
+            assert_eq!(failure.kind, SwiftRunFailureKind::CombinedExhausted);
+            assert_eq!(final_usage.unwrap().reservations.combined.current, 0);
+            println!("AF22_NARROW constructor_rejection combined_limit={} attempted={} frame_admitted=false", ceiling, failure.attempted);
         }
-    };
-    let mut failure = None;
-    let mut final_usage = None;
-    tail.complete((pair, returned), &mut failure, &mut final_usage);
-    let failure = failure.unwrap();
-    assert_eq!(failure.kind, SwiftRunFailureKind::CombinedExhausted);
-    assert_eq!(final_usage.unwrap().reservations.combined.current, 0);
-    println!(
-        "AF22_NARROW constructor_rejection combined_limit={} attempted={} frame_admitted=false",
-        ceiling, failure.attempted
-    );
+        Ok(mut actual) => {
+            let before = usage(&actual).reservations.construction.current;
+            let failure = actual
+                .prepare_frames(cursor())
+                .err()
+                .expect("one byte below actual phase admission");
+            assert_eq!(failure.kind, SwiftRunFailureKind::CombinedExhausted);
+            assert_eq!(usage(&actual).reservations.construction.current, before);
+            println!(
+                "AF22_NARROW phase_rejection combined_limit={} attempted={} frame_admitted=false",
+                ceiling, failure.attempted
+            );
+            retire(actual);
+        }
+        Err(_) => panic!("unexpected constructor rejection"),
+    }
     assert_eq!(value_operations::VALUE_OPERATION_BYTES, Some(119576));
     const {
         assert!(PERMANENT_BYTES > FROZEN_PERMANENT_BYTES);
@@ -1533,7 +1548,558 @@ fn af22_frozen_accounting_and_value_phase_reservations_stay_distinct() {
     const {
         assert!(ACTIVE_BYTES > FROZEN_ACTIVE_BYTES);
     }
-    assert_eq!(FRAME_OPERATION_BYTES, Some(ACTIVE_BYTES + 119576));
+    assert_eq!(
+        FRAME_OPERATION_BYTES,
+        Some(ACTIVE_BYTES + 119576 + control_operations::ACTIVE_BYTES)
+    );
     assert_eq!(FROZEN_ACTIVE_BYTES, 240776);
     println!("AF_LAYOUT permanent={} frozen_permanent={} active={} frozen_active={} frame={} value={} state={}",PERMANENT_BYTES,FROZEN_PERMANENT_BYTES,ACTIVE_BYTES,FROZEN_ACTIVE_BYTES,FRAME_OPERATION_BYTES.unwrap(),value_operations::VALUE_OPERATION_BYTES.unwrap(),size_of::<SwiftExecutionState>());
 }
+
+#[path = "control_operations_tests.rs"]
+mod control_tests;
+
+// Root-authorized one-shot after-pop fault. No shadow state, synthetic Err or
+// direct ledger write: the primitive's original following removal must fail.
+pub(super) fn control_after_value_pop(control: &mut RuntimeControl) {
+    let inject = HOOKS.with(|slot| {
+        let mut hooks = slot.get();
+        let inject = hooks.push_fault == 5;
+        if inject {
+            hooks.push_fault = 0;
+            slot.set(hooks);
+        }
+        inject
+    });
+    if inject {
+        let current = control.usage(None).live.values.current;
+        control.remove_live(Live::Values, current).unwrap();
+    }
+}
+pub(super) fn control_work_checkpoint(control: &RuntimeControl) {
+    let cancel = HOOKS.with(|slot| {
+        let mut hooks = slot.get();
+        if hooks.push_fault != 6 {
+            return false;
+        }
+        let cancel = hooks.cancel_local == Some(hooks.predebit_seen);
+        hooks.predebit_seen += 1;
+        slot.set(hooks);
+        cancel
+    });
+    if cancel {
+        control.cancellation().cancel();
+    }
+}
+
+// CONTROL_HOOK_ACCOUNTING_START
+#[allow(dead_code)]
+struct ControlHookPermanentPositions {
+    hook_0_0_source: usize,
+    hook_0_0_argument: usize,
+    hook_0_0_returned: usize,
+    hook_0_0_caller: usize,
+    hook_0_1_source: &'static mut usize,
+    hook_0_1_argument: &'static mut usize,
+    hook_0_1_returned: &'static mut usize,
+    hook_0_1_caller: &'static mut usize,
+    hook_0_2_source: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_0_2_argument: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_0_2_returned: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_0_2_caller: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_0_3_source: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_0_3_argument: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_0_3_returned: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_0_3_caller: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_0_4_source: usize,
+    hook_0_4_argument: usize,
+    hook_0_4_returned: usize,
+    hook_0_4_caller: usize,
+    hook_0_5_source: usize,
+    hook_0_5_argument: usize,
+    hook_0_5_returned: usize,
+    hook_0_5_caller: usize,
+    hook_1_0_source: usize,
+    hook_1_0_argument: usize,
+    hook_1_0_returned: usize,
+    hook_1_0_caller: usize,
+    hook_1_1_source: &'static mut usize,
+    hook_1_1_argument: &'static mut usize,
+    hook_1_1_returned: &'static mut usize,
+    hook_1_1_caller: &'static mut usize,
+    hook_1_2_source: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_1_2_argument: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_1_2_returned: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_1_2_caller: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_1_3_source: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_1_3_argument: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_1_3_returned: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_1_3_caller: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_1_4_source: usize,
+    hook_1_4_argument: usize,
+    hook_1_4_returned: usize,
+    hook_1_4_caller: usize,
+    hook_1_5_source: usize,
+    hook_1_5_argument: usize,
+    hook_1_5_returned: usize,
+    hook_1_5_caller: usize,
+    hook_2_0_source: (),
+    hook_2_0_argument: (),
+    hook_2_0_returned: (),
+    hook_2_0_caller: (),
+    hook_2_1_source: bool,
+    hook_2_1_argument: bool,
+    hook_2_1_returned: bool,
+    hook_2_1_caller: bool,
+    hook_2_2_source: bool,
+    hook_2_2_argument: bool,
+    hook_2_2_returned: bool,
+    hook_2_2_caller: bool,
+    hook_2_3_source: &'static std::thread::LocalKey<
+        std::cell::Cell<
+            crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+        >,
+    >,
+    hook_2_3_argument: &'static std::thread::LocalKey<
+        std::cell::Cell<
+            crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+        >,
+    >,
+    hook_2_3_returned: &'static std::thread::LocalKey<
+        std::cell::Cell<
+            crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+        >,
+    >,
+    hook_2_3_caller: &'static std::thread::LocalKey<
+        std::cell::Cell<
+            crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+        >,
+    >,
+    hook_2_4_source: crate::experimental_swift_reactor::control::SwiftRunUsage,
+    hook_2_4_argument: crate::experimental_swift_reactor::control::SwiftRunUsage,
+    hook_2_4_returned: crate::experimental_swift_reactor::control::SwiftRunUsage,
+    hook_2_4_caller: crate::experimental_swift_reactor::control::SwiftRunUsage,
+    hook_2_5_source: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_2_5_argument: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_2_5_returned: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_2_5_caller: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_2_6_source: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    hook_2_6_argument: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    hook_2_6_returned: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    hook_2_6_caller: std::option::Option<crate::experimental_wasi::WasiUsage>,
+    hook_2_7_source: (),
+    hook_2_7_argument: (),
+    hook_2_7_returned: (),
+    hook_2_7_caller: (),
+    hook_2_8_source:
+        std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    hook_2_8_argument:
+        std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    hook_2_8_returned:
+        std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    hook_2_8_caller:
+        std::result::Result<(), crate::experimental_swift_reactor::control::SwiftRunFailure>,
+    hook_2_9_source: crate::experimental_swift_reactor::control::Live,
+    hook_2_9_argument: crate::experimental_swift_reactor::control::Live,
+    hook_2_9_returned: crate::experimental_swift_reactor::control::Live,
+    hook_2_9_caller: crate::experimental_swift_reactor::control::Live,
+    hook_2_10_source: usize,
+    hook_2_10_argument: usize,
+    hook_2_10_returned: usize,
+    hook_2_10_caller: usize,
+    hook_2_11_source: usize,
+    hook_2_11_argument: usize,
+    hook_2_11_returned: usize,
+    hook_2_11_caller: usize,
+    hook_2_12_source: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_2_12_argument: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_2_12_returned: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_2_12_caller: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_2_13_source: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_2_13_argument: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_2_13_returned: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_2_13_caller: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_3_0_source: bool,
+    hook_3_0_argument: bool,
+    hook_3_0_returned: bool,
+    hook_3_0_caller: bool,
+    hook_3_1_source: bool,
+    hook_3_1_argument: bool,
+    hook_3_1_returned: bool,
+    hook_3_1_caller: bool,
+    hook_3_2_source: crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    hook_3_2_argument: crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    hook_3_2_returned: crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    hook_3_2_caller: crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    hook_3_3_source: crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    hook_3_3_argument: crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    hook_3_3_returned: crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    hook_3_3_caller: crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    hook_3_4_source: u8,
+    hook_3_4_argument: u8,
+    hook_3_4_returned: u8,
+    hook_3_4_caller: u8,
+    hook_3_5_source: (),
+    hook_3_5_argument: (),
+    hook_3_5_returned: (),
+    hook_3_5_caller: (),
+    hook_3_6_source: crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    hook_3_6_argument: crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    hook_3_6_returned: crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    hook_3_6_caller: crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    hook_3_7_source: (),
+    hook_3_7_argument: (),
+    hook_3_7_returned: (),
+    hook_3_7_caller: (),
+    hook_3_8_source: &'static std::cell::Cell<
+        crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    >,
+    hook_3_8_argument: &'static std::cell::Cell<
+        crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    >,
+    hook_3_8_returned: &'static std::cell::Cell<
+        crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    >,
+    hook_3_8_caller: &'static std::cell::Cell<
+        crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    >,
+    hook_3_9_source: &'static std::cell::Cell<
+        crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    >,
+    hook_3_9_argument: &'static std::cell::Cell<
+        crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    >,
+    hook_3_9_returned: &'static std::cell::Cell<
+        crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    >,
+    hook_3_9_caller: &'static std::cell::Cell<
+        crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    >,
+    hook_3_10_source: u8,
+    hook_3_10_argument: u8,
+    hook_3_10_returned: u8,
+    hook_3_10_caller: u8,
+    hook_3_11_source: u8,
+    hook_3_11_argument: u8,
+    hook_3_11_returned: u8,
+    hook_3_11_caller: u8,
+    hook_4_0_source: (),
+    hook_4_0_argument: (),
+    hook_4_0_returned: (),
+    hook_4_0_caller: (),
+    hook_4_1_source: bool,
+    hook_4_1_argument: bool,
+    hook_4_1_returned: bool,
+    hook_4_1_caller: bool,
+    hook_4_2_source: bool,
+    hook_4_2_argument: bool,
+    hook_4_2_returned: bool,
+    hook_4_2_caller: bool,
+    hook_4_3_source: &'static std::thread::LocalKey<
+        std::cell::Cell<
+            crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+        >,
+    >,
+    hook_4_3_argument: &'static std::thread::LocalKey<
+        std::cell::Cell<
+            crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+        >,
+    >,
+    hook_4_3_returned: &'static std::thread::LocalKey<
+        std::cell::Cell<
+            crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+        >,
+    >,
+    hook_4_3_caller: &'static std::thread::LocalKey<
+        std::cell::Cell<
+            crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+        >,
+    >,
+    hook_4_4_source: (),
+    hook_4_4_argument: (),
+    hook_4_4_returned: (),
+    hook_4_4_caller: (),
+    hook_4_5_source: &'static crate::execute::Cancellation,
+    hook_4_5_argument: &'static crate::execute::Cancellation,
+    hook_4_5_returned: &'static crate::execute::Cancellation,
+    hook_4_5_caller: &'static crate::execute::Cancellation,
+    hook_4_6_source: crate::execute::Cancellation,
+    hook_4_6_argument: crate::execute::Cancellation,
+    hook_4_6_returned: crate::execute::Cancellation,
+    hook_4_6_caller: crate::execute::Cancellation,
+    hook_4_7_source: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_4_7_argument: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_4_7_returned: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_4_7_caller: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_4_8_source: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_4_8_argument: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_4_8_returned: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_4_8_caller: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_5_0_source: bool,
+    hook_5_0_argument: bool,
+    hook_5_0_returned: bool,
+    hook_5_0_caller: bool,
+    hook_5_1_source: crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    hook_5_1_argument: crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    hook_5_1_returned: crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    hook_5_1_caller: crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    hook_5_2_source: crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    hook_5_2_argument: crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    hook_5_2_returned: crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    hook_5_2_caller: crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    hook_5_3_source: bool,
+    hook_5_3_argument: bool,
+    hook_5_3_returned: bool,
+    hook_5_3_caller: bool,
+    hook_5_4_source: u8,
+    hook_5_4_argument: u8,
+    hook_5_4_returned: u8,
+    hook_5_4_caller: u8,
+    hook_5_5_source: &'static std::option::Option<usize>,
+    hook_5_5_argument: &'static std::option::Option<usize>,
+    hook_5_5_returned: &'static std::option::Option<usize>,
+    hook_5_5_caller: &'static std::option::Option<usize>,
+    hook_5_6_source: &'static std::option::Option<usize>,
+    hook_5_6_argument: &'static std::option::Option<usize>,
+    hook_5_6_returned: &'static std::option::Option<usize>,
+    hook_5_6_caller: &'static std::option::Option<usize>,
+    hook_5_7_source: std::option::Option<usize>,
+    hook_5_7_argument: std::option::Option<usize>,
+    hook_5_7_returned: std::option::Option<usize>,
+    hook_5_7_caller: std::option::Option<usize>,
+    hook_5_8_source: usize,
+    hook_5_8_argument: usize,
+    hook_5_8_returned: usize,
+    hook_5_8_caller: usize,
+    hook_5_9_source: (usize, bool),
+    hook_5_9_argument: (usize, bool),
+    hook_5_9_returned: (usize, bool),
+    hook_5_9_caller: (usize, bool),
+    hook_5_10_source: (),
+    hook_5_10_argument: (),
+    hook_5_10_returned: (),
+    hook_5_10_caller: (),
+    hook_5_11_source: crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    hook_5_11_argument:
+        crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    hook_5_11_returned:
+        crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    hook_5_11_caller: crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    hook_5_12_source: bool,
+    hook_5_12_argument: bool,
+    hook_5_12_returned: bool,
+    hook_5_12_caller: bool,
+    hook_5_13_source: bool,
+    hook_5_13_argument: bool,
+    hook_5_13_returned: bool,
+    hook_5_13_caller: bool,
+    hook_5_14_source: (),
+    hook_5_14_argument: (),
+    hook_5_14_returned: (),
+    hook_5_14_caller: (),
+    hook_5_15_source: &'static std::cell::Cell<
+        crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    >,
+    hook_5_15_argument: &'static std::cell::Cell<
+        crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    >,
+    hook_5_15_returned: &'static std::cell::Cell<
+        crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    >,
+    hook_5_15_caller: &'static std::cell::Cell<
+        crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    >,
+    hook_5_16_source: &'static std::cell::Cell<
+        crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    >,
+    hook_5_16_argument: &'static std::cell::Cell<
+        crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    >,
+    hook_5_16_returned: &'static std::cell::Cell<
+        crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    >,
+    hook_5_16_caller: &'static std::cell::Cell<
+        crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    >,
+    hook_5_17_source: u8,
+    hook_5_17_argument: u8,
+    hook_5_17_returned: u8,
+    hook_5_17_caller: u8,
+    hook_5_18_source: bool,
+    hook_5_18_argument: bool,
+    hook_5_18_returned: bool,
+    hook_5_18_caller: bool,
+    hook_5_19_source: usize,
+    hook_5_19_argument: usize,
+    hook_5_19_returned: usize,
+    hook_5_19_caller: usize,
+    hook_5_20_source: usize,
+    hook_5_20_argument: usize,
+    hook_5_20_returned: usize,
+    hook_5_20_caller: usize,
+    hook_6_0_source: (),
+    hook_6_0_argument: (),
+    hook_6_0_returned: (),
+    hook_6_0_caller: (),
+    hook_6_1_source: (),
+    hook_6_1_argument: (),
+    hook_6_1_returned: (),
+    hook_6_1_caller: (),
+    hook_6_2_source: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_6_2_argument: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_6_2_returned: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_6_2_caller: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_6_3_source: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_6_3_argument: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_6_3_returned: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_6_3_caller: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_7_0_source: (),
+    hook_7_0_argument: (),
+    hook_7_0_returned: (),
+    hook_7_0_caller: (),
+    hook_7_1_source: (),
+    hook_7_1_argument: (),
+    hook_7_1_returned: (),
+    hook_7_1_caller: (),
+    hook_7_2_source: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_7_2_argument: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_7_2_returned: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_7_2_caller: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_7_3_source: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_7_3_argument: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_7_3_returned: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_7_3_caller: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_8_0_source: bool,
+    hook_8_0_argument: bool,
+    hook_8_0_returned: bool,
+    hook_8_0_caller: bool,
+    hook_8_1_source: u8,
+    hook_8_1_argument: u8,
+    hook_8_1_returned: u8,
+    hook_8_1_caller: u8,
+    hook_8_2_source: crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    hook_8_2_argument: crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    hook_8_2_returned: crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    hook_8_2_caller: crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    hook_8_3_source: (),
+    hook_8_3_argument: (),
+    hook_8_3_returned: (),
+    hook_8_3_caller: (),
+    hook_8_4_source: &'static std::cell::Cell<
+        crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    >,
+    hook_8_4_argument: &'static std::cell::Cell<
+        crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    >,
+    hook_8_4_returned: &'static std::cell::Cell<
+        crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    >,
+    hook_8_4_caller: &'static std::cell::Cell<
+        crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    >,
+    hook_8_5_source: &'static std::cell::Cell<
+        crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    >,
+    hook_8_5_argument: &'static std::cell::Cell<
+        crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    >,
+    hook_8_5_returned: &'static std::cell::Cell<
+        crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    >,
+    hook_8_5_caller: &'static std::cell::Cell<
+        crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+    >,
+    hook_8_6_source: u8,
+    hook_8_6_argument: u8,
+    hook_8_6_returned: u8,
+    hook_8_6_caller: u8,
+    hook_12_0_source: &'static crate::execute::Cancellation,
+    hook_12_0_argument: &'static crate::execute::Cancellation,
+    hook_12_0_returned: &'static crate::execute::Cancellation,
+    hook_12_0_caller: &'static crate::execute::Cancellation,
+    hook_12_1_source: crate::execute::Cancellation,
+    hook_12_1_argument: crate::execute::Cancellation,
+    hook_12_1_returned: crate::execute::Cancellation,
+    hook_12_1_caller: crate::execute::Cancellation,
+    hook_12_2_source: bool,
+    hook_12_2_argument: bool,
+    hook_12_2_returned: bool,
+    hook_12_2_caller: bool,
+    hook_12_3_source: &'static std::thread::LocalKey<
+        std::cell::Cell<
+            crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+        >,
+    >,
+    hook_12_3_argument: &'static std::thread::LocalKey<
+        std::cell::Cell<
+            crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+        >,
+    >,
+    hook_12_3_returned: &'static std::thread::LocalKey<
+        std::cell::Cell<
+            crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+        >,
+    >,
+    hook_12_3_caller: &'static std::thread::LocalKey<
+        std::cell::Cell<
+            crate::experimental_swift_reactor::execution::frame_operations::tests::Hooks,
+        >,
+    >,
+    hook_12_4_source: (),
+    hook_12_4_argument: (),
+    hook_12_4_returned: (),
+    hook_12_4_caller: (),
+    hook_12_5_source: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_12_5_argument: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_12_5_returned: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_12_5_caller: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+}
+#[allow(dead_code)]
+struct ControlHookActivePositions {
+    hook_9_0_source: (),
+    hook_9_0_argument: (),
+    hook_9_0_returned: (),
+    hook_9_0_caller: (),
+    hook_9_1_source: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_9_1_argument: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_9_1_returned: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_9_1_caller: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_9_2_source: (),
+    hook_9_2_argument: (),
+    hook_9_2_returned: (),
+    hook_9_2_caller: (),
+    hook_9_3_source: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_9_3_argument: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_9_3_returned: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_9_3_caller: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_9_4_source: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_9_4_argument: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_9_4_returned: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_9_4_caller: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_10_0_source: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_10_0_argument: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_10_0_returned: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_10_0_caller: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_10_1_source: (),
+    hook_10_1_argument: (),
+    hook_10_1_returned: (),
+    hook_10_1_caller: (),
+    hook_10_2_source: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_10_2_argument: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_10_2_returned: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_10_2_caller: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_11_0_source: (),
+    hook_11_0_argument: (),
+    hook_11_0_returned: (),
+    hook_11_0_caller: (),
+    hook_11_1_source: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_11_1_argument: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_11_1_returned: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_11_1_caller: &'static crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_11_2_source: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_11_2_argument: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_11_2_returned: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+    hook_11_2_caller: &'static mut crate::experimental_swift_reactor::control::RuntimeControl,
+}
+pub(super) const CONTROL_HOOK_PERMANENT_BYTES: usize = size_of::<ControlHookPermanentPositions>();
+pub(super) const CONTROL_HOOK_ACTIVE_BYTES: usize = size_of::<ControlHookActivePositions>();

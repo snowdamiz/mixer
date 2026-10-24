@@ -690,8 +690,9 @@ const EXECUTION_HEADER_BYTES: Option<usize> = {
                                     Some(header) => {
                                         match header.checked_add(value_operations::PERMANENT_BYTES)
                                         {
-                                            Some(header) => header
-                                                .checked_add(frame_operations::PERMANENT_BYTES),
+                                            Some(header) => match header.checked_add(frame_operations::PERMANENT_BYTES) {
+                                                Some(header) => header.checked_add(frame_operations::control_operations::PERMANENT_BYTES), None => None,
+                                            },
                                             None => None,
                                         }
                                     }

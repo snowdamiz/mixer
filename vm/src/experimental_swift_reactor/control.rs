@@ -320,6 +320,12 @@ impl RuntimeControl {
         };
         std::mem::replace(destination, ceiling)
     }
+    pub(crate) fn test_replace_combined_limit(&mut self, ceiling: usize) -> usize {
+        std::mem::replace(&mut self.budget.combined_bytes, ceiling)
+    }
+    pub(crate) fn test_replace_state_limit(&mut self, ceiling: usize) -> usize {
+        std::mem::replace(&mut self.budget.state_bytes, ceiling)
+    }
     pub(crate) fn test_replace_execution_work_limit(&mut self, ceiling: u64) -> u64 {
         std::mem::replace(&mut self.budget.execution_work, ceiling)
     }

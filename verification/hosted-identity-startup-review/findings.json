@@ -1,0 +1,44 @@
+{
+  "status": "correction-required",
+  "findings": [
+    {
+      "id": "IR-F01",
+      "priority": 2,
+      "title": "Reject endpoint newline before startup accepts configuration",
+      "source": "hosted/lib/mixer_hosted/identity/manifest.ex",
+      "lines": [
+        56,
+        63
+      ],
+      "sourceSHA256": "2b3e15214d6c39de9c13fe7b1f89b497bd30f92050ceba5f5cd1e4cb5d59cce0",
+      "origin": "inherited accepted Manifest validator; exposed through new StartupConfig operator JSON",
+      "inputs": [
+        {
+          "field": "jwks_endpoint.host",
+          "value": "keys.independent.invalid\n",
+          "actual": "StartupConfig accepted and Manifest.validate returned {:ok, map}"
+        },
+        {
+          "field": "jwks_endpoint.path",
+          "value": "/keys\n",
+          "actual": "StartupConfig accepted and Manifest.validate returned {:ok, map}"
+        }
+      ],
+      "expected": "invalid identity startup: configuration / {:error, :invalid_manifest}",
+      "reason": "Regex $ accepts a final newline; each host label and path must validate the complete string.",
+      "correction": "Use strict \\A and \\z anchors in both existing Manifest expressions and add direct Manifest/StartupConfig rejection regressions plus valid controls.",
+      "networkConsequenceClaimed": false,
+      "evidence": [
+        "endpoint-probe.log",
+        "endpoint-regression.log",
+        "adversarial.log",
+        "linux-adversarial.log"
+      ]
+    }
+  ],
+  "relatedChecks": {
+    "RuntimeConfigDatabaseHostname": "already uses strict \\A...\\z; no same defect",
+    "StartupConfigResolver": "strict parse/format round trip; trailing LF, whitespace, zones, alternate numeric forms rejected",
+    "unrelatedHTTPResponseRegexes": "not modified or swept into this bounded endpoint configuration review"
+  }
+}

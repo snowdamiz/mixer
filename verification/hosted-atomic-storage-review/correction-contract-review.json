@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "reviewed_utc": "2026-10-24T08:16:12.454208+00:00",
+  "path": "docs/hosted-atomic-storage-corrections.md",
+  "sha256": "a7999d9dc2badf8c722c98878eb601b8d970a3d9e0296eac642ae331390eee9b",
+  "snapshot": "coordination-inputs/hosted-atomic-storage-corrections.md",
+  "read_only_review": true,
+  "contradiction_found": false,
+  "findings_addressed_by_selected_direction": [
+    "F01",
+    "F02",
+    "F03",
+    "F04",
+    "F05",
+    "F06",
+    "F07"
+  ],
+  "implementation_acceptance": false,
+  "clarifications": [
+    "AS05 generic time relationships must use AS02 completion<=DBnow+30, not infer completion<=decision or completion<=recorded.",
+    "AS03 semantic event association plus response recomputation catches reproduced changed-event mismatch. Stronger original-key proof against a coherently rewritten cached row selecting an equivalent later200 event needs separately bound request_id or other immutable association, or an explicit threat limitation.",
+    "AS02 final post-DML freshness check addresses waits inside mutations; completed-server-COMMIT uncertainty remains intentionally distinct."
+  ]
+}

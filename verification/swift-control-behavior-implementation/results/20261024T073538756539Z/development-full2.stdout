@@ -1,0 +1,59 @@
+
+running 12 tests
+test experimental_swift_reactor::execution::frame_operations::tests::control_tests::sc01_decoded_block_loop_if ... SC_TRACE empty_block steps=3 expected=[(1, 0, 2, 1), (2, 0, 1, 2), (3, 0, 0, 2)]
+SC_TRACE result_block steps=4 expected=[(1, 0, 2, 1), (2, 1, 2, 1), (3, 1, 1, 4), (4, 1, 0, 4)]
+SC_TRACE empty_loop steps=3 expected=[(1, 0, 2, 1), (2, 0, 1, 2), (3, 0, 0, 2)]
+SC_TRACE result_loop steps=4 expected=[(1, 0, 2, 1), (2, 1, 2, 1), (3, 1, 1, 4), (4, 1, 0, 4)]
+SC_TRACE if_true_else steps=6 expected=[(1, 1, 1, 1), (2, 0, 2, 2), (3, 1, 2, 1), (5, 1, 2, 0), (6, 1, 1, 4), (7, 1, 0, 4)]
+SC_TRACE if_false_else steps=5 expected=[(1, 1, 1, 1), (4, 0, 2, 2), (5, 1, 2, 1), (6, 1, 1, 4), (7, 1, 0, 4)]
+SC_TRACE if_false_no_else steps=4 expected=[(1, 1, 1, 1), (3, 0, 2, 2), (4, 0, 1, 2), (5, 0, 0, 2)]
+ok
+test experimental_swift_reactor::execution::frame_operations::tests::control_tests::sc02_end_else_return ... SC_TRACE empty_block steps=3 expected=[(1, 0, 2, 1), (2, 0, 1, 2), (3, 0, 0, 2)]
+SC_TRACE if_true_else steps=6 expected=[(1, 1, 1, 1), (2, 0, 2, 2), (3, 1, 2, 1), (5, 1, 2, 0), (6, 1, 1, 4), (7, 1, 0, 4)]
+SC_TRACE nested_end steps=5 expected=[(1, 0, 2, 1), (2, 0, 3, 1), (3, 0, 2, 2), (4, 0, 1, 2), (5, 0, 0, 2)]
+SC_TRACE return_open steps=3 expected=[(1, 0, 2, 1), (2, 1, 2, 1), (3, 1, 2, 0)]
+ok
+test experimental_swift_reactor::execution::frame_operations::tests::control_tests::sc03_branch_targets ... SC_TRACE br_block steps=4 expected=[(1, 0, 2, 1), (2, 1, 2, 1), (4, 1, 1, 4), (5, 1, 0, 4)]
+SC_TRACE br_function steps=3 expected=[(1, 0, 2, 1), (2, 1, 2, 1), (6, 1, 0, 5)]
+SC_TRACE br_if_true steps=5 expected=[(1, 0, 2, 1), (2, 1, 2, 1), (3, 2, 2, 1), (5, 1, 1, 5), (6, 1, 0, 4)]
+SC_TRACE br_if_false steps=6 expected=[(1, 0, 2, 1), (2, 1, 2, 1), (3, 2, 2, 1), (4, 1, 2, 1), (5, 1, 1, 4), (6, 1, 0, 4)]
+SC_TRACE br_table_first steps=7 expected=[(1, 0, 2, 1), (2, 0, 3, 1), (3, 1, 3, 1), (4, 2, 3, 1), (6, 1, 2, 5), (7, 1, 1, 4), (8, 1, 0, 4)]
+SC_TRACE br_table_last steps=6 expected=[(1, 0, 2, 1), (2, 0, 3, 1), (3, 1, 3, 1), (4, 2, 3, 1), (7, 1, 1, 6), (8, 1, 0, 4)]
+SC_TRACE br_table_default_unsigned steps=6 expected=[(1, 0, 2, 1), (2, 0, 3, 1), (3, 1, 3, 1), (4, 2, 3, 1), (7, 1, 1, 6), (8, 1, 0, 4)]
+ok
+test experimental_swift_reactor::execution::frame_operations::tests::control_tests::sc04_current_frame_floors ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::control_tests::sc05_control_limits ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::control_tests::sc06_value_limits_types ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::control_tests::sc07_exact_work_prefixes ... SC07 exhaustive fixture work prefixes=252
+ok
+test experimental_swift_reactor::execution::frame_operations::tests::control_tests::sc08_cancellation_first_failure ... SC08 caller cancellation boundaries=74 helper work checkpoints=154 control predebits=3
+ok
+test experimental_swift_reactor::execution::frame_operations::tests::control_tests::sc09_defensive_live_faults ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::control_tests::sc10_retained_cleanup ... ok
+test experimental_swift_reactor::execution::frame_operations::tests::control_tests::sc11_completion_accounting ... AF22_NARROW phase_rejection combined_limit=45764781 attempted=45764782 frame_admitted=false
+FAILED
+test experimental_swift_reactor::execution::frame_operations::tests::control_tests::sc12_allocation_shared_source ... SC12 empty_block cold=1 warm=0 completion=0
+SC12 result_block cold=1 warm=0 completion=0
+SC12 empty_loop cold=1 warm=0 completion=0
+SC12 result_loop cold=1 warm=0 completion=0
+SC12 if_true_else cold=1 warm=0 completion=0
+SC12 if_false_else cold=1 warm=0 completion=0
+SC12 if_false_no_else cold=1 warm=0 completion=0
+SC12 nested_end cold=1 warm=0 completion=0
+SC12 return_open cold=1 warm=0 completion=0
+SC12 br_block cold=1 warm=0 completion=0
+SC12 br_function cold=1 warm=0 completion=0
+SC12 br_if_true cold=1 warm=0 completion=0
+SC12 br_if_false cold=1 warm=0 completion=0
+SC12 br_table_first cold=2 warm=0 completion=0
+SC12 br_table_last cold=2 warm=0 completion=0
+SC12 br_table_default_unsigned cold=2 warm=0 completion=0
+ok
+
+failures:
+
+failures:
+    experimental_swift_reactor::execution::frame_operations::tests::control_tests::sc11_completion_accounting
+
+test result: FAILED. 11 passed; 1 failed; 0 ignored; 0 measured; 156 filtered out; finished in 76.00s
+

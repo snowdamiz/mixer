@@ -1,0 +1,97 @@
+{
+  "schema": 1,
+  "observed_utc": "2026-10-24T08:13:20.939648+00:00",
+  "observed_head": "b0629cf554a1798b2d22ce3e1d349cd1f9504c3a",
+  "files": [
+    {
+      "path": "hosted/deps/ecto/lib/ecto/repo.ex",
+      "sha256": "a3ffe7038094d8bf34ef85faa09a041ce92c0a58840cb1e1d104b4a2a3e14a6d",
+      "first_line": 308,
+      "last_line": 316,
+      "basis": "Public process-local dynamic Repo accessors",
+      "text": "      @compile {:inline, get_dynamic_repo: 0}\n\n      def get_dynamic_repo() do\n        Process.get({__MODULE__, :dynamic_repo}, @default_dynamic_repo)\n      end\n\n      def put_dynamic_repo(dynamic) when is_atom(dynamic) or is_pid(dynamic) do\n        Process.put({__MODULE__, :dynamic_repo}, dynamic) || @default_dynamic_repo\n      end\n"
+    },
+    {
+      "path": "hosted/deps/ecto_sql/lib/ecto/adapters/sql.ex",
+      "sha256": "335698e0e658e47e76142a7edd4bbd199f6c16f00c0f0c50c768e5f4958a9ee0",
+      "first_line": 1217,
+      "last_line": 1224,
+      "basis": "in_transaction? is connection mode, not actual server xid",
+      "text": "  def transaction(adapter_meta, opts, callback) do\n    checkout_or_transaction(:transaction, adapter_meta, opts, callback)\n  end\n\n  @doc false\n  def in_transaction?(%{pid: pool}) do\n    match?(%DBConnection{conn_mode: :transaction}, get_conn(pool))\n  end\n"
+    },
+    {
+      "path": "hosted/deps/db_connection/lib/db_connection/holder.ex",
+      "sha256": "d574dacca73bafe651de85dd5427877534e4d8f2d1bdc7936b27986bff9732e6",
+      "first_line": 311,
+      "last_line": 334,
+      "basis": "Checkout receive starts deadline only at holder transfer",
+      "text": "  defp checkout_call(pid, callers, queue?, start, timeout) do\n    lock = Process.monitor(pid)\n    send(pid, {:db_connection, {self(), lock}, {:checkout, callers, start, queue?}})\n\n    receive do\n      {:\"ETS-TRANSFER\", holder, pool, {^lock, ref, checkin_time}} ->\n        Process.demonitor(lock, [:flush])\n        {deadline, ops} = start_deadline(timeout, pool, ref, holder, start)\n        :ets.update_element(holder, :conn, [{conn(:lock) + 1, lock} | ops])\n\n        pool_ref =\n          pool_ref(pool: pool, reference: ref, deadline: deadline, holder: holder, lock: lock)\n\n        checkout_result(holder, pool_ref, checkin_time)\n\n      {^lock, reply} ->\n        Process.demonitor(lock, [:flush])\n        reply\n\n      {:DOWN, ^lock, _, _, reason} ->\n        {:exit, reason}\n    end\n  end\n\n"
+    },
+    {
+      "path": "hosted/deps/db_connection/lib/db_connection/holder.ex",
+      "sha256": "d574dacca73bafe651de85dd5427877534e4d8f2d1bdc7936b27986bff9732e6",
+      "first_line": 441,
+      "last_line": 456,
+      "basis": "Absolute monotonic deadline and timeout choose earlier bound",
+      "text": "  defp abs_timeout(now, opts) do\n    case Keyword.get(opts, :timeout, @timeout) do\n      :infinity -> Keyword.get(opts, :deadline)\n      timeout -> min(now + timeout, Keyword.get(opts, :deadline))\n    end\n  end\n\n  defp start_deadline(nil, _, _, _, _) do\n    {nil, []}\n  end\n\n  defp start_deadline(timeout, pid, ref, holder, start) do\n    deadline =\n      :erlang.start_timer(timeout, pid, {ref, holder, self(), timeout - start}, abs: true)\n\n    {deadline, [{conn(:deadline) + 1, deadline}]}\n"
+    },
+    {
+      "path": "hosted/deps/db_connection/lib/db_connection.ex",
+      "sha256": "e04def33c0be48ded3a661a7c31e818cc611eb17968aa6087d945c309cc6fafb",
+      "first_line": 1756,
+      "last_line": 1804,
+      "basis": "Callback result still requires COMMIT; commit failure remains error/uncertainty",
+      "text": "  defp run_transaction(conn, fun, run, opts, reset_after?) do\n    %DBConnection{conn_ref: conn_ref} = conn\n\n    try do\n      result = fun.(%{conn | conn_mode: :transaction})\n      conclude(conn, result)\n    catch\n      :throw, {__MODULE__, ^conn_ref, reason} ->\n        reset(conn)\n\n        case rollback(conn, run, opts) do\n          {:ok, _} ->\n            {:error, reason}\n\n          {:error, %DBConnection.TransactionError{}} ->\n            {:error, reason}\n\n          {:error, %DBConnection.ConnectionError{}} ->\n            {:error, reason}\n\n          {:error, err} ->\n            raise err\n        end\n\n      kind, reason ->\n        stack = __STACKTRACE__\n        reset(conn)\n        _ = rollback(conn, run, opts)\n        :erlang.raise(kind, reason, stack)\n    else\n      result ->\n        case commit(conn, run, opts) do\n          {:ok, _} ->\n            {:ok, result}\n\n          {:error, %DBConnection.TransactionError{}} ->\n            {:error, :rollback}\n\n          {:error, err} ->\n            raise err\n        end\n    after\n      if reset_after? do\n        reset(conn)\n      end\n    end\n  end\n\n  defp fail(%DBConnection{pool_ref: pool_ref}) do\n"
+    },
+    {
+      "path": "hosted/deps/postgrex/lib/postgrex/protocol.ex",
+      "sha256": "b9de5d55f6e4928742b6d1f33e1da8f5963c779534ee22f08ffc780a5b9ef8e5",
+      "first_line": 282,
+      "last_line": 298,
+      "basis": "Disconnect cancels and closes connection; not proof that sent COMMIT rolled back",
+      "text": "  @impl true\n  @spec disconnect(Exception.t(), state) :: :ok\n  def disconnect(_, s) do\n    # cancel the request first otherwise PostgreSQL will log\n    # every time the connection is explicitly disconnected\n    # because the associated PID will no longer exist.\n    #\n    # Note we don't log when failing to cancel requests,\n    # in case the socket is not available or terminated.\n    _ = cancel_request(s)\n    terminate(s)\n    sock_close(s)\n    _ = recv_buffer(s)\n    delete_parameters(s)\n    queries_delete(s)\n    :ok\n  end\n"
+    },
+    {
+      "path": "hosted/lib/mixer_hosted/identity/verified_identity.ex",
+      "sha256": "02ea302abedbf10555792ae5284f8eb41113edd11bc83c3e869bdbee7b68ae4d",
+      "first_line": 1,
+      "last_line": 36,
+      "basis": "Accepted identity contains no authentication completion field",
+      "text": "defmodule MixerHosted.Identity.VerifiedIdentity do\n  @moduledoc \"\"\"\n  Bounded identity evidence constructed after access-token verification.\n\n  The credential reference is namespaced by the exact profile, issuer and client;\n  it is not globally authoritative on its own. This value grants no membership or\n  permission. Opaque types express ownership within the trusted BEAM application,\n  not a sandbox against malicious code running in that application.\n  \"\"\"\n\n  @enforce_keys [\n    :profile_id,\n    :profile_version,\n    :issuer,\n    :subject,\n    :client_id,\n    :credential_ref,\n    :issued_at,\n    :expires_at,\n    :identity_class,\n    :scopes\n  ]\n  defstruct @enforce_keys\n\n  @opaque t :: %__MODULE__{\n            profile_id: binary(),\n            profile_version: pos_integer(),\n            issuer: binary(),\n            subject: binary(),\n            client_id: binary(),\n            credential_ref: binary(),\n            issued_at: non_neg_integer(),\n            expires_at: non_neg_integer(),\n            identity_class: :human | :service,\n            scopes: [binary()]\n          }\n"
+    },
+    {
+      "path": "hosted/lib/mixer_hosted/identity/configured_verifier.ex",
+      "sha256": "d138c83981d0e0a01c27164fbe74c54635a0947254726a122253f8b2b752f35c",
+      "first_line": 12,
+      "last_line": 58,
+      "basis": "Completion belongs after successful configured adapter return, not pure verifier evaluation",
+      "text": "\n  @impl true\n  def authenticate(token, now), do: authenticate(KeyOwner, :configured, token, now)\n  @doc false\n  def authenticate(owner, profile_id, token, now) do\n    with {:ok, permit} <- Admission.acquire(owner, profile_id) do\n      try do\n        verify(owner, permit, token, now, 0)\n      after\n        KeyOwner.release(owner, permit)\n        Admission.release(permit)\n      end\n    end\n  end\n\n  defp verify(owner, permit, token, now, retries) do\n    with {:ok, lease} <- KeyOwner.checkout(owner, permit, now) do\n      result =\n        AccessTokenVerifier.verify(token, max(now, System.system_time(:second)), lease.snapshot)\n\n      case result do\n        {:ok, identity} ->\n          case KeyOwner.finish(owner, lease) do\n            :ok ->\n              if identity.expires_at > System.system_time(:second),\n                do: result,\n                else: {:error, :unauthenticated}\n\n            {:error, :retry_current} when retries == 0 ->\n              verify(owner, permit, token, System.system_time(:second), 1)\n\n            {:error, :retry_current} ->\n              {:error, :identity_unavailable}\n\n            error ->\n              error\n          end\n\n        {:error, :unauthenticated} ->\n          with {:ok, kid} <- header_kid(token),\n               :error <- TrustSnapshot.key(lease.snapshot, kid) do\n            KeyOwner.note_unknown(owner, lease, kid)\n          end\n\n          result\n\n        error ->\n"
+    },
+    {
+      "path": "hosted/lib/mixer_hosted/identity/access_token_verifier.ex",
+      "sha256": "597ab61076a0947e867ee67ee9c0ac1714500cede4a2d35cd81e3e99d7464773",
+      "first_line": 81,
+      "last_line": 96,
+      "basis": "Actual verifier already validates token numeric dates; SQL boundary still separately specified",
+      "text": "      Encoding.bounded_string?(claims[\"sub\"], 256) and\n      Encoding.bounded_string?(claims[\"jti\"], 256) and\n      valid_audience?(claims[\"aud\"], profile.audience) and\n      Encoding.numeric_date?(issued) and Encoding.numeric_date?(expiry) and\n      issued < expiry and expiry - issued <= maximum_lifetime and expiry > now and\n      issued <= now + 30 and valid_not_before?(claims, expiry, now)\n  end\n\n  defp valid_audience?(audience, expected) when is_binary(audience), do: audience == expected\n\n  defp valid_audience?(audiences, expected) when is_list(audiences) do\n    length(audiences) in 1..8 and expected in audiences and\n      Enum.all?(audiences, &Encoding.bounded_string?(&1, 256)) and\n      Enum.uniq(audiences) == audiences\n  end\n\n"
+    }
+  ],
+  "primary_references": [
+    {
+      "url": "https://www.postgresql.org/docs/17/functions-info.html",
+      "basis": "session_user/current_user/SECURITY DEFINER distinction"
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/sql-createfunction.html",
+      "basis": "Definer safe search_path and PUBLIC EXECUTE hardening"
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/datatype-numeric.html",
+      "basis": "Scale coercion rounds and PostgreSQL NaN comparison semantics"
+    },
+    {
+      "url": "https://www.rfc-editor.org/rfc/rfc8949.html#section-4.2.1",
+      "basis": "Shortest definite deterministic encoding basis; product selects restricted types"
+    }
+  ]
+}

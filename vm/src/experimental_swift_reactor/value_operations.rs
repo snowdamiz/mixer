@@ -485,6 +485,8 @@ fn primitive_push(
     operation: &mut SwiftExecutionOperation<'_>,
     value: Value,
 ) -> Result<(), SwiftRunFailure> {
+    #[cfg(test)]
+    super::frame_operations::control_work_checkpoint(operation.control);
     operation.control.work_with_wasi(
         Work::Execution,
         1,
@@ -544,6 +546,8 @@ fn primitive_pop(
     operand_base: usize,
     operation: &mut SwiftExecutionOperation<'_>,
 ) -> Result<Value, SwiftRunFailure> {
+    #[cfg(test)]
+    super::frame_operations::control_work_checkpoint(operation.control);
     operation.control.work_with_wasi(
         Work::Execution,
         1,
@@ -555,6 +559,8 @@ fn primitive_pop(
         return Err(primitive_invariant(operation));
     }
     let value = values.pop().expect("checked operand exists");
+    #[cfg(test)]
+    super::frame_operations::control_after_value_pop(operation.control);
     operation
         .control
         .remove_live_with_wasi(Live::Values, 1, Some(operation.wasi.usage()))?;

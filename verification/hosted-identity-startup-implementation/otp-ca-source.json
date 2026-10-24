@@ -1,0 +1,24 @@
+{
+  "argv": [
+    "elixir",
+    "-e",
+    "IO.inspect(%{otp: :erlang.system_info(:otp_release), public_key_library: :code.lib_dir(:public_key), public_key_beam: :code.which(:public_key), roots_count: length(:public_key.cacerts_get()), shapes: Enum.frequencies_by(:public_key.cacerts_get(), fn x -> cond do is_binary(x) -> :der; is_tuple(x) and tuple_size(x) == 3 and elem(x,0) == :cert and is_binary(elem(x,1)) -> :cert_der_decoded; true -> :unexpected end end)}, label: \"OTP_CA_source\")"
+  ],
+  "exitCode": 0,
+  "observedUTC": "2026-10-24T07:59:35.214345+00:00",
+  "files": {
+    "/opt/homebrew/Cellar/erlang/29.1.1_2/lib/erlang/lib/public_key-1.21.7/src/public_key.erl": "7e70d3ba79815525ee74c2b2942f392e93453ca9b8a5ebb58b0df3f6f3f22ce3",
+    "/opt/homebrew/Cellar/erlang/29.1.1_2/lib/erlang/lib/public_key-1.21.7/src/pubkey_os_cacerts.erl": "2c694c5f43f44e336817cd218e140b8b700d1d016cb274ead0b4b95a0480a3aa",
+    "/opt/homebrew/Cellar/erlang/29.1.1_2/lib/erlang/lib/public_key-1.21.7/ebin/public_key.beam": "fe383b2b220ca8dae2d8ac4db36145a65773f654be33f0f0a0d33da6e1584bd5"
+  },
+  "specificationLines": {
+    "371": "-type combined_cert()        :: #cert{}.",
+    "2103": "      Cert :: cert() | combined_cert() | atom(),",
+    "2104": "      CertChain :: [cert() | combined_cert()],",
+    "2581": "                              fun((combined_cert()) -> boolean)}],",
+    "2639": "-spec cacerts_get() -> [combined_cert()].",
+    "2641": "cacerts_get() ->"
+  },
+  "output": "otp-ca-source.log",
+  "outputSHA256": "1e791ac89b992ec10c6156167c79c719a2baa83e8359b0ef28d9ac155cc4bf84"
+}
