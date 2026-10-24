@@ -70,7 +70,7 @@ export function getConfig(env = process.env, { production = false } = {}) {
     production,
     signupUrl: mountedUrl(env.SIGNUP_URL?.trim() || '/docs/', basePath, production, 'SIGNUP_URL'),
     repoUrl: repo.href,
-    title: 'Mixer — Native iOS & Android apps, built with Swift',
+    title: 'Mixer | One Swift codebase for iOS and Android',
     description: 'Build beautiful native apps for iOS and Android with Swift. Ship thoughtful experiences, share your code, and deliver signed updates with confidence.',
   };
   return Object.freeze(config);

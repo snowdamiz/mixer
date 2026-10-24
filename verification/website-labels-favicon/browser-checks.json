@@ -1,0 +1,44 @@
+{
+  "tool": "Headless Google Chrome 155.0.8059.82 via DevTools protocol; curl against the local preview",
+  "origin": "http://localhost:4183/",
+  "scope": "Desktop browser responsive emulation, not physical mobile device evidence",
+  "observations": [
+    {
+      "viewport": [
+        1440,
+        900
+      ],
+      "page": "/",
+      "client_width": 1440,
+      "scroll_width": 1440,
+      "check": "iOS and Android labels sit above each hero phone and share its rotation."
+    },
+    {
+      "viewport": [
+        390,
+        844
+      ],
+      "page": "/",
+      "client_width": 390,
+      "scroll_width": 390,
+      "check": "Labels render as chips above the phones over the editor."
+    },
+    {
+      "page": "/",
+      "check": "Over-the-air card shows a version header, three rollout bars and one footer line; the bento visuals no longer draw an inner panel."
+    },
+    {
+      "page": "/",
+      "check": "Served title 'Mixer | One Swift codebase for iOS and Android'; favicon.ico, favicon-32.png, favicon-16.png and apple-touch-icon links are root-relative; /assets/favicon.ico returns 200 image/x-icon and /assets/favicon-32.png returns 200 image/png."
+    },
+    {
+      "check": "grep finds no U+2014 em dash under website/ outside node_modules and dist."
+    }
+  ],
+  "finding": "The favicon looked missing locally because a manual npm run build rewrote the served output with absolute URLs for the default port 4173 while the preview ran on 4183; icon links are now page-relative.",
+  "screenshots": [
+    "desktop-hero-labels.jpg",
+    "desktop-ship.jpg",
+    "mobile-hero-labels.jpg"
+  ]
+}

@@ -141,7 +141,7 @@
   });
 
   const tabs = [...document.querySelectorAll('[data-stage]')];
-  const fileNames = { write: 'ProjectFeature.swift', build: 'terminal — native builds', update: 'terminal — release workflow' };
+  const fileNames = { write: 'ProjectFeature.swift', build: 'terminal · native builds', update: 'terminal · release workflow' };
   function selectStage(stage, focus = false) {
     tabs.forEach(tab => {
       const active = tab.dataset.stage === stage;

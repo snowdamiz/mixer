@@ -1,0 +1,63 @@
+{
+  "schema": 1,
+  "recorded_at": "2026-10-24T04:01:52.776558+00:00",
+  "scope": "Hero platform labels, simpler over-the-air card, em dash removal and favicon links. No engine, release, legal, physical-device or GA qualification.",
+  "status": "passed-scoped-website-validation",
+  "source_revision_base": "f1dd479",
+  "source_tree_sha256": "2c61b47966415d281a62bb203aab3100acd254522aec692d7d4276ce4ce6c7a1",
+  "source_manifest": "source-manifest.json",
+  "changed_sources": [
+    "website/scripts/seo.mjs",
+    "website/site.config.mjs",
+    "website/src/app.js",
+    "website/src/index.html",
+    "website/src/styles.css",
+    "website/tests/seo.test.mjs"
+  ],
+  "tools": {
+    "node": "v22.23.3",
+    "npm": "10.9.9",
+    "browser": "Google Chrome 155.0.8059.82 headless"
+  },
+  "changes": [
+    "Added iOS and Android labels with small device glyphs above the hero phones, inside each device so they share its tilt. Generic glyphs are used instead of Apple or Android marks pending trademark review (gate G04).",
+    "Over-the-air card: removed the 'Rolling out' badge and the three status chips; one footer line remains. Bento visuals no longer draw a nested background panel.",
+    "Replaced every em dash under website/: home title, default SEO title, its test fixture, and the workflow demo's terminal labels.",
+    "Favicon, 16px and 32px PNG icons and the apple-touch icon are emitted as base-path-relative links."
+  ],
+  "commands": [
+    {
+      "command": "npm --prefix website test",
+      "exit": 0,
+      "tests": 37,
+      "passed": 37,
+      "failed": 0,
+      "skipped": 0,
+      "output": "node-tests.log"
+    },
+    {
+      "command": "npm --prefix website run build",
+      "exit": 0,
+      "files": 27,
+      "output": "build.log"
+    },
+    {
+      "command": "node --check website/src/app.js",
+      "exit": 0,
+      "output": "No diagnostics"
+    },
+    {
+      "command": "git diff --check -- website",
+      "exit": 0,
+      "output": "No whitespace diagnostics"
+    }
+  ],
+  "automated_scope": [
+    "New SEO test pins page-relative favicon and apple-touch links for root and nested base paths."
+  ],
+  "browser_evidence": "browser-checks.json",
+  "limitations": [
+    "No public domain or production deployment; preview remains noindex.",
+    "Physical phones remain disconnected; no GA gate or reviewer acceptance changed."
+  ]
+}

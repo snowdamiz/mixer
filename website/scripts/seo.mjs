@@ -56,7 +56,7 @@ function settings(config) {
   const production = config.production === true && origin.protocol === 'https:' && !localHost;
   return {
     name: config.name || 'Mixer',
-    title: config.title || 'Mixer — Swift in. Native out.',
+    title: config.title || 'Mixer | One Swift codebase for iOS and Android',
     description: config.description || 'Build native iOS and Android apps with shared Swift. Ship with local and managed builds, signed compatible updates, staged rollouts, and recovery.',
     basePath, siteUrl, production,
     absolute: path => new URL(path.replace(/^\//, ''), siteUrl).href
@@ -125,6 +125,8 @@ export function createSeoHead({ pathname = '/', config }) {
   const meta = (name, content) => `<meta name="${escapeHtml(name)}" content="${escapeHtml(content)}">`;
   const property = (name, content) => `<meta property="${escapeHtml(name)}" content="${escapeHtml(content)}">`;
   const link = (rel, path, extra = '') => `<link rel="${rel}" href="${escapeHtml(options.absolute(path))}"${extra}>`;
+  // Icons resolve against the page, so they load from whichever host and port serve the build.
+  const icon = (rel, path, extra = '') => `<link rel="${rel}" href="${escapeHtml(`${options.basePath}${path.replace(/^\//, '')}`)}"${extra}>`;
   const lines = [
     `<title>${escapeHtml(page.title)}</title>`,
     meta('description', page.description),
@@ -146,8 +148,10 @@ export function createSeoHead({ pathname = '/', config }) {
     meta('twitter:description', page.description),
     meta('twitter:image', options.absolute('/assets/og-mixer.png')),
     meta('twitter:image:alt', IMAGE_ALT),
-    link('icon', '/assets/favicon-32.png', ' type="image/png" sizes="32x32"'),
-    link('apple-touch-icon', '/assets/apple-touch-icon.png', ' sizes="180x180"'),
+    icon('icon', '/assets/favicon.ico', ' sizes="any"'),
+    icon('icon', '/assets/favicon-32.png', ' type="image/png" sizes="32x32"'),
+    icon('icon', '/assets/favicon-16.png', ' type="image/png" sizes="16x16"'),
+    icon('apple-touch-icon', '/assets/apple-touch-icon.png', ' sizes="180x180"'),
     link('manifest', '/site.webmanifest')
   ];
   if (!is404) {

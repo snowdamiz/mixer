@@ -11,13 +11,23 @@ const production = Object.freeze({
   production: true,
   signupUrl: '/docs/',
   repoUrl: 'https://github.com/snowdamiz/mixer',
-  title: 'Mixer — Swift in. Native out.',
+  title: 'Mixer | Swift in. Native out.',
   description: 'Build native iOS and Android apps with shared Swift and controlled releases.'
 });
 
 const head = (pathname, changes = {}) => createSeoHead({ pathname, config: { ...production, ...changes } });
 const graph = markup => JSON.parse(markup.match(/<script type="application\/ld\+json">([^]*?)<\/script>/)[1])['@graph'];
 const store = JSON.parse(await readFile(new URL('../marketing/app-store.json', import.meta.url), 'utf8'));
+
+test('favicons resolve against the page so any host or port can serve them', () => {
+  for (const basePath of ['/', '/v1.0/preview/']) {
+    const markup = head('/', { basePath, siteUrl: `https://example.org${basePath}` });
+    assert.ok(markup.includes(`<link rel="icon" href="${basePath}assets/favicon.ico" sizes="any">`));
+    assert.ok(markup.includes(`<link rel="icon" href="${basePath}assets/favicon-32.png" type="image/png" sizes="32x32">`));
+    assert.ok(markup.includes(`<link rel="icon" href="${basePath}assets/favicon-16.png" type="image/png" sizes="16x16">`));
+    assert.ok(markup.includes(`<link rel="apple-touch-icon" href="${basePath}assets/apple-touch-icon.png" sizes="180x180">`));
+  }
+});
 
 test('home head has the configured title, description, and exactly one canonical', () => {
   const markup = head('/');
