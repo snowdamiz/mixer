@@ -1,7 +1,7 @@
 # Private native V2 transaction independent review
 
-The bounded JNI/CLI source audit and final Android headless source/evidence
-review pass. **Current native acceptance is pending.** Apple switch paint/input
+The bounded JNI/CLI source audit and final Android/Apple headless source/evidence
+reviews pass. **Current native acceptance is pending.** Apple switch paint/input
 qualification remains unresolved, and current Android Section/baseline
 regressions have compiled but have not run on Android. The user paused computer
 use, screen capture and native simulator/emulator runtime work before those
@@ -147,3 +147,55 @@ installed-app/native-artifact binding. It issued no acceptance receipt and needs
 reconciliation with the eventual frozen Apple paint path before use. Current
 native acceptance remains false, all deferred product/physical/GA gates remain
 open, and no OTA publication is authorized by this source/headless review.
+
+## Subsequent Apple final-coordinate review
+
+The separately requested Apple headless audit found a concrete gap in the
+initial cover proof. Its overlap guards used logical row positions, but commit
+rounded each row's absolute edges while leaving native child/cover frames local
+and unsnapped. Admitted fractional metrics could turn logical contact into an
+actual overlap. The independently retained Fraction model produces a 19/64pt
+overlap at density1024, using row heights of 52.296875 pt and 59.703125 pt; its inputs
+and source snapshots are in `cover-snap-counterexample-1/`. This is explicitly a
+host arithmetic derivation, not an executed UIKit/native fixture. The original
+`headless-cover-baselines` compile receipt is historical and superseded.
+
+The bounded repair introduces `AppearanceNativeGeometryV2`: preparation computes
+final attachment frames once, builds the complete detached hierarchy with those
+frames, then checks actual converted label/native-hit/visual/full-fill bounds
+against the cover in the same group coordinates. It also checks final row
+carrier containment, the actual final group bounds and the closed convex group
+path. Commit consumes those exact prepared frames without independent rounding.
+Required unsupported wrapper bounds/transforms/scroll zoom reject before live
+effects. Common ancestor scroll content offsets cancel from group-relative
+comparisons; nested List/nonroot Navigation contexts already reject in resolver
+preflight. Own-label overlap, neighboring descendant content/input/paint, opaque
+surface, rounded edge and outside-list restrictions remain fail-closed.
+
+The narrow source recheck identified no remaining blocker in that coordinate
+repair or the agreed Section/HStack/control-baseline changes.
+
+`verification/native-v2-transaction-independent-review/apple-headless-review-2/receipt.json`
+passes **376 checks across 60 evidence files**, binding the corrected producer
+`headless-cover-final-coordinates` closure of 36 live/captured/archived inputs:
+`81a376c19b38281a5e82a033e67b17f98dd1e09aab7e8f4fbed932263a6adc56`.
+It verifies 18 retained compile/tool commands, seven binary archive members and
+eight passing pure macOS CoreGraphics outcomes against the exact production
+geometry helper. Raw host output and all compiler warnings remain retained.
+Direct Mach-O parsing confirms the harness and three product dylibs are arm64
+iOS Simulator binaries with minimumOS17; the separate helper and its two dylibs
+are macOS artifacts. The two detached UIKit regression definitions and complete
+native baseline harness compiled but were not executed.
+
+Reviewer attempt1 remains failed because the reader assumed host dylibs used
+`@rpath` install names. Their recorded compile commands declare bounded absolute
+temporary paths. The corrected reader checks those exact identities and host
+load dependencies; the original failed receipt and exact reader bytes remain
+retained. No producer source or receipt was changed by the reviewer.
+
+This headless result cannot establish that 12 pt covers native glass, native
+hit/activation behavior, accessibility or held/release/cancel pixels. Default
+nonempty RTL and long-label exclusions remain explicit; no guard was relaxed
+to force a fixture through. No native acceptance is issued by this continuation.
+Prior Android/JNI seals and `completion.json` remain unchanged; the subsequent
+Apple completion seal is `completion-apple-headless-1.json`.

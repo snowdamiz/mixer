@@ -23,7 +23,8 @@ and Android application paths still use platform defaults and do not meet this r
 The shared appearance data foundation now has independent and root acceptance.
 The private Android consumer now implements shared style consumption; its latest
 source has headless acceptance, with native revalidation pending. The private
-Apple consumer is still being refined and is not accepted.
+Apple consumer now has scoped headless acceptance; native appearance remains
+unqualified.
 Eight unchanged iOS simulator reference screenshots are captured and reviewed.
 Native accessibility, navigation, text input and
 system-owned surfaces remain native. Prior interaction/device receipts are not
@@ -31,6 +32,14 @@ design-parity evidence. Simulator/emulator visual and interaction tests are now
 sufficient for development acceptance; physical side-by-side review is deferred
 to final acceptance. See `verification/ui-design-parity-plan-update/receipt.json`
 and `verification/simulator-development-policy/receipt.json`.
+
+The next interpreter control-helper extraction failed its memory-accounting
+preflight before production edits. Four isolated compiler probes preserve the
+unchanged VM source and reservation. A smaller literal macro extraction passed
+its expansion/layout preflight and is now being implemented under a separate
+freeze; executable behavior acceptance remains pending. This rejection is retained in
+`verification/swift-control-extraction/root-rejection.json` and does not change
+the accepted zero-frame value-operation scope.
 
 Active work: native shared-theme renderer integration and failure-atomic
 attachment for W03–W05, plus complete Swift guest execution for W08. Both V2
@@ -46,6 +55,17 @@ reject in the bounded shared subset. The consumer supports systemSans and an
 empty resource catalog only, with a private runtime floor of API36. Public V1
 behavior is unchanged; this is not shared-design or G06 acceptance. See
 `verification/android-native-appearance-v2/root-headless-acceptance.json`.
+
+The private Apple consumer now has headless source/compile acceptance. Root
+verifies 64 bindings and replays all eight pure production CoreGraphics geometry
+checks using the retained host binary and exact archived libraries. Independent
+review performs 376 checks across 36 sources and seven binaries. The complete
+iOS17 consumer/harness compiles; final snapped frames are prepared once and used
+unchanged for detached overlap/carrier checks and attachment. UIKit regression
+fixtures are compiled only. The opaque switch cover's 12pt margin is not a proven
+bound on native glass; native pressed/cancel/input/accessibility/IME/RTL and design
+qualification remain pending. See
+`verification/apple-native-v2-root-review/acceptance.json`.
 
 Private JNI preparation now owns delivered packet copies, aborts failed delivery
 and retires uncertain cleanup. Root replay reproduces 585 production and 199
@@ -104,6 +124,10 @@ clean source snapshot. All three `d6c41a0` hosted jobs now pass, including the
 fresh private Android host runner under Swift 6.2.4. See
 `verification/swift-minimal-descriptor-ci-repair/receipt.json` and
 `verification/github-ci-d6c41a0/receipt.json`.
+
+Latest delivered checkpoint `6341a56` passes all three VM/Swift/services CI jobs;
+its parent pause checkpoint `ebd7324` also passes. See their receipts under
+`verification/github-ci-6341a56/` and `verification/github-ci-ebd7324/`.
 
 Latest hosted evidence: `09dac10`, `958998d`, `0f177ad` and `5988e4a` pass all three
 VM/Swift/services jobs. `7c2baeb`, `aa87c6e`, `d40c540`, `542e040` and `7855754` also pass all three jobs.

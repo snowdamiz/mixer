@@ -1,0 +1,533 @@
+{
+  "baselineReservationFormulaUnchanged": true,
+  "baselineReservationHostBytes": 2912,
+  "bindingGroups": [
+    {
+      "actualTypes": [
+        "&mut SpanInstance",
+        "Result<Value, ExecutionFailure>"
+      ],
+      "additionalBytes": 0,
+      "additionalPositions": 0,
+      "baselineExpression": "match self.pop()?",
+      "candidateExpandedExpression": "identical to baselineExpression",
+      "method": "pop32",
+      "name": "receiver_and_pop",
+      "originalPositions": [
+        "original receiver argument",
+        "original pop self reborrow",
+        "original pop result source/return/caller"
+      ],
+      "witness": "exact compiler-expanded method equality; method is emitted in place, not called through a new boundary"
+    },
+    {
+      "actualTypes": [
+        "ControlFlow<Result<Infallible, ExecutionFailure>, Value>",
+        "Result<Infallible, ExecutionFailure>"
+      ],
+      "additionalBytes": 0,
+      "additionalPositions": 0,
+      "baselineExpression": "self.pop()?",
+      "candidateExpandedExpression": "identical to baselineExpression",
+      "method": "pop32",
+      "name": "pop_try",
+      "originalPositions": [
+        "original Try source/return/caller",
+        "original residual transfer source/argument/parameter"
+      ],
+      "witness": "exact compiler-expanded method equality; method is emitted in place, not called through a new boundary"
+    },
+    {
+      "actualTypes": [
+        "Value",
+        "i32",
+        "Result<i32, ExecutionFailure>"
+      ],
+      "additionalBytes": 0,
+      "additionalPositions": 0,
+      "baselineExpression": "Value::I32(value) => Ok(value)",
+      "candidateExpandedExpression": "identical to baselineExpression",
+      "method": "pop32",
+      "name": "match_and_return",
+      "originalPositions": [
+        "original matched Value",
+        "original i32 payload",
+        "original owner result source/return/caller"
+      ],
+      "witness": "exact compiler-expanded method equality; method is emitted in place, not called through a new boundary"
+    },
+    {
+      "actualTypes": [
+        "&SpanInstance",
+        "ExecutionFailure",
+        "Result<i32, ExecutionFailure>"
+      ],
+      "additionalBytes": 0,
+      "additionalPositions": 0,
+      "baselineExpression": "_ => Err(self.invariant())",
+      "candidateExpandedExpression": "identical to baselineExpression",
+      "method": "pop32",
+      "name": "invariant",
+      "originalPositions": [
+        "original invariant/error receiver chain",
+        "original failure source/return/caller",
+        "original result source/return/caller"
+      ],
+      "witness": "exact compiler-expanded method equality; method is emitted in place, not called through a new boundary"
+    },
+    {
+      "actualTypes": [
+        "&mut SpanInstance",
+        "Control",
+        "Option<Value>",
+        "Value"
+      ],
+      "additionalBytes": 0,
+      "additionalPositions": 0,
+      "baselineExpression": "fn close_control(&mut self, control: Control)",
+      "candidateExpandedExpression": "identical to baselineExpression",
+      "method": "close_control",
+      "name": "arguments_and_saved_result",
+      "originalPositions": [
+        "original receiver",
+        "original by-value Control argument",
+        "original optional saved result",
+        "original Some payload passed to push"
+      ],
+      "witness": "exact compiler-expanded method equality; method is emitted in place, not called through a new boundary"
+    },
+    {
+      "actualTypes": [
+        "Result<Value, ExecutionFailure>",
+        "ControlFlow<Result<Infallible, ExecutionFailure>, Value>",
+        "Result<Infallible, ExecutionFailure>"
+      ],
+      "additionalBytes": 0,
+      "additionalPositions": 0,
+      "baselineExpression": "Some(self.pop()?)",
+      "candidateExpandedExpression": "identical to baselineExpression",
+      "method": "close_control",
+      "name": "result_pop",
+      "originalPositions": [
+        "original pop result source/return/caller",
+        "original Try source/return/caller",
+        "original residual source/argument/parameter"
+      ],
+      "witness": "exact compiler-expanded method equality; method is emitted in place, not called through a new boundary"
+    },
+    {
+      "actualTypes": [
+        "usize",
+        "bool",
+        "&Vec<Value>",
+        "ExecutionFailure"
+      ],
+      "additionalBytes": 0,
+      "additionalPositions": 0,
+      "baselineExpression": "if control.height > self.values.len()",
+      "candidateExpandedExpression": "identical to baselineExpression",
+      "method": "close_control",
+      "name": "height_validation",
+      "originalPositions": [
+        "original height/length comparison values",
+        "original arena receiver borrow",
+        "original invariant/error chain"
+      ],
+      "witness": "exact compiler-expanded method equality; method is emitted in place, not called through a new boundary"
+    },
+    {
+      "actualTypes": [
+        "usize",
+        "&Vec<Value>"
+      ],
+      "additionalBytes": 0,
+      "additionalPositions": 0,
+      "baselineExpression": "self.values.len() - control.height + 1",
+      "candidateExpandedExpression": "identical to baselineExpression",
+      "method": "close_control",
+      "name": "work_amount",
+      "originalPositions": [
+        "original len source/return/caller",
+        "original subtraction/addition and work argument"
+      ],
+      "witness": "exact compiler-expanded method equality; method is emitted in place, not called through a new boundary"
+    },
+    {
+      "actualTypes": [
+        "Result<(), ExecutionFailure>",
+        "ControlFlow<Result<Infallible, ExecutionFailure>, ()>",
+        "Result<Infallible, ExecutionFailure>"
+      ],
+      "additionalBytes": 0,
+      "additionalPositions": 0,
+      "baselineExpression": "self.work(self.values.len() - control.height + 1)?",
+      "candidateExpandedExpression": "identical to baselineExpression",
+      "method": "close_control",
+      "name": "work_boundary",
+      "originalPositions": [
+        "original direct work result source/return/caller",
+        "original Try source/return/caller",
+        "original residual source/argument/parameter"
+      ],
+      "witness": "exact compiler-expanded method equality; method is emitted in place, not called through a new boundary"
+    },
+    {
+      "actualTypes": [
+        "&mut Vec<Value>",
+        "usize",
+        "&mut SpanInstance",
+        "()"
+      ],
+      "additionalBytes": 0,
+      "additionalPositions": 0,
+      "baselineExpression": "self.values.truncate(control.height); self.observe();",
+      "candidateExpandedExpression": "identical to baselineExpression",
+      "method": "close_control",
+      "name": "truncate_and_observe",
+      "originalPositions": [
+        "original truncate receiver/height argument",
+        "original observe self receiver",
+        "original unit returns; no new Result"
+      ],
+      "witness": "exact compiler-expanded method equality; method is emitted in place, not called through a new boundary"
+    },
+    {
+      "actualTypes": [
+        "Value",
+        "Result<(), ExecutionFailure>",
+        "ControlFlow<Result<Infallible, ExecutionFailure>, ()>",
+        "Result<Infallible, ExecutionFailure>"
+      ],
+      "additionalBytes": 0,
+      "additionalPositions": 0,
+      "baselineExpression": "if let Some(value) = value { self.push(value)?; }",
+      "candidateExpandedExpression": "identical to baselineExpression",
+      "method": "close_control",
+      "name": "saved_result_push",
+      "originalPositions": [
+        "original saved value/argument",
+        "original push result source/return/caller",
+        "original Try source/return/caller",
+        "original residual source/argument/parameter"
+      ],
+      "witness": "exact compiler-expanded method equality; method is emitted in place, not called through a new boundary"
+    },
+    {
+      "actualTypes": [
+        "Result<(), ExecutionFailure>"
+      ],
+      "additionalBytes": 0,
+      "additionalPositions": 0,
+      "baselineExpression": "Ok(())",
+      "candidateExpandedExpression": "identical to baselineExpression",
+      "method": "close_control",
+      "name": "completion",
+      "originalPositions": [
+        "original method result source/return/caller; no wrapper method"
+      ],
+      "witness": "exact compiler-expanded method equality; method is emitted in place, not called through a new boundary"
+    },
+    {
+      "actualTypes": [
+        "&mut SpanInstance",
+        "u32",
+        "Option<&Frame>",
+        "Result<&Frame, ExecutionFailure>",
+        "&Frame"
+      ],
+      "additionalBytes": 0,
+      "additionalPositions": 0,
+      "baselineExpression": "let frame = self.frames.last().ok_or_else(|| self.invariant())?;",
+      "candidateExpandedExpression": "identical to baselineExpression",
+      "method": "branch",
+      "name": "receiver_depth_frame",
+      "originalPositions": [
+        "original receiver/depth argument",
+        "original frame Option/result source/return/caller",
+        "original immutable frame reference and invariant closure capture"
+      ],
+      "witness": "exact compiler-expanded method equality; method is emitted in place, not called through a new boundary"
+    },
+    {
+      "actualTypes": [
+        "ControlFlow<Result<Infallible, ExecutionFailure>, &Frame>",
+        "Result<Infallible, ExecutionFailure>"
+      ],
+      "additionalBytes": 0,
+      "additionalPositions": 0,
+      "baselineExpression": "self.frames.last().ok_or_else(|| self.invariant())?",
+      "candidateExpandedExpression": "identical to baselineExpression",
+      "method": "branch",
+      "name": "frame_try",
+      "originalPositions": [
+        "original frame Try source/return/caller",
+        "original residual source/argument/parameter"
+      ],
+      "witness": "exact compiler-expanded method equality; method is emitted in place, not called through a new boundary"
+    },
+    {
+      "actualTypes": [
+        "usize",
+        "Option<usize>",
+        "Result<usize, ExecutionFailure>",
+        "&usize",
+        "bool"
+      ],
+      "additionalBytes": 0,
+      "additionalPositions": 0,
+      "baselineExpression": "self.controls.len().checked_sub(depth as usize + 1).filter(|i| *i >= frame.controls).ok_or_else(|| self.invariant())?",
+      "candidateExpandedExpression": "identical to baselineExpression",
+      "method": "branch",
+      "name": "checked_target",
+      "originalPositions": [
+        "original controls len/checked-sub/Option source/return/caller",
+        "original filter index reference and frame capture",
+        "original index result source/return/caller",
+        "original invariant closure capture"
+      ],
+      "witness": "exact compiler-expanded method equality; method is emitted in place, not called through a new boundary"
+    },
+    {
+      "actualTypes": [
+        "ControlFlow<Result<Infallible, ExecutionFailure>, usize>",
+        "Result<Infallible, ExecutionFailure>"
+      ],
+      "additionalBytes": 0,
+      "additionalPositions": 0,
+      "baselineExpression": "checked_sub(...).filter(...).ok_or_else(...)?",
+      "candidateExpandedExpression": "identical to baselineExpression",
+      "method": "branch",
+      "name": "index_try",
+      "originalPositions": [
+        "original index Try source/return/caller",
+        "original residual source/argument/parameter"
+      ],
+      "witness": "exact compiler-expanded method equality; method is emitted in place, not called through a new boundary"
+    },
+    {
+      "actualTypes": [
+        "Control",
+        "usize",
+        "&Vec<Control>"
+      ],
+      "additionalBytes": 0,
+      "additionalPositions": 0,
+      "baselineExpression": "let mut control = self.controls[index];",
+      "candidateExpandedExpression": "identical to baselineExpression",
+      "method": "branch",
+      "name": "selected_control",
+      "originalPositions": [
+        "original copied Control",
+        "original index",
+        "original controls arena borrow"
+      ],
+      "witness": "exact compiler-expanded method equality; method is emitted in place, not called through a new boundary"
+    },
+    {
+      "actualTypes": [
+        "usize",
+        "Result<(), ExecutionFailure>",
+        "ControlFlow<Result<Infallible, ExecutionFailure>, ()>",
+        "Result<Infallible, ExecutionFailure>"
+      ],
+      "additionalBytes": 0,
+      "additionalPositions": 0,
+      "baselineExpression": "self.work(self.controls.len() - index)?",
+      "candidateExpandedExpression": "identical to baselineExpression",
+      "method": "branch",
+      "name": "branch_work",
+      "originalPositions": [
+        "original work amount argument",
+        "original direct work result source/return/caller",
+        "original Try source/return/caller",
+        "original residual source/argument/parameter"
+      ],
+      "witness": "exact compiler-expanded method equality; method is emitted in place, not called through a new boundary"
+    },
+    {
+      "actualTypes": [
+        "Kind",
+        "bool",
+        "Control"
+      ],
+      "additionalBytes": 0,
+      "additionalPositions": 0,
+      "baselineExpression": "if control.kind == Kind::Loop { control.result = false; }",
+      "candidateExpandedExpression": "identical to baselineExpression",
+      "method": "branch",
+      "name": "loop_result",
+      "originalPositions": [
+        "original kind comparison",
+        "original copied Control result flag; stored Control unchanged"
+      ],
+      "witness": "exact compiler-expanded method equality; method is emitted in place, not called through a new boundary"
+    },
+    {
+      "actualTypes": [
+        "Control",
+        "Result<(), ExecutionFailure>",
+        "ControlFlow<Result<Infallible, ExecutionFailure>, ()>",
+        "Result<Infallible, ExecutionFailure>"
+      ],
+      "additionalBytes": 0,
+      "additionalPositions": 0,
+      "baselineExpression": "self.close_control(control)?",
+      "candidateExpandedExpression": "identical to baselineExpression",
+      "method": "branch",
+      "name": "close_boundary",
+      "originalPositions": [
+        "original Control argument",
+        "original direct close result source/return/caller",
+        "original Try source/return/caller",
+        "original residual source/argument/parameter"
+      ],
+      "witness": "exact compiler-expanded method equality; method is emitted in place, not called through a new boundary"
+    },
+    {
+      "actualTypes": [
+        "&mut Vec<Control>",
+        "Kind",
+        "bool",
+        "usize",
+        "()"
+      ],
+      "additionalBytes": 0,
+      "additionalPositions": 0,
+      "baselineExpression": "self.controls.truncate(if control.kind == Kind::Loop { index + 1 } else { index });",
+      "candidateExpandedExpression": "identical to baselineExpression",
+      "method": "branch",
+      "name": "truncate_controls",
+      "originalPositions": [
+        "original controls receiver",
+        "original kind comparison",
+        "original selected truncate length and unit return"
+      ],
+      "witness": "exact compiler-expanded method equality; method is emitted in place, not called through a new boundary"
+    },
+    {
+      "actualTypes": [
+        "Kind",
+        "bool",
+        "usize"
+      ],
+      "additionalBytes": 0,
+      "additionalPositions": 0,
+      "baselineExpression": "let pc = if control.kind == Kind::Loop { control.start } else { control.end + 1 };",
+      "candidateExpandedExpression": "identical to baselineExpression",
+      "method": "branch",
+      "name": "pc",
+      "originalPositions": [
+        "original kind comparison",
+        "original selected pc scalar"
+      ],
+      "witness": "exact compiler-expanded method equality; method is emitted in place, not called through a new boundary"
+    },
+    {
+      "actualTypes": [
+        "Option<&mut Frame>",
+        "Result<&mut Frame, ExecutionFailure>",
+        "&mut Frame"
+      ],
+      "additionalBytes": 0,
+      "additionalPositions": 0,
+      "baselineExpression": "self.frames.last_mut().ok_or_else(unreachable_failure)?.pc = pc;",
+      "candidateExpandedExpression": "identical to baselineExpression",
+      "method": "branch",
+      "name": "mutable_frame",
+      "originalPositions": [
+        "original mutable frame Option/result source/return/caller",
+        "original zero-capture function item",
+        "original pc assignment"
+      ],
+      "witness": "exact compiler-expanded method equality; method is emitted in place, not called through a new boundary"
+    },
+    {
+      "actualTypes": [
+        "ControlFlow<Result<Infallible, ExecutionFailure>, &mut Frame>",
+        "Result<Infallible, ExecutionFailure>"
+      ],
+      "additionalBytes": 0,
+      "additionalPositions": 0,
+      "baselineExpression": "self.frames.last_mut().ok_or_else(unreachable_failure)?",
+      "candidateExpandedExpression": "identical to baselineExpression",
+      "method": "branch",
+      "name": "mutable_frame_try",
+      "originalPositions": [
+        "original mutable-frame Try source/return/caller",
+        "original residual source/argument/parameter"
+      ],
+      "witness": "exact compiler-expanded method equality; method is emitted in place, not called through a new boundary"
+    },
+    {
+      "actualTypes": [
+        "&mut SpanInstance",
+        "Kind",
+        "bool",
+        "Result<bool, ExecutionFailure>"
+      ],
+      "additionalBytes": 0,
+      "additionalPositions": 0,
+      "baselineExpression": "self.observe(); Ok(control.kind == Kind::Function)",
+      "candidateExpandedExpression": "identical to baselineExpression",
+      "method": "branch",
+      "name": "observe_and_completion",
+      "originalPositions": [
+        "original observe receiver/unit return",
+        "original completion kind comparison",
+        "original owner result source/return/caller; no wrapper method"
+      ],
+      "witness": "exact compiler-expanded method equality; method is emitted in place, not called through a new boundary"
+    },
+    {
+      "actualTypes": [
+        "DecodedInstruction",
+        "Control",
+        "Option<u32>",
+        "bool",
+        "Result<Option<Value>, ExecutionFailure>"
+      ],
+      "additionalBytes": 0,
+      "additionalPositions": 0,
+      "baselineExpression": "run/close_control/branch/finish and all existing pop32 callsites",
+      "candidateExpandedExpression": "identical to baselineExpression",
+      "method": "caller",
+      "name": "unchanged_outer_positions",
+      "originalPositions": [
+        "original run selected instruction/target/finished",
+        "original End Control copy",
+        "original source/return/caller results",
+        "unchanged direct owner call graph"
+      ],
+      "witness": "exact compiler-expanded method equality; method is emitted in place, not called through a new boundary"
+    }
+  ],
+  "byteDeltaClaim": 0,
+  "failureTransferAddedPositions": 0,
+  "frozenFormulaTerms": [
+    "exclusive SpanInstance minus FunctionCache",
+    "3 original ExecutionFailure positions",
+    "2 original CacheFailure positions",
+    "DecodedInstruction",
+    "Control",
+    "ScalarReader",
+    "512 original scalar component"
+  ],
+  "futureSwiftExecution": "Not implemented or authorized; literal self.fields macro cannot currently expand on ExecutionOperationPhase",
+  "invocation": "borrowed::frozen_control_methods!();",
+  "methodNames": [
+    "pop32",
+    "close_control",
+    "branch"
+  ],
+  "numericOccupancy": "No numeric position is reassigned or borrowed; numeric source and call graph unchanged.",
+  "requires": "Exact compiler-expanded method equality and actual type/layout equality. This is a delta map, not a fresh proof of completeness of the historically accepted baseline inventory.",
+  "runtimeAddedBoundaries": 0,
+  "runtimeAddedObjects": 0,
+  "schema": 1,
+  "scope": "Unchanged positions in compiler-identical private inherent method expansions; no new named runtime objects",
+  "trySites": {
+    "branch": 5,
+    "close_control": 3,
+    "pop32": 1
+  }
+}

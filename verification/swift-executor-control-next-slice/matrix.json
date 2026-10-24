@@ -1,0 +1,229 @@
+{
+  "commandExpansion": "cwd is archived vm; append --release for release; use --all-features in place of --features NAME for all. Every source/profile/metadata variant uses a disjoint fresh CARGO_TARGET_DIR. Build binaries, retain --list, and assert exact expected test identities/counts before interpreting execution results.",
+  "deferred": [
+    "Swift ControlMode adapter",
+    "Swift frame preparation/entry/finish/unwind and multiple rejected pin ownership",
+    "instruction selection/dispatch",
+    "Block/Else/End dispatch extraction",
+    "memory/host/growth",
+    "full target and GA"
+  ],
+  "environmentRestrictions": [
+    "host only",
+    "no computer use or capture",
+    "no native simulator/emulator runtime",
+    "no phone discovery or runs",
+    "no publication or customer messages"
+  ],
+  "futureCommands": [
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--features",
+        "experimental-span-execution",
+        "--test",
+        "span_control_extraction",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "features": [
+        "span",
+        "all"
+      ],
+      "profiles": [
+        "debug",
+        "release"
+      ],
+      "status": "pending-new-tests"
+    },
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--features",
+        "experimental-span-execution",
+        "--test",
+        "span_execution",
+        "--test",
+        "span_execution_allocations",
+        "--test",
+        "span_numeric_extraction",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "features": [
+        "span",
+        "all"
+      ],
+      "profiles": [
+        "debug",
+        "release"
+      ],
+      "status": "pending-regression"
+    },
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--features",
+        "experimental-swift-reactor",
+        "--lib",
+        "swift_values_",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "features": [
+        "swift",
+        "all"
+      ],
+      "profiles": [
+        "debug",
+        "release"
+      ],
+      "status": "pending-accepted-value-regression"
+    },
+    {
+      "argv": [
+        "cargo",
+        "check",
+        "--locked",
+        "--offline",
+        "--lib"
+      ],
+      "features": [
+        "default",
+        "span",
+        "swift",
+        "all"
+      ],
+      "status": "pending-compile"
+    },
+    {
+      "argv": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "status": "pending-format"
+    },
+    {
+      "argv": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--lib",
+        "--all-features",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "status": "pending-scoped-lint"
+    }
+  ],
+  "layoutReview": {
+    "assertions": [
+      "all accepted owner fields/sizes/offsets unchanged",
+      "frozen reservation formula unchanged",
+      "every new source/return/caller and Try branch/residual binding covered disjointly",
+      "do not reuse accepted numeric or Swift value positions"
+    ],
+    "configurations": "minimal Swift/all features x Debug/Release x production/unit",
+    "status": "pending-compiled-probe-and-independent-map"
+  },
+  "newTarget": "span_control_extraction",
+  "newTests": [
+    {
+      "assertions": [
+        "hand-authored block/loop/function branches with and without results",
+        "br_if false/true and br_table chosen/default/-1 selector",
+        "baseline/candidate exact value/trap/cursor/failure/usage/cache/reservation/allocator trace equality",
+        "no removed runtime test identities"
+      ],
+      "name": "shared_control_public_parity_trace"
+    },
+    {
+      "assertions": [
+        "result pop precedes close-height check and close-work charge",
+        "truncate precedes saved-result push",
+        "non-i32 pop32 consumes its value before invariant",
+        "End removes its Control and charges its fixed credit before close"
+      ],
+      "name": "shared_control_close_partial_effects"
+    },
+    {
+      "assertions": [
+        "loop preserves target Control and discards copied result arity",
+        "block/function truncate target Control",
+        "branch pc equals loop start or end+1",
+        "depth cannot address caller Controls",
+        "no frame/pin ownership changes inside helper"
+      ],
+      "name": "shared_control_branch_targets_and_frame_boundary"
+    },
+    {
+      "assertions": [
+        "all attainable execution-work prefixes for bounded fixtures match baseline",
+        "fuel debit/instruction count remain solely in old dispatch",
+        "failed control work preserves exact existing partial effects",
+        "repeated terminal invoke has identical outcome and no effect"
+      ],
+      "name": "shared_control_work_and_fuel_prefixes"
+    },
+    {
+      "assertions": [
+        "warm every involved function before isolated interval",
+        "refuse first allocation and observe zero requests/reallocations",
+        "fixed Vec capacities and reservations unchanged",
+        "cold cache decode allocation ordinals recorded separately"
+      ],
+      "name": "shared_control_warm_dispatch_allocation_free"
+    },
+    {
+      "assertions": [
+        "cancel before invocation and selected existing charged boundaries",
+        "aggregate/function control ceilings and value/operand ceilings remain distinct",
+        "nested/recursive public calls clean all pins on terminal error",
+        "earlier failure and cache/source cursor remain unchanged"
+      ],
+      "name": "shared_control_cancellation_and_limits"
+    }
+  ],
+  "requiredConfigurations": [
+    {
+      "features": [
+        "experimental-span-execution"
+      ],
+      "profile": "debug"
+    },
+    {
+      "features": [
+        "experimental-span-execution"
+      ],
+      "profile": "release"
+    },
+    {
+      "features": "all",
+      "profile": "debug"
+    },
+    {
+      "features": "all",
+      "profile": "release"
+    }
+  ],
+  "schema": 1,
+  "scope": "Frozen-only pop32/close_control/branch extraction; no Swift active frames or dispatcher",
+  "status": "planned-not-executed"
+}

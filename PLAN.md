@@ -67,6 +67,28 @@ the user restores native testing; continue coordinator/runtime implementation
 headlessly in the meantime. Public application paths remain V1, and no GA or
 dogfood gate is passed.
 
+The Apple private consumer has scoped headless acceptance at
+`verification/apple-native-v2-root-review/acceptance.json`: exact final snapped
+placements are shared by detached validation and attachment, eight production
+CoreGraphics math checks pass, and the iOS17 consumer/harness compiles. Current
+native paint/input/RTL qualification remains pending. The ordinary Android
+coordinator is now an independent private implementation lane under
+`verification/android-native-v2-coordinator/root-contract.json`; it does not opt
+in the public Activity or signed route.
+
+The W08 control-helper extraction stopped at its accounting prerequisite:
+the proposed fallible adapters add at least 1,176 bytes of named result-transfer
+storage, exceeding the entire 512-byte scalar allowance by 664 bytes before
+other roles. All 116 VM source files remain unchanged. Root retained the rejected
+proposal and four isolated compiler probes at
+`verification/swift-control-extraction/root-rejection.json`. A smaller private
+literal macro has separate implementation authorization at
+`verification/swift-control-macro-extraction/root-freeze.json` after exact compiler
+expansion, unchanged layout/formula and privacy checks. Its executable behavior
+acceptance remains pending.
+Swift active frames and their complete entry/finish/unwind ownership, dispatch,
+memory and host integration remain subsequent work.
+
 The private Android host binding is now accepted within its recorded host scope;
 see `verification/android-binding-stage4-root-review/acceptance.json`. Root
 verified 4,149 acceptance bindings after independent review of 3,182 files and
