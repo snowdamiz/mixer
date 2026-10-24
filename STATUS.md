@@ -111,7 +111,11 @@ Observed implementation and evidence:
   deliberate semantic faults detected. All ten kinds preserve identities and
   exact profile, group and state data. See
   `verification/ui-appearance-resolution-v2-root-review/acceptance.json`.
-  Android V2 resolution is under independent review. Closed native curve
+  Android V2 resolution now has root acceptance with 2,143 bindings: 185 actual
+  Swift/JVM differential cases, 6,279 independent assertions per JVM mode and
+  eight detected semantic mutants. The complete 12-source Java application
+  closure compiles through D8 minimum API28. See
+  `verification/android-v2-resolver-root-review/acceptance.json`. Closed native curve
   adapters now have root acceptance with 195 bindings: 131 full SDK tests per
   Debug/Release and iOS17 compilation; 5,610 actual Android API37 emulator checks
   across 45 native paths. See

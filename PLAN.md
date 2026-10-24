@@ -131,7 +131,12 @@ bindings, 127 SDK tests per Debug/Release and 133 independent cases per build.
 The independent oracle detects all six deliberate semantic faults, including lost
 disabled inheritance, profile collapse and alpha loss. See
 `verification/ui-appearance-resolution-v2-root-review/acceptance.json`.
-Android V2 resolution is under independent review. Closed native drawing
+Android V2 resolution now has root acceptance with 2,143 bindings. Actual Swift
+Debug/Release and JVM default/interpreted outputs agree across 185 cases;
+independent review passes 6,279 assertions per JVM mode and detects eight
+semantic mutants. All twelve Java application sources compile through D8
+minimum API28. See `verification/android-v2-resolver-root-review/acceptance.json`.
+Closed native drawing
 primitives now have root acceptance with 195 bindings: actual macOS CoreGraphics
 checks, 131 SDK tests per Debug/Release, iOS17 compilation and 5,610 Android
 API37 emulator checks across 45 paths. See
