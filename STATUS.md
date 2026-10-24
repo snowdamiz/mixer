@@ -19,7 +19,12 @@ system-owned surfaces remain native. Prior interaction/device receipts are not
 design-parity evidence; physical side-by-side review remains pending while phones
 are disconnected. See `verification/ui-design-parity-plan-update/receipt.json`.
 
-Current checkpoint: the private Android host binding and fresh-source host CI
+Active work: native shared-theme renderer integration and failure-atomic
+attachment for W03–W05, plus complete Swift guest execution for W08. Both V2
+data resolvers and native curve primitives are accepted within their recorded
+scopes. Full native style consumption and Swift execution remain incomplete.
+
+Earlier Android checkpoint: the private Android host binding and fresh-source host CI
 runner have scoped root and independent acceptance. All 39 ordinary scenarios
 pass per Debug/Release/TSan; the runner rebuilds actual Swift/C/SDK sources and
 checks locked dependency checkouts and native archive/header hashes. Root binds
@@ -147,8 +152,13 @@ Observed implementation and evidence:
 - The shared executor's type/borrow prerequisite now has root freeze with 149
   bindings. Fourteen binding/layout probes, two frozen-layout comparisons and
   three expected borrow-checker rejections pass; all 41 frozen layout lines
-  match. Numeric dispatch extraction through FrozenMode is underway. Remaining
-  adapters, complete positive accounting and Swift execution remain pending.
+  match. The narrow frozen numeric primitive dispatcher now has root acceptance
+  with 360 bindings: selected host matrices, 454 exact trace comparisons per
+  span/all-feature profile and 72 explicit Node oracle executions pass. Maximum
+  typed inventory is 464/512 bytes; the fixed reservation stays 2,912. Broad
+  Clippy retains 26 identical existing diagnostics; scoped checks pass. See
+  `verification/numeric-primitive-root-review/acceptance.json`. The complete
+  numeric owner algorithm, remaining adapters and Swift execution remain pending.
   See `verification/swift-shared-executor-algorithm-contract/root-acceptance.json`.
 
 - The unchanged Apple design is measured in 24 simulator captures across 12

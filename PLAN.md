@@ -209,8 +209,14 @@ three compiler-rejected invalid borrow variants. All 41 frozen layout lines
 match. See `docs/swift-shared-executor-algorithm-contract.md` and
 `verification/swift-shared-executor-algorithm-contract/root-acceptance.json`.
 Only the compiled subset is accepted; later adapter bodies and simultaneous
-accounting remain pending. The first implementation extracts numeric dispatch
-through the existing frozen route before any Swift-mode execution is enabled.
+accounting remain pending. The first narrow primitive-dispatch extraction now
+has root acceptance with 360 bindings. Selected numeric/library matrices, exact
+454-record traces per span/all-feature profile, independent semantic/allocation
+checks and 72 explicit Node oracle executions pass. Its largest typed window is
+464 of the unchanged 512 scalar bytes; fixed reservation remains 2,912. Broader
+Clippy still reports 26 identical baseline/candidate diagnostics. See
+`verification/numeric-primitive-root-review/acceptance.json`. The complete numeric
+owner algorithm and Swift-mode execution remain unimplemented.
 
 Hosted `7855754` passes all three jobs. Hosted `26943ac` passes VM/services but fails
 Swift bridge TSan with session/native-exit publication race reports and an

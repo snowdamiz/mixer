@@ -1,0 +1,35 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-shared-numeric-extraction/build/20261024T002042936818Z/base/vm)
+error[E0433]: cannot find `cache` in `super`
+  --> src/experimental/execution/numeric_layout_probe.rs:16:47
+   |
+16 |     slot!("DecodedInstruction", super::super::cache::DecodedInstruction);
+   |                                               ^^^^^ could not find `cache` in `super`
+   |
+help: consider importing this module
+   |
+ 1 + use crate::experimental::cache;
+   |
+help: if you import `cache`, refer to it directly
+   |
+16 -     slot!("DecodedInstruction", super::super::cache::DecodedInstruction);
+16 +     slot!("DecodedInstruction", cache::DecodedInstruction);
+   |
+
+error[E0433]: cannot find `cache` in `super`
+  --> src/experimental/execution/numeric_layout_probe.rs:39:35
+   |
+39 |         + size_of::<super::super::cache::DecodedInstruction>() + size_of::<Control>()
+   |                                   ^^^^^ could not find `cache` in `super`
+   |
+help: consider importing this module
+   |
+ 1 + use crate::experimental::cache;
+   |
+help: if you import `cache`, refer to it directly
+   |
+39 -         + size_of::<super::super::cache::DecodedInstruction>() + size_of::<Control>()
+39 +         + size_of::<cache::DecodedInstruction>() + size_of::<Control>()
+   |
+
+For more information about this error, try `rustc --explain E0433`.
+error: could not compile `mixer-vm` (lib test) due to 2 previous errors

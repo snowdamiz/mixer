@@ -1,0 +1,63 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/numeric-primitive-independent-review/local/20261024T004648645488Z/vm)
+warning: unused import: `statistics`
+   --> src/experimental/cache/borrowed.rs:298:16
+    |
+298 | pub(crate) use statistics;
+    |                ^^^^^^^^^^
+    |
+    = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: methods `source`, `defined_function_count`, and `signature` are never used
+  --> src/experimental/cache/borrowed.rs:16:8
+   |
+13 | pub(crate) trait SnapshotView: sealed::Snapshot {
+   |                  ------------ methods in this trait
+...
+16 |     fn source(&self) -> &[u8];
+   |        ^^^^^^
+17 |     fn defined_function_count(&self) -> usize;
+   |        ^^^^^^^^^^^^^^^^^^^^^^
+...
+20 |     fn signature(&self, absolute: u32) -> Option<SignatureView<'_>>;
+   |        ^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: variants `Constructor`, `ScanReset`, `Scan`, `BuildReset`, and `Build` are never constructed
+   --> src/experimental/cache/borrowed.rs:174:5
+    |
+173 | pub(crate) enum CacheStep {
+    |                 --------- variants in this enum
+174 |     Constructor,
+    |     ^^^^^^^^^^^
+175 |     Lookup,
+176 |     ScanReset,
+    |     ^^^^^^^^^
+177 |     Scan,
+    |     ^^^^
+178 |     BuildReset,
+    |     ^^^^^^^^^^
+179 |     Build,
+    |     ^^^^^
+    |
+    = note: `CacheStep` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: `mixer-vm` (lib) generated 3 warnings (run `cargo fix --lib -p mixer-vm` to apply 1 suggestion)
+    Finished `release` profile [optimized] target(s) in 1.67s
+     Running tests/independent_numeric.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/numeric-primitive-independent-review/local/20261024T004648645488Z/release/target/release/deps/independent_numeric-af11872be6f8b452)
+
+running 1 test
+test independent_numeric_values_traps_work_and_warm_allocation_contract ... independent_numeric integer-add result=Ok(Some(I32(-2147483648))) work=25 numeric_offset=39 warm_allocations=0
+independent_numeric integer-rotate result=Ok(Some(I64(-9223372036854775808))) work=25 numeric_offset=39 warm_allocations=0
+independent_numeric float-zero-min result=Ok(Some(F64(9223372036854775808))) work=25 numeric_offset=39 warm_allocations=0
+independent_numeric float-snan result=Ok(Some(F32(2143289344))) work=25 numeric_offset=39 warm_allocations=0
+independent_numeric saturating-positive-infinity result=Ok(Some(I64(-1))) work=20 numeric_offset=36 warm_allocations=0
+independent_numeric saturating-negative-nan result=Ok(Some(I32(0))) work=20 numeric_offset=36 warm_allocations=0
+independent_numeric integer-zero-divisor result=Err(ExecutionFailure { kind: GuestTrap, code: "integer_divide_by_zero", function: Some(0), offset: 39, attempted: 0, limit: 0, usage: ExecutionUsage { state_reserved: 3552, peak_state_reserved: 3552, source_bytes: 41, validation_metadata_bytes: 568, validation_work_used: 135, instructions: 3, fuel_used: 3, host_calls: 0, work_used: 16, frames: 0, peak_frames: 1, live_values: 0, peak_live_values: 4, live_controls: 0, peak_live_controls: 1, memory_pages: 0, active_pins: 0 }, cache_failure: None }) work=16 numeric_offset=39 warm_allocations=0
+independent_numeric integer-overflow result=Err(ExecutionFailure { kind: GuestTrap, code: "integer_overflow", function: Some(0), offset: 39, attempted: 0, limit: 0, usage: ExecutionUsage { state_reserved: 3552, peak_state_reserved: 3552, source_bytes: 41, validation_metadata_bytes: 568, validation_work_used: 135, instructions: 3, fuel_used: 3, host_calls: 0, work_used: 16, frames: 0, peak_frames: 1, live_values: 0, peak_live_values: 4, live_controls: 0, peak_live_controls: 1, memory_pages: 0, active_pins: 0 }, cache_failure: None }) work=16 numeric_offset=39 warm_allocations=0
+independent_numeric conversion-nan result=Err(ExecutionFailure { kind: GuestTrap, code: "invalid_conversion_to_integer", function: Some(0), offset: 36, attempted: 0, limit: 0, usage: ExecutionUsage { state_reserved: 3552, peak_state_reserved: 3552, source_bytes: 38, validation_metadata_bytes: 568, validation_work_used: 120, instructions: 2, fuel_used: 2, host_calls: 0, work_used: 12, frames: 0, peak_frames: 1, live_values: 0, peak_live_values: 2, live_controls: 0, peak_live_controls: 1, memory_pages: 0, active_pins: 0 }, cache_failure: None }) work=12 numeric_offset=36 warm_allocations=0
+independent_numeric conversion-infinity result=Err(ExecutionFailure { kind: GuestTrap, code: "integer_overflow", function: Some(0), offset: 36, attempted: 0, limit: 0, usage: ExecutionUsage { state_reserved: 3552, peak_state_reserved: 3552, source_bytes: 38, validation_metadata_bytes: 568, validation_work_used: 120, instructions: 2, fuel_used: 2, host_calls: 0, work_used: 12, frames: 0, peak_frames: 1, live_values: 0, peak_live_values: 2, live_controls: 0, peak_live_controls: 1, memory_pages: 0, active_pins: 0 }, cache_failure: None }) work=12 numeric_offset=36 warm_allocations=0
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

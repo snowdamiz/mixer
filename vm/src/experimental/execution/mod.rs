@@ -1092,17 +1092,10 @@ impl SpanInstance {
         {
             return Err(self.invariant());
         }
-        // Every numeric helper consumes at least one value and emits exactly one.
+        // Every numeric helper consumes at least one value and emits at most one.
         // Existing capacity therefore covers its only push, including traps.
         self.work(count + 1)?;
-        let result = if saturating {
-            crate::float::saturating(opcode, &mut self.values);
-            Ok(())
-        } else if crate::float::shape(opcode).is_some() {
-            crate::float::numeric(opcode, &mut self.values)
-        } else {
-            crate::execute::numeric(opcode, &mut self.values)
-        };
+        let result = borrowed::numeric::<borrowed::FrozenMode>(self, opcode, saturating);
         self.observe();
         result.map_err(|code| self.trap(code))
     }
@@ -1337,5 +1330,8 @@ fn initializer(bytes: &[u8]) -> Option<Value> {
     Some(value)
 }
 
-#[cfg(feature = "experimental-swift-reactor")]
+#[cfg(any(
+    feature = "experimental-span-execution",
+    feature = "experimental-swift-reactor"
+))]
 pub(crate) mod borrowed;

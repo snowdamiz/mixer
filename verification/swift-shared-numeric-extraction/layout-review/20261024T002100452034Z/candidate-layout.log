@@ -1,0 +1,55 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-shared-numeric-extraction/build/20261024T002100452034Z/candidate/vm)
+error[E0106]: missing lifetime specifier
+  --> src/experimental/execution/borrowed.rs:87:50
+   |
+87 |     fn values(state: &Self::NumericState<'_>) -> &[Value];
+   |                      -----------------------     ^ expected named lifetime parameter
+   |
+   = help: this function's return type contains a borrowed value, but the signature does not say which one of argument 1's 2 lifetimes it is borrowed from
+help: consider introducing a named lifetime parameter
+   |
+87 -     fn values(state: &Self::NumericState<'_>) -> &[Value];
+87 +     fn values<'a>(state: &'a Self::NumericState<'a>) -> &'a [Value];
+   |
+
+error[E0106]: missing lifetime specifier
+  --> src/experimental/execution/borrowed.rs:88:58
+   |
+88 |     fn values_mut(state: &mut Self::NumericState<'_>) -> &mut Vec<Value>;
+   |                          ---------------------------     ^ expected named lifetime parameter
+   |
+   = help: this function's return type contains a borrowed value, but the signature does not say which one of argument 1's 2 lifetimes it is borrowed from
+help: consider introducing a named lifetime parameter
+   |
+88 -     fn values_mut(state: &mut Self::NumericState<'_>) -> &mut Vec<Value>;
+88 +     fn values_mut<'a>(state: &'a mut Self::NumericState<'a>) -> &'a mut Vec<Value>;
+   |
+
+error[E0106]: missing lifetime specifier
+   --> src/experimental/execution/borrowed.rs:102:50
+    |
+102 |     fn values(state: &Self::NumericState<'_>) -> &[Value] { &state.values }
+    |                      -----------------------     ^ expected named lifetime parameter
+    |
+    = help: this function's return type contains a borrowed value, but the signature does not say which one of `state`'s 2 lifetimes it is borrowed from
+help: consider introducing a named lifetime parameter
+    |
+102 -     fn values(state: &Self::NumericState<'_>) -> &[Value] { &state.values }
+102 +     fn values<'a>(state: &'a Self::NumericState<'a>) -> &'a [Value] { &state.values }
+    |
+
+error[E0106]: missing lifetime specifier
+   --> src/experimental/execution/borrowed.rs:103:58
+    |
+103 |     fn values_mut(state: &mut Self::NumericState<'_>) -> &mut Vec<Value> { &mut state.values }
+    |                          ---------------------------     ^ expected named lifetime parameter
+    |
+    = help: this function's return type contains a borrowed value, but the signature does not say which one of `state`'s 2 lifetimes it is borrowed from
+help: consider introducing a named lifetime parameter
+    |
+103 -     fn values_mut(state: &mut Self::NumericState<'_>) -> &mut Vec<Value> { &mut state.values }
+103 +     fn values_mut<'a>(state: &'a mut Self::NumericState<'a>) -> &'a mut Vec<Value> { &mut state.values }
+    |
+
+For more information about this error, try `rustc --explain E0106`.
+error: could not compile `mixer-vm` (lib test) due to 4 previous errors

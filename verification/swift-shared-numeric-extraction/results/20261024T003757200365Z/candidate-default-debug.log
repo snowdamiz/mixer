@@ -1,0 +1,63 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-shared-numeric-extraction/build/final-20261024T003757200365Z/candidate-default-debug-target/debug/deps/mixer_vm-2f165367cf10b6b0)
+
+running 7 tests
+test ffi::tests::null_inputs_fail_without_unwind ... ok
+test ffi::tests::panic_is_contained ... 
+thread 'ffi::tests::panic_is_contained' (56303306) panicked at src/ffi.rs:385:42:
+test contained panic
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+ok
+test session::tests::busy_session_and_cross_thread_stop_are_nonblocking ... ok
+test session::tests::closed_in_flight_and_reserved_slots_still_count_against_cap ... ok
+test session::tests::generation_exhaustion_permanently_retires_slot ... ok
+test session::tests::panic_poison_prevents_state_reuse_without_poisoning_registry ... 
+thread 'session::tests::panic_poison_prevents_state_reuse_without_poisoning_registry' (56303311) panicked at src/session.rs:698:17:
+test panic during a session operation
+ok
+test session::tests::unwound_creation_releases_unpublished_reservation ... 
+thread 'session::tests::unwound_creation_releases_unpublished_reservation' (56303312) panicked at src/session.rs:726:17:
+test creation failure before publication
+ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/differential.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-shared-numeric-extraction/build/final-20261024T003757200365Z/candidate-default-debug-target/debug/deps/differential-9585a55a8e14746d)
+
+running 3 tests
+test accepted_mutations_are_also_valid_webassembly_in_node ... ignored, development validation oracle; run explicitly with Node
+test every_integer_opcode_matches_node ... ignored, development oracle; run cargo test --test differential -- --ignored --nocapture with Node available
+test structured_control_and_memory_match_node ... ignored, development oracle; run explicitly with Node
+
+test result: ok. 0 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/float.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-shared-numeric-extraction/build/final-20261024T003757200365Z/candidate-default-debug-target/debug/deps/float-c1e68ff6ed21d082)
+
+running 15 tests
+test arithmetic_without_nan_inputs_produces_canonical_nan_on_invalid_operations ... ok
+test constants_reinterpret_and_bitwise_preserve_nan_payloads ... ok
+test division_and_nan_comparison_follow_ieee ... ok
+test f32_arithmetic_and_promotion_canonicalize_all_nan_inputs ... ok
+test f64_arithmetic_and_demotion_canonicalize_all_nan_inputs ... ok
+test float_memory_locals_globals_and_control_are_typed ... ok
+test float_to_integer_traps_are_distinct_and_boundaries_truncate ... ok
+test integer_profile_remains_closed_to_floats ... ok
+test malformed_float_immediates_and_type_mismatch_reject ... ok
+test numeric_profile_cannot_be_reinstantiated_as_integer ... ok
+test prefix_metering_and_float_mutation_execution_are_bounded ... ok
+test rounding_is_ties_even_and_retains_negative_zero ... ok
+test saturating_conversions_clamp_and_meter_one_instruction ... ok
+test signaling_and_quiet_nans_keep_integer_conversion_and_comparison_semantics ... ok
+test signed_zero_min_max_and_copysign ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/float_differential.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-shared-numeric-extraction/build/final-20261024T003757200365Z/candidate-default-debug-target/debug/deps/float_differential-ba2678e99c97ff6d)
+
+running 3 tests
+test conversions_reinterpret_and_saturating_boundaries ... ignored, development Node oracle; run explicitly
+test every_float_arithmetic_comparison_rounding_and_bitwise_opcode ... ignored, development Node oracle; run explicitly
+test float_memory_calls_and_global_ownership_preserve_bits ... ignored, development Node oracle; run explicitly
+
+test result: ok. 0 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
