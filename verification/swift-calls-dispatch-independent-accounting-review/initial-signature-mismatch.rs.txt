@@ -1,0 +1,73 @@
+fn signature_mismatch(
+    phase: &mut FrameOperationPhase<'_>,
+    index: u32,
+    function: u32,
+) -> Result<bool, SwiftRunFailure> {
+    check(phase)?;
+    let expected_params = phase
+        .phase
+        .parts
+        .cache
+        .proof()
+        .execution_type(index)
+        .expect("retained validated type")
+        .params
+        .len();
+    let actual_params = phase
+        .phase
+        .parts
+        .cache
+        .proof()
+        .execution_signature(function)
+        .expect("retained validated signature")
+        .params
+        .len();
+    if expected_params != actual_params {
+        check(phase)?;
+        return Ok(true);
+    }
+    for at in 0..expected_params {
+        if at != 0 && at % 64 == 0 {
+            check(phase)?;
+        }
+        let expected = phase
+            .phase
+            .parts
+            .cache
+            .proof()
+            .execution_type(index)
+            .expect("retained validated type")
+            .params[at];
+        let actual = phase
+            .phase
+            .parts
+            .cache
+            .proof()
+            .execution_signature(function)
+            .expect("retained validated signature")
+            .params[at];
+        if expected != actual {
+            check(phase)?;
+            return Ok(true);
+        }
+    }
+    let expected_result = phase
+        .phase
+        .parts
+        .cache
+        .proof()
+        .execution_type(index)
+        .expect("retained validated type")
+        .result;
+    let actual_result = phase
+        .phase
+        .parts
+        .cache
+        .proof()
+        .execution_signature(function)
+        .expect("retained validated signature")
+        .result;
+    let mismatch = expected_result != actual_result;
+    check(phase)?;
+    Ok(mismatch)
+}

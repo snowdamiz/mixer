@@ -12,6 +12,11 @@ focus, remaining lifecycle cases, visual parity and live Apple integration are
 pending. Swift accounting and Linux isolation continue; no GA/dogfood gate passes.
 See [the latest native checkpoint](docs/apple-toggle-semantic-runtime-checkpoint.md).
 
+The follow-on private pan-commit repair has not yet passed native qualification. Its first iOS 26.5 simulator run completed 43 XCTest methods: 26 passed and 17 failed. Sixteen verdicts rejected pre-layout startup history under an overly strict attached-view check; one setup hit an observation-file replacement race and produced no action verdict. All five cleanup operations passed, and the owned simulator/workspace are absent. A separate harness revision preserves the app/runner bytes and failed evidence; a complete rerun is required.
+
+The private Swift calls/dispatch candidate at source closure ba9231499244692bbed61f0566ec72864a979df9e3fc71511560ec66a2e00c70 now has independent and root logical-accounting acceptance: 89,124 roles, 1,032 exact finite positions, eight compiler contexts and sixteen layouts. All 39 Frozen methods, the 2,912-byte Frozen bound, original owners and ceilings are preserved. Runtime preflight found an old fixture sum missing the new calls component; an exact test-only correction is being prepared in a separate revision with refreshed candidate evidence. Qualified runtime and live integration remain pending. The last pushed checkpoint cf52825 passes all three engine CI jobs. No native, FieldLog, OTA or GA gate is closed by this accounting checkpoint.
+See [the accounting checkpoint](docs/swift-dispatch-accounting-checkpoint.md).
+
 The console now has its first TypeScript display model for release checks. Nine
 host tests cover 4,096 status combinations, missing/stale results, duplicate and
 malformed input, and immutable rows. A current platform failure remains visible

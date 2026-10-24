@@ -1262,3 +1262,9 @@ the failed original assertion, trace and cleanup in
 `verification/android-toggle-scroll-runtime-root-review/runtime-review.json`.
 A fixture-only measured-extent correction precedes the unchanged45-case rerun;
 no product input change or full component acceptance follows from this diagnosis.
+
+The private Swift calls/dispatch candidate at source closure ba9231499244692bbed61f0566ec72864a979df9e3fc71511560ec66a2e00c70 now has independent and root logical-accounting acceptance: 89,124 roles, 1,032 exact finite positions, eight compiler contexts and sixteen layouts. All 39 Frozen methods, the 2,912-byte Frozen bound, original owners and ceilings are preserved. Runtime preflight found an old fixture sum missing the new calls component; an exact test-only correction is being prepared in a separate revision with refreshed candidate evidence. Qualified runtime and live integration remain pending. The last pushed checkpoint cf52825 passes all three engine CI jobs. No native, FieldLog, OTA or GA gate is closed by this accounting checkpoint.
+See `docs/swift-dispatch-accounting-checkpoint.md`.
+
+The follow-on private pan-commit repair has not yet passed native qualification. Its first iOS 26.5 simulator run completed 43 XCTest methods: 26 passed and 17 failed. Sixteen verdicts rejected pre-layout startup history under an overly strict attached-view check; one setup hit an observation-file replacement race and produced no action verdict. All five cleanup operations passed, and the owned simulator/workspace are absent. A separate harness revision preserves the app/runner bytes and failed evidence; a complete rerun is required.
+See `verification/apple-toggle-pan-commit-root-review/failed-runtime-review.json`.
