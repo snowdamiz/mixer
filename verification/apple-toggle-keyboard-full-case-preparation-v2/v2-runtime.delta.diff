@@ -1,0 +1,196 @@
+--- verification/apple-toggle-keyboard-full-case-preparation/composition.py
++++ verification/apple-toggle-keyboard-full-case-preparation-v2/composition.py
+@@ -8,7 +8,6 @@
+ import json
+ import pathlib
+ import sys
+-from attachment_export import exporting_commands
+ BASE=pathlib.Path(__file__).resolve().parent
+ ROOT=BASE.parents[1]
+ SNAPSHOT=BASE/'inputs/runtime'
+@@ -16,6 +15,14 @@
+ PARENT=VERIFY/'apple-toggle-pan-origin-correction'
+ KEYBOARD=VERIFY/'apple-toggle-keyboard-focus'
+ V9=VERIFY/'apple-toggle-keyboard-focus-v9-preparation'
++selection=json.loads((BASE/'runtime-selection.json').read_bytes())
++bootstrap=BASE/'runtime_bindings.py'
++if hashlib.sha256(bootstrap.read_bytes()).hexdigest()!=selection['files']['runtime_bindings.py']:
++    raise ValueError('Runtime binding guard differs from selected bytes')
++_boot_spec=importlib.util.spec_from_file_location('_selected_runtime_bindings',bootstrap)
++_boot=importlib.util.module_from_spec(_boot_spec);_boot_spec.loader.exec_module(_boot)
++bindings=_boot.RuntimeBindings(BASE,selection)
++bindings.check();bindings.module(_boot)
+ for path in reversed([V9,KEYBOARD,PARENT]): sys.path.insert(0,str(path))
+ import harness as h
+ import apps as artifact
+@@ -23,9 +30,13 @@
+ import keyboard_oracle as oracle
+ import keyboard_bridge
+ import settings_telemetry as telemetry
+-for module in [h,artifact,transport,oracle,keyboard_bridge,telemetry]:
+-    if not pathlib.Path(module.__file__).resolve().is_relative_to(SNAPSHOT):
+-        raise ValueError("Refuse preloaded runtime module outside isolated packet: "+module.__name__)
++import durable_settings
++import attachment_export
++import runtime_summary as summary_module
++import orchestration
++from attachment_export import exporting_commands
++RUNTIME_ROOTS=[h,artifact,transport,oracle,keyboard_bridge,telemetry,durable_settings,attachment_export,summary_module,orchestration]
++bindings.check(RUNTIME_ROOTS)
+ CANONICAL_COMMANDS=getattr(h,'_full_case_canonical_commands',h.Commands)
+ CANONICAL_BRIDGE=getattr(h,'_full_case_canonical_bridge',transport.Bridge)
+ h._full_case_canonical_commands=CANONICAL_COMMANDS
+@@ -34,7 +45,10 @@
+ read=lambda path:json.loads(path.read_bytes())
+ 
+ def load(name,path):
+-    spec=importlib.util.spec_from_file_location(name,path);module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module);return module
++    bindings.check(RUNTIME_ROOTS)
++    if str(path.resolve()) not in bindings.files:raise ValueError('Unselected runtime import path')
++    spec=importlib.util.spec_from_file_location(name,path);module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
++    bindings.module(module,str(path.resolve()));bindings.check(RUNTIME_ROOTS+[module]);return module
+ 
+ 
+ def setup_ready(settings):
+@@ -45,10 +59,21 @@
+ 
+ 
+ def full_case_bridge(base):
++    bindings.check(RUNTIME_ROOTS)
+     diagnostic=telemetry.diagnostic_bridge(base)
+     class FullCaseBridge(diagnostic):
+         def __init__(self,*args,**kwargs):
+-            super().__init__(*args,**kwargs);self.setup_handed_off=False
++            bindings.check(RUNTIME_ROOTS)
++            super().__init__(*args,**kwargs);self.setup_handed_off=False;self.binding_failure=None
++        def request(self,op,body):
++            if self.binding_failure is not None:raise self.binding_failure
++            try:bindings.check(RUNTIME_ROOTS)
++            except BaseException as error:
++                self.binding_failure=error
++                try:self.record_failure('runtime-binding',error)
++                except BaseException:pass
++                raise
++            return super().request(op,body)
+         def _request(self,op,body):
+             if op=='evaluate' and type(body) is dict and set(body)=={'settingsDiagnostic'}:
+                 telemetry.require(not self.setup_handed_off and self.current is None and self.generation==0,'Setup telemetry closed after application handoff')
+@@ -107,6 +132,7 @@
+ METHODS=['test000PublicSettingsFullKeyboardAccess']+[value['method'] for value in oracle.SPECS.values()]
+ 
+ def compose():
++    bindings.check(RUNTIME_ROOTS)
+     reader=load('full_case_reviewed_reader',VERIFY/'apple-toggle-pan-commit-harness-v2/observation_reader.py')
+     for name in ['ACTIONS','CASES','CASE_ACTION','CASE_COMMAND_SEQUENCE','COMMANDS','geometry_valid','verdict']:setattr(transport,name,getattr(oracle,name))
+     h.Bridge=full_case_bridge(keyboard_bridge.keyboard_bridge(reader.deadline_bridge(CANONICAL_BRIDGE),transport))
+@@ -114,8 +140,8 @@
+     h.BASE=BASE;h.ROOT=ROOT;h.PRODUCTS=BASE/'build/Build/Products';h.PRODUCT_ARCHIVE=BASE/'test-runner-products.tar.gz'
+     h.RUN_DIR=BASE/'runtime';h.packet=CandidateApps;artifact.expected_manifest=CandidateApps.expected_manifest
+     h.SCOPES={'interaction':{'cases':oracle.CASES,'methods':METHODS}}
+-    from runtime_summary import runtime_summary
+-    h.runtime_summary=lambda *args:runtime_summary(BASE,h,oracle,setup_ready,*args)
++    h.runtime_summary=lambda *args:summary_module.runtime_summary(BASE,h,oracle,setup_ready,*args)
++    h.run=lambda reviewed_seal,scope="interaction":orchestration.run(h,bindings,RUNTIME_ROOTS,reviewed_seal,scope)
+     return h
+ 
+ compose()
+--- verification/apple-toggle-keyboard-full-case-preparation/attachment_export.py
++++ verification/apple-toggle-keyboard-full-case-preparation-v2/attachment_export.py
+@@ -20,12 +20,31 @@
+     if base.__name__ != 'Commands' or pathlib.Path(base.run.__code__.co_filename).name != 'harness.py' or base.__bases__ != (object,):
+         raise ValueError('Canonical bound Commands required at composition boundary')
+     h.attachment_export_state=dict(receiptDurablyCommitted=False,failure=None)
++    h.reporting_state=dict(firstFailure=None,failures=[])
+     class FullCaseExportingCommands(base):
+         _full_case_export_owner = True
+         def __init__(self, *args, **kwargs):
+             super().__init__(*args, **kwargs)
+             self._selected_exports = set()
++            self.reporting_error=None;self.cleanup_mode=False
++            # Capture the actual record delegate, including injected storage
++            # failures, before installing an instance-level protection boundary.
++            delegate=self.record
++            def protected_record(name,value):
++                try:return delegate(name,value)
++                except BaseException as error:
++                    self.latch_reporting_error('record:'+name,error)
++                    # Receipt failure is ancillary to the already observed
++                    # command exit/error. Block the next normal command instead.
++                    return None
++            self.record=protected_record
++        def latch_reporting_error(self,operation,error):
++            if self.reporting_error is None:self.reporting_error=error
++            entry=dict(operation=operation,type=type(error).__name__,message=self.redact(str(error)))
++            if h.reporting_state['firstFailure'] is None:h.reporting_state['firstFailure']=entry
++            h.reporting_state['failures'].append(entry)
+         def run(self, argv, *args, **kwargs):
++            if self.reporting_error is not None and not self.cleanup_mode:raise self.reporting_error
+             values = [str(value) for value in argv]
+             selected = len(values) > 1 and values[0] == str(h.DEVELOPER/'usr/bin/xcodebuild') and values[1] == 'test-without-building'
+             try:
+@@ -50,6 +69,7 @@
+                     if code == 0:
+                         h.write(output_base/('runtime/xctest-'+kind+'.json'),json.loads(output))
+             except BaseException as error:
++                self.latch_reporting_error('official-result-export',error)
+                 try: self.record('official-result-export-unavailable',dict(type=type(error).__name__,message=self.redact(str(error))))
+                 except BaseException: pass
+         def export_owned_attachments(self, argv):
+@@ -81,6 +101,7 @@
+                     settingsSetupObservedPassed=settings_passed(output,files))
+                 record['passed'] = code == 0 and bool(files) and 'manifest.json' in files
+             except BaseException as error:
++                self.latch_reporting_error('attachment-export',error)
+                 record['failure'] = dict(type=type(error).__name__,message=self.redact(str(error)))
+                 try: self.record('attachment-export-failure',record['failure'])
+                 except BaseException: pass
+@@ -95,6 +116,7 @@
+                 # Any first-attempt persistence error blocks live qualification
+                 # even if intended JSON bytes happen to be readable.
+                 if not h.attachment_export_state['receiptDurablyCommitted']:
++                    self.latch_reporting_error('attachment-export-receipt',error)
+                     h.attachment_export_state['failure']=dict(type=type(error).__name__,message=self.redact(str(error)))
+                 try: self.record('attachment-export-receipt-unavailable',dict(type=type(error).__name__,message=self.redact(str(error))))
+                 except BaseException: pass
+--- verification/apple-toggle-keyboard-full-case-preparation/runtime_summary.py
++++ verification/apple-toggle-keyboard-full-case-preparation-v2/runtime_summary.py
+@@ -37,14 +37,15 @@
+     ready=bridge is not None and setup_ready(bridge.settings)
+     case_oracles=bool(results) and {value.get('case') for value in results}==oracle.CASES and all(value.get('passed') is True and value.get('action')=='native-keyboard' for value in results)
+     export_state=getattr(h,'attachment_export_state',{})
+-    strict=complete and case_oracles and ready and attachment and official and export_state.get('receiptDurablyCommitted') is True
++    reporting=getattr(h,'reporting_state',{})
++    strict=complete and case_oracles and ready and attachment and official and export_state.get('receiptDurablyCommitted') is True and reporting.get('firstFailure') is None
+     cleaned=cleanup_results is not None and all(value['passed'] is True for value in cleanup_results)
+     return dict(schema='mixer.apple-toggle.keyboard-full-case-runtime.1',scope=scope,xcodebuildExitCode=xctest_exit,
+       expectedXCTestMethods=7,dependentApplicationCases=6,officialSevenMethodsPassed=official,
+       completeCaseSet=complete,strictNativeVerdictsPassed=strict,bridgeFailures=errors,sessionFailure=failure,
+       setupReadyForCases=ready,settingsDiagnostic=settings,publicSettingsSetupObservedPassed=attachment,
+       setupV9CompletionMarkersComplete=settings is not None and settings['completionMarkers']==['test-case-finished','suite-finished','bundle-finished'],
+-      attachmentExport=export,attachmentExportReporting=export_state,nativeUserInteractionVerdicts=results,actualNativeInputActions=len(results),
++      attachmentExport=export,attachmentExportReporting=export_state,commandReporting=reporting,nativeUserInteractionVerdicts=results,actualNativeInputActions=len(results),
+       dependentCasesUnrun=sorted(oracle.CASES-set(cursors)),cleanupResults=cleanup_results,
+       runPassed=xctest_exit==0 and strict and errors==[] and failure is None and cleaned,
+       nativeKeyboardQualification=False,carrierAccepted=False,physicalPhones='disconnected-deferred',gaAccepted=False)
+--- verification/apple-toggle-keyboard-full-case-preparation/test_adapters.py
++++ verification/apple-toggle-keyboard-full-case-preparation-v2/test_adapters.py
+@@ -60,7 +60,7 @@
+         for operation,body in [('keyboard',{}),('command',{'command':'focus'}),('command',{'command':'self-tests'}),('command',{'command':'disable'}),('command',{'command':'/tmp/path'})]:
+             with self.assertRaises(ValueError):self.bridge.request(operation,body)
+         self.assertEqual(o.COMMANDS,{'resume','reset','set-on','stale','disable'})
+-        self.assertEqual(run.inherited.Bridge.request.__code__,run.telemetry.diagnostic_bridge(run.CANONICAL_BRIDGE).request.__code__)
++        self.assertEqual(run.inherited.Bridge.__mro__[1].request.__code__,run.telemetry.diagnostic_bridge(run.CANONICAL_BRIDGE).request.__code__)
+         self.assertIs(run.inherited.Bridge.write_command,run.transport.Bridge.write_command)
+ 
+ if __name__=='__main__':unittest.main(verbosity=2)
+--- verification/apple-toggle-keyboard-full-case-preparation/test_full_case.py
++++ verification/apple-toggle-keyboard-full-case-preparation-v2/test_full_case.py
+@@ -262,7 +262,7 @@
+ before=dict(legacy.__dict__)
+ try:import composition
+ except ValueError as error:
+- assert 'outside isolated packet' in str(error)
++ assert 'selected origin' in str(error) or 'lacks selected origin' in str(error)
+ else:raise AssertionError('Preloaded old harness was accepted')
+ assert legacy.__dict__==before
+ """

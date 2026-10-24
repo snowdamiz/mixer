@@ -1,0 +1,35 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-reactor-lifecycle-remaining-matrix/candidate)
+error[E0433]: cannot find `SwiftDeadlineOrigin` in `experimental_swift_reactor`
+    --> src/experimental_swift_reactor/lifecycle_tests.rs:1475:80
+     |
+1475 |     assert_eq!(observed(&o).deadline_origin,crate::experimental_swift_reactor::SwiftDeadlineOrigin::Wasi);
+     |                                                                                ^^^^^^^^^^^^^^^^^^^ could not find `SwiftDeadlineOrigin` in `experimental_swift_reactor`
+     |
+help: consider importing this enum through its public re-export
+     |
+   2 + use crate::experimental_swift_reactor::execution::SwiftDeadlineOrigin;
+     |
+help: if you import `SwiftDeadlineOrigin`, refer to it directly
+     |
+1475 -     assert_eq!(observed(&o).deadline_origin,crate::experimental_swift_reactor::SwiftDeadlineOrigin::Wasi);
+1475 +     assert_eq!(observed(&o).deadline_origin,SwiftDeadlineOrigin::Wasi);
+     |
+
+error[E0433]: cannot find `SwiftDeadlineOrigin` in `experimental_swift_reactor`
+    --> src/experimental_swift_reactor/lifecycle_tests.rs:1480:80
+     |
+1480 |     assert_eq!(f.at_failure.deadline_origin,crate::experimental_swift_reactor::SwiftDeadlineOrigin::Wasi);
+     |                                                                                ^^^^^^^^^^^^^^^^^^^ could not find `SwiftDeadlineOrigin` in `experimental_swift_reactor`
+     |
+help: consider importing this enum through its public re-export
+     |
+   2 + use crate::experimental_swift_reactor::execution::SwiftDeadlineOrigin;
+     |
+help: if you import `SwiftDeadlineOrigin`, refer to it directly
+     |
+1480 -     assert_eq!(f.at_failure.deadline_origin,crate::experimental_swift_reactor::SwiftDeadlineOrigin::Wasi);
+1480 +     assert_eq!(f.at_failure.deadline_origin,SwiftDeadlineOrigin::Wasi);
+     |
+
+For more information about this error, try `rustc --explain E0433`.
+error: could not compile `mixer-vm` (lib test) due to 2 previous errors

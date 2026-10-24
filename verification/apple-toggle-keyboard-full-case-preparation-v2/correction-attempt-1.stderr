@@ -1,0 +1,45 @@
+test_each_selected_data_mutation_rejects_without_adopting_new_bytes (__main__.ImportOrigins.test_each_selected_data_mutation_rejects_without_adopting_new_bytes) ... ok
+test_every_owned_import_alias_outside_preload_rejected (__main__.ImportOrigins.test_every_owned_import_alias_outside_preload_rejected) ... ok
+test_exact_historical_durable_preload_rejected_before_bridge_creation (__main__.ImportOrigins.test_exact_historical_durable_preload_rejected_before_bridge_creation) ... ok
+test_existing_http_bridge_latches_lazy_substitution_and_refuses_new_work (__main__.ImportOrigins.test_existing_http_bridge_latches_lazy_substitution_and_refuses_new_work) ... ok
+test_postcomposition_lazy_substitution_rejects_bridge_without_output (__main__.ImportOrigins.test_postcomposition_lazy_substitution_rejects_bridge_without_output) ... ok
+test_selected_case_data_cannot_redirect_to_same_historical_directory (__main__.ImportOrigins.test_selected_case_data_cannot_redirect_to_same_historical_directory) ... ok
+test_spoofed_file_and_spec_cannot_adopt_outside_transaction_store (__main__.ImportOrigins.test_spoofed_file_and_spec_cannot_adopt_outside_transaction_store) ... FAIL
+test_attachment_export_failure_cleans_all_five (__main__.ReportingCleanup.test_attachment_export_failure_cleans_all_five) ... ok
+test_attachment_receipt_failure_cleans_all_five (__main__.ReportingCleanup.test_attachment_receipt_failure_cleans_all_five) ... ok
+test_cleanup_command_receipt_failure_does_not_skip_shutdown_delete_reconciliation (__main__.ReportingCleanup.test_cleanup_command_receipt_failure_does_not_skip_shutdown_delete_reconciliation) ... ok
+test_cleanup_report_failure_cannot_change_first_failure (__main__.ReportingCleanup.test_cleanup_report_failure_cannot_change_first_failure) ... ok
+test_command_receipt_failure_after_test_cleans_and_preserves_error (__main__.ReportingCleanup.test_command_receipt_failure_after_test_cleans_and_preserves_error) ... ok
+test_each_cleanup_failure_cannot_skip_later_operations (__main__.ReportingCleanup.test_each_cleanup_failure_cannot_skip_later_operations) ... ok
+test_exact_review_export_reporting_reproduction_now_cleans_all_five (__main__.ReportingCleanup.test_exact_review_export_reporting_reproduction_now_cleans_all_five) ... ok
+test_final_lifecycle_receipt_failure_does_not_leak (__main__.ReportingCleanup.test_final_lifecycle_receipt_failure_does_not_leak) ... FAIL
+test_final_runtime_receipt_failure_does_not_leak_or_pass (__main__.ReportingCleanup.test_final_runtime_receipt_failure_does_not_leak_or_pass) ... ok
+test_official_result_report_failure_cleans_all_five (__main__.ReportingCleanup.test_official_result_report_failure_cleans_all_five) ... ok
+test_session_failure_report_unavailable_preserves_primary_exception (__main__.ReportingCleanup.test_session_failure_report_unavailable_preserves_primary_exception) ... ok
+test_summary_evaluation_failure_still_cleans (__main__.ReportingCleanup.test_summary_evaluation_failure_still_cleans) ... ok
+
+======================================================================
+FAIL: test_spoofed_file_and_spec_cannot_adopt_outside_transaction_store (__main__.ImportOrigins.test_spoofed_file_and_spec_cannot_adopt_outside_transaction_store)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-keyboard-full-case-preparation-v2/test_v2.py", line 56, in test_spoofed_file_and_spec_cannot_adopt_outside_transaction_store
+    self.assertIn('method code outside selected origin',result['reason'])
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'method code outside selected origin' not found in 'Owned function code outside selected origin: encoded'
+
+======================================================================
+FAIL: test_final_lifecycle_receipt_failure_does_not_leak (__main__.ReportingCleanup.test_final_lifecycle_receipt_failure_does_not_leak)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-keyboard-full-case-preparation-v2/test_v2.py", line 193, in test_final_lifecycle_receipt_failure_does_not_leak
+    def test_final_lifecycle_receipt_failure_does_not_leak(self):self.run_case('lifecycle-final-report')
+                                                                 ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-keyboard-full-case-preparation-v2/test_v2.py", line 180, in run_case
+    self.assertEqual(sum(not value['passed'] for value in life['cleanupResults']),0 if cleanup_fault is None else 1)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0
+
+----------------------------------------------------------------------
+Ran 19 tests in 11.976s
+
+FAILED (failures=2)

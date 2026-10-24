@@ -1,0 +1,121 @@
+"""Private composition over packet-local immutable source copies only.
+
+Import mutates only newly loaded snapshot modules, never the old sealed harness.
+Read-only run.py verification does not import this module.
+"""
+import hashlib
+import importlib.util
+import json
+import pathlib
+import sys
+from attachment_export import exporting_commands
+BASE=pathlib.Path(__file__).resolve().parent
+ROOT=BASE.parents[1]
+SNAPSHOT=BASE/'inputs/runtime'
+VERIFY=SNAPSHOT/'verification'
+PARENT=VERIFY/'apple-toggle-pan-origin-correction'
+KEYBOARD=VERIFY/'apple-toggle-keyboard-focus'
+V9=VERIFY/'apple-toggle-keyboard-focus-v9-preparation'
+for path in reversed([V9,KEYBOARD,PARENT]): sys.path.insert(0,str(path))
+import harness as h
+import apps as artifact
+import bridge as transport
+import keyboard_oracle as oracle
+import keyboard_bridge
+import settings_telemetry as telemetry
+for module in [h,artifact,transport,oracle,keyboard_bridge,telemetry]:
+    if not pathlib.Path(module.__file__).resolve().is_relative_to(SNAPSHOT):
+        raise ValueError("Refuse preloaded runtime module outside isolated packet: "+module.__name__)
+CANONICAL_COMMANDS=getattr(h,'_full_case_canonical_commands',h.Commands)
+CANONICAL_BRIDGE=getattr(h,'_full_case_canonical_bridge',transport.Bridge)
+h._full_case_canonical_commands=CANONICAL_COMMANDS
+h._full_case_canonical_bridge=CANONICAL_BRIDGE
+sha=lambda path:hashlib.sha256(path.read_bytes()).hexdigest()
+read=lambda path:json.loads(path.read_bytes())
+
+def load(name,path):
+    spec=importlib.util.spec_from_file_location(name,path);module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module);return module
+
+
+def setup_ready(settings):
+    summary=settings.summary()
+    return bool(summary['setupObservationSatisfied'] is True and summary['terminationMarkers']==['terminate-before','terminate-after']
+        and summary['completionMarkers']==['test-case-finished'] and summary['persistenceRetirementPending'] is False
+        and summary['persistenceUncertain'] is False)
+
+
+def full_case_bridge(base):
+    diagnostic=telemetry.diagnostic_bridge(base)
+    class FullCaseBridge(diagnostic):
+        def __init__(self,*args,**kwargs):
+            super().__init__(*args,**kwargs);self.setup_handed_off=False
+        def _request(self,op,body):
+            if op=='evaluate' and type(body) is dict and set(body)=={'settingsDiagnostic'}:
+                telemetry.require(not self.setup_handed_off and self.current is None and self.generation==0,'Setup telemetry closed after application handoff')
+                return self.settings.request(body['settingsDiagnostic'])
+            if op=='begin':
+                telemetry.require(setup_ready(self.settings),'Durable measured setup and setup test completion required before application begin')
+                telemetry.require(self.current is None or self.current['keyboardCursor'].complete is True,'Prior application case must complete before next begin')
+                telemetry.require(type(body) is dict and body.get('case') not in self.keyboard_cases,'Duplicate application case begin refused')
+                result=base._request(self,op,body)
+                self.setup_handed_off=True
+                return result
+            return base._request(self,op,body)
+    return FullCaseBridge
+
+
+def inventory(folder):
+    result={};total=0
+    h.require(folder.resolve()==folder and folder.is_dir() and not folder.is_symlink(),'Attachment export directory redirected')
+    for path in sorted(folder.rglob('*')):
+        h.require(not path.is_symlink() and (path.is_file() or path.is_dir()),'Unsafe attachment export entry')
+        if path.is_file():
+            total+=path.stat().st_size;h.require(len(result)<2000 and total<=256_000_000,'Attachment inventory exceeded fixed bound')
+            result[str(path.relative_to(folder))]={'sha256':sha(path),'bytes':path.stat().st_size}
+    return result
+
+
+def settings_passed(folder,files):
+    for name,item in files.items():
+        if item['bytes']>500_000:continue
+        try:value=read(folder/name)
+        except (ValueError,UnicodeError):continue
+        if type(value) is dict and value.get('schema')=='mixer.apple-toggle.keyboard-settings.1' and value.get('step')=='setup-enabled' and value.get('passed') is True and value.get('bundle')=='com.apple.Preferences' and value.get('route')==telemetry.ROUTE and value.get('fullKeyboardAccessValue')=='1':return True
+    return False
+
+
+class CandidateApps:
+    CONFIGS=artifact.CONFIGS
+    @staticmethod
+    def expected_manifest(key):
+        folder=ROOT/'verification/apple-toggle-keyboard-focus-v9-preparation' if key=='diagnostic' else ROOT/'verification/apple-toggle-native-failure-analysis'/artifact.CONFIGS[key]['folder']
+        return read(folder/'built-app-manifest.json')
+    @staticmethod
+    def restore(destination,key):
+        config=artifact.CONFIGS[key];manifest=CandidateApps.expected_manifest(key)
+        folder=ROOT/'verification/apple-toggle-keyboard-focus-v9-preparation' if key=='diagnostic' else ROOT/'verification/apple-toggle-native-failure-analysis'/config['folder']
+        payload,modes=artifact.archive_payload(folder/'built-app.tar.gz',manifest,config)
+        h.require(not destination.exists() and not destination.is_symlink() and destination.resolve()==destination,'Fresh canonical restore destination required')
+        destination.mkdir(parents=True);app=destination/config['app']
+        for directory in [app,app/'Frameworks',app/'_CodeSignature']:directory.mkdir(exist_ok=True);directory.chmod(0o755)
+        for name,value in payload.items():
+            target=app/artifact.relative_name(name);target.write_bytes(value);target.chmod(modes[name])
+        return artifact.verify_restored(app,key)
+    verify_installed=staticmethod(artifact.verify_installed)
+
+
+METHODS=['test000PublicSettingsFullKeyboardAccess']+[value['method'] for value in oracle.SPECS.values()]
+
+def compose():
+    reader=load('full_case_reviewed_reader',VERIFY/'apple-toggle-pan-commit-harness-v2/observation_reader.py')
+    for name in ['ACTIONS','CASES','CASE_ACTION','CASE_COMMAND_SEQUENCE','COMMANDS','geometry_valid','verdict']:setattr(transport,name,getattr(oracle,name))
+    h.Bridge=full_case_bridge(keyboard_bridge.keyboard_bridge(reader.deadline_bridge(CANONICAL_BRIDGE),transport))
+    h.Commands=exporting_commands(CANONICAL_COMMANDS,h,BASE,settings_passed,inventory)
+    h.BASE=BASE;h.ROOT=ROOT;h.PRODUCTS=BASE/'build/Build/Products';h.PRODUCT_ARCHIVE=BASE/'test-runner-products.tar.gz'
+    h.RUN_DIR=BASE/'runtime';h.packet=CandidateApps;artifact.expected_manifest=CandidateApps.expected_manifest
+    h.SCOPES={'interaction':{'cases':oracle.CASES,'methods':METHODS}}
+    from runtime_summary import runtime_summary
+    h.runtime_summary=lambda *args:runtime_summary(BASE,h,oracle,setup_ready,*args)
+    return h
+
+compose()

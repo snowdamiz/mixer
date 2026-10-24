@@ -2399,3 +2399,15 @@ fn review_owner_allocator_exhaustion() {
     assert!(cache.identity().owner < u64::MAX - 1);
     finish(cache, c);
 }
+
+// Test-only setup for the lifecycle composition's actual cache checkpoints.
+pub(super) fn lifecycle_cancel_at_step(step: CacheStep) {
+    hooks(Hooks {
+        pause: Some(step),
+        cancel_pause: true,
+        ..Hooks::default()
+    });
+}
+pub(super) fn lifecycle_reset_hooks() {
+    hooks(Hooks::default());
+}

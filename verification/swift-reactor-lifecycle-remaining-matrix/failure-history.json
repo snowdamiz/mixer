@@ -1,0 +1,34 @@
+{
+  "productionDefectsObserved": [],
+  "preservedFailures": [
+    {
+      "command": "swift-debug-build",
+      "failure": "E0433 test import path referenced a private enum through a nonexistent reexport.",
+      "correction": "Use existing SwiftDeadlineOrigin in imported parent scope.",
+      "sourceSnapshot": "historical-sources/swift-debug-build-lifecycle_tests.rs"
+    },
+    {
+      "command": "swift-debug-execute",
+      "failure": "SL20 no-op fixture reached allocation ordinal0 only; ordinal1 injection was not reached.",
+      "correction": "Replace no-op payload with one local and explicit br_table targets so all three independently known cache vector roles are nonzero. No ordinal was removed.",
+      "sourceSnapshot": "historical-sources/swift-debug-build-v2-lifecycle_tests.rs"
+    },
+    {
+      "command": "swift-debug-execute-v3",
+      "failure": "Growth final checkpoint was computed using256 instead of actual4096-byte execution CHUNK.",
+      "correction": "Use2+585*65536/4096+584*65536/4096=18706; retain selected final-check cancellation assertion.",
+      "sourceSnapshot": "historical-sources/swift-debug-build-v3-lifecycle_tests.rs"
+    },
+    {
+      "command": "swift-debug-execute-v3",
+      "failure": "Test conflated adapter typed Wasi(Cancelled) with outer RuntimeControl Cancelled.",
+      "correction": "Require exact Wasi kind plus WasiFailure::Cancelled for adapter terminal outcomes, and outer Cancelled only after successful adapter postdispatch cancellation.",
+      "sourceSnapshot": "historical-sources/swift-debug-build-v3-lifecycle_tests.rs"
+    },
+    {
+      "command": "negative-external-construction",
+      "failure": "Metadata filename negative-libmixer_vm.rmeta was rejected as an extern type; E0463 is not privacy evidence.",
+      "correction": "Recompile metadata as libmixer_vm_negative.rmeta, rerun exact negative fixture under fresh negative2 labels; require E0603 at fixture primary span. No pass assigned to failed setup."
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-//! Independently authored lifecycle scenarios; compiled/listed, never run by this packet.
+//! Independently authored host-only lifecycle verification; see the remaining-matrix receipt.
 use super::*;
 use crate::experimental_swift_reactor::execution::frame_operations::tests as frame_tests;
 use crate::experimental_swift_reactor::{
@@ -23,6 +23,8 @@ pub(super) fn runtime_after_run(
         4 => storage.returned = Some(Err(phase.invariant("swift_lifecycle_stored_failure"))),
         5 => *execution = Err(phase.invariant("swift_lifecycle_outer_failure")),
         6 => storage.returned = Some(Ok(FrameReturn::Outermost(None))),
+        11 => storage.returned = Some(Ok(FrameReturn::Outermost(Some(Value::I64(7))))),
+        12 => phase.terminal(),
         _ => (),
     }
 }
@@ -67,6 +69,7 @@ pub(super) fn runtime_before_completion(
                 .unwrap();
         }
         10 => phase.phase.push_value(Value::I32(17)).unwrap(),
+        13 => phase.enter(36).unwrap(),
         _ => (),
     }
 }
@@ -1283,5 +1286,1070 @@ fn swift_lifecycle_sl23_preserve_callers_do_not_publish_ready() {
         GrowthCompletion::Completed(FrameCompletion::Completed)
     ));
     assert!(matches!(o.lifecycle, Lifecycle::Uninitialized));
+    retire(o);
+}
+
+// Additive remaining-matrix cases. Expected instruction traces and errno values
+// below are authored from the explicit guest programs, not replayed observations.
+#[test]
+fn swift_lifecycle_sl01_expired_and_missing_control_refusals_are_nonexecuting() {
+    for initialized in [false, true] {
+        let mut o = owner(&[]);
+        if initialized {
+            success(&mut o, Request::Initialize);
+        }
+        let control = o.control.take();
+        // Even an unavailable authority cannot be observed on ordinary misuse.
+        let (reply, stats) = measure_extended(Some(0), || {
+            request(
+                &mut o,
+                if initialized {
+                    Request::Initialize
+                } else {
+                    Request::Corpus
+                },
+            )
+        });
+        assert!(matches!(&reply, Completion::Rejected(_)));
+        drop(reply);
+        assert_eq!(stats.attempts, 0);
+        o.control = control;
+        retire(o);
+    }
+    for initialized in [false, true] {
+        let mut o = owner_with(
+            &[],
+            &[],
+            SwiftRunBudget {
+                deadline_ms: 200,
+                ..SwiftRunBudget::default()
+            },
+            WasiGrants::default(),
+            WasiBudget::default(),
+        );
+        if initialized {
+            success(&mut o, Request::Initialize);
+        }
+        let until = o.control.as_ref().unwrap().deadline();
+        std::thread::sleep(
+            until.saturating_duration_since(Instant::now()) + Duration::from_millis(2),
+        );
+        let before = normalized(observed(&o));
+        assert!(matches!(
+            request(
+                &mut o,
+                if initialized {
+                    Request::Initialize
+                } else {
+                    Request::Corpus
+                }
+            ),
+            Completion::Rejected(_)
+        ));
+        assert_eq!(normalized(observed(&o)), before);
+        assert_eq!(
+            failed(
+                &mut o,
+                if initialized {
+                    Request::Corpus
+                } else {
+                    Request::Initialize
+                }
+            )
+            .kind,
+            SwiftRunFailureKind::Deadline
+        );
+        retire(o);
+    }
+}
+
+#[test]
+fn swift_lifecycle_sl02_foreign_original_tickets_and_owners_reject_before_entry() {
+    for slot in 0..10 {
+        let mut o = owner(&[]);
+        let mut foreign = owner(&[]);
+        match slot {
+            0..=5 => std::mem::swap(
+                &mut o.state.as_mut().unwrap().buffers[slot],
+                &mut foreign.state.as_mut().unwrap().buffers[slot],
+            ),
+            6 => std::mem::swap(
+                &mut o.state.as_mut().unwrap().execution_header,
+                &mut foreign.state.as_mut().unwrap().execution_header,
+            ),
+            7 => std::mem::swap(&mut o.cache, &mut foreign.cache),
+            8 => std::mem::swap(&mut o.wasi, &mut foreign.wasi),
+            _ => std::mem::swap(&mut o.state, &mut foreign.state),
+        }
+        let before = observed(&o);
+        let (failure, allocation) =
+            measure_extended(Some(0), || failed(&mut o, Request::Initialize));
+        assert_eq!(failure.kind, SwiftRunFailureKind::Invariant);
+        assert_eq!(failure.stage, SwiftRunStage::Initialization);
+        assert_eq!(failure.function, Some(35));
+        assert_eq!(allocation.attempts, 0);
+        assert_eq!(observed(&o).instructions, before.instructions);
+        assert_eq!(observed(&o).host_calls, 0);
+        assert_eq!(observed(&o).reservations, before.reservations);
+        assert!(o.state.as_ref().unwrap().frame_cleanup.bound.is_none());
+        match slot {
+            0..=5 => std::mem::swap(
+                &mut o.state.as_mut().unwrap().buffers[slot],
+                &mut foreign.state.as_mut().unwrap().buffers[slot],
+            ),
+            6 => std::mem::swap(
+                &mut o.state.as_mut().unwrap().execution_header,
+                &mut foreign.state.as_mut().unwrap().execution_header,
+            ),
+            7 => std::mem::swap(&mut o.cache, &mut foreign.cache),
+            8 => std::mem::swap(&mut o.wasi, &mut foreign.wasi),
+            _ => std::mem::swap(&mut o.state, &mut foreign.state),
+        }
+        retire(o);
+        retire(foreign);
+    }
+}
+
+#[test]
+fn swift_lifecycle_sl02_existing_frame_bound_is_preserved_on_rejected_preparation() {
+    let mut o = owner(&[]);
+    let (mut phase, context) = o.prepare_growth(frame_tests::cursor()).unwrap();
+    phase.enter(36).unwrap();
+    // End this borrow without claiming completion. Real frame/pin/debt remains.
+    drop((phase, context));
+    let before = observed(&o);
+    let previous = o.state.as_ref().unwrap().frame_cleanup.bound;
+    let failure = failed(&mut o, Request::Initialize);
+    assert_eq!(failure.code, "swift_frame_prepare_nonempty");
+    assert_eq!(observed(&o).reservations, before.reservations);
+    assert_eq!(observed(&o).live, before.live);
+    assert_eq!(observed(&o).instructions, before.instructions);
+    let after = o.state.as_ref().unwrap().frame_cleanup.bound;
+    assert_eq!(
+        after.map(|b| (b.previous, b.admitted)),
+        previous.map(|b| (b.previous, b.admitted))
+    );
+    retire(o);
+}
+
+#[test]
+fn swift_lifecycle_sl05_real_frame_control_and_pin_prevent_ready() {
+    let mut o = owner(&[]);
+    let hook = Hook::set(13);
+    match request(&mut o, Request::Initialize) {
+        Completion::Failed {
+            cleanup: GrowthCompletion::Completed(FrameCompletion::Retained(report)),
+            ..
+        } => {
+            assert_eq!(report.live.frames.current, 1);
+            assert_eq!(report.live.controls.current, 1);
+            assert_eq!(report.live.active_pins.current, 1);
+            assert!(report.bound.is_some());
+        }
+        _ => panic!("actual entered frame must retain the barrier"),
+    }
+    assert!(matches!(o.lifecycle, Lifecycle::Terminal));
+    drop(hook);
+    let before = normalized(observed(&o));
+    assert!(matches!(
+        request(&mut o, Request::Initialize),
+        Completion::BlockedTerminal
+    ));
+    assert_eq!(normalized(observed(&o)), before);
+    retire(o);
+}
+
+#[test]
+fn swift_lifecycle_sl08_indirect_null_and_signature_traps_terminalize_initializer() {
+    for table in [vec![], vec![36]] {
+        let mut o = owner_with(
+            &[
+                (1, Function::void(&[0x41, 0, 0x11, 34, 0, 0x0b])),
+                (2, scalar(9)),
+            ],
+            &table,
+            SwiftRunBudget::default(),
+            WasiGrants::default(),
+            WasiBudget::default(),
+        );
+        let f = failed(&mut o, Request::Initialize);
+        assert_eq!(f.kind, SwiftRunFailureKind::GuestTrap);
+        assert_eq!(f.stage, SwiftRunStage::Initialization);
+        assert_eq!(f.function, Some(35));
+        let before = normalized(observed(&o));
+        for selected in [Request::Initialize, Request::Corpus] {
+            assert!(matches!(
+                request(&mut o, selected),
+                Completion::BlockedTerminal
+            ));
+        }
+        assert_eq!(normalized(observed(&o)), before);
+        retire(o);
+    }
+}
+
+#[test]
+fn swift_lifecycle_sl09_cache_pin_and_nested_frame_limits_fail_closed() {
+    for kind in 0..4 {
+        let budget = match kind {
+            0 => SwiftRunBudget {
+                active_pins: 0,
+                ..SwiftRunBudget::default()
+            },
+            1 => SwiftRunBudget {
+                cache_entry_bytes: 0,
+                ..SwiftRunBudget::default()
+            },
+            2 => SwiftRunBudget {
+                frames: 1,
+                ..SwiftRunBudget::default()
+            },
+            _ => SwiftRunBudget {
+                controls: 1,
+                ..SwiftRunBudget::default()
+            },
+        };
+        let mut o = owner_with(
+            &[(1, Function::void(&[0x10, 36, 0x0b]))],
+            &[],
+            budget,
+            WasiGrants::default(),
+            WasiBudget::default(),
+        );
+        let f = failed(&mut o, Request::Initialize);
+        assert_eq!(
+            f.kind,
+            match kind {
+                0 => SwiftRunFailureKind::PinLimit,
+                1 => SwiftRunFailureKind::ResourceExhausted,
+                2 => SwiftRunFailureKind::FrameLimit,
+                _ => SwiftRunFailureKind::ControlLimit,
+            }
+        );
+        assert_eq!(observed(&o).live.frames.current, 0);
+        assert_eq!(observed(&o).live.active_pins.current, 0);
+        assert!(matches!(o.lifecycle, Lifecycle::Terminal));
+        retire(o);
+    }
+}
+
+#[test]
+fn swift_lifecycle_sl09_growth_state_and_combined_overlap_fail_before_allocation() {
+    for combined in [false, true] {
+        let mut o = owner(&[(1, Function::void(&[0x41, 1, 0x40, 0, 0x1a, 0x0b]))]);
+        let before = observed(&o);
+        let old = if combined {
+            o.control.as_mut().unwrap().test_replace_combined_limit(
+                before.reservations.combined.current + FRAME_OPERATION_BYTES.unwrap() + 585 * PAGE
+                    - 1,
+            )
+        } else {
+            o.control
+                .as_mut()
+                .unwrap()
+                .test_replace_state_limit(before.reservations.state.current + 585 * PAGE - 1)
+        };
+        // Cache entries need Combined space too. The retained engine's first
+        // rejecting category is authoritative; neither route executes growth.
+        let f = failed(&mut o, Request::Initialize);
+        assert_eq!(
+            f.kind,
+            if combined {
+                SwiftRunFailureKind::CombinedExhausted
+            } else {
+                SwiftRunFailureKind::CategoryExhausted
+            }
+        );
+        assert_eq!(o.state.as_ref().unwrap().memory.len(), 584 * PAGE);
+        assert_eq!(observed(&o).live.memory_pages.current, 584);
+        assert_eq!(
+            observed(&o).reservations.state.current,
+            before.reservations.state.current
+        );
+        if combined {
+            o.control.as_mut().unwrap().test_replace_combined_limit(old);
+        } else {
+            o.control.as_mut().unwrap().test_replace_state_limit(old);
+        }
+        retire(o);
+    }
+}
+
+#[test]
+fn swift_lifecycle_sl10_preentry_cancel_and_earliest_wasi_deadline() {
+    let mut o = owner(&[]);
+    o.control.as_ref().unwrap().cancellation().cancel();
+    let before = observed(&o);
+    let f = failed(&mut o, Request::Initialize);
+    assert_eq!(f.kind, SwiftRunFailureKind::Cancelled);
+    assert_eq!(observed(&o).instructions, before.instructions);
+    assert_eq!(observed(&o).host_calls, 0);
+    retire(o);
+    let mut o = owner_with(
+        &[],
+        &[],
+        SwiftRunBudget {
+            deadline_ms: 1000,
+            ..SwiftRunBudget::default()
+        },
+        WasiGrants::default(),
+        WasiBudget {
+            deadline_ms: 200,
+            ..WasiBudget::default()
+        },
+    );
+    assert_eq!(observed(&o).deadline_origin, SwiftDeadlineOrigin::Wasi);
+    let until = o.control.as_ref().unwrap().deadline();
+    std::thread::sleep(until.saturating_duration_since(Instant::now()) + Duration::from_millis(2));
+    let f = failed(&mut o, Request::Initialize);
+    assert_eq!(f.kind, SwiftRunFailureKind::Deadline);
+    assert_eq!(f.at_failure.deadline_origin, SwiftDeadlineOrigin::Wasi);
+    assert_eq!(f.at_failure.instructions, 0);
+    retire(o);
+}
+
+#[test]
+fn swift_lifecycle_sl11_invocation_first_cause_survives_later_fault_and_cancellation() {
+    let spec = [(28, Function::scalar(&[0x00, 0x0b], Type::I32))];
+    let (_, starts) = module(&spec, &[]);
+    let mut o = owner(&spec);
+    success(&mut o, Request::Initialize);
+    let first = failed(&mut o, Request::Corpus);
+    assert_eq!(first.stage, SwiftRunStage::Invocation);
+    assert_eq!(first.function, Some(62));
+    assert_eq!(first.offset, Some(starts[28]));
+    o.control.as_ref().unwrap().cancellation().cancel();
+    let later = o.control.as_mut().unwrap().fail(
+        frame_tests::cursor(),
+        Fault::new(SwiftRunFailureKind::Invariant, "later_test_fault"),
+        None,
+    );
+    assert_eq!(later.kind, first.kind);
+    assert_eq!(later.stage, first.stage);
+    assert_eq!(later.function, first.function);
+    assert_eq!(later.offset, first.offset);
+    assert_eq!(later.at_failure, first.at_failure);
+    let before = normalized(observed(&o));
+    assert!(matches!(
+        request(&mut o, Request::Corpus),
+        Completion::BlockedTerminal
+    ));
+    assert_eq!(normalized(observed(&o)), before);
+    retire(o);
+}
+
+#[test]
+fn swift_lifecycle_sl13_hand_authored_cumulative_host_and_wasi_instruction_trace() {
+    let init = wasi_call(WasiFunction::FdWrite, &[1, 0, 1, 8], true, &[]);
+    let mut corpus = wasi_call(WasiFunction::FdWrite, &[1, 0, 1, 8], true, &[0x41, 0]);
+    corpus.result = Some(Type::I32);
+    let mut o = owner_with(
+        &[(1, init), (28, corpus)],
+        &[],
+        SwiftRunBudget::default(),
+        WasiGrants {
+            stdout: true,
+            ..WasiGrants::default()
+        },
+        WasiBudget::default(),
+    );
+    // Four constants, call, drop, end; each corpus adds const before end.
+    for (selected, instructions, calls, bytes) in [
+        (Request::Initialize, 7, 1, b"x".as_slice()),
+        (Request::Corpus, 15, 2, b"xx".as_slice()),
+        (Request::Corpus, 23, 3, b"xxx".as_slice()),
+    ] {
+        success(&mut o, selected);
+        let actual = observed(&o);
+        assert_eq!(actual.instructions, instructions);
+        assert_eq!(actual.instruction_fuel, instructions);
+        assert_eq!(actual.host_calls, calls);
+        let wasi = o.wasi.as_ref().unwrap();
+        assert_eq!(wasi.usage().calls, calls);
+        assert_eq!(wasi.usage().log_bytes, calls);
+        assert_eq!(wasi.stdout(), bytes);
+        assert_eq!(
+            actual.live.frames.current
+                + actual.live.values.current
+                + actual.live.controls.current
+                + actual.live.active_pins.current,
+            0
+        );
+    }
+    retire(o);
+}
+
+#[test]
+fn swift_lifecycle_sl14_later_host_and_wasi_call_limits_preserve_earlier_output() {
+    for wasi_limit in [false, true] {
+        for allowance in [1, 2] {
+            let init = wasi_call(WasiFunction::FdWrite, &[1, 0, 1, 8], true, &[]);
+            let mut corpus = wasi_call(WasiFunction::FdWrite, &[1, 0, 1, 8], true, &[0x41, 0]);
+            corpus.result = Some(Type::I32);
+            let mut o = owner_with(
+                &[(1, init), (28, corpus)],
+                &[],
+                SwiftRunBudget {
+                    host_calls: if wasi_limit { 32768 } else { allowance },
+                    ..SwiftRunBudget::default()
+                },
+                WasiGrants {
+                    stdout: true,
+                    ..WasiGrants::default()
+                },
+                WasiBudget {
+                    calls: if wasi_limit { allowance } else { 32768 },
+                    ..WasiBudget::default()
+                },
+            );
+            success(&mut o, Request::Initialize);
+            if allowance == 2 {
+                success(&mut o, Request::Corpus);
+            }
+            let f = failed(&mut o, Request::Corpus);
+            assert_eq!(
+                f.kind,
+                if wasi_limit {
+                    SwiftRunFailureKind::Wasi
+                } else {
+                    SwiftRunFailureKind::HostCallLimit
+                }
+            );
+            assert_eq!(f.stage, SwiftRunStage::Invocation);
+            assert_eq!(
+                o.wasi.as_ref().unwrap().stdout(),
+                &b"xx"[..allowance as usize]
+            );
+            assert_eq!(o.wasi.as_ref().unwrap().usage().calls, allowance);
+            assert!(matches!(o.lifecycle, Lifecycle::Terminal));
+            retire(o);
+        }
+    }
+}
+
+#[test]
+fn swift_lifecycle_sl14_later_work_cache_and_absolute_deadline_do_not_reset() {
+    let mut o = owner(&[]);
+    success(&mut o, Request::Initialize);
+    let work = observed(&o).execution_work;
+    let old = o
+        .control
+        .as_mut()
+        .unwrap()
+        .test_replace_execution_work_limit(work);
+    let f = failed(&mut o, Request::Corpus);
+    assert_eq!(f.kind, SwiftRunFailureKind::WorkExhausted);
+    assert_eq!(f.at_failure.execution_work, work);
+    assert_eq!(f.at_failure.instructions, 1);
+    o.control
+        .as_mut()
+        .unwrap()
+        .test_replace_execution_work_limit(old);
+    retire(o);
+    // Constructor605; cold no-op init B2/I1:1151+1+4+3=1159.
+    let mut o = owner_with(
+        &[],
+        &[],
+        SwiftRunBudget {
+            cache_work: 1764,
+            ..SwiftRunBudget::default()
+        },
+        WasiGrants::default(),
+        WasiBudget::default(),
+    );
+    success(&mut o, Request::Initialize);
+    assert_eq!(observed(&o).cache_work, 1764);
+    let f = failed(&mut o, Request::Corpus);
+    assert_eq!(f.resource, Some(SwiftRunResource::CacheWork));
+    assert_eq!(f.at_failure.cache_work, 1764);
+    assert_eq!(f.at_failure.instructions, 1);
+    retire(o);
+    let mut o = owner_with(
+        &[],
+        &[],
+        SwiftRunBudget {
+            deadline_ms: 200,
+            ..SwiftRunBudget::default()
+        },
+        WasiGrants::default(),
+        WasiBudget::default(),
+    );
+    success(&mut o, Request::Initialize);
+    let until = o.control.as_ref().unwrap().deadline();
+    std::thread::sleep(until.saturating_duration_since(Instant::now()) + Duration::from_millis(2));
+    let f = failed(&mut o, Request::Corpus);
+    assert_eq!(f.kind, SwiftRunFailureKind::Deadline);
+    assert_eq!(f.at_failure.instructions, 1);
+    assert_eq!(o.control.as_ref().unwrap().deadline(), until);
+    retire(o);
+}
+
+#[test]
+fn swift_lifecycle_sl15_capture_exhaustion_and_closed_fd_persist_between_calls() {
+    let init = wasi_call(WasiFunction::FdWrite, &[1, 0, 1, 8], true, &[]);
+    let mut corpus = wasi_call(WasiFunction::FdWrite, &[1, 0, 1, 8], false, &[]);
+    corpus.result = Some(Type::I32);
+    let mut o = owner_with(
+        &[(1, init), (28, corpus)],
+        &[],
+        SwiftRunBudget::default(),
+        WasiGrants {
+            stdout: true,
+            ..WasiGrants::default()
+        },
+        WasiBudget {
+            log_bytes: 2,
+            ..WasiBudget::default()
+        },
+    );
+    success(&mut o, Request::Initialize);
+    assert_eq!(success(&mut o, Request::Corpus), Reply::Corpus(0));
+    assert_eq!(success(&mut o, Request::Corpus), Reply::Corpus(51)); // Preview1 NOSPC.
+    assert_eq!(o.wasi.as_ref().unwrap().stdout(), b"xx");
+    assert_eq!(o.wasi.as_ref().unwrap().usage().log_bytes, 2);
+    assert_eq!(o.wasi.as_ref().unwrap().usage().calls, 3);
+    retire(o);
+    let init = wasi_call(WasiFunction::FdClose, &[1], true, &[]);
+    let mut corpus = wasi_call(WasiFunction::FdWrite, &[1, 0, 1, 8], false, &[]);
+    corpus.result = Some(Type::I32);
+    let mut o = owner_with(
+        &[(1, init), (28, corpus)],
+        &[],
+        SwiftRunBudget::default(),
+        WasiGrants {
+            stdout: true,
+            ..WasiGrants::default()
+        },
+        WasiBudget::default(),
+    );
+    success(&mut o, Request::Initialize);
+    for _ in 0..2 {
+        assert_eq!(success(&mut o, Request::Corpus), Reply::Corpus(8));
+    }
+    assert!(o.wasi.as_ref().unwrap().stdout().is_empty());
+    retire(o);
+}
+
+#[test]
+fn swift_lifecycle_sl16_stored_errors_wrong_i64_and_terminal_shape_do_not_escape() {
+    for mode in [4, 5, 11, 12] {
+        let mut o = owner(&[(28, scalar(73))]);
+        success(&mut o, Request::Initialize);
+        let hook = Hook::set(mode);
+        let f = failed(&mut o, Request::Corpus);
+        assert_eq!(f.kind, SwiftRunFailureKind::Invariant);
+        assert!(matches!(o.lifecycle, Lifecycle::Terminal));
+        drop(hook);
+        retire(o);
+    }
+}
+
+fn zero_argument_call(function: WasiFunction) -> Function {
+    let mut body = Vec::new();
+    for parameter in function.parameters() {
+        match parameter {
+            Type::I32 => body.extend([0x41, 0]),
+            Type::I64 => body.extend([0x42, 0]),
+            _ => panic!("sealed WASI signature changed"),
+        }
+    }
+    body.push(0x10);
+    uint(
+        WasiFunction::ALL
+            .iter()
+            .position(|f| *f == function)
+            .unwrap() as u32,
+        &mut body,
+    );
+    if function != WasiFunction::ProcExit {
+        body.extend([0x24, 0]);
+    }
+    body.push(0x0b);
+    Function::void(&body)
+}
+#[test]
+fn swift_lifecycle_sl17_all_34_actual_descriptors_remain_sealed_and_default_denied() {
+    use WasiFunction::*;
+    // All args are typed zero. Overlap errno is intentional for argument output
+    // pairs; denial occurs before bad memory for denied OS capabilities.
+    for function in WasiFunction::ALL {
+        let mut o = owner(&[(1, zero_argument_call(function))]);
+        if function == ProcExit {
+            let f = failed(&mut o, Request::Initialize);
+            assert_eq!(f.kind, SwiftRunFailureKind::GuestExit);
+            assert_eq!(f.guest_exit, Some(0));
+        } else {
+            success(&mut o, Request::Initialize);
+            let errno = match function {
+                ArgsGet | ArgsSizesGet | EnvironSizesGet => 28,
+                EnvironGet => 0,
+                ClockResGet | ClockTimeGet | RandomGet => 76,
+                PollOneoff => 58,
+                _ => 8,
+            };
+            assert_eq!(
+                o.state.as_ref().unwrap().globals[0],
+                Value::I32(errno),
+                "{function:?}"
+            );
+        }
+        assert_eq!(o.wasi.as_ref().unwrap().usage().calls, 1, "{function:?}");
+        assert_eq!(observed(&o).host_calls, 1);
+        assert_eq!(o.wasi.as_ref().unwrap().usage().random_bytes, 0);
+        assert_eq!(o.wasi.as_ref().unwrap().usage().log_bytes, 0);
+        retire(o);
+    }
+}
+
+#[test]
+fn swift_lifecycle_sl18_cleanup_under_exhausted_fuel_work_and_cancel_uses_no_allowance() {
+    for kind in 0..3 {
+        let mut o = owner_with(
+            &[
+                (1, Function::void(&[0x10, 36, 0x0b])),
+                (2, Function::void(&[0x10, 37, 0x0b])),
+                (3, Function::void(&[0x41, 1, 0x1a, 0x00, 0x0b])),
+            ],
+            &[],
+            SwiftRunBudget {
+                instruction_fuel: if kind == 0 { 2 } else { 100_000_000 },
+                ..SwiftRunBudget::default()
+            },
+            WasiGrants::default(),
+            WasiBudget::default(),
+        );
+        if kind == 1 {
+            o.control.as_ref().unwrap().cancellation().cancel();
+        }
+        let old = if kind == 2 {
+            let work = observed(&o).execution_work;
+            Some(
+                o.control
+                    .as_mut()
+                    .unwrap()
+                    .test_replace_execution_work_limit(work + 4),
+            )
+        } else {
+            None
+        };
+        let (f, stats) = measure_extended(None, || failed(&mut o, Request::Initialize));
+        assert_eq!(
+            f.kind,
+            match kind {
+                0 => SwiftRunFailureKind::FuelExhausted,
+                1 => SwiftRunFailureKind::Cancelled,
+                _ => SwiftRunFailureKind::WorkExhausted,
+            }
+        );
+        let after = observed(&o);
+        assert_eq!(after.instructions, f.at_failure.instructions);
+        assert_eq!(after.execution_work, f.at_failure.execution_work);
+        assert_eq!(after.host_calls, 0);
+        assert_eq!(
+            after.live.frames.current
+                + after.live.controls.current
+                + after.live.values.current
+                + after.live.active_pins.current,
+            0
+        );
+        if kind == 1 {
+            assert_eq!(stats.attempts, 0);
+        }
+        if let Some(old) = old {
+            o.control
+                .as_mut()
+                .unwrap()
+                .test_replace_execution_work_limit(old);
+        }
+        retire(o);
+    }
+}
+
+#[test]
+fn swift_lifecycle_sl20_cold_cache_allocation_refusals_never_publish_ready() {
+    // Nonzero locals, instructions and br_table targets exercise three vectors.
+    // Keep every reached refusal, rather than deriving ordinals from a dry run.
+    for ordinal in 0..3 {
+        let mut init = Function::void(&[0x02, 0x40, 0x41, 0, 0x0e, 1, 0, 0, 0x0b, 0x0b]);
+        init.locals = vec![Type::I32];
+        let mut o = owner(&[(1, init)]);
+        let (result, stats) =
+            measure_extended(Some(ordinal), || request(&mut o, Request::Initialize));
+        assert_eq!(stats.injected_failures, 1, "ordinal {ordinal}");
+        match result {
+            Completion::Failed {
+                failure: Some(f),
+                cleanup: GrowthCompletion::Completed(FrameCompletion::Completed),
+            } => assert_eq!(f.kind, SwiftRunFailureKind::Allocation),
+            _ => panic!("refused cache allocation escaped"),
+        }
+        assert!(matches!(o.lifecycle, Lifecycle::Terminal));
+        assert_eq!(observed(&o).live.active_pins.current, 0);
+        retire(o);
+    }
+}
+
+#[test]
+fn swift_lifecycle_sl06_committed_memory_old_refund_retains_actual_authority() {
+    let mut foreign = owner(&[]);
+    super::super::tests::lifecycle_foreign_old(foreign.state.as_mut().unwrap().buffers[3].take());
+    let mut o = owner(&[(1, Function::void(&[0x41, 1, 0x40, 0, 0x1a, 0x0b]))]);
+    let state_before = observed(&o).reservations.state.current;
+    match request(&mut o, Request::Initialize) {
+        Completion::Failed {
+            failure: Some(first),
+            cleanup:
+                GrowthCompletion::Retained {
+                    mut phase,
+                    mut context,
+                    mut growth,
+                    storage,
+                    preparation,
+                },
+        } => {
+            assert_eq!(first.code, "swift_run_reservation_owner");
+            assert_eq!(phase.phase.parts.memory.len(), 585 * PAGE);
+            let usage = phase.phase.operation.control.usage(None);
+            assert_eq!(usage.live.memory_pages.current, 585);
+            assert_eq!(usage.reservations.state.current, state_before + 585 * PAGE);
+            assert_eq!(growth.transfer.old.capacity(), 0);
+            assert!(growth.transfer.old_ticket.is_some());
+            assert_eq!(growth.pages_debited, 0);
+            assert!(context
+                .memory_ticket
+                .as_ref()
+                .unwrap()
+                .matches_layout(SwiftReservationCategory::State, 585 * PAGE));
+            foreign.state.as_mut().unwrap().buffers[3] =
+                super::super::tests::lifecycle_restore_old(&mut growth);
+            release_growth_pending(&mut phase, &mut context, &mut growth).unwrap();
+            assert_eq!(phase.invariant("later_cleanup_fault").code, first.code);
+            assert!(matches!(
+                complete_growth(phase, context, growth, storage, preparation),
+                GrowthCompletion::Completed(FrameCompletion::Completed)
+            ));
+        }
+        _ => panic!("committed growth refund must retain exact phase and old ticket"),
+    }
+    assert_eq!(o.state.as_ref().unwrap().memory.len(), 585 * PAGE);
+    assert_eq!(observed(&o).reservations.state.current, state_before + PAGE);
+    assert!(matches!(o.lifecycle, Lifecycle::Terminal));
+    assert!(matches!(
+        request(&mut o, Request::Initialize),
+        Completion::BlockedTerminal
+    ));
+    retire(o);
+    retire(foreign);
+}
+
+#[test]
+fn swift_lifecycle_sl10_actual_cache_and_local_entry_checkpoints_cancel() {
+    use crate::experimental::cache::borrowed::CacheStep;
+    use crate::experimental_swift_reactor::cache_tests;
+    for step in [CacheStep::Scan, CacheStep::Build] {
+        let mut o = owner(&[]);
+        cache_tests::lifecycle_cancel_at_step(step);
+        let f = failed(&mut o, Request::Initialize);
+        cache_tests::lifecycle_reset_hooks();
+        assert_eq!(f.kind, SwiftRunFailureKind::Cancelled);
+        assert_eq!(f.at_failure.instructions, 0);
+        assert_eq!(observed(&o).live.active_pins.current, 0);
+        retire(o);
+    }
+    let mut init = Function::void(&[0x0b]);
+    init.locals = vec![Type::I32; 3];
+    let mut o = owner(&[(1, init)]);
+    frame_tests::hooks(frame_tests::Hooks {
+        cancel_local: Some(1),
+        ..frame_tests::Hooks::default()
+    });
+    let f = failed(&mut o, Request::Initialize);
+    assert_eq!(f.kind, SwiftRunFailureKind::Cancelled);
+    assert_eq!(f.at_failure.instructions, 0);
+    assert_eq!(observed(&o).live.values.current, 0);
+    retire(o);
+}
+
+#[test]
+fn swift_lifecycle_sl10_actual_growth_cancel_and_deadline_roll_back_without_publication() {
+    // Growth's original sequence: allocation checks0,1; zeroing starts2;
+    // final check follows all585-page zero chunks and584-page copy chunks.
+    const FINAL: usize = 2 + 585 * PAGE / 4096 + 584 * PAGE / 4096;
+    for (cancel, index) in [(true, 0), (true, 2), (true, FINAL), (false, 2)] {
+        let mut o = owner_with(
+            &[(1, Function::void(&[0x41, 1, 0x40, 0, 0x1a, 0x0b]))],
+            &[],
+            SwiftRunBudget {
+                deadline_ms: 1000,
+                ..SwiftRunBudget::default()
+            },
+            WasiGrants::default(),
+            WasiBudget::default(),
+        );
+        super::super::tests::lifecycle_checkpoint(
+            if cancel { Some(index) } else { None },
+            if cancel { None } else { Some(index) },
+        );
+        let before = observed(&o).reservations.state.current;
+        let f = failed(&mut o, Request::Initialize);
+        super::super::tests::lifecycle_reset_hooks();
+        assert_eq!(
+            f.kind,
+            if cancel {
+                SwiftRunFailureKind::Cancelled
+            } else {
+                SwiftRunFailureKind::Deadline
+            }
+        );
+        assert_eq!(o.state.as_ref().unwrap().memory.len(), 584 * PAGE);
+        assert_eq!(observed(&o).live.memory_pages.current, 584);
+        assert_eq!(observed(&o).reservations.state.current, before);
+        assert!(matches!(o.lifecycle, Lifecycle::Terminal));
+        assert_eq!(observed(&o).execution_work, f.at_failure.execution_work);
+        retire(o);
+    }
+}
+
+#[test]
+fn swift_lifecycle_sl10_wasi_staging_service_commit_and_dispatch_cancellation() {
+    for mode in 0..5 {
+        let mut o = owner_with(
+            &[(1, wasi_call(WasiFunction::RandomGet, &[64, 64], true, &[]))],
+            &[],
+            SwiftRunBudget::default(),
+            WasiGrants {
+                secure_random: true,
+                ..WasiGrants::default()
+            },
+            WasiBudget::default(),
+        );
+        match mode {
+            0 => o.wasi.as_mut().unwrap().host_test_dispatch(true, false),
+            1 => o.wasi.as_mut().unwrap().host_test_dispatch(false, true),
+            2 => o.wasi.as_mut().unwrap().host_test_cancel_at(0),
+            3 => o.wasi.as_mut().unwrap().host_test_cancel_at(3),
+            _ => o.wasi.as_mut().unwrap().host_test_service(5),
+        }
+        let f = failed(&mut o, Request::Initialize);
+        assert_eq!(
+            f.kind,
+            if mode == 1 {
+                SwiftRunFailureKind::Cancelled
+            } else {
+                SwiftRunFailureKind::Wasi
+            }
+        );
+        assert_eq!(
+            f.wasi_failure,
+            if mode == 1 {
+                None
+            } else {
+                Some(crate::experimental_wasi::WasiFailure::Cancelled)
+            }
+        );
+        let memory = &o.state.as_ref().unwrap().memory[64..128];
+        if mode == 1 {
+            assert_eq!(o.wasi.as_ref().unwrap().usage().random_bytes, 64);
+        } else {
+            assert!(memory.iter().all(|b| *b == 0));
+        }
+        let services = o.wasi.as_ref().unwrap().host_test_services();
+        assert!(services <= 1);
+        let before = normalized(observed(&o));
+        assert!(matches!(
+            request(&mut o, Request::Initialize),
+            Completion::BlockedTerminal
+        ));
+        assert_eq!(normalized(observed(&o)), before);
+        assert_eq!(o.wasi.as_ref().unwrap().host_test_services(), services);
+        retire(o);
+    }
+}
+
+#[test]
+fn swift_lifecycle_sl17_partial_random_error_and_real_clock_calls_preserve_contract() {
+    let mut init = wasi_call(WasiFunction::RandomGet, &[64, 64], false, &[]);
+    // Record returned errno in global0; no success inferred from outer Ok.
+    init.body.pop();
+    init.body.extend([0x24, 0, 0x0b]);
+    let mut o = owner_with(
+        &[(1, init)],
+        &[],
+        SwiftRunBudget::default(),
+        WasiGrants {
+            secure_random: true,
+            ..WasiGrants::default()
+        },
+        WasiBudget::default(),
+    );
+    o.wasi.as_mut().unwrap().host_test_service(1);
+    success(&mut o, Request::Initialize);
+    assert_eq!(o.state.as_ref().unwrap().globals[0], Value::I32(29));
+    assert!(o.state.as_ref().unwrap().memory[64..128]
+        .iter()
+        .all(|b| *b == 0));
+    assert_eq!(o.wasi.as_ref().unwrap().host_test_services(), 1);
+    assert_eq!(o.wasi.as_ref().unwrap().usage().random_bytes, 0);
+    retire(o);
+    for clock in [0, 1] {
+        // clock_time_get(i32 clock,i64 precision,i32 output), drop errno.
+        let body = [0x41, clock, 0x42, 0, 0x41, 0xc0, 0, 0x10, 5, 0x1a, 0x0b];
+        let mut o = owner_with(
+            &[(1, Function::void(&body))],
+            &[],
+            SwiftRunBudget::default(),
+            WasiGrants {
+                realtime: true,
+                monotonic: true,
+                ..WasiGrants::default()
+            },
+            WasiBudget::default(),
+        );
+        success(&mut o, Request::Initialize);
+        assert_eq!(o.wasi.as_ref().unwrap().usage().calls, 1);
+        assert_eq!(o.wasi.as_ref().unwrap().host_test_services(), 1);
+        assert!(
+            u64::from_le_bytes(o.state.as_ref().unwrap().memory[64..72].try_into().unwrap()) > 0
+        );
+        retire(o);
+    }
+}
+
+#[test]
+fn swift_lifecycle_sl18_consuming_cleanup_preserves_diagnostic_until_final_refund() {
+    let mut o = owner(&[(1, Function::void(&[0x00, 0x0b]))]);
+    let first = failed(&mut o, Request::Initialize);
+    let mut owned = Some(o);
+    let mut returned = Some(SwiftReactorInstance::cleanup_owned(&mut owned));
+    let tail = returned.take().unwrap().unwrap();
+    assert!(owned.is_none());
+    let mut final_failure = None;
+    let mut final_usage = None;
+    tail.complete(
+        (owned, returned, first),
+        &mut final_failure,
+        &mut final_usage,
+    );
+    let actual = final_failure.unwrap();
+    assert_eq!(actual.kind, first.kind);
+    assert_eq!(actual.at_failure, first.at_failure);
+    let after = final_usage.unwrap();
+    assert_eq!(after.reservations.combined.current, 0);
+    assert_eq!(after.reservations.live_tickets, 0);
+    assert_eq!(after.live.memory_pages.current, 0);
+    assert_eq!(after.live.cache_entries.current, 0);
+}
+
+#[test]
+fn swift_lifecycle_sl18_rejected_deep_pin_cleanup_retains_then_drains_without_work() {
+    let mut foreign = owner(&[]);
+    let mut o = owner(&[
+        (1, Function::void(&[0x10, 36, 0x0b])),
+        (2, Function::void(&[0x10, 37, 0x0b])),
+        (3, Function::void(&[0x00, 0x0b])),
+    ]);
+    frame_tests::install_foreign(&mut foreign);
+    frame_tests::hooks(frame_tests::Hooks {
+        release_mask: 7,
+        ..frame_tests::Hooks::default()
+    });
+    let first = match request(&mut o, Request::Initialize) {
+        Completion::Failed {
+            failure: Some(first),
+            cleanup: GrowthCompletion::Completed(FrameCompletion::Retained(report)),
+        } => {
+            assert_eq!(first.kind, SwiftRunFailureKind::GuestTrap);
+            assert_eq!(first.function, Some(37));
+            assert_eq!(report.retained_frames, 3);
+            assert_eq!(report.live.active_pins.current, 3);
+            assert_eq!(report.first_failure.unwrap().at_failure, first.at_failure);
+            first
+        }
+        _ => panic!("failed actual pin cleanup must retain three original frames"),
+    };
+    frame_tests::restore_foreign(&mut foreign);
+    o.control.as_ref().unwrap().cancellation().cancel();
+    let before = observed(&o);
+    let (_, stats) = measure_extended(Some(0), || frame_tests::drain_complete(&mut o));
+    assert_eq!(stats.attempts, 0);
+    let after = observed(&o);
+    assert_eq!(after.instructions, before.instructions);
+    assert_eq!(after.execution_work, before.execution_work);
+    assert_eq!(after.host_calls, before.host_calls);
+    assert_eq!(after.live.active_pins.current, 0);
+    let actual = o.control.as_mut().unwrap().record_cleanup(None).unwrap();
+    assert_eq!(actual.at_failure, first.at_failure);
+    assert_eq!(actual.kind, SwiftRunFailureKind::GuestTrap);
+    assert!(matches!(
+        request(&mut o, Request::Initialize),
+        Completion::BlockedTerminal
+    ));
+    retire(o);
+    retire(foreign);
+}
+
+#[test]
+fn swift_lifecycle_sl19_misuse_has_no_frame_admission_with_zero_combined_room() {
+    for initialized in [false, true] {
+        let mut o = owner(&[]);
+        if initialized {
+            success(&mut o, Request::Initialize);
+        }
+        let before = observed(&o);
+        let old = o
+            .control
+            .as_mut()
+            .unwrap()
+            .test_replace_combined_limit(before.reservations.combined.current);
+        let (reply, stats) = measure_extended(Some(0), || {
+            request(
+                &mut o,
+                if initialized {
+                    Request::Initialize
+                } else {
+                    Request::Corpus
+                },
+            )
+        });
+        assert!(matches!(&reply, Completion::Rejected(_)));
+        drop(reply);
+        assert_eq!(stats.attempts, 0);
+        assert_eq!(normalized(observed(&o)), normalized(before));
+        o.control.as_mut().unwrap().test_replace_combined_limit(old);
+        retire(o);
+    }
+}
+
+#[test]
+fn swift_lifecycle_sl20_warm_growth_allocation_refusal_preserves_committed_memory() {
+    let mut o = owner(&[(
+        28,
+        Function::scalar(&[0x41, 1, 0x40, 0, 0x1a, 0x41, 0, 0x0b], Type::I32),
+    )]);
+    success(&mut o, Request::Initialize);
+    assert_eq!(success(&mut o, Request::Corpus), Reply::Corpus(0));
+    let before = observed(&o);
+    assert_eq!(o.state.as_ref().unwrap().memory.len(), 585 * PAGE);
+    let (result, stats) = measure_extended(Some(0), || request(&mut o, Request::Corpus));
+    match result {
+        Completion::Failed {
+            failure: Some(f),
+            cleanup: GrowthCompletion::Completed(FrameCompletion::Completed),
+        } => {
+            assert_eq!(f.kind, SwiftRunFailureKind::Allocation);
+            assert_eq!(f.code, "swift_growth_allocation");
+        }
+        _ => panic!("growth allocation refusal cannot return successful corpus result"),
+    }
+    assert_eq!(stats.attempts, 1);
+    assert_eq!(stats.injected_failures, 1);
+    assert_eq!(stats.last_size, 586 * PAGE);
+    assert_eq!(o.state.as_ref().unwrap().memory.len(), 585 * PAGE);
+    assert_eq!(observed(&o).live.memory_pages.current, 585);
+    assert_eq!(
+        observed(&o).reservations.state.current,
+        before.reservations.state.current
+    );
+    assert!(matches!(o.lifecycle, Lifecycle::Terminal));
     retire(o);
 }

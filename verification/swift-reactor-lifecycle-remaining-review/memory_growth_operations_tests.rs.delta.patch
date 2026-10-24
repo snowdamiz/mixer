@@ -1,0 +1,31 @@
+--- normalized-accepted/src/experimental_swift_reactor/memory_growth_operations_tests.rs
++++ normal-candidate/src/experimental_swift_reactor/memory_growth_operations_tests.rs
+@@ -1181,3 +1181,28 @@
+     }
+ }
+ // CALL_DISPATCH_FIXTURE_HELPERS_END
++
++// Test-only setup of the already-existing actual growth checkpoint/refund hooks.
++pub(super) fn lifecycle_checkpoint(cancel: Option<usize>, expire: Option<usize>) {
++    reset();
++    CHECK_CANCEL.with(|x| x.set(cancel));
++    CHECK_EXPIRE.with(|x| x.set(expire));
++}
++pub(super) fn lifecycle_reset_hooks() {
++    reset();
++}
++pub(super) fn lifecycle_foreign_old(ticket: Option<ReservationTicket>) {
++    FOREIGN_OLD.with(|x| {
++        assert!(x.borrow().is_none());
++        *x.borrow_mut() = ticket;
++    });
++    ACTUAL_OLD.with(|x| assert!(x.borrow().is_none()));
++    SWAP_OLD.with(|x| x.set(true));
++}
++pub(super) fn lifecycle_restore_old(growth: &mut SwiftGrowthStorage) -> Option<ReservationTicket> {
++    SWAP_OLD.with(|x| x.set(false));
++    let foreign = growth.transfer.old_ticket.take();
++    growth.transfer.old_ticket = ACTUAL_OLD.with(|x| x.borrow_mut().take());
++    assert!(growth.transfer.old_ticket.is_some());
++    foreign
++}

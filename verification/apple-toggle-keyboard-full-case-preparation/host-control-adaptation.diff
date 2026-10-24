@@ -1,0 +1,209 @@
+--- verification/apple-toggle-keyboard-focus/test_keyboard.py
++++ verification/apple-toggle-keyboard-full-case-preparation/test_keyboard.py
+@@ -5,8 +5,9 @@
+ import tempfile
+ import unittest
+ from unittest import mock
+-import keyboard_oracle as o
+-import run
++import composition as run
++run.inherited=run.h
++o=run.oracle.original
+ 
+ 
+ def state(initial,enabled=True,allowed=True):
+--- verification/apple-toggle-keyboard-focus/test_adapters.py
++++ verification/apple-toggle-keyboard-full-case-preparation/test_adapters.py
+@@ -6,14 +6,18 @@
+ import tempfile
+ import unittest
+ from unittest import mock
+-import keyboard_oracle as o
+-import run
++import composition as run
++run.inherited=run.h
++o=run.oracle
+ from test_keyboard import fixture
+ 
+ class WitnessBridgeControls(unittest.TestCase):
+     def setUp(self):
+         self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup);self.root=pathlib.Path(self.temp.name).resolve()
+-        self.docs=self.root/'Documents';self.docs.mkdir();self.case,self.before,self.after=fixture();self.path=self.docs/'observations.json'
++        self.docs=self.root/'Documents';self.docs.mkdir();self.case,self.before,self.after=fixture();self.before['state']['focused']=True;self.after['state']['focused']=True
++        for event in self.before['events']+self.after['events']:
++            if event['reason']!='startup':event['state']['focused']=True
++        self.path=self.docs/'observations.json'
+         self.store({k:v for k,v in self.before.items() if k not in {'keyboardWitness','keyboardBinding'}})
+         self.bridge=run.inherited.Bridge({'diagnostic':self.docs,'comparator':self.docs},self.root/'captures','host-capability',{'scope':'host-only'},allowed_cases={self.case})
+         self.cursor=o.Cursor(self.case)
+@@ -56,62 +60,7 @@
+         for operation,body in [('keyboard',{}),('command',{'command':'focus'}),('command',{'command':'self-tests'}),('command',{'command':'disable'}),('command',{'command':'/tmp/path'})]:
+             with self.assertRaises(ValueError):self.bridge.request(operation,body)
+         self.assertEqual(o.COMMANDS,{'resume','reset','set-on','stale','disable'})
+-        self.assertIs(run.inherited.Bridge.request,run.transport.Bridge.request)
++        self.assertEqual(run.inherited.Bridge.request.__code__,run.telemetry.diagnostic_bridge(run.CANONICAL_BRIDGE).request.__code__)
+         self.assertIs(run.inherited.Bridge.write_command,run.transport.Bridge.write_command)
+ 
+-class AttachmentExportControls(unittest.TestCase):
+-    def setUp(self):
+-        self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup);self.root=pathlib.Path(self.temp.name).resolve()
+-        self.base=self.root/'packet';self.runtime=self.base/'runtime';self.runtime.mkdir(parents=True)
+-        self.workspace=self.root/'owned';self.workspace.mkdir(mode=0o700);self.result=self.workspace/'session.xcresult';self.result.mkdir()
+-        info=self.workspace.stat();life={'ephemeralWorkspace':{'path':str(self.workspace),'device':info.st_dev,'inode':info.st_ino,'uid':info.st_uid}}
+-        (self.runtime/'lifecycle.json').write_text(json.dumps(life));self.command=run.ExportingCommands(self.runtime/'commands.json')
+-        self.argv=[str(run.inherited.DEVELOPER/'usr/bin/xcodebuild'),'test-without-building','-resultBundlePath',str(self.result)]
+-        self.patches=[mock.patch.object(run,'BASE',self.base),mock.patch.object(run.inherited,'RUN_DIR',self.runtime)]
+-        for patch in self.patches:patch.start();self.addCleanup(patch.stop)
+-    def exported(self):
+-        out=self.runtime/'attachments';out.mkdir()
+-        (out/'manifest.json').write_text('[]')
+-        (out/'setup.json').write_text(json.dumps({'schema':'mixer.apple-toggle.keyboard-settings.1','step':'setup-enabled','passed':True,'bundle':'com.apple.Preferences','route':['Accessibility','Keyboards & Typing','Full Keyboard Access'],'fullKeyboardAccessValue':'1'}))
+-    def test_fixed_bounded_export_and_artifact_inventory(self):
+-        def tool(argv,**kwargs):
+-            if argv[0]=='/usr/bin/xcrun':
+-                self.assertEqual(argv,['/usr/bin/xcrun','xcresulttool','export','attachments','--path',str(self.result),'--output-path',str(self.runtime/'attachments')]);self.assertEqual(kwargs,{'timeout':30,'check':False});self.exported()
+-            return 0,'',''
+-        with mock.patch.object(run.BaseCommands,'run',side_effect=tool):self.command.run(self.argv,timeout=600,check=False)
+-        receipt=json.loads((self.runtime/'attachment-export.json').read_bytes());self.assertTrue(receipt['passed']);self.assertTrue(receipt['settingsSetupObservedPassed']);self.assertEqual(len(receipt['files']),2)
+-    def test_export_attempt_runs_after_test_timeout_and_preserves_exception(self):
+-        def tool(argv,**kwargs):
+-            if argv[0]!=' /usr/bin/xcrun'.strip():raise TimeoutError('host-only-test-timeout')
+-            self.exported();return 0,'',''
+-        with mock.patch.object(run.BaseCommands,'run',side_effect=tool),self.assertRaisesRegex(TimeoutError,'host-only-test-timeout'):self.command.run(self.argv,timeout=600,check=False)
+-        self.assertTrue(json.loads((self.runtime/'attachment-export.json').read_bytes())['passed'])
+-    def test_export_failure_never_suppresses_original_result_or_cleanup(self):
+-        def tool(argv,**kwargs):
+-            if argv[0]=='/usr/bin/xcrun':raise RuntimeError('host-only-export-failure')
+-            return 65,'failed',''
+-        with mock.patch.object(run.BaseCommands,'run',side_effect=tool):self.assertEqual(self.command.run(self.argv,check=False)[0],65)
+-        self.assertFalse(json.loads((self.runtime/'attachment-export.json').read_bytes())['passed'])
+-        self.assertEqual(pathlib.Path(run.inherited.cleanup.__code__.co_filename),run.PARENT/'harness.py')
+-    def test_nonowned_result_or_workspace_identity_never_invokes_export(self):
+-        life=json.loads((self.runtime/'lifecycle.json').read_bytes());life['ephemeralWorkspace']['inode']+=1;(self.runtime/'lifecycle.json').write_text(json.dumps(life))
+-        with mock.patch.object(run.BaseCommands,'run',return_value=(0,'','')) as tool:self.command.run(self.argv,check=False)
+-        self.assertEqual(tool.call_count,1);self.assertFalse(json.loads((self.runtime/'attachment-export.json').read_bytes())['passed'])
+-    def test_missing_result_after_exception_is_recorded_as_unqualified(self):
+-        self.result.rmdir()
+-        with mock.patch.object(run.BaseCommands,'run',side_effect=TimeoutError('host-only')),self.assertRaises(TimeoutError):self.command.run(self.argv,check=False)
+-        self.assertFalse(json.loads((self.runtime/'attachment-export.json').read_bytes())['passed'])
+-    def test_setup_failure_or_missing_export_leaves_all_cases_unrun(self):
+-        class Bridge:
+-            verdicts=[];failures=[];keyboard_cases={}
+-        summary=run.summary('interaction',Bridge(),65,{'type':'setup-failed'},[{'passed':True}])
+-        self.assertFalse(summary['requiredEvidenceAvailable']);self.assertFalse(summary['runPassed']);self.assertEqual(set(summary['dependentCasesUnrun']),o.CASES)
+-    def test_redirected_export_inventory_is_rejected(self):
+-        def tool(argv,**kwargs):
+-            if argv[0]=='/usr/bin/xcrun':
+-                self.exported();(self.runtime/'attachments/redirect').symlink_to(self.runtime/'lifecycle.json')
+-            return 0,'',''
+-        with mock.patch.object(run.BaseCommands,'run',side_effect=tool):self.command.run(self.argv,check=False)
+-        self.assertFalse(json.loads((self.runtime/'attachment-export.json').read_bytes())['passed'])
+-
+-if __name__=='__main__':unittest.main()
++if __name__=='__main__':unittest.main(verbosity=2)
+--- verification/apple-toggle-keyboard-focus-v9-preparation/fixtures.py
++++ verification/apple-toggle-keyboard-full-case-preparation/fixtures.py
+@@ -1,36 +1,21 @@
+-#!/usr/bin/env python3
+-"""V9 synthetic journal emitter through the actual Bridge/Session. No native evidence."""
++"""Retained V9 synthetic input generator over the real composed HTTP handler.
++Every payload in this module is synthetic host evidence only.
++"""
+ import base64
+ import copy
+ import hashlib
+ import http.client
+-import importlib.util
+ import json
+ import pathlib
+-import shutil
+ import struct
+-import sys
+ import tempfile
+ import threading
+-import unittest
+ import zlib
+-from unittest import mock
+-
+-HERE = pathlib.Path(__file__).resolve().parent
+-ROOT = HERE.parents[1]
+-PRODUCER = HERE
+-sys.path.insert(0, str(PRODUCER))
+-spec = importlib.util.spec_from_file_location('reviewed_v9_run', PRODUCER / 'run.py')
+-producer = importlib.util.module_from_spec(spec)
+-spec.loader.exec_module(producer)
+-t = producer.settings_telemetry
+-spec = importlib.util.spec_from_file_location('reviewed_v9_replay', PRODUCER / 'replay.py')
+-replay = importlib.util.module_from_spec(spec)
+-spec.loader.exec_module(replay)
+-SCRATCH = HERE / '.scratch'
++import composition as producer
++HERE=pathlib.Path(__file__).resolve().parent
++SCRATCH=HERE/'.scratch'
+ SCRATCH.mkdir(exist_ok=True)
+-
+-
++t=producer.telemetry
+ def image():
+     def chunk(name, data):
+         return struct.pack('>I', len(data)) + name + data + struct.pack('>I', zlib.crc32(name + data) & 0xffffffff)
+@@ -42,20 +27,37 @@
+         self.root = pathlib.Path(tempfile.mkdtemp(prefix='real-v9-', dir=SCRATCH))
+         docs = self.root / 'Documents'
+         docs.mkdir()
+-        self.bridge = producer.h.Bridge({'diagnostic': docs, 'comparator': docs}, self.root / 'captures', 'independent-review-capability', {'scope': 'synthetic-host-only'}, allowed_cases=producer.keyboard_oracle.CASES)
++        self.bridge = producer.h.Bridge({'diagnostic': docs, 'comparator': docs}, self.root / 'captures', 'independent-review-capability', {'scope': 'synthetic-host-only'}, allowed_cases=producer.oracle.CASES)
+         self.clock = 100.0
+         self.runner = 10.0
+         self.bridge.settings.now = lambda: self.clock
+         self.bridge.settings.deadline = 500.0
++        self.server=producer.transport.server_for(self.bridge)
++        self.thread=threading.Thread(target=self.server.serve_forever,daemon=True);self.thread.start()
++        self.http_receipts=[]
+         self.send({'kind': 'start', 'case': t.CASE, 'uptime': self.runner})
+         self.searches = {}
+         self.taps = {}
+ 
+     def close(self):
+-        pass  # Retain every synthetic attempt for the sealed evidence archive.
++        self.server.shutdown();self.server.server_close();self.thread.join(timeout=3)
++        assert not self.thread.is_alive(), 'Owned synthetic HTTP thread cleanup failed'
++        (self.root/'cleanup.json').write_text(json.dumps(dict(serverShutdown=True,serverClosed=True,threadJoined=True,nativeInstancesTouched=False)))
++
++    def http(self, op, body):
++        connection=http.client.HTTPConnection('127.0.0.1',self.server.server_port,timeout=3)
++        try:
++            connection.request('POST','/'+op,body=json.dumps(body),headers={'Content-Type':'application/json','X-Mixer-Capability':self.bridge.capability})
++            response=connection.getresponse();payload=json.loads(response.read())
++            self.http_receipts.append(dict(op=op,body=body,status=response.status,response=payload,syntheticHostOnly=True))
++            (self.root/'http-receipts.json').write_text(json.dumps(self.http_receipts,sort_keys=True,indent=2)+'\n')
++            return response.status,payload
++        finally:connection.close()
+ 
+     def send(self, record):
+-        return self.bridge.request('evaluate', {'settingsDiagnostic': record})
++        status,result=self.http('evaluate',{'settingsDiagnostic':record})
++        if status!=200:raise ValueError(result['error'])
++        return result
+ 
+     def record(self, kind, **fields):
+         self.runner += .01
+@@ -148,7 +150,7 @@
+         r=self.action_record(initial);self.send(r);return r
+ 
+     def completion(self):
+-        for stage in ['terminate-before', 'terminate-after', 'test-case-finished', 'suite-finished', 'bundle-finished']:
++        for stage in ['terminate-before', 'terminate-after', 'test-case-finished']:
+             self.mark(stage)
+ 
+     def finish(self, initial='0', **options):
+@@ -158,9 +160,3 @@
+         self.observe('terminal', value='1')
+         self.completion()
+ 
+-    def witness(self, name, detail):
+-        out = HERE / 'witnesses' / name
+-        out.mkdir(parents=True, exist_ok=True)
+-        shutil.copytree(self.bridge.output, out/'captures', dirs_exist_ok=True)
+-        (out/'witness.json').write_text(json.dumps({'syntheticHostOnly': True, 'nativeExecuted': False, 'detail': detail, 'settingsDiagnostic': self.bridge.settings.summary(), 'replayed': replay.replay(self.bridge.output)}, indent=2, sort_keys=True)+'\n')
+-

@@ -1,0 +1,18 @@
+--- normalized-accepted/src/experimental_swift_reactor/cache_tests.rs
++++ normal-candidate/src/experimental_swift_reactor/cache_tests.rs
+@@ -2399,3 +2399,15 @@
+     assert!(cache.identity().owner < u64::MAX - 1);
+     finish(cache, c);
+ }
++
++// Test-only setup for the lifecycle composition's actual cache checkpoints.
++pub(super) fn lifecycle_cancel_at_step(step: CacheStep) {
++    hooks(Hooks {
++        pause: Some(step),
++        cancel_pause: true,
++        ..Hooks::default()
++    });
++}
++pub(super) fn lifecycle_reset_hooks() {
++    hooks(Hooks::default());
++}

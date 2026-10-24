@@ -1,0 +1,540 @@
+[
+  {
+    "case": "external-construction",
+    "command": "negative2-external-construction",
+    "expectedCode": "E0603",
+    "expectedSource": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-reactor-lifecycle-remaining-matrix/negative/external_construction.rs",
+    "fixtureSHA256": "4bf2c2b1c65f9030132922ebc2b77ca9d2d280e3f7cf8594b10d3821fc3e7471",
+    "matchedDiagnostics": [
+      {
+        "$message_type": "diagnostic",
+        "children": [
+          {
+            "children": [],
+            "code": null,
+            "level": "note",
+            "message": "the module `execution` is defined here",
+            "rendered": null,
+            "spans": [
+              {
+                "byte_end": 603,
+                "byte_start": 590,
+                "column_end": 14,
+                "column_start": 1,
+                "expansion": null,
+                "file_name": "src/experimental_swift_reactor/mod.rs",
+                "is_primary": true,
+                "label": null,
+                "line_end": 18,
+                "line_start": 18,
+                "suggested_replacement": null,
+                "suggestion_applicability": null,
+                "text": [
+                  {
+                    "highlight_end": 14,
+                    "highlight_start": 1,
+                    "text": "mod execution;"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "code": {
+          "code": "E0603",
+          "explanation": "A private item was used outside its scope.\n\nErroneous code example:\n\n```compile_fail,E0603\nmod foo {\n    const PRIVATE: u32 = 0x_a_bad_1dea_u32; // This const is private, so we\n                                            // can't use it outside of the\n                                            // `foo` module.\n}\n\nprintln!(\"const value: {}\", foo::PRIVATE); // error: constant `PRIVATE`\n                                                  //        is private\n```\n\nIn order to fix this error, you need to make the item public by using the `pub`\nkeyword. Example:\n\n```\nmod foo {\n    pub const PRIVATE: u32 = 0x_a_bad_1dea_u32; // We set it public by using the\n                                                // `pub` keyword.\n}\n\nprintln!(\"const value: {}\", foo::PRIVATE); // ok!\n```\n"
+        },
+        "level": "error",
+        "message": "module `execution` is private",
+        "rendered": "error[E0603]: module `execution` is private\n  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-reactor-lifecycle-remaining-matrix/negative/external_construction.rs:1:43\n   |\n 1 | use mixer_vm::experimental_swift_reactor::execution::SwiftReactorInstance;\n   |                                           ^^^^^^^^^ private module\n   |\nnote: the module `execution` is defined here\n  --> src/experimental_swift_reactor/mod.rs:18:1\n   |\n18 | mod execution;\n   | ^^^^^^^^^^^^^\n\n",
+        "spans": [
+          {
+            "byte_end": 51,
+            "byte_start": 42,
+            "column_end": 52,
+            "column_start": 43,
+            "expansion": null,
+            "file_name": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-reactor-lifecycle-remaining-matrix/negative/external_construction.rs",
+            "is_primary": true,
+            "label": "private module",
+            "line_end": 1,
+            "line_start": 1,
+            "suggested_replacement": null,
+            "suggestion_applicability": null,
+            "text": [
+              {
+                "highlight_end": 52,
+                "highlight_start": 43,
+                "text": "use mixer_vm::experimental_swift_reactor::execution::SwiftReactorInstance;"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "case": "external-forged-request",
+    "command": "negative2-external-forged-request",
+    "expectedCode": "E0603",
+    "expectedSource": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-reactor-lifecycle-remaining-matrix/negative/external_forged_request.rs",
+    "fixtureSHA256": "a484318fdadd2da3d8285136c29149e1cd6fbaff2be5358e2633a9ecfb0c3f23",
+    "matchedDiagnostics": [
+      {
+        "$message_type": "diagnostic",
+        "children": [
+          {
+            "children": [],
+            "code": null,
+            "level": "note",
+            "message": "the module `execution` is defined here",
+            "rendered": null,
+            "spans": [
+              {
+                "byte_end": 603,
+                "byte_start": 590,
+                "column_end": 14,
+                "column_start": 1,
+                "expansion": null,
+                "file_name": "src/experimental_swift_reactor/mod.rs",
+                "is_primary": true,
+                "label": null,
+                "line_end": 18,
+                "line_start": 18,
+                "suggested_replacement": null,
+                "suggestion_applicability": null,
+                "text": [
+                  {
+                    "highlight_end": 14,
+                    "highlight_start": 1,
+                    "text": "mod execution;"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "code": {
+          "code": "E0603",
+          "explanation": "A private item was used outside its scope.\n\nErroneous code example:\n\n```compile_fail,E0603\nmod foo {\n    const PRIVATE: u32 = 0x_a_bad_1dea_u32; // This const is private, so we\n                                            // can't use it outside of the\n                                            // `foo` module.\n}\n\nprintln!(\"const value: {}\", foo::PRIVATE); // error: constant `PRIVATE`\n                                                  //        is private\n```\n\nIn order to fix this error, you need to make the item public by using the `pub`\nkeyword. Example:\n\n```\nmod foo {\n    pub const PRIVATE: u32 = 0x_a_bad_1dea_u32; // We set it public by using the\n                                                // `pub` keyword.\n}\n\nprintln!(\"const value: {}\", foo::PRIVATE); // ok!\n```\n"
+        },
+        "level": "error",
+        "message": "module `execution` is private",
+        "rendered": "error[E0603]: module `execution` is private\n  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-reactor-lifecycle-remaining-matrix/negative/external_forged_request.rs:1:43\n   |\n 1 | use mixer_vm::experimental_swift_reactor::execution::frame_operations::memory_growth_operations::lifecycle::{Request,Reply};\n   |                                           ^^^^^^^^^ private module                                           ------- enum `Request` is not publicly re-exported\n   |\nnote: the module `execution` is defined here\n  --> src/experimental_swift_reactor/mod.rs:18:1\n   |\n18 | mod execution;\n   | ^^^^^^^^^^^^^\n\n",
+        "spans": [
+          {
+            "byte_end": 51,
+            "byte_start": 42,
+            "column_end": 52,
+            "column_start": 43,
+            "expansion": null,
+            "file_name": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-reactor-lifecycle-remaining-matrix/negative/external_forged_request.rs",
+            "is_primary": true,
+            "label": "private module",
+            "line_end": 1,
+            "line_start": 1,
+            "suggested_replacement": null,
+            "suggestion_applicability": null,
+            "text": [
+              {
+                "highlight_end": 52,
+                "highlight_start": 43,
+                "text": "use mixer_vm::experimental_swift_reactor::execution::frame_operations::memory_growth_operations::lifecycle::{Request,Reply};"
+              }
+            ]
+          },
+          {
+            "byte_end": 116,
+            "byte_start": 109,
+            "column_end": 117,
+            "column_start": 110,
+            "expansion": null,
+            "file_name": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-reactor-lifecycle-remaining-matrix/negative/external_forged_request.rs",
+            "is_primary": false,
+            "label": "enum `Request` is not publicly re-exported",
+            "line_end": 1,
+            "line_start": 1,
+            "suggested_replacement": null,
+            "suggestion_applicability": null,
+            "text": [
+              {
+                "highlight_end": 117,
+                "highlight_start": 110,
+                "text": "use mixer_vm::experimental_swift_reactor::execution::frame_operations::memory_growth_operations::lifecycle::{Request,Reply};"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "$message_type": "diagnostic",
+        "children": [
+          {
+            "children": [],
+            "code": null,
+            "level": "note",
+            "message": "the module `execution` is defined here",
+            "rendered": null,
+            "spans": [
+              {
+                "byte_end": 603,
+                "byte_start": 590,
+                "column_end": 14,
+                "column_start": 1,
+                "expansion": null,
+                "file_name": "src/experimental_swift_reactor/mod.rs",
+                "is_primary": true,
+                "label": null,
+                "line_end": 18,
+                "line_start": 18,
+                "suggested_replacement": null,
+                "suggestion_applicability": null,
+                "text": [
+                  {
+                    "highlight_end": 14,
+                    "highlight_start": 1,
+                    "text": "mod execution;"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "code": {
+          "code": "E0603",
+          "explanation": "A private item was used outside its scope.\n\nErroneous code example:\n\n```compile_fail,E0603\nmod foo {\n    const PRIVATE: u32 = 0x_a_bad_1dea_u32; // This const is private, so we\n                                            // can't use it outside of the\n                                            // `foo` module.\n}\n\nprintln!(\"const value: {}\", foo::PRIVATE); // error: constant `PRIVATE`\n                                                  //        is private\n```\n\nIn order to fix this error, you need to make the item public by using the `pub`\nkeyword. Example:\n\n```\nmod foo {\n    pub const PRIVATE: u32 = 0x_a_bad_1dea_u32; // We set it public by using the\n                                                // `pub` keyword.\n}\n\nprintln!(\"const value: {}\", foo::PRIVATE); // ok!\n```\n"
+        },
+        "level": "error",
+        "message": "module `execution` is private",
+        "rendered": "error[E0603]: module `execution` is private\n  --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-reactor-lifecycle-remaining-matrix/negative/external_forged_request.rs:1:43\n   |\n 1 | use mixer_vm::experimental_swift_reactor::execution::frame_operations::memory_growth_operations::lifecycle::{Request,Reply};\n   |                                           ^^^^^^^^^ private module                                                   ----- enum `Reply` is not publicly re-exported\n   |\nnote: the module `execution` is defined here\n  --> src/experimental_swift_reactor/mod.rs:18:1\n   |\n18 | mod execution;\n   | ^^^^^^^^^^^^^\n\n",
+        "spans": [
+          {
+            "byte_end": 51,
+            "byte_start": 42,
+            "column_end": 52,
+            "column_start": 43,
+            "expansion": null,
+            "file_name": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-reactor-lifecycle-remaining-matrix/negative/external_forged_request.rs",
+            "is_primary": true,
+            "label": "private module",
+            "line_end": 1,
+            "line_start": 1,
+            "suggested_replacement": null,
+            "suggestion_applicability": null,
+            "text": [
+              {
+                "highlight_end": 52,
+                "highlight_start": 43,
+                "text": "use mixer_vm::experimental_swift_reactor::execution::frame_operations::memory_growth_operations::lifecycle::{Request,Reply};"
+              }
+            ]
+          },
+          {
+            "byte_end": 122,
+            "byte_start": 117,
+            "column_end": 123,
+            "column_start": 118,
+            "expansion": null,
+            "file_name": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-reactor-lifecycle-remaining-matrix/negative/external_forged_request.rs",
+            "is_primary": false,
+            "label": "enum `Reply` is not publicly re-exported",
+            "line_end": 1,
+            "line_start": 1,
+            "suggested_replacement": null,
+            "suggestion_applicability": null,
+            "text": [
+              {
+                "highlight_end": 123,
+                "highlight_start": 118,
+                "text": "use mixer_vm::experimental_swift_reactor::execution::frame_operations::memory_growth_operations::lifecycle::{Request,Reply};"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "case": "external-pin-escape",
+    "command": "negative2-external-pin-escape",
+    "expectedCode": "E0603",
+    "expectedSource": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-reactor-lifecycle-remaining-matrix/negative/external_pin_escape.rs",
+    "fixtureSHA256": "4c2d584cb199a9ab1ee1092c702ab67d59d31c5466a196448f3a42564e5ba21a",
+    "matchedDiagnostics": [
+      {
+        "$message_type": "diagnostic",
+        "children": [
+          {
+            "children": [],
+            "code": null,
+            "level": "note",
+            "message": "the module `cache` is defined here",
+            "rendered": null,
+            "spans": [
+              {
+                "byte_end": 284,
+                "byte_start": 275,
+                "column_end": 10,
+                "column_start": 1,
+                "expansion": null,
+                "file_name": "src/experimental_swift_reactor/mod.rs",
+                "is_primary": true,
+                "label": null,
+                "line_end": 7,
+                "line_start": 7,
+                "suggested_replacement": null,
+                "suggestion_applicability": null,
+                "text": [
+                  {
+                    "highlight_end": 10,
+                    "highlight_start": 1,
+                    "text": "mod cache;"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "code": {
+          "code": "E0603",
+          "explanation": "A private item was used outside its scope.\n\nErroneous code example:\n\n```compile_fail,E0603\nmod foo {\n    const PRIVATE: u32 = 0x_a_bad_1dea_u32; // This const is private, so we\n                                            // can't use it outside of the\n                                            // `foo` module.\n}\n\nprintln!(\"const value: {}\", foo::PRIVATE); // error: constant `PRIVATE`\n                                                  //        is private\n```\n\nIn order to fix this error, you need to make the item public by using the `pub`\nkeyword. Example:\n\n```\nmod foo {\n    pub const PRIVATE: u32 = 0x_a_bad_1dea_u32; // We set it public by using the\n                                                // `pub` keyword.\n}\n\nprintln!(\"const value: {}\", foo::PRIVATE); // ok!\n```\n"
+        },
+        "level": "error",
+        "message": "module `cache` is private",
+        "rendered": "error[E0603]: module `cache` is private\n --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-reactor-lifecycle-remaining-matrix/negative/external_pin_escape.rs:1:43\n  |\n1 | use mixer_vm::experimental_swift_reactor::cache::SwiftFunctionPin;\n  |                                           ^^^^^ private module\n  |\nnote: the module `cache` is defined here\n --> src/experimental_swift_reactor/mod.rs:7:1\n  |\n7 | mod cache;\n  | ^^^^^^^^^\n\n",
+        "spans": [
+          {
+            "byte_end": 47,
+            "byte_start": 42,
+            "column_end": 48,
+            "column_start": 43,
+            "expansion": null,
+            "file_name": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-reactor-lifecycle-remaining-matrix/negative/external_pin_escape.rs",
+            "is_primary": true,
+            "label": "private module",
+            "line_end": 1,
+            "line_start": 1,
+            "suggested_replacement": null,
+            "suggestion_applicability": null,
+            "text": [
+              {
+                "highlight_end": 48,
+                "highlight_start": 43,
+                "text": "use mixer_vm::experimental_swift_reactor::cache::SwiftFunctionPin;"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "case": "external-arbitrary-invocation",
+    "command": "negative2-external-arbitrary-invocation",
+    "expectedCode": "E0425",
+    "expectedSource": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-reactor-lifecycle-remaining-matrix/negative/external_arbitrary_invocation.rs",
+    "fixtureSHA256": "683d694bf68a640d59bbdfb558f2a3834b95df4bc1f2ea946f832ef550812b97",
+    "matchedDiagnostics": [
+      {
+        "$message_type": "diagnostic",
+        "children": [],
+        "code": {
+          "code": "E0425",
+          "explanation": "An unresolved name was used.\n\nErroneous code examples:\n\n```compile_fail,E0425\nsomething_that_doesnt_exist::foo;\n// error: unresolved name `something_that_doesnt_exist::foo`\n\n// or:\n\ntrait Foo {\n    fn bar() {\n        Self; // error: unresolved name `Self`\n    }\n}\n\n// or:\n\nlet x = unknown_variable;  // error: unresolved name `unknown_variable`\n```\n\nPlease verify that the name wasn't misspelled and ensure that the\nidentifier being referred to is valid for the given situation. Example:\n\n```\nenum something_that_does_exist {\n    Foo,\n}\n```\n\nOr:\n\n```\nmod something_that_does_exist {\n    pub static foo : i32 = 0i32;\n}\n\nsomething_that_does_exist::foo; // ok!\n```\n\nOr:\n\n```\nlet unknown_variable = 12u32;\nlet x = unknown_variable; // ok!\n```\n\nIf the item is not defined in the current module, it must be imported using a\n`use` statement, like so:\n\n```\n# mod foo { pub fn bar() {} }\n# fn main() {\nuse foo::bar;\nbar();\n# }\n```\n\nIf the item you are importing is not defined in some super-module of the\ncurrent module, then it must also be declared as public (e.g., `pub fn`).\n"
+        },
+        "level": "error",
+        "message": "cannot find function `invoke_function` in module `mixer_vm::experimental_swift_reactor`",
+        "rendered": "error[E0425]: cannot find function `invoke_function` in module `mixer_vm::experimental_swift_reactor`\n --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-reactor-lifecycle-remaining-matrix/negative/external_arbitrary_invocation.rs:1:51\n  |\n1 | fn main() { mixer_vm::experimental_swift_reactor::invoke_function(35); }\n  |                                                   ^^^^^^^^^^^^^^^ not found in `mixer_vm::experimental_swift_reactor`\n\n",
+        "spans": [
+          {
+            "byte_end": 65,
+            "byte_start": 50,
+            "column_end": 66,
+            "column_start": 51,
+            "expansion": null,
+            "file_name": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-reactor-lifecycle-remaining-matrix/negative/external_arbitrary_invocation.rs",
+            "is_primary": true,
+            "label": "not found in `mixer_vm::experimental_swift_reactor`",
+            "line_end": 1,
+            "line_start": 1,
+            "suggested_replacement": null,
+            "suggestion_applicability": null,
+            "text": [
+              {
+                "highlight_end": 66,
+                "highlight_start": 51,
+                "text": "fn main() { mixer_vm::experimental_swift_reactor::invoke_function(35); }"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "case": "whole-owner",
+    "command": "negative2-whole-owner",
+    "expectedCode": "E0506",
+    "matchedDiagnostics": [
+      {
+        "$message_type": "diagnostic",
+        "children": [],
+        "code": {
+          "code": "E0506",
+          "explanation": "An attempt was made to assign to a borrowed value.\n\nErroneous code example:\n\n```compile_fail,E0506\nstruct FancyNum {\n    num: u8,\n}\n\nlet mut fancy_num = FancyNum { num: 5 };\nlet fancy_ref = &fancy_num;\nfancy_num = FancyNum { num: 6 };\n// error: cannot assign to `fancy_num` because it is borrowed\n\nprintln!(\"Num: {}, Ref: {}\", fancy_num.num, fancy_ref.num);\n```\n\nBecause `fancy_ref` still holds a reference to `fancy_num`, `fancy_num` can't\nbe assigned to a new value as it would invalidate the reference.\n\nAlternatively, we can move out of `fancy_num` into a second `fancy_num`:\n\n```\nstruct FancyNum {\n    num: u8,\n}\n\nlet mut fancy_num = FancyNum { num: 5 };\nlet moved_num = fancy_num;\nfancy_num = FancyNum { num: 6 };\n\nprintln!(\"Num: {}, Moved num: {}\", fancy_num.num, moved_num.num);\n```\n\nIf the value has to be borrowed, try limiting the lifetime of the borrow using\na scoped block:\n\n```\nstruct FancyNum {\n    num: u8,\n}\n\nlet mut fancy_num = FancyNum { num: 5 };\n\n{\n    let fancy_ref = &fancy_num;\n    println!(\"Ref: {}\", fancy_ref.num);\n}\n\n// Works because `fancy_ref` is no longer in scope\nfancy_num = FancyNum { num: 6 };\nprintln!(\"Num: {}\", fancy_num.num);\n```\n\nOr by moving the reference into a function:\n\n```\nstruct FancyNum {\n    num: u8,\n}\n\nfn print_fancy_ref(fancy_ref: &FancyNum){\n    println!(\"Ref: {}\", fancy_ref.num);\n}\n\nlet mut fancy_num = FancyNum { num: 5 };\n\nprint_fancy_ref(&fancy_num);\n\n// Works because function borrow has ended\nfancy_num = FancyNum { num: 6 };\nprintln!(\"Num: {}\", fancy_num.num);\n```\n"
+        },
+        "level": "error",
+        "message": "cannot assign to `owner.lifecycle` because it is borrowed",
+        "rendered": "error[E0506]: cannot assign to `owner.lifecycle` because it is borrowed\n    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-reactor-lifecycle-remaining-matrix/compiler-negative-candidate/src/experimental_swift_reactor/lifecycle_tests.rs:2359:5\n     |\n2358 |     let (phase, context) = owner.prepare_growth(frame_tests::cursor()).unwrap();\n     |                            ----- `owner.lifecycle` is borrowed here\n2359 |     owner.lifecycle = Lifecycle::Ready;\n     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `owner.lifecycle` is assigned to here but it was already borrowed\n2360 |     drop((phase, context));\n     |           ----- borrow later used here\n\n",
+        "spans": [
+          {
+            "byte_end": 85152,
+            "byte_start": 85147,
+            "column_end": 33,
+            "column_start": 28,
+            "expansion": null,
+            "file_name": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-reactor-lifecycle-remaining-matrix/compiler-negative-candidate/src/experimental_swift_reactor/lifecycle_tests.rs",
+            "is_primary": false,
+            "label": "`owner.lifecycle` is borrowed here",
+            "line_end": 2358,
+            "line_start": 2358,
+            "suggested_replacement": null,
+            "suggestion_applicability": null,
+            "text": [
+              {
+                "highlight_end": 33,
+                "highlight_start": 28,
+                "text": "    let (phase, context) = owner.prepare_growth(frame_tests::cursor()).unwrap();"
+              }
+            ]
+          },
+          {
+            "byte_end": 85239,
+            "byte_start": 85205,
+            "column_end": 39,
+            "column_start": 5,
+            "expansion": null,
+            "file_name": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-reactor-lifecycle-remaining-matrix/compiler-negative-candidate/src/experimental_swift_reactor/lifecycle_tests.rs",
+            "is_primary": true,
+            "label": "`owner.lifecycle` is assigned to here but it was already borrowed",
+            "line_end": 2359,
+            "line_start": 2359,
+            "suggested_replacement": null,
+            "suggestion_applicability": null,
+            "text": [
+              {
+                "highlight_end": 39,
+                "highlight_start": 5,
+                "text": "    owner.lifecycle = Lifecycle::Ready;"
+              }
+            ]
+          },
+          {
+            "byte_end": 85256,
+            "byte_start": 85251,
+            "column_end": 16,
+            "column_start": 11,
+            "expansion": null,
+            "file_name": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-reactor-lifecycle-remaining-matrix/compiler-negative-candidate/src/experimental_swift_reactor/lifecycle_tests.rs",
+            "is_primary": false,
+            "label": "borrow later used here",
+            "line_end": 2360,
+            "line_start": 2360,
+            "suggested_replacement": null,
+            "suggestion_applicability": null,
+            "text": [
+              {
+                "highlight_end": 16,
+                "highlight_start": 11,
+                "text": "    drop((phase, context));"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "case": "retained-owner",
+    "command": "negative2-retained-owner",
+    "expectedCode": "E0506",
+    "matchedDiagnostics": [
+      {
+        "$message_type": "diagnostic",
+        "children": [],
+        "code": {
+          "code": "E0506",
+          "explanation": "An attempt was made to assign to a borrowed value.\n\nErroneous code example:\n\n```compile_fail,E0506\nstruct FancyNum {\n    num: u8,\n}\n\nlet mut fancy_num = FancyNum { num: 5 };\nlet fancy_ref = &fancy_num;\nfancy_num = FancyNum { num: 6 };\n// error: cannot assign to `fancy_num` because it is borrowed\n\nprintln!(\"Num: {}, Ref: {}\", fancy_num.num, fancy_ref.num);\n```\n\nBecause `fancy_ref` still holds a reference to `fancy_num`, `fancy_num` can't\nbe assigned to a new value as it would invalidate the reference.\n\nAlternatively, we can move out of `fancy_num` into a second `fancy_num`:\n\n```\nstruct FancyNum {\n    num: u8,\n}\n\nlet mut fancy_num = FancyNum { num: 5 };\nlet moved_num = fancy_num;\nfancy_num = FancyNum { num: 6 };\n\nprintln!(\"Num: {}, Moved num: {}\", fancy_num.num, moved_num.num);\n```\n\nIf the value has to be borrowed, try limiting the lifetime of the borrow using\na scoped block:\n\n```\nstruct FancyNum {\n    num: u8,\n}\n\nlet mut fancy_num = FancyNum { num: 5 };\n\n{\n    let fancy_ref = &fancy_num;\n    println!(\"Ref: {}\", fancy_ref.num);\n}\n\n// Works because `fancy_ref` is no longer in scope\nfancy_num = FancyNum { num: 6 };\nprintln!(\"Num: {}\", fancy_num.num);\n```\n\nOr by moving the reference into a function:\n\n```\nstruct FancyNum {\n    num: u8,\n}\n\nfn print_fancy_ref(fancy_ref: &FancyNum){\n    println!(\"Ref: {}\", fancy_ref.num);\n}\n\nlet mut fancy_num = FancyNum { num: 5 };\n\nprint_fancy_ref(&fancy_num);\n\n// Works because function borrow has ended\nfancy_num = FancyNum { num: 6 };\nprintln!(\"Num: {}\", fancy_num.num);\n```\n"
+        },
+        "level": "error",
+        "message": "cannot assign to `owner.lifecycle` because it is borrowed",
+        "rendered": "error[E0506]: cannot assign to `owner.lifecycle` because it is borrowed\n    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-reactor-lifecycle-remaining-matrix/compiler-negative-candidate/src/experimental_swift_reactor/lifecycle_tests.rs:2370:13\n     |\n2358 |     match request(owner, Request::Initialize) {\n     |                   ----- `owner.lifecycle` is borrowed here\n...\n2370 |             owner.lifecycle = Lifecycle::Ready;\n     |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `owner.lifecycle` is assigned to here but it was already borrowed\n2371 |             phase.drain();\n     |             ----- borrow later used here\n\n",
+        "spans": [
+          {
+            "byte_end": 85148,
+            "byte_start": 85143,
+            "column_end": 24,
+            "column_start": 19,
+            "expansion": null,
+            "file_name": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-reactor-lifecycle-remaining-matrix/compiler-negative-candidate/src/experimental_swift_reactor/lifecycle_tests.rs",
+            "is_primary": false,
+            "label": "`owner.lifecycle` is borrowed here",
+            "line_end": 2358,
+            "line_start": 2358,
+            "suggested_replacement": null,
+            "suggestion_applicability": null,
+            "text": [
+              {
+                "highlight_end": 24,
+                "highlight_start": 19,
+                "text": "    match request(owner, Request::Initialize) {"
+              }
+            ]
+          },
+          {
+            "byte_end": 85513,
+            "byte_start": 85479,
+            "column_end": 47,
+            "column_start": 13,
+            "expansion": null,
+            "file_name": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-reactor-lifecycle-remaining-matrix/compiler-negative-candidate/src/experimental_swift_reactor/lifecycle_tests.rs",
+            "is_primary": true,
+            "label": "`owner.lifecycle` is assigned to here but it was already borrowed",
+            "line_end": 2370,
+            "line_start": 2370,
+            "suggested_replacement": null,
+            "suggestion_applicability": null,
+            "text": [
+              {
+                "highlight_end": 47,
+                "highlight_start": 13,
+                "text": "            owner.lifecycle = Lifecycle::Ready;"
+              }
+            ]
+          },
+          {
+            "byte_end": 85532,
+            "byte_start": 85527,
+            "column_end": 18,
+            "column_start": 13,
+            "expansion": null,
+            "file_name": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-reactor-lifecycle-remaining-matrix/compiler-negative-candidate/src/experimental_swift_reactor/lifecycle_tests.rs",
+            "is_primary": false,
+            "label": "borrow later used here",
+            "line_end": 2371,
+            "line_start": 2371,
+            "suggested_replacement": null,
+            "suggestion_applicability": null,
+            "text": [
+              {
+                "highlight_end": 18,
+                "highlight_start": 13,
+                "text": "            phase.drain();"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,42 @@
+--- verification/apple-toggle-keyboard-full-case-preparation-v2/orchestration.py
++++ verification/apple-toggle-keyboard-full-case-preparation-v3/orchestration.py
+@@ -3,6 +3,8 @@
+ Source preparation only. This function is exercised with mocked native/process
+ boundaries in host controls; the verify-only CLI supplies no native authority.
+ """
++import workspace_ownership
++
+ class Outcome:
+     def __init__(self,commands):
+         self.commands=commands;self.first=None;self.traceback=None;self.failures=[]
+@@ -27,6 +29,7 @@
+     commands=h.Commands(h.RUN_DIR/'commands.json',capability)
+     outcome=Outcome(commands)
+     lifecycle=server=thread=ephemeral=bridge=result_path=xctest_exit=None
++    allocation_returned=False
+     cleanup_results=[]
+     h.last_outcome=outcome;h.last_lifecycle=None;h.last_bridge=None;h.last_runtime_summary=None
+     try:
+@@ -63,8 +66,11 @@
+             if isinstance(value,dict):return {key:absolute(item) for key,item in value.items()}
+             if isinstance(value,list):return [absolute(item) for item in value]
+             return value
+-        ephemeral=h.pathlib.Path(h.tempfile.mkdtemp(prefix='mixer-toggle-xctest-')).resolve();ephemeral.chmod(0o700);info=ephemeral.stat()
+-        lifecycle['ephemeralWorkspace']=dict(path=str(ephemeral),device=info.st_dev,inode=info.st_ino,uid=info.st_uid);h.write(h.RUN_DIR/'lifecycle.json',lifecycle)
++        allocation_parent=h.pathlib.Path(h.tempfile.gettempdir()).resolve()
++        returned=h.tempfile.mkdtemp(prefix=workspace_ownership.PREFIX,dir=str(allocation_parent))
++        allocation_returned=True
++        ephemeral=workspace_ownership.prepare(h,lifecycle,returned,allocation_parent)
++        h.write(h.RUN_DIR/'lifecycle.json',lifecycle)
+         config_path=ephemeral/'session.xctestrun';config_path.write_bytes(h.plistlib.dumps(absolute(configuration)));config_path.chmod(0o600)
+         result_path=ephemeral/'session.xcresult'
+         argv=[str(h.DEVELOPER/'usr/bin/xcodebuild'),'test-without-building','-xctestrun',str(config_path),'-destination','platform=iOS Simulator,id='+identifier,'-parallel-testing-enabled','NO','-maximum-concurrent-test-simulator-destinations','1','-resultBundlePath',str(result_path)]
+@@ -85,7 +91,7 @@
+             def join_thread():
+                 thread.join(timeout=3);h.require(not thread.is_alive(),'Bridge thread did not exit')
+             operations.append(('loopback-thread-join',join_thread))
+-        if ephemeral is not None:operations.append(('ephemeral-capability-workspace-removal',lambda:h.remove_ephemeral(lifecycle)))
++        if allocation_returned:operations.append(('ephemeral-capability-workspace-removal',lambda:workspace_ownership.remove(h,lifecycle)))
+         if lifecycle is not None:operations.append(('owned-simulator-and-baseline-reconciliation',lambda:h.cleanup(lifecycle,commands)))
+         try:
+             commands.cleanup_mode=True

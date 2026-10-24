@@ -1,5 +1,9 @@
 # Execution index
 
+The private lifecycle test suite is now expanded from 23 to 49 identities and integrated without changing production engine bytes. All four Swift/all Debug/Release contexts pass (196 executions), six compiler-negative checks pass, and independent review passes 49 tests plus two controls over eight variants. Root verifies both packets and passes a fresh 49-test live replay at exact 132-file closure `64a3d9c52ade75ec16de10191f14257fb75ff358c366666cf47809e2b9a7f0de`. All owned build targets are removed. Every SL01-SL23 row remains partial; table mutation, the full reactor, public/signed/native entry, FieldLog and GA remain pending. See [the test checkpoint](docs/swift-reactor-lifecycle-remaining-checkpoint.md).
+
+Checkpoints `384e22ac` and `86ab91eb` pass all three Engine CI jobs, with all 38 steps successful and none skipped in each run. See `verification/github-ci-384e22ac-engine/receipt.json`, `verification/github-ci-86ab91eb-engine/receipt.json` and `verification/github-delivery-86ab91eb/delivery.json`.
+
 Checkpoint `67d6d045` passes Console CI (typecheck, 17 tests and production build)
 and all three Engine jobs, with all 38 steps successful. The earlier `c628863f`
 Engine checkpoint also passes. See `verification/github-ci-67d6d045-console/receipt.json`,
@@ -36,9 +40,10 @@ separate. See `verification/apple-toggle-keyboard-focus-v6-independent-review/re
 The Linux resource prerequisite probe now confirms Elixir 1.20.4, OTP 29.1.1,
 ERTS 17.1 and the pinned runtime image under the selected isolation. That image
 has no C compiler, linker, binary-inspection tools or required system headers;
-no helper/NIF compilation or resource row ran. The owned container and temporary
-inputs were removed. Both earlier pre-start failures remain preserved. Compiler
-payload preparation and all 30 resource runtime rows remain pending. See
+no helper/NIF compilation or resource row ran in that earlier probe. The owned
+container and temporary inputs were removed. Both earlier pre-start failures
+remain preserved. The later compiler qualification below supersedes the missing
+compiler prerequisite; all 30 resource runtime rows remain pending. See
 `verification/stripe-webhook-resource-ingress-root-review/linux-tool-payload-v3-review/receipt.json`.
 
 The private Linux compiler prerequisite now has root acceptance. The C6 V4 attempt compiles the unchanged helper and NIF twice, retains four AArch64 products totaling 288,864 bytes, and passes both native byte comparisons plus exported hash, dependency and GNU-version checks. All 46 host controls pass; root verifies 118 execution bindings, 27 command outputs, actual isolation and successful container/snapshot cleanup. V4 changes only fixed tar product-export transport. The earlier image, archive-name and export failures remain preserved. This qualifies the reviewed /opt compiler invocation only. The resource controller’s /usr/bin/cc integration, helper execution, NIF loading, BEAM execution and all 30 resource runtime rows remain pending. See
