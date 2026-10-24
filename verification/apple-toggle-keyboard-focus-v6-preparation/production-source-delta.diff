@@ -1,0 +1,86 @@
+--- v5/settings_telemetry.py
++++ v6/settings_telemetry.py
+@@ -235,8 +235,12 @@
+                     self.route_searches[index] = value
+                 else:
+                     require(self.opened_routes == list(range(index)), 'Route opened order')
++                    require(len(self.route_bindings) == index + 1, 'Route opened tap binding')
++                    tap = self.route_bindings[index]
++                    require(tap['routeIndex'] == index and tap['tapSequence'] < value['sequence'], 'Route opened same-route tap sequence')
++                    require(tap['finishedUptime'] <= value['captureStartedUptime'], 'Route opened capture precedes same-route tap completion')
+                     self.opened_routes.append(index)
+-                    self.route_opened_bindings.append({'routeIndex': index, 'sequence': value['sequence'], 'destinationMatched': destination(nested, index), 'oldSelectorAbsent': absent_opened_row(snap)})
++                    self.route_opened_bindings.append({'routeIndex': index, 'sequence': value['sequence'], 'tapSequence': tap['tapSequence'], 'tapFinishedUptime': tap['finishedUptime'], 'captureStartedUptime': value['captureStartedUptime'], 'destinationMatched': destination(nested, index), 'oldSelectorAbsent': absent_opened_row(snap)})
+             else:
+                 require(value['routeIndex'] == 3 and value['attempt'] == 0, 'Switch capture binding')
+                 if stage != 'poll':
+@@ -284,7 +288,7 @@
+                 target = snapshot(detail['target'])
+                 require(all(number(detail[k]) for k in ['startedUptime', 'finishedUptime']) and search['captureFinishedUptime'] <= target['observedUptime'] <= detail['startedUptime'] <= detail['finishedUptime'] <= value['uptime'], 'Tap target timing')
+                 same_target = all(target[k] == search['routeWitness']['target'][k] for k in set(target) - {'observedUptime'})
+-                self.route_bindings.append({'routeIndex': detail['routeIndex'], 'searchSequence': search['sequence'], 'tapSequence': value['sequence'], 'samePublicTargetMetadata': same_target, 'rowMatched': same_target and route_target(search['snapshot'], search['routeWitness'], detail['routeIndex'])})
++                self.route_bindings.append({'routeIndex': detail['routeIndex'], 'searchSequence': search['sequence'], 'tapSequence': value['sequence'], 'finishedUptime': detail['finishedUptime'], 'samePublicTargetMetadata': same_target, 'rowMatched': same_target and route_target(search['snapshot'], search['routeWitness'], detail['routeIndex'])})
+             elif stage == 'switch-action':
+                 require(set(detail) == {'action', 'anchorUptime', 'deadlineUptime'} and self.before is not None and self.anchor is None, 'Switch action shape/order')
+                 initial = self.before['snapshot']
+--- v5/run.py
++++ v6/run.py
+@@ -15,6 +15,7 @@
+ V2 = BASE.parent / 'apple-toggle-keyboard-focus-v2'
+ V3 = BASE.parent / 'apple-toggle-keyboard-focus-v3-preparation'
+ V4 = BASE.parent / 'apple-toggle-keyboard-focus-v4'
++V5 = BASE.parent / 'apple-toggle-keyboard-focus-v5-preparation'
+ sys.path.append(str(PREVIOUS))
+ import keyboard_oracle
+ import settings_telemetry
+@@ -34,15 +35,19 @@
+ 
+ def verify():
+     seal = read(BASE / 'packet-seal.json')
+-    require(seal['schema'] == 'mixer.apple-toggle.keyboard-v5-diagnostic.1', 'Wrong diagnostic seal')
++    require(seal['schema'] == 'mixer.apple-toggle.keyboard-v6-diagnostic.1', 'Wrong diagnostic seal')
+     for name, expected in seal['files'].items():
+         p = ROOT / runtime.artifact.relative_name(name)
+         require(p.is_file() and not p.is_symlink() and sha(p) == expected, 'Sealed diagnostic file changed: ' + name)
+-    old = subprocess.run([sys.executable, '-B', str(V4 / 'run.py'), 'verify'], cwd=ROOT, capture_output=True, text=True, timeout=60)
+-    require(old.returncode == 0, 'Immutable v4 preflight failed: ' + old.stderr)
+-    require(json.loads(old.stdout)['sealSHA256'] == 'b2b5630c09f3fbe0e0567ff118e88e75ccb5277ea1e1637915c6b3066e9616e3', 'V4 seal changed')
++    old = subprocess.run([sys.executable, '-B', str(V5 / 'run.py'), 'verify'], cwd=ROOT, capture_output=True, text=True, timeout=60)
++    require(old.returncode == 0, 'Immutable v5 preflight failed: ' + old.stderr)
++    require(json.loads(old.stdout)['sealSHA256'] == '8626e01f8622b0a27176cb37331edd7076d50b566f61b5c52bc5d4b1703770aa', 'V5 seal changed')
+     reuse = read(BASE / 'immutable-reuse.json')
+     require(all(sha(ROOT / name) == digest for group in ['copiedFiles', 'previousBindings'] for name, digest in reuse[group].items()), 'Immutable app/oracle/selection changed')
++    require(all(sha(ROOT / name) == sha(ROOT / source) for name, source in reuse['exactCopySources'].items()), 'V5 runner/app/transport copies changed')
++    review_v5 = BASE.parent / 'apple-toggle-keyboard-focus-v5-independent-review/review-seal.json'
++    require(sha(review_v5) == 'dbe9f176e1f32d418fb70592b976dcb3ff84789d10104d50816b720c54d7af6d', 'V5 independent review seal changed')
++    require(all(sha(ROOT / name) == digest for name, digest in read(review_v5)['files'].items()), 'V5 independent review changed')
+     review_seal = read(BASE.parent / 'apple-toggle-keyboard-focus-v3-independent-review/review-seal.json')
+     require(all(sha(ROOT / name) == digest for name, digest in review_seal['files'].items()), 'Sealed independent V3 review changed')
+     lock = read(BASE / 'source-lock.json')
+@@ -62,15 +67,15 @@
+     controls = read(BASE / 'host-controls.json')
+     require(controls['exitCode'] == 0 and controls['testsRun'] == controls['expectedTestsRun'] and controls['stderr'].rstrip().endswith('OK'), 'Diagnostic controls failed')
+     require(all(sha(ROOT / name) == digest for name, digest in controls['sourceFiles'].items()), 'Diagnostic control sources changed')
+-    require(controls['allRequiredGroupsPassed'] is True, 'Required V5 replay groups incomplete')
+-    return {'schema': 'mixer.apple-toggle.keyboard-v5-diagnostic-preflight.1', 'sealSHA256': sha(BASE / 'packet-seal.json'), 'candidateSourceClosureSHA256': closure, 'candidateArchiveSHA256': app['archiveSHA256'], 'testRunnerProductTreeSHA256': runner['productTreeSHA256'], 'testRunnerArchiveSHA256': runner['productArchiveSHA256'], 'sourceRevisionContext': h.SOURCE_REVISION_CONTEXT, 'expectedXCTestMethods': 1, 'applicationCasesUnrun': sorted(keyboard_oracle.CASES), 'panPrerequisite': runtime.prerequisite(), 'status': 'DIAGNOSTIC_ONLY', 'nativeExecution': False, 'gaAccepted': False}
++    require(controls['allRequiredGroupsPassed'] is True, 'Required V6 replay groups incomplete')
++    return {'schema': 'mixer.apple-toggle.keyboard-v6-diagnostic-preflight.1', 'sealSHA256': sha(BASE / 'packet-seal.json'), 'candidateSourceClosureSHA256': closure, 'candidateArchiveSHA256': app['archiveSHA256'], 'testRunnerSourceTreeSHA256': runner['sourceTreeSHA256'], 'testRunnerProductTreeSHA256': runner['productTreeSHA256'], 'testRunnerArchiveSHA256': runner['productArchiveSHA256'], 'sourceRevisionContext': h.SOURCE_REVISION_CONTEXT, 'expectedXCTestMethods': 1, 'applicationCasesUnrun': sorted(keyboard_oracle.CASES), 'panPrerequisite': runtime.prerequisite(), 'status': 'DIAGNOSTIC_ONLY', 'nativeExecution': False, 'gaAccepted': False}
+ 
+ 
+ def summary(scope, bridge, xctest_exit, failure, cleanup_results):
+     settings = None if bridge is None else bridge.settings.summary()
+     export = read(BASE / 'runtime/attachment-export.json') if (BASE / 'runtime/attachment-export.json').is_file() else None
+     boundary = failure is not None and failure['type'] == 'ValueError' and failure['message'] == 'Strict XCTest result failed; preserved evidence is authoritative' and xctest_exit == 0
+-    return {'schema': 'mixer.apple-toggle.keyboard-v5-diagnostic-runtime.1', 'status': 'DIAGNOSTIC_ONLY', 'scope': scope,
++    return {'schema': 'mixer.apple-toggle.keyboard-v6-diagnostic-runtime.1', 'status': 'DIAGNOSTIC_ONLY', 'scope': scope,
+             'xcodebuildExitCode': xctest_exit, 'xcodebuildTerminalResultAvailable': xctest_exit is not None,
+             'diagnosticCompleted': xctest_exit is not None and settings is not None and settings['settingsEvidenceComplete'] is True and settings['terminationMarkers'] == ['terminate-before', 'terminate-after'] and settings['completionMarkers'] == ['test-case-finished', 'suite-finished', 'bundle-finished'],
+             'setupEvidenceComplete': settings is not None and settings['settingsEvidenceComplete'] is True,
+--- v5/replay.py
++++ v6/replay.py
+@@ -33,4 +33,4 @@
+     p = BASE / 'runtime/runtime-verdict.json'
+     if p.is_file():
+         t.require(result == json.loads(p.read_bytes())['settingsDiagnostic'], 'Replayed summary differs')
+-    print(json.dumps({'schema': 'mixer.apple-toggle.keyboard-v5-diagnostic-replay.1', 'status': 'DIAGNOSTIC_ONLY', 'settingsDiagnostic': result, 'nativeKeyboardQualification': False, 'gaAccepted': False}, sort_keys=True))
++    print(json.dumps({'schema': 'mixer.apple-toggle.keyboard-v6-diagnostic-replay.1', 'status': 'DIAGNOSTIC_ONLY', 'settingsDiagnostic': result, 'nativeKeyboardQualification': False, 'gaAccepted': False}, sort_keys=True))

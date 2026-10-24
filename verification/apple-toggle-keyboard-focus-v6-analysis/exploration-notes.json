@@ -1,0 +1,33 @@
+{
+  "schema": "mixer.apple-toggle.keyboard-v6-analysis-exploration-notes.1",
+  "scope": "Read-only preliminary inspection errors, retained separately from the passing recorder and actual native failure.",
+  "errors": [
+    {
+      "operation": "cat verification/apple-toggle-keyboard-focus-v6-preparation/preparation-seal.json",
+      "exitCode": 1,
+      "reason": "Assumed filename did not exist. Actual packet-seal.json was subsequently read and verified; no input was changed."
+    },
+    {
+      "operation": "sed -n '1,160p' /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks/XCUIAutomation.framework/Headers/XCUIElement+Interactions.h",
+      "exitCode": 1,
+      "reason": "Optional separate interactions header did not exist. Actual public tap and child declarations are in XCUIElement.h and were read, copied and bound."
+    },
+    {
+      "operation": "Exploratory decode_archive on official UI Snapshot 3B570709-CE9B-49C9-9A50-C026EB6CBD30 followed by recursive walk",
+      "exitCode": 1,
+      "reason": "Generic deep UI snapshot expansion reached its explicit 100-level nesting cap (AssertionError: Archive nesting cap). No result from that failed expansion is used. A shallow data-only inspection showed this snapshot belongs to the keyboard settings page, not the final switch tap. The successful bounded event decoder is applied only to synthesized-event attachments in analyze.py."
+    },
+    {
+      "operation": "rg public declarations inside the historical XCTest shim headers",
+      "exitCode": 1,
+      "reason": "No matches because those compatibility headers only import XCUIAutomation. The installed primary XCUIAutomation declarations were read and bound."
+    }
+  ],
+  "actualV6FailureRetained": {
+    "xcodebuildExitCode": 65,
+    "outerRuntimeExitCode": 1,
+    "setupObservationSatisfied": false,
+    "expectedDiagnosticQualificationBoundary": false
+  },
+  "memoryUse": "A lightweight MEMORY.md lookup provided only general ownership/evidence conventions. All runtime findings and identities were verified from current exact local files."
+}

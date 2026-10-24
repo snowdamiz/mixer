@@ -1,0 +1,11 @@
+--- retained-C3-resolve.sh
++++ proposed-simulate-only-resolve.sh
+@@ -35,7 +35,7 @@
+ for suite in noble noble-updates noble-security; do
+     printf 'deb [arch=arm64 signed-by=/tmp/compiler-metadata/base-keyring.gpg] https://ports.ubuntu.com/ubuntu-ports %s main\n' "$suite"
+ done > "$out/sources.list"
+-if APT_CONFIG=/inputs/offline.conf /usr/bin/apt-get --simulate --no-download --no-install-recommends \
++if APT_CONFIG=/inputs/offline.conf /usr/bin/apt-get --simulate --no-install-recommends \
+     -o APT::Install-Suggests=false --no-remove install gcc:arm64 libc6-dev:arm64 binutils:arm64 \
+     > "$out/solver.stdout" 2> "$out/solver.stderr"; then
+     code=0

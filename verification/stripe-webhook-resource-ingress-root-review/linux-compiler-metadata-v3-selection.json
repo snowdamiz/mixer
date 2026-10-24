@@ -1,0 +1,91 @@
+{
+  "schema": 1,
+  "observedUTC": "2026-10-24T20:54:16.031764+00:00",
+  "accountableReviewer": "/root",
+  "status": "selected-one-simulate-only-offline-metadata-attempt",
+  "previousSelectionSHA256": "7606c060ab4685ef37b0480ab421d2da196cd4e4cfe6a47aca7628e17b25ded6",
+  "rootReviewSHA256": "7c5f4daa365689fdbaa93872fbedc8d1228db3bc8cc95e0f444acb1066daf8c9",
+  "metadataSealSHA256": "605e64b6841bbbdfaf9ed0072b80c4bf3a49fad531358d1418ee685bdc856809",
+  "proposalSHA256": "c5f6167ca26d528b060b2996a24c52a1f60f40bcdb6c6da6dc6eab97c273a33b",
+  "ownership": [
+    "verification/stripe-resource-linux-compiler-metadata-v3/**",
+    "docs/stripe-resource-linux-compiler-metadata-v3.md"
+  ],
+  "containerAttempts": 1,
+  "perContainerWallSeconds": 120,
+  "concurrentContainers": 1,
+  "policy": {
+    "containerAttempts": 1,
+    "concurrentContainers": 1,
+    "perContainerWallSeconds": 120,
+    "image": "hexpm/elixir@sha256:52ec0f335b9084bcfc0ce3a29b4c0288dc2fc2a07658ff809dc7d07589212cde",
+    "childDigest": "sha256:c2d3bab1f8a854f5ca3bb220e5463f4fe39036caa2ce22dfd7614a30404279de",
+    "platform": "linux/arm64",
+    "parentAndChildIdentityChecks": "Use actual V3 selected parent Image plus child ImageManifestDescriptor, with exact Config.Image and platform.",
+    "isolation": [
+      "--pull=never",
+      "--network=none",
+      "--read-only",
+      "--cap-drop=ALL",
+      "--security-opt=no-new-privileges",
+      "--user=65534:65534",
+      "--pids-limit=128",
+      "--memory=1g",
+      "--cpus=2",
+      "--ulimit=core=0:0",
+      "private bounded tmpfs only; fixed readonly owned input snapshots; no repository/HOME/socket/credentials/writable host mounts"
+    ],
+    "operations": [
+      "Read/hash exact apt/gpgv/dpkg/tool paths, base package status and Ubuntu archive keyring. No install or apt update.",
+      "After bounded host acquisition, verify signatures using the captured trusted base keyring/tool identities; offline dependency resolution against authenticated indexes and captured base status, with no package transfer.",
+      "Verify selected signer fingerprint, signed date/suite/component/architecture and strongest signed index size/hash. Reject missing or changed authority.",
+      "All-outcome exact owned container/group/temp cleanup; retained immutable evidence/package lock allowed within fixed owned directory."
+    ]
+  },
+  "bounds": {
+    "keyringBytes": 1048576,
+    "metadataExpandedBytes": 268435456,
+    "metadataTransferBytes": 33554432,
+    "metadataWallSeconds": 120,
+    "onLimit": "fail-and-report; no automatic expansion",
+    "ownedStorageBytes": 805306368,
+    "packageCount": 48,
+    "packageExpandedBytes": 536870912,
+    "packageTransferBytes": 134217728,
+    "packageWallSeconds": 180,
+    "perRequestSeconds": 30,
+    "requestRetries": 0,
+    "simultaneousFetches": 1,
+    "singleInReleaseBytes": 1048576,
+    "singlePackageBytes": 67108864,
+    "stderrBytes": 524288,
+    "stdoutBytes": 524288
+  },
+  "selectedChanges": [
+    "Remove only --no-download from selected APT command; require --simulate, --no-install-recommends, no suggested packages and --no-remove. Never use ignore-missing/fix-missing/unauthenticated.",
+    "Preserve network-none, readonly, nonroot and all existing native/stream/time/storage limits; one container only.",
+    "Reuse exact authenticated metadata and base status/keyring hashes; same early and all-outcome evidence exports.",
+    "Derive exact dependency/version lock only on successful native simulation with full signed index provenance; report any base runtime upgrades.",
+    "Preserve all previous failures and exact owned cleanup."
+  ],
+  "hostHTTPSRequests": 0,
+  "packageTransferSelected": false,
+  "packageInstallSelected": false,
+  "compilerOrHelperOrNifExecutionSelected": false,
+  "resourceRuntimeSelected": false,
+  "notSelected": [
+    "C4 .deb transfer",
+    "C5 image/tool payload/rootfs assembly",
+    "C6 compiler/helper/NIF execution",
+    "Resource/application runtime",
+    "Shared/global package installs or apt state changes",
+    "Production/provider changes",
+    "Catalog inspector/authority driver work",
+    "Physical/native devices"
+  ],
+  "gaAccepted": false,
+  "fixedExportAddendumSHA256": "3a8096882bd2e3ecfa5962b2836648e457567f61ca671ff7b3ca1e894cda9074",
+  "fixedExportAddendumPath": "verification/stripe-webhook-resource-ingress-root-review/linux-compiler-metadata-v2-export-addendum.json",
+  "officialSemanticsSource": "https://manpages.ubuntu.com/manpages/noble/man8/apt-get.8.html",
+  "officialSemanticsObserved": "APT2.8.3 documentation: simulation changes no system state; no-download restricts available archives to already downloaded packages. Exact failure cause remains a hypothesis before retry."
+}

@@ -1,0 +1,481 @@
+{
+  "additionalRequiredCommands": [
+    "exact existing V7 Frozen/full-library/default/span regression commands bound to candidate",
+    "eight fresh production/unit MIR contexts and16 baseline/candidate paired owner layouts",
+    "production Swift/all Clippy plus formatting",
+    "separately root-selected exact target runner, not provided or executed by this packet"
+  ],
+  "futureCommands": [
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--lib",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "experimental-swift-reactor",
+        "swift_lifecycle_",
+        "--",
+        "--test-threads=1"
+      ],
+      "cwd": "isolated accepted candidate VM source",
+      "id": "swift-debug",
+      "precondition": "implementation and exact named binary test inventory accepted; zero selected is failure",
+      "status": "planned",
+      "target": "fresh separately owned target per source/configuration"
+    },
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--lib",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "experimental-swift-reactor",
+        "--release",
+        "swift_lifecycle_",
+        "--",
+        "--test-threads=1"
+      ],
+      "cwd": "isolated accepted candidate VM source",
+      "id": "swift-release",
+      "precondition": "implementation and exact named binary test inventory accepted; zero selected is failure",
+      "status": "planned",
+      "target": "fresh separately owned target per source/configuration"
+    },
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--lib",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--all-features",
+        "swift_lifecycle_",
+        "--",
+        "--test-threads=1"
+      ],
+      "cwd": "isolated accepted candidate VM source",
+      "id": "all-debug",
+      "precondition": "implementation and exact named binary test inventory accepted; zero selected is failure",
+      "status": "planned",
+      "target": "fresh separately owned target per source/configuration"
+    },
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--lib",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--all-features",
+        "--release",
+        "swift_lifecycle_",
+        "--",
+        "--test-threads=1"
+      ],
+      "cwd": "isolated accepted candidate VM source",
+      "id": "all-release",
+      "precondition": "implementation and exact named binary test inventory accepted; zero selected is failure",
+      "status": "planned",
+      "target": "fresh separately owned target per source/configuration"
+    }
+  ],
+  "groups": [
+    {
+      "assertions": [
+        "AlreadyInitialized preserves Ready; NotInitialized preserves Uninitialized",
+        "TerminalBlocked is distinct and preserves authority, first cause and cleanup state",
+        "zero control/check/fail/record_cleanup/preparation/guest/service/allocation calls; byte-identical counters/reservations/state/output"
+      ],
+      "cases": [
+        "duplicate Initialize from Ready, with pending cancellation or expired deadline",
+        "Corpus from Uninitialized, with pending cancellation or expired deadline",
+        "both requests from Terminal, including corrupt Terminal without copied first cause"
+      ],
+      "id": "SL01",
+      "name": "nonexecuting_preconditions",
+      "status": "planned",
+      "testPrefix": "swift_lifecycle_sl01_"
+    },
+    {
+      "assertions": [
+        "actual first runtime failure terminalizes admitted attempt",
+        "preserve rejected owner and previous bound; no invented admitted phase",
+        "no guest instruction/host call on preparation failure"
+      ],
+      "cases": [
+        "allowed request with each missing/foreign original owner/ticket",
+        "nonempty arena, pin, frame-cleanup or preparation",
+        "reservation, cancel/deadline and construction-restore failure"
+      ],
+      "id": "SL02",
+      "name": "admitted_preparation",
+      "status": "planned",
+      "testPrefix": "swift_lifecycle_sl02_"
+    },
+    {
+      "assertions": [
+        "exactly one initializer execution and effect",
+        "actual Outermost(None), clean inner completion and Ready publication",
+        "second request returns nonexecuting AlreadyInitialized"
+      ],
+      "cases": [
+        "fixed function35 void initializer writes memory/global marker and one captured output effect",
+        "second Initialize before and after two successful Corpus calls"
+      ],
+      "id": "SL03",
+      "name": "initialize_once",
+      "status": "planned",
+      "testPrefix": "swift_lifecycle_sl03_"
+    },
+    {
+      "assertions": [
+        "only actual void outermost success is eligible",
+        "shape invariant is sticky terminal failure before publication",
+        "no synthesized result or outer-Ok success shortcut"
+      ],
+      "cases": [
+        "missing returned slot, CallerContinues, scalar Outermost, stored Err with outer Ok",
+        "outer publication failure",
+        "valid void Outermost"
+      ],
+      "id": "SL04",
+      "name": "initializer_outcome_shape",
+      "status": "planned",
+      "testPrefix": "swift_lifecycle_sl04_"
+    },
+    {
+      "assertions": [
+        "Ready write occurs after actual storage consumption and bound restoration",
+        "no fallible operation remains between inner Completed and Ready write",
+        "no early publication while borrowed/retained authority remains"
+      ],
+      "cases": [
+        "each nonzero actual/live frame,value,control,pin or cache pin observation",
+        "retained entry, unvisited suffix, nested restore, live debt or unfinished bound",
+        "successful operation and full short-reborrow completion"
+      ],
+      "id": "SL05",
+      "name": "ready_publication_barrier",
+      "status": "planned",
+      "testPrefix": "swift_lifecycle_sl05_"
+    },
+    {
+      "assertions": [
+        "retain exact phase/context/transfer/storage/preparation",
+        "no Ready or executable retry",
+        "explicit cleanup retry preserves committed memory and original failure"
+      ],
+      "cases": [
+        "uncommitted replacement/ticket/page debit",
+        "committed memory with old-ticket refund debt",
+        "nonempty preparation or growth live disagreement"
+      ],
+      "id": "SL06",
+      "name": "growth_retention",
+      "status": "planned",
+      "testPrefix": "swift_lifecycle_sl06_"
+    },
+    {
+      "assertions": [
+        "outer Completed alone never qualifies success",
+        "original frame completion used once; no Drop acceptance shortcut",
+        "restore/retained reports remain failures and do not reactivate"
+      ],
+      "cases": [
+        "GrowthCompletion::Completed(FrameCompletion::Retained)",
+        "GrowthCompletion::Completed(FrameCompletion::RestoreRejected)",
+        "GrowthCompletion::Retained",
+        "Completed(Completed) success"
+      ],
+      "id": "SL07",
+      "name": "inner_completion",
+      "status": "planned",
+      "testPrefix": "swift_lifecycle_sl07_"
+    },
+    {
+      "assertions": [
+        "all actual initializer failures produce no Ready owner",
+        "guest exit remains exact typed exit, including zero",
+        "later attempts return TerminalBlocked without effects"
+      ],
+      "cases": [
+        "unreachable/numeric/memory/indirect traps",
+        "proc_exit0, proc_exit nonzero and high unsigned code",
+        "WASI typed failure and default-denied grant"
+      ],
+      "id": "SL08",
+      "name": "initializer_terminal_outcomes",
+      "status": "planned",
+      "testPrefix": "swift_lifecycle_sl08_"
+    },
+    {
+      "assertions": [
+        "first exhausted exact dimension and original usage retained",
+        "no blanket cap increase or context replacement",
+        "terminal cleanup completes or conservatively retains exact authority"
+      ],
+      "cases": [
+        "fuel/work/host0 and exact/one-below limits",
+        "frame/value/control/cache/pin ceilings during init",
+        "memory pages/State/Combined exhaustion including growth overlap"
+      ],
+      "id": "SL09",
+      "name": "initializer_resources",
+      "status": "planned",
+      "testPrefix": "swift_lifecycle_sl09_"
+    },
+    {
+      "assertions": [
+        "actual bounded checkpoints and immutable selected deadline origin",
+        "failure effects and overshoot reported truthfully",
+        "misuse path does not observe pending runtime condition"
+      ],
+      "cases": [
+        "cancel/deadline before entry and during cache/decode, nested execution, memory growth and WASI staging/service/commit",
+        "earliest run deadline and earliest WASI deadline",
+        "cancel/deadline pending on nonexecuting misuse"
+      ],
+      "id": "SL10",
+      "name": "interruption",
+      "status": "planned",
+      "testPrefix": "swift_lifecycle_sl10_"
+    },
+    {
+      "assertions": [
+        "exact original first cause, cursor, at_failure remain unchanged",
+        "after_cleanup recorded only after actual cleanup",
+        "terminal marker copies no fresh diagnostic"
+      ],
+      "cases": [
+        "Initialization vs Invocation first cause with current function/source offset",
+        "later cleanup invariant, deadline/cancel, refund and restore failure",
+        "BlockedTerminal repeated request"
+      ],
+      "id": "SL11",
+      "name": "diagnostics",
+      "status": "planned",
+      "testPrefix": "swift_lifecycle_sl11_"
+    },
+    {
+      "assertions": [
+        "same actual proof/control/cache/WASI and six arenas/tickets across phases",
+        "independent expected state after call1 and call2",
+        "real corpus equality is not substituted for persistent state proof"
+      ],
+      "cases": [
+        "init marker and two Corpus calls reading/updating memory/global/table",
+        "nested indirect call through preserved table",
+        "retained full corpus local Workspace limitation"
+      ],
+      "id": "SL12",
+      "name": "persistent_instance",
+      "status": "planned",
+      "testPrefix": "swift_lifecycle_sl12_"
+    },
+    {
+      "assertions": [
+        "exact cumulative counters, not sums of copied authority",
+        "no deadline/budget/context/cache/capture reset",
+        "phase deltas are observations only"
+      ],
+      "cases": [
+        "hand-authored init/call1/call2 instruction/work/host/WASI trace",
+        "cache hit/miss and lifetime-work accumulation",
+        "memory page, cache, category/combined and ticket peaks"
+      ],
+      "id": "SL13",
+      "name": "cumulative_usage",
+      "status": "planned",
+      "testPrefix": "swift_lifecycle_sl13_"
+    },
+    {
+      "assertions": [
+        "no second full allowance or new started time",
+        "later failure retains earlier effects and cumulative usage",
+        "first successful init is not repeated"
+      ],
+      "cases": [
+        "init consumes enough fuel/work/cache-work/host/WASI budget to reject call1",
+        "call1 leaves one-below bound for call2",
+        "absolute deadline expires between successful phases"
+      ],
+      "id": "SL14",
+      "name": "later_call_exhaustion",
+      "status": "planned",
+      "testPrefix": "swift_lifecycle_sl14_"
+    },
+    {
+      "assertions": [
+        "actual monotonically bounded capture suffixes with retained errors",
+        "no clear/recreate of WASI or replayed expected output",
+        "any copy/parser/receipt storage admitted separately"
+      ],
+      "cases": [
+        "partial output then trap",
+        "stdout/stderr emitted during init and each call",
+        "logging bound exhausted during later call"
+      ],
+      "id": "SL15",
+      "name": "output_phase_boundaries",
+      "status": "planned",
+      "testPrefix": "swift_lifecycle_sl15_"
+    },
+    {
+      "assertions": [
+        "preserve any valid i32; target runner separately requires zero",
+        "success result cannot escape before full completion barrier",
+        "wrong shape or failed completion terminalizes actual attempt"
+      ],
+      "cases": [
+        "Outermost(Some(I32(0))) and nonzero i32",
+        "wrong/missing scalar shape and CallerContinues",
+        "valid result followed by failed cleanup/restore"
+      ],
+      "id": "SL16",
+      "name": "corpus_results",
+      "status": "planned",
+      "testPrefix": "swift_lifecycle_sl16_"
+    },
+    {
+      "assertions": [
+        "same actual AccountedWasi and sole counters",
+        "no filesystem/preopen/socket/environment capability escalation",
+        "existing errno/range/partial-effect/reentrancy order unchanged"
+      ],
+      "cases": [
+        "all34 sealed descriptors and explicit denied grants",
+        "real OS randomness/realtime/monotonic with bounded capture sinks",
+        "GuestExit, fd close, preopen/path/poll/socket default denial"
+      ],
+      "id": "SL17",
+      "name": "wasi_environment",
+      "status": "planned",
+      "testPrefix": "swift_lifecycle_sl17_"
+    },
+    {
+      "assertions": [
+        "deepest-first exact pin/arena/debt handling with no work/allocation/service",
+        "retained authority stays charged; no executable retry",
+        "returned copies destroyed under explicit permanent accounting before final refund"
+      ],
+      "cases": [
+        "nested pins, failed entry, growth pending and later cleanup rejection",
+        "cleanup under exhausted fuel/work/cancel/deadline",
+        "consuming owner/header cleanup with final diagnostics alive"
+      ],
+      "id": "SL18",
+      "name": "terminal_cleanup",
+      "status": "planned",
+      "testPrefix": "swift_lifecycle_sl18_"
+    },
+    {
+      "assertions": [
+        "admit before each new role exists",
+        "existing ceiling/ticket count unchanged",
+        "specific rejection and prior owner/bound retained"
+      ],
+      "cases": [
+        "lifecycle permanent/bootstrap/frame additions exact and one byte below",
+        "category room but insufficient Combined room",
+        "preflight misuse before any frame-envelope admission"
+      ],
+      "id": "SL19",
+      "name": "admission_boundaries",
+      "status": "planned",
+      "testPrefix": "swift_lifecycle_sl19_"
+    },
+    {
+      "assertions": [
+        "zero wrapper allocation and no per-invocation Vec/box/owner",
+        "original admitted allocator effects measured exactly",
+        "no refused allocation interpreted as lifecycle success"
+      ],
+      "cases": [
+        "first allocation refused on warm lifecycle wrapper/non-growth/cache-hit route",
+        "cold cache miss and memory growth measured separately",
+        "fallible allocation ordinals reached by admitted lifecycle scenarios"
+      ],
+      "id": "SL20",
+      "name": "allocation",
+      "status": "planned",
+      "testPrefix": "swift_lifecycle_sl20_"
+    },
+    {
+      "assertions": [
+        "new roles positively accounted in disjoint permanent/bootstrap/active classes",
+        "no diagnostic copy, residual, alias, short reborrow or return/caller position omitted",
+        "preserve prior roles,86 tickets,ceilings and2912-byte Frozen bound; no claim of RSS"
+      ],
+      "cases": [
+        "all actual new/changed lifecycle/common-completion free bodies, methods, closures and promoted bodies",
+        "production/unit Swift/all Debug/Release MIR;16 baseline/candidate paired layouts",
+        "all prior V7 rows and owner/Frozen identities"
+      ],
+      "id": "SL21",
+      "name": "new_accounting",
+      "status": "planned",
+      "testPrefix": "swift_lifecycle_sl21_"
+    },
+    {
+      "assertions": [
+        "no new public Rust/C API or release authority",
+        "borrow rejection checks exact diagnostic code and source",
+        "no unsafe/dynamic callback/second authority shortcut"
+      ],
+      "cases": [
+        "external attempts at instance creation, arbitrary function/name invocation, forged request/Ready, owner or pin escape",
+        "actual compiler borrow-negative whole-owner-during-phase and post-retained assignment",
+        "closed lifecycle request with no caller target or deadline"
+      ],
+      "id": "SL22",
+      "name": "authority_privacy",
+      "status": "planned",
+      "testPrefix": "swift_lifecycle_sl22_"
+    },
+    {
+      "assertions": [
+        "exact prior behavior,expanded39 methods,owner declarations and reservation formulas retained",
+        "all actual selected binary test identities execute nonzero exact set",
+        "keep failed/ignored/filtered scope explicit"
+      ],
+      "cases": [
+        "full libraries Swift/all Debug/Release",
+        "all selected existing Frozen integration/allocation/oracle targets in both modes",
+        "default/span checks,production Clippy,format and old API/layout/usage traces"
+      ],
+      "id": "SL23",
+      "name": "frozen_regressions",
+      "status": "planned",
+      "testPrefix": "swift_lifecycle_sl23_"
+    },
+    {
+      "assertions": [
+        "separate root lifecycle acceptance and bounded target selection required",
+        "real secure services,complete source/tool/phase/resource/output/cleanup evidence",
+        "retain first failed dimension without blanket retries; no native/D3/G07/GA credit from host-only attempt"
+      ],
+      "cases": [
+        "actual immutable53777114-byte reactor verified by SHA256 before complete validation",
+        "construct once,initialize35 once,corpus62 twice,final consuming cleanup",
+        "two actual complete duplicate-free11-field native-equal objects and i32zero results"
+      ],
+      "id": "SL24",
+      "name": "exact_target_after_root_selection",
+      "status": "planned",
+      "testPrefix": "swift_lifecycle_sl24_"
+    }
+  ],
+  "runtime": false,
+  "runtimeRowsPassed": 0,
+  "schema": "mixer.swift-lifecycle.planned-matrix.1",
+  "scope": "Planned requirements only; uncalled witness does not pass any row.",
+  "selected": false
+}

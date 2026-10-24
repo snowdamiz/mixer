@@ -8,25 +8,38 @@ and `verification/github-ci-2335207a-engine/receipt.json`.
 The subsequent source/diagnostic checkpoint `fdf59652` also passes all three
 Engine CI jobs, with no skipped steps. See
 `verification/github-ci-fdf59652-engine/receipt.json`.
+Checkpoint `06147f0e` also passes all three Engine jobs, with all 38 returned
+steps successful and none skipped. See `verification/github-ci-06147f0e-engine/receipt.json`.
 
-The next private Swift lifecycle candidate compiles the full original-owner
-initialization/call/cleanup path in four production configurations. Its memory
-accounting and behavior tests are in progress; it has not executed or changed
-the live VM. See [the source checkpoint](docs/swift-lifecycle-source-checkpoint.md).
+The private Swift lifecycle candidate now has independent and root source and
+logical-accounting acceptance: 268 bodies, 21,364 roles, 256 selected finite
+positions, 384 individual CTFE proofs, 16 paired layouts and 39 unchanged Frozen
+methods. The first actual Swift Debug run passes 21 of 23 authored tests and
+fails two fixture expectations: a zero-work limit is exhausted during initial
+instantiation, and the expected cumulative cache-work count differs by ten.
+The failures are retained; diagnosis precedes any changed candidate. Other
+runtime configurations and the full matrix remain pending. The live VM is
+unchanged. See `verification/swift-reactor-lifecycle-accounting-root-review/runtime-selection.json`
+and `verification/swift-reactor-lifecycle-runtime/receipt.json`. A test-only
+SL09/SL13 correction is selected; exact accounting impact and fresh runtime
+checks are required before acceptance.
 
-The keyboard/focus preparation now retains a failed setup-only iOS 26.5 diagnostic.
-XCTest returned 65 with one failed method; the host rejected off-screen Settings
-geometry before the Full Keyboard Access observation window. Offline replay of
-22 durable records and two accessibility trees matches the runtime result. All
-six app keyboard cases remain unrun. Five cleanup operations pass, with the owned
-simulator deleted and unrelated instances preserved. See
-`verification/apple-toggle-keyboard-focus-v4-root-review/runtime-review.json`.
+The latest setup-only iOS 26.5 diagnostic reaches Full Keyboard Access with no
+bridge failures and complete evidence. XCTest fails because the switch remains
+off after the test tap. Exact offline replay and all five cleanup operations
+pass; the owned simulator is deleted and unrelated instances are preserved.
+All six app keyboard cases remain unrun. Exported native events prove the tap
+landed in the composite row center, outside the child switch. A public-query
+leaf-target and exact route-label repair is selected for host tests and compilation. See
+`verification/apple-toggle-keyboard-focus-v6-root-review/runtime-review.json`.
+Earlier V4 routing failure remains preserved.
 
-The V5 harness has one independently reproduced timing defect: it accepts a
-destination capture made before the recorded route tap completes. Root replay
-confirms the false diagnostic credit. A V6 host ordering repair is selected; the
-app, native runner and bounds stay fixed. No V5 simulator run was selected. See
-`verification/apple-toggle-keyboard-focus-v5-root-review/finding-review.json`.
+The V6 host ordering repair passes independent review: 269 existing Python
+methods, ten fresh methods over 15 route/time boundaries and 16 + 35 reused
+Swift host checks. It rejects the unchanged V5 stale-capture journal. All three
+actual V6 destination captures follow their completed taps. The app, native
+runner and bounds remain fixed; the subsequent switch setup failure above is
+separate. See `verification/apple-toggle-keyboard-focus-v6-independent-review/review.json`.
 
 The Linux resource prerequisite probe now confirms Elixir 1.20.4, OTP 29.1.1,
 ERTS 17.1 and the pinned runtime image under the selected isolation. That image
@@ -36,12 +49,15 @@ inputs were removed. Both earlier pre-start failures remain preserved. Compiler
 payload preparation and all 30 resource runtime rows remain pending. See
 `verification/stripe-webhook-resource-ingress-root-review/linux-tool-payload-v3-review/receipt.json`.
 
-Ubuntu package-metadata verification passes for all three signed indexes and
-21,792,217 expanded bytes. Two isolated attempts stopped on export/fixture
-problems and were cleaned up; APT dependency resolution has not run. One
-corrected offline attempt is selected, with fixed bounded evidence exports.
-Package download, compilation and resource-runtime execution remain pending.
-See `verification/stripe-resource-linux-compiler-metadata/receipt.json`.
+The isolated native APT metadata simulation now succeeds. Root verifies an
+exact lock of 36 packages, 50,997,408 prospective download bytes and 54 matching
+signed stanzas, with zero upgrades or removals from the 98-package base runtime.
+The sole command change removes the cached-archive restriction while retaining
+simulation and network isolation; earlier failures remain preserved. All 36 official archives have been acquired and their signed sizes/hashes
+verified; 15 host controls pass. The archives remain local verification inputs.
+Bounded offline static payload assembly is selected. Installation, compilation
+and all 30 resource-runtime rows remain pending. See
+`verification/stripe-webhook-resource-ingress-root-review/linux-compiler-metadata-v3-review.json`.
 
 Latest native checkpoint: the private iOS pan-commit carrier passes 43 XCTest
 methods, 45 native input actions and 36 scoped callback components on iOS 26.5.

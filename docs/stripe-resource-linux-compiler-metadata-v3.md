@@ -1,0 +1,31 @@
+# Successful offline compiler metadata lock
+
+The selected simulate-only retry succeeded. Native APT selected 36 new arm64 packages, zero upgrades, zero removals, and left 10 existing packages not upgraded. `package-lock.json` binds every selected full version to authenticated Ubuntu package metadata and the exact 98-package base inventory. No package was acquired, installed, or executed. This completes the scoped metadata prerequisite only; compiler/header payload and resource validation remain pending.
+
+Authority is `verification/stripe-webhook-resource-ingress-root-review/linux-compiler-metadata-v3-selection.json`, SHA256 `7babe8a2b2298b9ae0104124cbae46b4426a5733c06d8f642bfd2a538a0fa836`. It explicitly reuses the unchanged export addendum SHA256 `3a8096882bd2e3ecfa5962b2836648e457567f61ca671ff7b3ca1e894cda9074`. The actual prepare/authenticate scripts, private APT configuration, expected tool hashes, and six public metadata files are byte-identical to sealed V2. The solver source differs only by removing `--no-download`; it retains `--simulate --no-install-recommends`, `APT::Install-Suggests=false`, and `--no-remove`. No ignore-missing, fix-missing, or unauthenticated option was used.
+
+One already-local pinned image container ran with parent `hexpm/elixir@sha256:52ec0f335b9084bcfc0ce3a29b4c0288dc2fc2a07658ff809dc7d07589212cde`, child `sha256:c2d3bab1f8a854f5ca3bb220e5463f4fe39036caa2ce22dfd7614a30404279de`, Linux arm64. Before start, the runner checked the exact parent reference/index, child manifest/platform, readonly root, UID/GID 65534, network none, dropped capabilities, no new privileges, PIDs 128, memory 1 GiB, CPUs 2, core zero, and private 128 MiB noexec/nosuid/nodev tmpfs. Only the fixed owned readonly input snapshot was mounted. Its one attempt limit and 120-second deadline remained enforced, with time reserved for cleanup.
+
+Early bounded exports retained the exact C1 base status and Ubuntu keyring, matching their known hashes and sizes. Native gpgv reverified noble, noble-updates, and noble-security, full signer `F6ECB3762474EDA9D21B7022871920D1991BC93C`, release scope/date, and compressed index size/hash. The signed Valid-Until fields were absent and remain recorded as such. Raw signature status/stderr and all verified cleartexts were exported before later controls. Both tampered-signature and tampered-index controls passed. Native index expansion totaled 21,792,217 bytes inside the bounded tmpfs.
+
+APT 2.8.3 simulated against the exact captured base status and authenticated private lists. It emitted 36 paired `Inst`/`Conf` records and exited zero. The `/etc/apt/-/` warnings remain preserved; they did not prevent this run. Compared with sealed V2, removing only no-download allowed native simulation to reach complete selections with the same empty private archive cache and no network. No package transfer was attempted. `apt-observation-comparison.json` retains this comparison without rewriting the prior failure.
+
+The lock contains 50,997,408 prospective archive bytes, below the 128 MiB selected package bound, and 179,546,112 bytes obtained by summing signed Installed-Size KiB fields. That latter number is a metadata estimate; actual extraction size was not observed. The 36 packages are below the count bound of 48, and each archive is below 64 MiB. These figures describe potential later acquisition, which is unselected here.
+
+The metadata selects these key versions:
+
+| Package | Exact full version |
+| --- | --- |
+| gcc | `4:13.2.0-7ubuntu1` |
+| gcc-13 / gcc-13-aarch64-linux-gnu | `13.3.0-6ubuntu2~24.04.1` |
+| binutils | `2.42-4ubuntu2.10` |
+| libc6-dev / libc-dev-bin | `2.39-0ubuntu8.9` |
+| linux-libc-dev | `6.8.0-147.147` |
+
+These are locked package identities, not observed compiler version executions. Each record includes archive path/URL, exact bytes and SHA256, full version/architecture, source package field, dependency fields, raw native selection/configuration lines, and every matching signed suite. Provenance links the current gpg status and verified Release to raw InRelease, compressed index, authenticated expanded index, and exact raw stanza offset/length/hash. The raw selected stanzas are retained separately. Duplicate suites must agree on artifact and dependency identity; missing/ambiguous metadata fails closed. The host code joins native APT's choices to authenticated bytes; it does not implement a replacement dependency solver.
+
+`baseRuntimeUpgradeDelta` and `basePackageChanges` are empty because no existing baseline package was selected for change. New library packages in the 36-package tool dependency set remain explicit in the lock; an empty upgrade delta does not claim that a future compiler payload contains no new libraries. The exact baseline inventory and raw status/keyring are retained. Reproducing this lock requires that pinned base and these exact signed indexes.
+
+All 15 fixed named exports were retained, totaling 612,086 bytes, under the explicit 2 MiB artifact bound and individual export limits. Ordinary stdout/stderr totaled 29,837 and 1,082 bytes. Identity-fenced owned container removal, observed absence, and temporary snapshot removal passed; the actual attempt including cleanup lasted 1.29 seconds. Commands, Docker/tool identities, exact source/input/output hashes, container identity, and cleanup remain in `attempt/receipt.json`. Twenty-nine host controls, the read-only retained evidence audit, and deterministic package-lock/stanza rederivation pass. Prior C1/C2 and V2 failures remain sealed and unchanged.
+
+No HTTPS, `.deb` request, install/update, shared/global APT mutation, image build, compiler/helper execution, NIF load, rootfs/release construction, resource runtime, cgroup/namespace policy operation, physical device, provider operation, or Git operation occurred. Existing V3 tool qualification still reports the compiler/header payload absent. A later root selection must authorize package acquisition and separately authorize any assembly or compilation. Nonprivileged compiler qualification does not validate resource isolation. Linux artifact/runtime/GA gates and full product completion remain unaccepted. Root owns shared trackers and third-party component-notice review; changes here are limited to this new packet and document.

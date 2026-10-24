@@ -1,0 +1,80 @@
+{
+  "compilerHelperNifOrBEAMExecutionSelected": false,
+  "executed": false,
+  "existingPinnedImage": "hexpm/elixir@sha256:52ec0f335b9084bcfc0ce3a29b4c0288dc2fc2a07658ff809dc7d07589212cde",
+  "fixedOwnedPathsProposed": {
+    "assemblyPrefix": "/tmp/compiler-payload/tree",
+    "manifest": "/tmp/compiler-payload/payload-manifest.json",
+    "noticeInventory": "/tmp/compiler-payload/notice-inventory.json",
+    "optionalDeterministicArchive": "/tmp/compiler-payload/compiler-payload.tar",
+    "readonlyInputs": "/inputs",
+    "scratch": "/tmp/compiler-payload"
+  },
+  "gaAccepted": false,
+  "inputLocalCacheManifest": {
+    "bytes": 28203,
+    "path": "verification/stripe-resource-linux-compiler-acquisition/local-cache-manifest.json",
+    "sha256": "5fe889056531060de11d2aa0aacf1d1088851aa9762d368182bdc7df2a380f2d"
+  },
+  "inputLock": {
+    "bytes": 149508,
+    "path": "verification/stripe-resource-linux-compiler-metadata-v3/package-lock.json",
+    "sha256": "4db8b41afffdf796acaec18bcc3b5574be593af0c11c4cb860b39da5d64a36b4"
+  },
+  "maintainerScriptsSelected": false,
+  "networkOrPackageAcquisitionSelected": false,
+  "phase": "C5",
+  "preservePolicy": [
+    "pull never",
+    "network none",
+    "readonly root",
+    "user65534:65534",
+    "cap drop ALL",
+    "no new privileges",
+    "pids128",
+    "memory1GiB",
+    "cpus2",
+    "core0",
+    "no repo/HOME/socket/secrets/writable host mounts",
+    "exact owned readonly inputs",
+    "identity-fenced all-outcome cleanup"
+  ],
+  "proposedDeadlineSeconds": 120,
+  "proposedNativeAttempts": 1,
+  "prospectiveScope": "Offline static control/license inspection and bounded compiler/header payload assembly only; no runnable rootfs/release or compiler execution",
+  "requiredChild": "sha256:c2d3bab1f8a854f5ca3bb220e5463f4fe39036caa2ce22dfd7614a30404279de",
+  "requiredNewAuthority": {
+    "actualExpandedPayloadBytesLimit": 536870912,
+    "fixedArtifactExports": "Only explicitly root-selected payload manifest, notice/control inventory and optional compiler-payload.tar; need a finite named aggregate export addendum. Ordinary streams remain512KiB each.",
+    "privateTmpfsBytesProposed": 536870912,
+    "reason": "Existing128MiB cap is below179,546,112 signed Installed-Size estimate; actual assembly plus deterministic archive must stay inside separately selected physical cap.",
+    "tmpfsFlags": [
+      "rw",
+      "noexec",
+      "nosuid",
+      "nodev",
+      "mode1777"
+    ]
+  },
+  "resourceRuntimeSelected": false,
+  "schema": 1,
+  "status": "source-only-proposal-root-selection-required",
+  "steps": [
+    "Rehash exact36 archive bytes and required pinned image identities before native use.",
+    "Observe/hash existing /usr/bin/dpkg-deb and /usr/bin/tar (and required built-in decompressors) without installing tools; absence is a failed prerequisite.",
+    "Read package control fields as data; require Package/Version/Architecture and Installed-Size identities to match the signed lock.",
+    "Inspect data/control archive members before extraction. Reject absolute/traversal paths, path collisions with inconsistent bytes, symlink/hardlink escapes, devices/FIFOs/sockets and unselected outputs; bound member count/path/metadata/output bytes before any extraction.",
+    "Inspect control scripts and usr/share/doc package copyright/license/source notices strictly as data; never execute maintainer scripts or invoke dpkg/apt install/configure or update-alternatives. Root reviews component notices.",
+    "If selected, extract validated data members into only the private owned noexec prefix, enforcing actual expanded bytes and physical cap; no host writes outside owned export files.",
+    "Record actual compiler/linker/sysroot/header files and symlinks. Explicitly report /usr/bin/cc or alternative-dependent paths missing; do not create wrappers/alternatives without further authority.",
+    "Bind exact matching ERTS17.1 NIF headers from pinned image only if root selects their read-only data inclusion; use observed V3 header hashes, no BEAM or NIF load.",
+    "If selected, produce per-file/link/type/size/SHA256 manifest and deterministic compiler-only payload archive; bound exact fixed exports and retain all failures before owned cleanup."
+  ],
+  "unresolvedBlockers": [
+    "No .deb package/control/member/copyright content has been parsed in C4.",
+    "dpkg-deb/tar executable identities and required decompressor capabilities not observed for this step.",
+    "Actual extraction bytes, path/link safety, compiler/cc alternatives and loader/sysroot closure remain unverified.",
+    "New tmpfs/export authority is required; no automatic expansion of old128MiB policy.",
+    "Nonprivileged compiler qualification and later root-selected resource runtime are separate."
+  ]
+}

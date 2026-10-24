@@ -1,0 +1,20 @@
+{
+  "classification": "review-harness-fault-injection-replay-comparison-before-restoration",
+  "command": [
+    "python3",
+    "-B",
+    "verification/apple-toggle-keyboard-focus-v6-independent-review/test_fresh.py"
+  ],
+  "currentPassingAttempt": "verification/apple-toggle-keyboard-focus-v6-independent-review/attempt-3.json",
+  "exitCode": 1,
+  "failureMethods": [
+    "test_04_internal_wrong_route_or_nonpreceding_sequence_fails_closed"
+  ],
+  "nativeExecuted": false,
+  "schema": "mixer.apple-toggle.keyboard-v6-independent-review-initial-probe.1",
+  "sourceSHA256": "a89056886f17ee0d06ba07c327afe9614d2a1056430b8ba6a816079f2aca9a95",
+  "sourceSnapshot": "verification/apple-toggle-keyboard-focus-v6-independent-review/test-fresh-attempt-1.py",
+  "stderr": "test_01_boundary_matrix_real_bridge_and_offline_replay (__main__.FreshTests.test_01_boundary_matrix_real_bridge_and_offline_replay) ... ok\ntest_02_wire_route_and_search_sequence_binding (__main__.FreshTests.test_02_wire_route_and_search_sequence_binding) ... ok\ntest_03_current_route_completion_required_after_previous_route (__main__.FreshTests.test_03_current_route_completion_required_after_previous_route) ... ok\ntest_04_internal_wrong_route_or_nonpreceding_sequence_fails_closed (__main__.FreshTests.test_04_internal_wrong_route_or_nonpreceding_sequence_fails_closed) ... FAIL\ntest_05_http_stale_each_route_keeps_cursor_and_rejection_reason (__main__.FreshTests.test_05_http_stale_each_route_keeps_cursor_and_rejection_reason) ... ok\ntest_06_persist_rejection_preserves_route_clock_uploads_and_cursor (__main__.FreshTests.test_06_persist_rejection_preserves_route_clock_uploads_and_cursor) ... ok\ntest_07_mutated_durable_opened_each_route_rejects (__main__.FreshTests.test_07_mutated_durable_opened_each_route_rejects) ... ok\ntest_08_valid_initial_off_and_on_keep_diagnostic_only_authority (__main__.FreshTests.test_08_valid_initial_off_and_on_keep_diagnostic_only_authority) ... ok\ntest_09_bounds_and_anchor_rejection_remain_fixed (__main__.FreshTests.test_09_bounds_and_anchor_rejection_remain_fixed) ... ok\ntest_10_exact_frozen_v5_stale_journal_v6_rejects_unchanged (__main__.FreshTests.test_10_exact_frozen_v5_stale_journal_v6_rejects_unchanged) ... ok\n\n======================================================================\nFAIL: test_04_internal_wrong_route_or_nonpreceding_sequence_fails_closed (__main__.FreshTests.test_04_internal_wrong_route_or_nonpreceding_sequence_fails_closed)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-keyboard-focus-v6-independent-review/test_fresh.py\", line 127, in test_04_internal_wrong_route_or_nonpreceding_sequence_fails_closed\n    self.rejection(f,r,'Route opened same-route tap sequence')\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-keyboard-focus-v6-independent-review/test_fresh.py\", line 87, in rejection\n    self.assertEqual(f.bridge.settings.summary(),replay.replay(f.bridge.output))\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: {'sta[200 chars]ex': 1, 'searchSequence': 2, 'tapSequence': 4,[789 chars]alse} != {'sta[200 chars]ex': 0, 'searchSequence': 2, 'tapSequence': 4,[789 chars]alse}\nDiff is 1579 characters long. Set self.maxDiff to None to see it.\n\n----------------------------------------------------------------------\nRan 10 tests in 1.889s\n\nFAILED (failures=1)\n",
+  "stdout": "",
+  "testsRun": 10
+}

@@ -1,0 +1,42 @@
+--- sealed-v5-review/test_review.py
++++ v6/test_v5_independent26.py
+@@ -23,13 +23,13 @@
+ 
+ HERE = pathlib.Path(__file__).resolve().parent
+ ROOT = HERE.parents[1]
+-PRODUCER = ROOT / 'verification/apple-toggle-keyboard-focus-v5-preparation'
++PRODUCER = HERE
+ sys.path.insert(0, str(PRODUCER))
+-spec = importlib.util.spec_from_file_location('reviewed_v5_run', PRODUCER / 'run.py')
++spec = importlib.util.spec_from_file_location('reviewed_v6_run', PRODUCER / 'run.py')
+ producer = importlib.util.module_from_spec(spec)
+ spec.loader.exec_module(producer)
+ t = producer.settings_telemetry
+-spec = importlib.util.spec_from_file_location('reviewed_v5_replay', PRODUCER / 'replay.py')
++spec = importlib.util.spec_from_file_location('reviewed_v6_replay', PRODUCER / 'replay.py')
+ replay = importlib.util.module_from_spec(spec)
+ spec.loader.exec_module(replay)
+ SCRATCH = HERE / '.scratch'
+@@ -272,10 +272,19 @@
+             r.update(captureStartedUptime=start,captureFinishedUptime=start+.0002)
+             r['snapshot']['observedUptime']=start+.0001
+             r['routeWitness']['destination']['observedUptime']=start+.0001
+-        f.finish(opened_alter=stale)
+-        detail=[{'routeIndex':i,'searchFinished':f.searches[i]['captureFinishedUptime'],'tapStarted':f.taps[i]['detail']['startedUptime'],'tapFinished':f.taps[i]['detail']['finishedUptime'],'destinationObserved':r['routeWitness']['destination']['observedUptime'],'openedCaptureFinished':r['captureFinishedUptime']} for i in range(3) for r in f.bridge.settings.events if r.get('stage')=='route-opened' and r['routeIndex']==i]
++        # V6 rejects the attempted record before it can enter the durable journal.
++        attempted = []
++        original_stale = stale
++        def retained_stale(r):
++            original_stale(r)
++            attempted.append(copy.deepcopy(r))
++        with self.assertRaisesRegex(ValueError, 'Route opened capture precedes same-route tap completion'):
++            f.finish(opened_alter=retained_stale)
++        detail=[{'routeIndex':r['routeIndex'],'searchFinished':f.searches[r['routeIndex']]['captureFinishedUptime'],'tapStarted':f.taps[r['routeIndex']]['detail']['startedUptime'],'tapFinished':f.taps[r['routeIndex']]['detail']['finishedUptime'],'destinationObserved':r['routeWitness']['destination']['observedUptime'],'openedCaptureFinished':r['captureFinishedUptime']} for r in attempted]
++        self.assertEqual(len(detail), 1)
+         self.assertTrue(all(d['destinationObserved']<d['tapStarted'] for d in detail))
+-        f.witness('pre-tap-destination',detail)
++        self.assertEqual(f.bridge.settings.route_opened_bindings, [])
++        self.assertEqual(f.bridge.settings.summary(), replay.replay(f.bridge.output))
+         self.assertFalse(f.bridge.settings.summary()['setupObservationSatisfied'],'Pre-tap destination snapshots satisfy post-navigation setup evidence')
+ 
+     def test_switch_window_cannot_extend_reset_or_accept_late_enable(self):
