@@ -3,8 +3,8 @@
 Latest checkpoint: the private imported-host operation is integrated and passes
 265 Release library tests, sixteen Frozen tests and Swift Clippy. Android tap
 and hold pass on the emulator; its first drag fails and is under diagnosis.
-The private Stripe body-capture candidate awaits independent review. All owned
-native test instances are cleaned; physical phones remain deferred.
+Private Stripe body capture is integrated with 142 hosted tests passing and two
+explicit skips. All owned native test instances are cleaned; phones stay deferred.
 
 Implementation resumed at the user's request on October 24. The saved
 [pause handoff](docs/implementation-pause-2026-10-24.md) remains historical context.
@@ -1171,3 +1171,15 @@ The unchanged candidate-5 APK now has an actual API37 arm64 pointer attempt afte
 Latest private Stripe capture candidate:
 
 Root-selected normal HTTP1.1/HTTP2 raw-body capture candidate is sealed in isolation: root replays273 producer files, nine attempts and dependency/source pins. Final14 component tests and13 wire groups cover105 localhost clients (70H1/35h2c), with measured verifier calls and all responses non2xx. Independent implementation review is active; no live integration or public admission. Actual slow h2 rejects after5564ms; telemetry/log exposure and absent hard cancellation remain endpoint requirements. TLS/ALPN/ingress, durable inbox/Oban, provider reconciliation and G23 remain pending.
+
+
+Latest private Stripe integration:
+
+Private raw-body capture is independently reviewed, root accepted and integrated at71-input closure ac391070ec439ecfca288b9a7657aac1eada5bc1196efb8735211cc60a6883bc. Fresh full hosted suite passes142tests with2existing namespace-fixture skips; production release build, expected missing-config rejection and capture test-clock/adapter exclusions pass. Root verifies433 upstream/composition bindings and117 integration files. Independent38groups/360subcases/110clients/31actual traced verifier calls remain scoped evidence. Three tested files applied; only module normalization is a final blank line. PostgreSQL, owned groups and63766343-byte root scratch cleaned. No public route/acknowledgment/provider/DB admission; endpoint privacy/hard cancellation, TLS/ALPN/ingress, inbox/Oban, provider reconciliation and G23 remain pending. See docs/stripe-raw-body-integration.md.
+
+Latest Android diagnosis:
+
+Root verifies the sealed offline P03 diagnosis:20owned files and177 read-only inputs. The actual UP was delivered and its after-send snapshot remains off at revision3. The final settled assertion fails but its snapshot was not exported. Official pinned AOSP arithmetic supports an authored-versus-carrier drag-range mismatch, with actual platform-private cause unobserved. Root is coordinating an authored-geometry input repair; the unchanged pointer fixture remains the regression contract. No new runtime or full pointer acceptance. See docs/android-pointer-native-diagnosis.md.
+
+
+Checkpoint `2e1931b4` passes all three terminal engine CI jobs (Swift, VM and services), with all 38 steps successful and none skipped. See `verification/github-ci-2e1931b4-engine/receipt.json`. This qualifies the pushed private host-operation host/cross-build slice; subsequent raw-body integration and diagnostic/input repairs remain outside that run.

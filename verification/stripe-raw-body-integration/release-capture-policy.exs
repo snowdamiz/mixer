@@ -1,0 +1,7 @@
+Code.ensure_loaded!(MixerHosted.Billing.RawWebhookCapture)
+{:ok, {_, [atoms: atoms, exports: exports]}} = :beam_lib.chunks(:code.which(MixerHosted.Billing.RawWebhookCapture), [:atoms, :exports])
+false = Enum.any?(atoms, fn {_, atom} -> Atom.to_string(atom) == "Elixir.MixerRawCapture.TestClock" end)
+true = Enum.sort(exports) == Enum.sort(__info__: 1, capture: 1, module_info: 0, module_info: 1)
+false = Code.ensure_loaded?(MixerRawCapture.TestClock)
+false = Code.ensure_loaded?(MixerHosted.Billing.RawWebhookCaptureTest.Adapter)
+IO.inspect(%{test_clock_absent: true, test_adapter_absent: true, exports: exports}, label: "production_raw_capture_policy")

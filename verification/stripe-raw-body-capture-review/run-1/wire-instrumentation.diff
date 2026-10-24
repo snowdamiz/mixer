@@ -1,0 +1,126 @@
+--- sealed-producer/tests/wire.exs
++++ review-derived/tests/wire.exs
+@@ -1,4 +1,33 @@
+ ExUnit.start(autorun: false)
++defmodule CaptureReview.InvocationTrace do
++  use GenServer
++  def start_link, do: GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
++  def init(state), do: {:ok, state}
++  def begin do
++    :ok = GenServer.call(__MODULE__, {:begin, self()})
++    1 = :erlang.trace(self(), true, [:call, {:tracer, Process.whereis(__MODULE__)}])
++  end
++  def finish do
++    ref = :erlang.trace_delivered(self())
++    receive do
++      {:trace_delivered, pid, ^ref} when pid == self() -> :ok
++    after
++      1000 -> raise "signature invocation trace delivery failed"
++    end
++    1 = :erlang.trace(self(), false, [:call])
++    GenServer.call(__MODULE__, {:take, self()})
++  end
++  def handle_call({:begin, pid}, _from, state), do: {:reply, :ok, Map.put(state, pid, [])}
++  def handle_call({:take, pid}, _from, state), do: {:reply, Map.fetch!(state, pid) |> Enum.reverse(), Map.delete(state, pid)}
++  def handle_info({:trace, pid, :call, {MixerHosted.Billing.WebhookSignature, :verify, [body, headers, secrets, now]}}, state) do
++    item = %{bodySHA256: Base.encode16(:crypto.hash(:sha256, body), case: :lower), bodyBytes: byte_size(body), signatureValues: headers, secretCount: length(secrets), utc: now}
++    {:noreply, Map.update!(state, pid, &[item | &1])}
++  end
++end
++
++{:ok, _} = CaptureReview.InvocationTrace.start_link()
++1 = :erlang.trace_pattern({MixerHosted.Billing.WebhookSignature, :verify, 4}, true, [:local])
++
+ 
+ defmodule MixerRawCapture.WireState do
+   use Agent
+@@ -97,6 +126,7 @@
+     Process.put(:wire_reads, 0)
+     Process.put(:wire_verifier_calls, 0)
+     Process.put(:wire_results, [])
++    CaptureReview.InvocationTrace.begin()
+     original = conn.adapter
+     wrapped = %{conn | adapter: {MixerRawCapture.CountingAdapter, original}}
+     started = System.monotonic_time(:millisecond)
+@@ -151,10 +181,13 @@
+   end
+ 
+   defp record(id, started, result) do
++    traced = CaptureReview.InvocationTrace.finish()
+     MixerRawCapture.WireState.add(
+       :events,
+       Map.merge(result, %{
+         id: id,
++        tracedVerifierCalls: length(traced),
++        tracedVerifierInputs: traced,
+         verifierCalls: Process.get(:wire_verifier_calls, 0),
+         reads: Process.get(:wire_reads),
+         readResults: Enum.reverse(Process.get(:wire_results)),
+@@ -439,6 +472,9 @@
+     assert result.event.bodyBytes == byte_size(body)
+     assert result.event.signatureValues == result.event.exposedSignatureValues
+     assert result.event.verifier == verify
++    assert result.event.tracedVerifierCalls == 1
++    assert [%{bodySHA256: digest, signatureValues: signatures}] = result.event.tracedVerifierInputs
++    assert digest == result.event.bodySHA256 and signatures == result.event.signatureValues
+     assert result.event.verifierCalls == 1 and result.event.domainCalls == 0
+   end
+ 
+@@ -449,6 +485,7 @@
+     if result.event do
+       refute result.event.outcome == "captured", inspect(result)
+       assert result.event.verifierCalls == 0 and result.event.domainCalls == 0
++      assert result.event.tracedVerifierCalls == 0
+       if before_read, do: assert(result.event.reads == 0, inspect(result))
+     end
+   end
+@@ -840,6 +877,41 @@
+   end
+ end
+ 
++defmodule CaptureReview.AdditionalWireTest do
++  use ExUnit.Case, async: false
++  import MixerRawCapture.WireHelpers
++  def port, do: Application.fetch_env!(:mixer_raw_capture_candidate, :wire_port)
++
++  test "independent H1 content length and chunk framing preserve delimiters as data" do
++    body = <<0, 255, 13, 10>> <> "0\r\n\r\n2;anything\r\n" <> :binary.copy(<<195, 169>>, 501)
++    MixerRawCapture.WireTest.accepted(tcp(port(), "review-h1-split", body,
++      parts: [{0, binary_part(body, 0, 5)}, {10, binary_part(body, 5, byte_size(body) - 5)}]), body)
++    first = binary_part(body, 0, 7)
++    last = binary_part(body, 7, byte_size(body) - 7)
++    wire = "7;review=one\r\n" <> first <> "\r\n" <> Integer.to_string(byte_size(last), 16) <> ";review=two\r\n" <> last <> "\r\n0\r\n\r\n"
++    MixerRawCapture.WireTest.accepted(tcp(port(), "review-h1-chunk-delimiters", body,
++      framing: [{"Transfer-Encoding", "chunked"}], parts: [{0, wire}]), body)
++  end
++
++  test "independent HTTP2 60001 byte explicit length split passes exact body to actual verifier" do
++    body = :binary.copy(<<0, 255, 13, 10, 195, 169>>, 10000) <> <<0>>
++    parts = for {offset, size} <- [{0, 16384}, {16384, 16384}, {32768, 16384}, {49152, 10849}], do: {0, binary_part(body, offset, size)}
++    MixerRawCapture.WireTest.accepted(h2(port(), "review-h2-declared-split", body,
++      framing: [{"content-length", "60001"}], parts: parts), body)
++  end
++
++  test "identical repeated signature occurrences still reject on both transports before reads" do
++    sig = sign("a")
++    headers = [{"content-type", "application/json"}, {"stripe-signature", sig}, {"stripe-signature", sig}]
++    for {id, result} <- [{"review-h1-identical-sigs", tcp(port(), "review-h1-identical-sigs", "a", headers: headers)},
++        {"review-h2-identical-sigs", h2(port(), "review-h2-identical-sigs", "a", headers: headers)}] do
++      MixerRawCapture.WireTest.rejected(result, true)
++      assert result.event.id == id
++      assert result.event.exposedSignatureValues == [sig, sig]
++    end
++  end
++end
++
+ try do
+   summary = ExUnit.run()
+   Process.sleep(40)
+@@ -855,6 +927,7 @@
+   File.write!(Path.join(result, "wire-summary.json"), Jason.encode!(summary, pretty: true))
+   if summary.failures != 0, do: Process.put(:wire_failed, true)
+ after
++  1 = :erlang.trace_pattern({MixerHosted.Billing.WebhookSignature, :verify, 4}, false, [:local])
+   :telemetry.detach("capture-synthetic-probe")
+   :logger.remove_handler(:capture_synthetic_probe)
+   :ok = ThousandIsland.stop(listener, 1_000)

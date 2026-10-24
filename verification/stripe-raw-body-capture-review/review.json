@@ -1,0 +1,200 @@
+{
+  "acceptedHostedSourceDigest": "eb6f50bde86c742e269a605f15e3170d8dd18646f71289c2b8e5c470f5f4808d",
+  "actualInvocationObservation": "VM trace_pattern on real WebhookSignature.verify/4, per-process call trace, separate collector, delivery barrier, argument hash/length/header checks",
+  "blockingFindings": [],
+  "candidateSHA256": "7797a09d3a99f5dabafb681bf2e5bda4bb1f01bc3974beb94176965f9f30546e",
+  "cleanup": {
+    "device": 16777233,
+    "holderPID": 61140,
+    "holderToken": "60f2ec2e-8d58-4de0-8365-0f81e4290769",
+    "identityMatched": true,
+    "inode": 132665261,
+    "lsofCommand": [
+      "lsof",
+      "-nP",
+      "+D",
+      "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stripe-raw-review-lmgejprr"
+    ],
+    "lsofExit": 1,
+    "openHolders": false,
+    "ownedProcessGroupsEmpty": true,
+    "ports": [
+      {
+        "connectionRefused": true,
+        "port": 61114
+      }
+    ],
+    "processInventoryCommand": [
+      "ps",
+      "-axo",
+      "pid=,pgid=,command="
+    ],
+    "scratch": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stripe-raw-review-lmgejprr",
+    "scratchRemoved": true
+  },
+  "freshCandidateAndSignatureCompilation": true,
+  "freshDependencyCompilation": false,
+  "freshReviewRun": "run-1",
+  "freshReviewSummary": {
+    "actualTracedVerifierCalls": 31,
+    "allNon2xx": true,
+    "allTracedInputsMatch": true,
+    "clients": 110,
+    "component": {
+      "excluded": 0,
+      "failures": 0,
+      "skipped": 0,
+      "total": 14
+    },
+    "independent": {
+      "excluded": 0,
+      "failures": 0,
+      "skipped": 0,
+      "total": 8
+    },
+    "lateHTTP2": {
+      "domainCalls": 0,
+      "elapsedMs": 5557,
+      "exposedSignatureValues": [
+        "t=1700000000,v1=aef3e07c2a053d6b48a541897e5231294a1493a94c0f7757a80141e45e23f7f7"
+      ],
+      "halted": true,
+      "id": "h2-late-success",
+      "outcome": "capture-rejected",
+      "readResults": [
+        {
+          "bytes": 55,
+          "tag": "ok",
+          "target": 32768,
+          "timeout": 1000
+        }
+      ],
+      "reads": 1,
+      "reason": "read_deadline",
+      "tracedVerifierCalls": 0,
+      "tracedVerifierInputs": [],
+      "verifierCalls": 0
+    },
+    "newHTTP2": {
+      "bodyBytes": 60001,
+      "bodySHA256": "94fff198d75517ad26adff45b92a279f2f284fac3cbadb4bfafef9d09f39eeba",
+      "domainCalls": 0,
+      "elapsedMs": 0,
+      "exposedSignatureValues": [
+        "t=1700000000,v1=9044c5207ca9eaa53174bda5904a49b769e0c4b574545527199d78ad0e3d0751"
+      ],
+      "id": "review-h2-declared-split",
+      "outcome": "captured",
+      "readResults": [
+        {
+          "bytes": 49152,
+          "tag": "more",
+          "target": 32768,
+          "timeout": 1000
+        },
+        {
+          "bytes": 10849,
+          "tag": "ok",
+          "target": 10849,
+          "timeout": 1000
+        }
+      ],
+      "reads": 2,
+      "signatureValues": [
+        "t=1700000000,v1=9044c5207ca9eaa53174bda5904a49b769e0c4b574545527199d78ad0e3d0751"
+      ],
+      "tracedVerifierCalls": 1,
+      "tracedVerifierInputs": [
+        {
+          "bodyBytes": 60001,
+          "bodySHA256": "94fff198d75517ad26adff45b92a279f2f284fac3cbadb4bfafef9d09f39eeba",
+          "secretCount": 1,
+          "signatureValues": [
+            "t=1700000000,v1=9044c5207ca9eaa53174bda5904a49b769e0c4b574545527199d78ad0e3d0751"
+          ],
+          "utc": 1700000000
+        }
+      ],
+      "verifier": "ok",
+      "verifierCalls": 1
+    },
+    "outcomes": {
+      "capture-rejected": 62,
+      "captured": 31,
+      "framework-pre-Plug": 10,
+      "raised": 7
+    },
+    "plugOutcomes": 100,
+    "transports": {
+      "mint-h2c": 37,
+      "raw-tcp-http1": 73
+    },
+    "wire": {
+      "excluded": 0,
+      "failures": 0,
+      "skipped": 0,
+      "total": 16
+    }
+  },
+  "g23Accepted": false,
+  "hostedInputs": 69,
+  "independentComponentGroups": 8,
+  "independentControlledSubcases": 360,
+  "nativeStarted": false,
+  "nonBlockingComponentObservations": [
+    {
+      "id": "O01",
+      "observation": "All exact-byte and occurrence checks pass, including identical duplicate signatures rejected on H1 and H2 before body reads."
+    },
+    {
+      "id": "O02",
+      "observation": "Fresh H2 60001-byte explicit-length body returned 49152 bytes against a 32768 target; exact body/HMAC and actual invocation arguments preserved."
+    },
+    {
+      "id": "O03",
+      "observation": "Slow H2 55-byte result returned at 5557ms; read_deadline, halted result, zero actual verifier calls, no 2xx."
+    },
+    {
+      "id": "O04",
+      "observation": "Received synthetic body/signature are exposed in ThousandIsland measurements; Bandit metadata and H2 trailer Logger exposure independently reproduced."
+    }
+  ],
+  "observedUTC": "2026-10-24T13:59:12.314471+00:00",
+  "originalMatrixRowsRetained": 13,
+  "pending": [
+    "root acceptance/integration",
+    "endpoint transport telemetry/log privacy",
+    "hard cancellation and stream/connection disposal",
+    "header-read deadlines, resource and buffer limits",
+    "TLS/ALPN/deployed ingress/provider compatibility",
+    "real maximum-size H2 body",
+    "server-owned endpoint/account/mode/generation/secrets",
+    "durable deduplicated inbox with atomic Oban enqueue",
+    "Stripe test-mode reconciliation",
+    "usage ledger and full G23 workflows"
+  ],
+  "producerArchiveMemberBindings": 9093,
+  "producerAttemptsRetained": 9,
+  "producerCorrelationsExact": true,
+  "producerEvidenceChanged": false,
+  "producerFiles": 273,
+  "producerSealSHA256": "52f4c4aadd5ee949521c906bf2306ad5a77d0f4f61b53db2cee054ac38bd3c31",
+  "productionChanged": false,
+  "publicAdmissionAccepted": false,
+  "recommendation": "accept the sealed bounded private component development slice",
+  "replayCommand": [
+    "python3",
+    "-B",
+    "verification/stripe-raw-body-capture-review/run.py"
+  ],
+  "rootAcceptance": "pending",
+  "schema": 1,
+  "sourceRevisionFromRootSelection": "11133e60551c46c9ea3aa4eac7356ea32d44fc72",
+  "status": "independent-review-pass-private-component-only-awaiting-root-acceptance",
+  "trackerChanged": false,
+  "verificationCommand": [
+    "python3",
+    "-B",
+    "verification/stripe-raw-body-capture-review/verify.py"
+  ]
+}
