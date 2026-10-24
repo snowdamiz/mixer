@@ -9,9 +9,28 @@ use allocation_observer::{
     begin, Background, Observed, Ownership, CALLS, LIVE, PEAK, REALLOCATIONS,
 };
 use std::sync::atomic::Ordering::SeqCst;
+use std::sync::{Mutex, MutexGuard};
 
 #[global_allocator]
 static ALLOCATOR: Observed = Observed;
+
+// The shared observer isolates harness/background threads, but its counters
+// describe one owned lane. Hold this through all ownership and noise cleanup.
+static OBSERVATION: Mutex<()> = Mutex::new(());
+fn observation_lane() -> MutexGuard<'static, ()> {
+    use std::io::Write;
+    let guard = OBSERVATION.lock().unwrap();
+    // Initialize stdout before ownership. Direct writes below avoid libtest's
+    // growing captured-output Vec becoming an apparent VM allocation leak.
+    writeln!(std::io::stdout().lock(), "control_observer serialized lane").unwrap();
+    guard
+}
+macro_rules! trace_line {
+    ($($argument:tt)*) => {{
+        use std::io::Write;
+        writeln!(std::io::stdout().lock(), $($argument)*).unwrap();
+    }};
+}
 
 struct Case {
     name: &'static str,
@@ -228,7 +247,7 @@ fn trace(
     let mut span = match built {
         Ok(span) => span,
         Err(error) => {
-            println!("control_trace {} config={:?}/{:?}/{:?}/{}/{}/{} constructor={error:?} allocations={construction:?}", case.name, config.limits, config.budget, config.cache, config.cancelled, config.fail, config.cancel_at);
+            trace_line!("control_trace {} config={:?}/{:?}/{:?}/{}/{}/{} constructor={error:?} allocations={construction:?}", case.name, config.limits, config.budget, config.cache, config.cancelled, config.fail, config.cancel_at);
             return (Err(error), error.usage, 0);
         }
     };
@@ -260,12 +279,13 @@ fn trace(
         assert_eq!(span.cache_usage(), first_cache);
         assert_eq!((CALLS.load(SeqCst), REALLOCATIONS.load(SeqCst)), (0, 0));
     }
-    println!("control_trace {} config={:?}/{:?}/{:?}/{}/{}/{} initial={initial:?} first={first:?} final={first_usage:?} cache={first_cache:?} allocations={construction:?}/{cold:?}", case.name, config.limits, config.budget, config.cache, config.cancelled, config.fail, config.cancel_at);
+    trace_line!("control_trace {} config={:?}/{:?}/{:?}/{}/{}/{} initial={initial:?} first={first:?} final={first_usage:?} cache={first_cache:?} allocations={construction:?}/{cold:?}", case.name, config.limits, config.budget, config.cache, config.cancelled, config.fail, config.cancel_at);
     (first, first_usage, cold.0)
 }
 
 #[test]
 fn shared_control_public_parity_trace() {
+    let _lane = observation_lane();
     let _ownership = Ownership::new();
     for case in cases() {
         assert!(trace(&case, Config::default()).0.is_ok());
@@ -279,6 +299,7 @@ fn shared_control_public_parity_trace() {
 
 #[test]
 fn shared_control_close_partial_effects() {
+    let _lane = observation_lane();
     let _ownership = Ownership::new();
     // These public fixtures exercise End, saved-result close, and conditional
     // selector pops at every attainable work refusal. Private malformed-state
@@ -298,6 +319,7 @@ fn shared_control_close_partial_effects() {
 
 #[test]
 fn shared_control_branch_targets_and_frame_boundary() {
+    let _lane = observation_lane();
     let _ownership = Ownership::new();
     for case in cases().into_iter().filter(|case| {
         case.name.starts_with("loop")
@@ -311,6 +333,7 @@ fn shared_control_branch_targets_and_frame_boundary() {
 
 #[test]
 fn shared_control_work_and_fuel_prefixes() {
+    let _lane = observation_lane();
     let _ownership = Ownership::new();
     let mut fixtures = cases();
     fixtures.push(case(
@@ -336,6 +359,7 @@ fn shared_control_work_and_fuel_prefixes() {
 
 #[test]
 fn shared_control_warm_dispatch_allocation_free() {
+    let _lane = observation_lane();
     let background = Background::new();
     let _ownership = Ownership::new();
     background.check_observer();
@@ -358,7 +382,7 @@ fn shared_control_warm_dispatch_allocation_free() {
         assert_eq!(span.usage().state_reserved, reservation);
         assert_eq!(span.cache_usage().peak_cache_reserved, cache_reservation);
         clean(&span);
-        println!(
+        trace_line!(
             "control_warm {} usage={:?} cache={:?} allocations={allocations:?}",
             case.name,
             span.usage(),
@@ -398,6 +422,7 @@ fn shared_control_warm_dispatch_allocation_free() {
 
 #[test]
 fn shared_control_cancellation_and_limits() {
+    let _lane = observation_lane();
     let _ownership = Ownership::new();
     for case in cases() {
         let config = Config {
@@ -468,7 +493,7 @@ fn shared_control_cancellation_and_limits() {
         .err()
         .unwrap();
         assert_eq!(failure.code, code);
-        println!("control_validation_ceiling {label} failure={failure:?}");
+        trace_line!("control_validation_ceiling {label} failure={failure:?}");
     }
     for (label, expected) in [
         ("frame", ExecutionFailureKind::CallDepthExceeded),

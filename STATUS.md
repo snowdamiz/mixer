@@ -52,6 +52,13 @@ See `verification/swift-control-macro-root-review/acceptance.json`. This enables
 the next active-frame ownership contract; Swift control execution, entry/return/
 unwind and full dispatch remain incomplete.
 
+Hosted VM CI at 6172e65 exposed test-observer interference under concurrent
+tests and default captured output. The test-only repair passes all six cases
+in four feature/profile configurations, with and without background noise;
+all 795 observation rows per run match the accepted sequential packet.
+Hosted revalidation is pending. See
+`verification/swift-control-test-concurrency/root-acceptance.json`.
+
 Active work: native shared-theme renderer integration and failure-atomic
 attachment for W03–W05, plus complete Swift guest execution for W08. Both V2
 data resolvers and native curve primitives are accepted within their recorded
