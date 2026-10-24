@@ -1,0 +1,15 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "verification/apple-toggle-native-interruption/run.py",
+    "verify"
+  ],
+  "exitCode": 1,
+  "stdout": "",
+  "stderr": "Traceback (most recent call last):\n  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-native-interruption/run.py\", line 99, in <module>\n    signal.signal(signal.SIGINT,stop);signal.signal(signal.SIGTERM,stop);main()\n                                                                         ~~~~^^\n  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-native-interruption/run.py\", line 92, in main\n    if a.action=='verify':print(json.dumps(verify(),sort_keys=True))\n                                           ~~~~~~^^\n  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-native-interruption/run.py\", line 58, in verify\n    runner_manifest=read(BASE/'build-products-runner_manifest.json')\n  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-native-interruption/run.py\", line 10, in <lambda>\n    read=lambda p:json.loads(p.read_bytes())\n                             ~~~~~~~~~~~~^^\n  File \"/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py\", line 777, in read_bytes\n    with self.open(mode='rb', buffering=0) as f:\n         ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py\", line 771, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-native-interruption/build-products-runner_manifest.json'\n",
+  "sealSHA256": "ab8962b78bc97fb7c151c63a8d560d0242a74d5f37e02c8fe3fc2db83e3193bc",
+  "observedUTC": "2026-10-24T17:46:34.068348+00:00",
+  "nativeExecution": false,
+  "finding": "Verifier repair accidentally changed literal manifest filename. Preserved exact prior seal and runner; all other prior sealed file bytes remain available unchanged."
+}

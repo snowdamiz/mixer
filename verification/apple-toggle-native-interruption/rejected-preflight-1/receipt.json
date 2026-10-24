@@ -1,0 +1,15 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "verification/apple-toggle-native-interruption/run.py",
+    "verify"
+  ],
+  "exitCode": 1,
+  "stdout": "",
+  "stderr": "Traceback (most recent call last):\n  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-native-interruption/run.py\", line 99, in <module>\n    signal.signal(signal.SIGINT,stop);signal.signal(signal.SIGTERM,stop);main()\n                                                                         ~~~~^^\n  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-native-interruption/run.py\", line 92, in main\n    if a.action=='verify':print(json.dumps(verify(),sort_keys=True))\n                                           ~~~~~~^^\n  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/apple-toggle-native-interruption/run.py\", line 67, in verify\n    return {'testRunnerProductTreeSHA256':manifest['productTreeSHA256'],'sealSHA256':sha(BASE/'packet-seal.json'),'candidateSourceClosureSHA256':digest,'candidateArchiveSHA256':manifest['archiveSHA256'],'binaryBuildVersions':binaries,'parent':parent,'changedDiagnosticFiles':changed,'harnessScope':'Sixteen new real public XCTest pan cases; fixture interrupts native pan through closed public app operations','nativeExecution':False}\n                                                                                                                                                                                 ~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'archiveSHA256'\n",
+  "sealSHA256": "e1127f0d986d4e992de441c7c82c2d1c1ebeee30949721cbe3574b44d35dac84",
+  "observedUTC": "2026-10-24T17:46:04.326626+00:00",
+  "nativeExecution": false,
+  "finding": "Read-only verifier variable shadowing of app manifest by runner manifest. Product and runner builds succeeded; no simulator was selected or launched."
+}

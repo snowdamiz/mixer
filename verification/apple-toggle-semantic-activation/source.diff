@@ -1,0 +1,215 @@
+--- accepted/Prototype/AuthoredToggleCarrier.swift
++++ candidate/Prototype/AuthoredToggleCarrier.swift
+@@ -3,7 +3,7 @@
+ 
+ /// Qualification prototype only. Native UIButton owns activation, touch
+ /// tracking, cancellation, focus, keyboard and assistive-technology input.
+-/// Mixer owns the public selected-state mapping and closed authored paint.
++/// Mixer owns the guarded semantic selected-state transition and authored paint.
+ @MainActor final class AuthoredToggleCarrier: UIButton, UIGestureRecognizerDelegate {
+     var inputAllowed: (() -> Bool)? { didSet { cancelAuthoredInteraction() } }
+     var stateChanged: ((String) -> Void)?
+@@ -25,6 +25,8 @@
+     private(set) var panCancellationCount = 0
+     private(set) var previewThumbX: CGFloat?
+     private(set) var panActive = false
++    private var activationInProgress = false
++    private var primaryCommitSerial: UInt64 = 0
+     private var bindingGeneration: UInt64 = 0
+     private var panBindingGeneration: UInt64?
+     private var panStartThumbX: CGFloat = 2
+@@ -43,7 +45,7 @@
+         configuration = nil
+         menu = nil
+         showsMenuAsPrimaryAction = false
+-        changesSelectionAsPrimaryAction = true
++        changesSelectionAsPrimaryAction = false
+         showsTouchWhenHighlighted = false
+         backgroundColor = .clear
+         isOpaque = false
+@@ -212,21 +214,42 @@
+         setNeedsDisplay(); stateChanged?("panPreview")
+     }
+ 
++    private func primaryAllowed(generation: UInt64) -> Bool {
++        guard isEnabled, inputAllowed?() == true else { return false }
++        return bindingGeneration == generation
++    }
++
+     @objc private func primaryAction() {
+-        resetAdmission("native-primary-action")
+         DiagnosticTrace.shared.append("carrierPrimaryTarget", ["selectedOnEntry": isSelected, "retainedOnEntry": retainedOn, "enabled": isEnabled, "inputAllowed": inputAllowed?() == true])
+         primaryCount += 1
+-        guard isEnabled, inputAllowed?() == true else {
++        // Nested activation may observe this transaction but cannot start another
++        // semantic transition or recursively notify the state observer.
++        guard !activationInProgress else { rejectedCount += 1; return }
++        activationInProgress = true
++        defer { activationInProgress = false }
++        let generation = bindingGeneration
++        let previous = retainedOn
++        cancelAuthoredInteraction()
++        guard primaryAllowed(generation: generation) else {
+             isSelected = retainedOn
+-            rejectedCount += 1
+-            stateChanged?("primaryRejected")
+-            return
+-        }
+-        // UIButton changes its selected state before invoking this target.
+-        retainedOn = isSelected
++            rejectedCount += 1; stateChanged?("primaryRejected"); return
++        }
++        // UIKit owns input dispatch. The shared toggle owns its one semantic
++        // transition for touch, keyboard, programmatic and accessibility entry.
++        retainedOn = !previous
++        isSelected = retainedOn
++        // Public property observation can synchronously rebind or close input.
++        // Preserve a newer binding; otherwise restore the uncommitted value.
++        guard primaryAllowed(generation: generation) else {
++            if bindingGeneration == generation { retainedOn = previous }
++            isSelected = retainedOn
++            rejectedCount += 1; stateChanged?("primaryRejected"); return
++        }
+         acceptedCount += 1
++        primaryCommitSerial &+= 1
++        setNeedsDisplay()
++        sendActions(for: .valueChanged)
+         stateChanged?("primaryAccepted")
+-        sendActions(for: .valueChanged)
+     }
+ 
+     override var isHighlighted: Bool {
+@@ -265,13 +288,16 @@
+     override func accessibilityActivate() -> Bool {
+         accessibilityActivationCount += 1
+         DiagnosticTrace.shared.append("carrierAccessibilityActivateEnter", ["selected": isSelected, "enabled": isEnabled, "inputAllowed": inputAllowed?() == true])
+-        guard isEnabled, inputAllowed?() == true else {
++        guard !activationInProgress, isEnabled, inputAllowed?() == true else {
+             DiagnosticTrace.shared.append("carrierAccessibilityActivateReturn", ["result": false, "gateRejected": true, "selected": isSelected]); return false
+         }
+-        let result = super.accessibilityActivate()
++        let before = primaryCommitSerial
++        performPrimaryAction()
++        let result = primaryCommitSerial == before &+ 1
+         DiagnosticTrace.shared.append("carrierAccessibilityActivateReturn", ["result": result, "gateRejected": false, "selected": isSelected])
+         return result
+     }
++
+     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) { DiagnosticTrace.shared.touches("carrierTouchesBegan", touches, event, in: self); super.touchesBegan(touches, with: event) }
+     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) { DiagnosticTrace.shared.touches("carrierTouchesMoved", touches, event, in: self); super.touchesMoved(touches, with: event) }
+     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) { DiagnosticTrace.shared.touches("carrierTouchesEnded", touches, event, in: self); resetAdmission("view-touch-ended"); super.touchesEnded(touches, with: event) }
+--- accepted/Prototype/SemanticActivationChecks.swift
++++ candidate/Prototype/SemanticActivationChecks.swift
+@@ -0,0 +1,76 @@
++import UIKit
++
++/// Actual UIKit callback checks. No fabricated touch or recognizer state.
++@MainActor extension PrototypeController {
++    func semanticActivationChecks() -> [[String: Any]] {
++        var rows: [[String: Any]] = []
++        let originalObserver = toggle.stateChanged
++        let oldRecording = recording
++        recording = true
++        defer {
++            toggle.stateChanged = originalObserver
++            allowed = true; toggle.isEnabled = true; toggle.setOn(false, animated: false)
++            recording = oldRecording
++        }
++        func capture() -> [String: Any] {
++            ["selected": toggle.isOn, "retained": toggle.retainedOn, "primary": toggle.primaryCount,
++             "accepted": toggle.acceptedCount, "events": eventCount, "lastValue": eventValues.last as Any? ?? NSNull(),
++             "identity": String(describing: ObjectIdentifier(toggle)), "enabled": toggle.isEnabled, "allowed": allowed,
++             "selectedTrait": toggle.accessibilityTraits.contains(.selected), "disabledTrait": toggle.accessibilityTraits.contains(.notEnabled),
++             "buttonTrait": toggle.accessibilityTraits.contains(.button), "toggleTrait": toggle.accessibilityTraits.contains(.toggleButton),
++             "nativeAutomaticSelection": toggle.changesSelectionAsPrimaryAction,
++             "label": toggle.accessibilityLabel ?? "", "hint": toggle.accessibilityHint ?? ""]
++        }
++        func run(_ mode: String, initial: Bool, accessibility: Bool, enabled: Bool = true, input: Bool = true) {
++            toggle.stateChanged = originalObserver
++            allowed = true; toggle.isEnabled = true; toggle.setOn(initial, animated: false)
++            allowed = input; toggle.isEnabled = enabled
++            let before = capture()
++            var fired = false
++            var nestedReturn: Bool?
++            toggle.stateChanged = { [unowned self] reason in
++                originalObserver?(reason)
++                let trigger = mode.hasSuffix("-cancel") ? "cancel" : "selection"
++                guard reason == trigger, !fired else { return }
++                switch mode {
++                case "reentrant-primary": fired = true; self.toggle.performPrimaryAction()
++                case "reentrant-accessibility": fired = true; nestedReturn = self.toggle.accessibilityActivate()
++                case "rebind-selection": fired = true; self.toggle.setOn(initial, animated: false)
++                case "rebind-cancel": fired = true; self.toggle.setOn(!initial, animated: false)
++                case "close-selection", "close-cancel": fired = true; self.allowed = false
++                default: break
++                }
++            }
++            let returned: Bool?
++            if accessibility { returned = toggle.accessibilityActivate() }
++            else { toggle.performPrimaryAction(); returned = nil }
++            let after = capture()
++            toggle.stateChanged = originalObserver
++            rows.append(["index": rows.count, "mode": mode, "initial": initial, "accessibility": accessibility,
++                         "enabled": enabled, "input": input, "hookFired": fired,
++                         "returned": returned as Any? ?? NSNull(), "nestedReturn": nestedReturn as Any? ?? NSNull(),
++                         "before": before, "after": after])
++        }
++        // Four admitted and twelve disabled/stale/both-blocked combinations.
++        for initial in [false, true] {
++            for accessibility in [false, true] {
++                run("admitted", initial: initial, accessibility: accessibility)
++                run("blocked", initial: initial, accessibility: accessibility, enabled: false)
++                run("blocked", initial: initial, accessibility: accessibility, input: false)
++                run("blocked", initial: initial, accessibility: accessibility, enabled: false, input: false)
++            }
++        }
++        // Reentry occurs in the real selected-property observer during dispatch.
++        for initial in [false, true] {
++            run("reentrant-primary", initial: initial, accessibility: false)
++            run("reentrant-accessibility", initial: initial, accessibility: false)
++        }
++        // Rebind/input closure both before proposal and after selected assignment.
++        for mode in ["rebind-selection", "rebind-cancel", "close-selection", "close-cancel"] {
++            for initial in [false, true] {
++                for accessibility in [false, true] { run(mode, initial: initial, accessibility: accessibility) }
++            }
++        }
++        return rows
++    }
++}
+--- accepted/Prototype/main.swift
++++ candidate/Prototype/main.swift
+@@ -23,6 +23,7 @@
+     var referenceValueCount = 0
+     var referencePrimaryValues: [Bool] = []
+     var diagnosticOperations: [[String: Any]] = []
++    var semanticOperations: [[String: Any]] = []
+     var diagnosticSuiteState = "not-run"
+     var diagnosticSuiteActive = false
+     var lastTraceRevision = 0
+@@ -136,7 +137,7 @@
+     }
+     func persist() {
+         let trace = DiagnosticTrace.shared
+-        let result: [String:Any] = ["scope":"Isolated UIKit diagnostics; no production adapter, original candidate repair, native qualification, or physical VoiceOver qualification", "stage":stage, "state":snapshot(), "events":events, "checks":checks, "diagnosticSuiteState": diagnosticSuiteState, "diagnosticOperations": diagnosticOperations, "diagnosticTrace": trace.entries, "diagnosticTraceDropped": trace.dropped, "reference": operationSnapshot(reference: true), "referencePan": trace.gesture(referencePanSurface.pan)]
++        let result: [String:Any] = ["scope":"Isolated UIKit diagnostics; no production adapter, original candidate repair, native qualification, or physical VoiceOver qualification", "stage":stage, "state":snapshot(), "events":events, "checks":checks, "diagnosticSuiteState": diagnosticSuiteState, "diagnosticOperations": diagnosticOperations, "semanticOperations": semanticOperations, "diagnosticTrace": trace.entries, "diagnosticTraceDropped": trace.dropped, "reference": operationSnapshot(reference: true), "referencePan": trace.gesture(referencePanSurface.pan)]
+         let data = try! JSONSerialization.data(withJSONObject:result, options:[.prettyPrinted,.sortedKeys])
+         try! data.write(to:documents.appendingPathComponent("observations.json"), options:.atomic)
+         try! stage.write(to:documents.appendingPathComponent("stage.txt"), atomically:true, encoding:.utf8)
+@@ -177,7 +178,7 @@
+     func selfTests() {
+         guard !diagnosticSuiteActive else { return }
+         diagnosticSuiteActive = true; diagnosticSuiteState = "running"
+-        checks.removeAll(); diagnosticOperations.removeAll()
++        checks.removeAll(); diagnosticOperations.removeAll(); semanticOperations.removeAll()
+         let identity = ObjectIdentifier(toggle)
+         let start = eventCount
+         allowed = true; toggle.isEnabled = true
+@@ -199,6 +200,7 @@
+     }
+     func runDiagnosticOperation(_ index: Int) {
+         guard index < operations.count else {
++            semanticOperations = semanticActivationChecks()
+             diagnosticSuiteActive = false; diagnosticSuiteState = "complete"
+             allowed = true; toggle.isEnabled = true
+             check("diagnostic trace has not overflowed", DiagnosticTrace.shared.dropped == 0)

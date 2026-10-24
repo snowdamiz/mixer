@@ -1,14 +1,16 @@
 # Execution index
 
-Latest checkpoint: Android authored V2 toggle input is integrated at `a490761`
-after all 45 component cases and 429 coordinator assertions pass. The private
-iOS pan-origin correction now passes ten XCTest methods, all 13 interaction
-evaluations and 167 original assertions, plus 36 root origin checks. Its separate
-direct API replay is complete but failed: 11/19 diagnostic and 10/12 comparator
-checks pass. Both owned iOS instances and the prior Android instance are cleaned.
-Swift dispatch repair/accounting, Linux resource isolation, Apple adapter
-integration, full product qualification and every GA/dogfood gate remain pending.
-See [the latest native checkpoint](docs/apple-toggle-pan-origin-runtime-checkpoint.md).
+Latest checkpoint: Android authored V2 toggle input remains integrated at
+`a490761`. The private iOS semantic toggle now passes all 13 prior real input
+actions and 36 direct callback cases. A separate fixture with the identical
+carrier passes 16 real drag interruption/no-change cases, 480 native predicates
+and 144 root origin checks; official XCTest reports16passed/0failed/0skipped.
+The original direct suites still fail (15/19 diagnostic,10/12 comparator), and
+their runner timed out after reporting the failures; all observations are kept.
+All three owned iOS simulators and temporary workspaces are cleaned. Keyboard,
+focus, remaining lifecycle cases, visual parity and live Apple integration are
+pending. Swift accounting and Linux isolation continue; no GA/dogfood gate passes.
+See [the latest native checkpoint](docs/apple-toggle-semantic-runtime-checkpoint.md).
 
 The console now has its first TypeScript display model for release checks. Nine
 host tests cover 4,096 status combinations, missing/stale results, duplicate and
