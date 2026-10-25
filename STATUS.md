@@ -16,6 +16,8 @@ Preauth checkpoint `72340253` now passes every Phoenix CI step, including
 664 ordinary methods with two existing skips. Its Engine workflow now passes all three jobs.
 Begin-login checkpoint `273a1e48` passes every Phoenix CI step, including
 664 ordinary methods with two existing skips. Its Engine workflow passes all three jobs.
+Callback-contract and recorded Swift-prototype review checkpoint `6d98de42`
+is pushed; its selected Engine workflow is running.
 Native runtime and capture remain paused.
 All eighteen work packages remain in scope:
 sixteen are in progress and two are marked ready. No launch gate is verified;
@@ -123,9 +125,14 @@ isolated Rust prototype reproduces 340 pristine and 356 candidate methods.
 Independent review adds five writer and five hook controls, but demonstrates
 three malformed CAP streams falsely labeled valid and a Python owner undercount.
 Initialization/Drop/serialization inventory remains incomplete. Root verifies
-305 sealed members and accepts recorded finite evidence only; a separate
-correction is underway. Complete diagnostic/analyzer/target acceptance remains
-pending. See [the prototype review](docs/swift-ordered-retention-diagnostic-rust-review.md),
+305 sealed members and accepts recorded finite evidence only. The separate finite
+completion now passes 362 candidate methods, 21 custody controls and six independent
+controls. Root verifies 380 sealed members and accepts six selected fixture paths
+with the independent 19-phase inventory: 16,186 of 16,384 logical bytes, leaving
+198 bytes. The separate 51,712-byte named-role union is not a simultaneous peak.
+Inherited serializer inventory and CODE-buffer count mismatch remain open. Complete
+diagnostic/analyzer/target acceptance remains pending. See
+[the completion review](docs/swift-ordered-retention-diagnostic-completion-review.md), [the prototype review](docs/swift-ordered-retention-diagnostic-rust-review.md),
 [the diagnostic design review](docs/swift-ordered-retention-diagnostic-design-review.md),
 [the rejected Rust result audit](docs/swift-count-plan-retention-candidate-review.md),
 [the independent review](docs/swift-retention-next-design-review.md) and

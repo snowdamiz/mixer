@@ -1,0 +1,46 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-ordered-retention-diagnostic-completion/.scratch/baseline)
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 22.19s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-ordered-retention-diagnostic-completion/.scratch/build-baseline/release/deps/mixer_vm-ac98982f00b19e87)
+
+thread 'experimental_swift_reactor::allocation_tests::unwinding_clears_the_observer_and_fault' (65318633) panicked at src/experimental_swift_reactor/allocation_tests.rs:187:47:
+unit observer reset probe
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'experimental_swift_reactor::cache_tests::foreign_stale_nonce_and_control_ownership' (65319174) panicked at src/experimental_swift_reactor/cache_tests.rs:2404:53:
+owner test scope unwind
+
+thread 'experimental_swift_reactor::execution::frame_operations::call_dispatch::tests::swift_dispatch_cd01_missing_control_outside_admitted_construction' (65319317) panicked at src/experimental_swift_reactor/memory_growth_operations.rs:283:40:
+constructed control
+
+thread 'experimental_swift_reactor::execution::frame_operations::call_dispatch::tests::swift_dispatch_cd18_fixture_unwind_restores_original_hook_owners' (65319359) panicked at src/experimental_swift_reactor/call_dispatch_tests.rs:2032:17:
+fixture-only unwind after admitted run

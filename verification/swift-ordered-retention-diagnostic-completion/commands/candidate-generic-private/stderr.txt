@@ -1,0 +1,61 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-ordered-retention-diagnostic-completion/.scratch/candidate)
+warning: unused import: `statistics`
+   --> src/experimental/cache/borrowed.rs:298:16
+    |
+298 | pub(crate) use statistics;
+    |                ^^^^^^^^^^
+    |
+    = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: methods `source`, `defined_function_count`, and `signature` are never used
+  --> src/experimental/cache/borrowed.rs:16:8
+   |
+13 | pub(crate) trait SnapshotView: sealed::Snapshot {
+   |                  ------------ methods in this trait
+...
+16 |     fn source(&self) -> &[u8];
+   |        ^^^^^^
+17 |     fn defined_function_count(&self) -> usize;
+   |        ^^^^^^^^^^^^^^^^^^^^^^
+...
+20 |     fn signature(&self, absolute: u32) -> Option<SignatureView<'_>>;
+   |        ^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: variants `Constructor`, `ScanReset`, `Scan`, `BuildReset`, and `Build` are never constructed
+   --> src/experimental/cache/borrowed.rs:174:5
+    |
+173 | pub(crate) enum CacheStep {
+    |                 --------- variants in this enum
+174 |     Constructor,
+    |     ^^^^^^^^^^^
+175 |     Lookup,
+176 |     ScanReset,
+    |     ^^^^^^^^^
+177 |     Scan,
+    |     ^^^^
+178 |     BuildReset,
+    |     ^^^^^^^^^^
+179 |     Build,
+    |     ^^^^^
+    |
+    = note: `CacheStep` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: method `test_changed_instructions` is never used
+   --> src/experimental/cache/decode.rs:130:19
+    |
+129 | impl Counts {
+    | ----------- method in this implementation
+130 |     pub(crate) fn test_changed_instructions(mut self) -> Self {
+    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `SignatureView` is never constructed
+ --> src/experimental/descriptors.rs:7:19
+  |
+7 | pub(crate) struct SignatureView<'a> {
+  |                   ^^^^^^^^^^^^^
+
+warning: `mixer-vm` (lib test) generated 5 warnings (run `cargo fix --lib -p mixer-vm --tests` to apply 1 suggestion)
+    Finished `release` profile [optimized] target(s) in 2.53s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-ordered-retention-diagnostic-completion/.scratch/build-candidate/release/deps/mixer_vm-9710d9d2b64026f7)

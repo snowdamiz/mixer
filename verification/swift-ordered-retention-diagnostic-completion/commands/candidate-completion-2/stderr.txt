@@ -1,0 +1,123 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-ordered-retention-diagnostic-completion/.scratch/candidate)
+error[E0659]: `cleanup` is ambiguous
+    --> src/experimental_swift_reactor/cache_tests.rs:4449:13
+     |
+4449 |         let cleanup=if let Some(g)=enabled.as_mut(){g.dispatch(call)}else{call()};
+     |             ^^^^^^^ ambiguous name
+     |
+     = note: ambiguous because of multiple glob imports of a name in the same module
+note: `cleanup` could refer to the function imported here
+    --> src/experimental_swift_reactor/cache_tests.rs:4363:9
+     |
+4363 |     use super::*;
+     |         ^^^^^^^^
+     = help: consider adding an explicit import of `cleanup` to disambiguate
+note: `cleanup` could also refer to the function imported here
+    --> src/experimental_swift_reactor/cache_tests.rs:4364:9
+     |
+4364 |     use super::ordered_observer::*;
+     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+     = help: consider adding an explicit import of `cleanup` to disambiguate
+
+error[E0659]: `cleanup` is ambiguous
+    --> src/experimental_swift_reactor/cache_tests.rs:4462:29
+     |
+4462 |             let(final_usage,cleanup,enabled)=consume(enabled,cache,c,&f);let receipt=close(enabled,&path,&final_usage,Some(&f));
+     |                             ^^^^^^^ ambiguous name
+     |
+     = note: ambiguous because of multiple glob imports of a name in the same module
+note: `cleanup` could refer to the function imported here
+    --> src/experimental_swift_reactor/cache_tests.rs:4363:9
+     |
+4363 |     use super::*;
+     |         ^^^^^^^^
+     = help: consider adding an explicit import of `cleanup` to disambiguate
+note: `cleanup` could also refer to the function imported here
+    --> src/experimental_swift_reactor/cache_tests.rs:4364:9
+     |
+4364 |     use super::ordered_observer::*;
+     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+     = help: consider adding an explicit import of `cleanup` to disambiguate
+
+error[E0659]: `cleanup` is ambiguous
+    --> src/experimental_swift_reactor/cache_tests.rs:4477:23
+     |
+4477 |                 let(u,cleanup,enabled)=consume(enabled,cache,c,&f);(f,before,snapshot,stats,cleanup,u,enabled)
+     |                       ^^^^^^^ ambiguous name
+     |
+     = note: ambiguous because of multiple glob imports of a name in the same module
+note: `cleanup` could refer to the function imported here
+    --> src/experimental_swift_reactor/cache_tests.rs:4363:9
+     |
+4363 |     use super::*;
+     |         ^^^^^^^^
+     = help: consider adding an explicit import of `cleanup` to disambiguate
+note: `cleanup` could also refer to the function imported here
+    --> src/experimental_swift_reactor/cache_tests.rs:4364:9
+     |
+4364 |     use super::ordered_observer::*;
+     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+     = help: consider adding an explicit import of `cleanup` to disambiguate
+
+error[E0659]: `cleanup` is ambiguous
+    --> src/experimental_swift_reactor/cache_tests.rs:4485:23
+     |
+4485 |                 let(u,cleanup,enabled)=consume(enabled,other,foreign,&f);(f,before,snapshot,stats,cleanup,u,enabled)
+     |                       ^^^^^^^ ambiguous name
+     |
+     = note: ambiguous because of multiple glob imports of a name in the same module
+note: `cleanup` could refer to the function imported here
+    --> src/experimental_swift_reactor/cache_tests.rs:4363:9
+     |
+4363 |     use super::*;
+     |         ^^^^^^^^
+     = help: consider adding an explicit import of `cleanup` to disambiguate
+note: `cleanup` could also refer to the function imported here
+    --> src/experimental_swift_reactor/cache_tests.rs:4364:9
+     |
+4364 |     use super::ordered_observer::*;
+     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+     = help: consider adding an explicit import of `cleanup` to disambiguate
+
+error[E0659]: `cleanup` is ambiguous
+    --> src/experimental_swift_reactor/cache_tests.rs:4473:42
+     |
+4473 |             let (f,before,snapshot,stats,cleanup,final_usage,enabled)=if stale{
+     |                                          ^^^^^^^ ambiguous name
+     |
+     = note: ambiguous because of multiple glob imports of a name in the same module
+note: `cleanup` could refer to the function imported here
+    --> src/experimental_swift_reactor/cache_tests.rs:4363:9
+     |
+4363 |     use super::*;
+     |         ^^^^^^^^
+     = help: consider adding an explicit import of `cleanup` to disambiguate
+note: `cleanup` could also refer to the function imported here
+    --> src/experimental_swift_reactor/cache_tests.rs:4364:9
+     |
+4364 |     use super::ordered_observer::*;
+     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+     = help: consider adding an explicit import of `cleanup` to disambiguate
+
+error[E0659]: `cleanup` is ambiguous
+    --> src/experimental_swift_reactor/cache_tests.rs:4506:62
+     |
+4506 | ...   let call=||super::cleanup(cache,&mut c,None);let cleanup=if let Some(g)=enabled.as_mut(){g.dispatch(call)}else{call()};let f...
+     |                                                        ^^^^^^^ ambiguous name
+     |
+     = note: ambiguous because of multiple glob imports of a name in the same module
+note: `cleanup` could refer to the function imported here
+    --> src/experimental_swift_reactor/cache_tests.rs:4363:9
+     |
+4363 |     use super::*;
+     |         ^^^^^^^^
+     = help: consider adding an explicit import of `cleanup` to disambiguate
+note: `cleanup` could also refer to the function imported here
+    --> src/experimental_swift_reactor/cache_tests.rs:4364:9
+     |
+4364 |     use super::ordered_observer::*;
+     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+     = help: consider adding an explicit import of `cleanup` to disambiguate
+
+For more information about this error, try `rustc --explain E0659`.
+error: could not compile `mixer-vm` (lib test) due to 6 previous errors

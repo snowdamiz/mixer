@@ -46,6 +46,8 @@ Preauth checkpoint `72340253` now passes every Phoenix CI step, including
 664 ordinary methods with two existing skips. Its Engine workflow now passes all three jobs.
 Begin-login checkpoint `273a1e48` passes every Phoenix CI step, including
 664 ordinary methods with two existing skips. Its Engine workflow passes all three jobs.
+Callback-contract and recorded Swift-prototype review checkpoint `6d98de42`
+is pushed; its selected Engine workflow is running.
 Computer use, capture and native runtime tests remain paused.
 The full plan remains incomplete; no GA gate is promoted.
 
@@ -84,8 +86,12 @@ The full plan remains incomplete; no GA gate is promoted.
    reproduces 340 pristine and 356 candidate methods. Independent review adds
    five writer and five hook controls, but finds three malformed CAP streams
    mislabeled valid and incomplete memory accounting. Root verifies 305 sealed
-   members and accepts the recorded finite evidence only. A separate correction
-   is underway; full diagnostic/analyzer/target acceptance remains pending. See
+   members and accepts the recorded finite evidence only. A separate finite completion now passes 362 candidate methods, 21 custody controls
+   and six independent controls. Root verifies 380 sealed members and accepts the
+   six selected fixture paths with the independent 19-phase inventory: 16,186 of
+   16,384 logical bytes. Inherited serializer and CODE-buffer limits remain open;
+   full diagnostic/analyzer/target acceptance remains pending. See
+   [the completion review](docs/swift-ordered-retention-diagnostic-completion-review.md),
    [the prototype review](docs/swift-ordered-retention-diagnostic-rust-review.md), [the design review](docs/swift-ordered-retention-diagnostic-design-review.md),
    [the rejection audit](docs/swift-count-plan-retention-candidate-review.md),
    [the reviewed finite result](docs/swift-retention-next-design-review.md),
