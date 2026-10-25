@@ -1,0 +1,209 @@
+--- verification/swift-current-attribution-full-preparation/diagnostic.py
++++ verification/swift-attribution-schema-correction/diagnostic.py
+@@ -2,7 +2,13 @@
+ """Fresh test-only current-attribution preparation; real target requires root selection."""
+ import argparse
+ import tarfile
+-import telemetry
++import importlib.util
++from pathlib import Path
++# Bind the selected classifier by its local path, never by ambient sys.path.
++_classifier_path = Path(__file__).resolve().with_name("telemetry.py")
++_classifier_spec = importlib.util.spec_from_file_location("corrected_attribution_telemetry", _classifier_path)
++telemetry = importlib.util.module_from_spec(_classifier_spec)
++_classifier_spec.loader.exec_module(telemetry)
+ import datetime
+ import gzip
+ import hashlib
+@@ -19,8 +25,9 @@
+ 
+ HERE = Path(__file__).resolve().parent
+ ROOT = HERE.parents[1]
++ASSETS = HERE.parent / "swift-current-attribution-full-preparation"
+ SCRATCH = HERE / "owned-scratch"
+-SOURCE = SCRATCH / "vm"
++SOURCE = ASSETS / "owned-scratch/vm"
+ TARGET = SCRATCH / "target"
+ CANDIDATE = HERE.parent / "swift-cache-current-attribution-observer"
+ REVIEW = HERE.parent / "swift-cache-attribution-independent-review"
+@@ -39,8 +46,8 @@
+     "repeatedCommitRejected": True, "reportIncludesEntry": True, "status": "passed",
+     "taskCount": 1000, "unicodePreserved": True}
+ PREFIX = "experimental_swift_reactor::execution::frame_operations::memory_growth_operations::lifecycle::tests::exact_diagnostic::"
+-BINARY = HERE / "bin/exact-tests"
+-APPEND = '\n// Isolated diagnostic only; baseline production bytes are unchanged.\ninclude!(' + json.dumps(str(HERE / "harness.rs")) + ');\n'
++BINARY = ASSETS / "bin/exact-tests"
++APPEND = '\n// Isolated diagnostic only; baseline production bytes are unchanged.\ninclude!(' + json.dumps(str(ASSETS / "harness.rs")) + ');\n'
+ 
+ 
+ def sha(path):
+@@ -110,17 +117,17 @@
+         assert all(m.isfile() and not Path(m.name).is_absolute() and '..' not in Path(m.name).parts for m in members)
+         result={m.name:archive.extractfile(m).read() for m in members}
+     assert {n:hashlib.sha256(b).hexdigest() for n,b in result.items()}==candidate
+-    result['src/experimental_swift_reactor/cache_tests.rs']+=b'\n'+(HERE/'adapter.rs').read_bytes()+b'\n'+(HERE/'adapter-controls.rs').read_bytes()
++    result['src/experimental_swift_reactor/cache_tests.rs']+=b'\n'+(ASSETS/'adapter.rs').read_bytes()+b'\n'+(ASSETS/'adapter-controls.rs').read_bytes()
+     result['src/experimental_swift_reactor/lifecycle_tests.rs']+=APPEND.encode()
+     return result
+ 
+ 
+ def assert_baseline():
+-    baseline=read(HERE/'baseline-manifest.json')
++    baseline=read(ASSETS/'baseline-manifest.json')
+     assert closure(baseline)==CLOSURE and len(baseline)==132
+     reconstructed=reconstructed_source()
+     expected={n:hashlib.sha256(b).hexdigest() for n,b in reconstructed.items()}
+-    assert expected==read(HERE/'copied-build-manifest.json')
++    assert expected==read(ASSETS/'copied-build-manifest.json')
+     assert source_manifest(SOURCE)==expected
+     changed=[n for n in baseline if expected[n]!=baseline[n]]
+     assert changed==['src/experimental/cache/borrowed.rs','src/experimental_swift_reactor/cache.rs','src/experimental_swift_reactor/cache_tests.rs','src/experimental_swift_reactor/lifecycle_tests.rs']
+@@ -128,15 +135,15 @@
+ 
+ 
+ def assert_inputs():
+-    binding=read(HERE/'binding.json')
++    binding=read(ASSETS/'binding.json')
+     for info in binding['inputs']:
+         assert sha(info['path'])==info['sha256'],info['path']
+     assert sha(REACTOR)==REACTOR_HASH and REACTOR.stat().st_size==53_777_114
+-    assert sha(HERE/'harness.rs')==HARNESS_HASH
++    assert sha(ASSETS/'harness.rs')==HARNESS_HASH
+ 
+ 
+ def prepare():
+-    assert not (HERE/'binding.json').exists() and not SCRATCH.exists()
++    assert not (ASSETS/'binding.json').exists() and not SCRATCH.exists()
+     refs={}
+     def retain(path,expected=None):
+         info=identity(path)
+@@ -177,7 +184,7 @@
+     assert_baseline()
+     save('source-audit.json',{'baselineClosure':CLOSURE,'candidateSourceManifestSHA256':sha(CANDIDATE/'copied-source-manifest.json'),
+         'sourceFiles':132,'deltaFromAcceptedObserver':['src/experimental_swift_reactor/cache_tests.rs','src/experimental_swift_reactor/lifecycle_tests.rs'],
+-        'remainingCandidateFilesByteIdentical':130,'originalHarnessSHA256':sha(PREVIOUS/'harness.rs'),'harnessSHA256':sha(HERE/'harness.rs'),
++        'remainingCandidateFilesByteIdentical':130,'originalHarnessSHA256':sha(PREVIOUS/'harness.rs'),'harnessSHA256':sha(ASSETS/'harness.rs'),
+         'liveVmQueried':False,'gitQueried':False,'sealedAuthorities':verified})
+     save('binding.json',{'schema':1,'observedUTC':datetime.datetime.now(datetime.timezone.utc).isoformat(),
+         'baselineClosure':CLOSURE,'sourceRevisionContext':'6b8aba350224ed19f678669bdbea6b359d8de68b',
+@@ -190,7 +197,7 @@
+         'historicalNativeAndCompilerOnlyDataReferences':True,'nativePhysicalOrEmulatorRun':False,
+         'compilerTools':tools()})
+     assert_inputs()
+-    print(json.dumps({'prepared':True,'files':132,'baselineClosure':CLOSURE,'instrumentedManifestSHA256':sha(HERE/'copied-build-manifest.json'),'targetExecuted':False}))
++    print(json.dumps({'prepared':True,'files':132,'baselineClosure':CLOSURE,'instrumentedManifestSHA256':sha(ASSETS/'copied-build-manifest.json'),'targetExecuted':False}))
+ 
+ def observe_group(pgid, ps_deadline=None):
+     """EPERM is unknown unless a complete exact-PGID ps observation proves state."""
+@@ -239,11 +246,11 @@
+     bound = assert_baseline()
+     assert_inputs()
+     snapshot = directory / "harness.rs"
+-    shutil.copyfile(HERE / "harness.rs", snapshot)
++    shutil.copyfile(ASSETS / "harness.rs", snapshot)
+     shutil.copyfile(HERE / "diagnostic.py", directory / "diagnostic.py")
+     save(directory / "source-manifest.json", bound)
+     before_tools = tools()
+-    binding = read(HERE / "binding.json")
++    binding = read(ASSETS / "binding.json")
+     assert before_tools == binding["compilerTools"], "tool drift"
+     env = environment() if env is None else env
+     argv_files = [identity(arg) for arg in argv if Path(arg).is_absolute() and Path(arg).is_file()]
+@@ -310,7 +317,7 @@
+     assert_inputs()
+     receipt["argvFilesUnchanged"] = all(identity(info["path"]) == info for info in argv_files)
+     receipt["allBoundInputsUnchanged"] = True
+-    receipt["harnessUnchanged"] = sha(HERE / "harness.rs") == sha(snapshot)
++    receipt["harnessUnchanged"] = sha(ASSETS / "harness.rs") == sha(snapshot)
+     receipt["driverUnchanged"] = sha(HERE / "diagnostic.py") == sha(directory / "diagnostic.py")
+     receipt["finalGroupObservation"] = observe_group(child.pid, cleanup_deadlines[-1])
+     receipt["processGroupEmpty"] = receipt["finalGroupObservation"]["state"] == "absent"
+@@ -322,7 +329,7 @@
+ 
+ 
+ def build():
+-    assert (HERE / "binding.json").exists()
++    assert (ASSETS / "binding.json").exists()
+     count = len(list((HERE / "commands").glob("build-*"))) + 1
+     argv = ["cargo", "test", "--lib", "--no-run", "--release", "--locked", "--offline",
+             "--no-default-features", "--features", "experimental-swift-reactor", "--message-format=json"]
+@@ -337,7 +344,7 @@
+     shutil.copyfile(executables[0], BINARY)
+     BINARY.chmod(0o700)
+     save("binary.json", {"source": identity(executables[0]), "retained": identity(BINARY),
+-         "buildReceipt": f"commands/build-{count:03}/receipt.json", "harnessSHA256": sha(HERE / "harness.rs"),
++         "buildReceipt": f"commands/build-{count:03}/receipt.json", "harnessSHA256": sha(ASSETS / "harness.rs"),
+          "buildManifest": assert_baseline()})
+     listing, output, _ = record_command(f"list-{count:03}", [str(BINARY), "--list"], 30)
+     assert listing["passed"]
+@@ -370,22 +377,24 @@
+ 
+ 
+ def execute(target=False):
+-    binary = read(HERE / "binary.json")
+-    assert identity(BINARY) == binary["retained"] and sha(HERE / "harness.rs") == binary["harnessSHA256"]
++    assert Path(telemetry.__file__).resolve() == _classifier_path
++    binary = read(ASSETS / "binary.json")
++    assert identity(BINARY) == binary["retained"] and sha(ASSETS / "harness.rs") == binary["harnessSHA256"]
+     env = environment()
+     if target:
+         selection = read(HERE / "root-selection.json")
++        assert selection["originalPreparedSealSHA256"] == sha(ASSETS / "prepared-seal.json") == "c40ab937f218baa54b45e5a5846e4dd12d05edcfb2c3786a75d27f026f70a7f1"
+         assert selection["exactCommandSelected"] and selection["baselineClosure"] == CLOSURE
+-        assert selection["harnessSHA256"] == sha(HERE / "harness.rs")
++        assert selection["harnessSHA256"] == sha(ASSETS / "harness.rs")
+         assert selection["driverSHA256"] == sha(HERE / "diagnostic.py")
+         assert selection["binarySHA256"] == sha(BINARY)
+         assert selection["targetBytes"] == REACTOR.stat().st_size == 53_777_114
+         assert selection["targetSHA256"] == REACTOR_HASH
+-        assert selection["inputBindingSHA256"] == sha(HERE / "binding.json")
++        assert selection["inputBindingSHA256"] == sha(ASSETS / "binding.json")
+         assert selection["maxTargetAttempts"] == 1
+-        assert selection["sourceManifestSHA256"] == sha(HERE / "copied-build-manifest.json")
++        assert selection["sourceManifestSHA256"] == sha(ASSETS / "copied-build-manifest.json")
+         assert selection["telemetryClassifierSHA256"] == sha(HERE / "telemetry.py")
+-        assert selection["outputContractSHA256"] == sha(HERE / "output-contract.json")
++        assert selection["outputContractSHA256"] == sha(ASSETS / "output-contract.json")
+         assert selection["outerCommand"] == ["python3", "-B", str((HERE / "diagnostic.py").relative_to(ROOT)), "target"]
+         for name, digest in selection["boundEvidence"].items():
+             assert sha(HERE / name) == digest, name
+@@ -489,8 +498,8 @@
+     assert not (HERE / "root-selection.json").exists()
+     assert_baseline()
+     assert_inputs()
+-    assert sha(HERE / "harness.rs") == HARNESS_HASH
+-    assert identity(BINARY) == read(HERE / "binary.json")["retained"]
++    assert sha(ASSETS / "harness.rs") == HARNESS_HASH
++    assert identity(BINARY) == read(ASSETS / "binary.json")["retained"]
+     commands = ["build-001", "list-001", "control-001", "control-002", "adapter-controls", "driver-observation-controls"]
+     for name in commands:
+         command = read(HERE / "commands" / name / "receipt.json")
+@@ -508,8 +517,8 @@
+     save("prepared-selection.json", {"schema": 1, "status": "prepared-awaiting-root-exact-selection", "targetAttempted": False,
+         "targetBytes": REACTOR.stat().st_size, "targetSHA256": REACTOR_HASH,
+         "baselineClosure": CLOSURE, "binaryBytes": BINARY.stat().st_size, "binarySHA256": sha(BINARY),
+-        "harnessSHA256": sha(HERE / "harness.rs"), "driverSHA256": sha(HERE / "diagnostic.py"),
+-        "inputBindingSHA256": sha(HERE / "binding.json"), "argv": argv, "outerCommand": outer,
++        "harnessSHA256": sha(ASSETS / "harness.rs"), "driverSHA256": sha(HERE / "diagnostic.py"),
++        "inputBindingSHA256": sha(ASSETS / "binding.json"), "argv": argv, "outerCommand": outer,
+         "commandSHA256": sha(HERE / "proposed-command.json"),
+         "boundEvidence": {name: sha(HERE / name) for name in files},
+         "scope": "host diagnostic only; no public/signed/native/production accounting/full SL/FieldLog published-package/GA acceptance",
+@@ -519,7 +528,7 @@
+ 
+ 
+ def adapter_controls():
+-    binary=read(HERE / "binary.json")
++    binary=read(ASSETS / "binary.json")
+     assert identity(BINARY)==binary["retained"]
+     argv=[str(BINARY),"experimental_swift_reactor::cache_tests::full_attribution_adapter_","--nocapture","--test-threads=1"]
+     receipt,stdout,_=record_command("adapter-controls",argv,60)
+@@ -531,7 +540,7 @@
+ 
+ def main():
+     parser = argparse.ArgumentParser(description=__doc__)
+-    parser.add_argument("action", choices=("prepare", "build", "control", "host-controls", "adapter-controls", "propose", "target", "cleanup"))
++    parser.add_argument("action", choices=("control", "host-controls", "adapter-controls", "target"))
+     action = parser.parse_args().action
+     return {"prepare": prepare, "build": build, "control": lambda: execute(False),
+             "host-controls": host_controls, "adapter-controls": adapter_controls, "propose": propose, "target": lambda: execute(True), "cleanup": cleanup}[action]() or 0

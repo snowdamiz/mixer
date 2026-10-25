@@ -1,0 +1,17 @@
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-passive-lifecycle-sendable-correction/finite/owned-host/HostTests.swift:122:18: warning: weak variable 'appProbe' was never mutated; consider changing to 'let' constant [#WeakMutability]
+120 |         var temporaryApp: NSObject? = NSObject(), temporaryWindow: NSObject? = NSObject()
+121 |         let weakScope = PassiveLifecycleOwnership(application: temporaryApp!, window: temporaryWindow!)
+122 |         weak var appProbe = temporaryApp, windowProbe = temporaryWindow
+    |                  `- warning: weak variable 'appProbe' was never mutated; consider changing to 'let' constant [#WeakMutability]
+123 |         temporaryApp = nil; temporaryWindow = nil
+124 |         check("scope does not retain application or window", appProbe == nil && windowProbe == nil && weakScope.application == nil && weakScope.window == nil)
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-passive-lifecycle-sendable-correction/finite/owned-host/HostTests.swift:122:43: warning: weak variable 'windowProbe' was never mutated; consider changing to 'let' constant [#WeakMutability]
+120 |         var temporaryApp: NSObject? = NSObject(), temporaryWindow: NSObject? = NSObject()
+121 |         let weakScope = PassiveLifecycleOwnership(application: temporaryApp!, window: temporaryWindow!)
+122 |         weak var appProbe = temporaryApp, windowProbe = temporaryWindow
+    |                                           `- warning: weak variable 'windowProbe' was never mutated; consider changing to 'let' constant [#WeakMutability]
+123 |         temporaryApp = nil; temporaryWindow = nil
+124 |         check("scope does not retain application or window", appProbe == nil && windowProbe == nil && weakScope.application == nil && weakScope.window == nil)
+
+[#WeakMutability]: <https://docs.swift.org/compiler/documentation/diagnostics/weak-mutability>

@@ -1,0 +1,49 @@
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-passive-lifecycle-sendable-correction/finite/owned-host/SemanticTests.swift:76:22: warning: weak variable 'probe' was never mutated; consider changing to 'let' constant [#WeakMutability]
+ 74 |             let o = PassiveLifecycleObserver(), w = UIWindow(), replacement = UIScene()
+ 75 |             var original: UIScene? = UIScene()
+ 76 |             weak var probe = original
+    |                      `- warning: weak variable 'probe' was never mutated; consider changing to 'let' constant [#WeakMutability]
+ 77 |             let originalIdentity = identity(original!)
+ 78 |             w.windowScene = original
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-passive-lifecycle-sendable-correction/finite/owned-host/SemanticTests.swift:97:22: warning: weak variable 'probe' was never mutated; consider changing to 'let' constant [#WeakMutability]
+ 95 |             let (o, w, _) = fixture()
+ 96 |             var foreign: NSObject? = NSObject()
+ 97 |             weak var probe = foreign
+    |                      `- warning: weak variable 'probe' was never mutated; consider changing to 'let' constant [#WeakMutability]
+ 98 |             var heldDuringFilter = false
+ 99 |             w.onSceneRead = { foreign = nil; heldDuringFilter = probe != nil }
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-passive-lifecycle-sendable-correction/finite/owned-host/SemanticTests.swift:107:22: warning: weak variable 'probe' was never mutated; consider changing to 'let' constant [#WeakMutability]
+105 |             let o = PassiveLifecycleObserver()
+106 |             var w: UIWindow? = UIWindow(); w!.windowScene = UIScene()
+107 |             weak var probe = w
+    |                      `- warning: weak variable 'probe' was never mutated; consider changing to 'let' constant [#WeakMutability]
+108 |             o.start(application: .shared, window: w!); w = nil
+109 |             check("observer does not retain owned window", probe == nil)
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-passive-lifecycle-sendable-correction/finite/owned-host/SemanticTests.swift:118:22: warning: weak variable 'probe' was never mutated; consider changing to 'let' constant [#WeakMutability]
+116 |             let w = UIWindow()
+117 |             var o: PassiveLifecycleObserver? = PassiveLifecycleObserver()
+118 |             weak var probe = o
+    |                      `- warning: weak variable 'probe' was never mutated; consider changing to 'let' constant [#WeakMutability]
+119 |             o!.start(application: .shared, window: w); o = nil
+120 |             check("notification callbacks retain observer weakly", probe == nil)
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-passive-lifecycle-sendable-correction/finite/owned-host/SemanticTests.swift:126:22: warning: weak variable 'appProbe' was never mutated; consider changing to 'let' constant [#WeakMutability]
+124 |         do {
+125 |             var app: NSObject? = NSObject(), window: NSObject? = NSObject()
+126 |             weak var appProbe = app, windowProbe = window
+    |                      `- warning: weak variable 'appProbe' was never mutated; consider changing to 'let' constant [#WeakMutability]
+127 |             let ownership = PassiveLifecycleOwnership(application: app!, window: window!)
+128 |             app = nil; window = nil
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-passive-lifecycle-sendable-correction/finite/owned-host/SemanticTests.swift:126:38: warning: weak variable 'windowProbe' was never mutated; consider changing to 'let' constant [#WeakMutability]
+124 |         do {
+125 |             var app: NSObject? = NSObject(), window: NSObject? = NSObject()
+126 |             weak var appProbe = app, windowProbe = window
+    |                                      `- warning: weak variable 'windowProbe' was never mutated; consider changing to 'let' constant [#WeakMutability]
+127 |             let ownership = PassiveLifecycleOwnership(application: app!, window: window!)
+128 |             app = nil; window = nil
+
+[#WeakMutability]: <https://docs.swift.org/compiler/documentation/diagnostics/weak-mutability>

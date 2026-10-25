@@ -18,9 +18,11 @@ its older pending/selected statements do not override the current state.
    23,358,291 guest instructions. The sealed result audit confirms all final
    reservations and live counts return to zero. A bounded remaining-work
    diagnosis now passes finite checks. The fixed-memory attribution observer
-   passes four finite host tests and three independent tests. Fresh diagnostic
-   preparation passes its finite controls and is under independent review;
-   no full-target execution is selected. See
+   passes four finite host tests and three independent tests. The strict supplementary classifier
+   correction passes 38 host methods. One full attribution diagnostic reproduces
+   the original failure; valid measurements attribute 53.907% of the fixed work
+   budget to rebuilding previously decoded functions. Investigate bounded cache
+   retention with exact work/memory accounting; no new full retry is selected. See
    [the integration](docs/swift-decode-plan-integration.md).
 2. **iOS shared UI:** the supplemental source and corrected frozen V7 host join
    pass independent review. Fresh generic simulator builds of both app and runner
@@ -29,9 +31,11 @@ its older pending/selected statements do not override the current state.
    completed one fresh V8 simulator run: Settings passes; first Tab fails. All
    five cleanup checks pass. The recorded-result audit and source lifecycle
    diagnosis are complete. A passive window/application/scene observer passes
-   116 producer and 371 independent Foundation checks. Its fresh generic build
-   exposes a Swift 6 actor-isolation error in the UIKit notification adapter;
-   a minimal correction is pending. Native execution remains unselected.
+   116 producer and 371 independent Foundation checks. The minimal UIKit notification
+   Sendable correction passes a fresh generic app/runner build and independent
+   review. Corrected V9 runtime preparation passes sixteen producer and nine
+   independent host methods, with root acceptance. Native execution remains
+   unselected and the original focus failure remains unresolved.
    The frozen V7 replay anchor cannot authorize a new supplemental join.
 3. **Hosted builds:** preserve the isolated context-admission correction and its
    79 functional passes. The broader entry review stopped incomplete; the

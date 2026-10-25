@@ -1,0 +1,40 @@
+--- accepted/source/Prototype/PassiveLifecycleObserver.swift
++++ PROPOSAL-ONLY/PassiveLifecycleObserver.swift
+@@ -22,7 +22,11 @@
+             let faults = self.faults
+             let token = NotificationCenter.default.addObserver(forName: name, object: nil, queue: nil) { [weak self, faults] note in
+                 guard Thread.isMainThread else { faults.record(); return }
+-                MainActor.assumeIsolated { self?.notification(kind, note) }
++                let object = note.object as AnyObject?
++                let objectIdentity = object.map { PassiveLifecycleIdentity($0).value }
++                withExtendedLifetime(object) {
++                    MainActor.assumeIsolated { self?.notification(kind, objectIdentity: objectIdentity) }
++                }
+             }
+             guard tokens.insert(token) else { buffer.register(tokens: 0); tokens.removeAll(); return }
+         }
+@@ -33,13 +37,19 @@
+         guard let site = PassiveLifecycleSite(rawValue: site), site == .snapshot || site == .controllerCallback || site == .carrierCallback else { buffer.invalidSite(); return }
+         capture(site: site, contextSequence: contextSequence, kind: nil, object: nil)
+     }
+-    private func notification(_ kind: PassiveLifecycleKind, _ note: Notification) {
+-        guard let ownership, let window = ownership.window as? UIWindow, ownership.application != nil else {
++    private func notification(_ kind: PassiveLifecycleKind, objectIdentity: String?) {
++        guard let ownership, let application = ownership.application, let window = ownership.window as? UIWindow else {
+             buffer.ownershipEnded(); tokens.removeAll(); return
+         }
+-        let object = note.object as AnyObject?
+-        guard ownership.accepts(kind, object: object, currentScene: window.windowScene) else { buffer.filteredNotification(); return }
+-        capture(site: .notification, contextSequence: nil, kind: kind, object: object)
++        let currentScene = window.windowScene
++        let ownedObject: AnyObject?
++        switch kind.family {
++        case 0: ownedObject = application
++        case 1: ownedObject = window
++        default: ownedObject = currentScene
++        }
++        guard let ownedObject, objectIdentity == PassiveLifecycleIdentity(ownedObject).value else { buffer.filteredNotification(); return }
++        capture(site: .notification, contextSequence: nil, kind: kind, object: ownedObject)
+     }
+     private func capture(site: PassiveLifecycleSite, contextSequence: Int?, kind: PassiveLifecycleKind?, object: AnyObject?) {
+         let started = ProcessInfo.processInfo.systemUptime

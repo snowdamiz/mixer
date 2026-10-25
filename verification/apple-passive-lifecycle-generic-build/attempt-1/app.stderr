@@ -1,0 +1,19 @@
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-passive-lifecycle-generic-build/attempt-1/owned-build/accepted/source/Prototype/AuthoredToggleCarrier.swift:50:9: warning: 'showsTouchWhenHighlighted' was deprecated in iOS 15.0: This property is ignored when using UIButtonConfiguration [#DeprecatedDeclaration]
+ 48 |         showsMenuAsPrimaryAction = false
+ 49 |         changesSelectionAsPrimaryAction = false
+ 50 |         showsTouchWhenHighlighted = false
+    |         `- warning: 'showsTouchWhenHighlighted' was deprecated in iOS 15.0: This property is ignored when using UIButtonConfiguration [#DeprecatedDeclaration]
+ 51 |         backgroundColor = .clear
+ 52 |         isOpaque = false
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-passive-lifecycle-generic-build/attempt-1/owned-build/accepted/source/Prototype/PassiveLifecycleObserver.swift:25:50: error: sending 'note' risks causing data races [#SendingRisksDataRace]
+23 |             let token = NotificationCenter.default.addObserver(forName: name, object: nil, queue: nil) { [weak self, faults] note in
+24 |                 guard Thread.isMainThread else { faults.record(); return }
+25 |                 MainActor.assumeIsolated { self?.notification(kind, note) }
+   |                                                  |- error: sending 'note' risks causing data races [#SendingRisksDataRace]
+   |                                                  `- note: task-isolated 'note' is captured by a main actor-isolated closure. main actor-isolated uses in closure may race against later nonisolated uses
+26 |             }
+27 |             guard tokens.insert(token) else { buffer.register(tokens: 0); tokens.removeAll(); return }
+
+[#SendingRisksDataRace]: <https://docs.swift.org/compiler/documentation/diagnostics/sending-risks-data-race>

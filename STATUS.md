@@ -16,8 +16,8 @@ hosted, store, customer or operational product.
 
 | Area | Verified scope | Next required work |
 | --- | --- | --- |
-| Swift runtime | Decode-plan reuse is integrated under unchanged limits. Four complete host contexts pass 2,314 named executions with nine inherited ignores each; the fresh live private suite passes 340 with zero ignores. | The newly selected full run still fails Corpus 1 at the unchanged cache-work limit after 23,358,291 instructions. Final consuming counters are zero and owned scratch is removed. The finite diagnosis identifies 18.48% planning cost; the fixed-memory attribution observer passes four finite host tests and three independent tests; fresh diagnostic preparation passes finite controls and is under independent review, with no full run selected. Corpus 2 remains unrun. |
-| iOS shared UI | Private pan input has simulator evidence. V7 Settings passes; first Tab fails actual focus traversal. All five run-cleanup checks pass and the owned simulator is deleted. | The corrected frozen V7 diagnostic join and fresh app/runner builds are accepted. The V8 runtime packet passes 16 producer and nine independent host methods. The fresh V8 simulator run passes Settings but fails first Tab, with zero skips and all five cleanup checks passed. The result audit and source lifecycle diagnosis are accepted; a passive lifecycle observer passes 116 producer and 371 independent Foundation checks. The fresh generic build fails UIKit app compilation on Swift 6 actor isolation; a correction is pending, with no native execution. Shared UI/public routing remains incomplete. |
+| Swift runtime | Decode-plan reuse is integrated under unchanged limits. Four complete host contexts pass 2,314 named executions with nine inherited ignores each; the fresh live private suite passes 340 with zero ignores. | One corrected full attribution diagnostic reproduces the Corpus 1 cache-work failure at 23,358,291 instructions. Valid measurements show 61,142 repeated decodes and 53.907% of the work budget spent rebuilding previously decoded functions. Final consuming usage is zero and owned scratch is removed. A bounded retention improvement is being investigated; Corpus 2 remains unrun. |
+| iOS shared UI | Private pan input has simulator evidence. V7 Settings passes; first Tab fails actual focus traversal. All five run-cleanup checks pass and the owned simulator is deleted. | The corrected frozen V7 diagnostic join and fresh app/runner builds are accepted. The V8 runtime packet passes 16 producer and nine independent host methods. The fresh V8 simulator run passes Settings but fails first Tab, with zero skips and all five cleanup checks passed. The result audit and source lifecycle diagnosis are accepted; a passive lifecycle observer passes 116 producer and 371 independent Foundation checks. The first generic build failed Swift 6 actor isolation; the minimal correction now passes a fresh app/runner build and independent review. Corrected V9 runtime preparation passes 16 producer and nine independent host methods; root accepts preparation, with no new native execution. Shared UI/public routing remains incomplete. |
 | Android shared UI | Private style/coordinator/input slices have scoped API37 emulator evidence. The latest integrated component fixture passes all 45 cases and 239 assertions; the separate pointer matrix passes 429 assertions. | Complete shared visual/interaction parity, public routing, resources/OS support, TalkBack and final physical comparison. |
 | Hosted builds | Durable storage/coordinator components and registry/audit slices have host evidence. The isolated entry composition passes 922 groups; the defensive context-admission correction passes 79. | The broader entry review remains incomplete. Live Engine/entry composition, real worker/clock/provider operations, authentication, quotas and deployed schedule qualification remain pending. |
 | Console | SolidJS Builds/releases use the website logo, cream/orange palette and typography. Builds passes 32 repository tests, seven independent controls, 117 backend text comparisons and 14 browser states. | Connect ordinary Phoenix customer authorization and live data/workflows; complete onboarding, permissions, billing and other G22–G24 requirements. |
@@ -37,9 +37,21 @@ and locates the final failure inside rebuild decoding. The test-only attribution
 observer passes four finite host tests, covering 409 work prefixes and 173
 cancellation prefixes. Three independent tests pass and root accepts the observer
 for diagnostic preparation. Fresh preparation passes five finite Rust executions
-and fourteen host controls; independent review is underway and actual full-target
-measurement remains unselected. That review has identified insufficient schema
-validation in the supplementary classifier; correction is pending. See [the diagnosis](docs/swift-plan-cache-remaining-work-diagnosis.md),
+and fourteen host controls. Independent review found six malformed supplementary schema cases; the strict correction
+now passes 38 host methods. One corrected full diagnostic reproduces the original
+failure and instruction count. All five telemetry snapshots are valid: 61,627
+completed decodes include 61,142 repeats across 485 distinct functions. Repeated
+IR construction consumes 34,500,496 credits (53.907% of the unchanged work budget).
+This points investigation toward retention; it does not prove a replacement policy
+will finish the workload. The original Result and legacy false cleanup flag remain
+visible separately from final zero consuming usage. Owned processes and scratch
+are removed. The result passes independent audit and root acceptance for retained host
+measurements only. See
+[the independent audit](docs/swift-current-attribution-runtime-review.md),
+[the measured result](docs/swift-current-attribution-runtime.md),
+[the schema correction](docs/swift-attribution-schema-correction.md),
+[the preparation review](docs/swift-current-attribution-preparation-review.md),
+[the diagnosis](docs/swift-plan-cache-remaining-work-diagnosis.md),
 [the selected packet](docs/swift-exact-reactor-after-plan-reuse.md),
 [audited result](docs/swift-exact-reactor-after-plan-reuse-result.md)
 and [integration](docs/swift-decode-plan-integration.md).
@@ -57,8 +69,12 @@ Root verified the result audit and its exact immutable raw packets. The new
 diagnostics show focus leaving, briefly returning to, and leaving the same plain
 UIKit reference. Source diagnosis identifies missing key-window/application/scene
 state during the public-input interval. A passive observer passes 116 producer
-and 371 independent Foundation checks. Its fresh generic build exposes a Swift 6
-actor-isolation error in the UIKit notification adapter; correction is pending.
+and 371 independent Foundation checks. The original generic build exposed a Swift 6
+actor-isolation error. The minimal correction now passes all eight generic build
+commands and independent review, with 55 fresh products and owned scratch removed.
+Corrected V9 runtime preparation passes 16 producer and nine independent host
+methods, with 263 independently verified input bindings and root acceptance.
+No new native attempt is selected.
 The focus failure's cause remains unproven and native acceptance remains pending.
 The candidate adds two helpers to the forty-member baseline and changes only its
 app entry source; original oracle, input actions and transport limits remain fixed. See
@@ -82,9 +98,13 @@ login provider or console data connection is implemented by this slice. See
 ## Delivery and pending qualification
 
 The branded Builds checkpoint is pushed in `ba9ad437`, with Console and Engine CI
-passing. Latest pushed checkpoint `6b8aba35` records the full Swift failure,
-finite cache diagnosis, reviewed V8 execution and complete cleanup evidence.
-Its Engine CI `40176959303` passes all three jobs and all 38 steps without skips.
+passing. Latest pushed checkpoint `7b604864` adds the accepted bearer identity
+prerequisite, reviewed source/host observers and unexecuted diagnostic preparation.
+Phoenix CI `40179798794` passes its job and all eight steps without skips;
+Engine CI `40179798720` passes all three jobs and all 38 steps without skips. See [the current CI receipt](verification/github-ci-7b604864/receipt.json). The preceding
+`6b8aba35` records the full Swift failure, finite cache diagnosis, reviewed V8
+execution and complete cleanup evidence; its Engine CI `40176959303` passes all
+three jobs and all 38 steps without skips.
 The preceding `6403eea9` checkpoint
 integrates reviewed decode-plan reuse and fresh native builds; its Engine CI
 `40174672304` passes all three jobs and all 38 steps without skips. See

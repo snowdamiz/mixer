@@ -1,0 +1,17 @@
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-passive-sendable-review/controls/owned-host/BoundaryControls.swift:68:22: warning: weak variable 'probe' was never mutated; consider changing to 'let' constant [#WeakMutability]
+ 66 |             let observer = PassiveLifecycleObserver(), scene = UIScene()
+ 67 |             var owned: UIWindow? = UIWindow()
+ 68 |             weak var probe = owned
+    |                      `- warning: weak variable 'probe' was never mutated; consider changing to 'let' constant [#WeakMutability]
+ 69 |             owned!.windowScene = scene; observer.start(application: .shared, window: owned!)
+ 70 |             let releasedIdentity = identity(owned!)
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-passive-sendable-review/controls/owned-host/BoundaryControls.swift:83:22: warning: weak variable 'weakOld' was never mutated; consider changing to 'let' constant [#WeakMutability]
+ 81 |             let (observer, window, _) = fixture()
+ 82 |             var old: UIScene? = UIScene()
+ 83 |             weak var weakOld = old
+    |                      `- warning: weak variable 'weakOld' was never mutated; consider changing to 'let' constant [#WeakMutability]
+ 84 |             window.windowScene = old
+ 85 |             let oldIdentity = identity(old!)
+
+[#WeakMutability]: <https://docs.swift.org/compiler/documentation/diagnostics/weak-mutability>
