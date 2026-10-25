@@ -22,7 +22,24 @@ defmodule MixerHosted.CustomerArtifacts do
   @maximum 9_007_199_254_740_991
 
   def upload(identity, route_tenant, key, envelope, request_metadata) do
+    upload_expected(identity, route_tenant, key, envelope, request_metadata, :any)
+  end
+
+  @doc "Uploads only when the signed manifest digest matches the route before any storage effect."
+  def upload_at(identity, route_tenant, expected_digest, key, envelope, request_metadata) do
+    upload_expected(
+      identity,
+      route_tenant,
+      key,
+      envelope,
+      request_metadata,
+      {:at, expected_digest}
+    )
+  end
+
+  defp upload_expected(identity, route_tenant, key, envelope, request_metadata, expected) do
     with {:ok, project} <- project(route_tenant),
+         :ok <- expected_digest(expected),
          {:ok, config} <- configuration(),
          target = host_target(config.host),
          {:ok, ^target} <- Policy.request(identity, "artifact.upload", target, now()),
@@ -30,7 +47,8 @@ defmodule MixerHosted.CustomerArtifacts do
          :ok <- same_project(project, target),
          :ok <- metadata(request_metadata),
          :ok <- idempotency_key(key),
-         {:ok, checked} <- admit(envelope, config) do
+         {:ok, checked} <- admit(envelope, config, expected),
+         :ok <- matching_digest(expected, checked.manifest_sha256) do
       command = Map.put(request_metadata, :key, key)
 
       Authorization.with_authorized_transaction(
@@ -169,6 +187,12 @@ defmodule MixerHosted.CustomerArtifacts do
   defp manifest_digest(value),
     do: if(ArtifactV3Policy.digest?(value), do: :ok, else: {:error, :invalid_request})
 
+  defp expected_digest(:any), do: :ok
+  defp expected_digest({:at, value}), do: manifest_digest(value)
+  defp matching_digest(:any, _actual), do: :ok
+  defp matching_digest({:at, expected}, expected), do: :ok
+  defp matching_digest({:at, _expected}, _actual), do: {:error, :digest_mismatch}
+
   defp page(after_sequence, limit)
        when is_integer(after_sequence) and after_sequence in 0..@maximum and
               is_integer(limit) and limit in 1..100,
@@ -179,10 +203,11 @@ defmodule MixerHosted.CustomerArtifacts do
   defp required_scope(identity, scope),
     do: if(scope in identity.scopes, do: :ok, else: {:error, :permission_denied})
 
-  defp admit(envelope, config) do
+  defp admit(envelope, config, expected) do
     case ArtifactAdmission.admit(envelope, config.host, config.roots, now()) do
       {:ok, checked} -> {:ok, checked}
-      _ -> {:error, :invalid_request}
+      _ when expected == :any -> {:error, :invalid_request}
+      _ -> {:error, :artifact_invalid}
     end
   end
 

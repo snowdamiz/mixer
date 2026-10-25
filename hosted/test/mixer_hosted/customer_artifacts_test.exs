@@ -200,6 +200,81 @@ defmodule MixerHosted.CustomerArtifactsTest do
   defp audit(after_sequence \\ 0, limit \\ 100, identity \\ F.identity()),
     do: CustomerArtifacts.audit(identity, route(), after_sequence, limit, metadata())
 
+  test "digest-addressed upload binds the route before any write or cached receipt", %{
+    checked: checked
+  } do
+    put = fn digest, key ->
+      CustomerArtifacts.upload_at(
+        F.identity(),
+        route(),
+        digest,
+        key,
+        checked.envelope_bytes,
+        metadata()
+      )
+    end
+
+    wrong = String.duplicate("0", 64)
+    refute wrong == checked.manifest_sha256
+    assert {:error, :digest_mismatch} = put.(wrong, "route-key")
+    assert F.counts() == [[0, 0, 0, 0]]
+    assert {:ok, %{status: 201} = first} = put.(checked.manifest_sha256, "route-key")
+    assert {:ok, ^first} = put.(checked.manifest_sha256, "route-key")
+    assert {:error, :digest_mismatch} = put.(wrong, "route-key")
+    assert F.counts() == [[1, 1, 1, 1]]
+    assert {:ok, %{status: 200, event_sequence: 2}} = put.(checked.manifest_sha256, "new-key")
+    assert F.counts() == [[1, 2, 2, 2]]
+  end
+
+  test "digest-addressed upload rejects invalid route digests without fallback", %{
+    checked: checked
+  } do
+    for digest <- [nil, :any, "", String.duplicate("A", 64), checked.manifest_sha256 <> "0"] do
+      assert {:error, :invalid_request} =
+               CustomerArtifacts.upload_at(
+                 F.identity(),
+                 route(),
+                 digest,
+                 "route-key",
+                 checked.envelope_bytes,
+                 metadata()
+               )
+
+      assert F.counts() == [[0, 0, 0, 0]]
+    end
+  end
+
+  test "digest-addressed upload preserves scope admission before artifact classification", %{
+    checked: checked
+  } do
+    denied = F.identity(%{scopes: []})
+
+    assert {:error, :permission_denied} =
+             CustomerArtifacts.upload_at(
+               denied,
+               route(),
+               checked.manifest_sha256,
+               "route-key",
+               "{}",
+               metadata()
+             )
+
+    assert {:error, :artifact_invalid} =
+             CustomerArtifacts.upload_at(
+               F.identity(),
+               route(),
+               checked.manifest_sha256,
+               "route-key",
+               "{}",
+               metadata()
+             )
+
+    assert {:error, :invalid_request} =
+             CustomerArtifacts.upload(F.identity(), route(), "route-key", "{}", metadata())
+
+    assert F.counts() == [[0, 0, 0, 0]]
+  end
+
   test "public composition commits upload then resolves private bytes and exact audit", %{
     checked: checked
   } do

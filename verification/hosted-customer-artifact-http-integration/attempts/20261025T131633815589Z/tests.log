@@ -1,0 +1,27 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+......
+09:16:38.330 [error] Postgrex.Protocol (#PID<0.230.0> ({Postgrex.Protocol, "mixer_customer_artifact_http"})) disconnected: ** (DBConnection.ConnectionError) tcp send: closed
+
+
+  1) test database failure after writes and deferred checks returns no success and rolls back (MixerHostedWeb.CustomerArtifactHTTPIntegrationTest)
+     hosted/test/mixer_hosted_web/customer_artifact_http_integration_test.exs:806
+     Assertion with == failed
+     code:  assert request(
+              ctx,
+              "retry after rollback reuses unreserved key",
+              "PUT",
+              path(ctx),
+              ctx.checked.envelope_bytes,
+              upload_headers()
+            ).status == 201
+     left:  503
+     right: 201
+     stacktrace:
+       hosted/test/mixer_hosted_web/customer_artifact_http_integration_test.exs:846: (test)
+
+
+Finished in 1.0 seconds (0.00s async, 1.0s sync)
+
+Result: 6/7 passed
+Failed: 1 test

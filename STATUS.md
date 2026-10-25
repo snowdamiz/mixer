@@ -21,7 +21,7 @@ hosted, store, customer or operational product.
 | Android shared UI | Private style/coordinator/input slices have scoped API37 emulator evidence. The latest integrated component fixture passes all 45 cases and 239 assertions; the separate pointer matrix passes 429 assertions. | Complete shared visual/interaction parity, public routing, resources/OS support, TalkBack and final physical comparison. |
 | Hosted builds | Durable storage/coordinator components and registry/audit slices have host evidence. The isolated entry composition passes 922 groups; the defensive context-admission correction passes 79. | The broader entry review remains incomplete. Live Engine/entry composition, real worker/clock/provider operations, authentication, quotas and deployed schedule qualification remain pending. |
 | Console | SolidJS Builds/releases use the website logo, cream/orange palette and typography. Builds passes 32 repository tests, seven independent controls, 117 backend text comparisons and 14 browser states. A final brand audit improves sidebar/footer contrast using the website muted token; 32 tests and production build pass again. | Connect ordinary Phoenix customer authorization and live data/workflows; complete onboarding, permissions, billing and other G22–G24 requirements. |
-| Hosted release/billing | Phoenix identity/artifact, build persistence and private webhook components have separately scoped host receipts. Protected artifact upload, staged private read, v2 audit and principal-bound retries now pass 97 combined host methods after independent review repairs; all seven migrations apply/rollback/reapply. | Connect customer HTTP/console, complete tenant trust/lifecycle writers, durable inbox/Oban reconciliation, Neon/Cloudflare/Stripe and operational qualification. Frozen authority/inspector and rejected transport lanes remain unaccepted. |
+| Hosted release/billing | Protected artifact upload/read/audit now has actual Phoenix Endpoint and PostgreSQL evidence: eight methods and 47 HTTP requests pass, with 32 transport tests and 46 combined independent controls. The earlier storage composition passes 97 methods and seven-migration checks. | Connect live console/customer sessions, complete tenant trust/lifecycle writers, distributed admission, Go migration parity, durable inbox/Oban reconciliation and selected-provider qualification. Frozen authority/inspector and rejected transport lanes remain unaccepted. |
 
 The new single full Swift reactor attempt passes validation and Initialize, then
 fails Corpus 1 at CacheWork 64,000,001 / 64,000,000 after 23,358,291 guest
@@ -194,21 +194,43 @@ owned PostgreSQL instances and scratch are removed. At artifact checkpoint
 `6fff5ab9`, the 132-file VM closure and 40 console bindings were unchanged. Earlier findings and failed attempts are
 preserved, including the codec callback guard, SQL type and artifact/event
 binding repairs, reserved-role matching and migration policy-drop ordering.
-This does not enable HTTP routes, deployment or live console data. The facade
+That storage checkpoint did not enable HTTP routes, deployment or live console data. The facade
 uses one server-configured host/trust snapshot; tenant trust/lifecycle writers
 and provider operations remain pending. See
 [the integration scope](docs/hosted-customer-artifact-integration.md) and
 [root acceptance](verification/hosted-customer-artifact-root-acceptance/attempt-2/acceptance.json).
 
+The subsequent ordinary customer HTTP slice is accepted locally. Digest-bound
+uploads pass 18 facade methods and 25 combined independent methods. Transport
+passes 32 producer and 46 combined independent methods after review repaired
+encoded/extra-slash route aliases. The actual production Endpoint, default bearer
+verifier with synthetic TLS/JWKS, and restricted PostgreSQL transactions pass
+eight methods and 47 real HTTP requests, with zero skips. Tests prove exact-byte
+reads, authenticated HEAD with no wire body, revocation, tenant isolation,
+idempotent retries and rollback after local writes. All owned listeners,
+workers, PostgreSQL clusters and scratch are removed. Root verifies 244 retained
+bindings and 56 current product inputs; console branding and VM sources are
+unchanged. Counts overlap. Live console sessions/data, tenant trust/lifecycle,
+distributed admission, provider deployment and full Go parity remain pending.
+See [the HTTP checkpoint](docs/hosted-customer-artifact-http-checkpoint.md) and
+[root acceptance](verification/hosted-customer-artifact-http-root-acceptance/attempt-2/acceptance.json).
+
 ## Delivery and pending qualification
+
+Latest checkpoint `c4e1f571` is pushed to `origin/main` and remote main matches.
+It contains the two reviewed console color corrections and updated delivery
+evidence. Console CI `40195410847` and Engine CI `40195410870` both pass with no skipped steps.
+Local console tests, TypeScript and production build already pass. See
+[the delivery receipt](verification/github-delivery-console-contrast/delivery-receipt.json)
+and [completed CI observation](verification/github-ci-c4e1f571/observation-5/receipt.json).
 
 Artifact checkpoint `6fff5ab9` is pushed to `origin/main` and remote main was
 verified. Its 2,198 changed paths contain the reviewed local customer artifact
 composition, CI fixtures, seven-migration integration and retained producer/review
-evidence. Phoenix CI `40195108526` and Engine CI `40195108524` are running; this
-is not yet a standard CI pass. See
+evidence. Phoenix CI `40195108526` and Engine CI `40195108524` both pass with
+no skipped steps. See
 [the delivery receipt](verification/github-delivery-customer-artifacts/delivery-receipt.json)
-and [CI observation](verification/github-ci-6fff5ab9/observation-1/receipt.json).
+and [completed CI observation](verification/github-ci-6fff5ab9/observation-7/receipt.json).
 
 The final console brand audit found two faint secondary text colors. Both now
 use the website's existing muted token, increasing measured caption/footer
@@ -266,10 +288,11 @@ No native/provider/GA acceptance follows from host CI.
 The supported iOS baseline is 26.0, targeting iOS 26, 27 and onward. Current
 private appearance evidence is narrower and records iOS 26.5. Section 8.3's
 identical shared app design remains required on Android; platform-default public
-paths are not complete parity. Computer use and simulator/emulator tests are
-resumed. Phones remain disconnected, and their matrix is deferred to final
-acceptance. Normally one owned instance per native lane is allowed, with cleanup
-after every run and preservation of unrelated projects.
+paths are not complete parity. The latest user-supplied AGENTS override pauses
+computer use, capture and native simulator/emulator tests. This HTTP slice starts
+no native instances. Phones remain disconnected and their matrix is deferred to
+final acceptance. When runtime tests resume, use one owned instance per lane,
+clean up after every run and preserve unrelated projects.
 
 Still required before completion: full public native/guest integration and OS
 matrix; immutable published-package FieldLog consumption; signed clean-worker

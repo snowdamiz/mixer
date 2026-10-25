@@ -8,6 +8,14 @@ No HTTP route or deployment is enabled by this implementation.
 The API is `upload(identity, route_tenant, key, envelope, metadata)`,
 `read(identity, route_tenant, manifest_sha256, metadata)` and
 `audit(identity, route_tenant, after_sequence, limit, metadata)`.
+The additive HTTP seam is `upload_at(identity, route_tenant, expected_digest,
+key, envelope, metadata)`. It validates the lowercase manifest digest and
+compares it with the admitted signed bytes before starting the authorization
+transaction. A mismatch returns `digest_mismatch` without reserving a key,
+writing an artifact/event or advancing the project head. Failed signed admission
+returns `artifact_invalid` on this seam; the existing `upload/5` error behavior
+is preserved. These two errors are input/admission results before transaction
+effects, not new transaction callback result types.
 The closed route map contains atom keys `organization_id` and `project_id`.
 The closed metadata map contains `reason` (valid UTF-8, at most 512 bytes) and
 `source_ip` (canonical IPv4/IPv6 or `nil`). The trusted ingress adapter, rather

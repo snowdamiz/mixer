@@ -1,0 +1,48 @@
+Running ExUnit with seed: 0, max_cases: 8
+
+........
+
+  1) test upload requires unique exact application/json before body work (MixerHostedWeb.CustomerArtifactTransportTest)
+     /Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-artifact-http-transport/run-2/inputs/hosted/test/mixer_hosted_web/customer_artifact_transport_test.exs:326
+     match (=) failed
+     The following variables were pinned:
+       code = "content_type"
+     code:  assert %{"error" => %{"code" => ^code, "message" => message}, "request_id" => id} =
+              Jason.decode!(conn.resp_body)
+     left:  %{"error" => %{"code" => ^code, "message" => message}, "request_id" => id}
+     right: %{
+              "error" => %{
+                "code" => "invalid_request",
+                "message" => "Invalid authentication request."
+              },
+              "request_id" => "GOHH2Cx7MwSBrFEAAA9i"
+            }
+     stacktrace:
+       /Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-artifact-http-transport/run-2/inputs/hosted/test/mixer_hosted_web/customer_artifact_transport_test.exs:177: MixerHostedWeb.CustomerArtifactTransportTest.assert_error/3
+       /Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-artifact-http-transport/run-2/inputs/hosted/test/mixer_hosted_web/customer_artifact_transport_test.exs:338: anonymous fn/2 in MixerHostedWeb.CustomerArtifactTransportTest."test upload requires unique exact application/json before body work"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       /Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-artifact-http-transport/run-2/inputs/hosted/test/mixer_hosted_web/customer_artifact_transport_test.exs:329: (test)
+
+.................
+09:10:58.005 [debug] Processing with MixerHostedWeb.CustomerArtifactController.upload/2
+  Parameters: %{"manifest_sha256" => "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "organization_id" => "org-a", "project_id" => "project-a"}
+  Pipelines: [:customer_artifacts]
+
+09:10:58.006 [debug] Phoenix.Router halted in :customer_artifacts/2
+
+09:10:58.006 [debug] Processing with MixerHostedWeb.CustomerArtifactController.read/2
+  Parameters: %{"manifest_sha256" => "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "organization_id" => "org-a", "project_id" => "project-a"}
+  Pipelines: [:customer_artifacts]
+
+09:10:58.006 [debug] Phoenix.Router halted in :customer_artifacts/2
+
+09:10:58.006 [debug] Processing with MixerHostedWeb.CustomerArtifactController.audit/2
+  Parameters: %{"organization_id" => "org-a", "project_id" => "project-a"}
+  Pipelines: [:customer_artifacts]
+
+09:10:58.006 [debug] Phoenix.Router halted in :customer_artifacts/2
+...
+Finished in 0.1 seconds (0.1s on load, 0.00s async, 0.06s sync)
+
+Result: 28/29 passed
+Failed: 1 test

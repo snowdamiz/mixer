@@ -1,0 +1,95 @@
+Running ExUnit with seed: 0, max_cases: 8
+
+..........................
+09:18:19.955 [debug] Processing with MixerHostedWeb.CustomerArtifactController.upload/2
+  Parameters: %{"manifest_sha256" => "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "organization_id" => "org-a", "project_id" => "project-a"}
+  Pipelines: [:customer_artifacts]
+
+09:18:19.955 [debug] Phoenix.Router halted in :customer_artifacts/2
+
+09:18:19.955 [debug] Processing with MixerHostedWeb.CustomerArtifactController.read/2
+  Parameters: %{"manifest_sha256" => "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "organization_id" => "org-a", "project_id" => "project-a"}
+  Pipelines: [:customer_artifacts]
+
+09:18:19.955 [debug] Phoenix.Router halted in :customer_artifacts/2
+
+09:18:19.955 [debug] Processing with MixerHostedWeb.CustomerArtifactController.audit/2
+  Parameters: %{"organization_id" => "org-a", "project_id" => "project-a"}
+  Pipelines: [:customer_artifacts]
+
+09:18:19.955 [debug] Phoenix.Router halted in :customer_artifacts/2
+...............
+09:18:20.013 [debug] Processing with MixerHostedWeb.CustomerArtifactController.upload/2
+  Parameters: %{"manifest_sha256" => "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "organization_id" => "org-a", "project_id" => "project-a"}
+  Pipelines: [:customer_artifacts]
+
+09:18:20.013 [debug] Phoenix.Router halted in :customer_artifacts/2
+
+09:18:20.013 [debug] Processing with MixerHostedWeb.CustomerArtifactController.upload/2
+  Parameters: %{"manifest_sha256" => "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "organization_id" => "org-a", "project_id" => "project-a"}
+  Pipelines: [:customer_artifacts]
+
+09:18:20.013 [debug] Phoenix.Router halted in :customer_artifacts/2
+
+09:18:20.013 [debug] Processing with MixerHostedWeb.CustomerArtifactController.upload/2
+  Parameters: %{"manifest_sha256" => "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "organization_id" => "org-a", "project_id" => "project-a"}
+  Pipelines: [:customer_artifacts]
+
+09:18:20.013 [debug] Phoenix.Router halted in :customer_artifacts/2
+
+09:18:20.013 [debug] Processing with MixerHostedWeb.CustomerArtifactController.upload/2
+  Parameters: %{"manifest_sha256" => "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "organization_id" => "org-a", "project_id" => "project-a"}
+  Pipelines: [:customer_artifacts]
+
+09:18:20.013 [debug] Phoenix.Router halted in :customer_artifacts/2
+
+09:18:20.013 [debug] Processing with MixerHostedWeb.CustomerArtifactController.upload/2
+  Parameters: %{"manifest_sha256" => "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "organization_id" => "org-a", "project_id" => "project-a"}
+  Pipelines: [:customer_artifacts]
+
+09:18:20.013 [debug] Phoenix.Router halted in :customer_artifacts/2
+independent actual-router alias observations: [
+  {"/%763/orgs/org-a/projects/project-a/artifacts/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   201},
+  {"/v3/orgs/org%2Da/projects/project-a/artifacts/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   201},
+  {"/v3/orgs/org-a/projects/project%2Da/artifacts/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   201},
+  {"/v3/orgs/org-a/projects/project-a/artifacts/%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61",
+   201},
+  {"/v3/orgs/org-a//projects/project-a/artifacts/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   201}
+]
+
+
+  1) test independent actual Router preparation must not turn encoded or normalized aliases into mutations (MixerHostedWeb.CustomerArtifactIndependentReviewTest)
+     /Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-artifact-http-review/run-1/inputs/verification/hosted-customer-artifact-http-review/independent_test.exs:420
+     Expected truthy, got false
+     code: assert Enum.all?(results, fn {_path, status} -> status in [400, 404] end)
+     arguments:
+
+         # 1
+         [
+           {"/%763/orgs/org-a/projects/project-a/artifacts/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            201},
+           {"/v3/orgs/org%2Da/projects/project-a/artifacts/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            201},
+           {"/v3/orgs/org-a/projects/project%2Da/artifacts/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            201},
+           {"/v3/orgs/org-a/projects/project-a/artifacts/%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61%61",
+            201},
+           {"/v3/orgs/org-a//projects/project-a/artifacts/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            201}
+         ]
+
+         # 2
+         #Function<5.106504682/1 in MixerHostedWeb.CustomerArtifactIndependentReviewTest."test independent actual Router preparation must not turn encoded or normalized aliases into mutations"/1>
+
+     stacktrace:
+       /Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-artifact-http-review/run-1/inputs/verification/hosted-customer-artifact-http-review/independent_test.exs:442: (test)
+
+
+Finished in 0.3 seconds (0.2s on load, 0.00s async, 0.1s sync)
+
+Result: 41/42 passed
+Failed: 1 test

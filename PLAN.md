@@ -84,7 +84,7 @@ its older pending/selected statements do not override the current state.
    [the integration scope](docs/hosted-customer-artifact-integration.md) and
    [the artifact contract](docs/hosted-customer-artifact-transaction-contract.md).
    Artifact checkpoint `6fff5ab9` is pushed to `origin/main`; its Phoenix and
-   Engine CI are running. Both workflows passed for prior checkpoint `9662eda1`
+   Engine CI both pass. Both workflows passed for prior checkpoint `9662eda1`
    with no skipped steps. A local prerequisite pass is not full hosted or
    customer workflow acceptance.
    Preserve accurate unavailable
@@ -92,6 +92,14 @@ its older pending/selected statements do not override the current state.
    The final brand audit corrected sidebar/footer text contrast with the existing
    muted token; all 32 console tests and the production build pass. Saved layout
    evidence remains historical, with no new browser/capture run during the pause.
+   The next ordinary HTTP slice now passes local acceptance: 18 facade methods,
+   25 combined independent facade methods, 32 transport methods, 46 combined
+   independent transport methods and eight real Endpoint/PostgreSQL methods
+   covering 47 HTTP requests. Counts overlap. Review repaired normalized raw-path
+   aliases; source/output bindings and all owned resource cleanup pass. Live
+   console sessions/data, tenant trust/lifecycle, provider deployment, distributed
+   admission and full Go parity remain pending. See
+   [the HTTP checkpoint](docs/hosted-customer-artifact-http-checkpoint.md).
 
 The frozen hosted catalog-inspector/authority-driver lanes and rejected outbound
 Worker transport V2 lane remain isolated and unaccepted. Do not read, import,
@@ -152,11 +160,12 @@ The plan requests parallel agents using fresh context, `gpt-6.1-sol`, `xhigh`,
 and bounded file ownership. Coordinate contracts before dependent changes; do
 not edit another active lane's files or claim to change the controlling model.
 
-Computer use, screen capture and simulator/emulator tests are resumed. Normally
-use one active owned instance per native lane; reuse it, retire an obsolete owned
-instance before replacement, and shut down disposable instances after evidence,
-including failed runs. Preserve other projects' instances, data and processes.
-See [the resumption receipt](verification/native-testing-resume-2026-10-24/receipt.json).
+The latest user-supplied AGENTS override pauses computer use, screen capture and
+native simulator/emulator runtime tests until further notice. Continue source,
+host tests, cross-compilation, offline review and authorized delivery. The earlier
+resumption receipt remains historical. No native instance was started for this
+HTTP checkpoint. When resumed, preserve the bounded one-instance-per-lane and
+cleanup rules, including unrelated projects' instances, data and processes.
 
 Phones remain disconnected. Do not query/retry phones or request reconnection.
 The user accepts simulator/emulator tests for development slices and advancing
