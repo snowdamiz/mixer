@@ -1,0 +1,25 @@
+--- inputs/test_observation.py
++++ test_observation.py
+@@ -22,8 +22,11 @@
+  for context,item in zip(a['focusContexts'][1:],[None,'reference',None]):rows.append(row(len(rows)+1,context['uptime']+D('.00001'),'controller-callback',context['sequence'],item))
+  rows.append(row(len(rows)+1,w['after']['uptime']+D('.001'),item=None));a['focusSystemDiagnostic']=diag(rows)
+  original=o.loads((p/'0001-after-1.json').read_bytes())['verdict']
+- expected={k:binding[k] for k in ['case','generation','actionIndex']}
+- return b,a,w,binding,expected,original
++ anchor=o.select_original_action(o.SELECTED_ACTION,(p/'0001-before-1.json').read_bytes(),(p/'0001-after-1.json').read_bytes(),(p/'0001-keyboard-witness-1.json').read_bytes())
++ return b,a,w,binding,anchor,original
++
++def fingerprints(values):
++ return [value if type(value) is o.OriginalActionAnchor else o.encoded(value) for value in values]
+ 
+ class Controls(unittest.TestCase):
+  def check_reject(self,mutate):
+@@ -110,7 +113,7 @@
+   values=fixture();values[-1]['passed']=True
+   result=o.join(*values);self.assertIs(result['supplemental']['nativePass'],False);self.assertIs(result['originalVerdict'],values[-1])
+  def test_adapter_does_not_mutate_any_input(self):
+-  values=fixture();initial=[o.encoded(v) for v in values];o.join(*values);self.assertEqual(initial,[o.encoded(v) for v in values])
++  values=fixture();initial=fingerprints(values);o.join(*values);self.assertEqual(initial,fingerprints(values))
+  def test_binary_float_diagnostic_is_incomplete(self):
+   self.check_reject(lambda b,a,*_:a['focusSystemDiagnostic']['entries'][-1].update(finishedUptime=1.1))
+  def test_original_v7_oracle_exact_and_enriched_still_false(self):

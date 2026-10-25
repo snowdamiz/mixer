@@ -949,8 +949,9 @@ fn swift_lifecycle_sl13_cumulative_instruction_host_and_cache_usage() {
     let deadline = o.control.as_ref().unwrap().deadline();
     let start = observed(&o);
     assert_eq!(start.live.cache_entries.current, 0);
-    // Constructor writes 29 slots, 64 pin records, 512 patch entries and 192 index cells.
-    assert_eq!(start.cache_work, 29 + 64 + 512 + 192);
+    // Constructor writes 29 slots, 64 pin records, 512 patches, 192 index cells
+    // and eight charged semantic cells for each of 512 scan-plan entries.
+    assert_eq!(start.cache_work, 29 + 64 + 512 + 192 + 512 * 8);
     assert_eq!(success(&mut o, Request::Initialize), Reply::Initialized);
     let initialized = observed(&o);
     // Resident Cache tickets belong to decoded entries, surviving pin release.
@@ -960,13 +961,14 @@ fn swift_lifecycle_sl13_cumulative_instruction_host_and_cache_usage() {
     );
     assert_eq!(initialized.live.cache_entries.current, 1);
     assert_eq!(initialized.instructions - start.instructions, 6);
-    // Cold cost = 108 + pin records + 2*encoded body bytes + 3*instructions.
+    // Cold cost adds 13 actual probe/publication credits to the original
+    // 108 + pin records + 2*encoded body bytes + 3*instructions.
     // Init35: B14/I6/P1; corpus62: B7/I3/P1; callee36: B19/I9/P2.
     assert_eq!(
         initialized.cache_work - start.cache_work,
-        108 + 1 + 2 * 14 + 3 * 6
+        108 + 1 + 2 * 14 + 3 * 6 + 13
     );
-    assert_eq!(initialized.cache_work, 952);
+    assert_eq!(initialized.cache_work, 5_061);
     assert_eq!(success(&mut o, Request::Corpus), Reply::Corpus(2));
     let first = observed(&o);
     assert_eq!(
@@ -977,9 +979,9 @@ fn swift_lifecycle_sl13_cumulative_instruction_host_and_cache_usage() {
     let first_cache = o.cache.as_ref().unwrap().usage();
     assert_eq!(
         first.cache_work - initialized.cache_work,
-        (108 + 1 + 2 * 7 + 3 * 3) + (108 + 2 + 2 * 19 + 3 * 9)
+        (108 + 1 + 2 * 7 + 3 * 3 + 13) + (108 + 2 + 2 * 19 + 3 * 9 + 13)
     );
-    assert_eq!(first.cache_work, 1259);
+    assert_eq!(first.cache_work, 5_394);
     assert_eq!(success(&mut o, Request::Corpus), Reply::Corpus(3));
     let second = observed(&o);
     assert_eq!(
@@ -1001,7 +1003,7 @@ fn swift_lifecycle_sl13_cumulative_instruction_host_and_cache_usage() {
         second.cache_work - first.cache_work,
         (1 + 1 + 6) + (1 + 2 + 6)
     );
-    assert_eq!(second.cache_work, 1276);
+    assert_eq!(second.cache_work, 5_411);
     assert_eq!(second_cache.hits - first_cache.hits, 2);
     assert_eq!(second_cache.misses, first_cache.misses);
     assert_eq!(second_cache.decodes, first_cache.decodes);
@@ -1760,22 +1762,24 @@ fn swift_lifecycle_sl14_later_work_cache_and_absolute_deadline_do_not_reset() {
         .unwrap()
         .test_replace_execution_work_limit(old);
     retire(o);
-    // Constructor797; cold no-op init B2/I1:108+1+4+3=116.
+    // Constructor 4,893; cold no-op init B2/I1:108+1+4+3+13=129.
+    // Keep the synthetic limit exactly at completed initialization so the
+    // later invocation still fails without resetting cumulative work.
     let mut o = owner_with(
         &[],
         &[],
         SwiftRunBudget {
-            cache_work: 913,
+            cache_work: 5_022,
             ..SwiftRunBudget::default()
         },
         WasiGrants::default(),
         WasiBudget::default(),
     );
     success(&mut o, Request::Initialize);
-    assert_eq!(observed(&o).cache_work, 913);
+    assert_eq!(observed(&o).cache_work, 5_022);
     let f = failed(&mut o, Request::Corpus);
     assert_eq!(f.resource, Some(SwiftRunResource::CacheWork));
-    assert_eq!(f.at_failure.cache_work, 913);
+    assert_eq!(f.at_failure.cache_work, 5_022);
     assert_eq!(f.at_failure.instructions, 1);
     retire(o);
     let mut o = owner(&[]);
@@ -2365,5 +2369,33 @@ fn swift_lifecycle_sl20_warm_growth_allocation_refusal_preserves_committed_memor
         before.reservations.state.current
     );
     assert!(matches!(o.lifecycle, Lifecycle::Terminal));
+    retire(o);
+}
+
+#[test]
+fn full_regression_observe_lifecycle_fixture_work() {
+    let mut o = owner_with(
+        &state_spec(),
+        &[36],
+        SwiftRunBudget::default(),
+        WasiGrants::default(),
+        WasiBudget::default(),
+    );
+    let start = observed(&o);
+    assert_eq!(success(&mut o, Request::Initialize), Reply::Initialized);
+    let initialized = observed(&o);
+    assert_eq!(success(&mut o, Request::Corpus), Reply::Corpus(2));
+    let first = observed(&o);
+    assert_eq!(success(&mut o, Request::Corpus), Reply::Corpus(3));
+    let second = observed(&o);
+    println!("REGRESSION_LIFECYCLE work={:?} instructions={:?} host_calls={:?} entries={:?} tickets={:?}", [start.cache_work, initialized.cache_work, first.cache_work, second.cache_work], [start.instructions, initialized.instructions, first.instructions, second.instructions], [start.host_calls, initialized.host_calls, first.host_calls, second.host_calls], [start.live.cache_entries.current, initialized.live.cache_entries.current, first.live.cache_entries.current, second.live.cache_entries.current], [start.reservations.live_tickets, initialized.reservations.live_tickets, first.reservations.live_tickets, second.reservations.live_tickets]);
+    retire(o);
+    let mut o = owner(&[]);
+    let start = observed(&o).cache_work;
+    success(&mut o, Request::Initialize);
+    println!(
+        "REGRESSION_EMPTY_INIT start={start} initialized={}",
+        observed(&o).cache_work
+    );
     retire(o);
 }

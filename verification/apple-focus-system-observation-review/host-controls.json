@@ -1,0 +1,419 @@
+{
+  "findings": [
+    {
+      "id": "F1",
+      "priority": "P2",
+      "reproduction": "finding-1-ax-substitution.json",
+      "source": "verification/apple-focus-system-observation/observation.py:145",
+      "status": "open",
+      "title": "Supplied witness/AX endpoints are not bound to the trusted original"
+    },
+    {
+      "id": "F2",
+      "priority": "P2",
+      "reproduction": "finding-2-context-order.json",
+      "source": "verification/apple-focus-system-observation/observation.py:112",
+      "status": "open",
+      "title": "Callback revision coverage is checked as a set, allowing impossible revision order"
+    }
+  ],
+  "finiteControls": [
+    {
+      "expected": "complete",
+      "name": "independent exact frozen join with synthetic diagnostic",
+      "result": {
+        "afterDiagnosticSHA256": "5142a5e1013e0b2fcb0cc3f35ab8f21ccd7503ee41aa775c4cc743ff2f045819",
+        "afterEntryCount": 6,
+        "atomic": false,
+        "authoritative": false,
+        "beforeDiagnosticSHA256": "80a51422284ad1e87ebce0c4dd3ddc9e31272ff2f273c1991d39eac36354e958",
+        "beforeEntryCount": 2,
+        "binding": {
+          "actionIndex": 1,
+          "case": "keyboard-enabled-off",
+          "generation": 1
+        },
+        "captureStatus": "complete",
+        "nativePass": false,
+        "newSequences": [
+          3,
+          4,
+          5,
+          6
+        ],
+        "originalVerdictSHA256": "d449756a1c0c20126425393181b51882cd3f662e4b6615c110bee45c035f0c03",
+        "schema": "mixer.apple-toggle.focus-system-join.1",
+        "witnessSHA256": "b2bed4e40f4ee1fa4eb3fdeeeca9700d1e7f7b9dbaba6f532d01415836551942"
+      }
+    },
+    {
+      "expected": "incomplete",
+      "name": "wrong exact action",
+      "result": {
+        "atomic": false,
+        "authoritative": false,
+        "binding": {
+          "actionIndex": 1,
+          "case": "keyboard-enabled-off",
+          "generation": 1
+        },
+        "captureStatus": "incomplete-binding-mismatch",
+        "nativePass": false,
+        "schema": "mixer.apple-toggle.focus-system-join.1"
+      }
+    },
+    {
+      "expected": "incomplete",
+      "name": "wrong generation type",
+      "result": {
+        "atomic": false,
+        "authoritative": false,
+        "binding": {
+          "actionIndex": 1,
+          "case": "keyboard-enabled-off",
+          "generation": 1
+        },
+        "captureStatus": "incomplete-binding-types",
+        "nativePass": false,
+        "schema": "mixer.apple-toggle.focus-system-join.1"
+      }
+    },
+    {
+      "expected": "incomplete",
+      "name": "revision above saturation",
+      "result": {
+        "atomic": false,
+        "authoritative": false,
+        "binding": {
+          "actionIndex": 1,
+          "case": "keyboard-enabled-off",
+          "generation": 1
+        },
+        "captureStatus": "incomplete-bounded-envelope",
+        "nativePass": false,
+        "schema": "mixer.apple-toggle.focus-system-join.1"
+      }
+    },
+    {
+      "expected": "incomplete",
+      "name": "revision not equal retained complete entries",
+      "result": {
+        "atomic": false,
+        "authoritative": false,
+        "binding": {
+          "actionIndex": 1,
+          "case": "keyboard-enabled-off",
+          "generation": 1
+        },
+        "captureStatus": "incomplete-complete-accounting",
+        "nativePass": false,
+        "schema": "mixer.apple-toggle.focus-system-join.1"
+      }
+    },
+    {
+      "expected": "incomplete",
+      "name": "callback duplicate revision",
+      "result": {
+        "atomic": false,
+        "authoritative": false,
+        "binding": {
+          "actionIndex": 1,
+          "case": "keyboard-enabled-off",
+          "generation": 1
+        },
+        "captureStatus": "incomplete-duplicate-callback-context",
+        "nativePass": false,
+        "schema": "mixer.apple-toggle.focus-system-join.1"
+      }
+    },
+    {
+      "expected": "incomplete",
+      "name": "reversed capture interval",
+      "result": {
+        "atomic": false,
+        "authoritative": false,
+        "binding": {
+          "actionIndex": 1,
+          "case": "keyboard-enabled-off",
+          "generation": 1
+        },
+        "captureStatus": "incomplete-entry-time",
+        "nativePass": false,
+        "schema": "mixer.apple-toggle.focus-system-join.1"
+      }
+    },
+    {
+      "expected": "incomplete",
+      "name": "nonfinite capture interval",
+      "result": {
+        "atomic": false,
+        "authoritative": false,
+        "binding": {
+          "actionIndex": 1,
+          "case": "keyboard-enabled-off",
+          "generation": 1
+        },
+        "captureStatus": "incomplete-nonfinite",
+        "nativePass": false,
+        "schema": "mixer.apple-toggle.focus-system-join.1"
+      }
+    },
+    {
+      "expected": "incomplete",
+      "name": "overflow incomplete cannot complete",
+      "result": {
+        "atomic": false,
+        "authoritative": false,
+        "binding": {
+          "actionIndex": 1,
+          "case": "keyboard-enabled-off",
+          "generation": 1
+        },
+        "captureStatus": "incomplete-incomplete-counter",
+        "nativePass": false,
+        "schema": "mixer.apple-toggle.focus-system-join.1"
+      }
+    },
+    {
+      "expected": "incomplete",
+      "name": "before after prefix substitution",
+      "result": {
+        "atomic": false,
+        "authoritative": false,
+        "binding": {
+          "actionIndex": 1,
+          "case": "keyboard-enabled-off",
+          "generation": 1
+        },
+        "captureStatus": "incomplete-entry-prefix",
+        "nativePass": false,
+        "schema": "mixer.apple-toggle.focus-system-join.1"
+      }
+    },
+    {
+      "expected": "incomplete",
+      "name": "late observation past evaluation boundary",
+      "result": {
+        "atomic": false,
+        "authoritative": false,
+        "binding": {
+          "actionIndex": 1,
+          "case": "keyboard-enabled-off",
+          "generation": 1
+        },
+        "captureStatus": "incomplete-after-boundary-time",
+        "nativePass": false,
+        "schema": "mixer.apple-toggle.focus-system-join.1"
+      }
+    },
+    {
+      "expected": "incomplete",
+      "name": "UTF8 group size bound",
+      "result": {
+        "atomic": false,
+        "authoritative": false,
+        "binding": {
+          "actionIndex": 1,
+          "case": "keyboard-enabled-off",
+          "generation": 1
+        },
+        "captureStatus": "incomplete-group-identifier",
+        "nativePass": false,
+        "schema": "mixer.apple-toggle.focus-system-join.1"
+      }
+    },
+    {
+      "expected": "incomplete",
+      "name": "oversized entry",
+      "result": {
+        "atomic": false,
+        "authoritative": false,
+        "binding": {
+          "actionIndex": 1,
+          "case": "keyboard-enabled-off",
+          "generation": 1
+        },
+        "captureStatus": "incomplete-entry-size",
+        "nativePass": false,
+        "schema": "mixer.apple-toggle.focus-system-join.1"
+      }
+    },
+    {
+      "expected": "incomplete",
+      "name": "129 entries cannot complete",
+      "result": {
+        "atomic": false,
+        "authoritative": false,
+        "binding": {
+          "actionIndex": 1,
+          "case": "keyboard-enabled-off",
+          "generation": 1
+        },
+        "captureStatus": "incomplete-entry-count",
+        "nativePass": false,
+        "schema": "mixer.apple-toggle.focus-system-join.1"
+      }
+    }
+  ],
+  "nativeAccepted": false,
+  "originalOracle": {
+    "action": "native-keyboard",
+    "candidate": "diagnostic",
+    "case": "keyboard-enabled-off",
+    "focusRequirement": "App UIFocusItem.isFocused must equal paired authored AX.hasFocus; disagreement is failing evidence pending native analysis. No platform equivalence waiver.",
+    "keyboardBinding": {
+      "actionIndex": 1,
+      "baselineUptime": 948787.116983291,
+      "case": "keyboard-enabled-off",
+      "evaluatedUptime": 948794.231054541,
+      "generation": 1
+    },
+    "keyboardWitness": {
+      "actionIndex": 1,
+      "after": {
+        "appForeground": true,
+        "elements": {
+          "authored-toggle": {
+            "enabled": true,
+            "exists": true,
+            "frame": {
+              "height": 44,
+              "width": 63,
+              "x": 303,
+              "y": 244
+            },
+            "hasFocus": false,
+            "hittable": true,
+            "identifier": "authored-toggle",
+            "label": "Sync entries",
+            "selected": false
+          },
+          "next-focus": {
+            "enabled": true,
+            "exists": true,
+            "frame": {
+              "height": 44,
+              "width": 354,
+              "x": 24,
+              "y": 628
+            },
+            "hasFocus": false,
+            "hittable": true,
+            "identifier": "next-focus",
+            "label": "Next native focus target",
+            "selected": false
+          },
+          "plain-uibutton-reference": {
+            "enabled": true,
+            "exists": true,
+            "frame": {
+              "height": 44,
+              "width": 280,
+              "x": 32,
+              "y": 314
+            },
+            "hasFocus": false,
+            "hittable": true,
+            "identifier": "plain-uibutton-reference",
+            "label": "Plain UIKit selection reference",
+            "selected": false
+          }
+        },
+        "uptime": 948794.1850967084
+      },
+      "before": {
+        "appForeground": true,
+        "elements": {
+          "authored-toggle": {
+            "enabled": true,
+            "exists": true,
+            "frame": {
+              "height": 44,
+              "width": 63,
+              "x": 303,
+              "y": 244
+            },
+            "hasFocus": false,
+            "hittable": true,
+            "identifier": "authored-toggle",
+            "label": "Sync entries",
+            "selected": false
+          },
+          "next-focus": {
+            "enabled": true,
+            "exists": true,
+            "frame": {
+              "height": 44,
+              "width": 354,
+              "x": 24,
+              "y": 628
+            },
+            "hasFocus": false,
+            "hittable": true,
+            "identifier": "next-focus",
+            "label": "Next native focus target",
+            "selected": false
+          },
+          "plain-uibutton-reference": {
+            "enabled": true,
+            "exists": true,
+            "frame": {
+              "height": 44,
+              "width": 280,
+              "x": 32,
+              "y": 314
+            },
+            "hasFocus": true,
+            "hittable": true,
+            "identifier": "plain-uibutton-reference",
+            "label": "Plain UIKit selection reference",
+            "selected": false
+          }
+        },
+        "uptime": 948790.5361624167
+      },
+      "case": "keyboard-enabled-off",
+      "finishedUptime": 948790.8647814167,
+      "generation": 1,
+      "key": "tab",
+      "phase": "acquire",
+      "publicAPI": "XCUIElement.typeKey(_:modifierFlags:)",
+      "returned": true,
+      "startedUptime": 948790.5367557084
+    },
+    "missingAppFocusUpdateSignal": false,
+    "nativeAppFocusedAfter": false,
+    "nativeAppFocusedBefore": false,
+    "observedFocusAfter": null,
+    "observedFocusBefore": "plain-uibutton-reference",
+    "originalOraclePassed": false,
+    "pairedFocusDisagreement": false,
+    "passed": false,
+    "phase": "acquire",
+    "predicates": {
+      "actualNativeFocusTraversal": false,
+      "allFixedNativeIdentifiersStable": true,
+      "allFixedNativeLabelsStable": true,
+      "appFocusUpdateSignalObserved": true,
+      "authoredAXLabelMatchesAppAfter": true,
+      "authoredAXLabelMatchesAppBefore": true,
+      "bindingAndValuesSilent": true,
+      "exactAXRouteCount": true,
+      "exactAccessibilityReturnCount": true,
+      "exactPrimaryRouteCount": true,
+      "freshInitialCasePremise": true,
+      "keyboardNotSyntheticTouch": true,
+      "nativeCurrentGeometry": true,
+      "nativeEnabledMetadata": true,
+      "noPanOrPreview": true,
+      "pairedNativeFocusAfter": true,
+      "pairedNativeFocusBefore": true,
+      "sameAXBinding": true,
+      "sameNativeCarrier": true,
+      "silentSemanticRoute": true
+    },
+    "schema": "mixer.apple-toggle.keyboard-v2-verdict.1",
+    "scope": "Strict three-fixed-element native keyboard scope only. Every acquisition Tab must change to an observed fixed element within12steps. No general system navigation, physical keyboard/VoiceOver, live adapter, compositor, dogfood or GA acceptance."
+  },
+  "schema": 1
+}

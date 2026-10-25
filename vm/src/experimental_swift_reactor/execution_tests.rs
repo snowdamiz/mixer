@@ -683,11 +683,11 @@ fn swift_construction_composed_original_proof_six_arenas_and_cleanup() {
         usage.reservations.retained_source.current,
         validation.source_bytes
     );
-    assert_eq!(allocations.allocations, 14);
+    assert_eq!(allocations.allocations, 15);
     assert_eq!(allocations.reallocations, 0);
     let (usage, cleanup) = measure(|| construction_finish(owner));
     assert_eq!(cleanup.allocations + cleanup.reallocations, 0);
-    assert_eq!(cleanup.deallocations, 24); // 14 payloads + 10 adopted/foundation backing allocations.
+    assert_eq!(cleanup.deallocations, 25); // 15 payloads + 10 adopted/foundation backing allocations.
     assert!(usage.reservations.combined.peak > usage.reservations.state.peak);
     println!(
         "construction allocations {} bytes {} cleanup_deallocations {} peak {}",
@@ -701,7 +701,7 @@ fn swift_construction_composed_original_proof_six_arenas_and_cleanup() {
 #[test]
 fn swift_construction_every_integrated_allocation_ordinal() {
     use super::allocation_tests::measure_extended;
-    for ordinal in 0..13 {
+    for ordinal in 0..15 {
         construction_hooks(ConstructionHooks::default());
         let pair = construction_adopt(SwiftRunBudget::default());
         let (failure, stats) = measure_extended(Some(ordinal), || construct_failed(pair));
@@ -741,7 +741,7 @@ fn swift_construction_each_state_capacity_rejects_without_growth() {
             Some(failure.attempted as usize + 1)
         );
         assert_eq!(failure.resource, Some(SwiftRunResource::ExactCapacity));
-        assert_eq!(stats.attempts, 9 + ordinal);
+        assert_eq!(stats.attempts, 10 + ordinal);
         assert_eq!(stats.reallocations, 0);
         assert_eq!(
             failure.after_cleanup.unwrap().reservations.combined.current,
@@ -767,7 +767,7 @@ fn swift_construction_zero_stack_capacities_and_memory_minimum() {
         state.frames.capacity() + state.values.capacity() + state.controls.capacity(),
         0
     );
-    assert_eq!(stats.allocations, 11);
+    assert_eq!(stats.allocations, 12);
     construction_finish(owner);
     let pair = construction_adopt(SwiftRunBudget {
         memory_pages: 583,
@@ -776,7 +776,7 @@ fn swift_construction_zero_stack_capacities_and_memory_minimum() {
     let (failure, stats) = measure(|| construct_failed(pair));
     assert_eq!(failure.code, "swift_execution_memory_minimum");
     assert_eq!((failure.attempted, failure.limit), (584, 583));
-    assert_eq!(stats.allocations, 8); // Cache and WASI only; no State allocation.
+    assert_eq!(stats.allocations, 9); // Cache and WASI only; no State allocation.
     assert_eq!(failure.at_failure.reservations.state.current, 0);
     assert_eq!(
         failure.after_cleanup.unwrap().reservations.combined.current,
@@ -823,7 +823,7 @@ fn swift_construction_category_and_combined_admission_precede_allocation() {
                 ..SwiftRunBudget::default()
             },
             SwiftRunFailureKind::CategoryExhausted,
-            8,
+            9,
         ),
         (
             SwiftRunBudget {
@@ -831,12 +831,16 @@ fn swift_construction_category_and_combined_admission_precede_allocation() {
                 ..SwiftRunBudget::default()
             },
             SwiftRunFailureKind::CombinedExhausted,
-            11,
+            12,
         ),
     ] {
         construction_hooks(ConstructionHooks::default());
         let pair = construction_adopt(budget);
         let (failure, stats) = measure(|| construct_failed(pair));
+        println!(
+            "REGRESSION_ADMISSION kind={kind:?} attempts={} expected={attempts}",
+            stats.attempts
+        );
         assert_eq!(failure.kind, kind);
         assert_eq!(stats.attempts, attempts);
         assert_eq!(stats.reallocations, 0);
@@ -1058,8 +1062,8 @@ fn swift_construction_failed_outer_restore_drains_actual_components() {
     let pair = construction_adopt(SwiftRunBudget::default());
     let (failure, stats) = measure(|| construct_failed(pair));
     assert_eq!(failure.code, "swift_run_construction_phase_bound");
-    assert_eq!(stats.allocations, 14);
-    assert_eq!(stats.deallocations, 24);
+    assert_eq!(stats.allocations, 15);
+    assert_eq!(stats.deallocations, 25);
     let after = failure.after_cleanup.unwrap();
     assert_eq!(after.reservations.state.current, 0);
     assert_eq!(after.reservations.cache.current, 0);
@@ -1378,4 +1382,76 @@ fn swift_executor_layout_cancellation_backing_observed() {
         stats.allocations,
         size_of::<Cancellation>()
     );
+}
+
+#[test]
+fn full_regression_observe_integrated_fixture_shapes() {
+    construction_hooks(ConstructionHooks::default());
+    let mut pair = construction_adopt(SwiftRunBudget::default());
+    let (owner, stats) = measure(|| construct_owned(&mut pair).unwrap());
+    drop(pair);
+    let (usage, cleanup) = measure(|| construction_finish(owner));
+    println!("REGRESSION_INTEGRATED stats={stats:?} cleanup={cleanup:?} final_tickets={} final_combined={}", usage.reservations.live_tickets, usage.reservations.combined.current);
+    for ordinal in 0..stats.attempts {
+        let pair = construction_adopt(SwiftRunBudget::default());
+        let (failure, observed) =
+            super::allocation_tests::measure_extended(Some(ordinal), || construct_failed(pair));
+        let after = failure.after_cleanup.unwrap();
+        println!("REGRESSION_INTEGRATED_ALLOCATION ordinal={ordinal} stats={observed:?} code={} combined={} tickets={}", failure.code, after.reservations.combined.current, after.reservations.live_tickets);
+        assert_eq!(observed.injected_failures, 1);
+        assert_eq!(observed.attempts, ordinal + 1);
+        assert_eq!(after.reservations.combined.current, 0);
+        assert_eq!(after.reservations.live_tickets, 0);
+    }
+    for ordinal in 0..6 {
+        construction_hooks(ConstructionHooks {
+            capacity: Some(ordinal),
+            ..ConstructionHooks::default()
+        });
+        let pair = construction_adopt(SwiftRunBudget::default());
+        let (failure, observed) = measure(|| construct_failed(pair));
+        println!("REGRESSION_INTEGRATED_CAPACITY ordinal={ordinal} stats={observed:?} attempted={} observed={:?}", failure.attempted, failure.observed_capacity);
+        assert_eq!(failure.code, "swift_run_unexpected_capacity");
+        assert_eq!(
+            failure.after_cleanup.unwrap().reservations.combined.current,
+            0
+        );
+    }
+    construction_hooks(ConstructionHooks::default());
+    let mut pair = construction_adopt(SwiftRunBudget {
+        frames: 0,
+        values: 0,
+        controls: 0,
+        ..SwiftRunBudget::default()
+    });
+    let (owner, stats) = measure(|| construct_owned(&mut pair).unwrap());
+    drop(pair);
+    println!("REGRESSION_ZERO_STACK stats={stats:?}");
+    construction_finish(owner);
+    let pair = construction_adopt(SwiftRunBudget {
+        memory_pages: 583,
+        ..SwiftRunBudget::default()
+    });
+    let (failure, stats) = measure(|| construct_failed(pair));
+    println!(
+        "REGRESSION_BEFORE_STATE stats={stats:?} code={}",
+        failure.code
+    );
+    assert_eq!(failure.code, "swift_execution_memory_minimum");
+    assert_eq!(
+        failure.after_cleanup.unwrap().reservations.combined.current,
+        0
+    );
+    construction_hooks(ConstructionHooks {
+        bad_restore: true,
+        ..ConstructionHooks::default()
+    });
+    let pair = construction_adopt(SwiftRunBudget::default());
+    let (failure, stats) = measure(|| construct_failed(pair));
+    println!(
+        "REGRESSION_FAILED_RESTORE stats={stats:?} code={}",
+        failure.code
+    );
+    assert_eq!(failure.code, "swift_run_construction_phase_bound");
+    construction_hooks(ConstructionHooks::default());
 }

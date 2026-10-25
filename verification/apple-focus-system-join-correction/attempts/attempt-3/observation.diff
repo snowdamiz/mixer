@@ -1,0 +1,120 @@
+--- inputs/observation.py
++++ observation.py
+@@ -1,5 +1,6 @@
+ """Closed supplemental schema and exact host join. No runtime/transport imports."""
+ import copy, hashlib, json
++from dataclasses import dataclass
+ from decimal import Decimal
+ 
+ SCHEMA='mixer.apple-toggle.focus-system.1'
+@@ -99,17 +100,79 @@
+   else:require(scene['state']=='present' and token(scene['identity']) and token(scene['systemIdentity']),'scene-present')
+  if value['captureStatus']=='complete':
+   require(value['dropped']==0 and value['revision']==len(value['entries']),'complete-accounting')
+-  require(set(callback_refs)==set(context_by_seq),'complete-context-coverage')
++  require(callback_refs==list(context_by_seq),'complete-context-order')
+  else:
+   require(value['dropped']>0 and value['revision']>=len(value['entries']),'incomplete-accounting')
+   raise Incomplete(value['captureStatus'])
+  return value
+ 
+-def join(before,after,witness,binding,expected,original_verdict):
+- """Return supplemental-only status while preserving original verdict identity."""
+- receipt={'schema':'mixer.apple-toggle.focus-system-join.1','authoritative':False,'atomic':False,'nativePass':False,'captureStatus':'incomplete-invalid','binding':copy.deepcopy(expected)}
+- original_bytes=encoded(original_verdict)
++SELECTED_ACTION='v7-first-tab'
++RAW_INPUTS={
++ 'before':(16451,'82581f55bd299fb623d85a39fa726ee072bb54fb065164da6618fec63c2c9c3d'),
++ 'after':(21153,'160f124cb50b74006b7f6791c0aab6a683dab65a9ad9c193604569efcf2a7a9b'),
++ 'witness':(1816,'388655651136e672499be043e1188733ca6dd549af67f755185332a77b90d70e'),
++}
++@dataclass(frozen=True)
++class OriginalActionAnchor:
++ """Frozen V7 replay inputs, never authority to ingest a future runtime action."""
++ selection:str
++ before_packet_raw:bytes
++ after_packet_raw:bytes
++ witness_packet_raw:bytes
++
++def _original_action(anchor):
++ require(type(anchor) is OriginalActionAnchor and anchor.selection==SELECTED_ACTION,'original-action-selection')
++ packets={}
++ for role,(size,digest) in RAW_INPUTS.items():
++  raw=getattr(anchor,role+'_packet_raw')
++  require(type(raw) is bytes and len(raw)==size and hashlib.sha256(raw).hexdigest()==digest,'original-action-raw-'+role)
++  packets[role]=loads(raw)
++ action=packets['witness']['binding']
++ require(type(action['case']) is str and action['case']=='keyboard-enabled-off' and type(action['generation']) is int and action['generation']==1 and type(action['actionIndex']) is int and action['actionIndex']==1,'selected-action-identity')
++ return packets
++
++def select_original_action(selection,before_packet_raw,after_packet_raw,witness_packet_raw):
++ """Verify the closed, independently pinned raw packet digests before joining.
++
++ No candidate observation or candidate-supplied expected fingerprint participates
++ in selection. A later native packet needs a separately reviewed selection.
++ Invalid selection raises Incomplete and cannot produce a complete join receipt.
++ """
++ anchor=OriginalActionAnchor(selection,before_packet_raw,after_packet_raw,witness_packet_raw)
++ _original_action(anchor)
++ return anchor
++
++def same_json(left,right):
++ """Exact JSON values, nested types and Decimal spellings; no float coercion."""
++ if type(left) is not type(right):return False
++ if type(right) is dict:
++  return left.keys()==right.keys() and all(same_json(left[k],right[k]) for k in right)
++ if type(right) is list:
++  return len(left)==len(right) and all(same_json(a,b) for a,b in zip(left,right))
++ if type(right) is Decimal:return left.is_finite() and right.is_finite() and left.as_tuple()==right.as_tuple()
++ return type(right) in (str,int,bool,type(None)) and left==right
++
++def without_diagnostic(value):
++ require(type(value) is dict,'original-observation-type')
++ return {k:v for k,v in value.items() if k!='focusSystemDiagnostic'}
++
++def join(before,after,witness,binding,anchor,original_verdict):
++ """Frozen V7 supplemental replay only; preserve the original verdict identity."""
++ receipt={'schema':'mixer.apple-toggle.focus-system-join.1','scope':'frozen-v7-replay-only','authoritative':False,'atomic':False,'nativePass':False,'captureStatus':'incomplete-invalid','binding':None}
++ original_bytes=None
+  try:
++  original_bytes=encoded(original_verdict)
++  packets=_original_action(anchor)
++  original_witness=packets['witness']['witness'];original_binding=packets['witness']['binding']
++  expected={k:original_binding[k] for k in ('case','generation','actionIndex')}
++  receipt['binding']=copy.deepcopy(expected)
++  require(same_json(without_diagnostic(before),packets['before']['observation']),'original-before-observation')
++  require(same_json(without_diagnostic(after),packets['after']['observation']),'original-after-observation')
++  require(same_json(witness,original_witness),'original-witness')
++  require(same_json(binding,original_binding),'original-binding')
++  require(same_json(original_verdict['keyboardWitness'],witness),'verdict-witness-consistency')
++  require(same_json(original_verdict['keyboardBinding'],binding),'verdict-binding-consistency')
++  require(same_json(original_verdict,packets['after']['verdict']),'original-verdict')
+   keys(binding,'case generation actionIndex baselineUptime evaluatedUptime')
+   keys(expected,'case generation actionIndex')
+   require(token(binding['case']) and integer(binding['generation'],1) and integer(binding['actionIndex'],1),'binding-types')
+@@ -122,20 +185,20 @@
+   require(witness['phase'] in phase_keys and witness['key']==phase_keys[witness['phase']],'original-key-phase')
+   times=[binding['baselineUptime'],witness['before']['uptime'],witness['startedUptime'],witness['finishedUptime'],witness['after']['uptime'],binding['evaluatedUptime']]
+   require(all(number(v) for v in times) and times[0]<=times[1]<=times[2]<times[3]<=times[4]<=times[5] and times[4]-times[1]<=12,'original-witness-time')
+-  # No replacement AX result can enter this adapter; immutable witness bytes are bound.
++  # Every original endpoint and full witness/binding now matches pinned packets.
+   left=validate(before['focusSystemDiagnostic'],before['focusContexts'])
+   right=validate(after['focusSystemDiagnostic'],after['focusContexts'])
+   require(all(type(x['focusContextDropped']) is int and x['focusContextDropped']==0 and type(x['focusContextRevision']) is int and x['focusContextRevision']==len(x['focusContexts']) for x in [before,after]),'original-context-overflow')
+-  require(after['focusContexts'][:len(before['focusContexts'])]==before['focusContexts'],'original-context-prefix')
+-  require(right['entries'][:len(left['entries'])]==left['entries'],'entry-prefix')
++  require(same_json(after['focusContexts'][:len(before['focusContexts'])],before['focusContexts']),'original-context-prefix')
++  require(same_json(right['entries'][:len(left['entries'])],left['entries']),'entry-prefix')
+   require(not left['entries'] or left['entries'][-1]['finishedUptime']<=times[1],'before-boundary-time')
+   require(not right['entries'] or right['entries'][-1]['finishedUptime']<=times[5],'after-boundary-time')
+   delta=right['entries'][len(left['entries']):]
+-  receipt.update(captureStatus='complete',beforeEntryCount=len(left['entries']),afterEntryCount=len(right['entries']),newSequences=[r['sequence'] for r in delta],witnessSHA256=hashlib.sha256(encoded(witness)).hexdigest(),beforeDiagnosticSHA256=hashlib.sha256(encoded(left)).hexdigest(),afterDiagnosticSHA256=hashlib.sha256(encoded(right)).hexdigest(),originalVerdictSHA256=hashlib.sha256(original_bytes).hexdigest())
++  receipt.update(captureStatus='complete',selectedOriginalAction=anchor.selection,selectedPacketSHA256={role:digest for role,(_,digest) in RAW_INPUTS.items()},beforeEntryCount=len(left['entries']),afterEntryCount=len(right['entries']),newSequences=[r['sequence'] for r in delta],witnessSHA256=hashlib.sha256(encoded(witness)).hexdigest(),bindingSHA256=hashlib.sha256(encoded(binding)).hexdigest(),beforeObservationSHA256=hashlib.sha256(encoded(without_diagnostic(before))).hexdigest(),afterObservationSHA256=hashlib.sha256(encoded(without_diagnostic(after))).hexdigest(),beforeDiagnosticSHA256=hashlib.sha256(encoded(left)).hexdigest(),afterDiagnosticSHA256=hashlib.sha256(encoded(right)).hexdigest(),originalVerdictSHA256=hashlib.sha256(original_bytes).hexdigest())
+  except (Incomplete,KeyError,TypeError,ValueError,OverflowError,UnicodeError) as e:
+   reason=str(e)
+   receipt['captureStatus']='incomplete-'+(reason if token(reason) else 'malformed')
+- require(encoded(original_verdict)==original_bytes,'original-verdict-mutated')
++ if original_bytes is not None:require(encoded(original_verdict)==original_bytes,'original-verdict-mutated')
+  return {'supplemental':receipt,'originalVerdict':original_verdict}
+ 
+ class Buffer:

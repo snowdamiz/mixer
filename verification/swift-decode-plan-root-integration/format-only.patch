@@ -1,0 +1,94 @@
+--- tested/src/experimental_swift_reactor/cache_tests.rs
++++ integrated/src/experimental_swift_reactor/cache_tests.rs
+@@ -3759,17 +3759,41 @@
+ 
+ #[test]
+ fn plan_reuse_cached_deadline_and_precedence() {
+-    let bytes=fixture(0,&body(1,&[0,0x0e,1,0,0,0x0b]),100);
+-    for step in [CacheStep::Lookup,CacheStep::BuildReset,CacheStep::Build,CacheStep::Publication] {
+-        for cancel in [false,true] {
++    let bytes = fixture(0, &body(1, &[0, 0x0e, 1, 0, 0, 0x0b]), 100);
++    for step in [
++        CacheStep::Lookup,
++        CacheStep::BuildReset,
++        CacheStep::Build,
++        CacheStep::Publication,
++    ] {
++        for cancel in [false, true] {
+             hooks(Hooks::default());
+-            let (mut c,mut cache)=plan_reuse_seed(&bytes,SwiftRunBudget{cache_entries:1,deadline_ms:20,..SwiftRunBudget::default()});
+-            hooks(Hooks{pause:Some(step),cancel_pause:cancel,..Hooks::default()});
+-            let f=pin(&mut cache,&mut c,34,None).unwrap_err();hooks(Hooks::default());
+-            assert_eq!(f.kind,if cancel {SwiftRunFailureKind::Cancelled} else {SwiftRunFailureKind::Deadline});
+-            assert_eq!(c.usage(None).live.active_pins.current,0);
+-            plan_reuse_primary(f,pin(&mut cache,&mut c,34,None).unwrap_err());
+-            finish(cache,c);
++            let (mut c, mut cache) = plan_reuse_seed(
++                &bytes,
++                SwiftRunBudget {
++                    cache_entries: 1,
++                    deadline_ms: 20,
++                    ..SwiftRunBudget::default()
++                },
++            );
++            hooks(Hooks {
++                pause: Some(step),
++                cancel_pause: cancel,
++                ..Hooks::default()
++            });
++            let f = pin(&mut cache, &mut c, 34, None).unwrap_err();
++            hooks(Hooks::default());
++            assert_eq!(
++                f.kind,
++                if cancel {
++                    SwiftRunFailureKind::Cancelled
++                } else {
++                    SwiftRunFailureKind::Deadline
++                }
++            );
++            assert_eq!(c.usage(None).live.active_pins.current, 0);
++            plan_reuse_primary(f, pin(&mut cache, &mut c, 34, None).unwrap_err());
++            finish(cache, c);
+         }
+     }
+     println!("PLAN_CACHED_DEADLINE boundaries=4 precedence_pairs=4 cleanup_zero=true");
+@@ -3819,7 +3843,6 @@
+     println!("PLAN_PROFILE cleanup_zero=true guest_instructions=0 initializes=0 invokes=0");
+ }
+ 
+-
+ #[test]
+ fn full_regression_observe_cache_fixture_shapes() {
+     let bytes = fixture(0, &[0, 0x0b], 100);
+--- tested/src/experimental_swift_reactor/execution_tests.rs
++++ integrated/src/experimental_swift_reactor/execution_tests.rs
+@@ -837,7 +837,10 @@
+         construction_hooks(ConstructionHooks::default());
+         let pair = construction_adopt(budget);
+         let (failure, stats) = measure(|| construct_failed(pair));
+-        println!("REGRESSION_ADMISSION kind={kind:?} attempts={} expected={attempts}", stats.attempts);
++        println!(
++            "REGRESSION_ADMISSION kind={kind:?} attempts={} expected={attempts}",
++            stats.attempts
++        );
+         assert_eq!(failure.kind, kind);
+         assert_eq!(stats.attempts, attempts);
+         assert_eq!(stats.reallocations, 0);
+@@ -1381,7 +1384,6 @@
+     );
+ }
+ 
+-
+ #[test]
+ fn full_regression_observe_integrated_fixture_shapes() {
+     construction_hooks(ConstructionHooks::default());
+--- tested/src/experimental_swift_reactor/lifecycle_tests.rs
++++ integrated/src/experimental_swift_reactor/lifecycle_tests.rs
+@@ -2372,7 +2372,6 @@
+     retire(o);
+ }
+ 
+-
+ #[test]
+ fn full_regression_observe_lifecycle_fixture_work() {
+     let mut o = owner_with(

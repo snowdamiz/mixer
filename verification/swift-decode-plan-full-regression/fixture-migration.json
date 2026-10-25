@@ -1,0 +1,233 @@
+{
+  "firstAdmissionReplacementAlreadyObserved": {
+    "after": 9,
+    "before": 8,
+    "command": "original-swift-debug"
+  },
+  "measurementCommand": "fixture-observations",
+  "observationFormatting": [
+    {
+      "afterSHA256": "8eab2b087dab0b7ae9e82c2d200507f9f497b9b2c7bd72012787276a833b8f44",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustfmt",
+        "--edition",
+        "2021",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/fixtures/cache_tests.rs"
+      ],
+      "beforeSHA256": "66a14cc6f494989715d5a5ddfbf09871eebfa8981557c12c8957e83aea51fe2a",
+      "exitCode": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "afterSHA256": "20c099f0c8ecb386b9e43ea7ebfd5fa34d66a81b36ede994975b6cc18d4664d4",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustfmt",
+        "--edition",
+        "2021",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/fixtures/execution_tests.rs"
+      ],
+      "beforeSHA256": "3fe74887c7d4c646356dee875887bac43b65bf9e79fd4f55f7183c5e75ea13b2",
+      "exitCode": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "afterSHA256": "e262bba929642462d7f7ad847c668b6dd0b062a2156424b2a4d17896fa489a0e",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustfmt",
+        "--edition",
+        "2021",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/fixtures/lifecycle_tests.rs"
+      ],
+      "beforeSHA256": "5b2df12c087311ab5e0e1b0cd814156224c2380af6cc0ae5be89deb2474d3507",
+      "exitCode": 0,
+      "stderr": "",
+      "stdout": ""
+    }
+  ],
+  "replacements": [
+    {
+      "after": "assert_eq!(alloc.allocations, 5);",
+      "before": "assert_eq!(alloc.allocations, 4);",
+      "file": "cache_tests.rs",
+      "occurrences": 1
+    },
+    {
+      "after": "assert_eq!(s.allocations, 5);",
+      "before": "assert_eq!(s.allocations, 4);",
+      "file": "cache_tests.rs",
+      "occurrences": 1
+    },
+    {
+      "after": "        + 512 * size_of::<decode::Patch>()\n        + 192\n        + 28_672; // Measured 512 optional scan-plan cells, grouped under the header.",
+      "before": "        + 512 * size_of::<decode::Patch>()\n        + 192;",
+      "file": "cache_tests.rs",
+      "occurrences": 1
+    },
+    {
+      "after": "cache_header_bytes().unwrap() + expected - 192 - 28_672",
+      "before": "cache_header_bytes().unwrap() + expected - 192",
+      "file": "cache_tests.rs",
+      "occurrences": 1
+    },
+    {
+      "after": "assert_eq!(n, 5);",
+      "before": "assert_eq!(n, 4);",
+      "file": "cache_tests.rs",
+      "occurrences": 1
+    },
+    {
+      "after": "for ordinal in 0..5 {",
+      "before": "for ordinal in 0..4 {",
+      "file": "cache_tests.rs",
+      "occurrences": 1
+    },
+    {
+      "after": "        if ceiling == header + patch_bytes {\n            assert_eq!(stats.attempts, 3);",
+      "before": "        if ceiling == header + patch_bytes {\n            assert_eq!(stats.attempts, 2);",
+      "file": "cache_tests.rs",
+      "occurrences": 1
+    },
+    {
+      "after": "assert_eq!(c.usage(None).cache_work, 4_928);",
+      "before": "assert_eq!(c.usage(None).cache_work, 832);",
+      "file": "cache_tests.rs",
+      "occurrences": 1
+    },
+    {
+      "after": "\\\"constructorWork\\\":4928",
+      "before": "\\\"constructorWork\\\":832",
+      "file": "cache_tests.rs",
+      "occurrences": 1
+    },
+    {
+      "after": "assert_eq!(allocations.allocations, 15);",
+      "before": "assert_eq!(allocations.allocations, 14);",
+      "file": "execution_tests.rs",
+      "occurrences": 1
+    },
+    {
+      "after": "assert_eq!(cleanup.deallocations, 25); // 15 payloads + 10 adopted/foundation backing allocations.",
+      "before": "assert_eq!(cleanup.deallocations, 24); // 14 payloads + 10 adopted/foundation backing allocations.",
+      "file": "execution_tests.rs",
+      "occurrences": 1
+    },
+    {
+      "after": "for ordinal in 0..15 {",
+      "before": "for ordinal in 0..13 {",
+      "file": "execution_tests.rs",
+      "occurrences": 1
+    },
+    {
+      "after": "assert_eq!(stats.attempts, 10 + ordinal);",
+      "before": "assert_eq!(stats.attempts, 9 + ordinal);",
+      "file": "execution_tests.rs",
+      "occurrences": 1
+    },
+    {
+      "after": "assert_eq!(stats.allocations, 12);",
+      "before": "assert_eq!(stats.allocations, 11);",
+      "file": "execution_tests.rs",
+      "occurrences": 1
+    },
+    {
+      "after": "assert_eq!(stats.allocations, 9); // Cache and WASI only; no State allocation.",
+      "before": "assert_eq!(stats.allocations, 8); // Cache and WASI only; no State allocation.",
+      "file": "execution_tests.rs",
+      "occurrences": 1
+    },
+    {
+      "after": "            SwiftRunFailureKind::CombinedExhausted,\n            12,",
+      "before": "            SwiftRunFailureKind::CombinedExhausted,\n            11,",
+      "file": "execution_tests.rs",
+      "occurrences": 1
+    },
+    {
+      "after": "assert_eq!(stats.allocations, 15);",
+      "before": "assert_eq!(stats.allocations, 14);",
+      "file": "execution_tests.rs",
+      "occurrences": 1
+    },
+    {
+      "after": "assert_eq!(stats.deallocations, 25);",
+      "before": "assert_eq!(stats.deallocations, 24);",
+      "file": "execution_tests.rs",
+      "occurrences": 1
+    },
+    {
+      "after": "// Constructor writes 29 slots, 64 pin records, 512 patches, 192 index cells\n    // and eight charged semantic cells for each of 512 scan-plan entries.",
+      "before": "// Constructor writes 29 slots, 64 pin records, 512 patch entries and 192 index cells.",
+      "file": "lifecycle_tests.rs",
+      "occurrences": 1
+    },
+    {
+      "after": "assert_eq!(start.cache_work, 29 + 64 + 512 + 192 + 512 * 8);",
+      "before": "assert_eq!(start.cache_work, 29 + 64 + 512 + 192);",
+      "file": "lifecycle_tests.rs",
+      "occurrences": 1
+    },
+    {
+      "after": "// Cold cost adds 13 actual probe/publication credits to the original\n    // 108 + pin records + 2*encoded body bytes + 3*instructions.",
+      "before": "// Cold cost = 108 + pin records + 2*encoded body bytes + 3*instructions.",
+      "file": "lifecycle_tests.rs",
+      "occurrences": 1
+    },
+    {
+      "after": "108 + 1 + 2 * 14 + 3 * 6 + 13",
+      "before": "108 + 1 + 2 * 14 + 3 * 6",
+      "file": "lifecycle_tests.rs",
+      "occurrences": 1
+    },
+    {
+      "after": "assert_eq!(initialized.cache_work, 5_061);",
+      "before": "assert_eq!(initialized.cache_work, 952);",
+      "file": "lifecycle_tests.rs",
+      "occurrences": 1
+    },
+    {
+      "after": "(108 + 1 + 2 * 7 + 3 * 3 + 13) + (108 + 2 + 2 * 19 + 3 * 9 + 13)",
+      "before": "(108 + 1 + 2 * 7 + 3 * 3) + (108 + 2 + 2 * 19 + 3 * 9)",
+      "file": "lifecycle_tests.rs",
+      "occurrences": 1
+    },
+    {
+      "after": "assert_eq!(first.cache_work, 5_394);",
+      "before": "assert_eq!(first.cache_work, 1259);",
+      "file": "lifecycle_tests.rs",
+      "occurrences": 1
+    },
+    {
+      "after": "assert_eq!(second.cache_work, 5_411);",
+      "before": "assert_eq!(second.cache_work, 1276);",
+      "file": "lifecycle_tests.rs",
+      "occurrences": 1
+    },
+    {
+      "after": "// Constructor 4,893; cold no-op init B2/I1:108+1+4+3+13=129.\n    // Keep the synthetic limit exactly at completed initialization so the\n    // later invocation still fails without resetting cumulative work.",
+      "before": "// Constructor797; cold no-op init B2/I1:108+1+4+3=116.",
+      "file": "lifecycle_tests.rs",
+      "occurrences": 1
+    },
+    {
+      "after": "cache_work: 5_022,",
+      "before": "cache_work: 913,",
+      "file": "lifecycle_tests.rs",
+      "occurrences": 1
+    },
+    {
+      "after": "assert_eq!(observed(&o).cache_work, 5_022);",
+      "before": "assert_eq!(observed(&o).cache_work, 913);",
+      "file": "lifecycle_tests.rs",
+      "occurrences": 1
+    },
+    {
+      "after": "assert_eq!(f.at_failure.cache_work, 5_022);",
+      "before": "assert_eq!(f.at_failure.cache_work, 913);",
+      "file": "lifecycle_tests.rs",
+      "occurrences": 1
+    }
+  ],
+  "scope": "test-only measured corrections; all production bytes preserved",
+  "secondaryFailureCommand": "admission-next-original-failure"
+}

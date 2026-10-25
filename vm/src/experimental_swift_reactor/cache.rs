@@ -12,6 +12,35 @@ use std::mem::{size_of, take};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 const PATCH_CAPACITY: usize = 512;
+// Finite private prototype: direct-map counts, never resident IR or a proof.
+const PLAN_CAPACITY: usize = 512;
+const PLAN_CELL_CREDITS: u64 = 8; // tag + four identity fields + three Counts fields
+#[derive(Clone, Copy)]
+struct ScanPlan {
+    function: u32,
+    body_offset: usize,
+    body_len: usize,
+    type_index: u32,
+    counts: decode::Counts,
+}
+// These disjoint model fields conservatively cover named added locals, borrows,
+// reborrows, caller/return copies, reserve::<Option<ScanPlan>> monomorphization,
+// and the Option owner used by infallible publication. Three complete copies
+// are admitted alongside existing generic scan/build/phase inventories.
+struct PlanInventory {
+    cell: Option<ScanPlan>,
+    plan: ScanPlan,
+    borrowed: &'static ScanPlan,
+    slots: &'static mut [Option<ScanPlan>],
+    vec: &'static mut Vec<Option<ScanPlan>>,
+    reserve_receiver: &'static mut Vec<Option<ScanPlan>>,
+    reserve_control: &'static mut CacheControl<'static>,
+    index: usize,
+    bytes: usize,
+    counts: decode::Counts,
+    output: Result<decode::Counts, SwiftRunFailure>,
+    init: std::ops::Range<usize>,
+}
 const RESIDENT_BUCKETS: usize = 128;
 const RESIDENT_LINKS: usize = 64;
 const RESIDENT_INDEX_BYTES: usize = RESIDENT_BUCKETS + RESIDENT_LINKS;
@@ -19,6 +48,7 @@ const RESIDENT_INDEX_BYTES: usize = RESIDENT_BUCKETS + RESIDENT_LINKS;
 pub(crate) struct SwiftScratch<'a> {
     patches: &'a mut [decode::Patch],
     index: &'a mut [u8],
+    plans: &'a mut [Option<ScanPlan>],
 }
 // Original fixed hash. The key always remains the actual decoded slot value.
 fn resident_bucket(function: u32) -> usize {
@@ -244,6 +274,7 @@ pub(crate) struct SwiftFunctionCache {
     pins: Vec<PinRecord>,
     patches: Vec<decode::Patch>,
     index: Vec<u8>,
+    plans: Vec<Option<ScanPlan>>,
     buffers: [Option<ReservationTicket>; 3],
     header: Option<ReservationTicket>,
 }
@@ -283,6 +314,7 @@ struct Partial {
     pins: Vec<PinRecord>,
     patches: Vec<decode::Patch>,
     index: Vec<u8>,
+    plans: Vec<Option<ScanPlan>>,
     buffers: [Option<ReservationTicket>; 3],
     header: Option<ReservationTicket>,
 }
@@ -294,6 +326,7 @@ impl Partial {
             pins: Vec::new(),
             patches: Vec::new(),
             index: Vec::new(),
+            plans: Vec::new(),
             buffers: std::array::from_fn(|_| None),
             header: None,
         }
@@ -311,6 +344,7 @@ impl Partial {
         // The header admitted the index payload before its allocation. Keep it
         // charged while the entire Vec and every transfer are destroyed.
         drop(take(&mut self.index));
+        drop(take(&mut self.plans));
         if let Some(adopted) = self.adopted.take() {
             let observation = control.observation();
             let _ = control.control.drop_proof_with_wasi(adopted, observation);
@@ -1063,6 +1097,7 @@ const fn compute_cache_cleanup_temporary_bytes() -> Option<usize> {
         (4, size_of::<Vec<PinRecord>>()),
         (4, size_of::<Vec<decode::Patch>>()),
         (4, size_of::<Vec<u8>>()),
+        (4, size_of::<Vec<Option<ScanPlan>>>()),
         (3, size_of::<SwiftScratch<'static>>()),
         (6, size_of::<Option<ReservationTicket>>()),
         (6, size_of::<ReservationTicket>()),
@@ -1093,7 +1128,10 @@ const fn compute_cache_header_bytes() -> Option<usize> {
     let Some(header) = exclusive.checked_add(cleanup) else {
         return None;
     };
-    header.checked_add(RESIDENT_INDEX_BYTES)
+    let Some(header) = header.checked_add(RESIDENT_INDEX_BYTES) else {
+        return None;
+    };
+    header.checked_add(PLAN_CAPACITY * size_of::<Option<ScanPlan>>())
 }
 const fn compute_cache_construction_bytes() -> Option<usize> {
     sum_named!(&[
@@ -1147,6 +1185,8 @@ const fn compute_cache_construction_bytes() -> Option<usize> {
         (3, size_of::<Vec<PinRecord>>()),
         (3, size_of::<Vec<decode::Patch>>()),
         (3, size_of::<Vec<u8>>()),
+        (3, size_of::<Vec<Option<ScanPlan>>>()),
+        (3, size_of::<PlanInventory>()),
         (4, size_of::<Option<ReservationTicket>>()),
         (4, size_of::<ReservationTicket>()),
     ])
@@ -1168,6 +1208,7 @@ const fn compute_cache_operation_bytes() -> Option<usize> {
         ),
         (3, size_of::<OperationScalarInventory>()),
         (3, size_of::<ResidentIndexInventory>()),
+        (3, size_of::<PlanInventory>()),
         (3, size_of::<SwiftScratch<'static>>()),
         (3, size_of::<ResidentMatch>()),
         (3, size_of::<Option<ResidentMatch>>()),
@@ -1554,6 +1595,7 @@ impl SwiftFunctionCache {
                 scratch: SwiftScratch {
                     patches: &mut self.patches,
                     index: &mut self.index,
+                    plans: &mut self.plans,
                 },
             },
             pin,
@@ -1649,6 +1691,7 @@ impl SwiftFunctionCache {
         }
         // Destroy index payload before the header moves into its cleanup tail.
         drop(take(&mut cache.index));
+        drop(take(&mut cache.plans));
         let SwiftFunctionCache {
             adopted, header, ..
         } = cache;
@@ -1749,6 +1792,7 @@ impl CacheConstructionPhase<'_> {
                 pins: take(&mut partial.pins),
                 patches: take(&mut partial.patches),
                 index: take(&mut partial.index),
+                plans: take(&mut partial.plans),
                 buffers: std::mem::replace(&mut partial.buffers, std::array::from_fn(|_| None)),
                 header: partial.header.take(),
             }),
@@ -1824,6 +1868,12 @@ impl CacheConstructionPhase<'_> {
             self.control.work(1)?;
             partial.index.push(0);
         }
+        // Header includes the complete payload before this allocation begins.
+        reserve(&mut partial.plans, PLAN_CAPACITY, &mut self.control)?;
+        for _ in 0..PLAN_CAPACITY {
+            self.control.work(PLAN_CELL_CREDITS)?;
+            partial.plans.push(None);
+        }
         self.control.check()?;
         let owner = next_owner().map_err(|_| {
             self.control.error(
@@ -1889,6 +1939,7 @@ impl CacheOperationPhase<'_> {
                 scratch: SwiftScratch {
                     patches: &mut cache.patches,
                     index: &mut cache.index,
+                    plans: &mut cache.plans,
                 },
             },
             function,
@@ -2149,12 +2200,36 @@ impl CacheMode for SwiftMode {
         meter: &mut SwiftMeter<'_, '_>,
     ) -> Result<decode::Counts, SwiftRunFailure> {
         let policy = policy(snapshot, body, meter)?;
+        if scratch.plans.len() != PLAN_CAPACITY {
+            return Err(meter.error(CacheFailureKind::DecoderMismatch, "swift_plan_layout"));
+        }
+        meter.work(1)?; // requested identity hash, collision alone never authorizes
+        let index = body.absolute_index as usize & (PLAN_CAPACITY - 1);
+        meter.work(1)?; // actual Option tag probe
+        if let Some(plan) = &scratch.plans[index] {
+            meter.work(1)?; // actual function identity probe
+            if plan.function == body.absolute_index {
+                // Probe all three remaining immutable-identity cells, including
+                // malformed metadata. Do not short-circuit their accounting.
+                meter.work(3)?;
+                if plan.body_offset != body.body_offset
+                    || plan.body_len != body.body.len()
+                    || plan.type_index != body.type_index
+                {
+                    return Err(
+                        meter.error(CacheFailureKind::DecoderMismatch, "swift_plan_identity")
+                    );
+                }
+                meter.work(3)?; // actual three-field Counts copy; also checks stop
+                return Ok(plan.counts);
+            }
+        }
         meter.step(CacheStep::ScanReset);
         reset(scratch.patches, meter)?;
         meter.step(CacheStep::Scan);
         let mut depth = 0;
         let mut counts = decode::Counts::default();
-        decode::scan_borrowed(
+        let counts = decode::scan_borrowed(
             body.body,
             body.body_offset,
             &policy,
@@ -2165,7 +2240,18 @@ impl CacheMode for SwiftMode {
                 counts: &mut counts,
             },
             None,
-        )
+        )?;
+        // Successful complete scan is the only publishing source. All checks
+        // and charges precede the single infallible full-cell replacement.
+        meter.work(PLAN_CELL_CREDITS + 3)?;
+        scratch.plans[index] = Some(ScanPlan {
+            function: body.absolute_index,
+            body_offset: body.body_offset,
+            body_len: body.body.len(),
+            type_index: body.type_index,
+            counts,
+        });
+        Ok(counts)
     }
     fn build(
         snapshot: &ValidatedSwiftReactor,
@@ -2452,6 +2538,7 @@ pub(super) mod inspection {
             &mut SwiftScratch {
                 patches: &mut cache.patches,
                 index: &mut cache.index,
+                plans: &mut cache.plans,
             },
             &mut meter,
         )
@@ -2463,6 +2550,7 @@ pub(super) mod inspection {
             &mut SwiftScratch {
                 patches: &mut cache.patches,
                 index: &mut cache.index,
+                plans: &mut cache.plans,
             },
             &mut meter,
         );
@@ -4698,5 +4786,64 @@ pub(super) mod inspection {
             cache_operation_bytes().unwrap(),
             foundation_construction_bytes().unwrap()
         );
+    }
+}
+
+#[cfg(test)]
+pub(super) mod plan_inspection {
+    use super::*;
+    pub fn shape() -> (usize, usize, usize, usize, usize, usize) {
+        (
+            size_of::<Option<ScanPlan>>(),
+            PLAN_CAPACITY * size_of::<Option<ScanPlan>>(),
+            size_of::<PlanInventory>(),
+            cache_header_bytes().unwrap(),
+            cache_construction_bytes().unwrap(),
+            cache_operation_bytes().unwrap(),
+        )
+    }
+    pub fn tail_usage(tail: &CacheCleanupTail<'_>) -> SwiftRunUsage {
+        tail.control.usage(None)
+    }
+    pub fn summary(
+        cache: &SwiftFunctionCache,
+        f: u32,
+    ) -> Option<(u32, usize, usize, u32, decode::Counts)> {
+        cache.plans[f as usize & (PLAN_CAPACITY - 1)].map(|p| {
+            (
+                p.function,
+                p.body_offset,
+                p.body_len,
+                p.type_index,
+                p.counts,
+            )
+        })
+    }
+    pub fn count(cache: &SwiftFunctionCache) -> usize {
+        cache.plans.iter().filter(|x| x.is_some()).count()
+    }
+    pub fn key(cache: &SwiftFunctionCache, f: u32) -> Option<u32> {
+        cache.plans[f as usize & (PLAN_CAPACITY - 1)]
+            .as_ref()
+            .map(|p| p.function)
+    }
+    pub fn corrupt(cache: &mut SwiftFunctionCache, f: u32, field: usize) {
+        let p = cache.plans[f as usize & (PLAN_CAPACITY - 1)]
+            .as_mut()
+            .unwrap();
+        match field {
+            0 => p.body_offset += 1,
+            1 => p.body_len += 1,
+            2 => p.type_index += 1,
+            3 => p.counts = p.counts.test_changed_instructions(),
+            _ => panic!("field"),
+        }
+    }
+    pub fn states(cache: &SwiftFunctionCache) -> Vec<(u32, usize, u64)> {
+        cache
+            .slots
+            .iter()
+            .filter_map(|s| s.entry().map(|e| (e.function, s.pins, s.last_used)))
+            .collect()
     }
 }

@@ -1,0 +1,234 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/source)
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.96s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/mixer_vm-95ee88dfdc701212)
+
+thread 'capability_ffi::session::tests::poisoned_ledger_pins_capacity_without_fabricated_ack' (62661895) panicked at src/capability_ffi/../../tests/capability_ffi/ledger.rs:207:9:
+native ledger poison fixture
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'capability_ffi::session::tests::uncommitted_take_and_unwind_latches_cannot_be_cleared_by_success' (62661898) panicked at src/capability_ffi/../../tests/capability_ffi/ledger.rs:165:9:
+original native operation unwind
+
+thread 'experimental_capability::tests::poisoned_mutex_rejects_reuse_instead_of_recovering_untrusted_state' (62661920) panicked at src/experimental_capability/tests.rs:184:9:
+test mailbox poison
+
+thread 'experimental_capability_guest::tests::poison_is_terminal_and_ack_failure_is_not_called_reclamation' (62661923) panicked at src/experimental_capability/guest.rs:163:13:
+original mailbox poison fixture
+
+thread 'experimental_capability_guest::tests::unfinished_turn_guard_preserves_original_unwind_and_ackable_lease' (62661927) panicked at src/experimental_capability_guest/mod.rs:794:13:
+original guest unwind payload
+
+thread 'experimental_swift_reactor::allocation_tests::unwinding_clears_the_observer_and_fault' (62661931) panicked at src/experimental_swift_reactor/allocation_tests.rs:187:47:
+unit observer reset probe
+
+thread 'experimental_swift_reactor::cache_tests::foreign_stale_nonce_and_control_ownership' (62662261) panicked at src/experimental_swift_reactor/cache_tests.rs:2404:53:
+owner test scope unwind
+
+thread 'experimental_swift_reactor::execution::frame_operations::call_dispatch::tests::swift_dispatch_cd01_missing_control_outside_admitted_construction' (62663180) panicked at src/experimental_swift_reactor/memory_growth_operations.rs:283:40:
+constructed control
+
+thread 'experimental_swift_reactor::execution::frame_operations::call_dispatch::tests::swift_dispatch_cd18_fixture_unwind_restores_original_hook_owners' (62663508) panicked at src/experimental_swift_reactor/call_dispatch_tests.rs:2032:17:
+fixture-only unwind after admitted run
+
+thread 'ffi::tests::panic_is_contained' (62667637) panicked at src/ffi.rs:385:42:
+test contained panic
+
+thread 'session::tests::panic_poison_prevents_state_reuse_without_poisoning_registry' (62667642) panicked at src/session.rs:698:17:
+test panic during a session operation
+
+thread 'session::tests::unwound_creation_releases_unpublished_reservation' (62667643) panicked at src/session.rs:726:17:
+test creation failure before publication
+     Running unittests src/main.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/mixer_vm-aae464d3e44776d9)
+     Running tests/capability_ffi_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/capability_ffi_allocations-20af44f704f0d7e2)
+     Running tests/capability_ffi_public.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/capability_ffi_public-c1bbd371b3542640)
+     Running tests/capability_registry.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/capability_registry-f7c9ae501fb725a3)
+     Running tests/cli.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/cli-52f79f55d325aa2a)
+     Running tests/differential.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/differential-becae80968a79f71)
+     Running tests/experimental_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/experimental_allocations-f60252224adf6199)
+     Running tests/experimental_capability_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/experimental_capability_allocations-ae6689e2b47c2ce1)
+     Running tests/experimental_capability_guest.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/experimental_capability_guest-3463515d0a2068d8)
+     Running tests/experimental_capability_guest_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/experimental_capability_guest_allocations-55e85158d879a6cc)
+     Running tests/experimental_capability_mailbox.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/experimental_capability_mailbox-d00c6de0b4664eef)
+     Running tests/experimental_guest_ui_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/experimental_guest_ui_allocations-b9d2cd0947bd67d9)
+     Running tests/experimental_guest_ui_validation.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/experimental_guest_ui_validation-158ce3b448cc7ab6)
+     Running tests/experimental_oracle.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/experimental_oracle-982f120c359f10d5)
+     Running tests/experimental_stream.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/experimental_stream-3f554bcf73d51d70)
+     Running tests/float.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/float-f78d1002524d0cb8)
+     Running tests/float_differential.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/float_differential-437c96f6f2e2fdd7)
+     Running tests/interpreter.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/interpreter-d5fb6d84aa4c5615)
+     Running tests/review_boundaries.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/review_boundaries-bf3eca12645262ae)
+     Running tests/review_session_lifetime.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/review_session_lifetime-74dbba5d0a3203ce)
+     Running tests/sessions.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/sessions-d54801a11e739ffb)
+     Running tests/span_control_extraction.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/span_control_extraction-b851686f03d14845)
+     Running tests/span_execution.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/span_execution-013f8a26400098ca)
+     Running tests/span_execution_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/span_execution_allocations-86e353393aa05795)
+     Running tests/span_execution_oracle.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/span_execution_oracle-fd09f5144aa95d6b)
+     Running tests/span_function_cache.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/span_function_cache-1cce01087349a039)
+     Running tests/span_function_cache_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/span_function_cache_allocations-6732b29e0a719ce4)
+     Running tests/span_numeric_extraction.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/span_numeric_extraction-2143c40368259d71)
+     Running tests/swift_reactor_validation.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/swift_reactor_validation-e03b1dc0d3eb66d5)
+     Running tests/swift_reactor_validation_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/swift_reactor_validation_allocations-5a048ab1de41c2e4)
+     Running tests/swift_reactor_validation_fixture.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/swift_reactor_validation_fixture-64503d6f28421694)
+     Running tests/swift_wasi.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/swift_wasi-131e2b42d419ab75)
+     Running tests/swift_wasi_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/swift_wasi_allocations-c80549cea9bb8b99)
+     Running tests/table_memory.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/table_memory-cdfa55c02a615b21)
+     Running tests/table_memory_differential.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-full-regression/owned-scratch/full-debug/debug/deps/table_memory_differential-2e100dad25687b17)
+   Doc-tests mixer_vm
+error[E0502]: cannot borrow `cache` as mutable because it is also borrowed as immutable
+   --> src/experimental/cache/mod.rs:223:13
+    |
+222 | let view = cache.view(&pin).unwrap();
+    |            ----- immutable borrow occurs here
+223 | let other = cache.pin(0, &cancel).unwrap();
+    |             ^^^^^^^^^^^^^^^^^^^^^ mutable borrow occurs here
+224 | println!("{}", view.instructions.len());
+    |                ----------------- immutable borrow later used here
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0502`.
+error[E0594]: cannot assign to data in a `&` reference
+  --> src/experimental/execution/mod.rs:14:42
+   |
+14 | fn modify(instance: &mut SpanInstance) { instance.memory()[0] = 1; }
+   |                                          ^^^^^^^^^^^^^^^^^^^^^^^^ cannot assign
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0594`.
+error[E0599]: no method named `pin` found for struct `CacheUsage` in the current scope
+  --> src/experimental/execution/mod.rs:18:71
+   |
+18 | fn take(instance: &mut SpanInstance) { let _ = instance.cache_usage().pin(0); }
+   |                                                                       ^^^ method not found in `CacheUsage`
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0599`.
+error[E0308]: mismatched types
+   --> src/experimental/execution/mod.rs:9:27
+    |
+  9 | let _ = SpanInstance::new(b"\0asm\x01\0\0\0", ExecutionBudget::default(), Cancellation::default());
+    |         ----------------- ^^^^^^^^^^^^^^^^^^ expected `FunctionCache`, found `&[u8; 8]`
+    |         |
+    |         arguments to this function are incorrect
+    |
+note: associated function defined here
+   --> src/experimental/execution/mod.rs:190:12
+    |
+190 |     pub fn new(
+    |            ^^^
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0308`.
+error[E0505]: cannot move out of `proof` because it is borrowed
+   --> src/experimental/mod.rs:116:6
+    |
+113 | let proof = validate_spans(b"\0asm\x01\0\0\0", Limits::default(),
+    |     ----- binding `proof` declared here
+114 |     ValidationBudget::default(), &Cancellation::default()).unwrap();
+115 | let bytes = proof.source();
+    |             ----- borrow of `proof` occurs here
+116 | drop(proof);
+    |      ^^^^^ move out of `proof` occurs here
+117 | println!("{}", bytes.len());
+    |                ----- borrow later used here
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0505`.
+error[E0594]: cannot assign to data in a `&` reference
+   --> src/experimental/mod.rs:125:1
+    |
+125 | proof.source()[0] = 1;
+    | ^^^^^^^^^^^^^^^^^^^^^ cannot assign
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0594`.
+error: cannot construct `ValidatedSwiftReactor` with struct literal syntax due to private fields
+   --> src/experimental/swift.rs:122:13
+    |
+122 | let proof = ValidatedSwiftReactor {};
+    |             ^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 1 previous error
+
+error[E0308]: mismatched types
+   --> src/experimental/swift.rs:129:59
+    |
+129 | fn forbidden(proof: ValidatedSwiftReactor) { needs_legacy(proof); }
+    |                                              ------------ ^^^^^ expected `ValidatedSpans`, found `ValidatedSwiftReactor`
+    |                                              |
+    |                                              arguments to this function are incorrect
+    |
+note: function defined here
+   --> src/experimental/swift.rs:128:4
+    |
+128 | fn needs_legacy(_: ValidatedSpans) {}
+    |    ^^^^^^^^^^^^ -----------------
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0308`.
+error[E0594]: cannot assign to data in a `&` reference
+   --> src/experimental/swift.rs:134:46
+    |
+134 | fn forbidden(proof: ValidatedSwiftReactor) { proof.source()[0] = 1; }
+    |                                              ^^^^^^^^^^^^^^^^^^^^^ cannot assign
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0594`.
+error[E0599]: no method named `clone` found for struct `ValidatedSwiftReactor` in the current scope
+   --> src/experimental/swift.rs:139:60
+    |
+139 | fn forbidden(proof: ValidatedSwiftReactor) { let _ = proof.clone(); }
+    |                                                            ^^^^^ method not found in `ValidatedSwiftReactor`
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0599`.
+error[E0515]: cannot return value referencing function parameter `proof`
+   --> src/experimental/swift.rs:144:63
+    |
+144 | fn forbidden(proof: ValidatedSwiftReactor) -> &'static [u8] { proof.source() }
+    |                                                               -----^^^^^^^^^
+    |                                                               |
+    |                                                               returns a value referencing data owned by the current function
+    |                                                               `proof` is borrowed here
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0515`.

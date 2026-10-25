@@ -1,0 +1,1480 @@
+{"exitCode": 0, "durationSeconds": 4.370481082936749, "executedNamedTests": ["experimental_swift_reactor::cache_tests::independent_review_named_shapes_and_default_ceilings"], "passedTests": 1, "failedTests": 0, "qualifyingPass": true, "ownedGroupAbsent": true}
+
+running 1 test
+test experimental_swift_reactor::cache_tests::independent_review_named_shapes_and_default_ceilings ... REVIEW_LAYOUT candidate=false shapes=[1016, 904, 32, 96, 62576, 63120, 57752, 88294, 269424] limits=SwiftRunBudget { source_bytes: 67108864, metadata_bytes: 16777216, cache_bytes: 16777216, cache_entry_bytes: 8388608, cache_entries: 64, active_pins: 64, cache_work: 64000000, frames: 64, values: 16384, controls: 4096, memory_pages: 768, state_bytes: 134217728, combined_bytes: 268435456, instruction_fuel: 100000000, execution_work: 1000000000, host_calls: 32768, deadline_ms: 30000 }
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 410 filtered out; finished in 0.00s
+
+
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/baseline)
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.19s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/owned-scratch/baseline/debug/deps/mixer_vm-95ee88dfdc701212)
+
+{"exitCode": 0, "durationSeconds": 0.04077500000130385, "executedNamedTests": ["experimental_swift_reactor::cache_tests::independent_review_constructor_ordinals_and_consuming_zero"], "passedTests": 1, "failedTests": 0, "qualifyingPass": true, "ownedGroupAbsent": true}
+
+running 1 test
+test experimental_swift_reactor::cache_tests::independent_review_constructor_ordinals_and_consuming_zero ... REVIEW_CONSTRUCTOR ordinal=0 requested_size=8704 stats=AllocationStats { allocations: 1, reallocations: 0, deallocations: 7, allocated_bytes: 8704, freed_bytes: 4603, last_size: 8704, last_align: 8, attempts: 1, injected_failures: 1 } zero=true
+REVIEW_CONSTRUCTOR ordinal=1 requested_size=1024 stats=AllocationStats { allocations: 2, reallocations: 0, deallocations: 8, allocated_bytes: 9728, freed_bytes: 13307, last_size: 1024, last_align: 8, attempts: 2, injected_failures: 1 } zero=true
+REVIEW_CONSTRUCTOR ordinal=2 requested_size=16384 stats=AllocationStats { allocations: 3, reallocations: 0, deallocations: 9, allocated_bytes: 26112, freed_bytes: 14331, last_size: 16384, last_align: 8, attempts: 3, injected_failures: 1 } zero=true
+REVIEW_CONSTRUCTOR ordinal=3 requested_size=192 stats=AllocationStats { allocations: 4, reallocations: 0, deallocations: 10, allocated_bytes: 26304, freed_bytes: 30715, last_size: 192, last_align: 1, attempts: 4, injected_failures: 1 } zero=true
+REVIEW_CONSTRUCTOR success allocations=4 fixed=89232 credits=832 cleanup_zero=true
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 410 filtered out; finished in 0.00s
+
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/owned-scratch/baseline/debug/deps/mixer_vm-95ee88dfdc701212)
+
+{"exitCode": 0, "durationSeconds": 0.04192916606552899, "executedNamedTests": ["experimental_swift_reactor::cache_tests::independent_review_cold_cached_collision_ir_and_work"], "passedTests": 1, "failedTests": 0, "qualifyingPass": true, "ownedGroupAbsent": true}
+
+running 1 test
+test experimental_swift_reactor::cache_tests::independent_review_cold_cached_collision_ir_and_work ... REVIEW_IR pass=0 operations=["Const(I32(7))", "Drop", "Block { kind: Block, result: None, end: 4, alternative: None }", "Nop", "End", "End"]
+REVIEW_PATH pass=0 function=34 scans=23 builds=41 credits=131
+REVIEW_PATH pass=1 function=35 scans=5 builds=16 credits=98
+REVIEW_IR pass=2 operations=["Const(I32(7))", "Drop", "Block { kind: Block, result: None, end: 4, alternative: None }", "Nop", "End", "End"]
+REVIEW_PATH pass=2 function=34 scans=23 builds=41 credits=141
+REVIEW_PATH pass=3 function=546 scans=5 builds=16 credits=98
+REVIEW_IR pass=4 operations=["Const(I32(7))", "Drop", "Block { kind: Block, result: None, end: 4, alternative: None }", "Nop", "End", "End"]
+REVIEW_PATH pass=4 function=34 scans=23 builds=41 credits=141
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 410 filtered out; finished in 0.00s
+
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/owned-scratch/baseline/debug/deps/mixer_vm-95ee88dfdc701212)
+
+{"exitCode": 0, "durationSeconds": 0.048728124937042594, "executedNamedTests": ["experimental_swift_reactor::cache_tests::independent_review_exact_phase_helper"], "passedTests": 1, "failedTests": 0, "qualifyingPass": true, "ownedGroupAbsent": true}
+
+running 1 test
+test experimental_swift_reactor::cache_tests::independent_review_exact_phase_helper ... REVIEW_EXACT_PHASE helper_invoked=true exact_and_minus_one=true
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 410 filtered out; finished in 0.00s
+
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/owned-scratch/baseline/debug/deps/mixer_vm-95ee88dfdc701212)
+
+{"exitCode": 0, "durationSeconds": 0.05030450003687292, "executedNamedTests": ["experimental_swift_reactor::cache_tests::independent_review_header_retained_through_return_storage"], "passedTests": 1, "failedTests": 0, "qualifyingPass": true, "ownedGroupAbsent": true}
+
+running 1 test
+test experimental_swift_reactor::cache_tests::independent_review_header_retained_through_return_storage ... REVIEW_HEADER retained=63120 freed=30907 incomplete_cleanup_not_zero=true
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 410 filtered out; finished in 0.00s
+
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/owned-scratch/baseline/debug/deps/mixer_vm-95ee88dfdc701212)
+
+{"exitCode": 0, "durationSeconds": 0.04168816702440381, "executedNamedTests": ["experimental::cache::tests::frozen_ir_parity_for_all_supported_opcode_shapes"], "passedTests": 1, "failedTests": 0, "qualifyingPass": true, "ownedGroupAbsent": true}
+
+running 1 test
+test experimental::cache::tests::frozen_ir_parity_for_all_supported_opcode_shapes ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 410 filtered out; finished in 0.00s
+
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/owned-scratch/baseline/debug/deps/mixer_vm-95ee88dfdc701212)
+
+{"exitCode": 0, "durationSeconds": 0.040169583982788026, "executedNamedTests": ["experimental::cache::tests::frozen_layout_and_trace_observation"], "passedTests": 1, "failedTests": 0, "qualifyingPass": true, "ownedGroupAbsent": true}
+es: 28, validation_metadata_bytes: 556, fixed_reserved: 912, resident_bytes: 40, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 40, peak_pinned_bytes: 40, peak_construction_bytes: 40, scratch_reserved: 0, peak_cache_reserved: 10264, peak_total_reserved: 10848, work_used: 86, active_pins: 0, hits: 0, misses: 2, decodes: 1, evictions: 0 } }
+eviction prefix 61 CacheFailure { kind: WorkExhausted, code: "cache_work", function: Some(1), offset: 27, attempted: 150, limit: 139, usage: CacheUsage { source_bytes: 28, validation_metadata_bytes: 556, fixed_reserved: 912, resident_bytes: 40, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 40, peak_pinned_bytes: 40, peak_construction_bytes: 40, scratch_reserved: 0, peak_cache_reserved: 10264, peak_total_reserved: 10848, work_used: 86, active_pins: 0, hits: 0, misses: 2, decodes: 1, evictions: 0 } }
+eviction prefix 62 CacheFailure { kind: WorkExhausted, code: "cache_work", function: Some(1), offset: 27, attempted: 150, limit: 140, usage: CacheUsage { source_bytes: 28, validation_metadata_bytes: 556, fixed_reserved: 912, resident_bytes: 40, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 40, peak_pinned_bytes: 40, peak_construction_bytes: 40, scratch_reserved: 0, peak_cache_reserved: 10264, peak_total_reserved: 10848, work_used: 86, active_pins: 0, hits: 0, misses: 2, decodes: 1, evictions: 0 } }
+eviction prefix 63 CacheFailure { kind: WorkExhausted, code: "cache_work", function: Some(1), offset: 27, attempted: 150, limit: 141, usage: CacheUsage { source_bytes: 28, validation_metadata_bytes: 556, fixed_reserved: 912, resident_bytes: 40, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 40, peak_pinned_bytes: 40, peak_construction_bytes: 40, scratch_reserved: 0, peak_cache_reserved: 10264, peak_total_reserved: 10848, work_used: 86, active_pins: 0, hits: 0, misses: 2, decodes: 1, evictions: 0 } }
+eviction prefix 64 CacheFailure { kind: WorkExhausted, code: "cache_work", function: Some(1), offset: 27, attempted: 150, limit: 142, usage: CacheUsage { source_bytes: 28, validation_metadata_bytes: 556, fixed_reserved: 912, resident_bytes: 40, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 40, peak_pinned_bytes: 40, peak_construction_bytes: 40, scratch_reserved: 0, peak_cache_reserved: 10264, peak_total_reserved: 10848, work_used: 86, active_pins: 0, hits: 0, misses: 2, decodes: 1, evictions: 0 } }
+eviction prefix 65 CacheFailure { kind: WorkExhausted, code: "cache_work", function: Some(1), offset: 27, attempted: 150, limit: 143, usage: CacheUsage { source_bytes: 28, validation_metadata_bytes: 556, fixed_reserved: 912, resident_bytes: 40, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 40, peak_pinned_bytes: 40, peak_construction_bytes: 40, scratch_reserved: 0, peak_cache_reserved: 10264, peak_total_reserved: 10848, work_used: 86, active_pins: 0, hits: 0, misses: 2, decodes: 1, evictions: 0 } }
+eviction prefix 66 CacheFailure { kind: WorkExhausted, code: "cache_work", function: Some(1), offset: 27, attempted: 150, limit: 144, usage: CacheUsage { source_bytes: 28, validation_metadata_bytes: 556, fixed_reserved: 912, resident_bytes: 40, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 40, peak_pinned_bytes: 40, peak_construction_bytes: 40, scratch_reserved: 0, peak_cache_reserved: 10264, peak_total_reserved: 10848, work_used: 86, active_pins: 0, hits: 0, misses: 2, decodes: 1, evictions: 0 } }
+eviction prefix 67 CacheFailure { kind: WorkExhausted, code: "cache_work", function: Some(1), offset: 27, attempted: 150, limit: 145, usage: CacheUsage { source_bytes: 28, validation_metadata_bytes: 556, fixed_reserved: 912, resident_bytes: 40, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 40, peak_pinned_bytes: 40, peak_construction_bytes: 40, scratch_reserved: 0, peak_cache_reserved: 10264, peak_total_reserved: 10848, work_used: 86, active_pins: 0, hits: 0, misses: 2, decodes: 1, evictions: 0 } }
+eviction prefix 68 CacheFailure { kind: WorkExhausted, code: "cache_work", function: Some(1), offset: 27, attempted: 150, limit: 146, usage: CacheUsage { source_bytes: 28, validation_metadata_bytes: 556, fixed_reserved: 912, resident_bytes: 40, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 40, peak_pinned_bytes: 40, peak_construction_bytes: 40, scratch_reserved: 0, peak_cache_reserved: 10264, peak_total_reserved: 10848, work_used: 86, active_pins: 0, hits: 0, misses: 2, decodes: 1, evictions: 0 } }
+eviction prefix 69 CacheFailure { kind: WorkExhausted, code: "cache_work", function: Some(1), offset: 27, attempted: 150, limit: 147, usage: CacheUsage { source_bytes: 28, validation_metadata_bytes: 556, fixed_reserved: 912, resident_bytes: 40, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 40, peak_pinned_bytes: 40, peak_construction_bytes: 40, scratch_reserved: 0, peak_cache_reserved: 10264, peak_total_reserved: 10848, work_used: 86, active_pins: 0, hits: 0, misses: 2, decodes: 1, evictions: 0 } }
+eviction prefix 70 CacheFailure { kind: WorkExhausted, code: "cache_work", function: Some(1), offset: 27, attempted: 150, limit: 148, usage: CacheUsage { source_bytes: 28, validation_metadata_bytes: 556, fixed_reserved: 912, resident_bytes: 40, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 40, peak_pinned_bytes: 40, peak_construction_bytes: 40, scratch_reserved: 0, peak_cache_reserved: 10264, peak_total_reserved: 10848, work_used: 86, active_pins: 0, hits: 0, misses: 2, decodes: 1, evictions: 0 } }
+eviction prefix 71 CacheFailure { kind: WorkExhausted, code: "cache_work", function: Some(1), offset: 27, attempted: 150, limit: 149, usage: CacheUsage { source_bytes: 28, validation_metadata_bytes: 556, fixed_reserved: 912, resident_bytes: 40, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 40, peak_pinned_bytes: 40, peak_construction_bytes: 40, scratch_reserved: 0, peak_cache_reserved: 10264, peak_total_reserved: 10848, work_used: 86, active_pins: 0, hits: 0, misses: 2, decodes: 1, evictions: 0 } }
+eviction prefix 72 CacheFailure { kind: WorkExhausted, code: "cache_work", function: Some(1), offset: 26, attempted: 151, limit: 150, usage: CacheUsage { source_bytes: 28, validation_metadata_bytes: 556, fixed_reserved: 912, resident_bytes: 0, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 40, peak_pinned_bytes: 40, peak_construction_bytes: 40, scratch_reserved: 0, peak_cache_reserved: 10264, peak_total_reserved: 10848, work_used: 150, active_pins: 0, hits: 0, misses: 2, decodes: 1, evictions: 1 } }
+eviction prefix 73 CacheFailure { kind: WorkExhausted, code: "cache_work", function: Some(1), offset: 27, attempted: 152, limit: 151, usage: CacheUsage { source_bytes: 28, validation_metadata_bytes: 556, fixed_reserved: 912, resident_bytes: 0, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 40, peak_pinned_bytes: 40, peak_construction_bytes: 40, scratch_reserved: 0, peak_cache_reserved: 10264, peak_total_reserved: 10848, work_used: 151, active_pins: 0, hits: 0, misses: 2, decodes: 1, evictions: 1 } }
+eviction prefix 74 CacheFailure { kind: WorkExhausted, code: "cache_work", function: Some(1), offset: 27, attempted: 153, limit: 152, usage: CacheUsage { source_bytes: 28, validation_metadata_bytes: 556, fixed_reserved: 912, resident_bytes: 0, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 40, peak_pinned_bytes: 40, peak_construction_bytes: 40, scratch_reserved: 0, peak_cache_reserved: 10264, peak_total_reserved: 10848, work_used: 152, active_pins: 0, hits: 0, misses: 2, decodes: 1, evictions: 1 } }
+eviction prefix 75 CacheFailure { kind: WorkExhausted, code: "cache_work", function: Some(1), offset: 27, attempted: 154, limit: 153, usage: CacheUsage { source_bytes: 28, validation_metadata_bytes: 556, fixed_reserved: 912, resident_bytes: 0, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 40, peak_pinned_bytes: 40, peak_construction_bytes: 40, scratch_reserved: 0, peak_cache_reserved: 10264, peak_total_reserved: 10848, work_used: 153, active_pins: 0, hits: 0, misses: 2, decodes: 1, evictions: 1 } }
+allocation new AllocationStats { allocations: 2, reallocations: 0, deallocations: 0, allocated_bytes: 1136, freed_bytes: 0, last_size: 1024, last_align: 8, attempts: 2, injected_failures: 0 }
+allocation miss AllocationStats { allocations: 2, reallocations: 0, deallocations: 0, allocated_bytes: 121, freed_bytes: 0, last_size: 120, last_align: 8, attempts: 2, injected_failures: 0 }
+allocation hit AllocationStats { allocations: 0, reallocations: 0, deallocations: 0, allocated_bytes: 0, freed_bytes: 0, last_size: 0, last_align: 0, attempts: 0, injected_failures: 0 }
+allocation release AllocationStats { allocations: 0, reallocations: 0, deallocations: 0, allocated_bytes: 0, freed_bytes: 0, last_size: 0, last_align: 0, attempts: 0, injected_failures: 0 }
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 410 filtered out; finished in 0.00s
+
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/owned-scratch/baseline/debug/deps/mixer_vm-95ee88dfdc701212)
+
+{"exitCode": 0, "durationSeconds": 0.041324208956211805, "executedNamedTests": ["experimental::cache::tests::frozen_borrowed_transients_fit_existing_scratch"], "passedTests": 1, "failedTests": 0, "qualifyingPass": true, "ownedGroupAbsent": true}
+
+running 1 test
+test experimental::cache::tests::frozen_borrowed_transients_fit_existing_scratch ... legacy named simultaneous conservative=8032 unchanged_scratch=9312
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 410 filtered out; finished in 0.00s
+
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/owned-scratch/baseline/debug/deps/mixer_vm-95ee88dfdc701212)
+
+{"exitCode": 0, "durationSeconds": 0.16554279206320643, "executedNamedTests": ["experimental_swift_reactor::cache_tests::plan_reuse_profile_envelopes_without_guest_execution"], "passedTests": 1, "failedTests": 0, "qualifyingPass": true, "ownedGroupAbsent": true}
+
+running 1 test
+test experimental_swift_reactor::cache_tests::plan_reuse_profile_envelopes_without_guest_execution ... PLAN_PROFILE floor=269424 execution_header=11695392 execution_construction=1072912 frame_operation=31278808 category_ceiling_sum=234881024 wasi_max=264456 shared=1744 conservative_combined=266783750 combined_limit=268435456 constructed_current=51369571 constructed_peak=53515395 resident_current=51372171 resident_peak=53515395 frame_peak=82650979 tickets=85/85
+PLAN_PROFILE cleanup_zero=true guest_instructions=0 initializes=0 invokes=0
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 410 filtered out; finished in 0.13s
+
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/owned-scratch/baseline/debug/deps/mixer_vm-95ee88dfdc701212)
+
+{"exitCode": 0, "durationSeconds": 4.443955083028413, "executedNamedTests": ["experimental_swift_reactor::cache_tests::independent_review_named_shapes_and_default_ceilings"], "passedTests": 1, "failedTests": 0, "qualifyingPass": true, "ownedGroupAbsent": true}
+
+running 1 test
+test experimental_swift_reactor::cache_tests::independent_review_named_shapes_and_default_ceilings ... REVIEW_LAYOUT candidate=true shapes=[1040, 928, 48, 112, 62888, 92128, 61880, 92350, 269616] limits=SwiftRunBudget { source_bytes: 67108864, metadata_bytes: 16777216, cache_bytes: 16777216, cache_entry_bytes: 8388608, cache_entries: 64, active_pins: 64, cache_work: 64000000, frames: 64, values: 16384, controls: 4096, memory_pages: 768, state_bytes: 134217728, combined_bytes: 268435456, instruction_fuel: 100000000, execution_work: 1000000000, host_calls: 32768, deadline_ms: 30000 }
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 421 filtered out; finished in 0.00s
+
+
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/candidate)
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.29s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/owned-scratch/candidate/debug/deps/mixer_vm-95ee88dfdc701212)
+
+{"exitCode": 0, "durationSeconds": 0.04271462501492351, "executedNamedTests": ["experimental_swift_reactor::cache_tests::independent_review_constructor_ordinals_and_consuming_zero"], "passedTests": 1, "failedTests": 0, "qualifyingPass": true, "ownedGroupAbsent": true}
+
+running 1 test
+test experimental_swift_reactor::cache_tests::independent_review_constructor_ordinals_and_consuming_zero ... REVIEW_CONSTRUCTOR ordinal=0 requested_size=8704 stats=AllocationStats { allocations: 1, reallocations: 0, deallocations: 7, allocated_bytes: 8704, freed_bytes: 4603, last_size: 8704, last_align: 8, attempts: 1, injected_failures: 1 } zero=true
+REVIEW_CONSTRUCTOR ordinal=1 requested_size=1024 stats=AllocationStats { allocations: 2, reallocations: 0, deallocations: 8, allocated_bytes: 9728, freed_bytes: 13307, last_size: 1024, last_align: 8, attempts: 2, injected_failures: 1 } zero=true
+REVIEW_CONSTRUCTOR ordinal=2 requested_size=16384 stats=AllocationStats { allocations: 3, reallocations: 0, deallocations: 9, allocated_bytes: 26112, freed_bytes: 14331, last_size: 16384, last_align: 8, attempts: 3, injected_failures: 1 } zero=true
+REVIEW_CONSTRUCTOR ordinal=3 requested_size=192 stats=AllocationStats { allocations: 4, reallocations: 0, deallocations: 10, allocated_bytes: 26304, freed_bytes: 30715, last_size: 192, last_align: 1, attempts: 4, injected_failures: 1 } zero=true
+REVIEW_CONSTRUCTOR ordinal=4 requested_size=28672 stats=AllocationStats { allocations: 5, reallocations: 0, deallocations: 11, allocated_bytes: 54976, freed_bytes: 30907, last_size: 28672, last_align: 8, attempts: 5, injected_failures: 1 } zero=true
+REVIEW_CONSTRUCTOR success allocations=5 fixed=118240 credits=4928 cleanup_zero=true
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 421 filtered out; finished in 0.00s
+
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/owned-scratch/candidate/debug/deps/mixer_vm-95ee88dfdc701212)
+
+{"exitCode": 0, "durationSeconds": 0.04008487507235259, "executedNamedTests": ["experimental_swift_reactor::cache_tests::independent_review_cold_cached_collision_ir_and_work"], "passedTests": 1, "failedTests": 0, "qualifyingPass": true, "ownedGroupAbsent": true}
+
+running 1 test
+test experimental_swift_reactor::cache_tests::independent_review_cold_cached_collision_ir_and_work ... REVIEW_IR pass=0 operations=["Const(I32(7))", "Drop", "Block { kind: Block, result: None, end: 4, alternative: None }", "Nop", "End", "End"]
+REVIEW_PATH pass=0 function=34 scans=24 builds=41 credits=144
+REVIEW_PATH pass=1 function=35 scans=6 builds=16 credits=111
+REVIEW_IR pass=2 operations=["Const(I32(7))", "Drop", "Block { kind: Block, result: None, end: 4, alternative: None }", "Nop", "End", "End"]
+REVIEW_PATH pass=2 function=34 scans=0 builds=41 credits=128
+REVIEW_PATH pass=3 function=546 scans=6 builds=16 credits=112
+REVIEW_IR pass=4 operations=["Const(I32(7))", "Drop", "Block { kind: Block, result: None, end: 4, alternative: None }", "Nop", "End", "End"]
+REVIEW_PATH pass=4 function=34 scans=24 builds=41 credits=155
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 421 filtered out; finished in 0.00s
+
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/owned-scratch/candidate/debug/deps/mixer_vm-95ee88dfdc701212)
+
+{"exitCode": 0, "durationSeconds": 0.07483337505254894, "executedNamedTests": ["experimental_swift_reactor::cache_tests::independent_review_exact_phase_helper"], "passedTests": 1, "failedTests": 0, "qualifyingPass": true, "ownedGroupAbsent": true}
+
+running 1 test
+test experimental_swift_reactor::cache_tests::independent_review_exact_phase_helper ... REVIEW_EXACT_PHASE helper_invoked=true exact_and_minus_one=true
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 421 filtered out; finished in 0.00s
+
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/owned-scratch/candidate/debug/deps/mixer_vm-95ee88dfdc701212)
+
+{"exitCode": 0, "durationSeconds": 0.039320999989286065, "executedNamedTests": ["experimental_swift_reactor::cache_tests::independent_review_header_retained_through_return_storage"], "passedTests": 1, "failedTests": 0, "qualifyingPass": true, "ownedGroupAbsent": true}
+
+running 1 test
+test experimental_swift_reactor::cache_tests::independent_review_header_retained_through_return_storage ... REVIEW_HEADER retained=92128 freed=59579 incomplete_cleanup_not_zero=true
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 421 filtered out; finished in 0.00s
+
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/owned-scratch/candidate/debug/deps/mixer_vm-95ee88dfdc701212)
+
+{"exitCode": 0, "durationSeconds": 0.03830904106143862, "executedNamedTests": ["experimental_swift_reactor::cache_tests::independent_review_plan_inventory_disjoint_layout"], "passedTests": 1, "failedTests": 0, "qualifyingPass": true, "ownedGroupAbsent": true}
+
+running 1 test
+test experimental_swift_reactor::cache_tests::independent_review_plan_inventory_disjoint_layout ... REVIEW_INVENTORY cell start=0 bytes=56
+REVIEW_INVENTORY output start=56 bytes=1096
+REVIEW_INVENTORY borrowed start=1152 bytes=8
+REVIEW_INVENTORY slots start=1160 bytes=16
+REVIEW_INVENTORY vec start=1176 bytes=8
+REVIEW_INVENTORY reserve_receiver start=1184 bytes=8
+REVIEW_INVENTORY reserve_control start=1192 bytes=8
+REVIEW_INVENTORY plan start=1200 bytes=48
+REVIEW_INVENTORY index start=1248 bytes=8
+REVIEW_INVENTORY bytes start=1256 bytes=8
+REVIEW_INVENTORY counts start=1264 bytes=24
+REVIEW_INVENTORY init start=1288 bytes=16
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 421 filtered out; finished in 0.00s
+
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/owned-scratch/candidate/debug/deps/mixer_vm-95ee88dfdc701212)
+
+{"exitCode": 0, "durationSeconds": 0.03917187498882413, "executedNamedTests": ["experimental_swift_reactor::cache_tests::independent_review_understated_counts_and_sticky_failure"], "passedTests": 1, "failedTests": 0, "qualifyingPass": true, "ownedGroupAbsent": true}
+
+running 1 test
+test experimental_swift_reactor::cache_tests::independent_review_understated_counts_and_sticky_failure ... REVIEW_UNDERCOUNT failure=decode_capacity later=decode_capacity sticky_no_alloc=true
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 421 filtered out; finished in 0.00s
+
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/owned-scratch/candidate/debug/deps/mixer_vm-95ee88dfdc701212)
+
+{"exitCode": 0, "durationSeconds": 0.03982370800804347, "executedNamedTests": ["experimental_swift_reactor::cache_tests::independent_review_successful_scan_retained_after_build_refusal"], "passedTests": 1, "failedTests": 0, "qualifyingPass": true, "ownedGroupAbsent": true}
+
+running 1 test
+test experimental_swift_reactor::cache_tests::independent_review_successful_scan_retained_after_build_refusal ... REVIEW_RETAINED_SCAN build_failure=cache_allocation complete_record=true runtime_sticky=true
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 421 filtered out; finished in 0.00s
+
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/owned-scratch/candidate/debug/deps/mixer_vm-95ee88dfdc701212)
+
+{"exitCode": 0, "durationSeconds": 0.04599424998741597, "executedNamedTests": ["experimental_swift_reactor::cache_tests::independent_review_cache_proof_scope_and_cancel_before_effect"], "passedTests": 1, "failedTests": 0, "qualifyingPass": true, "ownedGroupAbsent": true}
+
+running 1 test
+test experimental_swift_reactor::cache_tests::independent_review_cache_proof_scope_and_cancel_before_effect ... REVIEW_SCOPE foreign_denied_before_alloc=true fresh_empty=true cancelled_before_effect=true
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 421 filtered out; finished in 0.00s
+
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/owned-scratch/candidate/debug/deps/mixer_vm-95ee88dfdc701212)
+
+{"exitCode": 0, "durationSeconds": 0.04066320904530585, "executedNamedTests": ["experimental::cache::tests::frozen_ir_parity_for_all_supported_opcode_shapes"], "passedTests": 1, "failedTests": 0, "qualifyingPass": true, "ownedGroupAbsent": true}
+
+running 1 test
+test experimental::cache::tests::frozen_ir_parity_for_all_supported_opcode_shapes ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 421 filtered out; finished in 0.00s
+
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/owned-scratch/candidate/debug/deps/mixer_vm-95ee88dfdc701212)
+
+{"exitCode": 0, "durationSeconds": 0.0393238749820739, "executedNamedTests": ["experimental::cache::tests::frozen_layout_and_trace_observation"], "passedTests": 1, "failedTests": 0, "qualifyingPass": true, "ownedGroupAbsent": true}
+es: 28, validation_metadata_bytes: 556, fixed_reserved: 912, resident_bytes: 40, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 40, peak_pinned_bytes: 40, peak_construction_bytes: 40, scratch_reserved: 0, peak_cache_reserved: 10264, peak_total_reserved: 10848, work_used: 86, active_pins: 0, hits: 0, misses: 2, decodes: 1, evictions: 0 } }
+eviction prefix 61 CacheFailure { kind: WorkExhausted, code: "cache_work", function: Some(1), offset: 27, attempted: 150, limit: 139, usage: CacheUsage { source_bytes: 28, validation_metadata_bytes: 556, fixed_reserved: 912, resident_bytes: 40, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 40, peak_pinned_bytes: 40, peak_construction_bytes: 40, scratch_reserved: 0, peak_cache_reserved: 10264, peak_total_reserved: 10848, work_used: 86, active_pins: 0, hits: 0, misses: 2, decodes: 1, evictions: 0 } }
+eviction prefix 62 CacheFailure { kind: WorkExhausted, code: "cache_work", function: Some(1), offset: 27, attempted: 150, limit: 140, usage: CacheUsage { source_bytes: 28, validation_metadata_bytes: 556, fixed_reserved: 912, resident_bytes: 40, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 40, peak_pinned_bytes: 40, peak_construction_bytes: 40, scratch_reserved: 0, peak_cache_reserved: 10264, peak_total_reserved: 10848, work_used: 86, active_pins: 0, hits: 0, misses: 2, decodes: 1, evictions: 0 } }
+eviction prefix 63 CacheFailure { kind: WorkExhausted, code: "cache_work", function: Some(1), offset: 27, attempted: 150, limit: 141, usage: CacheUsage { source_bytes: 28, validation_metadata_bytes: 556, fixed_reserved: 912, resident_bytes: 40, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 40, peak_pinned_bytes: 40, peak_construction_bytes: 40, scratch_reserved: 0, peak_cache_reserved: 10264, peak_total_reserved: 10848, work_used: 86, active_pins: 0, hits: 0, misses: 2, decodes: 1, evictions: 0 } }
+eviction prefix 64 CacheFailure { kind: WorkExhausted, code: "cache_work", function: Some(1), offset: 27, attempted: 150, limit: 142, usage: CacheUsage { source_bytes: 28, validation_metadata_bytes: 556, fixed_reserved: 912, resident_bytes: 40, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 40, peak_pinned_bytes: 40, peak_construction_bytes: 40, scratch_reserved: 0, peak_cache_reserved: 10264, peak_total_reserved: 10848, work_used: 86, active_pins: 0, hits: 0, misses: 2, decodes: 1, evictions: 0 } }
+eviction prefix 65 CacheFailure { kind: WorkExhausted, code: "cache_work", function: Some(1), offset: 27, attempted: 150, limit: 143, usage: CacheUsage { source_bytes: 28, validation_metadata_bytes: 556, fixed_reserved: 912, resident_bytes: 40, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 40, peak_pinned_bytes: 40, peak_construction_bytes: 40, scratch_reserved: 0, peak_cache_reserved: 10264, peak_total_reserved: 10848, work_used: 86, active_pins: 0, hits: 0, misses: 2, decodes: 1, evictions: 0 } }
+eviction prefix 66 CacheFailure { kind: WorkExhausted, code: "cache_work", function: Some(1), offset: 27, attempted: 150, limit: 144, usage: CacheUsage { source_bytes: 28, validation_metadata_bytes: 556, fixed_reserved: 912, resident_bytes: 40, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 40, peak_pinned_bytes: 40, peak_construction_bytes: 40, scratch_reserved: 0, peak_cache_reserved: 10264, peak_total_reserved: 10848, work_used: 86, active_pins: 0, hits: 0, misses: 2, decodes: 1, evictions: 0 } }
+eviction prefix 67 CacheFailure { kind: WorkExhausted, code: "cache_work", function: Some(1), offset: 27, attempted: 150, limit: 145, usage: CacheUsage { source_bytes: 28, validation_metadata_bytes: 556, fixed_reserved: 912, resident_bytes: 40, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 40, peak_pinned_bytes: 40, peak_construction_bytes: 40, scratch_reserved: 0, peak_cache_reserved: 10264, peak_total_reserved: 10848, work_used: 86, active_pins: 0, hits: 0, misses: 2, decodes: 1, evictions: 0 } }
+eviction prefix 68 CacheFailure { kind: WorkExhausted, code: "cache_work", function: Some(1), offset: 27, attempted: 150, limit: 146, usage: CacheUsage { source_bytes: 28, validation_metadata_bytes: 556, fixed_reserved: 912, resident_bytes: 40, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 40, peak_pinned_bytes: 40, peak_construction_bytes: 40, scratch_reserved: 0, peak_cache_reserved: 10264, peak_total_reserved: 10848, work_used: 86, active_pins: 0, hits: 0, misses: 2, decodes: 1, evictions: 0 } }
+eviction prefix 69 CacheFailure { kind: WorkExhausted, code: "cache_work", function: Some(1), offset: 27, attempted: 150, limit: 147, usage: CacheUsage { source_bytes: 28, validation_metadata_bytes: 556, fixed_reserved: 912, resident_bytes: 40, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 40, peak_pinned_bytes: 40, peak_construction_bytes: 40, scratch_reserved: 0, peak_cache_reserved: 10264, peak_total_reserved: 10848, work_used: 86, active_pins: 0, hits: 0, misses: 2, decodes: 1, evictions: 0 } }
+eviction prefix 70 CacheFailure { kind: WorkExhausted, code: "cache_work", function: Some(1), offset: 27, attempted: 150, limit: 148, usage: CacheUsage { source_bytes: 28, validation_metadata_bytes: 556, fixed_reserved: 912, resident_bytes: 40, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 40, peak_pinned_bytes: 40, peak_construction_bytes: 40, scratch_reserved: 0, peak_cache_reserved: 10264, peak_total_reserved: 10848, work_used: 86, active_pins: 0, hits: 0, misses: 2, decodes: 1, evictions: 0 } }
+eviction prefix 71 CacheFailure { kind: WorkExhausted, code: "cache_work", function: Some(1), offset: 27, attempted: 150, limit: 149, usage: CacheUsage { source_bytes: 28, validation_metadata_bytes: 556, fixed_reserved: 912, resident_bytes: 40, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 40, peak_pinned_bytes: 40, peak_construction_bytes: 40, scratch_reserved: 0, peak_cache_reserved: 10264, peak_total_reserved: 10848, work_used: 86, active_pins: 0, hits: 0, misses: 2, decodes: 1, evictions: 0 } }
+eviction prefix 72 CacheFailure { kind: WorkExhausted, code: "cache_work", function: Some(1), offset: 26, attempted: 151, limit: 150, usage: CacheUsage { source_bytes: 28, validation_metadata_bytes: 556, fixed_reserved: 912, resident_bytes: 0, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 40, peak_pinned_bytes: 40, peak_construction_bytes: 40, scratch_reserved: 0, peak_cache_reserved: 10264, peak_total_reserved: 10848, work_used: 150, active_pins: 0, hits: 0, misses: 2, decodes: 1, evictions: 1 } }
+eviction prefix 73 CacheFailure { kind: WorkExhausted, code: "cache_work", function: Some(1), offset: 27, attempted: 152, limit: 151, usage: CacheUsage { source_bytes: 28, validation_metadata_bytes: 556, fixed_reserved: 912, resident_bytes: 0, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 40, peak_pinned_bytes: 40, peak_construction_bytes: 40, scratch_reserved: 0, peak_cache_reserved: 10264, peak_total_reserved: 10848, work_used: 151, active_pins: 0, hits: 0, misses: 2, decodes: 1, evictions: 1 } }
+eviction prefix 74 CacheFailure { kind: WorkExhausted, code: "cache_work", function: Some(1), offset: 27, attempted: 153, limit: 152, usage: CacheUsage { source_bytes: 28, validation_metadata_bytes: 556, fixed_reserved: 912, resident_bytes: 0, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 40, peak_pinned_bytes: 40, peak_construction_bytes: 40, scratch_reserved: 0, peak_cache_reserved: 10264, peak_total_reserved: 10848, work_used: 152, active_pins: 0, hits: 0, misses: 2, decodes: 1, evictions: 1 } }
+eviction prefix 75 CacheFailure { kind: WorkExhausted, code: "cache_work", function: Some(1), offset: 27, attempted: 154, limit: 153, usage: CacheUsage { source_bytes: 28, validation_metadata_bytes: 556, fixed_reserved: 912, resident_bytes: 0, pinned_bytes: 0, construction_bytes: 0, peak_resident_bytes: 40, peak_pinned_bytes: 40, peak_construction_bytes: 40, scratch_reserved: 0, peak_cache_reserved: 10264, peak_total_reserved: 10848, work_used: 153, active_pins: 0, hits: 0, misses: 2, decodes: 1, evictions: 1 } }
+allocation new AllocationStats { allocations: 2, reallocations: 0, deallocations: 0, allocated_bytes: 1136, freed_bytes: 0, last_size: 1024, last_align: 8, attempts: 2, injected_failures: 0 }
+allocation miss AllocationStats { allocations: 2, reallocations: 0, deallocations: 0, allocated_bytes: 121, freed_bytes: 0, last_size: 120, last_align: 8, attempts: 2, injected_failures: 0 }
+allocation hit AllocationStats { allocations: 0, reallocations: 0, deallocations: 0, allocated_bytes: 0, freed_bytes: 0, last_size: 0, last_align: 0, attempts: 0, injected_failures: 0 }
+allocation release AllocationStats { allocations: 0, reallocations: 0, deallocations: 0, allocated_bytes: 0, freed_bytes: 0, last_size: 0, last_align: 0, attempts: 0, injected_failures: 0 }
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 421 filtered out; finished in 0.00s
+
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/owned-scratch/candidate/debug/deps/mixer_vm-95ee88dfdc701212)
+
+{"exitCode": 0, "durationSeconds": 0.03883449989371002, "executedNamedTests": ["experimental::cache::tests::frozen_borrowed_transients_fit_existing_scratch"], "passedTests": 1, "failedTests": 0, "qualifyingPass": true, "ownedGroupAbsent": true}
+
+running 1 test
+test experimental::cache::tests::frozen_borrowed_transients_fit_existing_scratch ... legacy named simultaneous conservative=8032 unchanged_scratch=9312
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 421 filtered out; finished in 0.00s
+
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/owned-scratch/candidate/debug/deps/mixer_vm-95ee88dfdc701212)
+
+{"exitCode": 0, "durationSeconds": 0.16238695895299315, "executedNamedTests": ["experimental_swift_reactor::cache_tests::plan_reuse_profile_envelopes_without_guest_execution"], "passedTests": 1, "failedTests": 0, "qualifyingPass": true, "ownedGroupAbsent": true}
+
+running 1 test
+test experimental_swift_reactor::cache_tests::plan_reuse_profile_envelopes_without_guest_execution ... PLAN_PROFILE floor=269616 execution_header=11696664 execution_construction=1073920 frame_operation=31278808 category_ceiling_sum=234881024 wasi_max=264456 shared=1744 conservative_combined=266787998 combined_limit=268435456 constructed_current=51400043 constructed_peak=53547883 resident_current=51402643 resident_peak=53547883 frame_peak=82681451 tickets=85/85
+PLAN_PROFILE cleanup_zero=true guest_instructions=0 initializes=0 invokes=0
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 421 filtered out; finished in 0.12s
+
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/owned-scratch/candidate/debug/deps/mixer_vm-95ee88dfdc701212)
+
+{"exitCode": 0, "durationSeconds": 0.13037250004708767, "executedNamedTests": ["experimental_swift_reactor::cache_tests::plan_reuse_collision_publish_boundaries"], "passedTests": 1, "failedTests": 0, "qualifyingPass": true, "ownedGroupAbsent": true}
+
+running 1 test
+test experimental_swift_reactor::cache_tests::plan_reuse_collision_publish_boundaries ... PLAN_COLLISION shorter_work=112 cancellation_checks=56 atomic=true cleanup_zero=true
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 421 filtered out; finished in 0.09s
+
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/owned-scratch/candidate/debug/deps/mixer_vm-95ee88dfdc701212)
+
+{"exitCode": 0, "durationSeconds": 0.3665371249662712, "executedNamedTests": ["experimental_swift_reactor::cache_tests::plan_reuse_cached_deadline_and_precedence"], "passedTests": 1, "failedTests": 0, "qualifyingPass": true, "ownedGroupAbsent": true}
+
+running 1 test
+test experimental_swift_reactor::cache_tests::plan_reuse_cached_deadline_and_precedence ... PLAN_CACHED_DEADLINE boundaries=4 precedence_pairs=4 cleanup_zero=true
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 421 filtered out; finished in 0.30s
+
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/owned-scratch/candidate/debug/deps/mixer_vm-95ee88dfdc701212)
+
+{"exitCode": 0, "durationSeconds": 13.194152250071056, "executedNamedTests": ["experimental_swift_reactor::cache_tests::independent_review_named_shapes_and_default_ceilings"], "passedTests": 1, "failedTests": 0, "qualifyingPass": true, "ownedGroupAbsent": true}
+
+running 1 test
+test experimental_swift_reactor::cache_tests::independent_review_named_shapes_and_default_ceilings ... REVIEW_LAYOUT candidate=true shapes=[1040, 928, 48, 112, 62888, 92128, 61880, 92350, 269616] limits=SwiftRunBudget { source_bytes: 67108864, metadata_bytes: 16777216, cache_bytes: 16777216, cache_entry_bytes: 8388608, cache_entries: 64, active_pins: 64, cache_work: 64000000, frames: 64, values: 16384, controls: 4096, memory_pages: 768, state_bytes: 134217728, combined_bytes: 268435456, instruction_fuel: 100000000, execution_work: 1000000000, host_calls: 32768, deadline_ms: 30000 }
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 421 filtered out; finished in 0.01s
+
+
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/candidate)
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 13.03s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/owned-scratch/candidate/release/deps/mixer_vm-e633425abeb5c97b)
+
+{"exitCode": 0, "durationSeconds": 0.0397462920518592, "executedNamedTests": ["experimental_swift_reactor::cache_tests::independent_review_constructor_ordinals_and_consuming_zero"], "passedTests": 1, "failedTests": 0, "qualifyingPass": true, "ownedGroupAbsent": true}
+
+running 1 test
+test experimental_swift_reactor::cache_tests::independent_review_constructor_ordinals_and_consuming_zero ... REVIEW_CONSTRUCTOR ordinal=0 requested_size=8704 stats=AllocationStats { allocations: 1, reallocations: 0, deallocations: 7, allocated_bytes: 8704, freed_bytes: 4603, last_size: 8704, last_align: 8, attempts: 1, injected_failures: 1 } zero=true
+REVIEW_CONSTRUCTOR ordinal=1 requested_size=1024 stats=AllocationStats { allocations: 2, reallocations: 0, deallocations: 8, allocated_bytes: 9728, freed_bytes: 13307, last_size: 1024, last_align: 8, attempts: 2, injected_failures: 1 } zero=true
+REVIEW_CONSTRUCTOR ordinal=2 requested_size=16384 stats=AllocationStats { allocations: 3, reallocations: 0, deallocations: 9, allocated_bytes: 26112, freed_bytes: 14331, last_size: 16384, last_align: 8, attempts: 3, injected_failures: 1 } zero=true
+REVIEW_CONSTRUCTOR ordinal=3 requested_size=192 stats=AllocationStats { allocations: 4, reallocations: 0, deallocations: 10, allocated_bytes: 26304, freed_bytes: 30715, last_size: 192, last_align: 1, attempts: 4, injected_failures: 1 } zero=true
+REVIEW_CONSTRUCTOR ordinal=4 requested_size=28672 stats=AllocationStats { allocations: 5, reallocations: 0, deallocations: 11, allocated_bytes: 54976, freed_bytes: 30907, last_size: 28672, last_align: 8, attempts: 5, injected_failures: 1 } zero=true
+REVIEW_CONSTRUCTOR success allocations=5 fixed=118240 credits=4928 cleanup_zero=true
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 421 filtered out; finished in 0.00s
+
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 0.00s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/owned-scratch/candidate/release/deps/mixer_vm-e633425abeb5c97b)
+
+{"exitCode": 0, "durationSeconds": 0.044693083968013525, "executedNamedTests": ["experimental_swift_reactor::cache_tests::independent_review_cold_cached_collision_ir_and_work"], "passedTests": 1, "failedTests": 0, "qualifyingPass": true, "ownedGroupAbsent": true}
+
+running 1 test
+test experimental_swift_reactor::cache_tests::independent_review_cold_cached_collision_ir_and_work ... REVIEW_IR pass=0 operations=["Const(I32(7))", "Drop", "Block { kind: Block, result: None, end: 4, alternative: None }", "Nop", "End", "End"]
+REVIEW_PATH pass=0 function=34 scans=24 builds=41 credits=144
+REVIEW_PATH pass=1 function=35 scans=6 builds=16 credits=111
+REVIEW_IR pass=2 operations=["Const(I32(7))", "Drop", "Block { kind: Block, result: None, end: 4, alternative: None }", "Nop", "End", "End"]
+REVIEW_PATH pass=2 function=34 scans=0 builds=41 credits=128
+REVIEW_PATH pass=3 function=546 scans=6 builds=16 credits=112
+REVIEW_IR pass=4 operations=["Const(I32(7))", "Drop", "Block { kind: Block, result: None, end: 4, alternative: None }", "Nop", "End", "End"]
+REVIEW_PATH pass=4 function=34 scans=24 builds=41 credits=155
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 421 filtered out; finished in 0.00s
+
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 0.00s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/owned-scratch/candidate/release/deps/mixer_vm-e633425abeb5c97b)
+
+{"exitCode": 0, "durationSeconds": 0.03905737493187189, "executedNamedTests": ["experimental_swift_reactor::cache_tests::independent_review_exact_phase_helper"], "passedTests": 1, "failedTests": 0, "qualifyingPass": true, "ownedGroupAbsent": true}
+
+running 1 test
+test experimental_swift_reactor::cache_tests::independent_review_exact_phase_helper ... REVIEW_EXACT_PHASE helper_invoked=true exact_and_minus_one=true
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 421 filtered out; finished in 0.00s
+
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 0.00s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/owned-scratch/candidate/release/deps/mixer_vm-e633425abeb5c97b)
+
+{"exitCode": 0, "durationSeconds": 0.039269500062800944, "executedNamedTests": ["experimental_swift_reactor::cache_tests::independent_review_header_retained_through_return_storage"], "passedTests": 1, "failedTests": 0, "qualifyingPass": true, "ownedGroupAbsent": true}
+
+running 1 test
+test experimental_swift_reactor::cache_tests::independent_review_header_retained_through_return_storage ... REVIEW_HEADER retained=92128 freed=59579 incomplete_cleanup_not_zero=true
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 421 filtered out; finished in 0.00s
+
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 0.00s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/owned-scratch/candidate/release/deps/mixer_vm-e633425abeb5c97b)
+
+{"exitCode": 0, "durationSeconds": 0.03791629208717495, "executedNamedTests": ["experimental_swift_reactor::cache_tests::independent_review_plan_inventory_disjoint_layout"], "passedTests": 1, "failedTests": 0, "qualifyingPass": true, "ownedGroupAbsent": true}
+
+running 1 test
+test experimental_swift_reactor::cache_tests::independent_review_plan_inventory_disjoint_layout ... REVIEW_INVENTORY cell start=0 bytes=56
+REVIEW_INVENTORY output start=56 bytes=1096
+REVIEW_INVENTORY borrowed start=1152 bytes=8
+REVIEW_INVENTORY slots start=1160 bytes=16
+REVIEW_INVENTORY vec start=1176 bytes=8
+REVIEW_INVENTORY reserve_receiver start=1184 bytes=8
+REVIEW_INVENTORY reserve_control start=1192 bytes=8
+REVIEW_INVENTORY plan start=1200 bytes=48
+REVIEW_INVENTORY index start=1248 bytes=8
+REVIEW_INVENTORY bytes start=1256 bytes=8
+REVIEW_INVENTORY counts start=1264 bytes=24
+REVIEW_INVENTORY init start=1288 bytes=16
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 421 filtered out; finished in 0.00s
+
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 0.00s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/owned-scratch/candidate/release/deps/mixer_vm-e633425abeb5c97b)
+
+{"exitCode": 0, "durationSeconds": 0.038313542027026415, "executedNamedTests": ["experimental_swift_reactor::cache_tests::independent_review_understated_counts_and_sticky_failure"], "passedTests": 1, "failedTests": 0, "qualifyingPass": true, "ownedGroupAbsent": true}
+
+running 1 test
+test experimental_swift_reactor::cache_tests::independent_review_understated_counts_and_sticky_failure ... REVIEW_UNDERCOUNT failure=decode_capacity later=decode_capacity sticky_no_alloc=true
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 421 filtered out; finished in 0.00s
+
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 0.00s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/owned-scratch/candidate/release/deps/mixer_vm-e633425abeb5c97b)
+
+{"exitCode": 0, "durationSeconds": 0.038722500088624656, "executedNamedTests": ["experimental_swift_reactor::cache_tests::independent_review_successful_scan_retained_after_build_refusal"], "passedTests": 1, "failedTests": 0, "qualifyingPass": true, "ownedGroupAbsent": true}
+
+running 1 test
+test experimental_swift_reactor::cache_tests::independent_review_successful_scan_retained_after_build_refusal ... REVIEW_RETAINED_SCAN build_failure=cache_allocation complete_record=true runtime_sticky=true
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 421 filtered out; finished in 0.00s
+
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 0.00s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/owned-scratch/candidate/release/deps/mixer_vm-e633425abeb5c97b)
+
+{"exitCode": 0, "durationSeconds": 0.038502166979014874, "executedNamedTests": ["experimental_swift_reactor::cache_tests::independent_review_cache_proof_scope_and_cancel_before_effect"], "passedTests": 1, "failedTests": 0, "qualifyingPass": true, "ownedGroupAbsent": true}
+
+running 1 test
+test experimental_swift_reactor::cache_tests::independent_review_cache_proof_scope_and_cancel_before_effect ... REVIEW_SCOPE foreign_denied_before_alloc=true fresh_empty=true cancelled_before_effect=true
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 421 filtered out; finished in 0.00s
+
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 0.00s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-decode-plan-reuse-accounting-review/owned-scratch/candidate/release/deps/mixer_vm-e633425abeb5c97b)
+

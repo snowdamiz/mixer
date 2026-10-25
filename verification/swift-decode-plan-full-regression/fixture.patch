@@ -1,0 +1,378 @@
+--- producer/src/experimental_swift_reactor/cache_tests.rs
++++ regression/src/experimental_swift_reactor/cache_tests.rs
+@@ -409,7 +409,7 @@
+     let u = c.usage(None);
+     assert_eq!(u.reservations.retained_source.current, bytes.len());
+     assert_eq!(u.reservations.retained_metadata.current, metadata);
+-    assert_eq!(alloc.allocations, 4);
++    assert_eq!(alloc.allocations, 5);
+     assert_eq!(alloc.reallocations, 0);
+     finish(cache, c);
+ }
+@@ -528,16 +528,17 @@
+     let bytes = fixture(0, &[0, 0x0b], 100);
+     let (mut c, a) = adopt(&bytes, SwiftRunBudget::default());
+     let (cache, s) = measure(|| construct(&mut c, a, None).unwrap());
+-    assert_eq!(s.allocations, 4);
++    assert_eq!(s.allocations, 5);
+     println!("permanent fixed requested allocations {:?}", s);
+     let expected = 64 * size_of::<super::cache::SwiftSlot>()
+         + 64 * size_of::<crate::experimental::cache::PinRecord>()
+         + 512 * size_of::<decode::Patch>()
+-        + 192;
++        + 192
++        + 28_672; // Measured 512 optional scan-plan cells, grouped under the header.
+     assert_eq!(s.allocated_bytes, expected);
+     assert_eq!(
+         c.usage(None).reservations.cache.current,
+-        cache_header_bytes().unwrap() + expected - 192
++        cache_header_bytes().unwrap() + expected - 192 - 28_672
+     );
+     inspection::print_layouts();
+     finish(cache, c);
+@@ -852,7 +853,7 @@
+     let (mut c, a) = adopt(&bytes, SwiftRunBudget::default());
+     let (cache, s) = measure(|| construct(&mut c, a, None).unwrap());
+     let n = s.attempts;
+-    assert_eq!(n, 4);
++    assert_eq!(n, 5);
+     finish(cache, c);
+     let (mut base_control, base_proof) = adopt(&bytes, SwiftRunBudget::default());
+     let (_, base_drop) = measure(|| base_control.drop_proof(base_proof).unwrap());
+@@ -873,7 +874,7 @@
+         );
+         println!("constructor allocation ordinal {} observed", ordinal);
+     }
+-    for ordinal in 0..4 {
++    for ordinal in 0..5 {
+         hooks(Hooks::default());
+         let (mut c, a) = adopt(&bytes, SwiftRunBudget::default());
+         hooks(Hooks {
+@@ -2312,7 +2313,7 @@
+         );
+         let (result, stats) = measure(|| construct(&mut c, a, None));
+         if ceiling == header + patch_bytes {
+-            assert_eq!(stats.attempts, 2);
++            assert_eq!(stats.attempts, 3);
+             let cache = result.unwrap();
+             assert_eq!(c.usage(None).reservations.cache.current, ceiling);
+             finish(cache, c);
+@@ -2609,7 +2610,7 @@
+         hooks(Hooks::default());
+         let bytes = fixture(0, &helper, 100);
+         let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+-        assert_eq!(c.usage(None).cache_work, 832);
++        assert_eq!(c.usage(None).cache_work, 4_928);
+         elision_enable(&c, false);
+         let before = c.usage(None).cache_work;
+         let p = pin(&mut cache, &mut c, 34, None).unwrap();
+@@ -2642,7 +2643,7 @@
+         assert_eq!(release_stats.attempts, 0);
+         let hit = elision_finish_observation(&c);
+         assert_eq!(hit.stage_work.iter().sum::<u64>(), 8);
+-        println!("ELISION {{\"case\":\"{label}\",\"constructorWork\":832,\"coldWork\":{},\"coldStages\":{:?},\"hitWork\":8,\"hitStages\":{:?},\"fixedReserved\":{},\"residentBytes\":{}}}",cold.stage_work.iter().sum::<u64>(),cold.stage_work,hit.stage_work,cache.usage().fixed_reserved,cache.usage().resident_bytes);
++        println!("ELISION {{\"case\":\"{label}\",\"constructorWork\":4928,\"coldWork\":{},\"coldStages\":{:?},\"hitWork\":8,\"hitStages\":{:?},\"fixedReserved\":{},\"residentBytes\":{}}}",cold.stage_work.iter().sum::<u64>(),cold.stage_work,hit.stage_work,cache.usage().fixed_reserved,cache.usage().resident_bytes);
+         finish(cache, c);
+     }
+     hooks(Hooks::default());
+@@ -3817,3 +3818,19 @@
+     let final_usage=usage.unwrap();assert_eq!(final_usage.reservations.combined.current,0);assert_eq!(final_usage.reservations.live_tickets,0);assert!(failure.is_none());
+     println!("PLAN_PROFILE cleanup_zero=true guest_instructions=0 initializes=0 invokes=0");
+ }
++
++
++#[test]
++fn full_regression_observe_cache_fixture_shapes() {
++    let bytes = fixture(0, &[0, 0x0b], 100);
++    let (mut c, a) = adopt(&bytes, SwiftRunBudget::default());
++    let (cache, stats) = measure(|| construct(&mut c, a, None).unwrap());
++    println!(
++        "REGRESSION_CACHE stats={stats:?} header={} fixed={} work={}",
++        cache_header_bytes().unwrap(),
++        c.usage(None).reservations.cache.current,
++        c.usage(None).cache_work
++    );
++    assert_eq!(stats.reallocations, 0);
++    finish(cache, c);
++}
+--- producer/src/experimental_swift_reactor/execution_tests.rs
++++ regression/src/experimental_swift_reactor/execution_tests.rs
+@@ -683,11 +683,11 @@
+         usage.reservations.retained_source.current,
+         validation.source_bytes
+     );
+-    assert_eq!(allocations.allocations, 14);
++    assert_eq!(allocations.allocations, 15);
+     assert_eq!(allocations.reallocations, 0);
+     let (usage, cleanup) = measure(|| construction_finish(owner));
+     assert_eq!(cleanup.allocations + cleanup.reallocations, 0);
+-    assert_eq!(cleanup.deallocations, 24); // 14 payloads + 10 adopted/foundation backing allocations.
++    assert_eq!(cleanup.deallocations, 25); // 15 payloads + 10 adopted/foundation backing allocations.
+     assert!(usage.reservations.combined.peak > usage.reservations.state.peak);
+     println!(
+         "construction allocations {} bytes {} cleanup_deallocations {} peak {}",
+@@ -701,7 +701,7 @@
+ #[test]
+ fn swift_construction_every_integrated_allocation_ordinal() {
+     use super::allocation_tests::measure_extended;
+-    for ordinal in 0..13 {
++    for ordinal in 0..15 {
+         construction_hooks(ConstructionHooks::default());
+         let pair = construction_adopt(SwiftRunBudget::default());
+         let (failure, stats) = measure_extended(Some(ordinal), || construct_failed(pair));
+@@ -741,7 +741,7 @@
+             Some(failure.attempted as usize + 1)
+         );
+         assert_eq!(failure.resource, Some(SwiftRunResource::ExactCapacity));
+-        assert_eq!(stats.attempts, 9 + ordinal);
++        assert_eq!(stats.attempts, 10 + ordinal);
+         assert_eq!(stats.reallocations, 0);
+         assert_eq!(
+             failure.after_cleanup.unwrap().reservations.combined.current,
+@@ -767,7 +767,7 @@
+         state.frames.capacity() + state.values.capacity() + state.controls.capacity(),
+         0
+     );
+-    assert_eq!(stats.allocations, 11);
++    assert_eq!(stats.allocations, 12);
+     construction_finish(owner);
+     let pair = construction_adopt(SwiftRunBudget {
+         memory_pages: 583,
+@@ -776,7 +776,7 @@
+     let (failure, stats) = measure(|| construct_failed(pair));
+     assert_eq!(failure.code, "swift_execution_memory_minimum");
+     assert_eq!((failure.attempted, failure.limit), (584, 583));
+-    assert_eq!(stats.allocations, 8); // Cache and WASI only; no State allocation.
++    assert_eq!(stats.allocations, 9); // Cache and WASI only; no State allocation.
+     assert_eq!(failure.at_failure.reservations.state.current, 0);
+     assert_eq!(
+         failure.after_cleanup.unwrap().reservations.combined.current,
+@@ -823,7 +823,7 @@
+                 ..SwiftRunBudget::default()
+             },
+             SwiftRunFailureKind::CategoryExhausted,
+-            8,
++            9,
+         ),
+         (
+             SwiftRunBudget {
+@@ -831,12 +831,13 @@
+                 ..SwiftRunBudget::default()
+             },
+             SwiftRunFailureKind::CombinedExhausted,
+-            11,
++            12,
+         ),
+     ] {
+         construction_hooks(ConstructionHooks::default());
+         let pair = construction_adopt(budget);
+         let (failure, stats) = measure(|| construct_failed(pair));
++        println!("REGRESSION_ADMISSION kind={kind:?} attempts={} expected={attempts}", stats.attempts);
+         assert_eq!(failure.kind, kind);
+         assert_eq!(stats.attempts, attempts);
+         assert_eq!(stats.reallocations, 0);
+@@ -1058,8 +1059,8 @@
+     let pair = construction_adopt(SwiftRunBudget::default());
+     let (failure, stats) = measure(|| construct_failed(pair));
+     assert_eq!(failure.code, "swift_run_construction_phase_bound");
+-    assert_eq!(stats.allocations, 14);
+-    assert_eq!(stats.deallocations, 24);
++    assert_eq!(stats.allocations, 15);
++    assert_eq!(stats.deallocations, 25);
+     let after = failure.after_cleanup.unwrap();
+     assert_eq!(after.reservations.state.current, 0);
+     assert_eq!(after.reservations.cache.current, 0);
+@@ -1379,3 +1380,76 @@
+         size_of::<Cancellation>()
+     );
+ }
++
++
++#[test]
++fn full_regression_observe_integrated_fixture_shapes() {
++    construction_hooks(ConstructionHooks::default());
++    let mut pair = construction_adopt(SwiftRunBudget::default());
++    let (owner, stats) = measure(|| construct_owned(&mut pair).unwrap());
++    drop(pair);
++    let (usage, cleanup) = measure(|| construction_finish(owner));
++    println!("REGRESSION_INTEGRATED stats={stats:?} cleanup={cleanup:?} final_tickets={} final_combined={}", usage.reservations.live_tickets, usage.reservations.combined.current);
++    for ordinal in 0..stats.attempts {
++        let pair = construction_adopt(SwiftRunBudget::default());
++        let (failure, observed) =
++            super::allocation_tests::measure_extended(Some(ordinal), || construct_failed(pair));
++        let after = failure.after_cleanup.unwrap();
++        println!("REGRESSION_INTEGRATED_ALLOCATION ordinal={ordinal} stats={observed:?} code={} combined={} tickets={}", failure.code, after.reservations.combined.current, after.reservations.live_tickets);
++        assert_eq!(observed.injected_failures, 1);
++        assert_eq!(observed.attempts, ordinal + 1);
++        assert_eq!(after.reservations.combined.current, 0);
++        assert_eq!(after.reservations.live_tickets, 0);
++    }
++    for ordinal in 0..6 {
++        construction_hooks(ConstructionHooks {
++            capacity: Some(ordinal),
++            ..ConstructionHooks::default()
++        });
++        let pair = construction_adopt(SwiftRunBudget::default());
++        let (failure, observed) = measure(|| construct_failed(pair));
++        println!("REGRESSION_INTEGRATED_CAPACITY ordinal={ordinal} stats={observed:?} attempted={} observed={:?}", failure.attempted, failure.observed_capacity);
++        assert_eq!(failure.code, "swift_run_unexpected_capacity");
++        assert_eq!(
++            failure.after_cleanup.unwrap().reservations.combined.current,
++            0
++        );
++    }
++    construction_hooks(ConstructionHooks::default());
++    let mut pair = construction_adopt(SwiftRunBudget {
++        frames: 0,
++        values: 0,
++        controls: 0,
++        ..SwiftRunBudget::default()
++    });
++    let (owner, stats) = measure(|| construct_owned(&mut pair).unwrap());
++    drop(pair);
++    println!("REGRESSION_ZERO_STACK stats={stats:?}");
++    construction_finish(owner);
++    let pair = construction_adopt(SwiftRunBudget {
++        memory_pages: 583,
++        ..SwiftRunBudget::default()
++    });
++    let (failure, stats) = measure(|| construct_failed(pair));
++    println!(
++        "REGRESSION_BEFORE_STATE stats={stats:?} code={}",
++        failure.code
++    );
++    assert_eq!(failure.code, "swift_execution_memory_minimum");
++    assert_eq!(
++        failure.after_cleanup.unwrap().reservations.combined.current,
++        0
++    );
++    construction_hooks(ConstructionHooks {
++        bad_restore: true,
++        ..ConstructionHooks::default()
++    });
++    let pair = construction_adopt(SwiftRunBudget::default());
++    let (failure, stats) = measure(|| construct_failed(pair));
++    println!(
++        "REGRESSION_FAILED_RESTORE stats={stats:?} code={}",
++        failure.code
++    );
++    assert_eq!(failure.code, "swift_run_construction_phase_bound");
++    construction_hooks(ConstructionHooks::default());
++}
+--- producer/src/experimental_swift_reactor/lifecycle_tests.rs
++++ regression/src/experimental_swift_reactor/lifecycle_tests.rs
+@@ -949,8 +949,9 @@
+     let deadline = o.control.as_ref().unwrap().deadline();
+     let start = observed(&o);
+     assert_eq!(start.live.cache_entries.current, 0);
+-    // Constructor writes 29 slots, 64 pin records, 512 patch entries and 192 index cells.
+-    assert_eq!(start.cache_work, 29 + 64 + 512 + 192);
++    // Constructor writes 29 slots, 64 pin records, 512 patches, 192 index cells
++    // and eight charged semantic cells for each of 512 scan-plan entries.
++    assert_eq!(start.cache_work, 29 + 64 + 512 + 192 + 512 * 8);
+     assert_eq!(success(&mut o, Request::Initialize), Reply::Initialized);
+     let initialized = observed(&o);
+     // Resident Cache tickets belong to decoded entries, surviving pin release.
+@@ -960,13 +961,14 @@
+     );
+     assert_eq!(initialized.live.cache_entries.current, 1);
+     assert_eq!(initialized.instructions - start.instructions, 6);
+-    // Cold cost = 108 + pin records + 2*encoded body bytes + 3*instructions.
++    // Cold cost adds 13 actual probe/publication credits to the original
++    // 108 + pin records + 2*encoded body bytes + 3*instructions.
+     // Init35: B14/I6/P1; corpus62: B7/I3/P1; callee36: B19/I9/P2.
+     assert_eq!(
+         initialized.cache_work - start.cache_work,
+-        108 + 1 + 2 * 14 + 3 * 6
+-    );
+-    assert_eq!(initialized.cache_work, 952);
++        108 + 1 + 2 * 14 + 3 * 6 + 13
++    );
++    assert_eq!(initialized.cache_work, 5_061);
+     assert_eq!(success(&mut o, Request::Corpus), Reply::Corpus(2));
+     let first = observed(&o);
+     assert_eq!(
+@@ -977,9 +979,9 @@
+     let first_cache = o.cache.as_ref().unwrap().usage();
+     assert_eq!(
+         first.cache_work - initialized.cache_work,
+-        (108 + 1 + 2 * 7 + 3 * 3) + (108 + 2 + 2 * 19 + 3 * 9)
+-    );
+-    assert_eq!(first.cache_work, 1259);
++        (108 + 1 + 2 * 7 + 3 * 3 + 13) + (108 + 2 + 2 * 19 + 3 * 9 + 13)
++    );
++    assert_eq!(first.cache_work, 5_394);
+     assert_eq!(success(&mut o, Request::Corpus), Reply::Corpus(3));
+     let second = observed(&o);
+     assert_eq!(
+@@ -1001,7 +1003,7 @@
+         second.cache_work - first.cache_work,
+         (1 + 1 + 6) + (1 + 2 + 6)
+     );
+-    assert_eq!(second.cache_work, 1276);
++    assert_eq!(second.cache_work, 5_411);
+     assert_eq!(second_cache.hits - first_cache.hits, 2);
+     assert_eq!(second_cache.misses, first_cache.misses);
+     assert_eq!(second_cache.decodes, first_cache.decodes);
+@@ -1760,22 +1762,24 @@
+         .unwrap()
+         .test_replace_execution_work_limit(old);
+     retire(o);
+-    // Constructor797; cold no-op init B2/I1:108+1+4+3=116.
++    // Constructor 4,893; cold no-op init B2/I1:108+1+4+3+13=129.
++    // Keep the synthetic limit exactly at completed initialization so the
++    // later invocation still fails without resetting cumulative work.
+     let mut o = owner_with(
+         &[],
+         &[],
+         SwiftRunBudget {
+-            cache_work: 913,
++            cache_work: 5_022,
+             ..SwiftRunBudget::default()
+         },
+         WasiGrants::default(),
+         WasiBudget::default(),
+     );
+     success(&mut o, Request::Initialize);
+-    assert_eq!(observed(&o).cache_work, 913);
++    assert_eq!(observed(&o).cache_work, 5_022);
+     let f = failed(&mut o, Request::Corpus);
+     assert_eq!(f.resource, Some(SwiftRunResource::CacheWork));
+-    assert_eq!(f.at_failure.cache_work, 913);
++    assert_eq!(f.at_failure.cache_work, 5_022);
+     assert_eq!(f.at_failure.instructions, 1);
+     retire(o);
+     let mut o = owner(&[]);
+@@ -2367,3 +2371,32 @@
+     assert!(matches!(o.lifecycle, Lifecycle::Terminal));
+     retire(o);
+ }
++
++
++#[test]
++fn full_regression_observe_lifecycle_fixture_work() {
++    let mut o = owner_with(
++        &state_spec(),
++        &[36],
++        SwiftRunBudget::default(),
++        WasiGrants::default(),
++        WasiBudget::default(),
++    );
++    let start = observed(&o);
++    assert_eq!(success(&mut o, Request::Initialize), Reply::Initialized);
++    let initialized = observed(&o);
++    assert_eq!(success(&mut o, Request::Corpus), Reply::Corpus(2));
++    let first = observed(&o);
++    assert_eq!(success(&mut o, Request::Corpus), Reply::Corpus(3));
++    let second = observed(&o);
++    println!("REGRESSION_LIFECYCLE work={:?} instructions={:?} host_calls={:?} entries={:?} tickets={:?}", [start.cache_work, initialized.cache_work, first.cache_work, second.cache_work], [start.instructions, initialized.instructions, first.instructions, second.instructions], [start.host_calls, initialized.host_calls, first.host_calls, second.host_calls], [start.live.cache_entries.current, initialized.live.cache_entries.current, first.live.cache_entries.current, second.live.cache_entries.current], [start.reservations.live_tickets, initialized.reservations.live_tickets, first.reservations.live_tickets, second.reservations.live_tickets]);
++    retire(o);
++    let mut o = owner(&[]);
++    let start = observed(&o).cache_work;
++    success(&mut o, Request::Initialize);
++    println!(
++        "REGRESSION_EMPTY_INIT start={start} initialized={}",
++        observed(&o).cache_work
++    );
++    retire(o);
++}

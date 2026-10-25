@@ -409,7 +409,7 @@ fn same_abi_descriptors_and_authority() {
     let u = c.usage(None);
     assert_eq!(u.reservations.retained_source.current, bytes.len());
     assert_eq!(u.reservations.retained_metadata.current, metadata);
-    assert_eq!(alloc.allocations, 4);
+    assert_eq!(alloc.allocations, 5);
     assert_eq!(alloc.reallocations, 0);
     finish(cache, c);
 }
@@ -528,16 +528,17 @@ fn permanent_patch_arena_exact_requests() {
     let bytes = fixture(0, &[0, 0x0b], 100);
     let (mut c, a) = adopt(&bytes, SwiftRunBudget::default());
     let (cache, s) = measure(|| construct(&mut c, a, None).unwrap());
-    assert_eq!(s.allocations, 4);
+    assert_eq!(s.allocations, 5);
     println!("permanent fixed requested allocations {:?}", s);
     let expected = 64 * size_of::<super::cache::SwiftSlot>()
         + 64 * size_of::<crate::experimental::cache::PinRecord>()
         + 512 * size_of::<decode::Patch>()
-        + 192;
+        + 192
+        + 28_672; // Measured 512 optional scan-plan cells, grouped under the header.
     assert_eq!(s.allocated_bytes, expected);
     assert_eq!(
         c.usage(None).reservations.cache.current,
-        cache_header_bytes().unwrap() + expected - 192
+        cache_header_bytes().unwrap() + expected - 192 - 28_672
     );
     inspection::print_layouts();
     finish(cache, c);
@@ -852,7 +853,7 @@ fn every_constructor_allocation_ordinal() {
     let (mut c, a) = adopt(&bytes, SwiftRunBudget::default());
     let (cache, s) = measure(|| construct(&mut c, a, None).unwrap());
     let n = s.attempts;
-    assert_eq!(n, 4);
+    assert_eq!(n, 5);
     finish(cache, c);
     let (mut base_control, base_proof) = adopt(&bytes, SwiftRunBudget::default());
     let (_, base_drop) = measure(|| base_control.drop_proof(base_proof).unwrap());
@@ -873,7 +874,7 @@ fn every_constructor_allocation_ordinal() {
         );
         println!("constructor allocation ordinal {} observed", ordinal);
     }
-    for ordinal in 0..4 {
+    for ordinal in 0..5 {
         hooks(Hooks::default());
         let (mut c, a) = adopt(&bytes, SwiftRunBudget::default());
         hooks(Hooks {
@@ -2312,7 +2313,7 @@ fn review_exact_phase_and_header_admission_boundaries() {
         );
         let (result, stats) = measure(|| construct(&mut c, a, None));
         if ceiling == header + patch_bytes {
-            assert_eq!(stats.attempts, 2);
+            assert_eq!(stats.attempts, 3);
             let cache = result.unwrap();
             assert_eq!(c.usage(None).reservations.cache.current, ceiling);
             finish(cache, c);
@@ -2366,9 +2367,9 @@ fn review_owner_allocator_exhaustion() {
                 measure(|| construct(&mut c, adopted, None).err().unwrap());
             assert_eq!(failure.kind, SwiftRunFailureKind::Invariant);
             assert_eq!(failure.code, "swift_cache_owner_exhausted");
-            assert_eq!(allocations.attempts, 4);
+            assert_eq!(allocations.attempts, 5);
             assert_eq!(allocations.injected_failures, 0);
-            assert_eq!(allocations.allocations, 4);
+            assert_eq!(allocations.allocations, 5);
             assert_eq!(allocations.reallocations, 0);
             assert_eq!(
                 allocations.deallocations,
@@ -2394,7 +2395,7 @@ fn review_owner_allocator_exhaustion() {
             let final_usage = c.finish_owned_cleanup(None);
             assert_eq!(final_usage.reservations.combined.current, 0);
             assert_eq!(final_usage.reservations.live_tickets, 0);
-            println!("owner allocator exhaustion attempt={attempt} private_counter=MAX actual_constructor_allocations=4 partial_drained=true no_duplicate_authority=true");
+            println!("owner allocator exhaustion attempt={attempt} private_counter=MAX actual_constructor_allocations=5 partial_drained=true no_duplicate_authority=true");
         }
     });
     assert!(!inspection::owner_override_active());
@@ -2609,7 +2610,7 @@ fn reset_elision_observation_fixture() {
         hooks(Hooks::default());
         let bytes = fixture(0, &helper, 100);
         let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
-        assert_eq!(c.usage(None).cache_work, 832);
+        assert_eq!(c.usage(None).cache_work, 4_928);
         elision_enable(&c, false);
         let before = c.usage(None).cache_work;
         let p = pin(&mut cache, &mut c, 34, None).unwrap();
@@ -2642,7 +2643,7 @@ fn reset_elision_observation_fixture() {
         assert_eq!(release_stats.attempts, 0);
         let hit = elision_finish_observation(&c);
         assert_eq!(hit.stage_work.iter().sum::<u64>(), 8);
-        println!("ELISION {{\"case\":\"{label}\",\"constructorWork\":832,\"coldWork\":{},\"coldStages\":{:?},\"hitWork\":8,\"hitStages\":{:?},\"fixedReserved\":{},\"residentBytes\":{}}}",cold.stage_work.iter().sum::<u64>(),cold.stage_work,hit.stage_work,cache.usage().fixed_reserved,cache.usage().resident_bytes);
+        println!("ELISION {{\"case\":\"{label}\",\"constructorWork\":4928,\"coldWork\":{},\"coldStages\":{:?},\"hitWork\":8,\"hitStages\":{:?},\"fixedReserved\":{},\"residentBytes\":{}}}",cold.stage_work.iter().sum::<u64>(),cold.stage_work,hit.stage_work,cache.usage().fixed_reserved,cache.usage().resident_bytes);
         finish(cache, c);
     }
     hooks(Hooks::default());
@@ -3292,5 +3293,567 @@ fn resident_index_finite_cost_fixture() {
     assert_eq!(cache.usage().evictions, 0);
     let hits = c.usage(None).cache_work - before;
     println!("RESIDENT_COST {{\"constructorWork\":{constructor},\"cold64Work\":{cold},\"hit256Work\":{hits},\"fixedReserved\":{},\"residentBytes\":{},\"hitAllocatorRequests\":{},\"slots\":{:?}}}",cache.usage().fixed_reserved,cache.usage().resident_bytes,allocations.attempts,inspection::elision_slots(&cache));
+    finish(cache, c);
+}
+
+#[test]
+fn plan_reuse_observation() {
+    use crate::experimental::cache::Operation as O;
+    for wide in [false, true] {
+        let helper = body(1, &[0x41, 7, 0x21, 0, 0x20, 0, 0x1a, 0x0b]);
+        let bytes = if wide {
+            plan_reuse_wide_fixture(&helper, 600)
+        } else {
+            fixture(0, &helper, 600)
+        };
+        let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+        let fixed = cache.usage().fixed_reserved;
+        let start = c.usage(None).cache_work;
+        let mut credits = vec![];
+        for sweep in 0..3 {
+            let begin = c.usage(None).cache_work;
+            for f in 34..130 {
+                let p = pin(&mut cache, &mut c, f, None).unwrap();
+                let v = cache.view(&p, &mut c, None).unwrap();
+                if f == 34 {
+                    let operations: Vec<_> =
+                        v.instructions.iter().map(|x| x.operation.clone()).collect();
+                    assert_eq!(v.locals, &[Type::I32]);
+                    assert_eq!(
+                        operations,
+                        vec![
+                            O::Const(Value::I32(7)),
+                            O::LocalSet(0),
+                            O::LocalGet(0),
+                            O::Drop,
+                            O::End
+                        ]
+                    );
+                    assert!(v.branch_targets.is_empty());
+                    println!(
+                        "PLAN_IR wide={wide} sweep={sweep} operations={operations:?} offsets={:?}",
+                        v.instructions
+                            .iter()
+                            .map(|x| x.offset - v.body_offset)
+                            .collect::<Vec<_>>()
+                    );
+                }
+                cache
+                    .release(p, &mut c, None)
+                    .map_err(|e| e.failure)
+                    .unwrap();
+            }
+            credits.push(c.usage(None).cache_work - begin);
+        }
+        assert_eq!(cache.usage().decodes, 288);
+        assert_eq!(cache.usage().evictions, 224);
+        assert!(c.usage(None).reservations.peak_tickets <= 86);
+        println!("PLAN_COST wide={wide} fixed={fixed} constructor_work={start} sweeps={credits:?} usage={:?} tickets={}/{}",cache.usage(),c.usage(None).reservations.live_tickets,c.usage(None).reservations.peak_tickets);
+        println!(
+            "PLAN_LRU wide={wide} slots={:?}",
+            inspection::elision_slots(&cache)
+        );
+        finish(cache, c);
+    }
+}
+
+use super::cache::plan_inspection as pi;
+fn plan_reuse_release(cache: &mut SwiftFunctionCache, c: &mut RuntimeControl, f: u32) {
+    let p = pin(cache, c, f, None).unwrap();
+    cache.release(p, c, None).map_err(|e| e.failure).unwrap();
+}
+fn plan_reuse_seed(bytes: &[u8], budget: SwiftRunBudget) -> (RuntimeControl, SwiftFunctionCache) {
+    let (mut c, mut cache) = new(bytes, budget);
+    plan_reuse_release(&mut cache, &mut c, 34);
+    plan_reuse_release(&mut cache, &mut c, 35);
+    assert_eq!(pi::key(&cache, 34), Some(34));
+    (c, cache)
+}
+fn plan_reuse_primary(a: SwiftRunFailure, b: SwiftRunFailure) {
+    assert_eq!(
+        (
+            a.kind,
+            a.code,
+            a.function,
+            a.offset,
+            a.resource,
+            a.attempted,
+            a.limit
+        ),
+        (
+            b.kind,
+            b.code,
+            b.function,
+            b.offset,
+            b.resource,
+            b.attempted,
+            b.limit
+        )
+    );
+}
+#[test]
+fn plan_reuse_shapes_and_admission() {
+    let bytes = fixture(0, &[0, 0x0b], 100);
+    let (mut c, a) = adopt(&bytes, SwiftRunBudget::default());
+    let (result, stats) = measure(|| construct(&mut c, a, None));
+    let cache = result.unwrap();
+    assert_eq!(stats.attempts, 5);
+    assert_eq!(c.budget(), SwiftRunBudget::default());
+    assert_eq!(c.usage(None).reservations.live_tickets, 9);
+    println!(
+        "PLAN_SHAPE {:?} constructor_allocations={stats:?} fixed={} cleanup={:?}",
+        pi::shape(),
+        cache.usage().fixed_reserved,
+        cache_cleanup_temporary_bytes()
+    );
+    assert_eq!(pi::count(&cache), 0);
+    finish(cache, c);
+}
+#[test]
+fn plan_reuse_collisions_and_independent_identity() {
+    let bytes = fixture(0, &body(1, &[0x0b]), 600);
+    let budget = SwiftRunBudget {
+        cache_entries: 1,
+        ..SwiftRunBudget::default()
+    };
+    let (mut c, mut cache) = new(&bytes, budget);
+    plan_reuse_release(&mut cache, &mut c, 34);
+    assert_eq!(pi::key(&cache, 34), Some(34));
+    plan_reuse_release(&mut cache, &mut c, 546);
+    assert_eq!(pi::key(&cache, 34), Some(546));
+    plan_reuse_release(&mut cache, &mut c, 34);
+    assert_eq!(pi::key(&cache, 546), Some(34));
+    plan_reuse_release(&mut cache, &mut c, 35);
+    let ((r, scans), stats) = measure(|| {
+        hooks(Hooks::default());
+        let r = pin(&mut cache, &mut c, 34, None).unwrap();
+        (r, HOOKS.with(|h| h.get().steps[CacheStep::Scan as usize]))
+    });
+    assert_eq!(scans, 0);
+    assert_eq!(stats.attempts, 2);
+    cache
+        .release(r, &mut c, None)
+        .map_err(|e| e.failure)
+        .unwrap();
+    finish(cache, c);
+    let (c, cache) = new(&bytes, budget);
+    assert_eq!(pi::count(&cache), 0);
+    finish(cache, c);
+    for field in 0..4 {
+        let (mut c, mut cache) = plan_reuse_seed(&bytes, budget);
+        pi::corrupt(&mut cache, 34, field);
+        let f = pin(&mut cache, &mut c, 34, None).unwrap_err();
+        assert_eq!(f.kind, SwiftRunFailureKind::DecoderMismatch);
+        assert_eq!(
+            f.code,
+            if field < 3 {
+                "swift_plan_identity"
+            } else {
+                "decode_count_mismatch"
+            }
+        );
+        let work = c.usage(None).cache_work;
+        let second = pin(&mut cache, &mut c, 35, None).unwrap_err();
+        plan_reuse_primary(f, second);
+        assert_eq!(c.usage(None).cache_work, work);
+        assert_eq!(c.usage(None).live.active_pins.current, 0);
+        finish(cache, c);
+    }
+    let (c, mut cache) = plan_reuse_seed(&bytes, budget);
+    let (mut other, other_cache) = new(&bytes, budget);
+    let before = pi::count(&cache);
+    let (r, stats) = measure(|| pin(&mut cache, &mut other, 34, None));
+    assert!(r.is_err());
+    assert_eq!(stats.attempts, 0);
+    assert_eq!(pi::count(&cache), before);
+    finish(other_cache, other);
+    finish(cache, c);
+}
+#[test]
+fn plan_reuse_constructor_all_boundaries() {
+    let bytes = fixture(0, &[0, 0x0b], 29);
+    hooks(Hooks::default());
+    let (mut c, a) = adopt(&bytes, SwiftRunBudget::default());
+    hooks(Hooks::default());
+    let cache = construct(&mut c, a, None).unwrap();
+    let checks = HOOKS.with(|h| h.get().checks);
+    let credits = c.usage(None).cache_work;
+    hooks(Hooks::default());
+    finish(cache, c);
+    for ordinal in 0..5 {
+        let (mut c, a) = adopt(&bytes, SwiftRunBudget::default());
+        let (r, s) = measure_extended(Some(ordinal), || construct(&mut c, a, None));
+        assert!(r.is_err());
+        assert_eq!(s.injected_failures, 1);
+        assert_eq!(c.usage(None).reservations.cache.current, 0);
+        assert_eq!(
+            c.finish_owned_cleanup(None).reservations.combined.current,
+            0
+        );
+        let (mut c, a) = adopt(&bytes, SwiftRunBudget::default());
+        hooks(Hooks {
+            capacity: Some(ordinal),
+            ..Hooks::default()
+        });
+        let f = construct(&mut c, a, None).err().unwrap();
+        hooks(Hooks::default());
+        assert_eq!(f.resource, Some(SwiftRunResource::ExactCapacity));
+        assert_eq!(c.usage(None).reservations.cache.current, 0);
+        assert_eq!(
+            c.finish_owned_cleanup(None).reservations.combined.current,
+            0
+        );
+    }
+    for work in 0..credits {
+        let (mut c, a) = adopt(
+            &bytes,
+            SwiftRunBudget {
+                cache_work: work,
+                ..SwiftRunBudget::default()
+            },
+        );
+        let r = construct(&mut c, a, None);
+        assert!(r.is_err(), "work {work}");
+        assert_eq!(c.usage(None).reservations.cache.current, 0);
+        assert_eq!(
+            c.finish_owned_cleanup(None).reservations.combined.current,
+            0
+        );
+    }
+    for ordinal in 0..checks {
+        let (mut c, a) = adopt(&bytes, SwiftRunBudget::default());
+        hooks(Hooks {
+            cancel: Some(ordinal),
+            ..Hooks::default()
+        });
+        let r = construct(&mut c, a, None);
+        hooks(Hooks::default());
+        assert!(r.is_err(), "check {ordinal}");
+        assert_eq!(c.usage(None).reservations.cache.current, 0);
+        assert_eq!(
+            c.finish_owned_cleanup(None).reservations.combined.current,
+            0
+        );
+    }
+    println!("PLAN_CONSTRUCTOR allocation=5 capacity=5 shorter_work={credits} cancellation_checks={checks} cleanup_zero=true");
+}
+#[test]
+fn plan_reuse_cold_cached_all_boundaries() {
+    let bytes = fixture(0, &body(1, &[0, 0x0e, 1, 0, 0, 0x0b]), 100);
+    let base = SwiftRunBudget {
+        cache_entries: 1,
+        ..SwiftRunBudget::default()
+    };
+    for cached in [false, true] {
+        hooks(Hooks::default());
+        let (mut c, mut cache) = if cached {
+            plan_reuse_seed(&bytes, base)
+        } else {
+            new(&bytes, base)
+        };
+        let before = c.usage(None).cache_work;
+        hooks(Hooks::default());
+        let p = pin(&mut cache, &mut c, 34, None).unwrap();
+        let checks = HOOKS.with(|h| h.get().checks);
+        let work = c.usage(None).cache_work - before;
+        hooks(Hooks::default());
+        cache
+            .release(p, &mut c, None)
+            .map_err(|e| e.failure)
+            .unwrap();
+        finish(cache, c);
+        for shorter in 0..work {
+            hooks(Hooks::default());
+            let (mut c, mut cache) = if cached {
+                plan_reuse_seed(
+                    &bytes,
+                    SwiftRunBudget {
+                        cache_work: before + shorter,
+                        ..base
+                    },
+                )
+            } else {
+                new(
+                    &bytes,
+                    SwiftRunBudget {
+                        cache_work: before + shorter,
+                        ..base
+                    },
+                )
+            };
+            let f = pin(&mut cache, &mut c, 34, None).unwrap_err();
+            assert_eq!(f.resource, Some(SwiftRunResource::CacheWork));
+            let retained = pi::key(&cache, 34);
+            assert!(retained.is_none() || retained == Some(34));
+            let stopped = c.usage(None).cache_work;
+            plan_reuse_primary(f, pin(&mut cache, &mut c, 34, None).unwrap_err());
+            assert_eq!(c.usage(None).cache_work, stopped);
+            finish(cache, c);
+        }
+        for ordinal in 0..checks {
+            let (mut c, mut cache) = if cached {
+                plan_reuse_seed(&bytes, base)
+            } else {
+                new(&bytes, base)
+            };
+            hooks(Hooks {
+                cancel: Some(ordinal),
+                ..Hooks::default()
+            });
+            let f = pin(&mut cache, &mut c, 34, None).unwrap_err();
+            hooks(Hooks::default());
+            assert_eq!(f.kind, SwiftRunFailureKind::Cancelled);
+            assert_eq!(c.usage(None).live.active_pins.current, 0);
+            plan_reuse_primary(f, pin(&mut cache, &mut c, 34, None).unwrap_err());
+            finish(cache, c);
+        }
+        for ordinal in 0..3 {
+            let (mut c, mut cache) = if cached {
+                plan_reuse_seed(&bytes, base)
+            } else {
+                new(&bytes, base)
+            };
+            let (r, s) = measure_extended(Some(ordinal), || pin(&mut cache, &mut c, 34, None));
+            assert!(r.is_err());
+            assert_eq!(s.injected_failures, 1);
+            assert_eq!(pi::key(&cache, 34), Some(34));
+            assert_eq!(c.usage(None).live.active_pins.current, 0);
+            finish(cache, c);
+        }
+        println!("PLAN_OPERATION cached={cached} shorter_work={work} cancellation_checks={checks} allocations=3 cleanup_zero=true");
+    }
+}
+
+// Test-only section builder: every body is admitted by the real complete validator.
+fn plan_reuse_wide_fixture(helper: &[u8], definitions: usize) -> Vec<u8> {
+    let mut module = fixture(0, helper, definitions);
+    let mut cursor = 8;
+    loop {
+        let start = cursor;
+        let id = module[cursor];
+        cursor += 1;
+        let mut size = 0usize;
+        let mut shift = 0;
+        loop {
+            let b = module[cursor];
+            cursor += 1;
+            size |= ((b & 127) as usize) << shift;
+            if b & 128 == 0 {
+                break;
+            }
+            shift += 7;
+        }
+        if id == 10 {
+            module.truncate(start);
+            let mut code = vec![];
+            uint(definitions as u32, &mut code);
+            let mut rich = vec![0, 0x01];
+            rich.extend(std::iter::repeat_n(0x01, 511));
+            rich.push(0x0b);
+            for index in 0..definitions {
+                let b = if index == 28 {
+                    &[0, 0x41, 0, 0x0b][..]
+                } else if index == 0 {
+                    helper
+                } else {
+                    &rich
+                };
+                uint(b.len() as u32, &mut code);
+                code.extend_from_slice(b);
+            }
+            section(10, &code, &mut module);
+            return module;
+        }
+        cursor += size;
+    }
+}
+
+#[test]
+fn plan_reuse_header_lifetime_and_narrow_admission() {
+    let bytes = fixture(0, &[0, 0x0b], 100);
+    let (mut c, cache) = new(&bytes, SwiftRunBudget::default());
+    let mut owned = Some(cache);
+    let (tail, s) = measure(|| SwiftFunctionCache::cleanup(&mut owned, &mut c, None).unwrap());
+    assert!(owned.is_none());
+    assert!(s.freed_bytes >= pi::shape().1);
+    assert_eq!(
+        pi::tail_usage(&tail).reservations.cache.current,
+        cache_header_bytes().unwrap()
+    );
+    let mut result = None;
+    tail.complete(owned, &mut result);
+    assert_eq!(c.usage(None).reservations.cache.current, 0);
+    assert_eq!(
+        c.finish_owned_cleanup(None).reservations.combined.current,
+        0
+    );
+    // The additional table cannot silently outgrow a narrowed cache ceiling.
+    for limit in [0, pi::shape().1 - 1, cache_header_bytes().unwrap() - 1] {
+        let (mut c, a) = adopt(
+            &bytes,
+            SwiftRunBudget {
+                cache_bytes: limit,
+                ..SwiftRunBudget::default()
+            },
+        );
+        assert!(construct(&mut c, a, None).is_err());
+        assert_eq!(c.usage(None).reservations.cache.current, 0);
+        assert_eq!(
+            c.finish_owned_cleanup(None).reservations.combined.current,
+            0
+        );
+    }
+    println!("PLAN_HEADER payload_dropped_before_header=true narrowed_limits=3 cleanup_zero=true");
+}
+#[test]
+fn plan_reuse_collision_publish_boundaries() {
+    let bytes = fixture(0, &body(1, &[0x0b]), 600);
+    let base = SwiftRunBudget {
+        cache_entries: 1,
+        ..SwiftRunBudget::default()
+    };
+    let (mut c, mut cache) = new(&bytes, base);
+    plan_reuse_release(&mut cache, &mut c, 34);
+    let begin = c.usage(None).cache_work;
+    hooks(Hooks::default());
+    plan_reuse_release(&mut cache, &mut c, 546);
+    let checks = HOOKS.with(|h| h.get().checks);
+    let credits = c.usage(None).cache_work - begin;
+    let published = pi::summary(&cache, 546).unwrap();
+    hooks(Hooks::default());
+    finish(cache, c);
+    for (is_cancel, n) in [(false, credits as usize), (true, checks)] {
+        for ordinal in 0..n {
+            let (mut c, mut cache) = new(
+                &bytes,
+                if is_cancel {
+                    base
+                } else {
+                    SwiftRunBudget {
+                        cache_work: begin + ordinal as u64,
+                        ..base
+                    }
+                },
+            );
+            plan_reuse_release(&mut cache, &mut c, 34);
+            let old = pi::summary(&cache, 34).unwrap();
+            if is_cancel {
+                hooks(Hooks {
+                    cancel: Some(ordinal),
+                    ..Hooks::default()
+                });
+            }
+            let f = pin(&mut cache, &mut c, 546, None).unwrap_err();
+            hooks(Hooks::default());
+            let actual = pi::summary(&cache, 546).unwrap();
+            assert!(
+                actual == old || actual == published,
+                "atomic metadata publish ordinal {ordinal}"
+            );
+            plan_reuse_primary(f, pin(&mut cache, &mut c, 34, None).unwrap_err());
+            finish(cache, c);
+        }
+    }
+    println!("PLAN_COLLISION shorter_work={credits} cancellation_checks={checks} atomic=true cleanup_zero=true");
+}
+
+#[test]
+fn plan_reuse_cached_deadline_and_precedence() {
+    let bytes = fixture(0, &body(1, &[0, 0x0e, 1, 0, 0, 0x0b]), 100);
+    for step in [
+        CacheStep::Lookup,
+        CacheStep::BuildReset,
+        CacheStep::Build,
+        CacheStep::Publication,
+    ] {
+        for cancel in [false, true] {
+            hooks(Hooks::default());
+            let (mut c, mut cache) = plan_reuse_seed(
+                &bytes,
+                SwiftRunBudget {
+                    cache_entries: 1,
+                    deadline_ms: 20,
+                    ..SwiftRunBudget::default()
+                },
+            );
+            hooks(Hooks {
+                pause: Some(step),
+                cancel_pause: cancel,
+                ..Hooks::default()
+            });
+            let f = pin(&mut cache, &mut c, 34, None).unwrap_err();
+            hooks(Hooks::default());
+            assert_eq!(
+                f.kind,
+                if cancel {
+                    SwiftRunFailureKind::Cancelled
+                } else {
+                    SwiftRunFailureKind::Deadline
+                }
+            );
+            assert_eq!(c.usage(None).live.active_pins.current, 0);
+            plan_reuse_primary(f, pin(&mut cache, &mut c, 34, None).unwrap_err());
+            finish(cache, c);
+        }
+    }
+    println!("PLAN_CACHED_DEADLINE boundaries=4 precedence_pairs=4 cleanup_zero=true");
+}
+
+#[test]
+fn plan_reuse_profile_envelopes_without_guest_execution() {
+    use super::execution::{self,SwiftReactorInstance};
+    use super::execution::frame_operations::{FrameOperationStorage,FrameCompletion};
+    use crate::experimental_wasi::accounted::accounted_header_bytes;
+    let bytes=fixture(0,&[0,0x0b],100);
+    let max=SwiftRunBudget::default();
+    let mut pair=Some(adopt(&bytes,max));
+    let mut returned=Some(SwiftReactorInstance::construct(&mut pair,WasiGrants::default(),WasiBudget::default(),Instant::now(),cache_cursor()));
+    let mut owner=returned.take().unwrap().unwrap();assert!(pair.is_none());drop((pair,returned));
+    let constructed=owner.control.as_ref().unwrap().usage(owner.wasi.as_ref().map(AccountedWasi::usage));
+    assert_eq!(constructed.reservations.live_tickets,21);
+    for f in 34..98 {
+        let cache=owner.cache.as_mut().unwrap();let control=owner.control.as_mut().unwrap();let wasi=owner.wasi.as_ref();
+        let p=pin(cache,control,f,wasi).unwrap();cache.release(p,control,wasi).map_err(|e|e.failure).unwrap();
+    }
+    let resident=owner.control.as_ref().unwrap().usage(owner.wasi.as_ref().map(AccountedWasi::usage));
+    assert_eq!(resident.live.cache_entries.current,64);assert_eq!(resident.reservations.live_tickets,85);
+    let mut preparation=Some(owner.prepare_frames(cache_cursor()));
+    let mut phase=preparation.take().unwrap().unwrap();let report=phase.drain();
+    let bound=report.bound.unwrap();assert_eq!(report.usage.instructions,0);assert_eq!(report.usage.instruction_fuel,0);
+    let frame_bytes=bound.admitted-bound.previous;
+    assert!(matches!(phase.complete(FrameOperationStorage{preparation,entry:None,returned:None,drained:Some(report),controlled:None}),FrameCompletion::Completed));
+    let floor=foundation_construction_bytes().unwrap();
+    let construction=execution::construction_bytes().unwrap();
+    let execution_header=execution::execution_header_bytes().unwrap();
+    // A conservative simultaneous ceiling calculation, not a claim that every
+    // independent category ceiling is reachable in a valid module.
+    let categories=max.source_bytes+max.metadata_bytes+max.cache_bytes+max.state_bytes;
+    let wasi=accounted_header_bytes().unwrap()+4*65536;
+    let shared=constructed.reservations.shared.current;
+    let phase_peak=floor+construction.max(frame_bytes+cache_operation_bytes().unwrap());
+    let maximum_envelope=categories+wasi+shared+phase_peak;
+    println!("PLAN_PROFILE floor={floor} execution_header={execution_header} execution_construction={construction} frame_operation={frame_bytes} category_ceiling_sum={categories} wasi_max={wasi} shared={shared} conservative_combined={maximum_envelope} combined_limit={} constructed_current={} constructed_peak={} resident_current={} resident_peak={} frame_peak={} tickets={}/{}",max.combined_bytes,constructed.reservations.combined.current,constructed.reservations.combined.peak,resident.reservations.combined.current,resident.reservations.combined.peak,report.usage.reservations.combined.peak,report.usage.reservations.live_tickets,report.usage.reservations.peak_tickets);
+    assert!(maximum_envelope<=max.combined_bytes);
+    assert!(execution_header<=max.state_bytes);assert!(report.usage.reservations.peak_tickets<=86);
+    assert_eq!(owner.control.as_ref().unwrap().budget(),max);
+    let mut owned=Some(owner);let mut cleanup=Some(SwiftReactorInstance::cleanup_owned(&mut owned));
+    let tail=cleanup.take().unwrap().unwrap();let mut failure=None;let mut usage=None;
+    tail.complete((owned,cleanup),&mut failure,&mut usage);
+    let final_usage=usage.unwrap();assert_eq!(final_usage.reservations.combined.current,0);assert_eq!(final_usage.reservations.live_tickets,0);assert!(failure.is_none());
+    println!("PLAN_PROFILE cleanup_zero=true guest_instructions=0 initializes=0 invokes=0");
+}
+
+#[test]
+fn full_regression_observe_cache_fixture_shapes() {
+    let bytes = fixture(0, &[0, 0x0b], 100);
+    let (mut c, a) = adopt(&bytes, SwiftRunBudget::default());
+    let (cache, stats) = measure(|| construct(&mut c, a, None).unwrap());
+    println!(
+        "REGRESSION_CACHE stats={stats:?} header={} fixed={} work={}",
+        cache_header_bytes().unwrap(),
+        c.usage(None).reservations.cache.current,
+        c.usage(None).cache_work
+    );
+    assert_eq!(stats.reallocations, 0);
     finish(cache, c);
 }
