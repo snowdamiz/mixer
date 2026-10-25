@@ -1,0 +1,17 @@
+2026-10-25 01:10:54.255 UTC [2982] LOG:  starting PostgreSQL 16.15 (Ubuntu 16.15-1.pgdg24.04+2) on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit
+2026-10-25 01:10:54.255 UTC [2982] LOG:  listening on IPv4 address "127.0.0.1", port 58617
+2026-10-25 01:10:54.258 UTC [2985] LOG:  database system was shut down at 2026-10-25 01:10:54 UTC
+2026-10-25 01:10:54.261 UTC [2982] LOG:  database system is ready to accept connections
+2026-10-25 01:11:07.557 UTC [3074] ERROR:  new row for relation "oban_jobs" violates check constraint "coordinator_reject_retry"
+2026-10-25 01:11:07.557 UTC [3074] DETAIL:  Failing row contains (44, available, builds, MixerHosted.Builds.Coordinator, {"kind": "retry", "fence": 3, "attempt": 2, "build_id": "build-c..., {}, 0, 20, 2026-10-25 01:11:07.555428, 2026-10-25 01:11:07.555428, null, null, null, null, 0, {}, {}, null).
+2026-10-25 01:11:07.557 UTC [3074] STATEMENT:  INSERT INTO "public"."oban_jobs" ("args","meta","state","max_attempts","queue","worker","errors","tags","attempt") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING "id"
+2026-10-25 01:11:07.644 UTC [3074] ERROR:  new row for relation "oban_jobs" violates check constraint "coordinator_reject_start"
+2026-10-25 01:11:07.644 UTC [3074] DETAIL:  Failing row contains (50, available, builds, MixerHosted.Builds.Coordinator, {"kind": "start", "fence": 1, "attempt": 1, "build_id": "build-c..., {}, 0, 20, 2026-10-25 01:11:07.639462, 2026-10-25 01:11:07.639462, null, null, null, null, 0, {}, {}, null).
+2026-10-25 01:11:07.644 UTC [3074] STATEMENT:  INSERT INTO "public"."oban_jobs" ("args","meta","state","max_attempts","queue","worker","errors","tags","attempt") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING "id"
+2026-10-25 01:11:44.399 UTC [2982] LOG:  received fast shutdown request
+2026-10-25 01:11:44.400 UTC [2982] LOG:  aborting any active transactions
+2026-10-25 01:11:44.403 UTC [2982] LOG:  background worker "logical replication launcher" (PID 2988) exited with exit code 1
+2026-10-25 01:11:44.403 UTC [2983] LOG:  shutting down
+2026-10-25 01:11:44.404 UTC [2983] LOG:  checkpoint starting: shutdown immediate
+2026-10-25 01:11:44.577 UTC [2983] LOG:  checkpoint complete: wrote 4904 buffers (29.9%); 0 WAL file(s) added, 0 removed, 1 recycled; write=0.134 s, sync=0.014 s, total=0.174 s; sync files=3286, longest=0.001 s, average=0.001 s; distance=24137 kB, estimate=24137 kB; lsn=0/2C81C98, redo lsn=0/2C81C98
+2026-10-25 01:11:44.592 UTC [2982] LOG:  database system is shut down

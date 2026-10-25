@@ -1,0 +1,74 @@
+{
+  "scope": "Source read only; no Swift compilation or execution. Excerpts preserved before producer scratch cleanup.",
+  "sources": [
+    {
+      "excerpts": [
+        {
+          "endLine": 39,
+          "startLine": 13,
+          "text": "    private func focusEndpoint(_ item: (any UIFocusItem)?) -> [String: Any] {\n        guard let item else {\n            return [\"state\": \"null\", \"identifier\": NSNull(), \"class\": NSNull(),\n                    \"identity\": NSNull(), \"frame\": NSNull(), \"frameInWindow\": NSNull(), \"attachedToWindow\": NSNull()]\n        }\n        let frame = item.frame\n        var value: [String: Any] = [\"state\": \"item\", \"class\": String(describing: type(of: item)),\n            \"identity\": String(describing: ObjectIdentifier(item)),\n            \"identifier\": (item as? any UIAccessibilityIdentification)?.accessibilityIdentifier as Any? ?? NSNull(),\n            \"frame\": [\"x\": frame.minX, \"y\": frame.minY, \"width\": frame.width, \"height\": frame.height],\n            \"frameInWindow\": NSNull(), \"attachedToWindow\": NSNull()]\n        if let view = item as? UIView {\n            value[\"attachedToWindow\"] = view.window != nil\n            if view.window != nil {\n                let attached = view.convert(view.bounds, to: nil)\n                value[\"frameInWindow\"] = [\"x\": attached.minX, \"y\": attached.minY, \"width\": attached.width, \"height\": attached.height]\n            }\n        }\n        return value\n    }\n    func focusContext(_ source: String, _ context: UIFocusUpdateContext) {\n        focusContextRevision += 1\n        guard focusContextEntries.count < 128 else { focusContextDropped += 1; return }\n        focusContextEntries.append([\"sequence\": focusContextRevision, \"uptime\": ProcessInfo.processInfo.systemUptime,\n            \"source\": source, \"heading\": context.focusHeading.rawValue,\n            \"previous\": focusEndpoint(context.previouslyFocusedItem), \"next\": focusEndpoint(context.nextFocusedItem)])\n    }"
+        }
+      ],
+      "retainedSourcePath": "verification/apple-focus-diagnostic-runtime-v1/scratch/accepted/source/Prototype/DiagnosticTrace.swift",
+      "sha256": "9dbd3eff88f0df0ecb34c2024f005b6be27568cbc75b8ee00c8202870937d4fa"
+    },
+    {
+      "excerpts": [
+        {
+          "endLine": 305,
+          "startLine": 290,
+          "text": "    override var accessibilityLabel: String? {\n        get { authoredAccessibility[\"accessibilityLabel\"] ?? super.accessibilityLabel }\n        set { super.accessibilityLabel = newValue }\n    }\n    override var accessibilityHint: String? {\n        get { authoredAccessibility[\"accessibilityHint\"] ?? super.accessibilityHint }\n        set { super.accessibilityHint = newValue }\n    }\n    override var accessibilityValue: String? {\n        get { authoredAccessibility[\"accessibilityValue\"] ?? super.accessibilityValue }\n        set { super.accessibilityValue = newValue }\n    }\n    override var accessibilityIdentifier: String? {\n        get { authoredAccessibility[\"accessibilityIdentifier\"] ?? super.accessibilityIdentifier }\n        set { super.accessibilityIdentifier = newValue }\n    }"
+        },
+        {
+          "endLine": 351,
+          "startLine": 340,
+          "text": "        cancellationCount += 1\n        super.cancelTracking(with: event)\n        stateChanged?(\"cancel\")\n    }\n    override func didUpdateFocus(in context: UIFocusUpdateContext, with coordinator: UIFocusAnimationCoordinator) {\n        super.didUpdateFocus(in: context, with: coordinator)\n        DiagnosticTrace.shared.focusContext(\"carrier\", context)\n        setNeedsDisplay(); stateChanged?(\"focus\")\n    }\n\n    override func draw(_ rect: CGRect) {\n        guard let context = UIGraphicsGetCurrentContext(), let paints else { return }"
+        }
+      ],
+      "retainedSourcePath": "verification/apple-focus-diagnostic-runtime-v1/scratch/accepted/source/Prototype/AuthoredToggleCarrier.swift",
+      "sha256": "b688ba48eb6aaf19e7b72b2bc1f46ef802883a05ee378b4cb54b52c79656b0ef"
+    },
+    {
+      "excerpts": [
+        {
+          "endLine": 60,
+          "startLine": 55,
+          "text": "        rowLabel.text = \"Sync entries\"; rowLabel.font = .systemFont(ofSize: 17)\n        rowLabel.isAccessibilityElement = false\n        toggle.paints = theme.light.toggle\n        toggle.authoredAccessibility = [\"accessibilityLabel\":\"Sync entries\", \"accessibilityHint\":\"Updates the sync preference\", \"accessibilityIdentifier\":\"authored-toggle\"]\n        toggle.inputAllowed = { [weak self] in self?.allowed == true }\n        toggle.stateChanged = { [weak self] reason in self?.record(reason); self?.queueNativeInterruption(reason); self?.exercisePanCommitHook(reason) }"
+        },
+        {
+          "endLine": 75,
+          "startLine": 66,
+          "text": "        referenceButton.menu = nil\n        referenceButton.showsMenuAsPrimaryAction = false\n        referenceButton.changesSelectionAsPrimaryAction = true\n        referenceButton.isAccessibilityElement = true\n        referenceButton.accessibilityIdentifier = \"plain-uibutton-reference\"\n        referenceButton.accessibilityLabel = \"Plain UIKit selection reference\"\n        referenceButton.setTitle(\"Plain UIButton reference\", for: .normal)\n        referenceButton.setTitleColor(.systemBlue, for: .normal)\n        referenceButton.addTarget(self, action: #selector(referencePrimary), for: .primaryActionTriggered)\n        referenceButton.addTarget(self, action: #selector(referenceValueChanged), for: .valueChanged)"
+        },
+        {
+          "endLine": 91,
+          "startLine": 85,
+          "text": "            scroll.addSubview(label)\n        }\n        nextButton.setTitle(\"Next native focus target\", for: .normal)\n        nextButton.setTitleColor(.systemBlue, for: .normal)\n        nextButton.accessibilityIdentifier = \"next-focus\"\n        nextButton.addAction(UIAction { [weak self] _ in self?.record(\"nextButton\") }, for: .primaryActionTriggered)\n        view.addSubview(nextButton)"
+        },
+        {
+          "endLine": 283,
+          "startLine": 279,
+          "text": "    override func didUpdateFocus(in context: UIFocusUpdateContext, with coordinator: UIFocusAnimationCoordinator) {\n        super.didUpdateFocus(in: context, with: coordinator)\n        DiagnosticTrace.shared.focusContext(\"controller\", context)\n    }\n    override var preferredFocusEnvironments: [UIFocusEnvironment] { [toggle] }"
+        }
+      ],
+      "retainedSourcePath": "verification/apple-focus-diagnostic-runtime-v1/scratch/accepted/source/Prototype/main.swift",
+      "sha256": "a47094a2ce18806ca27cc3a3ea4964bfb5ba2fc00ddd70516bcf8923bcbd965f"
+    },
+    {
+      "excerpts": [
+        {
+          "endLine": 348,
+          "startLine": 305,
+          "text": "    private var focusDiagnosticObservations: [[String: Any]] = []\n    private var focusDiagnosticObservationsDropped = 0\n    private func ax(_ diagnosticPhase: String = \"other\") throws -> [String: Any] {\n        guard let app else { throw Failure.invalidResponse }\n        let observationStarted = now\n        var rows: [String: Any] = [:]\n        var rowTimes: [[String: Any]] = []\n        for id in ids {\n            let rowStarted = now\n            let element = app.descendants(matching: .any)[id].firstMatch\n            guard element.waitForExistence(timeout: 2) else { throw Failure.focus(\"Fixed native element absent: \" + id) }\n            rows[id] = [\"identifier\": element.identifier, \"exists\": element.exists, \"hittable\": element.isHittable,\n                        \"enabled\": element.isEnabled, \"selected\": element.isSelected, \"hasFocus\": element.hasFocus,\n                        \"label\": element.label, \"frame\": rectangle(element.frame)]\n            rowTimes.append([\"identifier\": id, \"startedUptime\": rowStarted, \"finishedUptime\": now])\n        }\n        // The witness remains its original closed shape, including its end time.\n        let observedUptime = ProcessInfo.processInfo.systemUptime\n        let foreground = app.state == .runningForeground\n        if focusDiagnosticObservations.count < 4 {\n            focusDiagnosticObservations.append([\"phase\": diagnosticPhase, \"atomic\": false, \"startedUptime\": observationStarted,\n                \"finishedUptime\": now, \"witnessUptime\": observedUptime, \"rows\": rowTimes])\n        } else { focusDiagnosticObservationsDropped += 1 }\n        return [\"uptime\": observedUptime, \"appForeground\": foreground, \"elements\": rows]\n    }\n    private func focusOnlyDiagnostic(_ actionDeadline: Double) -> [String: Any] {\n        let started = now\n        let deadline = min(actionDeadline, started + 0.250)\n        var rows: [[String: Any]] = []\n        if let app {\n            for id in ids {\n                guard now < deadline else { break }\n                let rowStarted = now\n                let element = app.descendants(matching: .any)[id].firstMatch\n                let focused = element.hasFocus\n                let rowFinished = now\n                rows.append([\"identifier\": id, \"hasFocus\": focused, \"startedUptime\": rowStarted, \"finishedUptime\": rowFinished])\n                if rowFinished >= deadline { break }\n            }\n        }\n        let finished = now\n        return [\"atomic\": false, \"startedUptime\": started, \"finishedUptime\": finished, \"deadlineUptime\": deadline, \"rows\": rows,\n                \"captureStatus\": rows.count == ids.count && finished <= deadline ? \"complete\" : \"incomplete-budget\"]\n    }"
+        },
+        {
+          "endLine": 388,
+          "startLine": 355,
+          "text": "    @discardableResult private func key(_ phase: String, _ value: String, expectedFocus: String? = nil, expectedSelection: Bool? = nil) throws -> [String: Any] {\n        guard let app else { throw Failure.invalidResponse }\n        let toggle = app.descendants(matching: .any)[\"authored-toggle\"].firstMatch\n        let baseline = try bridge(\"baseline\", [\"action\": \"native-keyboard\", \"geometry\": [\"app\": rectangle(app.frame), \"target\": rectangle(toggle.frame)]])\n        focusDiagnosticObservations = []; focusDiagnosticObservationsDropped = 0\n        let before = try ax(\"before\")\n        try jsonAttachment(\"Before public key \" + phase, [\"case\": caseName, \"phase\": phase, \"key\": value, \"generation\": baseline[\"generation\"]!, \"actionIndex\": baseline[\"actionIndex\"]!, \"before\": before])\n        let start = ProcessInfo.processInfo.systemUptime\n        if value == \"shift-tab\" { app.typeKey(XCUIKeyboardKey.tab, modifierFlags: [.shift]) }\n        else { app.typeKey(value == \"space\" ? XCUIKeyboardKey.space : XCUIKeyboardKey.tab, modifierFlags: []) }\n        let finished = ProcessInfo.processInfo.systemUptime\n        var after = try ax(\"after-primary\"); let end = ProcessInfo.processInfo.systemUptime + 1\n        while ProcessInfo.processInfo.systemUptime < end {\n            let matchesFocus = try expectedFocus == nil || focus(after) == expectedFocus\n            let matchesSelection = expectedSelection == nil || toggle.isSelected == expectedSelection\n            if matchesFocus && matchesSelection { break }\n            RunLoop.current.run(until: Date(timeIntervalSinceNow: 0.05)); after = try ax(\"after-poll\")\n        }\n        let witness: [String: Any] = [\"case\": caseName, \"generation\": baseline[\"generation\"]!, \"actionIndex\": baseline[\"actionIndex\"]!,\n            \"phase\": phase, \"key\": value, \"publicAPI\": \"XCUIElement.typeKey(_:modifierFlags:)\", \"returned\": true,\n            \"before\": before, \"startedUptime\": start, \"finishedUptime\": finished, \"after\": after]\n        try jsonAttachment(\"Public keyboard \" + phase, witness)\n        // This one follow-up cannot choose the authoritative sample or alter its verdict.\n        let followUp = focusOnlyDiagnostic((before[\"uptime\"] as! Double) + 12.0)\n        var focusDiagnostic: [String: Any] = [\"schema\": \"mixer.apple-toggle.focus-diagnostic.1\", \"authoritative\": false,\n            \"case\": caseName, \"generation\": baseline[\"generation\"]!, \"actionIndex\": baseline[\"actionIndex\"]!,\n            \"atomic\": false, \"observations\": focusDiagnosticObservations, \"observationsDropped\": focusDiagnosticObservationsDropped, \"followUp\": followUp]\n        if let bytes = try? JSONSerialization.data(withJSONObject: focusDiagnostic), bytes.count <= 4096 {}\n        else { focusDiagnostic = [\"schema\": \"mixer.apple-toggle.focus-diagnostic.1\", \"authoritative\": false,\n            \"case\": caseName, \"generation\": baseline[\"generation\"]!, \"actionIndex\": baseline[\"actionIndex\"]!,\n            \"captureStatus\": \"incomplete-record-size\", \"observationsDropped\": focusDiagnosticObservationsDropped] }\n        let result = try bridge(\"evaluate\", [\"keyboardWitness\": witness, \"focusDiagnostic\": focusDiagnostic])\n        try jsonAttachment(\"Strict keyboard verdict \" + phase, result)\n        guard result[\"passed\"] as? Bool == true else { XCTFail(\"Strict native keyboard evidence failed: \\(result)\"); throw Failure.focus(\"Strict keyboard verdict failed\") }"
+        }
+      ],
+      "retainedSourcePath": "verification/apple-focus-diagnostic-runtime-v1/scratch/accepted/harness/UITests/ToggleUITests.swift",
+      "sha256": "2e5bd5d9c22ab9d1b074898444635bf43ef046b23d8a156e9352faf3ffb9d9c6"
+    }
+  ]
+}

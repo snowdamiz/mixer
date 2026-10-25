@@ -1,0 +1,43 @@
+name: Phoenix foundation checks
+on:
+  push:
+    paths:
+      - 'hosted/**'
+      - 'services/protocol/testdata/signed-release-v3.json'
+      - 'services/protocol/testdata/release-v3-cases.json'
+      - '.github/workflows/hosted.yml'
+  pull_request:
+    paths:
+      - 'hosted/**'
+      - 'services/protocol/testdata/signed-release-v3.json'
+      - 'services/protocol/testdata/release-v3-cases.json'
+      - '.github/workflows/hosted.yml'
+permissions:
+  contents: read
+jobs:
+  phoenix:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124
+        with:
+          version-file: hosted/.tool-versions
+          version-type: strict
+      - name: Resolve locked dependencies
+        working-directory: hosted
+        run: mix deps.get --check-locked
+      - name: Phoenix and disposable PostgreSQL host checks
+        working-directory: hosted
+        run: |
+          python3 scripts/test-local.py \
+            --pg-bin /usr/lib/postgresql/16/bin \
+            --output "$RUNNER_TEMP/phoenix-foundation"
+      - name: Preserve host evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phoenix-foundation-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: ignore
+          path: ${{ runner.temp }}/phoenix-foundation/
