@@ -1,0 +1,95 @@
+{
+  "schema": 1,
+  "observedUTC": "2026-10-25T00:18:57.666378+00:00",
+  "producer": "/root/hosted_build_journal",
+  "baseSourceRevision": "ba9ad4372f94463ba4d363cdfd76dd565c96413f",
+  "sourceSHA256": {
+    "AGENTS.md": "d6ed706daa261d4303c1f7d56d2c5ffcab81687e635943fc6bf875ab25b205e9",
+    "hosted/lib/mixer_hosted/builds/lifecycle.ex": "514eac8d0fd2300e6e9506a8b0f4c6c5d77d20e930982e723ce0ee8227c9bc32",
+    "hosted/lib/mixer_hosted/builds/journal.ex": "3386d7338d189ffc9bdd97ea9669d9c66569ec300e94154b69e14dafd41053ea",
+    "hosted/test/mixer_hosted/builds/lifecycle_test.exs": "79e1628427b75b5280df2d30219cdd286ad11f0916dcc6e39786b1dbecd4f3f7",
+    "hosted/test/mixer_hosted/builds/journal_test.exs": "8793125673b1a1ded44f47bce833a41bf65cf3eac51fbbd7ebede2ecd478d97e",
+    "docs/hosted-build-journal.md": "b38aa21ede58b521e9b25088674e6131da98d44357dd163a4a794b32bac8aa7f",
+    "hosted/mix.exs": "ade39cb685e8f78d7d62ab1517db38e572094dcf9bc9ec21f91b9b6b3bd3cbe2",
+    "hosted/mix.lock": "59e6fe5d6bc76ae0057745fe7eb3fb292f225b6a37cd1c99c214f9447c60ff8a",
+    "verification/hosted-build-journal/collect.py": "3c03e3f1af37cb95171fc6f7ad767b28b9279143ce372664641d05d87b215299"
+  },
+  "sourceTreeSHA256": "e77b5cd70bbd9e9ca7ad1b429061ea24403edd9d477047f93b6251ac6a4d857e",
+  "sourcesUnchanged": true,
+  "toolLauncherSHA256": "5cb23d89a78f75589b06fade3097e217b77e63416d61c1800f674579748c4307",
+  "jasonBeamSHA256": "ec4a6e49251c059eb778f173f16740c1d0dec7266a2d816935d856e7fac82c76",
+  "pythonVersion": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "commands": [
+    {
+      "label": "versions",
+      "argv": [
+        "/opt/homebrew/bin/elixir",
+        "-e",
+        "IO.puts(\"elixir=\" <> System.version()); IO.puts(\"otp=\" <> String.trim(File.read!(Path.join([:code.root_dir(), \"releases\", :erlang.system_info(:otp_release), \"OTP_VERSION\"]))))"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environmentOverride": {
+        "ERL_FLAGS": "+S 2:2"
+      },
+      "timeoutSeconds": 120,
+      "exitCode": 0,
+      "elapsedSeconds": 0.149763,
+      "stdout": "versions.stdout",
+      "stdoutSHA256": "649465408af15e1eac33cf073463aae76b13cbfd6da6566473a35fe4946832f1",
+      "stderr": "versions.stderr",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "format",
+      "argv": [
+        "/opt/homebrew/bin/elixir",
+        "-e",
+        "Enum.each([\"hosted/lib/mixer_hosted/builds/journal.ex\", \"hosted/test/mixer_hosted/builds/journal_test.exs\"], fn path -> source = File.read!(path); formatted = IO.iodata_to_binary([Code.format_string!(source), \"\n\"]); if source != formatted, do: raise(\"not formatted: \" <> path) end); IO.puts(\"2 files formatted\")"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environmentOverride": {
+        "ERL_FLAGS": "+S 2:2"
+      },
+      "timeoutSeconds": 120,
+      "exitCode": 0,
+      "elapsedSeconds": 0.157917,
+      "stdout": "format.stdout",
+      "stdoutSHA256": "2e86024ed2a96ab9e0aff9cf37da645e3d0eacedbb5f9698f541a96d0a933d28",
+      "stderr": "format.stderr",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "pure-tests",
+      "argv": [
+        "/opt/homebrew/bin/elixir",
+        "-pa",
+        "hosted/_build/test/lib/jason/ebin",
+        "-r",
+        "hosted/lib/mixer_hosted/builds/lifecycle.ex",
+        "-r",
+        "hosted/lib/mixer_hosted/builds/journal.ex",
+        "-e",
+        "ExUnit.start(seed: 0); Code.require_file(\"hosted/test/mixer_hosted/builds/lifecycle_test.exs\"); Code.require_file(\"hosted/test/mixer_hosted/builds/journal_test.exs\")"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "environmentOverride": {
+        "ERL_FLAGS": "+S 2:2"
+      },
+      "timeoutSeconds": 120,
+      "exitCode": 0,
+      "elapsedSeconds": 0.972912,
+      "stdout": "pure-tests.stdout",
+      "stdoutSHA256": "1a7dd5f861f8d425162608d3a99047ba66330fa541ae4ca9d4cd3e5c3b8d8232",
+      "stderr": "pure-tests.stderr",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "scope": "Pure deterministic Elixir lifecycle+journal tests with existing Jason JSON round trips. No Mix application, database, network, worker, signing or native processes started.",
+  "pending": [
+    "Root durable-store integration verification",
+    "Independent codec acceptance review",
+    "All operational/customer/signing/store/physical-device/GA gates"
+  ],
+  "cleanup": "Only short-lived Elixir test/format/version processes; all terminated on command completion. No disposable simulator/emulator/database created.",
+  "passed": true
+}

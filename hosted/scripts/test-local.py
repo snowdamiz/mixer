@@ -15,8 +15,14 @@ import tempfile
 parser = argparse.ArgumentParser()
 parser.add_argument("--output", required=True, type=Path)
 parser.add_argument("--pg-bin", default="/opt/homebrew/opt/postgresql@17/bin", type=Path)
+parser.add_argument("--additional-test", action="append", default=[], type=Path,
+                    help="Explicit repository-local independent ExUnit test; bound into the receipt")
 args = parser.parse_args()
 root = Path(__file__).resolve().parents[1]
+additional_tests = [p.resolve() for p in args.additional_test]
+for test in additional_tests:
+    if not test.is_relative_to(root.parent) or test.suffix != ".exs" or not test.is_file():
+        parser.error("additional tests must be existing repository-local .exs files")
 output = args.output.resolve()
 output.mkdir(parents=True, exist_ok=False)
 commands = []
@@ -38,6 +44,8 @@ def manifest():
     for name in ("signed-release-v3.json", "release-v3-cases.json"):
         fixture = root.parent / "services/protocol/testdata" / name
         inputs[str(fixture.relative_to(root.parent))] = digest(fixture)
+    for test in additional_tests:
+        inputs[str(test.relative_to(root.parent))] = digest(test)
     return inputs
 
 
@@ -106,7 +114,15 @@ try:
                      "mixer_fixture", "mixer_foundation_test"])
     run("createdb-startup", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
                             "mixer_fixture", "mixer_startup_test"])
-    run("tests", ["mix", "test", "--warnings-as-errors", "--seed", "0", "--trace"], env)
+    run("createdb-builds", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
+                           "mixer_fixture", "mixer_builds_test"])
+    if additional_tests:
+        run("createdb-builds-review", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
+                                      "mixer_fixture", "mixer_builds_review_test"])
+    test_argv = ["mix", "test", "--warnings-as-errors", "--seed", "0", "--trace"]
+    if additional_tests:
+        test_argv.extend(["test", *map(str, additional_tests)])
+    run("tests", test_argv, env)
     if before != manifest():
         raise RuntimeError("source changed during tests")
     status = "passed"

@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "verdict": "passed_for_internal_development_storage_slice",
+  "unresolved_actionable_findings": [],
+  "collector_receipt": "verification/hosted-build-storage/attempt-1/receipt.json",
+  "collector_receipt_sha256": "b1165905601e1e9451b641f74c614edb02b86cd296e9cfed1eec31e3a47f4d6b",
+  "source_revision": "ba9ad4372f94463ba4d363cdfd76dd565c96413f",
+  "source_tree_sha256": "42af466e065e67c4f8be4320b86eb198b23f5898f09b3f4026c3aab9e2cc532c",
+  "archived_inputs_verified": 83,
+  "command_logs_verified": 16,
+  "live_review_inputs_verified": {
+    "hosted/lib/mixer_hosted/builds/lifecycle.ex": "514eac8d0fd2300e6e9506a8b0f4c6c5d77d20e930982e723ce0ee8227c9bc32",
+    "hosted/lib/mixer_hosted/builds/journal.ex": "3386d7338d189ffc9bdd97ea9669d9c66569ec300e94154b69e14dafd41053ea",
+    "hosted/lib/mixer_hosted/builds/storage.ex": "465351cfb4c29150c47b6547a16e4ad7aaa41d14bfb9dc1634d240c55987d0ad",
+    "hosted/lib/mixer_hosted/builds/record.ex": "4394feecd6e04eba55e6aec6d3cde832a14616d0ff10a9682700477ad11930c2",
+    "hosted/priv/repo/migrations/20261025000000_add_build_journals.exs": "9d848ba6c781cd018aca43989313e78320b5e970da7fc4c863a1da644a16d7f2",
+    "hosted/test/mixer_hosted/builds/storage_test.exs": "2e30ca9863b07011c61838c8f861e8ab000850e9190a6d9228a6564c0717696f",
+    "hosted/test/support/build_intent_worker.ex": "6de3c1639bc16f04221f97909bd2d0f19a7333709b06d2412e8d9d15d1dd41f7",
+    "hosted/test/foundation_integration_test.exs": "9ac3435abe11dbc8e08a1f9acefa5f506882c3df98d245ec6d4ef8e3c4b130f8",
+    "hosted/scripts/test-local.py": "c3b3a64d1e697eeacf3b26c79bce5ba6a7ca405b468df43ecb6531272f0fa6df",
+    "verification/hosted-build-storage-independent-review/independent_test.exs": "a0b9bd8d0f4efc440273d63c183043908edf7efa9eda4849202bcf3407f623cb"
+  },
+  "full_suite": {
+    "passed": 208,
+    "skipped": 2
+  },
+  "review_controls_passed": 9,
+  "producer_storage_tests_passed": 15,
+  "journal_tests_passed": 14,
+  "skips": [
+    {
+      "module": "MixerHosted.Identity.KeyOwnerLinuxNetworkTest",
+      "test": "* test K03 production resolver/classifier pins public peer despite rebinding; private sink remains untouched (skipped) [L#32]"
+    },
+    {
+      "module": "MixerHosted.Identity.StartupLinuxNetworkTest",
+      "test": "* test IS04 IS05 actual configured startup cold production DNS TLS admission and lifecycle (skipped) [L#29]"
+    }
+  ],
+  "execution_owner": "Root collector ran the independent controls together with the full suite; reviewer inspected and rehashed retained evidence without rerunning the DB.",
+  "cleanup": {
+    "postgres_stopped": true,
+    "scratch_removed": true
+  },
+  "limitations": [
+    "Synthetic loopback PostgreSQL uses migration-owner fixture access without TLS; this does not qualify authoritative tenant authorization, FORCE RLS or production runtime role checks.",
+    "Job factory is trusted BEAM code and must not perform external effects; changeset normalization is not an application sandbox.",
+    "No public build endpoint, authenticated worker gateway, production coordinator, external worker, coordinator lease, global quota, signing, artifact publication or billing execution exists in this slice.",
+    "No Neon, Cloudflare wake/failover/restore, real identity provider, Linux-only network rerun, native/device or GA gate is qualified by this receipt.",
+    "Real mixer_builds rows plus real Oban rows are covered; the retained collector's inherited synthetic-domain limitation refers to its separate foundation probe."
+  ],
+  "verification_command": "python3 verification/hosted-build-storage-independent-review/verify_evidence.py"
+}
