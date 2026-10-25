@@ -1,0 +1,48 @@
+Running ExUnit with seed: 0, max_cases: 4
+
+..............
+
+  1) test wrong action-specific target shapes reject before a repository lookup (MixerHosted.Authorization.PolicyTest)
+     /var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-customer-auth-65aaf38t/hosted/test/mixer_hosted/authorization/policy_test.exs:275
+     ** (FunctionClauseError) no function clause matching in MixerHosted.Authorization.Scope.project_only?/1
+
+     The following arguments were given to MixerHosted.Authorization.Scope.project_only?/1:
+
+         # 1
+         %MixerHosted.Authorization.Scope{organization_id: "organization-a", project_id: "project-a", application_id: "application-a", environment_id: "environment-a"}
+
+     Attempted function clauses (showing 1 out of 1):
+
+         def project_only?(-%MixerHosted.Authorization.Scope{project_id: project, application_id: nil}-)
+
+     code: assert Policy.evaluate(identity(), "audit.read", @scope, evidence(), @now) ==
+     stacktrace:
+       /var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-customer-auth-65aaf38t/hosted/lib/mixer_hosted/authorization/scope.ex:50: MixerHosted.Authorization.Scope.project_only?/1
+       /var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-customer-auth-65aaf38t/hosted/lib/mixer_hosted/authorization/policy.ex:148: MixerHosted.Authorization.Policy.request/4
+       /var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-customer-auth-65aaf38t/hosted/lib/mixer_hosted/authorization/policy.ex:101: MixerHosted.Authorization.Policy.evaluate/5
+       /var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-customer-auth-65aaf38t/hosted/test/mixer_hosted/authorization/policy_test.exs:285: (test)
+
+......
+
+  2) test scope parsing rejects ancestor gaps, wildcards, foreign keys and oversized identifiers (MixerHosted.Authorization.PolicyTest)
+     /var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-customer-auth-65aaf38t/hosted/test/mixer_hosted/authorization/policy_test.exs:383
+     Assertion with == failed
+     code:  assert Scope.new(value) == {:error, :invalid_scope}
+     left:  {:ok,
+             %MixerHosted.Authorization.Scope{
+               organization_id: "bad\nline",
+               project_id: "project-a",
+               application_id: "application-a",
+               environment_id: "environment-a"
+             }}
+     right: {:error, :invalid_scope}
+     stacktrace:
+       /var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-customer-auth-65aaf38t/hosted/test/mixer_hosted/authorization/policy_test.exs:397: anonymous fn/2 in MixerHosted.Authorization.PolicyTest."test scope parsing rejects ancestor gaps, wildcards, foreign keys and oversized identifiers"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       /var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-customer-auth-65aaf38t/hosted/test/mixer_hosted/authorization/policy_test.exs:384: (test)
+
+....
+Finished in 0.1 seconds (0.1s on load, 0.00s async, 0.00s sync)
+
+Result: 24/26 passed
+Failed: 2 tests

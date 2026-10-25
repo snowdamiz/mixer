@@ -21,8 +21,12 @@ its older pending/selected statements do not override the current state.
    passes four finite host tests and three independent tests. The strict supplementary classifier
    correction passes 38 host methods. One full attribution diagnostic reproduces
    the original failure; valid measurements attribute 53.907% of the fixed work
-   budget to rebuilding previously decoded functions. Investigate bounded cache
-   retention with exact work/memory accounting; no new full retry is selected. See
+   budget to rebuilding previously decoded functions. A reviewed isolated segmented-LRU
+   candidate regresses in one same-budget full comparison to 8,746,437 instructions
+   and is rejected for integration. Final consuming usage is zero and owned products
+   are removed. Choose the next retention design from this evidence with exact
+   work/memory accounting; no new retry is selected. See
+   [the rejected result](docs/swift-retention-runtime.md) and
    [the integration](docs/swift-decode-plan-integration.md).
 2. **iOS shared UI:** the supplemental source and corrected frozen V7 host join
    pass independent review. Fresh generic simulator builds of both app and runner
@@ -49,7 +53,10 @@ its older pending/selected statements do not override the current state.
    durable domain/job integration, connected console workflows and provider
    qualification through the dependency graph. The new bearer identity Plug
    passes 47 targeted host tests and ten independent controls after review
-   repairs. Customer routes and project permissions remain pending. Preserve accurate unavailable
+   repairs. The pure human artifact/audit permission prerequisite now passes 30
+   product tests and 23 independent probes after fixing incomplete callback-result
+   acceptance. Durable membership/transaction/RLS authorization and customer routes
+   remain pending. Preserve accurate unavailable
    states until data/auth is connected. Keep the website branding throughout.
 
 The frozen hosted catalog-inspector/authority-driver lanes and rejected outbound

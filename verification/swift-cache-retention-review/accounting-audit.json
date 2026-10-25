@@ -1,0 +1,168 @@
+{
+  "additionalWork": {
+    "constructor": "one per allocated resident slot",
+    "constructorAt64": 4992,
+    "fiveSlotPromotionWithHeldHandle": {
+      "additionalTierWork": 16,
+      "originalIndexedPath": 9,
+      "total": 25
+    },
+    "fourSlotPromotion": {
+      "additionalTierWork": 14,
+      "originalIndexedPath": 8,
+      "total": 22
+    },
+    "precharge": "all reads before observation; all writes admitted before infallible commit",
+    "protectedHitWithoutHeldHandle": 9,
+    "residentHit": "one tier read always; if probationary and protected capacity>0, also 2*slots + protected_count + 1 + (protected_count==protected_capacity) credits",
+    "successfulMissPublication": "one resident tier reset",
+    "victimScan": "one per occupied unpinned unselected slot per planning scan"
+  },
+  "compilerStackOrRSSMeasured": false,
+  "constructionEnvelope": {
+    "bytes": 61880,
+    "limitation": "Existing unnamed SwiftSlot literal is passed to opaque std Vec::push. Payload grows by measured slot size; authored named-value model excludes opaque std-library internals and compiler-stack placement.",
+    "newAuthoredConstructorBinding": false,
+    "unchangedAuthoredNamedBindingShapes": true
+  },
+  "context": {
+    "docs/swift-cache-candidate3-acceptance.md": "5d11b7ed715f6cdf580a324acaa9c81bfaa7966b950fc5644b0fd3cd123d4b7e",
+    "docs/swift-cache-foundation-phase-addendum.md": "8a8909b4dde0e7c05157da64a43b27b499cd17ef633459db7f9e356e97d93088",
+    "docs/swift-cache-stage-contract.md": "5be230d404e80449da2af1afdbceac3d556d1b862400c16fbf4a767902ab539c"
+  },
+  "fixedOwner": {
+    "additionalBytesPerSlot": 8,
+    "additionalFixedBytes": 512,
+    "baselineFixedBytes": 118240,
+    "baselineSlotBytes": 136,
+    "candidateFixedBytes": 118752,
+    "candidateSlotBytes": 144,
+    "payloadReductionBytes": 512,
+    "preadmission": "complete entries*size_of::<SwiftSlot>() ticket before reserve::<SwiftSlot>()",
+    "slotsAtDefault": 64
+  },
+  "frozenDefaultHookEffects": {
+    "HitPlanBytes": 0,
+    "commitMutation": false,
+    "commitWork": 0,
+    "prepareMutation": false,
+    "prepareWork": 0
+  },
+  "frozenDefaultVictimMatchesOriginalLiteralLoop": true,
+  "identityAndMutationAudit": {
+    "commitAfterLastFallibleOperation": true,
+    "demotionDoesNotTouchPinsOrLiveness": true,
+    "hitPreparationReadOnly": true,
+    "immutableProofAndIRUntouchedByProductDiff": true,
+    "missPlanLeavesTiersUnchanged": true,
+    "protectedCapacityAtMost48": true,
+    "residentIndexValidatesActualFunction": true,
+    "selectedVictimsExcludedFromLaterScans": true,
+    "tiesUseFirstSlot": true
+  },
+  "logicalAccountingOnly": true,
+  "normalizedLiteralSHA256": "4f60ea65b6962f73e5f3e67fa172bf6ca556d8c50e4ccf57b6f7bbaea97bbf9f",
+  "operation": {
+    "additionalReservedBytes": 8016,
+    "baselineBytes": 92350,
+    "candidateBytes": 100366,
+    "copies": 3,
+    "coverage": {
+      "plans": [
+        "caller_plan",
+        "prepared_plan",
+        "returned_plan",
+        "commit_plan"
+      ],
+      "promotion": [
+        "hit_slots",
+        "hit_index",
+        "hit_meter",
+        "capacity_slots",
+        "capacity_return",
+        "protected_capacity",
+        "protected_count",
+        "oldest_protected",
+        "hit_search",
+        "hit_candidate",
+        "hit_slot",
+        "hit_age",
+        "hit_older",
+        "hit_oldest_reborrow",
+        "hit_age_capture",
+        "hit_map_argument",
+        "hit_demote",
+        "hit_write_credits"
+      ],
+      "publication": [
+        "commit_slots",
+        "commit_index",
+        "commit_demote",
+        "commit_victim"
+      ],
+      "victim": [
+        "victim_slots",
+        "victim_selected",
+        "victim_meter",
+        "oldest",
+        "victim_search",
+        "victim_index",
+        "victim_slot",
+        "victim_rank",
+        "victim_older",
+        "victim_oldest_reborrow",
+        "victim_rank_capture",
+        "victim_map_argument",
+        "victim_return",
+        "victim_mapped"
+      ]
+    },
+    "fields": [
+      "caller_plan",
+      "prepared_plan",
+      "returned_plan",
+      "hit_slots",
+      "hit_index",
+      "hit_meter",
+      "capacity_slots",
+      "capacity_return",
+      "protected_capacity",
+      "protected_count",
+      "oldest_protected",
+      "hit_search",
+      "hit_candidate",
+      "hit_slot",
+      "hit_age",
+      "hit_older",
+      "hit_oldest_reborrow",
+      "hit_age_capture",
+      "hit_map_argument",
+      "hit_demote",
+      "hit_write_credits",
+      "commit_slots",
+      "commit_index",
+      "commit_plan",
+      "commit_demote",
+      "commit_victim",
+      "victim_slots",
+      "victim_selected",
+      "victim_meter",
+      "oldest",
+      "victim_search",
+      "victim_index",
+      "victim_slot",
+      "victim_rank",
+      "victim_older",
+      "victim_oldest_reborrow",
+      "victim_rank_capture",
+      "victim_map_argument",
+      "victim_return",
+      "victim_mapped"
+    ],
+    "inventoryBytes": 2672,
+    "noOwnerOrOtherPhaseReuse": true
+  },
+  "productClosureUnchangedByReview": true,
+  "schema": 1,
+  "status": "accepted-within-authored-named-object-model"
+}

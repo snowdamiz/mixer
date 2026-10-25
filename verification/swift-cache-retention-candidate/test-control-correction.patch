@@ -1,0 +1,57 @@
+--- initial-candidate-tests
++++ corrected-candidate-tests
+@@ -3915,6 +3915,22 @@
+     finish(cache, c);
+ }
+ 
++#[test]
++fn retention_trace_hit_costs() {
++    let bytes=fixture(0,&[0,0x0b],100);
++    let (mut c,mut cache)=new(&bytes,SwiftRunBudget{cache_entries:4,..SwiftRunBudget::default()});
++    for f in [34,34,35,35,36,36,37] { plan_reuse_release(&mut cache,&mut c,f); }
++    let base=c.usage(None).cache_work;
++    let (_,first)=measure(||plan_reuse_release(&mut cache,&mut c,37));
++    let promoted=c.usage(None).cache_work-base;
++    let base=c.usage(None).cache_work;
++    let (_,second)=measure(||plan_reuse_release(&mut cache,&mut c,37));
++    let protected=c.usage(None).cache_work-base;
++    assert_eq!(first.attempts+second.attempts,0);
++    println!("RETENTION_HIT {{\"promotionWork\":{promoted},\"protectedWork\":{protected},\"allocations\":0}}");
++    finish(cache,c);
++}
++
+ use super::cache::retention_inspection as ri;
+ 
+ fn retention_seed_four(bytes: &[u8], budget: SwiftRunBudget) -> (RuntimeControl, SwiftFunctionCache) {
+@@ -3946,13 +3962,17 @@
+         assert!(!states.iter().find(|s|s.1==Some(34)).unwrap().2,"equal-age tie demotes lowest slot");
+         assert!(states.iter().find(|s|s.1==Some(37)).unwrap().2);
+         assert_eq!(states.iter().filter(|s|s.2).count(),3);
+-        // A demoted entry can win a later second resident hit; the protected set adapts.
+-        plan_reuse_release(&mut cache,&mut c,34);
+-        let states=ri::states(&cache);
+-        assert!(states.iter().find(|s|s.1==Some(34)).unwrap().2);
+-        assert!(!states.iter().find(|s|s.1==Some(35)).unwrap().2);
+         finish(cache,c);
+     }
++    // Phase adaptation uses real, monotonic work timestamps. The test-only
++    // order-preserving shift above applies only to one victim selection.
++    let (mut c,mut cache)=retention_seed_four(&bytes,SwiftRunBudget{cache_entries:4,..SwiftRunBudget::default()});
++    plan_reuse_release(&mut cache,&mut c,37);
++    plan_reuse_release(&mut cache,&mut c,34);
++    let states=ri::states(&cache);
++    assert!(states.iter().find(|s|s.1==Some(34)).unwrap().2);
++    assert!(!states.iter().find(|s|s.1==Some(35)).unwrap().2);
++    finish(cache,c);
+     let (mut c,mut cache)=retention_seed_four(&bytes,SwiftRunBudget{cache_entries:4,..SwiftRunBudget::default()});
+     ri::ages(&mut cache,Some(1),0);
+     plan_reuse_release(&mut cache,&mut c,38);
+@@ -4049,7 +4069,7 @@
+     assert_eq!(unit,0);
+     assert_eq!(size_of::<<FrozenMode as CacheMode>::HitPlan>(),0);
+     let bytes=fixture(0,&[0,0x0b],100);
+-    let (mut c,cache)=new(&bytes,SwiftRunBudget::default());
++    let (c,cache)=new(&bytes,SwiftRunBudget::default());
+     let fixed=cache.usage().fixed_reserved;
+     assert_eq!(c.budget(),SwiftRunBudget::default());
+     assert!(cache_operation_bytes().unwrap()>=3*inventory);

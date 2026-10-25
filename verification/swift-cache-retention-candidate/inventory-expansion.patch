@@ -1,0 +1,22 @@
+--- initial-inventory-cache.rs
++++ final-inventory-cache.rs
+@@ -294,6 +294,9 @@
+     hit_slot: &'static SwiftSlot,
+     hit_age: u64,
+     hit_older: &'static (usize, u64),
++    hit_oldest_reborrow: Option<&'static (usize, u64)>,
++    hit_age_capture: &'static u64,
++    hit_map_argument: (usize, u64),
+     hit_demote: Option<usize>,
+     hit_write_credits: u64,
+     commit_slots: &'static mut [SwiftSlot],
+@@ -310,6 +313,9 @@
+     victim_slot: &'static SwiftSlot,
+     victim_rank: (bool, u64),
+     victim_older: &'static (usize, bool, u64),
++    victim_oldest_reborrow: Option<&'static (usize, bool, u64)>,
++    victim_rank_capture: &'static (bool, u64),
++    victim_map_argument: (usize, bool, u64),
+     victim_return: Result<Option<usize>, SwiftRunFailure>,
+     victim_mapped: Option<usize>,
+ }

@@ -16,7 +16,7 @@ hosted, store, customer or operational product.
 
 | Area | Verified scope | Next required work |
 | --- | --- | --- |
-| Swift runtime | Decode-plan reuse is integrated under unchanged limits. Four complete host contexts pass 2,314 named executions with nine inherited ignores each; the fresh live private suite passes 340 with zero ignores. | One corrected full attribution diagnostic reproduces the Corpus 1 cache-work failure at 23,358,291 instructions. Valid measurements show 61,142 repeated decodes and 53.907% of the work budget spent rebuilding previously decoded functions. Final consuming usage is zero and owned scratch is removed. A bounded retention improvement is being investigated; Corpus 2 remains unrun. |
+| Swift runtime | Decode-plan reuse is integrated under unchanged limits. Four complete host contexts pass 2,314 named executions with nine inherited ignores each; the fresh live private suite passes 340 with zero ignores. | One corrected full attribution diagnostic reproduces the Corpus 1 cache-work failure at 23,358,291 instructions. Valid measurements show 61,142 repeated decodes and 53.907% of the work budget spent rebuilding previously decoded functions. Final consuming usage is zero and owned scratch is removed. The isolated segmented-LRU candidate regresses to 8,746,437 instructions under the same limit and is rejected for integration. Final consuming usage is zero, owned scratch is removed, and the failed result passes independent audit. Corpus 2 remains unrun. |
 | iOS shared UI | Private pan input has simulator evidence. V7 Settings passes; first Tab fails actual focus traversal. All five run-cleanup checks pass and the owned simulator is deleted. | The corrected frozen V7 diagnostic join and fresh app/runner builds are accepted. The V8 runtime packet passes 16 producer and nine independent host methods. The fresh V8 simulator run passes Settings but fails first Tab, with zero skips and all five cleanup checks passed. The result audit and source lifecycle diagnosis are accepted; a passive lifecycle observer passes 116 producer and 371 independent Foundation checks. The first generic build failed Swift 6 actor isolation; the minimal correction now passes a fresh app/runner build and independent review. Corrected V9 runtime preparation passes 16 producer and nine independent host methods; root accepts preparation, with no new native execution. Shared UI/public routing remains incomplete. |
 | Android shared UI | Private style/coordinator/input slices have scoped API37 emulator evidence. The latest integrated component fixture passes all 45 cases and 239 assertions; the separate pointer matrix passes 429 assertions. | Complete shared visual/interaction parity, public routing, resources/OS support, TalkBack and final physical comparison. |
 | Hosted builds | Durable storage/coordinator components and registry/audit slices have host evidence. The isolated entry composition passes 922 groups; the defensive context-admission correction passes 79. | The broader entry review remains incomplete. Live Engine/entry composition, real worker/clock/provider operations, authentication, quotas and deployed schedule qualification remain pending. |
@@ -55,6 +55,17 @@ measurements only. See
 [the selected packet](docs/swift-exact-reactor-after-plan-reuse.md),
 [audited result](docs/swift-exact-reactor-after-plan-reuse-result.md)
 and [integration](docs/swift-decode-plan-integration.md).
+
+The segmented-LRU retention candidate passes finite correctness/accounting review,
+but its one original-harness full comparison regresses: CacheWork exhausts at
+8,746,437 instructions, versus the current engine's 23,358,291, with all limits
+unchanged. Root rejects it for integration. Validation and Initialize pass;
+Corpus 1 fails and Corpus 2 is unrun. The original failure stays intact; final
+consuming reservations, live counts and tickets are zero. Owned scratch and the
+restored executable are removed (78,039,492 bytes); sealed preparation artifacts
+are unchanged. The live VM is untouched and no rerun is selected. Independent
+result audit confirms this rejection. See [the rejected candidate result](docs/swift-retention-runtime.md)
+and [the audit](docs/swift-retention-runtime-review.md).
 
 Independent iOS source review found two host-diagnostic completeness defects:
 substituted original AX/app data and reordered callback references could be
@@ -95,11 +106,27 @@ duplicate response metadata. It grants identity only; no customer route, members
 login provider or console data connection is implemented by this slice. See
 [the transport contract](docs/hosted-bearer-identity-transport.md).
 
+The first pure customer permission policy passed 26 initial tests, but independent
+review found an incomplete decision could be accepted without its policy callback.
+The correction now passes 30 product tests and 23 independent probes, with
+warnings-as-errors compilation. Root accepts this finite prerequisite. It requires server membership evidence and the exact
+verified token scope for human artifact/audit actions.
+The unavailable repository default prevents this prerequisite from becoming a public
+authorization path; durable lookup, transaction/RLS/revocation ordering and console
+integration remain pending. See [the policy](docs/hosted-customer-authorization.md) and
+[the correction](docs/hosted-customer-authorization-correction.md) and
+[the accepted review](docs/hosted-customer-authorization-correction-review.md).
+
 ## Delivery and pending qualification
 
 The branded Builds checkpoint is pushed in `ba9ad437`, with Console and Engine CI
-passing. Latest pushed checkpoint `7b604864` adds the accepted bearer identity
-prerequisite, reviewed source/host observers and unexecuted diagnostic preparation.
+passing. Latest pushed checkpoint `b375e55de` records the reviewed iOS compile
+correction and runtime preparation, strict Swift telemetry correction and independently
+audited full diagnostic failure. All 389 changed paths are pushed and remote main
+matches; the active retention candidate is excluded. Engine CI `40182820548`
+passes all three jobs and all 38 steps without skips. See [the delivery receipt](verification/github-delivery-diagnostic-corrections/delivery-receipt.json).
+The preceding `7b604864` adds the accepted bearer identity prerequisite, reviewed
+source/host observers and then-unexecuted diagnostic preparation.
 Phoenix CI `40179798794` passes its job and all eight steps without skips;
 Engine CI `40179798720` passes all three jobs and all 38 steps without skips. See [the current CI receipt](verification/github-ci-7b604864/receipt.json). The preceding
 `6b8aba35` records the full Swift failure, finite cache diagnosis, reviewed V8

@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "observed_at": "2026-10-25T10:22:06.978448+00:00",
+  "status": "changes_requested",
+  "finite_prerequisite_accepted": false,
+  "source_revision": "b375e55ded9e3e10c327891ab681beff2a471e26",
+  "source_revision_provenance": "parent/root supplied context; no Git executed",
+  "producer_seal_sha256": "9f8c9019b00fb0e3190362b3ed142ebe0bcc64bed59593b76c61860da803b97b",
+  "root_selection_sha256": "66367e83843a00667b60ce6f3f31c677bf0a58d0383feba1e32e796a1d275f9a",
+  "latest_run": "run-3",
+  "latest_input_tree_sha256": "672e764209cbfd50b526a39c32b5c4f52166bdb8d72dc59877c7508c82259b1a",
+  "actual_module_compile_warnings_as_errors": true,
+  "producer_tests": {
+    "passed": 26,
+    "total": 26
+  },
+  "independent_probes": {
+    "passed": 15,
+    "total": 16
+  },
+  "findings": [
+    {
+      "id": "AUTHZ-REVIEW-001",
+      "priority": "P2",
+      "path": "hosted/lib/mixer_hosted/authorization/repository.ex",
+      "line": 42,
+      "title": "Malformed successful Decision is accepted",
+      "reproduction": "run-3/independent-probes.stdout",
+      "threat_model": "Accidental malformed trusted server adapter output; no malicious BEAM sandbox claim",
+      "disposition": "Unresolved; producer correction or explicit root disposition required before finite acceptance"
+    }
+  ],
+  "cleanup": {
+    "owned_scratch_removed": true,
+    "native_instances_created": 0,
+    "other_project_processes_changed": false
+  },
+  "scope": "independent standalone pure authorization negative and compatibility probes",
+  "not_executed": [
+    "Mix startup",
+    "database",
+    "migration",
+    "server",
+    "provider",
+    "network",
+    "UI",
+    "native",
+    "device",
+    "frozen lanes"
+  ],
+  "ga_accepted": false,
+  "notes": [
+    "run-1 independent harness syntax failure retained and not counted as executed probes",
+    "run-2 first reproduces finding",
+    "run-3 revised runner propagates failed-probe exit code 1; actual module sources unchanged",
+    "No candidate source, root indices, Git state or unrelated lane files edited"
+  ]
+}

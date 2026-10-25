@@ -1,0 +1,62 @@
+{
+  "schema": 1,
+  "observed_at": "2026-10-25T10:30:21.409087+00:00",
+  "status": "accepted_finite_pure_prerequisite",
+  "finite_prerequisite_accepted": true,
+  "source_revision": "b375e55ded9e3e10c327891ab681beff2a471e26",
+  "source_revision_provenance": "parent/root supplied context; no Git executed",
+  "correction_seal_sha256": "f4e57c20a9bde0a9d3066fb93594a7038d05e54dc8a22b106d369d7aee2cef4e",
+  "historical_review_seal_sha256": "5095744f44f7155ae2d4210dd6e50a0fc1bae73a8a09fbbafc8b75fe30982a7b",
+  "latest_run": "run-2",
+  "latest_input_tree_sha256": "56e9a291ada4f64433054a570476e7b5a8fa912b900d2ae2b965bab82bb8cc5c",
+  "actual_module_compile_warnings_as_errors": true,
+  "producer_tests": {
+    "passed": 30,
+    "total": 30
+  },
+  "independent_probes": {
+    "prior_probes": 16,
+    "added_callback_tests": 7,
+    "passed": 23,
+    "total": 23
+  },
+  "findings": [],
+  "resolved_findings": [
+    {
+      "id": "AUTHZ-REVIEW-001",
+      "priority": "P2",
+      "status": "closed",
+      "evidence": "run-2/independent-probes.stdout",
+      "closure": "Incomplete or complete unwrapped success, missing/invented/reused request envelope and malformed/mismatched callback projection fail closed"
+    }
+  ],
+  "zero_latest_stderr": true,
+  "all_executed_inputs_match_live_at_run_end": true,
+  "cleanup": {
+    "owned_scratch_removed": true,
+    "native_instances_created": 0,
+    "other_project_processes_changed": false
+  },
+  "scope": "independent standalone pure authorization correction callback and compatibility probes",
+  "not_executed": [
+    "Mix startup",
+    "database",
+    "migration",
+    "server",
+    "provider",
+    "network",
+    "UI",
+    "native",
+    "device",
+    "frozen lanes"
+  ],
+  "durable_authorization_accepted": false,
+  "http_console_accepted": false,
+  "ga_accepted": false,
+  "limitations": [
+    "Callback envelope contains accidental trusted-adapter failure; malicious trusted BEAM code remains outside this boundary",
+    "Fresh callback reference cannot prove evidence freshness, locks, lineage or revocation ordering",
+    "Full transaction-bound domain/audit/idempotency/RLS/Oban composition and richer immutable audit projection remain pending",
+    "Historical producer/review snapshots unchanged; no product/root-index/Git mutations by independent reviewer"
+  ]
+}

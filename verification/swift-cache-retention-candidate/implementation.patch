@@ -1,0 +1,285 @@
+--- a/vm/src/experimental/cache/borrowed.rs
++++ b/vm/src/experimental/cache/borrowed.rs
+@@ -431,6 +431,7 @@
+     where
+         'op: 'a;
+     type Scratch<'a>;
++    type HitPlan: Default;
+     fn meter<'a, 'op>(
+         usage: &'a mut Self::Usage,
+         operation: &'a mut Self::Operation<'op>,
+@@ -455,6 +456,34 @@
+         }
+         Ok(hit)
+     }
++    // Mode-specific plans are zero-sized for the frozen non-Swift cache.
++    // The default victim scan preserves its original literal LRU work trace.
++    fn resident_victim(
++        slots: &[Self::Slot],
++        plan: &[bool],
++        meter: &mut Self::Meter<'_, '_>,
++    ) -> Result<Option<usize>, Self::Failure> {
++        let mut oldest: Option<usize> = None;
++        for (index, slot) in slots.iter().enumerate() {
++            meter.work(1)?;
++            if !plan[index]
++                && slot.pins() == 0
++                && slot.entry().is_some()
++                && oldest.is_none_or(|p| slot.last_used() < slots[p].last_used())
++            {
++                oldest = Some(index);
++            }
++        }
++        Ok(oldest)
++    }
++    fn prepare_resident_hit(
++        _: &[Self::Slot],
++        _: usize,
++        _: &mut Self::Meter<'_, '_>,
++    ) -> Result<Self::HitPlan, Self::Failure> {
++        Ok(Self::HitPlan::default())
++    }
++    fn commit_resident_hit(_: &mut [Self::Slot], _: usize, _: Self::HitPlan) {}
+     fn resident_remove(
+         _: &[Self::Slot],
+         _: &mut Self::Scratch<'_>,
+@@ -509,6 +538,7 @@
+     where
+         'op: 'a;
+     type Scratch<'a> = ();
++    type HitPlan = ();
+     fn meter<'a, 'op>(
+         usage: &'a mut CacheUsage,
+         operation: &'a mut FrozenOperation<'op>,
+@@ -771,6 +801,7 @@
+ ) -> Result<M::Pin, M::Failure> {
+     let function = defined.absolute_index;
+     let hit = M::resident_lookup(parts.slots, &mut parts.scratch, function, meter)?;
++    let mut hit_plan = M::HitPlan::default();
+     let index = if let Some(index) = hit {
+         meter.check()?;
+         let hits = meter
+@@ -778,6 +809,7 @@
+             .hits()
+             .checked_add(1)
+             .ok_or_else(|| meter.error(CacheFailureKind::WorkExhausted, "hits_overflow"))?;
++        hit_plan = M::prepare_resident_hit(parts.slots, index, meter)?;
+         meter.usage_mut().hit(hits);
+         index
+     } else {
+@@ -813,17 +845,7 @@
+         meter.work(parts.slots.len() as u64)?;
+         let mut empty = parts.slots.iter().position(|slot| slot.entry().is_none());
+         while empty.is_none() || base + remaining + bytes > capacity {
+-            let mut oldest: Option<usize> = None;
+-            for (index, slot) in parts.slots.iter().enumerate() {
+-                meter.work(1)?;
+-                if !plan[index]
+-                    && slot.pins() == 0
+-                    && slot.entry().is_some()
+-                    && oldest.is_none_or(|p| slot.last_used() < parts.slots[p].last_used())
+-                {
+-                    oldest = Some(index);
+-                }
+-            }
++            let oldest = M::resident_victim(parts.slots, &plan, meter)?;
+             let victim = oldest
+                 .ok_or_else(|| meter.error(CacheFailureKind::AllPinned, "all_entries_pinned"))?;
+             plan[victim] = true;
+@@ -880,6 +902,7 @@
+         parts.slots[index].set(entry);
+         index
+     };
++    M::commit_resident_hit(parts.slots, index, hit_plan);
+     let slot = &mut parts.slots[index];
+     meter.usage_mut().pin(
+         slot.entry().expect("resident entry").bytes,
+--- a/vm/src/experimental_swift_reactor/cache.rs
++++ b/vm/src/experimental_swift_reactor/cache.rs
+@@ -240,6 +240,7 @@
+     resident: Option<SwiftResident>,
+     pins: usize,
+     last_used: u64,
++    protected: bool,
+ }
+ impl CacheSlot for SwiftSlot {
+     type Resident = SwiftResident;
+@@ -250,6 +251,8 @@
+         self.resident.take()
+     }
+     fn set(&mut self, r: SwiftResident) {
++        // The tier write was admitted with resident_insert before publication.
++        self.protected = false;
+         self.resident = Some(r);
+     }
+     fn pins(&self) -> usize {
+@@ -264,6 +267,61 @@
+     fn set_last_used(&mut self, n: u64) {
+         self.last_used = n;
+     }
++}
++#[derive(Default)]
++pub(crate) enum SwiftHitPlan {
++    #[default]
++    Unchanged,
++    Promote { demote: Option<usize> },
++}
++// Disjoint named objects from the private victim/promotion/commit chain,
++// including caller/return plans, iterators, closures, and reborrows. Three
++// complete copies are reserved alongside all existing operation inventories.
++struct RetentionInventory {
++    caller_plan: SwiftHitPlan,
++    prepared_plan: SwiftHitPlan,
++    returned_plan: Result<SwiftHitPlan, SwiftRunFailure>,
++    hit_slots: &'static [SwiftSlot],
++    hit_index: usize,
++    hit_meter: &'static mut SwiftMeter<'static, 'static>,
++    capacity_slots: usize,
++    capacity_return: usize,
++    protected_capacity: usize,
++    protected_count: usize,
++    oldest_protected: Option<(usize, u64)>,
++    hit_search: std::iter::Enumerate<std::slice::Iter<'static, SwiftSlot>>,
++    hit_candidate: usize,
++    hit_slot: &'static SwiftSlot,
++    hit_age: u64,
++    hit_older: &'static (usize, u64),
++    hit_oldest_reborrow: Option<&'static (usize, u64)>,
++    hit_age_capture: &'static u64,
++    hit_map_argument: (usize, u64),
++    hit_demote: Option<usize>,
++    hit_write_credits: u64,
++    commit_slots: &'static mut [SwiftSlot],
++    commit_index: usize,
++    commit_plan: SwiftHitPlan,
++    commit_demote: Option<usize>,
++    commit_victim: usize,
++    victim_slots: &'static [SwiftSlot],
++    victim_selected: &'static [bool],
++    victim_meter: &'static mut SwiftMeter<'static, 'static>,
++    oldest: Option<(usize, bool, u64)>,
++    victim_search: std::iter::Enumerate<std::slice::Iter<'static, SwiftSlot>>,
++    victim_index: usize,
++    victim_slot: &'static SwiftSlot,
++    victim_rank: (bool, u64),
++    victim_older: &'static (usize, bool, u64),
++    victim_oldest_reborrow: Option<&'static (usize, bool, u64)>,
++    victim_rank_capture: &'static (bool, u64),
++    victim_map_argument: (usize, bool, u64),
++    victim_return: Result<Option<usize>, SwiftRunFailure>,
++    victim_mapped: Option<usize>,
++}
++fn protected_capacity(slots: usize) -> usize {
++    // Construction and resident_find bound slots to 64, so this cannot overflow.
++    slots * 3 / 4
+ }
+ pub(crate) struct SwiftFunctionCache {
+     adopted: AdoptedProof,
+@@ -1208,6 +1266,7 @@
+         ),
+         (3, size_of::<OperationScalarInventory>()),
+         (3, size_of::<ResidentIndexInventory>()),
++        (3, size_of::<RetentionInventory>()),
+         (3, size_of::<PlanInventory>()),
+         (3, size_of::<SwiftScratch<'static>>()),
+         (3, size_of::<ResidentMatch>()),
+@@ -1831,11 +1890,12 @@
+         partial.buffers[0] = Some(self.control.admit(buffer_bytes)?);
+         reserve(&mut partial.slots, entries, &mut self.control)?;
+         for _ in 0..entries {
+-            self.control.work(1)?;
++            self.control.work(2)?; // original slot initialization plus tier write
+             partial.slots.push(SwiftSlot {
+                 resident: None,
+                 pins: 0,
+                 last_used: 0,
++                protected: false,
+             });
+         }
+         let buffer_bytes = budget
+@@ -2107,6 +2167,7 @@
+     where
+         'op: 'a;
+     type Scratch<'a> = SwiftScratch<'a>;
++    type HitPlan = SwiftHitPlan;
+     fn meter<'a, 'op>(
+         usage: &'a mut SwiftCacheUsage,
+         operation: &'a mut CacheControl<'op>,
+@@ -2129,6 +2190,63 @@
+         meter: &mut SwiftMeter<'_, '_>,
+     ) -> Result<Option<usize>, SwiftRunFailure> {
+         Ok(resident_find(scratch.index, slots, function, meter)?.map(|found| found.slot))
++    }
++    fn resident_victim(
++        slots: &[SwiftSlot],
++        selected: &[bool],
++        meter: &mut SwiftMeter<'_, '_>,
++    ) -> Result<Option<usize>, SwiftRunFailure> {
++        let mut oldest: Option<(usize, bool, u64)> = None;
++        for (index, slot) in slots.iter().enumerate() {
++            meter.work(1)?; // original eligibility/age probe
++            if !selected[index] && slot.pins() == 0 && slot.entry().is_some() {
++                meter.work(1)?; // additional tier read, before observing it
++                let rank = (slot.protected, slot.last_used());
++                if oldest.as_ref().is_none_or(|p| rank < (p.1, p.2)) {
++                    oldest = Some((index, rank.0, rank.1));
++                }
++            }
++        }
++        Ok(oldest.map(|p| p.0))
++    }
++    fn prepare_resident_hit(
++        slots: &[SwiftSlot],
++        index: usize,
++        meter: &mut SwiftMeter<'_, '_>,
++    ) -> Result<SwiftHitPlan, SwiftRunFailure> {
++        meter.work(1)?; // additional hit-tier read
++        let capacity = protected_capacity(slots.len());
++        if slots[index].protected || capacity == 0 {
++            return Ok(SwiftHitPlan::Unchanged);
++        }
++        let mut protected = 0;
++        let mut oldest: Option<(usize, u64)> = None;
++        for (candidate, slot) in slots.iter().enumerate() {
++            meter.work(2)?; // occupied tag and protected tier read
++            if slot.entry().is_some() && slot.protected {
++                protected += 1;
++                meter.work(1)?; // age read used solely by promotion planning
++                let age = slot.last_used();
++                if oldest.as_ref().is_none_or(|p| age < p.1) {
++                    oldest = Some((candidate, age));
++                }
++            }
++        }
++        if protected > capacity {
++            return Err(meter.error(CacheFailureKind::DecoderMismatch, "swift_retention_capacity"));
++        }
++        let demote = if protected == capacity { oldest.map(|p| p.0) } else { None };
++        // Admit the complete infallible commit before changing any tier.
++        meter.work(1 + u64::from(demote.is_some()))?;
++        Ok(SwiftHitPlan::Promote { demote })
++    }
++    fn commit_resident_hit(slots: &mut [SwiftSlot], index: usize, plan: SwiftHitPlan) {
++        if let SwiftHitPlan::Promote { demote } = plan {
++            if let Some(victim) = demote {
++                slots[victim].protected = false;
++            }
++            slots[index].protected = true;
++        }
+     }
+     fn resident_remove(
+         slots: &[SwiftSlot],
+@@ -2188,7 +2306,7 @@
+         let bucket = resident_bucket(function);
+         meter.work(1)?; // head read for new link
+         let next = scratch.index[bucket];
+-        meter.work(2)?; // admit both link writes before infallible publication
++        meter.work(3)?; // admit both link writes and new resident tier reset
+         scratch.index[RESIDENT_BUCKETS + slot] = next;
+         scratch.index[bucket] = (slot + 1) as u8;
+         Ok(())
+@@ -4847,3 +4965,4 @@
+             .collect()
+     }
+ }
++

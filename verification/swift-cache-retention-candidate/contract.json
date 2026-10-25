@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "status": "root-authorized-isolated-candidate-only",
+  "policy": "deterministic segmented LRU",
+  "sourceRevision": "7b6048642b42e4900cccff4e14aa0fe8949ab35e",
+  "baselineClosureSHA256": "16176e0852fa61cba98acebeb373ee1a6be4c686d0e46ef8bbc144c0527c2cbd",
+  "protectedCapacity": "floor(3 * allocated_resident_slots / 4); zero and one slots have zero protected capacity",
+  "admission": "Every completely decoded resident is published probationary.",
+  "promotion": "A second successful resident pin promotes probationary entries. If protected capacity is full, demote the protected resident with the smallest existing last_used, with slot order breaking ties. Demotion can include pinned entries and changes no pin or liveness state.",
+  "victim": "Smallest (protected, last_used, slot_index) among unpinned, occupied, unselected slots; probationary sorts before protected.",
+  "staging": "Fallible hit preparation is read-only and precharges every retention mutation. A mode-specific by-value HitPlan is committed only beside the existing infallible final pin publication. Miss planning changes no retention metadata; publication precharges the new resident tier reset.",
+  "privateHooks": [
+    "CacheMode::HitPlan: Default; unit for FrozenMode",
+    "CacheMode::resident_victim with literal original LRU default and Swift-only override",
+    "CacheMode::prepare_resident_hit with default unit preparation",
+    "CacheMode::commit_resident_hit with default no-op"
+  ],
+  "accounting": "SwiftSlot metadata is included in size_of<SwiftSlot> before its existing allocation. Mode-specific plan/helper/return objects receive disjoint conservative operation inventories. Extra metadata reads and writes receive CacheWork credits before use or mutation. Extra fixed bytes reduce payload inside unchanged budgets.",
+  "limitsUnchanged": {"residents":64,"pins":64,"tickets":86,"cacheBytes":16777216,"entryBytes":8388608,"cacheWork":64000000,"combinedBytes":268435456,"timeLimits":"original"},
+  "finiteMatrix": ["hot functions with one-use scan longer than resident capacity versus actual baseline LRU", "cyclic 65 no-improvement control", "protected-capacity boundaries and phase adaptation", "pinned tiers and all-pinned rejection", "memory-driven multiple victims", "equal ages and order-preserving age rebase", "every hit/miss work prefix and cancellation boundary", "proof/decode/plan integrity and failure precedence", "allocation preadmission, payload reduction, exact work, cleanup", "non-Swift default LRU regression"],
+  "ownership": ["docs/swift-cache-retention-candidate.md", "verification/swift-cache-retention-candidate/"],
+  "excluded": ["live vm edits", "full Swift reactor execution", "native/UI/device tools", "production publication", "commit/push", "GA acceptance"],
+  "limitation": "Cumulative attribution does not identify hot functions or prove this policy benefits the actual Swift workload. An independent review and separately selected full diagnostic remain necessary."
+}

@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "observedAt": "2026-10-25T10:08:03.655139+00:00",
+  "sourceRevision": "b375e55ded9e3e10c327891ab681beff2a471e26",
+  "selection": "Implement the existing first-slice pure ordinary customer authorization policy prerequisite.",
+  "inputs": {
+    "mixer-product-plan.md": "b7c456daeb9099608c55b76f46dab1b6fe7934f21cc5c43e9cf4ba8d562d3d19",
+    "docs/hosted-identity-contract.md": "6262875ef19c107cd86e4c0386d9e7c8e337db68574249861b0e12a91bddb549",
+    "hosted/lib/mixer_hosted/identity/verified_identity.ex": "02ea302abedbf10555792ae5284f8eb41113edd11bc83c3e869bdbee7b68ae4d",
+    "hosted/lib/mixer_hosted_web/plugs/bearer_identity.ex": "957f96d3403a265f454757a993dd9b5e7890a1bf4c52136f52a502716be75b54"
+  },
+  "supportedActions": [
+    "artifact.read",
+    "artifact.upload",
+    "audit.read"
+  ],
+  "scopeNarrowing": "Exact existing mixer.artifact.read, mixer.artifact.upload and mixer.audit.read verified scopes narrow server membership; they do not grant membership.",
+  "roleCeiling": "Freeze the six-role baseline table in docs/hosted-identity-contract.md for this pure prerequisite. Additional actions are denied until separately implemented.",
+  "authorityBoundary": "Policy evidence is trusted server repository data and never request roles. No pure evaluation result is a reusable authority ticket. Future current-state lookup, same-transaction callback, membership-aware RLS, domain/audit/idempotency and public HTTP composition remain required. Self-reported revision or freshness cannot establish revocation ordering.",
+  "noNewGraceOrCredentialTTL": true,
+  "owner": "/root/hosted_customer_authorization",
+  "allowedSourceRoots": [
+    "hosted/lib/mixer_hosted/authorization/",
+    "hosted/test/mixer_hosted/authorization/"
+  ],
+  "unselected": [
+    "router changes",
+    "database or provider adapter",
+    "migration",
+    "token scope extension",
+    "service/CI grant execution",
+    "release/approval/billing/build execution",
+    "deployment"
+  ],
+  "gaAccepted": false
+}
