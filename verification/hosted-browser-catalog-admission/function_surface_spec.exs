@@ -557,4 +557,3 @@ defmodule MixerHosted.BrowserAuth.FunctionSurfaceSpec do
     |> String.replace_prefix("CREATE FUNCTION", "CREATE OR REPLACE FUNCTION")
   end
 end
-

@@ -23,8 +23,11 @@ storage fixture setup at an ordinary directory query timeout. The fixture repair
 now passes 24 PostgreSQL 16 methods, including commit/error rollback setting
 restoration. Pushed `4b458d6b` now passes every Phoenix CI step, including
 storage/migration and broader hosted checks (645 passed, two existing skips).
-Both previous lifecycle/discovery
-Engine runs pass all three jobs; the new Engine run is still running.
+Lifecycle, discovery and constructor Engine runs pass all three jobs.
+The catalog prerequisite is pushed as `9d5c40ee`; selected storage/migrations pass,
+but its broader job stops at Mix formatting before tests. The terminal-newline
+correction passes the actual formatter and fresh 26-method PostgreSQL 17 and
+20-method independent PostgreSQL 16 replays. Corrected CI is pending.
 See [the integrated scope](docs/hosted-browser-session-integration.md).
 Computer use, capture and native runtime tests remain paused.
 The full plan remains incomplete; no GA gate is promoted.

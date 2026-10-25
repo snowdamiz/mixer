@@ -95,4 +95,3 @@ defmodule MixerHosted.BrowserAuth.CatalogManifest do
   def returns, do: @returns
   def composites, do: @composites
 end
-

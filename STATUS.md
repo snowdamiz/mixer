@@ -293,11 +293,21 @@ cases remain pending. See [catalog review](docs/hosted-browser-catalog-surface-r
 
 ## Delivery and pending qualification
 
+The reviewed partial catalog prerequisite is pushed as `9d5c40ee`; 365 explicit
+paths and remote main were verified. Phoenix `40219535335` passes selected
+storage/migrations, then fails Mix formatting before broader tests: one extra
+terminal newline in each new product module. Root corrected only terminal LF
+bytes and reran the actual formatter, selected warnings-as-errors compile,
+26 PostgreSQL 17 producer methods and 20 independent PostgreSQL 16 methods.
+All pass, with cleanup. Fresh corrected CI is pending; Engine `40219535273` is
+running. See [correction](docs/hosted-browser-catalog-format-correction.md) and
+[delivery](verification/github-delivery-browser-catalog/receipt.json).
+
 The reviewed constructor slice and storage-fixture repair are pushed as
 `4b458d6b`; all 490 explicit staged paths and remote main were verified. Phoenix
 `40214597512` passes all workflow steps, including browser storage/migration
 checks and the broader hosted suite: 645 methods pass and two existing methods
-remain skipped. Engine `40214597602` is running. The separate catalog source and
+remain skipped. Engine `40214597602` passes all three jobs. The separate catalog source and
 current decoder/relation lanes were excluded. See
 [delivery](verification/github-delivery-browser-runtime-constructors/receipt.json).
 

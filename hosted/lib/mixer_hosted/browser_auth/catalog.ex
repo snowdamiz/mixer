@@ -537,4 +537,3 @@ defmodule MixerHosted.BrowserAuth.Catalog do
   defp require!(true), do: :ok
   defp require!(_), do: raise(Unavailable)
 end
-

@@ -1,0 +1,5 @@
+ExUnit.start(autorun: false, seed: 0, max_cases: 1)
+Code.require_file("verification/hosted-browser-catalog-surface-review/surface_review.exs")
+r=ExUnit.run()
+File.write!("/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-catalog-surface-review/attempts/20261025T181038.566456Z-6c10732d/result.json",Jason.encode!(r))
+System.halt(if r.total==20 and r.failures==0 and r.skipped==0 and r.excluded==0 and Map.get(r,:invalid,0)==0, do: 0, else: 1)
