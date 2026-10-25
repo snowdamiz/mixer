@@ -1,0 +1,148 @@
+{
+  "cleanup": {
+    "postgres_stopped": true,
+    "scratch_removed": true
+  },
+  "commands": [
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "hosted/test/foundation_integration_test.exs",
+        "hosted/test/mixer_hosted/builds/aggregate_admission_test.exs",
+        "hosted/test/mixer_hosted/builds/coordinator_test.exs",
+        "hosted/test/mixer_hosted/builds/admission_test.exs",
+        "hosted/test/mixer_hosted/builds/storage_test.exs",
+        "hosted/test/mixer_hosted/customer_workspace_test.exs",
+        "docs/hosted-workspace-ci-fixture-repair.md",
+        "verification/hosted-workspace-ci-fixture-repair/run.py",
+        "verification/hosted-workspace-ci-fixture-repair/migration-fixtures.exs"
+      ],
+      "exit_code": 0,
+      "output": "final-diff-check.log"
+    },
+    {
+      "argv": [
+        "python3",
+        "verification/hosted-workspace-ci-fixture-repair/run.py",
+        "--output",
+        "verification/hosted-workspace-ci-fixture-repair/attempt-3",
+        "--source-revision",
+        "9a2bf16b59f98f2e0094ea6820c337ec1ed82c8c"
+      ],
+      "exit_code": 0,
+      "output": "attempt-3/receipt.json"
+    }
+  ],
+  "evidence_sha256": {
+    "attempt-1/compile.log": "bc99e0cda43426e7b145fe086983cd8708130d092a1f28c1f39e1d16dc0363c3",
+    "attempt-1/receipt.json": "2d56cecef1c39134f4520a002c58c355445cd82be7be5683df352b10b6dc6f58",
+    "attempt-2/exunit-result.json": "28dc533fe194a30ffc9c38b8561d36136dd698f81565b0c06f8d8267e64967f0",
+    "attempt-2/full-migration-result.json": "c0fbc2fb29b8326b158552c47fb89d71a8a1d0ba38352d783d0ff1d0d57c36a3",
+    "attempt-2/lock-expiry-result.json": "8db9e1c404cdcb78dadb2bd251018b88863124b668d574a086fd4862f3764f21",
+    "attempt-2/receipt.json": "49717075713c13fbbb9b31f2f6aa4e1f1d8ae36ebaa5bb2ea40740503a8adf7c",
+    "attempt-3/exunit-result.json": "28dc533fe194a30ffc9c38b8561d36136dd698f81565b0c06f8d8267e64967f0",
+    "attempt-3/full-migration-result.json": "c0fbc2fb29b8326b158552c47fb89d71a8a1d0ba38352d783d0ff1d0d57c36a3",
+    "attempt-3/lock-expiry-result.json": "b3fadb2394b68aaf746de04786de05b604e13c62f191e202d37107afbf8ed55d",
+    "attempt-3/receipt.json": "bcf379352e69e26398f4ca781c657a0bd4e0189e1378a13aa73b507a4e37bb18",
+    "final-diff-check.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "exunit": {
+    "excluded": 0,
+    "failures": 0,
+    "skipped": 0,
+    "total": 24
+  },
+  "final_attempt": "attempt-3/receipt.json",
+  "finished_unix": 1792939890.540988,
+  "limitations": [
+    "Five broad database fixture suites are formatted/parsed but not run locally; execution awaits root-push automatic Linux Phoenix CI.",
+    "The selected migration controls prove actual migration boundaries and rollback/reapply, not held-worker preservation; that assertion awaits aggregate-admission CI.",
+    "Local PostgreSQL 17.11 Homebrew / Elixir 1.20.4 / Erlang OTP29 evidence is distinct from Linux PostgreSQL16 CI.",
+    "No shared broad harness, frozen catalog-inspector/authority-driver/rejected outbound Worker transport V2, browser, capture, native runtime, phone, provider, deployment or GA qualification ran."
+  ],
+  "lock_expiry": {
+    "completed_unix_millisecond": 1792939854004,
+    "entering_unix_millisecond": 1792939853701,
+    "expired_selected_rows_reread_empty": true,
+    "expiry_unix_second": 1792939854,
+    "lock_completed_successfully": true,
+    "lock_query_microsecond": 302545,
+    "released_unix_millisecond": 1792939854003,
+    "reread_unix_millisecond": 1792939854014,
+    "selected_unix_millisecond": 1792939851100,
+    "waiting_unix_millisecond": 1792939853709
+  },
+  "migrations": {
+    "aggregate_down": [
+      20261025000006,
+      20261025000005,
+      20261025000004,
+      20261025000003,
+      20261025000002
+    ],
+    "aggregate_reapplied": [
+      20261025000002,
+      20261025000003,
+      20261025000004,
+      20261025000005,
+      20261025000006
+    ],
+    "all_down": [
+      20261025000006,
+      20261025000005,
+      20261025000004,
+      20261025000003,
+      20261025000002,
+      20261025000001,
+      20261025000000,
+      20261024000000
+    ],
+    "all_reapplied": [
+      20261024000000,
+      20261025000000,
+      20261025000001,
+      20261025000002,
+      20261025000003,
+      20261025000004,
+      20261025000005,
+      20261025000006
+    ],
+    "applied": [
+      20261024000000,
+      20261025000000,
+      20261025000001,
+      20261025000002,
+      20261025000003,
+      20261025000004,
+      20261025000005,
+      20261025000006
+    ],
+    "disposable": true,
+    "held_worker_preservation": "pending automatic CI; this control verifies migration boundaries",
+    "repeated_up_empty": true
+  },
+  "original_ci_failure": {
+    "path": "verification/github-ci-9a2bf16b/failure-1/artifact-tests.log",
+    "sha256": "5e450eaaf36d47d7cd5b972a34f567cc8e5f2040bf7509663fe18b368248c607"
+  },
+  "owned_source_manifest_sha256": "ae2484e594f5758b0980fb7f125ca1fc7976fc8fede73a690ff7a6bda2ac672f",
+  "owned_source_sha256": {
+    "docs/hosted-workspace-ci-fixture-repair.md": "150cceca72c0b91c2af35966218025221a711d0cd5422879c0ddab7d5caf7419",
+    "hosted/test/foundation_integration_test.exs": "7609d7cfdc48696fb27e15c6a60804bc76eafc5803851cdb950b9ec153c2aa70",
+    "hosted/test/mixer_hosted/builds/admission_test.exs": "1eae689af6fad67a2f7fa024916e27a4200f5eb2f561017822933eaa06340ae9",
+    "hosted/test/mixer_hosted/builds/aggregate_admission_test.exs": "d0ef98a169568f1eeab8661c0c263f5bd7fc554eb88e0a547cce761ce2fc5da0",
+    "hosted/test/mixer_hosted/builds/coordinator_test.exs": "b0e0ef10f44c1370916906b472039e930ab400a9c6e9a627b5d6bbce24c398cf",
+    "hosted/test/mixer_hosted/builds/storage_test.exs": "deeee7d7cf8c2f5fcf1d9cda3e1e8adaa5ee3e5c231e51ef59668779928d17f8",
+    "hosted/test/mixer_hosted/customer_workspace_test.exs": "1d5b68cb6e3dbace2fe0770764d6e75014cf22e49ebf6b31dfff50d9aafc8a85",
+    "verification/hosted-workspace-ci-fixture-repair/migration-fixtures.exs": "908358076b33e0168e289f3413247024891ba5f84be4f1fae5ebd6eb814c960e",
+    "verification/hosted-workspace-ci-fixture-repair/run.py": "53fa7c7537926ad46fa9d8170db8e4ca00597e8acc1a206a4421c62d98702ba6"
+  },
+  "production_source_changed": false,
+  "production_timeouts_changed": false,
+  "source_revision": "9a2bf16b59f98f2e0094ea6820c337ec1ed82c8c",
+  "status": "passed_selected_host_checks_broad_linux_ci_pending",
+  "validated_input_tree_sha256": "618a869eef6f788af4ac2ca5b98d2ffd09bc090979ebf1df3a5ab4cb1f098879"
+}

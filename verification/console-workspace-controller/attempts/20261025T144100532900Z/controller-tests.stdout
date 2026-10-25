@@ -1,0 +1,172 @@
+TAP version 13
+# Subtest: initial state is immutable unavailable and invalid actions make no requests
+ok 1 - initial state is immutable unavailable and invalid actions make no requests
+  ---
+  duration_ms: 0.838042
+  type: 'test'
+  ...
+# Subtest: ready session starts only first organization page and never auto-selects
+ok 2 - ready session starts only first organization page and never auto-selects
+  ---
+  duration_ms: 2.2085
+  type: 'test'
+  ...
+# Subtest: empty valid pages remain ready with no automatic network or selection
+ok 3 - empty valid pages remain ready with no automatic network or selection
+  ---
+  duration_ms: 0.592083
+  type: 'test'
+  ...
+# Subtest: selection accepts only exact visible IDs and repeated selection makes no request
+ok 4 - selection accepts only exact visible IDs and repeated selection makes no request
+  ---
+  duration_ms: 0.418084
+  type: 'test'
+  ...
+# Subtest: valid arbitrary identifiers survive selection and project scope unchanged
+ok 5 - valid arbitrary identifiers survive selection and project scope unchanged
+  ---
+  duration_ms: 1.565625
+  type: 'test'
+  ...
+# Subtest: changing organization synchronously clears project rows and selection and aborts old work
+ok 6 - changing organization synchronously clears project rows and selection and aborts old work
+  ---
+  duration_ms: 0.494833
+  type: 'test'
+  ...
+# Subtest: organization pagination accepts only the offered cursor and replaces all dependent data
+ok 7 - organization pagination accepts only the offered cursor and replaces all dependent data
+  ---
+  duration_ms: 0.323125
+  type: 'test'
+  ...
+# Subtest: project pagination checks current organization/cursor and clears prior selection immediately
+ok 8 - project pagination checks current organization/cursor and clears prior selection immediately
+  ---
+  duration_ms: 0.293375
+  type: 'test'
+  ...
+# Subtest: pagination invalidates an in-flight project success and its old callbacks
+ok 9 - pagination invalidates an in-flight project success and its old callbacks
+  ---
+  duration_ms: 0.32725
+  type: 'test'
+  ...
+# Subtest: replacing a session with the same client invalidates a noncooperative organization response
+ok 10 - replacing a session with the same client invalidates a noncooperative organization response
+  ---
+  duration_ms: 0.349916
+  type: 'test'
+  ...
+# Subtest: session replacement clears ready pages and selection before notifications
+ok 11 - session replacement clears ready pages and selection before notifications
+  ---
+  duration_ms: 0.29925
+  type: 'test'
+  ...
+# Subtest: logout/unavailability abort old projects and late success or failure cannot restore state
+ok 12 - logout/unavailability abort old projects and late success or failure cannot restore state
+  ---
+  duration_ms: 0.538792
+  type: 'test'
+  ...
+# Subtest: stale authentication failure cannot clear a replacement session or new organization scope
+ok 13 - stale authentication failure cannot clear a replacement session or new organization scope
+  ---
+  duration_ms: 0.346042
+  type: 'test'
+  ...
+# Subtest: current authentication failure clears the entire session and prevents retries
+ok 14 - current authentication failure clears the entire session and prevents retries
+  ---
+  duration_ms: 0.431042
+  type: 'test'
+  ...
+# Subtest: fixed errors map per list without copying exception data
+ok 15 - fixed errors map per list without copying exception data
+  ---
+  duration_ms: 0.882791
+  type: 'test'
+  ...
+# Subtest: organization retry retains canonical failed page and repeated loading retries are inert
+ok 16 - organization retry retains canonical failed page and repeated loading retries are inert
+  ---
+  duration_ms: 0.571292
+  type: 'test'
+  ...
+# Subtest: project retry retains failed page, validates current scope and resets on organization change
+ok 17 - project retry retains failed page, validates current scope and resets on organization change
+  ---
+  duration_ms: 0.292667
+  type: 'test'
+  ...
+# Subtest: controller reparses, copies and deeply freezes client pages against later mutation
+ok 18 - controller reparses, copies and deeply freezes client pages against later mutation
+  ---
+  duration_ms: 0.367209
+  type: 'test'
+  ...
+# Subtest: malformed or foreign-scope client pages fail closed with no prior rows or selection
+ok 19 - malformed or foreign-scope client pages fail closed with no prior rows or selection
+  ---
+  duration_ms: 0.380583
+  type: 'test'
+  ...
+# Subtest: sync-throwing clients and hostile errors produce safe states without unhandled rejections
+ok 20 - sync-throwing clients and hostile errors produce safe states without unhandled rejections
+  ---
+  duration_ms: 0.422375
+  type: 'test'
+  ...
+# Subtest: reentrant response validation cannot commit a page after logout
+ok 21 - reentrant response validation cannot commit a page after logout
+  ---
+  duration_ms: 0.155459
+  type: 'test'
+  ...
+# Subtest: subscriptions deliver immediately, unsubscribe independently and isolate observer failures
+ok 22 - subscriptions deliver immediately, unsubscribe independently and isolate observer failures
+  ---
+  duration_ms: 0.758209
+  type: 'test'
+  ...
+# Subtest: nested subscriber actions supersede older notifications and never start invalidated requests
+ok 23 - nested subscriber actions supersede older notifications and never start invalidated requests
+  ---
+  duration_ms: 0.143959
+  type: 'test'
+  ...
+# Subtest: subscriptions added or removed during notification observe only current live revisions
+ok 24 - subscriptions added or removed during notification observe only current live revisions
+  ---
+  duration_ms: 0.085292
+  type: 'test'
+  ...
+# Subtest: abort-handler reentrancy sees coherent cleared state and supersedes the outer session
+ok 25 - abort-handler reentrancy sees coherent cleared state and supersedes the outer session
+  ---
+  duration_ms: 0.449792
+  type: 'test'
+  ...
+# Subtest: disposal aborts and clears, suppresses late completions, and makes every action inert
+ok 26 - disposal aborts and clears, suppresses late completions, and makes every action inert
+  ---
+  duration_ms: 0.375166
+  type: 'test'
+  ...
+# Subtest: disposal inside notification prevents later observers and starts no request
+ok 27 - disposal inside notification prevents later observers and starts no request
+  ---
+  duration_ms: 0.060458
+  type: 'test'
+  ...
+1..27
+# tests 27
+# suites 0
+# pass 27
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 428.62825

@@ -1,0 +1,57 @@
+{
+  "scope": "Historical preliminary Solid session-ordering reproduction before binding correction",
+  "recorded_utc": "2026-10-25T14:45:49.361770+00:00",
+  "revision": "9a2bf16b59f98f2e0094ea6820c337ec1ed82c8c",
+  "source_manifest": {
+    "inputs/console/src/api/workspace-client.ts": "a6f7bed91df56745c1170fccf8be6bac119c8e9a1539551c446dd9edb36acdce",
+    "inputs/console/src/domain/workspace-directory.ts": "ee23d78e263ead8fe9d3c5b68c88f44e9a5d9a8b2a20fe709db9ab8fe6c8f4dc",
+    "inputs/console/src/state/workspace-binding.ts": "b9dd314f834e22e5571d20a5a6ad07645954d008352afb2f6c741e4589c8578c",
+    "inputs/console/src/state/workspace-controller.ts": "8a0574eeec41788be9c5f18ccc71ce11a51a9446952c9986f78f40ae23d633d8"
+  },
+  "commands": [
+    {
+      "command": "node console/node_modules/typescript/bin/tsc <early copied binding.ts> --target ES2022 --module ESNext --moduleResolution Bundler --strict --skipLibCheck --noUncheckedIndexedAccess --exactOptionalPropertyTypes --outDir <early/build>",
+      "returncode": 0
+    },
+    {
+      "command": "node --conditions=browser verification/console-workspace-composition-review/early/probe.mjs",
+      "returncode": 1,
+      "stdout": "probe.stdout",
+      "stderr": "probe.stderr",
+      "reason": "Initial reviewer fixture dependency import was one directory too high; full stderr retained"
+    },
+    {
+      "command": "node --conditions=browser verification/console-workspace-composition-review/early/probe.mjs",
+      "returncode": 0,
+      "stdout": "probe-corrected.stdout",
+      "stderr": "probe-corrected.stderr",
+      "result": "Actual Solid memo before binding and computed after binding both see replacement/logout session with old ready rows before effect clearing"
+    },
+    {
+      "command": "node --input-type=module -e <Vite build of original render-review.tsx>",
+      "returncode": 1,
+      "output_scope": "Tool error excerpt retained below; original full tool result remains in chat",
+      "error_excerpt": "Could not resolve '../../../console/src/App.js' and '../../../console/src/state/workspace-context.js' in verification/console-workspace-composition-review/render-review.tsx; reviewer fixture imports were one directory too high"
+    }
+  ],
+  "tools": {
+    "node": "v22.23.3",
+    "typescript": "5.9.3",
+    "solid-js": "1.9.17",
+    "vite": "8.3.5"
+  },
+  "outputs_sha256": {
+    "probe-corrected.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "probe.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "probe.stderr": "2d086e89955fe57a41454d5941940a9d28964da358e73105aa3f1ab95be9e7e3",
+    "probe-corrected.stdout": "9c99c78e02b39ee57f0a7e1b6d0efbda59f5161170e26e75e390921297daeb8a"
+  },
+  "cleanup": {
+    "native_browser_capture_started": false,
+    "owned_listeners_started": false,
+    "dependency_symlinks_removed": true
+  },
+  "limitations": [
+    "Preliminary source snapshot only; this is defect evidence, not final acceptance"
+  ]
+}

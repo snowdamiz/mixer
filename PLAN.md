@@ -103,12 +103,18 @@ its older pending/selected statements do not override the current state.
 
    Customer workspace discovery now passes local acceptance through the production
    Endpoint/default verifier/default Repo and actual console client. The branded
-   selector preserves website styling. All 68 console host tests and build pass;
-   the real HTTP join passes 11 methods plus Node calls. Shared identity/storage,
-   HTTP and client reviews are recorded. App/login/session/browser composition,
-   provider operation and all GA gates remain pending. Standard CI is wired for
-   the required client join. See
-   [the workspace checkpoint](docs/hosted-customer-workspace-checkpoint.md).
+   `/workspace` route now composes that selector with session-fenced request and
+   selection state. All 100 console host tests and build pass; 14 independent
+   composition probes pass. The real HTTP join passes 11 methods plus Node calls.
+   Counts overlap. The production session adapter, login/lifecycle/provider,
+   browser and all GA gates remain pending; the entry remains unavailable.
+   The proposed same-origin login contract is design-only. Standard CI is wired
+   for the required client join; the latest Phoenix failure exposed outdated
+   migration expectations and expiry-test timing. The fixture correction passes 24
+   local workspace methods and eight-migration controls; broader Linux fixture
+   execution awaits exact-push verification. See
+   [the workspace checkpoint](docs/hosted-customer-workspace-checkpoint.md) and
+   [console composition](docs/console-workspace-composition.md).
 
 The frozen hosted catalog-inspector/authority-driver lanes and rejected outbound
 Worker transport V2 lane remain isolated and unaccepted. Do not read, import,

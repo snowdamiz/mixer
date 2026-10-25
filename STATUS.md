@@ -215,27 +215,43 @@ distributed admission, provider deployment and full Go parity remain pending.
 See [the HTTP checkpoint](docs/hosted-customer-artifact-http-checkpoint.md) and
 [root acceptance](verification/hosted-customer-artifact-http-root-acceptance/attempt-2/acceptance.json).
 
-## Customer workspace discovery
+## Customer workspace discovery and console composition
 
-The reviewed local workspace slice is accepted: authenticated organization/project
-discovery, exact-scope tokens, nullable names, canonical pagination, selected-row
-RLS/locking and commit-safe responses now join the actual default Phoenix
-Endpoint/Repo. The real console client passes that same HTTP join. Eleven methods
-cover 65 raw socket responses plus Node pagination/full-ID requests; all owned
-resources are cleaned. The website-branded selector and client pass all 68 console
-host tests and a static build. Independent storage and client reviews have no open
-findings after the recorded compiler/UI/scope corrections. The selector is still a
-controlled component; App/login/session composition and browser/CORS/runtime
-acceptance remain pending. Counts overlap and no GA gate is promoted. See
-[the workspace checkpoint](docs/hosted-customer-workspace-checkpoint.md) and
-[root acceptance](verification/hosted-customer-workspace-root-acceptance/attempt-2/acceptance.json).
+The authenticated workspace API and actual client are accepted locally through
+production Endpoint/default verifier/default Repo. The console now routes
+`/workspace` inside the website-branded shell and owns selection across routes.
+Session changes synchronously hide stale rows and fence actions; pagination,
+organization changes and disposal cancel obsolete work. All 100 console host
+tests and the production build pass; 14 independent composition probes pass.
+The four nested binding methods use the actual Solid reactive runtime and HTTP
+client. Counts overlap. Review repaired an effect-order stale-state window and a
+trailing-slash header mismatch. No browser/capture/native instance was started.
+
+The production entry still has no authenticated session adapter and renders
+unavailable. Login, lifecycle writers, provider/ingress/browser interaction and
+customer/FieldLog/GA acceptance remain pending. A proposed same-origin server
+session contract passes 19 design-model controls; that is not product OAuth
+implementation. No launch gate is promoted. See
+[composition](docs/console-workspace-composition.md),
+[root acceptance](verification/console-workspace-composition/root-acceptance/receipt.json),
+[review](docs/console-workspace-composition-review.md) and
+[proposed login contract](docs/console-identity-flow-contract.md).
 
 ## Delivery and pending qualification
 
-Latest pushed checkpoint `6ed7df4f` repairs the cold bearer pipeline compile order.
+Workspace checkpoint `9a2bf16b` is pushed to `origin/main`; remote main matches.
+It contains the reviewed workspace API/storage, website-branded selector, actual
+console client, CI wiring and retained evidence. The local slice is accepted;
+Console CI `40202578691` passes. Phoenix CI `40202578720` failed because five
+fixtures expected seven migrations and the expiry-lock fixture missed its timing
+window; the workspace HTTP/client join itself passed. Fixture repair passes 24 local workspace methods and eight-migration controls;
+broader Linux fixture execution awaits the next delivery. Engine CI `40202578667` remains running. See
+[fixture repair](docs/hosted-workspace-ci-fixture-repair.md). See [delivery](verification/github-delivery-customer-workspace/delivery-receipt.json)
+and [the exact-push observation](verification/github-ci-9a2bf16b/observation-4/receipt.json).
+
+Prior checkpoint `6ed7df4f` repairs the cold bearer pipeline compile order.
 Phoenix CI `40199934265` and Engine CI `40199934237` both pass with no skips.
 See [the completed observation](verification/github-ci-6ed7df4f/observation-3/receipt.json).
-The reviewed workspace slice above is prepared for the next authorized delivery.
 
 Prior checkpoint `c0334a99` was pushed to `origin/main` and remote main was verified.
 It contains the reviewed customer HTTP routes, canonical path/digest binding,

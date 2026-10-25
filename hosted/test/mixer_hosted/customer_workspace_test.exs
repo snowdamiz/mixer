@@ -121,7 +121,7 @@ defmodule MixerHosted.CustomerWorkspace.Fixture do
     )
   end
 
-  def held_writer(table, org, project, mutation, parent) do
+  def held_writer(table, org, project, mutation, parent, release_timeout \\ 2_000) do
     Admin.transaction(fn ->
       sql("SELECT 1 FROM public.mixer_authz_organizations WHERE id = $1 FOR SHARE", [org])
 
@@ -137,7 +137,7 @@ defmodule MixerHosted.CustomerWorkspace.Fixture do
       receive do
         :commit -> mutation.()
       after
-        2_000 -> raise "writer not released"
+        release_timeout -> raise "writer not released"
       end
     end)
   end
@@ -785,29 +785,146 @@ defmodule MixerHosted.CustomerWorkspaceTest do
   end
 
   test "membership expiry across a real bounded head lock wait suppresses selected rows" do
-    phase = rem(System.system_time(:millisecond), 1000)
-    Process.sleep(rem(650 - phase + 1000, 1000))
-    expiry = F.now() + 1
+    parent = self()
+
+    writer =
+      Task.async(fn ->
+        F.held_writer("project_heads", "org-a", "project-a", fn -> :ok end, parent, 5_000)
+      end)
+
+    assert_receive {:writer_locked, pid}, 1_000
+    expiry = F.now() + 3
 
     F.sql("UPDATE public.mixer_authz_memberships SET expires_at = $1 WHERE id = 'member'", [
       expiry
     ])
 
-    parent = self()
+    handler = {__MODULE__, make_ref()}
+    probe = {__MODULE__, :head_expiry_probe}
+    head_query = "SELECT public.mixer_authz_lock_project_heads()"
 
-    writer =
+    :telemetry.attach(
+      handler,
+      [:workspace_probe, :query],
+      fn _, measurements, metadata, _ ->
+        stage = Process.get(probe)
+
+        witness_query? =
+          String.contains?(
+            metadata.query,
+            "FROM public.mixer_authz_memberships WHERE id = ANY($1::text[])"
+          )
+
+        cond do
+          stage == :select_witness and witness_query? ->
+            send(
+              parent,
+              {:expiry_witness_selected, metadata.result, System.system_time(:millisecond)}
+            )
+
+            Process.put(probe, :witness_selected)
+
+          stage == :witness_selected and
+              metadata.params == ["mixer.authz.project_id", "project-a"] ->
+            Process.put(probe, :project_context)
+
+          stage == :project_context and
+              metadata.params == ["mixer.authz.environment_id", ""] ->
+            # All DB, writer and reader preparation is finished. Align only the
+            # immediately following real lock query within its unchanged 500ms
+            # production timeout, after capturing the membership's actual expiry.
+            delay = expiry * 1000 - System.system_time(:millisecond) - 300
+            if delay > 0, do: Process.sleep(delay)
+            Process.put(probe, :waiting_for_head)
+            send(parent, {:expiry_entering_head_lock, System.system_time(:millisecond)})
+
+          stage == :waiting_for_head and metadata.query == head_query ->
+            send(
+              parent,
+              {:expiry_head_lock_completed, metadata.result, System.system_time(:millisecond),
+               System.convert_time_unit(measurements.query_time, :native, :microsecond)}
+            )
+
+            Process.put(probe, :head_completed)
+
+          stage == :head_completed and
+              metadata.query ==
+                "SELECT id, display_name FROM public.mixer_authz_organizations WHERE active AND id = ANY($1::text[])" ->
+            send(
+              parent,
+              {:expiry_selected_rows_reread, metadata.result, System.system_time(:millisecond)}
+            )
+
+            Process.put(probe, :done)
+
+          true ->
+            :ok
+        end
+      end,
+      nil
+    )
+
+    reader =
       Task.async(fn ->
-        F.held_writer("project_heads", "org-a", "project-a", fn -> :ok end, parent)
+        Process.put(probe, :select_witness)
+        orgs()
       end)
 
-    assert_receive {:writer_locked, pid}
-    reader = Task.async(fn -> orgs() end)
-    assert F.eventually(&F.reader_waiting?/0)
-    delay = expiry * 1000 - System.system_time(:millisecond) + 2
-    if delay > 0, do: Process.sleep(delay)
-    send(pid, :commit)
-    assert {:ok, _} = Task.await(writer)
-    assert {:error, :authorization_unavailable} = Task.await(reader)
+    try do
+      assert_receive {:expiry_witness_selected, {:ok, %{rows: [witness]}}, selected_at}, 2_000
+      assert Enum.at(witness, 8) == expiry
+      assert selected_at < expiry * 1000
+      assert_receive {:expiry_entering_head_lock, entering_at}, 4_000
+      assert entering_at < expiry * 1000
+
+      assert F.eventually(fn ->
+               F.sql(
+                 "SELECT EXISTS (SELECT 1 FROM pg_stat_activity WHERE usename = 'workspace_runtime' AND wait_event_type = 'Lock' AND query = $1)",
+                 [head_query]
+               ).rows == [[true]]
+             end)
+
+      waiting_at = System.system_time(:millisecond)
+      assert waiting_at < expiry * 1000
+      delay = expiry * 1000 - System.system_time(:millisecond) + 2
+      if delay > 0, do: Process.sleep(delay)
+      released_at = System.system_time(:millisecond)
+      assert released_at >= expiry * 1000
+      send(pid, :commit)
+      assert {:ok, _} = Task.await(writer)
+      assert {:error, :authorization_unavailable} = Task.await(reader)
+
+      assert_receive {:expiry_head_lock_completed, {:ok, %{rows: [[true]]}}, completed_at,
+                      lock_query_us}
+
+      assert completed_at >= expiry * 1000
+      assert_receive {:expiry_selected_rows_reread, {:ok, %{rows: []}}, reread_at}
+      assert reread_at >= expiry * 1000
+
+      if path = System.get_env("MIXER_WORKSPACE_LOCK_EXPIRY_RESULT") do
+        File.write!(
+          path,
+          Jason.encode!(%{
+            expiry_unix_second: expiry,
+            selected_unix_millisecond: selected_at,
+            entering_unix_millisecond: entering_at,
+            waiting_unix_millisecond: waiting_at,
+            released_unix_millisecond: released_at,
+            completed_unix_millisecond: completed_at,
+            reread_unix_millisecond: reread_at,
+            lock_query_microsecond: lock_query_us,
+            lock_completed_successfully: true,
+            expired_selected_rows_reread_empty: true
+          })
+        )
+      end
+    after
+      send(pid, :commit)
+      Task.shutdown(writer, 1_000)
+      Task.shutdown(reader, 1_000)
+      :telemetry.detach(handler)
+    end
+
     assert {:ok, %{organizations: []}} = orgs()
   end
 
