@@ -1,0 +1,70 @@
+{
+  "recorded_at": "2026-10-25T01:42:42.354147+00:00",
+  "head": "aaa9d2d7eaf44e82dc12fefe2b41431d0fd44d11",
+  "scope": "Local source review and syntax preparation only; no database, production, provider, native, authority, catalog, signing or Git mutation",
+  "handoff_inputs": {
+    "hosted/lib/mixer_hosted/builds/admission.ex": "87bd56955fa99c2978a407c74cfcc87819ac6059a0bc4a86a36df763424ab0eb",
+    "hosted/priv/repo/migrations/20261025000002_add_build_aggregate_limits.exs": "443ede59186c0fca9454bcec319965217007c328719dbb152bdf6552901e009b",
+    "hosted/test/mixer_hosted/builds/admission_test.exs": "71964a42a9d7bb635b4c19b341c5004dc3137aa7ab6bc9f28956ae3dd141a5a9",
+    "hosted/test/mixer_hosted/builds/aggregate_admission_test.exs": "a769e7e5143b7f1412cc661198190cba88e75659ab144b113cf1a7f833f04a41",
+    "hosted/test/mixer_hosted/builds/coordinator_test.exs": "5fe4484683fc4374eba22e6accec2b76454546ac12523dc662a5a7adce372bc7",
+    "hosted/test/mixer_hosted/builds/storage_test.exs": "61dd8c8cddb2ef8ce13bac67a5e676496da9a2c29371927bb45aa8e017b264c2",
+    "docs/hosted-build-admission.md": "6f4f6d5475b70198c737ab3089d46bae621561031219794a89ef691e18d7684b",
+    "docs/hosted-build-aggregate-admission.md": "fc6884bd75df328b3f756aeb94d77720ef992b05e15de729ff63e9c32781829c",
+    "verification/hosted-build-aggregate-admission/diagnose.py": "e2f59a38ec5a438591682c1852b90b94e6f43cb11c1239c16564e36c34aba479"
+  },
+  "handoff_hashes_match": true,
+  "review_test_sha256": "21e953d415436778280e7e22aac38039e74a6deebf57113bd2ad7a24e319684e",
+  "commands": [
+    {
+      "label": "elixir-version",
+      "argv": [
+        "elixir",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "stdout_sha256": "44fe1d5e597ef84e0b6859be8ef275ca7da40d28005c64ea6a103835caa29081",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "review-format",
+      "argv": [
+        "elixir",
+        "-e",
+        "path = hd(System.argv()); source = File.read!(path); File.write!(path, [Code.format_string!(source), \"\\n\"]); IO.puts(\"formatted independent review source only\")",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-build-aggregate-admission-independent-review/aggregate_admission_review_test.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "stdout_sha256": "fa6391c26f7f58ac5f4ddc215f5414ce19b749fce3f287729a623e7b1daa2929",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "review-syntax",
+      "argv": [
+        "elixir",
+        "-e",
+        "path = hd(System.argv()); {:ok, _} = Code.string_to_quoted(File.read!(path)); IO.puts(\"independent review source parses; database execution pending\")",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-build-aggregate-admission-independent-review/aggregate_admission_review_test.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "stdout_sha256": "53511a917ba462972fa73b7fed0f57bd6ff19440a4ad6751e6cebf67aafce99a",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "revision",
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "stdout_sha256": "a9f1a9b3e8e1bbaef0512cadb14dffd51a56dfc4c4a8f21831cc3abd59ae7cf6",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "database_execution": "pending root --additional-test run"
+}

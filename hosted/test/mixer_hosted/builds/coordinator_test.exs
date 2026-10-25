@@ -20,7 +20,7 @@ defmodule MixerHosted.Builds.CoordinatorTest do
     )
 
     path = Application.app_dir(:mixer_hosted, "priv/repo/migrations")
-    assert length(Ecto.Migrator.run(Repo, path, :up, all: true)) == 3
+    assert length(Ecto.Migrator.run(Repo, path, :up, all: true)) == 4
     start_supervised!({Oban, repo: Repo, queues: false, plugins: false, testing: :manual})
     start_supervised!(Fixture)
     :ok
@@ -28,8 +28,20 @@ defmodule MixerHosted.Builds.CoordinatorTest do
 
   setup do
     Repo.query!(
-      "TRUNCATE mixer_build_coordinator_leases, mixer_build_reservations, mixer_build_capacities, mixer_builds, oban_jobs"
+      "TRUNCATE mixer_build_coordinator_leases, mixer_build_reservations, mixer_build_capacities, mixer_build_organization_capacities, mixer_build_fleet_platform_capacities, mixer_build_fleet_capacity, mixer_builds, oban_jobs"
     )
+
+    assert {:ok, _} =
+             Multi.new()
+             |> Admission.configure_fleet_multi(:fleet, :new, 1)
+             |> Admission.configure_fleet_platform_multi(
+               :platform,
+               %{platform: :android},
+               :new,
+               1
+             )
+             |> Admission.configure_organization_multi(:org, %{organization_id: "org-c"}, :new, 1)
+             |> Repo.transaction()
 
     Fixture.reset()
     previous = Application.get_env(:mixer_hosted, :build_dispatch)

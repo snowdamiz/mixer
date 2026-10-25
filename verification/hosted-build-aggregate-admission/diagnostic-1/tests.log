@@ -1,0 +1,212 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+     warning: default values for the optional arguments in the private function configured_multi/2 are never used
+     │
+ 124 │   defp configured_multi(specs, limits \\ %{}) do
+     │        ~
+     │
+     └─ test/mixer_hosted/builds/aggregate_admission_test.exs:124:8: MixerHosted.Builds.AggregateAdmissionTest (module)
+
+
+MixerHosted.Builds.StorageTest [test/mixer_hosted/builds/storage_test.exs]
+  * test actual domain and Oban rows commit together, and the test-only consumer sees the intent [L#87]
+21:33:45.949 [error] #PID<0.334.0> (Oban.Notifiers.Postgres) failed to connect to Postgres: ** (ArgumentError) missing the :database key in options for nil
+  * test actual domain and Oban rows commit together, and the test-only consumer sees the intent (28.5ms) [L#87]
+  * test every scope dimension is applied to reads and transitions [L#101]  * test every scope dimension is applied to reads and transitions (7.3ms) [L#101]
+  * test duplicate creation preserves first time and returns current state without invoking the job factory [L#117]  * test duplicate creation preserves first time and returns current state without invoking the job factory (6.8ms) [L#117]
+  * test request identity conflicts and build identity conflicts never append jobs [L#132]  * test request identity conflicts and build identity conflicts never append jobs (7.2ms) [L#132]
+  * test concurrent duplicate creates converge on one record and one job [L#144]  * test concurrent duplicate creates converge on one record and one job (6.1ms) [L#144]
+  * test new events require revision CAS, while exact redelivery is idempotent at an old revision [L#152]  * test new events require revision CAS, while exact redelivery is idempotent at an old revision (8.6ms) [L#152]
+  * test concurrent start and cancellation cannot both win one revision [L#171]  * test concurrent start and cancellation cannot both win one revision (6.2ms) [L#171]
+  * test running cancellation keeps execution uncertain and the old active reference [L#183]  * test running cancellation keeps execution uncertain and the old active reference (7.0ms) [L#183]
+  * test job validation failure and wrong scope binding roll back creation [L#204]  * test job validation failure and wrong scope binding roll back creation (5.8ms) [L#204]
+  * test unique, replacement, historical jobs and insert callbacks cannot suppress or redirect intents [L#217]  * test unique, replacement, historical jobs and insert callbacks cannot suppress or redirect intents (7.9ms) [L#217]
+  * test job factory exception and later transaction failure roll back all earlier writes [L#242]  * test job factory exception and later transaction failure roll back all earlier writes (6.1ms) [L#242]
+  * test an earlier Oban insertion rolls back when a later build operation conflicts [L#259]  * test an earlier Oban insertion rolls back when a later build operation conflicts (6.1ms) [L#259]
+  * test failed transition job insertion preserves prior journal, revision and job count [L#271]  * test failed transition job insertion preserves prior journal, revision and job count (5.8ms) [L#271]
+  * test corrupt persisted journal or indexed scope disagreement fails closed [L#283]  * test corrupt persisted journal or indexed scope disagreement fails closed (7.3ms) [L#283]
+  * test database round trip replays retry history and original source without process-local state [L#304]  * test database round trip replays retry history and original source without process-local state (7.5ms) [L#304]
+
+MixerHosted.Builds.AggregateAdmissionTest [test/mixer_hosted/builds/aggregate_admission_test.exs]
+    warning: redefining module MixerHosted.Repo.Migrations.AddOban (current version defined in memory)
+    │
+  1 │ defmodule MixerHosted.Repo.Migrations.AddOban do
+    │ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    │
+    └─ _build/test/lib/mixer_hosted/priv/repo/migrations/20261024000000_add_oban.exs:1: MixerHosted.Repo.Migrations.AddOban (module)
+
+    warning: redefining module MixerHosted.Repo.Migrations.AddBuildJournals (current version defined in memory)
+    │
+  1 │ defmodule MixerHosted.Repo.Migrations.AddBuildJournals do
+    │ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    │
+    └─ _build/test/lib/mixer_hosted/priv/repo/migrations/20261025000000_add_build_journals.exs:1: MixerHosted.Repo.Migrations.AddBuildJournals (module)
+
+    warning: redefining module MixerHosted.Repo.Migrations.AddBuildAdmission (current version defined in memory)
+    │
+  1 │ defmodule MixerHosted.Repo.Migrations.AddBuildAdmission do
+    │ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    │
+    └─ _build/test/lib/mixer_hosted/priv/repo/migrations/20261025000001_add_build_admission.exs:1: MixerHosted.Repo.Migrations.AddBuildAdmission (module)
+
+    warning: redefining module MixerHosted.Repo.Migrations.AddBuildAggregateLimits (current version defined in memory)
+    │
+  1 │ defmodule MixerHosted.Repo.Migrations.AddBuildAggregateLimits do
+    │ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    │
+    └─ _build/test/lib/mixer_hosted/priv/repo/migrations/20261025000002_add_build_aggregate_limits.exs:1: MixerHosted.Repo.Migrations.AddBuildAggregateLimits (module)
+
+
+21:33:46.145 [error] #PID<0.416.0> (Oban.Notifiers.Postgres) failed to connect to Postgres: ** (ArgumentError) missing the :database key in options for nil
+  * test all four explicit limits are mandatory and migration defaults close new claims [L#217]  * test all four explicit limits are mandatory and migration defaults close new claims (34.8ms) [L#217]
+  * test fleet total admits exactly the last slot across organizations and platform pools [L#241]  * test fleet total admits exactly the last slot across organizations and platform pools (33.4ms) [L#241]
+  * test organization total admits one cross-platform attempt while another organization proceeds [L#259]  * test organization total admits one cross-platform attempt while another organization proceeds (22.4ms) [L#259]
+  * test fleet platform last slot spans organizations while the distinct Android pool proceeds [L#278]  * test fleet platform last slot spans organizations while the distinct Android pool proceeds (22.3ms) [L#278]
+  * test zero at each aggregate level pauses new work without treating missing configuration as unlimited [L#298]  * test zero at each aggregate level pauses new work without treating missing configuration as unlimited (17.8ms) [L#298]
+  * test all policy APIs use bounded exact CAS and one-time activation [L#313]  * test all policy APIs use bounded exact CAS and one-time activation (17.9ms) [L#313]
+  * test concurrent fleet configuration CAS has one winner [L#356]  * test concurrent fleet configuration CAS has one winner (7.5ms) [L#356]
+  * test lowering all limits below held occupancy preserves uncertain workers and exact release [L#379]  * test lowering all limits below held occupancy preserves uncertain workers and exact release (16.8ms) [L#379]
+
+  1) test lowering all limits below held occupancy preserves uncertain workers and exact release (MixerHosted.Builds.AggregateAdmissionTest)
+     test/mixer_hosted/builds/aggregate_admission_test.exs:379
+     Expected truthy, got false
+     code: assert duplicate.token == a.token and duplicate.lease == a.lease
+     stacktrace:
+       test/mixer_hosted/builds/aggregate_admission_test.exs:392: (test)
+
+  * test missing aggregate parent rows cannot prevent held reconciliation or manufacture another slot [L#417]  * test missing aggregate parent rows cannot prevent held reconciliation or manufacture another slot (21.3ms) [L#417]
+  * test migration down and up preserves an existing held worker and closes only new admission [L#457]    warning: redefining module MixerHosted.Repo.Migrations.AddBuildAggregateLimits (current version defined in memory)
+    │
+  1 │ defmodule MixerHosted.Repo.Migrations.AddBuildAggregateLimits do
+    │ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    │
+    └─ _build/test/lib/mixer_hosted/priv/repo/migrations/20261025000002_add_build_aggregate_limits.exs:1: MixerHosted.Repo.Migrations.AddBuildAggregateLimits (module)
+
+    warning: redefining module MixerHosted.Repo.Migrations.AddBuildAggregateLimits (current version defined in memory)
+    │
+  1 │ defmodule MixerHosted.Repo.Migrations.AddBuildAggregateLimits do
+    │ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    │
+    └─ _build/test/lib/mixer_hosted/priv/repo/migrations/20261025000002_add_build_aggregate_limits.exs:1: MixerHosted.Repo.Migrations.AddBuildAggregateLimits (module)
+
+  * test migration down and up preserves an existing held worker and closes only new admission (56.5ms) [L#457]
+  * test first configuration from completely missing parents serializes a waiting fresh claim [L#498]  * test first configuration from completely missing parents serializes a waiting fresh claim (112.2ms) [L#498]
+  * test recreating deleted parents counts existing workers before admitting a waiting organization [L#546]  * test recreating deleted parents counts existing workers before admitting a waiting organization (15.8ms) [L#546]
+  * test configuration and claim in one Multi roll back every limit and occupancy on later failure [L#570]  * test configuration and claim in one Multi roll back every limit and occupancy on later failure (13.9ms) [L#570]
+  * test configuration CAS failure rolls preceding aggregate changes back [L#587]  * test configuration CAS failure rolls preceding aggregate changes back (8.8ms) [L#587]
+  * test claim and lifecycle insert failure returns the same last slot without changing limits [L#603]  * test claim and lifecycle insert failure returns the same last slot without changing limits (12.8ms) [L#603]
+  * test guarded terminal release and all-limit shrink roll back together after a later failure [L#633]  * test guarded terminal release and all-limit shrink roll back together after a later failure (13.7ms) [L#633]
+  * test opposite configuration fragment orders after claims cannot deadlock [L#664]  * test opposite configuration fragment orders after claims cannot deadlock (13.1ms) [L#664]
+  * test database lease clock advances while waiting for the fleet row lock [L#703]
+21:33:46.646 [error] #PID<0.416.0> (Oban.Notifiers.Postgres) failed to connect to Postgres: ** (ArgumentError) missing the :database key in options for nil
+  * test database lease clock advances while waiting for the fleet row lock (315.0ms) [L#703]
+  * test migration enforces aggregate identities, closed defaults, integer bounds and CAS exhaustion [L#750]  * test migration enforces aggregate identities, closed defaults, integer bounds and CAS exhaustion (18.7ms) [L#750]
+
+MixerHosted.Builds.CoordinatorTest [test/mixer_hosted/builds/coordinator_test.exs]
+    warning: redefining module MixerHosted.Repo.Migrations.AddOban (current version defined in memory)
+    │
+  1 │ defmodule MixerHosted.Repo.Migrations.AddOban do
+    │ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    │
+    └─ _build/test/lib/mixer_hosted/priv/repo/migrations/20261024000000_add_oban.exs:1: MixerHosted.Repo.Migrations.AddOban (module)
+
+    warning: redefining module MixerHosted.Repo.Migrations.AddBuildJournals (current version defined in memory)
+    │
+  1 │ defmodule MixerHosted.Repo.Migrations.AddBuildJournals do
+    │ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    │
+    └─ _build/test/lib/mixer_hosted/priv/repo/migrations/20261025000000_add_build_journals.exs:1: MixerHosted.Repo.Migrations.AddBuildJournals (module)
+
+    warning: redefining module MixerHosted.Repo.Migrations.AddBuildAdmission (current version defined in memory)
+    │
+  1 │ defmodule MixerHosted.Repo.Migrations.AddBuildAdmission do
+    │ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    │
+    └─ _build/test/lib/mixer_hosted/priv/repo/migrations/20261025000001_add_build_admission.exs:1: MixerHosted.Repo.Migrations.AddBuildAdmission (module)
+
+    warning: redefining module MixerHosted.Repo.Migrations.AddBuildAggregateLimits (current version defined in memory)
+    │
+  1 │ defmodule MixerHosted.Repo.Migrations.AddBuildAggregateLimits do
+    │ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    │
+    └─ _build/test/lib/mixer_hosted/priv/repo/migrations/20261025000002_add_build_aggregate_limits.exs:1: MixerHosted.Repo.Migrations.AddBuildAggregateLimits (module)
+
+
+21:33:47.010 [error] #PID<0.542.0> (Oban.Notifiers.Postgres) failed to connect to Postgres: ** (ArgumentError) missing the :database key in options for nil
+  * test strict closed arguments and unavailable default cannot reserve or dispatch [L#165]  * test strict closed arguments and unavailable default cannot reserve or dispatch (16.2ms) [L#165]
+  * test exact job kind is bound to latest journal event and forged old scope cannot act [L#183]  * test exact job kind is bound to latest journal event and forged old scope cannot act (11.6ms) [L#183]
+  * test queued intent commits start and actual coordinator intent before external effects [L#202]  * test queued intent commits start and actual coordinator intent before external effects (21.9ms) [L#202]
+  * test yield expires coordination only, preserves capacity, fences old owner and rolls back atomically [L#219]  * test yield expires coordination only, preserves capacity, fences old owner and rolls back atomically (17.1ms) [L#219]
+  * test crash after ensure and coordinator transfer query same operation without second execution [L#255]  * test crash after ensure and coordinator transfer query same operation without second execution (20.3ms) [L#255]
+  * test callback timeout after external effect kills transport process and retains reservation [L#276]  * test callback timeout after external effect kills transport process and retains reservation (122.7ms) [L#276]
+  * test abrupt coordinator death after modeled effect retains lease and redelivery cannot execute twice [L#288]  * test abrupt coordinator death after modeled effect retains lease and redelivery cannot execute twice (24.5ms) [L#288]
+  * test unavailable and mismatched observations never release capacity [L#316]  * test unavailable and mismatched observations never release capacity (26.7ms) [L#316]
+  * test cancellation stops absent operation with a durable tombstone and delayed ensure cannot reopen [L#329]  * test cancellation stops absent operation with a durable tombstone and delayed ensure cannot reopen (25.8ms) [L#329]
+  * test stop errors and lease expiry are uncertainty, not terminal evidence [L#358]  * test stop errors and lease expiry are uncertainty, not terminal evidence (26.0ms) [L#358]
+  * test deadline is persisted as expiry before stop, while original worker fence is preserved [L#373]  * test deadline is persisted as expiry before stop, while original worker fence is preserved (19.9ms) [L#373]
+  * test compiler failure releases definitively but cannot trigger automatic retry [L#390]  * test compiler failure releases definitively but cannot trigger automatic retry (20.5ms) [L#390]
+  * test successful completion preserves complete artifact references and releases exactly once [L#403]  * test successful completion preserves complete artifact references and releases exactly once (23.1ms) [L#403]
+  * test bounded infrastructure retry follows release, rejects stale jobs and uses a new operation [L#436]  * test bounded infrastructure retry follows release, rejects stale jobs and uses a new operation (33.6ms) [L#436]
+  * test released-attempt retry respects database backoff [L#466]  * test released-attempt retry respects database backoff (20.8ms) [L#466]
+  * test released retry job insertion failure rolls back retry state and preserves release evidence [L#494]  * test released retry job insertion failure rolls back retry state and preserves release evidence (23.3ms) [L#494]
+  * test later Multi failure rolls retry domain and job back together [L#519]  * test later Multi failure rolls retry domain and job back together (22.3ms) [L#519]
+  * test guarded start and reservation roll back when atomic coordinator intent insertion fails [L#545]  * test guarded start and reservation roll back when atomic coordinator intent insertion fails (15.0ms) [L#545]
+  * test released retry requires current revision and exact retained terminal evidence [L#564]
+21:33:47.511 [error] #PID<0.542.0> (Oban.Notifiers.Postgres) failed to connect to Postgres: ** (ArgumentError) missing the :database key in options for nil
+  * test released retry requires current revision and exact retained terminal evidence (22.1ms) [L#564]
+
+MixerHosted.Builds.AdmissionTest [test/mixer_hosted/builds/admission_test.exs]
+    warning: redefining module MixerHosted.Repo.Migrations.AddOban (current version defined in memory)
+    │
+  1 │ defmodule MixerHosted.Repo.Migrations.AddOban do
+    │ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    │
+    └─ _build/test/lib/mixer_hosted/priv/repo/migrations/20261024000000_add_oban.exs:1: MixerHosted.Repo.Migrations.AddOban (module)
+
+    warning: redefining module MixerHosted.Repo.Migrations.AddBuildJournals (current version defined in memory)
+    │
+  1 │ defmodule MixerHosted.Repo.Migrations.AddBuildJournals do
+    │ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    │
+    └─ _build/test/lib/mixer_hosted/priv/repo/migrations/20261025000000_add_build_journals.exs:1: MixerHosted.Repo.Migrations.AddBuildJournals (module)
+
+    warning: redefining module MixerHosted.Repo.Migrations.AddBuildAdmission (current version defined in memory)
+    │
+  1 │ defmodule MixerHosted.Repo.Migrations.AddBuildAdmission do
+    │ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    │
+    └─ _build/test/lib/mixer_hosted/priv/repo/migrations/20261025000001_add_build_admission.exs:1: MixerHosted.Repo.Migrations.AddBuildAdmission (module)
+
+    warning: redefining module MixerHosted.Repo.Migrations.AddBuildAggregateLimits (current version defined in memory)
+    │
+  1 │ defmodule MixerHosted.Repo.Migrations.AddBuildAggregateLimits do
+    │ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    │
+    └─ _build/test/lib/mixer_hosted/priv/repo/migrations/20261025000002_add_build_aggregate_limits.exs:1: MixerHosted.Repo.Migrations.AddBuildAggregateLimits (module)
+
+
+21:33:47.602 [error] #PID<0.741.0> (Oban.Notifiers.Postgres) failed to connect to Postgres: ** (ArgumentError) missing the :database key in options for nil
+  * test capacity requires explicit exact configuration with bounded limit and revision CAS [L#145]  * test capacity requires explicit exact configuration with bounded limit and revision CAS (16.6ms) [L#145]
+  * test simultaneous claims across replicas cannot overbook the last slot [L#163]  * test simultaneous claims across replicas cannot overbook the last slot (22.9ms) [L#163]
+  * test same org/platform shares across projects while other organizations/platforms are independent [L#189]  * test same org/platform shares across projects while other organizations/platforms are independent (17.6ms) [L#189]
+  * test shrinking below occupancy or pausing preserves existing reconciliation ownership [L#203]  * test shrinking below occupancy or pausing preserves existing reconciliation ownership (15.9ms) [L#203]
+  * test live duplicate claims never extend leases; renewal is explicit and exclusively fenced [L#219]  * test live duplicate claims never extend leases; renewal is explicit and exclusively fenced (14.8ms) [L#219]
+  * test expired claims advance epoch even for the same holder and stale tokens cannot revive [L#233]  * test expired claims advance epoch even for the same holder and stale tokens cannot revive (13.2ms) [L#233]
+  * test renew samples the database clock after waiting for the capacity lock [L#247]  * test renew samples the database clock after waiting for the capacity lock (314.6ms) [L#247]
+  * test lease timeout and cancellation retain occupancy until matching definitive termination [L#292]  * test lease timeout and cancellation retain occupancy until matching definitive termination (41.5ms) [L#292]
+  * test lifecycle deadline expiry stays reconciling and consumes its slot [L#333]  * test lifecycle deadline expiry stays reconciling and consumes its slot (35.3ms) [L#333]
+  * test claim, guarded start and Oban insert roll back as one transaction on a bad job [L#350]
+21:33:48.103 [error] #PID<0.741.0> (Oban.Notifiers.Postgres) failed to connect to Postgres: ** (ArgumentError) missing the :database key in options for nil
+  * test claim, guarded start and Oban insert roll back as one transaction on a bad job (14.5ms) [L#350]
+  * test renewal plus guarded CAS, cancel, completion and later failures roll back atomically [L#376]  * test renewal plus guarded CAS, cancel, completion and later failures roll back atomically (19.8ms) [L#376]
+  * test terminal held records can be reclaimed; release/retry never recycles an old lease epoch [L#418]  * test terminal held records can be reclaimed; release/retry never recycles an old lease epoch (21.9ms) [L#418]
+  * test only a replayed never-started queued cancellation can free its admitted slot [L#462]  * test only a replayed never-started queued cancellation can free its admitted slot (14.7ms) [L#462]
+  * test unknown and malformed scopes, policies and tokens fail closed [L#478]  * test unknown and malformed scopes, policies and tokens fail closed (15.8ms) [L#478]
+  * test journal/index and reservation attempt/fence corruption cannot be admitted or renewed [L#510]  * test journal/index and reservation attempt/fence corruption cannot be admitted or renewed (13.9ms) [L#510]
+  * test a wrong worker reference cannot complete or release the held reservation [L#526]  * test a wrong worker reference cannot complete or release the held reservation (18.3ms) [L#526]
+  * test corrupt release evidence blocks readmission and exhausted epochs cannot wrap [L#541]  * test corrupt release evidence blocks readmission and exhausted epochs cannot wrap (17.6ms) [L#541]
+
+Finished in 2.8 seconds (0.00s async, 2.8s sync)
+
+Result: 69/70 passed
+Failed: 1 test

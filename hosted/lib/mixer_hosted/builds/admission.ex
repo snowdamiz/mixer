@@ -1,22 +1,66 @@
 defmodule MixerHosted.Builds.Admission do
   @moduledoc """
-  Internal, PostgreSQL-serialized organization/platform build occupancy and
+  Internal, PostgreSQL-serialized fleet and organization build occupancy and
   coordinator ownership. These APIs provide no tenant or worker authorization.
 
   Claiming reserves capacity only; external dispatch requires a committed
   lifecycle start first. The reservation survives lease expiry and uncertainty.
   Lease epochs and worker lifecycle fences are independent. All mutations are
-  Multi fragments; callers must preserve capacity -> build -> reservation ->
-  lease lock ordering when composing other database work.
+  Multi fragments. Every fragment first takes the same transaction advisory
+  mutex, then fleet -> platform -> organization -> organization/platform ->
+  build -> reservation -> lease locks. Do not acquire raw locks on these tables
+  before the first Admission fragment in a composed transaction.
   """
   import Ecto.Query
   alias Ecto.Multi
   alias MixerHosted.Builds.{Journal, Record, Storage}
-  alias __MODULE__.{Capacity, Lease, Reservation, Token}
+
+  alias __MODULE__.{
+    Capacity,
+    FleetCapacity,
+    FleetPlatformCapacity,
+    OrganizationCapacity,
+    Lease,
+    Reservation,
+    Token
+  }
 
   @scope [:organization_id, :project_id, :application_id, :build_id, :platform]
   @max_int 9_223_372_036_854_775_807
   @terminal [:succeeded, :failed, :cancelled, :timed_out]
+
+  defmodule FleetCapacity do
+    @moduledoc false
+    use Ecto.Schema
+    @primary_key {:id, :string, autogenerate: false}
+    schema "mixer_build_fleet_capacity" do
+      field(:limit, :integer, default: 0)
+      field(:revision, :integer, default: 0)
+      field(:configured, :boolean, default: false)
+    end
+  end
+
+  defmodule FleetPlatformCapacity do
+    @moduledoc false
+    use Ecto.Schema
+    @primary_key {:platform, :string, autogenerate: false}
+    schema "mixer_build_fleet_platform_capacities" do
+      field(:limit, :integer, default: 0)
+      field(:revision, :integer, default: 0)
+      field(:configured, :boolean, default: false)
+    end
+  end
+
+  defmodule OrganizationCapacity do
+    @moduledoc false
+    use Ecto.Schema
+    @primary_key {:organization_id, :string, autogenerate: false}
+    schema "mixer_build_organization_capacities" do
+      field(:limit, :integer, default: 0)
+      field(:revision, :integer, default: 0)
+      field(:configured, :boolean, default: false)
+    end
+  end
 
   defmodule Capacity do
     @moduledoc false
@@ -64,6 +108,27 @@ defmodule MixerHosted.Builds.Admission do
   @doc "Explicit internal configuration; :new creates revision 0, integer revisions use CAS."
   def configure_multi(%Multi{} = multi, name, scope, revision, limit) do
     Multi.run(multi, name, fn repo, _ -> configure(repo, scope, revision, limit) end)
+  end
+
+  @doc "Explicit fleet-total configuration; new closed placeholders require :new activation."
+  def configure_fleet_multi(%Multi{} = multi, name, revision, limit) do
+    Multi.run(multi, name, fn repo, _ ->
+      configure_aggregate(repo, :fleet, %{}, revision, limit)
+    end)
+  end
+
+  @doc "Explicit fleet platform-pool configuration, independently bounded for iOS and Android."
+  def configure_fleet_platform_multi(%Multi{} = multi, name, scope, revision, limit) do
+    Multi.run(multi, name, fn repo, _ ->
+      configure_aggregate(repo, :platform, scope, revision, limit)
+    end)
+  end
+
+  @doc "Explicit organization-total configuration, shared by both platform pools."
+  def configure_organization_multi(%Multi{} = multi, name, scope, revision, limit) do
+    Multi.run(multi, name, fn repo, _ ->
+      configure_aggregate(repo, :organization, scope, revision, limit)
+    end)
   end
 
   @doc "Claims a queued attempt, or reclaims the same held attempt for reconciliation."
@@ -181,8 +246,8 @@ defmodule MixerHosted.Builds.Admission do
 
   defp configure(repo, scope, revision, limit) do
     with {:ok, scope} <- capacity_scope(scope),
-         true <- is_integer(limit) and limit in 0..10_000,
-         true <- revision == :new or (is_integer(revision) and revision in 0..(@max_int - 1)) do
+         true <- capacity_policy?(revision, limit),
+         {:ok, _} <- lock_capacities(repo, scope) do
       if revision == :new do
         attrs = Map.merge(scope, %{limit: limit, revision: 0})
 
@@ -209,6 +274,48 @@ defmodule MixerHosted.Builds.Admission do
     end
   end
 
+  defp configure_aggregate(repo, kind, scope, revision, limit) do
+    with {:ok, scope} <- aggregate_scope(kind, scope),
+         true <- capacity_policy?(revision, limit),
+         {:ok, capacities} <- lock_capacities(repo, scope) do
+      capacity = Map.fetch!(capacities, kind)
+      {schema, identity} = aggregate_identity(kind, scope)
+      query = aggregate_query(schema, identity)
+
+      cond do
+        revision == :new and (capacity == nil or not capacity.configured) ->
+          attrs = Map.merge(identity, %{limit: limit, revision: 0, configured: true})
+
+          if capacity == nil,
+            do: repo.insert!(struct!(schema, attrs)),
+            else: repo.update_all(query, set: [limit: limit, revision: 0, configured: true])
+
+          {:ok, struct!(schema, attrs)}
+
+        revision == :new ->
+          {:error, :capacity_exists}
+
+        capacity == nil or not capacity.configured ->
+          {:error, :capacity_unconfigured}
+
+        capacity.revision != revision ->
+          {:error, :stale_capacity_revision}
+
+        true ->
+          repo.update_all(query, set: [limit: limit, revision: revision + 1])
+          {:ok, %{capacity | limit: limit, revision: revision + 1}}
+      end
+    else
+      false -> {:error, :invalid_capacity_policy}
+      error -> error
+    end
+  end
+
+  defp capacity_policy?(revision, limit),
+    do:
+      is_integer(limit) and limit in 0..10_000 and
+        (revision == :new or (is_integer(revision) and revision in 0..(@max_int - 1)))
+
   defp claim(repo, scope, owner_id, ttl_ms) do
     with true <- text?(owner_id, 128) and ttl?(ttl_ms),
          {:ok, context} <- locked(repo, scope),
@@ -232,33 +339,58 @@ defmodule MixerHosted.Builds.Admission do
       context.reservation != nil and context.reservation.attempt >= context.build.attempt ->
         {:error, :attempt_already_released}
 
-      repo.aggregate(
-        from(r in Reservation,
-          where:
-            r.organization_id == ^context.scope.organization_id and
-              r.platform == ^context.scope.platform and r.held == true
-        ),
-        :count
-      ) >= context.capacity.limit ->
-        {:error, :capacity_exhausted}
-
       true ->
-        reservation = %Reservation{
-          build_record_id: context.record.id,
-          organization_id: context.scope.organization_id,
-          platform: context.scope.platform,
-          attempt: context.build.attempt,
-          worker_fence: context.build.fence,
-          held: true,
-          terminal_event_id: nil
-        }
+        with :ok <- available_capacity(repo, context) do
+          reservation = %Reservation{
+            build_record_id: context.record.id,
+            organization_id: context.scope.organization_id,
+            platform: context.scope.platform,
+            attempt: context.build.attempt,
+            worker_fence: context.build.fence,
+            held: true,
+            terminal_event_id: nil
+          }
 
-        if context.reservation == nil,
-          do: repo.insert!(reservation),
-          else: persist_reservation(repo, reservation)
+          if context.reservation == nil,
+            do: repo.insert!(reservation),
+            else: persist_reservation(repo, reservation)
 
-        {:ok, %{context | reservation: reservation}}
+          {:ok, %{context | reservation: reservation}}
+        end
     end
+  end
+
+  defp available_capacity(repo, context) do
+    held = from(r in Reservation, where: r.held)
+    platform = from(r in held, where: r.platform == ^context.scope.platform)
+    organization = from(r in held, where: r.organization_id == ^context.scope.organization_id)
+
+    pair =
+      from(r in organization,
+        where: r.platform == ^context.scope.platform
+      )
+
+    policies = [
+      {context.capacities.fleet, held, :fleet_capacity_unconfigured, :fleet_capacity_exhausted},
+      {context.capacities.platform, platform, :fleet_platform_capacity_unconfigured,
+       :fleet_platform_capacity_exhausted},
+      {context.capacities.organization, organization, :organization_capacity_unconfigured,
+       :organization_capacity_exhausted},
+      {context.capacity, pair, :scope_not_found_or_unconfigured, :capacity_exhausted}
+    ]
+
+    Enum.reduce_while(policies, :ok, fn {capacity, query, missing, full}, _ ->
+      cond do
+        capacity == nil or Map.get(capacity, :configured, true) != true ->
+          {:halt, {:error, missing}}
+
+        repo.aggregate(query, :count) >= capacity.limit ->
+          {:halt, {:error, full}}
+
+        true ->
+          {:cont, :ok}
+      end
+    end)
   end
 
   defp take_lease(repo, context, owner_id, ttl_ms) do
@@ -306,7 +438,8 @@ defmodule MixerHosted.Builds.Admission do
 
   defp locked(repo, scope) do
     with {:ok, scope} <- normalize_scope(scope),
-         %Capacity{} = capacity <- repo.one(from(c in capacity_query(scope), lock: "FOR UPDATE")),
+         {:ok, capacities} <- lock_capacities(repo, scope),
+         %Capacity{} = capacity <- capacities.capacity,
          %Record{} = record <- repo.one(from(b in build_query(scope), lock: "FOR UPDATE")),
          {:ok, build} <- replay(record) do
       reservation =
@@ -327,6 +460,7 @@ defmodule MixerHosted.Builds.Admission do
        %{
          scope: scope,
          capacity: capacity,
+         capacities: capacities,
          record: record,
          build: build,
          reservation: reservation,
@@ -339,6 +473,62 @@ defmodule MixerHosted.Builds.Admission do
       error -> error
     end
   end
+
+  # The database mutex exists independently of all configuration rows, so missing
+  # parents and first configuration serialize with claims too. It is retained
+  # across every Multi fragment and rollback, and is reentrant in a transaction.
+  # No transaction may take a raw admission/build row lock before this mutex.
+  defp lock_capacities(repo, scope) do
+    # Repeatable-read snapshots can predate a mutex wait and miss a reservation
+    # committed by its former holder. Fail closed rather than weaken the caller's
+    # isolation or silently count against an old snapshot.
+    case repo.query!("SELECT current_setting('transaction_isolation')") do
+      %{rows: [["read committed"]]} ->
+        repo.query!("SELECT pg_advisory_xact_lock(1296648258, 1)")
+        {:ok, lock_capacity_rows(repo, scope)}
+
+      _ ->
+        {:error, :unsupported_admission_isolation}
+    end
+  end
+
+  defp lock_capacity_rows(repo, scope) do
+    fleet = locked_capacity(repo, FleetCapacity, %{id: "fleet"})
+
+    platform =
+      if Map.has_key?(scope, :platform),
+        do: locked_capacity(repo, FleetPlatformCapacity, Map.take(scope, [:platform]))
+
+    organization =
+      if Map.has_key?(scope, :organization_id),
+        do: locked_capacity(repo, OrganizationCapacity, Map.take(scope, [:organization_id]))
+
+    capacity =
+      if Map.has_key?(scope, :organization_id) and Map.has_key?(scope, :platform),
+        do: repo.one(from(c in capacity_query(scope), lock: "FOR UPDATE"))
+
+    %{fleet: fleet, platform: platform, organization: organization, capacity: capacity}
+  end
+
+  defp locked_capacity(repo, schema, identity),
+    do: repo.one(from(c in aggregate_query(schema, identity), lock: "FOR UPDATE"))
+
+  defp aggregate_query(schema, identity), do: from(c in schema, where: ^Map.to_list(identity))
+
+  defp aggregate_identity(:fleet, _), do: {FleetCapacity, %{id: "fleet"}}
+  defp aggregate_identity(:platform, scope), do: {FleetPlatformCapacity, scope}
+  defp aggregate_identity(:organization, scope), do: {OrganizationCapacity, scope}
+
+  defp aggregate_scope(:fleet, %{} = scope) when map_size(scope) == 0, do: {:ok, scope}
+
+  defp aggregate_scope(:platform, %{platform: platform} = scope)
+       when map_size(scope) == 1 and platform in [:ios, :android],
+       do: {:ok, %{platform: Atom.to_string(platform)}}
+
+  defp aggregate_scope(:organization, %{organization_id: id} = scope) when map_size(scope) == 1,
+    do: if(text?(id, 128), do: {:ok, scope}, else: {:error, :invalid_scope})
+
+  defp aggregate_scope(_, _), do: {:error, :invalid_scope}
 
   defp valid_reservation(%{reservation: nil, lease: nil}), do: :ok
   defp valid_reservation(%{reservation: nil}), do: {:error, :invalid_admission}

@@ -1,10 +1,11 @@
 # Durable internal build admission and coordinator leases
 
-`MixerHosted.Builds.Admission` supplies a shared PostgreSQL capacity boundary for
-each organization and platform. Projects and applications in that pair share
-the limit. Separate organizations and iOS/Android capacity rows are independent.
-This is one organization/platform constraint, not a fleet-wide provider capacity
-model or organization-wide aggregate across platforms.
+`MixerHosted.Builds.Admission` supplies a shared PostgreSQL capacity boundary
+requiring fleet-total, fleet-platform, organization-total and organization/platform
+limits for each fresh reservation. Projects and applications share the applicable
+limits. Fleet iOS and Android pool rows are distinct, and both also consume the
+fleet-total limit. See [the aggregate admission contract](hosted-build-aggregate-admission.md)
+for configuration, migration/upgrade, transaction isolation and current evidence.
 
 Capacity must be explicitly configured internally with a limit from 0 through
 10,000. Zero pauses new admission. Configuration creates revision 0 using `:new`;
@@ -12,7 +13,7 @@ subsequent changes require an exact revision. Lowering the limit below current
 occupancy succeeds without eviction. Existing reservations can still reconcile;
 new attempts wait until held occupancy is below the new limit.
 
-The migration adds three retained tables:
+The original admission migration adds three retained tables:
 
 | Table | Identity and retained data |
 | --- | --- |
@@ -25,11 +26,19 @@ scope. Reservation and lease rows survive release. A lease epoch never resets
 when a build retries, and exhaustion fails closed. The coordinator epoch is
 independent of the lifecycle worker fence: transferring coordination neither
 changes the worker reference nor proves the external worker has stopped.
+The additive aggregate migration adds three closed policy tables and a platform
+held-reservation index without changing those existing worker/reservation rows.
 
 The internal Multi builders are:
 
 - `configure_multi(multi, name, %{organization_id: id, platform: :ios | :android},
   :new | expected_revision, limit)` returns the capacity struct.
+- `configure_fleet_multi(multi, name, :new | expected_revision, limit)` configures
+  the shared fleet total.
+- `configure_fleet_platform_multi(multi, name, %{platform: :ios | :android},
+  :new | expected_revision, limit)` configures a fleet pool.
+- `configure_organization_multi(multi, name, %{organization_id: id},
+  :new | expected_revision, limit)` configures the organization total.
 - `claim_multi(multi, name, full_scope, owner_id, ttl_ms)` reserves a queued
   attempt and claims coordination. TTL is explicitly bounded to 1–300,000 ms;
   owner IDs are bounded printable text.
@@ -49,16 +58,20 @@ source access, dispatch permission or a secret bearer credential. Transition
 returns the existing Storage result at `name`, its Oban row at `{name, :job}` and
 the admission guard context at `{name, :admission}`.
 
-Every operation takes locks in this order: organization/platform capacity,
-exact full-scope build, reservation, coordinator lease. Configuration locks only
-capacity. Held reservations are counted under that shared capacity lock, so
-multiple replicas cannot admit the final slot simultaneously. No in-process
-counter, node ownership assumption or Oban per-node concurrency substitutes for
-that transaction. Callers must preserve this order: do not first lock an existing
-build with raw Storage and then append admission. A claim can compose a later
-guarded transition using `Multi.merge` and its returned token. CAS failure, job
-factory rejection, insertion failure or a later Multi failure rolls back all
-reservation, lease, lifecycle and job changes in that transaction.
+Every operation/configuration fragment requires `READ COMMITTED`, takes the fixed
+PostgreSQL transaction advisory mutex `(1296648258, 1)`, and locks applicable
+fleet-total, fleet-platform, organization-total and organization/platform rows
+before the exact full-scope build, reservation and coordinator lease. Fresh held
+reservations are counted at all four levels under that shared transaction, so
+multiple replicas cannot admit the final slot simultaneously. Missing aggregate
+rows fail closed for fresh claims; held reconciliation and release skip fresh
+capacity eligibility. No in-process counter, node ownership assumption or Oban
+per-node concurrency substitutes for that transaction. Callers must take the
+mutex before raw locks or Storage fragments that lock existing builds. Multiple
+Admission/configuration fragments may compose under the retained mutex. A claim
+can compose a later guarded transition using `Multi.merge` and its returned token.
+CAS failure, job factory rejection, insertion failure or a later Multi failure
+rolls back all configuration, reservation, lease, lifecycle and job changes.
 
 PostgreSQL `clock_timestamp()` is sampled after the complete lock sequence.
 Transaction-start `now()` and caller clocks are not accepted. Leases are live
@@ -88,7 +101,7 @@ the new attempt. `yield_multi` expires only the coordination lease, retaining
 worker occupancy and its fence. The internal Coordinator uses these contracts;
 Storage remains independently callable and no external dispatch adapter is configured.
 
-The database tests use the dedicated disposable `mixer_admission_test` database,
+The original producer database tests use the dedicated disposable `mixer_admission_test` database,
 real row-lock contention and direct-SQL fixture expiry. They cover last-slot
 races, scope isolation, capacity shrink, expiry and ownership transfer, guarded
 mutations with atomic rollback, cancellation/timeout uncertainty, terminal
@@ -97,7 +110,7 @@ collector owns database creation, execution receipts and cleanup. Source compile
 checks are not database or external-worker receipts.
 
 Public build authorization, membership-aware RLS, authenticated workers, provider
-execution, production dispatch, queue estimates, billing attribution, fleet-wide
-provider limits, operational failure qualification and GA remain pending. No
+execution, production dispatch, queue estimates, billing attribution, provider
+capacity measurement, operational failure qualification and GA remain pending. No
 router, credential, customer message, release authority or frozen catalog code is
 changed. No Patch/Skip implementation or new dependency is introduced.

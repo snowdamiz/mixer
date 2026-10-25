@@ -1,0 +1,35 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+
+MixerHosted.AggregateAdmissionReview.Test [/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-build-aggregate-admission-independent-review/aggregate_admission_review_test.exs]
+  * test every valid Admission fragment waits on the fixed mutex before any admission relation lock [L#263]
+21:43:15.504 [error] #PID<0.327.0> (Oban.Notifiers.Postgres) failed to connect to Postgres: ** (ArgumentError) missing the :database key in options for nil
+  * test every valid Admission fragment waits on the fixed mutex before any admission relation lock (184.6ms) [L#263]
+  * test READ COMMITTED contender sees a reservation committed after its earlier count snapshot [L#326]  * test READ COMMITTED contender sees a reservation committed after its earlier count snapshot (16.3ms) [L#326]
+  * test unsupported snapshots reject before waiting on the mutex and leave existing ownership unchanged [L#371]  * test unsupported snapshots reject before waiting on the mutex and leave existing ownership unchanged (19.4ms) [L#371]
+  * test a rolled back release does not expose its slot to a real waiting cross-platform contender [L#405]  * test a rolled back release does not expose its slot to a real waiting cross-platform contender (33.8ms) [L#405]
+  * test release and another organization claim compose atomically at the single fleet slot [L#436]  * test release and another organization claim compose atomically at the single fleet slot (24.5ms) [L#436]
+  * test rolled back first activation leaves no phantom revision and a mutex waiter activates once [L#461]  * test rolled back first activation leaves no phantom revision and a mutex waiter activates once (10.8ms) [L#461]
+  * test fresh admission remains closed for each absent policy and rejected claims leak no reservation or lease [L#504]  * test fresh admission remains closed for each absent policy and rejected claims leak no reservation or lease (22.0ms) [L#504]
+  * test overlapping fleet platform organization and pair quotas hold across eighteen independent transactions [L#565]  * test overlapping fleet platform organization and pair quotas hold across eighteen independent transactions (51.1ms) [L#565]
+  * test all-limit shrink and missing aggregate rows retain a started worker through fenced stop and release [L#613]  * test all-limit shrink and missing aggregate rows retain a started worker through fenced stop and release (33.4ms) [L#613]
+  * test migration rebuilds one closed organization placeholder per distinct pair owner without changing worker data [L#685]    warning: redefining module MixerHosted.Repo.Migrations.AddBuildAggregateLimits (current version defined in memory)
+    │
+  1 │ defmodule MixerHosted.Repo.Migrations.AddBuildAggregateLimits do
+    │ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    │
+    └─ _build/test/lib/mixer_hosted/priv/repo/migrations/20261025000002_add_build_aggregate_limits.exs:1: MixerHosted.Repo.Migrations.AddBuildAggregateLimits (module)
+
+    warning: redefining module MixerHosted.Repo.Migrations.AddBuildAggregateLimits (current version defined in memory)
+    │
+  1 │ defmodule MixerHosted.Repo.Migrations.AddBuildAggregateLimits do
+    │ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    │
+    └─ _build/test/lib/mixer_hosted/priv/repo/migrations/20261025000002_add_build_aggregate_limits.exs:1: MixerHosted.Repo.Migrations.AddBuildAggregateLimits (module)
+
+  * test migration rebuilds one closed organization placeholder per distinct pair owner without changing worker data (60.4ms) [L#685]
+  * test organization and platform CAS conflicts roll back preceding cross-scope changes exactly [L#735]  * test organization and platform CAS conflicts roll back preceding cross-scope changes exactly (15.7ms) [L#735]
+
+Finished in 0.9 seconds (0.00s async, 0.9s sync)
+
+Result: 11 passed

@@ -17,8 +17,13 @@ event kind. Superseded intents return successfully without dispatch. An older
 creation job is therefore not a capability to start the current attempt. A
 forged kind with otherwise current numeric fields is also ineffective.
 
-Queued reconciliation takes Admission's capacity → build → reservation → lease
-locks, samples PostgreSQL time after those locks, reserves capacity, persists the
+Queued reconciliation takes Admission's transaction advisory mutex, then fleet →
+platform → organization → organization/platform → build → reservation → lease
+locks. Only READ COMMITTED transactions are admitted; a prior repeatable-read
+snapshot could miss reservations committed during a mutex wait. Fresh claims
+require configured limits at all four levels, while held work remains eligible
+for reconciliation after a limit is reduced or disabled. The coordinator samples
+PostgreSQL time after those locks, reserves capacity, persists the
 guarded lifecycle start, and inserts its successor Coordinator job atomically.
 Only that committed start intent can reach the adapter. Failure in its Oban
 insert, admission guard, revision CAS or later Multi step rolls back the entire

@@ -19,7 +19,7 @@ defmodule MixerHosted.Builds.AdmissionTest do
     )
 
     path = Application.app_dir(:mixer_hosted, "priv/repo/migrations")
-    assert length(Ecto.Migrator.run(Repo, path, :up, all: true)) == 3
+    assert length(Ecto.Migrator.run(Repo, path, :up, all: true)) == 4
     assert [] == Ecto.Migrator.run(Repo, path, :up, all: true)
     start_supervised!({Oban, repo: Repo, queues: false, plugins: false, testing: :manual})
     :ok
@@ -27,8 +27,32 @@ defmodule MixerHosted.Builds.AdmissionTest do
 
   setup do
     Repo.query!(
-      "TRUNCATE mixer_build_coordinator_leases, mixer_build_reservations, mixer_build_capacities, mixer_builds, oban_jobs"
+      "TRUNCATE mixer_build_coordinator_leases, mixer_build_reservations, mixer_build_capacities, mixer_build_organization_capacities, mixer_build_fleet_platform_capacities, mixer_build_fleet_capacity, mixer_builds, oban_jobs"
     )
+
+    assert {:ok, _} =
+             Multi.new()
+             |> Admission.configure_fleet_multi(:fleet, :new, 10_000)
+             |> Admission.configure_fleet_platform_multi(:ios, %{platform: :ios}, :new, 10_000)
+             |> Admission.configure_fleet_platform_multi(
+               :android,
+               %{platform: :android},
+               :new,
+               10_000
+             )
+             |> Admission.configure_organization_multi(
+               :org,
+               %{organization_id: "org-a"},
+               :new,
+               10_000
+             )
+             |> Admission.configure_organization_multi(
+               :other_org,
+               %{organization_id: "other-org"},
+               :new,
+               10_000
+             )
+             |> Repo.transaction()
 
     :ok
   end

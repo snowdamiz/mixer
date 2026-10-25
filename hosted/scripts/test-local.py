@@ -129,6 +129,8 @@ try:
                            "mixer_fixture", "mixer_builds_test"])
     run("createdb-admission", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
                               "mixer_fixture", "mixer_admission_test"])
+    run("createdb-aggregate-admission", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
+                                        "mixer_fixture", "mixer_aggregate_admission_test"])
     run("createdb-coordinator", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
                                 "mixer_fixture", "mixer_coordinator_test"])
     if additional_tests:
@@ -136,6 +138,8 @@ try:
                                       "mixer_fixture", "mixer_builds_review_test"])
         run("createdb-admission-review", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
                                          "mixer_fixture", "mixer_admission_review_test"])
+        run("createdb-aggregate-admission-review", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
+                                                   "mixer_fixture", "mixer_aggregate_admission_review_test"])
         run("createdb-coordinator-review", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
                                            "mixer_fixture", "mixer_coordinator_review_test"])
     test_argv = ["mix", "test", "--warnings-as-errors", "--seed", "0", "--trace"]
@@ -166,7 +170,7 @@ finally:
         "input_paths": "repository-relative; source archive uses the same paths",
         "source_archive_sha256": digest(output / "source.tar.gz"), "commands": commands,
         "cleanup": cleanup,
-        "scope": "Host application test suite, Phoenix/Bandit, real build journals, reservations and coordinator leases in disposable PostgreSQL, atomic Oban job intents and packaged release. Exact tested components are recorded in tests.log. No Neon, Cloudflare, configured identity provider, authenticated HTTP routes, deployed job processing, external-effect, native, or GA qualification.",
+        "scope": "Host application test suite, Phoenix/Bandit, real build journals, scoped and aggregate admission limits, reservations and coordinator leases in disposable PostgreSQL, atomic Oban job intents and packaged release. Exact tested components are recorded in tests.log. No Neon, Cloudflare, configured identity provider, authenticated HTTP routes, deployed job processing, external-effect, native, or GA qualification.",
         "limitations": ["Foundation probe table and fixture job consumers are test-only; production build schemas and coordinator are tested with synthetic data and modeled dispatch adapters, with no production adapter configured.",
                         "Database integration uses an isolated loopback PostgreSQL fixture without TLS; production TLS options have configuration tests only.",
                         "Local delayed-job completion does not qualify Cloudflare zero-traffic wake/recovery."]

@@ -1,0 +1,53 @@
+{
+  "phase": "producer source frozen for root collector and independent review",
+  "inputs": {
+    "hosted/lib/mixer_hosted/builds/admission.ex": "87bd56955fa99c2978a407c74cfcc87819ac6059a0bc4a86a36df763424ab0eb",
+    "hosted/priv/repo/migrations/20261025000002_add_build_aggregate_limits.exs": "443ede59186c0fca9454bcec319965217007c328719dbb152bdf6552901e009b",
+    "hosted/test/mixer_hosted/builds/admission_test.exs": "71964a42a9d7bb635b4c19b341c5004dc3137aa7ab6bc9f28956ae3dd141a5a9",
+    "hosted/test/mixer_hosted/builds/aggregate_admission_test.exs": "a769e7e5143b7f1412cc661198190cba88e75659ab144b113cf1a7f833f04a41",
+    "hosted/test/mixer_hosted/builds/coordinator_test.exs": "5fe4484683fc4374eba22e6accec2b76454546ac12523dc662a5a7adce372bc7",
+    "hosted/test/mixer_hosted/builds/storage_test.exs": "61dd8c8cddb2ef8ce13bac67a5e676496da9a2c29371927bb45aa8e017b264c2",
+    "docs/hosted-build-admission.md": "6f4f6d5475b70198c737ab3089d46bae621561031219794a89ef691e18d7684b",
+    "docs/hosted-build-aggregate-admission.md": "fc6884bd75df328b3f756aeb94d77720ef992b05e15de729ff63e9c32781829c",
+    "verification/hosted-build-aggregate-admission/diagnose.py": "e2f59a38ec5a438591682c1852b90b94e6f43cb11c1239c16564e36c34aba479"
+  },
+  "diagnostic_receipt": "verification/hosted-build-aggregate-admission/diagnostic-3/receipt.json",
+  "hosted_source_tree_sha256": "972a2b95d41cef01ac364776593accd002e470e6b7b44096ee5e5b47055195e4",
+  "commands": "13 recorded commands; exact argv, versions, source archive, exit codes and output hashes in diagnostic receipt",
+  "result": {
+    "producer_build_tests_passed": 71,
+    "aggregate_controls": 20,
+    "prior_admission_controls": 17,
+    "coordinator_controls": 19,
+    "storage_controls": 15
+  },
+  "cleanup": {
+    "postgres_stopped": true,
+    "scratch_removed": true
+  },
+  "contract": {
+    "mutex": [
+      1296648258,
+      1
+    ],
+    "transaction_isolation": "read committed",
+    "fresh_limits": [
+      "fleet-total",
+      "fleet-platform",
+      "organization-total",
+      "organization/platform"
+    ],
+    "held_reconciliation": "no fresh limit eligibility checks",
+    "occupancy_authority": "retained Reservation.held rows"
+  },
+  "limitations": [
+    "Targeted loopback PostgreSQL producer evidence only; root full release collector and independent review pending.",
+    "No production migration or rollout; no provider/cloud/native/signing/authority/catalog call or Git mutation.",
+    "Every admission writer must be upgraded or stopped before aggregate enforcement can be relied upon; old binaries do not check new limits.",
+    "Global mutex serializes all fleet admission in one PostgreSQL database; no throughput or fairness qualification."
+  ],
+  "earlier_diagnostics": [
+    "diagnostic-1: 69/70 build tests; one Ecto metadata assertion corrected.",
+    "diagnostic-2: 70 tests passed but warnings-as-errors rejected an unused optional function argument, removed before diagnostic-3."
+  ]
+}

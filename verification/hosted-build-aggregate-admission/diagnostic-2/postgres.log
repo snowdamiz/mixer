@@ -1,0 +1,55 @@
+2026-10-24 21:33:59.209 EDT [64582] LOG:  starting PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit
+2026-10-24 21:33:59.210 EDT [64582] LOG:  listening on IPv4 address "127.0.0.1", port 63496
+2026-10-24 21:33:59.212 EDT [64585] LOG:  database system was shut down at 2026-10-24 21:33:59 EDT
+2026-10-24 21:33:59.215 EDT [64582] LOG:  database system is ready to accept connections
+2026-10-24 21:34:01.386 EDT [64661] ERROR:  new row for relation "mixer_build_fleet_capacity" violates check constraint "mixer_build_fleet_capacity_bounds"
+2026-10-24 21:34:01.386 EDT [64661] DETAIL:  Failing row contains (other, 0, 0, f).
+2026-10-24 21:34:01.386 EDT [64661] STATEMENT:  INSERT INTO mixer_build_fleet_capacity (id) VALUES ('other')
+2026-10-24 21:34:01.388 EDT [64655] ERROR:  new row for relation "mixer_build_fleet_platform_capacities" violates check constraint "mixer_build_fleet_platform_capacities_bounds"
+2026-10-24 21:34:01.388 EDT [64655] DETAIL:  Failing row contains (other, 0, 0, f).
+2026-10-24 21:34:01.388 EDT [64655] STATEMENT:  INSERT INTO mixer_build_fleet_platform_capacities (platform) VALUES ('other')
+2026-10-24 21:34:01.388 EDT [64662] ERROR:  new row for relation "mixer_build_organization_capacities" violates check constraint "mixer_build_organization_capacities_bounds"
+2026-10-24 21:34:01.388 EDT [64662] DETAIL:  Failing row contains (, 0, 0, f).
+2026-10-24 21:34:01.388 EDT [64662] STATEMENT:  INSERT INTO mixer_build_organization_capacities (organization_id) VALUES ('')
+2026-10-24 21:34:01.388 EDT [64658] ERROR:  new row for relation "mixer_build_organization_capacities" violates check constraint "mixer_build_organization_capacities_bounds"
+2026-10-24 21:34:01.388 EDT [64658] DETAIL:  Failing row contains (aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa..., 0, 0, f).
+2026-10-24 21:34:01.388 EDT [64658] STATEMENT:  INSERT INTO mixer_build_organization_capacities (organization_id) VALUES (repeat('a', 129))
+2026-10-24 21:34:01.389 EDT [64654] ERROR:  new row for relation "mixer_build_fleet_capacity" violates check constraint "mixer_build_fleet_capacity_bounds"
+2026-10-24 21:34:01.389 EDT [64654] DETAIL:  Failing row contains (fleet, -1, 0, t).
+2026-10-24 21:34:01.389 EDT [64654] STATEMENT:  UPDATE mixer_build_fleet_capacity SET "limit" = -1, configured = true
+2026-10-24 21:34:01.389 EDT [64660] ERROR:  new row for relation "mixer_build_fleet_capacity" violates check constraint "mixer_build_fleet_capacity_bounds"
+2026-10-24 21:34:01.389 EDT [64660] DETAIL:  Failing row contains (fleet, 10001, 0, t).
+2026-10-24 21:34:01.389 EDT [64660] STATEMENT:  UPDATE mixer_build_fleet_capacity SET "limit" = 10001, configured = true
+2026-10-24 21:34:01.389 EDT [64663] ERROR:  new row for relation "mixer_build_fleet_capacity" violates check constraint "mixer_build_fleet_capacity_bounds"
+2026-10-24 21:34:01.389 EDT [64663] DETAIL:  Failing row contains (fleet, 0, -1, f).
+2026-10-24 21:34:01.389 EDT [64663] STATEMENT:  UPDATE mixer_build_fleet_capacity SET revision = -1
+2026-10-24 21:34:01.390 EDT [64659] ERROR:  new row for relation "mixer_build_fleet_capacity" violates check constraint "mixer_build_fleet_capacity_bounds"
+2026-10-24 21:34:01.390 EDT [64659] DETAIL:  Failing row contains (fleet, 1, 0, f).
+2026-10-24 21:34:01.390 EDT [64659] STATEMENT:  UPDATE mixer_build_fleet_capacity SET "limit" = 1
+2026-10-24 21:34:01.390 EDT [64657] ERROR:  new row for relation "mixer_build_fleet_capacity" violates check constraint "mixer_build_fleet_capacity_bounds"
+2026-10-24 21:34:01.390 EDT [64657] DETAIL:  Failing row contains (fleet, 0, 1, f).
+2026-10-24 21:34:01.390 EDT [64657] STATEMENT:  UPDATE mixer_build_fleet_capacity SET revision = 1
+2026-10-24 21:34:01.390 EDT [64656] ERROR:  null value in column "configured" of relation "mixer_build_fleet_capacity" violates not-null constraint
+2026-10-24 21:34:01.390 EDT [64656] DETAIL:  Failing row contains (fleet, 0, 0, null).
+2026-10-24 21:34:01.390 EDT [64656] STATEMENT:  UPDATE mixer_build_fleet_capacity SET configured = NULL
+2026-10-24 21:34:01.391 EDT [64661] ERROR:  new row for relation "mixer_build_fleet_platform_capacities" violates check constraint "mixer_build_fleet_platform_capacities_bounds"
+2026-10-24 21:34:01.391 EDT [64661] DETAIL:  Failing row contains (ios, 10001, 0, t).
+2026-10-24 21:34:01.391 EDT [64661] STATEMENT:  UPDATE mixer_build_fleet_platform_capacities SET "limit" = 10001, configured = true
+2026-10-24 21:34:01.391 EDT [64655] ERROR:  new row for relation "mixer_build_organization_capacities" violates check constraint "mixer_build_organization_capacities_bounds"
+2026-10-24 21:34:01.391 EDT [64655] DETAIL:  Failing row contains (bad, 10001, 0, t).
+2026-10-24 21:34:01.391 EDT [64655] STATEMENT:  INSERT INTO mixer_build_organization_capacities (organization_id, "limit", configured) VALUES ('bad', 10001, true)
+2026-10-24 21:34:01.394 EDT [64659] ERROR:  bigint out of range
+2026-10-24 21:34:01.394 EDT [64659] STATEMENT:  UPDATE mixer_build_fleet_capacity SET revision = revision + 1
+2026-10-24 21:34:01.944 EDT [64676] ERROR:  new row for relation "oban_jobs" violates check constraint "coordinator_reject_retry"
+2026-10-24 21:34:01.944 EDT [64676] DETAIL:  Failing row contains (44, available, builds, MixerHosted.Builds.Coordinator, {"kind": "retry", "fence": 3, "attempt": 2, "build_id": "build-c..., {}, 0, 20, 2026-10-25 01:34:01.943578, 2026-10-25 01:34:01.943578, null, null, null, null, 0, {}, {}, null).
+2026-10-24 21:34:01.944 EDT [64676] STATEMENT:  INSERT INTO "public"."oban_jobs" ("args","meta","state","max_attempts","queue","worker","errors","tags","attempt") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING "id"
+2026-10-24 21:34:01.978 EDT [64680] ERROR:  new row for relation "oban_jobs" violates check constraint "coordinator_reject_start"
+2026-10-24 21:34:01.978 EDT [64680] DETAIL:  Failing row contains (50, available, builds, MixerHosted.Builds.Coordinator, {"kind": "start", "fence": 1, "attempt": 1, "build_id": "build-c..., {}, 0, 20, 2026-10-25 01:34:01.976364, 2026-10-25 01:34:01.976364, null, null, null, null, 0, {}, {}, null).
+2026-10-24 21:34:01.978 EDT [64680] STATEMENT:  INSERT INTO "public"."oban_jobs" ("args","meta","state","max_attempts","queue","worker","errors","tags","attempt") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING "id"
+2026-10-24 21:34:02.770 EDT [64582] LOG:  received fast shutdown request
+2026-10-24 21:34:02.770 EDT [64582] LOG:  aborting any active transactions
+2026-10-24 21:34:02.772 EDT [64582] LOG:  background worker "logical replication launcher" (PID 64588) exited with exit code 1
+2026-10-24 21:34:02.772 EDT [64583] LOG:  shutting down
+2026-10-24 21:34:02.772 EDT [64583] LOG:  checkpoint starting: shutdown immediate
+2026-10-24 21:34:03.107 EDT [64583] LOG:  checkpoint complete: wrote 4032 buffers (24.6%); 0 WAL file(s) added, 0 removed, 1 recycled; write=0.156 s, sync=0.101 s, total=0.335 s; sync files=4230, longest=0.001 s, average=0.001 s; distance=21295 kB, estimate=21295 kB; lsn=0/29E66B8, redo lsn=0/29E66B8
+2026-10-24 21:34:03.111 EDT [64582] LOG:  database system is shut down
