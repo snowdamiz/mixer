@@ -28,8 +28,9 @@ The catalog prerequisite is pushed as `9d5c40ee`; selected storage/migrations pa
 but its broader job stops at Mix formatting before tests. The terminal-newline
 correction passes the actual formatter and fresh 26-method PostgreSQL 17 and
 20-method independent PostgreSQL 16 replays. Corrected `6baf9acc` Phoenix CI
-passes every step; its Engine run remains active. The preceding catalog Engine
-run passes all three jobs.
+passes every step and its Engine run passes all three jobs. The preceding
+catalog Engine run also passes. SQL prerequisite `97d436b4` passes Phoenix CI;
+its Engine run remains active.
 See [the integrated scope](docs/hosted-browser-session-integration.md).
 Computer use, capture and native runtime tests remain paused.
 The full plan remains incomplete; no GA gate is promoted.
@@ -155,6 +156,9 @@ The full plan remains incomplete; no GA gate is promoted.
    is enabled. Function/type catalog checks now pass 26 producer PostgreSQL 17 and 20
    independent PostgreSQL 16 methods, with root source/output/cleanup acceptance.
    Their named partial result has no consumer and cannot authorize readiness.
+   Three new PG17 probes reproduce acceptance of extra standalone browser types
+   and altered ACL grantors. Correction and explicit version-2 admission are in
+   progress; the prior passing tests did not cover those gaps.
    The pure activation-preparation decoder now passes 19 producer methods,
    11 existing snapshot regressions and 29 independent methods, with root
    source/output/format acceptance. It proves shape only; the future owner must
@@ -162,8 +166,10 @@ The full plan remains incomplete; no GA gate is promoted.
    The corrected relation contract passes 12 producer and 16 independent
    source checks, including both incoming principal foreign keys. Its 48 runtime
    cases remain pending. Both PG16/17 representation fixtures now pass 82
-   semantic checks, with 23/24 actual mutation controls; independent review
-   is underway. The additive preparation SQL helper passes 39 PG17 and 38
+   semantic checks, with 23/24 actual mutation controls. Independent review
+   passes 427 main, 96 mutation-effect and 14 freeze/source assertions; counts
+   overlap. Root accepts representation evidence, and RelationCatalog
+   implementation has started. The additive preparation SQL helper passes 39 PG17 and 38
    independent PG16 methods after rejecting unexpected new-object grants. Root
    accepts this component; no migration or caller is enabled. Forty owner
    runtime adversity cases also remain pending. See

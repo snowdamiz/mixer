@@ -1,0 +1,1 @@
+CREATE DATABASE browser_storage OWNER browser_schema_owner;

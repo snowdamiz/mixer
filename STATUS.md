@@ -283,7 +283,10 @@ The existing URI HTTPS registry read is narrowly documented; drift fails closed.
 Function/type catalog checks now pass 26 producer methods on PostgreSQL 17.11
 and 20 independent methods on PostgreSQL 16.15. Root audited 14 source, 803
 dependency and 49 output bindings and cleanup; selected warnings-as-errors
-compilation passes. This is only `:function_surface_verified`: tests explicitly
+compilation passes. Three new PG17 probes now reproduce extra standalone
+browser-type admission and unchecked ACL grantor drift. Both-version repairs
+and explicit version-2 admission are underway; prior checks did not cover those
+gaps. This is only `:function_surface_verified`: tests explicitly
 show that missing relation/policy/grant admission remains a separate requirement.
 No consumer, pool, Store or readiness wiring exists. The pure activation
 preparation decoder passes 19 producer methods, 11 existing snapshot regressions
@@ -294,8 +297,10 @@ The corrected relation contract passes 12 producer and 16 independent source
 checks, with both incoming principal foreign keys included. Root verified 62
 input, four read-only context and 99 output bindings. All 48 relation runtime
 cases and forty owner runtime cases remain pending. PG16/17 representation
-fixtures each pass 82 semantic checks and 23/24 actual mutation controls, with
-independent review underway. The additive preparation SQL helper passes 39 PG17
+fixtures each pass 82 semantic checks and 23/24 actual mutation controls.
+Independent review passes 427 main, 96 effect and 14 freeze/source assertions
+with overlapping coverage. Root accepts this representation evidence; production
+RelationCatalog implementation has started. The additive preparation SQL helper passes 39 PG17
 and 38 independent PG16 methods. Review found unexpected PUBLIC grants could
 survive provisioning; initial and final exact new-object ACL checks now reject
 them, including third-party/default grants and grant options. Root accepts this
@@ -309,6 +314,10 @@ and [relation contract review](docs/hosted-browser-relation-admission-contract-r
 record the accepted component scope and remaining owner/runtime work.
 
 ## Delivery and pending qualification
+
+The corrected additive SQL component is pushed as `97d436b4`; all 780
+committed paths and bytes were verified. Phoenix `40222180472` passes every
+step; Engine `40222180507` remains running. No migration or caller is installed.
 
 The decoder and corrected relation source contract are pushed as `0a6f110d`;
 all 317 committed paths and bytes were verified. Phoenix `40221267196` passes
@@ -324,7 +333,7 @@ terminal newline in each new product module. Root corrected only terminal LF
 bytes and reran the actual formatter, selected warnings-as-errors compile,
 26 PostgreSQL 17 producer methods and 20 independent PostgreSQL 16 methods.
 All pass, with cleanup. Corrected `6baf9acc` Phoenix `40220447677` passes
-every step; Engine `40220447676` remains running. The preceding catalog Engine
+every step; Engine `40220447676` passes all three jobs. The preceding catalog Engine
 `40219535273` passes all three jobs. See [correction](docs/hosted-browser-catalog-format-correction.md) and
 [delivery](verification/github-delivery-browser-catalog/receipt.json).
 

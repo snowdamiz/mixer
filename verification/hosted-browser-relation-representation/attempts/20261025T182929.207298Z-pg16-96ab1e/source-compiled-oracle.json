@@ -1,0 +1,621 @@
+{
+  "checks": [
+    {
+      "conname": "source_0",
+      "expression": "((octet_length(subject) >= 1) AND (octet_length(subject) <= 256))",
+      "relation": "public.mixer_authz_bindings"
+    },
+    {
+      "conname": "source_1",
+      "expression": "((revision >= 1) AND (revision <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_authz_bindings"
+    },
+    {
+      "conname": "source_0",
+      "expression": "((octet_length(reference) >= 1) AND (octet_length(reference) <= 256))",
+      "relation": "public.mixer_authz_credentials"
+    },
+    {
+      "conname": "source_1",
+      "expression": "((not_before >= 0) AND (not_before <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_authz_credentials"
+    },
+    {
+      "conname": "source_2",
+      "expression": "(((expires_at >= 0) AND (expires_at <= '9007199254740991'::bigint)) AND (expires_at > not_before))",
+      "relation": "public.mixer_authz_credentials"
+    },
+    {
+      "conname": "source_3",
+      "expression": "((revision >= 1) AND (revision <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_authz_credentials"
+    },
+    {
+      "conname": "source_0",
+      "expression": "((octet_length(id) >= 1) AND (octet_length(id) <= 128))",
+      "relation": "public.mixer_authz_families"
+    },
+    {
+      "conname": "source_1",
+      "expression": "((not_before >= 0) AND (not_before <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_authz_families"
+    },
+    {
+      "conname": "source_2",
+      "expression": "(((expires_at >= 0) AND (expires_at <= '9007199254740991'::bigint)) AND (expires_at > not_before))",
+      "relation": "public.mixer_authz_families"
+    },
+    {
+      "conname": "source_3",
+      "expression": "((revision >= 1) AND (revision <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_authz_families"
+    },
+    {
+      "conname": "source_0",
+      "expression": "((octet_length(id) >= 1) AND (octet_length(id) <= 128))",
+      "relation": "public.mixer_authz_principals"
+    },
+    {
+      "conname": "source_1",
+      "expression": "(identity_class = ANY (ARRAY['human'::text, 'service'::text]))",
+      "relation": "public.mixer_authz_principals"
+    },
+    {
+      "conname": "source_2",
+      "expression": "((not_before >= 0) AND (not_before <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_authz_principals"
+    },
+    {
+      "conname": "source_3",
+      "expression": "((revision >= 1) AND (revision <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_authz_principals"
+    },
+    {
+      "conname": "source_0",
+      "expression": "((octet_length(id) >= 1) AND (octet_length(id) <= 128))",
+      "relation": "public.mixer_authz_profiles"
+    },
+    {
+      "conname": "source_1",
+      "expression": "(version > 0)",
+      "relation": "public.mixer_authz_profiles"
+    },
+    {
+      "conname": "source_2",
+      "expression": "((octet_length(issuer) >= 1) AND (octet_length(issuer) <= 2048))",
+      "relation": "public.mixer_authz_profiles"
+    },
+    {
+      "conname": "source_3",
+      "expression": "((octet_length(client_id) >= 1) AND (octet_length(client_id) <= 256))",
+      "relation": "public.mixer_authz_profiles"
+    },
+    {
+      "conname": "source_4",
+      "expression": "(identity_class = ANY (ARRAY['human'::text, 'service'::text]))",
+      "relation": "public.mixer_authz_profiles"
+    },
+    {
+      "conname": "source_5",
+      "expression": "((state_revision >= 1) AND (state_revision <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_authz_profiles"
+    },
+    {
+      "conname": "source_0",
+      "expression": "(octet_length(state_digest) = 32)",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "conname": "source_1",
+      "expression": "((browser_epoch >= 1) AND (browser_epoch <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "conname": "source_10",
+      "expression": "((octet_length(redirect_uri) >= 1) AND (octet_length(redirect_uri) <= 2048))",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "conname": "source_11",
+      "expression": "(return_route = 'workspace'::text)",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "conname": "source_12",
+      "expression": "(octet_length(nonce_digest) = 32)",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "conname": "source_13",
+      "expression": "((created_at >= 0) AND (created_at <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "conname": "source_14",
+      "expression": "((expires_at > created_at) AND (expires_at <= (created_at + 300)) AND (expires_at <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "conname": "source_15",
+      "expression": "(status = ANY (ARRAY['pending'::text, 'claimed'::text, 'provider_rejected'::text, 'completed'::text, 'failed'::text, 'superseded'::text]))",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "conname": "source_16",
+      "expression": "(octet_length(claim_digest) = 32)",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "conname": "source_17",
+      "expression": "(completion_reason = ANY (ARRAY['provider_rejected'::text, 'exchange_failed'::text, 'oidc_failed'::text, 'identity_failed'::text, 'session_failed'::text, 'completed'::text, 'superseded'::text, 'expired'::text, 'logout'::text]))",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "conname": "source_18",
+      "expression": "(ciphertext_version = 1)",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "conname": "source_19",
+      "expression": "(((status = 'pending'::text) AND (claim_digest IS NULL) AND (claimed_at IS NULL) AND (claim_expires_at IS NULL) AND (completion_reason IS NULL) AND (key_id IS NOT NULL) AND (key_id ~ '^[A-Za-z0-9._-]{1,128}$'::text) AND (iv IS NOT NULL) AND (octet_length(iv) = 12) AND (tag IS NOT NULL) AND (octet_length(tag) = 16) AND (ciphertext IS NOT NULL) AND ((octet_length(ciphertext) >= 1) AND (octet_length(ciphertext) <= 8192))) OR ((status <> 'pending'::text) AND (key_id IS NULL) AND (iv IS NULL) AND (tag IS NULL) AND (ciphertext IS NULL) AND (((status = 'claimed'::text) AND (completion_reason IS NULL) AND (claim_digest IS NOT NULL) AND (claimed_at IS NOT NULL) AND (claim_expires_at IS NOT NULL) AND (claimed_at >= created_at) AND (claim_expires_at > claimed_at) AND (claim_expires_at <= expires_at)) OR ((completion_reason IS NOT NULL) AND (((status = 'provider_rejected'::text) AND (completion_reason = 'provider_rejected'::text)) OR ((status = 'completed'::text) AND (completion_reason = 'completed'::text) AND (claim_digest IS NOT NULL)) OR ((status = 'failed'::text) AND (completion_reason = ANY (ARRAY['exchange_failed'::text, 'oidc_failed'::text, 'identity_failed'::text, 'session_failed'::text])) AND (claim_digest IS NOT NULL)) OR ((status = 'superseded'::text) AND (completion_reason = ANY (ARRAY['superseded'::text, 'expired'::text, 'logout'::text]))))))))",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "conname": "source_2",
+      "expression": "((browser_revision >= 1) AND (browser_revision <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "conname": "source_3",
+      "expression": "(octet_length(cookie_digest) = 32)",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "conname": "source_4",
+      "expression": "(generation ~ '^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$'::text)",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "conname": "source_5",
+      "expression": "(octet_length(config_digest) = 32)",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "conname": "source_6",
+      "expression": "((octet_length(profile_id) >= 1) AND (octet_length(profile_id) <= 128))",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "conname": "source_7",
+      "expression": "(profile_version > 0)",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "conname": "source_8",
+      "expression": "((octet_length(issuer) >= 1) AND (octet_length(issuer) <= 2048))",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "conname": "source_9",
+      "expression": "((octet_length(client_id) >= 1) AND (octet_length(client_id) <= 256))",
+      "relation": "public.mixer_browser_oidc_attempts"
+    },
+    {
+      "conname": "source_0",
+      "expression": "((sequence >= 1) AND (sequence <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "conname": "source_1",
+      "expression": "(audit_schema = 1)",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "conname": "source_10",
+      "expression": "(octet_length(attempt_state_digest) = 32)",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "conname": "source_11",
+      "expression": "(octet_length(issuer_hash) = 32)",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "conname": "source_12",
+      "expression": "(octet_length(subject_hash) = 32)",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "conname": "source_13",
+      "expression": "(octet_length(client_hash) = 32)",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "conname": "source_14",
+      "expression": "(octet_length(credential_hash) = 32)",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "conname": "source_15",
+      "expression": "(((sequence = 1) AND (operation = 'bootstrap'::text) AND (old_revision IS NULL) AND (old_epoch IS NULL) AND (old_status IS NULL) AND (new_revision = 1) AND (new_epoch = 1) AND (new_status = 'preauth'::text) AND (outcome = 'created'::text)) OR ((sequence > 1) AND (old_revision IS NOT NULL) AND ((old_revision >= 1) AND (old_revision <= '9007199254740991'::bigint)) AND (old_epoch IS NOT NULL) AND ((old_epoch >= 1) AND (old_epoch <= '9007199254740991'::bigint)) AND (old_status IS NOT NULL) AND (old_status = ANY (ARRAY['preauth'::text, 'active'::text])) AND (((operation = 'begin'::text) AND (outcome = 'pending'::text) AND (new_status = old_status) AND (new_revision = (old_revision + 1)) AND (new_epoch = (old_epoch + 1))) OR ((operation = 'claim'::text) AND (outcome = 'claimed'::text) AND (new_status = old_status) AND (new_revision = old_revision) AND (new_epoch = old_epoch)) OR ((operation = 'provider_reject'::text) AND (outcome = 'provider_rejected'::text) AND (new_status = old_status) AND (new_revision = old_revision) AND (new_epoch = old_epoch)) OR ((operation = 'fail_claim'::text) AND (outcome = 'failed'::text) AND (new_status = old_status) AND (new_revision = old_revision) AND (new_epoch = old_epoch)) OR ((operation = 'activate'::text) AND (outcome = 'active'::text) AND (old_status = 'preauth'::text) AND (new_status = 'active'::text) AND (new_revision = (old_revision + 1)) AND (new_epoch = (old_epoch + 1))) OR ((operation = 'replace'::text) AND (outcome = 'active'::text) AND (old_status = 'active'::text) AND (new_status = 'active'::text) AND (new_revision = (old_revision + 1)) AND (new_epoch = (old_epoch + 1))) OR ((operation = 'logout'::text) AND (outcome = 'revoked'::text) AND (new_status = 'revoked'::text) AND (new_revision = (old_revision + 1)) AND (new_epoch = (old_epoch + 1))) OR ((operation = 'expire'::text) AND (outcome = 'expired'::text) AND (new_status = 'expired'::text) AND (new_revision = (old_revision + 1)) AND (new_epoch = (old_epoch + 1))))))",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "conname": "source_16",
+      "expression": "(((operation = ANY (ARRAY['activate'::text, 'replace'::text])) AND (token_issued_at IS NOT NULL) AND (token_expires_at > token_issued_at) AND (issuer_hash IS NOT NULL) AND (subject_hash IS NOT NULL) AND (client_hash IS NOT NULL) AND (credential_hash IS NOT NULL)) OR ((operation <> ALL (ARRAY['activate'::text, 'replace'::text])) AND (token_issued_at IS NULL) AND (token_expires_at IS NULL) AND (issuer_hash IS NULL) AND (subject_hash IS NULL) AND (client_hash IS NULL) AND (credential_hash IS NULL)))",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "conname": "source_2",
+      "expression": "(operation = ANY (ARRAY['bootstrap'::text, 'begin'::text, 'claim'::text, 'provider_reject'::text, 'fail_claim'::text, 'activate'::text, 'replace'::text, 'logout'::text, 'expire'::text]))",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "conname": "source_3",
+      "expression": "(outcome = ANY (ARRAY['created'::text, 'pending'::text, 'claimed'::text, 'provider_rejected'::text, 'failed'::text, 'active'::text, 'revoked'::text, 'expired'::text]))",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "conname": "source_4",
+      "expression": "(request_id ~ '^[0-9a-f]{32}$'::text)",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "conname": "source_5",
+      "expression": "((recorded_at >= 0) AND (recorded_at <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "conname": "source_6",
+      "expression": "((new_revision >= 1) AND (new_revision <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "conname": "source_7",
+      "expression": "((new_epoch >= 1) AND (new_epoch <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "conname": "source_8",
+      "expression": "(new_status = ANY (ARRAY['preauth'::text, 'active'::text, 'revoked'::text, 'expired'::text]))",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "conname": "source_9",
+      "expression": "(octet_length(config_digest) = 32)",
+      "relation": "public.mixer_browser_session_events"
+    },
+    {
+      "conname": "source_0",
+      "expression": "((epoch >= 1) AND (epoch <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_browser_session_vault"
+    },
+    {
+      "conname": "source_1",
+      "expression": "((session_revision >= 1) AND (session_revision <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_browser_session_vault"
+    },
+    {
+      "conname": "source_2",
+      "expression": "((vault_generation >= 1) AND (vault_generation <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_browser_session_vault"
+    },
+    {
+      "conname": "source_3",
+      "expression": "(ciphertext_version = 1)",
+      "relation": "public.mixer_browser_session_vault"
+    },
+    {
+      "conname": "source_4",
+      "expression": "(envelope_kind = ANY (ARRAY['preauth'::text, 'active'::text, 'erased'::text]))",
+      "relation": "public.mixer_browser_session_vault"
+    },
+    {
+      "conname": "source_5",
+      "expression": "(((envelope_kind = 'erased'::text) AND (key_id IS NULL) AND (iv IS NULL) AND (tag IS NULL) AND (ciphertext IS NULL)) OR ((envelope_kind = ANY (ARRAY['preauth'::text, 'active'::text])) AND (key_id IS NOT NULL) AND (key_id ~ '^[A-Za-z0-9._-]{1,128}$'::text) AND (iv IS NOT NULL) AND (octet_length(iv) = 12) AND (tag IS NOT NULL) AND (octet_length(tag) = 16) AND (ciphertext IS NOT NULL) AND ((octet_length(ciphertext) >= 1) AND (octet_length(ciphertext) <= 8192))))",
+      "relation": "public.mixer_browser_session_vault"
+    },
+    {
+      "conname": "source_0",
+      "expression": "(octet_length(id) = 16)",
+      "relation": "public.mixer_browser_sessions"
+    },
+    {
+      "conname": "source_1",
+      "expression": "(octet_length(cookie_digest) = 32)",
+      "relation": "public.mixer_browser_sessions"
+    },
+    {
+      "conname": "source_10",
+      "expression": "((idle_expires_at > created_at) AND (idle_expires_at <= absolute_expires_at))",
+      "relation": "public.mixer_browser_sessions"
+    },
+    {
+      "conname": "source_11",
+      "expression": "((octet_length(expected_profile_id) >= 1) AND (octet_length(expected_profile_id) <= 128))",
+      "relation": "public.mixer_browser_sessions"
+    },
+    {
+      "conname": "source_12",
+      "expression": "(expected_profile_version > 0)",
+      "relation": "public.mixer_browser_sessions"
+    },
+    {
+      "conname": "source_13",
+      "expression": "(octet_length(initial_config_digest) = 32)",
+      "relation": "public.mixer_browser_sessions"
+    },
+    {
+      "conname": "source_14",
+      "expression": "(octet_length(config_digest) = 32)",
+      "relation": "public.mixer_browser_sessions"
+    },
+    {
+      "conname": "source_15",
+      "expression": "((audit_sequence >= 1) AND (audit_sequence <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_browser_sessions"
+    },
+    {
+      "conname": "source_16",
+      "expression": "(((profile_id IS NULL) AND (profile_version IS NULL) AND (principal_id IS NULL) AND (family_id IS NULL) AND (credential_ref IS NULL) AND (credential_revision IS NULL) AND (status <> 'active'::text)) OR ((profile_id IS NOT NULL) AND (profile_version IS NOT NULL) AND (principal_id IS NOT NULL) AND (family_id IS NOT NULL) AND (credential_ref IS NOT NULL) AND (credential_revision IS NOT NULL) AND ((credential_revision >= 1) AND (credential_revision <= '9007199254740991'::bigint)) AND (status <> 'preauth'::text)))",
+      "relation": "public.mixer_browser_sessions"
+    },
+    {
+      "conname": "source_2",
+      "expression": "(status = ANY (ARRAY['preauth'::text, 'active'::text, 'revoked'::text, 'expired'::text]))",
+      "relation": "public.mixer_browser_sessions"
+    },
+    {
+      "conname": "source_3",
+      "expression": "((epoch >= 1) AND (epoch <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_browser_sessions"
+    },
+    {
+      "conname": "source_4",
+      "expression": "((revision >= 1) AND (revision <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_browser_sessions"
+    },
+    {
+      "conname": "source_5",
+      "expression": "(generation ~ '^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$'::text)",
+      "relation": "public.mixer_browser_sessions"
+    },
+    {
+      "conname": "source_6",
+      "expression": "(octet_length(csrf_digest) = 32)",
+      "relation": "public.mixer_browser_sessions"
+    },
+    {
+      "conname": "source_7",
+      "expression": "((created_at >= 0) AND (created_at <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_browser_sessions"
+    },
+    {
+      "conname": "source_8",
+      "expression": "(last_seen_at >= created_at)",
+      "relation": "public.mixer_browser_sessions"
+    },
+    {
+      "conname": "source_9",
+      "expression": "((absolute_expires_at > created_at) AND (absolute_expires_at <= '9007199254740991'::bigint))",
+      "relation": "public.mixer_browser_sessions"
+    }
+  ],
+  "defaults": [
+    {
+      "attname": "revision",
+      "expression": "1",
+      "relation": "public.mixer_authz_bindings"
+    },
+    {
+      "attname": "state_revision",
+      "expression": "1",
+      "relation": "public.mixer_authz_profiles"
+    },
+    {
+      "attname": "ciphertext_version",
+      "expression": "1",
+      "relation": "public.mixer_browser_oidc_attempts"
+    }
+  ],
+  "policies": [
+    {
+      "check_expr": null,
+      "polname": "mixer_browser_read",
+      "relation": "public.mixer_authz_bindings",
+      "using_expr": "true"
+    },
+    {
+      "check_expr": "false",
+      "polname": "scoped_lock",
+      "relation": "public.mixer_authz_bindings",
+      "using_expr": "((profile_id = current_setting('mixer.authz.profile_id'::text, true)) AND ((profile_version)::text = current_setting('mixer.authz.profile_version'::text, true)) AND (subject = current_setting('mixer.authz.subject'::text, true)) AND (identity_class = current_setting('mixer.authz.identity_class'::text, true)) AND (EXISTS ( SELECT 1\n   FROM public.mixer_authz_profiles p\n  WHERE ((p.id = mixer_authz_bindings.profile_id) AND (p.version = mixer_authz_bindings.profile_version)))))"
+    },
+    {
+      "check_expr": null,
+      "polname": "scoped_read",
+      "relation": "public.mixer_authz_bindings",
+      "using_expr": "((profile_id = current_setting('mixer.authz.profile_id'::text, true)) AND ((profile_version)::text = current_setting('mixer.authz.profile_version'::text, true)) AND (subject = current_setting('mixer.authz.subject'::text, true)) AND (identity_class = current_setting('mixer.authz.identity_class'::text, true)) AND (EXISTS ( SELECT 1\n   FROM public.mixer_authz_profiles p\n  WHERE ((p.id = mixer_authz_bindings.profile_id) AND (p.version = mixer_authz_bindings.profile_version)))))"
+    },
+    {
+      "check_expr": "true",
+      "polname": "mixer_browser_insert",
+      "relation": "public.mixer_authz_credentials",
+      "using_expr": null
+    },
+    {
+      "check_expr": null,
+      "polname": "mixer_browser_read",
+      "relation": "public.mixer_authz_credentials",
+      "using_expr": "true"
+    },
+    {
+      "check_expr": "true",
+      "polname": "mixer_browser_update",
+      "relation": "public.mixer_authz_credentials",
+      "using_expr": "true"
+    },
+    {
+      "check_expr": "false",
+      "polname": "scoped_lock",
+      "relation": "public.mixer_authz_credentials",
+      "using_expr": "((principal_id = current_setting('mixer.authz.principal_id'::text, true)) AND (EXISTS ( SELECT 1\n   FROM public.mixer_authz_bindings b\n  WHERE (b.principal_id = current_setting('mixer.authz.principal_id'::text, true)))) AND (profile_id = current_setting('mixer.authz.profile_id'::text, true)) AND ((profile_version)::text = current_setting('mixer.authz.profile_version'::text, true)) AND (reference = current_setting('mixer.authz.credential_ref'::text, true)))"
+    },
+    {
+      "check_expr": null,
+      "polname": "scoped_read",
+      "relation": "public.mixer_authz_credentials",
+      "using_expr": "((principal_id = current_setting('mixer.authz.principal_id'::text, true)) AND (EXISTS ( SELECT 1\n   FROM public.mixer_authz_bindings b\n  WHERE (b.principal_id = current_setting('mixer.authz.principal_id'::text, true)))) AND (profile_id = current_setting('mixer.authz.profile_id'::text, true)) AND ((profile_version)::text = current_setting('mixer.authz.profile_version'::text, true)) AND (reference = current_setting('mixer.authz.credential_ref'::text, true)))"
+    },
+    {
+      "check_expr": "true",
+      "polname": "mixer_browser_insert",
+      "relation": "public.mixer_authz_families",
+      "using_expr": null
+    },
+    {
+      "check_expr": null,
+      "polname": "mixer_browser_read",
+      "relation": "public.mixer_authz_families",
+      "using_expr": "true"
+    },
+    {
+      "check_expr": "true",
+      "polname": "mixer_browser_update",
+      "relation": "public.mixer_authz_families",
+      "using_expr": "true"
+    },
+    {
+      "check_expr": "false",
+      "polname": "scoped_lock",
+      "relation": "public.mixer_authz_families",
+      "using_expr": "((principal_id = current_setting('mixer.authz.principal_id'::text, true)) AND (EXISTS ( SELECT 1\n   FROM public.mixer_authz_bindings b\n  WHERE (b.principal_id = current_setting('mixer.authz.principal_id'::text, true)))) AND (profile_id = current_setting('mixer.authz.profile_id'::text, true)) AND ((profile_version)::text = current_setting('mixer.authz.profile_version'::text, true)) AND (id = current_setting('mixer.authz.family_id'::text, true)))"
+    },
+    {
+      "check_expr": null,
+      "polname": "scoped_read",
+      "relation": "public.mixer_authz_families",
+      "using_expr": "((principal_id = current_setting('mixer.authz.principal_id'::text, true)) AND (EXISTS ( SELECT 1\n   FROM public.mixer_authz_bindings b\n  WHERE (b.principal_id = current_setting('mixer.authz.principal_id'::text, true)))) AND (profile_id = current_setting('mixer.authz.profile_id'::text, true)) AND ((profile_version)::text = current_setting('mixer.authz.profile_version'::text, true)) AND (id = current_setting('mixer.authz.family_id'::text, true)))"
+    },
+    {
+      "check_expr": "false",
+      "polname": "mixer_browser_lock",
+      "relation": "public.mixer_authz_principals",
+      "using_expr": "true"
+    },
+    {
+      "check_expr": null,
+      "polname": "mixer_browser_read",
+      "relation": "public.mixer_authz_principals",
+      "using_expr": "true"
+    },
+    {
+      "check_expr": "false",
+      "polname": "scoped_lock",
+      "relation": "public.mixer_authz_principals",
+      "using_expr": "((id = current_setting('mixer.authz.principal_id'::text, true)) AND (EXISTS ( SELECT 1\n   FROM public.mixer_authz_bindings b\n  WHERE (b.principal_id = current_setting('mixer.authz.principal_id'::text, true)))))"
+    },
+    {
+      "check_expr": null,
+      "polname": "scoped_read",
+      "relation": "public.mixer_authz_principals",
+      "using_expr": "((id = current_setting('mixer.authz.principal_id'::text, true)) AND (EXISTS ( SELECT 1\n   FROM public.mixer_authz_bindings b\n  WHERE (b.principal_id = current_setting('mixer.authz.principal_id'::text, true)))))"
+    },
+    {
+      "check_expr": "false",
+      "polname": "mixer_browser_lock",
+      "relation": "public.mixer_authz_profiles",
+      "using_expr": "true"
+    },
+    {
+      "check_expr": null,
+      "polname": "mixer_browser_read",
+      "relation": "public.mixer_authz_profiles",
+      "using_expr": "true"
+    },
+    {
+      "check_expr": "false",
+      "polname": "scoped_lock",
+      "relation": "public.mixer_authz_profiles",
+      "using_expr": "((id = current_setting('mixer.authz.profile_id'::text, true)) AND ((version)::text = current_setting('mixer.authz.profile_version'::text, true)) AND (issuer = current_setting('mixer.authz.issuer'::text, true)) AND (client_id = current_setting('mixer.authz.client_id'::text, true)) AND (identity_class = current_setting('mixer.authz.identity_class'::text, true)))"
+    },
+    {
+      "check_expr": null,
+      "polname": "scoped_read",
+      "relation": "public.mixer_authz_profiles",
+      "using_expr": "((id = current_setting('mixer.authz.profile_id'::text, true)) AND ((version)::text = current_setting('mixer.authz.profile_version'::text, true)) AND (issuer = current_setting('mixer.authz.issuer'::text, true)) AND (client_id = current_setting('mixer.authz.client_id'::text, true)) AND (identity_class = current_setting('mixer.authz.identity_class'::text, true)))"
+    },
+    {
+      "check_expr": "true",
+      "polname": "mixer_browser_insert",
+      "relation": "public.mixer_browser_oidc_attempts",
+      "using_expr": null
+    },
+    {
+      "check_expr": null,
+      "polname": "mixer_browser_read",
+      "relation": "public.mixer_browser_oidc_attempts",
+      "using_expr": "true"
+    },
+    {
+      "check_expr": "true",
+      "polname": "mixer_browser_update",
+      "relation": "public.mixer_browser_oidc_attempts",
+      "using_expr": "true"
+    },
+    {
+      "check_expr": "true",
+      "polname": "mixer_browser_insert",
+      "relation": "public.mixer_browser_session_events",
+      "using_expr": null
+    },
+    {
+      "check_expr": null,
+      "polname": "mixer_browser_read",
+      "relation": "public.mixer_browser_session_events",
+      "using_expr": "true"
+    },
+    {
+      "check_expr": "true",
+      "polname": "mixer_browser_insert",
+      "relation": "public.mixer_browser_session_vault",
+      "using_expr": null
+    },
+    {
+      "check_expr": null,
+      "polname": "mixer_browser_read",
+      "relation": "public.mixer_browser_session_vault",
+      "using_expr": "true"
+    },
+    {
+      "check_expr": "true",
+      "polname": "mixer_browser_update",
+      "relation": "public.mixer_browser_session_vault",
+      "using_expr": "true"
+    },
+    {
+      "check_expr": "true",
+      "polname": "mixer_browser_insert",
+      "relation": "public.mixer_browser_sessions",
+      "using_expr": null
+    },
+    {
+      "check_expr": null,
+      "polname": "mixer_browser_read",
+      "relation": "public.mixer_browser_sessions",
+      "using_expr": "true"
+    },
+    {
+      "check_expr": "true",
+      "polname": "mixer_browser_update",
+      "relation": "public.mixer_browser_sessions",
+      "using_expr": "true"
+    }
+  ],
+  "predicates": [
+    {
+      "expression": "(status = ANY (ARRAY['pending'::text, 'claimed'::text]))",
+      "relation": "public.mixer_browser_oidc_attempts"
+    }
+  ]
+}

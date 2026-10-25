@@ -1,0 +1,178 @@
+{
+  "foreign_keys": [
+    {
+      "builtin_operators": true,
+      "child": "public.mixer_authz_bindings",
+      "constraint_oid": "16596",
+      "index_oid": "16573",
+      "key_count": 3,
+      "linked_count": 4,
+      "operator_count": 9,
+      "parent": "public.mixer_authz_profiles",
+      "trigger_count": 4
+    },
+    {
+      "builtin_operators": true,
+      "child": "public.mixer_authz_bindings",
+      "constraint_oid": "16601",
+      "index_oid": "16586",
+      "key_count": 2,
+      "linked_count": 4,
+      "operator_count": 6,
+      "parent": "public.mixer_authz_principals",
+      "trigger_count": 4
+    },
+    {
+      "builtin_operators": true,
+      "child": "public.mixer_authz_families",
+      "constraint_oid": "16619",
+      "index_oid": "16584",
+      "key_count": 1,
+      "linked_count": 4,
+      "operator_count": 3,
+      "parent": "public.mixer_authz_principals",
+      "trigger_count": 4
+    },
+    {
+      "builtin_operators": true,
+      "child": "public.mixer_authz_families",
+      "constraint_oid": "16624",
+      "index_oid": "16571",
+      "key_count": 2,
+      "linked_count": 4,
+      "operator_count": 6,
+      "parent": "public.mixer_authz_profiles",
+      "trigger_count": 4
+    },
+    {
+      "builtin_operators": true,
+      "child": "public.mixer_authz_credentials",
+      "constraint_oid": "16640",
+      "index_oid": "16617",
+      "key_count": 4,
+      "linked_count": 4,
+      "operator_count": 12,
+      "parent": "public.mixer_authz_families",
+      "trigger_count": 4
+    },
+    {
+      "builtin_operators": true,
+      "child": "public.mixer_authz_memberships",
+      "constraint_oid": "16731",
+      "index_oid": "16584",
+      "key_count": 1,
+      "linked_count": 4,
+      "operator_count": 3,
+      "parent": "public.mixer_authz_principals",
+      "trigger_count": 4
+    },
+    {
+      "builtin_operators": true,
+      "child": "public.mixer_customer_idempotency",
+      "constraint_oid": "16872",
+      "index_oid": "16584",
+      "key_count": 1,
+      "linked_count": 4,
+      "operator_count": 3,
+      "parent": "public.mixer_authz_principals",
+      "trigger_count": 4
+    },
+    {
+      "builtin_operators": true,
+      "child": "public.mixer_browser_sessions",
+      "constraint_oid": "16979",
+      "index_oid": "16638",
+      "key_count": 3,
+      "linked_count": 4,
+      "operator_count": 9,
+      "parent": "public.mixer_authz_credentials",
+      "trigger_count": 4
+    },
+    {
+      "builtin_operators": true,
+      "child": "public.mixer_browser_sessions",
+      "constraint_oid": "16984",
+      "index_oid": "16617",
+      "key_count": 4,
+      "linked_count": 4,
+      "operator_count": 12,
+      "parent": "public.mixer_authz_families",
+      "trigger_count": 4
+    },
+    {
+      "builtin_operators": true,
+      "child": "public.mixer_browser_session_vault",
+      "constraint_oid": "17002",
+      "index_oid": "16975",
+      "key_count": 1,
+      "linked_count": 4,
+      "operator_count": 3,
+      "parent": "public.mixer_browser_sessions",
+      "trigger_count": 4
+    },
+    {
+      "builtin_operators": true,
+      "child": "public.mixer_browser_oidc_attempts",
+      "constraint_oid": "17035",
+      "index_oid": "16975",
+      "key_count": 1,
+      "linked_count": 4,
+      "operator_count": 3,
+      "parent": "public.mixer_browser_sessions",
+      "trigger_count": 4
+    },
+    {
+      "builtin_operators": true,
+      "child": "public.mixer_browser_session_events",
+      "constraint_oid": "17065",
+      "index_oid": "16975",
+      "key_count": 1,
+      "linked_count": 4,
+      "operator_count": 3,
+      "parent": "public.mixer_browser_sessions",
+      "trigger_count": 4
+    }
+  ],
+  "user_functions": [
+    {
+      "function_oid": "17076",
+      "name": "mixer_browser_attempt_integrity",
+      "namespace": "public",
+      "noarg": true,
+      "owner": "browser_writer",
+      "prosrc": "\nDECLARE b public.mixer_browser_sessions; e public.mixer_browser_session_events;\nBEGIN\n  SELECT * INTO STRICT b FROM public.mixer_browser_sessions WHERE id=NEW.browser_id;\n  SELECT * INTO STRICT e FROM public.mixer_browser_session_events WHERE browser_id=b.id AND sequence=b.audit_sequence;\n  IF TG_OP='UPDATE' AND (OLD.status NOT IN('pending','claimed') OR NEW.state_digest<>OLD.state_digest OR NEW.browser_id<>OLD.browser_id OR NEW.browser_epoch<>OLD.browser_epoch\n    OR NEW.browser_revision<>OLD.browser_revision OR NEW.config_digest<>OLD.config_digest OR NEW.profile_id<>OLD.profile_id OR NEW.profile_version<>OLD.profile_version\n    OR NEW.issuer<>OLD.issuer OR NEW.client_id<>OLD.client_id OR NEW.redirect_uri<>OLD.redirect_uri OR NEW.nonce_digest<>OLD.nonce_digest OR NEW.expires_at<>OLD.expires_at\n    OR NEW.cookie_digest<>OLD.cookie_digest OR NEW.generation<>OLD.generation OR NEW.created_at<>OLD.created_at\n    OR (OLD.status='claimed' AND (NEW.status NOT IN('completed','failed','superseded') OR NEW.claim_digest IS DISTINCT FROM OLD.claim_digest OR NEW.claimed_at IS DISTINCT FROM OLD.claimed_at OR NEW.claim_expires_at IS DISTINCT FROM OLD.claim_expires_at))\n    OR (OLD.status='pending' AND NEW.status NOT IN('claimed','provider_rejected','superseded')))\n  THEN RAISE EXCEPTION 'browser attempt transition invalid' USING ERRCODE='23514'; END IF;\n  IF TG_OP='INSERT' THEN\n    IF e.operation<>'begin' OR e.attempt_state_digest IS DISTINCT FROM NEW.state_digest OR NEW.status<>'pending'\n      OR NEW.browser_epoch<>b.epoch OR NEW.browser_revision<>b.revision OR NEW.cookie_digest<>b.cookie_digest OR NEW.generation<>b.generation OR NEW.config_digest<>b.config_digest\n    THEN RAISE EXCEPTION 'browser attempt event missing' USING ERRCODE='23514'; END IF;\n  ELSE\n    IF (NEW.status='claimed' AND (e.operation<>'claim' OR e.attempt_state_digest IS DISTINCT FROM NEW.state_digest))\n      OR (NEW.status='provider_rejected' AND (e.operation<>'provider_reject' OR e.attempt_state_digest IS DISTINCT FROM NEW.state_digest))\n      OR (NEW.status='completed' AND (e.operation NOT IN('activate','replace') OR e.attempt_state_digest IS DISTINCT FROM NEW.state_digest))\n      OR (NEW.status='failed' AND (e.operation<>'fail_claim' OR e.attempt_state_digest IS DISTINCT FROM NEW.state_digest))\n      OR (NEW.status='superseded' AND (e.operation NOT IN('begin','logout','expire') OR (e.operation='begin' AND e.attempt_state_digest IS NOT DISTINCT FROM NEW.state_digest)))\n    THEN RAISE EXCEPTION 'browser attempt event missing' USING ERRCODE='23514'; END IF;\n  END IF;\n  RETURN NULL;\nEND;\n\n",
+      "returns_trigger": true,
+      "security_definer": true
+    },
+    {
+      "function_oid": "17077",
+      "name": "mixer_browser_event_immutable",
+      "namespace": "public",
+      "noarg": true,
+      "owner": "browser_writer",
+      "prosrc": "\nBEGIN RAISE EXCEPTION 'browser audit is immutable' USING ERRCODE='42501'; END;\n\n",
+      "returns_trigger": true,
+      "security_definer": true
+    },
+    {
+      "function_oid": "17078",
+      "name": "mixer_browser_event_integrity",
+      "namespace": "public",
+      "noarg": true,
+      "owner": "browser_writer",
+      "prosrc": "\nDECLARE b public.mixer_browser_sessions; p public.mixer_browser_session_events;\nBEGIN\n  SELECT * INTO STRICT b FROM public.mixer_browser_sessions WHERE id=NEW.browser_id;\n  IF NEW.sequence>b.audit_sequence OR (NEW.sequence=b.audit_sequence AND (NEW.new_revision<>b.revision OR NEW.new_epoch<>b.epoch OR NEW.new_status<>b.status OR NEW.config_digest<>b.config_digest)) THEN\n    RAISE EXCEPTION 'orphan browser event' USING ERRCODE='23514'; END IF;\n  IF NEW.sequence>1 THEN\n    SELECT * INTO STRICT p FROM public.mixer_browser_session_events WHERE browser_id=NEW.browser_id AND sequence=NEW.sequence-1;\n    IF NEW.old_revision<>p.new_revision OR NEW.old_epoch<>p.new_epoch OR NEW.old_status<>p.new_status THEN RAISE EXCEPTION 'browser audit chain invalid' USING ERRCODE='23514'; END IF;\n  END IF;\n  RETURN NULL;\nEND;\n\n",
+      "returns_trigger": true,
+      "security_definer": true
+    },
+    {
+      "function_oid": "17075",
+      "name": "mixer_browser_integrity",
+      "namespace": "public",
+      "noarg": true,
+      "owner": "browser_writer",
+      "prosrc": "\nDECLARE e public.mixer_browser_session_events; v public.mixer_browser_session_vault; c public.mixer_authz_credentials; b public.mixer_browser_sessions;\nBEGIN\n  IF TG_TABLE_NAME='mixer_browser_session_vault' THEN\n    SELECT * INTO STRICT b FROM public.mixer_browser_sessions WHERE id=NEW.browser_id;\n  ELSE b:=NEW;\n  END IF;\n  SELECT * INTO e FROM public.mixer_browser_session_events WHERE browser_id=b.id AND sequence=b.audit_sequence;\n  IF NOT FOUND OR e.new_revision<>b.revision OR e.new_epoch<>b.epoch OR e.new_status<>b.status OR e.config_digest<>b.config_digest THEN\n    RAISE EXCEPTION 'browser audit transition missing' USING ERRCODE='23514'; END IF;\n  IF TG_TABLE_NAME='mixer_browser_session_vault' THEN\n    IF TG_OP='INSERT' THEN\n      IF e.operation<>'bootstrap' OR NEW.vault_generation<>1 OR NEW.epoch<>1 OR NEW.session_revision<>1 THEN RAISE EXCEPTION 'browser vault initial transition invalid' USING ERRCODE='23514'; END IF;\n    ELSE\n      IF e.operation NOT IN('begin','activate','replace','logout','expire') OR NEW.browser_id<>OLD.browser_id OR NEW.vault_generation<>OLD.vault_generation+1\n        OR NEW.epoch<>OLD.epoch+1 OR NEW.session_revision<>OLD.session_revision+1\n      THEN RAISE EXCEPTION 'browser vault transition invalid' USING ERRCODE='23514'; END IF;\n    END IF;\n  END IF;\n  IF TG_TABLE_NAME='mixer_browser_sessions' THEN\n    IF TG_OP='INSERT' THEN\n      IF b.audit_sequence<>1 OR e.operation<>'bootstrap' OR e.old_revision IS NOT NULL THEN RAISE EXCEPTION 'browser initial transition invalid' USING ERRCODE='23514'; END IF;\n    ELSE\n      IF b.audit_sequence<>OLD.audit_sequence+1 OR e.old_revision<>OLD.revision OR e.old_epoch<>OLD.epoch OR e.old_status<>OLD.status OR b.id<>OLD.id\n        OR b.created_at<>OLD.created_at OR b.initial_config_digest<>OLD.initial_config_digest OR b.config_digest<>OLD.config_digest OR OLD.status IN('revoked','expired')\n        OR (b.revision=OLD.revision AND (pg_catalog.to_jsonb(b)-'audit_sequence') IS DISTINCT FROM (pg_catalog.to_jsonb(OLD)-'audit_sequence'))\n        OR b.revision NOT IN(OLD.revision,OLD.revision+1) OR b.epoch NOT IN(OLD.epoch,OLD.epoch+1)\n      THEN RAISE EXCEPTION 'browser transition invalid' USING ERRCODE='23514'; END IF;\n    END IF;\n  END IF;\n  SELECT * INTO v FROM public.mixer_browser_session_vault WHERE browser_id=b.id;\n  IF b.status IN('preauth','active') THEN\n    IF NOT FOUND OR v.epoch<>b.epoch OR v.session_revision<>b.revision OR v.envelope_kind<>b.status THEN RAISE EXCEPTION 'browser vault linkage invalid' USING ERRCODE='23514'; END IF;\n  ELSIF FOUND AND (v.ciphertext IS NOT NULL) THEN RAISE EXCEPTION 'terminal browser vault retained' USING ERRCODE='23514'; END IF;\n  IF b.status='active' THEN\n    SELECT * INTO STRICT c FROM public.mixer_authz_credentials WHERE profile_id=b.profile_id AND profile_version=b.profile_version AND reference=b.credential_ref;\n    IF c.principal_id<>b.principal_id OR c.family_id<>b.family_id OR c.revision<>b.credential_revision THEN RAISE EXCEPTION 'browser credential linkage invalid' USING ERRCODE='23514'; END IF;\n  END IF;\n  RETURN NULL;\nEND;\n\n",
+      "returns_trigger": true,
+      "security_definer": true
+    }
+  ]
+}
