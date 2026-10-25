@@ -1,0 +1,873 @@
+{
+  "schema": 1,
+  "status": "independent-review-failed-one-selected-contract-finding",
+  "observedUTC": "2026-10-25T06:09:13.971563+00:00",
+  "rootProvidedHEAD": "be472ce6424a691de5673e3438d2768264827d23",
+  "gitRevisionRead": false,
+  "producerReceiptSHA256": "5bce543f307a07666aa5bc70b4f9e5da6f59ac82edc5956c26d859a8f64d288e",
+  "producerSourceDigest": "361c391b035a7a4cdbfaa9d6013cb4944431eb97ad14c65731caac292f947483",
+  "producerPatchSHA256": "d290f0d410224fcdcb8128b431c4c3252353f0849d03e2ae0a9561d7ed7fa520",
+  "reviewSourceDigest": "93d478201ca313df8eaac4e5d8f6ffd90c7231369bd1adfa00130a8793ab7248",
+  "run": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z",
+  "groupsRun": 69,
+  "groupsPassed": 65,
+  "failingControls": 4,
+  "actionableFindings": 1,
+  "findings": [
+    {
+      "priority": 2,
+      "title": "Require null outbox for unenrolled explicit migration enrollment",
+      "file": "verification/hosted-worker-pending-migration-history/candidate/src/engine.ts",
+      "lines": [
+        42,
+        543
+      ],
+      "controls": [
+        "stopped-unenrolled-extra-outbox-direct-must-reject",
+        "stopped-unenrolled-extra-outbox-restart-must-reject",
+        "completed-unenrolled-extra-outbox-direct-must-reject",
+        "completed-unenrolled-extra-outbox-restart-must-reject"
+      ],
+      "scope": "quarantine remains 1; registration and new outbox/version written; no new provider effect; no demonstrated execution authority",
+      "regressionAgainstPredecessorProven": false
+    }
+  ],
+  "originalSixFindingRegressionsPass": true,
+  "producer688Rerun": false,
+  "producerArtifactsVerified": 213,
+  "priorFrozenBindingsVerified": 335,
+  "productionFilesByteIdentical": 13,
+  "assertionDeltaVerified": true,
+  "versions": {
+    "node": "v22.23.3",
+    "nodeExecutable": "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/node",
+    "platform": "darwin",
+    "architecture": "arm64",
+    "miniflare": "4.20260730.0",
+    "typescript": "5.9.3",
+    "workersTypes": "5.20260730.1",
+    "workerd": "workerd 2026-07-30",
+    "workerdExecutable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd",
+    "python": "3.14.8",
+    "pythonExecutable": "/opt/homebrew/bin/python3",
+    "nodeExecutableSHA256": "68f4d07ca49e0500cc135c7e0a445093e228e42e126ac22306d045f0a8c2636b",
+    "workerdExecutableSHA256": "b887d31d8839e80798bf3f92c416343c5db7dd9b22d7fe21bcf877f5d411936f"
+  },
+  "commands": [
+    {
+      "name": "build",
+      "command": [
+        "node",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-migration-history-review/candidate/build.mjs"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "startedUTC": "2026-10-25T06:06:57.081856+00:00",
+      "environment": {
+        "REVIEW_REPORT": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z/independent-report.json"
+      },
+      "finishedUTC": "2026-10-25T06:06:57.444823+00:00",
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z/build.stdout.log",
+      "stderr": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z/build.stderr.log",
+      "stdoutEOF": true,
+      "stderrEOF": true
+    },
+    {
+      "name": "independent",
+      "command": [
+        "node",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-migration-history-review/candidate/test/independent-review.mjs"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "startedUTC": "2026-10-25T06:06:57.445013+00:00",
+      "environment": {
+        "REVIEW_REPORT": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z/independent-report.json"
+      },
+      "finishedUTC": "2026-10-25T06:07:12.620563+00:00",
+      "exitCode": 1,
+      "signal": null,
+      "stdout": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z/independent.stdout.log",
+      "stderr": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z/independent.stderr.log",
+      "stdoutEOF": true,
+      "stderrEOF": true
+    }
+  ],
+  "attempts": [
+    {
+      "run": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060534408683Z",
+      "status": "failed",
+      "groupsRun": 2,
+      "groupsPassed": 0,
+      "sourceDigest": "eb1e162d8eddd713bd0b2711b5898253c8a77e07609a06605f7f56686aa7f6cd",
+      "failures": [
+        {
+          "id": "stopped-unenrolled-extra-outbox-must-reject",
+          "status": "failed",
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'enrolled'\n- 'conflict'\n\n    at Object.fn (file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-migration-history-review/candidate/test/independent-review.mjs:34:289)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-migration-history-review/candidate/test/independent-review.mjs:63:64"
+        },
+        {
+          "id": "completed-unenrolled-extra-outbox-must-reject",
+          "status": "failed",
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'enrolled'\n- 'conflict'\n\n    at Object.fn (file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-migration-history-review/candidate/test/independent-review.mjs:34:289)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-migration-history-review/candidate/test/independent-review.mjs:63:64"
+        }
+      ]
+    },
+    {
+      "run": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060551231281Z",
+      "status": "failed",
+      "groupsRun": 62,
+      "groupsPassed": 59,
+      "sourceDigest": "eb1e162d8eddd713bd0b2711b5898253c8a77e07609a06605f7f56686aa7f6cd",
+      "failures": [
+        {
+          "id": "stopped-unenrolled-extra-outbox-must-reject",
+          "status": "failed",
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'enrolled'\n- 'conflict'\n\n    at Object.fn (file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-migration-history-review/candidate/test/independent-review.mjs:34:289)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-migration-history-review/candidate/test/independent-review.mjs:63:64"
+        },
+        {
+          "id": "completed-unenrolled-extra-outbox-must-reject",
+          "status": "failed",
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'enrolled'\n- 'conflict'\n\n    at Object.fn (file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-migration-history-review/candidate/test/independent-review.mjs:34:289)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-migration-history-review/candidate/test/independent-review.mjs:63:64"
+        },
+        {
+          "id": "partial-migration-quarantineTwo-no-enrollment",
+          "status": "failed",
+          "error": "Error: CHECK constraint failed: quarantined IN (0,1): SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_CHECK)\n    at Object.call (file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-migration-history-review/candidate/test/harness.mjs:18:257)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async Object.fn (file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-migration-history-review/candidate/test/independent-review.mjs:37:29)\n    at async file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-migration-history-review/candidate/test/independent-review.mjs:63:64"
+        }
+      ]
+    },
+    {
+      "run": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z",
+      "status": "failed",
+      "groupsRun": 69,
+      "groupsPassed": 65,
+      "sourceDigest": "93d478201ca313df8eaac4e5d8f6ffd90c7231369bd1adfa00130a8793ab7248",
+      "failures": [
+        {
+          "id": "stopped-unenrolled-extra-outbox-direct-must-reject",
+          "status": "failed",
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'enrolled'\n- 'conflict'\n\n    at Object.fn (file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-migration-history-review/candidate/test/independent-review.mjs:34:463)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-migration-history-review/candidate/test/independent-review.mjs:66:64"
+        },
+        {
+          "id": "stopped-unenrolled-extra-outbox-restart-must-reject",
+          "status": "failed",
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'enrolled'\n- 'conflict'\n\n    at Object.fn (file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-migration-history-review/candidate/test/independent-review.mjs:34:463)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-migration-history-review/candidate/test/independent-review.mjs:66:64"
+        },
+        {
+          "id": "completed-unenrolled-extra-outbox-direct-must-reject",
+          "status": "failed",
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'enrolled'\n- 'conflict'\n\n    at Object.fn (file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-migration-history-review/candidate/test/independent-review.mjs:34:463)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-migration-history-review/candidate/test/independent-review.mjs:66:64"
+        },
+        {
+          "id": "completed-unenrolled-extra-outbox-restart-must-reject",
+          "status": "failed",
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'enrolled'\n- 'conflict'\n\n    at Object.fn (file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-migration-history-review/candidate/test/independent-review.mjs:34:463)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-migration-history-review/candidate/test/independent-review.mjs:66:64"
+        }
+      ]
+    }
+  ],
+  "ownedStorageEnvironmentsRemoved": 133,
+  "ownedHardRestarts": 170,
+  "allRecordedOwnedPidsAbsent": true,
+  "allOwnedStorageAbsent": true,
+  "liveIntegrated": false,
+  "productionChanged": false,
+  "gitChanged": false,
+  "nativeDeviceRuns": false,
+  "physicalPhonesDisconnectedDeferred": true,
+  "forbiddenFrozenLanesReadImportedExecuted": false,
+  "providerDeploymentCredentialCustomerPublicationChanges": false,
+  "remoteRollbackCancellationClaimed": false,
+  "gaAccepted": false,
+  "limitations": [
+    "finite synthetic clock/provider local actual-workerd SQLite fixture only",
+    "one remaining selected-contract enrollment-shape gap; root correction and fresh review required",
+    "no predecessor baseline for this remaining gap",
+    "no full producer688, live controller71/process20, scheduled/public integration rerun",
+    "no deployed alarms/restore/fleet/capacity or production clock/provider qualification",
+    "immutable-package FieldLog, signing, store, final physical phones and accountable GA acceptance pending"
+  ],
+  "artifacts": [
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/attempts.json",
+      "sha256": "cc25612658bfbb37d010d4781c24c8396498307a1f2bc9c6182ac584fa947d3e",
+      "bytes": 7252
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/build.mjs",
+      "sha256": "a7790a7c8022c60af6b8762fac503229c2958d88353c9e669e4ab7fbdf112abc",
+      "bytes": 639
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/check.mjs",
+      "sha256": "89707ba058580ce81d39b66d3137ea5286cafcab06d2bc6b1245526fe3cd5ddf",
+      "bytes": 202
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/dist/src/clock.d.ts",
+      "sha256": "5cc7d2555e992deb3e38a235e8333157c9f79df3d17135d7910509ff464a311a",
+      "bytes": 312
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/dist/src/clock.js",
+      "sha256": "031d5c07356ab38f1889c42e8241e11b1b60c5e988113aba5d546380dd5090c4",
+      "bytes": 389
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/dist/src/engine.d.ts",
+      "sha256": "303f5812b0d282e81bc47160023b260e66b0607f444aec19340d04d0f70ea295",
+      "bytes": 2615
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/dist/src/engine.js",
+      "sha256": "b9b06543c1ac5df4838fbfc6761e80c50679c5e4a12c1e218c0f6ac298791ff8",
+      "bytes": 54353
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/dist/src/ledger.d.ts",
+      "sha256": "52ad652d0ae9db2943b66cd7fd4eff769c1d5ebf70d30852cf267ce27bfbc9e4",
+      "bytes": 2248
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/dist/src/ledger.js",
+      "sha256": "f4a40e28b5f4e07ffdcf320555cf62357c7c390b89ed1574f6874ab299e54562",
+      "bytes": 8855
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/dist/src/provider.d.ts",
+      "sha256": "a990abae6f698d973e554a12ff11fbca3891e673b546692e15b4909fbd36ea8f",
+      "bytes": 1487
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/dist/src/provider.js",
+      "sha256": "1cc77bf7c6bd2758b8ad4b2faeebbadb821a73bf0c3ae918cbe28bd85ebc6969",
+      "bytes": 373
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/dist/src/registry-context.d.ts",
+      "sha256": "205add6064cbe9090dfa5ab4077f299f5af4b3f58ac6ba60983d8becd599071f",
+      "bytes": 913
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/dist/src/registry-context.js",
+      "sha256": "e3977b7c320d421e4b80880f12c90ad61d090c965b26e8a4c2e4036537d667ab",
+      "bytes": 2028
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/dist/src/schema.sql",
+      "sha256": "501011e4e03353b5faf5ccc8de5ba79298c06b420495f4626948eb35894b5a32",
+      "bytes": 2175
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/dist/src/vendor/pending-registry.d.ts",
+      "sha256": "8938fbaa1b81ddeb18e25983c310f4a7d0b742169017de138b95f31968a5f8c3",
+      "bytes": 1217
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/dist/src/vendor/pending-registry.js",
+      "sha256": "d5259c388f6d2fc63735da50fdc9808c32de6152c3f6c45b04edfeead13a71b5",
+      "bytes": 13714
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/dist/src/vendor/pending-types.d.ts",
+      "sha256": "de48a6bbd3ecead0a102272269608169a7338680b7a8c470cb1a0c149a3f7be7",
+      "bytes": 2062
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/dist/src/vendor/pending-types.js",
+      "sha256": "7e2d4db797e46e8fc8ef3792ec25f46e827f0838aeed47ba4b148f69d58ece7f",
+      "bytes": 5744
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/dist/src/vendor/public-contract.d.ts",
+      "sha256": "1bbb65130f5c1be11725a850cb819149329d36be2cd9f303a65ca62fbcbb6405",
+      "bytes": 3741
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/dist/src/vendor/public-contract.js",
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "bytes": 11
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/dist/src/vendor/registry-schema.sql",
+      "sha256": "0d0cd2ae7af876cb049dfee69d68e1ebab41e512b30e393573cf4a03ccceb779",
+      "bytes": 1120
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/dist/src/wire.d.ts",
+      "sha256": "e6916cc7ff1db27d1d02e94f3d8ec7289682710c8ed5f290c4e4c31d979d129b",
+      "bytes": 2516
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/dist/src/wire.js",
+      "sha256": "e635292de8f205818466fd6d0c5a03e660fa9b3dfd0ed253129cc5bffc7bbd6e",
+      "bytes": 11234
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/dist/test/worker.d.ts",
+      "sha256": "2ea650c2c9736c009301525c646e97c312b58bc333ee20797a81cb398521bcb8",
+      "bytes": 1511
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/dist/test/worker.js",
+      "sha256": "709ddbb50ed790e5e54a766a21fe180c26c1546d419c0319b3f233f418be8371",
+      "bytes": 45509
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/src/clock.ts",
+      "sha256": "60465ee7ca77ecb6eee17e4d96fc179a5b2500e9f5c5f321900bcb3c5b545456",
+      "bytes": 534
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/src/engine.ts",
+      "sha256": "0f3ccdff7457d0e6deb65fc9bfe19f61af392dba846885375ace575d45b2f9d8",
+      "bytes": 44602
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/src/ledger.ts",
+      "sha256": "c6e24431788888eee453216f72d08eac1358d6477d4fcb8356f4b94352e30c1a",
+      "bytes": 9383
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/src/provider.ts",
+      "sha256": "b7dfd68c5e7c7adb9efd8b1b30f2c5563d20cc8dc232030f62c195cc5407ab99",
+      "bytes": 1454
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/src/registry-context.ts",
+      "sha256": "95aad7fab7ebffa07218b909477ae1ea29174e70db3ceb58d08fc9d384828f1f",
+      "bytes": 2270
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/src/schema.sql",
+      "sha256": "501011e4e03353b5faf5ccc8de5ba79298c06b420495f4626948eb35894b5a32",
+      "bytes": 2175
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/src/sql.d.ts",
+      "sha256": "7bf31a36e1dae17d14ed382193a4ad80c2375820d3dbc5a767d0d575d00499c1",
+      "bytes": 66
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/src/vendor/assets.d.ts",
+      "sha256": "f2bf8793fa4a597284da52af89da2678db5046121a0e5bec3261f455c49a307f",
+      "bytes": 64
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/src/vendor/pending-registry.ts",
+      "sha256": "99d8a5dc4e2e9b8875c262ae44d2f1307d3107d3bc48c4300e981f68ec12b428",
+      "bytes": 11734
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/src/vendor/pending-types.ts",
+      "sha256": "cfcd2ad9a61be89236e49283e0f8939af2e6946665a92199e0a2b5a96b8a7370",
+      "bytes": 6384
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/src/vendor/public-contract.ts",
+      "sha256": "7bcabae139b5405cfe3856761febb2db69793a9a7cbebba7923a463bfaec2c88",
+      "bytes": 4437
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/src/vendor/registry-schema.sql",
+      "sha256": "0d0cd2ae7af876cb049dfee69d68e1ebab41e512b30e393573cf4a03ccceb779",
+      "bytes": 1120
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/src/wire.ts",
+      "sha256": "699c70af578f3ae8244463c20e88ab8409d8b024fc984d4fa06d65f5f6f77f76",
+      "bytes": 10363
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/test/harness.mjs",
+      "sha256": "1df69c57e96c07c9193ece86d277aded9c66818a5cc0464e7967923e3d4a9d16",
+      "bytes": 3597
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/test/independent-review.mjs",
+      "sha256": "7118768803debba1a5002ed0d47c1d7cb0fe0d2271e6fa5524f64edd5b091072",
+      "bytes": 15391
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/test/worker.ts",
+      "sha256": "e8db8f465429fed604ca3133eb144cbd9c10e3dbd08b368dc6bc3ca949c9cdd4",
+      "bytes": 33200
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/candidate/tsconfig.json",
+      "sha256": "0b3edc10c63d81d03becc7feaa5350093fafef3a60ba2897d99444956af9ad03",
+      "bytes": 511
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/cleanup-seal.json",
+      "sha256": "4f21d0495992927ab28d4fc5277665c90a2400fba68ffef18b9b16839e54b471",
+      "bytes": 36888
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/compiled-manifest.json",
+      "sha256": "3c2cc04407114610d799a82cfdf6e6b1eb529d8962e77fe7af5d8df05a70e748",
+      "bytes": 3538
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/extend-fixture.py",
+      "sha256": "fc677ece55a6708ea47fee7c7777dddf3a270a146ab119621a83fc1e0390923c",
+      "bytes": 3532
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/input-manifest.json",
+      "sha256": "621c6934163b2b140ab02e2d9b1747c94135bea3fa09ba1691da19c367782f42",
+      "bytes": 49073
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/input-verification-final.json",
+      "sha256": "89dacd42e21aa14adab7ed29d9762d2b61a33fbca2411c681fb4f0fa5519122a",
+      "bytes": 474
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/latest-run.json",
+      "sha256": "9116a1983523770043b355ccf6b678b5f0cb3543edefce2aad96f4e928b46b97",
+      "bytes": 2168
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/request.json",
+      "sha256": "e2d81594c57e5e537dc6f19360ee923d2ec34da04e3acd588a1017b030254f50",
+      "bytes": 1329
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/run.py",
+      "sha256": "90bbf1b71f89c2a76a8ad2d40306784d3b4a00efe51dbdabbe1456404aed8d79",
+      "bytes": 2438
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060534408683Z/build.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060534408683Z/build.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060534408683Z/commands.json",
+      "sha256": "c97cd948d466f02dad599a50048f5c8a7715cd8091e5f18c0e2b2e4390e8aa84",
+      "bytes": 1897
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060534408683Z/independent-report.json",
+      "sha256": "4853281b97a08c28d335b367907c2fa38534faafab7aca6d8b9a9ec004fbbb8b",
+      "bytes": 27116
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060534408683Z/independent.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060534408683Z/independent.stdout.log",
+      "sha256": "843e641115a5549f23477bc760de07fed607b16ecfa53586d2c498ba733775bb",
+      "bytes": 311
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060534408683Z/source/build.mjs",
+      "sha256": "a7790a7c8022c60af6b8762fac503229c2958d88353c9e669e4ab7fbdf112abc",
+      "bytes": 639
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060534408683Z/source/check.mjs",
+      "sha256": "89707ba058580ce81d39b66d3137ea5286cafcab06d2bc6b1245526fe3cd5ddf",
+      "bytes": 202
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060534408683Z/source/src/clock.ts",
+      "sha256": "60465ee7ca77ecb6eee17e4d96fc179a5b2500e9f5c5f321900bcb3c5b545456",
+      "bytes": 534
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060534408683Z/source/src/engine.ts",
+      "sha256": "0f3ccdff7457d0e6deb65fc9bfe19f61af392dba846885375ace575d45b2f9d8",
+      "bytes": 44602
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060534408683Z/source/src/ledger.ts",
+      "sha256": "c6e24431788888eee453216f72d08eac1358d6477d4fcb8356f4b94352e30c1a",
+      "bytes": 9383
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060534408683Z/source/src/provider.ts",
+      "sha256": "b7dfd68c5e7c7adb9efd8b1b30f2c5563d20cc8dc232030f62c195cc5407ab99",
+      "bytes": 1454
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060534408683Z/source/src/registry-context.ts",
+      "sha256": "95aad7fab7ebffa07218b909477ae1ea29174e70db3ceb58d08fc9d384828f1f",
+      "bytes": 2270
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060534408683Z/source/src/schema.sql",
+      "sha256": "501011e4e03353b5faf5ccc8de5ba79298c06b420495f4626948eb35894b5a32",
+      "bytes": 2175
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060534408683Z/source/src/sql.d.ts",
+      "sha256": "7bf31a36e1dae17d14ed382193a4ad80c2375820d3dbc5a767d0d575d00499c1",
+      "bytes": 66
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060534408683Z/source/src/vendor/assets.d.ts",
+      "sha256": "f2bf8793fa4a597284da52af89da2678db5046121a0e5bec3261f455c49a307f",
+      "bytes": 64
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060534408683Z/source/src/vendor/pending-registry.ts",
+      "sha256": "99d8a5dc4e2e9b8875c262ae44d2f1307d3107d3bc48c4300e981f68ec12b428",
+      "bytes": 11734
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060534408683Z/source/src/vendor/pending-types.ts",
+      "sha256": "cfcd2ad9a61be89236e49283e0f8939af2e6946665a92199e0a2b5a96b8a7370",
+      "bytes": 6384
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060534408683Z/source/src/vendor/public-contract.ts",
+      "sha256": "7bcabae139b5405cfe3856761febb2db69793a9a7cbebba7923a463bfaec2c88",
+      "bytes": 4437
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060534408683Z/source/src/vendor/registry-schema.sql",
+      "sha256": "0d0cd2ae7af876cb049dfee69d68e1ebab41e512b30e393573cf4a03ccceb779",
+      "bytes": 1120
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060534408683Z/source/src/wire.ts",
+      "sha256": "699c70af578f3ae8244463c20e88ab8409d8b024fc984d4fa06d65f5f6f77f76",
+      "bytes": 10363
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060534408683Z/source/test/harness.mjs",
+      "sha256": "1df69c57e96c07c9193ece86d277aded9c66818a5cc0464e7967923e3d4a9d16",
+      "bytes": 3597
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060534408683Z/source/test/independent-review.mjs",
+      "sha256": "b4e2009b39c30f7cd60e9be7aeee9d209e6366bdbdae436268b1c6d9734cc116",
+      "bytes": 13460
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060534408683Z/source/test/worker.ts",
+      "sha256": "9174f202295327b1d2dadfd21c252e3107583db1268b6d36e01acb8a34bab5fd",
+      "bytes": 32895
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060534408683Z/source/tsconfig.json",
+      "sha256": "0b3edc10c63d81d03becc7feaa5350093fafef3a60ba2897d99444956af9ad03",
+      "bytes": 511
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060534408683Z/source-manifest.json",
+      "sha256": "23f34bdd1f6c50f7569b21682a0b5c3a36e5acaca1b7ad50379e6fd4199255f0",
+      "bytes": 3034
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060534408683Z/summary.json",
+      "sha256": "31a3f7f111f50bd37033d79c1175d27803400fe3803196dd38b3a09a5550a8b6",
+      "bytes": 2244
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060551231281Z/build.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060551231281Z/build.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060551231281Z/commands.json",
+      "sha256": "4d1f1c7f474b9be3059697e3a405b4399d08af617e4aebc1e90095eac53c2257",
+      "bytes": 1823
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060551231281Z/independent-report.json",
+      "sha256": "36ef0534aece399242e00c75197b040a7a39739110cbb78debbb66f4fe4564ef",
+      "bytes": 225188
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060551231281Z/independent.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060551231281Z/independent.stdout.log",
+      "sha256": "d8fc6fbdb7fa882f3755891739cf1a71ffc5131f77bf7cd33a51edd815bac64a",
+      "bytes": 3795
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060551231281Z/source/build.mjs",
+      "sha256": "a7790a7c8022c60af6b8762fac503229c2958d88353c9e669e4ab7fbdf112abc",
+      "bytes": 639
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060551231281Z/source/check.mjs",
+      "sha256": "89707ba058580ce81d39b66d3137ea5286cafcab06d2bc6b1245526fe3cd5ddf",
+      "bytes": 202
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060551231281Z/source/src/clock.ts",
+      "sha256": "60465ee7ca77ecb6eee17e4d96fc179a5b2500e9f5c5f321900bcb3c5b545456",
+      "bytes": 534
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060551231281Z/source/src/engine.ts",
+      "sha256": "0f3ccdff7457d0e6deb65fc9bfe19f61af392dba846885375ace575d45b2f9d8",
+      "bytes": 44602
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060551231281Z/source/src/ledger.ts",
+      "sha256": "c6e24431788888eee453216f72d08eac1358d6477d4fcb8356f4b94352e30c1a",
+      "bytes": 9383
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060551231281Z/source/src/provider.ts",
+      "sha256": "b7dfd68c5e7c7adb9efd8b1b30f2c5563d20cc8dc232030f62c195cc5407ab99",
+      "bytes": 1454
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060551231281Z/source/src/registry-context.ts",
+      "sha256": "95aad7fab7ebffa07218b909477ae1ea29174e70db3ceb58d08fc9d384828f1f",
+      "bytes": 2270
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060551231281Z/source/src/schema.sql",
+      "sha256": "501011e4e03353b5faf5ccc8de5ba79298c06b420495f4626948eb35894b5a32",
+      "bytes": 2175
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060551231281Z/source/src/sql.d.ts",
+      "sha256": "7bf31a36e1dae17d14ed382193a4ad80c2375820d3dbc5a767d0d575d00499c1",
+      "bytes": 66
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060551231281Z/source/src/vendor/assets.d.ts",
+      "sha256": "f2bf8793fa4a597284da52af89da2678db5046121a0e5bec3261f455c49a307f",
+      "bytes": 64
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060551231281Z/source/src/vendor/pending-registry.ts",
+      "sha256": "99d8a5dc4e2e9b8875c262ae44d2f1307d3107d3bc48c4300e981f68ec12b428",
+      "bytes": 11734
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060551231281Z/source/src/vendor/pending-types.ts",
+      "sha256": "cfcd2ad9a61be89236e49283e0f8939af2e6946665a92199e0a2b5a96b8a7370",
+      "bytes": 6384
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060551231281Z/source/src/vendor/public-contract.ts",
+      "sha256": "7bcabae139b5405cfe3856761febb2db69793a9a7cbebba7923a463bfaec2c88",
+      "bytes": 4437
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060551231281Z/source/src/vendor/registry-schema.sql",
+      "sha256": "0d0cd2ae7af876cb049dfee69d68e1ebab41e512b30e393573cf4a03ccceb779",
+      "bytes": 1120
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060551231281Z/source/src/wire.ts",
+      "sha256": "699c70af578f3ae8244463c20e88ab8409d8b024fc984d4fa06d65f5f6f77f76",
+      "bytes": 10363
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060551231281Z/source/test/harness.mjs",
+      "sha256": "1df69c57e96c07c9193ece86d277aded9c66818a5cc0464e7967923e3d4a9d16",
+      "bytes": 3597
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060551231281Z/source/test/independent-review.mjs",
+      "sha256": "b4e2009b39c30f7cd60e9be7aeee9d209e6366bdbdae436268b1c6d9734cc116",
+      "bytes": 13460
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060551231281Z/source/test/worker.ts",
+      "sha256": "9174f202295327b1d2dadfd21c252e3107583db1268b6d36e01acb8a34bab5fd",
+      "bytes": 32895
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060551231281Z/source/tsconfig.json",
+      "sha256": "0b3edc10c63d81d03becc7feaa5350093fafef3a60ba2897d99444956af9ad03",
+      "bytes": 511
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060551231281Z/source-manifest.json",
+      "sha256": "23f34bdd1f6c50f7569b21682a0b5c3a36e5acaca1b7ad50379e6fd4199255f0",
+      "bytes": 3034
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060551231281Z/summary.json",
+      "sha256": "04db1aa592678ec80901d06a1255581b60771674f91971689c67cfb7108cd299",
+      "bytes": 2168
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z/build.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z/build.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z/commands.json",
+      "sha256": "228e71f92fcb8fa2784c2f57e8199a7b0173a433651de8ad167b8a7cdef77853",
+      "bytes": 1823
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z/independent-report.json",
+      "sha256": "309d614257dea8a961936183c331e1cdc4e5a99c4152028a9594f9d057bcbe41",
+      "bytes": 256931
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z/independent.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z/independent.stdout.log",
+      "sha256": "bb0659d255120acd4473fbd638dc02d26b1d66e73bf031615e43301dcc68aeaa",
+      "bytes": 4292
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z/source/build.mjs",
+      "sha256": "a7790a7c8022c60af6b8762fac503229c2958d88353c9e669e4ab7fbdf112abc",
+      "bytes": 639
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z/source/check.mjs",
+      "sha256": "89707ba058580ce81d39b66d3137ea5286cafcab06d2bc6b1245526fe3cd5ddf",
+      "bytes": 202
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z/source/src/clock.ts",
+      "sha256": "60465ee7ca77ecb6eee17e4d96fc179a5b2500e9f5c5f321900bcb3c5b545456",
+      "bytes": 534
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z/source/src/engine.ts",
+      "sha256": "0f3ccdff7457d0e6deb65fc9bfe19f61af392dba846885375ace575d45b2f9d8",
+      "bytes": 44602
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z/source/src/ledger.ts",
+      "sha256": "c6e24431788888eee453216f72d08eac1358d6477d4fcb8356f4b94352e30c1a",
+      "bytes": 9383
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z/source/src/provider.ts",
+      "sha256": "b7dfd68c5e7c7adb9efd8b1b30f2c5563d20cc8dc232030f62c195cc5407ab99",
+      "bytes": 1454
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z/source/src/registry-context.ts",
+      "sha256": "95aad7fab7ebffa07218b909477ae1ea29174e70db3ceb58d08fc9d384828f1f",
+      "bytes": 2270
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z/source/src/schema.sql",
+      "sha256": "501011e4e03353b5faf5ccc8de5ba79298c06b420495f4626948eb35894b5a32",
+      "bytes": 2175
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z/source/src/sql.d.ts",
+      "sha256": "7bf31a36e1dae17d14ed382193a4ad80c2375820d3dbc5a767d0d575d00499c1",
+      "bytes": 66
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z/source/src/vendor/assets.d.ts",
+      "sha256": "f2bf8793fa4a597284da52af89da2678db5046121a0e5bec3261f455c49a307f",
+      "bytes": 64
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z/source/src/vendor/pending-registry.ts",
+      "sha256": "99d8a5dc4e2e9b8875c262ae44d2f1307d3107d3bc48c4300e981f68ec12b428",
+      "bytes": 11734
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z/source/src/vendor/pending-types.ts",
+      "sha256": "cfcd2ad9a61be89236e49283e0f8939af2e6946665a92199e0a2b5a96b8a7370",
+      "bytes": 6384
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z/source/src/vendor/public-contract.ts",
+      "sha256": "7bcabae139b5405cfe3856761febb2db69793a9a7cbebba7923a463bfaec2c88",
+      "bytes": 4437
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z/source/src/vendor/registry-schema.sql",
+      "sha256": "0d0cd2ae7af876cb049dfee69d68e1ebab41e512b30e393573cf4a03ccceb779",
+      "bytes": 1120
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z/source/src/wire.ts",
+      "sha256": "699c70af578f3ae8244463c20e88ab8409d8b024fc984d4fa06d65f5f6f77f76",
+      "bytes": 10363
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z/source/test/harness.mjs",
+      "sha256": "1df69c57e96c07c9193ece86d277aded9c66818a5cc0464e7967923e3d4a9d16",
+      "bytes": 3597
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z/source/test/independent-review.mjs",
+      "sha256": "7118768803debba1a5002ed0d47c1d7cb0fe0d2271e6fa5524f64edd5b091072",
+      "bytes": 15391
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z/source/test/worker.ts",
+      "sha256": "e8db8f465429fed604ca3133eb144cbd9c10e3dbd08b368dc6bc3ca949c9cdd4",
+      "bytes": 33200
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z/source/tsconfig.json",
+      "sha256": "0b3edc10c63d81d03becc7feaa5350093fafef3a60ba2897d99444956af9ad03",
+      "bytes": 511
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z/source-manifest.json",
+      "sha256": "1ff060d2cbce2ff64a5b4a344ee4166827ade3eab4d1edcc0dd0716e1b2a7b61",
+      "bytes": 3034
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/runs/20261025T060657078174Z/summary.json",
+      "sha256": "9116a1983523770043b355ccf6b678b5f0cb3543edefce2aad96f4e928b46b97",
+      "bytes": 2168
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/seal.py",
+      "sha256": "4ea33f811c87a8f4c41e4a3c1c69672e480f339caabd54ac8805fe9d9f337c2f",
+      "bytes": 9955
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/source-closure.json",
+      "sha256": "356a770149fab369a71c5c43b7e0e8f2abb25b92b4a3a48e811552e5aa3e868e",
+      "bytes": 3413
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/source-manifest.json",
+      "sha256": "1ff060d2cbce2ff64a5b4a344ee4166827ade3eab4d1edcc0dd0716e1b2a7b61",
+      "bytes": 3034
+    },
+    {
+      "path": "verification/hosted-worker-pending-migration-history-review/tool-versions.json",
+      "sha256": "690e86f68408b74e4e718906aa3404728ec72d7e4ef283be85703172de41a744",
+      "bytes": 719
+    },
+    {
+      "path": "docs/hosted-worker-pending-migration-history-review.md",
+      "sha256": "a80efdbd23940ea4acbb45de3d26a7f4ad26b2bd4c8a9a115b62f69978f96b91",
+      "bytes": 8589
+    }
+  ]
+}

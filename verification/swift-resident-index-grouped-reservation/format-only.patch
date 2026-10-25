@@ -1,0 +1,13 @@
+--- diagnosis/cache.rs
++++ selected/cache.rs
+@@ -1090,7 +1090,9 @@
+     let Some(cleanup) = compute_cache_cleanup_temporary_bytes() else {
+         return None;
+     };
+-    let Some(header) = exclusive.checked_add(cleanup) else { return None; };
++    let Some(header) = exclusive.checked_add(cleanup) else {
++        return None;
++    };
+     header.checked_add(RESIDENT_INDEX_BYTES)
+ }
+ const fn compute_cache_construction_bytes() -> Option<usize> {

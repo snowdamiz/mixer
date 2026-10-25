@@ -1,0 +1,11 @@
+--- producer/test/harness.mjs
++++ review/test/harness.mjs
+@@ -11,7 +11,7 @@
+ function owned(){const p=spawnSync('/bin/ps',['-axo','pid=,ppid=,comm='],{encoding:'utf8',timeout:5000,maxBuffer:8388608});if(p.status!==0)throw new Error('process_observation_failed');const processes=p.stdout.trim().split('\n').map(line=>{const m=line.trim().match(/^(\d+)\s+(\d+)\s+(.+)$/);if(!m)throw new Error('process_row');return {pid:Number(m[1]),parentPid:Number(m[2]),command:m[3]};}).filter(x=>x.pid!==p.pid);return selectOwnedWorkerd({ownerPid:process.pid,executable:workerd,platform:process.platform,processes});}
+ function gone(pid){try{process.kill(pid,0);return false;}catch(e){if(e.code==='ESRCH')return true;throw e;}}
+ export async function harness(fixture,identity){
+- const persist=await mkdtemp(join(tmpdir(),'mixer-pending-terminal-consistency-owned-'));
++ const persist=await mkdtemp(join(tmpdir(),'mixer-pending-terminal-review-owned-'));
+  const options={modules:true,scriptPath:resolve(import.meta.dirname,'../dist/test/worker.js'),modulesRules:[{type:'ESModule',include:['**/*.js'],fallthrough:true},{type:'Text',include:['**/*.sql'],fallthrough:true}],compatibilityDate:'2026-07-30',durableObjects:{PENDING_REGISTRY:{className:'TestRegistry',useSQLite:true},OPERATIONS:{className:'TestOperation',useSQLite:true}},durableObjectsPersist:persist,bindings:{FIXTURE_IDENTITY:JSON.stringify(identity),MIXER_PENDING_CONFIG:JSON.stringify({generation:'a'.repeat(64),operationsNamespace:'engine-operation-test',registryNamespace:'engine-registry-test'})},log:new Log(LogLevel.ERROR)};
+  let mf=new Miniflare(options),closed=false;const identities=[];
+  try{await mf.ready;identities.push(owned());}catch(e){await mf.dispose().catch(()=>{});await rm(persist,{recursive:true,force:true});cleanup.push({persist,setupFailed:true,storageRemoved:true});throw e;}

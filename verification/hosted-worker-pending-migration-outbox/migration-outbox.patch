@@ -1,0 +1,11 @@
+--- frozen/src/engine.ts
++++ candidate/src/engine.ts
+@@ -39,7 +39,7 @@
+     // This is only the bounded shape produced by schema-1/2 migration, not proof
+     // of historical origin. It keeps quarantine and grants no execution or
+     // delivery authority. Only explicit validated enrollment can add a receipt.
+-    return r.quarantined===1&&r.pending_identity_json===null&&r.registration_json===null&&r.registry_ack_version==='0'&&r.effect_barrier_version===null&&r.claim_barrier_version===null&&BigInt(r.state_version)>0n;
++    return r.quarantined===1&&r.pending_identity_json===null&&r.registration_json===null&&r.track_outbox_json===null&&r.registry_ack_version==='0'&&r.effect_barrier_version===null&&r.claim_barrier_version===null&&BigInt(r.state_version)>0n;
+   }
+   private terminalProjection(r:Row):CoalescedTrackOutbox|null{
+     let phase:'completed'|'stopped'|null=null;

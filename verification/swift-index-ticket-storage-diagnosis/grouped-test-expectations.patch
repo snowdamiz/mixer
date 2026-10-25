@@ -1,0 +1,29 @@
+--- before/cache_tests.rs
++++ after/cache_tests.rs
+@@ -1832,7 +1832,7 @@
+     let ledger = c.usage(None);
+     assert_eq!(ledger.live.active_pins.current, 64);
+     assert_eq!(ledger.live.cache_entries.current, 64);
+-    assert_eq!(ledger.reservations.live_tickets, 74);
++    assert_eq!(ledger.reservations.live_tickets, 73);
+     assert_eq!(before.pinned_bytes, before.resident_bytes);
+     let (failure, stats) = measure(|| pin(&mut cache, &mut c, 98, None).unwrap_err());
+     assert_eq!(failure.code, "pin_slots_exhausted");
+@@ -2300,8 +2300,6 @@
+         header,
+         header + patch_bytes - 1,
+         header + patch_bytes,
+-        header + patch_bytes + 191,
+-        header + patch_bytes + 192,
+     ] {
+         let (mut c, a) = adopt(
+             &bytes,
+@@ -2313,7 +2311,7 @@
+             },
+         );
+         let (result, stats) = measure(|| construct(&mut c, a, None));
+-        if ceiling == header + patch_bytes + 192 {
++        if ceiling == header + patch_bytes {
+             assert_eq!(stats.attempts, 2);
+             let cache = result.unwrap();
+             assert_eq!(c.usage(None).reservations.cache.current, ceiling);

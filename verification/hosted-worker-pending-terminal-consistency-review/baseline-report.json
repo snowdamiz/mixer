@@ -1,0 +1,1548 @@
+{
+  "schema": 1,
+  "status": "findings",
+  "actualWorkerd": true,
+  "actualSQLite": true,
+  "groupsDefined": 78,
+  "groupsRun": 6,
+  "groupsPassed": 4,
+  "results": [
+    {
+      "id": "probe-schema1-stopped-terminal-explicit-enrollment",
+      "status": "passed"
+    },
+    {
+      "id": "probe-schema2-stopped-terminal-explicit-enrollment",
+      "status": "passed"
+    },
+    {
+      "id": "probe-schema1-completed-terminal-explicit-enrollment",
+      "status": "passed"
+    },
+    {
+      "id": "probe-schema2-completed-terminal-explicit-enrollment",
+      "status": "passed"
+    },
+    {
+      "id": "probe-stopped-missing-outbox-ack-ahead-history-regression",
+      "status": "failed",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   flushed: true\n-   flushed: false\n  }\n\n    at Object.fn (file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-terminal-consistency-review/baseline-candidate/test/independent.mjs:93:469)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-terminal-consistency-review/baseline-candidate/test/independent.mjs:97:75"
+    },
+    {
+      "id": "probe-completed-missing-outbox-ack-ahead-history-regression",
+      "status": "failed",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   flushed: true\n-   flushed: false\n  }\n\n    at Object.fn (file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-terminal-consistency-review/baseline-candidate/test/independent.mjs:93:469)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-terminal-consistency-review/baseline-candidate/test/independent.mjs:97:75"
+    }
+  ],
+  "observations": {
+    "probe-schema1-stopped-terminal-explicit-enrollment": {
+      "original": {
+        "row": {
+          "singleton": 1,
+          "operation_id": "517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059",
+          "binding": "[\"mixer-worker-binding-v1\",\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"00000000-0000-4000-8000-000000000001\",[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",1,\"1\"],[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",\"revision\",\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"main\",\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"],\"2100000000000\"]",
+          "binding_hash": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5",
+          "request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"stop\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "epoch": "1",
+          "revision": "0",
+          "owner": "owner-a",
+          "expiry_us": "2000000000001000",
+          "clock_lower": "1899999999999999",
+          "clock_upper": "1900000000000001",
+          "clock_qualification": "excluded-pending-registry-engine-fixture",
+          "clock_floor": "1899999999999999",
+          "desired": "stop",
+          "phase": "stopped",
+          "provider_key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+          "provider_kind": "cloudflare-linux",
+          "state_version": "3",
+          "claim_state": "revoked",
+          "claim_id": null,
+          "instance_id": null,
+          "boot_id": null,
+          "effect_id": "383e4254a17320abac1c510b8a75c0a6",
+          "effect_request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"stop\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "effect_kind": "stop",
+          "effect_state": "settled",
+          "launch_dispatched": 0,
+          "terminal_json": "{\"status\":\"stopped\",\"diagnostic_sha256\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\"}",
+          "report_hash": null,
+          "pending_result_json": null,
+          "next_due_us": null,
+          "failures": 0,
+          "quarantined": 0,
+          "pending_identity_json": "{\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"environmentId\":\"development\",\"poolId\":\"native\",\"controllerId\":\"controller-1\",\"platform\":\"android\",\"operationKey\":\"53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04\",\"operationId\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutableSha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\"}",
+          "registration_json": "{\"identityDigest\":\"197ec6b6e02e0c5306376608b99915202315cdadd58892e12e2fa16b16bab441\",\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"recordId\":\"29369400494b1692738bce92efa2d3bf\",\"shard\":5,\"allocationIndex\":1}",
+          "registry_ack_version": "3",
+          "effect_barrier_version": "2",
+          "claim_barrier_version": null,
+          "track_outbox_json": null
+        },
+        "alarm": 1792907349539,
+        "fence": [],
+        "calls": [
+          {
+            "kind": "stop",
+            "id": "383e4254a17320abac1c510b8a75c0a6",
+            "identity": {
+              "provider": "cloudflare-linux",
+              "key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+              "immutableSha256": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5"
+            }
+          }
+        ],
+        "settings": {
+          "clock": "1900000000000000",
+          "qualified": true,
+          "drained": true,
+          "fault": null,
+          "blocked": false
+        },
+        "schema": [
+          {
+            "version": 3
+          }
+        ]
+      },
+      "migrated": {
+        "before": {
+          "singleton": 1,
+          "operation_id": "517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059",
+          "binding": "[\"mixer-worker-binding-v1\",\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"00000000-0000-4000-8000-000000000001\",[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",1,\"1\"],[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",\"revision\",\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"main\",\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"],\"2100000000000\"]",
+          "binding_hash": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5",
+          "request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"stop\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "epoch": "1",
+          "revision": "0",
+          "owner": "owner-a",
+          "expiry_us": "2000000000001000",
+          "clock_lower": "1899999999999999",
+          "clock_upper": "1900000000000001",
+          "clock_qualification": "excluded-pending-registry-engine-fixture",
+          "clock_floor": "1899999999999999",
+          "desired": "stop",
+          "phase": "stopped",
+          "provider_key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+          "provider_kind": "cloudflare-linux",
+          "state_version": "3",
+          "claim_state": "revoked",
+          "claim_id": null,
+          "instance_id": null,
+          "boot_id": null,
+          "effect_id": "383e4254a17320abac1c510b8a75c0a6",
+          "effect_request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"stop\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "effect_kind": "stop",
+          "effect_state": "settled",
+          "launch_dispatched": 0,
+          "terminal_json": "{\"status\":\"stopped\",\"diagnostic_sha256\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\"}",
+          "report_hash": null,
+          "pending_result_json": null,
+          "next_due_us": null,
+          "failures": 0,
+          "quarantined": 0,
+          "pending_identity_json": "{\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"environmentId\":\"development\",\"poolId\":\"native\",\"controllerId\":\"controller-1\",\"platform\":\"android\",\"operationKey\":\"53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04\",\"operationId\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutableSha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\"}",
+          "registration_json": "{\"identityDigest\":\"197ec6b6e02e0c5306376608b99915202315cdadd58892e12e2fa16b16bab441\",\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"recordId\":\"29369400494b1692738bce92efa2d3bf\",\"shard\":5,\"allocationIndex\":1}",
+          "registry_ack_version": "3",
+          "effect_barrier_version": "2",
+          "claim_barrier_version": null,
+          "track_outbox_json": null
+        },
+        "after": {
+          "singleton": 1,
+          "operation_id": "517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059",
+          "binding": "[\"mixer-worker-binding-v1\",\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"00000000-0000-4000-8000-000000000001\",[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",1,\"1\"],[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",\"revision\",\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"main\",\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"],\"2100000000000\"]",
+          "binding_hash": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5",
+          "request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"stop\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "epoch": "1",
+          "revision": "0",
+          "owner": "owner-a",
+          "expiry_us": "2000000000001000",
+          "clock_lower": "1899999999999999",
+          "clock_upper": "1900000000000001",
+          "clock_qualification": "excluded-pending-registry-engine-fixture",
+          "desired": "stop",
+          "phase": "stopped",
+          "provider_key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+          "provider_kind": "cloudflare-linux",
+          "state_version": "3",
+          "claim_state": "revoked",
+          "claim_id": null,
+          "instance_id": null,
+          "boot_id": null,
+          "effect_id": "383e4254a17320abac1c510b8a75c0a6",
+          "effect_request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"stop\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "effect_kind": "stop",
+          "effect_state": "settled",
+          "launch_dispatched": 0,
+          "terminal_json": "{\"status\":\"stopped\",\"diagnostic_sha256\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\"}",
+          "report_hash": null,
+          "pending_result_json": null,
+          "next_due_us": null,
+          "failures": 0,
+          "quarantined": 1,
+          "clock_floor": "1899999999999999",
+          "pending_identity_json": null,
+          "registration_json": null,
+          "registry_ack_version": "0",
+          "effect_barrier_version": null,
+          "claim_barrier_version": null,
+          "track_outbox_json": null
+        }
+      },
+      "enrolled": {
+        "status": "enrolled"
+      },
+      "after": {
+        "row": {
+          "singleton": 1,
+          "operation_id": "517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059",
+          "binding": "[\"mixer-worker-binding-v1\",\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"00000000-0000-4000-8000-000000000001\",[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",1,\"1\"],[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",\"revision\",\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"main\",\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"],\"2100000000000\"]",
+          "binding_hash": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5",
+          "request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"stop\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "epoch": "1",
+          "revision": "0",
+          "owner": "owner-a",
+          "expiry_us": "2000000000001000",
+          "clock_lower": "1899999999999999",
+          "clock_upper": "1900000000000001",
+          "clock_qualification": "excluded-pending-registry-engine-fixture",
+          "desired": "stop",
+          "phase": "stopped",
+          "provider_key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+          "provider_kind": "cloudflare-linux",
+          "state_version": "4",
+          "claim_state": "revoked",
+          "claim_id": null,
+          "instance_id": null,
+          "boot_id": null,
+          "effect_id": "383e4254a17320abac1c510b8a75c0a6",
+          "effect_request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"stop\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "effect_kind": "stop",
+          "effect_state": "settled",
+          "launch_dispatched": 0,
+          "terminal_json": "{\"status\":\"stopped\",\"diagnostic_sha256\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\"}",
+          "report_hash": null,
+          "pending_result_json": null,
+          "next_due_us": null,
+          "failures": 0,
+          "quarantined": 1,
+          "clock_floor": "1899999999999999",
+          "pending_identity_json": "{\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"environmentId\":\"development\",\"poolId\":\"native\",\"controllerId\":\"controller-1\",\"platform\":\"android\",\"operationKey\":\"53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04\",\"operationId\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutableSha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\"}",
+          "registration_json": "{\"identityDigest\":\"197ec6b6e02e0c5306376608b99915202315cdadd58892e12e2fa16b16bab441\",\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"recordId\":\"29369400494b1692738bce92efa2d3bf\",\"shard\":5,\"allocationIndex\":1}",
+          "registry_ack_version": "0",
+          "effect_barrier_version": null,
+          "claim_barrier_version": null,
+          "track_outbox_json": "{\"stateVersion\":\"4\",\"nextDueUs\":null,\"terminal\":{\"phase\":\"stopped\",\"exactJson\":\"{\\\"status\\\":\\\"stopped\\\",\\\"diagnostic_sha256\\\":\\\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\\\"}\"}}"
+        },
+        "alarm": 1792907349539,
+        "fence": [],
+        "calls": [
+          {
+            "kind": "stop",
+            "id": "383e4254a17320abac1c510b8a75c0a6",
+            "identity": {
+              "provider": "cloudflare-linux",
+              "key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+              "immutableSha256": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5"
+            }
+          }
+        ],
+        "settings": {
+          "clock": "1900000000000000",
+          "qualified": true,
+          "drained": true,
+          "fault": null,
+          "blocked": false
+        },
+        "schema": [
+          {
+            "version": 3
+          }
+        ]
+      },
+      "contractExpected": "enrolled with existing row quarantine retained"
+    },
+    "probe-schema2-stopped-terminal-explicit-enrollment": {
+      "original": {
+        "row": {
+          "singleton": 1,
+          "operation_id": "517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059",
+          "binding": "[\"mixer-worker-binding-v1\",\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"00000000-0000-4000-8000-000000000001\",[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",1,\"1\"],[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",\"revision\",\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"main\",\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"],\"2100000000000\"]",
+          "binding_hash": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5",
+          "request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"stop\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "epoch": "1",
+          "revision": "0",
+          "owner": "owner-a",
+          "expiry_us": "2000000000001000",
+          "clock_lower": "1899999999999999",
+          "clock_upper": "1900000000000001",
+          "clock_qualification": "excluded-pending-registry-engine-fixture",
+          "clock_floor": "1899999999999999",
+          "desired": "stop",
+          "phase": "stopped",
+          "provider_key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+          "provider_kind": "cloudflare-linux",
+          "state_version": "3",
+          "claim_state": "revoked",
+          "claim_id": null,
+          "instance_id": null,
+          "boot_id": null,
+          "effect_id": "a52e8fcac5c3fc3c4b787f35ba9f0054",
+          "effect_request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"stop\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "effect_kind": "stop",
+          "effect_state": "settled",
+          "launch_dispatched": 0,
+          "terminal_json": "{\"status\":\"stopped\",\"diagnostic_sha256\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\"}",
+          "report_hash": null,
+          "pending_result_json": null,
+          "next_due_us": null,
+          "failures": 0,
+          "quarantined": 0,
+          "pending_identity_json": "{\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"environmentId\":\"development\",\"poolId\":\"native\",\"controllerId\":\"controller-1\",\"platform\":\"android\",\"operationKey\":\"53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04\",\"operationId\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutableSha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\"}",
+          "registration_json": "{\"identityDigest\":\"197ec6b6e02e0c5306376608b99915202315cdadd58892e12e2fa16b16bab441\",\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"recordId\":\"9a55485b26ab0714e4fa650812eaa561\",\"shard\":5,\"allocationIndex\":1}",
+          "registry_ack_version": "3",
+          "effect_barrier_version": "2",
+          "claim_barrier_version": null,
+          "track_outbox_json": null
+        },
+        "alarm": 1792907349629,
+        "fence": [],
+        "calls": [
+          {
+            "kind": "stop",
+            "id": "a52e8fcac5c3fc3c4b787f35ba9f0054",
+            "identity": {
+              "provider": "cloudflare-linux",
+              "key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+              "immutableSha256": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5"
+            }
+          }
+        ],
+        "settings": {
+          "clock": "1900000000000000",
+          "qualified": true,
+          "drained": true,
+          "fault": null,
+          "blocked": false
+        },
+        "schema": [
+          {
+            "version": 3
+          }
+        ]
+      },
+      "migrated": {
+        "before": {
+          "singleton": 1,
+          "operation_id": "517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059",
+          "binding": "[\"mixer-worker-binding-v1\",\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"00000000-0000-4000-8000-000000000001\",[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",1,\"1\"],[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",\"revision\",\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"main\",\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"],\"2100000000000\"]",
+          "binding_hash": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5",
+          "request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"stop\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "epoch": "1",
+          "revision": "0",
+          "owner": "owner-a",
+          "expiry_us": "2000000000001000",
+          "clock_lower": "1899999999999999",
+          "clock_upper": "1900000000000001",
+          "clock_qualification": "excluded-pending-registry-engine-fixture",
+          "clock_floor": "1899999999999999",
+          "desired": "stop",
+          "phase": "stopped",
+          "provider_key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+          "provider_kind": "cloudflare-linux",
+          "state_version": "3",
+          "claim_state": "revoked",
+          "claim_id": null,
+          "instance_id": null,
+          "boot_id": null,
+          "effect_id": "a52e8fcac5c3fc3c4b787f35ba9f0054",
+          "effect_request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"stop\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "effect_kind": "stop",
+          "effect_state": "settled",
+          "launch_dispatched": 0,
+          "terminal_json": "{\"status\":\"stopped\",\"diagnostic_sha256\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\"}",
+          "report_hash": null,
+          "pending_result_json": null,
+          "next_due_us": null,
+          "failures": 0,
+          "quarantined": 0,
+          "pending_identity_json": "{\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"environmentId\":\"development\",\"poolId\":\"native\",\"controllerId\":\"controller-1\",\"platform\":\"android\",\"operationKey\":\"53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04\",\"operationId\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutableSha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\"}",
+          "registration_json": "{\"identityDigest\":\"197ec6b6e02e0c5306376608b99915202315cdadd58892e12e2fa16b16bab441\",\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"recordId\":\"9a55485b26ab0714e4fa650812eaa561\",\"shard\":5,\"allocationIndex\":1}",
+          "registry_ack_version": "3",
+          "effect_barrier_version": "2",
+          "claim_barrier_version": null,
+          "track_outbox_json": null
+        },
+        "after": {
+          "singleton": 1,
+          "operation_id": "517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059",
+          "binding": "[\"mixer-worker-binding-v1\",\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"00000000-0000-4000-8000-000000000001\",[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",1,\"1\"],[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",\"revision\",\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"main\",\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"],\"2100000000000\"]",
+          "binding_hash": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5",
+          "request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"stop\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "epoch": "1",
+          "revision": "0",
+          "owner": "owner-a",
+          "expiry_us": "2000000000001000",
+          "clock_lower": "1899999999999999",
+          "clock_upper": "1900000000000001",
+          "clock_qualification": "excluded-pending-registry-engine-fixture",
+          "clock_floor": "1899999999999999",
+          "desired": "stop",
+          "phase": "stopped",
+          "provider_key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+          "provider_kind": "cloudflare-linux",
+          "state_version": "3",
+          "claim_state": "revoked",
+          "claim_id": null,
+          "instance_id": null,
+          "boot_id": null,
+          "effect_id": "a52e8fcac5c3fc3c4b787f35ba9f0054",
+          "effect_request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"stop\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "effect_kind": "stop",
+          "effect_state": "settled",
+          "launch_dispatched": 0,
+          "terminal_json": "{\"status\":\"stopped\",\"diagnostic_sha256\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\"}",
+          "report_hash": null,
+          "pending_result_json": null,
+          "next_due_us": null,
+          "failures": 0,
+          "quarantined": 1,
+          "pending_identity_json": null,
+          "registration_json": null,
+          "registry_ack_version": "0",
+          "effect_barrier_version": null,
+          "claim_barrier_version": null,
+          "track_outbox_json": null
+        }
+      },
+      "enrolled": {
+        "status": "enrolled"
+      },
+      "after": {
+        "row": {
+          "singleton": 1,
+          "operation_id": "517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059",
+          "binding": "[\"mixer-worker-binding-v1\",\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"00000000-0000-4000-8000-000000000001\",[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",1,\"1\"],[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",\"revision\",\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"main\",\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"],\"2100000000000\"]",
+          "binding_hash": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5",
+          "request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"stop\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "epoch": "1",
+          "revision": "0",
+          "owner": "owner-a",
+          "expiry_us": "2000000000001000",
+          "clock_lower": "1899999999999999",
+          "clock_upper": "1900000000000001",
+          "clock_qualification": "excluded-pending-registry-engine-fixture",
+          "clock_floor": "1899999999999999",
+          "desired": "stop",
+          "phase": "stopped",
+          "provider_key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+          "provider_kind": "cloudflare-linux",
+          "state_version": "4",
+          "claim_state": "revoked",
+          "claim_id": null,
+          "instance_id": null,
+          "boot_id": null,
+          "effect_id": "a52e8fcac5c3fc3c4b787f35ba9f0054",
+          "effect_request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"stop\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "effect_kind": "stop",
+          "effect_state": "settled",
+          "launch_dispatched": 0,
+          "terminal_json": "{\"status\":\"stopped\",\"diagnostic_sha256\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\"}",
+          "report_hash": null,
+          "pending_result_json": null,
+          "next_due_us": null,
+          "failures": 0,
+          "quarantined": 1,
+          "pending_identity_json": "{\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"environmentId\":\"development\",\"poolId\":\"native\",\"controllerId\":\"controller-1\",\"platform\":\"android\",\"operationKey\":\"53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04\",\"operationId\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutableSha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\"}",
+          "registration_json": "{\"identityDigest\":\"197ec6b6e02e0c5306376608b99915202315cdadd58892e12e2fa16b16bab441\",\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"recordId\":\"9a55485b26ab0714e4fa650812eaa561\",\"shard\":5,\"allocationIndex\":1}",
+          "registry_ack_version": "0",
+          "effect_barrier_version": null,
+          "claim_barrier_version": null,
+          "track_outbox_json": "{\"stateVersion\":\"4\",\"nextDueUs\":null,\"terminal\":{\"phase\":\"stopped\",\"exactJson\":\"{\\\"status\\\":\\\"stopped\\\",\\\"diagnostic_sha256\\\":\\\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\\\"}\"}}"
+        },
+        "alarm": 1792907349629,
+        "fence": [],
+        "calls": [
+          {
+            "kind": "stop",
+            "id": "a52e8fcac5c3fc3c4b787f35ba9f0054",
+            "identity": {
+              "provider": "cloudflare-linux",
+              "key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+              "immutableSha256": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5"
+            }
+          }
+        ],
+        "settings": {
+          "clock": "1900000000000000",
+          "qualified": true,
+          "drained": true,
+          "fault": null,
+          "blocked": false
+        },
+        "schema": [
+          {
+            "version": 3
+          }
+        ]
+      },
+      "contractExpected": "enrolled with existing row quarantine retained"
+    },
+    "probe-schema1-completed-terminal-explicit-enrollment": {
+      "original": {
+        "row": {
+          "singleton": 1,
+          "operation_id": "517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059",
+          "binding": "[\"mixer-worker-binding-v1\",\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"00000000-0000-4000-8000-000000000001\",[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",1,\"1\"],[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",\"revision\",\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"main\",\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"],\"2100000000000\"]",
+          "binding_hash": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5",
+          "request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"ensure_started\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "epoch": "1",
+          "revision": "0",
+          "owner": "owner-a",
+          "expiry_us": "2000000000001000",
+          "clock_lower": "1899999999999999",
+          "clock_upper": "1900000000000001",
+          "clock_qualification": "excluded-pending-registry-engine-fixture",
+          "clock_floor": "1899999999999999",
+          "desired": "stop",
+          "phase": "completed",
+          "provider_key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+          "provider_kind": "cloudflare-linux",
+          "state_version": "9",
+          "claim_state": "consumed",
+          "claim_id": "79b4068588d6e8aa5f99c79e5420ab34",
+          "instance_id": "instance-1",
+          "boot_id": "boot-1",
+          "effect_id": "1cac0a66ebe114639747c84891560e70",
+          "effect_request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"ensure_started\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "effect_kind": "stop",
+          "effect_state": "settled",
+          "launch_dispatched": 1,
+          "terminal_json": "{\"status\":\"completed\",\"result\":{\"outcome\":\"failed\",\"class\":\"compiler\",\"code\":\"compiler_error\",\"diagnostic_sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}}",
+          "report_hash": "a3533337cbcbc142eabfb3dd9f3142bc858c3cadbc32d2aa71dc6c45b60e390e",
+          "pending_result_json": "{\"outcome\":\"failed\",\"class\":\"compiler\",\"code\":\"compiler_error\",\"diagnostic_sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}",
+          "next_due_us": null,
+          "failures": 0,
+          "quarantined": 0,
+          "pending_identity_json": "{\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"environmentId\":\"development\",\"poolId\":\"native\",\"controllerId\":\"controller-1\",\"platform\":\"android\",\"operationKey\":\"53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04\",\"operationId\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutableSha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\"}",
+          "registration_json": "{\"identityDigest\":\"197ec6b6e02e0c5306376608b99915202315cdadd58892e12e2fa16b16bab441\",\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"recordId\":\"cf90929171457551cd761778f09a987e\",\"shard\":5,\"allocationIndex\":1}",
+          "registry_ack_version": "9",
+          "effect_barrier_version": "8",
+          "claim_barrier_version": "5",
+          "track_outbox_json": null
+        },
+        "alarm": 1792907349707,
+        "fence": [],
+        "calls": [
+          {
+            "kind": "launch",
+            "id": "fb7f8470251e6d54a78b1d3ae2e4db93",
+            "identity": {
+              "provider": "cloudflare-linux",
+              "key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+              "immutableSha256": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5"
+            }
+          },
+          {
+            "kind": "stop",
+            "id": "1cac0a66ebe114639747c84891560e70",
+            "identity": {
+              "provider": "cloudflare-linux",
+              "key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+              "immutableSha256": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5"
+            }
+          }
+        ],
+        "settings": {
+          "clock": "1900000000000000",
+          "qualified": true,
+          "drained": true,
+          "fault": null,
+          "blocked": false
+        },
+        "schema": [
+          {
+            "version": 3
+          }
+        ]
+      },
+      "migrated": {
+        "before": {
+          "singleton": 1,
+          "operation_id": "517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059",
+          "binding": "[\"mixer-worker-binding-v1\",\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"00000000-0000-4000-8000-000000000001\",[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",1,\"1\"],[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",\"revision\",\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"main\",\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"],\"2100000000000\"]",
+          "binding_hash": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5",
+          "request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"ensure_started\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "epoch": "1",
+          "revision": "0",
+          "owner": "owner-a",
+          "expiry_us": "2000000000001000",
+          "clock_lower": "1899999999999999",
+          "clock_upper": "1900000000000001",
+          "clock_qualification": "excluded-pending-registry-engine-fixture",
+          "clock_floor": "1899999999999999",
+          "desired": "stop",
+          "phase": "completed",
+          "provider_key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+          "provider_kind": "cloudflare-linux",
+          "state_version": "9",
+          "claim_state": "consumed",
+          "claim_id": "79b4068588d6e8aa5f99c79e5420ab34",
+          "instance_id": "instance-1",
+          "boot_id": "boot-1",
+          "effect_id": "1cac0a66ebe114639747c84891560e70",
+          "effect_request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"ensure_started\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "effect_kind": "stop",
+          "effect_state": "settled",
+          "launch_dispatched": 1,
+          "terminal_json": "{\"status\":\"completed\",\"result\":{\"outcome\":\"failed\",\"class\":\"compiler\",\"code\":\"compiler_error\",\"diagnostic_sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}}",
+          "report_hash": "a3533337cbcbc142eabfb3dd9f3142bc858c3cadbc32d2aa71dc6c45b60e390e",
+          "pending_result_json": "{\"outcome\":\"failed\",\"class\":\"compiler\",\"code\":\"compiler_error\",\"diagnostic_sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}",
+          "next_due_us": null,
+          "failures": 0,
+          "quarantined": 0,
+          "pending_identity_json": "{\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"environmentId\":\"development\",\"poolId\":\"native\",\"controllerId\":\"controller-1\",\"platform\":\"android\",\"operationKey\":\"53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04\",\"operationId\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutableSha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\"}",
+          "registration_json": "{\"identityDigest\":\"197ec6b6e02e0c5306376608b99915202315cdadd58892e12e2fa16b16bab441\",\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"recordId\":\"cf90929171457551cd761778f09a987e\",\"shard\":5,\"allocationIndex\":1}",
+          "registry_ack_version": "9",
+          "effect_barrier_version": "8",
+          "claim_barrier_version": "5",
+          "track_outbox_json": null
+        },
+        "after": {
+          "singleton": 1,
+          "operation_id": "517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059",
+          "binding": "[\"mixer-worker-binding-v1\",\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"00000000-0000-4000-8000-000000000001\",[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",1,\"1\"],[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",\"revision\",\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"main\",\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"],\"2100000000000\"]",
+          "binding_hash": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5",
+          "request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"ensure_started\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "epoch": "1",
+          "revision": "0",
+          "owner": "owner-a",
+          "expiry_us": "2000000000001000",
+          "clock_lower": "1899999999999999",
+          "clock_upper": "1900000000000001",
+          "clock_qualification": "excluded-pending-registry-engine-fixture",
+          "desired": "stop",
+          "phase": "completed",
+          "provider_key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+          "provider_kind": "cloudflare-linux",
+          "state_version": "9",
+          "claim_state": "consumed",
+          "claim_id": "79b4068588d6e8aa5f99c79e5420ab34",
+          "instance_id": "instance-1",
+          "boot_id": "boot-1",
+          "effect_id": "1cac0a66ebe114639747c84891560e70",
+          "effect_request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"ensure_started\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "effect_kind": "stop",
+          "effect_state": "settled",
+          "launch_dispatched": 1,
+          "terminal_json": "{\"status\":\"completed\",\"result\":{\"outcome\":\"failed\",\"class\":\"compiler\",\"code\":\"compiler_error\",\"diagnostic_sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}}",
+          "report_hash": "a3533337cbcbc142eabfb3dd9f3142bc858c3cadbc32d2aa71dc6c45b60e390e",
+          "pending_result_json": "{\"outcome\":\"failed\",\"class\":\"compiler\",\"code\":\"compiler_error\",\"diagnostic_sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}",
+          "next_due_us": null,
+          "failures": 0,
+          "quarantined": 1,
+          "clock_floor": "1899999999999999",
+          "pending_identity_json": null,
+          "registration_json": null,
+          "registry_ack_version": "0",
+          "effect_barrier_version": null,
+          "claim_barrier_version": null,
+          "track_outbox_json": null
+        }
+      },
+      "enrolled": {
+        "status": "enrolled"
+      },
+      "after": {
+        "row": {
+          "singleton": 1,
+          "operation_id": "517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059",
+          "binding": "[\"mixer-worker-binding-v1\",\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"00000000-0000-4000-8000-000000000001\",[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",1,\"1\"],[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",\"revision\",\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"main\",\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"],\"2100000000000\"]",
+          "binding_hash": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5",
+          "request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"ensure_started\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "epoch": "1",
+          "revision": "0",
+          "owner": "owner-a",
+          "expiry_us": "2000000000001000",
+          "clock_lower": "1899999999999999",
+          "clock_upper": "1900000000000001",
+          "clock_qualification": "excluded-pending-registry-engine-fixture",
+          "desired": "stop",
+          "phase": "completed",
+          "provider_key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+          "provider_kind": "cloudflare-linux",
+          "state_version": "10",
+          "claim_state": "consumed",
+          "claim_id": "79b4068588d6e8aa5f99c79e5420ab34",
+          "instance_id": "instance-1",
+          "boot_id": "boot-1",
+          "effect_id": "1cac0a66ebe114639747c84891560e70",
+          "effect_request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"ensure_started\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "effect_kind": "stop",
+          "effect_state": "settled",
+          "launch_dispatched": 1,
+          "terminal_json": "{\"status\":\"completed\",\"result\":{\"outcome\":\"failed\",\"class\":\"compiler\",\"code\":\"compiler_error\",\"diagnostic_sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}}",
+          "report_hash": "a3533337cbcbc142eabfb3dd9f3142bc858c3cadbc32d2aa71dc6c45b60e390e",
+          "pending_result_json": "{\"outcome\":\"failed\",\"class\":\"compiler\",\"code\":\"compiler_error\",\"diagnostic_sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}",
+          "next_due_us": null,
+          "failures": 0,
+          "quarantined": 1,
+          "clock_floor": "1899999999999999",
+          "pending_identity_json": "{\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"environmentId\":\"development\",\"poolId\":\"native\",\"controllerId\":\"controller-1\",\"platform\":\"android\",\"operationKey\":\"53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04\",\"operationId\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutableSha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\"}",
+          "registration_json": "{\"identityDigest\":\"197ec6b6e02e0c5306376608b99915202315cdadd58892e12e2fa16b16bab441\",\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"recordId\":\"cf90929171457551cd761778f09a987e\",\"shard\":5,\"allocationIndex\":1}",
+          "registry_ack_version": "0",
+          "effect_barrier_version": null,
+          "claim_barrier_version": null,
+          "track_outbox_json": "{\"stateVersion\":\"10\",\"nextDueUs\":null,\"terminal\":{\"phase\":\"completed\",\"exactJson\":\"{\\\"status\\\":\\\"completed\\\",\\\"result\\\":{\\\"outcome\\\":\\\"failed\\\",\\\"class\\\":\\\"compiler\\\",\\\"code\\\":\\\"compiler_error\\\",\\\"diagnostic_sha256\\\":\\\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\\\"}}\"}}"
+        },
+        "alarm": 1792907349707,
+        "fence": [],
+        "calls": [
+          {
+            "kind": "launch",
+            "id": "fb7f8470251e6d54a78b1d3ae2e4db93",
+            "identity": {
+              "provider": "cloudflare-linux",
+              "key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+              "immutableSha256": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5"
+            }
+          },
+          {
+            "kind": "stop",
+            "id": "1cac0a66ebe114639747c84891560e70",
+            "identity": {
+              "provider": "cloudflare-linux",
+              "key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+              "immutableSha256": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5"
+            }
+          }
+        ],
+        "settings": {
+          "clock": "1900000000000000",
+          "qualified": true,
+          "drained": true,
+          "fault": null,
+          "blocked": false
+        },
+        "schema": [
+          {
+            "version": 3
+          }
+        ]
+      },
+      "contractExpected": "enrolled with existing row quarantine retained"
+    },
+    "probe-schema2-completed-terminal-explicit-enrollment": {
+      "original": {
+        "row": {
+          "singleton": 1,
+          "operation_id": "517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059",
+          "binding": "[\"mixer-worker-binding-v1\",\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"00000000-0000-4000-8000-000000000001\",[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",1,\"1\"],[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",\"revision\",\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"main\",\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"],\"2100000000000\"]",
+          "binding_hash": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5",
+          "request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"ensure_started\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "epoch": "1",
+          "revision": "0",
+          "owner": "owner-a",
+          "expiry_us": "2000000000001000",
+          "clock_lower": "1899999999999999",
+          "clock_upper": "1900000000000001",
+          "clock_qualification": "excluded-pending-registry-engine-fixture",
+          "clock_floor": "1899999999999999",
+          "desired": "stop",
+          "phase": "completed",
+          "provider_key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+          "provider_kind": "cloudflare-linux",
+          "state_version": "9",
+          "claim_state": "consumed",
+          "claim_id": "114731b0babe5809bb5628bb58e9e875",
+          "instance_id": "instance-1",
+          "boot_id": "boot-1",
+          "effect_id": "89fda3b30a08b3c819f3d46ae5328be8",
+          "effect_request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"ensure_started\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "effect_kind": "stop",
+          "effect_state": "settled",
+          "launch_dispatched": 1,
+          "terminal_json": "{\"status\":\"completed\",\"result\":{\"outcome\":\"failed\",\"class\":\"compiler\",\"code\":\"compiler_error\",\"diagnostic_sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}}",
+          "report_hash": "007ea57ae45d34a1d4885bda3c79cc75d8ed3d5b6c3f900754aaefaf190ba2dc",
+          "pending_result_json": "{\"outcome\":\"failed\",\"class\":\"compiler\",\"code\":\"compiler_error\",\"diagnostic_sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}",
+          "next_due_us": null,
+          "failures": 0,
+          "quarantined": 0,
+          "pending_identity_json": "{\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"environmentId\":\"development\",\"poolId\":\"native\",\"controllerId\":\"controller-1\",\"platform\":\"android\",\"operationKey\":\"53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04\",\"operationId\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutableSha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\"}",
+          "registration_json": "{\"identityDigest\":\"197ec6b6e02e0c5306376608b99915202315cdadd58892e12e2fa16b16bab441\",\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"recordId\":\"89ec24fe6d61071a6a4556879c792252\",\"shard\":5,\"allocationIndex\":1}",
+          "registry_ack_version": "9",
+          "effect_barrier_version": "8",
+          "claim_barrier_version": "5",
+          "track_outbox_json": null
+        },
+        "alarm": 1792907349790,
+        "fence": [],
+        "calls": [
+          {
+            "kind": "launch",
+            "id": "28372b01fdda7644691c1c8d03576544",
+            "identity": {
+              "provider": "cloudflare-linux",
+              "key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+              "immutableSha256": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5"
+            }
+          },
+          {
+            "kind": "stop",
+            "id": "89fda3b30a08b3c819f3d46ae5328be8",
+            "identity": {
+              "provider": "cloudflare-linux",
+              "key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+              "immutableSha256": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5"
+            }
+          }
+        ],
+        "settings": {
+          "clock": "1900000000000000",
+          "qualified": true,
+          "drained": true,
+          "fault": null,
+          "blocked": false
+        },
+        "schema": [
+          {
+            "version": 3
+          }
+        ]
+      },
+      "migrated": {
+        "before": {
+          "singleton": 1,
+          "operation_id": "517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059",
+          "binding": "[\"mixer-worker-binding-v1\",\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"00000000-0000-4000-8000-000000000001\",[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",1,\"1\"],[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",\"revision\",\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"main\",\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"],\"2100000000000\"]",
+          "binding_hash": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5",
+          "request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"ensure_started\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "epoch": "1",
+          "revision": "0",
+          "owner": "owner-a",
+          "expiry_us": "2000000000001000",
+          "clock_lower": "1899999999999999",
+          "clock_upper": "1900000000000001",
+          "clock_qualification": "excluded-pending-registry-engine-fixture",
+          "clock_floor": "1899999999999999",
+          "desired": "stop",
+          "phase": "completed",
+          "provider_key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+          "provider_kind": "cloudflare-linux",
+          "state_version": "9",
+          "claim_state": "consumed",
+          "claim_id": "114731b0babe5809bb5628bb58e9e875",
+          "instance_id": "instance-1",
+          "boot_id": "boot-1",
+          "effect_id": "89fda3b30a08b3c819f3d46ae5328be8",
+          "effect_request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"ensure_started\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "effect_kind": "stop",
+          "effect_state": "settled",
+          "launch_dispatched": 1,
+          "terminal_json": "{\"status\":\"completed\",\"result\":{\"outcome\":\"failed\",\"class\":\"compiler\",\"code\":\"compiler_error\",\"diagnostic_sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}}",
+          "report_hash": "007ea57ae45d34a1d4885bda3c79cc75d8ed3d5b6c3f900754aaefaf190ba2dc",
+          "pending_result_json": "{\"outcome\":\"failed\",\"class\":\"compiler\",\"code\":\"compiler_error\",\"diagnostic_sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}",
+          "next_due_us": null,
+          "failures": 0,
+          "quarantined": 0,
+          "pending_identity_json": "{\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"environmentId\":\"development\",\"poolId\":\"native\",\"controllerId\":\"controller-1\",\"platform\":\"android\",\"operationKey\":\"53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04\",\"operationId\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutableSha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\"}",
+          "registration_json": "{\"identityDigest\":\"197ec6b6e02e0c5306376608b99915202315cdadd58892e12e2fa16b16bab441\",\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"recordId\":\"89ec24fe6d61071a6a4556879c792252\",\"shard\":5,\"allocationIndex\":1}",
+          "registry_ack_version": "9",
+          "effect_barrier_version": "8",
+          "claim_barrier_version": "5",
+          "track_outbox_json": null
+        },
+        "after": {
+          "singleton": 1,
+          "operation_id": "517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059",
+          "binding": "[\"mixer-worker-binding-v1\",\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"00000000-0000-4000-8000-000000000001\",[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",1,\"1\"],[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",\"revision\",\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"main\",\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"],\"2100000000000\"]",
+          "binding_hash": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5",
+          "request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"ensure_started\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "epoch": "1",
+          "revision": "0",
+          "owner": "owner-a",
+          "expiry_us": "2000000000001000",
+          "clock_lower": "1899999999999999",
+          "clock_upper": "1900000000000001",
+          "clock_qualification": "excluded-pending-registry-engine-fixture",
+          "clock_floor": "1899999999999999",
+          "desired": "stop",
+          "phase": "completed",
+          "provider_key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+          "provider_kind": "cloudflare-linux",
+          "state_version": "9",
+          "claim_state": "consumed",
+          "claim_id": "114731b0babe5809bb5628bb58e9e875",
+          "instance_id": "instance-1",
+          "boot_id": "boot-1",
+          "effect_id": "89fda3b30a08b3c819f3d46ae5328be8",
+          "effect_request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"ensure_started\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "effect_kind": "stop",
+          "effect_state": "settled",
+          "launch_dispatched": 1,
+          "terminal_json": "{\"status\":\"completed\",\"result\":{\"outcome\":\"failed\",\"class\":\"compiler\",\"code\":\"compiler_error\",\"diagnostic_sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}}",
+          "report_hash": "007ea57ae45d34a1d4885bda3c79cc75d8ed3d5b6c3f900754aaefaf190ba2dc",
+          "pending_result_json": "{\"outcome\":\"failed\",\"class\":\"compiler\",\"code\":\"compiler_error\",\"diagnostic_sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}",
+          "next_due_us": null,
+          "failures": 0,
+          "quarantined": 1,
+          "pending_identity_json": null,
+          "registration_json": null,
+          "registry_ack_version": "0",
+          "effect_barrier_version": null,
+          "claim_barrier_version": null,
+          "track_outbox_json": null
+        }
+      },
+      "enrolled": {
+        "status": "enrolled"
+      },
+      "after": {
+        "row": {
+          "singleton": 1,
+          "operation_id": "517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059",
+          "binding": "[\"mixer-worker-binding-v1\",\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"00000000-0000-4000-8000-000000000001\",[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",1,\"1\"],[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",\"revision\",\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"main\",\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"],\"2100000000000\"]",
+          "binding_hash": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5",
+          "request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"ensure_started\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "epoch": "1",
+          "revision": "0",
+          "owner": "owner-a",
+          "expiry_us": "2000000000001000",
+          "clock_lower": "1899999999999999",
+          "clock_upper": "1900000000000001",
+          "clock_qualification": "excluded-pending-registry-engine-fixture",
+          "clock_floor": "1899999999999999",
+          "desired": "stop",
+          "phase": "completed",
+          "provider_key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+          "provider_kind": "cloudflare-linux",
+          "state_version": "10",
+          "claim_state": "consumed",
+          "claim_id": "114731b0babe5809bb5628bb58e9e875",
+          "instance_id": "instance-1",
+          "boot_id": "boot-1",
+          "effect_id": "89fda3b30a08b3c819f3d46ae5328be8",
+          "effect_request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"ensure_started\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "effect_kind": "stop",
+          "effect_state": "settled",
+          "launch_dispatched": 1,
+          "terminal_json": "{\"status\":\"completed\",\"result\":{\"outcome\":\"failed\",\"class\":\"compiler\",\"code\":\"compiler_error\",\"diagnostic_sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}}",
+          "report_hash": "007ea57ae45d34a1d4885bda3c79cc75d8ed3d5b6c3f900754aaefaf190ba2dc",
+          "pending_result_json": "{\"outcome\":\"failed\",\"class\":\"compiler\",\"code\":\"compiler_error\",\"diagnostic_sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}",
+          "next_due_us": null,
+          "failures": 0,
+          "quarantined": 1,
+          "pending_identity_json": "{\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"environmentId\":\"development\",\"poolId\":\"native\",\"controllerId\":\"controller-1\",\"platform\":\"android\",\"operationKey\":\"53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04\",\"operationId\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutableSha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\"}",
+          "registration_json": "{\"identityDigest\":\"197ec6b6e02e0c5306376608b99915202315cdadd58892e12e2fa16b16bab441\",\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"recordId\":\"89ec24fe6d61071a6a4556879c792252\",\"shard\":5,\"allocationIndex\":1}",
+          "registry_ack_version": "0",
+          "effect_barrier_version": null,
+          "claim_barrier_version": null,
+          "track_outbox_json": "{\"stateVersion\":\"10\",\"nextDueUs\":null,\"terminal\":{\"phase\":\"completed\",\"exactJson\":\"{\\\"status\\\":\\\"completed\\\",\\\"result\\\":{\\\"outcome\\\":\\\"failed\\\",\\\"class\\\":\\\"compiler\\\",\\\"code\\\":\\\"compiler_error\\\",\\\"diagnostic_sha256\\\":\\\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\\\"}}\"}}"
+        },
+        "alarm": 1792907349790,
+        "fence": [],
+        "calls": [
+          {
+            "kind": "launch",
+            "id": "28372b01fdda7644691c1c8d03576544",
+            "identity": {
+              "provider": "cloudflare-linux",
+              "key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+              "immutableSha256": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5"
+            }
+          },
+          {
+            "kind": "stop",
+            "id": "89fda3b30a08b3c819f3d46ae5328be8",
+            "identity": {
+              "provider": "cloudflare-linux",
+              "key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+              "immutableSha256": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5"
+            }
+          }
+        ],
+        "settings": {
+          "clock": "1900000000000000",
+          "qualified": true,
+          "drained": true,
+          "fault": null,
+          "blocked": false
+        },
+        "schema": [
+          {
+            "version": 3
+          }
+        ]
+      },
+      "contractExpected": "enrolled with existing row quarantine retained"
+    },
+    "probe-stopped-missing-outbox-ack-ahead-history-regression": {
+      "original": {
+        "row": {
+          "singleton": 1,
+          "operation_id": "517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059",
+          "binding": "[\"mixer-worker-binding-v1\",\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"00000000-0000-4000-8000-000000000001\",[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",1,\"1\"],[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",\"revision\",\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"main\",\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"],\"2100000000000\"]",
+          "binding_hash": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5",
+          "request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"stop\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "epoch": "1",
+          "revision": "0",
+          "owner": "owner-a",
+          "expiry_us": "2000000000001000",
+          "clock_lower": "1899999999999999",
+          "clock_upper": "1900000000000001",
+          "clock_qualification": "excluded-pending-registry-engine-fixture",
+          "clock_floor": "1899999999999999",
+          "desired": "stop",
+          "phase": "stopped",
+          "provider_key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+          "provider_kind": "cloudflare-linux",
+          "state_version": "3",
+          "claim_state": "revoked",
+          "claim_id": null,
+          "instance_id": null,
+          "boot_id": null,
+          "effect_id": "65afebfcde1427af76ab70302a2ec703",
+          "effect_request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"stop\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "effect_kind": "stop",
+          "effect_state": "settled",
+          "launch_dispatched": 0,
+          "terminal_json": "{\"status\":\"stopped\",\"diagnostic_sha256\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\"}",
+          "report_hash": null,
+          "pending_result_json": null,
+          "next_due_us": null,
+          "failures": 0,
+          "quarantined": 0,
+          "pending_identity_json": "{\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"environmentId\":\"development\",\"poolId\":\"native\",\"controllerId\":\"controller-1\",\"platform\":\"android\",\"operationKey\":\"53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04\",\"operationId\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutableSha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\"}",
+          "registration_json": "{\"identityDigest\":\"197ec6b6e02e0c5306376608b99915202315cdadd58892e12e2fa16b16bab441\",\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"recordId\":\"24df133a4695daed5c1b71a86f8d35c3\",\"shard\":5,\"allocationIndex\":1}",
+          "registry_ack_version": "3",
+          "effect_barrier_version": "2",
+          "claim_barrier_version": null,
+          "track_outbox_json": null
+        },
+        "alarm": 1792907349874,
+        "fence": [],
+        "calls": [
+          {
+            "kind": "stop",
+            "id": "65afebfcde1427af76ab70302a2ec703",
+            "identity": {
+              "provider": "cloudflare-linux",
+              "key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+              "immutableSha256": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5"
+            }
+          }
+        ],
+        "settings": {
+          "clock": "1900000000000000",
+          "qualified": true,
+          "drained": true,
+          "fault": null,
+          "blocked": false
+        },
+        "schema": [
+          {
+            "version": 3
+          }
+        ]
+      },
+      "restored": {
+        "row": {
+          "singleton": 1,
+          "operation_id": "517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059",
+          "binding": "[\"mixer-worker-binding-v1\",\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"00000000-0000-4000-8000-000000000001\",[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",1,\"1\"],[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",\"revision\",\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"main\",\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"],\"2100000000000\"]",
+          "binding_hash": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5",
+          "request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"stop\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "epoch": "1",
+          "revision": "0",
+          "owner": "owner-a",
+          "expiry_us": "2000000000001000",
+          "clock_lower": "1899999999999999",
+          "clock_upper": "1900000000000001",
+          "clock_qualification": "excluded-pending-registry-engine-fixture",
+          "clock_floor": "1899999999999999",
+          "desired": "stop",
+          "phase": "stopped",
+          "provider_key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+          "provider_kind": "cloudflare-linux",
+          "state_version": "2",
+          "claim_state": "revoked",
+          "claim_id": null,
+          "instance_id": null,
+          "boot_id": null,
+          "effect_id": "65afebfcde1427af76ab70302a2ec703",
+          "effect_request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"stop\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "effect_kind": "stop",
+          "effect_state": "settled",
+          "launch_dispatched": 0,
+          "terminal_json": "{\"status\":\"stopped\",\"diagnostic_sha256\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\"}",
+          "report_hash": null,
+          "pending_result_json": null,
+          "next_due_us": null,
+          "failures": 0,
+          "quarantined": 0,
+          "pending_identity_json": "{\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"environmentId\":\"development\",\"poolId\":\"native\",\"controllerId\":\"controller-1\",\"platform\":\"android\",\"operationKey\":\"53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04\",\"operationId\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutableSha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\"}",
+          "registration_json": "{\"identityDigest\":\"197ec6b6e02e0c5306376608b99915202315cdadd58892e12e2fa16b16bab441\",\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"recordId\":\"24df133a4695daed5c1b71a86f8d35c3\",\"shard\":5,\"allocationIndex\":1}",
+          "registry_ack_version": "3",
+          "effect_barrier_version": "2",
+          "claim_barrier_version": null,
+          "track_outbox_json": null
+        },
+        "alarm": 1792907349874,
+        "fence": [],
+        "calls": [
+          {
+            "kind": "stop",
+            "id": "65afebfcde1427af76ab70302a2ec703",
+            "identity": {
+              "provider": "cloudflare-linux",
+              "key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+              "immutableSha256": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5"
+            }
+          }
+        ],
+        "settings": {
+          "clock": "1900000000000000",
+          "qualified": true,
+          "drained": true,
+          "fault": null,
+          "blocked": false
+        },
+        "schema": [
+          {
+            "version": 3
+          }
+        ]
+      },
+      "outcome": {
+        "flushed": true
+      },
+      "after": {
+        "row": {
+          "singleton": 1,
+          "operation_id": "517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059",
+          "binding": "[\"mixer-worker-binding-v1\",\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"00000000-0000-4000-8000-000000000001\",[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",1,\"1\"],[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",\"revision\",\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"main\",\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"],\"2100000000000\"]",
+          "binding_hash": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5",
+          "request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"stop\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "epoch": "1",
+          "revision": "0",
+          "owner": "owner-a",
+          "expiry_us": "2000000000001000",
+          "clock_lower": "1899999999999999",
+          "clock_upper": "1900000000000001",
+          "clock_qualification": "excluded-pending-registry-engine-fixture",
+          "clock_floor": "1899999999999999",
+          "desired": "stop",
+          "phase": "stopped",
+          "provider_key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+          "provider_kind": "cloudflare-linux",
+          "state_version": "2",
+          "claim_state": "revoked",
+          "claim_id": null,
+          "instance_id": null,
+          "boot_id": null,
+          "effect_id": "65afebfcde1427af76ab70302a2ec703",
+          "effect_request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"stop\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "effect_kind": "stop",
+          "effect_state": "settled",
+          "launch_dispatched": 0,
+          "terminal_json": "{\"status\":\"stopped\",\"diagnostic_sha256\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\"}",
+          "report_hash": null,
+          "pending_result_json": null,
+          "next_due_us": null,
+          "failures": 0,
+          "quarantined": 0,
+          "pending_identity_json": "{\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"environmentId\":\"development\",\"poolId\":\"native\",\"controllerId\":\"controller-1\",\"platform\":\"android\",\"operationKey\":\"53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04\",\"operationId\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutableSha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\"}",
+          "registration_json": "{\"identityDigest\":\"197ec6b6e02e0c5306376608b99915202315cdadd58892e12e2fa16b16bab441\",\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"recordId\":\"24df133a4695daed5c1b71a86f8d35c3\",\"shard\":5,\"allocationIndex\":1}",
+          "registry_ack_version": "3",
+          "effect_barrier_version": "2",
+          "claim_barrier_version": null,
+          "track_outbox_json": null
+        },
+        "alarm": 1792907349874,
+        "fence": [],
+        "calls": [
+          {
+            "kind": "stop",
+            "id": "65afebfcde1427af76ab70302a2ec703",
+            "identity": {
+              "provider": "cloudflare-linux",
+              "key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+              "immutableSha256": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5"
+            }
+          }
+        ],
+        "settings": {
+          "clock": "1900000000000000",
+          "qualified": true,
+          "drained": true,
+          "fault": null,
+          "blocked": false
+        },
+        "schema": [
+          {
+            "version": 3
+          }
+        ]
+      },
+      "remote": {
+        "allocation_index": 1,
+        "operation_key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+        "identity_bytes": "[\"mixer-worker-pending-identity-v1\",\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"development\",\"native\",\"controller-1\",\"android\",\"53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04\",\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\"]",
+        "identity_digest": "197ec6b6e02e0c5306376608b99915202315cdadd58892e12e2fa16b16bab441",
+        "record_id": "24df133a4695daed5c1b71a86f8d35c3",
+        "state_version": "3",
+        "projection_json": "{\"kind\":\"terminal\",\"nextDueUs\":null,\"phase\":\"stopped\",\"evidenceSha256\":\"7c7523d853a210cb51c8005872b8932a7969b042672b38b38943d52135d3777e\"}",
+        "pending": 0,
+        "failures": 0,
+        "skip_visits": 0,
+        "needs_attention": 0,
+        "attempt_sequence": "0",
+        "last_run_id": null,
+        "last_visit": null,
+        "ticket_json": null,
+        "disposition_json": null
+      },
+      "contractExpected": "fail closed and retain independent history fence"
+    },
+    "probe-completed-missing-outbox-ack-ahead-history-regression": {
+      "original": {
+        "row": {
+          "singleton": 1,
+          "operation_id": "517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059",
+          "binding": "[\"mixer-worker-binding-v1\",\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"00000000-0000-4000-8000-000000000001\",[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",1,\"1\"],[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",\"revision\",\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"main\",\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"],\"2100000000000\"]",
+          "binding_hash": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5",
+          "request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"ensure_started\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "epoch": "1",
+          "revision": "0",
+          "owner": "owner-a",
+          "expiry_us": "2000000000001000",
+          "clock_lower": "1899999999999999",
+          "clock_upper": "1900000000000001",
+          "clock_qualification": "excluded-pending-registry-engine-fixture",
+          "clock_floor": "1899999999999999",
+          "desired": "stop",
+          "phase": "completed",
+          "provider_key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+          "provider_kind": "cloudflare-linux",
+          "state_version": "9",
+          "claim_state": "consumed",
+          "claim_id": "f2200d0f75bfcb19010af606bc8ee83b",
+          "instance_id": "instance-1",
+          "boot_id": "boot-1",
+          "effect_id": "9673781faaa42daf49d8feaa3f11439f",
+          "effect_request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"ensure_started\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "effect_kind": "stop",
+          "effect_state": "settled",
+          "launch_dispatched": 1,
+          "terminal_json": "{\"status\":\"completed\",\"result\":{\"outcome\":\"failed\",\"class\":\"compiler\",\"code\":\"compiler_error\",\"diagnostic_sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}}",
+          "report_hash": "59bec28f9829a6d650d5a33e67a6283bb20dd4e3d4be959d440b66cac922c7a4",
+          "pending_result_json": "{\"outcome\":\"failed\",\"class\":\"compiler\",\"code\":\"compiler_error\",\"diagnostic_sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}",
+          "next_due_us": null,
+          "failures": 0,
+          "quarantined": 0,
+          "pending_identity_json": "{\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"environmentId\":\"development\",\"poolId\":\"native\",\"controllerId\":\"controller-1\",\"platform\":\"android\",\"operationKey\":\"53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04\",\"operationId\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutableSha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\"}",
+          "registration_json": "{\"identityDigest\":\"197ec6b6e02e0c5306376608b99915202315cdadd58892e12e2fa16b16bab441\",\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"recordId\":\"1d3da43944078174f843265af76bcf96\",\"shard\":5,\"allocationIndex\":1}",
+          "registry_ack_version": "9",
+          "effect_barrier_version": "8",
+          "claim_barrier_version": "5",
+          "track_outbox_json": null
+        },
+        "alarm": 1792907349953,
+        "fence": [],
+        "calls": [
+          {
+            "kind": "launch",
+            "id": "211adeba789a2b3ecbd772b47aeb39d2",
+            "identity": {
+              "provider": "cloudflare-linux",
+              "key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+              "immutableSha256": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5"
+            }
+          },
+          {
+            "kind": "stop",
+            "id": "9673781faaa42daf49d8feaa3f11439f",
+            "identity": {
+              "provider": "cloudflare-linux",
+              "key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+              "immutableSha256": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5"
+            }
+          }
+        ],
+        "settings": {
+          "clock": "1900000000000000",
+          "qualified": true,
+          "drained": true,
+          "fault": null,
+          "blocked": false
+        },
+        "schema": [
+          {
+            "version": 3
+          }
+        ]
+      },
+      "restored": {
+        "row": {
+          "singleton": 1,
+          "operation_id": "517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059",
+          "binding": "[\"mixer-worker-binding-v1\",\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"00000000-0000-4000-8000-000000000001\",[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",1,\"1\"],[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",\"revision\",\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"main\",\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"],\"2100000000000\"]",
+          "binding_hash": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5",
+          "request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"ensure_started\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "epoch": "1",
+          "revision": "0",
+          "owner": "owner-a",
+          "expiry_us": "2000000000001000",
+          "clock_lower": "1899999999999999",
+          "clock_upper": "1900000000000001",
+          "clock_qualification": "excluded-pending-registry-engine-fixture",
+          "clock_floor": "1899999999999999",
+          "desired": "stop",
+          "phase": "completed",
+          "provider_key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+          "provider_kind": "cloudflare-linux",
+          "state_version": "8",
+          "claim_state": "consumed",
+          "claim_id": "f2200d0f75bfcb19010af606bc8ee83b",
+          "instance_id": "instance-1",
+          "boot_id": "boot-1",
+          "effect_id": "9673781faaa42daf49d8feaa3f11439f",
+          "effect_request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"ensure_started\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "effect_kind": "stop",
+          "effect_state": "settled",
+          "launch_dispatched": 1,
+          "terminal_json": "{\"status\":\"completed\",\"result\":{\"outcome\":\"failed\",\"class\":\"compiler\",\"code\":\"compiler_error\",\"diagnostic_sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}}",
+          "report_hash": "59bec28f9829a6d650d5a33e67a6283bb20dd4e3d4be959d440b66cac922c7a4",
+          "pending_result_json": "{\"outcome\":\"failed\",\"class\":\"compiler\",\"code\":\"compiler_error\",\"diagnostic_sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}",
+          "next_due_us": null,
+          "failures": 0,
+          "quarantined": 0,
+          "pending_identity_json": "{\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"environmentId\":\"development\",\"poolId\":\"native\",\"controllerId\":\"controller-1\",\"platform\":\"android\",\"operationKey\":\"53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04\",\"operationId\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutableSha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\"}",
+          "registration_json": "{\"identityDigest\":\"197ec6b6e02e0c5306376608b99915202315cdadd58892e12e2fa16b16bab441\",\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"recordId\":\"1d3da43944078174f843265af76bcf96\",\"shard\":5,\"allocationIndex\":1}",
+          "registry_ack_version": "9",
+          "effect_barrier_version": "8",
+          "claim_barrier_version": "5",
+          "track_outbox_json": null
+        },
+        "alarm": 1792907349953,
+        "fence": [],
+        "calls": [
+          {
+            "kind": "launch",
+            "id": "211adeba789a2b3ecbd772b47aeb39d2",
+            "identity": {
+              "provider": "cloudflare-linux",
+              "key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+              "immutableSha256": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5"
+            }
+          },
+          {
+            "kind": "stop",
+            "id": "9673781faaa42daf49d8feaa3f11439f",
+            "identity": {
+              "provider": "cloudflare-linux",
+              "key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+              "immutableSha256": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5"
+            }
+          }
+        ],
+        "settings": {
+          "clock": "1900000000000000",
+          "qualified": true,
+          "drained": true,
+          "fault": null,
+          "blocked": false
+        },
+        "schema": [
+          {
+            "version": 3
+          }
+        ]
+      },
+      "outcome": {
+        "flushed": true
+      },
+      "after": {
+        "row": {
+          "singleton": 1,
+          "operation_id": "517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059",
+          "binding": "[\"mixer-worker-binding-v1\",\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"00000000-0000-4000-8000-000000000001\",[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",1,\"1\"],[\"organization-a\",\"project-a\",\"application-a\",\"build-a\",\"android\",\"revision\",\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"main\",\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"],\"2100000000000\"]",
+          "binding_hash": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5",
+          "request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"ensure_started\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "epoch": "1",
+          "revision": "0",
+          "owner": "owner-a",
+          "expiry_us": "2000000000001000",
+          "clock_lower": "1899999999999999",
+          "clock_upper": "1900000000000001",
+          "clock_qualification": "excluded-pending-registry-engine-fixture",
+          "clock_floor": "1899999999999999",
+          "desired": "stop",
+          "phase": "completed",
+          "provider_key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+          "provider_kind": "cloudflare-linux",
+          "state_version": "8",
+          "claim_state": "consumed",
+          "claim_id": "f2200d0f75bfcb19010af606bc8ee83b",
+          "instance_id": "instance-1",
+          "boot_id": "boot-1",
+          "effect_id": "9673781faaa42daf49d8feaa3f11439f",
+          "effect_request_json": "{\"version\":1,\"environment_id\":\"development\",\"pool_id\":\"native\",\"controller_id\":\"controller-1\",\"request_id\":\"00000000000000000000000000000001\",\"command\":\"ensure_started\",\"operation_id\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutable_sha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\",\"ref\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"attempt\":1,\"fence\":\"1\"},\"spec\":{\"organization_id\":\"organization-a\",\"project_id\":\"project-a\",\"application_id\":\"application-a\",\"build_id\":\"build-a\",\"platform\":\"android\",\"source\":{\"kind\":\"revision\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reference\":\"main\"},\"toolchain_lock_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"build_definition_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"},\"deadline_ms\":\"2100000000000\",\"guard\":{\"record_id\":\"00000000-0000-4000-8000-000000000001\",\"revision\":\"0\",\"owner_id\":\"owner-a\",\"epoch\":\"1\",\"expires_at_us\":\"2000000000001000\"}}",
+          "effect_kind": "stop",
+          "effect_state": "settled",
+          "launch_dispatched": 1,
+          "terminal_json": "{\"status\":\"completed\",\"result\":{\"outcome\":\"failed\",\"class\":\"compiler\",\"code\":\"compiler_error\",\"diagnostic_sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}}",
+          "report_hash": "59bec28f9829a6d650d5a33e67a6283bb20dd4e3d4be959d440b66cac922c7a4",
+          "pending_result_json": "{\"outcome\":\"failed\",\"class\":\"compiler\",\"code\":\"compiler_error\",\"diagnostic_sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}",
+          "next_due_us": null,
+          "failures": 0,
+          "quarantined": 0,
+          "pending_identity_json": "{\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"environmentId\":\"development\",\"poolId\":\"native\",\"controllerId\":\"controller-1\",\"platform\":\"android\",\"operationKey\":\"53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04\",\"operationId\":\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"immutableSha256\":\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\"}",
+          "registration_json": "{\"identityDigest\":\"197ec6b6e02e0c5306376608b99915202315cdadd58892e12e2fa16b16bab441\",\"namespaceGeneration\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"recordId\":\"1d3da43944078174f843265af76bcf96\",\"shard\":5,\"allocationIndex\":1}",
+          "registry_ack_version": "9",
+          "effect_barrier_version": "8",
+          "claim_barrier_version": "5",
+          "track_outbox_json": null
+        },
+        "alarm": 1792907349953,
+        "fence": [],
+        "calls": [
+          {
+            "kind": "launch",
+            "id": "211adeba789a2b3ecbd772b47aeb39d2",
+            "identity": {
+              "provider": "cloudflare-linux",
+              "key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+              "immutableSha256": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5"
+            }
+          },
+          {
+            "kind": "stop",
+            "id": "9673781faaa42daf49d8feaa3f11439f",
+            "identity": {
+              "provider": "cloudflare-linux",
+              "key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+              "immutableSha256": "bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5"
+            }
+          }
+        ],
+        "settings": {
+          "clock": "1900000000000000",
+          "qualified": true,
+          "drained": true,
+          "fault": null,
+          "blocked": false
+        },
+        "schema": [
+          {
+            "version": 3
+          }
+        ]
+      },
+      "remote": {
+        "allocation_index": 1,
+        "operation_key": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+        "identity_bytes": "[\"mixer-worker-pending-identity-v1\",\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"development\",\"native\",\"controller-1\",\"android\",\"53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04\",\"517157465407193cb124a514c3550e7d10b6cbdc5e4f1f8f767c2e4ade16d059\",\"bace575134454dac50fcd07582b73250eda07b81dae839c8df7e6c10f7581df5\"]",
+        "identity_digest": "197ec6b6e02e0c5306376608b99915202315cdadd58892e12e2fa16b16bab441",
+        "record_id": "1d3da43944078174f843265af76bcf96",
+        "state_version": "9",
+        "projection_json": "{\"kind\":\"terminal\",\"nextDueUs\":null,\"phase\":\"completed\",\"evidenceSha256\":\"22630098c972651e02d903f5c36d57a5bb51759fb97cb443151c192c211ec9b8\"}",
+        "pending": 0,
+        "failures": 0,
+        "skip_visits": 0,
+        "needs_attention": 0,
+        "attempt_sequence": "0",
+        "last_run_id": null,
+        "last_visit": null,
+        "ticket_json": null,
+        "disposition_json": null
+      },
+      "contractExpected": "fail closed and retain independent history fence"
+    }
+  },
+  "cleanup": [
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pending-terminal-review-owned-udnKJl",
+      "disposed": true,
+      "storageRemoved": true,
+      "ownedProcesses": [
+        {
+          "pid": 50731,
+          "parentPid": 50729,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pending-terminal-review-owned-XYO8mg",
+      "disposed": true,
+      "storageRemoved": true,
+      "ownedProcesses": [
+        {
+          "pid": 50733,
+          "parentPid": 50729,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pending-terminal-review-owned-TJszKu",
+      "disposed": true,
+      "storageRemoved": true,
+      "ownedProcesses": [
+        {
+          "pid": 50735,
+          "parentPid": 50729,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pending-terminal-review-owned-TW7M78",
+      "disposed": true,
+      "storageRemoved": true,
+      "ownedProcesses": [
+        {
+          "pid": 50737,
+          "parentPid": 50729,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pending-terminal-review-owned-iWiRJV",
+      "disposed": true,
+      "storageRemoved": true,
+      "ownedProcesses": [
+        {
+          "pid": 50739,
+          "parentPid": 50729,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pending-terminal-review-owned-R3PfFF",
+      "disposed": true,
+      "storageRemoved": true,
+      "ownedProcesses": [
+        {
+          "pid": 50741,
+          "parentPid": 50729,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    }
+  ]
+}

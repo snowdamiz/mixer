@@ -1,0 +1,51 @@
+--- clean-baseline/src/experimental_swift_reactor/cache_tests.rs
++++ baseline-review/src/experimental_swift_reactor/cache_tests.rs
+@@ -3296,3 +3296,48 @@
+     println!("RESIDENT_COST {{\"constructorWork\":{constructor},\"cold64Work\":{cold},\"hit256Work\":{hits},\"fixedReserved\":{},\"residentBytes\":{},\"hitAllocatorRequests\":{},\"slots\":{:?}}}",cache.usage().fixed_reserved,cache.usage().resident_bytes,allocations.attempts,inspection::elision_slots(&cache));
+     finish(cache, c);
+ }
++
++// Independently authored review control, appended to the actual cache tests.
++#[test]
++fn grouped_review_actual_owner_ticket_boundary() {
++    hooks(Hooks::default());
++    let baseline=std::env::var_os("MIXER_REVIEW_BASELINE").is_some();
++    let input=fixture(0,&[0,0x0b],100);
++    let mut pair=Some(adopt(&input,SwiftRunBudget::default()));
++    let mut owner=super::execution_tests::construct_owned(&mut pair).unwrap_or_else(|_|panic!("actual owner construction failed"));
++    assert!(pair.is_none());
++    let initial=owner.control.as_ref().unwrap().usage(owner.wasi.as_ref().map(AccountedWasi::usage));
++    assert_eq!(initial.reservations.live_tickets,if baseline {22}else{21});
++    for function in 34..98 {
++        let p=pin(owner.cache.as_mut().unwrap(),owner.control.as_mut().unwrap(),function,owner.wasi.as_ref()).unwrap();
++        owner.cache.as_mut().unwrap().release(p,owner.control.as_mut().unwrap(),owner.wasi.as_ref()).map_err(|e|e.failure).unwrap();
++    }
++    let before=owner.control.as_ref().unwrap().usage(owner.wasi.as_ref().map(AccountedWasi::usage));
++    assert_eq!(before.live.cache_entries.current,64);
++    assert_eq!(before.live.active_pins.current,0);
++    assert_eq!(before.reservations.live_tickets,if baseline {86}else{85});
++    assert_eq!(MAX_RESERVATION_TICKETS,86);
++    let c=owner.control.as_mut().unwrap();
++    let wasi=owner.wasi.as_ref().map(AccountedWasi::usage);
++    let held=if baseline {None}else {
++        let ticket=c.admit_with_wasi(SwiftReservationCategory::Cache,0,cache_cursor(),wasi).unwrap();
++        assert_eq!(c.usage(wasi).reservations.live_tickets,86);
++        Some(ticket)
++    };
++    let refusal=c.admit_with_wasi(SwiftReservationCategory::Cache,0,cache_cursor(),wasi).err().unwrap();
++    assert_eq!(refusal.resource,Some(SwiftRunResource::TicketInventory));
++    assert_eq!((refusal.attempted,refusal.limit),(87,86));
++    if let Some(ticket)=held {c.drop_reserved_with_wasi((),ticket,wasi).unwrap();}
++    let mut owned=Some(owner);
++    let mut result=Some(super::execution::SwiftReactorInstance::cleanup_owned(&mut owned));
++    let tail=result.take().unwrap().unwrap_or_else(|e|panic!("actual owner cleanup {}",e.code));
++    let (mut failure,mut usage)=(None,None);
++    tail.complete((owned,result),&mut failure,&mut usage);
++    let retained=failure.unwrap();
++    assert_eq!((retained.code,retained.resource,retained.attempted,retained.limit),(refusal.code,refusal.resource,87,86));
++    let u=usage.unwrap();
++    assert_eq!((u.reservations.combined.current,u.reservations.live_tickets),(0,0));
++    assert_eq!([u.live.cache_entries.current,u.live.active_pins.current,u.live.frames.current,u.live.values.current,u.live.controls.current,u.live.memory_pages.current],[0;6]);
++    assert_eq!(u.cleanup_invariant,None);
++    println!("REVIEW_OWNER baseline={baseline} construction={} resident64={} extra86={} next_attempt=87 limit=86 combined=0 tickets=0 categories=0 first_failure_preserved=true",initial.reservations.live_tickets,before.reservations.live_tickets,!baseline);
++}

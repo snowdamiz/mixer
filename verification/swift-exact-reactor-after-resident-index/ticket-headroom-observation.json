@@ -1,0 +1,145 @@
+{
+  "afterEvents": {
+    "path": "verification/swift-exact-reactor-after-resident-index/target-once-events.json",
+    "sha256": "8913e16f31274caea9c62985be1a4cf18f7cdde01861cf4a251e5ebf50b69c01"
+  },
+  "beforeEvents": {
+    "path": "verification/swift-exact-reactor-after-cache/target-once-events.json",
+    "sha256": "7856e8ada39bac0f0e2e0c398f0830697a52802729a2f6c17bc1b75665120a56"
+  },
+  "failureOwnerScope": "Invocation cursor function79548 offset15881589 is observed; the requesting reservation owner/category/bytes are not emitted by the unchanged observer",
+  "instrumentationChanged": false,
+  "newTargetExecution": false,
+  "observedUTC": "2026-10-25T05:52:38.330773+00:00",
+  "persistentBufferTicketDelta": 1,
+  "repairSelected": false,
+  "requesting87thTicketOwnerObserved": false,
+  "resourceLimitExpansionSelected": false,
+  "schema": 1,
+  "snapshots": [
+    {
+      "after": {
+        "activePins": 0,
+        "cacheEntries": 0,
+        "cacheWork": 832,
+        "frames": 0,
+        "instructions": 0,
+        "liveTickets": 22,
+        "peakTickets": 22,
+        "unusedTicketCapacity": 64
+      },
+      "before": {
+        "activePins": 0,
+        "cacheEntries": 0,
+        "cacheWork": 640,
+        "frames": 0,
+        "instructions": 0,
+        "liveTickets": 21,
+        "peakTickets": 21,
+        "unusedTicketCapacity": 65
+      },
+      "event": "constructed"
+    },
+    {
+      "after": {
+        "activePins": 0,
+        "cacheEntries": 64,
+        "cacheWork": 158536,
+        "frames": 0,
+        "instructions": 37328,
+        "liveTickets": 86,
+        "peakTickets": 86,
+        "unusedTicketCapacity": 0
+      },
+      "before": {
+        "activePins": 0,
+        "cacheEntries": 64,
+        "cacheWork": 169017,
+        "frames": 0,
+        "instructions": 37328,
+        "liveTickets": 85,
+        "peakTickets": 85,
+        "unusedTicketCapacity": 1
+      },
+      "event": "initialize"
+    },
+    {
+      "after": {
+        "activePins": 12,
+        "cacheEntries": 64,
+        "cacheWork": 31475443,
+        "frames": 12,
+        "instructions": 6555490,
+        "liveTickets": 86,
+        "peakTickets": 86,
+        "unusedTicketCapacity": 0
+      },
+      "before": {
+        "activePins": 8,
+        "cacheEntries": 64,
+        "cacheWork": 64000000,
+        "frames": 7,
+        "instructions": 12971689,
+        "liveTickets": 85,
+        "peakTickets": 86,
+        "unusedTicketCapacity": 1
+      },
+      "event": "runtime_failure"
+    }
+  ],
+  "sourceEvidence": [
+    {
+      "excerpts": [
+        {
+          "end": 134,
+          "start": 129,
+          "text": "    next_nonce: u64,\n    slots: Vec<SwiftSlot>,\n    pins: Vec<PinRecord>,\n    patches: Vec<decode::Patch>,\n    buffers: [Option<ReservationTicket>; 3],\n    header: Option<ReservationTicket>,"
+        },
+        {
+          "end": 1680,
+          "start": 1641,
+          "text": "        })?;\n        partial.buffers[0] = Some(self.control.admit(buffer_bytes)?);\n        reserve(&mut partial.slots, entries, &mut self.control)?;\n        for _ in 0..entries {\n            self.control.work(1)?;\n            partial.slots.push(SwiftSlot {\n                resident: None,\n                pins: 0,\n                last_used: 0,\n            });\n        }\n        let buffer_bytes = budget\n            .active_pins\n            .checked_mul(size_of::<PinRecord>())\n            .ok_or_else(|| {\n                self.control\n                    .error(CacheFailureKind::Capacity, \"swift_cache_layout_overflow\")\n            })?;\n        partial.buffers[1] = Some(self.control.admit(buffer_bytes)?);\n        reserve(&mut partial.pins, budget.active_pins, &mut self.control)?;\n        for _ in 0..budget.active_pins {\n            self.control.work(1)?;\n            partial.pins.push(PinRecord::default());\n        }\n        let buffer_bytes = PATCH_CAPACITY\n            .checked_mul(size_of::<decode::Patch>())\n            .ok_or_else(|| {\n                self.control\n                    .error(CacheFailureKind::Capacity, \"swift_cache_layout_overflow\")\n            })?;\n        partial.buffers[2] = Some(self.control.admit(buffer_bytes)?);\n        reserve(&mut partial.patches, PATCH_CAPACITY, &mut self.control)?;\n        for _ in 0..PATCH_CAPACITY {\n            self.control.work(1)?;\n            partial.patches.push(decode::EMPTY_PATCH);\n        }\n        self.control.check()?;\n        let owner = next_owner().map_err(|_| {\n            self.control.error(\n                CacheFailureKind::IdentityExhausted,"
+        }
+      ],
+      "path": "verification/swift-exact-reactor-after-cache/baseline/src/experimental_swift_reactor/cache.rs",
+      "sha256": "5907e17338757fdf95bc73539a310bcf87fae3720750bad12bfa2bfdd95e2784"
+    },
+    {
+      "excerpts": [
+        {
+          "end": 248,
+          "start": 242,
+          "text": "    next_nonce: u64,\n    slots: Vec<SwiftSlot>,\n    pins: Vec<PinRecord>,\n    patches: Vec<decode::Patch>,\n    index: Vec<u8>,\n    buffers: [Option<ReservationTicket>; 4],\n    header: Option<ReservationTicket>,"
+        },
+        {
+          "end": 1833,
+          "start": 1816,
+          "text": "            .checked_mul(size_of::<decode::Patch>())\n            .ok_or_else(|| {\n                self.control\n                    .error(CacheFailureKind::Capacity, \"swift_cache_layout_overflow\")\n            })?;\n        partial.buffers[2] = Some(self.control.admit(buffer_bytes)?);\n        reserve(&mut partial.patches, PATCH_CAPACITY, &mut self.control)?;\n        for _ in 0..PATCH_CAPACITY {\n            self.control.work(1)?;\n            partial.patches.push(decode::EMPTY_PATCH);\n        }\n        partial.buffers[3] = Some(self.control.admit(RESIDENT_INDEX_BYTES)?);\n        reserve(&mut partial.index, RESIDENT_INDEX_BYTES, &mut self.control)?;\n        for _ in 0..RESIDENT_INDEX_BYTES {\n            self.control.work(1)?;\n            partial.index.push(0);\n        }\n        self.control.check()?;"
+        }
+      ],
+      "path": "verification/swift-exact-reactor-after-resident-index/baseline/src/experimental_swift_reactor/cache.rs",
+      "sha256": "7b57d56fcc4623616d939d9c699c520a062f1b082f8c78e5a4daad7757e2136a"
+    },
+    {
+      "excerpts": [
+        {
+          "end": 15,
+          "start": 15,
+          "text": "pub(crate) const MAX_RESERVATION_TICKETS: usize = 86;"
+        },
+        {
+          "end": 1010,
+          "start": 986,
+          "text": "    }\n\n    pub(crate) fn admit_with_wasi(\n        &mut self,\n        category: SwiftReservationCategory,\n        bytes: usize,\n        cursor: Cursor,\n        wasi: Option<WasiUsage>,\n    ) -> Result<ReservationTicket, SwiftRunFailure> {\n        self.check_with_wasi(cursor, wasi)?;\n        if self.reservations.live_tickets >= MAX_RESERVATION_TICKETS {\n            return Err(self.fail(\n                cursor,\n                Fault::new(\n                    SwiftRunFailureKind::ResourceExhausted,\n                    \"swift_run_ticket_inventory\",\n                )\n                .limit(\n                    SwiftRunResource::TicketInventory,\n                    self.reservations.live_tickets as u64 + 1,\n                    MAX_RESERVATION_TICKETS as u64,\n                ),\n                wasi,\n            ));\n        }"
+        }
+      ],
+      "path": "verification/swift-exact-reactor-after-resident-index/baseline/src/experimental_swift_reactor/control.rs",
+      "sha256": "d31fc8429ce3f72e689c3e40581dbd319aa6d36f456263da141ad905ed108aad"
+    }
+  ],
+  "sourceSupportedDelta": "resident-index Vec<u8> has one additional persistent admitted buffer ticket",
+  "status": "source-bound-observation-only-no-new-execution",
+  "targetAttempts": 1,
+  "ticketLimit": 86,
+  "unequalFailurePrefixesComparableForPerformance": false
+}

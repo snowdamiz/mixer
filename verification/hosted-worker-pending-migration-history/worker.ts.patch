@@ -1,0 +1,53 @@
+--- review/test/worker.ts
++++ candidate/test/worker.ts
+@@ -59,12 +59,49 @@
+   super(ctx,env);// Member order is deliberately permuted; canonical identity is the fixed tuple.
+   this.identity=Object.fromEntries(Object.entries(JSON.parse(env.FIXTURE_IDENTITY)).reverse()) as unknown as PendingIdentity;this.ledger=new Ledger(ctx.storage);this.store=new Store(ctx.storage.sql);this.hooks=new FixtureHooks(this.store);this.provider=new FixtureProvider(this.store);
+   const hooks=this.hooks;
+-  this.engine=new Engine(this.ledger,new SyntheticClock(this.store),this.provider,{async verify(){await hooks.point('during_report_verify');return true;}},this.hooks,{identity:this.identity,registry:new RegistryPort(env)});
++  this.engine=new Engine(this.ledger,new SyntheticClock(this.store),this.provider,{async verify(){await hooks.point('during_report_verify');return true;}},this.hooks,{identity:this.identity,registry:{register:async identity=>{await hooks.point('before_existing_enrollment_register');return new RegistryPort(env).register(identity);},track:input=>new RegistryPort(env).track(input)}});
+   ctx.blockConcurrencyWhile(()=>this.engine.recover());
+  }
+  async fixture(action:string,arg:Record<string,unknown>):Promise<unknown>{
+   const resource={provider:'cloudflare-linux' as const,key:this.identity.operationKey,immutableSha256:this.identity.immutableSha256};
+   switch(action){
++   case 'migrationRecover':await this.engine.recover();return {ok:true};
++   case 'migrationMutation':{
++    switch(arg.field){
++     case 'identityOnly':this.ctx.storage.sql.exec('UPDATE operation SET pending_identity_json=?',JSON.stringify(this.identity));break;
++     case 'receiptOnly':{const r=await new RegistryPort(this.env).register(this.identity);if(r.status!=='registered'&&r.status!=='duplicate')throw new Error('fixture_receipt');this.ctx.storage.sql.exec('UPDATE operation SET registration_json=?',JSON.stringify(r.receipt));break;}
++     case 'emptyIdentity':this.ctx.storage.sql.exec("UPDATE operation SET pending_identity_json=''");break;
++     case 'emptyReceipt':this.ctx.storage.sql.exec("UPDATE operation SET registration_json=''");break;
++     case 'emptyBoth':this.ctx.storage.sql.exec("UPDATE operation SET pending_identity_json='',registration_json=''");break;
++     case 'malformedBoth':this.ctx.storage.sql.exec("UPDATE operation SET pending_identity_json='{',registration_json='{'");break;
++     case 'shapeBoth':this.ctx.storage.sql.exec("UPDATE operation SET pending_identity_json='{}',registration_json='{}'");break;
++     case 'effectBarrier':this.ctx.storage.sql.exec("UPDATE operation SET effect_barrier_version='0'");break;
++     case 'claimBarrier':this.ctx.storage.sql.exec("UPDATE operation SET claim_barrier_version='0'");break;
++     case 'nonquarantined':this.ctx.storage.sql.exec('UPDATE operation SET quarantined=0');break;
++     case 'ackPositive':this.ctx.storage.sql.exec("UPDATE operation SET registry_ack_version='1'");break;
++     case 'versionZero':this.ctx.storage.sql.exec("UPDATE operation SET state_version='0'");break;
++     case 'versionNoncanonical':this.ctx.storage.sql.exec("UPDATE operation SET state_version='01'");break;
++     case 'versionNegative':this.ctx.storage.sql.exec("UPDATE operation SET state_version='-1'");break;
++     case 'versionOverflow':this.ctx.storage.sql.exec("UPDATE operation SET state_version='9223372036854775808'");break;
++     case 'versionUnknown':this.ctx.storage.sql.exec("UPDATE operation SET state_version='unknown'");break;
++     case 'ackNoncanonical':this.ctx.storage.sql.exec("UPDATE operation SET registry_ack_version='00'");break;
++     case 'ackNegative':this.ctx.storage.sql.exec("UPDATE operation SET registry_ack_version='-1'");break;
++     case 'ackOverflow':this.ctx.storage.sql.exec("UPDATE operation SET registry_ack_version='9223372036854775808'");break;
++     case 'ackUnknown':this.ctx.storage.sql.exec("UPDATE operation SET registry_ack_version='unknown'");break;
++     case 'wrongProvider':this.ctx.storage.sql.exec("UPDATE operation SET provider_kind='external-macos'");break;
++     case 'wrongBinding':this.ctx.storage.sql.exec("UPDATE operation SET binding=binding||' '");break;
++     case 'changedOwner':this.ctx.storage.sql.exec("UPDATE operation SET owner='migration-race-owner'");break;
++     case 'changedIdentity':this.ctx.storage.sql.exec('UPDATE operation SET operation_id=?','f'.repeat(64));break;
++     case 'fullRegistration':{const r=await new RegistryPort(this.env).register(this.identity);if(r.status!=='registered'&&r.status!=='duplicate')throw new Error('fixture_receipt');this.ctx.storage.sql.exec('UPDATE operation SET pending_identity_json=?,registration_json=?',JSON.stringify(this.identity),JSON.stringify(r.receipt));break;}
++     case 'regressAcknowledged':{const r=this.ledger.read()!;if(r.track_outbox_json!==null||r.registry_ack_version!==r.state_version||BigInt(r.state_version)<1n)throw new Error('exact_ack_required');this.ctx.storage.sql.exec('UPDATE operation SET state_version=?',String(BigInt(r.state_version)-1n));break;}
++     case 'maxEqual':this.ctx.storage.sql.exec("UPDATE operation SET state_version='9223372036854775807',registry_ack_version='9223372036854775807',track_outbox_json=NULL");break;
++     case 'maxAhead':this.ctx.storage.sql.exec("UPDATE operation SET state_version='9223372036854775806',registry_ack_version='9223372036854775807',track_outbox_json=NULL");break;
++     case 'maxAheadPending':{const r=this.ledger.read()!;this.ctx.storage.sql.exec("UPDATE operation SET state_version='9223372036854775806',registry_ack_version='9223372036854775807',track_outbox_json=?",JSON.stringify({stateVersion:'9223372036854775806',nextDueUs:r.next_due_us,terminal:r.terminal_json?{phase:r.phase,exactJson:r.terminal_json}:null}));break;}
++     case 'pendingAckLower':{const r=this.ledger.read()!;if(!r.track_outbox_json)throw new Error('pending_outbox_required');this.ctx.storage.sql.exec('UPDATE operation SET registry_ack_version=?',String(BigInt(r.state_version)-1n));break;}
++     default:throw new Error('finite_migration_mutation');
++    }await this.ledger.sync();return {ok:true};
++   }
++   case 'migrationEnrollmentHold':{const s=this.store.get();s.fault='before_existing_enrollment_register';s.blocked=false;this.store.set(s);return {ok:true};}
+    case 'independentValidShapeReport':{
+     const r=this.ledger.read()!;
+     return {status:await this.engine.report({identity:this.ledger.identity(r),immutableSha256:r.binding_hash,instanceId:r.instance_id??'review-instance',bootId:r.boot_id??'review-boot',claimId:r.claim_id??'a'.repeat(32),operationId:r.operation_id,result:{outcome:'failed',class:'compiler',code:'compiler_error',diagnostic_sha256:'a'.repeat(64)},attestationSha256:'a'.repeat(64)})};

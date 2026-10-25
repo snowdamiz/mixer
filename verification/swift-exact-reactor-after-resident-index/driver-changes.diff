@@ -1,0 +1,88 @@
+--- after-cache/diagnostic.py
++++ after-resident-index/diagnostic.py
+@@ -1,5 +1,5 @@
+ #!/usr/bin/env python3
+-"""One bounded after-cache exact Swift reactor diagnostic; no live VM writes."""
++"""One bounded after-resident-index exact Swift reactor diagnostic; no live VM writes."""
+ import argparse
+ import datetime
+ import gzip
+@@ -22,11 +22,11 @@
+ TARGET = SCRATCH / "target"
+ BASELINE = HERE / "baseline"
+ QUALIFIED = ROOT / "compiler/experiments/fieldlog-reactor"
+-HISTORY = ROOT / "verification/swift-exact-reactor-after-observer"
+-ACCEPTED = ROOT / "verification/swift-cache-reset-elision-root-review"
++HISTORY = ROOT / "verification/swift-exact-reactor-after-cache"
++ACCEPTED = ROOT / "verification/swift-cache-resident-index-root-integration"
+ MANIFEST = ACCEPTED / "integrated-manifest.json"
+-CLOSURE = "b28da766c84b6353a4511e2fc3fbcb0d4302d5b8a5a74da1ee3d7fb776ca2c11"
+-HISTORICAL_CLOSURE = "f2682c6a2fd6f6e74bd00a2394ff32b704aa1e2ed3d2373ef95cdee29fa7eb2c"
++CLOSURE = "02fd25a32b05cf8c4b10e0f68df029d8851e14610ccecbec772be09af5073f8d"
++HISTORICAL_CLOSURE = "b28da766c84b6353a4511e2fc3fbcb0d4302d5b8a5a74da1ee3d7fb776ca2c11"
+ HARNESS_HASH = "d72da7bc7aaf4e31b7093fde497f357226d3a4dd954eb577909209102a0bfb00"
+ REACTOR = QUALIFIED / "local/2026-10-23-qualified/wasm/fieldlog-reactor.wasm"
+ REACTOR_HASH = "24d85729a659ff3e5fc6f0517709afbb68b371a41829e90785dabd48e0620994"
+@@ -128,17 +128,26 @@
+     assert len(baseline) == 132 and closure(baseline) == CLOSURE
+     assert source_manifest(ROOT / "vm") == baseline
+     accepted = read(ACCEPTED / "receipt.json")
+-    assert accepted["status"] == "accepted-live-private-cache-integration"
++    assert accepted["status"] == "accepted-live-private-resident-index-integration"
+     assert accepted["sourceManifestSHA256"] == CLOSURE and accepted["sourceFiles"] == 132
+-    assert sum(command["expectedTests"] for command in accepted["commands"]) == 6
++    assert sum(command["expectedTests"] for command in accepted["commands"]) == 32
++    assert accepted["selectionSHA256"] == sha(ACCEPTED / "selection.json") == "601b87b71e666db2469bf31e5b476698ba2a4d883742f90be4c0293a8f1e820d"
++    assert accepted["sourceUnchangedDuringTests"] and accepted["ownedTargetRemoved"]
++    assert accepted["fullTargetSelected"] is False and accepted["nativeExecuted"] is False
++    assert all(command["streamEOF"] == {"stdout": True, "stderr": True}
++               and command["processGroupMembers"] == [] and command["signalsSent"] == []
++               for command in accepted["commands"])
+     assert all(command["exitCode"] == 0 and not command["timedOut"] for command in accepted["commands"])
+     prior_manifest = read(HISTORY / "baseline-manifest.json")
+     assert closure(prior_manifest) == HISTORICAL_CLOSURE
+     changed = [name for name in baseline if baseline[name] != prior_manifest[name]]
+-    assert changed == ["src/experimental_swift_reactor/cache.rs",
++    assert changed == ["src/experimental/cache/borrowed.rs",
++                       "src/experimental/cache/tests.rs",
++                       "src/experimental_swift_reactor/cache.rs",
+                        "src/experimental_swift_reactor/cache_tests.rs",
++                       "src/experimental_swift_reactor/execution_tests.rs",
+                        "src/experimental_swift_reactor/lifecycle_tests.rs"]
+-    historical_seal = read(HISTORY / "seal.json")
++    historical_seal = read(HISTORY / "result-seal.json")
+     references = {}
+     def retain(path, expected=None):
+         path = Path(path)
+@@ -153,8 +162,9 @@
+         retain(ROOT / name, expected)
+     for info in read(HISTORY / "binding.json")["inputs"]:
+         retain(info["path"], info["sha256"])
+-    for path in (HISTORY / "seal.json", HISTORY / "verify.py", MANIFEST,
+-                 ACCEPTED / "source-review.json", ACCEPTED / "receipt.json", ROOT / "AGENTS.md"):
++    for path in (HISTORY / "result-seal.json", HISTORY / "verify.py", MANIFEST,
++                 ACCEPTED / "selection.json", ACCEPTED / "receipt.json", ROOT / "AGENTS.md",
++                 ROOT / "docs/swift-cache-resident-index.md", ROOT / "docs/swift-cache-resident-index-review.md"):
+         retain(path)
+     evidence = QUALIFIED / "evidence/2026-10-23-qualified"
+     prior = read(evidence / "receipt.json")
+@@ -192,8 +202,8 @@
+         "baselineClosure": CLOSURE, "historicalClosure": HISTORICAL_CLOSURE,
+         "sourceRevisionContext": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
+         "inputs": list(references.values()), "target": identity(REACTOR), "expectedObservation": EXPECTED,
+-        "historicalFailurePacket": identity(HISTORY / "seal.json"),
+-        "acceptedPrivateCacheResetElision": identity(ACCEPTED / "receipt.json"),
++        "historicalFailurePacket": identity(HISTORY / "result-seal.json"),
++        "acceptedPrivateCacheResidentIndex": identity(ACCEPTED / "receipt.json"),
+         "historicalInputDisposition": "hash references only; no old driver, native binary or Node execution",
+         "selectedPhases": ["complete validation", "adoption", "construct original owner", "Initialize35", "Corpus62", "Corpus62", "consuming cleanup"],
+         "targetExecutionSelectedByRoot": False, "productionBaselineModifiedByDiagnostic": False,
+@@ -418,7 +428,7 @@
+     receipt, stdout, _ = record_command(name, argv, 170 if target else 60, env=env)
+     observed = events(stdout)
+     save(name + "-events.json", observed)
+-    result = {"schema": 1, "scope": "exact real Swift reactor after accepted private cache reset elision" if target else "small independent synthetic harness wiring only",
++    result = {"schema": 1, "scope": "exact real Swift reactor after accepted private cache resident index" if target else "small independent synthetic harness wiring only",
+         "commandPassed": receipt["passed"], "targetAttempted": target,
+         "diagnosticCompleted": any(e["event"] == "diagnostic_execution_complete" and e["payload"] is True for e in observed),
+         "ownedCleanupEmpty": any(e["event"] == "cleanup_empty" and e["payload"] is True for e in observed),

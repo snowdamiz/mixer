@@ -1,0 +1,19 @@
+--- before/cache_tests.rs
++++ after/cache_tests.rs
+@@ -681,14 +681,14 @@
+             .unwrap();
+     }
+     assert_eq!(c.usage(None).live.cache_entries.current, 64);
+-    assert_eq!(c.usage(None).reservations.live_tickets, 74);
++    assert_eq!(c.usage(None).reservations.live_tickets, 73);
+     assert!(c.usage(None).reservations.peak_tickets <= MAX_RESERVATION_TICKETS);
+     let p = pin(&mut cache, &mut c, 98, None).unwrap();
+     cache
+         .release(p, &mut c, None)
+         .map_err(|e| e.failure)
+         .unwrap();
+-    assert_eq!(c.usage(None).reservations.live_tickets, 74);
++    assert_eq!(c.usage(None).reservations.live_tickets, 73);
+     assert_eq!(cache.usage().evictions, 1);
+     finish(cache, c);
+     // Actual release is admission/work/cancellation independent, including the

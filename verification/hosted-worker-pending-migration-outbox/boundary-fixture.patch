@@ -1,0 +1,14 @@
+--- frozen-review/test/worker.ts
++++ boundary-candidate/test/worker.ts
+@@ -65,6 +65,11 @@
+  async fixture(action:string,arg:Record<string,unknown>):Promise<unknown>{
+   const resource={provider:'cloudflare-linux' as const,key:this.identity.operationKey,immutableSha256:this.identity.immutableSha256};
+   switch(action){
++   case 'outboxBoundaryBytes':{
++    const values:Record<string,string|null>={missing:null,empty:'',malformed:'{'};
++    if(typeof arg.form!=='string'||!Object.prototype.hasOwnProperty.call(values,arg.form))throw new Error('finite_outbox_boundary');
++    this.ctx.storage.sql.exec('UPDATE operation SET track_outbox_json=?',values[arg.form]);await this.ledger.sync();return {row:this.ledger.read()};
++   }
+    case 'reviewDowngradeOnly':{
+     const version=arg.version;if(version!==1&&version!==2)throw new Error('review_schema');
+     this.ctx.storage.transactionSync(()=>{

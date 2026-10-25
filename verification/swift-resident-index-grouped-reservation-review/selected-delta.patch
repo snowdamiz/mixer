@@ -1,0 +1,137 @@
+--- baseline/src/experimental_swift_reactor/cache.rs
++++ selected/src/experimental_swift_reactor/cache.rs
+@@ -244,7 +244,7 @@
+     pins: Vec<PinRecord>,
+     patches: Vec<decode::Patch>,
+     index: Vec<u8>,
+-    buffers: [Option<ReservationTicket>; 4],
++    buffers: [Option<ReservationTicket>; 3],
+     header: Option<ReservationTicket>,
+ }
+ /// A wrapper exists only after the existing construction ticket is enlarged.
+@@ -283,7 +283,7 @@
+     pins: Vec<PinRecord>,
+     patches: Vec<decode::Patch>,
+     index: Vec<u8>,
+-    buffers: [Option<ReservationTicket>; 4],
++    buffers: [Option<ReservationTicket>; 3],
+     header: Option<ReservationTicket>,
+ }
+ impl Partial {
+@@ -308,9 +308,9 @@
+         if let Some(ticket) = self.buffers[2].take() {
+             let _ = control.drop_reserved(take(&mut self.patches), ticket);
+         }
+-        if let Some(ticket) = self.buffers[3].take() {
+-            let _ = control.drop_reserved(take(&mut self.index), ticket);
+-        }
++        // The header admitted the index payload before its allocation. Keep it
++        // charged while the entire Vec and every transfer are destroyed.
++        drop(take(&mut self.index));
+         if let Some(adopted) = self.adopted.take() {
+             let observation = control.observation();
+             let _ = control.control.drop_proof_with_wasi(adopted, observation);
+@@ -1090,7 +1090,10 @@
+     let Some(cleanup) = compute_cache_cleanup_temporary_bytes() else {
+         return None;
+     };
+-    exclusive.checked_add(cleanup)
++    let Some(header) = exclusive.checked_add(cleanup) else {
++        return None;
++    };
++    header.checked_add(RESIDENT_INDEX_BYTES)
+ }
+ const fn compute_cache_construction_bytes() -> Option<usize> {
+     sum_named!(&[
+@@ -1644,16 +1647,8 @@
+                 ),
+             );
+         }
+-        if let Some(ticket) = cache.buffers[3].take() {
+-            capture(
+-                &mut failure,
+-                control.drop_reserved_with_wasi(
+-                    take(&mut cache.index),
+-                    ticket,
+-                    wasi.map(AccountedWasi::usage),
+-                ),
+-            );
+-        }
++        // Destroy index payload before the header moves into its cleanup tail.
++        drop(take(&mut cache.index));
+         let SwiftFunctionCache {
+             adopted, header, ..
+         } = cache;
+@@ -1824,7 +1819,6 @@
+             self.control.work(1)?;
+             partial.patches.push(decode::EMPTY_PATCH);
+         }
+-        partial.buffers[3] = Some(self.control.admit(RESIDENT_INDEX_BYTES)?);
+         reserve(&mut partial.index, RESIDENT_INDEX_BYTES, &mut self.control)?;
+         for _ in 0..RESIDENT_INDEX_BYTES {
+             self.control.work(1)?;
+@@ -1840,8 +1834,7 @@
+         let fixed_reserved = header
+             + entries * size_of::<SwiftSlot>()
+             + budget.active_pins * size_of::<PinRecord>()
+-            + PATCH_CAPACITY * size_of::<decode::Patch>()
+-            + RESIDENT_INDEX_BYTES;
++            + PATCH_CAPACITY * size_of::<decode::Patch>();
+         Ok((
+             owner,
+             SwiftCacheUsage {
+--- baseline/src/experimental_swift_reactor/cache_tests.rs
++++ selected/src/experimental_swift_reactor/cache_tests.rs
+@@ -537,7 +537,7 @@
+     assert_eq!(s.allocated_bytes, expected);
+     assert_eq!(
+         c.usage(None).reservations.cache.current,
+-        cache_header_bytes().unwrap() + expected
++        cache_header_bytes().unwrap() + expected - 192
+     );
+     inspection::print_layouts();
+     finish(cache, c);
+@@ -681,14 +681,14 @@
+             .unwrap();
+     }
+     assert_eq!(c.usage(None).live.cache_entries.current, 64);
+-    assert_eq!(c.usage(None).reservations.live_tickets, 74);
++    assert_eq!(c.usage(None).reservations.live_tickets, 73);
+     assert!(c.usage(None).reservations.peak_tickets <= MAX_RESERVATION_TICKETS);
+     let p = pin(&mut cache, &mut c, 98, None).unwrap();
+     cache
+         .release(p, &mut c, None)
+         .map_err(|e| e.failure)
+         .unwrap();
+-    assert_eq!(c.usage(None).reservations.live_tickets, 74);
++    assert_eq!(c.usage(None).reservations.live_tickets, 73);
+     assert_eq!(cache.usage().evictions, 1);
+     finish(cache, c);
+     // Actual release is admission/work/cancellation independent, including the
+@@ -1832,7 +1832,7 @@
+     let ledger = c.usage(None);
+     assert_eq!(ledger.live.active_pins.current, 64);
+     assert_eq!(ledger.live.cache_entries.current, 64);
+-    assert_eq!(ledger.reservations.live_tickets, 74);
++    assert_eq!(ledger.reservations.live_tickets, 73);
+     assert_eq!(before.pinned_bytes, before.resident_bytes);
+     let (failure, stats) = measure(|| pin(&mut cache, &mut c, 98, None).unwrap_err());
+     assert_eq!(failure.code, "pin_slots_exhausted");
+@@ -2300,8 +2300,6 @@
+         header,
+         header + patch_bytes - 1,
+         header + patch_bytes,
+-        header + patch_bytes + 191,
+-        header + patch_bytes + 192,
+     ] {
+         let (mut c, a) = adopt(
+             &bytes,
+@@ -2313,7 +2311,7 @@
+             },
+         );
+         let (result, stats) = measure(|| construct(&mut c, a, None));
+-        if ceiling == header + patch_bytes + 192 {
++        if ceiling == header + patch_bytes {
+             assert_eq!(stats.attempts, 2);
+             let cache = result.unwrap();
+             assert_eq!(c.usage(None).reservations.cache.current, ceiling);

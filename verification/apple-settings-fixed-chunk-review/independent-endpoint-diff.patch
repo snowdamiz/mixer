@@ -1,0 +1,90 @@
+--- frozen/selected/inputs/runtime/verification/apple-toggle-keyboard-focus-v9-preparation/settings_telemetry.py
++++ reviewed/selected/inputs/runtime/verification/apple-toggle-keyboard-focus-v9-preparation/settings_telemetry.py
+@@ -13,7 +13,7 @@
+ 
+ CASE = 'public-settings-full-keyboard-access'
+ ROUTE = ['Accessibility', 'Keyboards & Typing', 'Full Keyboard Access']
+-CHUNK = 3072
++CHUNK = 4992
+ MAX_TOTAL = 7_000_000
+ MAX_REQUESTS = 2500
+ MAX_EVENTS = 100
+@@ -216,13 +216,13 @@
+         require(number(host) and host < self.deadline, 'Session deadline')
+         require(type(value) is dict and type(value.get('kind')) is str, 'Diagnostic body')
+         if value['kind'] == 'start':
+-            require(set(value) == {'kind', 'case', 'uptime'} and value['case'] == CASE and number(value['uptime']) and self.start_host is None, 'Setup start')
++            require(set(value) == {'kind', 'case', 'uptime', 'chunkBytes'} and type(value['chunkBytes']) is int and value['chunkBytes'] == CHUNK and value['case'] == CASE and number(value['uptime']) and self.start_host is None, 'Setup start')
+             self.start_host = host
+             self.last_host = host
+             self.requests = 1
+             self.start_runner = self.last_uptime = value['uptime']
+             self.persist('settings-0000', {'receivedUptime': host, 'generation': self.token, 'sessionDeadlineUptime': self.deadline, 'diagnosticDeadlineUptime': min(self.deadline, host + MAX_DURATION), 'record': value})
+-            return {'generation': self.token, 'remainingSessionSeconds': min(MAX_DURATION, self.deadline - host), 'diagnosticOnly': True}
++            return {'generation': self.token, 'remainingSessionSeconds': min(MAX_DURATION, self.deadline - host), 'diagnosticOnly': True, 'chunkBytes': CHUNK}
+         require(self.start_host is not None and self.last_host is not None and self.last_host <= host and 0 <= host - self.start_host <= MAX_DURATION, 'Diagnostic host receipt monotonicity/duration')
+         require(FIELDS <= set(value) and value['case'] == CASE and value['generation'] == self.token, 'Diagnostic binding')
+         require(integer(value['sequence'], 1, MAX_REQUESTS) and value['sequence'] == self.sequence + 1, 'Diagnostic sequence')
+@@ -234,9 +234,9 @@
+             require(set(value) == FIELDS | {'slot', 'index', 'count', 'bytes', 'sha256', 'data'} and self.pending, 'Unexpected upload')
+             slot = self.pending[0]
+             item = self.uploads[slot]
+-            require(value['slot'] == slot and integer(value['index'], 0, 651) and value['index'] == len(item['parts']), 'Chunk order/slot')
++            require(value['slot'] == slot and integer(value['index'], 0, 400) and value['index'] == len(item['parts']), 'Chunk order/slot')
+             require(value['count'] == item['count'] and type(value['count']) is int and value['bytes'] == item['bytes'] and type(value['bytes']) is int and value['sha256'] == item['sha256'], 'Chunk descriptor')
+-            require(type(value['data']) is str and len(value['data']) <= 4096, 'Chunk encoding bound')
++            require(type(value['data']) is str and len(value['data']) <= 6656, 'Chunk encoding bound')
+             data = base64.b64decode(value['data'], validate=True)
+             expected = min(CHUNK, item['bytes'] - value['index'] * CHUNK)
+             require(len(data) == expected and expected > 0 and base64.b64encode(data).decode() == value['data'], 'Chunk length/canonical encoding')
+--- frozen/accepted/harness/UITests/ToggleUITests.swift
++++ reviewed/accepted/harness/UITests/ToggleUITests.swift
+@@ -1,10 +1,12 @@
+ import XCTest
+ import Foundation
++import CoreFoundation
+ import UIKit
+ import CryptoKit
+ 
+ private final class SettingsTelemetry: @unchecked Sendable {
+     static let shared = SettingsTelemetry()
++    private let chunkBytes = 4992
+     let fixedCase = "public-settings-full-keyboard-access"
+     private var generation = ""
+     private var sequence = 0
+@@ -34,7 +36,7 @@
+         let env = ProcessInfo.processInfo.environment
+         guard let base = env["MIXER_BRIDGE_URL"], let cap = env["MIXER_BRIDGE_CAPABILITY"], let url = URL(string: base + "/evaluate") else { diagnose(.configuration); throw Failure.bridge }
+         let body: Data
+-        do { body = try JSONSerialization.data(withJSONObject: ["settingsDiagnostic": record], options: [.sortedKeys]) }
++        do { body = try JSONSerialization.data(withJSONObject: ["settingsDiagnostic": record], options: [.sortedKeys, .withoutEscapingSlashes]) }
+         catch { diagnose(.serialization, errorCode: (error as NSError).code); throw error }
+         guard body.count <= 8192 else { diagnose(.bodyLimit); throw Failure.upload }
+         var request = URLRequest(url: url, timeoutInterval: remaining)
+@@ -67,8 +69,12 @@
+     func start() throws {
+         lock.lock(); defer { lock.unlock() }
+         let initial = now; transport.deadline = initial + 29.0
+-        let result = try post(["kind": "start", "case": fixedCase, "uptime": initial])
+-        guard let token = result["generation"] as? String, let remaining = result["remainingSessionSeconds"] as? Double else { throw Failure.bridge }
++        let result = try post(["kind": "start", "case": fixedCase, "uptime": initial, "chunkBytes": chunkBytes])
++        guard let format = result["chunkBytes"] as? NSNumber,
++              CFGetTypeID(format) != CFBooleanGetTypeID(),
++              ["s", "i", "l", "q", "S", "I", "L", "Q"].contains(String(cString: format.objCType)),
++              format.intValue == chunkBytes,
++              let token = result["generation"] as? String, let remaining = result["remainingSessionSeconds"] as? Double else { throw Failure.bridge }
+         generation = token; transport.deadline = min(transport.deadline, now + remaining)
+     }
+     private func send(_ fields: [String: Any]) throws -> [String: Any] {
+@@ -103,9 +109,9 @@
+         for slot in slots {
+             let form = slot.hasSuffix("-ax") ? "ax" : "png"
+             guard let payload = payloads[form], let descriptor = files[form] as? [String: Any] else { throw Failure.upload }
+-            let count = (payload.count + 3071) / 3072
++            let count = (payload.count + chunkBytes - 1) / chunkBytes
+             for index in 0..<count {
+-                let chunk = payload.subdata(in: index * 3072..<min(payload.count, (index + 1) * 3072))
++                let chunk = payload.subdata(in: index * chunkBytes..<min(payload.count, (index + 1) * chunkBytes))
+                 _ = try send(["kind": "chunk", "slot": slot, "index": index, "count": count, "bytes": payload.count,
+                               "sha256": descriptor["sha256"]!, "data": chunk.base64EncodedString()])
+             }

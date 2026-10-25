@@ -1,0 +1,47 @@
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-index-ticket-storage-diagnosis/owned-scratch/targets/grouped/debug/deps/mixer_vm-779ad6ea8948a8f2)
+
+thread 'experimental_swift_reactor::cache_tests::construction_and_operation_phase_boundaries' (62252384) panicked at src/experimental_swift_reactor/cache_tests.rs:2322:13:
+assertion `left == right` failed
+  left: 2
+ right: 1
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'experimental_swift_reactor::cache_tests::foreign_stale_nonce_and_control_ownership' (62253806) panicked at src/experimental_swift_reactor/cache_tests.rs:2405:53:
+owner test scope unwind
+
+thread 'experimental_swift_reactor::cache_tests::pins_hits_lru_and_eviction' (62253811) panicked at src/experimental_swift_reactor/cache_tests.rs:1835:5:
+assertion `left == right` failed
+  left: 73
+ right: 74
+error: test failed, to rerun pass `--lib`

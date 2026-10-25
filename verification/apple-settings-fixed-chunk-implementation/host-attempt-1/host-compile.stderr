@@ -1,0 +1,190 @@
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-fixed-chunk-implementation/generated_host_probe.swift:92:1: error: statements are not allowed at the top level
+ 90 | var rows: [[String:Any]]=[]
+ 91 | let uptimes:[Double]=[0,-0.0,Double.leastNonzeroMagnitude,Double.leastNormalMagnitude,Double.greatestFiniteMagnitude,943842.1664629584,1.0.nextDown,1.0.nextUp]
+ 92 | for count in [1,2,3,4991,4992] {
+    | `- error: statements are not allowed at the top level
+ 93 |     for slashHeavy in [false,true] {
+ 94 |         let payload=slashHeavy ? Data(repeating:255,count:count) : Data((0..<count).map { UInt8($0 % 256) })
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-fixed-chunk-implementation/generated_host_probe.swift:110:1: error: statements are not allowed at the top level
+108 | var echoes:[[String:Any]]=[]
+109 | let echoValues:[Any?]=[nil,true,false,"4992",3072,4993,NSNumber(value:4992.0),NSNull(),[4992],4992]
+110 | for echo in echoValues {
+    | `- error: statements are not allowed at the top level
+111 |     var reply:[String:Any]=["generation":"ffffffff-ffff-ffff-ffff-ffffffffffff","remainingSessionSeconds":29.0]
+112 |     if let echo { reply["chunkBytes"]=echo }
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-fixed-chunk-implementation/generated_host_probe.swift:123:1: error: statements are not allowed at the top level
+121 | }
+122 | var rawEchoRows:[[String:Any]]=[]
+123 | for token in ["4992","4992.0","4.992e3","true","\"4992\"","3072","null"] {
+    | `- error: statements are not allowed at the top level
+124 |     let reply=try JSONSerialization.jsonObject(with:Data(("{\"chunkBytes\":"+token+",\"generation\":\"ffffffff-ffff-ffff-ffff-ffffffffffff\",\"remainingSessionSeconds\":29}").utf8)) as! [String:Any]
+125 |     SettingsTelemetry.hostReply=reply;let client=SettingsTelemetry();let failed=didThrow { try client.start() }
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-fixed-chunk-implementation/generated_host_probe.swift:131:1: error: statements are not allowed at the top level
+129 | }
+130 | var packing:[[String:Any]]=[]
+131 | for size in [1,4991,4992,4993,9984,200000,2000000] {
+    | `- error: statements are not allowed at the top level
+132 |     SettingsTelemetry.hostRecords=[];SettingsTelemetry.hostReply=["generation":"ffffffff-ffff-ffff-ffff-ffffffffffff","remainingSessionSeconds":29.0,"chunkBytes":4992]
+133 |     let client=SettingsTelemetry();try client.start()
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-fixed-chunk-implementation/generated_host_probe.swift:149:1: error: expressions are not allowed at the top level
+147 |     packing.append(["bytes":size,"chunks":records.count,"lastBytes":size-4992*(records.count-1)])
+148 | }
+149 | SettingsTelemetry.hostRecords=[];SettingsTelemetry.hostReply=["generation":"x","remainingSessionSeconds":29.0,"chunkBytes":4992]
+    | `- error: expressions are not allowed at the top level
+150 | let guarded=SettingsTelemetry();try guarded.start()
+151 | let tooLarge=["padding":String(repeating:"/",count:8192)]
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-fixed-chunk-implementation/generated_host_probe.swift:149:34: error: expressions are not allowed at the top level
+147 |     packing.append(["bytes":size,"chunks":records.count,"lastBytes":size-4992*(records.count-1)])
+148 | }
+149 | SettingsTelemetry.hostRecords=[];SettingsTelemetry.hostReply=["generation":"x","remainingSessionSeconds":29.0,"chunkBytes":4992]
+    |                                  `- error: expressions are not allowed at the top level
+150 | let guarded=SettingsTelemetry();try guarded.start()
+151 | let tooLarge=["padding":String(repeating:"/",count:8192)]
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-fixed-chunk-implementation/generated_host_probe.swift:150:33: error: expressions are not allowed at the top level
+148 | }
+149 | SettingsTelemetry.hostRecords=[];SettingsTelemetry.hostReply=["generation":"x","remainingSessionSeconds":29.0,"chunkBytes":4992]
+150 | let guarded=SettingsTelemetry();try guarded.start()
+    |                                 `- error: expressions are not allowed at the top level
+151 | let tooLarge=["padding":String(repeating:"/",count:8192)]
+152 | expect(didThrow { _=try guarded.observe("before-switch",routeIndex:3,attempt:0,snapshot:tooLarge,started:0,finished:0,ax:nil,png:nil) },"actual 8192 body guard")
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-fixed-chunk-implementation/generated_host_probe.swift:152:1: error: expressions are not allowed at the top level
+150 | let guarded=SettingsTelemetry();try guarded.start()
+151 | let tooLarge=["padding":String(repeating:"/",count:8192)]
+152 | expect(didThrow { _=try guarded.observe("before-switch",routeIndex:3,attempt:0,snapshot:tooLarge,started:0,finished:0,ax:nil,png:nil) },"actual 8192 body guard")
+    | `- error: expressions are not allowed at the top level
+153 | expect(SettingsTelemetry.hostRecords.count==1,"oversized body was admitted")
+154 | // Original transport is compiled byte-identically and exercised directly.
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-fixed-chunk-implementation/generated_host_probe.swift:153:1: error: expressions are not allowed at the top level
+151 | let tooLarge=["padding":String(repeating:"/",count:8192)]
+152 | expect(didThrow { _=try guarded.observe("before-switch",routeIndex:3,attempt:0,snapshot:tooLarge,started:0,finished:0,ax:nil,png:nil) },"actual 8192 body guard")
+153 | expect(SettingsTelemetry.hostRecords.count==1,"oversized body was admitted")
+    | `- error: expressions are not allowed at the top level
+154 | // Original transport is compiled byte-identically and exercised directly.
+155 | var transport=DiagnosticTransportState();transport.deadline=29
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-fixed-chunk-implementation/generated_host_probe.swift:155:42: error: expressions are not allowed at the top level
+153 | expect(SettingsTelemetry.hostRecords.count==1,"oversized body was admitted")
+154 | // Original transport is compiled byte-identically and exercised directly.
+155 | var transport=DiagnosticTransportState();transport.deadline=29
+    |                                          `- error: expressions are not allowed at the top level
+156 | expect(try transport.begin(now:0)==2,"two-second ceiling")
+157 | expect(try transport.begin(now:28.99)<0.011,"absolute deadline clips request")
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-fixed-chunk-implementation/generated_host_probe.swift:156:1: error: expressions are not allowed at the top level
+154 | // Original transport is compiled byte-identically and exercised directly.
+155 | var transport=DiagnosticTransportState();transport.deadline=29
+156 | expect(try transport.begin(now:0)==2,"two-second ceiling")
+    | `- error: expressions are not allowed at the top level
+157 | expect(try transport.begin(now:28.99)<0.011,"absolute deadline clips request")
+158 | expect(didThrow { _=try transport.begin(now:29) },"29 second deadline")
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-fixed-chunk-implementation/generated_host_probe.swift:157:1: error: expressions are not allowed at the top level
+155 | var transport=DiagnosticTransportState();transport.deadline=29
+156 | expect(try transport.begin(now:0)==2,"two-second ceiling")
+157 | expect(try transport.begin(now:28.99)<0.011,"absolute deadline clips request")
+    | `- error: expressions are not allowed at the top level
+158 | expect(didThrow { _=try transport.begin(now:29) },"29 second deadline")
+159 | var capped=DiagnosticTransportState();capped.deadline=29;capped.requests=2500
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-fixed-chunk-implementation/generated_host_probe.swift:158:1: error: expressions are not allowed at the top level
+156 | expect(try transport.begin(now:0)==2,"two-second ceiling")
+157 | expect(try transport.begin(now:28.99)<0.011,"absolute deadline clips request")
+158 | expect(didThrow { _=try transport.begin(now:29) },"29 second deadline")
+    | `- error: expressions are not allowed at the top level
+159 | var capped=DiagnosticTransportState();capped.deadline=29;capped.requests=2500
+160 | expect(didThrow { _=try capped.begin(now:0) },"2500 request cap")
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-fixed-chunk-implementation/generated_host_probe.swift:159:39: error: expressions are not allowed at the top level
+157 | expect(try transport.begin(now:28.99)<0.011,"absolute deadline clips request")
+158 | expect(didThrow { _=try transport.begin(now:29) },"29 second deadline")
+159 | var capped=DiagnosticTransportState();capped.deadline=29;capped.requests=2500
+    |                                       `- error: expressions are not allowed at the top level
+160 | expect(didThrow { _=try capped.begin(now:0) },"2500 request cap")
+161 | for data in [Data(repeating:32,count:8193),Data("[]".utf8)] {
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-fixed-chunk-implementation/generated_host_probe.swift:159:58: error: expressions are not allowed at the top level
+157 | expect(try transport.begin(now:28.99)<0.011,"absolute deadline clips request")
+158 | expect(didThrow { _=try transport.begin(now:29) },"29 second deadline")
+159 | var capped=DiagnosticTransportState();capped.deadline=29;capped.requests=2500
+    |                                                          `- error: expressions are not allowed at the top level
+160 | expect(didThrow { _=try capped.begin(now:0) },"2500 request cap")
+161 | for data in [Data(repeating:32,count:8193),Data("[]".utf8)] {
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-fixed-chunk-implementation/generated_host_probe.swift:160:1: error: expressions are not allowed at the top level
+158 | expect(didThrow { _=try transport.begin(now:29) },"29 second deadline")
+159 | var capped=DiagnosticTransportState();capped.deadline=29;capped.requests=2500
+160 | expect(didThrow { _=try capped.begin(now:0) },"2500 request cap")
+    | `- error: expressions are not allowed at the top level
+161 | for data in [Data(repeating:32,count:8193),Data("[]".utf8)] {
+162 |     var state=DiagnosticTransportState();state.deadline=29
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-fixed-chunk-implementation/generated_host_probe.swift:161:1: error: statements are not allowed at the top level
+159 | var capped=DiagnosticTransportState();capped.deadline=29;capped.requests=2500
+160 | expect(didThrow { _=try capped.begin(now:0) },"2500 request cap")
+161 | for data in [Data(repeating:32,count:8193),Data("[]".utf8)] {
+    | `- error: statements are not allowed at the top level
+162 |     var state=DiagnosticTransportState();state.deadline=29
+163 |     expect(didThrow { _=try state.response(status:200,data:data,networkError:nil) },"bounded invalid response")
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-fixed-chunk-implementation/generated_host_probe.swift:167:81: error: expressions are not allowed at the top level
+165 |     expect(didThrow { _=try state.begin(now:0) },"sticky first failure")
+166 | }
+167 | var sticky=DiagnosticTransportState();let first=sticky.latch(.network("first"));_ = sticky.latch(.responseInvalid)
+    |                                                                                 `- error: expressions are not allowed at the top level
+168 | expect(sticky.firstFailure==first,"first failure replaced")
+169 | let output:[String:Any]=["passed":true,"serializationRows":rows,"echoRows":echoes,"rawJSONEchoRows":rawEchoRows,"actualClientPacking":packing,"actualBodyGuard":true,"originalTransportLimitsAndStickyFailure":true,"scope":"host Foundation; post is a generated in-process stub; no HTTP/native execution"]
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-fixed-chunk-implementation/generated_host_probe.swift:168:1: error: expressions are not allowed at the top level
+166 | }
+167 | var sticky=DiagnosticTransportState();let first=sticky.latch(.network("first"));_ = sticky.latch(.responseInvalid)
+168 | expect(sticky.firstFailure==first,"first failure replaced")
+    | `- error: expressions are not allowed at the top level
+169 | let output:[String:Any]=["passed":true,"serializationRows":rows,"echoRows":echoes,"rawJSONEchoRows":rawEchoRows,"actualClientPacking":packing,"actualBodyGuard":true,"originalTransportLimitsAndStickyFailure":true,"scope":"host Foundation; post is a generated in-process stub; no HTTP/native execution"]
+170 | FileHandle.standardOutput.write(try JSONSerialization.data(withJSONObject:output,options:[.prettyPrinted,.sortedKeys,.withoutEscapingSlashes]))
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-fixed-chunk-implementation/generated_host_probe.swift:170:1: error: expressions are not allowed at the top level
+168 | expect(sticky.firstFailure==first,"first failure replaced")
+169 | let output:[String:Any]=["passed":true,"serializationRows":rows,"echoRows":echoes,"rawJSONEchoRows":rawEchoRows,"actualClientPacking":packing,"actualBodyGuard":true,"originalTransportLimitsAndStickyFailure":true,"scope":"host Foundation; post is a generated in-process stub; no HTTP/native execution"]
+170 | FileHandle.standardOutput.write(try JSONSerialization.data(withJSONObject:output,options:[.prettyPrinted,.sortedKeys,.withoutEscapingSlashes]))
+    | `- error: expressions are not allowed at the top level
+171 | FileHandle.standardOutput.write(Data([10]))
+172 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-fixed-chunk-implementation/generated_host_probe.swift:171:1: error: expressions are not allowed at the top level
+169 | let output:[String:Any]=["passed":true,"serializationRows":rows,"echoRows":echoes,"rawJSONEchoRows":rawEchoRows,"actualClientPacking":packing,"actualBodyGuard":true,"originalTransportLimitsAndStickyFailure":true,"scope":"host Foundation; post is a generated in-process stub; no HTTP/native execution"]
+170 | FileHandle.standardOutput.write(try JSONSerialization.data(withJSONObject:output,options:[.prettyPrinted,.sortedKeys,.withoutEscapingSlashes]))
+171 | FileHandle.standardOutput.write(Data([10]))
+    | `- error: expressions are not allowed at the top level
+172 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-fixed-chunk-implementation/generated_host_probe.swift:150:5: error: constant must be declared private or fileprivate because its type 'SettingsTelemetry' uses a private type
+148 | }
+149 | SettingsTelemetry.hostRecords=[];SettingsTelemetry.hostReply=["generation":"x","remainingSessionSeconds":29.0,"chunkBytes":4992]
+150 | let guarded=SettingsTelemetry();try guarded.start()
+    |     `- error: constant must be declared private or fileprivate because its type 'SettingsTelemetry' uses a private type
+151 | let tooLarge=["padding":String(repeating:"/",count:8192)]
+152 | expect(didThrow { _=try guarded.observe("before-switch",routeIndex:3,attempt:0,snapshot:tooLarge,started:0,finished:0,ax:nil,png:nil) },"actual 8192 body guard")
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-fixed-chunk-implementation/generated_host_probe.swift:156:12: error: call can throw, but it is executed in a non-throwing autoclosure
+154 | // Original transport is compiled byte-identically and exercised directly.
+155 | var transport=DiagnosticTransportState();transport.deadline=29
+156 | expect(try transport.begin(now:0)==2,"two-second ceiling")
+    |            `- error: call can throw, but it is executed in a non-throwing autoclosure
+157 | expect(try transport.begin(now:28.99)<0.011,"absolute deadline clips request")
+158 | expect(didThrow { _=try transport.begin(now:29) },"29 second deadline")
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-fixed-chunk-implementation/generated_host_probe.swift:157:12: error: call can throw, but it is executed in a non-throwing autoclosure
+155 | var transport=DiagnosticTransportState();transport.deadline=29
+156 | expect(try transport.begin(now:0)==2,"two-second ceiling")
+157 | expect(try transport.begin(now:28.99)<0.011,"absolute deadline clips request")
+    |            `- error: call can throw, but it is executed in a non-throwing autoclosure
+158 | expect(didThrow { _=try transport.begin(now:29) },"29 second deadline")
+159 | var capped=DiagnosticTransportState();capped.deadline=29;capped.requests=2500

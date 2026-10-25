@@ -1,0 +1,22 @@
+{
+  "versions": {
+    "node": "v22.23.3",
+    "platform": "darwin",
+    "architecture": "arm64",
+    "miniflare": "4.20260730.0",
+    "typescript": "5.9.3",
+    "workersTypes": "5.20260730.1",
+    "workerd": "workerd 2026-07-30"
+  },
+  "command": [
+    "node",
+    "-e",
+    "const {createRequire}=require('node:module');const{spawnSync}=require('node:child_process');const r=createRequire(process.cwd()+'/hosted-worker-controller/package.json');console.log(JSON.stringify({node:process.version,platform:process.platform,architecture:process.arch,miniflare:r('miniflare/package.json').version,typescript:r('typescript/package.json').version,workersTypes:r('@cloudflare/workers-types/package.json').version,workerd:spawnSync(r('workerd').default,['--version'],{encoding:'utf8'}).stdout.trim()}));"
+  ],
+  "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+  "exitCode": 0,
+  "stdout": "{\"node\":\"v22.23.3\",\"platform\":\"darwin\",\"architecture\":\"arm64\",\"miniflare\":\"4.20260730.0\",\"typescript\":\"5.9.3\",\"workersTypes\":\"5.20260730.1\",\"workerd\":\"workerd 2026-07-30\"}\n",
+  "stderr": "",
+  "stdoutEOF": true,
+  "stderrEOF": true
+}

@@ -1,0 +1,15 @@
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-fixed-chunk-review/owned-host/main.swift:162:15: error: call can throw, but it is executed in a non-throwing autoclosure
+160 | do {
+161 |     var transport=DiagnosticTransportState();transport.deadline=100
+162 |     check(try transport.begin(now:90)==2,"two second ceiling")
+    |               `- error: call can throw, but it is executed in a non-throwing autoclosure
+163 |     check(try transport.begin(now:99.75)==0.25,"absolute deadline clipping")
+164 |     transport.requests=2500;rejects("request cap"){_ = try transport.begin(now:90)}
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-settings-fixed-chunk-review/owned-host/main.swift:163:15: error: call can throw, but it is executed in a non-throwing autoclosure
+161 |     var transport=DiagnosticTransportState();transport.deadline=100
+162 |     check(try transport.begin(now:90)==2,"two second ceiling")
+163 |     check(try transport.begin(now:99.75)==0.25,"absolute deadline clipping")
+    |               `- error: call can throw, but it is executed in a non-throwing autoclosure
+164 |     transport.requests=2500;rejects("request cap"){_ = try transport.begin(now:90)}
+165 |     var deadline=DiagnosticTransportState();deadline.deadline=100

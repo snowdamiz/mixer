@@ -1,0 +1,55 @@
+--- a/src/experimental_swift_reactor/cache_tests.rs
++++ b/src/experimental_swift_reactor/cache_tests.rs
+@@ -537,7 +537,7 @@
+     assert_eq!(s.allocated_bytes, expected);
+     assert_eq!(
+         c.usage(None).reservations.cache.current,
+-        cache_header_bytes().unwrap() + expected
++        cache_header_bytes().unwrap() + expected - 192
+     );
+     inspection::print_layouts();
+     finish(cache, c);
+@@ -681,14 +681,14 @@
+             .unwrap();
+     }
+     assert_eq!(c.usage(None).live.cache_entries.current, 64);
+-    assert_eq!(c.usage(None).reservations.live_tickets, 74);
++    assert_eq!(c.usage(None).reservations.live_tickets, 73);
+     assert!(c.usage(None).reservations.peak_tickets <= MAX_RESERVATION_TICKETS);
+     let p = pin(&mut cache, &mut c, 98, None).unwrap();
+     cache
+         .release(p, &mut c, None)
+         .map_err(|e| e.failure)
+         .unwrap();
+-    assert_eq!(c.usage(None).reservations.live_tickets, 74);
++    assert_eq!(c.usage(None).reservations.live_tickets, 73);
+     assert_eq!(cache.usage().evictions, 1);
+     finish(cache, c);
+     // Actual release is admission/work/cancellation independent, including the
+@@ -1832,7 +1832,7 @@
+     let ledger = c.usage(None);
+     assert_eq!(ledger.live.active_pins.current, 64);
+     assert_eq!(ledger.live.cache_entries.current, 64);
+-    assert_eq!(ledger.reservations.live_tickets, 74);
++    assert_eq!(ledger.reservations.live_tickets, 73);
+     assert_eq!(before.pinned_bytes, before.resident_bytes);
+     let (failure, stats) = measure(|| pin(&mut cache, &mut c, 98, None).unwrap_err());
+     assert_eq!(failure.code, "pin_slots_exhausted");
+@@ -2300,8 +2300,6 @@
+         header,
+         header + patch_bytes - 1,
+         header + patch_bytes,
+-        header + patch_bytes + 191,
+-        header + patch_bytes + 192,
+     ] {
+         let (mut c, a) = adopt(
+             &bytes,
+@@ -2313,7 +2311,7 @@
+             },
+         );
+         let (result, stats) = measure(|| construct(&mut c, a, None));
+-        if ceiling == header + patch_bytes + 192 {
++        if ceiling == header + patch_bytes {
+             assert_eq!(stats.attempts, 2);
+             let cache = result.unwrap();
+             assert_eq!(c.usage(None).reservations.cache.current, ceiling);

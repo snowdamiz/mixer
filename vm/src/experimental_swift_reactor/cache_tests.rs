@@ -537,7 +537,7 @@ fn permanent_patch_arena_exact_requests() {
     assert_eq!(s.allocated_bytes, expected);
     assert_eq!(
         c.usage(None).reservations.cache.current,
-        cache_header_bytes().unwrap() + expected
+        cache_header_bytes().unwrap() + expected - 192
     );
     inspection::print_layouts();
     finish(cache, c);
@@ -681,14 +681,14 @@ fn pins_hits_lru_and_eviction() {
             .unwrap();
     }
     assert_eq!(c.usage(None).live.cache_entries.current, 64);
-    assert_eq!(c.usage(None).reservations.live_tickets, 74);
+    assert_eq!(c.usage(None).reservations.live_tickets, 73);
     assert!(c.usage(None).reservations.peak_tickets <= MAX_RESERVATION_TICKETS);
     let p = pin(&mut cache, &mut c, 98, None).unwrap();
     cache
         .release(p, &mut c, None)
         .map_err(|e| e.failure)
         .unwrap();
-    assert_eq!(c.usage(None).reservations.live_tickets, 74);
+    assert_eq!(c.usage(None).reservations.live_tickets, 73);
     assert_eq!(cache.usage().evictions, 1);
     finish(cache, c);
     // Actual release is admission/work/cancellation independent, including the
@@ -1832,7 +1832,7 @@ fn review_64_distinct_live_pins_then_65th_and_terminal_release() {
     let ledger = c.usage(None);
     assert_eq!(ledger.live.active_pins.current, 64);
     assert_eq!(ledger.live.cache_entries.current, 64);
-    assert_eq!(ledger.reservations.live_tickets, 74);
+    assert_eq!(ledger.reservations.live_tickets, 73);
     assert_eq!(before.pinned_bytes, before.resident_bytes);
     let (failure, stats) = measure(|| pin(&mut cache, &mut c, 98, None).unwrap_err());
     assert_eq!(failure.code, "pin_slots_exhausted");
@@ -2300,8 +2300,6 @@ fn review_exact_phase_and_header_admission_boundaries() {
         header,
         header + patch_bytes - 1,
         header + patch_bytes,
-        header + patch_bytes + 191,
-        header + patch_bytes + 192,
     ] {
         let (mut c, a) = adopt(
             &bytes,
@@ -2313,7 +2311,7 @@ fn review_exact_phase_and_header_admission_boundaries() {
             },
         );
         let (result, stats) = measure(|| construct(&mut c, a, None));
-        if ceiling == header + patch_bytes + 192 {
+        if ceiling == header + patch_bytes {
             assert_eq!(stats.attempts, 2);
             let cache = result.unwrap();
             assert_eq!(c.usage(None).reservations.cache.current, ceiling);

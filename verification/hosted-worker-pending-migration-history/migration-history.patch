@@ -1,0 +1,71 @@
+--- frozen/src/engine.ts
++++ candidate/src/engine.ts
+@@ -35,6 +35,12 @@
+   // Synchronous validation of the current local projection, not merely its
+   // equality with an earlier snapshot. Parse status from exact permanent bytes;
+   // never normalize or repair those bytes before computing their evidence hash.
++  private unenrolledMigrationShape(r:Row):boolean{
++    // This is only the bounded shape produced by schema-1/2 migration, not proof
++    // of historical origin. It keeps quarantine and grants no execution or
++    // delivery authority. Only explicit validated enrollment can add a receipt.
++    return r.quarantined===1&&r.pending_identity_json===null&&r.registration_json===null&&r.registry_ack_version==='0'&&r.effect_barrier_version===null&&r.claim_barrier_version===null&&BigInt(r.state_version)>0n;
++  }
+   private terminalProjection(r:Row):CoalescedTrackOutbox|null{
+     let phase:'completed'|'stopped'|null=null;
+     if(r.terminal_json!==null){
+@@ -45,10 +51,10 @@
+       if(observation.status==='stopped'){exact(observation,['status','diagnostic_sha256']);hex(observation.diagnostic_sha256);phase='stopped';}
+       else if(observation.status==='completed'){exact(observation,['status','result']);result(observation.result);phase='completed';}
+       else throw new Error('terminal_status');
+-      if(r.phase!==phase||r.next_due_us!==null)throw new Error('terminal_row');
++      if(r.phase!==phase||r.next_due_us!==null||r.state_version==='0')throw new Error('terminal_row');
+     }else if(r.phase==='completed'||r.phase==='stopped')throw new Error('terminal_missing');
+     if(r.track_outbox_json===null){
+-      if(phase!==null&&BigInt(r.registry_ack_version)<BigInt(r.state_version))throw new Error('terminal_outbox_missing');
++      if(phase!==null&&BigInt(r.registry_ack_version)<BigInt(r.state_version)&&!this.unenrolledMigrationShape(r))throw new Error('terminal_outbox_missing');
+       return null;
+     }
+     const outbox=JSON.parse(r.track_outbox_json) as CoalescedTrackOutbox;
+@@ -66,7 +72,13 @@
+   // Caller holds the synchronous ledger transaction. Preserve every recovery
+   // byte on invalid projection; ordinary fence save() must not parse/replace it.
+   private terminalConsistent(r:Row):boolean{
+-    try{this.terminalProjection(r);return true;}
++    try{
++      registryDecimal(r.state_version);registryDecimal(r.registry_ack_version);
++      if(BigInt(r.registry_ack_version)>BigInt(r.state_version)){
++        this.ledger.fence(this.fenceIdentity(r),r.state_version,'track_history_regressed',true);return false;
++      }
++      this.terminalProjection(r);return true;
++    }
+     catch{this.ledger.fence(this.fenceIdentity(r),r.state_version,'track_terminal_inconsistent',true);return false;}
+   }
+   private trackSnapshotValid(current:Row|null,snapshot:Row,identity:PendingIdentity,bytes:string,mode:'start'|'ack'):boolean{
+@@ -526,14 +538,25 @@
+     try{
+       // The maintenance caller explicitly supplies one existing identity. No
+       // scan, namespace enumeration, restore authority or quarantine clearing.
+-      if(!this.pending||identityBytes(identity)!==identityBytes(this.pending.identity)||!matchesRow(identity,prior)||await sha(prior.binding)!==identity.immutableSha256)return 'conflict';
++      if(this.ledger.fenced()||!this.pending||identityBytes(identity)!==identityBytes(this.pending.identity)||!matchesRow(identity,prior)||await sha(prior.binding)!==identity.immutableSha256)return 'conflict';
++      const unenrolled=prior.pending_identity_json===null&&prior.registration_json===null;
++      if(unenrolled?!this.unenrolledMigrationShape(prior):prior.pending_identity_json===null||prior.registration_json===null)return 'conflict';
++      if(!unenrolled){
++        try{
++          const existing=await this.checked(JSON.parse(prior.pending_identity_json!),JSON.parse(prior.registration_json!));
++          if(prior.pending_identity_json!==JSON.stringify(existing.identity)||prior.registration_json!==JSON.stringify(existing.receipt))return 'conflict';
++        }catch{return 'conflict';}
++      }
++      // Exhaustion cannot leave a newly registered local row without a versioned
++      // outbox. The final transaction rechecks the entire row after all awaits.
++      this.ledger.nextVersion(prior);
+       const result=await wait(this.registry().register(identity),250);if(!result.ok)return 'unavailable';
+       const registered=result.value;if(registered.status!=='registered'&&registered.status!=='duplicate')return registered.status==='conflict'?'conflict':'unavailable';
+       const checked=await this.checked(identity,registered.receipt);
+       const enrolled=this.ledger.transaction(r=>{
+         if(r&&!this.terminalConsistent(r))return false;
+         if(r&&!this.providerMatches(r)){this.providerFenceInTransaction(r);return false;}
+-        if(!r||r.binding!==prior.binding||!matchesRow(checked.identity,r))return false;
++        if(!r||this.ledger.fenced()||JSON.stringify(r)!==JSON.stringify(prior)||!matchesRow(checked.identity,r))return false;
+         if(r.registration_json&&r.registration_json!==JSON.stringify(checked.receipt))return false;
+         if(r.pending_identity_json&&r.pending_identity_json!==JSON.stringify(checked.identity))return false;
+         r.pending_identity_json=JSON.stringify(checked.identity);r.registration_json=JSON.stringify(checked.receipt);

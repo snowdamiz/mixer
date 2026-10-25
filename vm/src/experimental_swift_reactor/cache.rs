@@ -244,7 +244,7 @@ pub(crate) struct SwiftFunctionCache {
     pins: Vec<PinRecord>,
     patches: Vec<decode::Patch>,
     index: Vec<u8>,
-    buffers: [Option<ReservationTicket>; 4],
+    buffers: [Option<ReservationTicket>; 3],
     header: Option<ReservationTicket>,
 }
 /// A wrapper exists only after the existing construction ticket is enlarged.
@@ -283,7 +283,7 @@ struct Partial {
     pins: Vec<PinRecord>,
     patches: Vec<decode::Patch>,
     index: Vec<u8>,
-    buffers: [Option<ReservationTicket>; 4],
+    buffers: [Option<ReservationTicket>; 3],
     header: Option<ReservationTicket>,
 }
 impl Partial {
@@ -308,9 +308,9 @@ impl Partial {
         if let Some(ticket) = self.buffers[2].take() {
             let _ = control.drop_reserved(take(&mut self.patches), ticket);
         }
-        if let Some(ticket) = self.buffers[3].take() {
-            let _ = control.drop_reserved(take(&mut self.index), ticket);
-        }
+        // The header admitted the index payload before its allocation. Keep it
+        // charged while the entire Vec and every transfer are destroyed.
+        drop(take(&mut self.index));
         if let Some(adopted) = self.adopted.take() {
             let observation = control.observation();
             let _ = control.control.drop_proof_with_wasi(adopted, observation);
@@ -1090,7 +1090,10 @@ const fn compute_cache_header_bytes() -> Option<usize> {
     let Some(cleanup) = compute_cache_cleanup_temporary_bytes() else {
         return None;
     };
-    exclusive.checked_add(cleanup)
+    let Some(header) = exclusive.checked_add(cleanup) else {
+        return None;
+    };
+    header.checked_add(RESIDENT_INDEX_BYTES)
 }
 const fn compute_cache_construction_bytes() -> Option<usize> {
     sum_named!(&[
@@ -1644,16 +1647,8 @@ impl SwiftFunctionCache {
                 ),
             );
         }
-        if let Some(ticket) = cache.buffers[3].take() {
-            capture(
-                &mut failure,
-                control.drop_reserved_with_wasi(
-                    take(&mut cache.index),
-                    ticket,
-                    wasi.map(AccountedWasi::usage),
-                ),
-            );
-        }
+        // Destroy index payload before the header moves into its cleanup tail.
+        drop(take(&mut cache.index));
         let SwiftFunctionCache {
             adopted, header, ..
         } = cache;
@@ -1824,7 +1819,6 @@ impl CacheConstructionPhase<'_> {
             self.control.work(1)?;
             partial.patches.push(decode::EMPTY_PATCH);
         }
-        partial.buffers[3] = Some(self.control.admit(RESIDENT_INDEX_BYTES)?);
         reserve(&mut partial.index, RESIDENT_INDEX_BYTES, &mut self.control)?;
         for _ in 0..RESIDENT_INDEX_BYTES {
             self.control.work(1)?;
@@ -1840,8 +1834,7 @@ impl CacheConstructionPhase<'_> {
         let fixed_reserved = header
             + entries * size_of::<SwiftSlot>()
             + budget.active_pins * size_of::<PinRecord>()
-            + PATCH_CAPACITY * size_of::<decode::Patch>()
-            + RESIDENT_INDEX_BYTES;
+            + PATCH_CAPACITY * size_of::<decode::Patch>();
         Ok((
             owner,
             SwiftCacheUsage {

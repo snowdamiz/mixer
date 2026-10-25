@@ -1,0 +1,284 @@
+import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+import {readFile,writeFile} from 'node:fs/promises';
+import {resolve} from 'node:path';
+import {harness,cleanup} from './harness.mjs';
+const root=resolve(import.meta.dirname,'../../../..');
+const base=JSON.parse(await readFile(resolve(root,'verification/hosted-worker-controller-contract/vectors.json'),'utf8')).cases[0].request;
+const sha=s=>createHash('sha256').update(s).digest('hex');
+const clone=v=>JSON.parse(JSON.stringify(v));
+const fixed={namespaceGeneration:'a'.repeat(64),environmentId:base.environment_id,poolId:base.pool_id,controllerId:base.controller_id,platform:base.ref.platform,operationKey:sha(JSON.stringify(['mixer-worker-controller-do-v1',base.environment_id,base.pool_id,base.controller_id,base.operation_id])),operationId:base.operation_id,immutableSha256:base.immutable_sha256};
+const changed=(r,fields)=>({...clone(r),...fields,guard:{...r.guard,...fields.guard}});
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+async function until(f){for(let i=0;i<80;i++){if(await f())return;await wait(5);}throw new Error('bounded_fixture_wait');}
+const cases=[],results=[];let lane='original32';
+function test(id,fn){cases.push({id,fn,lane});}
+async function registered(h){const r=await h.call('register');assert.ok(['registered','duplicate'].includes(r.status));h.receipt=r.receipt;return r.receipt;}
+async function command(h,command='ensure_started',fields={}){h.request=changed(base,{command,...fields});return h.call('command',{request:h.request,receipt:h.receipt});}
+const raw=h=>h.call('raw');
+const registry=h=>h.call('registry',{command:'raw'});
+const mode=(h,mode,skip=0)=>h.call('registry',{command:'mode',mode,skip});
+const count=(r,k)=>r.calls.filter(c=>c.kind===k).length;
+async function ticket(h,version){const s=await h.call('reserve',{recordId:h.receipt.recordId,version,runId:'1'});assert.equal(s.status,'reserved');return s.ticket;}
+
+test('new-row-requires-validated-preregistration-and-default-unavailable',async h=>{
+ assert.deepEqual(await h.call('plain',{request:base}),{status:'error',code:'unavailable'});assert.equal((await raw(h)).row,null);
+ await registered(h);
+ assert.deepEqual(await h.call('defaultUnavailable',{request:base,receipt:h.receipt}),{status:'error',code:'unavailable'});assert.equal((await raw(h)).row,null);
+ assert.deepEqual(await h.call('command',{request:base,receipt:{...h.receipt,recordId:'f'.repeat(32)}}),{status:'error',code:'unavailable'});assert.equal((await raw(h)).row,null);
+ assert.deepEqual(await command(h,'query'),{status:'absent'});assert.ok((await raw(h)).row.registration_json);
+});
+test('lost-registration-ack-retries-same-permanent-slot-before-row',async h=>{
+ await mode(h,'register_lost');assert.equal((await h.call('register')).status,'unavailable');assert.equal((await raw(h)).row,null);
+ const before=(await registry(h)).records[0];assert.equal(before.state_version,'0');
+ await mode(h,'normal');await registered(h);assert.equal(h.receipt.recordId,before.record_id);assert.equal((await registry(h)).records.length,1);
+ await command(h);assert.equal(count(await raw(h),'launch'),1);
+});
+test('lost-track-ack-blocks-launch-and-replays-exact-latest-outbox',async h=>{
+ await registered(h);await mode(h,'lost_once');await command(h);
+ const before=await raw(h);assert.equal(count(before,'launch'),0);assert.ok(before.row.track_outbox_json);assert.equal(before.row.registry_ack_version,'0');
+ assert.equal((await registry(h)).records[0].state_version,before.row.state_version);
+ await h.call('reconcile');const after=await raw(h);assert.equal(count(after,'launch'),1);assert.equal(after.row.track_outbox_json,null);
+});
+test('ack-metadata-does-not-generate-state-or-recursive-outbox',async h=>{
+ await registered(h);await command(h,'query');const a=await raw(h);
+ await h.call('flush');const b=await raw(h);await h.call('flush');const c=await raw(h);
+ assert.equal(b.row.state_version,a.row.state_version);assert.equal(c.row.state_version,b.row.state_version);assert.equal(c.row.track_outbox_json,null);assert.equal(c.row.registry_ack_version,c.row.state_version);
+});
+test('out-of-order-old-ack-cannot-erase-newer-stop-projection',async h=>{
+ await registered(h);await mode(h,'hold_after_once');const pending=command(h).catch(e=>({error:e.message}));
+ await until(async()=>(await registry(h)).settings.blocked);
+ await command(h,'stop',{guard:{epoch:'2',owner_id:'stop-owner'}});const newer=await raw(h);assert.equal(newer.row.desired,'stop');assert.ok(newer.row.track_outbox_json);
+ await h.call('flush');const acked=await raw(h);assert.equal(acked.row.registry_ack_version,acked.row.state_version);
+ await h.call('registry',{command:'release'});await pending;
+ const after=await raw(h);assert.equal(count(after,'launch'),0);assert.ok(BigInt(after.row.registry_ack_version)>=BigInt(acked.row.registry_ack_version));assert.equal(after.row.desired,'stop');
+});
+test('newer-command-during-dispatch-barrier-invalidates-old-effect',async h=>{
+ await registered(h);await mode(h,'hold_after_once',1);const pending=command(h);await until(async()=>(await registry(h)).settings.blocked);
+ const dispatched=(await raw(h)).row;assert.equal(dispatched.launch_dispatched,1);
+ await command(h,'query',{guard:{epoch:'2',owner_id:'new-owner'}});await h.call('registry',{command:'release'});await pending;
+ assert.equal(count(await raw(h),'launch'),0);await h.call('reconcile');const after=await raw(h);assert.equal(count(after,'launch'),0);assert.equal(count(after,'inspect'),1);
+});
+test('dispatch-barrier-wait-rechecks-qualified-expiry',async h=>{
+ await registered(h);await mode(h,'hold_after_once',1);const pending=command(h);await until(async()=>(await registry(h)).settings.blocked);
+ await h.call('clock',{now:base.guard.expires_at_us});await h.call('registry',{command:'release'});await pending;
+ const r=await raw(h);assert.equal(count(r,'launch'),0);assert.equal(r.row.launch_dispatched,1);assert.ok(BigInt(r.row.registry_ack_version)>=BigInt(r.row.effect_barrier_version));
+});
+test('claim-barrier-wait-rechecks-qualified-expiry-and-keeps-consumption',async h=>{
+ await registered(h);await command(h);await mode(h,'hold_after_once');const pending=h.call('claim');await until(async()=>(await registry(h)).settings.blocked);
+ await h.call('clock',{now:base.guard.expires_at_us});await h.call('registry',{command:'release'});assert.deepEqual(await pending,{granted:false});
+ const r=await raw(h);assert.equal(r.row.claim_state,'consumed');assert.equal(count(r,'launch'),1);assert.equal((await h.call('claim')).granted,false);
+});
+test('claim-final-clock-write-may-have-newer-unacked-outbox',async h=>{
+ await registered(h);await command(h);const granted=await h.call('claim');assert.equal(granted.granted,true);
+ const r=await raw(h);assert.equal(r.row.registry_ack_version,r.row.claim_barrier_version);assert.equal(BigInt(r.row.state_version),BigInt(r.row.claim_barrier_version)+1n);assert.equal(JSON.parse(r.row.track_outbox_json).stateVersion,r.row.state_version);
+ const version=r.row.state_version;await h.call('flush');const after=await raw(h);assert.equal(after.row.state_version,version);assert.equal(after.row.track_outbox_json,null);
+});
+test('retained-stop-cleans-up-during-registry-and-clock-outage',async h=>{
+ await registered(h);await command(h);await command(h,'stop',{guard:{epoch:'2',owner_id:'stop-owner'}});
+ const before=await raw(h);await mode(h,'unavailable');await h.call('clock',{now:'1900000000000000',qualified:false});await h.call('drain',{value:true});await h.call('reconcile');
+ const after=await raw(h);assert.ok(count(after,'stop')>count(before,'stop'));assert.equal(after.row.terminal_json,null);assert.equal(after.row.phase,'stop_pending');assert.ok(after.row.track_outbox_json);assert.equal(count(after,'launch'),1);
+ await mode(h,'normal');await h.call('clock',{now:base.guard.expires_at_us});await h.call('reconcile');const recovered=await raw(h);assert.equal(JSON.parse(recovered.row.terminal_json).status,'stopped');assert.equal(count(recovered,'launch'),1);
+});
+test('terminal-evidence-tracks-exact-local-bytes-and-lost-ack-replays',async h=>{
+ await registered(h);await command(h);assert.equal((await h.call('claim')).granted,true);assert.equal((await h.call('report')).status,'accepted');
+ await h.call('drain',{value:true});await mode(h,'lost_once',2);await h.call('reconcile');
+ let r=await raw(h);assert.equal(JSON.parse(r.row.terminal_json).status,'completed');assert.ok(r.row.track_outbox_json);assert.ok(BigInt(r.row.registry_ack_version)<BigInt(r.row.state_version));
+ // Delivery can lose either dispatch or terminal ACK; retain terminal bytes until
+ // the exact registry terminal version is accepted, then duplicate replay is safe.
+ assert.ok(r.alarm!==null);
+ for(let i=0;i<100&&(await raw(h)).row.track_outbox_json!==null;i++)await wait(20);
+ r=await raw(h);assert.equal(r.row.track_outbox_json,null);const rec=(await registry(h)).records[0],p=JSON.parse(rec.projection_json);assert.equal(rec.pending,0);assert.equal(p.kind,'terminal');assert.equal(p.evidenceSha256,sha(r.row.terminal_json));assert.equal(rec.state_version,r.row.state_version);assert.equal(r.row.track_outbox_json,null);
+ const launches=count(r,'launch');await h.restart(true);await h.call('reconcile');assert.equal(count(await raw(h),'launch'),launches);
+});
+test('version-zero-orphan-is-read-only-and-remains-pending',async h=>{
+ await registered(h);const t=await ticket(h,'0');assert.deepEqual(await h.call('recoverKnown',{receipt:h.receipt,ticket:t}),{status:'empty_orphan'});
+ const r=await raw(h);assert.equal(r.row,null);assert.equal(r.fence.length,0);assert.equal(r.calls.length,0);assert.equal((await registry(h)).records[0].pending,1);
+});
+test('positive-missing-ledger-persists-fence-without-authority',async h=>{
+ await registered(h);await command(h);const v=(await registry(h)).records[0].state_version,t=await ticket(h,v);await h.call('deleteRow');
+ assert.deepEqual(await h.call('recoverKnown',{receipt:h.receipt,ticket:t}),{status:'quarantined'});let r=await raw(h);assert.equal(r.row,null);assert.equal(r.fence.length,1);
+ assert.equal((await h.call('enroll')).status,'missing');await h.restart(true);assert.deepEqual(await command(h),{status:'error',code:'unavailable'});r=await raw(h);assert.equal(r.row,null);assert.equal(r.fence.length,1);
+});
+test('regressed-ledger-and-registry-ahead-never-reconstruct-authority',async h=>{
+ await registered(h);await command(h);const v=(await registry(h)).records[0].state_version,t=await ticket(h,v);await h.call('regress');const restored=await raw(h);
+ assert.deepEqual(await h.call('recoverKnown',{receipt:h.receipt,ticket:t}),{status:'quarantined'});const r=await raw(h);assert.deepEqual(r.row,restored.row);assert.equal(r.fence[0].reason,'track_history_regressed');assert.equal(r.fence.length,1);assert.equal(count(r,'launch'),1);
+});
+test('registry-newer-watermark-quarantines-flush',async h=>{
+ await registered(h);await command(h);const row=(await raw(h)).row;
+ assert.equal((await h.call('forceTrack',{input:{receipt:h.receipt,stateVersion:String(BigInt(row.state_version)+10n),projection:{kind:'pending',nextDueUs:null}}})).status,'accepted');
+ await command(h,'query');await h.call('flush');const r=await raw(h);assert.equal(r.row.quarantined,1);assert.equal(r.fence.length,1);assert.equal(count(r,'launch'),1);
+});
+for(const version of [1,2])test('schema-'+version+'-migration-preserves-v2-safety-and-enrollment-quarantine',async h=>{
+ await registered(h);await command(h);await h.call('claim');const m=await h.call('legacy',{version});
+ for(const [key,value] of Object.entries(m.before)){if(['pending_identity_json','registration_json','registry_ack_version','effect_barrier_version','claim_barrier_version','track_outbox_json','quarantined'].includes(key))continue;if(key==='clock_floor'&&version===1){assert.equal(m.after.clock_floor,m.before.clock_lower);continue;}assert.deepEqual(m.after[key],value,key);}
+ assert.equal(m.after.quarantined,1);assert.equal(m.after.registration_json,null);assert.equal((await h.call('enroll')).status,'enrolled');const r=await raw(h);assert.equal(r.row.quarantined,1);assert.ok(r.row.registration_json);assert.equal((await h.call('claim')).granted,false);
+ await h.call('reconcile');assert.equal(count(await raw(h),'launch'),1);
+});
+test('legacy-durable-stop-cleanup-survives-migration-outage',async h=>{
+ await registered(h);await command(h,'stop');await h.call('legacy',{version:2});await mode(h,'unavailable');await h.call('drain',{value:true});await h.call('clock',{now:'1900000000000000',qualified:false});await h.call('reconcile');
+ const r=await raw(h);assert.equal(r.row.quarantined,1);assert.equal(r.row.terminal_json,null);assert.equal(r.row.phase,'stop_pending');assert.ok(r.row.track_outbox_json);assert.equal(count(r,'launch'),0);
+});
+test('partial-metadata-and-missing-safety-table-fail-closed',async h=>{
+ await registered(h);await command(h);const r=await h.call('partialMetadata');assert.equal(r.unavailable,true);assert.ok(r.row);assert.equal(r.row.provider_key,fixed.operationKey);assert.equal(r.row.launch_dispatched,1);
+});
+test('schema3-missing-safety-table-is-unavailable',async h=>{assert.equal((await h.call('missingSafetyTable')).unavailable,true);});
+test('SIGKILL-durable-intent-recovers-persisted-outbox-on-known-identity',async h=>{
+ await registered(h);await h.call('inject',{point:'after_intent'});const pending=command(h).catch(()=>null);await until(async()=>(await raw(h)).settings.blocked);
+ const before=await raw(h);assert.equal(before.row.launch_dispatched,0);assert.ok(before.row.track_outbox_json);assert.equal((await registry(h)).records[0].state_version,'0');
+ await h.restart(true);await pending;const t=await ticket(h,'0');assert.equal((await h.call('recoverKnown',{receipt:h.receipt,ticket:t})).status,'pending');const after=await raw(h);assert.equal(count(after,'launch'),1);assert.equal(after.row.provider_key,before.row.provider_key);assert.equal(after.row.track_outbox_json,null);
+});
+test('preregistration-wait-cannot-refresh-expired-authority',async h=>{
+ await registered(h);await h.call('inject',{point:'after_registration_validated'});const pending=command(h);await until(async()=>(await raw(h)).settings.blocked);
+ await h.call('clock',{now:base.guard.expires_at_us});await h.call('release');assert.deepEqual(await pending,{status:'error',code:'stale'});assert.equal((await raw(h)).row,null);assert.equal((await registry(h)).records[0].state_version,'0');
+});
+test('retained-registration-does-not-reregister-existing-stop',async h=>{
+ await registered(h);await command(h);await mode(h,'register_unavailable');await command(h,'stop',{guard:{epoch:'2',owner_id:'stop-owner'}});const r=await raw(h);assert.equal(r.row.desired,'stop');assert.equal(count(r,'stop'),1);assert.equal(count(r,'launch'),1);
+});
+test('concurrent-newer-stop-wins-consumed-claim-barrier',async h=>{
+ await registered(h);await command(h);await mode(h,'hold_after_once');const pending=h.call('claim');await until(async()=>(await registry(h)).settings.blocked);
+ await command(h,'stop',{guard:{epoch:'2',owner_id:'stop-owner'}});await h.call('registry',{command:'release'});assert.deepEqual(await pending,{granted:false});const r=await raw(h);assert.equal(r.row.desired,'stop');assert.equal(r.row.claim_state,'consumed');assert.equal(count(r,'launch'),1);
+});
+test('recovery-full-identity-disagreement-persists-quarantine',async h=>{
+ await registered(h);await command(h);const v=(await registry(h)).records[0].state_version,t=await ticket(h,v);
+ assert.deepEqual(await h.call('recoverKnown',{identity:{...fixed,immutableSha256:'f'.repeat(64)},receipt:h.receipt,ticket:t}),{status:'quarantined'});const r=await raw(h);assert.equal(r.fence.length,1);assert.equal(r.row.quarantined,1);assert.equal(count(r,'launch'),1);
+});
+test('recovery-retained-receipt-disagreement-persists-quarantine',async h=>{
+ await registered(h);await command(h);const v=(await registry(h)).records[0].state_version,t=await ticket(h,v);
+ assert.deepEqual(await h.call('recoverKnown',{receipt:{...h.receipt,recordId:'f'.repeat(32)},ticket:t}),{status:'quarantined'});const r=await raw(h);assert.equal(r.fence.length,1);assert.equal(r.row.quarantined,1);
+});
+test('terminal-hash-recheck-rejects-newer-local-version-before-track',async h=>{
+ await registered(h);await command(h,'stop');await h.call('drain',{value:true});await mode(h,'drop_before_once',1);await h.call('reconcile');
+ const before=await raw(h);assert.ok(before.row.terminal_json);assert.ok(before.row.track_outbox_json);assert.equal((await registry(h)).records[0].pending,1);
+ await h.call('inject',{point:'before_track'});const flushing=h.call('flush');await until(async()=>(await raw(h)).settings.blocked);
+ await command(h,'query',{guard:{epoch:'2',owner_id:'terminal-reader'}});const newer=await raw(h);assert.ok(BigInt(newer.row.state_version)>BigInt(before.row.state_version));assert.equal(newer.row.terminal_json,before.row.terminal_json);
+ await h.call('release');assert.deepEqual(await flushing,{flushed:false});assert.equal((await registry(h)).records[0].pending,0);const rec=(await registry(h)).records[0];assert.equal(rec.state_version,newer.row.state_version);assert.equal(JSON.parse(rec.projection_json).evidenceSha256,sha(newer.row.terminal_json));
+});
+test('clock-rollback-quarantines-without-new-launch-or-claim',async h=>{
+ await registered(h);await command(h);const before=await raw(h);await h.call('clock',{now:'1800000000000000'});await h.call('reconcile');const r=await raw(h);assert.equal(r.row.quarantined,1);assert.equal(r.row.clock_floor,before.row.clock_floor);assert.equal(count(r,'launch'),1);assert.equal((await h.call('claim')).granted,false);
+});
+test('SIGKILL-consumed-claim-outbox-never-regrants',async h=>{
+ await registered(h);await command(h);await h.call('inject',{point:'after_claim_commit'});const pending=h.call('claim').catch(()=>null);await until(async()=>(await raw(h)).settings.blocked);
+ const before=await raw(h);assert.equal(before.row.claim_state,'consumed');assert.ok(before.row.track_outbox_json);await h.restart(true);await pending;assert.equal((await h.call('claim')).granted,false);const r=await raw(h);assert.equal(r.row.claim_id,before.row.claim_id);assert.equal(r.row.claim_state,'consumed');assert.equal(count(r,'launch'),1);
+});
+test('lost-terminal-ack-recovers-on-restart-without-external-command',async h=>{
+ await registered(h);await command(h);await h.call('claim');await h.call('report');await h.call('drain',{value:true});await mode(h,'lost_once',2);await h.call('reconcile');const before=await raw(h);assert.ok(before.row.track_outbox_json);assert.equal((await registry(h)).records[0].pending,0);
+ await h.restart(true);const after=await raw(h);assert.equal(after.row.track_outbox_json,null);assert.equal(after.row.state_version,before.row.state_version);assert.equal(after.row.registry_ack_version,before.row.state_version);assert.equal(count(after,'launch'),1);assert.equal(after.alarm,null);
+});
+test('terminal-recovery-hash-rechecks-independent-permanent-fence',async h=>{
+ await registered(h);const t=await ticket(h,'0');await h.call('drain',{value:true});await command(h,'stop');await h.call('inject',{point:'before_recovery_terminal_return'});
+ const pending=h.call('recoverKnown',{receipt:h.receipt,ticket:t});await until(async()=>(await raw(h)).settings.blocked);const before=await raw(h);await h.call('fenceOnly');await h.call('release');assert.deepEqual(await pending,{status:'quarantined'});const after=await raw(h);assert.equal(after.row.state_version,before.row.state_version);assert.equal(after.fence.length,1);
+});
+test('higher-terminal-clock-version-keeps-identical-permanent-projection',async h=>{
+ await registered(h);await h.call('drain',{value:true});await command(h,'stop');const before=await raw(h);assert.equal((await registry(h)).records[0].pending,0);assert.ok(before.row.terminal_json);
+ assert.equal((await command(h,'query',{guard:{epoch:'2',owner_id:'terminal-reader'}})).status,'stopped');const after=await raw(h),rec=(await registry(h)).records[0];assert.equal(after.row.quarantined,0);assert.equal(after.row.track_outbox_json,null);assert.equal(after.row.registry_ack_version,after.row.state_version);assert.equal(rec.pending,0);assert.equal(rec.state_version,after.row.state_version);assert.equal(after.row.terminal_json,before.row.terminal_json);assert.equal(JSON.parse(rec.projection_json).evidenceSha256,sha(after.row.terminal_json));
+});
+lane='correction';
+test('provider-mismatch-new-command-rejected-before-row-and-effect',async h=>{
+ await registered(h);const resource={provider:'external-macos',key:fixed.operationKey,immutableSha256:fixed.immutableSha256};
+ assert.deepEqual(await h.call('command',{request:{...base,command:'ensure_started'},resource,receipt:h.receipt}),{status:'error',code:'unavailable'});
+ const r=await raw(h);assert.equal(r.row,null);assert.equal(r.calls.length,0);assert.equal(r.fence.length,0);assert.equal((await registry(h)).records[0].state_version,'0');
+});
+test('provider-mismatch-known-recovery-fences-without-inspect-or-repair',async h=>{
+ await registered(h);await command(h);const before=await raw(h),t=await ticket(h,(await registry(h)).records[0].state_version);await h.call('providerMismatch');
+ assert.deepEqual(await h.call('recoverKnown',{receipt:h.receipt,ticket:t}),{status:'quarantined'});const r=await raw(h);assert.equal(r.row.provider_kind,'external-macos');assert.equal(r.row.quarantined,1);assert.equal(r.fence.length,1);assert.equal(count(r,'launch'),count(before,'launch'));assert.equal(count(r,'inspect'),count(before,'inspect'));
+});
+test('provider-mismatch-retained-command-and-enrollment-remain-fenced',async h=>{
+ await registered(h);await command(h);await h.call('providerMismatch');assert.deepEqual(await command(h,'query'),{status:'error',code:'unavailable'});assert.equal((await h.call('enroll')).status,'conflict');const r=await raw(h);assert.equal(r.row.provider_kind,'external-macos');assert.equal(r.row.quarantined,1);assert.equal(r.fence.length,1);assert.equal(count(r,'launch'),1);assert.equal(count(r,'inspect'),0);
+});
+test('provider-mismatch-durable-stop-never-dispatches-conflicting-adapter',async h=>{
+ await registered(h);await command(h,'stop');const before=await raw(h);await h.call('providerMismatch');await h.call('reconcile');const r=await raw(h);assert.equal(r.row.desired,'stop');assert.equal(r.row.provider_kind,'external-macos');assert.equal(r.row.quarantined,1);assert.equal(r.fence.length,1);assert.equal(count(r,'stop'),count(before,'stop'));assert.equal(r.row.terminal_json,null);
+});
+test('report-verifier-await-rejects-independent-fence-without-version-change',async h=>{
+ await registered(h);await command(h);await h.call('claim');await h.call('inject',{point:'during_report_verify'});const pending=h.call('report');await until(async()=>(await raw(h)).settings.blocked);const before=await raw(h);await h.call('fenceOnly');const fenced=await raw(h);assert.equal(fenced.row.state_version,before.row.state_version);assert.equal(fenced.row.quarantined,0);
+ await h.call('release');assert.equal((await pending).status,'rejected');const r=await raw(h);assert.equal(r.row.state_version,before.row.state_version);assert.equal(r.row.pending_result_json,null);assert.equal(r.row.report_hash,null);assert.equal(r.row.desired,'run');assert.equal(r.fence.length,1);assert.equal(r.row.claim_id,before.row.claim_id);
+});
+for(const field of ['pending_identity_json','registration_json','binding','binding_hash','provider_key','provider_kind','operation_id','claim_id','instance_id','boot_id','claim_barrier_version','clock_floor','owner','request_json'])test('report-verifier-await-rejects-exact-binding-change-'+field,async h=>{
+ await registered(h);await command(h);await h.call('claim');await h.call('inject',{point:'during_report_verify'});const pending=h.call('report');await until(async()=>(await raw(h)).settings.blocked);const before=await raw(h);await h.call('reportBindingMutation',{field});const changed=await raw(h);assert.equal(changed.row.state_version,before.row.state_version);
+ await h.call('release');assert.equal((await pending).status,'rejected');const r=await raw(h);assert.equal(r.row.pending_result_json,null);assert.equal(r.row.report_hash,null);assert.equal(r.row.desired,'run');if(field==='provider_kind'){assert.equal(r.fence.length,1);assert.equal(r.row.quarantined,1);}else assert.equal(r.row.state_version,before.row.state_version);
+});
+test('report-verifier-await-preserves-qualified-clock-expiry-check',async h=>{
+ await registered(h);await command(h);await h.call('claim');await h.call('inject',{point:'during_report_verify'});const pending=h.call('report');await until(async()=>(await raw(h)).settings.blocked);const before=await raw(h);await h.call('clock',{now:base.guard.expires_at_us});await h.call('release');assert.equal((await pending).status,'rejected');const r=await raw(h);assert.equal(r.row.state_version,before.row.state_version);assert.equal(r.row.pending_result_json,null);assert.equal(r.row.report_hash,null);
+});
+test('report-verifier-await-preserves-newer-command-version-check',async h=>{
+ await registered(h);await command(h);await h.call('claim');await h.call('inject',{point:'during_report_verify'});const pending=h.call('report');await until(async()=>(await raw(h)).settings.blocked);await command(h,'query',{guard:{epoch:'2',owner_id:'new-owner'}});await h.call('release');assert.equal((await pending).status,'rejected');const r=await raw(h);assert.equal(r.row.pending_result_json,null);assert.equal(r.row.report_hash,null);assert.equal(r.row.owner,'new-owner');
+});
+test('report-verifier-await-allows-delivery-only-ack-outbox-advance',async h=>{
+ await registered(h);await command(h);await h.call('claim');await h.call('inject',{point:'during_report_verify'});const pending=h.call('report');await until(async()=>(await raw(h)).settings.blocked);const before=await raw(h);assert.ok(before.row.track_outbox_json);await h.call('flush');const delivered=await raw(h);assert.equal(delivered.row.state_version,before.row.state_version);assert.equal(delivered.row.track_outbox_json,null);assert.equal(delivered.row.registry_ack_version,delivered.row.state_version);
+ await h.call('release');assert.equal((await pending).status,'accepted');const r=await raw(h);assert.ok(r.row.pending_result_json);assert.ok(r.row.report_hash);assert.equal(r.row.desired,'stop');assert.equal(r.row.claim_id,before.row.claim_id);assert.equal(r.fence.length,0);
+});
+lane='track-recheck';
+async function terminalOutbox(h){
+ await registered(h);await h.call('drain',{value:true});await mode(h,'drop_before_once',2);await command(h,'stop');
+ const r=await raw(h);assert.ok(r.row.terminal_json);assert.ok(r.row.track_outbox_json);assert.equal((await registry(h)).records[0].pending,1);return r;
+}
+async function trackMutation(h,field){
+ if(field==='provider_kind')return h.call('providerMismatch');
+ if(field==='provider_missing')return h.call('providerMissing');
+ if(field==='fence')return h.call('fenceOnly');
+ if(field==='quarantine')return h.call('quarantineOnly');
+ if(field==='deleted')return h.call('deleteRow');
+ if(field==='outbox')return h.call('outboxMutation');
+ return h.call('reportBindingMutation',{field});
+}
+for(const field of ['provider_kind','provider_missing','fence','quarantine','registration_json','pending_identity_json','provider_key','binding','binding_hash','operation_id','deleted','outbox'])test('pre-track-terminal-restore-blocks-rpc-'+field,async h=>{
+ const before=await terminalOutbox(h),prior=(await registry(h)).records[0];await h.call('inject',{point:'before_track'});const pending=h.call('flush');await until(async()=>(await raw(h)).settings.blocked);
+ await trackMutation(h,field);await h.call('release');assert.deepEqual(await pending,{flushed:false});const r=await raw(h),rec=(await registry(h)).records[0];assert.equal(rec.pending,1);assert.equal(rec.state_version,prior.state_version);assert.equal(r.calls.length,before.calls.length);
+ if(field==='deleted'){assert.equal(r.row,null);assert.equal(r.fence.length,1);}else{assert.ok(r.row.track_outbox_json);if(field==='quarantine')assert.equal(r.row.quarantined,1);else assert.equal(r.fence.length,1);}
+});
+for(const field of ['provider_kind','fence','quarantine','registration_json'])test('post-track-committed-ack-preserves-local-outbox-'+field,async h=>{
+ const before=await terminalOutbox(h);await mode(h,'hold_after_once');const pending=h.call('flush');await until(async()=>(await registry(h)).settings.blocked);assert.equal((await registry(h)).records[0].pending,0);
+ await trackMutation(h,field);await h.call('registry',{command:'release'});assert.deepEqual(await pending,{flushed:false});const r=await raw(h);assert.ok(r.row.track_outbox_json);assert.equal(r.row.registry_ack_version,before.row.registry_ack_version);assert.equal(r.calls.length,before.calls.length);if(field==='quarantine')assert.equal(r.row.quarantined,1);else assert.equal(r.fence.length,1);
+ // The remote terminal committed before the mutation. There is no cancellation
+ // or reopening claim; the local fence/outbox must prevent further work.
+ assert.equal((await registry(h)).records[0].pending,0);await h.call('reconcile');assert.equal((await raw(h)).calls.length,before.calls.length);assert.equal((await h.call('claim')).granted,false);assert.equal((await h.call('report')).status,'rejected');
+});
+test('post-track-same-version-ack-progress-is-not-fenced-or-lowered',async h=>{
+ const before=await terminalOutbox(h);await mode(h,'hold_after_once');const pending=h.call('flush');await until(async()=>(await registry(h)).settings.blocked);
+ assert.deepEqual(await h.call('flush'),{flushed:true});const acked=await raw(h);assert.equal(acked.row.state_version,before.row.state_version);assert.equal(acked.row.registry_ack_version,before.row.state_version);assert.equal(acked.row.track_outbox_json,null);
+ await h.call('registry',{command:'release'});assert.deepEqual(await pending,{flushed:false});const r=await raw(h);assert.equal(r.row.registry_ack_version,acked.row.registry_ack_version);assert.equal(r.row.track_outbox_json,null);assert.equal(r.fence.length,0);assert.equal(r.row.quarantined,0);
+});
+test('post-track-higher-identical-terminal-progress-is-not-overwritten',async h=>{
+ const before=await terminalOutbox(h);await mode(h,'hold_after_once');const pending=h.call('flush');await until(async()=>(await registry(h)).settings.blocked);
+ assert.equal((await command(h,'query',{guard:{epoch:'2',owner_id:'new-terminal-reader'}})).status,'stopped');const newer=await raw(h);assert.ok(BigInt(newer.row.state_version)>BigInt(before.row.state_version));assert.equal(newer.row.track_outbox_json,null);assert.equal(newer.row.registry_ack_version,newer.row.state_version);
+ await h.call('registry',{command:'release'});assert.deepEqual(await pending,{flushed:false});const r=await raw(h);assert.equal(r.row.registry_ack_version,newer.row.registry_ack_version);assert.equal(r.row.terminal_json,before.row.terminal_json);assert.equal(r.row.track_outbox_json,null);assert.equal(r.fence.length,0);assert.equal(r.row.quarantined,0);assert.equal((await registry(h)).records[0].state_version,newer.row.state_version);
+});
+test('pre-track-concurrent-ack-progress-cancels-redundant-start-only',async h=>{
+ const before=await terminalOutbox(h);await h.call('inject',{point:'before_track'});const pending=h.call('flush');await until(async()=>(await raw(h)).settings.blocked);
+ assert.deepEqual(await h.call('flush'),{flushed:true});await h.call('release');assert.deepEqual(await pending,{flushed:false});const r=await raw(h);assert.equal(r.row.state_version,before.row.state_version);assert.equal(r.row.registry_ack_version,before.row.state_version);assert.equal(r.row.track_outbox_json,null);assert.equal(r.fence.length,0);assert.equal(r.row.quarantined,0);
+});
+test('post-track-timeout-fences-observed-provider-mismatch-without-cancellation-claim',async h=>{
+ const before=await terminalOutbox(h);await mode(h,'hold_after_once');const pending=h.call('flush');await until(async()=>(await registry(h)).settings.blocked);await h.call('providerMismatch');assert.deepEqual(await pending,{flushed:false});
+ const r=await raw(h);assert.equal(r.fence.length,1);assert.equal(r.row.quarantined,1);assert.ok(r.row.track_outbox_json);assert.equal(r.row.registry_ack_version,before.row.registry_ack_version);assert.equal((await registry(h)).records[0].pending,0);await h.call('registry',{command:'release'});await h.call('reconcile');assert.equal((await raw(h)).calls.length,before.calls.length);
+});
+test('pre-track-pending-provider-mutation-prevents-launch-and-claim',async h=>{
+ await registered(h);await h.call('inject',{point:'before_track'});const pending=command(h);await until(async()=>(await raw(h)).settings.blocked);await h.call('providerMismatch');await h.call('release');await pending;
+ const r=await raw(h);assert.equal(r.fence.length,1);assert.equal(r.row.quarantined,1);assert.equal(count(r,'launch'),0);assert.equal((await h.call('claim')).granted,false);assert.equal((await registry(h)).records[0].pending,1);assert.equal((await registry(h)).records[0].state_version,'0');
+});
+test('MAX-pre-track-provider-fence-commits-with-immutable-exhausted-row',async h=>{
+ await terminalOutbox(h);await h.call('maxVersion');const before=await raw(h);await h.call('inject',{point:'before_track'});const pending=h.call('flush');await until(async()=>(await raw(h)).settings.blocked);await h.call('providerMismatch');await h.call('release');assert.deepEqual(await pending,{flushed:false});
+ const r=await raw(h);assert.equal(r.row.state_version,'9223372036854775807');assert.equal(r.row.quarantined,0);assert.equal(r.row.track_outbox_json,before.row.track_outbox_json);assert.equal(r.row.terminal_json,before.row.terminal_json);assert.equal(r.row.registry_ack_version,before.row.registry_ack_version);assert.equal(r.fence.length,1);assert.equal((await registry(h)).records[0].pending,1);
+});
+test('MAX-positive-terminal-ack-duplicate-and-restart-preserve-exact-cap',async h=>{
+ await terminalOutbox(h);await h.call('maxVersion');const before=await raw(h);assert.deepEqual(await h.call('flush'),{flushed:true});let r=await raw(h),rec=(await registry(h)).records[0];assert.equal(r.row.state_version,'9223372036854775807');assert.equal(r.row.registry_ack_version,r.row.state_version);assert.equal(r.row.track_outbox_json,null);assert.equal(rec.state_version,r.row.state_version);assert.equal(rec.pending,0);assert.equal(r.fence.length,0);
+ await h.call('repeatMaxOutbox');assert.deepEqual(await h.call('flush'),{flushed:true});r=await raw(h);assert.equal(r.row.state_version,before.row.state_version);assert.equal(r.row.registry_ack_version,before.row.state_version);assert.equal(r.row.track_outbox_json,null);assert.equal(r.row.terminal_json,before.row.terminal_json);await h.restart(true);r=await raw(h);assert.equal(r.row.state_version,'9223372036854775807');assert.equal(r.row.registry_ack_version,r.row.state_version);assert.equal(r.row.track_outbox_json,null);assert.equal(r.row.quarantined,0);assert.equal(r.fence.length,0);
+});
+test('MAX-aborted-track-fence-survives-correct-provider-restore-and-restart',async h=>{
+ await terminalOutbox(h);await h.call('maxVersion');const before=await raw(h);await h.call('inject',{point:'before_track'});const pending=h.call('flush');await until(async()=>(await raw(h)).settings.blocked);await h.call('providerMismatch');await h.call('release');assert.deepEqual(await pending,{flushed:false});assert.equal((await raw(h)).fence.length,1);
+ await h.call('restoreProvider');await h.restart(true);const r=await raw(h);assert.equal(r.row.provider_kind,'cloudflare-linux');assert.equal(r.row.state_version,'9223372036854775807');assert.equal(r.row.quarantined,0);assert.equal(r.row.track_outbox_json,before.row.track_outbox_json);assert.equal(r.row.registry_ack_version,before.row.registry_ack_version);assert.equal(r.fence.length,1);const t=await ticket(h,(await registry(h)).records[0].state_version);assert.deepEqual(await h.call('recoverKnown',{receipt:h.receipt,ticket:t}),{status:'quarantined'});await h.call('reconcile');assert.equal((await raw(h)).calls.length,before.calls.length);assert.equal((await h.call('claim')).granted,false);assert.equal((await h.call('report')).status,'rejected');
+});
+test('MAX-postcommit-provider-fence-retains-outbox-and-unacknowledged-local-state',async h=>{
+ await terminalOutbox(h);await h.call('maxVersion');const before=await raw(h);await mode(h,'hold_after_once');const pending=h.call('flush');await until(async()=>(await registry(h)).settings.blocked);assert.equal((await registry(h)).records[0].pending,0);await h.call('providerMismatch');await h.call('registry',{command:'release'});assert.deepEqual(await pending,{flushed:false});const r=await raw(h);assert.equal(r.row.state_version,'9223372036854775807');assert.equal(r.row.quarantined,0);assert.equal(r.row.track_outbox_json,before.row.track_outbox_json);assert.equal(r.row.registry_ack_version,before.row.registry_ack_version);assert.equal(r.fence.length,1);assert.equal((await registry(h)).records[0].state_version,'9223372036854775807');assert.equal((await registry(h)).records[0].pending,0);assert.equal(r.calls.length,before.calls.length);
+});
+test('MAX-independent-fence-rejects-command-report-claim-and-known-recovery',async h=>{
+ await registered(h);await command(h);assert.equal((await h.call('claim')).granted,true);await h.call('maxVersion');const before=await raw(h),t=await ticket(h,(await registry(h)).records[0].state_version);await h.call('fenceOnly');assert.equal((await h.call('report')).status,'rejected');assert.equal((await h.call('claim')).granted,false);assert.deepEqual(await command(h,'query',{guard:{epoch:'2',owner_id:'max-new-owner'}}),{status:'error',code:'unavailable'});assert.deepEqual(await h.call('recoverKnown',{receipt:h.receipt,ticket:t}),{status:'quarantined'});const r=await raw(h);assert.equal(r.row.state_version,'9223372036854775807');assert.equal(r.row.quarantined,0);assert.equal(r.row.claim_id,before.row.claim_id);assert.equal(r.row.pending_result_json,null);assert.equal(r.row.report_hash,null);assert.equal(r.row.owner,before.row.owner);assert.equal(r.calls.length,before.calls.length);assert.equal(r.fence.length,1);
+});
+test('normal-version-permanent-fence-adds-one-version-and-duplicate-is-idempotent',async h=>{
+ const before=await terminalOutbox(h);await h.call('inject',{point:'before_track'});const pending=h.call('flush');await until(async()=>(await raw(h)).settings.blocked);await h.call('providerMismatch');await h.call('release');assert.deepEqual(await pending,{flushed:false});const r=await raw(h);assert.equal(BigInt(r.row.state_version),BigInt(before.row.state_version)+1n);assert.equal(r.row.quarantined,1);assert.equal(r.fence.length,1);assert.equal(JSON.parse(r.row.track_outbox_json).stateVersion,r.row.state_version);assert.equal(r.row.terminal_json,before.row.terminal_json);assert.deepEqual(await h.call('flush'),{flushed:false});const duplicate=await raw(h);assert.equal(duplicate.row.state_version,r.row.state_version);assert.equal(duplicate.row.track_outbox_json,r.row.track_outbox_json);assert.equal(duplicate.fence.length,1);assert.equal((await registry(h)).records[0].pending,1);
+});
+const selectedCase=process.env.MIXER_PENDING_TRACK_CASE??null;
+const selectedCases=selectedCase?cases.filter(c=>c.id===selectedCase):cases;
+if(!selectedCases.length)throw new Error('unknown_selected_case');
+let failed=false;
+try{for(const {id,fn,lane} of selectedCases){const h=await harness(base,fixed);try{await fn(h);results.push({id,lane,status:'passed'});console.log(JSON.stringify({id,status:'passed'}));}catch(e){results.push({id,lane,status:'failed',error:e.stack??String(e)});throw e;}finally{await h.close();}}}catch(e){failed=true;console.error(e);process.exitCode=1;}
+finally{const report={status:failed?'failed':'passed',scope:'isolated actual-workerd/SQLite operation plus fixed registry component binding; excluded clock/provider/hooks; actual operation alarm/restart delivery included',cases:selectedCases.length,definedCases:cases.length,selectedCase,prior54Passed:results.filter(r=>r.lane!=='track-recheck'&&r.status==='passed').length,trackRecheckPassed:results.filter(r=>r.lane==='track-recheck'&&r.status==='passed').length,original32Passed:results.filter(r=>r.lane==='original32'&&r.status==='passed').length,correctionPassed:results.filter(r=>r.lane==='correction'&&r.status==='passed').length,results,cleanup,limitations:['no-public-ingress-or-scheduled-entry-wiring','no-production-qualified-clock-or-provider','no-schedule-installation','no-native-or-physical-device-evidence','no-deployment-or-GA-acceptance']};await writeFile(process.env.MIXER_PENDING_ENGINE_REPORT??resolve(import.meta.dirname,'../../test-report.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify({status:report.status,groups:results.length,cleanup:cleanup.length}));}

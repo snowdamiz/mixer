@@ -1,0 +1,117 @@
+--- accepted-v6/importer.py
++++ fixed4992-v7/importer.py
+@@ -15,8 +15,8 @@
+ 
+ METHODS = ('test000PublicSettingsFullKeyboardAccess', 'test010ReferenceFirstTab')
+ CASE = 'keyboard-enabled-off'
+-SOURCE = '2b44b02dbd702becefa8b609435928890ad7c1a5f7cb11b3cc0fd1f5000ca101'
+-PRODUCT = 'c3e696b102d0a5daefa928e2941437739c5c418eb876dc31a65f0acef8e6e924'
++SOURCE = '0677712483e4f078cbd10120efd5c9f9d4a13fe31b9f455caa1a984772d2bfeb'
++PRODUCT = 'cca8472579ed6ce7c3c00babadb44d37ba34dc1a400ec00fc7802536342d7a2c'
+ PREFIX = 'test://com.apple.xcode/MixerToggleUITests/MixerToggleUITests/ToggleUITests/'
+ 
+ 
+@@ -146,13 +146,13 @@
+ 
+ def validate_root(value, packet_sha=None, fresh=False):
+     require(type(value) is dict and set(value) == {'schema','runID','packetSHA256','selectedAtUTC','ownedSimulatorIdentity','sourceTreeSHA256','productArchiveSHA256','developerDirectory','baselineDevices','baselineFrontends'}, 'Closed root selection required')
+-    require(value['schema'] == 'mixer.apple-focus-reference-root-selection.6', 'Root selection schema differs')
++    require(value['schema'] == 'mixer.apple-focus-reference-root-selection.7', 'Root selection schema differs')
+     require(str(uuid.UUID(value['runID'])) == value['runID'], 'Canonical fresh run UUID required')
+     require(type(value['packetSHA256']) is str and len(value['packetSHA256']) == 64 and (packet_sha is None or value['packetSHA256'] == packet_sha), 'Root selected packet differs')
+     require(value['sourceTreeSHA256'] == SOURCE and value['productArchiveSHA256'] == PRODUCT, 'Root source/product identity differs')
+     identity = value['ownedSimulatorIdentity']
+     require(type(identity) is dict and set(identity) == {'udid','name','runtime','build'}, 'Closed owned simulator identity required')
+-    require(str(uuid.UUID(identity['udid'])).upper() == identity['udid'] and type(identity['name']) is str and identity['name'].startswith('MixerFocusReferenceV6-'), 'Root-owned canonical simulator identity required')
++    require(str(uuid.UUID(identity['udid'])).upper() == identity['udid'] and type(identity['name']) is str and identity['name'].startswith('MixerFocusReferenceV7-'), 'Root-owned canonical simulator identity required')
+     require(identity['runtime'] == 'com.apple.CoreSimulator.SimRuntime.iOS-26-5' and identity['build'] == '23F77', 'Pinned runtime/build required')
+     require(value['developerDirectory'] == '/Applications/Xcode_26.6.app/Contents/Developer', 'Pinned compiler tools directory required')
+     require(type(value['baselineDevices']) is dict and type(value['baselineDevices'].get('devices')) is dict and type(value['baselineFrontends']) is list, 'Root pre-creation baseline required')
+@@ -290,7 +290,7 @@
+ 
+ def import_selected(root, session, observer, streams, official, payloads, captures, cleanup, oracle, classifier):
+     """Called only with adapter-captured official outputs; never mint root context from evidence."""
+-    result = {'schema':'mixer.apple-focus-reference-runtime-import.6','diagnosticOnly':True,'diagnosticOutcome':'unknown','provenanceAccepted':False,'keyInjectionCount':None,'singleTabDiagnosticEvidencePassed':False,'runPassed':False,'completeCaseSet':False,'cursorCompletionCredit':False,'fullSixCaseQualification':False,'nativeKeyboardQualification':False,'carrierAccepted':False,'gaAccepted':False,'physicalPhones':'disconnected-deferred'}
++    result = {'schema':'mixer.apple-focus-reference-runtime-import.7','diagnosticOnly':True,'diagnosticOutcome':'unknown','provenanceAccepted':False,'keyInjectionCount':None,'singleTabDiagnosticEvidencePassed':False,'runPassed':False,'completeCaseSet':False,'cursorCompletionCredit':False,'fullSixCaseQualification':False,'nativeKeyboardQualification':False,'carrierAccepted':False,'gaAccepted':False,'physicalPhones':'disconnected-deferred'}
+     try:
+         root = validate_root(root)
+         code = observer_terminal(observer, root, session, streams)
+--- accepted-v6/inputs/runtime/verification/apple-toggle-keyboard-focus-v9-preparation/settings_telemetry.py
++++ fixed4992-v7/inputs/runtime/verification/apple-toggle-keyboard-focus-v9-preparation/settings_telemetry.py
+@@ -13,7 +13,7 @@
+ 
+ CASE = 'public-settings-full-keyboard-access'
+ ROUTE = ['Accessibility', 'Keyboards & Typing', 'Full Keyboard Access']
+-CHUNK = 3072
++CHUNK = 4992
+ MAX_TOTAL = 7_000_000
+ MAX_REQUESTS = 2500
+ MAX_EVENTS = 100
+@@ -216,13 +216,13 @@
+         require(number(host) and host < self.deadline, 'Session deadline')
+         require(type(value) is dict and type(value.get('kind')) is str, 'Diagnostic body')
+         if value['kind'] == 'start':
+-            require(set(value) == {'kind', 'case', 'uptime'} and value['case'] == CASE and number(value['uptime']) and self.start_host is None, 'Setup start')
++            require(set(value) == {'kind', 'case', 'uptime', 'chunkBytes'} and type(value['chunkBytes']) is int and value['chunkBytes'] == CHUNK and value['case'] == CASE and number(value['uptime']) and self.start_host is None, 'Setup start')
+             self.start_host = host
+             self.last_host = host
+             self.requests = 1
+             self.start_runner = self.last_uptime = value['uptime']
+             self.persist('settings-0000', {'receivedUptime': host, 'generation': self.token, 'sessionDeadlineUptime': self.deadline, 'diagnosticDeadlineUptime': min(self.deadline, host + MAX_DURATION), 'record': value})
+-            return {'generation': self.token, 'remainingSessionSeconds': min(MAX_DURATION, self.deadline - host), 'diagnosticOnly': True}
++            return {'generation': self.token, 'remainingSessionSeconds': min(MAX_DURATION, self.deadline - host), 'diagnosticOnly': True, 'chunkBytes': CHUNK}
+         require(self.start_host is not None and self.last_host is not None and self.last_host <= host and 0 <= host - self.start_host <= MAX_DURATION, 'Diagnostic host receipt monotonicity/duration')
+         require(FIELDS <= set(value) and value['case'] == CASE and value['generation'] == self.token, 'Diagnostic binding')
+         require(integer(value['sequence'], 1, MAX_REQUESTS) and value['sequence'] == self.sequence + 1, 'Diagnostic sequence')
+@@ -234,9 +234,9 @@
+             require(set(value) == FIELDS | {'slot', 'index', 'count', 'bytes', 'sha256', 'data'} and self.pending, 'Unexpected upload')
+             slot = self.pending[0]
+             item = self.uploads[slot]
+-            require(value['slot'] == slot and integer(value['index'], 0, 651) and value['index'] == len(item['parts']), 'Chunk order/slot')
++            require(value['slot'] == slot and integer(value['index'], 0, 400) and value['index'] == len(item['parts']), 'Chunk order/slot')
+             require(value['count'] == item['count'] and type(value['count']) is int and value['bytes'] == item['bytes'] and type(value['bytes']) is int and value['sha256'] == item['sha256'], 'Chunk descriptor')
+-            require(type(value['data']) is str and len(value['data']) <= 4096, 'Chunk encoding bound')
++            require(type(value['data']) is str and len(value['data']) <= 6656, 'Chunk encoding bound')
+             data = base64.b64decode(value['data'], validate=True)
+             expected = min(CHUNK, item['bytes'] - value['index'] * CHUNK)
+             require(len(data) == expected and expected > 0 and base64.b64encode(data).decode() == value['data'], 'Chunk length/canonical encoding')
+--- accepted-v6/join_support.py
++++ fixed4992-v7/join_support.py
+@@ -246,7 +246,7 @@
+ 
+ def select_command(h, argv, session):
+     require(_ROOT is not None and list(map(str,argv)) == importer.command_argv(_ROOT,session), 'Command must come from root-selected context')
+-    require(session.resolve() == session and session.is_dir() and not session.is_symlink() and session.name == 'session' and session.parent.name == 'runtime' and session.parent.parent.name == 'native-run-v6-'+_ROOT['runID'], 'Root-selected fresh result workspace required')
++    require(session.resolve() == session and session.is_dir() and not session.is_symlink() and session.name == 'session' and session.parent.name == 'runtime' and session.parent.parent.name == 'native-run-v7-'+_ROOT['runID'], 'Root-selected fresh result workspace required')
+     require(not (session/'session.xcresult').exists() and not (session/'session.xcresult').is_symlink(), 'Result bundle exists before dispatch; replay refused')
+     _ORIGINAL_SELECT(h,argv,session)
+     _selected['sessionIdentity'] = path_identity(session,0o700)
+@@ -342,7 +342,7 @@
+ 
+ 
+ def runtime_summary(base, h, oracle, setup_ready, scope, bridge, xctest_exit, failure, cleanup_results):
+-    report = {'schema':'mixer.apple-focus-reference-runtime.6','diagnosticOnly':True,'diagnosticOutcome':'unknown','runPassed':False,'strictNativeVerdictsPassed':False,'completeCaseSet':False,'cursorCompletionCredit':False,'fullSixCaseQualification':False,'nativeKeyboardQualification':False,'carrierAccepted':False,'gaAccepted':False,'physicalPhones':'disconnected-deferred','cleanupResults':cleanup_results,'sessionFailure':failure,'xcodebuildExitCode':xctest_exit,'selectedMethods':list(importer.METHODS),'selectedApplicationCases':[importer.CASE],'actualNativeInputActions':None}
++    report = {'schema':'mixer.apple-focus-reference-runtime.7','diagnosticOnly':True,'diagnosticOutcome':'unknown','runPassed':False,'strictNativeVerdictsPassed':False,'completeCaseSet':False,'cursorCompletionCredit':False,'fullSixCaseQualification':False,'nativeKeyboardQualification':False,'carrierAccepted':False,'gaAccepted':False,'physicalPhones':'disconnected-deferred','cleanupResults':cleanup_results,'sessionFailure':failure,'xcodebuildExitCode':xctest_exit,'selectedMethods':list(importer.METHODS),'selectedApplicationCases':[importer.CASE],'actualNativeInputActions':None}
+     if cleanup_results is None or _OFFICIAL is None: return report
+     try:
+         require(_OFFICIAL['runID'] == _ROOT['runID'] and _OFFICIAL['argv'] == _selected['argv'], 'Official capture belongs to another dispatch')
+--- accepted-v6/local_first_failure.py
++++ fixed4992-v7/local_first_failure.py
+@@ -102,7 +102,7 @@
+     root = importer.validate_root(root)
+     require(session.resolve() == session and session.is_dir() and not session.is_symlink()
+             and session.name == 'session' and session.parent.name == 'runtime'
+-            and session.parent.parent.name == 'native-run-v6-' + root['runID'])
++            and session.parent.parent.name == 'native-run-v7-' + root['runID'])
+     folder = session / 'command-observer'
+     require(folder.resolve() == folder and folder.is_dir() and not folder.is_symlink())
+     observer_raw = regular_bytes(folder / 'observer.json', 2_000_000)
+@@ -136,7 +136,7 @@
+         require(target.resolve() == target and session.resolve() == session
+                 and not session.is_symlink() and session.is_dir() and session.name == 'session'
+                 and session.parent.name == 'runtime'
+-                and session.parent.parent.name == 'native-run-v6-' + validated['runID'])
++                and session.parent.parent.name == 'native-run-v7-' + validated['runID'])
+         descriptor = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+         with os.fdopen(descriptor, 'wb') as stream:
+             stream.write(importer.stable(report)); stream.flush(); os.fsync(stream.fileno())
