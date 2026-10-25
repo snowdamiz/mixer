@@ -56,8 +56,14 @@ The full plan remains incomplete; no GA gate is promoted.
    the next retention design from this evidence with exact work/memory accounting.
    An adaptive recency/frequency proposal passes 17 finite model controls but
    adds per-hit work and regresses phase-change misses; implementation selection
-   is withheld. The live VM is unchanged and no new full retry is selected. See
-   [the unselected model](docs/swift-adaptive-retention-design.md),
+   is withheld. A second count-plan-aware cold-insertion model passes 24 producer
+   and 18 independent methods (292 oracle cases, 46,550 transitions). Its retained
+   phase regressions and estimated costs prevent an inference of target benefit.
+   Root accepts the finite result and selects a separate isolated Rust feasibility
+   experiment to measure exact work, memory and hit parity. Live integration and
+   any new full-target retry remain unselected. See
+   [the reviewed finite result](docs/swift-retention-next-design-review.md),
+   [the earlier unselected model](docs/swift-adaptive-retention-design.md),
    [the finite rejection](docs/swift-cost-retention-candidate-review.md),
    [the rejected result](docs/swift-retention-runtime.md) and
    [the integration](docs/swift-decode-plan-integration.md).

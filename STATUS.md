@@ -100,6 +100,17 @@ an exact model replay and the unchanged 132-file VM closure. See
 [the proposal](docs/swift-adaptive-retention-design.md) and
 [the root audit](verification/swift-adaptive-retention-root-review/acceptance.json).
 
+The count-plan-aware cold-insertion experiment passes 24 finite producer methods
+and 18 independent methods, including 292 oracle cases and 46,550 transitions.
+Root verifies 30 producer and 23 reviewer sealed members, 64 input bindings and
+the unchanged 132-file live VM closure. Phase-change regressions remain; the
+eight-credit miss cost is model arithmetic, and exact Rust work and memory are
+unmeasured. Root accepts this finite result and selects a separate isolated Rust
+feasibility experiment with fixed limits, actual hit parity and failure-prefix
+accounting. Live integration and a full-target retry remain unselected. See
+[the independent review](docs/swift-retention-next-design-review.md) and
+[the root acceptance](verification/swift-retention-next-design-review/root-acceptance.json).
+
 Independent iOS source review found two host-diagnostic completeness defects:
 substituted original AX/app data and reordered callback references could be
 labelled complete. The native verdict stays failed. A host-only correction now
@@ -321,7 +332,7 @@ step; Engine `40222180507` remains running. No migration or caller is installed.
 
 The decoder and corrected relation source contract are pushed as `0a6f110d`;
 all 317 committed paths and bytes were verified. Phoenix `40221267196` passes
-all workflow steps; Engine `40221267164` is still running. The preparation SQL
+all workflow steps; Engine `40221267164` passes all three jobs. The preparation SQL
 component is accepted locally after its ACL correction. See
 [SQL review](docs/hosted-browser-activation-preparation-sql-review.md) and
 [root acceptance](verification/hosted-browser-activation-preparation-acl-correction/root-acceptance.json).

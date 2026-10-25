@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "status": "finite-model-experiment-frozen-before-execution",
+  "live_source_closure": "16176e0852fa61cba98acebeb373ee1a6be4c686d0e46ef8bbc144c0527c2cbd",
+  "candidate": "plan-aware-cold-insertion",
+  "policy": {
+    "resident_hit": "ordinary baseline timestamp publication, no new policy state or policy charge",
+    "replacement": "ordinary baseline least timestamp, then lowest slot; exclude pinned and previously selected residents",
+    "miss": "observe original 512-cell count-plan identity before complete scan can replace it; a valid matching plan admits at current work timestamp, otherwise admit with replacement timestamp zero",
+    "zero_timestamp": "reserved cold replacement priority, not a claim of actual last access time; first resident hit publishes ordinary current work timestamp",
+    "identity": "function, body offset, body length, type index must all match; a matching function with mismatched immutable body identity fails closed",
+    "failure": "observation has no new persistent state; complete scans retain baseline publication; successful evictions remain after build failure; no partial new resident publication",
+    "fallback": "a plan collision is a cold observation, never a proof or validation bypass"
+  },
+  "fixed_controls": ["baseline-lru", "always-cold-insertion", "cold-insertion-mru-every-32nd-successful-miss", "plan-aware-cold-insertion"],
+  "fixed_work_schedule": {
+    "added_resident_hit_credits": 0,
+    "added_successful_miss_credits": 8,
+    "schedule": ["2 for prepared identity-observation tag and classification", "2 for prepared insertion value and phase transfer", "2 for miss-only timestamp choice and validation", "2 for precharged success publication of insertion value"],
+    "scope": "Authored additional logical policy credits, not measured VM CacheWork; no added victim scan; unchanged complete decode/build and existing work remain required. Same 8-credit bound is charged to both cold control policies for conservative simple comparison; escape-control state cost is not proposed for product integration."
+  },
+  "bounded_experiment": {
+    "fixed_traces": "exact six retained synthetic access sequences plus resident-hit256",
+    "adversarial": "plan collisions, scan larger than plan table, working-set phase turnover, cold first-use burst, ties, variable sizes, pins, failure, timestamp boundary, every capacity 0 through 64",
+    "no_retuning": true,
+    "native_or_full_target": "unselected and prohibited by this experiment"
+  },
+  "selection_gate": "Recommend only a separately selected finite implementation if the evidence supports it; never select integration or a full-target run. Material phase or collision regressions must be explicit."
+}

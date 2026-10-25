@@ -1,0 +1,181 @@
+{
+  "finite_interval_comparison": [
+    {
+      "adaptive_added_policy_estimate": 124096,
+      "adaptive_interval_decodes": 512,
+      "baseline_interval_decodes": 576,
+      "candidate_added_policy_estimate": 4096,
+      "candidate_avoided_decodes": 64,
+      "candidate_interval_decodes": 512,
+      "candidate_policy_only_coverage": {
+        "decimal": 64.0,
+        "fraction": "64"
+      },
+      "case": "cheap_hot_expensive_cold"
+    },
+    {
+      "adaptive_added_policy_estimate": 32844,
+      "adaptive_interval_decodes": 163,
+      "baseline_interval_decodes": 195,
+      "candidate_added_policy_estimate": 1056,
+      "candidate_avoided_decodes": 63,
+      "candidate_interval_decodes": 132,
+      "candidate_policy_only_coverage": {
+        "decimal": 16.761904761904763,
+        "fraction": "352/21"
+      },
+      "case": "cyclic65_three_rounds"
+    },
+    {
+      "adaptive_added_policy_estimate": 124096,
+      "adaptive_interval_decodes": 512,
+      "baseline_interval_decodes": 576,
+      "candidate_added_policy_estimate": 4096,
+      "candidate_avoided_decodes": 64,
+      "candidate_interval_decodes": 512,
+      "candidate_policy_only_coverage": {
+        "decimal": 64.0,
+        "fraction": "64"
+      },
+      "case": "expensive_hot_cheap_cold"
+    },
+    {
+      "adaptive_added_policy_estimate": 22856,
+      "adaptive_interval_decodes": 104,
+      "baseline_interval_decodes": 64,
+      "candidate_added_policy_estimate": 648,
+      "candidate_avoided_decodes": -17,
+      "candidate_interval_decodes": 81,
+      "candidate_policy_only_coverage": null,
+      "case": "expensive_old_to_cheap_cycle64_phase_shift"
+    },
+    {
+      "adaptive_added_policy_estimate": 124104,
+      "adaptive_interval_decodes": 512,
+      "baseline_interval_decodes": 576,
+      "candidate_added_policy_estimate": 4096,
+      "candidate_avoided_decodes": 64,
+      "candidate_interval_decodes": 512,
+      "candidate_policy_only_coverage": {
+        "decimal": 64.0,
+        "fraction": "64"
+      },
+      "case": "hot16_scan128_four_rounds"
+    },
+    {
+      "adaptive_added_policy_estimate": 1024,
+      "adaptive_interval_decodes": 0,
+      "baseline_interval_decodes": 0,
+      "candidate_added_policy_estimate": 0,
+      "candidate_avoided_decodes": 0,
+      "candidate_interval_decodes": 0,
+      "candidate_policy_only_coverage": null,
+      "case": "resident_hit256"
+    },
+    {
+      "adaptive_added_policy_estimate": 124096,
+      "adaptive_interval_decodes": 512,
+      "baseline_interval_decodes": 576,
+      "candidate_added_policy_estimate": 4096,
+      "candidate_avoided_decodes": 64,
+      "candidate_interval_decodes": 512,
+      "candidate_policy_only_coverage": {
+        "decimal": 64.0,
+        "fraction": "64"
+      },
+      "case": "uniform_hot_cold"
+    }
+  ],
+  "first_model_stdout_sha256": "677f2b1cb8c3be5df247eabb8326a54b63e0be07ce89042cc87c7864a8c2e229",
+  "frozen_contract_sha256": "f161d00e056715f3d842ae4e3b820e9173ddcf4e16119360404d38c496d55f17",
+  "historical_cost_candidate_actual_engine_work": [
+    {
+      "baseline_credits": 248012,
+      "candidate_credits": 363312,
+      "case": "expensive_hot_cheap_cold",
+      "ratio": {
+        "decimal": 1.464896859829363,
+        "fraction": "90828/62003"
+      }
+    },
+    {
+      "baseline_credits": 1444044,
+      "candidate_credits": 1721476,
+      "case": "cheap_hot_expensive_cold",
+      "ratio": {
+        "decimal": 1.1921215697028622,
+        "fraction": "430369/361011"
+      }
+    },
+    {
+      "baseline_credits": 222412,
+      "candidate_credits": 500188,
+      "case": "uniform_hot_cold",
+      "ratio": {
+        "decimal": 2.24892541769329,
+        "fraction": "125047/55603"
+      }
+    },
+    {
+      "baseline_credits": 17440,
+      "candidate_credits": 553152,
+      "case": "expensive_old_to_cheap_cycle64_phase_shift",
+      "ratio": {
+        "decimal": 31.717431192660552,
+        "fraction": "17286/545"
+      }
+    },
+    {
+      "baseline_credits": 1558624,
+      "candidate_credits": 1836400,
+      "case": "hot16_scan128_four_rounds",
+      "ratio": {
+        "decimal": 1.1782187365265773,
+        "fraction": "114775/97414"
+      }
+    },
+    {
+      "baseline_credits": 406583,
+      "candidate_credits": 476126,
+      "case": "cyclic65_three_rounds",
+      "ratio": {
+        "decimal": 1.1710425669543487,
+        "fraction": "476126/406583"
+      }
+    }
+  ],
+  "limitations": [
+    "Actual target call-order bytes unavailable in selected aggregate telemetry",
+    "Existing phase control adds17 model decodes",
+    "Full64 resident-to-new64 phase adds64 model decodes",
+    "Count-plan reuse means prior successful scan, not necessarily prior completed decode",
+    "Model assertions/global state validation are test instrumentation, not included in proposed eight-credit live path",
+    "No actual VM hit-byte parity, work prefixes, Rust inventory, decoder, cleanup ledger or timing evidence",
+    "No product or full-target execution selected"
+  ],
+  "memory_contract": {
+    "DeltaExisting": "Measured enlargement of every existing inventory affected by the changed scan return type; unmeasured and cannot be zero-assumed",
+    "R": "Measured size_of<Result<ScanOutcome, SwiftRunFailure>>, unmeasured because no VM candidate was implemented",
+    "new_persistent_policy_bytes": 0,
+    "new_policy_allocations": 0,
+    "new_tickets": 0,
+    "prospective_full_inventory_formula": "3 * align8(3*32 + 3*R + 2*8 + 3*8 + 4*1 + 4*8) + DeltaExisting",
+    "prospective_scan_outcome_repr_c_64bit_bytes": 32,
+    "scope": "Explicit prospective authored named-value model only. No Rust layout, cache fixed reservation, operation reservation, physical stack/RSS or allocator measurement is claimed."
+  },
+  "original_failure_sensitivity_not_prediction": {
+    "adaptive_four_credit_hit_tax": 2150304,
+    "candidate_eight_credit_tax_if_baseline_miss_count_unchanged": 493024,
+    "candidate_tax_fraction_of_fixed_budget_if_baseline_misses_unchanged": {
+      "decimal": 0.0077035,
+      "fraction": "15407/2000000"
+    },
+    "limitation": "Baseline counts are not candidate counts. Model policy estimates omit original work and body-size effects and cannot forecast real-target progress.",
+    "mean_repeated_build_credits": {
+      "decimal": 564.2683589022276,
+      "fraction": "17250248/30571"
+    }
+  },
+  "selection": "withhold-implementation-selection-no-live-integration-no-full-target",
+  "synthetic_trace_bytes_sha256": "7f6c1232a7e55adf55fd42b1342916d19de02e646da639f84ac2f47544ccc80d"
+}
