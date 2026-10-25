@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "observedUTC": "2026-10-25T00:50:05.571473+00:00",
+  "status": "accepted-linux-host-ci",
+  "revision": "42433b2d51ccd23a99328d5998d250b74169f935",
+  "ciRun": "40147666600",
+  "sourceTreeSHA256": "d385f2a1e396a0087fa6c9c6d4a8f53ead0175ee47bad94255cbdbe8c7656ddc",
+  "committedAndArchivedInputsVerified": 85,
+  "commandLogsVerified": 17,
+  "testsPassed": 216,
+  "skippedTests": [
+    "* test K03 production resolver/classifier pins public peer despite rebinding; private sink remains untouched (skipped) [L#32]",
+    "* test IS04 IS05 actual configured startup cold production DNS TLS admission and lifecycle (skipped) [L#29]"
+  ],
+  "skipReason": "The two identity tests require both Linux and MIXER_ISOLATED_NETNS=1 from the separate network-none collector; ordinary GitHub host CI does not enable that fixture.",
+  "cleanup": {
+    "postgres_stopped": true,
+    "scratch_removed": true
+  },
+  "tools": {
+    "elixir-version.log": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:4:4] [ds:4:4:10] [async-threads:1] [jit:ns]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)",
+    "postgres-version.log": "postgres (PostgreSQL) 16.15 (Ubuntu 16.15-1.pgdg24.04+2)",
+    "postgres-timezone.log": "UTC"
+  },
+  "sourceComparisonCommand": [
+    "git",
+    "show",
+    "42433b2d51ccd23a99328d5998d250b74169f935:<each-receipt-input>"
+  ],
+  "artifactDownloadCommand": [
+    "gh",
+    "run",
+    "download",
+    "40147666600",
+    "--repo",
+    "snowdamiz/mixer",
+    "--name",
+    "phoenix-foundation-42433b2d51ccd23a99328d5998d250b74169f935",
+    "--dir",
+    "verification/github-ci-42433b2d-phoenix/artifact"
+  ],
+  "receiptSHA256": "320202d73330c9a5908935d0f62bd58ab55966417938c2d6da3b8989dc1397b3",
+  "scope": "Exact pushed production sources and repository tests on Linux with real disposable PostgreSQL16; independent review tests are separate local evidence. No isolated-network test, native runtime, real provider or GA acceptance.",
+  "priorReviewCorrection": "An initial root count assertion expected218passed; actual log is216passed/2skipped. No acceptance receipt was produced by that failed assertion; this record uses observed counts."
+}

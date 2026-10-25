@@ -1,0 +1,27 @@
+--- v1/observer.py
++++ v2/observer.py
+@@ -21,7 +21,7 @@
+ import time
+ 
+ 
+-SCHEMA = "mixer.apple-command-finalization-observer.1"
++SCHEMA = "mixer.apple-command-finalization-observer.2"
+ MAX_COMMAND_SECONDS = 600
+ CLEANUP_GRACE_SECONDS = 8
+ MAX_OUTPUT_BYTES = 32 * 1024 * 1024
+@@ -377,8 +377,13 @@
+                 wake = min(wake, started + suite_at + post_suite_grace)
+             read_ready(max(0, wake - time.monotonic()))
+         summary["outcome"] = "command-exited-and-streams-EOF"
+-        if check and process.returncode != 0:
+-            raise AssertionError("Command failed: " + repr(argv))
++        if process.returncode != 0:
++            # check=False preserves the caller's exit-code handling, but a
++            # failed command must still retire its surviving owned descendants.
++            if owned_group_state()["state"] != "absent":
++                cleanup_owned_group()
++            if check:
++                raise AssertionError("Command failed: " + repr(argv))
+     except BaseException as caught:
+         failure = caught
+         summary["outcome"] = "command-failed"
