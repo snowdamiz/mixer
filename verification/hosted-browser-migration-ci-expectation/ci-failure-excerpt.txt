@@ -1,0 +1,37 @@
+  0) MixerHosted.Builds.StorageTest: failure on setup_all callback, all tests have been invalidated
+     match (=) failed
+     code:  assert [
+              20_261_024_000_000,
+              20_261_025_000_000,
+              20_261_025_000_001,
+              20_261_025_000_002,
+              20_261_025_000_003,
+              20_261_025_000_004,
+              20_261_025_000_005,
+              20_261_025_000_006,
+              20_261_025_000_007
+            ] = Ecto.Migrator.run(Repo, path, :up, all: true)
+     left:  [
+              20_261_024_000_000,
+              20_261_025_000_000,
+              20_261_025_000_001,
+              20_261_025_000_002,
+              20_261_025_000_003,
+              20_261_025_000_004,
+              20_261_025_000_005,
+              20_261_025_000_006,
+              20_261_025_000_007
+            ]
+     right: [20261024000000, 20261025000000, 20261025000001, 20261025000002,
+             20261025000003, 20261025000004, 20261025000005,
+             20261025000006, 20261025000007, 20261025000008]
+     stacktrace:
+       test/mixer_hosted/builds/storage_test.exs:25: MixerHosted.Builds.StorageTest.__ex_unit_setup_all_0/1
+       test/mixer_hosted/builds/storage_test.exs:1: MixerHosted.Builds.StorageTest.__ex_unit__/2
+
+
+  * test production router's two directory paths reject missing bearer before body or configured facade (0.07ms) [L#687]
+
+Finished in 119.3 seconds (5.7s async, 113.5s sync)
+
+Result: 649 passed, 15 invalid, 2 skipped

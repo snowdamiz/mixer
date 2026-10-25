@@ -31,7 +31,8 @@ defmodule MixerHosted.Builds.StorageTest do
              20_261_025_000_004,
              20_261_025_000_005,
              20_261_025_000_006,
-             20_261_025_000_007
+             20_261_025_000_007,
+             20_261_025_000_008
            ] =
              Ecto.Migrator.run(Repo, path, :up, all: true)
 

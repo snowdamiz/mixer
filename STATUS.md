@@ -311,6 +311,10 @@ verified 866 sealed members, 81 source, 1,137 dependency and 166 output bindings
 and cleanup. Broad ordinary CI after delivery remains pending. See
 [the migration review](docs/hosted-browser-activation-preparation-migration-review.md)
 and [the versioned review](docs/hosted-browser-catalog-v2-review.md).
+Migration delivery `a6eaa8a5` passes selected storage/migration CI. Its broader
+run reports 649 passed, fifteen invalid and two existing skips: build-storage
+setup still expected nine migrations. The missing expected 00008 is corrected
+and actual projectless formatting passes; broad execution remains pending.
 The RelationCatalog prerequisite passes 233 PG16 and 234 PG17 methods with
 65/66 actual mutations. Independent review passes 96 methods on each major,
 including fourteen rejected mutations and two allowed naming equivalences. Root

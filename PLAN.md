@@ -32,6 +32,10 @@ passes every step and its Engine run passes all three jobs. The preceding
 catalog Engine run also passes. SQL prerequisite `97d436b4` now passes both
 Phoenix and Engine CI. Catalog V2 checkpoint `6b1dfd33` now passes Phoenix and all Engine jobs. Model checkpoint
 `53672fc1` passes Engine CI.
+Migration checkpoint `a6eaa8a5` passes selected storage/migrations but broader
+Phoenix CI invalidates fifteen build-storage tests because their expected list
+omitted migration 00008 (649 passed, two existing skips). The one-item fixture
+correction passes projectless formatting; corrected broad execution is pending.
 See [the integrated scope](docs/hosted-browser-session-integration.md).
 Computer use, capture and native runtime tests remain paused.
 The full plan remains incomplete; no GA gate is promoted.
