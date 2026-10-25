@@ -1,0 +1,109 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+REVIEW MIGRATION 005 apply/down/reapply passed
+REVIEW CATALOG ff576c90a10e0bc098f3c7b593640f508aa676a166b8e2123257501f50eb375e
+string audit_schema direct SQL result: {:error, :authorization_unavailable}
+.
+08:39:29.290 [error] Postgrex.Protocol (#PID<0.197.0> ({Postgrex.Protocol, "mixer_customer_artifact_storage"})) disconnected: ** (Postgrex.Error) ERROR P0001 (raise_exception) invalid event projection
+....independent raw attack artifact_only: {:error, :authorization_unavailable}
+
+08:39:29.803 [error] Postgrex.Protocol (#PID<0.196.0> ({Postgrex.Protocol, "mixer_customer_artifact_storage"})) disconnected: ** (Postgrex.Error) ERROR 23503 (foreign_key_violation) insert or update on table "mixer_customer_artifacts" violates foreign key constraint "mixer_customer_artifacts_creating_event"
+
+    table: mixer_customer_artifacts
+    constraint: mixer_customer_artifacts_creating_event
+
+Key is not present in table "mixer_customer_audit_events".
+independent raw attack event_only: {:error, :authorization_unavailable}
+
+08:39:29.824 [error] Postgrex.Protocol (#PID<0.194.0> ({Postgrex.Protocol, "mixer_customer_artifact_storage"})) disconnected: ** (Postgrex.Error) ERROR 23503 (foreign_key_violation) insert or update on table "mixer_customer_audit_events" violates foreign key constraint "mixer_customer_audit_events_organization_id_project_id_man_fkey"
+
+    table: mixer_customer_audit_events
+    constraint: mixer_customer_audit_events_organization_id_project_id_man_fkey
+
+Key is not present in table "mixer_customer_artifacts".
+independent raw attack dedup_only: {:error, :authorization_unavailable}
+
+08:39:29.846 [error] Postgrex.Protocol (#PID<0.195.0> ({Postgrex.Protocol, "mixer_customer_artifact_storage"})) disconnected: ** (Postgrex.Error) ERROR 23503 (foreign_key_violation) insert or update on table "mixer_customer_idempotency" violates foreign key constraint "mixer_customer_idempotency_organization_id_project_id_even_fkey"
+
+    table: mixer_customer_idempotency
+    constraint: mixer_customer_idempotency_organization_id_project_id_even_fkey
+
+Key is not present in table "mixer_customer_audit_events".
+independent raw attack no_artifact: {:error, :authorization_unavailable}
+
+08:39:29.863 [error] Postgrex.Protocol (#PID<0.197.0> ({Postgrex.Protocol, "mixer_customer_artifact_storage"})) disconnected: ** (Postgrex.Error) ERROR 23503 (foreign_key_violation) insert or update on table "mixer_customer_audit_events" violates foreign key constraint "mixer_customer_audit_events_organization_id_project_id_man_fkey"
+
+    table: mixer_customer_audit_events
+    constraint: mixer_customer_audit_events_organization_id_project_id_man_fkey
+
+Key is not present in table "mixer_customer_artifacts".
+independent raw attack no_event: {:error, :authorization_unavailable}
+
+08:39:29.898 [error] Postgrex.Protocol (#PID<0.196.0> ({Postgrex.Protocol, "mixer_customer_artifact_storage"})) disconnected: ** (Postgrex.Error) ERROR 23503 (foreign_key_violation) insert or update on table "mixer_customer_artifacts" violates foreign key constraint "mixer_customer_artifacts_creating_event"
+
+    table: mixer_customer_artifacts
+    constraint: mixer_customer_artifacts_creating_event
+
+Key is not present in table "mixer_customer_audit_events".
+independent raw attack no_dedup: {:error, :authorization_unavailable}
+
+08:39:29.937 [error] Postgrex.Protocol (#PID<0.194.0> ({Postgrex.Protocol, "mixer_customer_artifact_storage"})) disconnected: ** (Postgrex.Error) ERROR P0002 (no_data_found) query returned no rows
+independent raw attack no_head: {:error, :authorization_unavailable}
+
+08:39:29.973 [error] Postgrex.Protocol (#PID<0.195.0> ({Postgrex.Protocol, "mixer_customer_artifact_storage"})) disconnected: ** (Postgrex.Error) ERROR P0001 (raise_exception) invalid event projection
+independent raw attack wrong_payload: {:error, :authorization_unavailable}
+
+08:39:30.017 [error] Postgrex.Protocol (#PID<0.197.0> ({Postgrex.Protocol, "mixer_customer_artifact_storage"})) disconnected: ** (Postgrex.Error) ERROR P0001 (raise_exception) inconsistent retained artifact
+independent raw attack wrong_signed: {:error, :authorization_unavailable}
+
+08:39:30.061 [error] Postgrex.Protocol (#PID<0.196.0> ({Postgrex.Protocol, "mixer_customer_artifact_storage"})) disconnected: ** (Postgrex.Error) ERROR P0001 (raise_exception) inconsistent retained artifact
+independent raw attack wrong_signature: {:error, :authorization_unavailable}
+
+08:39:30.107 [error] Postgrex.Protocol (#PID<0.194.0> ({Postgrex.Protocol, "mixer_customer_artifact_storage"})) disconnected: ** (Postgrex.Error) ERROR P0001 (raise_exception) inconsistent retained artifact
+independent raw attack wrong_manifest: {:error, :authorization_unavailable}
+
+08:39:30.146 [error] Postgrex.Protocol (#PID<0.195.0> ({Postgrex.Protocol, "mixer_customer_artifact_storage"})) disconnected: ** (Postgrex.Error) ERROR P0002 (no_data_found) query returned no rows
+independent raw attack wrong_envelope: {:error, :authorization_unavailable}
+
+08:39:30.190 [error] Postgrex.Protocol (#PID<0.197.0> ({Postgrex.Protocol, "mixer_customer_artifact_storage"})) disconnected: ** (Postgrex.Error) ERROR P0001 (raise_exception) inconsistent retained artifact
+independent raw attack wrong_canonical: {:error, :authorization_unavailable}
+
+08:39:30.234 [error] Postgrex.Protocol (#PID<0.196.0> ({Postgrex.Protocol, "mixer_customer_artifact_storage"})) disconnected: ** (Postgrex.Error) ERROR P0001 (raise_exception) inconsistent retained artifact
+independent raw attack wrong_actor: {:error, :authorization_unavailable}
+
+08:39:30.276 [error] Postgrex.Protocol (#PID<0.194.0> ({Postgrex.Protocol, "mixer_customer_artifact_storage"})) disconnected: ** (Postgrex.Error) ERROR P0001 (raise_exception) inconsistent customer event
+independent raw attack wrong_revision: {:error, :authorization_unavailable}
+
+08:39:30.318 [error] Postgrex.Protocol (#PID<0.195.0> ({Postgrex.Protocol, "mixer_customer_artifact_storage"})) disconnected: ** (Postgrex.Error) ERROR P0001 (raise_exception) inconsistent customer event
+independent raw attack wrong_membership: {:error, :authorization_unavailable}
+
+08:39:30.360 [error] Postgrex.Protocol (#PID<0.197.0> ({Postgrex.Protocol, "mixer_customer_artifact_storage"})) disconnected: ** (Postgrex.Error) ERROR P0001 (raise_exception) inconsistent customer event
+independent raw attack broken_predecessor: {:error, :authorization_unavailable}
+
+08:39:30.403 [error] Postgrex.Protocol (#PID<0.196.0> ({Postgrex.Protocol, "mixer_customer_artifact_storage"})) disconnected: ** (Postgrex.Error) ERROR P0001 (raise_exception) broken chain
+independent raw attack wrong_request: {:error, :authorization_unavailable}
+
+08:39:30.445 [error] Postgrex.Protocol (#PID<0.194.0> ({Postgrex.Protocol, "mixer_customer_artifact_storage"})) disconnected: ** (Postgrex.Error) ERROR P0001 (raise_exception) inconsistent customer event
+independent raw attack invalid_ip: {:error, :authorization_unavailable}
+
+08:39:30.485 [error] Postgrex.Protocol (#PID<0.195.0> ({Postgrex.Protocol, "mixer_customer_artifact_storage"})) disconnected: ** (Postgrex.Error) ERROR P0001 (raise_exception) inconsistent customer event
+independent raw attack extra_projection: {:error, :authorization_unavailable}
+
+08:39:30.525 [error] Postgrex.Protocol (#PID<0.197.0> ({Postgrex.Protocol, "mixer_customer_artifact_storage"})) disconnected: ** (Postgrex.Error) ERROR P0001 (raise_exception) invalid event projection
+independent raw attack invalid_request_id: {:error, :authorization_unavailable}
+
+08:39:30.568 [error] Postgrex.Protocol (#PID<0.196.0> ({Postgrex.Protocol, "mixer_customer_artifact_storage"})) disconnected: ** (Postgrex.Error) ERROR P0001 (raise_exception) inconsistent customer event
+independent raw attack projection: {:error, :authorization_unavailable}
+
+08:39:30.610 [error] Postgrex.Protocol (#PID<0.194.0> ({Postgrex.Protocol, "mixer_customer_artifact_storage"})) disconnected: ** (Postgrex.Error) ERROR P0001 (raise_exception) inconsistent customer event
+independent raw attack gap: {:error, :authorization_unavailable}
+
+08:39:30.660 [error] Postgrex.Protocol (#PID<0.195.0> ({Postgrex.Protocol, "mixer_customer_artifact_storage"})) disconnected: ** (Postgrex.Error) ERROR P0001 (raise_exception) invalid head transition
+.
+08:39:30.797 [error] Postgrex.Protocol (#PID<0.196.0> ({Postgrex.Protocol, "mixer_customer_artifact_storage"})) disconnected: ** (Postgrex.Error) ERROR P0001 (raise_exception) creating event belongs to another artifact
+.......review head wait: %{mode: :token, result: {:error, :unauthenticated}, elapsed_ms: 343}
+review head wait: %{mode: :root, result: {:error, :storage_unavailable}, elapsed_ms: 344}
+.........
+Finished in 5.1 seconds (0.00s async, 5.1s sync)
+
+Result: 22 passed

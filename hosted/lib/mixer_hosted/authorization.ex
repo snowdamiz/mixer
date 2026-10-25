@@ -20,8 +20,27 @@ defmodule MixerHosted.Authorization do
     :permission_denied,
     :authorization_unavailable,
     :conflict,
+    :immutable_conflict,
+    :idempotency_conflict,
     :storage_unavailable
   ]
+
+  @doc "Resolves project-visible metadata, then binds the exact artifact environment in an owned transaction."
+  def with_artifact_read_transaction(
+        identity,
+        project_target,
+        manifest_sha256,
+        callback,
+        repo \\ MixerHosted.Repo
+      ) do
+    MixerHosted.Authorization.ArtifactRead.run(
+      identity,
+      project_target,
+      manifest_sha256,
+      callback,
+      repo
+    )
+  end
 
   def with_authorized_transaction(identity, action, target, callback, repo \\ MixerHosted.Repo) do
     admitted_at = System.system_time(:second)

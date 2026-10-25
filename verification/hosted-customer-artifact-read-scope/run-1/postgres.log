@@ -1,0 +1,54 @@
+2026-10-25 08:13:22.748 EDT [53140] LOG:  starting PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit
+2026-10-25 08:13:22.749 EDT [53140] LOG:  listening on IPv4 address "127.0.0.1", port 50048
+2026-10-25 08:13:22.749 EDT [53140] LOG:  listening on Unix socket "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-artifact-read-scope-icezc17i/.s.PGSQL.50048"
+2026-10-25 08:13:22.751 EDT [53143] LOG:  database system was shut down at 2026-10-25 08:13:22 EDT
+2026-10-25 08:13:22.754 EDT [53140] LOG:  database system is ready to accept connections
+2026-10-25 08:13:23.556 EDT [53213] ERROR:  syntax error at end of input at character 825
+2026-10-25 08:13:23.556 EDT [53213] STATEMENT:  CREATE FUNCTION public.mixer_customer_allowed(org text, proj text, app text, env text, requested text, metadata boolean) RETURNS boolean LANGUAGE plpgsql STABLE SECURITY INVOKER SET search_path=pg_catalog AS $mixer$
+	DECLARE issued numeric; expiry numeric; now numeric:=extract(epoch FROM statement_timestamp());
+	BEGIN
+	  IF current_setting('mixer.authz.identity_class',true) IS DISTINCT FROM 'human'
+	    OR org IS DISTINCT FROM current_setting('mixer.authz.organization_id',true)
+	    OR proj IS DISTINCT FROM current_setting('mixer.authz.project_id',true)
+	    OR requested IS DISTINCT FROM current_setting('mixer.authz.action',true)
+	    OR requested NOT IN ('artifact.upload','artifact.read','audit.read')
+	    OR current_setting('mixer.authz.required_scope',true) IS DISTINCT FROM
+	       CASE requested WHEN 'artifact.upload' THEN 'mixer.artifact.upload' WHEN 'artifact.read' THEN 'mixer.artifact.read' ELSE 'mixer.audit.read' END
+	    OR current_setting('mixer.authz.phase',true) IS DISTINCT FROM CASE WHEN metadata THEN 'metadata' ELSE 'effect' END
+	    OR coalesce(current_setting('mixer.authz.token_issued_at',true),'') !~ '^(0|[1-9][0-9]{0,15})$'
+	    OR coalesce(current_setting('mixer.authz.token_expires_at',true),'') !~ '^(0|[1-9][0-9]{0,15})$'
+	    THEN RETURN false; END IF;
+	  issued:=current_setting('mixer.authz.token_issued_at',true)::numeric;
+	  expiry:=current_setting('mixer.authz.token_expires_at',true)::numeric;
+	  IF issued>9007199254740991 OR expiry>9007199254740991 OR issued>now+30 OR expiry<=now OR issued>=expiry THEN RETURN false; END IF;
+	  IF NOT metadata AND requested<>'audit.read' AND
+	    (app IS DISTINCT FROM current_setting('mixer.authz.application_id',true) OR env IS DISTINCT FROM current_setting('mixer.authz.environment_id',true)) THEN RETURN false; END IF;
+	  IF requested='audit.read' AND
+	    (coalesce(current_setting('mixer.authz.application_id',true),'')<>'' OR coalesce(current_setting('mixer.authz.environment_id',true),'')<>'') THEN RETURN false; END IF;
+	  RETURN EXISTS (
+	    SELECT 1 FROM public.mixer_authz_profiles pf
+	    JOIN public.mixer_authz_bindings b ON b.profile_id=pf.id AND b.profile_version=pf.version AND b.subject=current_setting('mixer.authz.subject',true)
+	    JOIN public.mixer_authz_principals pr ON pr.id=b.principal_id AND pr.identity_class='human'
+	    JOIN public.mixer_authz_credentials c ON c.profile_id=pf.id AND c.profile_version=pf.version AND c.reference=current_setting('mixer.authz.credential_ref',true) AND c.principal_id=pr.id
+	    JOIN public.mixer_authz_families f ON f.id=c.family_id AND f.principal_id=pr.id AND f.profile_id=pf.id AND f.profile_version=pf.version
+	    JOIN public.mixer_authz_organizations o ON o.id=org
+	    JOIN public.mixer_authz_projects p ON p.organization_id=org AND p.id=proj
+	    JOIN public.mixer_authz_memberships m ON m.principal_id=pr.id AND m.organization_id=org
+	    WHERE pf.active AND b.active AND pr.active AND c.active AND f.active AND o.active AND p.active
+	      AND pf.identity_class='human' AND b.identity_class='human'
+	      AND pf.id=current_setting('mixer.authz.profile_id',true) AND pf.version::text=current_setting('mixer.authz.profile_version',true)
+	      AND pf.issuer=current_setting('mixer.authz.issuer',true) AND pf.client_id=current_setting('mixer.authz.client_id',true)
+	      AND pr.id=current_setting('mixer.authz.principal_id',true) AND f.id=current_setting('mixer.authz.family_id',true)
+	      AND pr.not_before<=issued AND c.not_before<=issued AND f.not_before<=issued
+	      AND c.not_before<=now AND f.not_before<=now AND (c.expires_at IS NULL OR now<c.expires_at) AND (f.expires_at IS NULL OR now<f.expires_at)
+	      AND m.active AND m.not_before<=now AND (m.expires_at IS NULL OR now<m.expires_at)
+	      AND ((m.project_binding='all_projects' AND m.project_id IS NULL) OR (m.project_binding='exact_project' AND m.project_id=proj))
+	      AND m.role=ANY(CASE WHEN requested='artifact.upload' THEN ARRAY['owner','administrator','developer'] ELSE ARRAY['owner','administrator','developer','release_manager','viewer'] END)
+	      AND (metadata OR requested='audit.read' OR EXISTS (SELECT 1 FROM public.mixer_authz_applications a JOIN public.mixer_authz_environments e
+	        ON e.organization_id=a.organization_id AND e.project_id=a.project_id AND e.application_id=a.id
+	        WHERE a.organization_id=org AND a.project_id=proj AND a.id=app AND a.active AND e.id=env AND e.active))
+	  );
+	END
+	$mixer$
+2026-10-25 08:13:23.610 EDT [53140] LOG:  received immediate shutdown request
+2026-10-25 08:13:23.612 EDT [53140] LOG:  database system is shut down

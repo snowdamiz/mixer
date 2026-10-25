@@ -1,0 +1,31 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+??????????????
+
+  0) MixerHosted.Authorization.ArtifactReadTest: failure on setup_all callback, all tests have been invalidated
+     ** (Postgrex.Error) ERROR 42601 (syntax_error) syntax error at end of input
+     stacktrace:
+       (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1121: Ecto.Adapters.SQL.raise_sql_call_error/1
+       (elixir 1.20.4) lib/enum.ex:1725: Enum."-map/2-lists^map/1-1-"/2
+       (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1242: Ecto.Adapters.SQL.execute_ddl/4
+       (ecto_sql 3.14.0) lib/ecto/migration/runner.ex:350: Ecto.Migration.Runner.log_and_execute_ddl/3
+       (elixir 1.20.4) lib/enum.ex:1725: Enum."-map/2-lists^map/1-1-"/2
+       (elixir 1.20.4) lib/enum.ex:1725: Enum."-map/2-lists^map/1-1-"/2
+       (ecto_sql 3.14.0) lib/ecto/migration/runner.ex:313: Ecto.Migration.Runner.perform_operation/3
+       (stdlib 8.1) timer.erl:599: :timer.tc/2
+       (ecto_sql 3.14.0) lib/ecto/migration/runner.ex:27: Ecto.Migration.Runner.run/8
+       (ecto_sql 3.14.0) lib/ecto/migrator.ex:364: Ecto.Migrator.attempt/8
+       (ecto_sql 3.14.0) lib/ecto/migrator.ex:281: anonymous fn/5 in Ecto.Migrator.do_up/5
+       (ecto_sql 3.14.0) lib/ecto/migrator.ex:336: anonymous fn/6 in Ecto.Migrator.async_migrate_maybe_in_transaction/7
+       hosted/test/mixer_hosted/authorization/artifact_read_test.exs:6: anonymous fn/1 in MixerHosted.Authorization.ArtifactReadFixture.Migration.transaction/2
+       (ecto 3.14.2) lib/ecto/repo/transaction.ex:11: anonymous fn/3 in Ecto.Repo.Transaction.transact/4
+       (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1481: anonymous fn/3 in Ecto.Adapters.SQL.checkout_or_transaction/4
+       (db_connection 2.10.2) lib/db_connection.ex:1760: DBConnection.run_transaction/5
+       (ecto_sql 3.14.0) lib/ecto/migrator.ex:353: Ecto.Migrator.run_maybe_in_transaction/5
+       (elixir 1.20.4) lib/task/supervised.ex:105: Task.Supervised.invoke_mfa/2
+       (elixir 1.20.4) lib/task/supervised.ex:40: Task.Supervised.reply/4
+
+
+Finished in 0.1 seconds (0.00s async, 0.1s sync)
+
+Result: 0 tests, 14 invalid

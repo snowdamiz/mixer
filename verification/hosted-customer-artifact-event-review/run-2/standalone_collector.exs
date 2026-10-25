@@ -1,0 +1,6 @@
+Process.register(self(), :mixer_customer_artifact_event_review_collector)
+IO.puts("collector=mixer_customer_artifact_event_review_collector distribution=#{Node.alive?()}")
+ExUnit.start(autorun: false, seed: 0, max_cases: 2)
+{:ok, _, _} = Kernel.ParallelCompiler.compile(["/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-artifact-event-review/run-2/inputs/hosted/test/mixer_hosted/audit/customer_artifact_event_test.exs","/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-artifact-event-review/run-2/inputs/hosted/test/mixer_hosted/protocol/artifact_cbor_test.exs","/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-artifact-event-review/run-2/inputs/hosted/test/mixer_hosted/audit/upload_event_test.exs","/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-artifact-event-review/run-2/inputs/verification/hosted-customer-artifact-event-review/adversarial_test.exs"], warnings_as_errors: true, return_diagnostics: true)
+result = ExUnit.run()
+System.halt(if result.failures == 0, do: 0, else: 1)

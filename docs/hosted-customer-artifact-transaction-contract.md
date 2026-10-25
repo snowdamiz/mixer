@@ -1,8 +1,10 @@
 # Customer artifact transaction contract
 
-Status: proposed next development slice, reviewed against ordinary source at
-`d385adf3dd110da44ba290a7221278c48e39b882`. This document is not implementation
-or release acceptance. `mixer-product-plan.md` remains binding in full. This
+Status: implementation contract originally reviewed against ordinary source at
+`d385adf3dd110da44ba290a7221278c48e39b882`. The local implementation and its
+remaining boundaries are recorded in [the integration scope](hosted-customer-artifact-integration.md).
+This contract by itself is not implementation or release acceptance.
+`mixer-product-plan.md` remains binding in full. This
 slice is a local PostgreSQL protected upload, private read and upload-audit read;
 HTTP/provider login, deployment, R2/CDN, publication, jobs, service/CI principals,
 native qualification and published separate-repository FieldLog remain pending.

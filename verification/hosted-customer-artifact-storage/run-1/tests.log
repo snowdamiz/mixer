@@ -1,0 +1,145 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+STORAGE CATALOG SHA256 ff576c90a10e0bc098f3c7b593640f508aa676a166b8e2123257501f50eb375e
+
+
+  1) test create, fresh private read, immutable audit, own retry and new-key unchanged (MixerHosted.CustomerArtifacts.PostgresStorageTest)
+     hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:190
+     match (=) failed
+     code:  assert {:ok, %{status: 201, event_sequence: 1}} = F.upload()
+     left:  {:ok, %{status: 201, event_sequence: 1}}
+     right: {:error, :authorization_unavailable}
+     stacktrace:
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:192: (test)
+
+
+
+  2) test current principal exact request identity and revocation fence cached successes (MixerHosted.CustomerArtifacts.PostgresStorageTest)
+     hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:238
+     ** (Postgrex.Error) ERROR 23505 (unique_violation) duplicate key value violates unique constraint "mixer_authz_organizations_pkey"
+
+         table: mixer_authz_organizations
+         constraint: mixer_authz_organizations_pkey
+
+     Key (id)=(org-a) already exists.
+     stacktrace:
+       (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1121: Ecto.Adapters.SQL.raise_sql_call_error/1
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:101: anonymous fn/2 in MixerHosted.CustomerArtifacts.StorageFixture.seed!/0
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:87: MixerHosted.CustomerArtifacts.StorageFixture.seed!/0
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:186: MixerHosted.CustomerArtifacts.PostgresStorageTest.__ex_unit_setup_0/1
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:119: MixerHosted.CustomerArtifacts.PostgresStorageTest.__ex_unit__/2
+
+
+
+  3) test pure lookalike changed context expiry and every forged Checked field reject (MixerHosted.CustomerArtifacts.PostgresStorageTest)
+     hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:253
+     ** (Postgrex.Error) ERROR 23505 (unique_violation) duplicate key value violates unique constraint "mixer_authz_organizations_pkey"
+
+         table: mixer_authz_organizations
+         constraint: mixer_authz_organizations_pkey
+
+     Key (id)=(org-a) already exists.
+     stacktrace:
+       (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1121: Ecto.Adapters.SQL.raise_sql_call_error/1
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:101: anonymous fn/2 in MixerHosted.CustomerArtifacts.StorageFixture.seed!/0
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:87: MixerHosted.CustomerArtifacts.StorageFixture.seed!/0
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:186: MixerHosted.CustomerArtifacts.PostgresStorageTest.__ex_unit_setup_0/1
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:119: MixerHosted.CustomerArtifacts.PostgresStorageTest.__ex_unit__/2
+
+
+
+  4) test SQL CBOR independently matches Elixir bytes and enforces every bound (MixerHosted.CustomerArtifacts.PostgresStorageTest)
+     hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:275
+     ** (Postgrex.Error) ERROR 23505 (unique_violation) duplicate key value violates unique constraint "mixer_authz_organizations_pkey"
+
+         table: mixer_authz_organizations
+         constraint: mixer_authz_organizations_pkey
+
+     Key (id)=(org-a) already exists.
+     stacktrace:
+       (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1121: Ecto.Adapters.SQL.raise_sql_call_error/1
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:101: anonymous fn/2 in MixerHosted.CustomerArtifacts.StorageFixture.seed!/0
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:87: MixerHosted.CustomerArtifacts.StorageFixture.seed!/0
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:186: MixerHosted.CustomerArtifacts.PostgresStorageTest.__ex_unit_setup_0/1
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:119: MixerHosted.CustomerArtifacts.PostgresStorageTest.__ex_unit__/2
+
+
+
+  5) test runtime cannot mutate immutable rows provision heads mutate authz execute codec or become owner (MixerHosted.CustomerArtifacts.PostgresStorageTest)
+     hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:332
+     ** (Postgrex.Error) ERROR 23505 (unique_violation) duplicate key value violates unique constraint "mixer_authz_organizations_pkey"
+
+         table: mixer_authz_organizations
+         constraint: mixer_authz_organizations_pkey
+
+     Key (id)=(org-a) already exists.
+     stacktrace:
+       (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1121: Ecto.Adapters.SQL.raise_sql_call_error/1
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:101: anonymous fn/2 in MixerHosted.CustomerArtifacts.StorageFixture.seed!/0
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:87: MixerHosted.CustomerArtifacts.StorageFixture.seed!/0
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:186: MixerHosted.CustomerArtifacts.PostgresStorageTest.__ex_unit_setup_0/1
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:119: MixerHosted.CustomerArtifacts.PostgresStorageTest.__ex_unit__/2
+
+
+
+  6) test head-only advancement and callback error exception roll back all storage (MixerHosted.CustomerArtifacts.PostgresStorageTest)
+     hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:352
+     ** (Postgrex.Error) ERROR 23505 (unique_violation) duplicate key value violates unique constraint "mixer_authz_organizations_pkey"
+
+         table: mixer_authz_organizations
+         constraint: mixer_authz_organizations_pkey
+
+     Key (id)=(org-a) already exists.
+     stacktrace:
+       (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1121: Ecto.Adapters.SQL.raise_sql_call_error/1
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:101: anonymous fn/2 in MixerHosted.CustomerArtifacts.StorageFixture.seed!/0
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:87: MixerHosted.CustomerArtifacts.StorageFixture.seed!/0
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:186: MixerHosted.CustomerArtifacts.PostgresStorageTest.__ex_unit_setup_0/1
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:119: MixerHosted.CustomerArtifacts.PostgresStorageTest.__ex_unit__/2
+
+
+
+  7) test concurrent same key consumes one sequence and new-key unchanged operations serialize (MixerHosted.CustomerArtifacts.PostgresStorageTest)
+     hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:383
+     ** (Postgrex.Error) ERROR 23505 (unique_violation) duplicate key value violates unique constraint "mixer_authz_organizations_pkey"
+
+         table: mixer_authz_organizations
+         constraint: mixer_authz_organizations_pkey
+
+     Key (id)=(org-a) already exists.
+     stacktrace:
+       (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1121: Ecto.Adapters.SQL.raise_sql_call_error/1
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:101: anonymous fn/2 in MixerHosted.CustomerArtifacts.StorageFixture.seed!/0
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:87: MixerHosted.CustomerArtifacts.StorageFixture.seed!/0
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:186: MixerHosted.CustomerArtifacts.PostgresStorageTest.__ex_unit_setup_0/1
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:119: MixerHosted.CustomerArtifacts.PostgresStorageTest.__ex_unit__/2
+
+
+
+  8) test corrupt retained signed bytes and audit rows are unavailable (MixerHosted.CustomerArtifacts.PostgresStorageTest)
+     hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:395
+     ** (Postgrex.Error) ERROR 23505 (unique_violation) duplicate key value violates unique constraint "mixer_authz_organizations_pkey"
+
+         table: mixer_authz_organizations
+         constraint: mixer_authz_organizations_pkey
+
+     Key (id)=(org-a) already exists.
+     stacktrace:
+       (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1121: Ecto.Adapters.SQL.raise_sql_call_error/1
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:101: anonymous fn/2 in MixerHosted.CustomerArtifacts.StorageFixture.seed!/0
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:87: MixerHosted.CustomerArtifacts.StorageFixture.seed!/0
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:186: MixerHosted.CustomerArtifacts.PostgresStorageTest.__ex_unit_setup_0/1
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:119: MixerHosted.CustomerArtifacts.PostgresStorageTest.__ex_unit__/2
+
+
+Finished in 0.4 seconds (0.00s async, 0.4s sync)
+
+Result: 0/8 passed
+Failed: 8 tests

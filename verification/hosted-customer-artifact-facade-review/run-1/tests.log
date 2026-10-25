@@ -1,0 +1,36 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+????????????
+
+  0) FacadeReview: failure on setup_all callback, all tests have been invalidated
+     ** (Ecto.MigrationError) Migrations failed to run because the connection pool size is less than 2.
+
+     Ecto requires a pool size of at least 2 to support concurrent migrators.
+     When migrations run, Ecto uses one connection to maintain a lock and
+     another to run migrations.
+
+     If you are running migrations with Mix, you can increase the number
+     of connections via the pool size option:
+
+         mix ecto.migrate --pool-size 2
+
+     If you are running the Ecto.Migrator programmatically, you can configure
+     the pool size via your application config:
+
+         config :my_app, Repo,
+           ...,
+           pool_size: 2 # at least
+
+     stacktrace:
+       (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1250: Ecto.Adapters.SQL.raise_migration_pool_size_error/0
+       (ecto_sql 3.14.0) lib/ecto/adapters/postgres.ex:311: Ecto.Adapters.Postgres.lock_for_migrations/3
+       (ecto_sql 3.14.0) lib/ecto/migrator.ex:584: Ecto.Migrator.lock_for_migrations/4
+       /Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-artifact-facade-review/run-1/inputs/verification/hosted-customer-artifact-facade-review/review_test.exs:83: anonymous fn/2 in FacadeReview.__ex_unit_setup_all_0/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       /Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-artifact-facade-review/run-1/inputs/verification/hosted-customer-artifact-facade-review/review_test.exs:82: FacadeReview.__ex_unit_setup_all_0/1
+       /Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-artifact-facade-review/run-1/inputs/verification/hosted-customer-artifact-facade-review/review_test.exs:35: FacadeReview.__ex_unit__/2
+
+
+Finished in 0.2 seconds (0.2s on load, 0.00s async, 0.05s sync)
+
+Result: 0 tests, 12 invalid

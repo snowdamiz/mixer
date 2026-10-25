@@ -127,8 +127,20 @@ defmodule MixerHosted.Authorization.Policy do
 
   @spec evaluate(term(), term(), term(), term(), term()) :: result()
   def evaluate(identity, action, target, evidence, now) do
-    with {:ok, target} <- request(identity, action, target, now),
-         {:ok, evidence} <- evidence(evidence),
+    with {:ok, target} <- request(identity, action, target, now) do
+      evaluate_request(identity, action, target, evidence, now)
+    end
+  end
+
+  @doc false
+  def metadata_evaluate(identity, target, evidence, now) do
+    with {:ok, target} <- metadata_request(identity, target, now) do
+      evaluate_request(identity, "artifact.read", target, evidence, now)
+    end
+  end
+
+  defp evaluate_request(identity, action, target, evidence, now) do
+    with {:ok, evidence} <- evidence(evidence),
          :ok <- current_identity(identity, evidence, now),
          :ok <- live_target(target, evidence.target),
          memberships = eligible_memberships(evidence.memberships, target, now),
@@ -156,6 +168,22 @@ defmodule MixerHosted.Authorization.Policy do
   @doc false
   @spec request(term(), term(), term(), term()) :: {:ok, Scope.t()} | {:error, error()}
   def request(identity, action, target, now) do
+    request_target(identity, action, target, now, &valid_action_target?(action, &1))
+  end
+
+  @doc false
+  def metadata_request(identity, target, now) do
+    # Metadata admission is project-only, using the actual read action. It never
+    # creates full artifact authority or borrows audit.read's scope/permission.
+    with {:ok, scope} <-
+           request_target(identity, "artifact.read", target, now, &Scope.project_only?/1) do
+      if "mixer.artifact.read" in identity.scopes,
+        do: {:ok, scope},
+        else: {:error, :permission_denied}
+    end
+  end
+
+  defp request_target(identity, action, target, now, target_check) do
     cond do
       not Encoding.numeric_date?(now) ->
         {:error, :invalid_request}
@@ -174,7 +202,7 @@ defmodule MixerHosted.Authorization.Policy do
 
       true ->
         with {:ok, scope} <- Scope.new(target),
-             true <- valid_action_target?(action, scope) do
+             true <- target_check.(scope) do
           {:ok, scope}
         else
           _ -> {:error, :invalid_request}

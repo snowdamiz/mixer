@@ -1,0 +1,436 @@
+defmodule MixerHosted.Audit.UploadEvent do
+  @moduledoc """
+  Validates the closed hosted artifact-upload audit representation.
+
+  Reconstructs exact CBOR, domain hash and PostgreSQL display bytes from an
+  already decoded map. A retained row and its immediate predecessor can be
+  checked without reading an entire chain. This proves internal consistency;
+  it does not authenticate an actor, verify an artifact signature, authorize a
+  write or prove history against a privileged coherent rewrite.
+
+  The input is already allocated by the caller. Shape and field bounds are
+  checked before encoding: 16 display keys, at most 64 memberships, fixed
+  arrays, a 512-byte reason, 16 KiB CBOR and 32 KiB display. Malformed input
+  returns a fixed error without retaining source values in diagnostics.
+  """
+
+  @row_keys ~w(organization project event_id event_cbor event_hash previous_hash
+    previous_state current_state display_json display_bytes)a
+
+  @spec decode(term()) :: {:ok, map()} | {:error, :invalid_audit_event}
+  def decode(display) do
+    event = from_display(display)
+    bytes = encode(event)
+    digest = hash("mixer.hosted.audit.v1", bytes)
+    ensure(display["hash"] == hex(digest), "display hash")
+    rendered = postgres_display(display)
+    ensure(byte_size(rendered) <= 32_768, "display budget")
+    {:ok, %{event_cbor: bytes, event_hash: digest, display_bytes: rendered}}
+  rescue
+    _ -> {:error, :invalid_audit_event}
+  end
+
+  @spec validate_row(term()) :: :ok | {:error, :invalid_audit_event}
+  def validate_row(row) do
+    ensure(
+      is_map(row) and map_size(row) == 10 and
+        Enum.all?(@row_keys, &Map.has_key?(row, &1)),
+      "closed row"
+    )
+
+    ensure(
+      is_binary(row.event_cbor) and byte_size(row.event_cbor) <= 16_384 and
+        is_binary(row.display_bytes) and byte_size(row.display_bytes) <= 32_768,
+      "row budget"
+    )
+
+    for field <- [:event_hash, :previous_state, :current_state] do
+      value = Map.fetch!(row, field)
+      ensure(is_binary(value) and byte_size(value) == 32, "row digest")
+    end
+
+    ensure(
+      is_binary(row.previous_hash) and byte_size(row.previous_hash) in [0, 32],
+      "previous hash"
+    )
+
+    validate_row!(row)
+  rescue
+    _ -> {:error, :invalid_audit_event}
+  end
+
+  @spec validate_edge(term(), term()) :: :ok | {:error, :invalid_audit_event}
+  def validate_edge(current, previous) do
+    :ok = validate_row(current)
+
+    if current.event_id == 1 do
+      ensure(is_nil(previous), "initial predecessor")
+    else
+      :ok = validate_row(previous)
+
+      ensure(
+        previous.organization == current.organization and
+          previous.project == current.project and
+          previous.event_id + 1 == current.event_id and
+          previous.event_hash == current.previous_hash and
+          previous.current_state == current.previous_state,
+        "adjacent edge"
+      )
+    end
+
+    :ok
+  rescue
+    _ -> {:error, :invalid_audit_event}
+  end
+
+  @u64 18_446_744_073_709_551_615
+  defp encode(value, limit \\ 16_384) when is_integer(limit) and limit in 1..65_536 do
+    {_, _} = measure(value, 0, 4096, limit)
+    encoded = enc(value)
+    if byte_size(encoded) > limit, do: raise(ArgumentError, "encoded budget")
+    encoded
+  end
+
+  defp measure(_, depth, _, _) when depth > 16, do: raise(ArgumentError, "depth")
+  defp measure(_, _, nodes, _) when nodes < 1, do: raise(ArgumentError, "nodes")
+
+  defp measure(value, depth, nodes, budget) do
+    if budget < 1, do: raise(ArgumentError, "encoded budget")
+
+    {header, children} =
+      case value do
+        nil ->
+          {1, []}
+
+        n when is_integer(n) and n in 0..@u64 ->
+          {byte_size(head(0, n)), []}
+
+        {:bytes, b} when is_binary(b) ->
+          {byte_size(head(2, byte_size(b))) + byte_size(b), []}
+
+        t when is_binary(t) ->
+          if not String.valid?(t), do: raise(ArgumentError, "UTF8")
+          {byte_size(head(3, byte_size(t))) + byte_size(t), []}
+
+        a when is_list(a) and length(a) <= 256 ->
+          {byte_size(head(4, length(a))), a}
+
+        _ ->
+          raise(ArgumentError, "unsupported type")
+      end
+
+    if header > budget, do: raise(ArgumentError, "encoded budget")
+
+    Enum.reduce(children, {nodes - 1, budget - header}, fn child, {remaining, left} ->
+      measure(child, depth + 1, remaining, left)
+    end)
+  end
+
+  defp enc(nil), do: <<0xF6>>
+  defp enc(n) when is_integer(n) and n in 0..@u64, do: head(0, n)
+  defp enc({:bytes, b}) when is_binary(b), do: head(2, byte_size(b)) <> b
+
+  defp enc(t) when is_binary(t) do
+    if not String.valid?(t), do: raise(ArgumentError, "UTF8")
+    head(3, byte_size(t)) <> t
+  end
+
+  defp enc(a) when is_list(a) and length(a) <= 256,
+    do: head(4, length(a)) <> IO.iodata_to_binary(Enum.map(a, &enc/1))
+
+  defp enc(_), do: raise(ArgumentError, "unsupported type")
+  defp head(m, n) when n < 24, do: <<m * 32 + n>>
+  defp head(m, n) when n <= 255, do: <<m * 32 + 24, n>>
+  defp head(m, n) when n <= 65_535, do: <<m * 32 + 25, n::16>>
+  defp head(m, n) when n <= 4_294_967_295, do: <<m * 32 + 26, n::32>>
+  defp head(m, n), do: <<m * 32 + 27, n::64>>
+  defp hash(domain, b), do: :crypto.hash(:sha256, domain <> <<0>> <> b)
+  defp b(v), do: {:bytes, v}
+  defp hex(v), do: Base.encode16(v, case: :lower)
+
+  # Fixed schema validation precedes rendering; no SQL validator is consulted.
+  @display_keys ~w(audit_schema id tenant actor decision target action reason request_id source_ip recorded_at previous_state current_state previous_hash request_hash hash)
+  @roles ~w(owner administrator developer release_manager billing_manager viewer)
+  @upload_roles ~w(owner administrator developer)
+  @seconds 9_007_199_254_740_991
+  @revision 9_223_372_036_854_775_807
+
+  defp from_display(d) do
+    ensure(
+      is_map(d) and map_size(d) == 16 and Enum.all?(@display_keys, &Map.has_key?(d, &1)),
+      "closed display"
+    )
+
+    ensure(is_integer(d["audit_schema"]) and d["audit_schema"] == 1, "schema")
+    ensure(d["action"] == "artifact.upload", "action")
+    [o, p] = array!(d["tenant"], 2)
+    id!(o)
+    id!(p)
+
+    [
+      principal,
+      kind,
+      binding,
+      profile,
+      version,
+      issuer,
+      subject,
+      client,
+      credential,
+      family,
+      auth
+    ] = array!(d["actor"], 11)
+
+    ensure(kind == "human", "class")
+    [time, pr, ar, fr, orr, pjr, members] = array!(d["decision"], 7)
+    [to, tp, app, env, platform, runtime, manifest] = array!(d["target"], 7)
+    ensure(to == o and tp == p, "tenant/target")
+    ensure(platform in ["ios", "android"], "platform")
+    eid = uint!(d["id"], 1, @u64)
+    completed = uint!(auth, 0, @seconds)
+    decision = uint!(time, 0, @seconds)
+    recorded = uint!(d["recorded_at"], 0, @seconds)
+
+    ensure(
+      completed >= decision - 45 and completed <= decision + 30 and recorded >= decision,
+      "time"
+    )
+
+    ensure(bounded_length!(members, 64) in 1..64, "members")
+
+    decoded_members =
+      Enum.map(members, fn m ->
+        [uuid, role, rev] = array!(m, 3)
+        ensure(role in @roles, "role")
+        [b(uuid!(uuid)), role, uint!(rev, 1, @revision)]
+      end)
+
+    member_ids = Enum.map(decoded_members, fn [{:bytes, id}, _, _] -> id end)
+    ensure(member_ids == Enum.sort(Enum.uniq(member_ids)), "member order/unique")
+
+    ensure(
+      Enum.any?(decoded_members, fn [_, role, _] -> role in @upload_roles end),
+      "upload ceiling"
+    )
+
+    previous_hash = hex!(d["previous_hash"], if(eid == 1, do: 0, else: 32))
+    hex!(d["hash"], 32)
+
+    event = [
+      1,
+      eid,
+      [o, p],
+      [
+        b(uuid!(principal)),
+        kind,
+        b(uuid!(binding)),
+        text!(profile, 1, 128),
+        uint!(version, 1, 2_147_483_647),
+        b(hex!(issuer, 32)),
+        b(hex!(subject, 32)),
+        b(hex!(client, 32)),
+        b(hex!(credential, 32)),
+        b(uuid!(family)),
+        completed
+      ],
+      [
+        decision,
+        uint!(pr, 1, @revision),
+        uint!(ar, 1, @revision),
+        uint!(fr, 1, @revision),
+        uint!(orr, 1, @revision),
+        uint!(pjr, 1, @revision),
+        decoded_members
+      ],
+      [
+        id!(to),
+        id!(tp),
+        id!(app),
+        id!(env),
+        platform,
+        b(hex!(runtime, 32)),
+        b(hex!(manifest, 32))
+      ],
+      "artifact.upload",
+      text!(d["reason"], 0, 512),
+      b(uuid!(d["request_id"])),
+      ip!(d["source_ip"]),
+      recorded,
+      b(hex!(d["previous_state"], 32)),
+      b(hex!(d["current_state"], 32)),
+      b(previous_hash),
+      b(hex!(d["request_hash"], 32))
+    ]
+
+    ensure(byte_size(encode(event)) <= 16_384, "event budget")
+    event
+  rescue
+    _ -> raise ArgumentError, "invalid typed display"
+  end
+
+  # Retained row projections remain separate from typed display decoding.
+  defp validate_row!(%{
+         organization: o,
+         project: p,
+         event_id: id,
+         event_cbor: bytes,
+         event_hash: hash,
+         previous_hash: previous_hash,
+         previous_state: previous_state,
+         current_state: current_state,
+         display_json: d,
+         display_bytes: display_bytes
+       }) do
+    event = from_display(d)
+    ensure(is_integer(id) and id in 1..@u64 and d["id"] == Integer.to_string(id), "row id")
+    ensure(d["tenant"] == [o, p], "row tenant")
+
+    ensure(
+      bytes == encode(event) and hash == hash("mixer.hosted.audit.v1", bytes),
+      "row cbor/hash"
+    )
+
+    ensure(
+      d["hash"] == hex(hash) and d["previous_hash"] == hex(previous_hash) and
+        d["previous_state"] == hex(previous_state) and d["current_state"] == hex(current_state),
+      "row projections"
+    )
+
+    ensure(display_bytes == postgres_display(d), "display bytes")
+
+    if id == 1 do
+      ensure(
+        previous_hash == <<>> and
+          previous_state == hash("mixer.hosted.state.v1", encode([1, o, p])),
+        "initial edge"
+      )
+    end
+
+    :ok
+  end
+
+  defp postgres_display(v) when is_map(v) do
+    "{" <>
+      (v
+       |> Map.to_list()
+       |> Enum.sort_by(fn {k, _} -> {byte_size(k), k} end)
+       |> Enum.map_join(", ", fn {k, value} ->
+         postgres_display(k) <> ": " <> postgres_display(value)
+       end)) <> "}"
+  end
+
+  defp postgres_display(v) when is_list(v),
+    do: "[" <> Enum.map_join(v, ", ", &postgres_display/1) <> "]"
+
+  # PostgreSQL jsonb_out string spelling for this closed retained schema.
+  # Operate on validated source bytes; never substitute inside encoded JSON.
+  defp postgres_display(v) when is_binary(v) do
+    ensure(String.valid?(v) and not String.contains?(v, <<0>>), "PostgreSQL text")
+
+    escaped =
+      for <<c <- v>> do
+        case c do
+          34 ->
+            ~S(\")
+
+          92 ->
+            ~S(\\)
+
+          8 ->
+            ~S(\b)
+
+          12 ->
+            ~S(\f)
+
+          10 ->
+            ~S(\n)
+
+          13 ->
+            ~S(\r)
+
+          9 ->
+            ~S(\t)
+
+          control when control < 32 ->
+            [
+              "\\u00",
+              binary_part("0123456789abcdef", div(control, 16), 1),
+              binary_part("0123456789abcdef", rem(control, 16), 1)
+            ]
+
+          byte ->
+            <<byte>>
+        end
+      end
+
+    IO.iodata_to_binary([34, escaped, 34])
+  end
+
+  defp postgres_display(nil), do: "null"
+  defp postgres_display(1), do: "1"
+
+  defp ensure(true, _), do: :ok
+  defp ensure(_, message), do: raise(ArgumentError, message)
+  defp bounded_length!(v, limit), do: bounded_length!(v, limit, 0)
+  defp bounded_length!([], _, count), do: count
+
+  defp bounded_length!([_ | tail], limit, count) when count < limit,
+    do: bounded_length!(tail, limit, count + 1)
+
+  defp bounded_length!(_, _, _), do: raise(ArgumentError, "array bound")
+
+  defp array!(v, n) do
+    ensure(bounded_length!(v, n) == n, "array shape")
+    v
+  end
+
+  defp text!(v, lo, hi) do
+    ensure(
+      is_binary(v) and byte_size(v) >= lo and byte_size(v) <= hi and String.valid?(v) and
+        not String.contains?(v, <<0>>),
+      "text"
+    )
+
+    v
+  end
+
+  defp uint!(v, lo, hi) do
+    text!(v, 1, 20)
+    ensure(Regex.match?(~r/\A(?:0|[1-9][0-9]*)\z/, v), "decimal")
+    n = String.to_integer(v)
+    ensure(n >= lo and n <= hi, "integer range")
+    n
+  end
+
+  defp uuid!(v) do
+    text!(v, 36, 36)
+
+    ensure(
+      Regex.match?(~r/\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/, v),
+      "uuid"
+    )
+
+    v |> String.replace("-", "") |> Base.decode16!(case: :lower)
+  end
+
+  defp hex!(v, n) do
+    text!(v, n * 2, n * 2)
+    ensure(Regex.match?(~r/\A[0-9a-f]*\z/, v), "hex")
+    Base.decode16!(v, case: :lower)
+  end
+
+  defp id!(v) do
+    text!(v, 1, 128)
+    ensure(Regex.match?(~r/\A[A-Za-z0-9_.-]+\z/, v), "id")
+    v
+  end
+
+  defp ip!(nil), do: nil
+
+  defp ip!(v) do
+    text!(v, 1, 45)
+    {:ok, address} = :inet.parse_strict_address(String.to_charlist(v))
+    ensure(address |> :inet.ntoa() |> to_string() == v, "canonical ip")
+    v
+  end
+end

@@ -1,0 +1,190 @@
+2026-10-25 08:35:10.953 EDT [63429] LOG:  starting PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit
+2026-10-25 08:35:10.954 EDT [63429] LOG:  listening on IPv4 address "127.0.0.1", port 52602
+2026-10-25 08:35:10.954 EDT [63429] LOG:  listening on Unix socket "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-artifact-storage-review-je2m23uu/.s.PGSQL.52602"
+2026-10-25 08:35:10.957 EDT [63432] LOG:  database system was shut down at 2026-10-25 08:35:10 EDT
+2026-10-25 08:35:10.959 EDT [63429] LOG:  database system is ready to accept connections
+2026-10-25 08:35:11.917 EDT [63489] ERROR:  invalid event projection
+2026-10-25 08:35:11.917 EDT [63489] CONTEXT:  PL/pgSQL function public.mixer_customer_integrity() line 23 at RAISE
+2026-10-25 08:35:11.917 EDT [63489] STATEMENT:  COMMIT
+2026-10-25 08:35:11.937 EDT [63485] ERROR:  non-integer cbor number
+2026-10-25 08:35:11.937 EDT [63485] CONTEXT:  PL/pgSQL function public.mixer_customer_cbor_part(jsonb,integer,integer) line 7 at RAISE
+	SQL statement "SELECT encoded               FROM public.mixer_customer_cbor_part(v,0,4096)"
+	PL/pgSQL function public.mixer_customer_cbor(jsonb) line 3 at SQL statement
+2026-10-25 08:35:11.937 EDT [63485] STATEMENT:  SELECT public.mixer_customer_cbor($1::text::jsonb)
+2026-10-25 08:35:11.939 EDT [63484] ERROR:  non-integer cbor number
+2026-10-25 08:35:11.939 EDT [63484] CONTEXT:  PL/pgSQL function public.mixer_customer_cbor_part(jsonb,integer,integer) line 7 at RAISE
+	SQL statement "SELECT *                  FROM public.mixer_customer_cbor_part(val,depth+1,remaining-count)"
+	PL/pgSQL function public.mixer_customer_cbor_part(jsonb,integer,integer) line 14 at SQL statement
+	SQL statement "SELECT encoded               FROM public.mixer_customer_cbor_part(v,0,4096)"
+	PL/pgSQL function public.mixer_customer_cbor(jsonb) line 3 at SQL statement
+2026-10-25 08:35:11.939 EDT [63484] STATEMENT:  SELECT public.mixer_customer_cbor($1::text::jsonb)
+2026-10-25 08:35:11.940 EDT [63486] ERROR:  non-integer cbor number
+2026-10-25 08:35:11.940 EDT [63486] CONTEXT:  PL/pgSQL function public.mixer_customer_cbor_part(jsonb,integer,integer) line 7 at RAISE
+	SQL statement "SELECT *                  FROM public.mixer_customer_cbor_part(pair.value,depth+1,remaining-count)"
+	PL/pgSQL function public.mixer_customer_cbor_part(jsonb,integer,integer) line 24 at SQL statement
+	SQL statement "SELECT encoded               FROM public.mixer_customer_cbor_part(v,0,4096)"
+	PL/pgSQL function public.mixer_customer_cbor(jsonb) line 3 at SQL statement
+2026-10-25 08:35:11.940 EDT [63486] STATEMENT:  SELECT public.mixer_customer_cbor($1::text::jsonb)
+2026-10-25 08:35:12.116 EDT [63494] ERROR:  permission denied for table mixer_customer_artifacts
+2026-10-25 08:35:12.116 EDT [63494] STATEMENT:  UPDATE public.mixer_customer_artifacts SET envelope_bytes=envelope_bytes
+2026-10-25 08:35:12.117 EDT [63493] ERROR:  permission denied for table mixer_customer_audit_events
+2026-10-25 08:35:12.117 EDT [63493] STATEMENT:  DELETE FROM public.mixer_customer_audit_events
+2026-10-25 08:35:12.117 EDT [63498] ERROR:  permission denied for table mixer_customer_idempotency
+2026-10-25 08:35:12.117 EDT [63498] STATEMENT:  TRUNCATE public.mixer_customer_idempotency
+2026-10-25 08:35:12.117 EDT [63491] ERROR:  permission denied for table mixer_customer_artifact_heads
+2026-10-25 08:35:12.117 EDT [63491] STATEMENT:  UPDATE public.mixer_customer_artifact_heads SET organization_id='elsewhere'
+2026-10-25 08:35:12.117 EDT [63494] ERROR:  permission denied for table mixer_customer_artifact_heads
+2026-10-25 08:35:12.117 EDT [63494] STATEMENT:  INSERT INTO public.mixer_customer_artifact_heads VALUES ('org-a','project-a',0,'',repeat('a',64))
+2026-10-25 08:35:12.117 EDT [63493] ERROR:  permission denied for table mixer_authz_memberships
+2026-10-25 08:35:12.117 EDT [63493] STATEMENT:  UPDATE public.mixer_authz_memberships SET role='owner'
+2026-10-25 08:35:12.118 EDT [63498] ERROR:  permission denied for function mixer_customer_cbor
+2026-10-25 08:35:12.118 EDT [63498] STATEMENT:  SELECT public.mixer_customer_cbor('[]'::jsonb)
+2026-10-25 08:35:12.118 EDT [63491] ERROR:  permission denied for function mixer_customer_event_identity
+2026-10-25 08:35:12.118 EDT [63491] STATEMENT:  SELECT public.mixer_customer_event_identity('{}'::jsonb)
+2026-10-25 08:35:12.118 EDT [63494] ERROR:  permission denied to set role "storage_owner"
+2026-10-25 08:35:12.118 EDT [63494] STATEMENT:  SET ROLE storage_owner
+2026-10-25 08:35:12.118 EDT [63493] ERROR:  permission denied for schema public at character 14
+2026-10-25 08:35:12.118 EDT [63493] STATEMENT:  CREATE TABLE public.review_injected(id int)
+2026-10-25 08:35:12.372 EDT [63494] ERROR:  insert or update on table "mixer_customer_artifacts" violates foreign key constraint "mixer_customer_artifacts_creating_event"
+2026-10-25 08:35:12.372 EDT [63494] DETAIL:  Key is not present in table "mixer_customer_audit_events".
+2026-10-25 08:35:12.372 EDT [63494] STATEMENT:  COMMIT
+2026-10-25 08:35:12.394 EDT [63493] ERROR:  insert or update on table "mixer_customer_audit_events" violates foreign key constraint "mixer_customer_audit_events_organization_id_project_id_man_fkey"
+2026-10-25 08:35:12.394 EDT [63493] DETAIL:  Key is not present in table "mixer_customer_artifacts".
+2026-10-25 08:35:12.394 EDT [63493] STATEMENT:  COMMIT
+2026-10-25 08:35:12.417 EDT [63498] ERROR:  insert or update on table "mixer_customer_idempotency" violates foreign key constraint "mixer_customer_idempotency_organization_id_project_id_even_fkey"
+2026-10-25 08:35:12.417 EDT [63498] DETAIL:  Key is not present in table "mixer_customer_audit_events".
+2026-10-25 08:35:12.417 EDT [63498] STATEMENT:  COMMIT
+2026-10-25 08:35:12.433 EDT [63491] ERROR:  insert or update on table "mixer_customer_audit_events" violates foreign key constraint "mixer_customer_audit_events_organization_id_project_id_man_fkey"
+2026-10-25 08:35:12.433 EDT [63491] DETAIL:  Key is not present in table "mixer_customer_artifacts".
+2026-10-25 08:35:12.433 EDT [63491] STATEMENT:  COMMIT
+2026-10-25 08:35:12.469 EDT [63501] ERROR:  insert or update on table "mixer_customer_artifacts" violates foreign key constraint "mixer_customer_artifacts_creating_event"
+2026-10-25 08:35:12.469 EDT [63501] DETAIL:  Key is not present in table "mixer_customer_audit_events".
+2026-10-25 08:35:12.469 EDT [63501] STATEMENT:  COMMIT
+2026-10-25 08:35:12.507 EDT [63503] ERROR:  query returned no rows
+2026-10-25 08:35:12.507 EDT [63503] CONTEXT:  PL/pgSQL function public.mixer_customer_integrity() line 20 at SQL statement
+2026-10-25 08:35:12.507 EDT [63503] STATEMENT:  COMMIT
+2026-10-25 08:35:12.543 EDT [63505] ERROR:  invalid event projection
+2026-10-25 08:35:12.543 EDT [63505] CONTEXT:  PL/pgSQL function public.mixer_customer_integrity() line 23 at RAISE
+2026-10-25 08:35:12.543 EDT [63505] STATEMENT:  COMMIT
+2026-10-25 08:35:12.585 EDT [63507] ERROR:  inconsistent retained artifact
+2026-10-25 08:35:12.585 EDT [63507] CONTEXT:  PL/pgSQL function public.mixer_customer_integrity() line 61 at RAISE
+2026-10-25 08:35:12.585 EDT [63507] STATEMENT:  COMMIT
+2026-10-25 08:35:12.628 EDT [63509] ERROR:  inconsistent retained artifact
+2026-10-25 08:35:12.628 EDT [63509] CONTEXT:  PL/pgSQL function public.mixer_customer_integrity() line 61 at RAISE
+2026-10-25 08:35:12.628 EDT [63509] STATEMENT:  COMMIT
+2026-10-25 08:35:12.671 EDT [63511] ERROR:  inconsistent retained artifact
+2026-10-25 08:35:12.671 EDT [63511] CONTEXT:  PL/pgSQL function public.mixer_customer_integrity() line 61 at RAISE
+2026-10-25 08:35:12.671 EDT [63511] STATEMENT:  COMMIT
+2026-10-25 08:35:12.713 EDT [63513] ERROR:  query returned no rows
+2026-10-25 08:35:12.713 EDT [63513] CONTEXT:  PL/pgSQL function public.mixer_customer_integrity() line 16 at SQL statement
+2026-10-25 08:35:12.713 EDT [63513] STATEMENT:  COMMIT
+2026-10-25 08:35:12.756 EDT [63515] ERROR:  inconsistent customer event
+2026-10-25 08:35:12.756 EDT [63515] CONTEXT:  PL/pgSQL function public.mixer_customer_integrity() line 37 at RAISE
+2026-10-25 08:35:12.756 EDT [63515] STATEMENT:  COMMIT
+2026-10-25 08:35:12.799 EDT [63517] ERROR:  inconsistent customer event
+2026-10-25 08:35:12.799 EDT [63517] CONTEXT:  PL/pgSQL function public.mixer_customer_integrity() line 37 at RAISE
+2026-10-25 08:35:12.799 EDT [63517] STATEMENT:  COMMIT
+2026-10-25 08:35:12.841 EDT [63519] ERROR:  inconsistent customer event
+2026-10-25 08:35:12.841 EDT [63519] CONTEXT:  PL/pgSQL function public.mixer_customer_integrity() line 37 at RAISE
+2026-10-25 08:35:12.841 EDT [63519] STATEMENT:  COMMIT
+2026-10-25 08:35:12.883 EDT [63521] ERROR:  broken chain
+2026-10-25 08:35:12.883 EDT [63521] CONTEXT:  PL/pgSQL function public.mixer_customer_integrity() line 40 at RAISE
+2026-10-25 08:35:12.883 EDT [63521] STATEMENT:  COMMIT
+2026-10-25 08:35:12.928 EDT [63523] ERROR:  inconsistent customer event
+2026-10-25 08:35:12.928 EDT [63523] CONTEXT:  PL/pgSQL function public.mixer_customer_integrity() line 37 at RAISE
+2026-10-25 08:35:12.928 EDT [63523] STATEMENT:  COMMIT
+2026-10-25 08:35:12.970 EDT [63525] ERROR:  inconsistent customer event
+2026-10-25 08:35:12.970 EDT [63525] CONTEXT:  PL/pgSQL function public.mixer_customer_integrity() line 37 at RAISE
+2026-10-25 08:35:12.970 EDT [63525] STATEMENT:  COMMIT
+2026-10-25 08:35:13.021 EDT [63527] ERROR:  invalid head transition
+2026-10-25 08:35:13.021 EDT [63527] CONTEXT:  PL/pgSQL function public.mixer_customer_integrity() line 10 at RAISE
+2026-10-25 08:35:13.021 EDT [63527] STATEMENT:  COMMIT
+2026-10-25 08:35:13.159 EDT [63531] ERROR:  creating event belongs to another artifact
+2026-10-25 08:35:13.159 EDT [63531] CONTEXT:  PL/pgSQL function public.mixer_customer_integrity() line 18 at RAISE
+2026-10-25 08:35:13.159 EDT [63531] STATEMENT:  COMMIT
+2026-10-25 08:35:13.719 EDT [63488] ERROR:  invalid cbor value
+2026-10-25 08:35:13.719 EDT [63488] CONTEXT:  PL/pgSQL function public.mixer_customer_cbor_part(jsonb,integer,integer) line 28 at RAISE
+	SQL statement "SELECT encoded               FROM public.mixer_customer_cbor_part(v,0,4096)"
+	PL/pgSQL function public.mixer_customer_cbor(jsonb) line 3 at SQL statement
+2026-10-25 08:35:13.719 EDT [63488] STATEMENT:  SELECT public.mixer_customer_cbor($1::jsonb)
+2026-10-25 08:35:13.719 EDT [63485] ERROR:  non-integer cbor number
+2026-10-25 08:35:13.719 EDT [63485] CONTEXT:  PL/pgSQL function public.mixer_customer_cbor_part(jsonb,integer,integer) line 7 at RAISE
+	SQL statement "SELECT encoded               FROM public.mixer_customer_cbor_part(v,0,4096)"
+	PL/pgSQL function public.mixer_customer_cbor(jsonb) line 3 at SQL statement
+2026-10-25 08:35:13.719 EDT [63485] STATEMENT:  SELECT public.mixer_customer_cbor($1::jsonb)
+2026-10-25 08:35:13.719 EDT [63484] ERROR:  non-integer cbor number
+2026-10-25 08:35:13.719 EDT [63484] CONTEXT:  PL/pgSQL function public.mixer_customer_cbor_part(jsonb,integer,integer) line 7 at RAISE
+	SQL statement "SELECT encoded               FROM public.mixer_customer_cbor_part(v,0,4096)"
+	PL/pgSQL function public.mixer_customer_cbor(jsonb) line 3 at SQL statement
+2026-10-25 08:35:13.719 EDT [63484] STATEMENT:  SELECT public.mixer_customer_cbor($1::jsonb)
+2026-10-25 08:35:13.719 EDT [63486] ERROR:  invalid cbor
+2026-10-25 08:35:13.719 EDT [63486] CONTEXT:  PL/pgSQL function public.mixer_customer_cbor_head(integer,numeric) line 4 at RAISE
+	PL/pgSQL function public.mixer_customer_cbor_part(jsonb,integer,integer) line 8 at assignment
+	SQL statement "SELECT encoded               FROM public.mixer_customer_cbor_part(v,0,4096)"
+	PL/pgSQL function public.mixer_customer_cbor(jsonb) line 3 at SQL statement
+2026-10-25 08:35:13.719 EDT [63486] STATEMENT:  SELECT public.mixer_customer_cbor($1::jsonb)
+2026-10-25 08:35:13.720 EDT [63487] ERROR:  cbor container
+2026-10-25 08:35:13.720 EDT [63487] CONTEXT:  PL/pgSQL function public.mixer_customer_cbor_part(jsonb,integer,integer) line 11 at RAISE
+	SQL statement "SELECT encoded               FROM public.mixer_customer_cbor_part(v,0,4096)"
+	PL/pgSQL function public.mixer_customer_cbor(jsonb) line 3 at SQL statement
+2026-10-25 08:35:13.720 EDT [63487] STATEMENT:  SELECT public.mixer_customer_cbor($1::jsonb)
+2026-10-25 08:35:13.731 EDT [63488] ERROR:  cbor limit
+2026-10-25 08:35:13.731 EDT [63488] CONTEXT:  PL/pgSQL function public.mixer_customer_cbor_part(jsonb,integer,integer) line 4 at RAISE
+	SQL statement "SELECT *                  FROM public.mixer_customer_cbor_part(val,depth+1,remaining-count)"
+	PL/pgSQL function public.mixer_customer_cbor_part(jsonb,integer,integer) line 14 at SQL statement
+	SQL statement "SELECT *                  FROM public.mixer_customer_cbor_part(val,depth+1,remaining-count)"
+	PL/pgSQL function public.mixer_customer_cbor_part(jsonb,integer,integer) line 14 at SQL statement
+	SQL statement "SELECT encoded               FROM public.mixer_customer_cbor_part(v,0,4096)"
+	PL/pgSQL function public.mixer_customer_cbor(jsonb) line 3 at SQL statement
+2026-10-25 08:35:13.731 EDT [63488] STATEMENT:  SELECT public.mixer_customer_cbor($1::jsonb)
+2026-10-25 08:35:13.731 EDT [63485] ERROR:  cbor limit
+2026-10-25 08:35:13.731 EDT [63485] CONTEXT:  PL/pgSQL function public.mixer_customer_cbor_part(jsonb,integer,integer) line 29 at RAISE
+	SQL statement "SELECT encoded               FROM public.mixer_customer_cbor_part(v,0,4096)"
+	PL/pgSQL function public.mixer_customer_cbor(jsonb) line 3 at SQL statement
+2026-10-25 08:35:13.731 EDT [63485] STATEMENT:  SELECT public.mixer_customer_cbor($1::jsonb)
+2026-10-25 08:35:13.732 EDT [63484] ERROR:  cbor limit
+2026-10-25 08:35:13.732 EDT [63484] CONTEXT:  PL/pgSQL function public.mixer_customer_cbor_part(jsonb,integer,integer) line 4 at RAISE
+	SQL statement "SELECT *                  FROM public.mixer_customer_cbor_part(val,depth+1,remaining-count)"
+	PL/pgSQL function public.mixer_customer_cbor_part(jsonb,integer,integer) line 14 at SQL statement
+	SQL statement "SELECT *                  FROM public.mixer_customer_cbor_part(val,depth+1,remaining-count)"
+	PL/pgSQL function public.mixer_customer_cbor_part(jsonb,integer,integer) line 14 at SQL statement
+	SQL statement "SELECT *                  FROM public.mixer_customer_cbor_part(val,depth+1,remaining-count)"
+	PL/pgSQL function public.mixer_customer_cbor_part(jsonb,integer,integer) line 14 at SQL statement
+	SQL statement "SELECT *                  FROM public.mixer_customer_cbor_part(val,depth+1,remaining-count)"
+	PL/pgSQL function public.mixer_customer_cbor_part(jsonb,integer,integer) line 14 at SQL statement
+	SQL statement "SELECT *                  FROM public.mixer_customer_cbor_part(val,depth+1,remaining-count)"
+	PL/pgSQL function public.mixer_customer_cbor_part(jsonb,integer,integer) line 14 at SQL statement
+	SQL statement "SELECT *                  FROM public.mixer_customer_cbor_part(val,depth+1,remaining-count)"
+	PL/pgSQL function public.mixer_customer_cbor_part(jsonb,integer,integer) line 14 at SQL statement
+	SQL statement "SELECT *                  FROM public.mixer_customer_cbor_part(val,depth+1,remaining-count)"
+	PL/pgSQL function public.mixer_customer_cbor_part(jsonb,integer,integer) line 14 at SQL statement
+	SQL statement "SELECT *                  FROM public.mixer_customer_cbor_part(val,depth+1,remaining-count)"
+	PL/pgSQL function public.mixer_customer_cbor_part(jsonb,integer,integer) line 14 at SQL statement
+	SQL statement "SELECT *                  FROM public.mixer_customer_cbor_part(val,depth+1,remaining-count)"
+	PL/pgSQL function public.mixer_customer_cbor_part(jsonb,integer,integer) line 14 at SQL statement
+	SQL statement "SELECT *                  FROM public.mixer_customer_cbor_part(val,depth+1,remaining-count)"
+	PL/pgSQL function public.mixer_customer_cbor_part(jsonb,integer,integer) line 14 at SQL statement
+	SQL statement "SELECT *                  FROM public.mixer_customer_cbor_part(val,depth+1,remaining-count)"
+	PL/pgSQL function public.mixer_customer_cbor_part(jsonb,integer,integer) line 14 at SQL statement
+	SQL statement "SELECT *                  FROM public.mixer_customer_cbor_part(val,depth+1,remaining-count)"
+	PL/pgSQL function public.mixer_customer_cbor_part(jsonb,integer,integer) line 14 at SQL statement
+	SQL statement "SELECT *                  FROM public.mixer_customer_cbor_part(val,depth+1,remaining-count)"
+	PL/pgSQL function public.mixer_customer_cbor_part(jsonb,integer,integer) line 14 at SQL statement
+	SQL statement "SELECT *                  FROM public.mixer_customer_cbor_part(val,depth+1,remaining-count)"
+	PL/pgSQL function public.mixer_customer_cbor_part(jsonb,integer,integer) line 14 at SQL statement
+	SQL statement "SELECT *                  FROM public.mixer_customer_cbor_part(val,depth+1,remaining-count)"
+	PL/pgSQL function public.mixer_customer_cbor_part(jsonb,integer,integer) line 14 at SQL statement
+	SQL statement "SELECT *                  FROM public.mixer_customer_cbor_part(val,depth+1,remaining-count)"
+	PL/pgSQL function public.mixer_customer_cbor_part(jsonb,integer,integer) line 14 at SQL statement
+	SQL statement "SELECT *                  FROM public.mixer_customer_cbor_part(val,depth+1,remaining-count)"
+	PL/pgSQL function public.mixer_customer_cbor_part(jsonb,integer,integer) line 14 at SQL statement
+	SQL statement "SELECT encoded               FROM public.mixer_customer_cbor_part(v,0,4096)"
+	PL/pgSQL function public.mixer_customer_cbor(jsonb) line 3 at SQL statement
+2026-10-25 08:35:13.732 EDT [63484] STATEMENT:  SELECT public.mixer_customer_cbor($1::jsonb)
+2026-10-25 08:35:13.732 EDT [63486] ERROR:  cbor container
+2026-10-25 08:35:13.732 EDT [63486] CONTEXT:  PL/pgSQL function public.mixer_customer_cbor_part(jsonb,integer,integer) line 19 at RAISE
+	SQL statement "SELECT encoded               FROM public.mixer_customer_cbor_part(v,0,4096)"
+	PL/pgSQL function public.mixer_customer_cbor(jsonb) line 3 at SQL statement
+2026-10-25 08:35:13.732 EDT [63486] STATEMENT:  SELECT public.mixer_customer_cbor($1::jsonb)
+2026-10-25 08:35:16.484 EDT [63429] LOG:  received immediate shutdown request
+2026-10-25 08:35:16.486 EDT [63429] LOG:  database system is shut down

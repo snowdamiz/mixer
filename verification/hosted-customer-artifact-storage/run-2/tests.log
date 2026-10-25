@@ -1,0 +1,106 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+STORAGE CATALOG SHA256 ff576c90a10e0bc098f3c7b593640f508aa676a166b8e2123257501f50eb375e
+
+
+  1) test create, fresh private read, immutable audit, own retry and new-key unchanged (MixerHosted.CustomerArtifacts.PostgresStorageTest)
+     hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:190
+     match (=) failed
+     code:  assert {:ok, %{status: 201, event_sequence: 1}} = F.upload()
+     left:  {:ok, %{status: 201, event_sequence: 1}}
+     right: {:error, :authorization_unavailable}
+     stacktrace:
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:192: (test)
+
+
+
+  2) test current principal exact request identity and revocation fence cached successes (MixerHosted.CustomerArtifacts.PostgresStorageTest)
+     hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:238
+     match (=) failed
+     code:  assert {:ok, _} = F.upload()
+     left:  {:ok, _}
+     right: {:error, :authorization_unavailable}
+     stacktrace:
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:239: (test)
+
+.
+
+  3) test SQL CBOR independently matches Elixir bytes and enforces every bound (MixerHosted.CustomerArtifacts.PostgresStorageTest)
+     hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:275
+     match (=) failed
+     The following variables were pinned:
+       expected = <<141, 245, 244, 23, 24, 24, 24, 255, 25, 1, 0, 25, 255, 255, 26, 0, 1, 0, 0, 26, 255, 255, 255, 255, 27, 0, 0, 0, 1, 0, 0, 0, 0, 27, 255, 255, 255, 255, 255, 255, 255, 255, 98, 195, 169, 128>>
+     code:  assert [[^expected]] = F.sql("SELECT public.mixer_customer_cbor($1::jsonb)", [v]).rows
+     left:  [[^expected]]
+     right: [
+              [
+                <<141, 245, 244, 23, 24, 24, 24, 255, 25, 1, 0, 25,
+                  255, 255, 26, 0, 1, 0, 0, 26, 255, 255, 255, 255,
+                  27, 0, 0, 0, 1, 0, 0, 0, 0, 27, 0, 0, 0, 0, 0, 0,
+                  0, 255, 98, 195, 169, 128>>
+              ]
+            ]
+     stacktrace:
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:301: anonymous fn/2 in MixerHosted.CustomerArtifacts.PostgresStorageTest."test SQL CBOR independently matches Elixir bytes and enforces every bound"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:299: (test)
+
+
+
+  4) test runtime cannot mutate immutable rows provision heads mutate authz execute codec or become owner (MixerHosted.CustomerArtifacts.PostgresStorageTest)
+     hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:332
+     match (=) failed
+     code:  assert {:ok, _} = F.upload()
+     left:  {:ok, _}
+     right: {:error, :authorization_unavailable}
+     stacktrace:
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:333: (test)
+
+
+08:16:35.912 [error] Postgrex.Protocol (#PID<0.196.0> ({Postgrex.Protocol, "mixer_customer_artifact_storage"})) disconnected: ** (Postgrex.Error) ERROR P0002 (no_data_found) query returned no rows
+
+
+  5) test head-only advancement and callback error exception roll back all storage (MixerHosted.CustomerArtifacts.PostgresStorageTest)
+     hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:352
+     match (=) failed
+     code:  assert {:error, :storage_unavailable} =
+              F.run(fn ctx ->
+                assert {:ok, _} = PostgresStorage.upload(ctx, c, F.command(), config)
+                {:error, :storage_unavailable}
+              end)
+     left:  {:error, :storage_unavailable}
+     right: {:error, :authorization_unavailable}
+     stacktrace:
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:366: (test)
+
+
+
+  6) test concurrent same key consumes one sequence and new-key unchanged operations serialize (MixerHosted.CustomerArtifacts.PostgresStorageTest)
+     hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:383
+     match (=) failed
+     code:  assert {:ok, %{status: 201, event_sequence: 1}} = Task.await(task, 10000)
+     left:  {:ok, %{status: 201, event_sequence: 1}}
+     right: {:error, :authorization_unavailable}
+     stacktrace:
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:387: anonymous fn/2 in MixerHosted.CustomerArtifacts.PostgresStorageTest."test concurrent same key consumes one sequence and new-key unchanged operations serialize"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:386: (test)
+
+
+08:16:36.006 [info] Postgrex.Protocol (#PID<0.196.0> ({Postgrex.Protocol, "mixer_customer_artifact_storage"})) disconnected: ** (DBConnection.ConnectionError) client #PID<0.223.0> exited
+
+
+  7) test corrupt retained signed bytes and audit rows are unavailable (MixerHosted.CustomerArtifacts.PostgresStorageTest)
+     hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:395
+     match (=) failed
+     code:  assert {:ok, _} = F.upload()
+     left:  {:ok, _}
+     right: {:error, :authorization_unavailable}
+     stacktrace:
+       hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs:397: (test)
+
+
+Finished in 0.7 seconds (0.00s async, 0.7s sync)
+
+Result: 1/8 passed
+Failed: 7 tests

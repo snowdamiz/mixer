@@ -75,10 +75,17 @@ its older pending/selected statements do not override the current state.
    methods, 21 independent PostgreSQL probes and the equivalent CI fixture.
    Review repaired post-validation time checks and rescued effect errors that
    could commit prior SQL. All six migrations pass apply/rollback/reapply.
-   Continue with protected artifact metadata/storage, immutable actor audit,
-   principal-bound idempotency and customer HTTP composition; these remain
-   unimplemented. See [the accepted transaction review](docs/hosted-customer-authorized-transaction-review.md)
-   and [the proposed artifact contract](docs/hosted-customer-artifact-transaction-contract.md).
+   Protected artifact metadata/storage, immutable v2 audit and principal-bound
+   idempotency now compose through the internal customer facade. All 97 current
+   selected host methods and seven-migration apply/rollback/reapply checks pass,
+   with independent codec, staged-read, storage and facade reviews. Root accepts
+   this local component slice; customer HTTP/console composition, tenant trust
+   and lifecycle writers, and provider qualification remain pending. See
+   [the integration scope](docs/hosted-customer-artifact-integration.md) and
+   [the artifact contract](docs/hosted-customer-artifact-transaction-contract.md).
+   Checkpoint `9662eda1` is pushed to `origin/main`; Phoenix and Engine CI both
+   passed for that exact source with no skipped steps. A local prerequisite pass is not full hosted
+   or customer workflow acceptance.
    Preserve accurate unavailable
    states until data/auth is connected. Keep the website branding throughout.
 

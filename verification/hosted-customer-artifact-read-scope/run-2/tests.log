@@ -1,0 +1,227 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+..............................READ_SCOPE_CATALOG_SHA256=ff576c90a10e0bc098f3c7b593640f508aa676a166b8e2123257501f50eb375e
+.
+
+  1) test actual product metadata helper returns exact projection with empty app environment and no runtime private rows (MixerHosted.Authorization.ArtifactReadTest)
+     verification/hosted-customer-artifact-read-scope/run-2/inputs/hosted/test/mixer_hosted/authorization/artifact_read_test.exs:337
+     match (=) failed
+     code:  assert {:ok, :stage} =
+              Runtime.transaction(fn ->
+                lookup = %{identity: Policy.identity_key(i), action: "artifact.read", target: F.project()}
+                linkage = Session.prepare!(Runtime, lookup)
+
+                Session.context!(Runtime,
+                  action: "artifact.read",
+                  phase: "metadata",
+                  required_scope: "mixer.artifact.read",
+                  token_issued_at: Integer.to_string(i.issued_at),
+                  token_expires_at: Integer.to_string(i.expires_at)
+                )
+
+                assert {:ok, _} =
+                         Policy.metadata_evaluate(
+                           i,
+                           F.project(),
+                           Evidence.load!(Runtime, lookup, linkage),
+                           F.now()
+                         )
+
+                PostgresStorage.check_topology!(Runtime)
+
+                assert [["", ""]] =
+                         F.runtime_sql(
+                           "SELECT current_setting('mixer.authz.application_id'),current_setting('mixer.authz.environment_id')"
+                         ).rows
+
+                result =
+                  F.runtime_sql("SELECT * FROM public.mixer_customer_artifact_metadata($1)", [
+                    F.document().digest
+                  ])
+
+                assert result.columns ==
+                         ~w(organization_id project_id application_id environment_id platform runtime_sha256 manifest_sha256 signed_manifest_bytes)
+
+                assert result.rows == [F.document().row]
+
+                assert [] ==
+                         F.runtime_sql("SELECT envelope_bytes,payload FROM public.mixer_customer_artifacts").rows
+
+                assert [] == F.runtime_sql("SELECT * FROM public.mixer_customer_idempotency").rows
+                assert [] == F.runtime_sql("SELECT * FROM public.mixer_customer_audit_events").rows
+                refute Context.active?()
+                :stage
+              end)
+     left:  {:ok, :stage}
+     right: {:error, :authorization_unavailable}
+     stacktrace:
+       verification/hosted-customer-artifact-read-scope/run-2/inputs/hosted/test/mixer_hosted/authorization/artifact_read_test.exs:340: (test)
+
+
+
+  2) test facade derives full target and binds fresh effect snapshot and all four new settings (MixerHosted.Authorization.ArtifactReadTest)
+     verification/hosted-customer-artifact-read-scope/run-2/inputs/hosted/test/mixer_hosted/authorization/artifact_read_test.exs:395
+     match (=) failed
+     code:  assert {:ok, {ctx, metadata}} =
+              F.run(
+                fn ctx, metadata ->
+                  assert ctx.target == F.target() and ctx.snapshot.target == F.target()
+                  assert metadata.target == F.target() and metadata.manifest_sha256 == F.document().digest
+                  refute Map.has_key?(metadata, :payload)
+                  refute Map.has_key?(metadata, :envelope_bytes)
+
+                  assert [
+                           [
+                             Integer.to_string(i.issued_at),
+                             Integer.to_string(i.expires_at),
+                             "mixer.artifact.read",
+                             "effect"
+                           ]
+                         ] ==
+                           F.runtime_sql(
+                             "SELECT current_setting('mixer.authz.token_issued_at'),current_setting('mixer.authz.token_expires_at'),current_setting('mixer.authz.required_scope'),current_setting('mixer.authz.phase')"
+                           ).rows
+
+                  Context.effect!(ctx, Runtime, "artifact.read", metadata.target, fn _ ->
+                    assert length(F.runtime_sql("SELECT payload FROM public.mixer_customer_artifacts").rows) ==
+                             1
+                  end)
+
+                  {:ok, {ctx, metadata}}
+                end,
+                i
+              )
+     left:  {:ok, {ctx, metadata}}
+     right: {:error, :authorization_unavailable}
+     stacktrace:
+       verification/hosted-customer-artifact-read-scope/run-2/inputs/hosted/test/mixer_hosted/authorization/artifact_read_test.exs:398: (test)
+
+
+
+  3) test each read role is evaluated using artifact read and billing cannot use visible metadata (MixerHosted.Authorization.ArtifactReadTest)
+     verification/hosted-customer-artifact-read-scope/run-2/inputs/hosted/test/mixer_hosted/authorization/artifact_read_test.exs:437
+     Assertion with == failed
+     code:  assert F.run() == expected
+     left:  {:error, :authorization_unavailable}
+     right: {:ok, :accepted}
+     stacktrace:
+       verification/hosted-customer-artifact-read-scope/run-2/inputs/hosted/test/mixer_hosted/authorization/artifact_read_test.exs:444: anonymous fn/2 in MixerHosted.Authorization.ArtifactReadTest."test each read role is evaluated using artifact read and billing cannot use visible metadata"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       verification/hosted-customer-artifact-read-scope/run-2/inputs/hosted/test/mixer_hosted/authorization/artifact_read_test.exs:438: (test)
+
+
+08:15:38.265 [info] The function passed as a handler with ID :read_rejection is a local function.
+This means that it is either an anonymous function or a capture of a function without a module specified. That may cause a performance penalty when calling that handler. For more details see the note in `telemetry:attach/4` documentation.
+
+https://hexdocs.pm/telemetry/telemetry.html#attach/4
+.
+
+  4) test missing digest is not found and distinct environment digest derives its own exact target (MixerHosted.Authorization.ArtifactReadTest)
+     verification/hosted-customer-artifact-read-scope/run-2/inputs/hosted/test/mixer_hosted/authorization/artifact_read_test.exs:482
+     match (=) failed
+     code:  assert {:error, :not_found} =
+              F.run(fn _, _ -> flunk() end, F.identity(), F.project(), String.duplicate("f", 64))
+     left:  {:error, :not_found}
+     right: {:error, :authorization_unavailable}
+     stacktrace:
+       verification/hosted-customer-artifact-read-scope/run-2/inputs/hosted/test/mixer_hosted/authorization/artifact_read_test.exs:483: (test)
+
+.
+
+  5) test actual corrupted metadata cannot reach callback (MixerHosted.Authorization.ArtifactReadTest)
+     verification/hosted-customer-artifact-read-scope/run-2/inputs/hosted/test/mixer_hosted/authorization/artifact_read_test.exs:544
+     match (=) failed
+     code:  assert {:error, :storage_unavailable} = F.run(fn _, _ -> flunk() end)
+     left:  {:error, :storage_unavailable}
+     right: {:error, :authorization_unavailable}
+     stacktrace:
+       verification/hosted-customer-artifact-read-scope/run-2/inputs/hosted/test/mixer_hosted/authorization/artifact_read_test.exs:550: (test)
+
+.
+08:15:38.549 [info] The function passed as a handler with ID :read_expiry is a local function.
+This means that it is either an anonymous function or a capture of a function without a module specified. That may cause a performance penalty when calling that handler. For more details see the note in `telemetry:attach/4` documentation.
+
+https://hexdocs.pm/telemetry/telemetry.html#attach/4
+
+
+  6) test expiry immediately after actual metadata resolution rejects before callback (MixerHosted.Authorization.ArtifactReadTest)
+     verification/hosted-customer-artifact-read-scope/run-2/inputs/hosted/test/mixer_hosted/authorization/artifact_read_test.exs:578
+     match (=) failed
+     code:  assert {:error, :unauthenticated} = F.run(fn _, _ -> flunk() end, i)
+     left:  {:error, :unauthenticated}
+     right: {:error, :authorization_unavailable}
+     stacktrace:
+       verification/hosted-customer-artifact-read-scope/run-2/inputs/hosted/test/mixer_hosted/authorization/artifact_read_test.exs:587: (test)
+
+.
+
+  7) test final guard rolls back writes and revoked identity cannot receive a cached result (MixerHosted.Authorization.ArtifactReadTest)
+     verification/hosted-customer-artifact-read-scope/run-2/inputs/hosted/test/mixer_hosted/authorization/artifact_read_test.exs:643
+     match (=) failed
+     code:  assert {:error, :unauthenticated} =
+              F.run(
+                fn _, _ ->
+                  F.runtime_sql("INSERT INTO public.read_scope_probe VALUES ('must_rollback')")
+                  F.expire(i)
+                  {:ok, :cached}
+                end,
+                i
+              )
+     left:  {:error, :unauthenticated}
+     right: {:error, :authorization_unavailable}
+     stacktrace:
+       verification/hosted-customer-artifact-read-scope/run-2/inputs/hosted/test/mixer_hosted/authorization/artifact_read_test.exs:646: (test)
+
+
+
+  8) test nested malformed failing callbacks preserve transaction discipline and cleanup (MixerHosted.Authorization.ArtifactReadTest)
+     verification/hosted-customer-artifact-read-scope/run-2/inputs/hosted/test/mixer_hosted/authorization/artifact_read_test.exs:661
+     match (=) failed
+     code:  assert {:ok, :outer} =
+              F.run(fn _, _ ->
+                assert {:error, :authorization_unavailable} = F.run()
+                {:ok, :outer}
+              end)
+     left:  {:ok, :outer}
+     right: {:error, :authorization_unavailable}
+     stacktrace:
+       verification/hosted-customer-artifact-read-scope/run-2/inputs/hosted/test/mixer_hosted/authorization/artifact_read_test.exs:674: (test)
+
+.
+
+  9) test storage conflicts retain their bounded reasons and effect failures cannot be rescued (MixerHosted.Authorization.ArtifactReadTest)
+     verification/hosted-customer-artifact-read-scope/run-2/inputs/hosted/test/mixer_hosted/authorization/artifact_read_test.exs:700
+     match (=) failed
+     The following variables were pinned:
+       reason = :immutable_conflict
+     code:  assert {:error, ^reason} = F.run(fn _, _ -> {:error, reason} end)
+     left:  {:error, ^reason}
+     right: {:error, :authorization_unavailable}
+     stacktrace:
+       verification/hosted-customer-artifact-read-scope/run-2/inputs/hosted/test/mixer_hosted/authorization/artifact_read_test.exs:702: anonymous fn/2 in MixerHosted.Authorization.ArtifactReadTest."test storage conflicts retain their bounded reasons and effect failures cannot be rescued"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       verification/hosted-customer-artifact-read-scope/run-2/inputs/hosted/test/mixer_hosted/authorization/artifact_read_test.exs:701: (test)
+
+.............
+08:15:49.425 [error] Postgrex.Protocol (#PID<0.337.0> ({Postgrex.Protocol, "mixer_customer_transaction"})) disconnected: ** (DBConnection.ConnectionError) client #PID<0.380.0> ({MixerHosted.Authorization.TransactionTest, :"test monotonic full-transaction deadline rolls back SQL despite an otherwise unexpired identity"}) timed out because it queued and checked out the connection for longer than 5000ms
+
+#PID<0.380.0> ({MixerHosted.Authorization.TransactionTest, :"test monotonic full-transaction deadline rolls back SQL despite an otherwise unexpired identity"}) was at location:
+
+    (elixir 1.20.4) lib/process.ex:330: Process.sleep/1
+    verification/hosted-customer-artifact-read-scope/run-2/inputs/hosted/test/mixer_hosted/authorization/transaction_test.exs:724: anonymous fn/1 in MixerHosted.Authorization.TransactionTest."test monotonic full-transaction deadline rolls back SQL despite an otherwise unexpired identity"/1
+    verification/hosted-customer-artifact-read-scope/run-2/inputs/hosted/lib/mixer_hosted/authorization.ex:82: anonymous fn/8 in MixerHosted.Authorization.with_authorized_transaction/5
+    verification/hosted-customer-artifact-read-scope/run-2/inputs/hosted/test/mixer_hosted/authorization/transaction_test.exs:10: anonymous fn/1 in MixerHosted.Authorization.TransactionFixture.Runtime.transaction/2
+    (ecto 3.14.2) lib/ecto/repo/transaction.ex:11: anonymous fn/3 in Ecto.Repo.Transaction.transact/4
+    (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1481: anonymous fn/3 in Ecto.Adapters.SQL.checkout_or_transaction/4
+    (db_connection 2.10.2) lib/db_connection.ex:1760: DBConnection.run_transaction/5
+    verification/hosted-customer-artifact-read-scope/run-2/inputs/hosted/lib/mixer_hosted/authorization.ex:55: MixerHosted.Authorization.with_authorized_transaction/5
+    verification/hosted-customer-artifact-read-scope/run-2/inputs/hosted/test/mixer_hosted/authorization/transaction_test.exs:722: MixerHosted.Authorization.TransactionTest."test monotonic full-transaction deadline rolls back SQL despite an otherwise unexpired identity"/1
+    (ex_unit 1.20.4) lib/ex_unit/runner.ex:533: ExUnit.Runner.exec_test/2
+    (stdlib 8.1) timer.erl:599: :timer.tc/2
+    (ex_unit 1.20.4) lib/ex_unit/runner.ex:455: anonymous fn/6 in ExUnit.Runner.spawn_test_monitor/4
+
+.....
+Finished in 12.1 seconds (0.00s async, 12.1s sync)
+
+Result: 54/63 passed
+Failed: 9 tests

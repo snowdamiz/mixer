@@ -21,7 +21,7 @@ hosted, store, customer or operational product.
 | Android shared UI | Private style/coordinator/input slices have scoped API37 emulator evidence. The latest integrated component fixture passes all 45 cases and 239 assertions; the separate pointer matrix passes 429 assertions. | Complete shared visual/interaction parity, public routing, resources/OS support, TalkBack and final physical comparison. |
 | Hosted builds | Durable storage/coordinator components and registry/audit slices have host evidence. The isolated entry composition passes 922 groups; the defensive context-admission correction passes 79. | The broader entry review remains incomplete. Live Engine/entry composition, real worker/clock/provider operations, authentication, quotas and deployed schedule qualification remain pending. |
 | Console | SolidJS Builds/releases use the website logo, cream/orange palette and typography. Builds passes 32 repository tests, seven independent controls, 117 backend text comparisons and 14 browser states. | Connect ordinary Phoenix customer authorization and live data/workflows; complete onboarding, permissions, billing and other G22–G24 requirements. |
-| Hosted release/billing | Phoenix identity/artifact, build persistence and private webhook components have separately scoped host receipts. Ordinary customer transaction authorization now passes 18 product and 21 independent PostgreSQL methods after review repairs. | Complete protected artifact metadata/storage, immutable actor audit, principal-bound idempotency, customer HTTP/console, durable inbox/Oban reconciliation, Neon/Cloudflare/Stripe and operational qualification. Frozen authority/inspector and rejected transport lanes remain unaccepted. |
+| Hosted release/billing | Phoenix identity/artifact, build persistence and private webhook components have separately scoped host receipts. Protected artifact upload, staged private read, v2 audit and principal-bound retries now pass 97 combined host methods after independent review repairs; all seven migrations apply/rollback/reapply. | Connect customer HTTP/console, complete tenant trust/lifecycle writers, durable inbox/Oban reconciliation, Neon/Cloudflare/Stripe and operational qualification. Frozen authority/inspector and rejected transport lanes remain unaccepted. |
 
 The new single full Swift reactor attempt passes validation and Initialize, then
 fails Corpus 1 at CacheWork 64,000,001 / 64,000,000 after 23,358,291 guest
@@ -173,20 +173,45 @@ Eighteen product methods and twenty-one independent PostgreSQL methods pass.
 The exact new CI fixture also passes all eighteen methods, and all six ordinary
 migrations pass apply, idempotence, latest-three rollback and reapply. Root
 verifies 424 retained files and 201 historical source copies; every owned test
-cluster and scratch directory is removed. Full standard CI on this new source
-remains pending. See [the review](docs/hosted-customer-authorized-transaction-review.md),
+cluster and scratch directory is removed. Full standard CI for that transaction
+checkpoint passes at `9662eda1`. See [the review](docs/hosted-customer-authorized-transaction-review.md),
 [the CI scope](verification/hosted-customer-authorized-transaction-ci/README.md)
 and [root acceptance](verification/hosted-customer-authorized-transaction-root-acceptance/acceptance.json).
 
-Protected artifact storage and metadata resolution, immutable v2 actor audit,
-principal-bound idempotency, lifecycle writers and customer HTTP/console remain
-pending. The proposed [artifact transaction contract](docs/hosted-customer-artifact-transaction-contract.md)
-preserves existing duplicate-upload behavior and lists 35 pending implementation
-cases; its packet validation is not a product test pass.
+Protected artifact storage and staged metadata resolution, immutable v2 upload
+audit, principal-bound retries and the internal customer application facade are
+now accepted as local components. The corrected codec passes 39 producer and 49
+combined independent methods; staged reads pass 63 producer/regression and 80
+combined independent methods. Storage passes 19 producer and 22 independent
+methods. The application facade passes 15 producer and 12 independent methods,
+including actual commit failures that suppress upload receipts, private bytes and
+audit results. Counts overlap and must not be added as distinct coverage.
+
+The current-source combined CI fixture passes all 97 selected methods, and all
+seven ordinary migrations pass apply, idempotence, latest-four rollback and
+reapply. Root verifies 428 retained bindings and 45 current source bindings;
+owned PostgreSQL instances and scratch are removed. The 132-file VM closure and
+40 console bindings remain unchanged. Earlier findings and failed attempts are
+preserved, including the codec callback guard, SQL type and artifact/event
+binding repairs, reserved-role matching and migration policy-drop ordering.
+This does not enable HTTP routes, deployment or live console data. The facade
+uses one server-configured host/trust snapshot; tenant trust/lifecycle writers
+and provider operations remain pending. See
+[the integration scope](docs/hosted-customer-artifact-integration.md) and
+[root acceptance](verification/hosted-customer-artifact-root-acceptance/attempt-2/acceptance.json).
 
 ## Delivery and pending qualification
 
-Latest checkpoint `d385adf3` is pushed to `origin/main` and remote main matches.
+Latest checkpoint `9662eda1` is pushed to `origin/main` and remote main matches.
+Its 506 changed paths include the reviewed transaction facade and rollback
+correction, ordinary CI fixture/migration wiring, proposed artifact contract,
+unselected adaptive retention model and current evidence indices. Phoenix CI
+`40190910760` and Engine CI `40190910724` both passed for this exact revision:
+one Phoenix job and three Engine jobs, with no skipped steps.
+See [the delivery receipt](verification/github-delivery-authorized-transaction/delivery-receipt.json)
+and [completed CI observation](verification/github-ci-9662eda1/observation-1/receipt.json).
+
+Previous checkpoint `d385adf3` is pushed to `origin/main`.
 Its 802 changed paths include the reviewed PostgreSQL lookup, scoped CI fixture
 and migration repair, independently audited finite cache rejection, and accurate
 evidence indices. Phoenix CI `40188545250` passes one job and eight steps;
@@ -194,7 +219,7 @@ Engine CI `40188545375` passes all three jobs and 38 steps. No steps are skipped
 See [the delivery receipt](verification/github-delivery-postgres-authorization/delivery-receipt.json)
 and [terminal CI observation](verification/github-ci-d385adf3/observation-3/receipt.json).
 
-Previous checkpoint `cb56d4b9` is pushed to `origin/main`.
+Earlier checkpoint `cb56d4b9` is pushed to `origin/main`.
 Its 621 changed paths include the reviewed pure customer permission policy,
 callback-result correction and independently audited rejected retention experiment.
 The live VM is unchanged. Phoenix CI `40185739942` passes its job and all eight

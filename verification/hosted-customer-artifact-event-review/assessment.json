@@ -1,0 +1,38 @@
+{
+  "additional_cleanup": {
+    "owned_python_py_compile_cache_removed": true
+  },
+  "cleanup": {
+    "native_instances_started": false,
+    "network_provider_operations": false,
+    "other_project_processes_changed": false,
+    "owned_scratch_removed": true,
+    "postgres_started": false
+  },
+  "finding": {
+    "failing_receipt": "run-2/receipt.json",
+    "id": "malformed-identity-module-callback",
+    "passing_receipt": "run-3/receipt.json",
+    "priority": "P2",
+    "repair": "first-condition is_struct(identity, VerifiedIdentity) before field access",
+    "status": "resolved"
+  },
+  "independent_result": "49 passed",
+  "producer_changes": [
+    "PLAN.md",
+    "docs/hosted-customer-artifact-event.md",
+    "hosted/lib/mixer_hosted/audit/customer_artifact_event.ex",
+    "hosted/test/mixer_hosted/audit/customer_artifact_event_test.exs"
+  ],
+  "producer_diffs": {
+    "PLAN.md": "--- producer-run-3/PLAN.md\n+++ producer-run-4/PLAN.md\n@@ -79,8 +79,8 @@\n    principal-bound idempotency and customer HTTP composition; these remain\n    unimplemented. See [the accepted transaction review](docs/hosted-customer-authorized-transaction-review.md)\n    and [the proposed artifact contract](docs/hosted-customer-artifact-transaction-contract.md).\n-   Checkpoint `9662eda1` is pushed to `origin/main`; Phoenix and Engine CI are\n-   running for that exact source. A local prerequisite pass is not full hosted\n+   Checkpoint `9662eda1` is pushed to `origin/main`; Phoenix and Engine CI both\n+   passed for that exact source with no skipped steps. A local prerequisite pass is not full hosted\n    or customer workflow acceptance.\n    Preserve accurate unavailable\n    states until data/auth is connected. Keep the website branding throughout.\n",
+    "docs/hosted-customer-artifact-event.md": "--- producer-run-3/docs/hosted-customer-artifact-event.md\n+++ producer-run-4/docs/hosted-customer-artifact-event.md\n@@ -8,6 +8,10 @@\n Storage must derive the artifact projection from the exact independently admitted\n bytes, own its authorization transaction and recheck all retained bytes/columns.\n There is no signing key, clock, Repo, provider, HTTP or native dependency here.\n+`build` rejects non-`VerifiedIdentity` inputs before reading identity fields.\n+Independent review exposed Elixir's module dispatch for dot access on an atom;\n+the early type guard and a message-sentinel regression prevent malformed input\n+from invoking module callbacks. The original failed review remains preserved.\n \n ## Public contract\n \n",
+    "hosted/lib/mixer_hosted/audit/customer_artifact_event.ex": "--- producer-run-3/hosted/lib/mixer_hosted/audit/customer_artifact_event.ex\n+++ producer-run-4/hosted/lib/mixer_hosted/audit/customer_artifact_event.ex\n@@ -11,7 +11,7 @@\n \n   alias MixerHosted.Authorization.{Policy, Scope}\n   alias MixerHosted.Authorization.Transaction.Snapshot\n-  alias MixerHosted.Identity.Encoding\n+  alias MixerHosted.Identity.{Encoding, VerifiedIdentity}\n   alias MixerHosted.Protocol.ArtifactCBOR\n \n   @max 9_007_199_254_740_991\n@@ -38,7 +38,8 @@\n \n   @spec build(term(), term(), term(), term(), term()) :: {:ok, Record.t()} | error()\n   def build(identity, locked, fresh, artifact, command) do\n-    with true <- snapshot?(locked, identity),\n+    with true <- is_struct(identity, VerifiedIdentity),\n+         true <- snapshot?(locked, identity),\n          true <- snapshot?(fresh, identity),\n          true <- Enum.all?(@immutable_fields, &(Map.fetch!(locked, &1) === Map.fetch!(fresh, &1))),\n          true <-\n",
+    "hosted/test/mixer_hosted/audit/customer_artifact_event_test.exs": "--- producer-run-3/hosted/test/mixer_hosted/audit/customer_artifact_event_test.exs\n+++ producer-run-4/hosted/test/mixer_hosted/audit/customer_artifact_event_test.exs\n@@ -1,3 +1,14 @@\n+defmodule MixerHosted.Audit.CustomerArtifactEventIdentityProbe do\n+  def credential_ref, do: notify(\"credential\")\n+  def profile_id, do: notify(\"profile\")\n+  def profile_version, do: notify(1)\n+\n+  defp notify(value) do\n+    send(self(), :invalid_identity_callback)\n+    value\n+  end\n+end\n+\n defmodule MixerHosted.Audit.CustomerArtifactEventTest do\n   use ExUnit.Case, async: true\n   alias MixerHosted.Audit.CustomerArtifactEvent, as: Event\n@@ -147,6 +158,20 @@\n   defp changed(display, field, index, value),\n     do: Map.update!(display, field, &set(&1, index, value))\n \n+  test \"malformed module identity cannot invoke callbacks before rejection\" do\n+    {identity, locked, fresh, artifact, command} = fixture()\n+\n+    for invalid <- [\n+          MixerHosted.Audit.CustomerArtifactEventIdentityProbe,\n+          Map.from_struct(identity)\n+        ] do\n+      assert {:error, :invalid_audit_event} =\n+               Event.build(invalid, locked, fresh, artifact, command)\n+\n+      refute_received :invalid_identity_callback\n+    end\n+  end\n+\n   test \"independent canonical array bytes and all domain-separated golden digests\" do\n     result = record()\n \n"
+  },
+  "result": "accepted_after_repair",
+  "review_source_tree_sha256": "865c6f4f2e9b6f154682d838ef3af0a88fc2647228665e01633fba606ee34f0f",
+  "scope": "pure bounded codec development slice only",
+  "supplemental_method": "Python standard library hashlib/json/difflib comparison of immutable producer receipts and selected source; no product execution or Git",
+  "unresolved_findings": []
+}

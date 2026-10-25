@@ -13,6 +13,11 @@ defmodule MixerHosted.Authorization.Transaction.Context do
   alias MixerHosted.Authorization.Transaction.Snapshot
 
   @key {__MODULE__, :active}
+  @required_scopes %{
+    "artifact.read" => "mixer.artifact.read",
+    "artifact.upload" => "mixer.artifact.upload",
+    "audit.read" => "mixer.audit.read"
+  }
   @effect_errors [
     :invalid_request,
     :unauthenticated,
@@ -20,9 +25,11 @@ defmodule MixerHosted.Authorization.Transaction.Context do
     :permission_denied,
     :authorization_unavailable,
     :conflict,
+    :immutable_conflict,
+    :idempotency_conflict,
     :storage_unavailable
   ]
-  @settings ~w(profile_id profile_version issuer subject client_id identity_class credential_ref organization_id project_id application_id environment_id principal_id family_id action transaction_marker)
+  @settings ~w(profile_id profile_version issuer subject client_id identity_class credential_ref organization_id project_id application_id environment_id principal_id family_id action transaction_marker token_issued_at token_expires_at required_scope phase)
   @enforce_keys [
     :owner,
     :repo,
@@ -52,7 +59,15 @@ defmodule MixerHosted.Authorization.Transaction.Context do
   def bind!(repo, identity, action, target, evidence, snapshot, admitted_at, deadline) do
     if active?(), do: fail!()
     marker = Base.encode16(:crypto.strong_rand_bytes(32), case: :lower)
-    Session.context!(repo, action: action, transaction_marker: marker)
+
+    Session.context!(repo,
+      action: action,
+      transaction_marker: marker,
+      token_issued_at: Integer.to_string(identity.issued_at),
+      token_expires_at: Integer.to_string(identity.expires_at),
+      required_scope: Map.fetch!(@required_scopes, action),
+      phase: "effect"
+    )
 
     context = %__MODULE__{
       owner: self(),
