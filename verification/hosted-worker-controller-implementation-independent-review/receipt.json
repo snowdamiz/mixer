@@ -1,0 +1,432 @@
+{
+  "schema": 1,
+  "created_at": "2026-10-25T02:49:15.399856+00:00",
+  "status": "rejected-two-correctness-findings",
+  "scope": "independent-per-operation-Worker-SQLite-DO-development-source-review-only",
+  "findings": [
+    {
+      "id": "R1",
+      "priority": "P1",
+      "summary": "final claim grant ignores superseding guard",
+      "source": "hosted-worker-controller/src/engine.ts:219-223",
+      "failing_cases": [
+        "claim-final-authority-epoch-owner-transfer",
+        "claim-final-authority-revision-advance"
+      ]
+    },
+    {
+      "id": "R2",
+      "priority": "P1",
+      "summary": "later qualified effect/claim clock samples do not advance durable clock history",
+      "source": "hosted-worker-controller/src/engine.ts:14-18",
+      "failing_cases": [
+        "later-effect-clock-sample-must-fence-rollback-before-claim"
+      ]
+    }
+  ],
+  "reviewed_producer_receipt_sha256": "fb71bcb1cc076b121a26e075c8e1bf8c2703bc5a659686e4a6ae861b855dc68a",
+  "reviewed_source_tree_sha256": "6f47612d9bf3118fb50be51f36dc05bbd724bd60416a5cdec0b1fa6299042e95",
+  "reviewed_source_archive": {
+    "path": "verification/hosted-worker-controller-implementation-independent-review/reviewed-source-snapshot.tar.gz",
+    "bytes": 110964,
+    "sha256": "d6894fdae991b51485e7bec04a86027f87d84261ddc527e292e072c8b8dd55b7"
+  },
+  "review_fixture_archive": {
+    "path": "verification/hosted-worker-controller-implementation-independent-review/review-fixtures.tar.gz",
+    "bytes": 16605,
+    "sha256": "536a4a8613a2d07c776a71f677b249787ab6e2d2e2f1f97195c3a6f8e38a596e"
+  },
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "tools": [
+    {
+      "argv": [
+        "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/node",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stdout": "v22.23.3\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/node",
+        "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/npm",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stdout": "10.9.9\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/node",
+        "node_modules/typescript/bin/tsc",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stdout": "Version 5.9.3\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/node",
+        "-e",
+        "for(const p of [\"miniflare\",\"workerd\",\"@cloudflare/workers-types\",\"typescript\"])console.log(p+\"=\"+require(p+\"/package.json\").version)"
+      ],
+      "exit_code": 0,
+      "stdout": "miniflare=4.20260730.0\nworkerd=1.20260730.1\n@cloudflare/workers-types=5.20260730.1\ntypescript=5.9.3\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "python3",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stdout": "Python 3.14.8\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sw_vers"
+      ],
+      "exit_code": 0,
+      "stdout": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-controller-independent-c61t1j9q/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stdout": "workerd 2026-07-30\n",
+      "stderr": ""
+    }
+  ],
+  "frozen_dependency_entries": 58,
+  "dependency_installs": 0,
+  "dependency_install_scripts_executed": 0,
+  "producer_groups_passed": 28,
+  "unique_independent_regression_groups": 8,
+  "independent_groups_passed": 5,
+  "independent_groups_failed": 3,
+  "producer_failures_repaired": false,
+  "commands": [
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/build-noncooperative-fixture.command.json",
+      "bytes": 1218,
+      "sha256": "cbf480f7e88c8eaa27e4128ea175eff700dc4914aee0164c74d0e358b2e91879"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/build-replay.command.json",
+      "bytes": 1186,
+      "sha256": "6cb081465166b85ef22dd0ebc5550715275a8d6bdc51ab0b13b73143e9bdc0a5"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/independent-closure.command.json",
+      "bytes": 1318,
+      "sha256": "ad4a13dbc3755f204e258c30898a31a6d381bc29816069fd3b0cd076c31f7cf4"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/independent-regressions-attempt-1.command.json",
+      "bytes": 1329,
+      "sha256": "2a1548d423f0ff083cb7c897f954fd467e5f0edd66657e74b3fb4edf63ead69c"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/independent-regressions.command.json",
+      "bytes": 1329,
+      "sha256": "ab85d76fe83c595bc6b084ca44eaea72a946030f3dc717ee101a9698863ec683"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/noncooperative-regression.command.json",
+      "bytes": 1335,
+      "sha256": "e434bf56a19a80434684c43e94e623e537b2a5b0ec484366a5f432c16a38a9a6"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/producer-replay.command.json",
+      "bytes": 1197,
+      "sha256": "46fecd0c069d4de56ff65f02a5b407c89fbb5226639aed5776e8392cdb1e7bbb"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/README.md",
+      "bytes": 3248,
+      "sha256": "00e0111403f72a8e4b93eb38855dc5746670536a97b85ab987975635947c1373"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/attempt-1-relocation-bindings.json",
+      "bytes": 1913,
+      "sha256": "ee97987008d5ba715107a7302139baf0218e5d8910317ca6b05bb14001eaa33e"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/bindings.json",
+      "bytes": 1997,
+      "sha256": "0696e305082a14ba7f838056b89242c568026a0bad998927d068f9ea776e6a54"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/build-noncooperative-fixture.command.json",
+      "bytes": 1218,
+      "sha256": "cbf480f7e88c8eaa27e4128ea175eff700dc4914aee0164c74d0e358b2e91879"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/build-noncooperative-fixture.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/build-noncooperative-fixture.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/build-replay.command.json",
+      "bytes": 1186,
+      "sha256": "6cb081465166b85ef22dd0ebc5550715275a8d6bdc51ab0b13b73143e9bdc0a5"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/build-replay.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/build-replay.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/cleanup.json",
+      "bytes": 518,
+      "sha256": "bf09620a89e5a530c52ae3616999116910b2cf28c5848fd186cf4bb48147afad"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/closure.mjs",
+      "bytes": 2387,
+      "sha256": "23f202e75565ede49bee17ec82c40af5e89f7758733e4646bdbc901ad38382c6"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/finish.py",
+      "bytes": 7530,
+      "sha256": "d86bece2c1d4442a4013784cfe6745120ebe49e007a94771972575e91b028657"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/independent-closure.command.json",
+      "bytes": 1318,
+      "sha256": "ad4a13dbc3755f204e258c30898a31a6d381bc29816069fd3b0cd076c31f7cf4"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/independent-closure.json",
+      "bytes": 1615,
+      "sha256": "0b97f8d7f79daa8446a75de79e0df5ddf6fe3922da11a4289e9b446f8df4cf16"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/independent-closure.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/independent-closure.stdout",
+      "bytes": 1273,
+      "sha256": "f32d2a896de0080ae8a472dabbe9677d3b4da7e1d1d6e98bd223f677aa624a9a"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/independent-regressions-attempt-1.command.json",
+      "bytes": 1329,
+      "sha256": "2a1548d423f0ff083cb7c897f954fd467e5f0edd66657e74b3fb4edf63ead69c"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/independent-regressions-attempt-1.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/independent-regressions-attempt-1.stdout",
+      "bytes": 3451,
+      "sha256": "fdd9ed51f641fe583533b380ab84c38a5593fbe6d38173b9df51f9555df05cd1"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/independent-regressions.command.json",
+      "bytes": 1329,
+      "sha256": "ab85d76fe83c595bc6b084ca44eaea72a946030f3dc717ee101a9698863ec683"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/independent-regressions.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/independent-regressions.stdout",
+      "bytes": 4443,
+      "sha256": "1547d22bbec658a0144aa1f07387881f43890ac1c9ecef1bb6ac832a449d8bdc"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/noncooperative-fixture.json",
+      "bytes": 404,
+      "sha256": "af845c9438d763e0bbee3bf85bf2ca15be05c1ad73b13aa4a71683d93fe00b0e"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/noncooperative-regression.command.json",
+      "bytes": 1335,
+      "sha256": "e434bf56a19a80434684c43e94e623e537b2a5b0ec484366a5f432c16a38a9a6"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/noncooperative-regression.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/noncooperative-regression.stdout",
+      "bytes": 1456,
+      "sha256": "d32caae3338441381de7979fca1b0dbd1740ab37e179ababd8e1bb1c4dd7f079"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/noncooperative-report.json",
+      "bytes": 1967,
+      "sha256": "8eccf15fac2ae8f4a56f8d822913bdf34f71053b68c18aa29d29781e7fd69efc"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/noncooperative-worker.ts",
+      "bytes": 9309,
+      "sha256": "9d364f497fafb45d6cb77de9d972fab3ddc4a2231e00b68655fefe1fb7592c22"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/noncooperative.mjs",
+      "bytes": 2415,
+      "sha256": "ca3431abb8f2b9e9340a5840b8c130d395a8a62b614172acbfa09ae8a1441c27"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/post-run-bindings.json",
+      "bytes": 934,
+      "sha256": "a6e299ade29d72184a8f40ccec65e4b8cf2e59b09a8e68ab326ec2dd5f269253"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/prepare_noncooperative.py",
+      "bytes": 1165,
+      "sha256": "d985294776b6977c49d106e3c037592a66ec7cfb651cded9eebc917768ab89a9"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/producer-replay-report.json",
+      "bytes": 22431,
+      "sha256": "8e26bca8638ff6f949f799026f5657c600e1d3c3aa00783f43ee98cad9fe85cb"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/producer-replay.command.json",
+      "bytes": 1197,
+      "sha256": "46fecd0c069d4de56ff65f02a5b407c89fbb5226639aed5776e8392cdb1e7bbb"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/producer-replay.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/producer-replay.stdout",
+      "bytes": 3508,
+      "sha256": "4b525e736847dc2df6c64326f80c678333cd4394d63498d48d82f83994fdb5e9"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/regression-attempt-1-report.json",
+      "bytes": 6112,
+      "sha256": "e5e9b7aaaa428cedc08e7425bc8a7b690ca97edf3bd34f88d398367ae4c0804d"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/regression-report.json",
+      "bytes": 7472,
+      "sha256": "6a4d920242c308ee9250665d1950c8f1387b5c4ab39301d689dd9be26366d453"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/regressions-attempt-1.mjs",
+      "bytes": 5725,
+      "sha256": "5d0c35d0a43a7e6f03f8815308622f1ad07b0b996b08b6973e1007ce7d0cf3fe"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/regressions.mjs",
+      "bytes": 6593,
+      "sha256": "b4757bb866c4fbc38ceff105246e4cfcb120fe5ed9e8503fa3dcd2e17a60a8b0"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/review-fixtures.tar.gz",
+      "bytes": 16605,
+      "sha256": "536a4a8613a2d07c776a71f677b249787ab6e2d2e2f1f97195c3a6f8e38a596e"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/reviewed-dependency-files.json",
+      "bytes": 278148,
+      "sha256": "4dc15fbd4f2c4077f1c77368cb1dbe1ecb65619b544b3e70e72239ae1eeaeb62"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/reviewed-producer-receipt.json",
+      "bytes": 33075,
+      "sha256": "fb71bcb1cc076b121a26e075c8e1bf8c2703bc5a659686e4a6ae861b855dc68a"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/reviewed-source-manifest.json",
+      "bytes": 12407,
+      "sha256": "d76bdc50b1cc939ef79f50e55a26cf609b197afa6da7727d4b7d4525a61e6398"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/reviewed-source-snapshot.tar.gz",
+      "bytes": 110964,
+      "sha256": "d6894fdae991b51485e7bec04a86027f87d84261ddc527e292e072c8b8dd55b7"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/run_command.py",
+      "bytes": 1430,
+      "sha256": "706d210ec2a92fb040d1480dee79bc80dd62b9e5e6e96626acf8e674efab8fbb"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/verify_and_copy.py",
+      "bytes": 4276,
+      "sha256": "2d8177a2659d6250023bdb15b2df6f78a744c21837cc80732906fd07a98f0e4f"
+    },
+    {
+      "path": "verification/hosted-worker-controller-implementation-independent-review/verify_final.py",
+      "bytes": 1031,
+      "sha256": "f4a15101a5cc2c07ef890349126c72c5b8ab98c1b62b7b0d3362df35e07cfbc9"
+    },
+    {
+      "path": "docs/hosted-worker-controller-implementation-independent-review.md",
+      "bytes": 9840,
+      "sha256": "84e82ad864370fe2b1318a389174f75e663b7af303caec0b2963e8cc14f9ec66"
+    }
+  ],
+  "cleanup": {
+    "status": "passed",
+    "test_cleanup_actions": 128,
+    "storage_paths_checked": 124,
+    "distinct_storage_paths": 124,
+    "all_owned_storage_absent": true,
+    "owned_workerd_process_scan_argv": [
+      "/bin/ps",
+      "-axo",
+      "pid=,ppid=,comm="
+    ],
+    "matching_owned_workerd": [],
+    "owned_scratch": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-controller-independent-c61t1j9q",
+    "scratch_removed": true,
+    "other_processes_modified": false,
+    "native_instances_started": 0,
+    "provider_cloud_calls": 0
+  },
+  "not_verified": [
+    "complete-controller",
+    "independent-audit-registry-and-scheduler",
+    "missed-wake-or-exhausted-alarm-retry-recovery",
+    "actual-Cloudflare-ingress-TLS-framing-EOF",
+    "qualified-production-clock",
+    "real-provider-images-sizing-egress-isolation",
+    "external-macOS",
+    "trusted-one-shot-supervisor-and-descendant-proof",
+    "runner-auth-and-private-R2-source-artifacts",
+    "nonrollbackable-restore-authority",
+    "hard-whole-domain-resources",
+    "Neon-Oban-zero-traffic-operations",
+    "signing-store-customer-GA",
+    "GA",
+    "physical-phone-matrix"
+  ],
+  "no_git_inspected": true,
+  "no_shared_files_changed": true,
+  "source_revision": "explicit SHA-256 source tree; no Git inspected"
+}

@@ -1,0 +1,769 @@
+--- v3/adapter.py
++++ v4/adapter.py
+@@ -19,7 +19,7 @@
+ 
+ def select_command(h, argv, session):
+     require(_ROOT is not None and list(map(str,argv)) == importer.command_argv(_ROOT,session), 'Command must come from root-selected context')
+-    require(session.resolve() == session and session.is_dir() and not session.is_symlink() and session.name == 'session' and session.parent.name == 'runtime' and session.parent.parent.name == 'native-run-v3-'+_ROOT['runID'], 'Root-selected fresh result workspace required')
++    require(session.resolve() == session and session.is_dir() and not session.is_symlink() and session.name == 'session' and session.parent.name == 'runtime' and session.parent.parent.name == 'native-run-v4-'+_ROOT['runID'], 'Root-selected fresh result workspace required')
+     require(not (session/'session.xcresult').exists() and not (session/'session.xcresult').is_symlink(), 'Result bundle exists before dispatch; replay refused')
+     _ORIGINAL_SELECT(h,argv,session)
+     _selected['sessionIdentity'] = path_identity(session,0o700)
+--- /dev/null
++++ v4/derive_v4.py
+@@ -0,0 +1,24 @@
++"""One-shot reproducible derivative after validating all frozen V3 bindings."""
++from pathlib import Path
++import difflib
++import frozen_inputs as f
++
++BASE=f.BASE
++NAMES=['prepare.py','importer.py','adapter.py','test_importer.py','verify_host.py','freeze.py','auxiliary_inventory.py','test_repair.py','replay_review.py']
++
++def main():
++    before=f.verify()
++    assert all(not (BASE/name).exists() for name in NAMES), 'Preserve existing derivative sources'
++    assert not (BASE/'derivation-inputs.json').exists(), 'Preserve original derivation record'
++    (BASE/'derivation-inputs.json').write_bytes(f.stable(before))
++    patches=[]
++    for name in NAMES:
++        old=(f.V3/name).read_text()
++        new=old.replace('runtime-v3','runtime-v4').replace('runtime_v3','runtime_v4').replace('V3','V4')
++        new=new.replace('root-selection.3','root-selection.4').replace('runtime-import.3','runtime-import.4').replace('runtime-packet.3','runtime-packet.4').replace('host-receipt.3','host-receipt.4').replace('frozen-handoff.3','frozen-handoff.4').replace('native-run-v3-','native-run-v4-')
++        (BASE/name).write_text(new)
++        patches.extend(difflib.unified_diff(old.splitlines(True),new.splitlines(True),fromfile='v3/'+name,tofile='v4/'+name))
++    (BASE/'namespace-adaptation.patch').write_text(''.join(patches))
++    assert f.verify()==before
++    print('PASS: exact frozen V3 files copied to V4 with declared namespace changes only')
++if __name__=='__main__':main()
+--- v3/freeze.py
++++ v4/freeze.py
+@@ -1,5 +1,5 @@
+ #!/usr/bin/env python3
+-"""Freeze/verify the exact host preparation; no runtime imports or native tools."""
++"""Freeze/verify the host-only V4 packet, controls and retained historical failures."""
+ import argparse
+ import datetime
+ import json
+@@ -7,27 +7,40 @@
+ import prepare
+ 
+ 
++def verify_outputs(base,receipt):
++    prepare.require(prepare.sha(prepare.stable(receipt['outputs']))==receipt['outputTreeSHA256'],'Host output tree digest differs')
++    for name,expected in receipt['outputs'].items():
++        prepare.require(prepare.row(base/name)==expected,'Host output changed: '+name)
++
++
+ def freeze(attempt):
+     path=prepare.BASE/'handoff.json';prepare.require(not path.exists(),'Preserve frozen handoff')
+-    verified=prepare.verify()
+-    receipt_path=prepare.BASE/f'host-attempt-{attempt}/receipt.json'
+-    receipt=json.loads(receipt_path.read_bytes());prepare.require(receipt['passed'] is True and receipt['testsRun']==111 and receipt['historicalReview']=={'controls':33,'passed':32,'retainedHistoricalFixtureFailures':1,'sourceSHA256':'84f7d1c5dbe0cbe17d60c34675de1c3d17107c17964062ea74ebdf5982a195db'} and receipt['repairControls']['passed'] is True and receipt['repairControls']['testsRun']==25,'Exact passing V3 host acceptance and historical mismatch scope required')
+-    prepare.require(receipt['ownedSources']=={name:prepare.row(prepare.BASE/name) for name in prepare.OWNED},'Host-tested source differs')
+-    paths=[prepare.ROOT/'docs/apple-focus-reference-runtime-v3.md']+[p for p in prepare.BASE.rglob('*') if p.is_file()]
+-    prepare.require(not any(p.is_symlink() for p in paths),'Symlink in handoff')
++    packet=prepare.verify()
++    base=prepare.BASE/f'host-attempt-{attempt}';receipt=json.loads((base/'receipt.json').read_bytes())
++    verify_outputs(base,receipt)
++    prepare.require(receipt['passed'] is True and receipt['testsRun']==111,'Exact V4 host acceptance required')
++    prepare.require(receipt['historicalReview']=={'controls':33,'passed':32,'retainedHistoricalFixtureFailures':1,'sourceSHA256':'84f7d1c5dbe0cbe17d60c34675de1c3d17107c17964062ea74ebdf5982a195db','expectedReplayOutcome':True},'Preserve exact invalid historical fixture failure')
++    prepare.require(receipt['repairControls']=={'testsRun':25,'passed':True},'Retained focused controls differ')
++    prepare.require(receipt['v3ReviewReplay']=={'testsRun':37,'passed':37,'unchangedControlBodiesMutationsAssertions':True,'composedInventoryControls':{'run':25,'passed':25}},'Frozen V3 reviewer replay differs')
++    prepare.require(receipt['precisionControls']=={'testsRun':19,'passed':True,'actualAdapterCases':35},'Exact-time controls differ')
++    prepare.require(receipt['frozenV3ActualAdapterReplay']=={'controls':8,'passed':8,'failed':0},'Frozen actual-adapter replay differs')
++    prepare.require(receipt['ownedSources']=={n:prepare.row(prepare.BASE/n) for n in prepare.OWNED},'Host-tested source differs')
++    prepare.require(receipt['inputBindings']==prepare.inputs()[3],'Host-tested frozen inputs differ')
++    prepare.require(receipt['cleanup']['allFrozenInputsUnchanged'] and receipt['cleanup']['ownedHostTemporaryDirectoriesAbsent'],'Host cleanup differs')
++    paths=[prepare.ROOT/'docs/apple-focus-reference-runtime-v4.md']+[p for p in prepare.BASE.rglob('*') if p.is_file()]
++    prepare.require(not any(p.is_symlink() for p in prepare.BASE.rglob('*')),'Symlink in owned handoff')
+     members={str(p.relative_to(prepare.ROOT)):prepare.row(p) for p in sorted(paths)}
+-    value={'schema':'mixer.apple-focus-reference-runtime-frozen-handoff.3','observedUTC':datetime.datetime.now(datetime.timezone.utc).isoformat(),'command':[sys.executable,'-B',str(prepare.BASE/'freeze.py'),'freeze','--attempt',str(attempt)],'python':sys.version,'packetSHA256':verified['packetSHA256'],'members':members,'memberTreeSHA256':prepare.sha(prepare.stable(members)),'testsRun':receipt['testsRun'],'retainedProducerControls':111,'retainedProducerControlsPassed':111,'historicalIndependentControls':33,'historicalIndependentControlsPassed':32,'retainedHistoricalInvalidFixtureFailures':1,'focusedRepairControls':25,'focusedRepairControlsPassed':25,'historicalIndependentReplaySourceSHA256':receipt['historicalReview']['sourceSHA256'],'historicalV2ReviewAccepted':False,'historicalV2ReviewFailedControls':10,'independentV3ReviewPending':True,'hostAttempt':attempt,'sourceRevisionLabel':receipt['sourceRevisionLabel'],'sourceTreeSHA256':prepare.SOURCE,'productArchiveSHA256':prepare.PRODUCT,'historicalV1FailuresPreserved':True,'observerV2Unchanged':True,'scope':'Host-only V3 repair; exact historical 33-control replay retains one intentionally invalid Session-fixture rejection; separate independent V3 review and fresh root selection required','nativeExecuted':False,'runtimeSelected':False,'runnableSourcePacketPrepared':True,'compileRerun':False,'runPassed':False,'completeCaseSet':False,'cursorCompletionCredit':False,'fullSixCaseQualification':False,'nativeKeyboardQualification':False,'carrierAccepted':False,'gaAccepted':False,'physicalPhones':'disconnected-deferred','cleanup':receipt['cleanup']}
++    value={'schema':'mixer.apple-focus-reference-runtime-frozen-handoff.4','observedUTC':datetime.datetime.now(datetime.timezone.utc).isoformat(),'command':[sys.executable,'-B',str(prepare.BASE/'freeze.py'),'freeze','--attempt',str(attempt)],'python':sys.version,'packetSHA256':packet['packetSHA256'],'members':members,'memberTreeSHA256':prepare.sha(prepare.stable(members)),'hostAttempt':attempt,'retainedProducerControls':{'run':111,'passed':111},'focusedRepairControls':{'run':25,'passed':25},'historicalIndependentControls':{'run':33,'passed':32,'retainedMalformedDirectTransactionStoreFixtureFailures':1,'originalControlBodiesMutationsAssertionsUnchanged':True},'v3ReviewerReplay':{'run':37,'passed':37,'originalControlBodiesMutationsAssertionsUnchanged':True,'composedInventorySubset':{'run':25,'passed':25}},'newExactTimestampControls':{'run':19,'passed':19,'actualAdapterCases':35},'frozenV3ActualAdapterPrecisionReplay':{'run':8,'passed':8},'frozenV3ProducerHandoffSHA256':prepare.frozen_inputs.V3_HANDOFF,'frozenV3RejectedIndependentReviewHandoffSHA256':prepare.frozen_inputs.V3_REVIEW_HANDOFF,'frozenV3PacketSHA256':prepare.frozen_inputs.V3_PACKET,'historicalV3ReviewAccepted':False,'historicalV3ReviewPrecisionFailuresPreserved':3,'historicalV2ReviewAccepted':False,'historicalV2ReviewFailedControlsPreserved':10,'historicalV1FailuresPreserved':True,'independentV4ReviewPending':True,'sourceRevisionLabel':receipt['sourceRevisionLabel'],'sourceTreeSHA256':prepare.SOURCE,'productArchiveSHA256':prepare.PRODUCT,'observerV2Unchanged':True,'originalOracleActionBudgetTimingProductsUnchanged':True,'scope':'Host-only exact timestamp repair. Conservative sub-nanosecond rejection, frozen failures, source/products and native qualification boundaries retained. Fresh independent V4 review and root selection required before dispatch.','nativeExecuted':False,'runtimeSelected':False,'runnableSourcePacketPrepared':True,'compileRerun':False,'gitMutationPerformed':False,'uiOrCapturePerformed':False,'hostedCatalogAuthorityOrWorkerReviewReadImportedOrExecuted':False,'runPassed':False,'completeCaseSet':False,'cursorCompletionCredit':False,'fullSixCaseQualification':False,'nativeKeyboardQualification':False,'carrierAccepted':False,'gaAccepted':False,'physicalPhones':'disconnected-deferred','cleanup':receipt['cleanup']}
+     with path.open('xb') as stream:stream.write(prepare.stable(value))
+-    print(json.dumps({'handoffSHA256':prepare.row(path)['sha256'],'packetSHA256':verified['packetSHA256'],'testsRun':receipt['testsRun'],'nativeExecuted':False},sort_keys=True))
++    print(json.dumps({'handoffSHA256':prepare.row(path)['sha256'],'packetSHA256':packet['packetSHA256'],'memberTreeSHA256':value['memberTreeSHA256'],'nativeExecuted':False,'independentV4ReviewPending':True},sort_keys=True))
+ 
+ 
+ def verify():
+     path=prepare.BASE/'handoff.json';value=json.loads(path.read_bytes())
+     prepare.require(prepare.sha(prepare.stable(value['members']))==value['memberTreeSHA256'],'Handoff digest differs')
+-    for name,row in value['members'].items():prepare.require(prepare.row(prepare.ROOT/name)==row,'Frozen member changed: '+name)
+-    prepared=prepare.verify();prepare.require(prepared['packetSHA256']==value['packetSHA256'],'Frozen packet differs')
+-    return {'handoffSHA256':prepare.row(path)['sha256'],'packetSHA256':value['packetSHA256'],'testsRun':value['testsRun'],'nativeExecuted':False,'scope':'File/hash verification only'}
+-
++    for name,expected in value['members'].items():prepare.require(prepare.row(prepare.ROOT/name)==expected,'Frozen member changed: '+name)
++    packet=prepare.verify();prepare.require(packet['packetSHA256']==value['packetSHA256'],'Frozen packet differs')
++    return {'handoffSHA256':prepare.row(path)['sha256'],'packetSHA256':value['packetSHA256'],'memberTreeSHA256':value['memberTreeSHA256'],'nativeExecuted':False,'scope':'File/hash verification only; no dispatch authorization'}
+ 
+ if __name__=='__main__':
+     p=argparse.ArgumentParser();p.add_argument('action',choices=['freeze','verify']);p.add_argument('--attempt',type=int,default=1);args=p.parse_args()
+--- /dev/null
++++ v4/frozen_inputs.py
+@@ -0,0 +1,44 @@
++"""Data-only verification of the frozen V3 producer and rejected independent review."""
++import hashlib
++import json
++from pathlib import Path
++import stat
++
++BASE=Path(__file__).resolve().parent
++ROOT=BASE.parents[1]
++V3=ROOT/'verification/apple-focus-reference-runtime-v3'
++V3_REVIEW=ROOT/'verification/apple-focus-reference-runtime-v3-independent-review'
++V3_HANDOFF='f50006ea6fbe274eac4a78c214a33da4b77c4249b0ef2e8a19f1e0c4200e18f1'
++V3_REVIEW_HANDOFF='70f56f2e9495cf6ca18c0298fdf83300849b484298b62830a4facf744c6eebe1'
++V3_PACKET='89e4b9b819bacc7ba69aee1fa2344245bf2eb26a3b8ed72a33a169f574f3fd60'
++sha=lambda raw:hashlib.sha256(raw).hexdigest()
++stable=lambda value:(json.dumps(value,indent=2,sort_keys=True,allow_nan=False)+'\n').encode()
++
++def row(path,official_alias=False):
++    assert path.resolve()==path or official_alias, 'Redirected frozen input: '+str(path)
++    info=path.lstat() if not official_alias else path.resolve().lstat()
++    assert stat.S_ISREG(info.st_mode) and info.st_nlink==1,str(path)
++    raw=path.read_bytes()
++    return {'kind':'file','mode':stat.S_IMODE(info.st_mode),'bytes':len(raw),'sha256':sha(raw)}
++
++def verify():
++    rows={}
++    for directory,expected in [(V3,V3_HANDOFF),(V3_REVIEW,V3_REVIEW_HANDOFF)]:
++        path=directory/'handoff.json';assert row(path)['sha256']==expected,str(path)
++        handoff=json.loads(path.read_bytes());assert sha(stable(handoff['members']))==handoff['memberTreeSHA256']
++        for name,expected_row in handoff['members'].items():
++            assert 'hosted' not in name and 'catalog' not in name and 'authority-driver' not in name,name
++            observed=row(ROOT/name);assert observed==expected_row,name;rows[name]=observed
++        rows[str(path.relative_to(ROOT))]=row(path)
++    assert row(V3/'packet.json')['sha256']==V3_PACKET
++    review=json.loads((V3_REVIEW/'handoff.json').read_bytes())
++    assert review['producerHandoffSHA256']==V3_HANDOFF and review['packetSHA256']==V3_PACKET
++    assert review['independentControls']=={'run':37,'passed':34,'failed':3,'errors':0,'skipped':0}
++    for name,expected in json.loads((V3/'input-lock.json').read_bytes()).items():
++        assert 'hosted' not in name and 'catalog' not in name and 'authority-driver' not in name,name
++        path=Path(name) if name.startswith('/') else ROOT/name
++        observed=row(path,name.endswith('/SDKSettings.json'));assert observed==expected,name;rows[name]=observed
++    return rows
++
++if __name__=='__main__':
++    rows=verify();print(json.dumps({'members':len(rows),'treeSHA256':sha(stable(rows)),'nativeExecuted':False},sort_keys=True))
+--- v3/importer.py
++++ v4/importer.py
+@@ -5,7 +5,7 @@
+ """
+ import copy
+ import datetime
+-from decimal import Decimal
++from decimal import Decimal, InvalidOperation
+ import hashlib
+ import json
+ import math
+@@ -66,18 +66,48 @@
+     return ((delta.days*86400+delta.seconds)*1_000_000_000+delta.microseconds*1000)
+ 
+ 
++MAX_TIMESTAMP_TOKEN_BYTES = 1024
++# The ordinary JSON pass already rejects numbers outside finite binary64 range.
++# Its largest accepted second value has at most 309 integer digits, hence at
++# most 318 nanosecond digits. Check before any power or integer construction.
++MAX_TIMESTAMP_NS_DIGITS = 318
++
++
+ def decimal_timestamp_ns(value):
+-    require(type(value) is Decimal and value.is_finite() and value>=0,'Original finite decimal wall-time token required')
+-    scaled=value*Decimal(1_000_000_000)
+-    require(scaled==scaled.to_integral_value(),'Official timestamp exceeds nanosecond representation; ordering is incomplete')
+-    return int(scaled)
++    """Exact tuple conversion; no Decimal arithmetic or ambient context reads.
++
++    A genuine sub-nanosecond endpoint remains incomplete evidence. Trailing
++    decimal zeroes and exponent notation are accepted when exactly integral.
++    Work is bounded by the token/coefficient and result lengths, never by an
++    attacker-controlled exponent. Even extreme zero exponents need no power.
++    """
++    require(type(value) is Decimal and value.is_finite(),'Original finite decimal wall-time token required')
++    sign,digits,exponent=value.as_tuple()
++    require(len(digits)<=MAX_TIMESTAMP_TOKEN_BYTES,'Timestamp coefficient exceeds importer bound')
++    nonzero=any(digits)
++    require(not sign or not nonzero,'Original nonnegative decimal wall-time token required')
++    if not nonzero:return 0
++    power=exponent+9
++    if power<0:
++        cut=-power
++        require(cut<len(digits) and not any(digits[-cut:]),'Official timestamp exceeds nanosecond representation; ordering is incomplete')
++        digits=digits[:-cut]
++        power=0
++    require(len(digits)+power<=MAX_TIMESTAMP_NS_DIGITS,'Timestamp nanosecond range exceeds importer bound')
++    coefficient=0
++    for digit in digits:coefficient=coefficient*10+digit
++    return coefficient*10**power
+ 
+ 
+ def decimal_document(raw):
+     # parse() first validates duplicates, raw syntax, depth and finiteness. The
+     # second pass retains original decimal lexemes exclusively for wall ordering.
+     parse(raw)
+-    return json.loads(raw.decode('utf-8'),parse_float=Decimal,parse_int=Decimal)
++    def exact_number(token):
++        require(len(token)<=MAX_TIMESTAMP_TOKEN_BYTES,'Timestamp decimal token exceeds importer bound')
++        try:return Decimal(token)
++        except InvalidOperation as error:raise ValueError('Unrepresentable exact decimal token') from error
++    return json.loads(raw.decode('utf-8'),parse_float=exact_number,parse_int=exact_number)
+ 
+ 
+ def signature(value):
+@@ -90,13 +120,13 @@
+ 
+ def validate_root(value, packet_sha=None, fresh=False):
+     require(type(value) is dict and set(value) == {'schema','runID','packetSHA256','selectedAtUTC','ownedSimulatorIdentity','sourceTreeSHA256','productArchiveSHA256','developerDirectory','baselineDevices','baselineFrontends'}, 'Closed root selection required')
+-    require(value['schema'] == 'mixer.apple-focus-reference-root-selection.3', 'Root selection schema differs')
++    require(value['schema'] == 'mixer.apple-focus-reference-root-selection.4', 'Root selection schema differs')
+     require(str(uuid.UUID(value['runID'])) == value['runID'], 'Canonical fresh run UUID required')
+     require(type(value['packetSHA256']) is str and len(value['packetSHA256']) == 64 and (packet_sha is None or value['packetSHA256'] == packet_sha), 'Root selected packet differs')
+     require(value['sourceTreeSHA256'] == SOURCE and value['productArchiveSHA256'] == PRODUCT, 'Root source/product identity differs')
+     identity = value['ownedSimulatorIdentity']
+     require(type(identity) is dict and set(identity) == {'udid','name','runtime','build'}, 'Closed owned simulator identity required')
+-    require(str(uuid.UUID(identity['udid'])).upper() == identity['udid'] and type(identity['name']) is str and identity['name'].startswith('MixerFocusReferenceV3-'), 'Root-owned canonical simulator identity required')
++    require(str(uuid.UUID(identity['udid'])).upper() == identity['udid'] and type(identity['name']) is str and identity['name'].startswith('MixerFocusReferenceV4-'), 'Root-owned canonical simulator identity required')
+     require(identity['runtime'] == 'com.apple.CoreSimulator.SimRuntime.iOS-26-5' and identity['build'] == '23F77', 'Pinned runtime/build required')
+     require(value['developerDirectory'] == '/Applications/Xcode_26.6.app/Contents/Developer', 'Pinned compiler tools directory required')
+     require(type(value['baselineDevices']) is dict and type(value['baselineDevices'].get('devices')) is dict and type(value['baselineFrontends']) is list, 'Root pre-creation baseline required')
+@@ -104,8 +134,8 @@
+     selected = datetime.datetime.fromisoformat(value['selectedAtUTC'])
+     require(selected.tzinfo is not None, 'Timezone-aware root selection required')
+     if fresh:
+-        age = (datetime.datetime.now(datetime.timezone.utc) - selected).total_seconds()
+-        require(0 <= age <= 300, 'Root selection is stale or future-dated')
++        age = datetime.datetime.now(datetime.timezone.utc) - selected
++        require(datetime.timedelta(0) <= age <= datetime.timedelta(seconds=300), 'Root selection is stale or future-dated')
+     return copy.deepcopy(value)
+ 
+ 
+@@ -164,14 +194,14 @@
+         require(type(summary.get(key)) is int and summary[key] == expected, 'Official summary count differs: ' + key)
+         if key != 'totalTestCount': require(type(configs[0].get(key)) is int and configs[0][key] == expected, 'Official configuration count differs')
+     require(summary.get('result') == ('Passed' if passed == 2 else 'Failed') and code == (0 if passed == 2 else 65), 'Command outcome contradicts official tests')
+-    require(number(summary.get('startTime')) and number(summary.get('finishTime')) and summary['startTime'] < summary['finishTime'], 'Official run time range missing')
++    require(number(summary.get('startTime')) and number(summary.get('finishTime')), 'Official run time range missing')
+     start = datetime_ns(root['selectedAtUTC'])
+     # Native callers always pass the original decimal document. The fallback is
+     # used only by legacy synthetic fixture helpers before final exact import.
+     exact_summary=exact_summary if exact_summary is not None else {key:Decimal(str(summary[key])) for key in ['startTime','finishTime']}
+     summary_start=decimal_timestamp_ns(exact_summary['startTime'])
+     summary_finish=decimal_timestamp_ns(exact_summary['finishTime'])
+-    require(start <= summary_start <= summary_finish <= start + 660_000_000_000, 'Official run predates/exceeds fresh root selection')
++    require(start <= summary_start < summary_finish <= start + 660_000_000_000, 'Official run predates/exceeds fresh root selection')
+     return rows
+ 
+ 
+@@ -235,7 +265,7 @@
+ 
+ def import_selected(root, session, observer, streams, official, payloads, captures, cleanup, oracle, classifier):
+     """Called only with adapter-captured official outputs; never mint root context from evidence."""
+-    result = {'schema':'mixer.apple-focus-reference-runtime-import.3','diagnosticOnly':True,'diagnosticOutcome':'unknown','provenanceAccepted':False,'keyInjectionCount':None,'singleTabDiagnosticEvidencePassed':False,'runPassed':False,'completeCaseSet':False,'cursorCompletionCredit':False,'fullSixCaseQualification':False,'nativeKeyboardQualification':False,'carrierAccepted':False,'gaAccepted':False,'physicalPhones':'disconnected-deferred'}
++    result = {'schema':'mixer.apple-focus-reference-runtime-import.4','diagnosticOnly':True,'diagnosticOutcome':'unknown','provenanceAccepted':False,'keyInjectionCount':None,'singleTabDiagnosticEvidencePassed':False,'runPassed':False,'completeCaseSet':False,'cursorCompletionCredit':False,'fullSixCaseQualification':False,'nativeKeyboardQualification':False,'carrierAccepted':False,'gaAccepted':False,'physicalPhones':'disconnected-deferred'}
+     try:
+         root = validate_root(root)
+         code = observer_terminal(observer, root, session, streams)
+--- v3/prepare.py
++++ v4/prepare.py
+@@ -11,6 +11,7 @@
+ import stat
+ import sys
+ import tempfile
++import frozen_inputs
+ 
+ BASE = Path(__file__).resolve().parent
+ ROOT = BASE.parents[1]
+@@ -20,7 +21,7 @@
+ REVIEW = ROOT/'verification/apple-focus-reference-diagnostic-v2-independent-review'
+ PRODUCT = '0941185e39cc0171b0bf5d2aeb72738588e88b9c7b3d676f893b70c3bf644fa8'
+ SOURCE = '696bfdd8a31be7b4d9ba49f57783625c7edbb75c126bb4696e31acc5aa0f238a'
+-OWNED = ['prepare.py','importer.py','adapter.py','test_importer.py','verify_host.py','freeze.py','auxiliary_inventory.py','test_repair.py','replay_review.py']
++OWNED = ['prepare.py','importer.py','adapter.py','test_importer.py','verify_host.py','freeze.py','auxiliary_inventory.py','test_repair.py','replay_review.py','frozen_inputs.py','derive_v4.py','replay_v3_review.py','replay_precision.py','test_precision.py']
+ METHODS = ['test000PublicSettingsFullKeyboardAccess','test010ReferenceFirstTab']
+ ORACLES = ['apple-toggle-keyboard-focus-v9-preparation/keyboard_oracle.py','apple-toggle-keyboard-focus/keyboard_oracle.py','apple-toggle-keyboard-focus/cases.json','apple-toggle-pan-commit-harness-v2/commit_oracle.py','apple-toggle-pan-commit-harness-v2/cases.json','apple-toggle-native-interruption/interruption_oracle.py','apple-toggle-native-interruption/cases.json','apple-toggle-pan-origin-correction/oracle.py','apple-toggle-semantic-activation/semantic_oracle.py']
+ 
+@@ -93,6 +94,7 @@
+             bindings[name]=expected_row
+     for name in ['/usr/bin/xcrun','/Applications/Xcode_26.6.app/Contents/Developer/usr/bin/xcresulttool']:
+         bindings[name]=row(Path(name))
++    bindings.update(frozen_inputs.verify())
+     return runtime, accepted, products, bindings
+ 
+ 
+@@ -178,7 +180,7 @@
+     for name, value in [('input-lock.json',bindings),('runtime-source-manifest.json',archive),('selection-template.json',selection)]:
+         with (BASE/name).open('xb') as stream:stream.write(stable(value))
+     own={name:row(BASE/name) for name in OWNED}
+-    packet={'schema':'mixer.apple-focus-reference-runtime-packet.3','scope':'Host preparation only; independent review and root fresh selection required before dispatch','preparedUTC':datetime.datetime.now(datetime.timezone.utc).isoformat(),'command':[sys.executable,'-B',str(BASE/'prepare.py'),'prepare'],'python':sys.version,'pythonExecutable':str(Path(sys.executable).resolve()),'sourceRevisionLabel':'ba9ad4372f94463ba4d363cdfd76dd565c96413f','sourceRevisionMeaning':'Inherited frozen compile label; exact hashes define this tree; no Git query','sourceTreeSHA256':SOURCE,'productArchiveSHA256':PRODUCT,'productTreeSHA256':json.loads((V1/'compile-attempt-1/receipt.json').read_bytes())['productTreeSHA256'],'methods':METHODS,'cases':['keyboard-enabled-off'],'ownedSources':own,'ownedSourceTreeSHA256':sha(stable(own)),'files':{name:row(BASE/name) for name in ['input-lock.json','runtime-source-manifest.json','runtime-sources.tar.gz','selection-template.json']},'documentation':row(ROOT/'docs/apple-focus-reference-runtime-v3.md'),'cleanup':{'hostPreparationScratchAbsent':not scratch.exists(),'nativeInstancesCreatedOrQueried':0,'servicesStarted':0,'otherProjectsTouched':False},'nativeExecuted':False,'runtimeSelected':False,'compileRerun':False,'runPassed':False,'completeCaseSet':False,'cursorCompletionCredit':False,'fullSixCaseQualification':False,'nativeKeyboardQualification':False,'carrierAccepted':False,'gaAccepted':False,'physicalPhones':'disconnected-deferred'}
++    packet={'schema':'mixer.apple-focus-reference-runtime-packet.4','scope':'Host preparation only; independent review and root fresh selection required before dispatch','preparedUTC':datetime.datetime.now(datetime.timezone.utc).isoformat(),'command':[sys.executable,'-B',str(BASE/'prepare.py'),'prepare'],'python':sys.version,'pythonExecutable':str(Path(sys.executable).resolve()),'sourceRevisionLabel':'ba9ad4372f94463ba4d363cdfd76dd565c96413f','sourceRevisionMeaning':'Inherited frozen compile label; exact hashes define this tree; no Git query','sourceTreeSHA256':SOURCE,'productArchiveSHA256':PRODUCT,'productTreeSHA256':json.loads((V1/'compile-attempt-1/receipt.json').read_bytes())['productTreeSHA256'],'methods':METHODS,'cases':['keyboard-enabled-off'],'ownedSources':own,'ownedSourceTreeSHA256':sha(stable(own)),'files':{name:row(BASE/name) for name in ['input-lock.json','runtime-source-manifest.json','runtime-sources.tar.gz','selection-template.json']},'documentation':row(ROOT/'docs/apple-focus-reference-runtime-v4.md'),'cleanup':{'hostPreparationScratchAbsent':not scratch.exists(),'nativeInstancesCreatedOrQueried':0,'servicesStarted':0,'otherProjectsTouched':False},'nativeExecuted':False,'runtimeSelected':False,'compileRerun':False,'runPassed':False,'completeCaseSet':False,'cursorCompletionCredit':False,'fullSixCaseQualification':False,'nativeKeyboardQualification':False,'carrierAccepted':False,'gaAccepted':False,'physicalPhones':'disconnected-deferred'}
+     with (BASE/'packet.json').open('xb') as stream:stream.write(stable(packet))
+     print('PASS: host-only reference-first packet frozen for independent review; no native dispatch')
+ 
+@@ -190,7 +192,7 @@
+     require({name:row(BASE/name) for name in OWNED} == packet['ownedSources'],'Owned source changed')
+     require(sha(stable(packet['ownedSources'])) == packet['ownedSourceTreeSHA256'],'Owned tree digest differs')
+     for name,item in packet['files'].items():require(row(BASE/name)==item,'Packet member changed: '+name)
+-    require(row(ROOT/'docs/apple-focus-reference-runtime-v3.md') == packet['documentation'],'Packet document changed')
++    require(row(ROOT/'docs/apple-focus-reference-runtime-v4.md') == packet['documentation'],'Packet document changed')
+     manifest=json.loads((BASE/'runtime-source-manifest.json').read_bytes())
+     helpers().archive_payload(BASE/'runtime-sources.tar.gz',manifest['files'],manifest['archive']['sha256'],'selected/')
+     return {'packetSHA256':sha((BASE/'packet.json').read_bytes()),'nativeExecuted':False,'scope':'Byte/mode/archive/source verification only'}
+@@ -205,7 +207,7 @@
+     selection_path=Path(selection_path)
+     require(row(selection_path)['sha256']==selected_sha,'Root out-of-band selection hash differs')
+     root=importer.validate_root(importer.parse(selection_path.read_bytes()),reviewed_packet,fresh=True)
+-    output=BASE/('native-run-v3-'+root['runID'])
++    output=BASE/('native-run-v4-'+root['runID'])
+     require(not output.exists() and not output.is_symlink(),'Fresh run output required; never replay a run')
+     output.mkdir(mode=0o755)
+     h=helpers(); product_manifest=json.loads((V1/'compile-attempt-1/product-manifest.json').read_bytes())
+--- /dev/null
++++ v4/replay_precision.py
+@@ -0,0 +1,80 @@
++#!/usr/bin/env python3
++"""Preserve exact hostile inputs through the actual adapter with fake tool returns."""
++import copy
++import datetime
++from decimal import Decimal, getcontext
++import importlib.util
++import json
++import os
++from pathlib import Path
++import shutil
++import sys
++import tempfile
++import frozen_inputs as bindings
++
++BASE=bindings.BASE;ROOT=bindings.ROOT;stable=bindings.stable;sha=bindings.sha
++
++def audit(event,args):
++    if event in ('subprocess.Popen','os.system','os.exec','os.posix_spawn','socket.bind','socket.connect','socket.connect_ex'):
++        raise AssertionError('No process/native/network action authorized in precision reproduction')
++
++def load(name,path):
++    spec=importlib.util.spec_from_file_location(name,path);module=importlib.util.module_from_spec(spec)
++    sys.modules[name]=module;spec.loader.exec_module(module);return module
++
++def run(attempt):
++    output=attempt/'actual-adapter-precision-replay';output.mkdir()
++    before=bindings.verify();sys.dont_write_bytecode=True;sys.addaudithook(audit)
++    import prepare
++    import test_importer as tests
++    i=tests.i
++    tests.RuntimeControls.setUpClass();ref=tests.RuntimeControls('test_001_one_complete_strict_original_pass_is_diagnostic_only')
++    cases=[
++        ('premise-nine-exact','before','1792893615.123456789',0,True),
++        ('premise-nine-plus-one-ns','before','1792893615.123456789',1,False),
++        ('witness-nine-exact','after','1792893620.987654321',0,True),
++        ('witness-nine-plus-one-ns','after','1792893620.987654321',1,False),
++        ('premise-ten-digits','before','1792893615.1234567891',0,False),
++        ('premise-deep-tail','before','1792893615.123456789000000000000000001',0,False),
++        ('premise-rounds-future','before','1792893615.999999999999999999999999999',1,False),
++        ('witness-deep-tail','after','1792893620.123456789000000000000000001',0,False),
++    ]
++    results=[]
++    try:
++        for name,role,token,offset,expected in cases:
++            retained=output/name;retained.mkdir();f=ref.fixture()
++            decimal=Decimal(token);tuple_=decimal.as_tuple();coefficient=int(''.join(map(str,tuple_.digits)));power=tuple_.exponent+9
++            floor_ns=coefficient*10**power if power>=0 else coefficient//10**(-power)
++            signature_ns=floor_ns+offset;f['captures'][role]['signature'][1]=signature_ns
++            if role=='before':f['captures']['after']['signature'][1]=signature_ns
++            try:converted=i.decimal_timestamp_ns(decimal);conversion_error=None
++            except ValueError as error:converted=None;conversion_error=str(error)
++            with tempfile.TemporaryDirectory(prefix='precision-adapter-',dir=BASE) as tmp:
++                sandbox=Path(tmp);namespace,invoke,calls,h=ref.adapter_namespace(f,sandbox)
++                manifest=sandbox/'runtime/attachments/manifest.json';raw=manifest.read_bytes()
++                old=b'1792893615.0' if role=='before' else b'1792893620.0';assert raw.count(old)==1
++                raw=raw.replace(old,token.encode());manifest.write_bytes(raw)
++                export=sandbox/'runtime/attachment-export.json';value=json.loads(export.read_bytes())
++                value['files']['manifest.json']={'bytes':len(raw),'sha256':sha(raw)};export.write_bytes(stable(value))
++                namespace['capture_official'](object(),invoke,h,sandbox)
++                official=namespace['_OFFICIAL']
++                result=i.import_selected(f['root'],f['session'],f['observer'],f['streams'],official['official'],official['payloads'],official['captures'],f['cleanup'],ref.oracle,ref.classifier)
++                # Preserve the original captured raw bytes and complete app/observer inputs.
++                shutil.copytree(sandbox/'runtime',retained/'runtime-inputs-and-capture')
++                (retained/'root.json').write_bytes(stable(f['root']));(retained/'cleanup.json').write_bytes(stable(f['cleanup']))
++                (retained/'observer.json').write_bytes(stable(f['observer']))
++                (retained/'stdout.log').write_bytes(f['streams']['stdout']);(retained/'stderr.log').write_bytes(f['streams']['stderr'])
++                (retained/'result.json').write_bytes(stable(result))
++                accepted=result['diagnosticOutcome']=='one-strict-original-verdict-passed'
++                # Exact integer comparison with original decimal coefficient, independent of Decimal context.
++                after_true_endpoint=(signature_ns*10**(-power)>coefficient) if power<0 else signature_ns>coefficient*10**power
++                record={'case':name,'role':role,'originalRawTimestampToken':token,'ambientDecimalPrecision':getcontext().prec,'exactCoefficient':str(coefficient),'decimalExponent':tuple_.exponent,'floorNS':floor_ns,'signatureNS':signature_ns,'signatureAfterTrueEndpoint':after_true_endpoint,'actualConverterNS':converted,'conversionError':conversion_error,'expectedAccepted':expected,'actualAccepted':accepted,'controlPassed':accepted==expected,'diagnosticOutcome':result['diagnosticOutcome'],'keyInjectionCount':result['keyInjectionCount'],'actualAdapterCaptured':True,'officialToolCalls':[row[0] for row in calls],'syntheticOnly':True,'nativeExecuted':False}
++                (retained/'control.json').write_bytes(stable(record));results.append(record)
++    finally:tests.RuntimeControls.tearDownClass()
++    assert bindings.verify()==before
++    rows={str(p.relative_to(output)):bindings.row(p) for p in sorted(output.rglob('*')) if p.is_file()}
++    receipt={'schema':'mixer.apple-focus-reference-runtime-v4-v3-precision-replay.1','observedUTC':datetime.datetime.now(datetime.timezone.utc).isoformat(),'command':[sys.executable,'-B',str(Path(__file__).resolve())],'python':sys.version,'pythonExecutable':str(Path(sys.executable).resolve()),'hostUname':dict(zip(('sysname','nodename','release','version','machine'),os.uname())),'sourceSHA256':sha(Path(__file__).read_bytes()),'handoffSHA256':bindings.V3_HANDOFF,'packetSHA256':bindings.V3_PACKET,'controls':len(results),'controlsPassed':sum(row['controlPassed'] for row in results),'controlsFailed':sum(not row['controlPassed'] for row in results),'results':results,'outputs':rows,'outputTreeSHA256':sha(stable(rows)),'nativeExecuted':False,'cleanup':{'allFrozenInputsUnchanged':True,'ownedAdapterScratchAbsent':not list(BASE.glob('precision-adapter-*')),'nativeCommandsInvoked':0,'nativeInstancesCreatedOrQueried':0,'servicesStarted':0,'otherProjectsTouched':False}}
++    (output/'receipt.json').write_bytes(stable(receipt))
++    return receipt
++
++
+--- v3/replay_review.py
++++ v4/replay_review.py
+@@ -1,8 +1,8 @@
+-"""Replay all 33 exact frozen V2 reviewer controls in V3-owned scope.
++"""Replay all 33 exact frozen V2 reviewer controls in V4-owned scope.
+ 
+ The original invalid lower-level TransactionStore fixture remains rejected. Its
+ unchanged all-inventory-accepted assertion is an explicitly retained historical
+-failure, not a 33/33 V3 acceptance claim. Separate valid Session-driven controls
++failure, not a 33/33 V4 acceptance claim. Separate valid Session-driven controls
+ qualify the repaired auxiliary validator.
+ """
+ import ast
+@@ -41,7 +41,7 @@
+     suite=unittest.TestSuite(cls(name) for name in loader.getTestCaseNames(cls) if name.startswith('test_review_'))
+     with (attempt/'historical-review.stdout.log').open('w') as out,(attempt/'historical-review.stderr.log').open('w') as err,redirect_stdout(out),redirect_stderr(err):
+         result=unittest.TextTestRunner(stream=err,verbosity=2).run(suite)
+-    rows={'schema':'mixer.apple-focus-reference-runtime-v3-historical-review-replay.1','originalReviewerSourceSHA256':SOURCE_SHA,'extractedControlSourcesSHA256':[prepare.sha(value.encode()) for value in snippets],'inventoryProgramSHA256':prepare.sha(program.encode()),'testsRun':result.testsRun,'errors':len(result.errors),'skipped':len(result.skipped),'failures':[{'name':str(case),'traceback':failure} for case,failure in result.failures],'controlsPassed':result.testsRun-len(result.failures)-len(result.errors),'unchangedAssertions':True,'detail':scope['detail'],'expectedHistoricalFixtureFailure':'test_review_actual_composed_bridge_and_settings_inventory','meaning':'The original direct TransactionStore synthetic record is not a valid Session journal. Preserve its rejection; separate production Session controls establish acceptance.','syntheticOnly':True,'nativeExecuted':False}
++    rows={'schema':'mixer.apple-focus-reference-runtime-v4-historical-review-replay.1','originalReviewerSourceSHA256':SOURCE_SHA,'extractedControlSourcesSHA256':[prepare.sha(value.encode()) for value in snippets],'inventoryProgramSHA256':prepare.sha(program.encode()),'testsRun':result.testsRun,'errors':len(result.errors),'skipped':len(result.skipped),'failures':[{'name':str(case),'traceback':failure} for case,failure in result.failures],'controlsPassed':result.testsRun-len(result.failures)-len(result.errors),'unchangedAssertions':True,'detail':scope['detail'],'expectedHistoricalFixtureFailure':'test_review_actual_composed_bridge_and_settings_inventory','meaning':'The original direct TransactionStore synthetic record is not a valid Session journal. Preserve its rejection; separate production Session controls establish acceptance.','syntheticOnly':True,'nativeExecuted':False}
+     rows['expectedReplayOutcome']=result.testsRun==33 and not result.errors and not result.skipped and len(result.failures)==1 and 'test_review_actual_composed_bridge_and_settings_inventory' in str(result.failures[0][0])
+     (attempt/'historical-review-results.json').write_bytes(prepare.stable(rows))
+     return rows
+--- /dev/null
++++ v4/replay_v3_review.py
+@@ -0,0 +1,41 @@
++"""Replay exact frozen V3 reviewer methods, mutations and composed programs in V4."""
++import ast
++import copy
++from contextlib import redirect_stdout,redirect_stderr
++import datetime
++from decimal import Decimal
++import json
++from pathlib import Path
++import subprocess
++import sys
++import tempfile
++import textwrap
++import unittest
++import prepare
++import test_importer as tests
++
++REVIEW=prepare.ROOT/'verification/apple-focus-reference-runtime-v3-independent-review'
++SOURCE_SHA='eaeab5532ef11e0ffe7d9a73c44b64de6f60c7e180d61ed65b7d5d99dbd9624b'
++
++def run(attempt):
++    source=(REVIEW/'run_review.py').read_text()
++    prepare.require(prepare.sha(source.encode())==SOURCE_SHA,'Frozen V3 reviewer changed')
++    tree=ast.parse(source)
++    assignment=next(n for n in tree.body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='INDEPENDENT_PROGRAM' for t in n.targets))
++    program=ast.literal_eval(assignment.value)
++    main=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='main')
++    cls=next(n for n in main.body if isinstance(n,ast.ClassDef) and n.name=='IndependentControls')
++    mutations=next(n for n in main.body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='mutations' for t in n.targets))
++    loop=next(n for n in main.body if isinstance(n,ast.For) and ast.get_source_segment(source,n.iter)=='mutations.items()')
++    snippets=[textwrap.dedent(ast.get_source_segment(source,n)) for n in [cls,mutations,loop]]
++    details=[]
++    scope={'tests':tests,'i':tests.i,'prepare':prepare,'ROOT':prepare.ROOT,'attempt':attempt,'Path':Path,'tempfile':tempfile,'subprocess':subprocess,'sys':sys,'INDEPENDENT_PROGRAM':program,'copy':copy,'datetime':datetime,'json':json,'stable':prepare.stable,'details':details,'Decimal':Decimal}
++    for snippet in snippets:exec(snippet,scope)
++    cls=scope['IndependentControls'];loader=unittest.TestLoader()
++    names=[n for n in loader.getTestCaseNames(cls) if n.startswith('test_independent_')]
++    with (attempt/'v3-review.stdout.log').open('w') as out,(attempt/'v3-review.stderr.log').open('w') as err,redirect_stdout(out),redirect_stderr(err):
++        result=unittest.TextTestRunner(stream=err,verbosity=2).run(unittest.TestSuite(cls(n) for n in names))
++    rows={'schema':'mixer.apple-focus-reference-runtime-v4-v3-review-replay.1','originalReviewerSourceSHA256':SOURCE_SHA,'extractedControlSourcesSHA256':[prepare.sha(s.encode()) for s in snippets],'compositionProgramSHA256':prepare.sha(program.encode()),'controlNames':names,'testsRun':result.testsRun,'controlsPassed':result.testsRun-len(result.failures)-len(result.errors),'failures':[{'name':str(c),'traceback':tb} for c,tb in result.failures],'errors':[{'name':str(c),'traceback':tb} for c,tb in result.errors],'skipped':result.skipped,'unchangedControlBodiesMutationsAssertions':True,'composedInventoryControls':{'run':len(scope['mutations']),'passed':sum(n.startswith('test_independent_composition_') and all(str(c)!=str(cls(n)) for c,_ in result.failures+result.errors) for n in names)},'details':details,'passed':result.wasSuccessful() and result.testsRun==37 and len(scope['mutations'])==25,'syntheticOnly':True,'nativeExecuted':False}
++    (attempt/'v3-review-results.json').write_bytes(prepare.stable(rows))
++    (attempt/'v3-review-composition-program.py').write_text(program)
++    return rows
+--- v3/test_importer.py
++++ v4/test_importer.py
+@@ -36,9 +36,9 @@
+             exec(compile(cls.runtime['inputs/runtime/verification/apple-toggle-pan-origin-correction/bridge.py'],'_legacy_fixture_bridge_writer.py','exec'),bridge_namespace)
+         cls.summary_writer=staticmethod(bridge_namespace['Bridge'].persist_summary)
+         telemetry_path=cls.pure/'settings_telemetry.py';telemetry_path.write_bytes(cls.runtime['inputs/runtime/verification/apple-toggle-keyboard-focus-v9-preparation/settings_telemetry.py'])
+-        spec=importlib.util.spec_from_file_location('_runtime_v3_aux_telemetry',telemetry_path);telemetry=importlib.util.module_from_spec(spec);spec.loader.exec_module(telemetry)
++        spec=importlib.util.spec_from_file_location('_runtime_v4_aux_telemetry',telemetry_path);telemetry=importlib.util.module_from_spec(spec);spec.loader.exec_module(telemetry)
+         with mock.patch.dict(sys.modules,{'settings_telemetry':telemetry,'reference_contract':cls.classifier}):
+-            spec=importlib.util.spec_from_file_location('_runtime_v3_auxiliary',prepare.BASE/'auxiliary_inventory.py');cls.auxiliary=importlib.util.module_from_spec(spec);spec.loader.exec_module(cls.auxiliary)
++            spec=importlib.util.spec_from_file_location('_runtime_v4_auxiliary',prepare.BASE/'auxiliary_inventory.py');cls.auxiliary=importlib.util.module_from_spec(spec);spec.loader.exec_module(cls.auxiliary)
+         cls.old_before=i.read(prepare.OLD/'runtime/captures/0001-before-1.json')
+         cls.old_after=i.read(prepare.OLD/'runtime/captures/0001-after-1.json')
+         cls.old_witness=i.read(prepare.OLD/'runtime/captures/0001-keyboard-witness-1.json')
+@@ -47,7 +47,7 @@
+     def tearDownClass(cls):cls.temp.cleanup()
+ 
+     def fixture(self, destination='next-focus', premise=True, missing=False):
+-        root={'schema':'mixer.apple-focus-reference-root-selection.3','runID':'11111111-1111-4111-8111-111111111111','packetSHA256':'a'*64,'selectedAtUTC':'2026-10-25T02:00:00+00:00','ownedSimulatorIdentity':{'udid':'22222222-2222-4222-8222-222222222222','name':'MixerFocusReferenceV3-host-synthetic','runtime':'com.apple.CoreSimulator.SimRuntime.iOS-26-5','build':'23F77'},'sourceTreeSHA256':i.SOURCE,'productArchiveSHA256':i.PRODUCT,'developerDirectory':'/Applications/Xcode_26.6.app/Contents/Developer','baselineDevices':{'devices':{}},'baselineFrontends':[]}
++        root={'schema':'mixer.apple-focus-reference-root-selection.4','runID':'11111111-1111-4111-8111-111111111111','packetSHA256':'a'*64,'selectedAtUTC':'2026-10-25T02:00:00+00:00','ownedSimulatorIdentity':{'udid':'22222222-2222-4222-8222-222222222222','name':'MixerFocusReferenceV4-host-synthetic','runtime':'com.apple.CoreSimulator.SimRuntime.iOS-26-5','build':'23F77'},'sourceTreeSHA256':i.SOURCE,'productArchiveSHA256':i.PRODUCT,'developerDirectory':'/Applications/Xcode_26.6.app/Contents/Developer','baselineDevices':{'devices':{}},'baselineFrontends':[]}
+         start=datetime.datetime.fromisoformat(root['selectedAtUTC']).timestamp()
+         device={'architecture':'arm64','deviceId':root['ownedSimulatorIdentity']['udid'],'deviceName':root['ownedSimulatorIdentity']['name'],'osBuildNumber':'23F77','osVersion':'26.5','platform':'iOS Simulator','modelName':'iPhone 17 Pro'}
+         summary={'devicesAndConfigurations':[{'device':device,'passedTests':2,'failedTests':0,'skippedTests':0,'expectedFailures':0,'testPlanConfiguration':{'configurationId':'1','configurationName':'Test Scheme Action'}}],'totalTestCount':2,'passedTests':2,'failedTests':0,'skippedTests':0,'expectedFailures':0,'result':'Passed','startTime':start+1,'finishTime':start+50}
+--- /dev/null
++++ v4/test_precision.py
+@@ -0,0 +1,167 @@
++"""V4 bounded exact-time controls, including real adapter capture with fake tools.
++
++Every byte and application observation is synthetic host evidence. Decimal
++contexts are hostile to arithmetic; expected endpoints are literal integer facts.
++"""
++import copy
++from decimal import Decimal, Context, localcontext, ROUND_UP, ROUND_DOWN, ROUND_FLOOR, ROUND_CEILING, ROUND_HALF_EVEN
++from fractions import Fraction
++from pathlib import Path
++import tempfile
++import unittest
++import prepare
++import test_importer as legacy
++
++i=legacy.i
++
++class ExactTimestampControls(unittest.TestCase):
++    records=[]
++    @classmethod
++    def setUpClass(cls):
++        legacy.RuntimeControls.setUpClass()
++        cls.ref=legacy.RuntimeControls('test_001_one_complete_strict_original_pass_is_diagnostic_only')
++        cls.records=[]
++    @classmethod
++    def tearDownClass(cls):legacy.RuntimeControls.tearDownClass()
++
++    def raw_case(self,token,signature_ns,role='before',accepted=False,context=None):
++        f=self.ref.fixture();f['captures'][role]['signature'][1]=signature_ns
++        if role=='before':f['captures']['after']['signature'][1]=signature_ns
++        with tempfile.TemporaryDirectory(prefix='exact-time-adapter-',dir=prepare.BASE) as tmp:
++            sandbox=Path(tmp);namespace,invoke,calls,h=self.ref.adapter_namespace(f,sandbox)
++            manifest=sandbox/'runtime/attachments/manifest.json';raw=manifest.read_bytes()
++            old=b'1792893615.0' if role=='before' else b'1792893620.0'
++            self.assertEqual(raw.count(old),1);raw=raw.replace(old,token.encode());manifest.write_bytes(raw)
++            export=sandbox/'runtime/attachment-export.json';value=i.parse(export.read_bytes())
++            value['files']['manifest.json']={'bytes':len(raw),'sha256':i.digest(raw)};export.write_bytes(i.stable(value))
++            namespace['capture_official'](object(),invoke,h,sandbox)
++            official=namespace['_OFFICIAL']
++            result=i.import_selected(f['root'],f['session'],f['observer'],f['streams'],official['official'],official['payloads'],official['captures'],f['cleanup'],self.ref.oracle,self.ref.classifier)
++            self.records.append({'token':token,'role':role,'signatureNS':signature_ns,'context':context,'expectedAccepted':accepted,'actualAdapterCaptured':True,'toolCalls':[row[0] for row in calls],'manifestSHA256':i.digest(raw),'result':result,'syntheticOnly':True})
++        expected='one-strict-original-verdict-passed' if accepted else 'invalid-or-incomplete-evidence'
++        self.assertEqual(result['diagnosticOutcome'],expected,result)
++        self.assertEqual(result['keyInjectionCount'],1 if accepted else None)
++        for key in ['runPassed','nativeKeyboardQualification','carrierAccepted','gaAccepted']:
++            self.assertIs(result[key],False)
++        return result
++
++    def test_literal_ns_boundaries_and_plus_one_through_adapter(self):
++        for role,token,endpoint in [('before','1792893615.123456789',1792893615123456789),('after','1792893620.987654321',1792893620987654321)]:
++            with self.subTest(role=role):
++                self.raw_case(token,endpoint,role,True)
++                self.raw_case(token,endpoint+1,role,False)
++
++    def test_three_frozen_review_precision_failures_now_reject(self):
++        for role,token,signature_ns in [('before','1792893615.123456789000000000000000001',1792893615123456789),('before','1792893615.999999999999999999999999999',1792893616000000000),('after','1792893620.123456789000000000000000001',1792893620123456789)]:
++            with self.subTest(role=role,token=token):self.raw_case(token,signature_ns,role)
++
++    def test_exact_ns_extra_zeroes_and_exponent_notation_accept(self):
++        for token in ['1792893615.123456789000000000000000000','1.792893615123456789e9','1792893615123456789e-9','0.179289361512345678900000e10','1792893615.123456789'+'0'*900]:
++            with self.subTest(token=token):self.raw_case(token,1792893615123456789,accepted=True)
++
++    def test_deep_positive_and_negative_sub_ns_reject(self):
++        for token in ['1792893615.123456789'+'0'*900+'1','-0.0000000000000000000000000001','-1792893615.999999999999999999999999999','1.7928936151234567890000000001e9','1792893615123456789000000001e-18']:
++            with self.subTest(token=token):self.raw_case(token,1792893615123456789)
++
++    def test_precision_rounding_exponent_limits_and_all_traps_do_not_change_results(self):
++        for prec,rounding in [(1,ROUND_UP),(2,ROUND_DOWN),(9,ROUND_FLOOR),(18,ROUND_CEILING),(28,ROUND_HALF_EVEN),(120,ROUND_UP)]:
++            ctx=Context(prec=prec,rounding=rounding,Emin=-2,Emax=2)
++            for signal in ctx.traps:ctx.traps[signal]=True
++            with localcontext(ctx) as active:
++                label={'precision':prec,'rounding':rounding,'Emin':-2,'Emax':2,'allTraps':True}
++                self.raw_case('1792893615.123456789000000',1792893615123456789,accepted=True,context=label)
++                self.raw_case('1792893615.999999999999999999999999999',1792893616000000000,context=label)
++                self.raw_case('1.792893620987654321e9',1792893620987654321,'after',True,label)
++                self.assertFalse(any(active.flags.values()),active.flags)
++
++    def test_untrapped_context_does_not_admit_unrepresentable_or_nonfinite(self):
++        ctx=Context(prec=1,Emin=-2,Emax=2)
++        for signal in ctx.traps:ctx.traps[signal]=False
++        with localcontext(ctx):
++            for token in ['NaN','sNaN','Infinity','-Infinity']:
++                with self.subTest(token=token),self.assertRaises(ValueError):i.decimal_timestamp_ns(Decimal(token))
++            for token in ['1e-9999999999999999999','0e9999999999999999999']:
++                with self.subTest(token=token):
++                    with self.assertRaises(ValueError):i.decimal_timestamp_ns(i.decimal_document(token.encode()))
++
++    def test_converter_matches_independent_fraction_for_representable_values(self):
++        tokens=['0','-0','0.000000000','1e-9','1.000000000000000000','1234567890123456789e-9','1792893615.1234567890000','1e308','1.7976931348623157e308','0e999999999999999999']
++        for token in tokens:
++            with self.subTest(token=token):
++                # The extreme zero exponent is numerically zero without expansion.
++                expected=0 if token.startswith('0e') else Fraction(token)*1_000_000_000
++                if expected!=0:self.assertEqual(expected.denominator,1)
++                self.assertEqual(i.decimal_timestamp_ns(Decimal(token)),int(expected))
++
++    def test_extreme_exponents_fail_without_exponent_sized_work(self):
++        for token in ['1e-999999999999999999','1e-1000000','1e1000000','-1e-999999999999999999','1e318']:
++            with self.subTest(token=token),self.assertRaises(ValueError):i.decimal_timestamp_ns(Decimal(token))
++        self.assertEqual(i.decimal_timestamp_ns(Decimal('0e-999999999999999999')),0)
++        self.assertEqual(i.decimal_timestamp_ns(Decimal('0e999999999999999999')),0)
++
++    def test_json_token_bound_and_coefficient_bound(self):
++        exact='1792893615.'+'0'*(i.MAX_TIMESTAMP_TOKEN_BYTES-11)
++        self.assertEqual(len(exact),i.MAX_TIMESTAMP_TOKEN_BYTES)
++        self.assertEqual(i.decimal_timestamp_ns(i.decimal_document(exact.encode())),1792893615000000000)
++        for token in [exact+'0','0.'+'0'*i.MAX_TIMESTAMP_TOKEN_BYTES,'1'*i.MAX_TIMESTAMP_TOKEN_BYTES+'.0']:
++            with self.subTest(length=len(token)),self.assertRaises(ValueError):i.decimal_document(token.encode())
++        with self.assertRaises(ValueError):i.decimal_timestamp_ns(Decimal('1.'+'0'*i.MAX_TIMESTAMP_TOKEN_BYTES))
++        with self.assertRaises(ValueError):i.decimal_document(b'['+b' '*2_000_000+b']')
++
++    def test_invalid_nondecimal_nonfinite_negative_and_overflow_inputs(self):
++        for value in [False,True,1,1.0,'1',None,Decimal('NaN'),Decimal('sNaN'),Decimal('Infinity'),Decimal('-Infinity'),Decimal('-1e-999999999999999999')]:
++            with self.subTest(value=repr(value)),self.assertRaises(ValueError):i.decimal_timestamp_ns(value)
++        for raw in [b'NaN',b'Infinity',b'-Infinity',b'1e309',b'{"a":1,"a":2}',b'['*102+b'0'+b']'*102]:
++            with self.subTest(raw=raw[:50]),self.assertRaises((ValueError,RecursionError)):i.decimal_document(raw)
++
++    def official_range(self,start,finish):
++        f=self.ref.fixture();exact={'startTime':Decimal(start),'finishTime':Decimal(finish)}
++        summary=copy.deepcopy(f['summary']);summary.update(startTime=float(start),finishTime=float(finish))
++        return i.official_methods(summary,f['tests'],f['root'],0,exact)
++
++    def test_official_range_exact_order_survives_binaryfloat_collision(self):
++        self.assertEqual(float('1792893610.000000001'),float('1792893610.000000002'))
++        self.assertEqual(set(self.official_range('1792893610.000000001','1792893610.000000002')),set(i.METHODS))
++        for start,finish in [('1792893610.000000002','1792893610.000000001'),('1792893610.000000001','1792893610.000000001')]:
++            with self.subTest(start=start,finish=finish),self.assertRaises(ValueError):self.official_range(start,finish)
++
++    def test_root_selected_range_exact_boundary_and_plus_one_ns(self):
++        self.official_range('1792893600','1792894260')
++        for start,finish in [('1792893599.999999999','1792893610'),('1792893600','1792894260.000000001'),('1792893600.0000000001','1792893610')]:
++            with self.subTest(start=start,finish=finish),self.assertRaises(ValueError):self.official_range(start,finish)
++
++    def test_original_before_generation_lower_bound_rejects_plus_one(self):
++        f=self.ref.fixture();f['captures']['before']['signature'][1]=f['captures']['begin']['begunWallNS']-1;self.ref.reject(f)
++        f=self.ref.fixture();f['captures']['before']['signature'][1]=f['captures']['begin']['begunWallNS'];f['captures']['after']['signature'][1]=f['captures']['begin']['begunWallNS'];self.assertEqual(self.ref.execute(f)['keyInjectionCount'],1)
++
++    def test_generation_upper_finish_boundary_and_plus_one_reject(self):
++        f=self.ref.fixture();f['captures']['begin']['begunWallNS']=1792893650000000001;self.ref.reject(f)
++        f=self.ref.fixture();f['captures']['begin']['begunWallNS']=1792893600000000000-1;self.ref.reject(f)
++
++    def test_after_mtime_lower_baseline_bound_rejects(self):
++        f=self.ref.fixture();f['captures']['after']['signature'][1]=f['captures']['before']['signature'][1]-1;self.ref.reject(f)
++
++    def test_unchanged_after_remains_accepted(self):
++        f=self.ref.fixture();self.assertEqual(f['captures']['before']['signature'],f['captures']['after']['signature']);self.assertEqual(self.ref.execute(f)['keyInjectionCount'],1)
++
++    def test_all_authoritative_attachment_order_edges_reject(self):
++        for earlier,later in [(0,1),(1,2),(2,3)]:
++            f=self.ref.fixture();rows=f['manifest'][1]['attachments'];rows[earlier]['timestamp']=rows[later]['timestamp']+1
++            with self.subTest(edge=(earlier,later)):self.ref.reject(f)
++
++    def test_attachment_run_range_endpoint_and_plus_one_ns(self):
++        f=self.ref.fixture();raw={key:i.stable(f[key]) for key in ['summary','tests','manifest']}
++        for token,accepted in [('1792893601.000000000',True),('1792893600.999999999',False),('1792893650.000000001',False)]:
++            altered=dict(raw);altered['manifest']=raw['manifest'].replace(b'1792893610.0',token.encode())
++            capsule=self.ref.host_capsule(f['root'],f['session'],0,altered,{role+'.json':i.stable(v) for role,v in f['values'].items()},{role:i.stable(v) for role,v in f['captures'].items()})
++            with self.subTest(token=token):self.assertEqual(self.ref.execute(f,capsule)['diagnosticOutcome'],'one-strict-original-verdict-passed' if accepted else 'invalid-or-incomplete-evidence')
++
++    def test_decimal_signal_flags_remain_clear_for_scalar_boundaries(self):
++        ctx=Context(prec=1,Emin=-1,Emax=1)
++        for signal in ctx.traps:ctx.traps[signal]=True
++        with localcontext(ctx) as active:
++            self.assertEqual(i.decimal_timestamp_ns(Decimal('1792893615123456789000000000e-18')),1792893615123456789)
++            for token in ['1792893615.999999999999999999999999999','1e-999999999999999999','1e308']:
++                try:i.decimal_timestamp_ns(Decimal(token))
++                except ValueError:pass
++            self.assertFalse(any(active.flags.values()),active.flags)
+--- v3/test_repair.py
++++ v4/test_repair.py
+@@ -1,4 +1,4 @@
+-"""V3 production-composition and exact-metadata controls. All observations are host fixtures."""
++"""V4 production-composition and exact-metadata controls. All observations are host fixtures."""
+ import copy
+ import json
+ from pathlib import Path
+@@ -12,7 +12,7 @@
+ 
+ PRODUCTION_PROGRAM = r'''import sys,subprocess,socket,json,copy,time
+ from pathlib import Path
+-def forbidden(*args,**kwargs):raise AssertionError('Native command/service forbidden in V3 actual-composition host probe')
++def forbidden(*args,**kwargs):raise AssertionError('Native command/service forbidden in V4 actual-composition host probe')
+ subprocess.Popen=forbidden
+ socket.socket.bind=forbidden
+ socket.socket.connect=forbidden
+--- v3/verify_host.py
++++ v4/verify_host.py
+@@ -1,51 +1,64 @@
+ #!/usr/bin/env python3
+-"""Run host controls with retained immutable attempts; no compiler/native/service tools."""
++"""Host-only exact V4 controls; every attempt is retained and no native tool runs."""
+ import argparse
+-from contextlib import redirect_stderr, redirect_stdout
++from contextlib import redirect_stderr,redirect_stdout
+ import datetime
+ import os
+ from pathlib import Path
+ import sys
+ import time
+ import unittest
++
+ BASE=Path(__file__).resolve().parent
+ HOST_SPAWNS=[]
++
+ def host_boundary(event,args):
+     if event=='subprocess.Popen':
+         executable,argv=args[:2]
+         permitted=(str(Path(executable).resolve())==str(Path(sys.executable).resolve()) and len(argv)==5 and argv[1:3]==['-B','-c'] and all(marker in argv[3] for marker in ['subprocess.Popen=forbidden','socket.socket.bind=forbidden','socket.socket.connect=forbidden']) and Path(argv[4]).resolve().is_relative_to(BASE))
+-        if not permitted:raise AssertionError('V3 host boundary rejected subprocess: '+repr(argv))
+-        HOST_SPAWNS.append({'argv':argv,'scope':'Inspected native-disabled Python composition probe'})
++        if not permitted:raise AssertionError('V4 host boundary rejected subprocess: '+repr(argv))
++        HOST_SPAWNS.append({'argv':argv,'programSHA256':__import__('hashlib').sha256(argv[3].encode()).hexdigest(),'scope':'Inspected native-disabled Python composition only'})
+     if event in ('os.system','os.exec','os.posix_spawn','socket.bind','socket.connect','socket.connect_ex'):
+-        raise AssertionError('V3 host boundary rejected '+event)
++        raise AssertionError('V4 host boundary rejected '+event)
+ sys.addaudithook(host_boundary)
+ import prepare
+ 
+ 
+ def main(attempt):
+-    require=prepare.require
+-    require(type(attempt) is int and attempt>0,'Positive host attempt required')
+-    base=prepare.BASE/f'host-attempt-{attempt}';require(not base.exists(),'Preserve previous host attempt');base.mkdir()
++    prepare.require(type(attempt) is int and attempt>0,'Positive attempt required')
++    base=BASE/f'host-attempt-{attempt}';prepare.require(not base.exists(),'Preserve prior attempt');base.mkdir()
+     started=time.monotonic();before=prepare.inputs()[3]
+-    with (base/'stdout.log').open('w') as out,(base/'stderr.log').open('w') as err,redirect_stdout(out),redirect_stderr(err):
+-        import test_importer
+-        suite=unittest.defaultTestLoader.loadTestsFromModule(test_importer)
+-        expected=suite.countTestCases()
+-        result=unittest.TextTestRunner(stream=err,verbosity=2).run(suite)
++    outcomes={}
++    def suite(label,tests):
++        with (base/(label+'.stdout.log')).open('w') as out,(base/(label+'.stderr.log')).open('w') as err,redirect_stdout(out),redirect_stderr(err):
++            result=unittest.TextTestRunner(stream=err,verbosity=2).run(tests)
++        outcomes[label]={'testsRun':result.testsRun,'failures':[{'name':str(c),'traceback':tb} for c,tb in result.failures],'errors':[{'name':str(c),'traceback':tb} for c,tb in result.errors],'skipped':result.skipped,'passed':result.wasSuccessful()}
++        return result
++    import test_importer
++    producer=suite('producer',unittest.defaultTestLoader.loadTestsFromModule(test_importer))
+     import replay_review
+-    replay=replay_review.run(base)
+-    with (base/'repair.stdout.log').open('w') as out,(base/'repair.stderr.log').open('w') as err,redirect_stdout(out),redirect_stderr(err):
+-        import test_repair
+-        repair_result=unittest.TextTestRunner(stream=err,verbosity=2).run(unittest.defaultTestLoader.loadTestsFromModule(test_repair))
++    historical=replay_review.run(base)
++    import test_repair
++    repair=suite('repair',unittest.defaultTestLoader.loadTestsFromModule(test_repair))
+     (base/'actual-composition-outcomes.json').write_bytes(prepare.stable({'syntheticOnly':True,'nativeExecuted':False,'probeProgramSHA256':prepare.sha(test_repair.PRODUCTION_PROGRAM.encode()),'records':test_repair.FocusRepairControls.records}))
++    import replay_v3_review
++    review=replay_v3_review.run(base)
++    import test_precision
++    precision=suite('precision',unittest.defaultTestLoader.loadTestsFromModule(test_precision))
++    (base/'exact-time-adapter-outcomes.json').write_bytes(prepare.stable(test_precision.ExactTimestampControls.records))
++    # The replay installs a no-process boundary; run after every composed probe.
++    import replay_precision
++    adapter=replay_precision.run(base)
+     after=prepare.inputs()[3]
+-    scratch=[str(path) for path in prepare.BASE.iterdir() if path.is_dir() and path.name.startswith(('pure-oracle-','archive-control-','host-packet-','composition-control-','adapter-control-','orchestration-control-','actual-composition-'))]
+-    owned={name:prepare.row(prepare.BASE/name) for name in prepare.OWNED}
+-    receipt={'schema':'mixer.apple-focus-reference-runtime-host-receipt.3','observedUTC':datetime.datetime.now(datetime.timezone.utc).isoformat(),'command':[sys.executable,'-B',str(prepare.BASE/'verify_host.py'),'--attempt',str(attempt)],'cwd':str(prepare.ROOT),'python':sys.version,'pythonExecutable':str(prepare.Path(sys.executable).resolve()),'hostUname':dict(zip(('sysname','nodename','release','version','machine'),os.uname())),'elapsedSeconds':time.monotonic()-started,'sourceRevisionLabel':'ba9ad4372f94463ba4d363cdfd76dd565c96413f','sourceRevisionMeaning':'Inherited frozen label; exact source hashes define scope; no Git query','ownedSources':owned,'ownedSourceTreeSHA256':prepare.sha(prepare.stable(owned)),'inputBindings':after,'inputTreeSHA256':prepare.sha(prepare.stable(after)),'sourceTreeSHA256':prepare.SOURCE,'productArchiveSHA256':prepare.PRODUCT,'testsExpected':expected,'testsRun':result.testsRun,'failures':len(result.failures),'errors':len(result.errors),'skipped':len(result.skipped),'passed':result.wasSuccessful() and result.testsRun==111 and result.testsRun==expected and replay['expectedReplayOutcome'] and repair_result.wasSuccessful() and before==after and not scratch,'historicalReview':{'controls':replay['testsRun'],'passed':replay['controlsPassed'],'retainedHistoricalFixtureFailures':len(replay['failures']),'sourceSHA256':replay['originalReviewerSourceSHA256']},'repairControls':{'testsRun':repair_result.testsRun,'failures':len(repair_result.failures),'errors':len(repair_result.errors),'skipped':len(repair_result.skipped),'passed':repair_result.wasSuccessful()},'hostPythonSubprocesses':HOST_SPAWNS,'outputs':{path.name:prepare.row(path) for path in base.iterdir() if path.is_file()},'cleanup':{'ownedHostTemporaryDirectoriesAbsent':not scratch,'remainingOwnedScratch':scratch,'allFrozenInputsUnchanged':before==after,'nativeInstancesCreatedOrQueried':0,'servicesStarted':0,'otherProjectsTouched':False},'scope':'Synthetic-only host controls of selected-run importer and source composition; no native acceptance','syntheticOnly':True,'nativeExecuted':False,'runtimeSelected':False,'compileRerun':False,'gitMutationPerformed':False,'uiOrCapturePerformed':False,'runPassed':False,'completeCaseSet':False,'cursorCompletionCredit':False,'fullSixCaseQualification':False,'nativeKeyboardQualification':False,'carrierAccepted':False,'gaAccepted':False,'physicalPhones':'disconnected-deferred'}
++    prefixes=('pure-oracle-','archive-control-','host-packet-','composition-control-','adapter-control-','orchestration-control-','actual-composition-','independent-composition-','precision-adapter-','exact-time-adapter-')
++    scratch=[str(p) for p in BASE.iterdir() if p.is_dir() and p.name.startswith(prefixes)]
++    owned={n:prepare.row(BASE/n) for n in prepare.OWNED}
++    passed=(producer.wasSuccessful() and producer.testsRun==111 and historical['expectedReplayOutcome'] and repair.wasSuccessful() and repair.testsRun==25 and review['passed'] and precision.wasSuccessful() and precision.testsRun==19 and adapter['controls']==8 and adapter['controlsPassed']==8 and before==after and not scratch)
++    output_rows={str(p.relative_to(base)):prepare.row(p) for p in sorted(base.rglob('*')) if p.is_file()}
++    receipt={'schema':'mixer.apple-focus-reference-runtime-host-receipt.4','observedUTC':datetime.datetime.now(datetime.timezone.utc).isoformat(),'command':[sys.executable,'-B',str(BASE/'verify_host.py'),'--attempt',str(attempt)],'cwd':str(prepare.ROOT),'python':sys.version,'pythonExecutable':str(Path(sys.executable).resolve()),'hostUname':dict(zip(('sysname','nodename','release','version','machine'),os.uname())),'elapsedSeconds':time.monotonic()-started,'sourceRevisionLabel':'ba9ad4372f94463ba4d363cdfd76dd565c96413f','sourceRevisionMeaning':'Inherited compilation label; exact file and tree hashes define this host-only derivative; no Git query','ownedSources':owned,'ownedSourceTreeSHA256':prepare.sha(prepare.stable(owned)),'inputBindings':after,'inputTreeSHA256':prepare.sha(prepare.stable(after)),'sourceTreeSHA256':prepare.SOURCE,'productArchiveSHA256':prepare.PRODUCT,'suiteResults':outcomes,'testsRun':producer.testsRun,'passed':passed,'historicalReview':{'controls':historical['testsRun'],'passed':historical['controlsPassed'],'retainedHistoricalFixtureFailures':len(historical['failures']),'sourceSHA256':historical['originalReviewerSourceSHA256'],'expectedReplayOutcome':historical['expectedReplayOutcome']},'repairControls':{'testsRun':repair.testsRun,'passed':repair.wasSuccessful()},'v3ReviewReplay':{'testsRun':review['testsRun'],'passed':review['controlsPassed'],'unchangedControlBodiesMutationsAssertions':True,'composedInventoryControls':review['composedInventoryControls']},'precisionControls':{'testsRun':precision.testsRun,'passed':precision.wasSuccessful(),'actualAdapterCases':len(test_precision.ExactTimestampControls.records)},'frozenV3ActualAdapterReplay':{'controls':adapter['controls'],'passed':adapter['controlsPassed'],'failed':adapter['controlsFailed']},'hostPythonSubprocesses':HOST_SPAWNS,'outputs':output_rows,'outputTreeSHA256':prepare.sha(prepare.stable(output_rows)),'cleanup':{'ownedHostTemporaryDirectoriesAbsent':not scratch,'remainingOwnedScratch':scratch,'allFrozenInputsUnchanged':before==after,'nativeCommandsInvoked':0,'nativeInstancesCreatedOrQueried':0,'servicesStarted':0,'otherProjectsTouched':False},'scope':'Synthetic-only host controls of exact timestamp ordering and unchanged selected source composition; no native acceptance','syntheticOnly':True,'nativeExecuted':False,'runtimeSelected':False,'compileRerun':False,'gitMutationPerformed':False,'uiOrCapturePerformed':False,'hostedCatalogAuthorityOrWorkerReviewReadImportedOrExecuted':False,'runPassed':False,'completeCaseSet':False,'cursorCompletionCredit':False,'fullSixCaseQualification':False,'nativeKeyboardQualification':False,'carrierAccepted':False,'gaAccepted':False,'physicalPhones':'disconnected-deferred'}
+     (base/'receipt.json').write_bytes(prepare.stable(receipt))
+-    print(f"{'PASS' if receipt['passed'] else 'FAIL'}: {result.testsRun}/111 retained producer; {replay['controlsPassed']}/33 exact historical reviewer controls with {len(replay['failures'])} retained invalid-fixture failure; {repair_result.testsRun} focused controls; no native execution")
+-    if not receipt['passed']:raise SystemExit(1)
+-
++    print(prepare.stable({'passed':passed,'producer':{'run':producer.testsRun,'passed':producer.wasSuccessful()},'focused':{'run':repair.testsRun,'passed':repair.wasSuccessful()},'historical':receipt['historicalReview'],'v3Reviewer':receipt['v3ReviewReplay'],'precision':receipt['precisionControls'],'actualAdapterReplay':receipt['frozenV3ActualAdapterReplay'],'cleanup':receipt['cleanup'],'receiptSHA256':prepare.sha((base/'receipt.json').read_bytes())}).decode(),end='')
++    if not passed:raise SystemExit(1)
+ 
+ if __name__=='__main__':
+-    p=argparse.ArgumentParser();p.add_argument('--attempt',type=int,default=1);main(p.parse_args().attempt)
++    p=argparse.ArgumentParser();p.add_argument('--attempt',type=int,required=True);main(p.parse_args().attempt)

@@ -1,0 +1,202 @@
+{
+  "status": "failed",
+  "scope": "independent-local-workerd-SQLite-synthetic-regressions",
+  "frozen_source_tree_sha256": "6f47612d9bf3118fb50be51f36dc05bbd724bd60416a5cdec0b1fa6299042e95",
+  "results": [
+    {
+      "id": "claim-final-authority-epoch-owner-transfer",
+      "status": "failed",
+      "evidence": [
+        {
+          "consumed_guard": {
+            "epoch": "1",
+            "revision": "0",
+            "owner": "owner-a"
+          },
+          "current_guard": {
+            "epoch": "2",
+            "revision": "0",
+            "owner": "successor"
+          },
+          "query_observation": {
+            "status": "running"
+          },
+          "grant": {
+            "granted": true,
+            "claimId": "5cff8832485642536f6a8c4790594d8b"
+          },
+          "claim_state": "consumed"
+        }
+      ],
+      "error": {
+        "name": "AssertionError",
+        "message": "a callback consumed under superseded authority must not grant after the new watermark commits\n\ntrue !== false\n",
+        "stack": "AssertionError [ERR_ASSERTION]: a callback consumed under superseded authority must not grant after the new watermark commits\n\ntrue !== false\n\n    at file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-controller-implementation-independent-review/regressions.mjs:30:10\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-controller-implementation-independent-review/regressions.mjs:84:3"
+      }
+    },
+    {
+      "id": "claim-final-authority-revision-advance",
+      "status": "failed",
+      "evidence": [
+        {
+          "consumed_guard": {
+            "epoch": "1",
+            "revision": "0",
+            "owner": "owner-a"
+          },
+          "current_guard": {
+            "epoch": "1",
+            "revision": "1",
+            "owner": "owner-a"
+          },
+          "query_observation": {
+            "status": "running"
+          },
+          "grant": {
+            "granted": true,
+            "claimId": "41c8c63234c45364bc541ea095c42a4e"
+          },
+          "claim_state": "consumed"
+        }
+      ],
+      "error": {
+        "name": "AssertionError",
+        "message": "a callback consumed under superseded authority must not grant after the new watermark commits\n\ntrue !== false\n",
+        "stack": "AssertionError [ERR_ASSERTION]: a callback consumed under superseded authority must not grant after the new watermark commits\n\ntrue !== false\n\n    at file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-controller-implementation-independent-review/regressions.mjs:30:10\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-controller-implementation-independent-review/regressions.mjs:84:3"
+      }
+    },
+    {
+      "id": "stop-during-claim-final-check-denies-and-persists",
+      "status": "passed",
+      "evidence": [
+        {
+          "exists": true,
+          "desired": "stop",
+          "epoch": "2",
+          "revision": "0",
+          "owner": "successor",
+          "expiryUs": "2000000000001000",
+          "providerKey": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+          "phase": "stop_pending",
+          "claimState": "consumed",
+          "terminal": null
+        }
+      ]
+    },
+    {
+      "id": "malformed-and-incomplete-drain-evidence-stays-occupied",
+      "status": "passed",
+      "evidence": [
+        {
+          "exists": true,
+          "desired": "stop",
+          "epoch": "1",
+          "revision": "0",
+          "owner": "owner-a",
+          "expiryUs": "2000000000001000",
+          "providerKey": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+          "phase": "stopped",
+          "claimState": "revoked",
+          "terminal": {
+            "status": "stopped",
+            "diagnostic_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        }
+      ]
+    },
+    {
+      "id": "exact-maximum-epoch-and-zero-revision-after-transfer",
+      "status": "passed",
+      "evidence": [
+        {
+          "epoch": "9223372036854775807",
+          "revision": "0",
+          "sqlTypes": [
+            {
+              "epoch": "text",
+              "revision": "text",
+              "expiry": "text",
+              "state_version": "text"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "quarantine-and-unqualified-clock-do-not-grant",
+      "status": "passed",
+      "evidence": [
+        {
+          "exists": true,
+          "desired": "run",
+          "epoch": "1",
+          "revision": "0",
+          "owner": "owner-a",
+          "expiryUs": "2000000000001000",
+          "providerKey": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+          "phase": "quarantined",
+          "claimState": "unissued",
+          "terminal": null
+        }
+      ]
+    },
+    {
+      "id": "later-effect-clock-sample-must-fence-rollback-before-claim",
+      "status": "failed",
+      "evidence": [
+        {
+          "later_effect_clock_now_us": "1950000000000000",
+          "persisted_clock_lower_us": "1899999999999999",
+          "rollback_clock_now_us": "1920000000000000",
+          "grant": {
+            "granted": true,
+            "claimId": "50438828ec026e2a3c8b3d6b9204ac67"
+          },
+          "quarantined": 0
+        }
+      ],
+      "error": {
+        "name": "AssertionError",
+        "message": "rollback behind a qualified effect sample must quarantine before a new claim\n\ntrue !== false\n",
+        "stack": "AssertionError [ERR_ASSERTION]: rollback behind a qualified effect sample must quarantine before a new claim\n\ntrue !== false\n\n    at file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-controller-implementation-independent-review/regressions.mjs:77:10\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-controller-implementation-independent-review/regressions.mjs:84:3"
+      }
+    }
+  ],
+  "cleanup": [
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-controller-owned-LiTBN4",
+      "disposed": true,
+      "storageRemoved": true
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-controller-owned-2f4ROr",
+      "disposed": true,
+      "storageRemoved": true
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-controller-owned-nWa8l4",
+      "disposed": true,
+      "storageRemoved": true
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-controller-owned-MmlOb7",
+      "disposed": true,
+      "storageRemoved": true
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-controller-owned-jHO1oo",
+      "disposed": true,
+      "storageRemoved": true
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-controller-owned-TfCPqj",
+      "disposed": true,
+      "storageRemoved": true
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-controller-owned-diJWCE",
+      "disposed": true,
+      "storageRemoved": true
+    }
+  ]
+}

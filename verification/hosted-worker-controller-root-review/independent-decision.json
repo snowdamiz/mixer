@@ -1,0 +1,81 @@
+{
+  "schema": 1,
+  "observedUTC": "2026-10-25T02:49:59.743074+00:00",
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "-B",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-controller-root-review/bind_independent.py"
+  ],
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "sourceRevision": "2fc068b8161473ba0f861634b406bbb2e8bc128a",
+  "verifierSHA256": "2c33dade718ba3338c43254be6fc2483408b44280648e6ac5631dc476cd9edbf",
+  "receiptSHA256": "7e146e6f341afc93dca4f108bbee7ee50f7c4a406eb329bd5fa96405463f5b7e",
+  "status": "rejected-controller-candidate-two-correctness-findings",
+  "verifiedArtifacts": 48,
+  "verifiedCommandRecords": 7,
+  "verifiedArchivedFixtures": 12,
+  "producerGroupsPassed": 28,
+  "independentGroupsPassed": 5,
+  "independentGroupsFailed": 3,
+  "findings": [
+    {
+      "id": "R1",
+      "priority": "P1",
+      "summary": "final claim grant ignores superseding guard",
+      "source": "hosted-worker-controller/src/engine.ts:219-223",
+      "failing_cases": [
+        "claim-final-authority-epoch-owner-transfer",
+        "claim-final-authority-revision-advance"
+      ]
+    },
+    {
+      "id": "R2",
+      "priority": "P1",
+      "summary": "later qualified effect/claim clock samples do not advance durable clock history",
+      "source": "hosted-worker-controller/src/engine.ts:14-18",
+      "failing_cases": [
+        "later-effect-clock-sample-must-fence-rollback-before-claim"
+      ]
+    }
+  ],
+  "cleanup": {
+    "status": "passed",
+    "test_cleanup_actions": 128,
+    "storage_paths_checked": 124,
+    "distinct_storage_paths": 124,
+    "all_owned_storage_absent": true,
+    "owned_workerd_process_scan_argv": [
+      "/bin/ps",
+      "-axo",
+      "pid=,ppid=,comm="
+    ],
+    "matching_owned_workerd": [],
+    "owned_scratch": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-controller-independent-c61t1j9q",
+    "scratch_removed": true,
+    "other_processes_modified": false,
+    "native_instances_started": 0,
+    "provider_cloud_calls": 0
+  },
+  "rootImportedOrExecutedReviewedCode": false,
+  "candidateAccepted": false,
+  "productionEnabled": false,
+  "gaAccepted": false,
+  "nextImplementation": "Separate V2 repair of the final claim authority fence and persisted qualified-clock history, preserving consumed claims and all failed evidence; fresh independent runtime review before acceptance.",
+  "notVerified": [
+    "complete-controller",
+    "independent-audit-registry-and-scheduler",
+    "missed-wake-or-exhausted-alarm-retry-recovery",
+    "actual-Cloudflare-ingress-TLS-framing-EOF",
+    "qualified-production-clock",
+    "real-provider-images-sizing-egress-isolation",
+    "external-macOS",
+    "trusted-one-shot-supervisor-and-descendant-proof",
+    "runner-auth-and-private-R2-source-artifacts",
+    "nonrollbackable-restore-authority",
+    "hard-whole-domain-resources",
+    "Neon-Oban-zero-traffic-operations",
+    "signing-store-customer-GA",
+    "GA",
+    "physical-phone-matrix"
+  ]
+}
