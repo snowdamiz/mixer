@@ -1,0 +1,42 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+
+IndependentWorkerClientTest [independent_test.exs]
+  * test fixed request headers, separate auth and fresh exact nonce response [L#79]  * test fixed request headers, separate auth and fresh exact nonce response (77.5ms) [L#79]
+
+  1) test fixed request headers, separate auth and fresh exact nonce response (IndependentWorkerClientTest)
+     independent_test.exs:79
+     Assertion with == failed
+     code:  assert Enum.sort(Map.keys(parsed)) ==
+              Enum.sort(~w(host content-type accept accept-encoding connection content-length authorization))
+     left:  ["accept", "accept-encoding", "authorization", "connection",
+             "content-length", "content-type", "host", "user-agent"]
+     right: ["accept", "accept-encoding", "authorization", "connection",
+             "content-length", "content-type", "host"]
+     stacktrace:
+       independent_test.exs:87: anonymous fn/3 in IndependentWorkerClientTest."test fixed request headers, separate auth and fresh exact nonce response"/1
+       (elixir 1.20.4) lib/enum.ex:1725: Enum."-map/2-lists^map/1-1-"/2
+       independent_test.exs:81: (test)
+
+  * test each authenticated response binding field and nested owner expires ref must echo [L#99]  * test each authenticated response binding field and nested owner expires ref must echo (43.4ms) [L#99]
+  * test independent strict HTTP parser controls reject alternate framing and field limits [L#114]  * test independent strict HTTP parser controls reject alternate framing and field limits (99.8ms) [L#114]
+  * test response body limit includes whitespace and JSON lexing rejects duplicates depth and invalid UTF8 [L#139]  * test response body limit includes whitespace and JSON lexing rejects duplicates depth and invalid UTF8 (19.9ms) [L#139]
+  * test fragmented genuine EOF succeeds while delayed extra byte and truncated responses fail [L#164]  * test fragmented genuine EOF succeeds while delayed extra byte and truncated responses fail (135.2ms) [L#164]
+  * test progress across headers body and EOF never resets absolute five-second deadline [L#185]  * test progress across headers body and EOF never resets absolute five-second deadline (5407.1ms) [L#185]
+  * test raw socket and SSL handler register before authenticated send and caller loss closes them [L#202]  * test raw socket and SSL handler register before authenticated send and caller loss closes them (11.7ms) [L#202]
+
+  2) test raw socket and SSL handler register before authenticated send and caller loss closes them (IndependentWorkerClientTest)
+     independent_test.exs:202
+     ** (exit) exited in: :sys.get_state(#PID<0.952.0>)
+         ** (EXIT) no process: the process is not alive or there's no process currently associated with the given name, possibly because its application isn't started
+     stacktrace:
+       (stdlib 8.1) sys.erl:753: :sys.send_system_msg/2
+       (stdlib 8.1) sys.erl:342: :sys.get_state/1
+       independent_test.exs:40: anonymous fn/3 in IndependentWorkerClientTest.start/2
+       (ex_unit 1.20.4) lib/ex_unit/on_exit_handler.ex:140: ExUnit.OnExitHandler.exec_callback/1
+       (ex_unit 1.20.4) lib/ex_unit/on_exit_handler.ex:126: ExUnit.OnExitHandler.on_exit_runner_loop/0
+
+  * test handshake registered raw socket closes on caller death before credentials [L#216]  * test handshake registered raw socket closes on caller death before credentials (60.0ms) [L#216]
+  * test worker death retains permit while Flight is paused and retires after cleanup observation [L#231]  * test worker death retains permit while Flight is paused and retires after cleanup observation (31.9ms) [L#231]
+  * test owner loss leaves RoleGuard closed until a paused Flight actually retires [L#251]  * test owner loss leaves RoleGuard closed until a paused Flight actually retires (11.4ms) [L#251]
+  * test normal Flight system termination is accepted as permit retirement [L#272]

@@ -1,0 +1,50 @@
+{
+  "credentials": "retained request bytes use a synthetic fixture credential only",
+  "findings": [
+    {
+      "configured_limit": 16,
+      "evidence": "guard-loss-reproduction.json",
+      "id": "R1",
+      "lines": [
+        4,
+        18,
+        34,
+        237,
+        256
+      ],
+      "normal_owner_death_control": "replacement blocked until old Flight retirement",
+      "observed_live_connections": 17,
+      "severity": "blocking",
+      "source": "candidate/lib/mixer_hosted/builds/worker_transport.ex",
+      "threat_scope": "internal BEAM process-death and Flight suspension fault injection; no demonstrated remote-input exploit",
+      "title": "RoleGuard loss allows replacement admission with old SSL flight live"
+    },
+    {
+      "evidence": [
+        "attempt-2.independent-tests.stdout",
+        "authenticated-request-query.http",
+        "authenticated-request-ensure_started.http",
+        "authenticated-request-stop.http"
+      ],
+      "id": "R2",
+      "lines": [
+        373,
+        405
+      ],
+      "observed_headers": 8,
+      "observed_user_agent": "mint/1.11.0",
+      "original_contract_headers": 7,
+      "root_selected_next_candidate_amendment": "explicit bounded user-agent mixer-worker/1 with eight exact headers",
+      "severity": "contract-mismatch",
+      "source": "candidate/lib/mixer_hosted/builds/worker_transport.ex",
+      "title": "Mint default User-Agent adds eighth header"
+    }
+  ],
+  "negative_control": {
+    "evidence": "normal-flight-stop.json",
+    "normal_flight_stop": "no premature reuse reproduced; blocked at 100 ms while SSL handler suspended, then observed raw/worker/SSL cleanup after resume"
+  },
+  "schema": 1,
+  "source_digest": "9d561357f923df55ef5ec7f55d321d6f973dc6f22e2d9f2af35d9907541b8499",
+  "status": "blocked-integration-v1"
+}

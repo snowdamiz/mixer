@@ -434,3 +434,30 @@ console_frontend:
     typescript: 5.9.3
   install_scripts: disabled
   scope: local-console-build-and-browser-development-only-no-hosted-deployment
+
+hosted_worker_controller:
+  inventory: hosted-worker-controller/THIRD_PARTY.yml
+  lockfile: hosted-worker-controller/package-lock.json
+  selection_receipt: verification/hosted-worker-controller-root-selection/dependencies.json
+  selected_development_dependencies:
+    miniflare:
+      version: 4.20260730.0
+      license: MIT
+      purpose: local-Workers-and-SQLite-Durable-Object-verification
+    cloudflare-workers-types:
+      package: '@cloudflare/workers-types'
+      version: 5.20260730.1
+      license: 'MIT OR Apache-2.0'
+      purpose: pinned-Workers-and-Durable-Object-type-declarations
+    typescript:
+      version: 5.9.3
+      license: Apache-2.0
+      purpose: controller-source-typechecking-and-compilation
+  pinned_test_runtime:
+    package: workerd
+    version: 1.20260730.1
+    license: Apache-2.0
+  compatibility_date: '2026-07-30'
+  install_scripts: disabled
+  status: selected-implementation-and-locked-transitive-inventory-pending
+  scope: local-controller-implementation-and-workerd-storage-tests-no-provider-or-cloud-deployment

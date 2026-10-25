@@ -1,0 +1,3071 @@
+{
+  "attachment_export.py": [
+    {
+      "kind": "Expr",
+      "line": 1,
+      "source": "\"\"\"One immutable attachment-export attempt per selected test command.\"\"\""
+    },
+    {
+      "kind": "Import",
+      "line": 2,
+      "source": "import hashlib"
+    },
+    {
+      "kind": "Import",
+      "line": 3,
+      "source": "import json"
+    },
+    {
+      "kind": "Import",
+      "line": 4,
+      "source": "import os"
+    },
+    {
+      "kind": "Import",
+      "line": 5,
+      "source": "import pathlib"
+    },
+    {
+      "kind": "Import",
+      "line": 6,
+      "source": "import stat"
+    },
+    {
+      "kind": "Import",
+      "line": 7,
+      "source": "import join_support"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 10,
+      "source": "publish_first_receipt"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 19,
+      "source": "exporting_commands"
+    }
+  ],
+  "command_observer.py": [
+    {
+      "kind": "Expr",
+      "line": 1,
+      "source": "\"\"\"Standalone owned-command diagnostics. No native operation occurs on import.\n\nThis module does not select commands, interpret XCTest results, or grant acceptance.\nCallers supply the exact argv/cwd/environment and an explicitly owned result root.\n\"\"\""
+    },
+    {
+      "kind": "ImportFrom",
+      "line": 6,
+      "source": "from __future__ import annotations"
+    },
+    {
+      "kind": "Import",
+      "line": 8,
+      "source": "import codecs"
+    },
+    {
+      "kind": "Import",
+      "line": 9,
+      "source": "import hashlib"
+    },
+    {
+      "kind": "Import",
+      "line": 10,
+      "source": "import io"
+    },
+    {
+      "kind": "Import",
+      "line": 11,
+      "source": "import json"
+    },
+    {
+      "kind": "Import",
+      "line": 12,
+      "source": "import locale"
+    },
+    {
+      "kind": "Import",
+      "line": 13,
+      "source": "import math"
+    },
+    {
+      "kind": "Import",
+      "line": 14,
+      "source": "import os"
+    },
+    {
+      "kind": "ImportFrom",
+      "line": 15,
+      "source": "from pathlib import Path"
+    },
+    {
+      "kind": "Import",
+      "line": 16,
+      "source": "import selectors"
+    },
+    {
+      "kind": "Import",
+      "line": 17,
+      "source": "import signal"
+    },
+    {
+      "kind": "Import",
+      "line": 18,
+      "source": "import stat"
+    },
+    {
+      "kind": "Import",
+      "line": 19,
+      "source": "import subprocess"
+    },
+    {
+      "kind": "Import",
+      "line": 20,
+      "source": "import sys"
+    },
+    {
+      "kind": "Import",
+      "line": 21,
+      "source": "import time"
+    },
+    {
+      "kind": "Assign",
+      "line": 24,
+      "source": "SCHEMA = \"mixer.apple-command-finalization-observer.2\""
+    },
+    {
+      "kind": "Assign",
+      "line": 25,
+      "source": "MAX_COMMAND_SECONDS = 600"
+    },
+    {
+      "kind": "Assign",
+      "line": 26,
+      "source": "CLEANUP_GRACE_SECONDS = 8"
+    },
+    {
+      "kind": "Assign",
+      "line": 27,
+      "source": "MAX_OUTPUT_BYTES = 32 * 1024 * 1024"
+    },
+    {
+      "kind": "Assign",
+      "line": 28,
+      "source": "_READ_BYTES = 65536"
+    },
+    {
+      "kind": "ClassDef",
+      "line": 31,
+      "source": "OutputLimitExceeded"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 35,
+      "source": "_utc"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 39,
+      "source": "_positive"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 46,
+      "source": "_canonical_directory"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 56,
+      "source": "_kind"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 66,
+      "source": "_entry"
+    },
+    {
+      "kind": "ClassDef",
+      "line": 75,
+      "source": "_ResultMarkers"
+    },
+    {
+      "kind": "ClassDef",
+      "line": 108,
+      "source": "_Stream"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 186,
+      "source": "observe_command"
+    }
+  ],
+  "composition.py": [
+    {
+      "kind": "Expr",
+      "line": 1,
+      "source": "\"\"\"Private composition over packet-local immutable source copies only.\n\nImport mutates only newly loaded snapshot modules, never the old sealed harness.\nRead-only run.py verification does not import this module.\n\"\"\""
+    },
+    {
+      "kind": "Import",
+      "line": 6,
+      "source": "import hashlib"
+    },
+    {
+      "kind": "Import",
+      "line": 7,
+      "source": "import importlib.util"
+    },
+    {
+      "kind": "Import",
+      "line": 8,
+      "source": "import json"
+    },
+    {
+      "kind": "Import",
+      "line": 9,
+      "source": "import pathlib"
+    },
+    {
+      "kind": "Import",
+      "line": 10,
+      "source": "import sys"
+    },
+    {
+      "kind": "Assign",
+      "line": 11,
+      "source": "BASE=pathlib.Path(__file__).resolve().parent"
+    },
+    {
+      "kind": "Assign",
+      "line": 12,
+      "source": "ROOT=pathlib.Path(json.loads((BASE/\"runtime-selection.json\").read_bytes())[\"repositoryRoot\"])"
+    },
+    {
+      "kind": "Assign",
+      "line": 13,
+      "source": "OUT=pathlib.Path(json.loads((BASE/\"runtime-selection.json\").read_bytes())[\"outputBase\"])"
+    },
+    {
+      "kind": "Assign",
+      "line": 14,
+      "source": "SNAPSHOT=BASE/'inputs/runtime'"
+    },
+    {
+      "kind": "Assign",
+      "line": 15,
+      "source": "VERIFY=SNAPSHOT/'verification'"
+    },
+    {
+      "kind": "Assign",
+      "line": 16,
+      "source": "PARENT=VERIFY/'apple-toggle-pan-origin-correction'"
+    },
+    {
+      "kind": "Assign",
+      "line": 17,
+      "source": "KEYBOARD=VERIFY/'apple-toggle-keyboard-focus'"
+    },
+    {
+      "kind": "Assign",
+      "line": 18,
+      "source": "V9=VERIFY/'apple-toggle-keyboard-focus-v9-preparation'"
+    },
+    {
+      "kind": "Assign",
+      "line": 19,
+      "source": "selection=json.loads((BASE/'runtime-selection.json').read_bytes())"
+    },
+    {
+      "kind": "Assign",
+      "line": 20,
+      "source": "bootstrap=BASE/'runtime_bindings.py'"
+    },
+    {
+      "kind": "If",
+      "line": 21,
+      "source": "if hashlib.sha256(bootstrap.read_bytes()).hexdigest()!=selection['files']['runtime_bindings.py']:\n    raise ValueError('Runtime binding guard differs from selected bytes')"
+    },
+    {
+      "kind": "Assign",
+      "line": 23,
+      "source": "_boot_spec=importlib.util.spec_from_file_location('_selected_runtime_bindings',bootstrap)"
+    },
+    {
+      "kind": "Assign",
+      "line": 24,
+      "source": "_boot=importlib.util.module_from_spec(_boot_spec)"
+    },
+    {
+      "kind": "Expr",
+      "line": 24,
+      "source": "_boot_spec.loader.exec_module(_boot)"
+    },
+    {
+      "kind": "Assign",
+      "line": 25,
+      "source": "bindings=_boot.RuntimeBindings(BASE,selection)"
+    },
+    {
+      "kind": "Expr",
+      "line": 26,
+      "source": "bindings.check()"
+    },
+    {
+      "kind": "Expr",
+      "line": 26,
+      "source": "bindings.module(_boot)"
+    },
+    {
+      "kind": "For",
+      "line": 27,
+      "source": "for path in reversed([V9,KEYBOARD,PARENT]): sys.path.insert(0,str(path))"
+    },
+    {
+      "kind": "Import",
+      "line": 28,
+      "source": "import harness as h"
+    },
+    {
+      "kind": "Import",
+      "line": 29,
+      "source": "import apps as artifact"
+    },
+    {
+      "kind": "Import",
+      "line": 30,
+      "source": "import bridge as transport"
+    },
+    {
+      "kind": "Import",
+      "line": 31,
+      "source": "import keyboard_oracle as oracle"
+    },
+    {
+      "kind": "Import",
+      "line": 32,
+      "source": "import keyboard_bridge"
+    },
+    {
+      "kind": "Import",
+      "line": 33,
+      "source": "import settings_telemetry as telemetry"
+    },
+    {
+      "kind": "Import",
+      "line": 34,
+      "source": "import durable_settings"
+    },
+    {
+      "kind": "Import",
+      "line": 35,
+      "source": "import attachment_export"
+    },
+    {
+      "kind": "Import",
+      "line": 36,
+      "source": "import runtime_summary as summary_module"
+    },
+    {
+      "kind": "Import",
+      "line": 37,
+      "source": "import orchestration"
+    },
+    {
+      "kind": "Import",
+      "line": 38,
+      "source": "import join_support"
+    },
+    {
+      "kind": "Import",
+      "line": 39,
+      "source": "import command_observer"
+    },
+    {
+      "kind": "Import",
+      "line": 40,
+      "source": "import importer"
+    },
+    {
+      "kind": "Import",
+      "line": 41,
+      "source": "import reference_contract"
+    },
+    {
+      "kind": "Expr",
+      "line": 42,
+      "source": "join_support.configure_root(selection[\"trustedRootSelection\"])"
+    },
+    {
+      "kind": "ImportFrom",
+      "line": 43,
+      "source": "from attachment_export import exporting_commands"
+    },
+    {
+      "kind": "Assign",
+      "line": 44,
+      "source": "RUNTIME_ROOTS=[h,artifact,transport,oracle,keyboard_bridge,telemetry,durable_settings,attachment_export,summary_module,orchestration,join_support,command_observer,importer,reference_contract]"
+    },
+    {
+      "kind": "Expr",
+      "line": 45,
+      "source": "bindings.check(RUNTIME_ROOTS)"
+    },
+    {
+      "kind": "Assign",
+      "line": 46,
+      "source": "CANONICAL_COMMANDS=getattr(h,'_full_case_canonical_commands',h.Commands)"
+    },
+    {
+      "kind": "Assign",
+      "line": 47,
+      "source": "CANONICAL_BRIDGE=getattr(h,'_full_case_canonical_bridge',transport.Bridge)"
+    },
+    {
+      "kind": "Assign",
+      "line": 48,
+      "source": "h._full_case_canonical_commands=CANONICAL_COMMANDS"
+    },
+    {
+      "kind": "Assign",
+      "line": 49,
+      "source": "h._full_case_canonical_bridge=CANONICAL_BRIDGE"
+    },
+    {
+      "kind": "Assign",
+      "line": 50,
+      "source": "sha=lambda path:hashlib.sha256(path.read_bytes()).hexdigest()"
+    },
+    {
+      "kind": "Assign",
+      "line": 51,
+      "source": "read=lambda path:json.loads(path.read_bytes())"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 53,
+      "source": "load"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 60,
+      "source": "setup_ready"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 67,
+      "source": "full_case_bridge"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 98,
+      "source": "inventory"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 109,
+      "source": "settings_passed"
+    },
+    {
+      "kind": "Assign",
+      "line": 118,
+      "source": "CandidateApps=join_support.candidate_apps(artifact,BASE,selection)"
+    },
+    {
+      "kind": "Assign",
+      "line": 121,
+      "source": "METHODS=selection[\"methods\"]"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 123,
+      "source": "compose"
+    },
+    {
+      "kind": "Expr",
+      "line": 138,
+      "source": "compose()"
+    }
+  ],
+  "importer.py": [
+    {
+      "kind": "Expr",
+      "line": 1,
+      "source": "\"\"\"Strict selected-execution import. Inputs are captured by the root-owned runtime adapter.\n\nThis module never invokes a tool. Host fixtures can exercise consistency only;\nnative provenance starts in adapter.capture_official(), not in evidence fields.\n\"\"\""
+    },
+    {
+      "kind": "Import",
+      "line": 6,
+      "source": "import copy"
+    },
+    {
+      "kind": "Import",
+      "line": 7,
+      "source": "import datetime"
+    },
+    {
+      "kind": "Import",
+      "line": 8,
+      "source": "import hashlib"
+    },
+    {
+      "kind": "Import",
+      "line": 9,
+      "source": "import json"
+    },
+    {
+      "kind": "Import",
+      "line": 10,
+      "source": "import math"
+    },
+    {
+      "kind": "ImportFrom",
+      "line": 11,
+      "source": "from pathlib import Path"
+    },
+    {
+      "kind": "Import",
+      "line": 12,
+      "source": "import uuid"
+    },
+    {
+      "kind": "Assign",
+      "line": 14,
+      "source": "METHODS = ('test000PublicSettingsFullKeyboardAccess', 'test010ReferenceFirstTab')"
+    },
+    {
+      "kind": "Assign",
+      "line": 15,
+      "source": "CASE = 'keyboard-enabled-off'"
+    },
+    {
+      "kind": "Assign",
+      "line": 16,
+      "source": "SOURCE = '696bfdd8a31be7b4d9ba49f57783625c7edbb75c126bb4696e31acc5aa0f238a'"
+    },
+    {
+      "kind": "Assign",
+      "line": 17,
+      "source": "PRODUCT = '0941185e39cc0171b0bf5d2aeb72738588e88b9c7b3d676f893b70c3bf644fa8'"
+    },
+    {
+      "kind": "Assign",
+      "line": 18,
+      "source": "PREFIX = 'test://com.apple.xcode/MixerToggleUITests/MixerToggleUITests/ToggleUITests/'"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 21,
+      "source": "require"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 25,
+      "source": "digest"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 28,
+      "source": "stable"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 31,
+      "source": "parse"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 52,
+      "source": "read"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 57,
+      "source": "number"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 60,
+      "source": "validate_root"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 81,
+      "source": "command_argv"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 85,
+      "source": "observer_terminal"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 104,
+      "source": "official_methods"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 142,
+      "source": "attachments"
+    },
+    {
+      "kind": "Assign",
+      "line": 176,
+      "source": "_CAPTURE_TOKEN = object()"
+    },
+    {
+      "kind": "ClassDef",
+      "line": 179,
+      "source": "CapturedOfficial"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 198,
+      "source": "import_selected"
+    }
+  ],
+  "inputs/runtime/verification/apple-toggle-keyboard-focus-v9-preparation/durable_settings.py": [
+    {
+      "kind": "Expr",
+      "line": 1,
+      "source": "\"\"\"Guarded request persistence for this setup-only diagnostic.\n\nSuccessful payload/journal fsync, exact publication checks, and successful\npublication-directory fsync form irrevocable commit. Guard retirement happens\nafterward and can block new work, but can never reject or roll back that commit.\nA present guard rejects replay. Live retirement uncertainty without durable\nevidence does not promise to survive restart. No power-loss testing is claimed.\n\"\"\""
+    },
+    {
+      "kind": "Import",
+      "line": 9,
+      "source": "import hashlib"
+    },
+    {
+      "kind": "Import",
+      "line": 10,
+      "source": "import json"
+    },
+    {
+      "kind": "Import",
+      "line": 11,
+      "source": "import os"
+    },
+    {
+      "kind": "Import",
+      "line": 12,
+      "source": "import pathlib"
+    },
+    {
+      "kind": "Import",
+      "line": 13,
+      "source": "import stat"
+    },
+    {
+      "kind": "Import",
+      "line": 14,
+      "source": "import uuid"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 17,
+      "source": "encoded"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 21,
+      "source": "digest"
+    },
+    {
+      "kind": "ClassDef",
+      "line": 25,
+      "source": "PersistenceUncertain"
+    },
+    {
+      "kind": "ClassDef",
+      "line": 29,
+      "source": "DiskIO"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 60,
+      "source": "unresolved"
+    },
+    {
+      "kind": "ClassDef",
+      "line": 71,
+      "source": "TransactionStore"
+    }
+  ],
+  "inputs/runtime/verification/apple-toggle-keyboard-focus-v9-preparation/keyboard_oracle.py": [
+    {
+      "kind": "Expr",
+      "line": 1,
+      "source": "\"\"\"Narrow v2 wrapper: explicit paired focus and stable native semantic metadata.\"\"\""
+    },
+    {
+      "kind": "Import",
+      "line": 2,
+      "source": "import importlib.util"
+    },
+    {
+      "kind": "Import",
+      "line": 3,
+      "source": "import pathlib"
+    },
+    {
+      "kind": "Assign",
+      "line": 4,
+      "source": "BASE=pathlib.Path(__file__).resolve().parent"
+    },
+    {
+      "kind": "Assign",
+      "line": 4,
+      "source": "ROOT=BASE.parents[1]"
+    },
+    {
+      "kind": "Assign",
+      "line": 5,
+      "source": "PREVIOUS=BASE.parent/'apple-toggle-keyboard-focus'"
+    },
+    {
+      "kind": "Assign",
+      "line": 6,
+      "source": "spec=importlib.util.spec_from_file_location('immutable_keyboard_v1_oracle',PREVIOUS/'keyboard_oracle.py')"
+    },
+    {
+      "kind": "Assign",
+      "line": 7,
+      "source": "original=importlib.util.module_from_spec(spec)"
+    },
+    {
+      "kind": "Expr",
+      "line": 7,
+      "source": "spec.loader.exec_module(original)"
+    },
+    {
+      "kind": "For",
+      "line": 8,
+      "source": "for name in ['state_contract','SPECS','CASES','ACTIONS','CASE_ACTION','COMMANDS','CASE_COMMAND_SEQUENCE','IDS','API','ENABLED_PHASES','STALE_PHASES','DISABLED_PHASES','PHASE_KEYS','require','number','natural','geometry_valid','focused','ax','witness']:\n    globals()[name]=getattr(original,name)"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 11,
+      "source": "native_metadata"
+    },
+    {
+      "kind": "ClassDef",
+      "line": 15,
+      "source": "Cursor"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 25,
+      "source": "verdict"
+    }
+  ],
+  "inputs/runtime/verification/apple-toggle-keyboard-focus-v9-preparation/replay.py": [
+    {
+      "kind": "Expr",
+      "line": 2,
+      "source": "\"\"\"Offline replay of the fixed owned runtime journal; never native execution.\"\"\""
+    },
+    {
+      "kind": "Import",
+      "line": 3,
+      "source": "import json"
+    },
+    {
+      "kind": "Import",
+      "line": 4,
+      "source": "import pathlib"
+    },
+    {
+      "kind": "Import",
+      "line": 5,
+      "source": "import settings_telemetry as t"
+    },
+    {
+      "kind": "Assign",
+      "line": 6,
+      "source": "BASE = pathlib.Path(__file__).resolve().parent"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 9,
+      "source": "replay"
+    },
+    {
+      "kind": "If",
+      "line": 34,
+      "source": "if __name__ == '__main__':\n    result = replay(BASE / 'runtime/captures')\n    p = BASE / 'runtime/runtime-verdict.json'\n    if p.is_file():\n        t.require(result == json.loads(p.read_bytes())['settingsDiagnostic'], 'Replayed summary differs')\n    print(json.dumps({'schema': 'mixer.apple-toggle.keyboard-v6-diagnostic-replay.1', 'status': 'DIAGNOSTIC_ONLY', 'settingsDiagnostic': result, 'nativeKeyboardQualification': False, 'gaAccepted': False}, sort_keys=True))"
+    }
+  ],
+  "inputs/runtime/verification/apple-toggle-keyboard-focus-v9-preparation/settings_telemetry.py": [
+    {
+      "kind": "Expr",
+      "line": 1,
+      "source": "\"\"\"Closed setup-only durable diagnostic telemetry; never an input command.\"\"\""
+    },
+    {
+      "kind": "Import",
+      "line": 2,
+      "source": "import base64"
+    },
+    {
+      "kind": "Import",
+      "line": 3,
+      "source": "import copy"
+    },
+    {
+      "kind": "Import",
+      "line": 4,
+      "source": "import json"
+    },
+    {
+      "kind": "Import",
+      "line": 5,
+      "source": "import hashlib"
+    },
+    {
+      "kind": "Import",
+      "line": 6,
+      "source": "import math"
+    },
+    {
+      "kind": "Import",
+      "line": 7,
+      "source": "import os"
+    },
+    {
+      "kind": "Import",
+      "line": 8,
+      "source": "import pathlib"
+    },
+    {
+      "kind": "Import",
+      "line": 9,
+      "source": "import struct"
+    },
+    {
+      "kind": "Import",
+      "line": 10,
+      "source": "import time"
+    },
+    {
+      "kind": "Import",
+      "line": 11,
+      "source": "import uuid"
+    },
+    {
+      "kind": "Import",
+      "line": 12,
+      "source": "import zlib"
+    },
+    {
+      "kind": "Assign",
+      "line": 14,
+      "source": "CASE = 'public-settings-full-keyboard-access'"
+    },
+    {
+      "kind": "Assign",
+      "line": 15,
+      "source": "ROUTE = ['Accessibility', 'Keyboards & Typing', 'Full Keyboard Access']"
+    },
+    {
+      "kind": "Assign",
+      "line": 16,
+      "source": "CHUNK = 3072"
+    },
+    {
+      "kind": "Assign",
+      "line": 17,
+      "source": "MAX_TOTAL = 7_000_000"
+    },
+    {
+      "kind": "Assign",
+      "line": 18,
+      "source": "MAX_REQUESTS = 2500"
+    },
+    {
+      "kind": "Assign",
+      "line": 19,
+      "source": "MAX_EVENTS = 100"
+    },
+    {
+      "kind": "Assign",
+      "line": 20,
+      "source": "MAX_UPLOADS = 32"
+    },
+    {
+      "kind": "Assign",
+      "line": 21,
+      "source": "MAX_DURATION = 29.0"
+    },
+    {
+      "kind": "Assign",
+      "line": 22,
+      "source": "FIELDS = {'kind', 'case', 'generation', 'sequence', 'uptime'}"
+    },
+    {
+      "kind": "Assign",
+      "line": 23,
+      "source": "sha = lambda data: hashlib.sha256(data).hexdigest()"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 26,
+      "source": "require"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 31,
+      "source": "number"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 35,
+      "source": "integer"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 39,
+      "source": "digest"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 43,
+      "source": "png"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 66,
+      "source": "snapshot"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 84,
+      "source": "expected_switch"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 88,
+      "source": "expected_row"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 93,
+      "source": "absent_opened_row"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 99,
+      "source": "route_target"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 116,
+      "source": "frame"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 121,
+      "source": "inside"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 125,
+      "source": "switch_witness"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 144,
+      "source": "same_snapshot"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 148,
+      "source": "same_switch_binding"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 153,
+      "source": "destination"
+    },
+    {
+      "kind": "ClassDef",
+      "line": 157,
+      "source": "Session"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 397,
+      "source": "diagnostic_bridge"
+    }
+  ],
+  "inputs/runtime/verification/apple-toggle-keyboard-focus/focus_diagnostic.py": [
+    {
+      "kind": "Expr",
+      "line": 1,
+      "source": "\"\"\"Observation-only side-channel adapter. Standard library; no runtime imports.\n\nThis module is new diagnostic support, not a replacement keyboard oracle. The\nprepared bridge calls strip_and_retain once, then executes its original closed\nkeyboardWitness branch with the exact original witness object.\n\"\"\""
+    },
+    {
+      "kind": "Import",
+      "line": 7,
+      "source": "import copy"
+    },
+    {
+      "kind": "Import",
+      "line": 8,
+      "source": "import json"
+    },
+    {
+      "kind": "Import",
+      "line": 9,
+      "source": "import math"
+    },
+    {
+      "kind": "Assign",
+      "line": 11,
+      "source": "SCHEMA = 'mixer.apple-toggle.focus-diagnostic.1'"
+    },
+    {
+      "kind": "Assign",
+      "line": 12,
+      "source": "IDS = ('authored-toggle', 'plain-uibutton-reference', 'next-focus')"
+    },
+    {
+      "kind": "Assign",
+      "line": 13,
+      "source": "MAX_RECORD_BYTES = 4096"
+    },
+    {
+      "kind": "Assign",
+      "line": 14,
+      "source": "MAX_OBSERVATIONS = 4"
+    },
+    {
+      "kind": "Assign",
+      "line": 15,
+      "source": "MAX_CONTEXTS = 128"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 18,
+      "source": "number"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 22,
+      "source": "strip_and_retain"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 48,
+      "source": "endpoint"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 60,
+      "source": "endpoint_scope"
+    },
+    {
+      "kind": "ClassDef",
+      "line": 66,
+      "source": "ContextBuffer"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 83,
+      "source": "observation_status"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 97,
+      "source": "focus_only_once"
+    }
+  ],
+  "inputs/runtime/verification/apple-toggle-keyboard-focus/keyboard_bridge.py": [
+    {
+      "kind": "Expr",
+      "line": 1,
+      "source": "\"\"\"Narrow same-endpoint keyboard witness and fixed command-phase adaptation.\"\"\""
+    },
+    {
+      "kind": "Import",
+      "line": 2,
+      "source": "import contextlib"
+    },
+    {
+      "kind": "Import",
+      "line": 3,
+      "source": "import copy"
+    },
+    {
+      "kind": "Import",
+      "line": 4,
+      "source": "import time"
+    },
+    {
+      "kind": "Import",
+      "line": 5,
+      "source": "import keyboard_oracle as o"
+    },
+    {
+      "kind": "Import",
+      "line": 6,
+      "source": "import focus_diagnostic as focus_diagnostic"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 9,
+      "source": "keyboard_bridge"
+    }
+  ],
+  "inputs/runtime/verification/apple-toggle-keyboard-focus/keyboard_oracle.py": [
+    {
+      "kind": "Expr",
+      "line": 1,
+      "source": "\"\"\"Closed keyboard phases and independent native AX/application evidence rules.\"\"\""
+    },
+    {
+      "kind": "Import",
+      "line": 2,
+      "source": "import importlib.util"
+    },
+    {
+      "kind": "Import",
+      "line": 3,
+      "source": "import json"
+    },
+    {
+      "kind": "Import",
+      "line": 4,
+      "source": "import math"
+    },
+    {
+      "kind": "Import",
+      "line": 5,
+      "source": "import pathlib"
+    },
+    {
+      "kind": "Assign",
+      "line": 6,
+      "source": "BASE=pathlib.Path(__file__).resolve().parent"
+    },
+    {
+      "kind": "Assign",
+      "line": 6,
+      "source": "ROOT=BASE.parents[1]"
+    },
+    {
+      "kind": "Assign",
+      "line": 7,
+      "source": "spec=importlib.util.spec_from_file_location('reviewed_pan_state',BASE.parent/'apple-toggle-pan-commit-harness-v2/commit_oracle.py')"
+    },
+    {
+      "kind": "Assign",
+      "line": 8,
+      "source": "state_contract=importlib.util.module_from_spec(spec)"
+    },
+    {
+      "kind": "Expr",
+      "line": 8,
+      "source": "spec.loader.exec_module(state_contract)"
+    },
+    {
+      "kind": "Assign",
+      "line": 9,
+      "source": "SPECS={x['name']:x for x in json.loads((BASE/'cases.json').read_bytes())}"
+    },
+    {
+      "kind": "Assign",
+      "line": 10,
+      "source": "CASES=set(SPECS)"
+    },
+    {
+      "kind": "Assign",
+      "line": 10,
+      "source": "ACTIONS={'native-keyboard'}"
+    },
+    {
+      "kind": "Assign",
+      "line": 10,
+      "source": "CASE_ACTION={n:'native-keyboard' for n in CASES}"
+    },
+    {
+      "kind": "Assign",
+      "line": 11,
+      "source": "COMMANDS={'resume','reset','set-on','stale','disable'}"
+    },
+    {
+      "kind": "Assign",
+      "line": 12,
+      "source": "CASE_COMMAND_SEQUENCE={n:['resume','reset']+(['set-on'] if s['initial'] else []) for n,s in SPECS.items()}"
+    },
+    {
+      "kind": "Assign",
+      "line": 13,
+      "source": "IDS=('authored-toggle','plain-uibutton-reference','next-focus')"
+    },
+    {
+      "kind": "Assign",
+      "line": 14,
+      "source": "API='XCUIElement.typeKey(_:modifierFlags:)'"
+    },
+    {
+      "kind": "Assign",
+      "line": 15,
+      "source": "ENABLED_PHASES=['space-first','space-reverse','tab-reference','tab-next','reverse-reference','reverse-toggle']"
+    },
+    {
+      "kind": "Assign",
+      "line": 16,
+      "source": "STALE_PHASES=['stale-space','resumed-space']"
+    },
+    {
+      "kind": "Assign",
+      "line": 17,
+      "source": "DISABLED_PHASES=['disabled-navigation','disabled-space','disabled-reverse']"
+    },
+    {
+      "kind": "Assign",
+      "line": 18,
+      "source": "PHASE_KEYS={'acquire':'tab','space-first':'space','space-reverse':'space','tab-reference':'tab','tab-next':'tab','reverse-reference':'shift-tab','reverse-toggle':'shift-tab','stale-space':'space','resumed-space':'space','disabled-held-space':'space','disabled-navigation':'tab','disabled-space':'space','disabled-reverse':'shift-tab'}"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 20,
+      "source": "require"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 22,
+      "source": "number"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 23,
+      "source": "natural"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 25,
+      "source": "geometry_valid"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 28,
+      "source": "focused"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 33,
+      "source": "ax"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 46,
+      "source": "witness"
+    },
+    {
+      "kind": "ClassDef",
+      "line": 59,
+      "source": "Cursor"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 93,
+      "source": "verdict"
+    }
+  ],
+  "inputs/runtime/verification/apple-toggle-keyboard-focus/run.py": [
+    {
+      "kind": "Expr",
+      "line": 2,
+      "source": "\"\"\"Root-only keyboard execution; preparation/verification never addresses native instances.\"\"\""
+    },
+    {
+      "kind": "Import",
+      "line": 3,
+      "source": "import argparse"
+    },
+    {
+      "kind": "Import",
+      "line": 4,
+      "source": "import hashlib"
+    },
+    {
+      "kind": "Import",
+      "line": 5,
+      "source": "import importlib.util"
+    },
+    {
+      "kind": "Import",
+      "line": 6,
+      "source": "import json"
+    },
+    {
+      "kind": "Import",
+      "line": 7,
+      "source": "import os"
+    },
+    {
+      "kind": "Import",
+      "line": 8,
+      "source": "import pathlib"
+    },
+    {
+      "kind": "Import",
+      "line": 9,
+      "source": "import signal"
+    },
+    {
+      "kind": "Import",
+      "line": 10,
+      "source": "import stat"
+    },
+    {
+      "kind": "Import",
+      "line": 11,
+      "source": "import subprocess"
+    },
+    {
+      "kind": "Import",
+      "line": 12,
+      "source": "import sys"
+    },
+    {
+      "kind": "Assign",
+      "line": 14,
+      "source": "BASE=pathlib.Path(__file__).resolve().parent"
+    },
+    {
+      "kind": "Assign",
+      "line": 14,
+      "source": "ROOT=BASE.parents[1]"
+    },
+    {
+      "kind": "Assign",
+      "line": 15,
+      "source": "PARENT=ROOT/'verification/apple-toggle-pan-origin-correction'"
+    },
+    {
+      "kind": "Assign",
+      "line": 15,
+      "source": "PAN=ROOT/'verification/apple-toggle-pan-commit-harness-v2'"
+    },
+    {
+      "kind": "Expr",
+      "line": 16,
+      "source": "sys.path.insert(0,str(PARENT))"
+    },
+    {
+      "kind": "Import",
+      "line": 17,
+      "source": "import harness as inherited"
+    },
+    {
+      "kind": "Import",
+      "line": 18,
+      "source": "import apps as artifact"
+    },
+    {
+      "kind": "Import",
+      "line": 19,
+      "source": "import bridge as transport"
+    },
+    {
+      "kind": "Import",
+      "line": 20,
+      "source": "import keyboard_oracle as oracle"
+    },
+    {
+      "kind": "Import",
+      "line": 21,
+      "source": "import keyboard_bridge"
+    },
+    {
+      "kind": "Assign",
+      "line": 22,
+      "source": "sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()"
+    },
+    {
+      "kind": "Assign",
+      "line": 23,
+      "source": "read=lambda p:json.loads(p.read_bytes())"
+    },
+    {
+      "kind": "Assign",
+      "line": 24,
+      "source": "require=artifact.require"
+    },
+    {
+      "kind": "Assign",
+      "line": 25,
+      "source": "original_manifest=artifact.expected_manifest"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 27,
+      "source": "expected_manifest"
+    },
+    {
+      "kind": "Assign",
+      "line": 28,
+      "source": "artifact.expected_manifest=expected_manifest"
+    },
+    {
+      "kind": "ClassDef",
+      "line": 29,
+      "source": "CandidateApps"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 45,
+      "source": "prerequisite"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 55,
+      "source": "verify"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 86,
+      "source": "inventory"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 97,
+      "source": "settings_passed"
+    },
+    {
+      "kind": "Assign",
+      "line": 105,
+      "source": "BaseCommands=inherited.Commands"
+    },
+    {
+      "kind": "ClassDef",
+      "line": 106,
+      "source": "ExportingCommands"
+    },
+    {
+      "kind": "Assign",
+      "line": 137,
+      "source": "spec=importlib.util.spec_from_file_location('reviewed_keyboard_reader',PAN/'observation_reader.py')"
+    },
+    {
+      "kind": "Assign",
+      "line": 138,
+      "source": "reader=importlib.util.module_from_spec(spec)"
+    },
+    {
+      "kind": "Expr",
+      "line": 138,
+      "source": "spec.loader.exec_module(reader)"
+    },
+    {
+      "kind": "For",
+      "line": 139,
+      "source": "for name in ['ACTIONS','CASES','CASE_ACTION','CASE_COMMAND_SEQUENCE','COMMANDS','geometry_valid','verdict']:setattr(transport,name,getattr(oracle,name))"
+    },
+    {
+      "kind": "Assign",
+      "line": 140,
+      "source": "inherited.Bridge=keyboard_bridge.keyboard_bridge(reader.deadline_bridge(transport.Bridge),transport)"
+    },
+    {
+      "kind": "Assign",
+      "line": 141,
+      "source": "inherited.BASE=BASE"
+    },
+    {
+      "kind": "Assign",
+      "line": 141,
+      "source": "inherited.PRODUCTS=BASE/'build/Build/Products'"
+    },
+    {
+      "kind": "Assign",
+      "line": 141,
+      "source": "inherited.PRODUCT_ARCHIVE=BASE/'test-runner-products.tar.gz'"
+    },
+    {
+      "kind": "Assign",
+      "line": 142,
+      "source": "inherited.packet=CandidateApps"
+    },
+    {
+      "kind": "Assign",
+      "line": 142,
+      "source": "inherited.verify=verify"
+    },
+    {
+      "kind": "Assign",
+      "line": 142,
+      "source": "inherited.Commands=ExportingCommands"
+    },
+    {
+      "kind": "Assign",
+      "line": 143,
+      "source": "METHODS=['test000PublicSettingsFullKeyboardAccess']+[x['method'] for x in oracle.SPECS.values()]"
+    },
+    {
+      "kind": "Assign",
+      "line": 144,
+      "source": "inherited.SCOPES={'interaction':{'cases':oracle.CASES,'methods':METHODS}}"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 146,
+      "source": "summary"
+    },
+    {
+      "kind": "Assign",
+      "line": 163,
+      "source": "inherited.runtime_summary=summary"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 165,
+      "source": "main"
+    },
+    {
+      "kind": "If",
+      "line": 172,
+      "source": "if __name__=='__main__':\n    def stop(signum,frame):raise KeyboardInterrupt('Root keyboard harness interrupted')\n    signal.signal(signal.SIGINT,stop);signal.signal(signal.SIGTERM,stop);main()"
+    }
+  ],
+  "inputs/runtime/verification/apple-toggle-native-failure-analysis/packet.py": [
+    {
+      "kind": "Expr",
+      "line": 1,
+      "source": "\"\"\"Read-only diagnostics/comparator sealing and exact archive restore.\n\nArchive and Mach-O guards are adapted from the reviewed frozen runtime wrapper.\nNo subprocess, compiler, simulator, UI, or physical-device operation belongs here.\n\"\"\""
+    },
+    {
+      "kind": "Import",
+      "line": 6,
+      "source": "import hashlib"
+    },
+    {
+      "kind": "Import",
+      "line": 7,
+      "source": "import json"
+    },
+    {
+      "kind": "Import",
+      "line": 8,
+      "source": "import pathlib"
+    },
+    {
+      "kind": "Import",
+      "line": 9,
+      "source": "import plistlib"
+    },
+    {
+      "kind": "Import",
+      "line": 10,
+      "source": "import struct"
+    },
+    {
+      "kind": "Import",
+      "line": 11,
+      "source": "import tarfile"
+    },
+    {
+      "kind": "Assign",
+      "line": 13,
+      "source": "BASE = pathlib.Path(__file__).resolve().parent"
+    },
+    {
+      "kind": "Assign",
+      "line": 14,
+      "source": "ROOT = BASE.parents[1]"
+    },
+    {
+      "kind": "Assign",
+      "line": 15,
+      "source": "CONFIGS = {\n    \"comparator\": {\"folder\": \"sdk26-comparator\", \"app\": \"MixerAuthoredToggle.app\", \"executable\": \"MixerAuthoredToggle\", \"bundle\": \"dev.mixer.verification.authoredtoggle\", \"source\": \"04f91d8abf20e3401a916b8ab03c6d638eefd53f2e8aa8fcded31ef9706e5b9d\"},\n    \"diagnostic\": {\"folder\": \"diagnostic-candidate-2-standalone-pan\", \"app\": \"MixerToggleDiagnostics.app\", \"executable\": \"MixerToggleDiagnostics\", \"bundle\": \"dev.mixer.verification.authoredtoggle.diagnostics\", \"source\": \"0ddb00a4ecbe73012bd4cef167696bdbbd9827f3edb99677a9a7b04f07a8de3f\"}}"
+    },
+    {
+      "kind": "Assign",
+      "line": 18,
+      "source": "SOURCE_CLOSURE = hashlib.sha256(json.dumps({key: value[\"source\"] for key, value in CONFIGS.items()}, sort_keys=True, separators=(\",\", \":\")).encode()).hexdigest()"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 21,
+      "source": "require"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 26,
+      "source": "file_sha"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 30,
+      "source": "read_json"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 34,
+      "source": "relative_name"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 41,
+      "source": "macho"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 60,
+      "source": "archive_payload"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 86,
+      "source": "verify_history"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 97,
+      "source": "verify_packet"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 138,
+      "source": "verify_restored"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 154,
+      "source": "restore"
+    }
+  ],
+  "inputs/runtime/verification/apple-toggle-native-interruption/interruption_oracle.py": [
+    {
+      "kind": "Expr",
+      "line": 1,
+      "source": "\"\"\"Closed real-pan observations. Host fixtures never qualify native delivery.\"\"\""
+    },
+    {
+      "kind": "Import",
+      "line": 2,
+      "source": "import importlib.util"
+    },
+    {
+      "kind": "Import",
+      "line": 3,
+      "source": "import json"
+    },
+    {
+      "kind": "Import",
+      "line": 4,
+      "source": "import math"
+    },
+    {
+      "kind": "Import",
+      "line": 5,
+      "source": "import pathlib"
+    },
+    {
+      "kind": "Assign",
+      "line": 7,
+      "source": "BASE = pathlib.Path(__file__).resolve().parent"
+    },
+    {
+      "kind": "Assign",
+      "line": 8,
+      "source": "spec = importlib.util.spec_from_file_location(\"original_geometry\", BASE.parent / \"apple-toggle-pan-origin-correction/oracle.py\")"
+    },
+    {
+      "kind": "Assign",
+      "line": 9,
+      "source": "original = importlib.util.module_from_spec(spec)"
+    },
+    {
+      "kind": "Expr",
+      "line": 10,
+      "source": "spec.loader.exec_module(original)"
+    },
+    {
+      "kind": "Assign",
+      "line": 11,
+      "source": "geometry_valid = original.geometry_valid"
+    },
+    {
+      "kind": "Assign",
+      "line": 12,
+      "source": "SPECS = {x[\"name\"]: x for x in json.loads((BASE / \"cases.json\").read_bytes())}"
+    },
+    {
+      "kind": "Assign",
+      "line": 13,
+      "source": "CASES = set(SPECS)"
+    },
+    {
+      "kind": "Assign",
+      "line": 14,
+      "source": "ACTIONS = {\"native-pan-interruption\"}"
+    },
+    {
+      "kind": "Assign",
+      "line": 15,
+      "source": "CASE_ACTION = {name: \"native-pan-interruption\" for name in CASES}"
+    },
+    {
+      "kind": "Assign",
+      "line": 16,
+      "source": "CASE_COMMAND_SEQUENCE = {\n    name: [\"resume\", \"reset\"] + ([\"rtl\"] if x[\"rtl\"] else []) +\n    ([\"set-on\"] if x[\"initial\"] else []) +\n    ([\"arm-pan-\" + x[\"mode\"]] if x[\"mode\"] != \"nochange\" else [])\n    for name, x in SPECS.items()\n}"
+    },
+    {
+      "kind": "Assign",
+      "line": 22,
+      "source": "COMMANDS = set(sum(CASE_COMMAND_SEQUENCE.values(), []))"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 25,
+      "source": "verdict"
+    }
+  ],
+  "inputs/runtime/verification/apple-toggle-pan-commit-harness-v2/commit_oracle.py": [
+    {
+      "kind": "Expr",
+      "line": 1,
+      "source": "\"\"\"Closed evidence rules for a real native release; host controls never qualify UIKit.\"\"\""
+    },
+    {
+      "kind": "Import",
+      "line": 2,
+      "source": "import importlib.util"
+    },
+    {
+      "kind": "Import",
+      "line": 3,
+      "source": "import json"
+    },
+    {
+      "kind": "Import",
+      "line": 4,
+      "source": "import math"
+    },
+    {
+      "kind": "Import",
+      "line": 5,
+      "source": "import pathlib"
+    },
+    {
+      "kind": "Assign",
+      "line": 7,
+      "source": "BASE = pathlib.Path(__file__).resolve().parent"
+    },
+    {
+      "kind": "Assign",
+      "line": 8,
+      "source": "ROOT = BASE.parents[1]"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 10,
+      "source": "load"
+    },
+    {
+      "kind": "Assign",
+      "line": 16,
+      "source": "original = load('pan_commit_original_oracle', BASE.parent / 'apple-toggle-pan-origin-correction/oracle.py')"
+    },
+    {
+      "kind": "Assign",
+      "line": 17,
+      "source": "interruption = load('pan_commit_interruption_oracle', BASE.parent / 'apple-toggle-native-interruption/interruption_oracle.py')"
+    },
+    {
+      "kind": "Assign",
+      "line": 18,
+      "source": "semantic = load('pan_commit_semantic_oracle', BASE.parent / 'apple-toggle-semantic-activation/semantic_oracle.py')"
+    },
+    {
+      "kind": "Assign",
+      "line": 19,
+      "source": "SPECS = {x['name']: x for x in json.loads((BASE / 'cases.json').read_bytes())}"
+    },
+    {
+      "kind": "Assign",
+      "line": 20,
+      "source": "ORIGINAL_CASES = original.CASES - {'diagnostic-direct', 'comparator-direct'}"
+    },
+    {
+      "kind": "Assign",
+      "line": 21,
+      "source": "CASES = ORIGINAL_CASES | interruption.CASES | set(SPECS) | {'semantic-components'}"
+    },
+    {
+      "kind": "Assign",
+      "line": 22,
+      "source": "ACTIONS = original.ACTIONS | interruption.ACTIONS | {'native-pan-commit'}"
+    },
+    {
+      "kind": "Assign",
+      "line": 23,
+      "source": "CASE_ACTION = {**{n: original.CASE_ACTION[n] for n in ORIGINAL_CASES}, **interruption.CASE_ACTION,\n               **{n: 'native-pan-commit' for n in SPECS}, 'semantic-components': 'direct-suite'}"
+    },
+    {
+      "kind": "Assign",
+      "line": 25,
+      "source": "CASE_COMMAND_SEQUENCE = {**{n: original.CASE_COMMAND_SEQUENCE[n] for n in ORIGINAL_CASES},\n                         **interruption.CASE_COMMAND_SEQUENCE,\n                         **{n: ['resume', 'reset'] + (['set-on'] if s['initial'] else []) + ['arm-commit-' + s['mode']] for n,s in SPECS.items()},\n                         'semantic-components': ['resume', 'reset', 'self-tests']}"
+    },
+    {
+      "kind": "Assign",
+      "line": 29,
+      "source": "COMMANDS = set(sum(CASE_COMMAND_SEQUENCE.values(), []))"
+    },
+    {
+      "kind": "Assign",
+      "line": 30,
+      "source": "geometry_valid = original.geometry_valid"
+    },
+    {
+      "kind": "Assign",
+      "line": 31,
+      "source": "BOOLS = {'isOn','retainedOn','enabled','allowed','highlighted','authoredPressed','tracking','touchInside','focused','firstResponder','panActive','toggleTrait','buttonTrait','selectedTrait','notEnabledTrait','configurationNil','menuNil','nativeToggleSelection','rtl'}"
+    },
+    {
+      "kind": "Assign",
+      "line": 32,
+      "source": "COUNTERS = {'panAcceptedCount','panNoChangeCount','panCancellationCount','primaryCount','acceptedCount','rejectedCount','beginCount','continueCount','endCount','cancellationCount','accessibilityActivationCount','eventCount'}"
+    },
+    {
+      "kind": "Assign",
+      "line": 33,
+      "source": "STATE_KEYS = BOOLS | COUNTERS | {'identity','panState','previewThumbX','eventValues','traits','label','hint','value','buttonType','scrollOffsetY','frameInWindow','bounds','displayScale'}"
+    },
+    {
+      "kind": "Assign",
+      "line": 34,
+      "source": "HOOK_KEYS = {'mode','reason','initial','before','after','nativeGestureAtHook','returned','startedUptime','finishedUptime','traceSequenceAtCompletion'}"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 36,
+      "source": "number"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 37,
+      "source": "natural"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 38,
+      "source": "point"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 39,
+      "source": "gesture"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 45,
+      "source": "state_shape"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 58,
+      "source": "rectangle"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 66,
+      "source": "state"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 69,
+      "source": "failed"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 74,
+      "source": "commit_verdict"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 154,
+      "source": "semantic_verdict"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 173,
+      "source": "verdict"
+    }
+  ],
+  "inputs/runtime/verification/apple-toggle-pan-commit-harness-v2/observation_reader.py": [
+    {
+      "kind": "Expr",
+      "line": 1,
+      "source": "\"\"\"Bounded stable observation reads plus explicit deadline propagation.\n\nOnly a demonstrably superseded regular inode is retried. No unlinked inode,\nsymlink, hardlink, unstable in-place content or malformed payload is accepted.\n\"\"\""
+    },
+    {
+      "kind": "Import",
+      "line": 6,
+      "source": "import hashlib"
+    },
+    {
+      "kind": "Import",
+      "line": 7,
+      "source": "import json"
+    },
+    {
+      "kind": "Import",
+      "line": 8,
+      "source": "import math"
+    },
+    {
+      "kind": "Import",
+      "line": 9,
+      "source": "import os"
+    },
+    {
+      "kind": "Import",
+      "line": 10,
+      "source": "import pathlib"
+    },
+    {
+      "kind": "Import",
+      "line": 11,
+      "source": "import stat"
+    },
+    {
+      "kind": "Import",
+      "line": 12,
+      "source": "import time"
+    },
+    {
+      "kind": "Assign",
+      "line": 14,
+      "source": "MAX_OBSERVATION=16_000_000"
+    },
+    {
+      "kind": "Assign",
+      "line": 15,
+      "source": "MAX_ATTEMPTS=4"
+    },
+    {
+      "kind": "Assign",
+      "line": 16,
+      "source": "DIRECT_BUDGET_SECONDS=.050"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 18,
+      "source": "require"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 21,
+      "source": "identity"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 22,
+      "source": "metadata"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 26,
+      "source": "regular_shape"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 31,
+      "source": "stable_info"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 47,
+      "source": "read_payload"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 55,
+      "source": "read_once"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 80,
+      "source": "read_observation"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 94,
+      "source": "deadline_bridge"
+    }
+  ],
+  "inputs/runtime/verification/apple-toggle-pan-origin-correction/apps.py": [
+    {
+      "kind": "Expr",
+      "line": 1,
+      "source": "\"\"\"Retry validation: exact restored archive, finite installed permission policy.\n\nThe two app archives and their 267-file handoff remain immutable. No compiler,\nsubprocess, simulator, physical-device, Git, or UI operation belongs here.\n\"\"\""
+    },
+    {
+      "kind": "Import",
+      "line": 6,
+      "source": "import hashlib"
+    },
+    {
+      "kind": "Import",
+      "line": 7,
+      "source": "import importlib.util"
+    },
+    {
+      "kind": "Import",
+      "line": 8,
+      "source": "import json"
+    },
+    {
+      "kind": "Import",
+      "line": 9,
+      "source": "import os"
+    },
+    {
+      "kind": "Import",
+      "line": 10,
+      "source": "import pathlib"
+    },
+    {
+      "kind": "Import",
+      "line": 11,
+      "source": "import plistlib"
+    },
+    {
+      "kind": "Import",
+      "line": 12,
+      "source": "import stat"
+    },
+    {
+      "kind": "Assign",
+      "line": 14,
+      "source": "BASE = pathlib.Path(__file__).resolve().parent"
+    },
+    {
+      "kind": "Assign",
+      "line": 15,
+      "source": "ROOT = BASE.parents[1]"
+    },
+    {
+      "kind": "Assign",
+      "line": 16,
+      "source": "ORIGINAL = BASE.parent / \"apple-toggle-native-failure-analysis\""
+    },
+    {
+      "kind": "Assign",
+      "line": 17,
+      "source": "ORIGINAL_SEAL = \"9f91c9e56d964d1c505c96ac84034b49029bf386ac1a43de5ab0eaed33eca451\""
+    },
+    {
+      "kind": "Assign",
+      "line": 18,
+      "source": "spec = importlib.util.spec_from_file_location(\"mixer_frozen_toggle_handoff\", ORIGINAL / \"packet.py\")"
+    },
+    {
+      "kind": "Assign",
+      "line": 19,
+      "source": "frozen = importlib.util.module_from_spec(spec)"
+    },
+    {
+      "kind": "Expr",
+      "line": 20,
+      "source": "spec.loader.exec_module(frozen)"
+    },
+    {
+      "kind": "Assign",
+      "line": 21,
+      "source": "CONFIGS = {key: dict(value) for key, value in frozen.CONFIGS.items()}"
+    },
+    {
+      "kind": "Assign",
+      "line": 22,
+      "source": "SOURCE_CLOSURE = frozen.SOURCE_CLOSURE"
+    },
+    {
+      "kind": "Assign",
+      "line": 23,
+      "source": "file_sha = frozen.file_sha"
+    },
+    {
+      "kind": "Assign",
+      "line": 24,
+      "source": "read_json = frozen.read_json"
+    },
+    {
+      "kind": "Assign",
+      "line": 25,
+      "source": "require = frozen.require"
+    },
+    {
+      "kind": "Assign",
+      "line": 26,
+      "source": "archive_payload = frozen.archive_payload"
+    },
+    {
+      "kind": "Assign",
+      "line": 27,
+      "source": "relative_name = frozen.relative_name"
+    },
+    {
+      "kind": "Assign",
+      "line": 28,
+      "source": "INSTALLED_MODES = {\"main\": {0o555, 0o755}, \"dylib\": {0o444, 0o555, 0o644, 0o755}, \"metadata\": {0o444, 0o644}, \"directory\": {0o555, 0o755}}"
+    },
+    {
+      "kind": "ClassDef",
+      "line": 31,
+      "source": "ValidationError"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 38,
+      "source": "role"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 48,
+      "source": "kind"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 55,
+      "source": "scan_app"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 86,
+      "source": "expected_manifest"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 90,
+      "source": "validate_inventory"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 124,
+      "source": "validate_content"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 160,
+      "source": "verify_restored"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 169,
+      "source": "verify_installed"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 187,
+      "source": "restore"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 205,
+      "source": "verify_packet"
+    }
+  ],
+  "inputs/runtime/verification/apple-toggle-pan-origin-correction/bridge.py": [
+    {
+      "kind": "Expr",
+      "line": 1,
+      "source": "\"\"\"Finite loopback telemetry bridge, activated only by the root-owned runner.\n\nNo request can select a path, process, device, shell command, or input event.\nThe capability is process memory only; HTTP request/header logging is disabled.\n\"\"\""
+    },
+    {
+      "kind": "Import",
+      "line": 6,
+      "source": "import hashlib"
+    },
+    {
+      "kind": "Import",
+      "line": 7,
+      "source": "import hmac"
+    },
+    {
+      "kind": "Import",
+      "line": 8,
+      "source": "import json"
+    },
+    {
+      "kind": "Import",
+      "line": 9,
+      "source": "import math"
+    },
+    {
+      "kind": "Import",
+      "line": 10,
+      "source": "import os"
+    },
+    {
+      "kind": "Import",
+      "line": 11,
+      "source": "import pathlib"
+    },
+    {
+      "kind": "Import",
+      "line": 12,
+      "source": "import stat"
+    },
+    {
+      "kind": "Import",
+      "line": 13,
+      "source": "import time"
+    },
+    {
+      "kind": "Import",
+      "line": 14,
+      "source": "import tempfile"
+    },
+    {
+      "kind": "ImportFrom",
+      "line": 15,
+      "source": "from http.server import BaseHTTPRequestHandler, HTTPServer"
+    },
+    {
+      "kind": "ImportFrom",
+      "line": 16,
+      "source": "from oracle import ACTIONS, CASES, CASE_ACTION, CASE_COMMAND_SEQUENCE, COMMANDS, geometry_valid, verdict"
+    },
+    {
+      "kind": "Assign",
+      "line": 18,
+      "source": "MAX_BODY = 8192"
+    },
+    {
+      "kind": "Assign",
+      "line": 19,
+      "source": "MAX_OBSERVATION = 16_000_000"
+    },
+    {
+      "kind": "Assign",
+      "line": 20,
+      "source": "MAX_RESPONSE = 2_000_000"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 22,
+      "source": "require"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 25,
+      "source": "json_bytes"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 27,
+      "source": "read_observation"
+    },
+    {
+      "kind": "ClassDef",
+      "line": 44,
+      "source": "Bridge"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 196,
+      "source": "server_for"
+    }
+  ],
+  "inputs/runtime/verification/apple-toggle-pan-origin-correction/harness.py": [
+    {
+      "kind": "Expr",
+      "line": 2,
+      "source": "\"\"\"Build-only preparation; sealed run is root-only after independent review.\n\nNo native operation occurs on import, verify, or prepare. Only `run`/`cleanup`\naddress a simulator. They never address physical devices or baseline instances.\n\"\"\""
+    },
+    {
+      "kind": "Import",
+      "line": 7,
+      "source": "import argparse"
+    },
+    {
+      "kind": "Import",
+      "line": 8,
+      "source": "import join_support"
+    },
+    {
+      "kind": "Import",
+      "line": 9,
+      "source": "import hashlib"
+    },
+    {
+      "kind": "Import",
+      "line": 10,
+      "source": "import gzip"
+    },
+    {
+      "kind": "Import",
+      "line": 11,
+      "source": "import io"
+    },
+    {
+      "kind": "Import",
+      "line": 12,
+      "source": "import importlib.util"
+    },
+    {
+      "kind": "Import",
+      "line": 13,
+      "source": "import json"
+    },
+    {
+      "kind": "Import",
+      "line": 14,
+      "source": "import os"
+    },
+    {
+      "kind": "Import",
+      "line": 15,
+      "source": "import pathlib"
+    },
+    {
+      "kind": "Import",
+      "line": 16,
+      "source": "import plistlib"
+    },
+    {
+      "kind": "Import",
+      "line": 17,
+      "source": "import secrets"
+    },
+    {
+      "kind": "Import",
+      "line": 18,
+      "source": "import shutil"
+    },
+    {
+      "kind": "Import",
+      "line": 19,
+      "source": "import signal"
+    },
+    {
+      "kind": "Import",
+      "line": 20,
+      "source": "import stat"
+    },
+    {
+      "kind": "Import",
+      "line": 21,
+      "source": "import subprocess"
+    },
+    {
+      "kind": "Import",
+      "line": 22,
+      "source": "import sys"
+    },
+    {
+      "kind": "Import",
+      "line": 23,
+      "source": "import tempfile"
+    },
+    {
+      "kind": "Import",
+      "line": 24,
+      "source": "import threading"
+    },
+    {
+      "kind": "Import",
+      "line": 25,
+      "source": "import tarfile"
+    },
+    {
+      "kind": "Import",
+      "line": 26,
+      "source": "import time"
+    },
+    {
+      "kind": "Import",
+      "line": 27,
+      "source": "import uuid"
+    },
+    {
+      "kind": "ImportFrom",
+      "line": 28,
+      "source": "from bridge import Bridge, server_for, json_bytes, require"
+    },
+    {
+      "kind": "ImportFrom",
+      "line": 29,
+      "source": "from oracle import CASES"
+    },
+    {
+      "kind": "Assign",
+      "line": 31,
+      "source": "BASE = pathlib.Path(__file__).resolve().parent"
+    },
+    {
+      "kind": "Assign",
+      "line": 32,
+      "source": "ROOT = BASE.parents[1]"
+    },
+    {
+      "kind": "Assign",
+      "line": 33,
+      "source": "DEVELOPER = pathlib.Path(\"/Applications/Xcode_26.6.app/Contents/Developer\")"
+    },
+    {
+      "kind": "Assign",
+      "line": 34,
+      "source": "RUNTIME = \"com.apple.CoreSimulator.SimRuntime.iOS-26-5\""
+    },
+    {
+      "kind": "Assign",
+      "line": 35,
+      "source": "DEVICE_TYPE = \"com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro\""
+    },
+    {
+      "kind": "Assign",
+      "line": 36,
+      "source": "RUNTIME_BUILD = \"23F77\""
+    },
+    {
+      "kind": "Assign",
+      "line": 37,
+      "source": "PRODUCTS = BASE / \"build/Build/Products\""
+    },
+    {
+      "kind": "Assign",
+      "line": 38,
+      "source": "PRODUCT_ARCHIVE = BASE / \"test-runner-products.tar.gz\""
+    },
+    {
+      "kind": "Assign",
+      "line": 39,
+      "source": "RUN_DIR = BASE / \"runtime\""
+    },
+    {
+      "kind": "Assign",
+      "line": 40,
+      "source": "SOURCE_REVISION_CONTEXT = \"ef7510043e8ea9fc55dd7555dc91e9265b0215e3\""
+    },
+    {
+      "kind": "Import",
+      "line": 41,
+      "source": "import apps as packet"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 43,
+      "source": "write"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 54,
+      "source": "sha"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 55,
+      "source": "tree"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 67,
+      "source": "source_tree"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 71,
+      "source": "archive_products"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 83,
+      "source": "product_archive_payload"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 101,
+      "source": "restore_products"
+    },
+    {
+      "kind": "ClassDef",
+      "line": 114,
+      "source": "Commands"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 145,
+      "source": "verify_sources_and_build"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 157,
+      "source": "verify_seal_files"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 167,
+      "source": "verify_controls_and_bindings"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 186,
+      "source": "verify"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 188,
+      "source": "prepare"
+    },
+    {
+      "kind": "Assign",
+      "line": 204,
+      "source": "INTERACTION_METHODS = [\"test010StandaloneNativePanPositiveControl\", \"test020BlankListUpwardScrollPositiveControl\", \"test030LTRPanOffToOn\", \"test040LTRPanOnToOff\", \"test050RTLPanOffToOn\", \"test060RTLPanOnToOff\", \"test070VerticalDragStartingOnCarrierScrolls\", \"test080DiagnosticAuthoredNativeTapPair\", \"test090DiagnosticPlainUIButtonNativeTapPair\", \"test100ComparatorAuthoredNativeTapPair\"]"
+    },
+    {
+      "kind": "Assign",
+      "line": 205,
+      "source": "DIRECT_METHODS = [\"test110DiagnosticDirectAPIOriginalStrictChecks\", \"test120ComparatorDirectAPIOriginalStrictChecks\"]"
+    },
+    {
+      "kind": "Assign",
+      "line": 206,
+      "source": "SCOPES = {\"interaction\": {\"methods\": INTERACTION_METHODS, \"cases\": CASES - {\"diagnostic-direct\", \"comparator-direct\"}},\n          \"direct\": {\"methods\": DIRECT_METHODS, \"cases\": {\"diagnostic-direct\", \"comparator-direct\"}}}"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 209,
+      "source": "runtime_summary"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 232,
+      "source": "flattened"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 233,
+      "source": "devices"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 234,
+      "source": "owned_device"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 242,
+      "source": "reconcile_creation"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 251,
+      "source": "frontends"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 258,
+      "source": "cleanup"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 275,
+      "source": "validate_container"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 282,
+      "source": "cleanup_independently"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 289,
+      "source": "remove_ephemeral"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 300,
+      "source": "select_runtime_directory"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 304,
+      "source": "run"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 403,
+      "source": "main"
+    },
+    {
+      "kind": "If",
+      "line": 425,
+      "source": "if __name__ == \"__main__\":\n    def stop(signum, frame): raise KeyboardInterrupt(\"Root harness interruption\")\n    signal.signal(signal.SIGINT, stop); signal.signal(signal.SIGTERM, stop)\n    main()"
+    }
+  ],
+  "inputs/runtime/verification/apple-toggle-pan-origin-correction/oracle.py": [
+    {
+      "kind": "Expr",
+      "line": 1,
+      "source": "\"\"\"Independent closed evidence verdicts. Host unit tests do not qualify UIKit.\"\"\""
+    },
+    {
+      "kind": "Import",
+      "line": 2,
+      "source": "import math"
+    },
+    {
+      "kind": "Assign",
+      "line": 4,
+      "source": "EXPECTED_CHECK_NAMES = {\n    \"diagnostic\": [\"binding writes emit no events\", \"disabled native trait\", \"public native toggle and button traits\", \"authored metadata survives native state\", \"binding environment and theme preserve native identity\", \"native visual carrier is custom unconfigured UIButton\", \"pan reference is attached directly to root view outside scroll\", \"carrier-primary-off-to-on strict settled transition\", \"carrier-primary-on-to-off strict settled transition\", \"carrier-stale-primary strict settled transition\", \"carrier-disabled-primary strict settled transition\", \"carrier-disabled-accessibility strict settled transition\", \"carrier-accessibility-off-to-on strict settled transition\", \"carrier-accessibility-on-to-off strict settled transition\", \"reference-primary-off-to-on strict settled transition\", \"reference-primary-on-to-off strict settled transition\", \"reference-accessibility-off-to-on strict settled transition\", \"reference-accessibility-on-to-off strict settled transition\", \"diagnostic trace has not overflowed\"],\n    \"comparator\": [\"binding writes emit no events\", \"UIKit primary activation selects and emits once\", \"UIKit second activation deselects and emits once\", \"stale native primary action restores value without event\", \"disabled primary action has no value event\", \"disabled native trait\", \"disabled accessibility activation rejected\", \"UIButton accessibility activation selects and emits once\", \"public native toggle and button traits\", \"authored metadata survives native state\", \"binding environment and theme preserve native identity\", \"native visual carrier is custom unconfigured UIButton\"]\n}"
+    },
+    {
+      "kind": "Assign",
+      "line": 9,
+      "source": "ACTIONS = {\"reference-pan\", \"blank-scroll\", \"authored-pan\", \"carrier-scroll\", \"plain-tap\", \"authored-tap\", \"direct-suite\"}"
+    },
+    {
+      "kind": "Assign",
+      "line": 10,
+      "source": "CASES = {\"standalone-pan\", \"blank-scroll\", \"ltr-on\", \"ltr-off\", \"rtl-on\", \"rtl-off\", \"carrier-scroll\", \"diagnostic-taps\", \"plain-taps\", \"comparator-taps\", \"diagnostic-direct\", \"comparator-direct\"}"
+    },
+    {
+      "kind": "Assign",
+      "line": 11,
+      "source": "COMMANDS = {\"resume\", \"reset\", \"rtl\", \"set-on\", \"self-tests\"}"
+    },
+    {
+      "kind": "Assign",
+      "line": 12,
+      "source": "CASE_ACTION = {\"standalone-pan\": \"reference-pan\", \"blank-scroll\": \"blank-scroll\", \"carrier-scroll\": \"carrier-scroll\", \"plain-taps\": \"plain-tap\", \"diagnostic-taps\": \"authored-tap\", \"comparator-taps\": \"authored-tap\", \"diagnostic-direct\": \"direct-suite\", \"comparator-direct\": \"direct-suite\", **{name: \"authored-pan\" for name in (\"ltr-on\", \"ltr-off\", \"rtl-on\", \"rtl-off\")}}"
+    },
+    {
+      "kind": "Assign",
+      "line": 13,
+      "source": "CASE_COMMAND_SEQUENCE = {case: [\"resume\", \"reset\"] + ([\"rtl\"] if case.startswith(\"rtl-\") else []) + ([\"set-on\"] if case in {\"ltr-off\", \"rtl-off\"} else []) + ([\"self-tests\"] if case.endswith(\"-direct\") else []) for case in CASES}"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 15,
+      "source": "geometry_valid"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 26,
+      "source": "verdict"
+    }
+  ],
+  "inputs/runtime/verification/apple-toggle-semantic-activation/semantic_oracle.py": [
+    {
+      "kind": "Expr",
+      "line": 1,
+      "source": "\"\"\"Independent finite oracle for actual UIKit semantic callback observations.\"\"\""
+    },
+    {
+      "kind": "Import",
+      "line": 2,
+      "source": "import copy"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 4,
+      "source": "cases"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 16,
+      "source": "verify"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 50,
+      "source": "host_fixture"
+    }
+  ],
+  "join_support.py": [
+    {
+      "kind": "Expr",
+      "line": 1,
+      "source": "\"\"\"Owned diagnostic adapters; imports have no native or service side effects.\"\"\""
+    },
+    {
+      "kind": "Import",
+      "line": 2,
+      "source": "import copy"
+    },
+    {
+      "kind": "Import",
+      "line": 3,
+      "source": "import hashlib"
+    },
+    {
+      "kind": "Import",
+      "line": 4,
+      "source": "import json"
+    },
+    {
+      "kind": "Import",
+      "line": 5,
+      "source": "import os"
+    },
+    {
+      "kind": "ImportFrom",
+      "line": 6,
+      "source": "from pathlib import Path"
+    },
+    {
+      "kind": "Import",
+      "line": 7,
+      "source": "import plistlib"
+    },
+    {
+      "kind": "Import",
+      "line": 8,
+      "source": "import shutil"
+    },
+    {
+      "kind": "Import",
+      "line": 9,
+      "source": "import stat"
+    },
+    {
+      "kind": "Import",
+      "line": 10,
+      "source": "import time"
+    },
+    {
+      "kind": "Assign",
+      "line": 12,
+      "source": "_selected = None"
+    },
+    {
+      "kind": "Assign",
+      "line": 13,
+      "source": "METHODS = ['test000PublicSettingsFullKeyboardAccess', 'test010ReferenceFirstTab']"
+    },
+    {
+      "kind": "Assign",
+      "line": 14,
+      "source": "CASE = 'keyboard-enabled-off'"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 17,
+      "source": "require"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 21,
+      "source": "sha"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 24,
+      "source": "verify_packet"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 35,
+      "source": "product_tree"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 54,
+      "source": "verify_products"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 60,
+      "source": "candidate_apps"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 86,
+      "source": "prepare_session"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 96,
+      "source": "derive_configuration"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 115,
+      "source": "session_configuration"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 139,
+      "source": "select_command"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 155,
+      "source": "is_selected"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 163,
+      "source": "run_observed"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 194,
+      "source": "observer_terminal"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 204,
+      "source": "retire_session"
+    },
+    {
+      "kind": "Expr",
+      "line": 227,
+      "source": "\"\"\"Appended to the frozen diagnostic adapter in the selected runtime only.\n\nNo import invokes native tools. Root supplies one fresh selection before dispatch.\n\"\"\""
+    },
+    {
+      "kind": "Import",
+      "line": 231,
+      "source": "import importer"
+    },
+    {
+      "kind": "Import",
+      "line": 232,
+      "source": "import reference_contract"
+    },
+    {
+      "kind": "Assign",
+      "line": 233,
+      "source": "_ROOT = None"
+    },
+    {
+      "kind": "Assign",
+      "line": 234,
+      "source": "_OFFICIAL = None"
+    },
+    {
+      "kind": "Assign",
+      "line": 235,
+      "source": "_ORIGINAL_SELECT = select_command"
+    },
+    {
+      "kind": "Assign",
+      "line": 236,
+      "source": "_ORIGINAL_RUN_OBSERVED = run_observed"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 239,
+      "source": "configure_root"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 245,
+      "source": "select_command"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 255,
+      "source": "path_identity"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 262,
+      "source": "run_observed"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 269,
+      "source": "observer_terminal"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 285,
+      "source": "application_captures"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 299,
+      "source": "capture_official"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 348,
+      "source": "runtime_summary"
+    }
+  ],
+  "orchestration.py": [
+    {
+      "kind": "Expr",
+      "line": 1,
+      "source": "\"\"\"Same private native sequence with reporting-independent resource cleanup.\n\nSource preparation only. This function is exercised with mocked native/process\nboundaries in host controls; the verify-only CLI supplies no native authority.\n\"\"\""
+    },
+    {
+      "kind": "Import",
+      "line": 6,
+      "source": "import workspace_ownership"
+    },
+    {
+      "kind": "Import",
+      "line": 7,
+      "source": "import join_support"
+    },
+    {
+      "kind": "ClassDef",
+      "line": 9,
+      "source": "Outcome"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 23,
+      "source": "run"
+    }
+  ],
+  "reference_contract.py": [
+    {
+      "kind": "Expr",
+      "line": 1,
+      "source": "\"\"\"Pure classification and exact oracle replay; no runtime/module orchestration.\"\"\""
+    },
+    {
+      "kind": "Import",
+      "line": 2,
+      "source": "import copy"
+    },
+    {
+      "kind": "Import",
+      "line": 3,
+      "source": "import math"
+    },
+    {
+      "kind": "Assign",
+      "line": 4,
+      "source": "SCHEMA = 'mixer.apple-focus-reference-precondition.1'"
+    },
+    {
+      "kind": "Assign",
+      "line": 5,
+      "source": "REFERENCE = 'plain-uibutton-reference'"
+    },
+    {
+      "kind": "Assign",
+      "line": 6,
+      "source": "CASE = 'keyboard-enabled-off'"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 9,
+      "source": "strict_json_equal"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 22,
+      "source": "result"
+    }
+  ],
+  "runtime_bindings.py": [
+    {
+      "kind": "Expr",
+      "line": 1,
+      "source": "\"\"\"Origin checks for the selected closed runtime closure, never historical evidence.\"\"\""
+    },
+    {
+      "kind": "Import",
+      "line": 2,
+      "source": "import hashlib"
+    },
+    {
+      "kind": "Import",
+      "line": 3,
+      "source": "import json"
+    },
+    {
+      "kind": "Import",
+      "line": 4,
+      "source": "import pathlib"
+    },
+    {
+      "kind": "Import",
+      "line": 5,
+      "source": "import sys"
+    },
+    {
+      "kind": "Import",
+      "line": 6,
+      "source": "import types"
+    },
+    {
+      "kind": "ClassDef",
+      "line": 8,
+      "source": "RuntimeBindings"
+    }
+  ],
+  "runtime_summary.py": [
+    {
+      "kind": "Expr",
+      "line": 1,
+      "source": "\"\"\"All evidence predicates remain fail-closed; native work is not implied.\"\"\""
+    },
+    {
+      "kind": "Import",
+      "line": 2,
+      "source": "import json"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 4,
+      "source": "official_methods"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 27,
+      "source": "runtime_summary"
+    }
+  ],
+  "workspace_ownership.py": [
+    {
+      "kind": "Expr",
+      "line": 1,
+      "source": "\"\"\"Immediate allocation ownership and narrow cleanup before identity completion.\"\"\""
+    },
+    {
+      "kind": "Import",
+      "line": 2,
+      "source": "import errno"
+    },
+    {
+      "kind": "Import",
+      "line": 3,
+      "source": "import os"
+    },
+    {
+      "kind": "Import",
+      "line": 4,
+      "source": "import pathlib"
+    },
+    {
+      "kind": "Import",
+      "line": 5,
+      "source": "import stat"
+    },
+    {
+      "kind": "Assign",
+      "line": 6,
+      "source": "PREFIX='mixer-toggle-xctest-'"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 9,
+      "source": "prepare"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 25,
+      "source": "validate"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 33,
+      "source": "absent_at"
+    },
+    {
+      "kind": "FunctionDef",
+      "line": 39,
+      "source": "remove"
+    }
+  ]
+}

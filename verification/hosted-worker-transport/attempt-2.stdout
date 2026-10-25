@@ -1,0 +1,70 @@
+Running ExUnit with seed: 0, max_cases: 4
+
+............
+
+  1) test response extra byte or pipelined response fails after complete declared body (MixerHosted.Builds.WorkerTransportTest)
+     verification/hosted-worker-transport/candidate/test/mixer_hosted/builds/worker_transport_test.exs:55
+     match (=) failed
+     code:  assert {:error, :uncertain} = WorkerHTTPAdapter.query(WorkerData.request())
+     left:  {:error, :uncertain}
+     right: {:ok,
+             %MixerHosted.Builds.Dispatch.Observation{
+               operation_id: "e0c2708c844f449355cf2311d05134d6428f40b309edd5b425765801c98c1f5d",
+               ref: %MixerHosted.Builds.Lifecycle.WorkerRef{
+                 organization_id: "org",
+                 project_id: "project",
+                 application_id: "app",
+                 build_id: "build",
+                 platform: :ios,
+                 attempt: 1,
+                 fence: 9223372036854775807
+               },
+               status: :absent
+             }}
+     stacktrace:
+       verification/hosted-worker-transport/candidate/test/mixer_hosted/builds/worker_transport_test.exs:58: anonymous fn/3 in MixerHosted.Builds.WorkerTransportTest."test response extra byte or pipelined response fails after complete declared body"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       verification/hosted-worker-transport/candidate/test/mixer_hosted/builds/worker_transport_test.exs:56: (test)
+
+..
+
+  2) test complete response without peer EOF consumes same deadline and fails (MixerHosted.Builds.WorkerTransportTest)
+     verification/hosted-worker-transport/candidate/test/mixer_hosted/builds/worker_transport_test.exs:98
+     match (=) failed
+     code:  assert {:error, :uncertain} = WorkerHTTPAdapter.query(WorkerData.request())
+     left:  {:error, :uncertain}
+     right: {:ok,
+             %MixerHosted.Builds.Dispatch.Observation{
+               operation_id: "e0c2708c844f449355cf2311d05134d6428f40b309edd5b425765801c98c1f5d",
+               ref: %MixerHosted.Builds.Lifecycle.WorkerRef{
+                 organization_id: "org",
+                 project_id: "project",
+                 application_id: "app",
+                 build_id: "build",
+                 platform: :ios,
+                 attempt: 1,
+                 fence: 9223372036854775807
+               },
+               status: :absent
+             }}
+     stacktrace:
+       verification/hosted-worker-transport/candidate/test/mixer_hosted/builds/worker_transport_test.exs:101: (test)
+
+..
+
+  3) test sixteen concurrent operations reject seventeenth without a socket (MixerHosted.Builds.WorkerTransportTest)
+     verification/hosted-worker-transport/candidate/test/mixer_hosted/builds/worker_transport_test.exs:124
+     Assertion failed, no matching message after 2000ms
+     The process mailbox is empty.
+     code: assert_receive {:worker_fixture_request, _}
+     stacktrace:
+       verification/hosted-worker-transport/candidate/test/mixer_hosted/builds/worker_transport_test.exs:127: anonymous fn/2 in MixerHosted.Builds.WorkerTransportTest."test sixteen concurrent operations reject seventeenth without a socket"/1
+       (elixir 1.20.4) lib/enum.ex:4659: Enum.reduce_range/5
+       verification/hosted-worker-transport/candidate/test/mixer_hosted/builds/worker_transport_test.exs:127: (test)
+
+
+Finished in 2.2 seconds (0.04s async, 2.2s sync)
+
+Result: 16/19 passed
+Failed: 3 tests
+{"scope":"isolated-client-candidate-real-synthetic-TLS-only","tests":19,"failures":3,"skipped":0,"excluded":0,"frozen_modules_loaded":[]}

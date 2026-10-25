@@ -1,0 +1,17 @@
+     error: cannot find or invoke local when/2 inside a match. Only macros can be invoked inside a match and they must be defined before their invocation. Called as: {ref, _} when ref == caller.ref
+     │
+ 146 │     refute_receive {ref, _} when ref == caller.ref, 50
+     │                             ^
+     │
+     └─ verification/hosted-worker-transport/candidate/test/mixer_hosted/builds/worker_transport_test.exs:146:29: MixerHosted.Builds.WorkerTransportTest."test segmented final body byte waits for byte and genuine EOF before Mint done"/1
+
+     error: cannot invoke remote function caller.ref/0 inside a match
+     │
+ 146 │     refute_receive {ref, _} when ref == caller.ref, 50
+     │                                                ^
+     │
+     └─ verification/hosted-worker-transport/candidate/test/mixer_hosted/builds/worker_transport_test.exs:146:48: MixerHosted.Builds.WorkerTransportTest."test segmented final body byte waits for byte and genuine EOF before Mint done"/1
+
+** (CompileError) verification/hosted-worker-transport/candidate/test/mixer_hosted/builds/worker_transport_test.exs: cannot compile module MixerHosted.Builds.WorkerTransportTest (errors have been logged)
+    (ex_unit 1.20.4) expanding macro: ExUnit.Assertions.refute_receive/2
+    verification/hosted-worker-transport/candidate/test/mixer_hosted/builds/worker_transport_test.exs:146: MixerHosted.Builds.WorkerTransportTest."test segmented final body byte waits for byte and genuine EOF before Mint done"/1
