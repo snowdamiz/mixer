@@ -1,0 +1,34 @@
+2026-10-25 07:42:45.499 EDT [45029] LOG:  starting PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit
+2026-10-25 07:42:45.499 EDT [45029] LOG:  listening on IPv4 address "127.0.0.1", port 64068
+2026-10-25 07:42:45.502 EDT [45032] LOG:  database system was shut down at 2026-10-25 07:42:45 EDT
+2026-10-25 07:42:45.505 EDT [45029] LOG:  database system is ready to accept connections
+2026-10-25 07:42:58.022 EDT [45169] ERROR:  canceling statement due to lock timeout
+2026-10-25 07:42:58.022 EDT [45169] CONTEXT:  while locking tuple (0,1) in relation "mixer_authz_profiles"
+	SQL statement "SELECT 1 FROM public.mixer_authz_profiles WHERE id = current_setting('mixer.authz.profile_id', true) AND version::text = current_setting('mixer.authz.profile_version', true) FOR SHARE"
+	PL/pgSQL function public.mixer_authz_lock_profiles() line 3 at PERFORM
+2026-10-25 07:42:58.022 EDT [45169] STATEMENT:  SELECT public.mixer_authz_lock_profiles()
+2026-10-25 07:42:58.077 EDT [45147] ERROR:  new row for relation "mixer_authz_profiles" violates check constraint "mixer_authz_profiles_state_revision_check"
+2026-10-25 07:42:58.077 EDT [45147] DETAIL:  Failing row contains (profile, 1, https://issuer.example, client, human, t, 0).
+2026-10-25 07:42:58.077 EDT [45147] STATEMENT:  UPDATE public.mixer_authz_profiles SET state_revision=$1
+2026-10-25 07:42:58.077 EDT [45142] ERROR:  new row for relation "mixer_authz_profiles" violates check constraint "mixer_authz_profiles_state_revision_check"
+2026-10-25 07:42:58.077 EDT [45142] DETAIL:  Failing row contains (profile, 1, https://issuer.example, client, human, t, -1).
+2026-10-25 07:42:58.077 EDT [45142] STATEMENT:  UPDATE public.mixer_authz_profiles SET state_revision=$1
+2026-10-25 07:42:58.078 EDT [45140] ERROR:  new row for relation "mixer_authz_profiles" violates check constraint "mixer_authz_profiles_state_revision_check"
+2026-10-25 07:42:58.078 EDT [45140] DETAIL:  Failing row contains (profile, 1, https://issuer.example, client, human, t, 9007199254740992).
+2026-10-25 07:42:58.078 EDT [45140] STATEMENT:  UPDATE public.mixer_authz_profiles SET state_revision=$1
+2026-10-25 07:42:58.078 EDT [45141] ERROR:  new row for relation "mixer_authz_bindings" violates check constraint "mixer_authz_bindings_revision_check"
+2026-10-25 07:42:58.078 EDT [45141] DETAIL:  Failing row contains (profile, 1, subject, human, person, t, 0).
+2026-10-25 07:42:58.078 EDT [45141] STATEMENT:  UPDATE public.mixer_authz_bindings SET revision=$1
+2026-10-25 07:42:58.078 EDT [45147] ERROR:  new row for relation "mixer_authz_bindings" violates check constraint "mixer_authz_bindings_revision_check"
+2026-10-25 07:42:58.078 EDT [45147] DETAIL:  Failing row contains (profile, 1, subject, human, person, t, -1).
+2026-10-25 07:42:58.078 EDT [45147] STATEMENT:  UPDATE public.mixer_authz_bindings SET revision=$1
+2026-10-25 07:42:58.078 EDT [45142] ERROR:  new row for relation "mixer_authz_bindings" violates check constraint "mixer_authz_bindings_revision_check"
+2026-10-25 07:42:58.078 EDT [45142] DETAIL:  Failing row contains (profile, 1, subject, human, person, t, 9007199254740992).
+2026-10-25 07:42:58.078 EDT [45142] STATEMENT:  UPDATE public.mixer_authz_bindings SET revision=$1
+2026-10-25 07:42:58.173 EDT [45029] LOG:  received fast shutdown request
+2026-10-25 07:42:58.173 EDT [45029] LOG:  aborting any active transactions
+2026-10-25 07:42:58.174 EDT [45029] LOG:  background worker "logical replication launcher" (PID 45035) exited with exit code 1
+2026-10-25 07:42:58.174 EDT [45030] LOG:  shutting down
+2026-10-25 07:42:58.174 EDT [45030] LOG:  checkpoint starting: shutdown immediate
+2026-10-25 07:42:58.296 EDT [45030] LOG:  checkpoint complete: wrote 2110 buffers (12.9%); 0 WAL file(s) added, 0 removed, 1 recycled; write=0.066 s, sync=0.032 s, total=0.123 s; sync files=1788, longest=0.001 s, average=0.001 s; distance=11256 kB, estimate=11256 kB; lsn=0/2018A10, redo lsn=0/2018A10
+2026-10-25 07:42:58.299 EDT [45029] LOG:  database system is shut down

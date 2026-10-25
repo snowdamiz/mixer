@@ -1,0 +1,50 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+...............
+07:47:07.035 [error] Postgrex.Protocol (#PID<0.192.0> ({Postgrex.Protocol, "authz_review"})) disconnected: ** (DBConnection.ConnectionError) client #PID<0.242.0> ({MixerAuthzIndependent.Review, :"test monotonic deadline applies to transaction while token remains live"}) timed out because it queued and checked out the connection for longer than 5000ms
+
+#PID<0.242.0> ({MixerAuthzIndependent.Review, :"test monotonic deadline applies to transaction while token remains live"}) was at location:
+
+    (elixir 1.20.4) lib/process.ex:330: Process.sleep/1
+    verification/hosted-customer-authorized-transaction-review/run-4-corrected/inputs/verification/hosted-customer-authorized-transaction-review/review_test.exs:684: anonymous fn/1 in MixerAuthzIndependent.Review."test monotonic deadline applies to transaction while token remains live"/1
+    verification/hosted-customer-authorized-transaction-review/run-4-corrected/inputs/hosted/lib/mixer_hosted/authorization.ex:63: anonymous fn/8 in MixerHosted.Authorization.with_authorized_transaction/5
+    verification/hosted-customer-authorized-transaction-review/run-4-corrected/inputs/verification/hosted-customer-authorized-transaction-review/review_test.exs:10: anonymous fn/1 in MixerAuthzIndependent.Runtime.transaction/2
+    (ecto 3.14.2) lib/ecto/repo/transaction.ex:11: anonymous fn/3 in Ecto.Repo.Transaction.transact/4
+    (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1481: anonymous fn/3 in Ecto.Adapters.SQL.checkout_or_transaction/4
+    (db_connection 2.10.2) lib/db_connection.ex:1760: DBConnection.run_transaction/5
+    verification/hosted-customer-authorized-transaction-review/run-4-corrected/inputs/hosted/lib/mixer_hosted/authorization.ex:36: MixerHosted.Authorization.with_authorized_transaction/5
+    verification/hosted-customer-authorized-transaction-review/run-4-corrected/inputs/verification/hosted-customer-authorized-transaction-review/review_test.exs:682: MixerAuthzIndependent.Review."test monotonic deadline applies to transaction while token remains live"/1
+    (ex_unit 1.20.4) lib/ex_unit/runner.ex:533: ExUnit.Runner.exec_test/2
+    (stdlib 8.1) timer.erl:599: :timer.tc/2
+    (ex_unit 1.20.4) lib/ex_unit/runner.ex:455: anonymous fn/6 in ExUnit.Runner.spawn_test_monitor/4
+
+.
+07:47:12.092 [error] Postgrex.Protocol (#PID<0.192.0> ({Postgrex.Protocol, "authz_review"})) disconnected: ** (DBConnection.ConnectionError) client #PID<0.246.0> (Task.Supervised) timed out because it queued and checked out the connection for longer than 5000ms
+
+#PID<0.246.0> (Task.Supervised) was at location:
+
+    verification/hosted-customer-authorized-transaction-review/run-4-corrected/inputs/hosted/lib/mixer_hosted/authorization/scope.ex:45: anonymous fn/1 in MixerHosted.Authorization.Scope.identifier?/1
+    (elixir 1.20.4) lib/enum.ex:4419: Enum.predicate_list/3
+    verification/hosted-customer-authorized-transaction-review/run-4-corrected/inputs/hosted/lib/mixer_hosted/authorization/scope.ex:37: MixerHosted.Authorization.Scope.ancestor_path?/1
+    verification/hosted-customer-authorized-transaction-review/run-4-corrected/inputs/hosted/lib/mixer_hosted/authorization/scope.ex:26: MixerHosted.Authorization.Scope.normalize/1
+    verification/hosted-customer-authorized-transaction-review/run-4-corrected/inputs/hosted/lib/mixer_hosted/authorization/policy.ex:263: anonymous fn/2 in MixerHosted.Authorization.Policy.memberships/1
+    (elixir 1.20.4) lib/enum.ex:5119: Enumerable.List.reduce/3
+    (elixir 1.20.4) lib/enum.ex:2676: Enum.reduce_while/3
+    verification/hosted-customer-authorized-transaction-review/run-4-corrected/inputs/hosted/lib/mixer_hosted/authorization/policy.ex:257: MixerHosted.Authorization.Policy.memberships/1
+    verification/hosted-customer-authorized-transaction-review/run-4-corrected/inputs/hosted/lib/mixer_hosted/authorization/policy.ex:226: MixerHosted.Authorization.Policy.evidence/1
+    verification/hosted-customer-authorized-transaction-review/run-4-corrected/inputs/hosted/lib/mixer_hosted/authorization/policy.ex:131: MixerHosted.Authorization.Policy.evaluate/5
+    verification/hosted-customer-authorized-transaction-review/run-4-corrected/inputs/hosted/lib/mixer_hosted/authorization/transaction/context.ex:143: MixerHosted.Authorization.Transaction.Context.fresh_snapshot!/6
+    verification/hosted-customer-authorized-transaction-review/run-4-corrected/inputs/hosted/lib/mixer_hosted/authorization/transaction/context.ex:93: MixerHosted.Authorization.Transaction.Context.checkpoint!/4
+    verification/hosted-customer-authorized-transaction-review/run-4-corrected/inputs/hosted/lib/mixer_hosted/authorization/transaction/context.ex:116: MixerHosted.Authorization.Transaction.Context.effect!/5
+    verification/hosted-customer-authorized-transaction-review/run-4-corrected/inputs/verification/hosted-customer-authorized-transaction-review/review_test.exs:741: anonymous fn/3 in MixerAuthzIndependent.Review."test postvalidation deadline guard blocks effect when evaluator is descheduled across five seconds"/1
+    verification/hosted-customer-authorized-transaction-review/run-4-corrected/inputs/hosted/lib/mixer_hosted/authorization.ex:63: anonymous fn/8 in MixerHosted.Authorization.with_authorized_transaction/5
+    verification/hosted-customer-authorized-transaction-review/run-4-corrected/inputs/verification/hosted-customer-authorized-transaction-review/review_test.exs:10: anonymous fn/1 in MixerAuthzIndependent.Runtime.transaction/2
+    (ecto 3.14.2) lib/ecto/repo/transaction.ex:11: anonymous fn/3 in Ecto.Repo.Transaction.transact/4
+    (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1481: anonymous fn/3 in Ecto.Adapters.SQL.checkout_or_transaction/4
+    (db_connection 2.10.2) lib/db_connection.ex:1760: DBConnection.run_transaction/5
+    verification/hosted-customer-authorized-transaction-review/run-4-corrected/inputs/hosted/lib/mixer_hosted/authorization.ex:36: MixerHosted.Authorization.with_authorized_transaction/5
+
+.....
+Finished in 14.7 seconds (0.00s async, 14.7s sync)
+
+Result: 21 passed

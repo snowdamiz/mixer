@@ -1,0 +1,25 @@
+2026-10-25 07:44:55.105 EDT [45848] LOG:  starting PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit
+2026-10-25 07:44:55.105 EDT [45848] LOG:  listening on IPv4 address "127.0.0.1", port 64275
+2026-10-25 07:44:55.105 EDT [45848] LOG:  listening on Unix socket "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-authz-independent-review-wob1dp15/.s.PGSQL.64275"
+2026-10-25 07:44:55.108 EDT [45851] LOG:  database system was shut down at 2026-10-25 07:44:55 EDT
+2026-10-25 07:44:55.111 EDT [45848] LOG:  database system is ready to accept connections
+2026-10-25 07:45:05.119 EDT [45906] ERROR:  new row for relation "mixer_authz_profiles" violates check constraint "mixer_authz_profiles_state_revision_check"
+2026-10-25 07:45:05.119 EDT [45906] DETAIL:  Failing row contains (review-profile, 2, https://independent.invalid, independent-client, human, t, 0).
+2026-10-25 07:45:05.119 EDT [45906] STATEMENT:  UPDATE public.mixer_authz_profiles SET state_revision=$1
+2026-10-25 07:45:05.120 EDT [45911] ERROR:  new row for relation "mixer_authz_profiles" violates check constraint "mixer_authz_profiles_state_revision_check"
+2026-10-25 07:45:05.120 EDT [45911] DETAIL:  Failing row contains (review-profile, 2, https://independent.invalid, independent-client, human, t, -1).
+2026-10-25 07:45:05.120 EDT [45911] STATEMENT:  UPDATE public.mixer_authz_profiles SET state_revision=$1
+2026-10-25 07:45:05.120 EDT [45912] ERROR:  new row for relation "mixer_authz_profiles" violates check constraint "mixer_authz_profiles_state_revision_check"
+2026-10-25 07:45:05.120 EDT [45912] DETAIL:  Failing row contains (review-profile, 2, https://independent.invalid, independent-client, human, t, 9007199254740992).
+2026-10-25 07:45:05.120 EDT [45912] STATEMENT:  UPDATE public.mixer_authz_profiles SET state_revision=$1
+2026-10-25 07:45:05.121 EDT [45906] ERROR:  new row for relation "mixer_authz_bindings" violates check constraint "mixer_authz_bindings_revision_check"
+2026-10-25 07:45:05.121 EDT [45906] DETAIL:  Failing row contains (review-profile, 2, exact-subject, human, review-person, t, 0).
+2026-10-25 07:45:05.121 EDT [45906] STATEMENT:  UPDATE public.mixer_authz_bindings SET revision=$1
+2026-10-25 07:45:05.121 EDT [45911] ERROR:  new row for relation "mixer_authz_bindings" violates check constraint "mixer_authz_bindings_revision_check"
+2026-10-25 07:45:05.121 EDT [45911] DETAIL:  Failing row contains (review-profile, 2, exact-subject, human, review-person, t, -1).
+2026-10-25 07:45:05.121 EDT [45911] STATEMENT:  UPDATE public.mixer_authz_bindings SET revision=$1
+2026-10-25 07:45:05.121 EDT [45912] ERROR:  new row for relation "mixer_authz_bindings" violates check constraint "mixer_authz_bindings_revision_check"
+2026-10-25 07:45:05.121 EDT [45912] DETAIL:  Failing row contains (review-profile, 2, exact-subject, human, review-person, t, 9007199254740992).
+2026-10-25 07:45:05.121 EDT [45912] STATEMENT:  UPDATE public.mixer_authz_bindings SET revision=$1
+2026-10-25 07:45:05.168 EDT [45848] LOG:  received immediate shutdown request
+2026-10-25 07:45:05.169 EDT [45848] LOG:  database system is shut down

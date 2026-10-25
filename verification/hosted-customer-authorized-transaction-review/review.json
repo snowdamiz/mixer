@@ -1,0 +1,122 @@
+{
+  "base_source_revision": "d385adf3dd110da44ba290a7221278c48e39b882",
+  "disposition": "accepted_selected_local_prerequisite_after_review_repairs",
+  "final_source_tree_sha256": "52eef8fa3fdbdd793b5f1755d4fff38e978f5e84b7e8c872606290562d3b5280",
+  "final_tests": {
+    "evaluator_suspension_past_deadline": true,
+    "failures": 0,
+    "methods": 21,
+    "same_owner_context_cleanup": true
+  },
+  "findings": [
+    {
+      "finding": "missing postvalidation deadline/clock refresh",
+      "result": "producer repaired before final capture; scheduling probe suspends inside real policy evaluation across five seconds; effect never entered"
+    },
+    {
+      "after_each_case": {
+        "committed_rows": 0,
+        "result": "error authorization_unavailable"
+      },
+      "before_each_case": {
+        "committed_rows": 1,
+        "result": "ok rescued"
+      },
+      "bounded_direct_error": "conflict retained and SQL rolled back",
+      "confirmed_cases": [
+        "raise",
+        "throw",
+        "exit",
+        "bounded_error",
+        "unknown_error"
+      ],
+      "corrected_context_sha256": "237e5a9c8bcc529619e68db67d166e4dd185e70bbe125592a8c14b83a259be54",
+      "finding": "rescued local effect failures allowed committed SQL",
+      "old_context_sha256": "7c4c03cc13eef789d9176ef5c5f26733ea4d4f5ddf824497a10389ca0fa2dc36"
+    }
+  ],
+  "limitations": [
+    "PostgreSQL 17 local evidence; PostgreSQL 16 CI and Neon/deployed infrastructure separate",
+    "OS wall-clock regression not performed; guarded state branch tested",
+    "trusted BEAM/local SQL API; not hostile BEAM or arbitrary transaction-control sandbox",
+    "domain artifact/metadata/audit/idempotency/job integration and HTTP pending",
+    "physical phones disconnected/final matrix pending; no native evidence claimed",
+    "no GA gate acceptance or production publication"
+  ],
+  "live_input_sha256": {
+    "hosted/lib/mixer_hosted/authorization.ex": "54cfdb6c4a105e1ea3551b6f687d3ced1fecf6e621baed026f521ea82f1d9d88",
+    "hosted/lib/mixer_hosted/authorization/policy.ex": "0b50900c3b286addb6ac1224c16c8dc6f4cba6c8dcf6c5eed40b6aca2a053db9",
+    "hosted/lib/mixer_hosted/authorization/postgres/evidence.ex": "fe5e34d6e66b84aa6f4786c7922eeb75faf5d2b142de82d17f184b5b08fff1f7",
+    "hosted/lib/mixer_hosted/authorization/postgres/session.ex": "7a0c4eb013b7b456480a342525e093652cc8ba6270f3bd5abdbcaee816dc6b7a",
+    "hosted/lib/mixer_hosted/authorization/scope.ex": "b98c7c6f2f3592bf2fcfd0890d86bb503e3c9cdd6558fa1c7b0766ddb61c7b7a",
+    "hosted/lib/mixer_hosted/authorization/transaction/context.ex": "237e5a9c8bcc529619e68db67d166e4dd185e70bbe125592a8c14b83a259be54",
+    "hosted/lib/mixer_hosted/authorization/transaction/snapshot.ex": "39bae74a8022ea9884874f8e457568a073fd798fa87ebf901e9b896062528599",
+    "hosted/lib/mixer_hosted/identity/encoding.ex": "565338c3669fb9578e086510d6f7d06135958049c918a7df3f3558474e8e01f4",
+    "hosted/lib/mixer_hosted/identity/verified_identity.ex": "02ea302abedbf10555792ae5284f8eb41113edd11bc83c3e869bdbee7b68ae4d",
+    "hosted/priv/repo/migrations/20261025000003_add_customer_authorization.exs": "110997b341449a04135296b000c6434f84526305c2f70c16b1e51f38dffc3f6c",
+    "hosted/priv/repo/migrations/20261025000004_add_authorization_state_revisions.exs": "5248990524d1c2504847fdff2f107a952d850acf8ff5fcdb8e7b0ef77e38bcd7",
+    "verification/hosted-customer-authorized-transaction-review/review_test.exs": "02db14682fd83164e7fb3bff02674d14e8cc7ade9ec55b17523d8ccbb77152a3",
+    "verification/hosted-customer-authorized-transaction-review/run.py": "b295ace92f964c4227e0d6310fc266699a714dd34cde9eccbb667abcf1e8ebac"
+  },
+  "owned_outputs_only": true,
+  "report": {
+    "path": "docs/hosted-customer-authorized-transaction-review.md",
+    "sha256": "8f72db3acf2558ceb0b9604f27ceeb14dbfe572909e691d083d47a53989a16d5"
+  },
+  "reviewer_scope": "Independent owned review fixtures on actual disposable loopback PostgreSQL 17.11; selected ordinary BEAM compile; no full Mix application/shared harness/frozen lanes/Git/native/provider actions",
+  "revision_provenance": "parent supplied; no Git invocation",
+  "runs": {
+    "run-1": {
+      "cleanup": {
+        "postgres_stopped": true,
+        "scratch_removed": true
+      },
+      "receipt_sha256": "812e7da85b03183f80905333462dcfd2bca248322b47416294e0c47751efcf8c",
+      "source_tree_sha256": "04a49627cf66da872ad10304de68b5689ded1b7089ab8f645a07d816845552bc",
+      "success": false,
+      "test_result": "0 tests, 19 invalid"
+    },
+    "run-2": {
+      "cleanup": {
+        "postgres_stopped": true,
+        "scratch_removed": true
+      },
+      "receipt_sha256": "0f01716816076c3ab947402ae3cf61cecd9ea7bca707a5958c607e91b8dcfefc",
+      "source_tree_sha256": "e3b11906ff47ff4bb33c4b3d50f1ea5da7554c9da4e3122134236fa4f3b03af3",
+      "success": false,
+      "test_result": "19/20 passed"
+    },
+    "run-3-prefix-repro": {
+      "cleanup": {
+        "postgres_stopped": true,
+        "scratch_removed": true
+      },
+      "receipt_sha256": "1c6d7b1bcb3bc544014f94733900e3b75e5c3ead3a3b0bcaa475fcf70d82c0bf",
+      "source_tree_sha256": "780a26adce42247a182a5fcfa4f0df1e243aaea3e0e62ca66a07515f41fb6b48",
+      "success": false,
+      "test_result": "19/20 passed"
+    },
+    "run-4-corrected": {
+      "cleanup": {
+        "postgres_stopped": true,
+        "scratch_removed": true
+      },
+      "receipt_sha256": "10a157930de65c95181a8664b86fb1eb351ae973d5e0cd06137332a7fcabfaee",
+      "source_tree_sha256": "2935d04b319bef7ca024a8af070b67a4f5a69160c57e4b90f10696c777051a60",
+      "success": true,
+      "test_result": "21 passed"
+    },
+    "run-5-final": {
+      "cleanup": {
+        "postgres_stopped": true,
+        "scratch_removed": true
+      },
+      "receipt_sha256": "447eac8616737f324d5cffae355a97a25bcfff7fd9a27a98d2172365afffc605",
+      "source_tree_sha256": "52eef8fa3fdbdd793b5f1755d4fff38e978f5e84b7e8c872606290562d3b5280",
+      "success": true,
+      "test_result": "21 passed"
+    }
+  },
+  "sealed_unix": 1792929007.859671,
+  "sources_stable_after_final_capture": true
+}

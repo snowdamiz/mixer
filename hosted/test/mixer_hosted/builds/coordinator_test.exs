@@ -20,7 +20,7 @@ defmodule MixerHosted.Builds.CoordinatorTest do
     )
 
     path = Application.app_dir(:mixer_hosted, "priv/repo/migrations")
-    assert length(Ecto.Migrator.run(Repo, path, :up, all: true)) == 5
+    assert length(Ecto.Migrator.run(Repo, path, :up, all: true)) == 6
     start_supervised!({Oban, repo: Repo, queues: false, plugins: false, testing: :manual})
     start_supervised!(Fixture)
     :ok

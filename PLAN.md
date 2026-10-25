@@ -27,8 +27,11 @@ its older pending/selected statements do not override the current state.
    are removed. A second isolated cost/age candidate also regresses on all six
    finite work traces and is rejected before any full-target run. Its recorded
    rejection passes independent audit and all owned scratch is removed. Choose
-   the next retention design from this evidence with exact work/memory accounting;
-   no new retry is selected. See
+   the next retention design from this evidence with exact work/memory accounting.
+   An adaptive recency/frequency proposal passes 17 finite model controls but
+   adds per-hit work and regresses phase-change misses; implementation selection
+   is withheld. The live VM is unchanged and no new full retry is selected. See
+   [the unselected model](docs/swift-adaptive-retention-design.md),
    [the finite rejection](docs/swift-cost-retention-candidate-review.md),
    [the rejected result](docs/swift-retention-runtime.md) and
    [the integration](docs/swift-decode-plan-integration.md).
@@ -64,9 +67,18 @@ its older pending/selected statements do not override the current state.
    runtime-role checks. Focused CI fixture wiring and all-five-migration
    apply/rollback/reapply checks pass after correcting rollback policy dependencies.
    The result remains pure policy evidence: protected domain/audit/idempotency
-   transactions and customer routes remain pending. Full standard CI and its
-   PostgreSQL 16 environment still need the new delivery. See
+   transactions and customer routes remain pending. Full standard Phoenix CI
+   and Engine CI pass for pushed checkpoint `d385adf3`; the Phoenix workflow
+   uses its PostgreSQL 16 fixture. See
    [the current integration scope](docs/hosted-customer-authorization-postgres-ci-integration.md).
+   The new transaction-owned authorization prerequisite now passes 18 product
+   methods, 21 independent PostgreSQL probes and the equivalent CI fixture.
+   Review repaired post-validation time checks and rescued effect errors that
+   could commit prior SQL. All six migrations pass apply/rollback/reapply.
+   Continue with protected artifact metadata/storage, immutable actor audit,
+   principal-bound idempotency and customer HTTP composition; these remain
+   unimplemented. See [the accepted transaction review](docs/hosted-customer-authorized-transaction-review.md)
+   and [the proposed artifact contract](docs/hosted-customer-artifact-transaction-contract.md).
    Preserve accurate unavailable
    states until data/auth is connected. Keep the website branding throughout.
 

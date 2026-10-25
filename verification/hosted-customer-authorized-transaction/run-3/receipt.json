@@ -1,0 +1,255 @@
+{
+  "cleanup": {
+    "postgres_stopped": true,
+    "scratch_removed": true
+  },
+  "commands": [
+    {
+      "argv": [
+        "elixir",
+        "--version"
+      ],
+      "exit_code": 0,
+      "name": "elixir-version",
+      "output": "elixir-version.log"
+    },
+    {
+      "argv": [
+        "python3",
+        "--version"
+      ],
+      "exit_code": 0,
+      "name": "python-version",
+      "output": "python-version.log"
+    },
+    {
+      "argv": [
+        "pg_config",
+        "--bindir"
+      ],
+      "exit_code": 0,
+      "name": "postgres-bindir",
+      "output": "postgres-bindir.log"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+        "--version"
+      ],
+      "exit_code": 0,
+      "name": "postgres-version",
+      "output": "postgres-version.log"
+    },
+    {
+      "argv": [
+        "mix",
+        "format",
+        "--check-formatted",
+        "hosted/lib/mixer_hosted/authorization/transaction/snapshot.ex",
+        "hosted/lib/mixer_hosted/authorization/transaction/context.ex",
+        "hosted/lib/mixer_hosted/authorization.ex",
+        "hosted/priv/repo/migrations/20261025000004_add_authorization_state_revisions.exs",
+        "hosted/test/mixer_hosted/authorization/transaction_test.exs"
+      ],
+      "exit_code": 0,
+      "name": "format",
+      "output": "format.log"
+    },
+    {
+      "argv": [
+        "elixirc",
+        "--warnings-as-errors",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/telemetry/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/decimal/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/db_connection/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/ecto/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/ecto_sql/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/postgrex/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/jason/ebin",
+        "-o",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-customer-transaction-0tmn7cb4/beams",
+        "hosted/lib/mixer_hosted/repo.ex",
+        "hosted/lib/mixer_hosted/identity/encoding.ex",
+        "hosted/lib/mixer_hosted/identity/verified_identity.ex",
+        "hosted/lib/mixer_hosted/authorization/scope.ex",
+        "hosted/lib/mixer_hosted/authorization/policy.ex",
+        "hosted/lib/mixer_hosted/authorization/postgres/session.ex",
+        "hosted/lib/mixer_hosted/authorization/postgres/evidence.ex",
+        "hosted/lib/mixer_hosted/authorization/transaction/snapshot.ex",
+        "hosted/lib/mixer_hosted/authorization/transaction/context.ex",
+        "hosted/lib/mixer_hosted/authorization.ex",
+        "hosted/priv/repo/migrations/20261025000003_add_customer_authorization.exs",
+        "hosted/priv/repo/migrations/20261025000004_add_authorization_state_revisions.exs"
+      ],
+      "exit_code": 0,
+      "name": "compile",
+      "output": "compile.log"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/initdb",
+        "-D",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-customer-transaction-0tmn7cb4/pg",
+        "-U",
+        "txn_fixture_admin",
+        "-A",
+        "trust",
+        "--no-locale",
+        "-E",
+        "UTF8"
+      ],
+      "exit_code": 0,
+      "name": "postgres-init",
+      "output": "postgres-init.log"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/pg_ctl",
+        "-D",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-customer-transaction-0tmn7cb4/pg",
+        "-l",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-customer-transaction-0tmn7cb4/postgres.log",
+        "-w",
+        "start"
+      ],
+      "exit_code": 0,
+      "name": "postgres-start",
+      "output": "postgres-start.log"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "63823",
+        "-U",
+        "txn_fixture_admin",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-d",
+        "postgres",
+        "-c",
+        "CREATE ROLE txn_authz_owner NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS; CREATE ROLE txn_authz_runtime LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;"
+      ],
+      "exit_code": 0,
+      "name": "roles-apply",
+      "output": "roles-apply.log"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/createdb",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "63823",
+        "-U",
+        "txn_fixture_admin",
+        "mixer_customer_transaction"
+      ],
+      "exit_code": 0,
+      "name": "database",
+      "output": "database.log"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "63823",
+        "-U",
+        "txn_fixture_admin",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-d",
+        "mixer_customer_transaction",
+        "-c",
+        "REVOKE CREATE ON SCHEMA public FROM PUBLIC; ALTER SCHEMA public OWNER TO txn_authz_owner; GRANT USAGE ON SCHEMA public TO txn_authz_runtime;"
+      ],
+      "exit_code": 0,
+      "name": "schema",
+      "output": "schema.log"
+    },
+    {
+      "argv": [
+        "elixir",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/telemetry/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/decimal/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/db_connection/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/ecto/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/ecto_sql/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/postgrex/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/jason/ebin",
+        "-pa",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-customer-transaction-0tmn7cb4/beams",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-customer-transaction-0tmn7cb4/run.exs"
+      ],
+      "exit_code": 0,
+      "name": "tests",
+      "output": "tests.log"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/pg_ctl",
+        "-D",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-customer-transaction-0tmn7cb4/pg",
+        "-m",
+        "immediate",
+        "-w",
+        "stop"
+      ],
+      "exit_code": 0,
+      "name": "postgres-stop",
+      "output": "postgres-stop.log"
+    }
+  ],
+  "dependency_manifest_sha256": "c544378354d431a88740973b97517211c514bcad9a51616cb6188cf6ee502645",
+  "finished_unix": 1792928420.362066,
+  "input_sha256": {
+    "hosted/lib/mixer_hosted/authorization.ex": "54cfdb6c4a105e1ea3551b6f687d3ced1fecf6e621baed026f521ea82f1d9d88",
+    "hosted/lib/mixer_hosted/authorization/policy.ex": "0b50900c3b286addb6ac1224c16c8dc6f4cba6c8dcf6c5eed40b6aca2a053db9",
+    "hosted/lib/mixer_hosted/authorization/postgres/evidence.ex": "fe5e34d6e66b84aa6f4786c7922eeb75faf5d2b142de82d17f184b5b08fff1f7",
+    "hosted/lib/mixer_hosted/authorization/postgres/session.ex": "7a0c4eb013b7b456480a342525e093652cc8ba6270f3bd5abdbcaee816dc6b7a",
+    "hosted/lib/mixer_hosted/authorization/scope.ex": "b98c7c6f2f3592bf2fcfd0890d86bb503e3c9cdd6558fa1c7b0766ddb61c7b7a",
+    "hosted/lib/mixer_hosted/authorization/transaction/context.ex": "e5f347f8b03e8c8afe04dc81b393c00af11aa8c54aa75d2631f13df89ab5f5f0",
+    "hosted/lib/mixer_hosted/authorization/transaction/snapshot.ex": "39bae74a8022ea9884874f8e457568a073fd798fa87ebf901e9b896062528599",
+    "hosted/lib/mixer_hosted/identity/encoding.ex": "565338c3669fb9578e086510d6f7d06135958049c918a7df3f3558474e8e01f4",
+    "hosted/lib/mixer_hosted/identity/verified_identity.ex": "02ea302abedbf10555792ae5284f8eb41113edd11bc83c3e869bdbee7b68ae4d",
+    "hosted/lib/mixer_hosted/repo.ex": "034e56f300c8677adc71cee8b63d86825588cbc26a9ec155d9670cbd0a5329ec",
+    "hosted/mix.exs": "ade39cb685e8f78d7d62ab1517db38e572094dcf9bc9ec21f91b9b6b3bd3cbe2",
+    "hosted/mix.lock": "59e6fe5d6bc76ae0057745fe7eb3fb292f225b6a37cd1c99c214f9447c60ff8a",
+    "hosted/priv/repo/migrations/20261025000003_add_customer_authorization.exs": "110997b341449a04135296b000c6434f84526305c2f70c16b1e51f38dffc3f6c",
+    "hosted/priv/repo/migrations/20261025000004_add_authorization_state_revisions.exs": "5248990524d1c2504847fdff2f107a952d850acf8ff5fcdb8e7b0ef77e38bcd7",
+    "hosted/test/mixer_hosted/authorization/transaction_test.exs": "2325c0001eac2580e04d1daa55fe8ec9c55e1f095362224a6e79abde0b8025a0",
+    "verification/hosted-customer-authorized-transaction/run.py": "56f876b95c57a7a6a55080d4df734ab84e9e3b3cc9e9b1b6670f1da16c67893d"
+  },
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "postgres_endpoint": {
+    "database": "mixer_customer_transaction",
+    "disposable": true,
+    "host": "127.0.0.1",
+    "port": 63823
+  },
+  "revision_provenance": "root-supplied context; no Git run",
+  "scope": "selected ordinary sources and disposable local PostgreSQL; no domain product storage or deployed topology",
+  "scratch": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-customer-transaction-0tmn7cb4",
+  "source_revision": "d385adf3dd110da44ba290a7221278c48e39b882",
+  "source_tree_sha256": "496483593bc03d71b001d801b4645dd22cedc64bb27602425ce6fd129ee98ac1",
+  "started_unix": 1792928406.565098,
+  "success": true
+}

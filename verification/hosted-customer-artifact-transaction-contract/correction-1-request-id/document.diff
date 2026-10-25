@@ -1,0 +1,53 @@
+--- prior/document.md
++++ docs/hosted-customer-artifact-transaction-contract.md
+@@ -18,8 +18,9 @@
+ 
+ `Authorization.Repository.evaluate/5` and `PostgresRepository` return a pure
+ evaluation after their own transaction has ended. Domain stores must reject
+-that value as authority. The new transaction facade must own the actual Repo
+-transaction containing authorization, callback, domain rows and commit. Keep
++that value as authority. The new transaction facade,
++`MixerHosted.Authorization.with_authorized_transaction/4,5`, must own the actual
++Repo transaction containing authorization, callback, domain rows and commit. Keep
+ the existing evaluation API separate. Root coordinates this facade before
+ dependent implementation. Suggested public domain API:
+ 
+@@ -30,8 +31,10 @@
+ ```
+ 
+ Server configuration supplies Repo/trust/clock. `route_tenant` contains exactly
+-organization/project. Request metadata is bounded server request UUID, trusted
+-ingress IP or absent, and a UTF-8 reason of at most 512 bytes. Metadata is never
++organization/project. Request metadata includes a server-generated request ID:
++exactly 32 lowercase hexadecimal characters encoding 16 cryptographically random
++bytes. It also includes trusted ingress IP or absent, and a UTF-8 reason of at
++most 512 bytes. Metadata is never
+ actor authority. Initial audit pages use `after_sequence >= 0`, `limit=1..100`.
+ Only the three already supported human actions are accepted. No runtime
+ bootstrap, write-authority callback from HTTP, arbitrary Repo or clock argument
+@@ -170,7 +173,7 @@
+ ```text
+ [2, sequence, [organization,project],
+  actor, authorization, target, "artifact.upload", outcome, reason,
+- server_request_uuid, optional_trusted_ip, recorded_at,
++ server_request_id, optional_trusted_ip, recorded_at,
+  previous_state_sha256, current_state_sha256, previous_event_sha256,
+  request_sha256, envelope_sha256]
+ 
+@@ -189,6 +192,7 @@
+           manifest_sha256,payload_sha256]
+ ```
+ 
++`server_request_id` uses the exact 32-lowercase-hex request metadata format above.
+ Optional project is `[]` or `[project]`. Members are the 1..64 current eligible
+ memberships that supply the action, sorted uniquely by exact UTF-8 ID bytes;
+ roles must be owner/administrator/developer for upload, with exact scope/binding
+@@ -226,7 +230,7 @@
+ 
+ Compute request hash under `mixer.hosted.customer.upload.request.v2\0` over
+ canonical `[2,"artifact.upload",target,envelope_sha256,reason]`. Exact envelope
+-spelling is significant; request UUID/IP/time/credential are not retry identity.
++spelling is significant; request ID/IP/time/credential are not retry identity.
+ After current full upload authorization and the head lock, look up tenant/key:
+ 
+ - Same immutable principal, action, target and request hash returns the original

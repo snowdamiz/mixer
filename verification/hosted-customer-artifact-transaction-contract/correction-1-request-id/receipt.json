@@ -1,0 +1,95 @@
+{
+  "schema": 1,
+  "status": "narrow_contract_correction_only",
+  "observed_at_utc": "2026-10-25T11:39:32.646492+00:00",
+  "base_revision": "d385adf3dd110da44ba290a7221278c48e39b882",
+  "source_revision_basis": "Original supplied base revision retained; no Git action. Correction follows root frozen facade API and request-ID review message.",
+  "tool_versions": {
+    "python": "3.14.8"
+  },
+  "previous_receipt_sha256": "2f93a4fdfe8a48f32e39a08e14ee34e350cf181dd7b45a2f4d671604395f36af",
+  "old_document_sha256": "dbd18f8fbc6831513570ae0fdd758d6fb8c1a4ffaa11c415ff16ea11a679c314",
+  "corrected_document_sha256": "40529204c954da09bf747014223f8d1ee67e737a304da0a69d5d296888d234da",
+  "artifacts": [
+    {
+      "path": "docs/hosted-customer-artifact-transaction-contract.md",
+      "sha256": "40529204c954da09bf747014223f8d1ee67e737a304da0a69d5d296888d234da"
+    },
+    {
+      "path": "verification/hosted-customer-artifact-transaction-contract/correction-1-request-id/README.md",
+      "sha256": "31c5f344b853d4d683e665bacc8db7e8f6378d6c4f5fb6cc060c8a43597230f1"
+    },
+    {
+      "path": "verification/hosted-customer-artifact-transaction-contract/correction-1-request-id/changes.json",
+      "sha256": "33d5269738eee83ec283e5916ae38a716ab2aec6e4a697ebdb344e6fe7cbb77c"
+    },
+    {
+      "path": "verification/hosted-customer-artifact-transaction-contract/correction-1-request-id/document.diff",
+      "sha256": "efbd076ff03262905535cd48f88595aa71a10bdcecd467e84d57197e17a8ebb0"
+    },
+    {
+      "path": "verification/hosted-customer-artifact-transaction-contract/correction-1-request-id/verify_correction.py",
+      "sha256": "ee62d2ddac9dd385106645712fe8768c9ae8817de34dbb39427435b03c4b1af1"
+    },
+    {
+      "path": "verification/hosted-customer-artifact-transaction-contract/correction-1-request-id/prior/README.md",
+      "sha256": "85cd38950574caa79c5e737f449c87a07a95d4acda77a991cb537705d127ee44"
+    },
+    {
+      "path": "verification/hosted-customer-artifact-transaction-contract/correction-1-request-id/prior/document.md",
+      "sha256": "dbd18f8fbc6831513570ae0fdd758d6fb8c1a4ffaa11c415ff16ea11a679c314"
+    },
+    {
+      "path": "verification/hosted-customer-artifact-transaction-contract/correction-1-request-id/prior/matrix.json",
+      "sha256": "4d9cd4f399cbc9d0c84fd1264c54acb402308d7db299a4bea55f05307b7788df"
+    },
+    {
+      "path": "verification/hosted-customer-artifact-transaction-contract/correction-1-request-id/prior/observed-inputs.json",
+      "sha256": "295c60a095f7e1e6d4bff06ecb49529ae46502b6c774c48852b153568165e404"
+    },
+    {
+      "path": "verification/hosted-customer-artifact-transaction-contract/correction-1-request-id/prior/receipt.json",
+      "sha256": "2f93a4fdfe8a48f32e39a08e14ee34e350cf181dd7b45a2f4d671604395f36af"
+    },
+    {
+      "path": "verification/hosted-customer-artifact-transaction-contract/correction-1-request-id/prior/verify.py",
+      "sha256": "6f6543a19ca6de71f1391208c7a74097d4fbbf8292bbd9dcf9396dcf9c9debf3"
+    }
+  ],
+  "commands": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "verification/hosted-customer-artifact-transaction-contract/verify.py"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"status\": \"contract_packet_valid\",\n  \"planned_cases\": 35,\n  \"product_cases_passed\": 0,\n  \"document_sha256\": \"40529204c954da09bf747014223f8d1ee67e737a304da0a69d5d296888d234da\",\n  \"observed_source_checked\": false\n}\n",
+      "stderr": "",
+      "scope": "proposal structure and correction integrity only; no product execution"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "verification/hosted-customer-artifact-transaction-contract/correction-1-request-id/verify_correction.py"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"status\": \"correction_packet_valid\",\n  \"original_sealed_artifacts\": 5,\n  \"declared_replacements\": 5,\n  \"product_cases_passed\": 0,\n  \"product_cases_pending\": 35,\n  \"corrected_document_sha256\": \"40529204c954da09bf747014223f8d1ee67e737a304da0a69d5d296888d234da\"\n}\n",
+      "stderr": "",
+      "scope": "proposal structure and correction integrity only; no product execution"
+    }
+  ],
+  "changes": [
+    "Name MixerHosted.Authorization.with_authorized_transaction/4,5 explicitly",
+    "Require exactly 32 lowercase hex request ID encoding 16 cryptographically random bytes",
+    "Rename v2 server_request_uuid field to server_request_id and update request retry prose"
+  ],
+  "preserved": "Original five sealed artifacts and original receipt archived byte-for-byte. Original top-level receipt and non-document artifacts unchanged.",
+  "implementation_cases": {
+    "planned": 35,
+    "passed": 0,
+    "pending": 35
+  },
+  "scope": "Only live owned contract and additive correction packet written; no product/Git/provider/native/UI actions."
+}

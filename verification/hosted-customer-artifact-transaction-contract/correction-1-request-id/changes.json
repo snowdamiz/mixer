@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "replacements": [
+    {
+      "old": "that value as authority. The new transaction facade must own the actual Repo\ntransaction containing authorization, callback, domain rows and commit. Keep",
+      "new": "that value as authority. The new transaction facade,\n`MixerHosted.Authorization.with_authorized_transaction/4,5`, must own the actual\nRepo transaction containing authorization, callback, domain rows and commit. Keep"
+    },
+    {
+      "old": "organization/project. Request metadata is bounded server request UUID, trusted\ningress IP or absent, and a UTF-8 reason of at most 512 bytes. Metadata is never",
+      "new": "organization/project. Request metadata includes a server-generated request ID:\nexactly 32 lowercase hexadecimal characters encoding 16 cryptographically random\nbytes. It also includes trusted ingress IP or absent, and a UTF-8 reason of at\nmost 512 bytes. Metadata is never"
+    },
+    {
+      "old": " server_request_uuid, optional_trusted_ip, recorded_at,",
+      "new": " server_request_id, optional_trusted_ip, recorded_at,"
+    },
+    {
+      "old": "Optional project is `[]` or `[project]`. Members are the 1..64 current eligible",
+      "new": "`server_request_id` uses the exact 32-lowercase-hex request metadata format above.\nOptional project is `[]` or `[project]`. Members are the 1..64 current eligible"
+    },
+    {
+      "old": "spelling is significant; request UUID/IP/time/credential are not retry identity.",
+      "new": "spelling is significant; request ID/IP/time/credential are not retry identity."
+    }
+  ]
+}

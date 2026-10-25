@@ -31,6 +31,24 @@ def provision_customer_authorization_fixture(pg_bin, port, run_command):
     return {"MIXER_AUTHZ_TEST_PORT": str(port)}
 
 
+def provision_customer_transaction_fixture(pg_bin, port, run_command):
+    """Provision the separate synthetic transaction test database and roles."""
+    psql = [str(pg_bin / "psql"), "-X", "-h", "127.0.0.1", "-p", str(port),
+            "-U", "mixer_fixture", "-d", "postgres", "-v", "ON_ERROR_STOP=1"]
+    run_command("transaction-fixture-roles", psql + ["-c",
+        "CREATE ROLE txn_fixture_admin LOGIN SUPERUSER; "
+        "CREATE ROLE txn_authz_owner NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS; "
+        "CREATE ROLE txn_authz_runtime LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS;"])
+    run_command("transaction-fixture-database", [str(pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port),
+        "-U", "mixer_fixture", "-O", "txn_fixture_admin", "mixer_customer_transaction"])
+    run_command("transaction-fixture-grants", [str(pg_bin / "psql"), "-X", "-h", "127.0.0.1", "-p", str(port),
+        "-U", "mixer_fixture", "-d", "mixer_customer_transaction", "-v", "ON_ERROR_STOP=1", "-c",
+        "REVOKE CREATE ON SCHEMA public FROM PUBLIC; "
+        "ALTER SCHEMA public OWNER TO txn_authz_owner; "
+        "GRANT USAGE ON SCHEMA public TO txn_authz_runtime;"])
+    return {"MIXER_TRANSACTION_TEST_PORT": str(port)}
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--output", required=True, type=Path)
 parser.add_argument("--pg-bin", default="/opt/homebrew/opt/postgresql@17/bin", type=Path)
@@ -138,6 +156,7 @@ try:
         raise RuntimeError("fixture database time zone is not UTC")
     env["MIXER_TEST_DATABASE_PORT"] = str(port)
     env.update(provision_customer_authorization_fixture(args.pg_bin, port, run))
+    env.update(provision_customer_transaction_fixture(args.pg_bin, port, run))
     identity_evidence = output / "identity-metrics"
     identity_evidence.mkdir()
     env["MIXER_TEST_IDENTITY_EVIDENCE"] = str(identity_evidence)

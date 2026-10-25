@@ -1,0 +1,43 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+
+MixerHosted.Authorization.TransactionTest [hosted/test/mixer_hosted/authorization/transaction_test.exs]
+  * test owned local SQL transaction commits complete bounded snapshot and never accepts a pure decision [L#229]  * test owned local SQL transaction commits complete bounded snapshot and never accepts a pure decision (61.5ms) [L#229]
+  * test all roles retain their exact action ceilings and audit requires project-only scope [L#279]  * test all roles retain their exact action ceilings and audit requires project-only scope (126.2ms) [L#279]
+  * test invalid identity action target and nested invocation fail before a callback [L#301]  * test invalid identity action target and nested invocation fail before a callback (16.9ms) [L#301]
+  * test context rejects every changed field and latches rescued rollback attempts [L#327]  * test context rejects every changed field and latches rescued rollback attempts (85.4ms) [L#327]
+  * test wrong process foreign repo action target transaction marker and identity GUC reject [L#386]  * test wrong process foreign repo action target transaction marker and identity GUC reject (53.2ms) [L#386]
+  * test after rollback and another real transaction cannot reuse a captured context [L#443]  * test after rollback and another real transaction cannot reuse a captured context (31.2ms) [L#443]
+  * test every callback error malformed value exception throw and exit rolls back actual local SQL [L#467]  * test every callback error malformed value exception throw and exit rolls back actual local SQL (72.9ms) [L#467]
+  * test expiry before effect blocks effect and final expiry rolls back an earlier local SQL write [L#494]  * test expiry before effect blocks effect and final expiry rolls back an earlier local SQL write (1647.6ms) [L#494]
+  * test fresh time after an actual profile lock wait rejects a token expired during that wait [L#528]  * test fresh time after an actual profile lock wait rejects a token expired during that wait (1009.6ms) [L#528]
+  * test separate family token membership windows and profile binding state are retained and enforced [L#579]  * test separate family token membership windows and profile binding state are retained and enforced (1204.6ms) [L#579]
+  * test snapshot validation independently rejects extra missing changed nested and oversized data [L#604]  * test snapshot validation independently rejects extra missing changed nested and oversized data (35.7ms) [L#604]
+  * test fresh snapshots select surviving membership rows without modifying the initial Context [L#658]  * test fresh snapshots select surviving membership rows without modifying the initial Context (1128.6ms) [L#658]
+  * test monotonic full-transaction deadline rolls back SQL despite an otherwise unexpired identity [L#676]
+07:42:57.431 [error] Postgrex.Protocol (#PID<0.198.0> ({Postgrex.Protocol, "mixer_customer_transaction"})) disconnected: ** (DBConnection.ConnectionError) client #PID<0.252.0> ({MixerHosted.Authorization.TransactionTest, :"test monotonic full-transaction deadline rolls back SQL despite an otherwise unexpired identity"}) timed out because it queued and checked out the connection for longer than 5000ms
+
+#PID<0.252.0> ({MixerHosted.Authorization.TransactionTest, :"test monotonic full-transaction deadline rolls back SQL despite an otherwise unexpired identity"}) was at location:
+
+    (elixir 1.20.4) lib/process.ex:330: Process.sleep/1
+    hosted/test/mixer_hosted/authorization/transaction_test.exs:680: anonymous fn/1 in MixerHosted.Authorization.TransactionTest."test monotonic full-transaction deadline rolls back SQL despite an otherwise unexpired identity"/1
+    hosted/lib/mixer_hosted/authorization.ex:63: anonymous fn/8 in MixerHosted.Authorization.with_authorized_transaction/5
+    hosted/test/mixer_hosted/authorization/transaction_test.exs:10: anonymous fn/1 in MixerHosted.Authorization.TransactionFixture.Runtime.transaction/2
+    (ecto 3.14.2) lib/ecto/repo/transaction.ex:11: anonymous fn/3 in Ecto.Repo.Transaction.transact/4
+    (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1481: anonymous fn/3 in Ecto.Adapters.SQL.checkout_or_transaction/4
+    (db_connection 2.10.2) lib/db_connection.ex:1760: DBConnection.run_transaction/5
+    hosted/lib/mixer_hosted/authorization.ex:36: MixerHosted.Authorization.with_authorized_transaction/5
+    hosted/test/mixer_hosted/authorization/transaction_test.exs:678: MixerHosted.Authorization.TransactionTest."test monotonic full-transaction deadline rolls back SQL despite an otherwise unexpired identity"/1
+    (ex_unit 1.20.4) lib/ex_unit/runner.ex:533: ExUnit.Runner.exec_test/2
+    (stdlib 8.1) timer.erl:599: :timer.tc/2
+    (ex_unit 1.20.4) lib/ex_unit/runner.ex:455: anonymous fn/6 in ExUnit.Runner.spawn_test_monitor/4
+
+  * test monotonic full-transaction deadline rolls back SQL despite an otherwise unexpired identity (5062.6ms) [L#676]
+  * test wall-clock regression guard rejects below its last successful checkpoint and latches failure [L#687]  * test wall-clock regression guard rejects below its last successful checkpoint and latches failure (38.7ms) [L#687]
+  * test lock timeout rejects before binding and leaves no context for connection reuse [L#711]  * test lock timeout rejects before binding and leaves no context for connection reuse (546.6ms) [L#711]
+  * test new revision baseline is one and constraints reject zero negative or excessive revisions [L#739]  * test new revision baseline is one and constraints reject zero negative or excessive revisions (41.0ms) [L#739]
+  * test direct privileged owner DML and indirect predefined roles fail the owned transaction [L#753]  * test direct privileged owner DML and indirect predefined roles fail the owned transaction (60.1ms) [L#753]
+
+Finished in 11.6 seconds (0.2s on load, 0.00s async, 11.3s sync)
+
+Result: 17 passed

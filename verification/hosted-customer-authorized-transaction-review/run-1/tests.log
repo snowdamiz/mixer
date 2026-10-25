@@ -1,0 +1,55 @@
+     warning: variable "new_xid" is unused (if the variable is not meant to be used, prefix it with an underscore)
+     │
+ 412 │                assert [[new_xid]] = rt("SELECT pg_current_xact_id()::text").rows
+     │                         ~
+     │
+     └─ verification/hosted-customer-authorized-transaction-review/run-1/inputs/verification/hosted-customer-authorized-transaction-review/review_test.exs:412:25: MixerAuthzIndependent.Review."test manual transaction replacement with restored GUCs still fails the actual xid binding"/1
+
+     warning: variable "new_xid!" is unused (if the variable is not meant to be used, prefix it with an underscore)
+     │
+ 413 │                assert new_xid! = old_xid
+     │                       ~
+     │
+     └─ verification/hosted-customer-authorized-transaction-review/run-1/inputs/verification/hosted-customer-authorized-transaction-review/review_test.exs:413:23: MixerAuthzIndependent.Review."test manual transaction replacement with restored GUCs still fails the actual xid binding"/1
+
+     warning: variable "role!" is unused (if the variable is not meant to be used, prefix it with an underscore)
+     │
+ 454 │           else: role! = "billing_manager"
+     │                 ~
+     │
+     └─ verification/hosted-customer-authorized-transaction-review/run-1/inputs/verification/hosted-customer-authorized-transaction-review/review_test.exs:454:17: MixerAuthzIndependent.Review."test strict role ceiling and token scope intersection are observed against SQL memberships"/1
+
+Running ExUnit with seed: 0, max_cases: 1
+
+???????????????????
+
+  0) MixerAuthzIndependent.Review: failure on setup_all callback, all tests have been invalidated
+     ** (Ecto.MigrationError) Migrations failed to run because the connection pool size is less than 2.
+
+     Ecto requires a pool size of at least 2 to support concurrent migrators.
+     When migrations run, Ecto uses one connection to maintain a lock and
+     another to run migrations.
+
+     If you are running migrations with Mix, you can increase the number
+     of connections via the pool size option:
+
+         mix ecto.migrate --pool-size 2
+
+     If you are running the Ecto.Migrator programmatically, you can configure
+     the pool size via your application config:
+
+         config :my_app, Repo,
+           ...,
+           pool_size: 2 # at least
+
+     stacktrace:
+       (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1250: Ecto.Adapters.SQL.raise_migration_pool_size_error/0
+       (ecto_sql 3.14.0) lib/ecto/adapters/postgres.ex:311: Ecto.Adapters.Postgres.lock_for_migrations/3
+       (ecto_sql 3.14.0) lib/ecto/migrator.ex:584: Ecto.Migrator.lock_for_migrations/4
+       verification/hosted-customer-authorized-transaction-review/run-1/inputs/verification/hosted-customer-authorized-transaction-review/review_test.exs:143: MixerAuthzIndependent.Review.__ex_unit_setup_all_0/1
+       verification/hosted-customer-authorized-transaction-review/run-1/inputs/verification/hosted-customer-authorized-transaction-review/review_test.exs:17: MixerAuthzIndependent.Review.__ex_unit__/2
+
+
+Finished in 0.04 seconds (0.00s async, 0.04s sync)
+
+Result: 0 tests, 19 invalid
