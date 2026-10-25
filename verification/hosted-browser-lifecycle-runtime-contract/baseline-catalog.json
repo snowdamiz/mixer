@@ -1,0 +1,342 @@
+{
+  "authz_relations": [
+    "mixer_authz_profiles",
+    "mixer_authz_principals",
+    "mixer_authz_bindings",
+    "mixer_authz_families",
+    "mixer_authz_credentials"
+  ],
+  "browser_mutable_columns": {
+    "oidc_attempts": [
+      "status",
+      "claim_digest",
+      "claimed_at",
+      "claim_expires_at",
+      "completion_reason",
+      "key_id",
+      "iv",
+      "tag",
+      "ciphertext"
+    ],
+    "session_vault": [
+      "epoch",
+      "session_revision",
+      "vault_generation",
+      "ciphertext_version",
+      "envelope_kind",
+      "key_id",
+      "iv",
+      "tag",
+      "ciphertext"
+    ],
+    "sessions": [
+      "cookie_digest",
+      "status",
+      "epoch",
+      "revision",
+      "generation",
+      "csrf_digest",
+      "last_seen_at",
+      "absolute_expires_at",
+      "idle_expires_at",
+      "profile_id",
+      "profile_version",
+      "principal_id",
+      "family_id",
+      "credential_ref",
+      "credential_revision",
+      "audit_sequence"
+    ]
+  },
+  "functions": {
+    "mixer_browser_activate": {
+      "result": "jsonb",
+      "runtime_execute": true,
+      "security_definer": true,
+      "settings": [
+        "search_path=pg_catalog",
+        "statement_timeout=5s",
+        "lock_timeout=500ms",
+        "idle_in_transaction_session_timeout=5s",
+        "bytea_output=hex"
+      ],
+      "signature": "bytea,bytea,bytea,bytea,bigint,public.mixer_browser_verified,bytea,bytea,text,text,bigint,public.mixer_browser_cipher,text",
+      "source": "\nDECLARE d public.mixer_browser_sessions; o public.mixer_browser_sessions; b public.mixer_browser_sessions;\n  a public.mixer_browser_oidc_attempts; v public.mixer_browser_session_vault; p public.mixer_authz_profiles;\n  binding public.mixer_authz_bindings; principal public.mixer_authz_principals; old_family public.mixer_authz_families; n bigint; cnt integer;\nBEGIN\n  SELECT * INTO d FROM public.mixer_browser_sessions WHERE cookie_digest=p_cookie;\n  IF NOT FOUND OR i.profile_id IS NULL OR i.profile_version IS NULL OR i.subject IS NULL THEN\n    RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001'; END IF;\n  PERFORM 1 FROM public.mixer_authz_profiles WHERE (id,version) IN((i.profile_id,i.profile_version),(d.profile_id,d.profile_version))\n    ORDER BY id COLLATE \"C\",version FOR UPDATE;\n  SELECT * INTO p FROM public.mixer_authz_profiles WHERE id=i.profile_id AND version=i.profile_version;\n  IF NOT FOUND THEN RAISE EXCEPTION 'browser identity unavailable' USING ERRCODE='P0001'; END IF;\n  SELECT * INTO binding FROM public.mixer_authz_bindings WHERE profile_id=i.profile_id AND profile_version=i.profile_version AND subject=i.subject;\n  IF NOT FOUND THEN RAISE EXCEPTION 'browser onboarding required' USING ERRCODE='P0001'; END IF;\n  PERFORM 1 FROM public.mixer_authz_principals WHERE id IN(binding.principal_id,d.principal_id) ORDER BY id COLLATE \"C\" FOR UPDATE;\n  SELECT * INTO STRICT principal FROM public.mixer_authz_principals WHERE id=binding.principal_id;\n  IF d.family_id IS NOT NULL THEN\n    SELECT * INTO STRICT old_family FROM public.mixer_authz_families WHERE id=d.family_id FOR UPDATE;\n    PERFORM 1 FROM public.mixer_authz_credentials WHERE family_id=d.family_id ORDER BY profile_id COLLATE \"C\",profile_version,reference COLLATE \"C\" LIMIT 2 FOR UPDATE;\n    SELECT count(*) INTO cnt FROM (SELECT 1 FROM public.mixer_authz_credentials WHERE family_id=d.family_id LIMIT 2) bounded;\n    IF cnt<>1 OR old_family.profile_id<>d.profile_id OR old_family.profile_version<>d.profile_version OR old_family.principal_id<>d.principal_id\n      OR NOT EXISTS(SELECT 1 FROM public.mixer_authz_credentials WHERE profile_id=d.profile_id AND profile_version=d.profile_version AND reference=d.credential_ref AND principal_id=d.principal_id AND family_id=d.family_id AND revision=d.credential_revision)\n    THEN RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001'; END IF;\n  END IF;\n  SELECT * INTO STRICT o FROM public.mixer_browser_sessions WHERE id=d.id FOR UPDATE;\n  SELECT * INTO a FROM public.mixer_browser_oidc_attempts WHERE browser_id=o.id AND state_digest=p_state FOR UPDATE;\n  IF NOT FOUND THEN RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001'; END IF;\n  SELECT * INTO STRICT v FROM public.mixer_browser_session_vault WHERE browser_id=o.id FOR UPDATE;\n  n:=pg_catalog.floor(extract(epoch FROM pg_catalog.clock_timestamp()))::bigint;\n  IF o IS DISTINCT FROM d OR o.status NOT IN('preauth','active') OR o.revision IS DISTINCT FROM p_revision OR o.config_digest IS DISTINCT FROM p_config\n    OR a.status<>'claimed' OR a.browser_epoch<>o.epoch OR a.browser_revision<>o.revision OR a.config_digest<>o.config_digest OR a.cookie_digest<>o.cookie_digest OR a.generation<>o.generation\n    OR a.claim_digest IS DISTINCT FROM p_claim OR n>=a.expires_at OR n>=a.claim_expires_at OR n>=o.absolute_expires_at OR n>=o.idle_expires_at\n    OR i.profile_id IS DISTINCT FROM a.profile_id OR i.profile_version IS DISTINCT FROM a.profile_version OR i.issuer IS DISTINCT FROM a.issuer OR i.client_id IS DISTINCT FROM a.client_id\n    OR p.id IS DISTINCT FROM o.expected_profile_id OR p.version IS DISTINCT FROM o.expected_profile_version\n    OR NOT p.active OR p.identity_class<>'human' OR p.issuer IS DISTINCT FROM i.issuer OR p.client_id IS DISTINCT FROM i.client_id OR p.state_revision IS DISTINCT FROM i.profile_revision\n    OR NOT binding.active OR binding.identity_class<>'human' OR binding.revision IS DISTINCT FROM i.binding_revision\n    OR NOT principal.active OR principal.identity_class<>'human' OR principal.revision IS DISTINCT FROM i.principal_revision OR principal.not_before>n\n    OR i.issued_at IS NULL OR i.issued_at<principal.not_before OR i.issued_at>n+30 OR i.issued_at<0 OR i.expires_at IS NULL OR i.expires_at<=GREATEST(n,i.issued_at) OR i.expires_at>9007199254740991\n    OR i.scopes IS NULL OR ('mixer.workspace.read'=ANY(i.scopes)) IS NOT TRUE OR cardinality(i.scopes)>64\n    OR i.credential_ref IS NULL OR octet_length(i.credential_ref) NOT BETWEEN 1 AND 256\n    OR p_deadline IS NULL OR p_deadline<=n OR p_deadline>LEAST(i.expires_at,n+900)\n    OR p_family IS NULL OR p_family !~ '^browser_[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$'\n    OR p_new_cookie IS NULL OR octet_length(p_new_cookie)<>32 OR p_new_cookie=o.cookie_digest\n    OR p_new_csrf IS NULL OR octet_length(p_new_csrf)<>32 OR p_new_csrf=o.csrf_digest\n    OR p_generation IS NULL OR p_generation=o.generation OR NOT public.mixer_browser_cipher_valid(p_cipher)\n    OR (d.family_id IS NOT NULL AND (NOT old_family.active OR old_family.not_before>n OR (old_family.expires_at IS NOT NULL AND old_family.expires_at<=n)))\n  THEN RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001'; END IF;\n  -- Unique INSERTs preserve every credential and family tombstone forever.\n  INSERT INTO public.mixer_authz_families(id,profile_id,profile_version,principal_id,active,not_before,expires_at,revision)\n    VALUES(p_family,i.profile_id,i.profile_version,principal.id,true,LEAST(i.issued_at,n),i.expires_at,1);\n  INSERT INTO public.mixer_authz_credentials(profile_id,profile_version,reference,principal_id,family_id,active,not_before,expires_at,revision)\n    VALUES(i.profile_id,i.profile_version,i.credential_ref,principal.id,p_family,true,LEAST(i.issued_at,n),i.expires_at,1);\n  -- A uniqueness insertion can wait; repeat all temporal decisions afterwards.\n  n:=pg_catalog.floor(extract(epoch FROM pg_catalog.clock_timestamp()))::bigint;\n  IF n>=a.expires_at OR n>=a.claim_expires_at OR n>=o.absolute_expires_at OR n>=o.idle_expires_at OR n>=i.expires_at OR n>=p_deadline THEN\n    RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001'; END IF;\n  PERFORM public.mixer_browser_revoke_existing(o,n);\n  UPDATE public.mixer_browser_sessions SET cookie_digest=p_new_cookie,csrf_digest=p_new_csrf,generation=p_generation,status='active',epoch=epoch+1,revision=revision+1,\n    last_seen_at=n,absolute_expires_at=p_deadline,idle_expires_at=p_deadline,profile_id=i.profile_id,profile_version=i.profile_version,principal_id=principal.id,\n    family_id=p_family,credential_ref=i.credential_ref,credential_revision=1,audit_sequence=audit_sequence+1 WHERE id=o.id RETURNING * INTO b;\n  -- Cookie rotation also claims a unique index entry and can wait.\n  n:=pg_catalog.floor(extract(epoch FROM pg_catalog.clock_timestamp()))::bigint;\n  IF n>=a.expires_at OR n>=a.claim_expires_at OR n>=o.absolute_expires_at OR n>=o.idle_expires_at OR n>=i.expires_at OR n>=p_deadline\n    OR (d.family_id IS NOT NULL AND old_family.expires_at IS NOT NULL AND old_family.expires_at<=n) THEN\n    RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001'; END IF;\n  UPDATE public.mixer_browser_session_vault SET epoch=b.epoch,session_revision=b.revision,vault_generation=vault_generation+1,envelope_kind='active',\n    key_id=p_cipher.key_id,iv=p_cipher.iv,tag=p_cipher.tag,ciphertext=p_cipher.ciphertext WHERE browser_id=b.id;\n  UPDATE public.mixer_browser_oidc_attempts SET status='completed',completion_reason='completed',key_id=NULL,iv=NULL,tag=NULL,ciphertext=NULL WHERE state_digest=p_state;\n  PERFORM public.mixer_browser_audit(o,b,CASE WHEN o.family_id IS NULL THEN 'activate' ELSE 'replace' END,'active',p_state,p_request,i);\n  RETURN public.mixer_browser_snapshot(b.id,p_state);\nEND;\n\n",
+      "source_sha256": "b4eb2da37e065f99aa70c961614ce9cff68706ec1c49ea88faca33c9961e05dc"
+    },
+    "mixer_browser_attempt_integrity": {
+      "result": "trigger",
+      "runtime_execute": false,
+      "security_definer": true,
+      "settings": [
+        "search_path=pg_catalog",
+        "statement_timeout=5s",
+        "lock_timeout=500ms",
+        "idle_in_transaction_session_timeout=5s",
+        "bytea_output=hex"
+      ],
+      "signature": "",
+      "source": "\nDECLARE b public.mixer_browser_sessions; e public.mixer_browser_session_events;\nBEGIN\n  SELECT * INTO STRICT b FROM public.mixer_browser_sessions WHERE id=NEW.browser_id;\n  SELECT * INTO STRICT e FROM public.mixer_browser_session_events WHERE browser_id=b.id AND sequence=b.audit_sequence;\n  IF TG_OP='UPDATE' AND (OLD.status NOT IN('pending','claimed') OR NEW.state_digest<>OLD.state_digest OR NEW.browser_id<>OLD.browser_id OR NEW.browser_epoch<>OLD.browser_epoch\n    OR NEW.browser_revision<>OLD.browser_revision OR NEW.config_digest<>OLD.config_digest OR NEW.profile_id<>OLD.profile_id OR NEW.profile_version<>OLD.profile_version\n    OR NEW.issuer<>OLD.issuer OR NEW.client_id<>OLD.client_id OR NEW.redirect_uri<>OLD.redirect_uri OR NEW.nonce_digest<>OLD.nonce_digest OR NEW.expires_at<>OLD.expires_at\n    OR NEW.cookie_digest<>OLD.cookie_digest OR NEW.generation<>OLD.generation OR NEW.created_at<>OLD.created_at\n    OR (OLD.status='claimed' AND (NEW.status NOT IN('completed','failed','superseded') OR NEW.claim_digest IS DISTINCT FROM OLD.claim_digest OR NEW.claimed_at IS DISTINCT FROM OLD.claimed_at OR NEW.claim_expires_at IS DISTINCT FROM OLD.claim_expires_at))\n    OR (OLD.status='pending' AND NEW.status NOT IN('claimed','provider_rejected','superseded')))\n  THEN RAISE EXCEPTION 'browser attempt transition invalid' USING ERRCODE='23514'; END IF;\n  IF TG_OP='INSERT' THEN\n    IF e.operation<>'begin' OR e.attempt_state_digest IS DISTINCT FROM NEW.state_digest OR NEW.status<>'pending'\n      OR NEW.browser_epoch<>b.epoch OR NEW.browser_revision<>b.revision OR NEW.cookie_digest<>b.cookie_digest OR NEW.generation<>b.generation OR NEW.config_digest<>b.config_digest\n    THEN RAISE EXCEPTION 'browser attempt event missing' USING ERRCODE='23514'; END IF;\n  ELSE\n    IF (NEW.status='claimed' AND (e.operation<>'claim' OR e.attempt_state_digest IS DISTINCT FROM NEW.state_digest))\n      OR (NEW.status='provider_rejected' AND (e.operation<>'provider_reject' OR e.attempt_state_digest IS DISTINCT FROM NEW.state_digest))\n      OR (NEW.status='completed' AND (e.operation NOT IN('activate','replace') OR e.attempt_state_digest IS DISTINCT FROM NEW.state_digest))\n      OR (NEW.status='failed' AND (e.operation<>'fail_claim' OR e.attempt_state_digest IS DISTINCT FROM NEW.state_digest))\n      OR (NEW.status='superseded' AND (e.operation NOT IN('begin','logout','expire') OR (e.operation='begin' AND e.attempt_state_digest IS NOT DISTINCT FROM NEW.state_digest)))\n    THEN RAISE EXCEPTION 'browser attempt event missing' USING ERRCODE='23514'; END IF;\n  END IF;\n  RETURN NULL;\nEND;\n\n",
+      "source_sha256": "53df540108e47ea52babdb9a6b8f189a29db3377b685fc03df6ee8524fce4e48"
+    },
+    "mixer_browser_audit": {
+      "result": "void",
+      "runtime_execute": false,
+      "security_definer": true,
+      "settings": [
+        "search_path=pg_catalog",
+        "statement_timeout=5s",
+        "lock_timeout=500ms",
+        "idle_in_transaction_session_timeout=5s",
+        "bytea_output=hex"
+      ],
+      "signature": "public.mixer_browser_sessions,public.mixer_browser_sessions,text,text,bytea,text,public.mixer_browser_verified",
+      "source": "\nBEGIN\n  INSERT INTO public.mixer_browser_session_events(browser_id,sequence,audit_schema,operation,outcome,request_id,recorded_at,\n    old_revision,new_revision,old_epoch,new_epoch,old_status,new_status,config_digest,attempt_state_digest,profile_id,profile_version,principal_id,family_id,\n    issuer_hash,subject_hash,client_hash,credential_hash,profile_revision,binding_revision,principal_revision,family_revision,credential_revision,token_issued_at,token_expires_at)\n  VALUES(n.id,n.audit_sequence,1,p_operation,p_outcome,p_request,pg_catalog.floor(extract(epoch FROM pg_catalog.clock_timestamp()))::bigint,\n    o.revision,n.revision,o.epoch,n.epoch,o.status,n.status,n.config_digest,p_state,n.profile_id,n.profile_version,n.principal_id,n.family_id,\n    CASE WHEN i.issuer IS NULL THEN NULL ELSE pg_catalog.sha256(pg_catalog.convert_to('mixer.browser.audit.issuer.v1','UTF8')||pg_catalog.decode('00','hex')||pg_catalog.int4send(octet_length(i.issuer))||pg_catalog.convert_to(i.issuer,'UTF8')) END,\n    CASE WHEN i.subject IS NULL THEN NULL ELSE pg_catalog.sha256(pg_catalog.convert_to('mixer.browser.audit.subject.v1','UTF8')||pg_catalog.decode('00','hex')||pg_catalog.int4send(octet_length(i.subject))||pg_catalog.convert_to(i.subject,'UTF8')) END,\n    CASE WHEN i.client_id IS NULL THEN NULL ELSE pg_catalog.sha256(pg_catalog.convert_to('mixer.browser.audit.client.v1','UTF8')||pg_catalog.decode('00','hex')||pg_catalog.int4send(octet_length(i.client_id))||pg_catalog.convert_to(i.client_id,'UTF8')) END,\n    CASE WHEN i.credential_ref IS NULL THEN NULL ELSE pg_catalog.sha256(pg_catalog.convert_to('mixer.browser.audit.jti.v1','UTF8')||pg_catalog.decode('00','hex')||pg_catalog.int4send(octet_length(i.credential_ref))||pg_catalog.convert_to(i.credential_ref,'UTF8')) END,\n    i.profile_revision,i.binding_revision,i.principal_revision,CASE WHEN i.profile_id IS NULL THEN NULL ELSE 1 END,n.credential_revision,i.issued_at,i.expires_at);\nEND;\n\n",
+      "source_sha256": "803b624f5ec08e9313ad33c9718d90af1c9d40c20e04a2cb2a9c31dcc319a23a"
+    },
+    "mixer_browser_begin": {
+      "result": "jsonb",
+      "runtime_execute": true,
+      "security_definer": true,
+      "settings": [
+        "search_path=pg_catalog",
+        "statement_timeout=5s",
+        "lock_timeout=500ms",
+        "idle_in_transaction_session_timeout=5s",
+        "bytea_output=hex"
+      ],
+      "signature": "bytea,bytea,bytea,bigint,public.mixer_browser_attempt,public.mixer_browser_cipher,text",
+      "source": "\nDECLARE o public.mixer_browser_sessions; b public.mixer_browser_sessions; v public.mixer_browser_session_vault; n bigint;\nBEGIN\n  SELECT * INTO o FROM public.mixer_browser_sessions WHERE cookie_digest=p_cookie FOR UPDATE;\n  IF NOT FOUND THEN RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001'; END IF;\n  PERFORM 1 FROM public.mixer_browser_oidc_attempts WHERE browser_id=o.id AND status IN('pending','claimed') ORDER BY state_digest FOR UPDATE;\n  SELECT * INTO STRICT v FROM public.mixer_browser_session_vault WHERE browser_id=o.id FOR UPDATE;\n  n:=pg_catalog.floor(extract(epoch FROM pg_catalog.clock_timestamp()))::bigint;\n  IF o.status NOT IN('preauth','active') OR o.csrf_digest IS DISTINCT FROM p_csrf OR o.config_digest IS DISTINCT FROM p_config OR o.revision IS DISTINCT FROM p_revision\n    OR n>=o.absolute_expires_at OR n>=o.idle_expires_at OR a.profile_id IS DISTINCT FROM o.expected_profile_id OR a.profile_version IS DISTINCT FROM o.expected_profile_version\n    OR a.expires_at IS NULL OR a.expires_at<=n OR a.expires_at>LEAST(n+300,o.absolute_expires_at,o.idle_expires_at)\n    OR NOT public.mixer_browser_cipher_valid(a.cipher) OR NOT public.mixer_browser_cipher_valid(p_cipher)\n  THEN RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001'; END IF;\n  UPDATE public.mixer_browser_oidc_attempts SET status='superseded',completion_reason='superseded',key_id=NULL,iv=NULL,tag=NULL,ciphertext=NULL\n    WHERE browser_id=o.id AND status IN('pending','claimed');\n  UPDATE public.mixer_browser_sessions SET epoch=epoch+1,revision=revision+1,audit_sequence=audit_sequence+1 WHERE id=o.id RETURNING * INTO b;\n  UPDATE public.mixer_browser_session_vault SET epoch=b.epoch,session_revision=b.revision,vault_generation=vault_generation+1,\n    key_id=p_cipher.key_id,iv=p_cipher.iv,tag=p_cipher.tag,ciphertext=p_cipher.ciphertext WHERE browser_id=b.id;\n  INSERT INTO public.mixer_browser_oidc_attempts(state_digest,browser_id,browser_epoch,browser_revision,cookie_digest,generation,config_digest,profile_id,profile_version,\n    issuer,client_id,redirect_uri,return_route,nonce_digest,created_at,expires_at,status,key_id,iv,tag,ciphertext)\n  VALUES(a.state_digest,b.id,b.epoch,b.revision,b.cookie_digest,b.generation,b.config_digest,a.profile_id,a.profile_version,a.issuer,a.client_id,a.redirect_uri,'workspace',a.nonce_digest,n,a.expires_at,'pending',(a.cipher).key_id,(a.cipher).iv,(a.cipher).tag,(a.cipher).ciphertext);\n  -- A colliding state insertion can wait even after all explicit locks.\n  n:=pg_catalog.floor(extract(epoch FROM pg_catalog.clock_timestamp()))::bigint;\n  IF n>=a.expires_at OR n>=o.absolute_expires_at OR n>=o.idle_expires_at THEN\n    RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001'; END IF;\n  PERFORM public.mixer_browser_audit(o,b,'begin','pending',a.state_digest,p_request,NULL::public.mixer_browser_verified);\n  RETURN public.mixer_browser_snapshot(b.id,a.state_digest);\nEND;\n\n",
+      "source_sha256": "0c94be8c52e782eb7e17a07bfb0e7b93f4011a0c174d32a2a494fe886efa5d10"
+    },
+    "mixer_browser_bootstrap": {
+      "result": "jsonb",
+      "runtime_execute": true,
+      "security_definer": true,
+      "settings": [
+        "search_path=pg_catalog",
+        "statement_timeout=5s",
+        "lock_timeout=500ms",
+        "idle_in_transaction_session_timeout=5s",
+        "bytea_output=hex"
+      ],
+      "signature": "bytea,bytea,text,bytea,bytea,text,integer,bigint,public.mixer_browser_cipher,text",
+      "source": "\nDECLARE b public.mixer_browser_sessions; n bigint;\nBEGIN\n  n:=pg_catalog.floor(extract(epoch FROM pg_catalog.clock_timestamp()))::bigint;\n  IF p_deadline IS NULL OR p_deadline<=n OR p_deadline>n+300 OR NOT public.mixer_browser_cipher_valid(p_cipher) THEN\n    RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001'; END IF;\n  INSERT INTO public.mixer_browser_sessions(id,cookie_digest,status,epoch,revision,generation,csrf_digest,created_at,last_seen_at,absolute_expires_at,idle_expires_at,\n    expected_profile_id,expected_profile_version,initial_config_digest,config_digest,audit_sequence)\n  VALUES(p_id,p_cookie,'preauth',1,1,p_generation,p_csrf,n,n,p_deadline,p_deadline,p_profile,p_version,p_config,p_config,1) RETURNING * INTO b;\n  INSERT INTO public.mixer_browser_session_vault(browser_id,epoch,session_revision,vault_generation,ciphertext_version,envelope_kind,key_id,iv,tag,ciphertext)\n  VALUES(b.id,b.epoch,b.revision,1,1,'preauth',p_cipher.key_id,p_cipher.iv,p_cipher.tag,p_cipher.ciphertext);\n  -- A unique insertion may wait for a concurrent transaction to abort.\n  n:=pg_catalog.floor(extract(epoch FROM pg_catalog.clock_timestamp()))::bigint;\n  IF n>=p_deadline THEN RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001'; END IF;\n  PERFORM public.mixer_browser_audit(NULL::public.mixer_browser_sessions,b,'bootstrap','created',NULL,p_request,NULL::public.mixer_browser_verified);\n  RETURN public.mixer_browser_snapshot(b.id,NULL);\nEND;\n\n",
+      "source_sha256": "457a8c6fee9813b04b2e11209c356b13800039d142e789b26eb5d13be8c260a1"
+    },
+    "mixer_browser_cipher_valid": {
+      "result": "boolean",
+      "runtime_execute": false,
+      "security_definer": true,
+      "settings": [
+        "search_path=pg_catalog",
+        "statement_timeout=5s",
+        "lock_timeout=500ms",
+        "idle_in_transaction_session_timeout=5s",
+        "bytea_output=hex"
+      ],
+      "signature": "public.mixer_browser_cipher",
+      "source": "\nBEGIN\n  RETURN c.key_id IS NOT NULL AND c.key_id ~ '^[A-Za-z0-9._-]{1,128}$'\n    AND c.iv IS NOT NULL AND octet_length(c.iv)=12 AND c.tag IS NOT NULL AND octet_length(c.tag)=16\n    AND c.ciphertext IS NOT NULL AND octet_length(c.ciphertext) BETWEEN 1 AND 8192;\nEND;\n\n",
+      "source_sha256": "b575011c980d62ad71f89f2118f249d330f57b60822748b1b99bcfd8c654df07"
+    },
+    "mixer_browser_claim": {
+      "result": "jsonb",
+      "runtime_execute": true,
+      "security_definer": true,
+      "settings": [
+        "search_path=pg_catalog",
+        "statement_timeout=5s",
+        "lock_timeout=500ms",
+        "idle_in_transaction_session_timeout=5s",
+        "bytea_output=hex"
+      ],
+      "signature": "bytea,bytea,bytea,bigint,bytea,bigint,text",
+      "source": "\nDECLARE o public.mixer_browser_sessions; b public.mixer_browser_sessions; a public.mixer_browser_oidc_attempts; n bigint; changed integer;\nBEGIN\n  SELECT * INTO o FROM public.mixer_browser_sessions WHERE cookie_digest=p_cookie FOR UPDATE;\n  IF NOT FOUND THEN RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001'; END IF;\n  SELECT * INTO a FROM public.mixer_browser_oidc_attempts WHERE browser_id=o.id AND state_digest=p_state FOR UPDATE;\n  n:=pg_catalog.floor(extract(epoch FROM pg_catalog.clock_timestamp()))::bigint;\n  IF NOT FOUND OR o.status NOT IN('preauth','active') OR o.config_digest IS DISTINCT FROM p_config OR o.revision IS DISTINCT FROM p_revision\n    OR a.status<>'pending' OR a.browser_epoch<>o.epoch OR a.browser_revision<>o.revision OR a.config_digest<>o.config_digest\n    OR a.cookie_digest<>o.cookie_digest OR a.generation<>o.generation OR n>=a.expires_at OR n>=o.absolute_expires_at OR n>=o.idle_expires_at\n    OR p_claim IS NULL OR octet_length(p_claim)<>32 OR p_deadline IS NULL OR p_deadline<=n OR p_deadline>LEAST(a.expires_at,n+60)\n  THEN RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001'; END IF;\n  UPDATE public.mixer_browser_oidc_attempts SET status='claimed',claim_digest=p_claim,claimed_at=n,claim_expires_at=p_deadline,key_id=NULL,iv=NULL,tag=NULL,ciphertext=NULL\n    WHERE state_digest=p_state AND status='pending' AND browser_epoch=o.epoch;\n  GET DIAGNOSTICS changed=ROW_COUNT;\n  IF changed<>1 THEN RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001'; END IF;\n  UPDATE public.mixer_browser_sessions SET audit_sequence=audit_sequence+1 WHERE id=o.id RETURNING * INTO b;\n  PERFORM public.mixer_browser_audit(o,b,'claim','claimed',p_state,p_request,NULL::public.mixer_browser_verified);\n  RETURN public.mixer_browser_snapshot(b.id,p_state);\nEND;\n\n",
+      "source_sha256": "5a42f1a9923f545a7b06b6354cf10816f90250e51ebc9945ff0746f570e28c1e"
+    },
+    "mixer_browser_event_immutable": {
+      "result": "trigger",
+      "runtime_execute": false,
+      "security_definer": true,
+      "settings": [
+        "search_path=pg_catalog",
+        "statement_timeout=5s",
+        "lock_timeout=500ms",
+        "idle_in_transaction_session_timeout=5s",
+        "bytea_output=hex"
+      ],
+      "signature": "",
+      "source": "\nBEGIN RAISE EXCEPTION 'browser audit is immutable' USING ERRCODE='42501'; END;\n\n",
+      "source_sha256": "732c26c1546911c92038539c53a349687c6f584472b1a846a7701834dd4243c6"
+    },
+    "mixer_browser_event_integrity": {
+      "result": "trigger",
+      "runtime_execute": false,
+      "security_definer": true,
+      "settings": [
+        "search_path=pg_catalog",
+        "statement_timeout=5s",
+        "lock_timeout=500ms",
+        "idle_in_transaction_session_timeout=5s",
+        "bytea_output=hex"
+      ],
+      "signature": "",
+      "source": "\nDECLARE b public.mixer_browser_sessions; p public.mixer_browser_session_events;\nBEGIN\n  SELECT * INTO STRICT b FROM public.mixer_browser_sessions WHERE id=NEW.browser_id;\n  IF NEW.sequence>b.audit_sequence OR (NEW.sequence=b.audit_sequence AND (NEW.new_revision<>b.revision OR NEW.new_epoch<>b.epoch OR NEW.new_status<>b.status OR NEW.config_digest<>b.config_digest)) THEN\n    RAISE EXCEPTION 'orphan browser event' USING ERRCODE='23514'; END IF;\n  IF NEW.sequence>1 THEN\n    SELECT * INTO STRICT p FROM public.mixer_browser_session_events WHERE browser_id=NEW.browser_id AND sequence=NEW.sequence-1;\n    IF NEW.old_revision<>p.new_revision OR NEW.old_epoch<>p.new_epoch OR NEW.old_status<>p.new_status THEN RAISE EXCEPTION 'browser audit chain invalid' USING ERRCODE='23514'; END IF;\n  END IF;\n  RETURN NULL;\nEND;\n\n",
+      "source_sha256": "5d2954184e72ae4d2e1b3e8eaeeede6a39ef09f50881500c860c23ba29930038"
+    },
+    "mixer_browser_expire": {
+      "result": "boolean",
+      "runtime_execute": true,
+      "security_definer": true,
+      "settings": [
+        "search_path=pg_catalog",
+        "statement_timeout=5s",
+        "lock_timeout=500ms",
+        "idle_in_transaction_session_timeout=5s",
+        "bytea_output=hex"
+      ],
+      "signature": "bytea,bigint,text",
+      "source": "\nDECLARE d public.mixer_browser_sessions; o public.mixer_browser_sessions; b public.mixer_browser_sessions; n bigint;\nBEGIN\n  SELECT * INTO d FROM public.mixer_browser_sessions WHERE id=p_browser;\n  IF NOT FOUND THEN RETURN false; END IF;\n  IF d.status IN('revoked','expired') THEN RETURN false; END IF;\n  PERFORM public.mixer_browser_lock_existing(d);\n  SELECT * INTO STRICT o FROM public.mixer_browser_sessions WHERE id=d.id FOR UPDATE;\n  PERFORM 1 FROM public.mixer_browser_oidc_attempts WHERE browser_id=o.id AND status IN('pending','claimed') ORDER BY state_digest FOR UPDATE;\n  PERFORM 1 FROM public.mixer_browser_session_vault WHERE browser_id=o.id FOR UPDATE;\n  n:=pg_catalog.floor(extract(epoch FROM pg_catalog.clock_timestamp()))::bigint;\n  IF o IS DISTINCT FROM d OR o.revision IS DISTINCT FROM p_revision OR o.status NOT IN('preauth','active') THEN RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001'; END IF;\n  IF n<o.absolute_expires_at AND n<o.idle_expires_at THEN RETURN false; END IF;\n  PERFORM public.mixer_browser_revoke_existing(o,n);\n  UPDATE public.mixer_browser_sessions SET status='expired',epoch=epoch+1,revision=revision+1,audit_sequence=audit_sequence+1 WHERE id=o.id RETURNING * INTO b;\n  UPDATE public.mixer_browser_oidc_attempts SET status='superseded',completion_reason='expired',key_id=NULL,iv=NULL,tag=NULL,ciphertext=NULL WHERE browser_id=o.id AND status IN('pending','claimed');\n  UPDATE public.mixer_browser_session_vault SET epoch=b.epoch,session_revision=b.revision,vault_generation=vault_generation+1,envelope_kind='erased',key_id=NULL,iv=NULL,tag=NULL,ciphertext=NULL WHERE browser_id=o.id;\n  PERFORM public.mixer_browser_audit(o,b,'expire','expired',NULL,p_request,NULL::public.mixer_browser_verified);\n  RETURN true;\nEND;\n\n",
+      "source_sha256": "0d0a08110d7ea59d747060d252ccc669dd1176e57791b8b329f3e771738f21e0"
+    },
+    "mixer_browser_fail_claim": {
+      "result": "boolean",
+      "runtime_execute": true,
+      "security_definer": true,
+      "settings": [
+        "search_path=pg_catalog",
+        "statement_timeout=5s",
+        "lock_timeout=500ms",
+        "idle_in_transaction_session_timeout=5s",
+        "bytea_output=hex"
+      ],
+      "signature": "bytea,bytea,bytea,bytea,text,text",
+      "source": "\nDECLARE o public.mixer_browser_sessions; b public.mixer_browser_sessions; a public.mixer_browser_oidc_attempts; n bigint;\nBEGIN\n  SELECT * INTO o FROM public.mixer_browser_sessions WHERE cookie_digest=p_cookie FOR UPDATE;\n  IF NOT FOUND THEN RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001'; END IF;\n  SELECT * INTO a FROM public.mixer_browser_oidc_attempts WHERE browser_id=o.id AND state_digest=p_state FOR UPDATE;\n  n:=pg_catalog.floor(extract(epoch FROM pg_catalog.clock_timestamp()))::bigint;\n  IF NOT FOUND OR o.status NOT IN('preauth','active') OR o.config_digest IS DISTINCT FROM p_config OR a.config_digest<>o.config_digest\n    OR a.status<>'claimed' OR a.browser_epoch<>o.epoch OR a.browser_revision<>o.revision OR a.claim_digest IS DISTINCT FROM p_claim\n    OR p_reason IS NULL OR p_reason NOT IN('exchange_failed','oidc_failed','identity_failed','session_failed') OR n>=a.expires_at OR n>=a.claim_expires_at OR n>=o.absolute_expires_at OR n>=o.idle_expires_at\n  THEN RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001'; END IF;\n  UPDATE public.mixer_browser_oidc_attempts SET status='failed',completion_reason=p_reason,key_id=NULL,iv=NULL,tag=NULL,ciphertext=NULL WHERE state_digest=p_state;\n  UPDATE public.mixer_browser_sessions SET audit_sequence=audit_sequence+1 WHERE id=o.id RETURNING * INTO b;\n  PERFORM public.mixer_browser_audit(o,b,'fail_claim','failed',p_state,p_request,NULL::public.mixer_browser_verified);\n  RETURN true;\nEND;\n\n",
+      "source_sha256": "7a3ef335312cdcfb9d6d5c72ab3055eb2d468fd7ff1a8f9f2e7cf064bf31b9d5"
+    },
+    "mixer_browser_integrity": {
+      "result": "trigger",
+      "runtime_execute": false,
+      "security_definer": true,
+      "settings": [
+        "search_path=pg_catalog",
+        "statement_timeout=5s",
+        "lock_timeout=500ms",
+        "idle_in_transaction_session_timeout=5s",
+        "bytea_output=hex"
+      ],
+      "signature": "",
+      "source": "\nDECLARE e public.mixer_browser_session_events; v public.mixer_browser_session_vault; c public.mixer_authz_credentials; b public.mixer_browser_sessions;\nBEGIN\n  IF TG_TABLE_NAME='mixer_browser_session_vault' THEN\n    SELECT * INTO STRICT b FROM public.mixer_browser_sessions WHERE id=NEW.browser_id;\n  ELSE b:=NEW;\n  END IF;\n  SELECT * INTO e FROM public.mixer_browser_session_events WHERE browser_id=b.id AND sequence=b.audit_sequence;\n  IF NOT FOUND OR e.new_revision<>b.revision OR e.new_epoch<>b.epoch OR e.new_status<>b.status OR e.config_digest<>b.config_digest THEN\n    RAISE EXCEPTION 'browser audit transition missing' USING ERRCODE='23514'; END IF;\n  IF TG_TABLE_NAME='mixer_browser_session_vault' THEN\n    IF TG_OP='INSERT' THEN\n      IF e.operation<>'bootstrap' OR NEW.vault_generation<>1 OR NEW.epoch<>1 OR NEW.session_revision<>1 THEN RAISE EXCEPTION 'browser vault initial transition invalid' USING ERRCODE='23514'; END IF;\n    ELSE\n      IF e.operation NOT IN('begin','activate','replace','logout','expire') OR NEW.browser_id<>OLD.browser_id OR NEW.vault_generation<>OLD.vault_generation+1\n        OR NEW.epoch<>OLD.epoch+1 OR NEW.session_revision<>OLD.session_revision+1\n      THEN RAISE EXCEPTION 'browser vault transition invalid' USING ERRCODE='23514'; END IF;\n    END IF;\n  END IF;\n  IF TG_TABLE_NAME='mixer_browser_sessions' THEN\n    IF TG_OP='INSERT' THEN\n      IF b.audit_sequence<>1 OR e.operation<>'bootstrap' OR e.old_revision IS NOT NULL THEN RAISE EXCEPTION 'browser initial transition invalid' USING ERRCODE='23514'; END IF;\n    ELSE\n      IF b.audit_sequence<>OLD.audit_sequence+1 OR e.old_revision<>OLD.revision OR e.old_epoch<>OLD.epoch OR e.old_status<>OLD.status OR b.id<>OLD.id\n        OR b.created_at<>OLD.created_at OR b.initial_config_digest<>OLD.initial_config_digest OR b.config_digest<>OLD.config_digest OR OLD.status IN('revoked','expired')\n        OR (b.revision=OLD.revision AND (pg_catalog.to_jsonb(b)-'audit_sequence') IS DISTINCT FROM (pg_catalog.to_jsonb(OLD)-'audit_sequence'))\n        OR b.revision NOT IN(OLD.revision,OLD.revision+1) OR b.epoch NOT IN(OLD.epoch,OLD.epoch+1)\n      THEN RAISE EXCEPTION 'browser transition invalid' USING ERRCODE='23514'; END IF;\n    END IF;\n  END IF;\n  SELECT * INTO v FROM public.mixer_browser_session_vault WHERE browser_id=b.id;\n  IF b.status IN('preauth','active') THEN\n    IF NOT FOUND OR v.epoch<>b.epoch OR v.session_revision<>b.revision OR v.envelope_kind<>b.status THEN RAISE EXCEPTION 'browser vault linkage invalid' USING ERRCODE='23514'; END IF;\n  ELSIF FOUND AND (v.ciphertext IS NOT NULL) THEN RAISE EXCEPTION 'terminal browser vault retained' USING ERRCODE='23514'; END IF;\n  IF b.status='active' THEN\n    SELECT * INTO STRICT c FROM public.mixer_authz_credentials WHERE profile_id=b.profile_id AND profile_version=b.profile_version AND reference=b.credential_ref;\n    IF c.principal_id<>b.principal_id OR c.family_id<>b.family_id OR c.revision<>b.credential_revision THEN RAISE EXCEPTION 'browser credential linkage invalid' USING ERRCODE='23514'; END IF;\n  END IF;\n  RETURN NULL;\nEND;\n\n",
+      "source_sha256": "73a64461ec0b58883f8a00f2812d841b21e256b928eff9f3d49f7e1858e2bc8b"
+    },
+    "mixer_browser_load": {
+      "result": "jsonb",
+      "runtime_execute": true,
+      "security_definer": true,
+      "settings": [
+        "search_path=pg_catalog",
+        "statement_timeout=5s",
+        "lock_timeout=500ms",
+        "idle_in_transaction_session_timeout=5s",
+        "bytea_output=hex"
+      ],
+      "signature": "bytea,bytea",
+      "source": "\nDECLARE b public.mixer_browser_sessions; s bytea; n bigint;\nBEGIN\n  SELECT * INTO b FROM public.mixer_browser_sessions WHERE cookie_digest=p_cookie FOR SHARE;\n  n:=pg_catalog.floor(extract(epoch FROM pg_catalog.clock_timestamp()))::bigint;\n  IF NOT FOUND OR b.status NOT IN('preauth','active') OR b.config_digest IS DISTINCT FROM p_config OR n>=b.absolute_expires_at OR n>=b.idle_expires_at THEN\n    RETURN NULL; END IF;\n  SELECT state_digest INTO s FROM public.mixer_browser_oidc_attempts WHERE browser_id=b.id AND browser_epoch=b.epoch AND status='pending' LIMIT 1;\n  RETURN public.mixer_browser_snapshot(b.id,s);\nEND;\n\n",
+      "source_sha256": "0d2ba8630890324e72af27c37bad650ebc6cacc55bf962a24b9d045112b75c6e"
+    },
+    "mixer_browser_lock_existing": {
+      "result": "void",
+      "runtime_execute": false,
+      "security_definer": true,
+      "settings": [
+        "search_path=pg_catalog",
+        "statement_timeout=5s",
+        "lock_timeout=500ms",
+        "idle_in_transaction_session_timeout=5s",
+        "bytea_output=hex"
+      ],
+      "signature": "public.mixer_browser_sessions",
+      "source": "\nDECLARE f public.mixer_authz_families; c public.mixer_authz_credentials; count_credentials integer;\nBEGIN\n  IF d.family_id IS NULL THEN RETURN; END IF;\n  PERFORM 1 FROM public.mixer_authz_profiles WHERE id=d.profile_id AND version=d.profile_version FOR UPDATE;\n  PERFORM 1 FROM public.mixer_authz_principals WHERE id=d.principal_id FOR UPDATE;\n  SELECT * INTO STRICT f FROM public.mixer_authz_families WHERE id=d.family_id FOR UPDATE;\n  PERFORM 1 FROM public.mixer_authz_credentials WHERE family_id=d.family_id ORDER BY profile_id COLLATE \"C\",profile_version,reference COLLATE \"C\" LIMIT 2 FOR UPDATE;\n  SELECT count(*) INTO count_credentials FROM (SELECT 1 FROM public.mixer_authz_credentials WHERE family_id=d.family_id LIMIT 2) bounded;\n  IF count_credentials<>1 OR f.profile_id<>d.profile_id OR f.profile_version<>d.profile_version OR f.principal_id<>d.principal_id THEN\n    RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001';\n  END IF;\n  SELECT * INTO STRICT c FROM public.mixer_authz_credentials WHERE profile_id=d.profile_id AND profile_version=d.profile_version AND reference=d.credential_ref;\n  IF c.principal_id<>d.principal_id OR c.family_id<>d.family_id THEN RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001'; END IF;\nEND;\n\n",
+      "source_sha256": "65dfc9af535bf83bc04840760880d2c82f8c9704192234f06e439a96c0536858"
+    },
+    "mixer_browser_logout": {
+      "result": "boolean",
+      "runtime_execute": true,
+      "security_definer": true,
+      "settings": [
+        "search_path=pg_catalog",
+        "statement_timeout=5s",
+        "lock_timeout=500ms",
+        "idle_in_transaction_session_timeout=5s",
+        "bytea_output=hex"
+      ],
+      "signature": "bytea,bytea,bytea,bigint,text",
+      "source": "\nDECLARE d public.mixer_browser_sessions; o public.mixer_browser_sessions; b public.mixer_browser_sessions; n bigint;\nBEGIN\n  SELECT * INTO d FROM public.mixer_browser_sessions WHERE cookie_digest=p_cookie;\n  IF NOT FOUND THEN RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001'; END IF;\n  IF d.status='revoked' AND d.csrf_digest IS NOT DISTINCT FROM p_csrf AND d.config_digest IS NOT DISTINCT FROM p_config THEN RETURN true; END IF;\n  PERFORM public.mixer_browser_lock_existing(d);\n  SELECT * INTO STRICT o FROM public.mixer_browser_sessions WHERE id=d.id FOR UPDATE;\n  PERFORM 1 FROM public.mixer_browser_oidc_attempts WHERE browser_id=o.id AND status IN('pending','claimed') ORDER BY state_digest FOR UPDATE;\n  PERFORM 1 FROM public.mixer_browser_session_vault WHERE browser_id=o.id FOR UPDATE;\n  n:=pg_catalog.floor(extract(epoch FROM pg_catalog.clock_timestamp()))::bigint;\n  IF o IS DISTINCT FROM d OR o.status NOT IN('preauth','active') OR o.revision IS DISTINCT FROM p_revision OR o.csrf_digest IS DISTINCT FROM p_csrf OR o.config_digest IS DISTINCT FROM p_config THEN\n    RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001'; END IF;\n  PERFORM public.mixer_browser_revoke_existing(o,n);\n  UPDATE public.mixer_browser_sessions SET status='revoked',epoch=epoch+1,revision=revision+1,audit_sequence=audit_sequence+1 WHERE id=o.id RETURNING * INTO b;\n  UPDATE public.mixer_browser_oidc_attempts SET status='superseded',completion_reason='logout',key_id=NULL,iv=NULL,tag=NULL,ciphertext=NULL WHERE browser_id=o.id AND status IN('pending','claimed');\n  UPDATE public.mixer_browser_session_vault SET epoch=b.epoch,session_revision=b.revision,vault_generation=vault_generation+1,envelope_kind='erased',key_id=NULL,iv=NULL,tag=NULL,ciphertext=NULL WHERE browser_id=o.id;\n  PERFORM public.mixer_browser_audit(o,b,'logout','revoked',NULL,p_request,NULL::public.mixer_browser_verified);\n  RETURN true;\nEND;\n\n",
+      "source_sha256": "78740b8e355e74fe9b5cb514c9d116bc3e09876174c02da84eb85452e31700e5"
+    },
+    "mixer_browser_provider_reject": {
+      "result": "jsonb",
+      "runtime_execute": true,
+      "security_definer": true,
+      "settings": [
+        "search_path=pg_catalog",
+        "statement_timeout=5s",
+        "lock_timeout=500ms",
+        "idle_in_transaction_session_timeout=5s",
+        "bytea_output=hex"
+      ],
+      "signature": "bytea,bytea,bytea,bigint,text",
+      "source": "\nDECLARE o public.mixer_browser_sessions; b public.mixer_browser_sessions; a public.mixer_browser_oidc_attempts; n bigint; changed integer;\nBEGIN\n  SELECT * INTO o FROM public.mixer_browser_sessions WHERE cookie_digest=p_cookie FOR UPDATE;\n  IF NOT FOUND THEN RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001'; END IF;\n  SELECT * INTO a FROM public.mixer_browser_oidc_attempts WHERE browser_id=o.id AND state_digest=p_state FOR UPDATE;\n  n:=pg_catalog.floor(extract(epoch FROM pg_catalog.clock_timestamp()))::bigint;\n  IF NOT FOUND OR o.status NOT IN('preauth','active') OR o.config_digest IS DISTINCT FROM p_config OR o.revision IS DISTINCT FROM p_revision\n    OR a.status<>'pending' OR a.browser_epoch<>o.epoch OR a.browser_revision<>o.revision OR a.config_digest<>o.config_digest\n    OR a.cookie_digest<>o.cookie_digest OR a.generation<>o.generation OR n>=a.expires_at OR n>=o.absolute_expires_at OR n>=o.idle_expires_at\n  THEN RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001'; END IF;\n  UPDATE public.mixer_browser_oidc_attempts SET status='provider_rejected',completion_reason='provider_rejected',key_id=NULL,iv=NULL,tag=NULL,ciphertext=NULL\n    WHERE state_digest=p_state AND status='pending' AND browser_epoch=o.epoch;\n  GET DIAGNOSTICS changed=ROW_COUNT;\n  IF changed<>1 THEN RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001'; END IF;\n  UPDATE public.mixer_browser_sessions SET audit_sequence=audit_sequence+1 WHERE id=o.id RETURNING * INTO b;\n  PERFORM public.mixer_browser_audit(o,b,'provider_reject','provider_rejected',p_state,p_request,NULL::public.mixer_browser_verified);\n  RETURN public.mixer_browser_snapshot(b.id,p_state);\nEND;\n\n",
+      "source_sha256": "0c487045e78b84df034519bc1684fa6fae99ad17d8e38286f6731dd23c5b5baa"
+    },
+    "mixer_browser_revoke_existing": {
+      "result": "void",
+      "runtime_execute": false,
+      "security_definer": true,
+      "settings": [
+        "search_path=pg_catalog",
+        "statement_timeout=5s",
+        "lock_timeout=500ms",
+        "idle_in_transaction_session_timeout=5s",
+        "bytea_output=hex"
+      ],
+      "signature": "public.mixer_browser_sessions,bigint",
+      "source": "\nBEGIN\n  IF d.family_id IS NULL THEN RETURN; END IF;\n  UPDATE public.mixer_authz_families SET active=false,revision=revision+1 WHERE id=d.family_id AND active;\n  UPDATE public.mixer_authz_credentials SET active=false,revision=revision+1 WHERE family_id=d.family_id AND active;\nEND;\n\n",
+      "source_sha256": "1d8e2fc4561ac97d1ec48cda4a328c8021a551d4c63f568d2f6ebd4214be1bff"
+    },
+    "mixer_browser_snapshot": {
+      "result": "jsonb",
+      "runtime_execute": false,
+      "security_definer": true,
+      "settings": [
+        "search_path=pg_catalog",
+        "statement_timeout=5s",
+        "lock_timeout=500ms",
+        "idle_in_transaction_session_timeout=5s",
+        "bytea_output=hex"
+      ],
+      "signature": "bytea,bytea",
+      "source": "\nDECLARE b public.mixer_browser_sessions; v public.mixer_browser_session_vault; a public.mixer_browser_oidc_attempts;\nBEGIN\n  SELECT * INTO STRICT b FROM public.mixer_browser_sessions WHERE id=p_browser;\n  SELECT * INTO v FROM public.mixer_browser_session_vault WHERE browser_id=b.id;\n  IF p_state IS NOT NULL THEN SELECT * INTO a FROM public.mixer_browser_oidc_attempts WHERE state_digest=p_state AND browser_id=b.id; END IF;\n  RETURN pg_catalog.jsonb_build_object('browser',pg_catalog.to_jsonb(b),'vault',CASE WHEN v.browser_id IS NULL THEN NULL ELSE pg_catalog.to_jsonb(v) END,\n    'attempt',CASE WHEN a.state_digest IS NULL THEN NULL ELSE pg_catalog.to_jsonb(a) END);\nEND;\n\n",
+      "source_sha256": "0f01fef244e80ea8f1698088924b620037fcdfd1d207d8f31ca2f6f627844a20"
+    }
+  },
+  "policies": {
+    "insert": "true",
+    "lock_check": "false",
+    "read": "true",
+    "update": "true"
+  },
+  "relations": [
+    "mixer_browser_sessions",
+    "mixer_browser_session_vault",
+    "mixer_browser_oidc_attempts",
+    "mixer_browser_session_events"
+  ],
+  "transaction": {
+    "idle_ms": 5000,
+    "isolation": "read committed",
+    "lock_ms": 500,
+    "statement_ms": 5000
+  },
+  "version": 1
+}

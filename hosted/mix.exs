@@ -7,6 +7,14 @@ defmodule MixerHosted.MixProject do
       version: "0.1.0",
       elixir: "== 1.20.4",
       elixirc_paths: elixirc_paths(Mix.env()),
+      # These files belong to explicit, isolated PostgreSQL runners. Keep the
+      # default loader strict so an accidentally named future test still warns.
+      test_ignore_filters: [
+        "test/mixer_hosted/authorization/jit_policy_spec.exs",
+        "test/mixer_hosted/browser_auth/migration_spec.exs",
+        "test/mixer_hosted/browser_auth/storage_fixture.exs",
+        "test/mixer_hosted/browser_auth/storage_spec.exs"
+      ],
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       aliases: [test: "test --no-start"]

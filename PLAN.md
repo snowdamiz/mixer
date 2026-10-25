@@ -15,7 +15,10 @@ Implementation resumed at the user's October 25 request to continue this plan.
 The [pause handoff](docs/implementation-pause-2026-10-25.md) preserves the delivered
 browser-session security slice and backed-up SQL candidate. The corrected SQL,
 configuration text admission and transaction-local JIT policy now pass independent
-development review. Nine-migration integration passes; exact-push CI is next.
+development review. Nine-migration integration passes. Pushed `7e434330` passes
+615 Phoenix methods with two existing skips, but CI fails on unclassified
+selected-fixture discovery warnings. The narrow configuration repair passes eight
+actual isolated Mix checks; exact-push CI is next.
 See [the integrated scope](docs/hosted-browser-session-integration.md).
 Computer use, capture and native runtime tests remain paused.
 The full plan remains incomplete; no GA gate is promoted.
@@ -134,11 +137,20 @@ The full plan remains incomplete; no GA gate is promoted.
    then the ordinary protected HTTP/console session workflow. The storage
    contract's 18 complete-lifecycle cases remain a broader requirement than
    these component tests. See [integration](docs/hosted-browser-session-integration.md).
+   The [runtime contract](docs/hosted-browser-lifecycle-runtime-contract.md) now
+   passes independent bounded review after startup/policy/verifier corrections.
+   Pure custody/runtime configuration and independent catalog admission are the
+   next isolated source lanes. Forty runtime adversity cases remain pending.
 
    The prior `1257cbf8` Phoenix CI fails the 121-project directory transaction
-   deadline (608/609 methods pass, two skips). Exact-push CI for the reviewed JIT
-   correction remains pending; no time limit was raised and the old failure's
-   exact slow phase was not measured.
+   deadline (608/609 methods pass, two skips). At pushed `7e434330`, the same
+   large-customer case passes in 449.6 ms and all 615 executed Phoenix methods
+   pass. The workflow still fails under warnings-as-errors because four selected
+   fixture/spec files need explicit discovery classification; two existing tests
+   remain skipped. The four-path discovery repair passes eight isolated Mix
+   checks with strict unknown-file and compiler-warning controls. No time limit
+   was raised and the old failure's exact slow
+   phase was not measured.
    Earlier 9a2bf16b Engine CI passes all three jobs. Provider, deployment, browser,
    customer/FieldLog and GA requirements remain pending. See
    [the workspace checkpoint](docs/hosted-customer-workspace-checkpoint.md),

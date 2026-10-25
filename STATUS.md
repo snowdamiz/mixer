@@ -4,7 +4,9 @@ Development resumed at the user's October 25 request to continue PLAN.md. The
 [saved handoff](docs/implementation-pause-2026-10-25.md) remains historical evidence.
 Browser SQL, nine-migration integration, transaction-local JIT and trusted
 configuration text validation now pass scoped independent development review;
-exact-push CI remains pending. Native runtime and capture remain paused.
+pushed Phoenix methods pass, but test-discovery warnings still fail the job.
+The narrow CI configuration repair passes eight isolated Mix checks. Native
+runtime and capture remain paused.
 All eighteen work packages remain in scope:
 sixteen are in progress and two are marked ready. No launch gate is verified;
 [gates/ga.json](gates/ga.json) records eight running and thirty planned gates.
@@ -263,10 +265,25 @@ its case count is not interchangeable with the new candidate test count. No laun
 [session storage contract](docs/hosted-browser-session-storage-contract.md) and
 [composition acceptance](verification/console-workspace-composition/root-acceptance/receipt.json).
 
+The [browser runtime contract](docs/hosted-browser-lifecycle-runtime-contract.md)
+passes eight producer and twelve independent structural checks after correcting
+startup binding, existing PUBLIC-policy expectations, same-process trust-change
+limits and first-slice preauth behavior. This accepts the implementation contract
+only. Pure custody/runtime configuration and independent catalog admission are
+underway; all forty runtime adversity cases remain pending. See
+[review](docs/hosted-browser-lifecycle-runtime-contract-review.md).
+
 ## Delivery and pending qualification
 
-The resumed slice is locally accepted and prepared for authorized delivery;
-exact-push CI is pending. Previous checkpoint `1257cbf8` Phoenix CI fails the
+The resumed slice is committed and pushed as `7e434330` to `origin/main`; remote
+main matches. Phoenix `40211210237` fails after all 615 executed methods pass
+(two existing skips): four selected fixture/spec files produce discovery warnings
+under warnings-as-errors. The former 121-project deadline case passes in
+449.6 ms. New browser storage and migration CI checks also pass. The narrow
+four-path discovery repair passes eight actual Mix checks while retaining fatal
+unknown-file/compiler warnings. Engine `40211210222` has passed VM/services;
+Swift is still running. See
+[delivery](verification/github-delivery-browser-lifecycle/delivery-receipt.json). Previous checkpoint `1257cbf8` Phoenix CI fails the
 same first 121-project workspace read at its unchanged transaction deadline:
 608/609 methods pass with two existing skips. Its exact output is preserved in
 [the resume receipt](verification/implementation-resume-2026-10-25/receipt.json).
