@@ -1,0 +1,71 @@
+{
+  "finalProducerSealSHA256": "3d28dad80748a4b35ac0e49f9567a95bd5175997d57197c36ad6d85513d555c3",
+  "findings": [
+    {
+      "id": "D1",
+      "initialGap": "Pre-begin exclusive no-follow creation/device-inode check alone did not specify post-write stable descriptor/path identity, length and immutable packet capture. A host sidecar hash of a changed path would not establish original writer custody.",
+      "requiredResolution": "Explicit stable final descriptor/path and length/hash capture checks, invalidity on mutation/drift, sealed retained stream, and no adversarial-authentication claim.",
+      "resolution": "written contract corrected; actual Rust/driver implementation evidence remains pending",
+      "topic": "Final file custody"
+    },
+    {
+      "id": "D2",
+      "initialGap": "The draft promised a separate close result without choosing a mechanism; Rust std::fs::File Drop exposes no close Result.",
+      "requiredResolution": "Remove the unobservable std File Drop close-result claim or choose and inventory an explicit mechanism. Keep write/sync/flush/close/durability outcomes distinct.",
+      "resolution": "written contract corrected; actual Rust/driver implementation evidence remains pending",
+      "topic": "Close error observation"
+    },
+    {
+      "id": "D3",
+      "initialGap": "A flag stored only in a RefCell writer cannot be mutated when try_borrow fails; wrong-thread TLS can appear inactive.",
+      "requiredResolution": "Independently writable run-validity latch and owner coordinate, included in complete observer inventory and finite fault controls.",
+      "resolution": "written contract corrected; actual Rust/driver implementation evidence remains pending",
+      "topic": "Sticky invalidity under reentrancy and wrong thread"
+    },
+    {
+      "id": "D4",
+      "initialGap": "The partial replay requires an active pin for Failure. Observer overhead can shift the actual result to construction, execution, WASI or deadline failure outside a pin.",
+      "requiredResolution": "Full closed protocol must support terminal original failure outside active pin with independently bound cursor/absent identity; partial model limitation remains explicit.",
+      "resolution": "written contract corrected; actual Rust/driver implementation evidence remains pending",
+      "topic": "Terminal failure without an active pin operation"
+    },
+    {
+      "id": "D5",
+      "initialGap": "End read the shared invalidity latch into the footer before deactivating. A concurrent wrong-thread callback could latch invalidity after the snapshot while active remained true.",
+      "requiredResolution": "Require a bounded finalization/quiescence handshake or independently established no-concurrent-callback dispatch, with a fail-closed external custody/status observation that cannot lose late invalidity. Include every new atomic/guard/temporary in the complete logical inventory.",
+      "resolution": "written contract corrected; actual Rust/driver implementation evidence remains pending",
+      "topic": "Finalization and late invalidity"
+    },
+    {
+      "id": "D6",
+      "initialGap": "Stable immutable capture introduces a second full stream file; the per-file maximum did not state the two-file transient/retained contribution.",
+      "requiredResolution": "State one copy attempt, no copy retry, at most 1,073,743,872 bytes across two stream files plus 8,192 sidecar bytes, before separately bounded original output/result transport. Inventory host copy buffers and descriptors separately from the 16 KiB live-writer ceiling.",
+      "resolution": "written contract corrected; actual Rust/driver implementation evidence remains pending",
+      "topic": "Custody-copy disk bound"
+    },
+    {
+      "id": "D7",
+      "initialGap": "The finite decoder accepted cap-only flags when stored was below the header cap; encode always produced consistent cap cases, so existing tests did not expose it. Independent attempt-1 fixture accidentally exercised this admission.",
+      "requiredResolution": "For cap-only strict prefix require stored==declared cap and attempted>stored; include a mutated-header cap control. Correct independent tiny-cap fixtures and preserve the initial source/input evidence.",
+      "resolution": "corrected finite cap decoder and independent fixture; full schema remains pending",
+      "topic": "Strict cap reach admission"
+    }
+  ],
+  "finiteEvidence": {
+    "finalAttempt": 2,
+    "independentMethods": 16,
+    "producerMethods": 25,
+    "sourceClosureFiles": 132,
+    "sourceClosureSHA256": "16176e0852fa61cba98acebeb373ee1a6be4c686d0e46ef8bbc144c0527c2cbd"
+  },
+  "modelLimits": [
+    "Tiny model accepts unused event payload and body identity drift, phase drift and invalid PlanEnd outcomes.",
+    "Tiny model accepts missing scan begin/end.",
+    "Tiny model has no full plan collision/work/timestamp/victim oracle, actual writer, allocation or physical-memory proof.",
+    "decode returns flags separately; complete/invalid classification must inspect sticky flags before calling replay."
+  ],
+  "reviewBoundary": "These findings concern a proposal with explicitly deferred implementation gates. Definitive resolution is recorded against the frozen proposal in the review document and receipt. They are not repaired in live VM source.",
+  "schema": 1,
+  "scope": "Independent review of design and finite Python model only; no Rust observer, full target, policy benefit or native acceptance",
+  "status": "resolved-in-final-written-design-and-scoped-model-only"
+}

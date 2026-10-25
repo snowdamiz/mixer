@@ -110,8 +110,14 @@ operation reservation bytes. Three of six complete work traces regress and
 memory admission fails earlier. Two original policy observations remain failed.
 An independent 23-method offline audit confirms the recorded rejection. Root
 verifies 133 sealed members, three 132-file archives and the unchanged live VM.
-Live integration/full-target retry remain unselected; a bounded ordered
-cache-transition diagnostic design is next. See
+Live integration/full-target retry remain unselected. The bounded ordered
+cache-transition design now passes 25 producer and 16 independent finite model
+methods after seven corrections, including finalization and premature-cap checks.
+Root verifies 73 sealed bindings and the unchanged 132-file VM closure. A separate
+isolated finite Rust feasibility slice is selected with schema coordination before
+hooked tests. Actual memory/allocation accounting, complete hooks/analyzer and
+bounded target output transport remain pending. See
+[the diagnostic design review](docs/swift-ordered-retention-diagnostic-design-review.md),
 [the rejected Rust result audit](docs/swift-count-plan-retention-candidate-review.md),
 [the independent review](docs/swift-retention-next-design-review.md) and
 [the root acceptance](verification/swift-retention-next-design-review/root-acceptance.json).
@@ -308,13 +314,17 @@ packets. The inert additive migration now passes independent development review:
 ten-migration integration passes separately on PG17 and PG16, alongside six
 PG17 operator methods and eleven independent PG16 adversity methods. Root
 verified 866 sealed members, 81 source, 1,137 dependency and 166 output bindings
-and cleanup. Broad ordinary CI after delivery remains pending. See
+and cleanup. Corrected broad ordinary CI now passes as recorded below. See
 [the migration review](docs/hosted-browser-activation-preparation-migration-review.md)
 and [the versioned review](docs/hosted-browser-catalog-v2-review.md).
 Migration delivery `a6eaa8a5` passes selected storage/migration CI. Its broader
 run reports 649 passed, fifteen invalid and two existing skips: build-storage
 setup still expected nine migrations. The missing expected 00008 is corrected
-and actual projectless formatting passes; broad execution remains pending.
+and actual projectless formatting passes. Corrected `eec94804` now passes every
+Phoenix CI step: 664 ordinary methods pass with two existing skips. Engine VM and
+services pass; Swift remains running. The preceding `d1ca1656` Phoenix run was
+cancelled, not passed. Both preceding `a6eaa8a5` and `d1ca1656` Engine runs now
+pass all three jobs.
 The RelationCatalog prerequisite passes 233 PG16 and 234 PG17 methods with
 65/66 actual mutations. Independent review passes 96 methods on each major,
 including fourteen rejected mutations and two allowed naming equivalences. Root

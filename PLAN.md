@@ -35,7 +35,11 @@ Phoenix and Engine CI. Catalog V2 checkpoint `6b1dfd33` now passes Phoenix and a
 Migration checkpoint `a6eaa8a5` passes selected storage/migrations but broader
 Phoenix CI invalidates fifteen build-storage tests because their expected list
 omitted migration 00008 (649 passed, two existing skips). The one-item fixture
-correction passes projectless formatting; corrected broad execution is pending.
+correction passes projectless formatting. Corrected `eec94804` Phoenix CI now
+passes every step, including 664 ordinary methods with two existing skips. Engine
+VM/services jobs pass; Swift remains running. The preceding `d1ca1656` Phoenix
+run was cancelled and is not a pass. Engine runs for `a6eaa8a5` and `d1ca1656`
+now pass all three jobs.
 See [the integrated scope](docs/hosted-browser-session-integration.md).
 Computer use, capture and native runtime tests remain paused.
 The full plan remains incomplete; no GA gate is promoted.
@@ -68,9 +72,14 @@ The full plan remains incomplete; no GA gate is promoted.
    six complete CacheWork traces regress, operation reservation grows by 20,472
    bytes and memory admission fails earlier. Two original policy observations
    remain failed. An independent 23-method offline audit confirms the recorded
-   rejection; live integration and full-target retry are unselected. Root selects
-   a bounded ordered cache-transition diagnostic design to resolve missing
-   actual call order. See [the rejection audit](docs/swift-count-plan-retention-candidate-review.md),
+   rejection; live integration and full-target retry are unselected. The bounded
+   ordered cache-transition diagnostic design passes 25 producer and 16 independent
+   finite model methods after seven design corrections. Root verifies 73 sealed
+   members and unchanged 132-file VM closure. A separate isolated finite Rust
+   feasibility slice is selected, with exact schema coordination before hooked
+   tests. Actual layout/allocation, hook protocol, analyzer and bounded target
+   transport remain pending. See [the design review](docs/swift-ordered-retention-diagnostic-design-review.md),
+   [the rejection audit](docs/swift-count-plan-retention-candidate-review.md),
    [the reviewed finite result](docs/swift-retention-next-design-review.md),
    [the earlier unselected model](docs/swift-adaptive-retention-design.md),
    [the finite rejection](docs/swift-cost-retention-candidate-review.md),

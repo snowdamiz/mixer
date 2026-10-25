@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "scope": "Retained read-only exploration errors; no artifact or source mutation, no target execution",
+  "attempts": [
+    {
+      "command": "rg -n 'attribution|23,358,291|53.907|source|\\.json|\\.rs' docs/swift-retention-runtime.md docs/swift-decode-plan-integration.md docs/swift-retention-next-design-review.md docs/swift-adaptive-retention-design.md verification/swift-count-plan-retention-candidate/baseline-manifest.json verification/swift-count-plan-retention-candidate/producer-seal.json",
+      "exitCode": 2,
+      "diagnostic": "Two guessed candidate manifest/seal paths do not exist. Existing selected docs were read; no execution or evidence change.",
+      "correction": "Read exact linked packet seal.json and baseline-source-manifest.json."
+    },
+    {
+      "command": "rg -n 'fn |struct |charge|cache_hit|scan|count_plan|CacheWork|attribution|observer|snapshot|finish|decode|evict|pin|release' vm/src/experimental_swift_reactor/cache.rs vm/src/experimental/cache/borrowed.rs vm/src/experimental_swift_reactor/control.rs vm/src/experimental_swift_reactor/attribution.rs",
+      "exitCode": 2,
+      "diagnostic": "Guessed live attribution.rs does not exist; attribution observer is retained test-only evidence. Output was truncated by the tool.",
+      "correction": "Read bounded live function ranges and exact accepted observer-contract.json/observer-and-controls.rs."
+    },
+    {
+      "command": "python3 in-memory JSON read of verification/swift-current-attribution-runtime/seal.json, verification/swift-current-attribution-full-preparation/seal.json, verification/swift-count-plan-retention-candidate/baseline-source-manifest.json",
+      "exitCode": 1,
+      "diagnostic": "FileNotFoundError for runtime/seal.json before any subsequent read; actual file is result-seal.json.",
+      "correction": "Enumerated only the two explicitly selected packet roots, then read exact result-seal.json/prepared-seal.json."
+    }
+  ],
+  "rawHistory": "Exact commands and tool output remain in this chat. These are authored concise error records, not reconstructed raw subprocess transcripts.",
+  "testFailures": "No failed synthetic test invocation occurred before the receipt runner; the initial direct 16-method invocation passed."
+}
