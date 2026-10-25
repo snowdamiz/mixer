@@ -1,0 +1,24 @@
+--- producer-boundary/test/worker.ts
++++ review/test/worker.ts
+@@ -32,9 +32,10 @@
+  private releaseAck:(()=>void)|null=null;
+  private setting(){const r=this.ctx.storage.sql.exec<{value:string}>('SELECT value FROM fixture_registry WHERE singleton=1').toArray()[0];return r?JSON.parse(r.value) as {mode:string;skip:number;blocked:boolean}:{mode:'normal',skip:0,blocked:false};}
+  private set(v:unknown){this.ctx.storage.sql.exec('INSERT INTO fixture_registry VALUES(1,?) ON CONFLICT(singleton) DO UPDATE SET value=excluded.value',JSON.stringify(v));}
+- constructor(ctx:DurableObjectState,env:PendingEnv){super(ctx,env);ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS fixture_registry(singleton INTEGER PRIMARY KEY,value TEXT NOT NULL)');}
+- async register(i:PendingIdentity){if(this.setting().mode==='register_unavailable')return {status:'unavailable' as const};const r=await super.register(i);if(this.setting().mode==='register_lost')return {status:'unavailable' as const};return r;}
++ constructor(ctx:DurableObjectState,env:PendingEnv){super(ctx,env);ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS fixture_registry(singleton INTEGER PRIMARY KEY,value TEXT NOT NULL); CREATE TABLE IF NOT EXISTS fixture_registry_calls(sequence INTEGER PRIMARY KEY AUTOINCREMENT,kind TEXT NOT NULL)');}
++ async register(i:PendingIdentity){this.ctx.storage.sql.exec("INSERT INTO fixture_registry_calls(kind) VALUES('register')");if(this.setting().mode==='register_unavailable')return {status:'unavailable' as const};const r=await super.register(i);if(this.setting().mode==='register_lost')return {status:'unavailable' as const};return r;}
+  async track(a:TrackInput):Promise<TrackAck>{
++  this.ctx.storage.sql.exec("INSERT INTO fixture_registry_calls(kind) VALUES('track')");
+   const s=this.setting();if(s.mode==='unavailable')return {status:'unavailable'};
+   if(s.skip>0){s.skip--;this.set(s);return super.track(a);}
+   if(s.mode==='drop_before_once'){this.set({mode:'normal',skip:0,blocked:false});return {status:'unavailable'};}
+@@ -50,7 +51,7 @@
+  async fixture(action:string,arg:Record<string,unknown>){
+   if(action==='mode'){this.set({mode:arg.mode,skip:arg.skip??0,blocked:false});return {ok:true};}
+   if(action==='release'){this.releaseAck?.();this.releaseAck=null;return {ok:true};}
+-  return {settings:this.setting(),records:this.ctx.storage.sql.exec('SELECT * FROM pending_registry_record ORDER BY allocation_index').toArray()};
++  return {rpcCalls:this.ctx.storage.sql.exec('SELECT * FROM fixture_registry_calls ORDER BY sequence').toArray(),settings:this.setting(),records:this.ctx.storage.sql.exec('SELECT * FROM pending_registry_record ORDER BY allocation_index').toArray()};
+  }
+ }
+ export class TestOperation extends DurableObject<Env> {

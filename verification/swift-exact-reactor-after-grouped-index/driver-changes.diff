@@ -1,0 +1,103 @@
+--- immediate-prior/diagnostic.py
++++ after-grouped-index/diagnostic.py
+@@ -1,5 +1,5 @@
+ #!/usr/bin/env python3
+-"""One bounded after-resident-index exact Swift reactor diagnostic; no live VM writes."""
++"""One bounded after-grouped-index exact Swift reactor diagnostic; no live VM writes."""
+ import argparse
+ import datetime
+ import gzip
+@@ -22,11 +22,11 @@
+ TARGET = SCRATCH / "target"
+ BASELINE = HERE / "baseline"
+ QUALIFIED = ROOT / "compiler/experiments/fieldlog-reactor"
+-HISTORY = ROOT / "verification/swift-exact-reactor-after-cache"
+-ACCEPTED = ROOT / "verification/swift-cache-resident-index-root-integration"
++HISTORY = ROOT / "verification/swift-exact-reactor-after-resident-index"
++ACCEPTED = ROOT / "verification/swift-resident-index-grouped-reservation-root-integration"
+ MANIFEST = ACCEPTED / "integrated-manifest.json"
+-CLOSURE = "02fd25a32b05cf8c4b10e0f68df029d8851e14610ccecbec772be09af5073f8d"
+-HISTORICAL_CLOSURE = "b28da766c84b6353a4511e2fc3fbcb0d4302d5b8a5a74da1ee3d7fb776ca2c11"
++CLOSURE = "3ffa1055e462be74c10ee9830bf891bbd196a896dfc7a66dc6befe2a6d9bb70f"
++HISTORICAL_CLOSURE = "02fd25a32b05cf8c4b10e0f68df029d8851e14610ccecbec772be09af5073f8d"
+ HARNESS_HASH = "d72da7bc7aaf4e31b7093fde497f357226d3a4dd954eb577909209102a0bfb00"
+ REACTOR = QUALIFIED / "local/2026-10-23-qualified/wasm/fieldlog-reactor.wasm"
+ REACTOR_HASH = "24d85729a659ff3e5fc6f0517709afbb68b371a41829e90785dabd48e0620994"
+@@ -128,10 +128,10 @@
+     assert len(baseline) == 132 and closure(baseline) == CLOSURE
+     assert source_manifest(ROOT / "vm") == baseline
+     accepted = read(ACCEPTED / "receipt.json")
+-    assert accepted["status"] == "accepted-live-private-resident-index-integration"
++    assert accepted["status"] == "accepted-live-private-grouped-index-reservation"
+     assert accepted["sourceManifestSHA256"] == CLOSURE and accepted["sourceFiles"] == 132
+     assert sum(command["expectedTests"] for command in accepted["commands"]) == 32
+-    assert accepted["selectionSHA256"] == sha(ACCEPTED / "selection.json") == "601b87b71e666db2469bf31e5b476698ba2a4d883742f90be4c0293a8f1e820d"
++    assert accepted["selectionSHA256"] == sha(ACCEPTED / "selection.json") == "ea5c3b0d800740159ef92bd85e312d0db06e9b698b516b896c45a0fcb6264109"
+     assert accepted["sourceUnchangedDuringTests"] and accepted["ownedTargetRemoved"]
+     assert accepted["fullTargetSelected"] is False and accepted["nativeExecuted"] is False
+     assert all(command["streamEOF"] == {"stdout": True, "stderr": True}
+@@ -141,12 +141,10 @@
+     prior_manifest = read(HISTORY / "baseline-manifest.json")
+     assert closure(prior_manifest) == HISTORICAL_CLOSURE
+     changed = [name for name in baseline if baseline[name] != prior_manifest[name]]
+-    assert changed == ["src/experimental/cache/borrowed.rs",
+-                       "src/experimental/cache/tests.rs",
+-                       "src/experimental_swift_reactor/cache.rs",
+-                       "src/experimental_swift_reactor/cache_tests.rs",
+-                       "src/experimental_swift_reactor/execution_tests.rs",
+-                       "src/experimental_swift_reactor/lifecycle_tests.rs"]
++    assert changed == ["src/experimental_swift_reactor/cache.rs",
++                       "src/experimental_swift_reactor/cache_tests.rs"]
++    assert sha(HISTORY / "prepared-seal.json") == "442225cf710fa6ea2a241e16d62e0a299e3edf8268ca35027067a9a2f50d1dbd"
++    assert sha(HISTORY / "result-seal.json") == "05d31bc936466d9dd6c2b21c411e30e75087396e6f6903a0e6fc597f401948fd"
+     historical_seal = read(HISTORY / "result-seal.json")
+     references = {}
+     def retain(path, expected=None):
+@@ -155,6 +153,12 @@
+         if expected is not None:
+             assert info["sha256"] == expected, str(path)
+         references[str(path)] = info
++    accepted_selection = read(ACCEPTED / "selection.json")
++    assert accepted_selection["sourceDigest"] == CLOSURE
++    assert accepted_selection["changedFiles"] == changed
++    assert accepted_selection["unchangedTicketLimit"] == 86
++    for name, expected in accepted_selection["bindings"].items():
++        retain(ROOT / name, expected)
+     # Sealed history is data only. Never import or execute its driver or compiler/oracle.
+     for name, expected in historical_seal["files"].items():
+         retain(HISTORY / name, expected)
+@@ -164,7 +168,10 @@
+         retain(info["path"], info["sha256"])
+     for path in (HISTORY / "result-seal.json", HISTORY / "verify.py", MANIFEST,
+                  ACCEPTED / "selection.json", ACCEPTED / "receipt.json", ROOT / "AGENTS.md",
+-                 ROOT / "docs/swift-cache-resident-index.md", ROOT / "docs/swift-cache-resident-index-review.md"):
++                 ROOT / "docs/swift-resident-index-grouped-reservation-contract.md",
++                 ROOT / "verification/swift-resident-index-grouped-reservation/seal.json",
++                 ROOT / "verification/swift-resident-index-grouped-reservation-review/seal.json",
++                 ROOT / "verification/swift-resident-index-grouped-reservation-review/receipt.json"):
+         retain(path)
+     evidence = QUALIFIED / "evidence/2026-10-23-qualified"
+     prior = read(evidence / "receipt.json")
+@@ -200,10 +207,11 @@
+     save("baseline-manifest.json", baseline)
+     save("binding.json", {"schema": 1, "observedUTC": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+         "baselineClosure": CLOSURE, "historicalClosure": HISTORICAL_CLOSURE,
+-        "sourceRevisionContext": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
++        "sourceRevisionContext": "be472ce6424a691de5673e3438d2768264827d23",
++        "sourceRevisionMeaning": "root-supplied pre-commit HEAD context; exact closure includes accepted two-file private VM delta; no clean-commit assertion or Git query",
+         "inputs": list(references.values()), "target": identity(REACTOR), "expectedObservation": EXPECTED,
+         "historicalFailurePacket": identity(HISTORY / "result-seal.json"),
+-        "acceptedPrivateCacheResidentIndex": identity(ACCEPTED / "receipt.json"),
++        "acceptedPrivateGroupedIndexReservation": identity(ACCEPTED / "receipt.json"),
+         "historicalInputDisposition": "hash references only; no old driver, native binary or Node execution",
+         "selectedPhases": ["complete validation", "adoption", "construct original owner", "Initialize35", "Corpus62", "Corpus62", "consuming cleanup"],
+         "targetExecutionSelectedByRoot": False, "productionBaselineModifiedByDiagnostic": False,
+@@ -428,7 +436,7 @@
+     receipt, stdout, _ = record_command(name, argv, 170 if target else 60, env=env)
+     observed = events(stdout)
+     save(name + "-events.json", observed)
+-    result = {"schema": 1, "scope": "exact real Swift reactor after accepted private cache resident index" if target else "small independent synthetic harness wiring only",
++    result = {"schema": 1, "scope": "exact real Swift reactor after accepted private grouped index reservation" if target else "small independent synthetic harness wiring only",
+         "commandPassed": receipt["passed"], "targetAttempted": target,
+         "diagnosticCompleted": any(e["event"] == "diagnostic_execution_complete" and e["payload"] is True for e in observed),
+         "ownedCleanupEmpty": any(e["event"] == "cleanup_empty" and e["payload"] is True for e in observed),
