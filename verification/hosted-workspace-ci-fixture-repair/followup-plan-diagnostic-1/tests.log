@@ -1,0 +1,65 @@
+
+11:05:57.840 [info] The function passed as a handler with ID :workspace_large_customer_plan_diagnostic is a local function.
+This means that it is either an anonymous function or a capture of a function without a module specified. That may cause a performance penalty when calling that handler. For more details see the note in `telemetry:attach/4` documentation.
+
+https://hexdocs.pm/telemetry/telemetry.html#attach/4
+Running ExUnit with seed: 0, max_cases: 1
+
+.................
+11:06:00.333 [error] Postgrex.Protocol (#PID<0.198.0> ({Postgrex.Protocol, "mixer_customer_workspace"})) disconnected: ** (Postgrex.Error) ERROR 23505 (unique_violation) duplicate key value violates unique constraint "workspace_commit_probe_id_key"
+
+    table: workspace_commit_probe
+    constraint: workspace_commit_probe_id_key
+.
+11:06:00.387 [error] Handler :workspace_large_customer_plan_diagnostic has failed and has been detached. Class=:error
+Reason=:badarg
+Stacktrace=[
+  {:erlang, :not, [nil], [error_info: %{module: :erl_erts_errors}]},
+  {:elixir_compiler_6, :"-__FILE__/1-fun-2-", 4,
+   [
+     file: ~c"verification/hosted-workspace-ci-fixture-repair/query-plan-diagnostic.exs",
+     line: 9
+   ]},
+  {:telemetry, :do_execute, 4,
+   [
+     file: ~c"/Users/andreyyurlov/Documents/dev/mixer/hosted/deps/telemetry/src/telemetry.erl",
+     line: 202
+   ]},
+  {Ecto.Adapters.SQL, :log, 5, [file: ~c"lib/ecto/adapters/sql.ex", line: 1315]},
+  {DBConnection, :log, 5, [file: ~c"lib/db_connection.ex", line: 1708]},
+  {Postgrex, :query_prepare_execute, 4, [file: ~c"lib/postgrex.ex", line: 353]},
+  {Ecto.Adapters.SQL, :query!, 4,
+   [file: ~c"lib/ecto/adapters/sql.ex", line: 628]},
+  {MixerHosted.CustomerWorkspace.Storage, :candidates!, 4,
+   [file: ~c"hosted/lib/mixer_hosted/customer_workspace/storage.ex", line: 122]},
+  {MixerHosted.CustomerWorkspace.Storage, :run!, 5,
+   [file: ~c"hosted/lib/mixer_hosted/customer_workspace/storage.ex", line: 74]},
+  {MixerHosted.CustomerWorkspace.Fixture.Runtime, :"-transaction/2-fun-0-", 1,
+   [file: ~c"hosted/test/mixer_hosted/customer_workspace_test.exs", line: 10]},
+  {MixerHosted.CustomerWorkspace.Fixture.Runtime,
+   :"-prepare_transaction/2-fun-0-", 1,
+   [file: ~c"hosted/test/mixer_hosted/customer_workspace_test.exs", line: 15]},
+  {Ecto.Repo.Transaction, :"-transact/4-fun-1-", 3,
+   [file: ~c"lib/ecto/repo/transaction.ex", line: 11]},
+  {Ecto.Adapters.SQL, :"-checkout_or_transaction/4-fun-0-", 3,
+   [file: ~c"lib/ecto/adapters/sql.ex", line: 1481]},
+  {DBConnection, :run_transaction, 5,
+   [file: ~c"lib/db_connection.ex", line: 1760]},
+  {MixerHosted.CustomerWorkspace.Storage, :owned_read, 5,
+   [file: ~c"hosted/lib/mixer_hosted/customer_workspace/storage.ex", line: 35]},
+  {MixerHosted.CustomerWorkspace.Storage, :read, 5,
+   [file: ~c"hosted/lib/mixer_hosted/customer_workspace/storage.ex", line: 16]},
+  {MixerHosted.CustomerWorkspaceTest,
+   :"test large customers do not inherit the artifact policy's membership cap",
+   1,
+   [file: ~c"hosted/test/mixer_hosted/customer_workspace_test.exs", line: 748]},
+  {ExUnit.Runner, :exec_test, 2, [file: ~c"lib/ex_unit/runner.ex", line: 533]},
+  {:timer, :tc, 2, [file: ~c"timer.erl", line: 599]},
+  {ExUnit.Runner, :"-spawn_test_monitor/4-fun-1-", 6,
+   [file: ~c"lib/ex_unit/runner.ex", line: 455]}
+]
+
+......
+Finished in 7.2 seconds (0.00s async, 7.2s sync)
+
+Result: 24 passed

@@ -1,0 +1,8 @@
+{
+  "query": "SELECT p.id, p.display_name, ARRAY(\n  SELECT w.id FROM (\n    SELECT DISTINCT ON (m.role COLLATE \"C\") m.id, m.role\n    FROM public.mixer_authz_memberships m\n    WHERE m.organization_id = p.organization_id\n      AND ((m.project_binding = 'all_projects' AND m.project_id IS NULL)\n        OR (m.project_binding = 'exact_project' AND m.project_id = p.id))\n    ORDER BY m.role COLLATE \"C\", m.id COLLATE \"C\") w ORDER BY w.role COLLATE \"C\")\nFROM public.mixer_authz_projects p\nWHERE p.organization_id = $1 AND p.active\n  AND ($2::text IS NULL OR p.id COLLATE \"C\" > $2 COLLATE \"C\")\nORDER BY p.id COLLATE \"C\" LIMIT $3\n",
+  "params": [
+    "org-a",
+    null,
+    101
+  ]
+}

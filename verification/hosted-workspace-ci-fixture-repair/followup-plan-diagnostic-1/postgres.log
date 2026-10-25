@@ -1,0 +1,17 @@
+2026-10-25 11:05:55.993 EDT [9821] LOG:  starting PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit
+2026-10-25 11:05:55.994 EDT [9821] LOG:  listening on IPv4 address "127.0.0.1", port 49665
+2026-10-25 11:05:55.994 EDT [9821] LOG:  listening on Unix socket "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-customer-workspace-s2rsuhex/.s.PGSQL.49665"
+2026-10-25 11:05:55.997 EDT [9824] LOG:  database system was shut down at 2026-10-25 11:05:55 EDT
+2026-10-25 11:05:55.999 EDT [9821] LOG:  database system is ready to accept connections
+2026-10-25 11:05:59.550 EDT [9937] ERROR:  new row for relation "mixer_authz_organizations" violates check constraint "mixer_authz_organizations_display_name_check"
+2026-10-25 11:05:59.550 EDT [9937] DETAIL:  Failing row contains (org-a, t, ).
+2026-10-25 11:05:59.550 EDT [9937] STATEMENT:  UPDATE public.mixer_authz_organizations SET display_name = '' WHERE id = 'org-a'
+2026-10-25 11:05:59.554 EDT [9938] ERROR:  new row for relation "mixer_authz_organizations" violates check constraint "mixer_authz_organizations_display_name_check"
+2026-10-25 11:05:59.554 EDT [9938] DETAIL:  Failing row contains (org-a, t, éééééééééééééééééééééééééééééééé...).
+2026-10-25 11:05:59.554 EDT [9938] STATEMENT:  UPDATE public.mixer_authz_organizations SET display_name = $1 WHERE id = 'org-a'
+2026-10-25 11:06:00.108 EDT [9930] ERROR:  permission denied for table mixer_authz_organizations
+2026-10-25 11:06:00.108 EDT [9930] STATEMENT:  UPDATE public.mixer_authz_organizations SET active = false
+2026-10-25 11:06:00.331 EDT [9930] ERROR:  duplicate key value violates unique constraint "workspace_commit_probe_id_key"
+2026-10-25 11:06:00.331 EDT [9930] STATEMENT:  COMMIT
+2026-10-25 11:06:05.132 EDT [9821] LOG:  received immediate shutdown request
+2026-10-25 11:06:05.133 EDT [9821] LOG:  database system is shut down

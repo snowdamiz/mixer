@@ -101,20 +101,32 @@ its older pending/selected statements do not override the current state.
    admission and full Go parity remain pending. See
    [the HTTP checkpoint](docs/hosted-customer-artifact-http-checkpoint.md).
 
-   Customer workspace discovery now passes local acceptance through the production
+   Customer workspace discovery passes local acceptance through the production
    Endpoint/default verifier/default Repo and actual console client. The branded
-   `/workspace` route now composes that selector with session-fenced request and
-   selection state. All 100 console host tests and build pass; 14 independent
-   composition probes pass. The real HTTP join passes 11 methods plus Node calls.
-   Counts overlap. The production session adapter, login/lifecycle/provider,
-   browser and all GA gates remain pending; the entry remains unavailable.
-   The proposed same-origin login contract is design-only. Standard CI is wired
-   for the required client join; the latest Phoenix failure exposed outdated
-   migration expectations and expiry-test timing. The fixture correction passes 24
-   local workspace methods and eight-migration controls; broader Linux fixture
-   execution awaits exact-push verification. See
-   [the workspace checkpoint](docs/hosted-customer-workspace-checkpoint.md) and
-   [console composition](docs/console-workspace-composition.md).
+   `/workspace` route composes scoped selection and session fencing. The cookie
+   adapter now shares the bounded reader with the bearer client and accepts no
+   browser bearer or destination configuration. All 112 console host tests and
+   build pass; the website logo, colors and typography remain matched. Mobile
+   navigation now puts its three links below the logo; visual checks remain paused.
+   Browser-auth configuration, PKCE, cookie, CSRF and callback primitives pass 39
+   selected host methods. Independent review passes 15 transport plus 15 protocol
+   methods. Counts overlap with existing suites. Selected protocol CI is wired.
+   This is component acceptance: no live session is installed, no auth routes or
+   provider exchange are enabled, and the entry remains unavailable. Implement the
+   reviewed durable browser session/lifecycle contract next, followed by the
+   separately verified provider and ordinary protected-route join. Do not treat
+   the proposed storage contract's 18 pending cases as tests already run.
+
+   Console CI for f2aba240 passes; Phoenix confirms the prior migration/expiry
+   fixture repairs but fails the 121-project directory transaction deadline.
+   The exact slow phase remains under diagnosis; no time limit was raised.
+   Earlier 9a2bf16b Engine CI passes all three jobs. Provider, deployment, browser,
+   customer/FieldLog and GA requirements remain pending. See
+   [the workspace checkpoint](docs/hosted-customer-workspace-checkpoint.md),
+   [cookie transport](docs/console-cookie-workspace-transport.md),
+   [protocol helpers](docs/hosted-browser-auth-protocol.md),
+   [independent review](docs/browser-auth-prerequisite-review.md) and
+   [durable session contract](docs/hosted-browser-session-storage-contract.md).
 
 The frozen hosted catalog-inspector/authority-driver lanes and rejected outbound
 Worker transport V2 lane remain isolated and unaccepted. Do not read, import,

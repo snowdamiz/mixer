@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "scope": "proposed durable browser session and controlled lifecycle writer",
+  "status": "implementation_pending",
+  "cases": [
+    {"id": "existing-exact-human-binding", "status": "pending", "evidence": "real PostgreSQL existing principal; unknown binding creates no principal, membership or grant"},
+    {"id": "current-default-verifier-provenance", "status": "pending", "evidence": "production owner calls ConfiguredVerifier and rejects supplied/saved/ID-token identity"},
+    {"id": "nonrecycled-family-and-jti", "status": "pending", "evidence": "live and tombstoned PK conflicts fail without upsert or linkage transfer"},
+    {"id": "restricted-roles-and-force-rls", "status": "pending", "evidence": "separate restricted login runs fixed helpers; direct DML, owner role, SET ROLE and schema CREATE deny"},
+    {"id": "ordinary-authz-invariants-after-writer-policies", "status": "pending", "evidence": "new role-targeted policy OR-composition and UPDATE column-lock grants preserve ordinary SELECT scoping, no DML, no writer EXECUTE and no reachable writer or owner"},
+    {"id": "vault-authentication-and-csrf", "status": "pending", "evidence": "real AEAD wrong key/tag/AAD/row/generation fails; preauth and active CSRF recover without plaintext persistence"},
+    {"id": "multi-replica-one-use-claim", "status": "pending", "evidence": "independent connections race and restart; exactly one durable claim and no network call on uncertainty"},
+    {"id": "provider-error-consumption", "status": "pending", "evidence": "validated error consumes once and performs no exchange; replay denies"},
+    {"id": "claim-fences-and-deadlines", "status": "pending", "evidence": "cross-browser/config/epoch/revision/nonce/expiry and exact equality deadlines deny"},
+    {"id": "logout-versus-callback", "status": "pending", "evidence": "real locks test both orderings; late provider result cannot activate after confirmed logout"},
+    {"id": "replacement-versus-ordinary-request", "status": "pending", "evidence": "ordinary shared authz locks serialize both orderings and old family is unusable after replacement commit"},
+    {"id": "atomic-state-and-audit", "status": "pending", "evidence": "injected SQL/audit/vault failures roll back family, credential, browser, attempt and audit together"},
+    {"id": "commit-and-response-uncertainty", "status": "pending", "evidence": "no cookie on uncertain commit; lost response never recovers cookie through retired digest"},
+    {"id": "all-family-credentials-revoked", "status": "pending", "evidence": "initial one-token family bound enforced; logout/replacement revokes every admitted token without skipped row"},
+    {"id": "expiry-after-lock-wait", "status": "pending", "evidence": "fresh time after final wait denies expired token/claim/browser/family; overflow fails closed"},
+    {"id": "bounded-cleanup-and-tombstones", "status": "pending", "evidence": "finite batches erase ciphertext and preserve authz non-recycling and lifecycle audit"},
+    {"id": "coordinated-nine-migration-cycle", "status": "pending", "evidence": "only if root reserves additive 20261025000007: exact apply/rollback/reapply under disposable fixture"},
+    {"id": "provider-and-deployment-qualification", "status": "pending", "evidence": "qualified real provider/OIDC relation, Neon roles/TLS, secure key custody, ingress/cookies/cache/log redaction"}
+  ],
+  "paused_checks": ["browser automation", "screen capture", "native simulator runtime", "native emulator runtime", "physical phones"],
+  "ga_gate_promotion": false
+}

@@ -20,7 +20,7 @@ hosted, store, customer or operational product.
 | iOS shared UI | Private pan input has simulator evidence. V7 Settings passes; first Tab fails actual focus traversal. All five run-cleanup checks pass and the owned simulator is deleted. | The corrected frozen V7 diagnostic join and fresh app/runner builds are accepted. The V8 runtime packet passes 16 producer and nine independent host methods. The fresh V8 simulator run passes Settings but fails first Tab, with zero skips and all five cleanup checks passed. The result audit and source lifecycle diagnosis are accepted; a passive lifecycle observer passes 116 producer and 371 independent Foundation checks. The first generic build failed Swift 6 actor isolation; the minimal correction now passes a fresh app/runner build and independent review. Corrected V9 runtime preparation passes 16 producer and nine independent host methods; root accepts preparation, with no new native execution. Shared UI/public routing remains incomplete. |
 | Android shared UI | Private style/coordinator/input slices have scoped API37 emulator evidence. The latest integrated component fixture passes all 45 cases and 239 assertions; the separate pointer matrix passes 429 assertions. | Complete shared visual/interaction parity, public routing, resources/OS support, TalkBack and final physical comparison. |
 | Hosted builds | Durable storage/coordinator components and registry/audit slices have host evidence. The isolated entry composition passes 922 groups; the defensive context-admission correction passes 79. | The broader entry review remains incomplete. Live Engine/entry composition, real worker/clock/provider operations, authentication, quotas and deployed schedule qualification remain pending. |
-| Console | SolidJS Builds/releases use the website logo, cream/orange palette and typography. Builds passes 32 repository tests, seven independent controls, 117 backend text comparisons and 14 browser states. A final brand audit improves sidebar/footer contrast using the website muted token; 32 tests and production build pass again. | Connect ordinary Phoenix customer authorization and live data/workflows; complete onboarding, permissions, billing and other G22–G24 requirements. |
+| Console | SolidJS Builds, Releases and Workspace use the website logo, colors and fonts. All 112 console host tests/typecheck/build pass; cookie transport and protocol prerequisites have independent review. | Implement durable sessions/provider login and connect live build/release/onboarding/billing workflows; browser visual and customer gates remain pending. |
 | Hosted release/billing | Protected artifact upload/read/audit now has actual Phoenix Endpoint and PostgreSQL evidence: eight methods and 47 HTTP requests pass, with 32 transport tests and 46 combined independent controls. The earlier storage composition passes 97 methods and seven-migration checks. | Connect live console/customer sessions, complete tenant trust/lifecycle writers, distributed admission, Go migration parity, durable inbox/Oban reconciliation and selected-provider qualification. Frozen authority/inspector and rejected transport lanes remain unaccepted. |
 
 The new single full Swift reactor attempt passes validation and Initialize, then
@@ -227,17 +227,35 @@ The four nested binding methods use the actual Solid reactive runtime and HTTP
 client. Counts overlap. Review repaired an effect-order stale-state window and a
 trailing-slash header mismatch. No browser/capture/native instance was started.
 
-The production entry still has no authenticated session adapter and renders
-unavailable. Login, lifecycle writers, provider/ingress/browser interaction and
-customer/FieldLog/GA acceptance remain pending. A proposed same-origin server
-session contract passes 19 design-model controls; that is not product OAuth
-implementation. No launch gate is promoted. See
-[composition](docs/console-workspace-composition.md),
-[root acceptance](verification/console-workspace-composition/root-acceptance/receipt.json),
-[review](docs/console-workspace-composition-review.md) and
-[proposed login contract](docs/console-identity-flow-contract.md).
+The cookie workspace adapter now uses fixed same-origin routes and shares the
+bounded transport with the existing bearer client. All 112 console host tests,
+type checking and production build pass. Browser-auth configuration, PKCE,
+cookie, CSRF and callback primitives pass 39 selected host methods; independent
+review passes 15 transport plus 15 protocol methods with no findings. Counts
+remain separate. Selected protocol CI is wired. The mobile navigation adjustment
+places the three route links below the website logo; visual verification is paused.
+
+These are local components. The production entry still has no authenticated
+session adapter and renders unavailable. Durable session/lifecycle SQL, encrypted
+vault, provider exchange/ID-token validation, routes, ingress and actual login
+remain unimplemented or unqualified. The new storage contract has 18 pending
+implementation cases. No launch gate is promoted. See
+[cookie transport](docs/console-cookie-workspace-transport.md),
+[protocol](docs/hosted-browser-auth-protocol.md),
+[independent review](docs/browser-auth-prerequisite-review.md),
+[session storage contract](docs/hosted-browser-session-storage-contract.md) and
+[composition acceptance](verification/console-workspace-composition/root-acceptance/receipt.json).
 
 ## Delivery and pending qualification
+
+Checkpoint `f2aba240` is pushed to `origin/main`; remote main matches. It adds the
+reviewed branded workspace route/session fencing and the CI fixture repairs.
+Console CI `40204405241` passes. Phoenix CI `40204405232` fails one
+121-project directory deadline test; the earlier migration and expiry repairs
+pass. Query-plan diagnosis is in progress. Engine CI `40204405509` has passed
+VM/services jobs while Swift remains running. See [delivery](verification/github-delivery-workspace-composition/delivery-receipt.json)
+and [exact-push observation](verification/github-ci-f2aba240/observation-4/receipt.json).
+Live login/session adapter and the broader qualification gates remain pending.
 
 Workspace checkpoint `9a2bf16b` is pushed to `origin/main`; remote main matches.
 It contains the reviewed workspace API/storage, website-branded selector, actual
@@ -245,9 +263,9 @@ console client, CI wiring and retained evidence. The local slice is accepted;
 Console CI `40202578691` passes. Phoenix CI `40202578720` failed because five
 fixtures expected seven migrations and the expiry-lock fixture missed its timing
 window; the workspace HTTP/client join itself passed. Fixture repair passes 24 local workspace methods and eight-migration controls;
-broader Linux fixture execution awaits the next delivery. Engine CI `40202578667` remains running. See
+broader Linux fixture execution now confirms those repairs. Engine CI `40202578667` passes all three jobs. See
 [fixture repair](docs/hosted-workspace-ci-fixture-repair.md). See [delivery](verification/github-delivery-customer-workspace/delivery-receipt.json)
-and [the exact-push observation](verification/github-ci-9a2bf16b/observation-4/receipt.json).
+and [the exact-push observation](verification/github-ci-9a2bf16b/observation-5/receipt.json).
 
 Prior checkpoint `6ed7df4f` repairs the cold bearer pipeline compile order.
 Phoenix CI `40199934265` and Engine CI `40199934237` both pass with no skips.

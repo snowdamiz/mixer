@@ -11,6 +11,7 @@ on:
       - 'console/package.json'
       - 'console/package-lock.json'
       - 'verification/hosted-customer-workspace-http-integration/node-client-driver.mjs'
+      - 'verification/hosted-browser-auth-protocol/run.py'
   pull_request:
     paths:
       - 'hosted/**'
@@ -22,6 +23,7 @@ on:
       - 'console/package.json'
       - 'console/package-lock.json'
       - 'verification/hosted-customer-workspace-http-integration/node-client-driver.mjs'
+      - 'verification/hosted-browser-auth-protocol/run.py'
 permissions:
   contents: read
 jobs:
@@ -40,6 +42,13 @@ jobs:
       - name: Resolve locked dependencies
         working-directory: hosted
         run: mix deps.get --check-locked
+      - name: Browser auth protocol host checks
+        working-directory: hosted
+        env:
+          MIX_ENV: test
+        run: |
+          mix deps.compile jason
+          python3 ../verification/hosted-browser-auth-protocol/run.py
       - name: Compile workspace client for real HTTP integration
         working-directory: console
         run: |
@@ -68,4 +77,6 @@ jobs:
           name: phoenix-foundation-${{ github.sha }}
           retention-days: 14
           if-no-files-found: ignore
-          path: ${{ runner.temp }}/phoenix-foundation/
+          path: |
+            ${{ runner.temp }}/phoenix-foundation/
+            verification/hosted-browser-auth-protocol/attempts/
