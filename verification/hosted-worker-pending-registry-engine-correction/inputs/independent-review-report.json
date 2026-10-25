@@ -1,0 +1,179 @@
+{
+  "schema": 1,
+  "status": "completed-with-two-reproduced-defects",
+  "scope": "fresh actual workerd SQLite Engine/Ledger controls on byte-identical frozen production source with excluded independent review fixtures",
+  "cases": 6,
+  "results": [
+    {
+      "id": "provider-mismatch-is-retained-dispatched-and-recovered-counterexample",
+      "status": "passed",
+      "details": {
+        "expected": "reject before initial row mutation; recovery quarantines mismatch",
+        "observed": {
+          "status": "error",
+          "code": "uncertain"
+        },
+        "recovery": {
+          "status": "pending",
+          "stateVersion": "7"
+        },
+        "rowProvider": "external-macos",
+        "fixtureProviderKind": "cloudflare-linux",
+        "platform": "android",
+        "launches": 1,
+        "inspects": 1,
+        "fenceCount": 0,
+        "defectReproduced": true
+      }
+    },
+    {
+      "id": "result-verifier-await-accepts-independent-permanent-fence-counterexample",
+      "status": "passed",
+      "details": {
+        "expected": "rejected after verifier await because independent permanent fence exists",
+        "observed": {
+          "status": "accepted"
+        },
+        "versionBefore": "6",
+        "versionAfter": "7",
+        "independentFencePersisted": true,
+        "pendingResultPersisted": true,
+        "defectReproduced": true
+      }
+    },
+    {
+      "id": "independent-fence-during-dispatch-ack-blocks-provider-launch",
+      "status": "passed",
+      "details": {
+        "markedDispatched": true,
+        "providerLaunches": 0,
+        "permanentFenceRetained": true
+      }
+    },
+    {
+      "id": "independent-fence-during-stop-observation-preserves-cleanup-without-terminal",
+      "status": "passed",
+      "details": {
+        "stops": 2,
+        "terminal": null,
+        "phase": "stop_pending",
+        "providerActionsThisInvocation": 1
+      }
+    },
+    {
+      "id": "exact-effect-and-claim-barriers-above-safe-js-integer",
+      "status": "passed",
+      "details": {
+        "seedVersion": "9007199254740993",
+        "effectBarrier": "9007199254740995",
+        "claimBarrier": "9007199254740998",
+        "finalVersion": "9007199254740999",
+        "exactUnackedFinalClockProjection": "9007199254740999"
+      }
+    },
+    {
+      "id": "terminal-schema2-migration-and-enrollment-preserve-result-and-quarantine",
+      "status": "passed",
+      "details": {
+        "terminalBytesUnchanged": true,
+        "phase": "stopped",
+        "quarantineRetained": true,
+        "claimRejected": true,
+        "launches": 0
+      }
+    }
+  ],
+  "cleanup": [
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pending-engine-owned-HM288k",
+      "disposed": true,
+      "storageRemoved": true,
+      "ownedProcesses": [
+        {
+          "pid": 29917,
+          "parentPid": 29914,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pending-engine-owned-ub3cho",
+      "disposed": true,
+      "storageRemoved": true,
+      "ownedProcesses": [
+        {
+          "pid": 29921,
+          "parentPid": 29914,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pending-engine-owned-yUQeGv",
+      "disposed": true,
+      "storageRemoved": true,
+      "ownedProcesses": [
+        {
+          "pid": 29925,
+          "parentPid": 29914,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pending-engine-owned-vfIX8K",
+      "disposed": true,
+      "storageRemoved": true,
+      "ownedProcesses": [
+        {
+          "pid": 29928,
+          "parentPid": 29914,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pending-engine-owned-RVElhQ",
+      "disposed": true,
+      "storageRemoved": true,
+      "ownedProcesses": [
+        {
+          "pid": 29930,
+          "parentPid": 29914,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pending-engine-owned-0pAoqn",
+      "disposed": true,
+      "storageRemoved": true,
+      "ownedProcesses": [
+        {
+          "pid": 29932,
+          "parentPid": 29914,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    }
+  ],
+  "limitations": [
+    "focused controls only; original32groups not rerun",
+    "prior71controllergroups20processcontrols not rerun",
+    "no public/scheduled wiring or deployed qualification",
+    "no native/cloud/publication"
+  ],
+  "expectedProductDefects": 2
+}

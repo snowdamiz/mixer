@@ -1,0 +1,26 @@
+--- frozen-candidate/test/worker.ts
++++ review-candidate/test/worker.ts
+@@ -58,13 +58,13 @@
+  constructor(ctx:DurableObjectState,env:Env){
+   super(ctx,env);// Member order is deliberately permuted; canonical identity is the fixed tuple.
+   this.identity=Object.fromEntries(Object.entries(JSON.parse(env.FIXTURE_IDENTITY)).reverse()) as unknown as PendingIdentity;this.ledger=new Ledger(ctx.storage);this.store=new Store(ctx.storage.sql);this.hooks=new FixtureHooks(this.store);this.provider=new FixtureProvider(this.store);
+-  this.engine=new Engine(this.ledger,new SyntheticClock(this.store),this.provider,{async verify(){return true;}},this.hooks,{identity:this.identity,registry:new RegistryPort(env)});
++  this.engine=new Engine(this.ledger,new SyntheticClock(this.store),this.provider,{verify:async()=>{await this.hooks.point('during_report_verify');return true;}},this.hooks,{identity:this.identity,registry:new RegistryPort(env)});
+   ctx.blockConcurrencyWhile(()=>this.engine.recover());
+  }
+  async fixture(action:string,arg:Record<string,unknown>):Promise<unknown>{
+   const resource={provider:'cloudflare-linux' as const,key:this.identity.operationKey,immutableSha256:this.identity.immutableSha256};
+   switch(action){
+-   case 'command':{const r=await decode(new TextEncoder().encode(JSON.stringify(arg.request)));return this.engine.commandRegistered(r,resource,(arg.identity??this.identity) as PendingIdentity,arg.receipt as RegistrationReceipt);}
++   case 'command':{const r=await decode(new TextEncoder().encode(JSON.stringify(arg.request)));return this.engine.commandRegistered(r,(arg.resource??resource) as typeof resource,(arg.identity??this.identity) as PendingIdentity,arg.receipt as RegistrationReceipt);}
+    case 'plain':{const r=await decode(new TextEncoder().encode(JSON.stringify(arg.request)));return this.engine.command(r,resource);}
+    case 'defaultUnavailable':{const r=await decode(new TextEncoder().encode(JSON.stringify(arg.request)));return new Engine(this.ledger,new SyntheticClock(this.store),this.provider,{async verify(){return true;}}).commandRegistered(r,resource,this.identity,arg.receipt as RegistrationReceipt);}
+    case 'raw':return {row:this.ledger.read(),alarm:await this.ctx.storage.getAlarm(),fence:this.ctx.storage.sql.exec('SELECT * FROM registry_quarantine').toArray(),calls:this.ctx.storage.sql.exec<{value:string}>('SELECT value FROM fixture_calls ORDER BY sequence').toArray().map(r=>JSON.parse(r.value)),settings:this.store.get(),schema:this.ctx.storage.sql.exec('SELECT version FROM controller_schema').toArray()};
+@@ -81,6 +81,7 @@
+    case 'quarantine':await this.engine.quarantine();return {ok:true};
+    case 'fenceOnly':this.ctx.storage.sql.exec("INSERT OR IGNORE INTO registry_quarantine VALUES(1,?,'0','excluded_fence_restore')",JSON.stringify(this.identity));await this.ledger.sync();return {ok:true};
+    case 'deleteRow':this.ctx.storage.sql.exec('DELETE FROM operation');await this.ledger.sync();return {ok:true};
++   case 'largeVersion':this.ctx.storage.sql.exec('UPDATE operation SET state_version=?,registry_ack_version=?,track_outbox_json=NULL',arg.version as string,arg.version as string);await this.ledger.sync();return {ok:true};
+    case 'regress':this.ctx.storage.sql.exec("UPDATE operation SET state_version='0',track_outbox_json=NULL");await this.ledger.sync();return {ok:true};
+    case 'legacy':{
+     const before=this.ledger.read();this.ctx.storage.transactionSync(()=>{

@@ -1,0 +1,31 @@
+--- verification/apple-focus-reference-v5-native/observe_dispatch.py
++++ verification/apple-settings-instrumented-native/observe_dispatch.py
+@@ -15,8 +15,8 @@
+ BASE = Path(__file__).resolve().parent
+ ROOT = BASE.parents[1]
+ PYTHON = '/opt/homebrew/opt/python@3.14/bin/python3.14'
+-PRODUCER = ROOT / 'verification/apple-focus-reference-runtime-v5-namespace-correction'
+-PACKET = '6c57bc5552a4f7e0e21ff1fdd589b270aa98b483f366f78bd88de2e26c0fd7dc'
++PRODUCER = ROOT / 'verification/apple-settings-instrumented-runtime-preparation'
++PACKET = 'f7ef1ed54b65a71e666646d1e4b54cef1cea5b7afdfee804810ffaf2c65eaeb6'
+ DEVELOPER = '/Applications/Xcode_26.6.app/Contents/Developer'
+ OUTER_SECONDS = 1200
+ INTERRUPT_GRACE = 120
+@@ -80,7 +80,7 @@
+     raw = selection.read_bytes()
+     assert sha(raw) == args.root_selection_sha256
+     root = json.loads(raw)
+-    assert root['schema'] == 'mixer.apple-focus-reference-root-selection.5'
++    assert root['schema'] == 'mixer.apple-focus-reference-root-selection.6'
+     assert root['packetSHA256'] == PACKET
+     assert sha((PRODUCER / 'packet.json').read_bytes()) == PACKET
+     output = BASE / ('outer-run-' + root['runID'])
+@@ -91,7 +91,7 @@
+     receipt = dict(schema=1, scope='Outer process observation only; no changed native budgets or retry',
+                    startedUTC=utc(), argv=argv, cwd=str(ROOT),
+                    rootSelectionSHA256=sha(raw), runID=root['runID'],
+-                   sourceRevisionLabel='7744c1cc28b24a46f4339b25b38ce4d0cf76cbe8',
++                   sourceRevisionLabel='4a4d8b7301351247318424ed71a89ab41f0db2ca',
+                    sourceRevisionMeaning='Existing root decision label; no Git query',
+                    sourceTreeSHA256=root['sourceTreeSHA256'], productArchiveSHA256=root['productArchiveSHA256'],
+                    driverSHA256=sha(Path(__file__).read_bytes()), python=sys.version,

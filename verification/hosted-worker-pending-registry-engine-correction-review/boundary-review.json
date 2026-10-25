@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "status": "changes-required",
+  "productionSource": "candidate/src/engine.ts",
+  "review": [
+    {"boundary": "initial registered admission", "lines": "82-105,152-180", "status": "passing focused controls", "evidence": "wrong-provider-first-start-query-stop-all-reject-before-row"},
+    {"boundary": "retained registered/plain commands", "lines": "85-93,154-160", "status": "source-reviewed; producer retained-command runtime evidence verified", "evidence": "frozen producer source digest and 54-group report"},
+    {"boundary": "track before and after awaits", "lines": "37-78", "status": "confirmed defect", "evidence": "same-version-provider-restore-during-terminal-track-boundary"},
+    {"boundary": "effect prepare and final dispatch", "lines": "193-235", "status": "passing focused controls", "evidence": "provider-mismatch-during-final-dispatch-barrier-ensure_started and stop"},
+    {"boundary": "provider observation acceptance", "lines": "248-281", "status": "passing focused control", "evidence": "provider-mismatch-after-provider-observation-fences-without-acceptance"},
+    {"boundary": "claim consume and final grant", "lines": "346-374", "status": "passing focused controls", "evidence": "retained-wrong-provider-claim-fences and provider-mismatch-after-consumed-claim-commit-never-grants"},
+    {"boundary": "report initial and final transaction", "lines": "377-395", "status": "passing focused controls", "evidence": "20 same-version restore controls, 13 retained identity controls, independent fence, ACK-only positive control"},
+    {"boundary": "constructor and known recovery", "lines": "330-335,397-438", "status": "constructor focused control passed; known-recovery producer evidence verified and source reviewed", "evidence": "constructor-recovery-provider-mismatch-fences-without-action and frozen known-recovery provider control"},
+    {"boundary": "explicit enrollment", "lines": "440-459", "status": "passing focused controls", "evidence": "retained-wrong-provider-enroll-fences and provider-mismatch-during-enrollment-register-await-fences"},
+    {"boundary": "permanent fence and stop exception", "lines": "193-235,248-281", "status": "source reviewed; mismatch stop dispatch control passed", "evidence": "matching-provider durable-stop outage exception retained; conflicting provider final check rejects before stop"}
+  ],
+  "reportSnapshotFieldsReviewed": ["operation_id", "binding", "binding_hash", "request_json", "epoch", "revision", "owner", "expiry_us", "clock_lower", "clock_upper", "clock_qualification", "clock_floor", "provider_kind", "provider_key", "pending_identity_json", "registration_json", "claim_state", "claim_id", "instance_id", "boot_id", "claim_barrier_version", "phase", "effect_id", "effect_kind", "effect_request_json", "effect_state", "effect_barrier_version", "launch_dispatched"],
+  "reportFinalIndependentGuardsReviewed": ["permanent fence", "quarantined", "retained binding", "exact authority snapshot", "state_version", "report_hash", "terminal_json", "pending_result_json", "desired=run", "valid final clock", "live final authority"],
+  "deliveryMetadataExclusions": ["registry_ack_version", "track_outbox_json"],
+  "productionIntegrationAccepted": false
+}

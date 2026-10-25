@@ -1,0 +1,166 @@
+--- a/hosted-worker-controller/src/engine.ts
++++ b/hosted-worker-controller/src/engine.ts
+@@ -18,10 +18,25 @@
+   private registry(){return this.pending?.registry??unavailableRegistry;}
+   private fence(bytes:string,version:string,reason:string):void{this.ledger.storage.transactionSync(()=>this.ledger.fence(bytes,version,reason));}
+   private async checked(identity:PendingIdentity,receipt:RegistrationReceipt){return checkedContext(this.pending,identity,receipt);}
++  private trustedKind(platform:unknown):ResourceIdentity['provider']|null{
++    try{if(platform!=='ios'&&platform!=='android')return null;const kind=this.provider.kind(platform);return ['unavailable','cloudflare-linux','external-macos'].includes(kind)?kind:null;}catch{return null;}
++  }
++  private providerMatches(r:Row):boolean{
++    try{return r.provider_kind===this.trustedKind((JSON.parse(r.request_json) as WireRequest).ref.platform);}catch{return false;}
++  }
++  private fenceIdentity(r:Row):string{return this.pending?identityBytes(this.pending.identity):r.pending_identity_json??'[]';}
++  // Called within the caller's synchronous ledger transaction. Do not repair or
++  // replace a mismatched provider identity, including for durable-stop cleanup.
++  private providerFenceInTransaction(r:Row):void{this.ledger.fence(this.fenceIdentity(r),r.state_version,'provider_binding_conflict');}
++  private reportBinding(r:Row):string{
++    // Delivery-only ack/outbox metadata may advance without changing authority.
++    return JSON.stringify([r.operation_id,r.binding,r.binding_hash,r.request_json,r.epoch,r.revision,r.owner,r.expiry_us,r.clock_lower,r.clock_upper,r.clock_qualification,r.clock_floor,r.provider_kind,r.provider_key,r.pending_identity_json,r.registration_json,r.claim_state,r.claim_id,r.instance_id,r.boot_id,r.claim_barrier_version,r.phase,r.effect_id,r.effect_kind,r.effect_request_json,r.effect_state,r.effect_barrier_version,r.launch_dispatched]);
++  }
+   // A single coalesced snapshot is attempted once. Out-of-order acknowledgement
+   // may advance exact delivery metadata, but cannot erase a newer projection.
+   async flushTrack():Promise<boolean>{
+     const snapshot=this.ledger.read();if(!snapshot)return false;
++    if(!this.providerMatches(snapshot)){this.fence(this.fenceIdentity(snapshot),snapshot.state_version,'provider_binding_conflict');await this.ledger.sync();return false;}
+     if(!snapshot.track_outbox_json)return !!snapshot.registration_json;
+     if(!retained(this.pending,snapshot)){
+       if(snapshot.registration_json&&this.pending){this.fence(identityBytes(this.pending.identity),snapshot.state_version,'retained_binding_conflict');await this.ledger.sync();}
+@@ -67,8 +82,10 @@
+   async commandRegistered(request:WireRequest,resource:ResourceIdentity,identity:PendingIdentity,receipt:RegistrationReceipt):Promise<Observation>{
+     try{
+       const checked=await this.checked(identity,receipt);
+-      if(!matchesRequest(checked.identity,request)||resource.key!==checked.identity.operationKey||resource.immutableSha256!==checked.identity.immutableSha256)return err('unavailable');
+       const prior=this.ledger.read();
++      if(prior&&!this.providerMatches(prior)){this.fence(checked.bytes,prior.state_version,'provider_binding_conflict');await this.ledger.sync();return err('unavailable');}
++      exact(resource,['provider','key','immutableSha256']);
++      if(!matchesRequest(checked.identity,request)||resource.provider!==this.trustedKind(request.ref.platform)||resource.key!==checked.identity.operationKey||resource.immutableSha256!==checked.identity.immutableSha256)return err('unavailable');
+       if(prior){
+         if(!matchesRow(checked.identity,prior)||prior.pending_identity_json!==JSON.stringify(checked.identity)||prior.registration_json!==JSON.stringify(checked.receipt)){
+           this.fence(checked.bytes,prior.state_version,'registered_command_conflict');await this.ledger.sync();return err('unavailable');
+@@ -135,6 +152,8 @@
+   private async commandAdmitted(request:WireRequest,identity:ResourceIdentity,registration?:{identity:PendingIdentity;receipt:RegistrationReceipt;bytes:string}):Promise<Observation>{
+     let action=false;
+     const admitted=this.ledger.transaction(row=>{
++      if(row&&!this.providerMatches(row)){this.providerFenceInTransaction(row);return err('unavailable');}
++      if(identity.provider!==this.trustedKind(request.ref.platform))return err('unavailable');
+       if(this.ledger.fenced()&&row?.desired!=='stop')return err('unavailable');
+       if(!row&&!registration)return err('unavailable');
+       if(row&&!retained(this.pending,row))return err('unavailable');
+@@ -173,6 +192,7 @@
+   }
+   private prepare():BarrierEffect|null {
+     return this.ledger.transaction(r=>{
++      if(r&&!this.providerMatches(r)){this.providerFenceInTransaction(r);return null;}
+       if(!r||r.terminal_json||((r.quarantined||this.ledger.fenced()||!retained(this.pending,r))&&r.desired!=="stop")||!this.provider.available)return null;
+       const interval=this.sample(r);
+       const request=JSON.parse(r.request_json) as WireRequest;
+@@ -204,7 +224,9 @@
+   }
+   private finalCheck(effect:BarrierEffect):boolean {
+     return this.ledger.transaction(r=>{
++      if(r&&!this.providerMatches(r)){this.providerFenceInTransaction(r);return false;}
+       if(!r||(r.quarantined&&effect.kind!=="stop")||r.terminal_json||r.effect_id!==effect.id||r.effect_kind!==effect.kind)return false;
++      if(effect.identity.provider!==r.provider_kind||effect.identity.key!==r.provider_key||effect.identity.immutableSha256!==r.binding_hash)return false;
+       if(effect.kind==="stop")return r.desired==="stop";
+       if(this.ledger.fenced()||!retained(this.pending,r)||!effect.barrierVersion||r.effect_barrier_version!==effect.barrierVersion||BigInt(r.registry_ack_version)<BigInt(effect.barrierVersion))return false;
+       const interval=this.sample(r);
+@@ -226,6 +248,7 @@
+   private accept(effect:BarrierEffect,raw:unknown):void {
+     const obs=this.observation(raw,effect.identity);
+     this.ledger.transaction(r=>{
++      if(r&&!this.providerMatches(r)){this.providerFenceInTransaction(r);return;}
+       if(!r||r.effect_id!==effect.id||r.effect_kind!==effect.kind||r.terminal_json)return;
+       const interval=this.sample(r);
+       if(r.quarantined&&effect.kind!=="stop")return;
+@@ -307,7 +330,7 @@
+   async recover():Promise<void>{
+     // Constructor recovery never overwrites an earlier alarm or dispatches a
+     // possibly duplicated launch. An already-marked launch will be inspected.
+-    this.ledger.transaction(r=>{if(r&&r.effect_state==="dispatched"&&!r.terminal_json){r.effect_state="uncertain";this.ledger.save(r,"restart_uncertain");}});
++    this.ledger.transaction(r=>{if(r&&!this.providerMatches(r)){this.providerFenceInTransaction(r);return;}if(r&&r.effect_state==="dispatched"&&!r.terminal_json){r.effect_state="uncertain";this.ledger.save(r,"restart_uncertain");}});
+     await this.ledger.sync();await this.flushTrack();await this.arm();
+   }
+   private validClaim(value:unknown,report=false):boolean {
+@@ -324,6 +347,7 @@
+     if(!this.validClaim(claim))return {granted:false};
+     await this.hooks.point("before_claim_grant");
+     const prospective=this.ledger.transaction(r=>{
++      if(r&&!this.providerMatches(r)){this.providerFenceInTransaction(r);return null;}
+       if(!r||r.quarantined||this.ledger.fenced()||!retained(this.pending,r)||r.desired!=="run"||r.terminal_json||r.claim_state!=="unissued"||r.phase!=="inert")return null;
+       if(claim.immutableSha256!==r.binding_hash||claim.identity.provider!==r.provider_kind||claim.identity.key!==r.provider_key||claim.identity.immutableSha256!==r.binding_hash||claim.instanceId!==r.instance_id||claim.bootId!==r.boot_id)return null;
+       const i=this.sample(r);if(!i||!this.live(r,i))return null;
+@@ -341,6 +365,7 @@
+     // No await follows this decision. The DO's default output gate confirms its
+     // final clock-history write before the response becomes externally visible.
+     return this.ledger.transaction(r=>{
++      if(r&&!this.providerMatches(r)){this.providerFenceInTransaction(r);return {granted:false};}
+       if(!prospective||!r||this.ledger.fenced()||!retained(this.pending,r)||!prospective.claim_barrier_version||BigInt(r.registry_ack_version)<BigInt(prospective.claim_barrier_version)||r.desired!=="run"||r.quarantined||r.terminal_json||r.claim_state!=="consumed"||r.phase!=="claim_consumed")return {granted:false};
+       for(const key of Object.keys(prospective) as (keyof typeof prospective)[])if(r[key]!==prospective[key])return {granted:false};
+       const i=this.sample(r);if(!i||!this.live(r,i))return {granted:false};
+@@ -353,13 +378,16 @@
+     if(!this.validClaim(report,true))return "rejected";
+     let parsed:BuildResult;try{parsed=result(report.result);hex(report.attestationSha256);}catch{return "rejected";}
+     const hash=await sha(JSON.stringify(report));const r=this.ledger.read();
++    if(r&&!this.providerMatches(r)){this.fence(this.fenceIdentity(r),r.state_version,'provider_binding_conflict');await this.ledger.sync();return 'rejected';}
+     if(!r||r.quarantined||this.ledger.fenced()||!retained(this.pending,r)||r.claim_state!=="consumed"||report.claimId!==r.claim_id||report.operationId!==r.operation_id||report.immutableSha256!==r.binding_hash||report.identity.key!==r.provider_key||report.identity.provider!==r.provider_kind||report.identity.immutableSha256!==r.binding_hash||report.instanceId!==r.instance_id||report.bootId!==r.boot_id)return "rejected";
+     if(r.report_hash)return r.report_hash===hash?"duplicate":"rejected";
+     if(r.desired==="stop"||r.terminal_json)return "rejected";
+-    const version=r.state_version,request=JSON.parse(r.request_json) as WireRequest;
++    const version=r.state_version,request=JSON.parse(r.request_json) as WireRequest,authority=this.reportBinding(r);
++    try{await this.checked(JSON.parse(r.pending_identity_json!),JSON.parse(r.registration_json!));}catch{return 'rejected';}
+     if(!await this.verifier.verify(request,parsed,report.attestationSha256))return "rejected";
+     const accepted=this.ledger.transaction(current=>{
+-      if(!current||current.state_version!==version||current.report_hash||current.desired!=="run"||current.quarantined)return false;
++      if(current&&!this.providerMatches(current)){this.providerFenceInTransaction(current);return false;}
++      if(!current||this.ledger.fenced()||current.quarantined||!retained(this.pending,current)||this.reportBinding(current)!==authority||current.state_version!==version||current.report_hash||current.terminal_json||current.pending_result_json||current.desired!=="run")return false;
+       const i=this.sample(current);if(!i||!this.live(current,i))return false;
+       this.acceptTime(current,i);
+       current.report_hash=hash;current.pending_result_json=JSON.stringify(parsed);this.stop(current);this.due(current,i);this.ledger.save(current,"result_pending_teardown");return true;
+@@ -381,24 +409,26 @@
+         if(t.trackedVersion==='0')return {status:'empty_orphan'};
+         this.fence(checked.bytes,t.trackedVersion,'positive_missing');await this.ledger.sync();return {status:'quarantined'};
+       }
+-      if(!matchesRow(checked.identity,r)||await sha(r.binding)!==checked.identity.immutableSha256||r.pending_identity_json!==JSON.stringify(checked.identity)||r.registration_json!==JSON.stringify(checked.receipt)||BigInt(r.state_version)<BigInt(t.trackedVersion)){
++      if(!this.providerMatches(r)||!matchesRow(checked.identity,r)||await sha(r.binding)!==checked.identity.immutableSha256||r.pending_identity_json!==JSON.stringify(checked.identity)||r.registration_json!==JSON.stringify(checked.receipt)||BigInt(r.state_version)<BigInt(t.trackedVersion)){
+         this.fence(checked.bytes,t.trackedVersion,'recovery_identity_or_regression');await this.ledger.sync();return {status:'quarantined'};
+       }
+       // Hashing/validation above may yield: recheck current durable state before
+       // any recovery. A concurrent newer local row always wins the old scan.
+       const current=this.ledger.read();
+-      if(!current||!matchesRow(checked.identity,current)||current.binding!==r.binding||current.pending_identity_json!==JSON.stringify(checked.identity)||current.registration_json!==JSON.stringify(checked.receipt)||BigInt(current.state_version)<BigInt(t.trackedVersion)){
++      if(!current||!this.providerMatches(current)||!matchesRow(checked.identity,current)||current.binding!==r.binding||current.pending_identity_json!==JSON.stringify(checked.identity)||current.registration_json!==JSON.stringify(checked.receipt)||BigInt(current.state_version)<BigInt(t.trackedVersion)){
+         this.fence(checked.bytes,t.trackedVersion,'recovery_changed');await this.ledger.sync();return {status:'quarantined'};
+       }
+       if(current.quarantined&&current.desired!=='stop')return {status:'quarantined'};
+       if(this.inFlight)return {status:'busy'};
+       await this.reconcile();
+       const after=this.ledger.read();if(!after)return {status:'unavailable'};
++      if(!this.providerMatches(after)){this.fence(checked.bytes,after.state_version,'provider_binding_conflict');await this.ledger.sync();return {status:'quarantined'};}
+       if(after.terminal_json){
+         const json=after.terminal_json,version=after.state_version,phase=(JSON.parse(json) as {status:'completed'|'stopped'}).status;
+         const digest=await sha(json);
+         await this.hooks.point('before_recovery_terminal_return');
+         const last=this.ledger.read();
++        if(last&&!this.providerMatches(last)){this.fence(checked.bytes,last.state_version,'provider_binding_conflict');await this.ledger.sync();return {status:'quarantined'};}
+         if(this.ledger.fenced()||last?.quarantined)return {status:'quarantined'};
+         if(!last||last.state_version!==version||last.terminal_json!==json||last.binding!==after.binding||!matchesRow(checked.identity,last)||last.pending_identity_json!==JSON.stringify(checked.identity)||last.registration_json!==JSON.stringify(checked.receipt))return {status:'unavailable'};
+         return {status:'terminal',stateVersion:version,projection:{kind:'terminal',nextDueUs:null,phase,evidenceSha256:digest}};
+@@ -409,6 +439,7 @@
+   }
+   async enrollExisting(identity:PendingIdentity):Promise<'enrolled'|'missing'|'conflict'|'unavailable'>{
+     const prior=this.ledger.read();if(!prior)return 'missing';
++    if(!this.providerMatches(prior)){this.fence(this.fenceIdentity(prior),prior.state_version,'provider_binding_conflict');await this.ledger.sync();return 'conflict';}
+     try{
+       // The maintenance caller explicitly supplies one existing identity. No
+       // scan, namespace enumeration, restore authority or quarantine clearing.
+@@ -417,7 +448,8 @@
+       const registered=result.value;if(registered.status!=='registered'&&registered.status!=='duplicate')return registered.status==='conflict'?'conflict':'unavailable';
+       const checked=await this.checked(identity,registered.receipt);
+       const enrolled=this.ledger.transaction(r=>{
+-        if(!r||!matchesRow(checked.identity,r))return false;
++        if(r&&!this.providerMatches(r)){this.providerFenceInTransaction(r);return false;}
++        if(!r||r.binding!==prior.binding||!matchesRow(checked.identity,r))return false;
+         if(r.registration_json&&r.registration_json!==JSON.stringify(checked.receipt))return false;
+         if(r.pending_identity_json&&r.pending_identity_json!==JSON.stringify(checked.identity))return false;
+         r.pending_identity_json=JSON.stringify(checked.identity);r.registration_json=JSON.stringify(checked.receipt);
