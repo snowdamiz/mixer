@@ -1,0 +1,16 @@
+--- /Users/andreyyurlov/Documents/dev/mixer/vm/src/experimental_swift_reactor/cache.rs	2026-10-24 00:26:51
++++ /Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-work-diagnosis/scratch/src/experimental_swift_reactor/cache.rs	2026-10-24 23:44:20
+@@ -1201,8 +1201,11 @@
+     }
+     fn work(&mut self, n: u64) -> Result<(), SwiftRunFailure> {
+         checkpoint(self.control, self.cursor);
+-        self.control
+-            .work_with_wasi(Work::Cache, n, self.cursor, self.observation())
++        let result = self.control
++            .work_with_wasi(Work::Cache, n, self.cursor, self.observation());
++        #[cfg(test)]
++        if result.is_ok() { super::cache_tests::diagnostic_note_work(n); }
++        result
+     }
+     fn admit(&mut self, bytes: usize) -> Result<ReservationTicket, SwiftRunFailure> {
+         checkpoint(self.control, self.cursor);

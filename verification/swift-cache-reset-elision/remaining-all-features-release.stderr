@@ -1,0 +1,197 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/scratch)
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 24.91s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/mixer_vm-e633425abeb5c97b)
+     Running unittests src/main.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/mixer_vm-be16f03d9761a7ef)
+     Running tests/capability_ffi_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/capability_ffi_allocations-4b24e706a321d953)
+     Running tests/capability_ffi_public.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/capability_ffi_public-b737d4617e575095)
+     Running tests/capability_registry.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/capability_registry-7b252be77ded8df0)
+     Running tests/cli.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/cli-7d33cc7028e4467f)
+     Running tests/differential.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/differential-56a7078060e81167)
+     Running tests/experimental_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/experimental_allocations-1b6936306c9a32ef)
+     Running tests/experimental_capability_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/experimental_capability_allocations-74abd6205650574c)
+     Running tests/experimental_capability_guest.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/experimental_capability_guest-298d0550a13e7d71)
+     Running tests/experimental_capability_guest_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/experimental_capability_guest_allocations-105528fa0730fd66)
+     Running tests/experimental_capability_mailbox.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/experimental_capability_mailbox-3661330b2b55a574)
+     Running tests/experimental_guest_ui_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/experimental_guest_ui_allocations-9a64b91ffad26c4b)
+     Running tests/experimental_guest_ui_validation.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/experimental_guest_ui_validation-99f9db7b00cb44ae)
+     Running tests/experimental_oracle.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/experimental_oracle-ecd19902af3b64c3)
+     Running tests/experimental_stream.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/experimental_stream-722372a4282107eb)
+     Running tests/float.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/float-4c882ace1759b592)
+     Running tests/float_differential.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/float_differential-cca50ac8c80696eb)
+     Running tests/interpreter.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/interpreter-44e38d4c832ccc3c)
+     Running tests/review_boundaries.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/review_boundaries-d57ee4a28233f986)
+     Running tests/review_session_lifetime.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/review_session_lifetime-c12b4079c47d85f1)
+     Running tests/sessions.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/sessions-4529dcb6f885fd09)
+     Running tests/span_control_extraction.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/span_control_extraction-e11a248383869b09)
+     Running tests/span_execution.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/span_execution-330ecd0421077a11)
+     Running tests/span_execution_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/span_execution_allocations-605aa5ec558f672f)
+     Running tests/span_execution_oracle.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/span_execution_oracle-9da33a40a3df4091)
+     Running tests/span_function_cache.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/span_function_cache-bedfafa913eec58a)
+     Running tests/span_function_cache_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/span_function_cache_allocations-8d6fb2db4cd6bf76)
+     Running tests/span_numeric_extraction.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/span_numeric_extraction-a5819881c5fc3c64)
+     Running tests/swift_reactor_validation.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/swift_reactor_validation-b03c98c86a358977)
+     Running tests/swift_reactor_validation_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/swift_reactor_validation_allocations-6d117dac0ac0e4f1)
+     Running tests/swift_reactor_validation_fixture.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/swift_reactor_validation_fixture-aa07fdf0ff0be342)
+     Running tests/swift_wasi.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/swift_wasi-f3e10c6e227500cb)
+     Running tests/swift_wasi_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/swift_wasi_allocations-339b0ecff7e057df)
+     Running tests/table_memory.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/table_memory-5b287f40bb5fa726)
+     Running tests/table_memory_differential.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/table_memory_differential-4b8072cbff18331a)
+   Doc-tests mixer_vm
+error[E0594]: cannot assign to data in a `&` reference
+  --> src/experimental/execution/mod.rs:14:42
+   |
+14 | fn modify(instance: &mut SpanInstance) { instance.memory()[0] = 1; }
+   |                                          ^^^^^^^^^^^^^^^^^^^^^^^^ cannot assign
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0594`.
+error[E0502]: cannot borrow `cache` as mutable because it is also borrowed as immutable
+   --> src/experimental/cache/mod.rs:223:13
+    |
+222 | let view = cache.view(&pin).unwrap();
+    |            ----- immutable borrow occurs here
+223 | let other = cache.pin(0, &cancel).unwrap();
+    |             ^^^^^^^^^^^^^^^^^^^^^ mutable borrow occurs here
+224 | println!("{}", view.instructions.len());
+    |                ----------------- immutable borrow later used here
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0502`.
+error[E0308]: mismatched types
+   --> src/experimental/execution/mod.rs:9:27
+    |
+  9 | let _ = SpanInstance::new(b"\0asm\x01\0\0\0", ExecutionBudget::default(), Cancellation::default());
+    |         ----------------- ^^^^^^^^^^^^^^^^^^ expected `FunctionCache`, found `&[u8; 8]`
+    |         |
+    |         arguments to this function are incorrect
+    |
+note: associated function defined here
+   --> src/experimental/execution/mod.rs:190:12
+    |
+190 |     pub fn new(
+    |            ^^^
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0308`.
+error[E0599]: no method named `pin` found for struct `CacheUsage` in the current scope
+  --> src/experimental/execution/mod.rs:18:71
+   |
+18 | fn take(instance: &mut SpanInstance) { let _ = instance.cache_usage().pin(0); }
+   |                                                                       ^^^ method not found in `CacheUsage`
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0599`.
+error[E0505]: cannot move out of `proof` because it is borrowed
+   --> src/experimental/mod.rs:116:6
+    |
+113 | let proof = validate_spans(b"\0asm\x01\0\0\0", Limits::default(),
+    |     ----- binding `proof` declared here
+114 |     ValidationBudget::default(), &Cancellation::default()).unwrap();
+115 | let bytes = proof.source();
+    |             ----- borrow of `proof` occurs here
+116 | drop(proof);
+    |      ^^^^^ move out of `proof` occurs here
+117 | println!("{}", bytes.len());
+    |                ----- borrow later used here
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0505`.
+error[E0594]: cannot assign to data in a `&` reference
+   --> src/experimental/mod.rs:125:1
+    |
+125 | proof.source()[0] = 1;
+    | ^^^^^^^^^^^^^^^^^^^^^ cannot assign
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0594`.
+error: cannot construct `ValidatedSwiftReactor` with struct literal syntax due to private fields
+   --> src/experimental/swift.rs:122:13
+    |
+122 | let proof = ValidatedSwiftReactor {};
+    |             ^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 1 previous error
+
+error[E0308]: mismatched types
+   --> src/experimental/swift.rs:129:59
+    |
+129 | fn forbidden(proof: ValidatedSwiftReactor) { needs_legacy(proof); }
+    |                                              ------------ ^^^^^ expected `ValidatedSpans`, found `ValidatedSwiftReactor`
+    |                                              |
+    |                                              arguments to this function are incorrect
+    |
+note: function defined here
+   --> src/experimental/swift.rs:128:4
+    |
+128 | fn needs_legacy(_: ValidatedSpans) {}
+    |    ^^^^^^^^^^^^ -----------------
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0308`.
+error[E0594]: cannot assign to data in a `&` reference
+   --> src/experimental/swift.rs:134:46
+    |
+134 | fn forbidden(proof: ValidatedSwiftReactor) { proof.source()[0] = 1; }
+    |                                              ^^^^^^^^^^^^^^^^^^^^^ cannot assign
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0594`.
+error[E0515]: cannot return value referencing function parameter `proof`
+   --> src/experimental/swift.rs:144:63
+    |
+144 | fn forbidden(proof: ValidatedSwiftReactor) -> &'static [u8] { proof.source() }
+    |                                                               -----^^^^^^^^^
+    |                                                               |
+    |                                                               returns a value referencing data owned by the current function
+    |                                                               `proof` is borrowed here
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0515`.
+error[E0599]: no method named `clone` found for struct `ValidatedSwiftReactor` in the current scope
+   --> src/experimental/swift.rs:139:60
+    |
+139 | fn forbidden(proof: ValidatedSwiftReactor) { let _ = proof.clone(); }
+    |                                                            ^^^^^ method not found in `ValidatedSwiftReactor`
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0599`.

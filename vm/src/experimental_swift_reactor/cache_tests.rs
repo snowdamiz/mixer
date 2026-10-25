@@ -48,6 +48,7 @@ pub(super) fn step(step: CacheStep) {
     });
 }
 pub(super) fn checkpoint(control: &RuntimeControl, _: Cursor) {
+    elision_observe_checkpoint(control);
     let pause = HOOKS.with(|h| {
         let mut x = h.get();
         let ordinal = x.checks;
@@ -274,8 +275,13 @@ fn cleanup(
     result
 }
 fn finish(cache: SwiftFunctionCache, mut control: RuntimeControl) {
+    let before_cleanup_work = control.usage(None).cache_work;
     cleanup(cache, &mut control, None);
     let final_usage = control.finish_owned_cleanup(None);
+    assert_eq!(
+        final_usage.cache_work, before_cleanup_work,
+        "consuming cleanup must add no work"
+    );
     assert_eq!(final_usage.reservations.combined.current, 0);
     assert_eq!(final_usage.reservations.live_tickets, 0);
     assert_eq!(final_usage.live.active_pins.current, 0);
@@ -2410,4 +2416,549 @@ pub(super) fn lifecycle_cancel_at_step(step: CacheStep) {
 }
 pub(super) fn lifecycle_reset_hooks() {
     hooks(Hooks::default());
+}
+// Reset-elision tests: all hooks are test-only; no runtime-control replacement.
+#[derive(Clone, Copy)]
+struct ElisionObservation {
+    enabled: bool,
+    dirty: bool,
+    dirty_passes: [usize; 2],
+    stage_work: [u64; 8],
+    previous_work: u64,
+    previous_step: CacheStep,
+    boundaries: [Option<(usize, u64)>; 2],
+}
+impl Default for ElisionObservation {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            dirty: false,
+            dirty_passes: [0; 2],
+            stage_work: [0; 8],
+            previous_work: 0,
+            previous_step: CacheStep::Constructor,
+            boundaries: [None; 2],
+        }
+    }
+}
+thread_local! { static ELISION: Cell<ElisionObservation> = Cell::new(ElisionObservation::default()); }
+fn elision_observe_checkpoint(control: &RuntimeControl) {
+    ELISION.with(|state| {
+        let mut x = state.get();
+        if x.enabled {
+            let work = control.usage(None).cache_work;
+            x.stage_work[x.previous_step as usize] += work - x.previous_work;
+            x.previous_work = work;
+            x.previous_step = HOOKS.with(|h| h.get().step);
+            let boundary = match x.previous_step {
+                CacheStep::ScanReset => Some(0),
+                CacheStep::BuildReset => Some(1),
+                _ => None,
+            };
+            if let Some(index) = boundary {
+                x.boundaries[index].get_or_insert((HOOKS.with(|h| h.get().checks), work));
+            }
+            state.set(x);
+        }
+    });
+}
+fn elision_enable(control: &RuntimeControl, dirty: bool) {
+    ELISION.with(|s| {
+        s.set(ElisionObservation {
+            enabled: true,
+            dirty,
+            previous_work: control.usage(None).cache_work,
+            ..ElisionObservation::default()
+        })
+    });
+}
+fn elision_finish_observation(control: &RuntimeControl) -> ElisionObservation {
+    elision_observe_checkpoint(control);
+    ELISION.with(|s| {
+        let x = s.get();
+        s.set(ElisionObservation::default());
+        x
+    })
+}
+// A test-only ordinary decoder meter. It seeds finite initialized scratch and
+// checks malformed syntax; it never authorizes a cache entry or substitutes for
+// the real RuntimeControl used by every actual-owner cache operation below.
+pub(super) struct ElisionScratchMeter;
+impl crate::experimental::cache::borrowed::sealed::Meter for ElisionScratchMeter {}
+impl crate::experimental::cache::borrowed::DecodeMeter for ElisionScratchMeter {
+    type Failure = &'static str;
+    fn error(
+        &mut self,
+        _: crate::experimental::cache::CacheFailureKind,
+        code: &'static str,
+    ) -> Self::Failure {
+        code
+    }
+    fn check(&mut self) -> Result<(), Self::Failure> {
+        Ok(())
+    }
+    fn work(&mut self, _: u64) -> Result<(), Self::Failure> {
+        Ok(())
+    }
+    fn set_offset(&mut self, _: usize) {}
+    fn exact_capacity(&mut self, requested: usize, observed: usize) -> Result<(), Self::Failure> {
+        assert_eq!(requested, observed);
+        Ok(())
+    }
+}
+pub(super) fn elision_seed_patches(patches: &mut [decode::Patch]) {
+    use crate::experimental::cache::borrowed::FrozenPolicy;
+    // Each independent one-slot pass writes start=17, alternative=Some(19),
+    // kind=If through the unchanged decoder. These are all nonempty fields and
+    // hostile for the much shorter bodies below. No raw or uninitialized memory.
+    const SEED: &[u8] = &[
+        0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 0x40, 1, 5, 1, 0x0b, 0x0b,
+    ];
+    let limits = crate::Limits::default();
+    let policy = FrozenPolicy {
+        limits: &limits,
+        extent: SEED.len(),
+    };
+    for patch in patches {
+        let mut depth = 0;
+        let mut counts = decode::Counts::default();
+        decode::scan_borrowed(
+            SEED,
+            0,
+            &policy,
+            &mut ElisionScratchMeter,
+            decode::PassParts {
+                controls: std::slice::from_mut(patch),
+                depth: &mut depth,
+                counts: &mut counts,
+            },
+            None,
+        )
+        .unwrap();
+        assert_eq!(depth, 0);
+    }
+}
+pub(super) fn elision_dirty_before_boundary(patches: &mut [decode::Patch]) {
+    if !ELISION.with(|s| s.get().dirty) {
+        return;
+    }
+    assert_eq!(patches.len(), 512);
+    elision_seed_patches(patches);
+    let index = match HOOKS.with(|h| h.get().step) {
+        CacheStep::ScanReset => 0,
+        CacheStep::BuildReset => 1,
+        other => panic!("unexpected reset {other:?}"),
+    };
+    ELISION.with(|s| {
+        let mut x = s.get();
+        x.dirty_passes[index] += 1;
+        s.set(x);
+    });
+}
+#[test]
+fn reset_elision_observation_fixture() {
+    use crate::experimental::cache::{ControlKind as K, Operation as O};
+    for (label, helper, expected) in [
+        ("flat", body(0, &[0x0b]), vec![O::End]),
+        (
+            "nested",
+            body(
+                0,
+                &[
+                    2, 0x40, 3, 0x40, 1, 0x0b, 0x0b, 0x41, 0, 4, 0x40, 1, 5, 1, 0x0b, 0x0b,
+                ],
+            ),
+            vec![
+                O::Block {
+                    kind: K::Block,
+                    result: None,
+                    end: 4,
+                    alternative: None,
+                },
+                O::Block {
+                    kind: K::Loop,
+                    result: None,
+                    end: 3,
+                    alternative: None,
+                },
+                O::Nop,
+                O::End,
+                O::End,
+                O::Const(Value::I32(0)),
+                O::Block {
+                    kind: K::If,
+                    result: None,
+                    end: 10,
+                    alternative: Some(8),
+                },
+                O::Nop,
+                O::Else { end: 10 },
+                O::Nop,
+                O::End,
+                O::End,
+            ],
+        ),
+    ] {
+        hooks(Hooks::default());
+        let bytes = fixture(0, &helper, 100);
+        let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+        assert_eq!(c.usage(None).cache_work, 640);
+        elision_enable(&c, false);
+        let before = c.usage(None).cache_work;
+        let p = pin(&mut cache, &mut c, 34, None).unwrap();
+        let view = cache.view(&p, &mut c, None).unwrap();
+        assert_eq!(
+            view.instructions
+                .iter()
+                .map(|i| i.operation.clone())
+                .collect::<Vec<_>>(),
+            expected
+        );
+        cache
+            .release(p, &mut c, None)
+            .map_err(|e| e.failure)
+            .unwrap();
+        let cold = elision_finish_observation(&c);
+        assert_eq!(
+            cold.stage_work.iter().sum::<u64>(),
+            c.usage(None).cache_work - before
+        );
+        elision_enable(&c, false);
+        let (hit, stats) = measure(|| pin(&mut cache, &mut c, 34, None).unwrap());
+        let (_, release_stats) = measure(|| {
+            cache
+                .release(hit, &mut c, None)
+                .map_err(|e| e.failure)
+                .unwrap()
+        });
+        assert_eq!(stats.attempts, 0);
+        assert_eq!(release_stats.attempts, 0);
+        let hit = elision_finish_observation(&c);
+        assert_eq!(hit.stage_work.iter().sum::<u64>(), 3);
+        println!("ELISION {{\"case\":\"{label}\",\"constructorWork\":640,\"coldWork\":{},\"coldStages\":{:?},\"hitWork\":3,\"hitStages\":{:?},\"fixedReserved\":{},\"residentBytes\":{}}}",cold.stage_work.iter().sum::<u64>(),cold.stage_work,hit.stage_work,cache.usage().fixed_reserved,cache.usage().resident_bytes);
+        finish(cache, c);
+    }
+    hooks(Hooks::default());
+    let bytes = fixture(0, &[0, 0x0b], 100);
+    let (mut c, mut cache) = new(
+        &bytes,
+        SwiftRunBudget {
+            cache_entries: 3,
+            ..SwiftRunBudget::default()
+        },
+    );
+    let mut held = None;
+    for (index, function) in [34, 35, 36, 35, 37, 34, 38, 37].into_iter().enumerate() {
+        let p = pin(&mut cache, &mut c, function, None).unwrap();
+        let parts = inspection::elision_pin_parts(&p);
+        let times = inspection::elision_times(&cache);
+        let newest = times.iter().max().copied().unwrap();
+        assert_eq!(newest, c.usage(None).cache_work);
+        assert!(times.iter().all(|t| *t == 0 || *t <= newest));
+        if index == 0 {
+            held = Some(p);
+        } else {
+            cache
+                .release(p, &mut c, None)
+                .map_err(|e| e.failure)
+                .unwrap();
+        }
+        if index == 4 {
+            cache
+                .release(held.take().unwrap(), &mut c, None)
+                .map_err(|e| e.failure)
+                .unwrap();
+        }
+        println!("ELISION {{\"case\":\"lru\",\"access\":{index},\"function\":{function},\"pin\":{:?},\"slots\":{:?},\"timestamps\":{:?},\"hits\":{},\"misses\":{},\"evictions\":{},\"residentBytes\":{},\"pinnedBytes\":{}}}",parts,inspection::elision_slots(&cache),times,cache.usage().hits,cache.usage().misses,cache.usage().evictions,cache.usage().resident_bytes,cache.usage().pinned_bytes);
+    }
+    assert_eq!(cache.usage().hits, 3);
+    assert_eq!(cache.usage().misses, 5);
+    assert_eq!(cache.usage().evictions, 2);
+    finish(cache, c);
+    println!("ELISION {{\"case\":\"cleanup\",\"ownersDrained\":3,\"cacheAndCombinedReservations\":0,\"livePinsAndEntries\":0}}");
+}
+#[test]
+fn reset_elision_dirty_actual_owner_both_passes_and_reuse() {
+    use crate::experimental::cache::{ControlKind as K, Operation as O};
+    let cases = [
+        ("flat", body(0, &[1, 0x0b]), vec![O::Nop, O::End], vec![]),
+        (
+            "siblings",
+            body(0, &[2, 0x40, 1, 0x0b, 3, 0x40, 1, 0x0b, 0x0b]),
+            vec![
+                O::Block {
+                    kind: K::Block,
+                    result: None,
+                    end: 2,
+                    alternative: None,
+                },
+                O::Nop,
+                O::End,
+                O::Block {
+                    kind: K::Loop,
+                    result: None,
+                    end: 5,
+                    alternative: None,
+                },
+                O::Nop,
+                O::End,
+                O::End,
+            ],
+            vec![],
+        ),
+        (
+            "nested",
+            body(
+                0,
+                &[
+                    2, 0x40, 3, 0x40, 0x41, 0, 4, 0x40, 1, 5, 1, 0x0b, 0x0b, 0x0b, 0x0b,
+                ],
+            ),
+            vec![
+                O::Block {
+                    kind: K::Block,
+                    result: None,
+                    end: 9,
+                    alternative: None,
+                },
+                O::Block {
+                    kind: K::Loop,
+                    result: None,
+                    end: 8,
+                    alternative: None,
+                },
+                O::Const(Value::I32(0)),
+                O::Block {
+                    kind: K::If,
+                    result: None,
+                    end: 7,
+                    alternative: Some(5),
+                },
+                O::Nop,
+                O::Else { end: 7 },
+                O::Nop,
+                O::End,
+                O::End,
+                O::End,
+                O::End,
+            ],
+            vec![],
+        ),
+        (
+            "br_table",
+            body(
+                1,
+                &[
+                    2, 0x40, 3, 0x40, 0x41, 0, 0x0e, 3, 0, 1, 2, 2, 0x0b, 0x0b, 0x0b,
+                ],
+            ),
+            vec![
+                O::Block {
+                    kind: K::Block,
+                    result: None,
+                    end: 5,
+                    alternative: None,
+                },
+                O::Block {
+                    kind: K::Loop,
+                    result: None,
+                    end: 4,
+                    alternative: None,
+                },
+                O::Const(Value::I32(0)),
+                O::BrTable {
+                    first: 0,
+                    count: 3,
+                    default: 2,
+                },
+                O::End,
+                O::End,
+                O::End,
+            ],
+            vec![0, 1, 2],
+        ),
+    ];
+    for (label, helper, expected, targets) in cases {
+        hooks(Hooks::default());
+        let bytes = fixture(0, &helper, 100);
+        let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+        elision_enable(&c, true);
+        let p = pin(&mut cache, &mut c, 34, None).unwrap();
+        let view = cache.view(&p, &mut c, None).unwrap();
+        assert_eq!(
+            view.instructions
+                .iter()
+                .map(|i| i.operation.clone())
+                .collect::<Vec<_>>(),
+            expected,
+            "{label}"
+        );
+        assert_eq!(view.branch_targets, targets);
+        assert_eq!(view.locals.len(), usize::from(label == "br_table"));
+        cache
+            .release(p, &mut c, None)
+            .map_err(|e| e.failure)
+            .unwrap();
+        let o = elision_finish_observation(&c);
+        assert_eq!(o.dirty_passes, [1, 1]);
+        assert_eq!(o.stage_work[CacheStep::ScanReset as usize], 0);
+        assert_eq!(o.stage_work[CacheStep::BuildReset as usize], 0);
+        println!(
+            "ELISION_DIRTY case={label} dirtied_slots_per_pass=512 passes={:?} reset_credits=[0,0]",
+            o.dirty_passes
+        );
+        finish(cache, c);
+    }
+    for depth in [379, 512] {
+        hooks(Hooks::default());
+        let mut code = Vec::new();
+        for _ in 1..depth {
+            code.extend([2, 0x40]);
+        }
+        code.extend(std::iter::repeat_n(0x0b, depth));
+        let helper = body(0, &code);
+        let bytes = fixture(0, &helper, 100);
+        let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+        elision_enable(&c, true);
+        let p = pin(&mut cache, &mut c, 34, None).unwrap();
+        let view = cache.view(&p, &mut c, None).unwrap();
+        assert_eq!(view.instructions.len(), 2 * depth - 1);
+        for i in 0..depth - 1 {
+            assert_eq!(
+                view.instructions[i].operation,
+                O::Block {
+                    kind: K::Block,
+                    result: None,
+                    end: 2 * depth - 3 - i,
+                    alternative: None
+                }
+            );
+        }
+        assert!(view.instructions[depth - 1..]
+            .iter()
+            .all(|i| i.operation == O::End));
+        cache
+            .release(p, &mut c, None)
+            .map_err(|e| e.failure)
+            .unwrap();
+        let o = elision_finish_observation(&c);
+        assert_eq!(o.dirty_passes, [1, 1]);
+        // Reuse the very same owner and deep stale arena for an ordinary flat
+        // miss. Do not redirty here: this specifically tests deep-to-shallow reuse.
+        let p = pin(&mut cache, &mut c, 35, None).unwrap();
+        let view = cache.view(&p, &mut c, None).unwrap();
+        assert_eq!(view.instructions.len(), 1);
+        assert_eq!(view.instructions[0].operation, O::End);
+        cache
+            .release(p, &mut c, None)
+            .map_err(|e| e.failure)
+            .unwrap();
+        println!("ELISION_DIRTY depth={depth} inclusive=true deep_to_shallow_same_owner=true");
+        finish(cache, c);
+    }
+    let mut code = Vec::new();
+    for _ in 0..512 {
+        code.extend([2, 0x40]);
+    }
+    code.extend(std::iter::repeat_n(0x0b, 513));
+    let rejected = validate_swift_reactor(
+        &fixture(0, &body(0, &code), 100),
+        SwiftValidationBudget::default(),
+        &Cancellation::default(),
+    )
+    .err()
+    .expect("depth513 rejected by complete validation");
+    println!("ELISION_DIRTY depth=513 validation_rejection={rejected:?}");
+}
+#[test]
+fn reset_elision_hostile_inactive_malformed_controls() {
+    hooks(Hooks::default());
+    let bytes = fixture(0, &[0, 0x0b], 100);
+    let (c, mut cache) = new(&bytes, SwiftRunBudget::default());
+    for (body, expected) in [
+        (&[0, 5, 0x0b][..], "decode_else"),
+        (&[0, 4, 0x40, 5, 5, 0x0b, 0x0b][..], "decode_else"),
+        (&[0, 2, 0x40][..], "decode_end"),
+        (&[0, 2, 0x40, 1][..], "decode_end"),
+        (&[0, 0x0b, 1][..], "decode_trailing"),
+    ] {
+        assert_eq!(
+            inspection::elision_malformed(&mut cache, body),
+            [expected; 2]
+        );
+    }
+    inspection::elision_dirty_owner(&mut cache);
+    finish(cache, c);
+    println!(
+        "ELISION_MALFORMED cases=5 passes_per_case=2 actual_owner_slots=512 typed_failures=true"
+    );
+}
+
+#[test]
+fn reset_elision_boundary_precedence_and_sticky() {
+    hooks(Hooks::default());
+    let bytes = fixture(0, &body(1, &[0, 0x0e, 2, 0, 0, 0, 0x0b]), 29);
+    let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+    hooks(Hooks::default());
+    elision_enable(&c, false);
+    let p = pin(&mut cache, &mut c, 34, None).unwrap();
+    let observed = elision_finish_observation(&c);
+    cache
+        .release(p, &mut c, None)
+        .map_err(|e| e.failure)
+        .unwrap();
+    finish(cache, c);
+    for (index, step) in [CacheStep::ScanReset, CacheStep::BuildReset]
+        .into_iter()
+        .enumerate()
+    {
+        let (ordinal, credits) = observed.boundaries[index].expect("ordinary boundary observed");
+        for expired in [false, true] {
+            for cancelled in [false, true] {
+                hooks(Hooks::default());
+                let (mut c, mut cache) = new(
+                    &bytes,
+                    SwiftRunBudget {
+                        cache_work: credits,
+                        deadline_ms: if expired {
+                            20
+                        } else {
+                            SwiftRunBudget::default().deadline_ms
+                        },
+                        ..SwiftRunBudget::default()
+                    },
+                );
+                hooks(Hooks {
+                    cancel: cancelled.then_some(ordinal),
+                    pause: expired.then_some(step),
+                    ..Hooks::default()
+                });
+                let f = pin(&mut cache, &mut c, 34, None).unwrap_err();
+                hooks(Hooks::default());
+                assert_eq!(
+                    f.kind,
+                    if cancelled {
+                        SwiftRunFailureKind::Cancelled
+                    } else if expired {
+                        SwiftRunFailureKind::Deadline
+                    } else {
+                        SwiftRunFailureKind::WorkExhausted
+                    }
+                );
+                assert_eq!(c.usage(None).cache_work, credits);
+                assert_eq!(c.usage(None).live.active_pins.current, 0);
+                assert_eq!(c.usage(None).live.cache_entries.current, 0);
+                assert_eq!(cache.usage().decodes, 0);
+                assert_eq!(c.check_with_wasi(cache_cursor(), None).unwrap_err(), f);
+                let before = c.usage(None);
+                let (again, stats) = measure(|| pin(&mut cache, &mut c, 34, None));
+                assert_eq!(again.unwrap_err(), f);
+                assert_eq!(stats.attempts, 0);
+                assert_eq!(c.usage(None).cache_work, before.cache_work);
+                assert_eq!(c.usage(None).reservations, before.reservations);
+                println!("ELISION_PRECEDENCE boundary={step:?} credits={credits} expired={expired} cancelled={cancelled} first={:?} sticky=true publication=0",f.kind);
+                finish(cache, c);
+            }
+        }
+    }
 }

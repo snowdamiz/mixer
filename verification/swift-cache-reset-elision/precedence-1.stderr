@@ -1,0 +1,38 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/scratch)
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 21.30s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/release/deps/mixer_vm-a260025825c8b196)
+
+thread 'experimental_swift_reactor::cache_tests::reset_elision_boundary_precedence_and_sticky' (61818027) panicked at src/experimental_swift_reactor/cache_tests.rs:218:6:
+called `Result::unwrap()` on an `Err` value: SwiftRunFailure { stage: Adoption, kind: InvalidBudget, code: "swift_run_invalid_budget", function: None, offset: None, resource: Some(Deadline), attempted: 120000, limit: 30000, observed_capacity: None, deadline_origin: Run, wasi_failure: None, guest_exit: None, at_failure: SwiftRunUsage { reservations: SwiftReservations { retained_source: SwiftReservationUsage { current: 0, peak: 0 }, retained_metadata: SwiftReservationUsage { current: 0, peak: 0 }, cache: SwiftReservationUsage { current: 0, peak: 0 }, state: SwiftReservationUsage { current: 0, peak: 0 }, wasi: SwiftReservationUsage { current: 0, peak: 0 }, shared: SwiftReservationUsage { current: 0, peak: 0 }, construction: SwiftReservationUsage { current: 0, peak: 0 }, combined: SwiftReservationUsage { current: 0, peak: 0 }, live_tickets: 0, peak_tickets: 0 }, live: SwiftLiveUsage { cache_entries: SwiftReservationUsage { current: 0, peak: 0 }, active_pins: SwiftReservationUsage { current: 0, peak: 0 }, frames: SwiftReservationUsage { current: 0, peak: 0 }, values: SwiftReservationUsage { current: 0, peak: 0 }, controls: SwiftReservationUsage { current: 0, peak: 0 }, memory_pages: SwiftReservationUsage { current: 0, peak: 0 } }, cache_work: 0, execution_work: 0, instruction_fuel: 0, instructions: 0, host_calls: 0, cleanup_invariant: None, elapsed_micros: 0, deadline_ms: 120000, deadline_origin: Run, deadline_overshoot_micros: 0, validation: SwiftValidationUsage { input_visible_bytes: 1814, source_bytes: 1814, metadata_reserved: 2324, scratch_reserved: 0, metadata_peak_reserved: 2324, scratch_peak_reserved: 1056, total_peak_reserved: 5194, work_used: 10351, elapsed_micros: 36, deadline_ms: 120000 }, wasi: None }, after_cleanup: Some(SwiftRunUsage { reservations: SwiftReservations { retained_source: SwiftReservationUsage { current: 0, peak: 0 }, retained_metadata: SwiftReservationUsage { current: 0, peak: 0 }, cache: SwiftReservationUsage { current: 0, peak: 0 }, state: SwiftReservationUsage { current: 0, peak: 0 }, wasi: SwiftReservationUsage { current: 0, peak: 0 }, shared: SwiftReservationUsage { current: 0, peak: 0 }, construction: SwiftReservationUsage { current: 0, peak: 0 }, combined: SwiftReservationUsage { current: 0, peak: 0 }, live_tickets: 0, peak_tickets: 0 }, live: SwiftLiveUsage { cache_entries: SwiftReservationUsage { current: 0, peak: 0 }, active_pins: SwiftReservationUsage { current: 0, peak: 0 }, frames: SwiftReservationUsage { current: 0, peak: 0 }, values: SwiftReservationUsage { current: 0, peak: 0 }, controls: SwiftReservationUsage { current: 0, peak: 0 }, memory_pages: SwiftReservationUsage { current: 0, peak: 0 } }, cache_work: 0, execution_work: 0, instruction_fuel: 0, instructions: 0, host_calls: 0, cleanup_invariant: None, elapsed_micros: 0, deadline_ms: 120000, deadline_origin: Run, deadline_overshoot_micros: 0, validation: SwiftValidationUsage { input_visible_bytes: 1814, source_bytes: 1814, metadata_reserved: 2324, scratch_reserved: 0, metadata_peak_reserved: 2324, scratch_peak_reserved: 1056, total_peak_reserved: 5194, work_used: 10351, elapsed_micros: 36, deadline_ms: 120000 }, wasi: None }) }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `--lib`

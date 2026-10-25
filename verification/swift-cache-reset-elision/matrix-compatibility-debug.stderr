@@ -1,0 +1,129 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/scratch)
+warning: unused import: `statistics`
+   --> src/experimental/cache/borrowed.rs:298:16
+    |
+298 | pub(crate) use statistics;
+    |                ^^^^^^^^^^
+    |
+    = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: methods `source`, `defined_function_count`, and `signature` are never used
+  --> src/experimental/cache/borrowed.rs:16:8
+   |
+13 | pub(crate) trait SnapshotView: sealed::Snapshot {
+   |                  ------------ methods in this trait
+...
+16 |     fn source(&self) -> &[u8];
+   |        ^^^^^^
+17 |     fn defined_function_count(&self) -> usize;
+   |        ^^^^^^^^^^^^^^^^^^^^^^
+...
+20 |     fn signature(&self, absolute: u32) -> Option<SignatureView<'_>>;
+   |        ^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: variants `Constructor`, `ScanReset`, `Scan`, `BuildReset`, and `Build` are never constructed
+   --> src/experimental/cache/borrowed.rs:174:5
+    |
+173 | pub(crate) enum CacheStep {
+    |                 --------- variants in this enum
+174 |     Constructor,
+    |     ^^^^^^^^^^^
+175 |     Lookup,
+176 |     ScanReset,
+    |     ^^^^^^^^^
+177 |     Scan,
+    |     ^^^^
+178 |     BuildReset,
+    |     ^^^^^^^^^^
+179 |     Build,
+    |     ^^^^^
+    |
+    = note: `CacheStep` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: associated function `function_entry` is never used
+   --> src/experimental/execution/mod.rs:128:25
+    |
+127 | impl Control {
+    | ------------ associated function in this implementation
+128 |     pub(crate) const fn function_entry(end: usize, height: usize, result: bool) -> Self {
+    |                         ^^^^^^^^^^^^^^
+
+warning: method `test_changed_instructions` is never used
+   --> src/experimental/cache/decode.rs:130:19
+    |
+129 | impl Counts {
+    | ----------- method in this implementation
+130 |     pub(crate) fn test_changed_instructions(mut self) -> Self {
+    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: variants `SlowRealClock` and `CancelRealClock` are never constructed
+  --> src/experimental_wasi/tests.rs:14:5
+   |
+ 5 | enum Service {
+   |      ------- variants in this enum
+...
+14 |     SlowRealClock,
+   |     ^^^^^^^^^^^^^
+15 |     CancelRealClock,
+   |     ^^^^^^^^^^^^^^^
+   |
+   = note: `Service` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis
+
+warning: methods `host_set_cancel`, `host_set_service`, and `host_services` are never used
+   --> src/experimental_wasi/tests.rs:366:16
+    |
+365 | impl TestState {
+    | -------------- methods in this implementation
+366 |  pub(super) fn host_set_cancel(&self,at:usize){self.cancel_at.set(Some(at));}
+    |                ^^^^^^^^^^^^^^^
+367 |  pub(super) fn host_set_service(&mut self,kind:u8){self.service=match kind{1=>Service::PartialRandomError,5=>Service::CancelRandom,...
+    |                ^^^^^^^^^^^^^^^^
+368 |  pub(super) fn host_services(&self)->usize{self.services.get()}
+    |                ^^^^^^^^^^^^^
+
+warning: `mixer-vm` (lib) generated 4 warnings (run `cargo fix --lib -p mixer-vm` to apply 1 suggestion)
+warning: `mixer-vm` (lib test) generated 7 warnings (4 duplicates)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.97s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/mixer_vm-c18e0523ba2f6e82)
+
+thread 'ffi::tests::panic_is_contained' (61837880) panicked at src/ffi.rs:385:42:
+test contained panic
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'session::tests::panic_poison_prevents_state_reuse_without_poisoning_registry' (61837885) panicked at src/session.rs:698:17:
+test panic during a session operation
+
+thread 'session::tests::unwound_creation_releases_unpublished_reservation' (61837886) panicked at src/session.rs:726:17:
+test creation failure before publication
+     Running unittests src/main.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/mixer_vm-37b973b227b43641)
+     Running tests/capability_ffi_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/capability_ffi_allocations-c80340cb7f654d1e)
+     Running tests/capability_ffi_public.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/capability_ffi_public-8823483b08efd1f7)
+     Running tests/capability_registry.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/capability_registry-e06d4982fe6e3f8b)
+     Running tests/cli.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/cli-28ae1209244da307)
+     Running tests/differential.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/differential-1ea20a7aa2f8f9dc)
+     Running tests/experimental_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/experimental_allocations-cf4230b21d36f48a)
+     Running tests/experimental_capability_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/experimental_capability_allocations-47507ec9534e4452)
+     Running tests/experimental_capability_guest.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/experimental_capability_guest-b1b3773b0b8264f0)
+     Running tests/experimental_capability_guest_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/experimental_capability_guest_allocations-d947a6ec182e2ab1)
+     Running tests/experimental_capability_mailbox.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/experimental_capability_mailbox-72702b87e8cdd7de)
+     Running tests/experimental_guest_ui_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/experimental_guest_ui_allocations-8280d152ae843e29)
+     Running tests/experimental_guest_ui_validation.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/experimental_guest_ui_validation-c0fb62b9f866af14)
+     Running tests/experimental_oracle.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/experimental_oracle-f0bf8e7666d6f456)
+     Running tests/experimental_stream.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/experimental_stream-c21fc3de51961f02)
+     Running tests/float.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/float-d9c6778b5ad3c448)
+     Running tests/float_differential.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/float_differential-7cc6f777d1c6c1f7)
+     Running tests/interpreter.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/interpreter-2c635f790f2d13c8)
+     Running tests/review_boundaries.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/review_boundaries-f7f10d62dd7d8097)
+     Running tests/review_session_lifetime.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/review_session_lifetime-3d3827f5eb624e8c)
+     Running tests/sessions.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/sessions-3a5fed3cd27ef5d2)
+     Running tests/span_control_extraction.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/span_control_extraction-ba0326cad1ae74f9)
+     Running tests/span_execution.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/span_execution-64700890b1e4eca0)
+     Running tests/span_execution_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/span_execution_allocations-3dd9615ecedf150e)
+     Running tests/span_execution_oracle.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/span_execution_oracle-0a950e18afc89a2c)
+
+thread 'original_probes_match_development_node_values_traps_and_memory' (61838199) panicked at tests/span_execution_oracle.rs:182:10:
+development Node oracle must be installed: Os { code: 2, kind: NotFound, message: "No such file or directory" }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `--test span_execution_oracle`

@@ -1,0 +1,65 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/scratch)
+warning: unused import: `statistics`
+   --> src/experimental/cache/borrowed.rs:298:16
+    |
+298 | pub(crate) use statistics;
+    |                ^^^^^^^^^^
+    |
+    = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: methods `source`, `defined_function_count`, and `signature` are never used
+  --> src/experimental/cache/borrowed.rs:16:8
+   |
+13 | pub(crate) trait SnapshotView: sealed::Snapshot {
+   |                  ------------ methods in this trait
+...
+16 |     fn source(&self) -> &[u8];
+   |        ^^^^^^
+17 |     fn defined_function_count(&self) -> usize;
+   |        ^^^^^^^^^^^^^^^^^^^^^^
+...
+20 |     fn signature(&self, absolute: u32) -> Option<SignatureView<'_>>;
+   |        ^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: variants `Constructor`, `ScanReset`, `Scan`, `BuildReset`, and `Build` are never constructed
+   --> src/experimental/cache/borrowed.rs:174:5
+    |
+173 | pub(crate) enum CacheStep {
+    |                 --------- variants in this enum
+174 |     Constructor,
+    |     ^^^^^^^^^^^
+175 |     Lookup,
+176 |     ScanReset,
+    |     ^^^^^^^^^
+177 |     Scan,
+    |     ^^^^
+178 |     BuildReset,
+    |     ^^^^^^^^^^
+179 |     Build,
+    |     ^^^^^
+    |
+    = note: `CacheStep` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: associated function `function_entry` is never used
+   --> src/experimental/execution/mod.rs:128:25
+    |
+127 | impl Control {
+    | ------------ associated function in this implementation
+128 |     pub(crate) const fn function_entry(end: usize, height: usize, result: bool) -> Self {
+    |                         ^^^^^^^^^^^^^^
+
+warning: `mixer-vm` (lib) generated 4 warnings (run `cargo fix --lib -p mixer-vm` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.17s
+     Running tests/span_execution_oracle.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/span_execution_oracle-0a950e18afc89a2c)
+     Running tests/span_function_cache.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/span_function_cache-09831146c93a8a03)
+     Running tests/span_function_cache_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/span_function_cache_allocations-89b3a9054c7c15a2)
+     Running tests/span_numeric_extraction.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/span_numeric_extraction-dd4800b8b48cbf55)
+     Running tests/swift_reactor_validation.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/swift_reactor_validation-54ae9516a728abdd)
+     Running tests/swift_reactor_validation_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/swift_reactor_validation_allocations-19a7a6f0431eab2c)
+     Running tests/swift_reactor_validation_fixture.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/swift_reactor_validation_fixture-3ddee5c77b777a08)
+     Running tests/swift_wasi.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/swift_wasi-8cbae603b9de60bc)
+     Running tests/swift_wasi_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/swift_wasi_allocations-929ac60d813d8b7c)
+     Running tests/table_memory.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/table_memory-a9eb3aac3511b5db)
+     Running tests/table_memory_differential.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-reset-elision/target/debug/deps/table_memory_differential-045a7d58d78e73ed)

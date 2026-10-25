@@ -1,0 +1,184 @@
+{
+  "status": "passed",
+  "scope": "independent-local-workerd-SQLite-synthetic-regressions",
+  "frozen_source_tree_sha256": "1570f0bf9c0c8e30e9eca1a2356651da5b13f01fd619a26af5563362681b97b4",
+  "results": [
+    {
+      "id": "claim-final-authority-epoch-owner-transfer",
+      "status": "passed",
+      "evidence": [
+        {
+          "consumed_guard": {
+            "epoch": "1",
+            "revision": "0",
+            "owner": "owner-a"
+          },
+          "current_guard": {
+            "epoch": "2",
+            "revision": "0",
+            "owner": "successor"
+          },
+          "query_observation": {
+            "status": "running"
+          },
+          "grant": {
+            "granted": false
+          },
+          "claim_state": "consumed"
+        }
+      ]
+    },
+    {
+      "id": "claim-final-authority-revision-advance",
+      "status": "passed",
+      "evidence": [
+        {
+          "consumed_guard": {
+            "epoch": "1",
+            "revision": "0",
+            "owner": "owner-a"
+          },
+          "current_guard": {
+            "epoch": "1",
+            "revision": "1",
+            "owner": "owner-a"
+          },
+          "query_observation": {
+            "status": "running"
+          },
+          "grant": {
+            "granted": false
+          },
+          "claim_state": "consumed"
+        }
+      ]
+    },
+    {
+      "id": "stop-during-claim-final-check-denies-and-persists",
+      "status": "passed",
+      "evidence": [
+        {
+          "exists": true,
+          "desired": "stop",
+          "epoch": "2",
+          "revision": "0",
+          "owner": "successor",
+          "expiryUs": "2000000000001000",
+          "providerKey": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+          "phase": "stop_pending",
+          "claimState": "consumed",
+          "terminal": null
+        }
+      ]
+    },
+    {
+      "id": "malformed-and-incomplete-drain-evidence-stays-occupied",
+      "status": "passed",
+      "evidence": [
+        {
+          "exists": true,
+          "desired": "stop",
+          "epoch": "1",
+          "revision": "0",
+          "owner": "owner-a",
+          "expiryUs": "2000000000001000",
+          "providerKey": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+          "phase": "stopped",
+          "claimState": "revoked",
+          "terminal": {
+            "status": "stopped",
+            "diagnostic_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        }
+      ]
+    },
+    {
+      "id": "exact-maximum-epoch-and-zero-revision-after-transfer",
+      "status": "passed",
+      "evidence": [
+        {
+          "epoch": "9223372036854775807",
+          "revision": "0",
+          "sqlTypes": [
+            {
+              "epoch": "text",
+              "revision": "text",
+              "expiry": "text",
+              "state_version": "text"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "quarantine-and-unqualified-clock-do-not-grant",
+      "status": "passed",
+      "evidence": [
+        {
+          "exists": true,
+          "desired": "run",
+          "epoch": "1",
+          "revision": "0",
+          "owner": "owner-a",
+          "expiryUs": "2000000000001000",
+          "providerKey": "53dd62ade21fded4ab49e4b125e3ca009768980303c63c02c0b1d1b83ff82e04",
+          "phase": "quarantined",
+          "claimState": "unissued",
+          "terminal": null
+        }
+      ]
+    },
+    {
+      "id": "later-effect-clock-sample-must-fence-rollback-before-claim",
+      "status": "passed",
+      "evidence": [
+        {
+          "later_effect_clock_now_us": "1950000000000000",
+          "persisted_clock_lower_us": "1949999999999999",
+          "rollback_clock_now_us": "1920000000000000",
+          "grant": {
+            "granted": false
+          },
+          "quarantined": 1
+        }
+      ]
+    }
+  ],
+  "cleanup": [
+    {
+      "persist": "/home/runner/work/_temp/worker-controller/regressions/scratch/mixer-controller-owned-O0vJvh",
+      "disposed": true,
+      "storageRemoved": true
+    },
+    {
+      "persist": "/home/runner/work/_temp/worker-controller/regressions/scratch/mixer-controller-owned-y8Xevh",
+      "disposed": true,
+      "storageRemoved": true
+    },
+    {
+      "persist": "/home/runner/work/_temp/worker-controller/regressions/scratch/mixer-controller-owned-NuyAiA",
+      "disposed": true,
+      "storageRemoved": true
+    },
+    {
+      "persist": "/home/runner/work/_temp/worker-controller/regressions/scratch/mixer-controller-owned-OcJ5hr",
+      "disposed": true,
+      "storageRemoved": true
+    },
+    {
+      "persist": "/home/runner/work/_temp/worker-controller/regressions/scratch/mixer-controller-owned-mVpx9S",
+      "disposed": true,
+      "storageRemoved": true
+    },
+    {
+      "persist": "/home/runner/work/_temp/worker-controller/regressions/scratch/mixer-controller-owned-19tzpt",
+      "disposed": true,
+      "storageRemoved": true
+    },
+    {
+      "persist": "/home/runner/work/_temp/worker-controller/regressions/scratch/mixer-controller-owned-Z7H3rf",
+      "disposed": true,
+      "storageRemoved": true
+    }
+  ]
+}

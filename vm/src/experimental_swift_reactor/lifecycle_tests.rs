@@ -960,13 +960,13 @@ fn swift_lifecycle_sl13_cumulative_instruction_host_and_cache_usage() {
     );
     assert_eq!(initialized.live.cache_entries.current, 1);
     assert_eq!(initialized.instructions - start.instructions, 6);
-    // Cold cost = 1151 + pin records + 2*encoded body bytes + 3*instructions.
+    // Cold cost = 127 + pin records + 2*encoded body bytes + 3*instructions.
     // Init35: B14/I6/P1; corpus62: B7/I3/P1; callee36: B19/I9/P2.
     assert_eq!(
         initialized.cache_work - start.cache_work,
-        1151 + 1 + 2 * 14 + 3 * 6
+        127 + 1 + 2 * 14 + 3 * 6
     );
-    assert_eq!(initialized.cache_work, 1803);
+    assert_eq!(initialized.cache_work, 779);
     assert_eq!(success(&mut o, Request::Corpus), Reply::Corpus(2));
     let first = observed(&o);
     assert_eq!(
@@ -977,9 +977,9 @@ fn swift_lifecycle_sl13_cumulative_instruction_host_and_cache_usage() {
     let first_cache = o.cache.as_ref().unwrap().usage();
     assert_eq!(
         first.cache_work - initialized.cache_work,
-        (1151 + 1 + 2 * 7 + 3 * 3) + (1151 + 2 + 2 * 19 + 3 * 9)
+        (127 + 1 + 2 * 7 + 3 * 3) + (127 + 2 + 2 * 19 + 3 * 9)
     );
-    assert_eq!(first.cache_work, 4196);
+    assert_eq!(first.cache_work, 1124);
     assert_eq!(success(&mut o, Request::Corpus), Reply::Corpus(3));
     let second = observed(&o);
     assert_eq!(
@@ -1001,7 +1001,7 @@ fn swift_lifecycle_sl13_cumulative_instruction_host_and_cache_usage() {
         second.cache_work - first.cache_work,
         (1 + 1 + 2) + (1 + 2 + 3)
     );
-    assert_eq!(second.cache_work, 4206);
+    assert_eq!(second.cache_work, 1134);
     assert_eq!(second_cache.hits - first_cache.hits, 2);
     assert_eq!(second_cache.misses, first_cache.misses);
     assert_eq!(second_cache.decodes, first_cache.decodes);
@@ -1760,22 +1760,22 @@ fn swift_lifecycle_sl14_later_work_cache_and_absolute_deadline_do_not_reset() {
         .unwrap()
         .test_replace_execution_work_limit(old);
     retire(o);
-    // Constructor605; cold no-op init B2/I1:1151+1+4+3=1159.
+    // Constructor605; cold no-op init B2/I1:127+1+4+3=135.
     let mut o = owner_with(
         &[],
         &[],
         SwiftRunBudget {
-            cache_work: 1764,
+            cache_work: 740,
             ..SwiftRunBudget::default()
         },
         WasiGrants::default(),
         WasiBudget::default(),
     );
     success(&mut o, Request::Initialize);
-    assert_eq!(observed(&o).cache_work, 1764);
+    assert_eq!(observed(&o).cache_work, 740);
     let f = failed(&mut o, Request::Corpus);
     assert_eq!(f.resource, Some(SwiftRunResource::CacheWork));
-    assert_eq!(f.at_failure.cache_work, 1764);
+    assert_eq!(f.at_failure.cache_work, 740);
     assert_eq!(f.at_failure.instructions, 1);
     retire(o);
     let mut o = owner(&[]);
