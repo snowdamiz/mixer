@@ -1,0 +1,17 @@
+--- before/.github/workflows/hosted.yml
++++ after/.github/workflows/hosted.yml
+@@ -110,3 +110,14 @@
+             verification/hosted-browser-session-storage/attempts/
+             ${{ runner.temp }}/browser-migrations/
+             ${{ runner.temp }}/browser-callback/
++      - name: Preserve callback hidden source inputs
++        if: always()
++        uses: actions/upload-artifact@v4
++        with:
++          name: callback-source-inputs-${{ github.sha }}
++          retention-days: 14
++          if-no-files-found: error
++          include-hidden-files: true
++          path: |
++            ${{ runner.temp }}/browser-callback/*/inputs/.github/workflows/hosted.yml
++            ${{ runner.temp }}/browser-callback/*/inputs/hosted/.tool-versions

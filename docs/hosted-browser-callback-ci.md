@@ -53,6 +53,20 @@ place. The callback evidence directory is included in the always-run artifact
 upload. A local PostgreSQL 17 pass does not establish Linux CI success; that
 requires the actual remote workflow result.
 
+Root's audit of CI artifact `12615369607` (ZIP SHA-256
+`6c8e3fbe7e517cc735f3e9506f3007f659ab432ce566441b56aaa3772033b7d3`)
+found that its successful selected 95-method execution had an incomplete archive:
+the upload omitted the hashed snapshots `inputs/.github/workflows/hosted.yml` and
+`inputs/hosted/.tool-versions`. The execution result does not establish archive
+completeness, and the rest of that artifact's audit remains pending.
+
+A dedicated always-run `callback-source-inputs-${{ github.sha }}` artifact now
+enables hidden files for exactly those two input paths beneath each owned UUID
+attempt. The broad host-evidence upload retains its existing hidden-file policy.
+The packaging amendment has focused static scope checks; a subsequent remote
+artifact must confirm that both snapshots were retained. The original handoff
+and receipts remain historical evidence without modification.
+
 This is host evidence for Unit A only. Manual trusted synthetic localhost runtime
 configuration bypasses production TLS/5432 constructor qualification. Provider
 exchange, routes, HTTP facade, Unit B, publication, immutable external FieldLog
