@@ -1,0 +1,66 @@
+{
+  "cleanup_required": false,
+  "commands": [
+    {
+      "argv": [
+        "python3",
+        "--version"
+      ],
+      "exit_code": 0,
+      "label": "python-version",
+      "timeout_seconds": 30
+    },
+    {
+      "argv": [
+        "elixir",
+        "--version"
+      ],
+      "exit_code": 0,
+      "label": "elixir-version",
+      "timeout_seconds": 30
+    },
+    {
+      "argv": [
+        "elixir",
+        "-e",
+        "Mix.start(); Enum.each(System.argv(), fn path -> source = File.read!(path); {:ok, _} = Code.string_to_quoted(source); formatted = Code.format_file!(path) |> IO.iodata_to_binary(); true = source == formatted <> \"\\n\" end)",
+        "verification/hosted-browser-begin-login-review/runtime_review.exs",
+        "verification/hosted-browser-begin-login-review/install_review.exs",
+        "verification/hosted-browser-begin-login-review/synthetic_runtime_fixture.exs"
+      ],
+      "exit_code": 0,
+      "label": "fixture-format-and-syntax",
+      "timeout_seconds": 30
+    },
+    {
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exit_code": 0,
+      "label": "revision",
+      "timeout_seconds": 30
+    }
+  ],
+  "native_ui_capture_devices_or_process_discovery": false,
+  "passed": true,
+  "recorded_at": "2026-10-25T20:27:11.525225+00:00",
+  "resources_started": false,
+  "schema": 1,
+  "scope": "Preparation only: own fixture parse/format and runner Python compilation; product runtime not executed",
+  "selected_files": {
+    "verification/hosted-browser-begin-login-review/elixir-version.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/hosted-browser-begin-login-review/elixir-version.stdout": "44fe1d5e597ef84e0b6859be8ef275ca7da40d28005c64ea6a103835caa29081",
+    "verification/hosted-browser-begin-login-review/fixture-format-and-syntax.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/hosted-browser-begin-login-review/fixture-format-and-syntax.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/hosted-browser-begin-login-review/install_review.exs": "808e9557c7ac9863bbb09fb459441ae0bbacc06b433f39797c55999589a79286",
+    "verification/hosted-browser-begin-login-review/python-version.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/hosted-browser-begin-login-review/python-version.stdout": "f615dc9512de8b165e2b595e5cdc608a3ba7927ae92f959c5b42ec3d58e2ffa8",
+    "verification/hosted-browser-begin-login-review/revision.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/hosted-browser-begin-login-review/revision.stdout": "2737bbe7830a6b66bd37dacffe47c0a3e58aafa65e054264d7d5a74bf32b0f64",
+    "verification/hosted-browser-begin-login-review/run_review.py": "22581ac57a0ba5c1932cade8a623d5f4080a4a992c501ac2044ead81e4ea461a",
+    "verification/hosted-browser-begin-login-review/runtime_review.exs": "3a62b5bd148f0603a484e53075b6af5bca6f181bb2326e1ba91981505ba3b4ef",
+    "verification/hosted-browser-begin-login-review/synthetic_runtime_fixture.exs": "6fc35940807d8e2e1f2b4f40dfdaaedeb56531583d7b776a12878e6f7be816f9"
+  }
+}

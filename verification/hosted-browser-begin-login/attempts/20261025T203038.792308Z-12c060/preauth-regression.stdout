@@ -1,0 +1,56 @@
+passed: fixed Repo actual startup options binding
+passed: arbitrary caller cannot invoke startup admission
+passed: startup admits fixed V2 function and relation conjunction
+
+16:30:44.066 [info] The function passed as a handler with ID "preauth-query-redaction" is a local function.
+This means that it is either an anonymous function or a capture of a function without a module specified. That may cause a performance penalty when calling that handler. For more details see the note in `telemetry:attach/4` documentation.
+
+https://hexdocs.pm/telemetry/telemetry.html#attach/4
+passed: real bootstrap Vault StoredSnapshot committed preauth roundtrip
+passed: actual Ecto SQL telemetry emits catalogs but no sealed bootstrap or cookie load query
+passed: both actual pool connections restore LOCAL settings after commit
+passed: private result and actual GenServer status redact source and credentials
+passed: strict metadata and malformed cookie fail without durable writes
+passed: absent canonical cookie returns no private session
+passed: foreign ordinary context and ordinary transaction deny
+passed: foreign lifecycle transaction rejects nested Store work
+passed: actual pool2 exhaustion rejects promptly with queue false
+passed: real browser lock wait times out once and restores LOCAL settings on rollback
+passed: actual owner cap32 immediate reject caller death release
+passed: foreign finish cannot consume the original live caller slot
+passed: foreign failed request cannot consume slot or clear readiness
+passed: foreign synchronous release cannot consume the original caller slot
+passed: spoofed PID release cast and copied reference expiry cannot consume slots
+passed: actual caller altered finish failed and release leave exact retained lease intact
+passed: malformed internal owner requests deny without changing a live slot
+passed: expired original deadline rejects owner reserve without clock injection
+passed: original owner lease deadline is not refreshed at Store boundary
+passed: validly shaped stored cipher tamper fails after committed read
+passed: function pass alone cannot hide current relation trigger drift
+passed: relation pass alone cannot hide current function settings drift
+passed: valid durable pending attempt is a redacted load failure rather than absence or preauth
+
+16:30:45.278 [error] Postgrex.Protocol (#PID<0.171.0> ({Postgrex.Protocol, "browser_storage"})) disconnected: ** (Postgrex.Error) ERROR 23514 (check_violation) fixture deferred failure
+passed: exact candidate deferred PostgreSQL COMMIT rejection rolls back all writes
+
+16:30:45.311 [error] Postgrex.Protocol (#PID<0.170.0> ({Postgrex.Protocol, "browser_storage"})) disconnected: ** (Postgrex.Error) FATAL 57P01 (admin_shutdown) terminating connection due to administrator command
+passed: actual backend loss after helper return yields unknown outcome and clears readiness
+
+16:30:50.499 [error] Postgrex.Protocol (#PID<0.170.0> ({Postgrex.Protocol, "browser_storage"})) disconnected: ** (DBConnection.ConnectionError) client #PID<0.264.0> (:erlang) timed out because it queued and checked out the connection for longer than 5000ms
+
+#PID<0.264.0> (:erlang) was at location:
+
+    :prim_inet.recv0/3
+    (postgrex 0.22.4) lib/postgrex/protocol.ex:3296: Postgrex.Protocol.msg_recv/4
+    (postgrex 0.22.4) lib/postgrex/protocol.ex:2986: Postgrex.Protocol.recv_transaction/4
+    (db_connection 2.10.2) lib/db_connection/holder.ex:379: DBConnection.Holder.holder_apply/4
+    (db_connection 2.10.2) lib/db_connection.ex:1901: DBConnection.run_commit/3
+    (db_connection 2.10.2) lib/db_connection.ex:1826: DBConnection.transaction_checkin/4
+    (db_connection 2.10.2) lib/db_connection.ex:1883: DBConnection.commit/3
+    (db_connection 2.10.2) lib/db_connection.ex:1787: DBConnection.run_transaction/5
+
+deadline_outcome:rolled_back
+passed: absolute original deadline includes actual deferred COMMIT wait
+known_commit_result:{:error, %MixerHosted.BrowserAuth.Store.Failure{code: :session_unavailable, phase: :commit, outcome: :committed}}
+passed: known committed bootstrap with default owner loss withholds all private publication
+selected_preauth_checks:30

@@ -1,0 +1,38 @@
+2026-10-25 16:37:51.460 EDT [72746] LOG:  starting PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit
+2026-10-25 16:37:51.460 EDT [72746] LOG:  listening on IPv4 address "127.0.0.1", port 60108
+2026-10-25 16:37:51.463 EDT [72749] LOG:  database system was shut down at 2026-10-25 16:37:51 EDT
+2026-10-25 16:37:51.466 EDT [72746] LOG:  database system is ready to accept connections
+2026-10-25 16:37:53.388 EDT [72870] ERROR:  canceling statement due to lock timeout
+2026-10-25 16:37:53.388 EDT [72870] CONTEXT:  while locking tuple (0,1) in relation "mixer_browser_sessions"
+	SQL statement "SELECT *        FROM public.mixer_browser_sessions WHERE cookie_digest=p_cookie FOR SHARE"
+	PL/pgSQL function public.mixer_browser_load(bytea,bytea) line 4 at SQL statement
+2026-10-25 16:37:53.388 EDT [72870] STATEMENT:  SELECT public.mixer_browser_load($1::bytea,$2::bytea) AS snapshot
+	
+2026-10-25 16:37:53.780 EDT [72870] ERROR:  fixture deferred failure
+2026-10-25 16:37:53.780 EDT [72870] CONTEXT:  PL/pgSQL function public.preauth_fixture_deferred() line 1 at RAISE
+2026-10-25 16:37:53.780 EDT [72870] STATEMENT:  COMMIT
+2026-10-25 16:37:53.814 EDT [72869] FATAL:  terminating connection due to administrator command
+2026-10-25 16:37:59.018 EDT [72890] ERROR:  canceling statement due to user request
+2026-10-25 16:37:59.018 EDT [72890] CONTEXT:  SQL statement "SELECT pg_catalog.pg_sleep(7)"
+	PL/pgSQL function public.preauth_fixture_deferred() line 1 at PERFORM
+2026-10-25 16:37:59.018 EDT [72890] STATEMENT:  COMMIT
+2026-10-25 16:38:08.228 EDT [73029] ERROR:  browser session unavailable
+2026-10-25 16:38:08.228 EDT [73029] CONTEXT:  PL/pgSQL function public.mixer_browser_begin(bytea,bytea,bytea,bigint,public.mixer_browser_attempt,public.mixer_browser_cipher,text) line 13 at RAISE
+2026-10-25 16:38:08.228 EDT [73029] STATEMENT:  SELECT public.mixer_browser_begin($1::bytea,$2::bytea,$3::bytea,$4::bigint,
+	  ROW($5::bytea,$6::bytea,$7::text,$8::integer,$9::text,$10::text,$11::text,$12::bigint,
+	    ROW($13::text,$14::bytea,$15::bytea,$16::bytea)::public.mixer_browser_cipher)::public.mixer_browser_attempt,
+	  ROW($17::text,$18::bytea,$19::bytea,$20::bytea)::public.mixer_browser_cipher,$21::text) AS snapshot
+	
+2026-10-25 16:38:20.968 EDT [73030] ERROR:  synthetic deferred denial
+2026-10-25 16:38:20.968 EDT [73030] CONTEXT:  PL/pgSQL function public.begin_fixture_deferred() line 1 at RAISE
+2026-10-25 16:38:20.968 EDT [73030] STATEMENT:  COMMIT
+2026-10-25 16:38:21.082 EDT [73354] FATAL:  terminating connection due to administrator command
+2026-10-25 16:38:21.082 EDT [73354] CONTEXT:  SQL statement "SELECT pg_catalog.pg_terminate_backend(pg_catalog.pg_backend_pid())"
+	PL/pgSQL function public.begin_fixture_deferred() line 1 at PERFORM
+2026-10-25 16:38:21.082 EDT [73354] STATEMENT:  COMMIT
+2026-10-25 16:38:26.146 EDT [73029] ERROR:  canceling statement due to user request
+2026-10-25 16:38:26.146 EDT [73029] CONTEXT:  SQL statement "SELECT pg_catalog.pg_sleep(7)"
+	PL/pgSQL function public.begin_fixture_deferred() line 1 at PERFORM
+2026-10-25 16:38:26.146 EDT [73029] STATEMENT:  COMMIT
+2026-10-25 16:38:26.446 EDT [72746] LOG:  received immediate shutdown request
+2026-10-25 16:38:26.447 EDT [72746] LOG:  database system is shut down

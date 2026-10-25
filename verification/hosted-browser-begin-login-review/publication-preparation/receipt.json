@@ -1,0 +1,40 @@
+{
+  "cleanup_required": false,
+  "commands": [
+    {
+      "argv": [
+        "elixir",
+        "-e",
+        "Mix.start(); Enum.each(System.argv(), fn path -> source = File.read!(path); {:ok, _} = Code.string_to_quoted(source); formatted = Code.format_file!(path) |> IO.iodata_to_binary(); true = source == formatted <> \"\\n\" end)",
+        "verification/hosted-browser-begin-login-review/runtime_review.exs",
+        "verification/hosted-browser-begin-login-review/install_review.exs",
+        "verification/hosted-browser-begin-login-review/synthetic_runtime_fixture.exs"
+      ],
+      "exit_code": 0,
+      "label": "fixture-format-and-syntax",
+      "timeout_seconds": 30
+    },
+    {
+      "argv": [
+        "git",
+        "--version"
+      ],
+      "exit_code": 0,
+      "label": "git-version",
+      "timeout_seconds": 30
+    }
+  ],
+  "native_ui_capture_devices_or_unrelated_process_discovery": false,
+  "passed": true,
+  "recorded_at": "2026-10-25T20:36:06.555983+00:00",
+  "resources_started": false,
+  "schema": 1,
+  "scope": "Preparation only: revised owned trace-fenced fixture parse/format and Python compilation; product runtime not executed",
+  "selected_files": {
+    "docs/hosted-browser-begin-login-review.md": "60253a04abffc45cec66840a5a9b0f9eedf243fc5db2ffe2b210b0efd507ccf6",
+    "verification/hosted-browser-begin-login-review/install_review.exs": "808e9557c7ac9863bbb09fb459441ae0bbacc06b433f39797c55999589a79286",
+    "verification/hosted-browser-begin-login-review/run_review.py": "1516d73ec1b2a390c98a98ececb64879bf069853c3250399710aec17ebe738f6",
+    "verification/hosted-browser-begin-login-review/runtime_review.exs": "a4aa90901e56fae18866339bdc3e44003c6c3f338e72bb16c4f6cba83a767f90",
+    "verification/hosted-browser-begin-login-review/synthetic_runtime_fixture.exs": "6fc35940807d8e2e1f2b4f40dfdaaedeb56531583d7b776a12878e6f7be816f9"
+  }
+}

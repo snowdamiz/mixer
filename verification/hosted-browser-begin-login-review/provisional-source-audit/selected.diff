@@ -1,0 +1,681 @@
+diff --git a/hosted/lib/mixer_hosted/browser_auth/preauth_draft.ex b/hosted/lib/mixer_hosted/browser_auth/preauth_draft.ex
+index 20f7ccdf7..25a2ec9b6 100644
+--- a/hosted/lib/mixer_hosted/browser_auth/preauth_draft.ex
++++ b/hosted/lib/mixer_hosted/browser_auth/preauth_draft.ex
+@@ -22,6 +22,39 @@ defmodule MixerHosted.BrowserAuth.PreauthDraft do
+     defstruct @enforce_keys
+   end
+ 
++  defmodule Begin do
++    @moduledoc false
++    @derive {Inspect, only: []}
++    @enforce_keys [
++      :lease,
++      :source,
++      :context,
++      :sealed,
++      :attempt_context,
++      :attempt_sealed,
++      :state,
++      :nonce,
++      :verifier,
++      :csrf,
++      :url
++    ]
++    defstruct @enforce_keys
++  end
++
++  defmodule Authorization do
++    @moduledoc "Private begin-login URL only; this never proves an authenticated identity."
++    @derive {Inspect, only: []}
++    @enforce_keys [:url, :expires_at]
++    defstruct @enforce_keys
++  end
++
++  defmodule Publication do
++    @moduledoc false
++    @derive {Inspect, only: []}
++    @enforce_keys [:checked_wall, :expires_at, :value]
++    defstruct @enforce_keys
++  end
++
+   defmodule Preauth do
+     @moduledoc "Private preauthentication data only. This never proves an authenticated identity."
+     @derive {Inspect, only: []}
+diff --git a/hosted/lib/mixer_hosted/browser_auth/runtime_owner.ex b/hosted/lib/mixer_hosted/browser_auth/runtime_owner.ex
+index f16a23534..a5ac1a376 100644
+--- a/hosted/lib/mixer_hosted/browser_auth/runtime_owner.ex
++++ b/hosted/lib/mixer_hosted/browser_auth/runtime_owner.ex
+@@ -9,7 +9,16 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
+   """
+   use GenServer
+   alias MixerHosted.BrowserAuth.{ConfigurationDigest, Custody, LifecycleRepo}
+-  alias MixerHosted.BrowserAuth.{PreauthDraft, Protocol, RuntimeConfig, Store, Vault}
++
++  alias MixerHosted.BrowserAuth.{
++    PreauthDraft,
++    Protocol,
++    RuntimeConfig,
++    Store,
++    StoredSnapshot,
++    Vault
++  }
++
+   alias MixerHosted.Identity.KeyOwner
+ 
+   def start_link(%RuntimeConfig{} = runtime),
+@@ -95,6 +104,115 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
+     _, _ -> Store.failure(:admission, :not_started)
+   end
+ 
++  @doc "Begins only a private preauthentication OIDC attempt; no route or authenticated session is installed."
++  def begin_login(cookie, raw_headers, return_route, metadata) do
++    deadline = System.monotonic_time(:millisecond) + 5000
++    wall = System.system_time(:second)
++
++    with true <- metadata?(metadata) and return_route === :workspace and Protocol.token?(cookie),
++         {:ok, ^cookie} <- Protocol.parse_session_cookie(raw_headers),
++         {:ok, lease} <- reserve(deadline, wall) do
++      execute(lease, fn ->
++        input = %PreauthDraft.Load{lease: lease, cookie_digest: :crypto.hash(:sha256, cookie)}
++
++        with {:ok, %StoredSnapshot{} = source} <- Store.discover_begin(input),
++             {:ok, draft} <- prepare_begin(lease, raw_headers, source),
++             {:ok, _snapshot} <- Store.begin_login(draft, metadata) do
++          finish_receipt(lease, draft.attempt_context.expires_at, %PreauthDraft.Authorization{
++            url: draft.url,
++            expires_at: draft.attempt_context.expires_at
++          })
++        else
++          {:error, %Store.Failure{}} = error -> error
++          _ -> Store.failure(:decode, :committed)
++        end
++      end)
++    else
++      _ -> Store.failure(:admission, :not_started)
++    end
++  rescue
++    _ -> Store.failure(:admission, :not_started)
++  catch
++    _, _ -> Store.failure(:admission, :not_started)
++  end
++
++  defp prepare_begin(lease, raw_headers, source) do
++    runtime = lease.runtime
++    config = runtime.browser_config
++    envelope = source.session_envelope
++
++    expires =
++      min(
++        lease.started_at + 300,
++        min(source.browser["idle_expires_at"], source.browser["absolute_expires_at"])
++      )
++
++    with :ok <- checkpoint(lease),
++         :preauth <- envelope.context.purpose,
++         {:ok, %Vault.Preauth{csrf: csrf}} <-
++           Vault.open(runtime.custody.key, envelope.context, envelope.sealed),
++         :ok <- Protocol.verify_csrf(config, raw_headers, csrf),
++         true <- System.system_time(:second) < expires do
++      state = Protocol.random_token()
++      nonce = Protocol.random_token()
++      verifier = Protocol.random_token()
++      c = envelope.context
++
++      context = %{
++        c
++        | epoch: c.epoch + 1,
++          revision: c.revision + 1,
++          vault_generation: c.vault_generation + 1
++      }
++
++      attempt = %{
++        purpose: :attempt,
++        state_digest: :crypto.hash(:sha256, state),
++        browser_id: context.browser_id,
++        cookie_digest: context.cookie_digest,
++        epoch: context.epoch,
++        revision: context.revision,
++        generation: context.generation,
++        config_digest: runtime.configuration_digest,
++        profile_id: config.profile_id,
++        profile_version: config.profile_version,
++        issuer: config.issuer,
++        client_id: config.client_id,
++        redirect_uri: config.redirect_uri,
++        expires_at: expires
++      }
++
++      with {:ok, url} <-
++             Protocol.authorization_url(config, %{state: state, nonce: nonce, verifier: verifier}),
++           true <- byte_size(url) <= 8192,
++           {:ok, sealed} <- Vault.seal(runtime.custody.key, context, %Vault.Preauth{csrf: csrf}),
++           {:ok, attempt_sealed} <-
++             Vault.seal(runtime.custody.key, attempt, %Vault.Verifier{verifier: verifier}),
++           :ok <- checkpoint(lease) do
++        {:ok,
++         %PreauthDraft.Begin{
++           lease: lease,
++           source: source,
++           context: context,
++           sealed: sealed,
++           attempt_context: attempt,
++           attempt_sealed: attempt_sealed,
++           state: state,
++           nonce: nonce,
++           verifier: verifier,
++           csrf: csrf,
++           url: url
++         }}
++      else
++        {:error, %Store.Failure{}} = error -> error
++        _ -> Store.failure(:effect, :not_started)
++      end
++    else
++      {:error, %Store.Failure{}} = error -> error
++      _ -> Store.failure(:decode, :committed)
++    end
++  end
++
+   # These are closed internal owner messages. Actual GenServer caller identity
+   # and exact retained lease equality are checked; no supplied PID is authority.
+   @doc false
+@@ -105,31 +223,72 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
+     do: GenServer.call(__MODULE__, {:reserve, deadline, wall}, remaining(deadline))
+ 
+   defp execute(lease, operation) do
+-    # Only the two fixed private orchestration functions create this closure;
++    # Only the fixed private orchestration functions create this closure;
+     # no exported function accepts caller code or runs provider I/O.
+-    try do
+-      result =
+-        try do
+-          operation.()
+-        rescue
+-          _ -> Store.failure(:effect, :unknown)
+-        catch
+-          _, _ -> Store.failure(:commit, :unknown)
+-        end
++    result =
++      try do
++        operation.()
++      rescue
++        _ -> Store.failure(:effect, :unknown)
++      catch
++        _, _ -> Store.failure(:commit, :unknown)
++      end
++
++    case result do
++      %PreauthDraft.Publication{} = receipt ->
++        # Finish already released the exact retained caller permit. No external
++        # cleanup call may delay a successful value after this final sample.
++        publish(lease, receipt)
++
++      error ->
++        if match?({:error, %Store.Failure{}}, error), do: call(lease, {:failed, lease, error})
+ 
+-      if match?({:error, %Store.Failure{}}, result), do: call(lease, {:failed, lease, result})
+-      result
+-    after
+-      # Release authority comes from GenServer's actual caller, never a PID in
+-      # a cast. Completed/expired/lost owners are harmless here. After expiry the
+-      # owner timer supplies cleanup without extending the original deadline.
+-      if System.monotonic_time(:millisecond) < lease.deadline,
+-        do: call(lease, {:release, lease})
++        # Caller-authorized fallback only. Expiry/monitors clean up after the
++        # unchanged deadline. A completed finish needs no second release.
++        if System.monotonic_time(:millisecond) < lease.deadline,
++          do: call(lease, {:release, lease})
++
++        error
+     end
+   end
+ 
++  defp finish_receipt(lease, expires, value) do
++    case call(lease, {:finish, lease, expires}) do
++      {:ok, checked_wall} when is_integer(checked_wall) ->
++        %PreauthDraft.Publication{checked_wall: checked_wall, expires_at: expires, value: value}
++
++      _ ->
++        Store.failure(:commit, :committed)
++    end
++  rescue
++    _ -> Store.failure(:commit, :committed)
++  catch
++    _, _ -> Store.failure(:commit, :committed)
++  end
++
++  defp publish(lease, receipt) do
++    # The retained PID/status samples current dependency/configuration binding;
++    # neither a registered replacement nor a new timeout can authorize release.
++    with true <- System.monotonic_time(:millisecond) < lease.deadline,
++         %{phase: :storage_ready, generation: generation} <- call(lease, :status),
++         true <- generation === lease.generation,
++         wall = System.system_time(:second),
++         true <- wall >= receipt.checked_wall,
++         true <- is_nil(receipt.expires_at) or wall < receipt.expires_at,
++         true <- System.monotonic_time(:millisecond) < lease.deadline,
++         true <- Process.whereis(__MODULE__) === lease.owner do
++      {:ok, receipt.value}
++    else
++      _ -> Store.failure(:commit, :committed)
++    end
++  rescue
++    _ -> Store.failure(:commit, :committed)
++  catch
++    _, _ -> Store.failure(:commit, :committed)
++  end
++
+   defp finish_result(lease, _cookie, {:ok, nil}) do
+-    with :ok <- call(lease, {:finish, lease, nil}), do: {:ok, nil}
++    finish_receipt(lease, nil, nil)
+   end
+ 
+   defp finish_result(lease, cookie, {:ok, snapshot}) do
+@@ -140,22 +299,12 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
+     with :preauth <- envelope.context.purpose,
+          {:ok, %Vault.Preauth{csrf: csrf}} <-
+            Vault.open(lease.runtime.custody.key, envelope.context, envelope.sealed) do
+-      case call(lease, {:finish, lease, expires_at}) do
+-        :ok ->
+-          {:ok,
+-           %PreauthDraft.Preauth{
+-             cookie: cookie,
+-             csrf: csrf,
+-             expires_at: expires_at,
+-             source: snapshot
+-           }}
+-
+-        {:error, %Store.Failure{}} = error ->
+-          error
+-
+-        _ ->
+-          Store.failure(:commit, :committed)
+-      end
++      finish_receipt(lease, expires_at, %PreauthDraft.Preauth{
++        cookie: cookie,
++        csrf: csrf,
++        expires_at: expires_at,
++        source: snapshot
++      })
+     else
+       _ -> Store.failure(:decode, :committed)
+     end
+@@ -281,12 +430,17 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
+   def handle_call({:finish, lease, expires}, {caller, _}, state) do
+     state = current(state)
+     {current_lease, state} = sample_lease(state, lease, caller)
++    checked_wall = if current_lease, do: state.operations[lease.reference].last_wall
+ 
+     valid =
+       current_lease and
+-        (is_nil(expires) or (is_integer(expires) and System.system_time(:second) < expires))
++        (is_nil(expires) or (is_integer(expires) and checked_wall < expires))
++
++    reply =
++      if valid,
++        do: {:ok, checked_wall},
++        else: Store.failure(:commit, :committed)
+ 
+-    reply = if valid, do: :ok, else: Store.failure(:commit, :committed)
+     state = if valid, do: release(state, lease.reference), else: state
+     {:reply, reply, state}
+   end
+diff --git a/hosted/lib/mixer_hosted/browser_auth/store.ex b/hosted/lib/mixer_hosted/browser_auth/store.ex
+index 2b6474aa9..c23f292e6 100644
+--- a/hosted/lib/mixer_hosted/browser_auth/store.ex
++++ b/hosted/lib/mixer_hosted/browser_auth/store.ex
+@@ -7,7 +7,7 @@ defmodule MixerHosted.BrowserAuth.Store do
+   after the transaction. A decoded snapshot alone grants no authentication.
+   """
+   alias MixerHosted.BrowserAuth.{Catalog, LifecycleRepo, PreauthDraft, RelationCatalog}
+-  alias MixerHosted.BrowserAuth.{RuntimeConfig, RuntimeOwner, StoredSnapshot, Vault}
++  alias MixerHosted.BrowserAuth.{Protocol, RuntimeConfig, RuntimeOwner, StoredSnapshot, Vault}
+ 
+   defmodule Failure do
+     @moduledoc "Closed private failure without database, identity or secret details."
+@@ -65,6 +65,38 @@ defmodule MixerHosted.BrowserAuth.Store do
+ 
+   def load(_), do: failure(:admission, :not_started)
+ 
++  def discover_begin(%PreauthDraft.Load{lease: lease, cookie_digest: digest} = input) do
++    with true <- map_size(input) == 3 and raw?(digest, 32),
++         :ok <- RuntimeOwner.checkpoint(lease) do
++      transact(lease.runtime, lease.deadline, lease, {:discover_begin, input})
++    else
++      _ -> failure(:admission, :not_started)
++    end
++  rescue
++    _ -> failure(:admission, :not_started)
++  catch
++    _, _ -> failure(:admission, :not_started)
++  end
++
++  def discover_begin(_), do: failure(:admission, :not_started)
++
++  def begin_login(%PreauthDraft.Begin{} = draft, metadata) do
++    with true <- metadata?(metadata),
++         :ok <- RuntimeOwner.checkpoint(draft.lease),
++         true <- begin_draft?(draft),
++         :ok <- RuntimeOwner.checkpoint(draft.lease) do
++      transact(draft.lease.runtime, draft.lease.deadline, draft.lease, {:begin, draft, metadata})
++    else
++      _ -> failure(:admission, :not_started)
++    end
++  rescue
++    _ -> failure(:admission, :not_started)
++  catch
++    _, _ -> failure(:admission, :not_started)
++  end
++
++  def begin_login(_, _), do: failure(:admission, :not_started)
++
+   @doc false
+   def failure(phase, outcome),
+     do: {:error, %Failure{code: :session_unavailable, phase: phase, outcome: outcome}}
+@@ -251,7 +283,7 @@ defmodule MixerHosted.BrowserAuth.Store do
+     )
+   end
+ 
+-  defp effect!({:load, input}, deadline) do
++  defp effect!({operation, input}, deadline) when operation in [:load, :discover_begin] do
+     snapshot!(
+       query!(
+         """
+@@ -263,6 +295,48 @@ defmodule MixerHosted.BrowserAuth.Store do
+     )
+   end
+ 
++  defp effect!({:begin, d, metadata}, deadline) do
++    c = d.context
++    a = d.attempt_context
++    s = d.sealed
++    v = d.attempt_sealed
++
++    snapshot!(
++      query!(
++        """
++        SELECT public.mixer_browser_begin($1::bytea,$2::bytea,$3::bytea,$4::bigint,
++          ROW($5::bytea,$6::bytea,$7::text,$8::integer,$9::text,$10::text,$11::text,$12::bigint,
++            ROW($13::text,$14::bytea,$15::bytea,$16::bytea)::public.mixer_browser_cipher)::public.mixer_browser_attempt,
++          ROW($17::text,$18::bytea,$19::bytea,$20::bytea)::public.mixer_browser_cipher,$21::text) AS snapshot
++        """,
++        [
++          c.cookie_digest,
++          c.csrf_digest,
++          c.config_digest,
++          d.source.browser["revision"],
++          a.state_digest,
++          :crypto.hash(:sha256, d.nonce),
++          a.profile_id,
++          a.profile_version,
++          a.issuer,
++          a.client_id,
++          a.redirect_uri,
++          a.expires_at,
++          v.key_id,
++          v.iv,
++          v.tag,
++          v.ciphertext,
++          s.key_id,
++          s.iv,
++          s.tag,
++          s.ciphertext,
++          metadata.request_id
++        ],
++        deadline
++      )
++    )
++  end
++
+   defp snapshot!(%Postgrex.Result{
+          command: :select,
+          columns: ["snapshot"],
+@@ -274,6 +348,7 @@ defmodule MixerHosted.BrowserAuth.Store do
+ 
+   defp decode!(:admit, :admitted), do: :admitted
+   defp decode!({:load, _}, nil), do: nil
++  defp decode!({:discover_begin, _}, nil), do: nil
+ 
+   defp decode!({:bootstrap, d, _}, raw) do
+     {:ok, %StoredSnapshot{} = s} = StoredSnapshot.decode(raw)
+@@ -289,21 +364,229 @@ defmodule MixerHosted.BrowserAuth.Store do
+ 
+   defp decode!({:load, input}, raw) do
+     {:ok, %StoredSnapshot{} = s} = StoredSnapshot.decode(raw)
++    preauth_source!(s, input)
++    # Ordinary preauth load remains deliberately narrower than begin discovery.
++    true = s.attempt === nil and s.attempt_envelope === nil
++    s
++  end
++
++  defp decode!({:discover_begin, input}, raw) do
++    {:ok, %StoredSnapshot{} = s} = StoredSnapshot.decode(raw)
++    preauth_source!(s, input)
++    pending_source!(s, input.lease.runtime.browser_config)
++    s
++  end
++
++  defp decode!({:begin, d, _}, raw) do
++    {:ok, %StoredSnapshot{} = s} = StoredSnapshot.decode(raw)
++    b = d.source.browser
++    # Claim/provider rejection can change audit_sequence without revision. CAS
++    # alone cannot admit that race: compare every produced browser field here.
++    true =
++      s.browser === %{
++        b
++        | "epoch" => b["epoch"] + 1,
++          "revision" => b["revision"] + 1,
++          "audit_sequence" => b["audit_sequence"] + 1
++      }
++
++    true = s.session_envelope.context === d.context and s.session_envelope.sealed === d.sealed
++
++    true =
++      s.attempt_envelope.context === d.attempt_context and
++        s.attempt_envelope.sealed === d.attempt_sealed
++
++    true =
++      s.attempt["created_at"] >= d.lease.started_at and
++        s.attempt["created_at"] <= System.system_time(:second)
++
++    true =
++      s.attempt ===
++        attempt_fields(
++          d.attempt_context,
++          d.attempt_sealed,
++          :crypto.hash(:sha256, d.nonce),
++          s.attempt["created_at"]
++        )
++
++    true = System.system_time(:second) < d.attempt_context.expires_at
++    s
++  end
++
++  defp preauth_source!(%StoredSnapshot{} = s, input) do
+     b = s.browser
+     config = input.lease.runtime.browser_config
++    e = s.session_envelope
++    true = map_size(s) == 5
+     true = b["status"] === "preauth"
+     true = b["cookie_digest"] === input.cookie_digest
+     true = b["config_digest"] === input.lease.runtime.configuration_digest
+     true = b["initial_config_digest"] === input.lease.runtime.configuration_digest
+     true = b["expected_profile_id"] === config.profile_id
+     true = b["expected_profile_version"] === config.profile_version
+-    # Attempt-bearing state belongs to the separately selected begin/claim
+-    # owner slice. Matching provider fields alone cannot admit it here.
+-    true = s.attempt === nil and s.attempt_envelope === nil
+ 
+-    s
++    true =
++      e.context === %{
++        purpose: :preauth,
++        browser_id: b["id"],
++        cookie_digest: b["cookie_digest"],
++        csrf_digest: b["csrf_digest"],
++        epoch: b["epoch"],
++        revision: b["revision"],
++        generation: b["generation"],
++        vault_generation: e.context.vault_generation,
++        config_digest: b["config_digest"],
++        profile_id: config.profile_id,
++        profile_version: config.profile_version,
++        principal_id: nil,
++        family_id: nil,
++        credential_ref: nil,
++        credential_revision: nil
++      }
++
++    true =
++      Enum.all?(
++        ~w(profile_id profile_version principal_id family_id credential_ref credential_revision),
++        &is_nil(b[&1])
++      )
++
++    :ok
++  end
++
++  defp pending_source!(%StoredSnapshot{attempt: nil, attempt_envelope: nil}, _), do: :ok
++
++  defp pending_source!(%StoredSnapshot{} = s, config) do
++    a = s.attempt
++    b = s.browser
++    e = s.attempt_envelope
++
++    c = %{
++      purpose: :attempt,
++      state_digest: a["state_digest"],
++      browser_id: b["id"],
++      cookie_digest: b["cookie_digest"],
++      epoch: b["epoch"],
++      revision: b["revision"],
++      generation: b["generation"],
++      config_digest: b["config_digest"],
++      profile_id: config.profile_id,
++      profile_version: config.profile_version,
++      issuer: config.issuer,
++      client_id: config.client_id,
++      redirect_uri: config.redirect_uri,
++      expires_at: a["expires_at"]
++    }
++
++    true = e.context === c
++    true = raw?(a["state_digest"], 32) and raw?(a["nonce_digest"], 32)
++    true = a["created_at"] >= b["created_at"] and a["created_at"] <= System.system_time(:second)
++    true = a["expires_at"] > a["created_at"] and a["expires_at"] <= a["created_at"] + 300
++    true = a["expires_at"] <= min(b["absolute_expires_at"], b["idle_expires_at"])
++    true = a === attempt_fields(c, e.sealed, a["nonce_digest"], a["created_at"])
++    :ok
++  end
++
++  defp attempt_fields(c, sealed, nonce_digest, created_at) do
++    %{
++      "state_digest" => c.state_digest,
++      "browser_id" => c.browser_id,
++      "browser_epoch" => c.epoch,
++      "browser_revision" => c.revision,
++      "cookie_digest" => c.cookie_digest,
++      "generation" => c.generation,
++      "config_digest" => c.config_digest,
++      "profile_id" => c.profile_id,
++      "profile_version" => c.profile_version,
++      "issuer" => c.issuer,
++      "client_id" => c.client_id,
++      "redirect_uri" => c.redirect_uri,
++      "return_route" => "workspace",
++      "nonce_digest" => nonce_digest,
++      "created_at" => created_at,
++      "expires_at" => c.expires_at,
++      "status" => "pending",
++      "claim_digest" => nil,
++      "claimed_at" => nil,
++      "claim_expires_at" => nil,
++      "completion_reason" => nil,
++      "ciphertext_version" => 1,
++      "key_id" => sealed.key_id,
++      "iv" => bytea_hex(sealed.iv),
++      "tag" => bytea_hex(sealed.tag),
++      "ciphertext" => bytea_hex(sealed.ciphertext)
++    }
+   end
+ 
++  defp begin_draft?(%PreauthDraft.Begin{} = d) do
++    runtime = d.lease.runtime
++    config = runtime.browser_config
++    source = d.source
++    input = %PreauthDraft.Load{lease: d.lease, cookie_digest: d.context.cookie_digest}
++    :ok = preauth_source!(source, input)
++    :ok = pending_source!(source, config)
++    c = source.session_envelope.context
++
++    expected_context = %{
++      c
++      | epoch: c.epoch + 1,
++        revision: c.revision + 1,
++        vault_generation: c.vault_generation + 1
++    }
++
++    expires =
++      min(
++        d.lease.started_at + 300,
++        min(source.browser["idle_expires_at"], source.browser["absolute_expires_at"])
++      )
++
++    expected_attempt = %{
++      purpose: :attempt,
++      state_digest: :crypto.hash(:sha256, d.state),
++      browser_id: c.browser_id,
++      cookie_digest: c.cookie_digest,
++      epoch: c.epoch + 1,
++      revision: c.revision + 1,
++      generation: c.generation,
++      config_digest: runtime.configuration_digest,
++      profile_id: config.profile_id,
++      profile_version: config.profile_version,
++      issuer: config.issuer,
++      client_id: config.client_id,
++      redirect_uri: config.redirect_uri,
++      expires_at: expires
++    }
++
++    with true <-
++           map_size(d) == 12 and d.context === expected_context and
++             d.attempt_context === expected_attempt,
++         true <- Enum.all?([d.state, d.nonce, d.verifier, d.csrf], &Protocol.token?/1),
++         true <- length(Enum.uniq([d.state, d.nonce, d.verifier])) == 3,
++         true <- System.system_time(:second) < expires,
++         {:ok, url} <-
++           Protocol.authorization_url(config, %{
++             state: d.state,
++             nonce: d.nonce,
++             verifier: d.verifier
++           }),
++         true <- d.url === url and byte_size(url) <= 8192,
++         {:ok, old} <- Vault.open(runtime.custody.key, c, source.session_envelope.sealed),
++         true <- old === %Vault.Preauth{csrf: d.csrf},
++         {:ok, new} <- Vault.open(runtime.custody.key, d.context, d.sealed),
++         true <- new === old,
++         {:ok, verifier} <- Vault.open(runtime.custody.key, d.attempt_context, d.attempt_sealed),
++         true <- verifier === %Vault.Verifier{verifier: d.verifier},
++         true <- authenticated_pending?(source, runtime.custody.key) do
++      true
++    else
++      _ -> false
++    end
++  end
++
++  defp authenticated_pending?(%StoredSnapshot{attempt: nil, attempt_envelope: nil}, _), do: true
++
++  defp authenticated_pending?(%StoredSnapshot{attempt_envelope: e}, key),
++    do: match?({:ok, %Vault.Verifier{}}, Vault.open(key, e.context, e.sealed))
++
+   defp bootstrap_draft?(%PreauthDraft.Bootstrap{} = d) do
+     c = d.context
+     runtime = d.lease.runtime
+@@ -339,4 +622,5 @@ defmodule MixerHosted.BrowserAuth.Store do
+ 
+   defp metadata?(_), do: false
+   defp raw?(value, size), do: is_binary(value) and byte_size(value) == size
++  defp bytea_hex(value), do: "\\x" <> Base.encode16(value, case: :lower)
+ end

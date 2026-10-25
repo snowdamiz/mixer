@@ -9,7 +9,16 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
   """
   use GenServer
   alias MixerHosted.BrowserAuth.{ConfigurationDigest, Custody, LifecycleRepo}
-  alias MixerHosted.BrowserAuth.{PreauthDraft, Protocol, RuntimeConfig, Store, Vault}
+
+  alias MixerHosted.BrowserAuth.{
+    PreauthDraft,
+    Protocol,
+    RuntimeConfig,
+    Store,
+    StoredSnapshot,
+    Vault
+  }
+
   alias MixerHosted.Identity.KeyOwner
 
   def start_link(%RuntimeConfig{} = runtime),
@@ -95,6 +104,115 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
     _, _ -> Store.failure(:admission, :not_started)
   end
 
+  @doc "Begins only a private preauthentication OIDC attempt; no route or authenticated session is installed."
+  def begin_login(cookie, raw_headers, return_route, metadata) do
+    deadline = System.monotonic_time(:millisecond) + 5000
+    wall = System.system_time(:second)
+
+    with true <- metadata?(metadata) and return_route === :workspace and Protocol.token?(cookie),
+         {:ok, ^cookie} <- Protocol.parse_session_cookie(raw_headers),
+         {:ok, lease} <- reserve(deadline, wall) do
+      execute(lease, fn ->
+        input = %PreauthDraft.Load{lease: lease, cookie_digest: :crypto.hash(:sha256, cookie)}
+
+        with {:ok, %StoredSnapshot{} = source} <- Store.discover_begin(input),
+             {:ok, draft} <- prepare_begin(lease, raw_headers, source),
+             {:ok, _snapshot} <- Store.begin_login(draft, metadata) do
+          finish_receipt(lease, draft.attempt_context.expires_at, %PreauthDraft.Authorization{
+            url: draft.url,
+            expires_at: draft.attempt_context.expires_at
+          })
+        else
+          {:error, %Store.Failure{}} = error -> error
+          _ -> Store.failure(:decode, :committed)
+        end
+      end)
+    else
+      _ -> Store.failure(:admission, :not_started)
+    end
+  rescue
+    _ -> Store.failure(:admission, :not_started)
+  catch
+    _, _ -> Store.failure(:admission, :not_started)
+  end
+
+  defp prepare_begin(lease, raw_headers, source) do
+    runtime = lease.runtime
+    config = runtime.browser_config
+    envelope = source.session_envelope
+
+    expires =
+      min(
+        lease.started_at + 300,
+        min(source.browser["idle_expires_at"], source.browser["absolute_expires_at"])
+      )
+
+    with :ok <- checkpoint(lease),
+         :preauth <- envelope.context.purpose,
+         {:ok, %Vault.Preauth{csrf: csrf}} <-
+           Vault.open(runtime.custody.key, envelope.context, envelope.sealed),
+         :ok <- Protocol.verify_csrf(config, raw_headers, csrf),
+         true <- System.system_time(:second) < expires do
+      state = Protocol.random_token()
+      nonce = Protocol.random_token()
+      verifier = Protocol.random_token()
+      c = envelope.context
+
+      context = %{
+        c
+        | epoch: c.epoch + 1,
+          revision: c.revision + 1,
+          vault_generation: c.vault_generation + 1
+      }
+
+      attempt = %{
+        purpose: :attempt,
+        state_digest: :crypto.hash(:sha256, state),
+        browser_id: context.browser_id,
+        cookie_digest: context.cookie_digest,
+        epoch: context.epoch,
+        revision: context.revision,
+        generation: context.generation,
+        config_digest: runtime.configuration_digest,
+        profile_id: config.profile_id,
+        profile_version: config.profile_version,
+        issuer: config.issuer,
+        client_id: config.client_id,
+        redirect_uri: config.redirect_uri,
+        expires_at: expires
+      }
+
+      with {:ok, url} <-
+             Protocol.authorization_url(config, %{state: state, nonce: nonce, verifier: verifier}),
+           true <- byte_size(url) <= 8192,
+           {:ok, sealed} <- Vault.seal(runtime.custody.key, context, %Vault.Preauth{csrf: csrf}),
+           {:ok, attempt_sealed} <-
+             Vault.seal(runtime.custody.key, attempt, %Vault.Verifier{verifier: verifier}),
+           :ok <- checkpoint(lease) do
+        {:ok,
+         %PreauthDraft.Begin{
+           lease: lease,
+           source: source,
+           context: context,
+           sealed: sealed,
+           attempt_context: attempt,
+           attempt_sealed: attempt_sealed,
+           state: state,
+           nonce: nonce,
+           verifier: verifier,
+           csrf: csrf,
+           url: url
+         }}
+      else
+        {:error, %Store.Failure{}} = error -> error
+        _ -> Store.failure(:effect, :not_started)
+      end
+    else
+      {:error, %Store.Failure{}} = error -> error
+      _ -> Store.failure(:decode, :committed)
+    end
+  end
+
   # These are closed internal owner messages. Actual GenServer caller identity
   # and exact retained lease equality are checked; no supplied PID is authority.
   @doc false
@@ -105,31 +223,72 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
     do: GenServer.call(__MODULE__, {:reserve, deadline, wall}, remaining(deadline))
 
   defp execute(lease, operation) do
-    # Only the two fixed private orchestration functions create this closure;
+    # Only the fixed private orchestration functions create this closure;
     # no exported function accepts caller code or runs provider I/O.
-    try do
-      result =
-        try do
-          operation.()
-        rescue
-          _ -> Store.failure(:effect, :unknown)
-        catch
-          _, _ -> Store.failure(:commit, :unknown)
-        end
+    result =
+      try do
+        operation.()
+      rescue
+        _ -> Store.failure(:effect, :unknown)
+      catch
+        _, _ -> Store.failure(:commit, :unknown)
+      end
 
-      if match?({:error, %Store.Failure{}}, result), do: call(lease, {:failed, lease, result})
-      result
-    after
-      # Release authority comes from GenServer's actual caller, never a PID in
-      # a cast. Completed/expired/lost owners are harmless here. After expiry the
-      # owner timer supplies cleanup without extending the original deadline.
-      if System.monotonic_time(:millisecond) < lease.deadline,
-        do: call(lease, {:release, lease})
+    case result do
+      %PreauthDraft.Publication{} = receipt ->
+        # Finish already released the exact retained caller permit. No external
+        # cleanup call may delay a successful value after this final sample.
+        publish(lease, receipt)
+
+      error ->
+        if match?({:error, %Store.Failure{}}, error), do: call(lease, {:failed, lease, error})
+
+        # Caller-authorized fallback only. Expiry/monitors clean up after the
+        # unchanged deadline. A completed finish needs no second release.
+        if System.monotonic_time(:millisecond) < lease.deadline,
+          do: call(lease, {:release, lease})
+
+        error
     end
   end
 
+  defp finish_receipt(lease, expires, value) do
+    case call(lease, {:finish, lease, expires}) do
+      {:ok, checked_wall} when is_integer(checked_wall) ->
+        %PreauthDraft.Publication{checked_wall: checked_wall, expires_at: expires, value: value}
+
+      _ ->
+        Store.failure(:commit, :committed)
+    end
+  rescue
+    _ -> Store.failure(:commit, :committed)
+  catch
+    _, _ -> Store.failure(:commit, :committed)
+  end
+
+  defp publish(lease, receipt) do
+    # The retained PID/status samples current dependency/configuration binding;
+    # neither a registered replacement nor a new timeout can authorize release.
+    with true <- System.monotonic_time(:millisecond) < lease.deadline,
+         %{phase: :storage_ready, generation: generation} <- call(lease, :status),
+         true <- generation === lease.generation,
+         wall = System.system_time(:second),
+         true <- wall >= receipt.checked_wall,
+         true <- is_nil(receipt.expires_at) or wall < receipt.expires_at,
+         true <- System.monotonic_time(:millisecond) < lease.deadline,
+         true <- Process.whereis(__MODULE__) === lease.owner do
+      {:ok, receipt.value}
+    else
+      _ -> Store.failure(:commit, :committed)
+    end
+  rescue
+    _ -> Store.failure(:commit, :committed)
+  catch
+    _, _ -> Store.failure(:commit, :committed)
+  end
+
   defp finish_result(lease, _cookie, {:ok, nil}) do
-    with :ok <- call(lease, {:finish, lease, nil}), do: {:ok, nil}
+    finish_receipt(lease, nil, nil)
   end
 
   defp finish_result(lease, cookie, {:ok, snapshot}) do
@@ -140,22 +299,12 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
     with :preauth <- envelope.context.purpose,
          {:ok, %Vault.Preauth{csrf: csrf}} <-
            Vault.open(lease.runtime.custody.key, envelope.context, envelope.sealed) do
-      case call(lease, {:finish, lease, expires_at}) do
-        :ok ->
-          {:ok,
-           %PreauthDraft.Preauth{
-             cookie: cookie,
-             csrf: csrf,
-             expires_at: expires_at,
-             source: snapshot
-           }}
-
-        {:error, %Store.Failure{}} = error ->
-          error
-
-        _ ->
-          Store.failure(:commit, :committed)
-      end
+      finish_receipt(lease, expires_at, %PreauthDraft.Preauth{
+        cookie: cookie,
+        csrf: csrf,
+        expires_at: expires_at,
+        source: snapshot
+      })
     else
       _ -> Store.failure(:decode, :committed)
     end
@@ -281,12 +430,17 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
   def handle_call({:finish, lease, expires}, {caller, _}, state) do
     state = current(state)
     {current_lease, state} = sample_lease(state, lease, caller)
+    checked_wall = if current_lease, do: state.operations[lease.reference].last_wall
 
     valid =
       current_lease and
-        (is_nil(expires) or (is_integer(expires) and System.system_time(:second) < expires))
+        (is_nil(expires) or (is_integer(expires) and checked_wall < expires))
 
-    reply = if valid, do: :ok, else: Store.failure(:commit, :committed)
+    reply =
+      if valid,
+        do: {:ok, checked_wall},
+        else: Store.failure(:commit, :committed)
+
     state = if valid, do: release(state, lease.reference), else: state
     {:reply, reply, state}
   end

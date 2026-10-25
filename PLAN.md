@@ -36,11 +36,14 @@ Migration checkpoint `a6eaa8a5` passes selected storage/migrations but broader
 Phoenix CI invalidates fifteen build-storage tests because their expected list
 omitted migration 00008 (649 passed, two existing skips). The one-item fixture
 correction passes projectless formatting. Corrected `eec94804` Phoenix CI now
-passes every step, including 664 ordinary methods with two existing skips. Engine
-VM/services jobs pass; Swift remains running. The preceding `d1ca1656` Phoenix
+passes every step, including 664 ordinary methods with two existing skips. Its
+Engine workflow now passes all three jobs. The preceding `d1ca1656` Phoenix
 run was cancelled and is not a pass. Engine runs for `a6eaa8a5` and `d1ca1656`
 now pass all three jobs.
 See [the integrated scope](docs/hosted-browser-session-integration.md).
+Ordered-diagnostic design checkpoint `ab5442a5` now passes all three Engine jobs.
+Preauth checkpoint `72340253` now passes every Phoenix CI step, including
+664 ordinary methods with two existing skips. Its Engine workflow now passes all three jobs.
 Computer use, capture and native runtime tests remain paused.
 The full plan remains incomplete; no GA gate is promoted.
 
@@ -209,8 +212,14 @@ The full plan remains incomplete; no GA gate is promoted.
    Root verifies 118 producer seal entries, 358 review artifacts and selected
    source/dependency/output bindings. This accepts manually started fixed
    bootstrap/load and Vault roundtrips only; complete 44/40/18 matrices and
-   Application/current-identity/provider/HTTP joins remain pending. Next coordinate
-   and implement the fixed begin-login owner/Store component. See
+   Application/current-identity/provider/HTTP joins remain pending. The fixed
+   begin-login component now passes 30 PG17 controls, 30 unchanged preauth
+   regressions and 34 independent PG16 controls. Root verifies 103 producer and
+   284 review seal entries, exact source/output bindings and cleanup. Review
+   added final caller publication checks after authoritative permit release;
+   revision-stable audit races roll back. This accepts private preauth URLs only.
+   Next coordinate callback claim and private ClaimOwner ownership before provider
+   or public-route composition. See [begin-login review](docs/hosted-browser-begin-login-review.md),
    [preauth review](docs/hosted-browser-preauth-store-review.md) and
    [relation review](docs/hosted-browser-relation-catalog-review.md). The additive preparation SQL helper passes 39 PG17 and 38
    independent PG16 methods after rejecting unexpected new-object grants. Root

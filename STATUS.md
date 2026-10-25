@@ -11,6 +11,9 @@ its next CI run stops earlier in storage setup. That fixture repair now passes
 independent methods with root acceptance. Pushed `4b458d6b` passes all Phoenix
 CI steps, including storage/migrations and the broader hosted suite (645 passed,
 two existing skips).
+Ordered-diagnostic design checkpoint `ab5442a5` now passes all three Engine jobs.
+Preauth checkpoint `72340253` now passes every Phoenix CI step, including
+664 ordinary methods with two existing skips. Its Engine workflow now passes all three jobs.
 Native runtime and capture remain paused.
 All eighteen work packages remain in scope:
 sixteen are in progress and two are marked ready. No launch gate is verified;
@@ -321,8 +324,8 @@ Migration delivery `a6eaa8a5` passes selected storage/migration CI. Its broader
 run reports 649 passed, fifteen invalid and two existing skips: build-storage
 setup still expected nine migrations. The missing expected 00008 is corrected
 and actual projectless formatting passes. Corrected `eec94804` now passes every
-Phoenix CI step: 664 ordinary methods pass with two existing skips. Engine VM and
-services pass; Swift remains running. The preceding `d1ca1656` Phoenix run was
+Phoenix CI step: 664 ordinary methods pass with two existing skips. Engine also
+passes all three jobs. The preceding `d1ca1656` Phoenix run was
 cancelled, not passed. Both preceding `a6eaa8a5` and `d1ca1656` Engine runs now
 pass all three jobs.
 The RelationCatalog prerequisite passes 233 PG16 and 234 PG17 methods with
@@ -337,7 +340,13 @@ added valid projected pending-attempt rejection. Root verifies 118 producer seal
 entries, 358 review artifacts, final source/dependency/output bindings and cleanup.
 Manual fixed storage composition is accepted; complete 44/40/18 matrices,
 shared startup, active identity/provider and HTTP/console remain pending. The
-next slice coordinates the fixed begin-login owner/Store contract and implementation.
+fixed begin-login component now passes 30 PG17 controls, 30 unchanged preauth
+regressions and 34 independent PG16 controls. Root verifies 103 producer and
+284 review seal entries, exact source/output bindings and all owned cleanup.
+Private preauth URL publication, pending replacement, audit-counter race rollback
+and final caller deadline/continuity checks are accepted within this scope.
+Callback claim/private ClaimOwner, active identity/provider, startup and HTTP
+composition remain pending. See [begin-login review](docs/hosted-browser-begin-login-review.md).
 See [the preauth review](docs/hosted-browser-preauth-store-review.md).
 See [the relation review](docs/hosted-browser-relation-catalog-review.md).
 This is only `:function_surface_verified`: tests explicitly
