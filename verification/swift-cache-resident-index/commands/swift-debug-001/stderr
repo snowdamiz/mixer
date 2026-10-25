@@ -1,0 +1,54 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/source)
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.42s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/target/debug/deps/mixer_vm-779ad6ea8948a8f2)
+
+thread 'experimental_swift_reactor::allocation_tests::unwinding_clears_the_observer_and_fault' (62027459) panicked at src/experimental_swift_reactor/allocation_tests.rs:187:47:
+unit observer reset probe
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'experimental_swift_reactor::cache_tests::foreign_stale_nonce_and_control_ownership' (62027646) panicked at src/experimental_swift_reactor/cache_tests.rs:2383:53:
+owner test scope unwind
+
+thread 'experimental_swift_reactor::execution::frame_operations::call_dispatch::tests::swift_dispatch_cd01_missing_control_outside_admitted_construction' (62028675) panicked at src/experimental_swift_reactor/memory_growth_operations.rs:283:40:
+constructed control
+
+thread 'experimental_swift_reactor::execution::frame_operations::call_dispatch::tests::swift_dispatch_cd18_fixture_unwind_restores_original_hook_owners' (62029201) panicked at src/experimental_swift_reactor/call_dispatch_tests.rs:2032:17:
+fixture-only unwind after admitted run
+
+thread 'experimental_swift_reactor::execution::frame_operations::memory_growth_operations::lifecycle::tests::swift_lifecycle_sl13_cumulative_instruction_host_and_cache_usage' (62030402) panicked at src/experimental_swift_reactor/lifecycle_tests.rs:953:5:
+assertion `left == right` failed
+  left: 797
+ right: 605
+
+thread 'experimental_swift_reactor::execution::frame_operations::memory_growth_operations::lifecycle::tests::swift_lifecycle_sl14_later_work_cache_and_absolute_deadline_do_not_reset' (62030415) panicked at src/experimental_swift_reactor/lifecycle_tests.rs:264:6:
+called `Result::unwrap()` on an `Err` value: Cleanup(Some(SwiftRunFailure { stage: Invocation, kind: WorkExhausted, code: "swift_run_work", function: Some(34), offset: Some(211), resource: Some(CacheWork), attempted: 741, limit: 740, observed_capacity: None, deadline_origin: Run, wasi_failure: None, guest_exit: None, at_failure: SwiftRunUsage { reservations: SwiftReservations { retained_source: SwiftReservationUsage { current: 1941, peak: 1941 }, retained_metadata: SwiftReservationUsage { current: 2712, peak: 2712 }, cache: SwiftReservationUsage { current: 84616, peak: 84616 }, state: SwiftReservationUsage { current: 0, peak: 0 }, wasi: SwiftReservationUsage { current: 0, peak: 0 }, shared: SwiftReservationUsage { current: 1744, peak: 1744 }, construction: SwiftReservationUsage { current: 1401432, peak: 1401432 }, combined: SwiftReservationUsage { current: 1492445, peak: 1492445 }, live_tickets: 10, peak_tickets: 10 }, live: SwiftLiveUsage { cache_entries: SwiftReservationUsage { current: 0, peak: 0 }, active_pins: SwiftReservationUsage { current: 0, peak: 0 }, frames: SwiftReservationUsage { current: 0, peak: 0 }, values: SwiftReservationUsage { current: 0, peak: 0 }, controls: SwiftReservationUsage { current: 0, peak: 0 }, memory_pages: SwiftReservationUsage { current: 0, peak: 0 } }, cache_work: 740, execution_work: 0, instruction_fuel: 0, instructions: 0, host_calls: 0, cleanup_invariant: None, elapsed_micros: 61, deadline_ms: 30000, deadline_origin: Run, deadline_overshoot_micros: 0, validation: SwiftValidationUsage { input_visible_bytes: 1941, source_bytes: 1941, metadata_reserved: 2712, scratch_reserved: 0, metadata_peak_reserved: 2712, scratch_peak_reserved: 1056, total_peak_reserved: 5709, work_used: 10748, elapsed_micros: 139, deadline_ms: 120000 }, wasi: None }, after_cleanup: None }))

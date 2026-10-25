@@ -409,7 +409,7 @@ fn same_abi_descriptors_and_authority() {
     let u = c.usage(None);
     assert_eq!(u.reservations.retained_source.current, bytes.len());
     assert_eq!(u.reservations.retained_metadata.current, metadata);
-    assert_eq!(alloc.allocations, 3);
+    assert_eq!(alloc.allocations, 4);
     assert_eq!(alloc.reallocations, 0);
     finish(cache, c);
 }
@@ -528,11 +528,12 @@ fn permanent_patch_arena_exact_requests() {
     let bytes = fixture(0, &[0, 0x0b], 100);
     let (mut c, a) = adopt(&bytes, SwiftRunBudget::default());
     let (cache, s) = measure(|| construct(&mut c, a, None).unwrap());
-    assert_eq!(s.allocations, 3);
+    assert_eq!(s.allocations, 4);
     println!("permanent fixed requested allocations {:?}", s);
     let expected = 64 * size_of::<super::cache::SwiftSlot>()
         + 64 * size_of::<crate::experimental::cache::PinRecord>()
-        + 512 * size_of::<decode::Patch>();
+        + 512 * size_of::<decode::Patch>()
+        + 192;
     assert_eq!(s.allocated_bytes, expected);
     assert_eq!(
         c.usage(None).reservations.cache.current,
@@ -680,14 +681,14 @@ fn pins_hits_lru_and_eviction() {
             .unwrap();
     }
     assert_eq!(c.usage(None).live.cache_entries.current, 64);
-    assert_eq!(c.usage(None).reservations.live_tickets, 73);
+    assert_eq!(c.usage(None).reservations.live_tickets, 74);
     assert!(c.usage(None).reservations.peak_tickets <= MAX_RESERVATION_TICKETS);
     let p = pin(&mut cache, &mut c, 98, None).unwrap();
     cache
         .release(p, &mut c, None)
         .map_err(|e| e.failure)
         .unwrap();
-    assert_eq!(c.usage(None).reservations.live_tickets, 73);
+    assert_eq!(c.usage(None).reservations.live_tickets, 74);
     assert_eq!(cache.usage().evictions, 1);
     finish(cache, c);
     // Actual release is admission/work/cancellation independent, including the
@@ -851,7 +852,7 @@ fn every_constructor_allocation_ordinal() {
     let (mut c, a) = adopt(&bytes, SwiftRunBudget::default());
     let (cache, s) = measure(|| construct(&mut c, a, None).unwrap());
     let n = s.attempts;
-    assert_eq!(n, 3);
+    assert_eq!(n, 4);
     finish(cache, c);
     let (mut base_control, base_proof) = adopt(&bytes, SwiftRunBudget::default());
     let (_, base_drop) = measure(|| base_control.drop_proof(base_proof).unwrap());
@@ -872,7 +873,7 @@ fn every_constructor_allocation_ordinal() {
         );
         println!("constructor allocation ordinal {} observed", ordinal);
     }
-    for ordinal in 0..3 {
+    for ordinal in 0..4 {
         hooks(Hooks::default());
         let (mut c, a) = adopt(&bytes, SwiftRunBudget::default());
         hooks(Hooks {
@@ -1831,7 +1832,7 @@ fn review_64_distinct_live_pins_then_65th_and_terminal_release() {
     let ledger = c.usage(None);
     assert_eq!(ledger.live.active_pins.current, 64);
     assert_eq!(ledger.live.cache_entries.current, 64);
-    assert_eq!(ledger.reservations.live_tickets, 73);
+    assert_eq!(ledger.reservations.live_tickets, 74);
     assert_eq!(before.pinned_bytes, before.resident_bytes);
     let (failure, stats) = measure(|| pin(&mut cache, &mut c, 98, None).unwrap_err());
     assert_eq!(failure.code, "pin_slots_exhausted");
@@ -2299,6 +2300,8 @@ fn review_exact_phase_and_header_admission_boundaries() {
         header,
         header + patch_bytes - 1,
         header + patch_bytes,
+        header + patch_bytes + 191,
+        header + patch_bytes + 192,
     ] {
         let (mut c, a) = adopt(
             &bytes,
@@ -2310,18 +2313,24 @@ fn review_exact_phase_and_header_admission_boundaries() {
             },
         );
         let (result, stats) = measure(|| construct(&mut c, a, None));
-        if ceiling == header + patch_bytes {
-            assert_eq!(stats.attempts, 1);
+        if ceiling == header + patch_bytes + 192 {
+            assert_eq!(stats.attempts, 2);
             let cache = result.unwrap();
             assert_eq!(c.usage(None).reservations.cache.current, ceiling);
             finish(cache, c);
         } else {
-            assert_eq!(stats.attempts, 0);
+            assert_eq!(stats.attempts, usize::from(ceiling >= header + patch_bytes));
             let failure = result.err().unwrap();
             assert_eq!(failure.kind, SwiftRunFailureKind::CategoryExhausted);
             assert_eq!(
                 c.usage(None).reservations.cache.peak,
-                if ceiling < header { 0 } else { header }
+                if ceiling < header {
+                    0
+                } else if ceiling < header + patch_bytes {
+                    header
+                } else {
+                    header + patch_bytes
+                }
             );
             assert_eq!(c.usage(None).reservations.cache.current, 0);
             assert_eq!(
@@ -2359,9 +2368,9 @@ fn review_owner_allocator_exhaustion() {
                 measure(|| construct(&mut c, adopted, None).err().unwrap());
             assert_eq!(failure.kind, SwiftRunFailureKind::Invariant);
             assert_eq!(failure.code, "swift_cache_owner_exhausted");
-            assert_eq!(allocations.attempts, 3);
+            assert_eq!(allocations.attempts, 4);
             assert_eq!(allocations.injected_failures, 0);
-            assert_eq!(allocations.allocations, 3);
+            assert_eq!(allocations.allocations, 4);
             assert_eq!(allocations.reallocations, 0);
             assert_eq!(
                 allocations.deallocations,
@@ -2387,7 +2396,7 @@ fn review_owner_allocator_exhaustion() {
             let final_usage = c.finish_owned_cleanup(None);
             assert_eq!(final_usage.reservations.combined.current, 0);
             assert_eq!(final_usage.reservations.live_tickets, 0);
-            println!("owner allocator exhaustion attempt={attempt} private_counter=MAX actual_constructor_allocations=3 partial_drained=true no_duplicate_authority=true");
+            println!("owner allocator exhaustion attempt={attempt} private_counter=MAX actual_constructor_allocations=4 partial_drained=true no_duplicate_authority=true");
         }
     });
     assert!(!inspection::owner_override_active());
@@ -2602,7 +2611,7 @@ fn reset_elision_observation_fixture() {
         hooks(Hooks::default());
         let bytes = fixture(0, &helper, 100);
         let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
-        assert_eq!(c.usage(None).cache_work, 640);
+        assert_eq!(c.usage(None).cache_work, 832);
         elision_enable(&c, false);
         let before = c.usage(None).cache_work;
         let p = pin(&mut cache, &mut c, 34, None).unwrap();
@@ -2634,8 +2643,8 @@ fn reset_elision_observation_fixture() {
         assert_eq!(stats.attempts, 0);
         assert_eq!(release_stats.attempts, 0);
         let hit = elision_finish_observation(&c);
-        assert_eq!(hit.stage_work.iter().sum::<u64>(), 3);
-        println!("ELISION {{\"case\":\"{label}\",\"constructorWork\":640,\"coldWork\":{},\"coldStages\":{:?},\"hitWork\":3,\"hitStages\":{:?},\"fixedReserved\":{},\"residentBytes\":{}}}",cold.stage_work.iter().sum::<u64>(),cold.stage_work,hit.stage_work,cache.usage().fixed_reserved,cache.usage().resident_bytes);
+        assert_eq!(hit.stage_work.iter().sum::<u64>(), 8);
+        println!("ELISION {{\"case\":\"{label}\",\"constructorWork\":832,\"coldWork\":{},\"coldStages\":{:?},\"hitWork\":8,\"hitStages\":{:?},\"fixedReserved\":{},\"residentBytes\":{}}}",cold.stage_work.iter().sum::<u64>(),cold.stage_work,hit.stage_work,cache.usage().fixed_reserved,cache.usage().resident_bytes);
         finish(cache, c);
     }
     hooks(Hooks::default());
@@ -2961,4 +2970,329 @@ fn reset_elision_boundary_precedence_and_sticky() {
             }
         }
     }
+}
+
+// Selected bounded resident-index controls. The oracle walks actual owner slots
+// independently and compares every chain membership with the resident set.
+fn resident_assert_index(cache: &SwiftFunctionCache) {
+    let index = inspection::resident_index(cache);
+    assert_eq!(index.len(), 192);
+    let slots = inspection::elision_slots(cache);
+    let mut seen = [false; 64];
+    for bucket in 0..128 {
+        let mut node = index[bucket];
+        let mut count = 0;
+        while node != 0 {
+            assert!(count < 64, "unbounded or cyclic chain");
+            let slot = usize::from(node - 1);
+            assert!(slot < slots.len());
+            assert!(!seen[slot]);
+            seen[slot] = true;
+            let function = slots[slot][1];
+            assert_ne!(function, u64::MAX);
+            assert_eq!(
+                (((function * 0x9e37_79b9) & 0xffff_ffff) >> 25) as usize,
+                bucket
+            );
+            node = index[128 + slot];
+            count += 1;
+        }
+    }
+    for (slot, actual) in slots.iter().enumerate() {
+        assert_eq!(seen[slot], actual[1] != u64::MAX);
+        if !seen[slot] {
+            assert_eq!(index[128 + slot], 0);
+        }
+    }
+    assert!(index[128 + slots.len()..].iter().all(|link| *link == 0));
+}
+fn resident_seed(c: &mut RuntimeControl, cache: &mut SwiftFunctionCache) {
+    for function in [34, 178, 267] {
+        let p = pin(cache, c, function, None).unwrap();
+        cache.release(p, c, None).map_err(|e| e.failure).unwrap();
+        resident_assert_index(cache);
+    }
+}
+#[test]
+fn resident_index_collision_delete_head_middle_tail_and_reinsert() {
+    // These four independently calculated identities share bucket1.
+    for victim in [267, 178, 34] {
+        hooks(Hooks::default());
+        let bytes = fixture(0, &[0, 0x0b], 500);
+        let (mut c, mut cache) = new(
+            &bytes,
+            SwiftRunBudget {
+                cache_entries: 3,
+                ..SwiftRunBudget::default()
+            },
+        );
+        resident_seed(&mut c, &mut cache);
+        let victim_slot = inspection::elision_slots(&cache)
+            .iter()
+            .find(|s| s[1] == victim)
+            .unwrap()[0];
+        for function in [34, 178, 267]
+            .into_iter()
+            .filter(|f| u64::from(*f) != victim)
+        {
+            let (p, allocations) = measure(|| pin(&mut cache, &mut c, function, None).unwrap());
+            assert_eq!(allocations.attempts, 0);
+            cache
+                .release(p, &mut c, None)
+                .map_err(|e| e.failure)
+                .unwrap();
+        }
+        let p = pin(&mut cache, &mut c, 411, None).unwrap();
+        assert_eq!(cache.view(&p, &mut c, None).unwrap().function, 411);
+        assert_eq!(cache.usage().evictions, 1);
+        assert_eq!(
+            inspection::elision_slots(&cache)[victim_slot as usize][1],
+            411
+        );
+        resident_assert_index(&cache);
+        cache
+            .release(p, &mut c, None)
+            .map_err(|e| e.failure)
+            .unwrap();
+        let p = pin(&mut cache, &mut c, victim as u32, None).unwrap();
+        assert_eq!(
+            cache.view(&p, &mut c, None).unwrap().function,
+            victim as u32
+        );
+        resident_assert_index(&cache);
+        cache
+            .release(p, &mut c, None)
+            .map_err(|e| e.failure)
+            .unwrap();
+        finish(cache, c);
+        println!("RESIDENT collision victim={victim} removed/reused/reinserted cleanup=zero");
+    }
+}
+#[test]
+fn resident_index_every_collision_replacement_work_and_cancel_boundary() {
+    for victim in [34, 178, 267] {
+        hooks(Hooks::default());
+        let bytes = fixture(0, &[0, 0x0b], 500);
+        let budget = SwiftRunBudget {
+            cache_entries: 3,
+            ..SwiftRunBudget::default()
+        };
+        let (mut c, mut cache) = new(&bytes, budget);
+        resident_seed(&mut c, &mut cache);
+        for function in [34, 178, 267].into_iter().filter(|f| *f != victim) {
+            let p = pin(&mut cache, &mut c, function, None).unwrap();
+            cache
+                .release(p, &mut c, None)
+                .map_err(|e| e.failure)
+                .unwrap();
+        }
+        let base = c.usage(None).cache_work;
+        hooks(Hooks::default());
+        let p = pin(&mut cache, &mut c, 411, None).unwrap();
+        let credits = c.usage(None).cache_work - base;
+        let checks = HOOKS.with(|h| h.get().checks);
+        hooks(Hooks::default());
+        cache
+            .release(p, &mut c, None)
+            .map_err(|e| e.failure)
+            .unwrap();
+        finish(cache, c);
+        for prefix in 0..credits {
+            hooks(Hooks::default());
+            let (mut c, mut cache) = new(
+                &bytes,
+                SwiftRunBudget {
+                    cache_work: base + prefix,
+                    ..budget
+                },
+            );
+            resident_seed(&mut c, &mut cache);
+            for function in [34, 178, 267].into_iter().filter(|f| *f != victim) {
+                let p = pin(&mut cache, &mut c, function, None).unwrap();
+                cache
+                    .release(p, &mut c, None)
+                    .map_err(|e| e.failure)
+                    .unwrap();
+            }
+            let failure = pin(&mut cache, &mut c, 411, None).unwrap_err();
+            assert_eq!(failure.resource, Some(SwiftRunResource::CacheWork));
+            assert_eq!(c.usage(None).live.active_pins.current, 0);
+            resident_assert_index(&cache);
+            let before = c.usage(None);
+            assert_eq!(
+                pin(&mut cache, &mut c, 411, None).unwrap_err().kind,
+                failure.kind
+            );
+            review_assert_same_control_effects(before, c.usage(None));
+            finish(cache, c);
+        }
+        for ordinal in 0..checks {
+            hooks(Hooks::default());
+            let (mut c, mut cache) = new(&bytes, budget);
+            resident_seed(&mut c, &mut cache);
+            for function in [34, 178, 267].into_iter().filter(|f| *f != victim) {
+                let p = pin(&mut cache, &mut c, function, None).unwrap();
+                cache
+                    .release(p, &mut c, None)
+                    .map_err(|e| e.failure)
+                    .unwrap();
+            }
+            hooks(Hooks {
+                cancel: Some(ordinal),
+                ..Hooks::default()
+            });
+            assert_eq!(
+                pin(&mut cache, &mut c, 411, None).unwrap_err().kind,
+                SwiftRunFailureKind::Cancelled
+            );
+            hooks(Hooks::default());
+            assert_eq!(c.usage(None).live.active_pins.current, 0);
+            resident_assert_index(&cache);
+            finish(cache, c);
+        }
+        println!("RESIDENT every replacement victim={victim} work_prefixes={credits} cancellation_checks={checks} original_failure_sticky=true cleanup=zero");
+    }
+}
+
+#[test]
+fn resident_index_invalid_slot_empty_link_wrong_bucket_cycle_fail_closed() {
+    for case in 0..4 {
+        hooks(Hooks::default());
+        let bytes = fixture(0, &[0, 0x0b], 500);
+        let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+        resident_seed(&mut c, &mut cache);
+        let bucket = (((34u64 * 0x9e37_79b9) & 0xffff_ffff) >> 25) as usize;
+        let head = inspection::resident_index(&cache)[bucket];
+        match case {
+            0 => inspection::corrupt_index(&mut cache, bucket, 255),
+            1 => inspection::corrupt_index(&mut cache, 128 + usize::from(head - 1), 64),
+            2 => {
+                let p = pin(&mut cache, &mut c, 35, None).unwrap();
+                cache
+                    .release(p, &mut c, None)
+                    .map_err(|e| e.failure)
+                    .unwrap();
+                inspection::corrupt_index(&mut cache, bucket, 4);
+            }
+            _ => inspection::corrupt_index(&mut cache, 128 + usize::from(head - 1), head),
+        }
+        let failure = pin(&mut cache, &mut c, 34, None).unwrap_err();
+        assert_eq!(failure.kind, SwiftRunFailureKind::DecoderMismatch);
+        assert_eq!(cache.usage().decodes, if case == 2 { 4 } else { 3 });
+        assert_eq!(c.usage(None).live.active_pins.current, 0);
+        finish(cache, c);
+        println!(
+            "RESIDENT corrupt case={case} code={} failclosed cleanup=zero",
+            failure.code
+        );
+    }
+}
+#[test]
+fn resident_index_all_pinned_exact_capacity_and_empty_links() {
+    hooks(Hooks::default());
+    let bytes = fixture(0, &[0, 0x0b], 500);
+    let (mut c, mut cache) = new(
+        &bytes,
+        SwiftRunBudget {
+            cache_entries: 3,
+            ..SwiftRunBudget::default()
+        },
+    );
+    let a = pin(&mut cache, &mut c, 34, None).unwrap();
+    let b = pin(&mut cache, &mut c, 178, None).unwrap();
+    let d = pin(&mut cache, &mut c, 267, None).unwrap();
+    let before = inspection::resident_index(&cache).to_vec();
+    assert_eq!(
+        pin(&mut cache, &mut c, 411, None).unwrap_err().code,
+        "all_entries_pinned"
+    );
+    assert_eq!(inspection::resident_index(&cache), before);
+    resident_assert_index(&cache);
+    for p in [a, b, d] {
+        cache
+            .release(p, &mut c, None)
+            .map_err(|e| e.failure)
+            .unwrap();
+    }
+    finish(cache, c);
+    println!("RESIDENT all_pinned original_index_retained=true terminal_release=true cleanup=zero");
+}
+
+#[test]
+fn resident_index_inclusive_64_node_chain_and_cycle_bound() {
+    hooks(Hooks::default());
+    let functions: Vec<u32> = (34..12034)
+        .filter(|f| {
+            ((u64::from(*f) * 0x9e37_79b9) & 0xffff_ffff) >> 25
+                == ((34u64 * 0x9e37_79b9) & 0xffff_ffff) >> 25
+        })
+        .take(64)
+        .collect();
+    assert_eq!(functions.len(), 64);
+    let bytes = fixture(0, &[0, 0x0b], 12000);
+    let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+    for function in &functions {
+        let p = pin(&mut cache, &mut c, *function, None).unwrap();
+        cache
+            .release(p, &mut c, None)
+            .map_err(|e| e.failure)
+            .unwrap();
+    }
+    resident_assert_index(&cache);
+    let before = c.usage(None).cache_work;
+    let p = pin(&mut cache, &mut c, functions[0], None).unwrap();
+    assert_eq!(cache.view(&p, &mut c, None).unwrap().function, functions[0]);
+    let hit_work = c.usage(None).cache_work - before;
+    assert_eq!(hit_work, 260); // two ordinary headers plus hash/head plus4*64 nodes.
+    cache
+        .release(p, &mut c, None)
+        .map_err(|e| e.failure)
+        .unwrap();
+    let bucket = (((34u64 * 0x9e37_79b9) & 0xffff_ffff) >> 25) as usize;
+    let head = inspection::resident_index(&cache)[bucket];
+    inspection::corrupt_index(&mut cache, 128, head); // tail slot0 now closes a64-node cycle.
+    assert_eq!(
+        pin(&mut cache, &mut c, functions[0], None)
+            .unwrap_err()
+            .code,
+        "swift_cache_index_cycle"
+    );
+    finish(cache, c);
+    println!("RESIDENT chain64 inclusive=true full_chain_hit_work={hit_work} adversarial_cost_not_discounted=true cycle_failclosed=true cleanup=zero");
+}
+
+#[test]
+fn resident_index_finite_cost_fixture() {
+    hooks(Hooks::default());
+    let bytes = fixture(0, &[0, 0x0b], 100);
+    let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
+    let constructor = c.usage(None).cache_work;
+    for function in 34..98 {
+        let p = pin(&mut cache, &mut c, function, None).unwrap();
+        cache
+            .release(p, &mut c, None)
+            .map_err(|e| e.failure)
+            .unwrap();
+    }
+    let cold = c.usage(None).cache_work - constructor;
+    let before = c.usage(None).cache_work;
+    let (_, allocations) = measure(|| {
+        for _ in 0..4 {
+            for function in 34..98 {
+                let p = pin(&mut cache, &mut c, function, None).unwrap();
+                assert_eq!(cache.view(&p, &mut c, None).unwrap().function, function);
+                cache
+                    .release(p, &mut c, None)
+                    .map_err(|e| e.failure)
+                    .unwrap();
+            }
+        }
+    });
+    assert_eq!(allocations.attempts, 0);
+    assert_eq!(cache.usage().hits, 256);
+    assert_eq!(cache.usage().misses, 64);
+    assert_eq!(cache.usage().evictions, 0);
+    let hits = c.usage(None).cache_work - before;
+    println!("RESIDENT_COST {{\"constructorWork\":{constructor},\"cold64Work\":{cold},\"hit256Work\":{hits},\"fixedReserved\":{},\"residentBytes\":{},\"hitAllocatorRequests\":{},\"slots\":{:?}}}",cache.usage().fixed_reserved,cache.usage().resident_bytes,allocations.attempts,inspection::elision_slots(&cache));
+    finish(cache, c);
 }

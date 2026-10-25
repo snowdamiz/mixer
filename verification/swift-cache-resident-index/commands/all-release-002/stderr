@@ -1,0 +1,100 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/source)
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1619:114
+     |
+1619 | ...de==0x6a);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+     = note: `#[warn(dropping_copy_types)]` on by default
+help: use `let _ = ...` to ignore the expression or result
+     |
+1619 -         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);drop(completed);drop(own);
+1619 +         let completed=complete(p,prep);assert_eq!(matches!(completed,FrameCompletion::Retained(_)),opcode==0x6a);let _ = completed;drop(own);
+     |
+
+warning: calls to `std::mem::drop` with a value that implements `Copy` does nothing
+    --> src/experimental_swift_reactor/control_operations_tests.rs:1643:152
+     |
+1643 | ...e(p,prep);drop(completed);drop(own);
+     |              ^^^^^---------^
+     |                   |
+     |                   argument has type `experimental_swift_reactor::execution::frame_operations::FrameCompletion`
+     |
+help: use `let _ = ...` to ignore the expression or result
+     |
+1643 -     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);drop(completed);drop(own);
+1643 +     let report=p.drain();let mut exact=report.first_failure.unwrap();exact.after_cleanup=None;assert_eq!(exact,failure);let completed=complete(p,prep);let _ = completed;drop(own);
+     |
+
+warning: `mixer-vm` (lib test) generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 45.54s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/target/release/deps/mixer_vm-e633425abeb5c97b)
+
+thread 'capability_ffi::session::tests::poisoned_ledger_pins_capacity_without_fabricated_ack' (62057214) panicked at src/capability_ffi/../../tests/capability_ffi/ledger.rs:207:9:
+native ledger poison fixture
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'capability_ffi::session::tests::uncommitted_take_and_unwind_latches_cannot_be_cleared_by_success' (62057217) panicked at src/capability_ffi/../../tests/capability_ffi/ledger.rs:165:9:
+original native operation unwind
+
+thread 'experimental_capability::tests::poisoned_mutex_rejects_reuse_instead_of_recovering_untrusted_state' (62057239) panicked at src/experimental_capability/tests.rs:184:9:
+test mailbox poison
+
+thread 'experimental_capability_guest::tests::poison_is_terminal_and_ack_failure_is_not_called_reclamation' (62057242) panicked at src/experimental_capability/guest.rs:163:13:
+original mailbox poison fixture
+
+thread 'experimental_capability_guest::tests::unfinished_turn_guard_preserves_original_unwind_and_ackable_lease' (62057246) panicked at src/experimental_capability_guest/mod.rs:794:13:
+original guest unwind payload
+
+thread 'experimental_swift_reactor::allocation_tests::unwinding_clears_the_observer_and_fault' (62057250) panicked at src/experimental_swift_reactor/allocation_tests.rs:187:47:
+unit observer reset probe
+
+thread 'experimental_swift_reactor::cache_tests::foreign_stale_nonce_and_control_ownership' (62058868) panicked at src/experimental_swift_reactor/cache_tests.rs:2405:53:
+owner test scope unwind
+
+thread 'experimental_swift_reactor::execution::frame_operations::call_dispatch::tests::swift_dispatch_cd01_missing_control_outside_admitted_construction' (62059069) panicked at src/experimental_swift_reactor/memory_growth_operations.rs:283:40:
+constructed control
+
+thread 'experimental_swift_reactor::execution::frame_operations::call_dispatch::tests::swift_dispatch_cd18_fixture_unwind_restores_original_hook_owners' (62059178) panicked at src/experimental_swift_reactor/call_dispatch_tests.rs:2032:17:
+fixture-only unwind after admitted run
+
+thread 'ffi::tests::panic_is_contained' (62060250) panicked at src/ffi.rs:385:42:
+test contained panic
+
+thread 'session::tests::panic_poison_prevents_state_reuse_without_poisoning_registry' (62060255) panicked at src/session.rs:698:17:
+test panic during a session operation
+
+thread 'session::tests::unwound_creation_releases_unpublished_reservation' (62060256) panicked at src/session.rs:726:17:
+test creation failure before publication
+     Running unittests src/main.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/target/release/deps/mixer_vm-be16f03d9761a7ef)
+     Running tests/capability_ffi_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/target/release/deps/capability_ffi_allocations-4b24e706a321d953)
+     Running tests/capability_ffi_public.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/target/release/deps/capability_ffi_public-b737d4617e575095)
+     Running tests/capability_registry.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/target/release/deps/capability_registry-7b252be77ded8df0)
+     Running tests/cli.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/target/release/deps/cli-7d33cc7028e4467f)
+     Running tests/differential.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/target/release/deps/differential-56a7078060e81167)
+     Running tests/experimental_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/target/release/deps/experimental_allocations-1b6936306c9a32ef)
+     Running tests/experimental_capability_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/target/release/deps/experimental_capability_allocations-74abd6205650574c)
+     Running tests/experimental_capability_guest.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/target/release/deps/experimental_capability_guest-298d0550a13e7d71)
+     Running tests/experimental_capability_guest_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/target/release/deps/experimental_capability_guest_allocations-105528fa0730fd66)
+     Running tests/experimental_capability_mailbox.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/target/release/deps/experimental_capability_mailbox-3661330b2b55a574)
+     Running tests/experimental_guest_ui_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/target/release/deps/experimental_guest_ui_allocations-9a64b91ffad26c4b)
+     Running tests/experimental_guest_ui_validation.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/target/release/deps/experimental_guest_ui_validation-99f9db7b00cb44ae)
+     Running tests/experimental_oracle.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/target/release/deps/experimental_oracle-ecd19902af3b64c3)
+     Running tests/experimental_stream.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/target/release/deps/experimental_stream-722372a4282107eb)
+     Running tests/float.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/target/release/deps/float-4c882ace1759b592)
+     Running tests/float_differential.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/target/release/deps/float_differential-cca50ac8c80696eb)
+     Running tests/interpreter.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/target/release/deps/interpreter-44e38d4c832ccc3c)
+     Running tests/review_boundaries.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/target/release/deps/review_boundaries-d57ee4a28233f986)
+     Running tests/review_session_lifetime.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/target/release/deps/review_session_lifetime-c12b4079c47d85f1)
+     Running tests/sessions.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/target/release/deps/sessions-4529dcb6f885fd09)
+     Running tests/span_control_extraction.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/target/release/deps/span_control_extraction-e11a248383869b09)
+     Running tests/span_execution.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/target/release/deps/span_execution-330ecd0421077a11)
+     Running tests/span_execution_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/target/release/deps/span_execution_allocations-605aa5ec558f672f)
+     Running tests/span_execution_oracle.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/target/release/deps/span_execution_oracle-9da33a40a3df4091)
+
+thread 'original_probes_match_development_node_values_traps_and_memory' (62061452) panicked at tests/span_execution_oracle.rs:182:10:
+development Node oracle must be installed: Os { code: 2, kind: NotFound, message: "No such file or directory" }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `--test span_execution_oracle`

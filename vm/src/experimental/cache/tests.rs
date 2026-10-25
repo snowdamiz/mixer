@@ -504,6 +504,22 @@ fn frozen_borrowed_transients_fit_existing_scratch() {
             3,
             size_of::<crate::experimental::descriptors::FunctionSpanView<'static>>(),
         ),
+        // Default resident hooks retain literal work while introducing helper
+        // argument/Result transfers. Lookup, removal and insertion execute in
+        // separate phases; counting their complete union is deliberately
+        // conservative, not a claim that these frames coexist.
+        (3, size_of::<Result<Option<usize>, CacheFailure>>()),
+        (6, size_of::<Result<(), CacheFailure>>()),
+        (
+            3,
+            size_of::<(
+                &'static [Slot],
+                &'static mut (),
+                u32,
+                usize,
+                &'static mut Meter<'static>,
+            )>(),
+        ),
         (1, 256), // unchanged scalar/loop allowance, additional to named adapters
     ];
     let actual: usize = named.into_iter().map(|(n, size)| n * size).sum();

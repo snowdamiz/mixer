@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "frozenProductionFilesChanged": false,
+  "finding": {
+    "id": "terminal-projection-phase-not-bound-to-permanent-row",
+    "priority": "P2",
+    "file": "candidate/src/engine.ts",
+    "start": 79,
+    "end": 82,
+    "introducedByTrackRecheckDelta": false,
+    "actualWorkerdReproductions": 2,
+    "behavior": "A restored outbox with completed phase and unchanged stopped row/evidence is published as completed and acknowledged/cleared without a fence.",
+    "expected": "Validate mutual terminal presence, row phase, exact JSON status and outbox phase before remote RPC; disagreement fails closed with retained recovery evidence."
+  },
+  "awaitBoundaryReview": [
+    {"boundary":"checkedContext identity/receipt validation and snapshot binding digest", "guard":"All awaits precede final synchronous track transaction."},
+    {"boundary":"terminal evidence SHA-256 and before_track hook", "guard":"Final synchronous transaction rechecks provider, fence/quarantine, immutable resource, retained identity/receipt, version history and exact snapshot outbox/terminal."},
+    {"boundary":"track RPC invocation", "guard":"No await between final transaction and registry().track invocation."},
+    {"boundary":"RPC timeout, unavailable, stale, conflict or accepted/duplicate ACK", "guard":"Current local authority revalidated; accepted/duplicate callback executes inside acknowledge metadata transaction."},
+    {"boundary":"ACK storage sync", "guard":"Final synchronous guard checks authority and empty outbox before returning success."},
+    {"boundary":"MAX provider conflict", "guard":"Independent fence insert commits; save skipped at MAX. Nonterminal restart test verifies full row unchanged and independent fence authority."}
+  ],
+  "atomicAckReview": {
+    "file":"candidate/src/ledger.ts",
+    "requiredCallback":true,
+    "callbackAndMetadataUpdateInSameSynchronousTransaction":true,
+    "tests":["reject","fence-and-reject","throw-and-rollback","allow-exact-clear"],
+    "independentAckOnlyProgressAllowed":true
+  },
+  "remoteCancellationOrRollbackClaimed": false,
+  "distributedAtomicityQualified": false,
+  "newProviderEffectsRejectedByIndependentFenceScope": "MAX nonterminal desired-run row; normal owned stop cleanup exceptions remain selected by existing stop-terminal contract"
+}

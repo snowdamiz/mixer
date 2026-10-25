@@ -1,0 +1,32 @@
+--- frozen/test/worker.ts
++++ review/test/worker.ts
+@@ -65,6 +65,29 @@
+  async fixture(action:string,arg:Record<string,unknown>):Promise<unknown>{
+   const resource={provider:'cloudflare-linux' as const,key:this.identity.operationKey,immutableSha256:this.identity.immutableSha256};
+   switch(action){
++   case 'reviewMutation':{
++    switch(arg.field){
++     case 'terminal_json':this.ctx.storage.sql.exec("UPDATE operation SET terminal_json=terminal_json||' '");break;
++     case 'phase':this.ctx.storage.sql.exec("UPDATE operation SET phase='completed'");break;
++     case 'versionOnly':{const r=this.ledger.read()!;this.ctx.storage.sql.exec('UPDATE operation SET state_version=?',String(BigInt(r.state_version)+1n));break;}
++     case 'outboxPhase':{const r=this.ledger.read()!,o=JSON.parse(r.track_outbox_json!);o.terminal.phase='completed';this.ctx.storage.sql.exec('UPDATE operation SET track_outbox_json=?',JSON.stringify(o));break;}
++     default:throw new Error('review_mutation');
++    }await this.ledger.sync();return {ok:true};
++   }
++   case 'reviewAckSyncProviderChange':{
++    const original=this.ledger.sync.bind(this.ledger),ledger=this.ledger,storage=this.ctx.storage;
++    ledger.sync=async()=>{ledger.sync=original;await original();storage.sql.exec("UPDATE operation SET provider_kind='external-macos'");await original();};return {ok:true};
++   }
++   case 'reviewAckGuard':{
++    const r=this.ledger.read()!;let seen:unknown=null,threw=false,cleared=false;
++    try{cleared=this.ledger.acknowledge(r.state_version,r.track_outbox_json!,current=>{
++     seen=current;
++     if(arg.mode==='throw'){this.ctx.storage.sql.exec("UPDATE operation SET provider_kind='external-macos'");throw new Error('review_atomic_rollback');}
++     if(arg.mode==='fence'){this.ctx.storage.sql.exec("INSERT OR IGNORE INTO registry_quarantine VALUES(1,?,'0','review_ack_guard')",JSON.stringify(this.identity));return false;}
++     return arg.mode==='allow';
++    });}catch(e){if((e as Error).message!=='review_atomic_rollback')throw e;threw=true;}
++    await this.ledger.sync();return {seen,threw,cleared};
++   }
+    case 'command':{const r=await decode(new TextEncoder().encode(JSON.stringify(arg.request)));return this.engine.commandRegistered(r,(arg.resource??resource) as ResourceIdentity,(arg.identity??this.identity) as PendingIdentity,arg.receipt as RegistrationReceipt);}
+    case 'plain':{const r=await decode(new TextEncoder().encode(JSON.stringify(arg.request)));return this.engine.command(r,resource);}
+    case 'defaultUnavailable':{const r=await decode(new TextEncoder().encode(JSON.stringify(arg.request)));return new Engine(this.ledger,new SyntheticClock(this.store),this.provider,{async verify(){return true;}}).commandRegistered(r,resource,this.identity,arg.receipt as RegistrationReceipt);}

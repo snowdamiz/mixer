@@ -1,0 +1,183 @@
+   Compiling mixer-vm v0.1.0 (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/source)
+warning: unused import: `statistics`
+   --> src/experimental/cache/borrowed.rs:298:16
+    |
+298 | pub(crate) use statistics;
+    |                ^^^^^^^^^^
+    |
+    = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: methods `source`, `defined_function_count`, and `signature` are never used
+  --> src/experimental/cache/borrowed.rs:16:8
+   |
+13 | pub(crate) trait SnapshotView: sealed::Snapshot {
+   |                  ------------ methods in this trait
+...
+16 |     fn source(&self) -> &[u8];
+   |        ^^^^^^
+17 |     fn defined_function_count(&self) -> usize;
+   |        ^^^^^^^^^^^^^^^^^^^^^^
+...
+20 |     fn signature(&self, absolute: u32) -> Option<SignatureView<'_>>;
+   |        ^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: variants `Constructor`, `ScanReset`, `Scan`, `BuildReset`, and `Build` are never constructed
+   --> src/experimental/cache/borrowed.rs:174:5
+    |
+173 | pub(crate) enum CacheStep {
+    |                 --------- variants in this enum
+174 |     Constructor,
+    |     ^^^^^^^^^^^
+175 |     Lookup,
+176 |     ScanReset,
+    |     ^^^^^^^^^
+177 |     Scan,
+    |     ^^^^
+178 |     BuildReset,
+    |     ^^^^^^^^^^
+179 |     Build,
+    |     ^^^^^
+    |
+    = note: `CacheStep` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: associated function `function_entry` is never used
+   --> src/experimental/execution/mod.rs:128:25
+    |
+127 | impl Control {
+    | ------------ associated function in this implementation
+128 |     pub(crate) const fn function_entry(end: usize, height: usize, result: bool) -> Self {
+    |                         ^^^^^^^^^^^^^^
+
+warning: method `test_changed_instructions` is never used
+   --> src/experimental/cache/decode.rs:130:19
+    |
+129 | impl Counts {
+    | ----------- method in this implementation
+130 |     pub(crate) fn test_changed_instructions(mut self) -> Self {
+    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `mixer-vm` (lib test) generated 5 warnings (4 duplicates)
+warning: `mixer-vm` (lib) generated 4 warnings (run `cargo fix --lib -p mixer-vm` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.34s
+     Running unittests src/lib.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/mixer_vm-d9f3cc4e8349ea00)
+
+thread 'ffi::tests::panic_is_contained' (62122794) panicked at src/ffi.rs:385:42:
+test contained panic
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'session::tests::panic_poison_prevents_state_reuse_without_poisoning_registry' (62122799) panicked at src/session.rs:698:17:
+test panic during a session operation
+
+thread 'session::tests::unwound_creation_releases_unpublished_reservation' (62122800) panicked at src/session.rs:726:17:
+test creation failure before publication
+     Running unittests src/main.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/mixer_vm-7eebd85772de49dd)
+     Running tests/capability_ffi_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/capability_ffi_allocations-7eb55dfb44ef95fd)
+     Running tests/capability_ffi_public.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/capability_ffi_public-c926a341bbcf2772)
+     Running tests/capability_registry.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/capability_registry-91fa463e702d27dc)
+     Running tests/cli.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/cli-094356f2d9362985)
+     Running tests/differential.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/differential-72404f1333ee1d02)
+     Running tests/experimental_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/experimental_allocations-aae4d499a1ea4c3d)
+     Running tests/experimental_capability_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/experimental_capability_allocations-2dd4a1d7c80cf206)
+     Running tests/experimental_capability_guest.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/experimental_capability_guest-c3faaed8d3faaa42)
+     Running tests/experimental_capability_guest_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/experimental_capability_guest_allocations-38dd007bce89dcad)
+     Running tests/experimental_capability_mailbox.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/experimental_capability_mailbox-f008421cccb2f8cf)
+     Running tests/experimental_guest_ui_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/experimental_guest_ui_allocations-d14398e2d32fec64)
+     Running tests/experimental_guest_ui_validation.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/experimental_guest_ui_validation-93c5e5c9416151e5)
+     Running tests/experimental_oracle.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/experimental_oracle-42db104731b21a8c)
+     Running tests/experimental_stream.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/experimental_stream-3827ef97596cddc2)
+     Running tests/float.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/float-903eab0b92c2d641)
+     Running tests/float_differential.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/float_differential-6276bb3f5bcba2f4)
+     Running tests/interpreter.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/interpreter-58e65b9ab5e01316)
+     Running tests/review_boundaries.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/review_boundaries-27e79a8f802c9067)
+     Running tests/review_session_lifetime.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/review_session_lifetime-f2634defb1065c27)
+     Running tests/sessions.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/sessions-8ab500b34ed7a447)
+     Running tests/span_control_extraction.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/span_control_extraction-9888c3f62081138a)
+     Running tests/span_execution.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/span_execution-3b733d091473046b)
+     Running tests/span_execution_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/span_execution_allocations-d31264304e538b09)
+     Running tests/span_execution_oracle.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/span_execution_oracle-ca91a4a437c209b7)
+     Running tests/span_function_cache.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/span_function_cache-c8fa1db8c55598bf)
+     Running tests/span_function_cache_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/span_function_cache_allocations-08c72842fc39d710)
+     Running tests/span_numeric_extraction.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/span_numeric_extraction-979243066f3b9f2e)
+     Running tests/swift_reactor_validation.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/swift_reactor_validation-e7a2d36d803c13c1)
+     Running tests/swift_reactor_validation_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/swift_reactor_validation_allocations-554bd56cddd9562e)
+     Running tests/swift_reactor_validation_fixture.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/swift_reactor_validation_fixture-297e02582f3cd24e)
+     Running tests/swift_wasi.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/swift_wasi-f61fe5930fff0ce3)
+     Running tests/swift_wasi_allocations.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/swift_wasi_allocations-96fcfb9900e322a5)
+     Running tests/table_memory.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/table_memory-5889d258d769daf2)
+     Running tests/table_memory_differential.rs (/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-resident-index/owned-scratch/targets/candidate/debug/deps/table_memory_differential-811d8d0ab603e42b)
+   Doc-tests mixer_vm
+error[E0502]: cannot borrow `cache` as mutable because it is also borrowed as immutable
+   --> src/experimental/cache/mod.rs:223:13
+    |
+222 | let view = cache.view(&pin).unwrap();
+    |            ----- immutable borrow occurs here
+223 | let other = cache.pin(0, &cancel).unwrap();
+    |             ^^^^^^^^^^^^^^^^^^^^^ mutable borrow occurs here
+224 | println!("{}", view.instructions.len());
+    |                ----------------- immutable borrow later used here
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0502`.
+error[E0594]: cannot assign to data in a `&` reference
+  --> src/experimental/execution/mod.rs:14:42
+   |
+14 | fn modify(instance: &mut SpanInstance) { instance.memory()[0] = 1; }
+   |                                          ^^^^^^^^^^^^^^^^^^^^^^^^ cannot assign
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0594`.
+error[E0599]: no method named `pin` found for struct `CacheUsage` in the current scope
+  --> src/experimental/execution/mod.rs:18:71
+   |
+18 | fn take(instance: &mut SpanInstance) { let _ = instance.cache_usage().pin(0); }
+   |                                                                       ^^^ method not found in `CacheUsage`
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0599`.
+error[E0308]: mismatched types
+   --> src/experimental/execution/mod.rs:9:27
+    |
+  9 | let _ = SpanInstance::new(b"\0asm\x01\0\0\0", ExecutionBudget::default(), Cancellation::default());
+    |         ----------------- ^^^^^^^^^^^^^^^^^^ expected `FunctionCache`, found `&[u8; 8]`
+    |         |
+    |         arguments to this function are incorrect
+    |
+note: associated function defined here
+   --> src/experimental/execution/mod.rs:190:12
+    |
+190 |     pub fn new(
+    |            ^^^
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0308`.
+error[E0505]: cannot move out of `proof` because it is borrowed
+   --> src/experimental/mod.rs:116:6
+    |
+113 | let proof = validate_spans(b"\0asm\x01\0\0\0", Limits::default(),
+    |     ----- binding `proof` declared here
+114 |     ValidationBudget::default(), &Cancellation::default()).unwrap();
+115 | let bytes = proof.source();
+    |             ----- borrow of `proof` occurs here
+116 | drop(proof);
+    |      ^^^^^ move out of `proof` occurs here
+117 | println!("{}", bytes.len());
+    |                ----- borrow later used here
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0505`.
+error[E0594]: cannot assign to data in a `&` reference
+   --> src/experimental/mod.rs:125:1
+    |
+125 | proof.source()[0] = 1;
+    | ^^^^^^^^^^^^^^^^^^^^^ cannot assign
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0594`.

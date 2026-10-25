@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "scope": "Manual TypeScript setup before first source-bound runtime attempt; transient type narrowing repairs only",
+  "command": [
+    "node",
+    "verification/hosted-worker-pending-terminal-consistency/candidate/build.mjs"
+  ],
+  "attempts": [
+    {
+      "exitCode": 1,
+      "combinedToolOutput": "verification/hosted-worker-pending-terminal-consistency/candidate/src/engine.ts(62,10): error TS18047: 'outbox.terminal' is possibly 'null'.\nverification/hosted-worker-pending-terminal-consistency/candidate/src/engine.ts(62,41): error TS18047: 'outbox.terminal' is possibly 'null'.\n"
+    },
+    {
+      "exitCode": 1,
+      "combinedToolOutput": "verification/hosted-worker-pending-terminal-consistency/candidate/src/engine.ts(62,10): error TS18047: 'terminalOutbox' is possibly 'null'.\nverification/hosted-worker-pending-terminal-consistency/candidate/src/engine.ts(62,40): error TS18047: 'terminalOutbox' is possibly 'null'.\n"
+    },
+    {
+      "exitCode": 0,
+      "combinedToolOutput": ""
+    }
+  ],
+  "repair": "Use existing asserting exact() for nullable terminalOutbox; final source-bound runs capture complete commands/source/output/EOF separately"
+}

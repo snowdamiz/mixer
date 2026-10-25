@@ -12,6 +12,119 @@ use std::mem::{size_of, take};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 const PATCH_CAPACITY: usize = 512;
+const RESIDENT_BUCKETS: usize = 128;
+const RESIDENT_LINKS: usize = 64;
+const RESIDENT_INDEX_BYTES: usize = RESIDENT_BUCKETS + RESIDENT_LINKS;
+
+pub(crate) struct SwiftScratch<'a> {
+    patches: &'a mut [decode::Patch],
+    index: &'a mut [u8],
+}
+// Original fixed hash. The key always remains the actual decoded slot value.
+fn resident_bucket(function: u32) -> usize {
+    (function.wrapping_mul(0x9e37_79b9) >> 25) as usize
+}
+struct ResidentMatch {
+    slot: usize,
+    link_cell: usize,
+    next: u8,
+}
+// Every named scalar/borrow in the bounded helper chain has disjoint modeled
+// storage, in addition to the actual owner and generic caller inventories.
+struct ResidentIndexInventory {
+    function: u32,
+    bucket: usize,
+    link_cell: usize,
+    node: u8,
+    slot: usize,
+    next: u8,
+    seen: u64,
+    bit: u64,
+    visited: std::ops::Range<usize>,
+    hit: Option<ResidentMatch>,
+    found: ResidentMatch,
+    index: &'static [u8],
+    mutable_index: &'static mut [u8],
+    slots: &'static [SwiftSlot],
+    entry: &'static DecodedFunction,
+    scratch: &'static mut SwiftScratch<'static>,
+    meter: &'static mut SwiftMeter<'static, 'static>,
+    lookup_return: Result<Option<ResidentMatch>, SwiftRunFailure>,
+    insert_remove_return: Result<(), SwiftRunFailure>,
+    match_option: Option<ResidentMatch>,
+    index_reborrow: &'static mut [u8],
+    slots_reborrow: &'static [SwiftSlot],
+    meter_reborrow: &'static mut SwiftMeter<'static, 'static>,
+}
+fn resident_find(
+    index: &[u8],
+    slots: &[SwiftSlot],
+    function: u32,
+    meter: &mut SwiftMeter<'_, '_>,
+) -> Result<Option<ResidentMatch>, SwiftRunFailure> {
+    if index.len() != RESIDENT_INDEX_BYTES || slots.len() > RESIDENT_LINKS {
+        return Err(meter.error(
+            CacheFailureKind::DecoderMismatch,
+            "swift_cache_index_layout",
+        ));
+    }
+    meter.work(1)?; // requested-key hash
+    let bucket = resident_bucket(function);
+    meter.work(1)?; // head read
+    let mut link_cell = bucket;
+    let mut node = index[link_cell];
+    let mut seen = 0u64;
+    let mut hit = None;
+    for _ in 0..RESIDENT_LINKS {
+        if node == 0 {
+            return Ok(hit);
+        }
+        meter.work(1)?; // encoded-link/slot and cycle validation
+        let slot = usize::from(node - 1);
+        if slot >= slots.len() {
+            return Err(meter.error(CacheFailureKind::DecoderMismatch, "swift_cache_index_slot"));
+        }
+        let bit = 1u64 << slot;
+        if seen & bit != 0 {
+            return Err(meter.error(CacheFailureKind::DecoderMismatch, "swift_cache_index_cycle"));
+        }
+        seen |= bit;
+        meter.work(1)?; // actual resident-key probe
+        let entry = slots[slot].entry().ok_or_else(|| {
+            meter.error(CacheFailureKind::DecoderMismatch, "swift_cache_index_empty")
+        })?;
+        meter.work(1)?; // actual key hash validation, never trust the index alone
+        if resident_bucket(entry.function) != bucket {
+            return Err(meter.error(
+                CacheFailureKind::DecoderMismatch,
+                "swift_cache_index_bucket",
+            ));
+        }
+        meter.work(1)?; // next-link read
+        let next = index[RESIDENT_BUCKETS + slot];
+        if entry.function == function {
+            if hit.is_some() {
+                return Err(meter.error(
+                    CacheFailureKind::DecoderMismatch,
+                    "swift_cache_index_duplicate",
+                ));
+            }
+            hit = Some(ResidentMatch {
+                slot,
+                link_cell,
+                next,
+            });
+        }
+        link_cell = RESIDENT_BUCKETS + slot;
+        node = next;
+    }
+    // An exactly64-node chain ending here is valid; any further link fails.
+    if node == 0 {
+        Ok(hit)
+    } else {
+        Err(meter.error(CacheFailureKind::DecoderMismatch, "swift_cache_index_cycle"))
+    }
+}
 static NEXT_OWNER: AtomicU64 = AtomicU64::new(1);
 // The same checked increment and orderings are used by the production owner
 // allocator and the isolated test counter. The global counter is never seeded.
@@ -130,7 +243,8 @@ pub(crate) struct SwiftFunctionCache {
     slots: Vec<SwiftSlot>,
     pins: Vec<PinRecord>,
     patches: Vec<decode::Patch>,
-    buffers: [Option<ReservationTicket>; 3],
+    index: Vec<u8>,
+    buffers: [Option<ReservationTicket>; 4],
     header: Option<ReservationTicket>,
 }
 /// A wrapper exists only after the existing construction ticket is enlarged.
@@ -168,7 +282,8 @@ struct Partial {
     slots: Vec<SwiftSlot>,
     pins: Vec<PinRecord>,
     patches: Vec<decode::Patch>,
-    buffers: [Option<ReservationTicket>; 3],
+    index: Vec<u8>,
+    buffers: [Option<ReservationTicket>; 4],
     header: Option<ReservationTicket>,
 }
 impl Partial {
@@ -178,6 +293,7 @@ impl Partial {
             slots: Vec::new(),
             pins: Vec::new(),
             patches: Vec::new(),
+            index: Vec::new(),
             buffers: std::array::from_fn(|_| None),
             header: None,
         }
@@ -191,6 +307,9 @@ impl Partial {
         }
         if let Some(ticket) = self.buffers[2].take() {
             let _ = control.drop_reserved(take(&mut self.patches), ticket);
+        }
+        if let Some(ticket) = self.buffers[3].take() {
+            let _ = control.drop_reserved(take(&mut self.index), ticket);
         }
         if let Some(adopted) = self.adopted.take() {
             let observation = control.observation();
@@ -281,6 +400,10 @@ struct ConstructionScalarInventory {
     pins_range: std::ops::Range<usize>,
     patches_range: std::ops::Range<usize>,
     buffers_range: std::ops::Range<usize>,
+    index_range: std::ops::Range<usize>,
+    index: &'static mut Vec<u8>,
+    reserve_index_values: &'static mut Vec<u8>,
+    reserve_index_control: &'static mut CacheControl<'static>,
     control: &'static mut RuntimeControl,
     wasi: Option<&'static AccountedWasi>,
     adopted: &'static AdoptedProof,
@@ -389,15 +512,15 @@ struct OperationBorrowChainInventory {
     mode_meter_operation: &'static mut CacheControl<'static>,
     mode_scan_snapshot: &'static ValidatedSwiftReactor,
     mode_scan_body: FunctionSpanView<'static>,
-    mode_scan_scratch: &'static mut &'static mut [decode::Patch],
+    mode_scan_scratch: &'static mut SwiftScratch<'static>,
     mode_scan_meter: &'static mut SwiftMeter<'static, 'static>,
     mode_build_snapshot: &'static ValidatedSwiftReactor,
     mode_build_body: FunctionSpanView<'static>,
-    mode_build_scratch: &'static mut &'static mut [decode::Patch],
+    mode_build_scratch: &'static mut SwiftScratch<'static>,
     mode_build_meter: &'static mut SwiftMeter<'static, 'static>,
     build_payload_snapshot: &'static ValidatedSwiftReactor,
     build_payload_body: FunctionSpanView<'static>,
-    build_payload_scratch: &'static mut &'static mut [decode::Patch],
+    build_payload_scratch: &'static mut SwiftScratch<'static>,
     build_payload_meter: &'static mut SwiftMeter<'static, 'static>,
     decode_scan_body: &'static [u8],
     decode_scan_policy: &'static SwiftPolicy<'static>,
@@ -494,6 +617,10 @@ struct PermanentScalarInventory {
     pins_iter: std::slice::IterMut<'static, PinRecord>,
     slots_iter: std::slice::IterMut<'static, SwiftSlot>,
     buffers_range: std::ops::Range<usize>,
+    index_range: std::ops::Range<usize>,
+    index: &'static mut Vec<u8>,
+    reserve_index_values: &'static mut Vec<u8>,
+    reserve_index_control: &'static mut CacheControl<'static>,
     buffer_index: usize,
     bytes: usize,
     last_pin: bool,
@@ -935,6 +1062,8 @@ const fn compute_cache_cleanup_temporary_bytes() -> Option<usize> {
         (4, size_of::<Vec<SwiftSlot>>()),
         (4, size_of::<Vec<PinRecord>>()),
         (4, size_of::<Vec<decode::Patch>>()),
+        (4, size_of::<Vec<u8>>()),
+        (3, size_of::<SwiftScratch<'static>>()),
         (6, size_of::<Option<ReservationTicket>>()),
         (6, size_of::<ReservationTicket>()),
         (3, size_of::<CacheControl<'static>>()),
@@ -1014,6 +1143,9 @@ const fn compute_cache_construction_bytes() -> Option<usize> {
         (3, size_of::<Vec<SwiftSlot>>()),
         (3, size_of::<Vec<PinRecord>>()),
         (3, size_of::<Vec<decode::Patch>>()),
+        (3, size_of::<Vec<u8>>()),
+        (4, size_of::<Option<ReservationTicket>>()),
+        (4, size_of::<ReservationTicket>()),
     ])
 }
 const fn compute_cache_operation_bytes() -> Option<usize> {
@@ -1032,6 +1164,10 @@ const fn compute_cache_operation_bytes() -> Option<usize> {
             size_of::<Result<(), std::collections::TryReserveError>>()
         ),
         (3, size_of::<OperationScalarInventory>()),
+        (3, size_of::<ResidentIndexInventory>()),
+        (3, size_of::<SwiftScratch<'static>>()),
+        (3, size_of::<ResidentMatch>()),
+        (3, size_of::<Option<ResidentMatch>>()),
         (3, size_of::<OperationBorrowChainInventory>()),
         (3, size_of::<(&'static SwiftPolicy<'static>,)>()),
         (3, size_of::<Option<FunctionSpanView<'static>>>()),
@@ -1412,7 +1548,10 @@ impl SwiftFunctionCache {
                 owner: self.owner,
                 next_nonce: &mut self.next_nonce,
                 usage: &mut self.usage,
-                scratch: &mut self.patches,
+                scratch: SwiftScratch {
+                    patches: &mut self.patches,
+                    index: &mut self.index,
+                },
             },
             pin,
             &mut operation,
@@ -1500,6 +1639,16 @@ impl SwiftFunctionCache {
                 &mut failure,
                 control.drop_reserved_with_wasi(
                     take(&mut cache.patches),
+                    ticket,
+                    wasi.map(AccountedWasi::usage),
+                ),
+            );
+        }
+        if let Some(ticket) = cache.buffers[3].take() {
+            capture(
+                &mut failure,
+                control.drop_reserved_with_wasi(
+                    take(&mut cache.index),
                     ticket,
                     wasi.map(AccountedWasi::usage),
                 ),
@@ -1604,6 +1753,7 @@ impl CacheConstructionPhase<'_> {
                 slots: take(&mut partial.slots),
                 pins: take(&mut partial.pins),
                 patches: take(&mut partial.patches),
+                index: take(&mut partial.index),
                 buffers: std::mem::replace(&mut partial.buffers, std::array::from_fn(|_| None)),
                 header: partial.header.take(),
             }),
@@ -1674,6 +1824,12 @@ impl CacheConstructionPhase<'_> {
             self.control.work(1)?;
             partial.patches.push(decode::EMPTY_PATCH);
         }
+        partial.buffers[3] = Some(self.control.admit(RESIDENT_INDEX_BYTES)?);
+        reserve(&mut partial.index, RESIDENT_INDEX_BYTES, &mut self.control)?;
+        for _ in 0..RESIDENT_INDEX_BYTES {
+            self.control.work(1)?;
+            partial.index.push(0);
+        }
         self.control.check()?;
         let owner = next_owner().map_err(|_| {
             self.control.error(
@@ -1684,7 +1840,8 @@ impl CacheConstructionPhase<'_> {
         let fixed_reserved = header
             + entries * size_of::<SwiftSlot>()
             + budget.active_pins * size_of::<PinRecord>()
-            + PATCH_CAPACITY * size_of::<decode::Patch>();
+            + PATCH_CAPACITY * size_of::<decode::Patch>()
+            + RESIDENT_INDEX_BYTES;
         Ok((
             owner,
             SwiftCacheUsage {
@@ -1736,7 +1893,10 @@ impl CacheOperationPhase<'_> {
                 owner: cache.owner,
                 next_nonce: &mut cache.next_nonce,
                 usage: &mut cache.usage,
-                scratch: &mut cache.patches,
+                scratch: SwiftScratch {
+                    patches: &mut cache.patches,
+                    index: &mut cache.index,
+                },
             },
             function,
             &mut self.control,
@@ -1902,7 +2062,7 @@ impl CacheMode for SwiftMode {
         = SwiftMeter<'a, 'op>
     where
         'op: 'a;
-    type Scratch<'a> = &'a mut [decode::Patch];
+    type Scratch<'a> = SwiftScratch<'a>;
     fn meter<'a, 'op>(
         usage: &'a mut SwiftCacheUsage,
         operation: &'a mut CacheControl<'op>,
@@ -1918,15 +2078,86 @@ impl CacheMode for SwiftMode {
         };
         SwiftMeter { operation, usage }
     }
+    fn resident_lookup(
+        slots: &[SwiftSlot],
+        scratch: &mut SwiftScratch<'_>,
+        function: u32,
+        meter: &mut SwiftMeter<'_, '_>,
+    ) -> Result<Option<usize>, SwiftRunFailure> {
+        Ok(resident_find(scratch.index, slots, function, meter)?.map(|found| found.slot))
+    }
+    fn resident_remove(
+        slots: &[SwiftSlot],
+        scratch: &mut SwiftScratch<'_>,
+        slot: usize,
+        meter: &mut SwiftMeter<'_, '_>,
+    ) -> Result<(), SwiftRunFailure> {
+        meter.work(1)?; // victim-key probe
+        let function = slots
+            .get(slot)
+            .and_then(CacheSlot::entry)
+            .ok_or_else(|| {
+                meter.error(
+                    CacheFailureKind::DecoderMismatch,
+                    "swift_cache_index_victim",
+                )
+            })?
+            .function;
+        let found = resident_find(scratch.index, slots, function, meter)?
+            .filter(|found| found.slot == slot)
+            .ok_or_else(|| {
+                meter.error(
+                    CacheFailureKind::DecoderMismatch,
+                    "swift_cache_index_missing",
+                )
+            })?;
+        // One complete link mutation is admitted before either write.
+        meter.work(2)?;
+        scratch.index[found.link_cell] = found.next;
+        scratch.index[RESIDENT_BUCKETS + slot] = 0;
+        Ok(())
+    }
+    fn resident_insert(
+        slots: &[SwiftSlot],
+        scratch: &mut SwiftScratch<'_>,
+        function: u32,
+        slot: usize,
+        meter: &mut SwiftMeter<'_, '_>,
+    ) -> Result<(), SwiftRunFailure> {
+        if resident_find(scratch.index, slots, function, meter)?.is_some() {
+            return Err(meter.error(
+                CacheFailureKind::DecoderMismatch,
+                "swift_cache_index_duplicate",
+            ));
+        }
+        meter.work(2)?; // separate resident-slot probe and next-link validation
+        if slot >= slots.len()
+            || slots[slot].entry().is_some()
+            || scratch.index[RESIDENT_BUCKETS + slot] != 0
+        {
+            return Err(meter.error(
+                CacheFailureKind::DecoderMismatch,
+                "swift_cache_index_insert",
+            ));
+        }
+        meter.work(1)?; // insertion hash
+        let bucket = resident_bucket(function);
+        meter.work(1)?; // head read for new link
+        let next = scratch.index[bucket];
+        meter.work(2)?; // admit both link writes before infallible publication
+        scratch.index[RESIDENT_BUCKETS + slot] = next;
+        scratch.index[bucket] = (slot + 1) as u8;
+        Ok(())
+    }
     fn scan(
         snapshot: &ValidatedSwiftReactor,
         body: FunctionSpanView<'_>,
-        scratch: &mut &mut [decode::Patch],
+        scratch: &mut SwiftScratch<'_>,
         meter: &mut SwiftMeter<'_, '_>,
     ) -> Result<decode::Counts, SwiftRunFailure> {
         let policy = policy(snapshot, body, meter)?;
         meter.step(CacheStep::ScanReset);
-        reset(scratch, meter)?;
+        reset(scratch.patches, meter)?;
         meter.step(CacheStep::Scan);
         let mut depth = 0;
         let mut counts = decode::Counts::default();
@@ -1936,7 +2167,7 @@ impl CacheMode for SwiftMode {
             &policy,
             meter,
             decode::PassParts {
-                controls: scratch,
+                controls: scratch.patches,
                 depth: &mut depth,
                 counts: &mut counts,
             },
@@ -1947,7 +2178,7 @@ impl CacheMode for SwiftMode {
         snapshot: &ValidatedSwiftReactor,
         body: FunctionSpanView<'_>,
         counts: decode::Counts,
-        scratch: &mut &mut [decode::Patch],
+        scratch: &mut SwiftScratch<'_>,
         meter: &mut SwiftMeter<'_, '_>,
     ) -> Result<SwiftResident, SwiftRunFailure> {
         let bytes = counts.bytes(meter)?;
@@ -1991,12 +2222,12 @@ impl SwiftMode {
         snapshot: &ValidatedSwiftReactor,
         body: FunctionSpanView<'_>,
         counts: decode::Counts,
-        scratch: &mut &mut [decode::Patch],
+        scratch: &mut SwiftScratch<'_>,
         meter: &mut SwiftMeter<'_, '_>,
     ) -> Result<DecodedFunction, SwiftRunFailure> {
         let policy = policy(snapshot, body, meter)?;
         meter.step(CacheStep::BuildReset);
-        reset(scratch, meter)?;
+        reset(scratch.patches, meter)?;
         meter.step(CacheStep::Build);
         let mut depth = 0;
         let mut actual = decode::Counts::default();
@@ -2009,7 +2240,7 @@ impl SwiftMode {
             counts,
             meter,
             decode::PassParts {
-                controls: scratch,
+                controls: scratch.patches,
                 depth: &mut depth,
                 counts: &mut actual,
             },
@@ -2041,6 +2272,12 @@ fn test_step(step: CacheStep) {
 pub(super) mod inspection {
     use super::*;
     // Test-only snapshots of the actual owner, never stored in production state.
+    pub fn resident_index(cache: &SwiftFunctionCache) -> &[u8] {
+        &cache.index
+    }
+    pub fn corrupt_index(cache: &mut SwiftFunctionCache, cell: usize, value: u8) {
+        cache.index[cell] = value;
+    }
     pub fn elision_pin_parts(pin: &SwiftFunctionPin) -> [u64; 2] {
         [pin.slot as u64, pin.nonce]
     }
@@ -2219,7 +2456,10 @@ pub(super) mod inspection {
         let counts = SwiftMode::scan(
             cache.adopted.proof(),
             body,
-            &mut cache.patches.as_mut_slice(),
+            &mut SwiftScratch {
+                patches: &mut cache.patches,
+                index: &mut cache.index,
+            },
             &mut meter,
         )
         .unwrap();
@@ -2227,7 +2467,10 @@ pub(super) mod inspection {
             cache.adopted.proof(),
             body,
             counts.test_changed_instructions(),
-            &mut cache.patches.as_mut_slice(),
+            &mut SwiftScratch {
+                patches: &mut cache.patches,
+                index: &mut cache.index,
+            },
             &mut meter,
         );
         let failure = result.err().expect("internal mismatch must fail");
@@ -2342,6 +2585,10 @@ pub(super) mod inspection {
         row!(Result<Option<WasiUsage>, SwiftRunFailure>);
         row!(Option<Result<WasiUsage, SwiftRunFailure>>);
         row!(Result<WasiUsage, SwiftRunFailure>);
+        row!(ResidentIndexInventory);
+        row!(ResidentMatch);
+        row!(SwiftScratch<'static>);
+        row!(Vec<u8>);
         row!(PermanentScalarInventory);
         row!(PermanentBorrowChainInventory);
         row!(Option<PinRecord>);
@@ -3016,7 +3263,7 @@ pub(super) mod inspection {
         field!(
             OperationBorrowChainInventory,
             mode_scan_scratch,
-            &'static mut &'static mut [decode::Patch]
+            &'static mut SwiftScratch<'static>
         );
         field!(
             OperationBorrowChainInventory,
@@ -3036,7 +3283,7 @@ pub(super) mod inspection {
         field!(
             OperationBorrowChainInventory,
             mode_build_scratch,
-            &'static mut &'static mut [decode::Patch]
+            &'static mut SwiftScratch<'static>
         );
         field!(
             OperationBorrowChainInventory,
@@ -3056,7 +3303,7 @@ pub(super) mod inspection {
         field!(
             OperationBorrowChainInventory,
             build_payload_scratch,
-            &'static mut &'static mut [decode::Patch]
+            &'static mut SwiftScratch<'static>
         );
         field!(
             OperationBorrowChainInventory,

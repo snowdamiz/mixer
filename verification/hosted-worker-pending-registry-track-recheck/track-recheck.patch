@@ -1,0 +1,119 @@
+--- a/hosted-worker-controller/src/engine.ts
++++ b/hosted-worker-controller/src/engine.ts
+@@ -32,21 +32,46 @@
+     // Delivery-only ack/outbox metadata may advance without changing authority.
+     return JSON.stringify([r.operation_id,r.binding,r.binding_hash,r.request_json,r.epoch,r.revision,r.owner,r.expiry_us,r.clock_lower,r.clock_upper,r.clock_qualification,r.clock_floor,r.provider_kind,r.provider_key,r.pending_identity_json,r.registration_json,r.claim_state,r.claim_id,r.instance_id,r.boot_id,r.claim_barrier_version,r.phase,r.effect_id,r.effect_kind,r.effect_request_json,r.effect_state,r.effect_barrier_version,r.launch_dispatched]);
+   }
++  private trackSnapshotValid(current:Row|null,snapshot:Row,identity:PendingIdentity,bytes:string,mode:'start'|'ack'):boolean{
++    const identityBytesFixed=identityBytes(identity);
++    if(!current){this.ledger.fence(identityBytesFixed,snapshot.state_version,'track_missing_row');return false;}
++    if(!this.providerMatches(current)){this.providerFenceInTransaction(current);return false;}
++    if(this.ledger.fenced()||current.quarantined)return false;
++    if(!retained(this.pending,current)||!matchesRow(identity,current)||current.operation_id!==snapshot.operation_id||current.binding!==snapshot.binding||current.binding_hash!==snapshot.binding_hash||current.provider_kind!==snapshot.provider_kind||current.provider_key!==snapshot.provider_key||current.pending_identity_json!==snapshot.pending_identity_json||current.registration_json!==snapshot.registration_json){
++      this.ledger.fence(identityBytesFixed,current.state_version,'track_binding_changed');return false;
++    }
++    if(BigInt(current.state_version)<BigInt(snapshot.state_version)||BigInt(current.registry_ack_version)>BigInt(current.state_version)){
++      this.ledger.fence(identityBytesFixed,snapshot.state_version,'track_history_regressed');return false;
++    }
++    // Admitted terminal evidence is permanent. Pending -> terminal at a newer
++    // version is normal concurrent progress; rewriting a terminal is not.
++    if(snapshot.terminal_json!==null&&(current.terminal_json!==snapshot.terminal_json||current.phase!==snapshot.phase)){
++      this.ledger.fence(identityBytesFixed,current.state_version,'track_terminal_changed');return false;
++    }
++    if(current.state_version===snapshot.state_version&&(current.track_outbox_json!==bytes||current.terminal_json!==snapshot.terminal_json)){
++      const alreadyAcked=current.track_outbox_json===null&&current.terminal_json===snapshot.terminal_json&&BigInt(current.registry_ack_version)>=BigInt(snapshot.state_version);
++      if(!alreadyAcked){this.ledger.fence(identityBytesFixed,current.state_version,'track_projection_changed');return false;}
++      if(mode==='start')return false;
++    }
++    return mode==='ack'||current.state_version===snapshot.state_version&&current.track_outbox_json===bytes;
++  }
+   // A single coalesced snapshot is attempted once. Out-of-order acknowledgement
+   // may advance exact delivery metadata, but cannot erase a newer projection.
+   async flushTrack():Promise<boolean>{
+     const snapshot=this.ledger.read();if(!snapshot)return false;
+     if(!this.providerMatches(snapshot)){this.fence(this.fenceIdentity(snapshot),snapshot.state_version,'provider_binding_conflict');await this.ledger.sync();return false;}
+-    if(!snapshot.track_outbox_json)return !!snapshot.registration_json;
++    if(this.ledger.fenced()||snapshot.quarantined)return false;
+     if(!retained(this.pending,snapshot)){
+       if(snapshot.registration_json&&this.pending){this.fence(identityBytes(this.pending.identity),snapshot.state_version,'retained_binding_conflict');await this.ledger.sync();}
+       return false;
+     }
++    if(!snapshot.track_outbox_json)return true;
+     const bytes=snapshot.track_outbox_json;
+     let checked:Awaited<ReturnType<typeof checkedContext>>;
+     try{checked=await this.checked(JSON.parse(snapshot.pending_identity_json!),JSON.parse(snapshot.registration_json!));}
+     catch{this.fence(identityBytes(this.pending!.identity),snapshot.state_version,'retained_receipt_invalid');await this.ledger.sync();return false;}
+     try{
++      if(await sha(snapshot.binding)!==checked.identity.immutableSha256){this.fence(checked.bytes,snapshot.state_version,'track_binding_digest');await this.ledger.sync();return false;}
+       const outbox=JSON.parse(bytes) as CoalescedTrackOutbox;
+       registryExact(outbox,['stateVersion','nextDueUs','terminal']);registryDecimal(outbox.stateVersion);
+       if(outbox.stateVersion!==snapshot.state_version)throw new Error('outbox_version');
+@@ -57,24 +82,33 @@
+         projection={kind:'terminal',nextDueUs:null,phase:outbox.terminal.phase,evidenceSha256:await sha(outbox.terminal.exactJson)};
+       }else{if(outbox.nextDueUs!==null)registryDecimal(outbox.nextDueUs);projection={kind:'pending',nextDueUs:outbox.nextDueUs};}
+       await this.hooks.point('before_track');
+-      const current=this.ledger.read();
+-      if(!current||current.state_version!==outbox.stateVersion||current.track_outbox_json!==bytes||current.registration_json!==snapshot.registration_json||current.terminal_json!==snapshot.terminal_json)return false;
++      const ready=this.ledger.transaction(current=>this.trackSnapshotValid(current,snapshot,checked.identity,bytes,'start'));
++      if(!ready){await this.ledger.sync();return false;}
++      // No await between this final synchronous guard and RPC invocation.
+       const call=await wait(this.registry().track({receipt:checked.receipt,stateVersion:outbox.stateVersion,projection}),250);
+-      if(!call.ok)return false;
++      if(!call.ok){this.ledger.transaction(current=>this.trackSnapshotValid(current,snapshot,checked.identity,bytes,'ack'));await this.ledger.sync();return false;}
+       const ack=call.value;
+       if(ack.status==='accepted'||ack.status==='duplicate'||ack.status==='stale'){
+         registryExact(ack,['status','stateVersion']);registryDecimal(ack.stateVersion);
+-        const latest=this.ledger.read();if(!latest)return false;
+-        if(latest.registration_json!==snapshot.registration_json||latest.pending_identity_json!==snapshot.pending_identity_json){this.fence(checked.bytes,latest.state_version,'ack_binding_changed');await this.ledger.sync();return false;}
+-        if(BigInt(ack.stateVersion)>BigInt(latest.state_version)){this.fence(checked.bytes,ack.stateVersion,'registry_ahead');await this.ledger.sync();return false;}
+-        if(ack.status==='stale')return false;
+-        if(ack.stateVersion!==outbox.stateVersion)throw new Error('ack_version');
+-        const clear=this.ledger.acknowledge(ack.stateVersion,bytes);await this.ledger.sync();
+-        return clear&&this.ledger.read()?.track_outbox_json===null;
++        if(ack.status!=='stale'&&ack.stateVersion!==outbox.stateVersion)throw new Error('ack_version');
++        const valid=(current:Row|null):boolean=>{
++          if(!this.trackSnapshotValid(current,snapshot,checked.identity,bytes,'ack'))return false;
++          if(BigInt(ack.stateVersion)>BigInt(current!.state_version)){this.ledger.fence(checked.bytes,ack.stateVersion,'registry_ahead');return false;}
++          return true;
++        };
++        if(ack.status==='stale'){this.ledger.transaction(valid);await this.ledger.sync();return false;}
++        const clear=this.ledger.acknowledge(ack.stateVersion,bytes,valid);await this.ledger.sync();
++        // Local sync can yield too. Do not return success under a newly restored
++        // provider/identity/fence even if the earlier ACK transaction was valid.
++        const final=this.ledger.transaction(current=>({valid:valid(current),empty:current?.track_outbox_json===null}));
++        return clear&&final.valid&&final.empty;
+       }
+       registryExact(ack,['status']);
+-      if(ack.status==='conflict'){this.fence(checked.bytes,outbox.stateVersion,'track_conflict');await this.ledger.sync();}
+-      return false;
++      this.ledger.transaction(current=>{
++        if(!this.trackSnapshotValid(current,snapshot,checked.identity,bytes,'ack'))return;
++        if(ack.status==='conflict')this.ledger.fence(checked.bytes,outbox.stateVersion,'track_conflict');
++      });
++      await this.ledger.sync();return false;
+     }catch{return false;}
+   }
+   // This private API is called only after the authenticated top-level entry has
+--- a/hosted-worker-controller/src/ledger.ts
++++ b/hosted-worker-controller/src/ledger.ts
+@@ -78,11 +78,17 @@
+     // Permanent bounded fence, including when no operation row exists. The first
+     // disagreement remains diagnostic; this cannot synthesize execution authority.
+     this.storage.sql.exec("INSERT OR IGNORE INTO registry_quarantine(singleton,identity_bytes,observed_version,reason) VALUES(1,?,?,?)",identityBytes,version,reason);
+-    const r=this.read();if(r&&!r.quarantined){r.quarantined=1;this.save(r,"registry_quarantine");}
++    const r=this.read();
++    // The independent fence is permanent even after operation versions exhaust.
++    // At MAX do not mutate the row, wrap/reset a version or manufacture an
++    // unversioned outbox. Every authority path must honor the separate fence.
++    if(r&&!r.quarantined&&BigInt(r.state_version)<MAX){r.quarantined=1;this.save(r,"registry_quarantine");}
+   }
+-  acknowledge(version:string,outbox:string):boolean{
++  acknowledge(version:string,outbox:string,validate:(r:Row|null)=>boolean):boolean{
+     return this.transaction(r=>{
+-      if(!r)return false;
++      // The caller's authority/identity guard and delivery update share this
++      // transaction. No await or separately read row may intervene.
++      if(!validate(r)||!r)return false;
+       if(BigInt(version)>BigInt(r.state_version))throw new Error("registry_ahead");
+       // Delivery metadata has no state-version transition and cannot recursively
+       // enqueue its own acknowledgement. Only the exact sent bytes can clear.

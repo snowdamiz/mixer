@@ -438,6 +438,40 @@ pub(crate) trait CacheMode: sealed::Mode {
     ) -> Self::Meter<'a, 'op>
     where
         'op: 'a;
+    // Defaults deliberately preserve the literal frozen lookup and work trace.
+    fn resident_lookup(
+        slots: &[Self::Slot],
+        _: &mut Self::Scratch<'_>,
+        function: u32,
+        meter: &mut Self::Meter<'_, '_>,
+    ) -> Result<Option<usize>, Self::Failure> {
+        let mut hit = None;
+        for (index, slot) in slots.iter().enumerate() {
+            meter.work(1)?;
+            if slot.entry().is_some_and(|e| e.function == function) {
+                hit = Some(index);
+                break;
+            }
+        }
+        Ok(hit)
+    }
+    fn resident_remove(
+        _: &[Self::Slot],
+        _: &mut Self::Scratch<'_>,
+        _: usize,
+        _: &mut Self::Meter<'_, '_>,
+    ) -> Result<(), Self::Failure> {
+        Ok(())
+    }
+    fn resident_insert(
+        _: &[Self::Slot],
+        _: &mut Self::Scratch<'_>,
+        _: u32,
+        _: usize,
+        _: &mut Self::Meter<'_, '_>,
+    ) -> Result<(), Self::Failure> {
+        Ok(())
+    }
     fn scan(
         snapshot: &Self::Snapshot,
         body: FunctionSpanView<'_>,
@@ -736,14 +770,7 @@ fn pin_acquired<M: CacheMode>(
     nonce: u64,
 ) -> Result<M::Pin, M::Failure> {
     let function = defined.absolute_index;
-    let mut hit = None;
-    for (index, slot) in parts.slots.iter().enumerate() {
-        meter.work(1)?;
-        if slot.entry().is_some_and(|e| e.function == function) {
-            hit = Some(index);
-            break;
-        }
-    }
+    let hit = M::resident_lookup(parts.slots, &mut parts.scratch, function, meter)?;
     let index = if let Some(index) = hit {
         meter.check()?;
         let hits = meter
@@ -817,6 +844,7 @@ fn pin_acquired<M: CacheMode>(
         for (index, selected) in plan.iter().enumerate().take(parts.slots.len()) {
             if *selected {
                 let bytes = parts.slots[index].entry().expect("planned entry").bytes;
+                M::resident_remove(parts.slots, &mut parts.scratch, index, meter)?;
                 let old = parts.slots[index].take().expect("planned entry");
                 M::drop_entry(old, meter)?;
                 meter.usage_mut().evicted(bytes);
@@ -839,6 +867,15 @@ fn pin_acquired<M: CacheMode>(
             let _ = meter.construction(0);
             return Err(error);
         }
+        if let Err(error) =
+            M::resident_insert(parts.slots, &mut parts.scratch, function, index, meter)
+        {
+            let _ = M::drop_entry(entry, meter);
+            let _ = meter.construction(0);
+            return Err(error);
+        }
+        // Both hooks precharge their complete mutation; no fallible operation
+        // separates the index update from the infallible slot publication.
         meter.usage_mut().decoded(next_decodes, bytes);
         parts.slots[index].set(entry);
         index

@@ -683,11 +683,11 @@ fn swift_construction_composed_original_proof_six_arenas_and_cleanup() {
         usage.reservations.retained_source.current,
         validation.source_bytes
     );
-    assert_eq!(allocations.allocations, 13);
+    assert_eq!(allocations.allocations, 14);
     assert_eq!(allocations.reallocations, 0);
     let (usage, cleanup) = measure(|| construction_finish(owner));
     assert_eq!(cleanup.allocations + cleanup.reallocations, 0);
-    assert_eq!(cleanup.deallocations, 23); // 13 payloads + 10 adopted/foundation backing allocations.
+    assert_eq!(cleanup.deallocations, 24); // 14 payloads + 10 adopted/foundation backing allocations.
     assert!(usage.reservations.combined.peak > usage.reservations.state.peak);
     println!(
         "construction allocations {} bytes {} cleanup_deallocations {} peak {}",
@@ -741,7 +741,7 @@ fn swift_construction_each_state_capacity_rejects_without_growth() {
             Some(failure.attempted as usize + 1)
         );
         assert_eq!(failure.resource, Some(SwiftRunResource::ExactCapacity));
-        assert_eq!(stats.attempts, 8 + ordinal);
+        assert_eq!(stats.attempts, 9 + ordinal);
         assert_eq!(stats.reallocations, 0);
         assert_eq!(
             failure.after_cleanup.unwrap().reservations.combined.current,
@@ -767,7 +767,7 @@ fn swift_construction_zero_stack_capacities_and_memory_minimum() {
         state.frames.capacity() + state.values.capacity() + state.controls.capacity(),
         0
     );
-    assert_eq!(stats.allocations, 10);
+    assert_eq!(stats.allocations, 11);
     construction_finish(owner);
     let pair = construction_adopt(SwiftRunBudget {
         memory_pages: 583,
@@ -776,7 +776,7 @@ fn swift_construction_zero_stack_capacities_and_memory_minimum() {
     let (failure, stats) = measure(|| construct_failed(pair));
     assert_eq!(failure.code, "swift_execution_memory_minimum");
     assert_eq!((failure.attempted, failure.limit), (584, 583));
-    assert_eq!(stats.allocations, 7); // Cache and WASI only; no State allocation.
+    assert_eq!(stats.allocations, 8); // Cache and WASI only; no State allocation.
     assert_eq!(failure.at_failure.reservations.state.current, 0);
     assert_eq!(
         failure.after_cleanup.unwrap().reservations.combined.current,
@@ -823,7 +823,7 @@ fn swift_construction_category_and_combined_admission_precede_allocation() {
                 ..SwiftRunBudget::default()
             },
             SwiftRunFailureKind::CategoryExhausted,
-            7,
+            8,
         ),
         (
             SwiftRunBudget {
@@ -831,7 +831,7 @@ fn swift_construction_category_and_combined_admission_precede_allocation() {
                 ..SwiftRunBudget::default()
             },
             SwiftRunFailureKind::CombinedExhausted,
-            10,
+            11,
         ),
     ] {
         construction_hooks(ConstructionHooks::default());
@@ -1058,8 +1058,8 @@ fn swift_construction_failed_outer_restore_drains_actual_components() {
     let pair = construction_adopt(SwiftRunBudget::default());
     let (failure, stats) = measure(|| construct_failed(pair));
     assert_eq!(failure.code, "swift_run_construction_phase_bound");
-    assert_eq!(stats.allocations, 13);
-    assert_eq!(stats.deallocations, 23);
+    assert_eq!(stats.allocations, 14);
+    assert_eq!(stats.deallocations, 24);
     let after = failure.after_cleanup.unwrap();
     assert_eq!(after.reservations.state.current, 0);
     assert_eq!(after.reservations.cache.current, 0);
