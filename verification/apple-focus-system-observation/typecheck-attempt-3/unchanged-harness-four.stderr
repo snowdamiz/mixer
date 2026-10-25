@@ -1,0 +1,88 @@
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-system-observation/candidate/accepted/harness/UITests/ToggleUITests.swift:140:18: warning: main actor-isolated static property 'registered' can not be referenced from a nonisolated context
+133 | 
+134 |     private static let observer = CompletionObserver()
+135 |     private static var registered = false
+    |                        `- note: static property declared here
+136 |     private let telemetry = SettingsTelemetry.shared
+137 |     private var now: Double { ProcessInfo.processInfo.systemUptime }
+138 |     override func setUpWithError() throws {
+139 |         continueAfterFailure = true
+140 |         if !Self.registered { XCTestObservationCenter.shared.addTestObserver(Self.observer); Self.registered = true }
+    |                  `- warning: main actor-isolated static property 'registered' can not be referenced from a nonisolated context
+141 |     }
+142 |     override func tearDownWithError() throws { app?.terminate(); app = nil }
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-system-observation/candidate/accepted/harness/UITests/ToggleUITests.swift:140:83: warning: main actor-isolated static property 'observer' can not be referenced from a nonisolated context
+132 |     private var caseName = ""
+133 | 
+134 |     private static let observer = CompletionObserver()
+    |                        `- note: static property declared here
+135 |     private static var registered = false
+136 |     private let telemetry = SettingsTelemetry.shared
+    :
+138 |     override func setUpWithError() throws {
+139 |         continueAfterFailure = true
+140 |         if !Self.registered { XCTestObservationCenter.shared.addTestObserver(Self.observer); Self.registered = true }
+    |                                                                                   `- warning: main actor-isolated static property 'observer' can not be referenced from a nonisolated context
+141 |     }
+142 |     override func tearDownWithError() throws { app?.terminate(); app = nil }
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-system-observation/candidate/accepted/harness/UITests/ToggleUITests.swift:140:99: warning: main actor-isolated static property 'registered' can not be mutated from a nonisolated context
+133 | 
+134 |     private static let observer = CompletionObserver()
+135 |     private static var registered = false
+    |                        `- note: mutation of this static property is only permitted within the actor
+136 |     private let telemetry = SettingsTelemetry.shared
+137 |     private var now: Double { ProcessInfo.processInfo.systemUptime }
+138 |     override func setUpWithError() throws {
+139 |         continueAfterFailure = true
+140 |         if !Self.registered { XCTestObservationCenter.shared.addTestObserver(Self.observer); Self.registered = true }
+    |                                                                                                   `- warning: main actor-isolated static property 'registered' can not be mutated from a nonisolated context
+141 |     }
+142 |     override func tearDownWithError() throws { app?.terminate(); app = nil }
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-system-observation/candidate/accepted/harness/UITests/ToggleUITests.swift:142:53: warning: call to main actor-isolated instance method 'terminate()' in a synchronous nonisolated context [#ActorIsolatedCall]
+140 |         if !Self.registered { XCTestObservationCenter.shared.addTestObserver(Self.observer); Self.registered = true }
+141 |     }
+142 |     override func tearDownWithError() throws { app?.terminate(); app = nil }
+    |                                                     `- warning: call to main actor-isolated instance method 'terminate()' in a synchronous nonisolated context [#ActorIsolatedCall]
+143 | 
+144 |     private func bridge(_ op: String, _ fields: [String: Any] = [:]) throws -> [String: Any] {
+
+XCUIAutomation.XCUIApplication.terminate:2:22: note: calls to instance method 'terminate()' from outside of its actor context are implicitly asynchronous
+1 | class XCUIApplication {
+2 | @MainActor open func terminate()}
+  |                      `- note: calls to instance method 'terminate()' from outside of its actor context are implicitly asynchronous
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-system-observation/candidate/accepted/harness/UITests/ToggleUITests.swift:142:48: warning: main actor-isolated property 'app' can not be referenced from a nonisolated context
+127 | /// Proven public Settings setup followed by the six original keyboard cases.
+128 | @MainActor final class ToggleUITests: XCTestCase {
+129 |     private var app: XCUIApplication?
+    |                 `- note: property declared here
+130 |     private let diagnostic = "dev.mixer.verification.authoredtoggle.diagnostics"
+131 |     private static var settingsReady = false
+    :
+140 |         if !Self.registered { XCTestObservationCenter.shared.addTestObserver(Self.observer); Self.registered = true }
+141 |     }
+142 |     override func tearDownWithError() throws { app?.terminate(); app = nil }
+    |                                                `- warning: main actor-isolated property 'app' can not be referenced from a nonisolated context
+143 | 
+144 |     private func bridge(_ op: String, _ fields: [String: Any] = [:]) throws -> [String: Any] {
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-system-observation/candidate/accepted/harness/UITests/ToggleUITests.swift:142:66: warning: main actor-isolated property 'app' can not be mutated from a nonisolated context
+127 | /// Proven public Settings setup followed by the six original keyboard cases.
+128 | @MainActor final class ToggleUITests: XCTestCase {
+129 |     private var app: XCUIApplication?
+    |                 `- note: mutation of this property is only permitted within the actor
+130 |     private let diagnostic = "dev.mixer.verification.authoredtoggle.diagnostics"
+131 |     private static var settingsReady = false
+    :
+140 |         if !Self.registered { XCTestObservationCenter.shared.addTestObserver(Self.observer); Self.registered = true }
+141 |     }
+142 |     override func tearDownWithError() throws { app?.terminate(); app = nil }
+    |                                                                  `- warning: main actor-isolated property 'app' can not be mutated from a nonisolated context
+143 | 
+144 |     private func bridge(_ op: String, _ fields: [String: Any] = [:]) throws -> [String: Any] {
+
+[#ActorIsolatedCall]: <https://docs.swift.org/compiler/documentation/diagnostics/actor-isolated-call>

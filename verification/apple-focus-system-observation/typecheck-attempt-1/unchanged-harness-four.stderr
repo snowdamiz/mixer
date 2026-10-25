@@ -1,0 +1,120 @@
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-system-observation/candidate/accepted/harness/UITests/ToggleUITests.swift:140:18: warning: main actor-isolated static property 'registered' can not be referenced from a nonisolated context
+133 | 
+134 |     private static let observer = CompletionObserver()
+135 |     private static var registered = false
+    |                        `- note: static property declared here
+136 |     private let telemetry = SettingsTelemetry.shared
+137 |     private var now: Double { ProcessInfo.processInfo.systemUptime }
+138 |     override func setUpWithError() throws {
+139 |         continueAfterFailure = true
+140 |         if !Self.registered { XCTestObservationCenter.shared.addTestObserver(Self.observer); Self.registered = true }
+    |                  `- warning: main actor-isolated static property 'registered' can not be referenced from a nonisolated context
+141 |     }
+142 |     override func tearDownWithError() throws { app?.terminate(); app = nil }
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-system-observation/candidate/accepted/harness/UITests/ToggleUITests.swift:140:83: warning: main actor-isolated static property 'observer' can not be referenced from a nonisolated context
+132 |     private var caseName = ""
+133 | 
+134 |     private static let observer = CompletionObserver()
+    |                        `- note: static property declared here
+135 |     private static var registered = false
+136 |     private let telemetry = SettingsTelemetry.shared
+    :
+138 |     override func setUpWithError() throws {
+139 |         continueAfterFailure = true
+140 |         if !Self.registered { XCTestObservationCenter.shared.addTestObserver(Self.observer); Self.registered = true }
+    |                                                                                   `- warning: main actor-isolated static property 'observer' can not be referenced from a nonisolated context
+141 |     }
+142 |     override func tearDownWithError() throws { app?.terminate(); app = nil }
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-system-observation/candidate/accepted/harness/UITests/ToggleUITests.swift:140:99: warning: main actor-isolated static property 'registered' can not be mutated from a nonisolated context
+133 | 
+134 |     private static let observer = CompletionObserver()
+135 |     private static var registered = false
+    |                        `- note: mutation of this static property is only permitted within the actor
+136 |     private let telemetry = SettingsTelemetry.shared
+137 |     private var now: Double { ProcessInfo.processInfo.systemUptime }
+138 |     override func setUpWithError() throws {
+139 |         continueAfterFailure = true
+140 |         if !Self.registered { XCTestObservationCenter.shared.addTestObserver(Self.observer); Self.registered = true }
+    |                                                                                                   `- warning: main actor-isolated static property 'registered' can not be mutated from a nonisolated context
+141 |     }
+142 |     override func tearDownWithError() throws { app?.terminate(); app = nil }
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-system-observation/candidate/accepted/harness/UITests/ToggleUITests.swift:142:53: warning: call to main actor-isolated instance method 'terminate()' in a synchronous nonisolated context [#ActorIsolatedCall]
+140 |         if !Self.registered { XCTestObservationCenter.shared.addTestObserver(Self.observer); Self.registered = true }
+141 |     }
+142 |     override func tearDownWithError() throws { app?.terminate(); app = nil }
+    |                                                     `- warning: call to main actor-isolated instance method 'terminate()' in a synchronous nonisolated context [#ActorIsolatedCall]
+143 | 
+144 |     private func bridge(_ op: String, _ fields: [String: Any] = [:]) throws -> [String: Any] {
+
+XCUIAutomation.XCUIApplication.terminate:2:22: note: calls to instance method 'terminate()' from outside of its actor context are implicitly asynchronous
+1 | class XCUIApplication {
+2 | @MainActor open func terminate()}
+  |                      `- note: calls to instance method 'terminate()' from outside of its actor context are implicitly asynchronous
+3 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-system-observation/candidate/accepted/harness/UITests/ToggleUITests.swift:142:48: warning: main actor-isolated property 'app' can not be referenced from a nonisolated context
+127 | /// Proven public Settings setup followed by the six original keyboard cases.
+128 | @MainActor final class ToggleUITests: XCTestCase {
+129 |     private var app: XCUIApplication?
+    |                 `- note: property declared here
+130 |     private let diagnostic = "dev.mixer.verification.authoredtoggle.diagnostics"
+131 |     private static var settingsReady = false
+    :
+140 |         if !Self.registered { XCTestObservationCenter.shared.addTestObserver(Self.observer); Self.registered = true }
+141 |     }
+142 |     override func tearDownWithError() throws { app?.terminate(); app = nil }
+    |                                                `- warning: main actor-isolated property 'app' can not be referenced from a nonisolated context
+143 | 
+144 |     private func bridge(_ op: String, _ fields: [String: Any] = [:]) throws -> [String: Any] {
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-system-observation/candidate/accepted/harness/UITests/ToggleUITests.swift:142:66: warning: main actor-isolated property 'app' can not be mutated from a nonisolated context
+127 | /// Proven public Settings setup followed by the six original keyboard cases.
+128 | @MainActor final class ToggleUITests: XCTestCase {
+129 |     private var app: XCUIApplication?
+    |                 `- note: mutation of this property is only permitted within the actor
+130 |     private let diagnostic = "dev.mixer.verification.authoredtoggle.diagnostics"
+131 |     private static var settingsReady = false
+    :
+140 |         if !Self.registered { XCTestObservationCenter.shared.addTestObserver(Self.observer); Self.registered = true }
+141 |     }
+142 |     override func tearDownWithError() throws { app?.terminate(); app = nil }
+    |                                                                  `- warning: main actor-isolated property 'app' can not be mutated from a nonisolated context
+143 | 
+144 |     private func bridge(_ op: String, _ fields: [String: Any] = [:]) throws -> [String: Any] {
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-system-observation/candidate/accepted/harness/UITests/ToggleUITests.swift:334:47: error: cannot find 'XCTSkip' in scope
+332 |     }
+333 |     private func launchCase(_ name: String, initial: Bool) throws -> XCUIApplication {
+334 |         guard Self.settingsReady else { throw XCTSkip("Public Settings setup did not pass; dependent application input remains unrun") }
+    |                                               `- error: cannot find 'XCTSkip' in scope
+335 |         caseName = name
+336 |         let target = XCUIApplication(bundleIdentifier: diagnostic); target.terminate()
+
+/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestSkipping.h:18:9: note: macro 'XCTSkip' unavailable: function like macros not supported
+16 |  * @param ... An optional supplementary description of why the test is being skipped. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+17 | */
+18 | #define XCTSkip(...) \
+   |         `- note: macro 'XCTSkip' unavailable: function like macros not supported
+19 |     _XCTPrimitiveSkip(__VA_ARGS__)
+20 | 
+
+/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-system-observation/candidate/accepted/harness/UITests/ToggleUITests.swift:436:56: error: cannot find 'XCTFail' in scope
+434 |         let result = try bridge("evaluate", ["keyboardWitness": witness, "focusDiagnostic": focusDiagnostic])
+435 |         try jsonAttachment("Strict keyboard verdict " + phase, result)
+436 |         guard result["passed"] as? Bool == true else { XCTFail("Strict native keyboard evidence failed: \(result)"); throw Failure.focus("Strict keyboard verdict failed") }
+    |                                                        `- error: cannot find 'XCTFail' in scope
+437 |         return after
+438 |     }
+
+/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks/XCTest.framework/Headers/XCTestAssertions.h:45:9: note: macro 'XCTFail' unavailable: function like macros not supported
+ 43 |  * @param ... An optional supplementary description of the failure. A literal NSString, optionally with string format specifiers. This parameter can be completely omitted.
+ 44 | */
+ 45 | #define XCTFail(...) \
+    |         `- note: macro 'XCTFail' unavailable: function like macros not supported
+ 46 |     _XCTPrimitiveFail(nil, __VA_ARGS__)
+ 47 | 
+
+[#ActorIsolatedCall]: <https://docs.swift.org/compiler/documentation/diagnostics/actor-isolated-call>

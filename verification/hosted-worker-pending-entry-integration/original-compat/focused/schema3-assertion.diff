@@ -1,0 +1,18 @@
+--- original-focus/schema2-expectations
++++ adapted-focus/schema3-expectations
+@@ -108,13 +108,13 @@
+  const r=await ensure(h);if(mode!=='unissued')await claim(h);if(mode.includes('stop')){const stop=clone(r);stop.command='stop';await h.command(stop);}
+  if(mode==='terminal-stop'){await h.deliverProvider({state:'absent',definitive:true,descendantsGone:true,launchesSettled:true});await h.reconcile();assert.equal((await h.snapshot()).terminal.status,'stopped');}
+  const before=(await h.raw()).row;await h.control('schema1Fixture',{});await h.restart();const after=(await h.raw()).row;
+- assert.deepEqual(core(after),core(before));assert.equal(after.quarantined,1);assert.equal(after.clock_floor,before.clock_lower);assert(BigInt(after.state_version)>BigInt(before.state_version));assert.deepEqual((await h.control('schemaInfo',{})).schema,[{version:2}]);assert.equal((await claim(h)).granted,false);
++ assert.deepEqual(core(after),core(before));assert.equal(after.quarantined,1);assert.equal(after.clock_floor,before.clock_lower);assert.equal(after.state_version,before.state_version);assert.deepEqual((await h.control('schemaInfo',{})).schema,[{version:3}]);assert.equal((await claim(h)).granted,false);
+  const next=clone(r);next.guard.epoch='2';next.guard.owner_id='successor';assert.deepEqual(obs(await h.command(next)),{status:'error',code:'unavailable'});
+  if(mode==='stop-consumed'){await h.control('clock',{...clock(N-100n),qualified:false});await h.deliverProvider({state:'absent',definitive:true,descendantsGone:true,launchesSettled:true});const count=h.calls().filter(x=>x.kind==='stop').length;await h.reconcile();assert(h.calls().filter(x=>x.kind==='stop').length>count);assert.equal((await h.snapshot()).terminal.status,'stopped');assert.equal((await h.snapshot()).claimState,'consumed');}
+  e.push({mode,before,after});
+ });
+ test('empty-schema1-upgrades-without-inventing-or-quarantining-operation',async h=>{
+- await h.control('schema1Fixture',{});await h.restart();assert.deepEqual(await h.snapshot(),{exists:false});assert.deepEqual((await h.control('schemaInfo',{})).schema,[{version:2}]);assert.deepEqual(obs(await h.command(base())),{status:'absent'});assert.equal((await h.raw()).row.quarantined,0);
++ await h.control('schema1Fixture',{});await h.restart();assert.deepEqual(await h.snapshot(),{exists:false});assert.deepEqual((await h.control('schemaInfo',{})).schema,[{version:3}]);assert.deepEqual(obs(await h.command(base())),{status:'absent'});assert.equal((await h.raw()).row.quarantined,0);
+ });
+ test('unknown-schema-is-unavailable-and-preserves-all-row-bytes',async(h,e)=>{
+  await ensure(h);await claim(h);const before=(await h.raw()).row;await h.control('unknownSchemaFixture',{});assert.deepEqual(await h.control('unknownSchemaCheck',{}),{unavailable:true});assert.deepEqual((await h.raw()).row,before);e.push(before);

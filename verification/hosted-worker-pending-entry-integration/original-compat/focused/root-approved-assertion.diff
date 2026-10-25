@@ -1,0 +1,45 @@
+--- original-focused.mjs
++++ registered-schema3-stop-terminal-focused.mjs
+@@ -6,7 +6,7 @@
+ import {createHash} from 'node:crypto';
+ const here=process.env.MIXER_V2_RUN_DIR;
+ const bindings=JSON.parse(await readFile(join(here,'bindings.json'),'utf8'));
+-const {createHarness,cleanupReceipts}=await import(pathToFileURL(join(bindings.scratch,'hosted-worker-controller/test/acceptance-driver.mjs')));
++const {createHarness,cleanupReceipts}=await import(pathToFileURL(join(bindings.project??join(bindings.scratch,'hosted-worker-controller'),'test/acceptance-driver.mjs')));
+ const packet=JSON.parse(await readFile(join(bindings.scratch,'verification/hosted-worker-controller-contract/vectors.json'),'utf8'));
+ const clone=structuredClone,base=()=>clone(packet.cases[0].request),N=1900000000000000n,L=1950000000000000n,MAX=9223372036854775807n;
+ const clock=(n,error=1n,qualificationId='synthetic-verification-only')=>({nowUs:String(n),errorUs:String(error),qualified:true,qualificationId});
+@@ -61,7 +61,7 @@
+ test('report-acceptance-sample-persists-with-stop-and-consumed-identity',async(h,e)=>{
+  await ensure(h);assert.equal((await claim(h)).granted,true);const report=reportFor((await h.raw()).row);await h.control('objects',{value:true});await h.control('clock',clock(L));
+  assert.equal((await h.control('report',report)).status,'accepted');await h.hardRestart();const row=(await h.raw()).row;assert.equal(row.clock_floor,String(L-1n));assert.equal(row.desired,'stop');assert.equal(row.claim_state,'consumed');assert(row.report_hash);assert(row.pending_result_json);
+- await h.control('clock',{...clock(N),qualified:false});await h.deliverProvider({state:'absent',definitive:true,descendantsGone:true,launchesSettled:true});await h.reconcile();assert.equal((await h.snapshot()).terminal.status,'completed');e.push(row);
++ await h.control('clock',{...clock(N),qualified:false});await h.deliverProvider({state:'absent',definitive:true,descendantsGone:true,launchesSettled:true});await h.reconcile();assert.equal((await h.snapshot()).terminal,null);assert.equal((await h.raw()).row.pending_result_json,row.pending_result_json);await h.control('clock',clock(L+100n));await h.reconcile();assert.equal((await h.snapshot()).terminal.status,'completed');e.push(row);
+ });
+ test('time-history-write-preserves-result-state-version-CAS',async(h,e)=>{
+  await ensure(h);await claim(h);const report=reportFor((await h.raw()).row);await h.control('objects',{value:true});await h.inject('before_object_verify_return','barrier');const pending=h.control('report',report);await eventually(async()=>!!(await h.raw()).settings.barrier);
+@@ -108,20 +108,20 @@
+  const r=await ensure(h);if(mode!=='unissued')await claim(h);if(mode.includes('stop')){const stop=clone(r);stop.command='stop';await h.command(stop);}
+  if(mode==='terminal-stop'){await h.deliverProvider({state:'absent',definitive:true,descendantsGone:true,launchesSettled:true});await h.reconcile();assert.equal((await h.snapshot()).terminal.status,'stopped');}
+  const before=(await h.raw()).row;await h.control('schema1Fixture',{});await h.restart();const after=(await h.raw()).row;
+- assert.deepEqual(core(after),core(before));assert.equal(after.quarantined,1);assert.equal(after.clock_floor,before.clock_lower);assert(BigInt(after.state_version)>BigInt(before.state_version));assert.deepEqual((await h.control('schemaInfo',{})).schema,[{version:2}]);assert.equal((await claim(h)).granted,false);
++ assert.deepEqual(core(after),core(before));assert.equal(after.quarantined,1);assert.equal(after.clock_floor,before.clock_lower);assert.equal(after.state_version,before.state_version);assert.deepEqual((await h.control('schemaInfo',{})).schema,[{version:3}]);assert.equal((await claim(h)).granted,false);
+  const next=clone(r);next.guard.epoch='2';next.guard.owner_id='successor';assert.deepEqual(obs(await h.command(next)),{status:'error',code:'unavailable'});
+- if(mode==='stop-consumed'){await h.control('clock',{...clock(N-100n),qualified:false});await h.deliverProvider({state:'absent',definitive:true,descendantsGone:true,launchesSettled:true});const count=h.calls().filter(x=>x.kind==='stop').length;await h.reconcile();assert(h.calls().filter(x=>x.kind==='stop').length>count);assert.equal((await h.snapshot()).terminal.status,'stopped');assert.equal((await h.snapshot()).claimState,'consumed');}
++ if(mode==='stop-consumed'){await h.control('clock',{...clock(N-100n),qualified:false});await h.deliverProvider({state:'absent',definitive:true,descendantsGone:true,launchesSettled:true});const count=h.calls().filter(x=>x.kind==='stop').length;await h.reconcile();assert(h.calls().filter(x=>x.kind==='stop').length>count);assert.equal((await h.snapshot()).terminal,null);assert.equal((await h.raw()).row.quarantined,1);assert.equal((await h.snapshot()).desired,'stop');assert.equal((await h.snapshot()).claimState,'consumed');}
+  e.push({mode,before,after});
+ });
+ test('empty-schema1-upgrades-without-inventing-or-quarantining-operation',async h=>{
+- await h.control('schema1Fixture',{});await h.restart();assert.deepEqual(await h.snapshot(),{exists:false});assert.deepEqual((await h.control('schemaInfo',{})).schema,[{version:2}]);assert.deepEqual(obs(await h.command(base())),{status:'absent'});assert.equal((await h.raw()).row.quarantined,0);
++ await h.control('schema1Fixture',{});await h.restart();assert.deepEqual(await h.snapshot(),{exists:false});assert.deepEqual((await h.control('schemaInfo',{})).schema,[{version:3}]);assert.deepEqual(obs(await h.command(base())),{status:'absent'});assert.equal((await h.raw()).row.quarantined,0);
+ });
+ test('unknown-schema-is-unavailable-and-preserves-all-row-bytes',async(h,e)=>{
+  await ensure(h);await claim(h);const before=(await h.raw()).row;await h.control('unknownSchemaFixture',{});assert.deepEqual(await h.control('unknownSchemaCheck',{}),{unavailable:true});assert.deepEqual((await h.raw()).row,before);e.push(before);
+ });
+ test('rollback-quarantine-can-still-enforce-committed-stop',async(h,e)=>{
+  const r=await ensure(h);await claim(h);r.command='stop';await h.command(r);await h.control('clock',clock(N-100n));await h.reconcile();assert.equal((await h.raw()).row.quarantined,1);assert.equal((await h.snapshot()).desired,'stop');
+- await h.control('clock',{...clock(N-100n),qualified:false});await h.deliverProvider({state:'absent',definitive:true,descendantsGone:true,launchesSettled:true});const count=h.calls().filter(x=>x.kind==='stop').length;await h.reconcile();assert(h.calls().filter(x=>x.kind==='stop').length>count);assert.equal((await h.snapshot()).terminal.status,'stopped');assert.equal((await h.snapshot()).claimState,'consumed');assert.equal((await claim(h)).granted,false);e.push((await h.raw()).row);
++ await h.control('clock',{...clock(N-100n),qualified:false});await h.deliverProvider({state:'absent',definitive:true,descendantsGone:true,launchesSettled:true});const count=h.calls().filter(x=>x.kind==='stop').length;await h.reconcile();assert(h.calls().filter(x=>x.kind==='stop').length>count);assert.equal((await h.snapshot()).terminal,null);assert.equal((await h.raw()).row.quarantined,1);assert.equal((await h.snapshot()).desired,'stop');assert.equal((await h.snapshot()).claimState,'consumed');assert.equal((await claim(h)).granted,false);e.push((await h.raw()).row);
+ });
+ const results=[];
+ for(const {id,fn}of cases){let h;const evidence=[];try{

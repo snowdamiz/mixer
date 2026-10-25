@@ -1,0 +1,531 @@
+{
+  "status": "failed",
+  "groupsRun": 21,
+  "groupsPassed": 20,
+  "results": [
+    {
+      "id": "delayed-restore-bad-binding-rejects-all-concurrent-admissions",
+      "status": "passed",
+      "elapsedMs": 348.57862500000005
+    },
+    {
+      "id": "delayed-restore-wrong-immutable-identity-rejects-all-concurrent-admissions",
+      "status": "passed",
+      "elapsedMs": 323.231667
+    },
+    {
+      "id": "delayed-valid-restore-32-concurrent-fetches-share-one-engine",
+      "status": "passed",
+      "elapsedMs": 367.21575000000007
+    },
+    {
+      "id": "delayed-restore-recovery-enrollment-and-fetch-race-one-engine",
+      "status": "passed",
+      "elapsedMs": 333.6156249999999
+    },
+    {
+      "id": "32-first-calls-with-near-250ms-registration-one-engine",
+      "status": "passed",
+      "elapsedMs": 742.9164999999998
+    },
+    {
+      "id": "abort-late-ack-settles-with-zero-operation-allocation",
+      "status": "passed",
+      "elapsedMs": 590.5323330000001
+    },
+    {
+      "id": "four-second-body-budget-before-ack-no-late-allocation",
+      "status": "passed",
+      "elapsedMs": 4610.178833
+    },
+    {
+      "id": "held-effect-survives-entry-return-without-second-launch",
+      "status": "passed",
+      "elapsedMs": 42.18000000000029
+    },
+    {
+      "id": "unenrolled-migration-public-burst-does-not-fence-or-mutate-row",
+      "status": "passed",
+      "elapsedMs": 159.08808399999998
+    },
+    {
+      "id": "unenrolled-unquarantined-row-cannot-enroll-or-gain-claim",
+      "status": "passed",
+      "elapsedMs": 131.2144160000007
+    },
+    {
+      "id": "private-enrollment-row-identity-before-context-selection",
+      "status": "failed",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'conflict'\n- 'enrolled'\n\n    at file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-entry-integration-review/candidate/test/review.mjs:42:224\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///Users/andreyyurlov/Documents/dev/mixer/verification/hosted-worker-pending-entry-integration-review/candidate/test/review.mjs:48:117",
+      "elapsedMs": 131.5019169999996
+    },
+    {
+      "id": "production-RPC-hidden-claim",
+      "status": "passed",
+      "elapsedMs": 72.27087500000016
+    },
+    {
+      "id": "production-RPC-hidden-report",
+      "status": "passed",
+      "elapsedMs": 62.236792000001515
+    },
+    {
+      "id": "production-RPC-hidden-engine",
+      "status": "passed",
+      "elapsedMs": 62.45512500000041
+    },
+    {
+      "id": "production-RPC-hidden-ledger",
+      "status": "passed",
+      "elapsedMs": 62.50854100000106
+    },
+    {
+      "id": "production-RPC-hidden-state",
+      "status": "passed",
+      "elapsedMs": 62.424457999999504
+    },
+    {
+      "id": "production-RPC-hidden-inspectFixture",
+      "status": "passed",
+      "elapsedMs": 64.53145799999947
+    },
+    {
+      "id": "production-RPC-hidden-settingFixture",
+      "status": "passed",
+      "elapsedMs": 61.39337499999965
+    },
+    {
+      "id": "production-RPC-hidden-mutateFixture",
+      "status": "passed",
+      "elapsedMs": 61.01908299999923
+    },
+    {
+      "id": "production-RPC-hidden-createEngine",
+      "status": "passed",
+      "elapsedMs": 61.16149999999834
+    },
+    {
+      "id": "production-recovery-identity-only-cannot-launch-or-command",
+      "status": "passed",
+      "elapsedMs": 77.25233399999888
+    }
+  ],
+  "observations": {
+    "delayedRestoreCounts": [
+      {
+        "kind": "engine",
+        "n": 2
+      },
+      {
+        "kind": "inspect",
+        "n": 1
+      },
+      {
+        "kind": "launch",
+        "n": 1
+      }
+    ],
+    "abortedLateAck": [
+      "registry-id",
+      "register-start",
+      "register-ack"
+    ],
+    "outerExpiredElapsed": 4000,
+    "correctEnrollmentAfterConflictingPrivateIdentity": "conflict"
+  },
+  "cleanup": [
+    {
+      "kind": "SIGKILL",
+      "pid": 78832,
+      "parentPid": 78831,
+      "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd",
+      "signal": "SIGKILL",
+      "identitySource": "darwin-ps-full-path-comm",
+      "parentRechecked": true
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pending-entry-owned-2imtuq",
+      "disposed": true,
+      "storageRemoved": true,
+      "ownedProcesses": [
+        {
+          "pid": 78832,
+          "parentPid": 78831,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        },
+        {
+          "pid": 78836,
+          "parentPid": 78831,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    },
+    {
+      "kind": "SIGKILL",
+      "pid": 78843,
+      "parentPid": 78831,
+      "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd",
+      "signal": "SIGKILL",
+      "identitySource": "darwin-ps-full-path-comm",
+      "parentRechecked": true
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pending-entry-owned-kylf2r",
+      "disposed": true,
+      "storageRemoved": true,
+      "ownedProcesses": [
+        {
+          "pid": 78843,
+          "parentPid": 78831,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        },
+        {
+          "pid": 78849,
+          "parentPid": 78831,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    },
+    {
+      "kind": "SIGKILL",
+      "pid": 78856,
+      "parentPid": 78831,
+      "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd",
+      "signal": "SIGKILL",
+      "identitySource": "darwin-ps-full-path-comm",
+      "parentRechecked": true
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pending-entry-owned-f5gs50",
+      "disposed": true,
+      "storageRemoved": true,
+      "ownedProcesses": [
+        {
+          "pid": 78856,
+          "parentPid": 78831,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        },
+        {
+          "pid": 78860,
+          "parentPid": 78831,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    },
+    {
+      "kind": "SIGKILL",
+      "pid": 78864,
+      "parentPid": 78831,
+      "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd",
+      "signal": "SIGKILL",
+      "identitySource": "darwin-ps-full-path-comm",
+      "parentRechecked": true
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pending-entry-owned-in2k7v",
+      "disposed": true,
+      "storageRemoved": true,
+      "ownedProcesses": [
+        {
+          "pid": 78864,
+          "parentPid": 78831,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        },
+        {
+          "pid": 78872,
+          "parentPid": 78831,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pending-entry-owned-Nux7oA",
+      "disposed": true,
+      "storageRemoved": true,
+      "ownedProcesses": [
+        {
+          "pid": 78874,
+          "parentPid": 78831,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pending-entry-owned-NiMwmN",
+      "disposed": true,
+      "storageRemoved": true,
+      "ownedProcesses": [
+        {
+          "pid": 78876,
+          "parentPid": 78831,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pending-entry-owned-ACqQcc",
+      "disposed": true,
+      "storageRemoved": true,
+      "ownedProcesses": [
+        {
+          "pid": 78880,
+          "parentPid": 78831,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pending-entry-owned-fd6BWE",
+      "disposed": true,
+      "storageRemoved": true,
+      "ownedProcesses": [
+        {
+          "pid": 78892,
+          "parentPid": 78831,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    },
+    {
+      "kind": "SIGKILL",
+      "pid": 78894,
+      "parentPid": 78831,
+      "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd",
+      "signal": "SIGKILL",
+      "identitySource": "darwin-ps-full-path-comm",
+      "parentRechecked": true
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pending-entry-owned-ashro8",
+      "disposed": true,
+      "storageRemoved": true,
+      "ownedProcesses": [
+        {
+          "pid": 78894,
+          "parentPid": 78831,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        },
+        {
+          "pid": 78898,
+          "parentPid": 78831,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    },
+    {
+      "kind": "SIGKILL",
+      "pid": 78900,
+      "parentPid": 78831,
+      "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd",
+      "signal": "SIGKILL",
+      "identitySource": "darwin-ps-full-path-comm",
+      "parentRechecked": true
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pending-entry-owned-4UtA11",
+      "disposed": true,
+      "storageRemoved": true,
+      "ownedProcesses": [
+        {
+          "pid": 78900,
+          "parentPid": 78831,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        },
+        {
+          "pid": 78904,
+          "parentPid": 78831,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    },
+    {
+      "kind": "SIGKILL",
+      "pid": 78906,
+      "parentPid": 78831,
+      "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd",
+      "signal": "SIGKILL",
+      "identitySource": "darwin-ps-full-path-comm",
+      "parentRechecked": true
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pending-entry-owned-W8jTLj",
+      "disposed": true,
+      "storageRemoved": true,
+      "ownedProcesses": [
+        {
+          "pid": 78906,
+          "parentPid": 78831,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        },
+        {
+          "pid": 78910,
+          "parentPid": 78831,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pending-entry-owned-Jhq0c3",
+      "disposed": true,
+      "storageRemoved": true,
+      "ownedProcesses": [
+        {
+          "pid": 78912,
+          "parentPid": 78831,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pending-entry-owned-ajOxDL",
+      "disposed": true,
+      "storageRemoved": true,
+      "ownedProcesses": [
+        {
+          "pid": 78914,
+          "parentPid": 78831,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pending-entry-owned-vYeNAS",
+      "disposed": true,
+      "storageRemoved": true,
+      "ownedProcesses": [
+        {
+          "pid": 78916,
+          "parentPid": 78831,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pending-entry-owned-XXhxfe",
+      "disposed": true,
+      "storageRemoved": true,
+      "ownedProcesses": [
+        {
+          "pid": 78918,
+          "parentPid": 78831,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pending-entry-owned-NYxtf9",
+      "disposed": true,
+      "storageRemoved": true,
+      "ownedProcesses": [
+        {
+          "pid": 78920,
+          "parentPid": 78831,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pending-entry-owned-3Vu1j2",
+      "disposed": true,
+      "storageRemoved": true,
+      "ownedProcesses": [
+        {
+          "pid": 78922,
+          "parentPid": 78831,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pending-entry-owned-2JoVbb",
+      "disposed": true,
+      "storageRemoved": true,
+      "ownedProcesses": [
+        {
+          "pid": 78924,
+          "parentPid": 78831,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pending-entry-owned-3ER9iq",
+      "disposed": true,
+      "storageRemoved": true,
+      "ownedProcesses": [
+        {
+          "pid": 78926,
+          "parentPid": 78831,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pending-entry-owned-aPdXKK",
+      "disposed": true,
+      "storageRemoved": true,
+      "ownedProcesses": [
+        {
+          "pid": 78928,
+          "parentPid": 78831,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    },
+    {
+      "persist": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pending-entry-owned-uUYxkO",
+      "disposed": true,
+      "storageRemoved": true,
+      "ownedProcesses": [
+        {
+          "pid": 78930,
+          "parentPid": 78831,
+          "executable": "/Users/andreyyurlov/Documents/dev/mixer/hosted-worker-controller/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd"
+        }
+      ],
+      "allOwnedPidsAbsent": true,
+      "ownedTaskCancellationClaimed": false
+    }
+  ],
+  "scope": "fresh independent local workerd SQLite; exact production source; excluded fixture effects and restore delay only; no deployment authority"
+}

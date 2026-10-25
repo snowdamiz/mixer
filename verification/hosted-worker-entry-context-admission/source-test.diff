@@ -1,0 +1,123 @@
+--- verification/hosted-worker-pending-entry-integration/candidate/src/operation-state.ts
++++ verification/hosted-worker-entry-context-admission/candidate/src/operation-state.ts
+@@ -27,10 +27,13 @@
+   }
+  }
+  private async checkedTarget(value:PendingIdentity,b?:Budget):Promise<PendingIdentity>{if(this.failed||!this.c)throw new Error('entry_unavailable');const i=await identity(value,this.c);b?.check();if(!this.ctx.id.equals(this.env.OPERATIONS.idFromName(i.value.operationKey)))throw new Error('entry_operation_namespace');return i.value;}
+- private async initialize(value:PendingIdentity,b?:Budget):Promise<Engine>{
++ private async initialize(value:PendingIdentity,b?:Budget,expectedRow?:string):Promise<Engine>{
+   const i=await this.checkedTarget(value,b),bytes=identityBytes(i);b?.check();
+   if(this.selected!==null&&this.selected!==bytes)throw new Error('entry_context_conflict');
+   if(this.initialization){await this.initialization;b?.check();if(this.selected!==bytes||!this.engine)throw new Error('entry_context_conflict');return this.engine;}
++  // Enrollment's snapshot must still be exact after all identity/hash awaits.
++  // Nothing may yield between this final row check and the one-time slot.
++  if(expectedRow!==undefined&&JSON.stringify(this.ledger.read())!==expectedRow)throw new Error('entry_row_changed');
+   this.selected=bytes;
+   // Set the slot synchronously before any yield. It is never reset per request.
+   this.initialization=Promise.resolve().then(()=>{if(this.failed||!this.c)throw new Error('entry_unavailable');this.engine=this.makeEngine(this.ledger,{identity:i,registry:registryPort(this.env,this.c,i)});});
+@@ -59,6 +62,11 @@
+   if(wake.runId==='0'||wake.attemptSequence==='0'||!same(wake.receipt,checked.receipt))return {status:'conflict'};
+   const engine=await this.initialize(i);return await engine.recoverKnown(i,checked.receipt,wake);
+  }catch{return {status:'conflict'};}}
+- async enrollExisting(value:PendingIdentity):Promise<'enrolled'|'missing'|'conflict'|'unavailable'>{try{const i=await this.checkedTarget(value);if(!this.ledger.read())return 'missing';const engine=await this.initialize(i);return await engine.enrollExisting(i);}catch{return 'conflict';}}
++ async enrollExisting(value:PendingIdentity):Promise<'enrolled'|'missing'|'conflict'|'unavailable'>{try{
++  const i=await this.checkedTarget(value),row=this.ledger.read();if(!row)return 'missing';
++  const expectedRow=JSON.stringify(row);
++  if(!matchesRow(i,row)||await sha(row.binding)!==i.immutableSha256)return 'conflict';
++  const engine=await this.initialize(i,undefined,expectedRow);return await engine.enrollExisting(i);
++ }catch{return 'conflict';}}
+  async alarm():Promise<void>{if(this.failed)return;if(this.initialization)await this.initialization;if(this.engine)await this.engine.alarm();}
+ }
+--- verification/hosted-worker-pending-entry-integration/candidate/test/admission.mjs
++++ verification/hosted-worker-entry-context-admission/candidate/test/admission.mjs
+@@ -0,0 +1,49 @@
++import assert from 'node:assert/strict';
++import {readFile,writeFile} from 'node:fs/promises';
++import {resolve} from 'node:path';
++import {harness,cleanup,makeIdentity} from './entry-harness.mjs';
++const root=resolve(import.meta.dirname,'../../../..');
++const vectors=JSON.parse(await readFile(resolve(root,'verification/hosted-worker-controller-contract/vectors.json'),'utf8'));
++const base=()=>structuredClone(vectors.cases[0].request);
++const count=v=>v.counts.find(x=>x.kind==='engine')?.n??0;
++const inspect=(h,r)=>h.call('inspect',{r});
++const cases=[],results=[],observations={};let failure=null;
++const test=(id,fn)=>cases.push({id,fn});
++async function migrated(h,r){
++ assert.equal((await h.command(r)).status,200);
++ await h.call('mutate',{r,kind:'migration'});await h.restart(true);
++ const raw=await inspect(h,r);assert.equal(raw.row.pending_identity_json,null);assert.equal(raw.row.registration_json,null);assert.equal(raw.row.quarantined,1);return raw;
++}
++function enrollmentPreservesHistory(before,after){
++ const changed=['pending_identity_json','registration_json','state_version','track_outbox_json','registry_ack_version'];
++ for(const k of Object.keys(before))if(!changed.includes(k))assert.deepEqual(after[k],before[k],k);
++ assert.equal(after.quarantined,1);assert(after.pending_identity_json);assert(after.registration_json);
++}
++test('missing-enrollment-does-not-select-context-or-create-row',async h=>{
++ const r=base(),i=makeIdentity(r);assert.equal(await h.call('enroll',{i}),'missing');const raw=await inspect(h,r);assert.equal(raw.row,null);assert.equal(count(raw),0);
++});
++for(const kind of ['immutable-digest','platform'])test('migrated-rejected-'+kind+'-then-correct-without-restart',async h=>{
++ const r=base(),before=await migrated(h,r),i=makeIdentity(r),bad={...i,...(kind==='immutable-digest'?{immutableSha256:'b'.repeat(64)}:{platform:i.platform==='ios'?'android':'ios'})};
++ assert.equal(await h.call('enroll',{i:bad}),'conflict');const rejected=await inspect(h,r);assert.deepEqual(rejected.row,before.row);assert.equal(count(rejected),count(before));assert.equal(rejected.fenced,before.fenced);
++ assert.equal(await h.call('enroll',{i}),'enrolled');const accepted=await inspect(h,r);assert.equal(count(accepted),count(before)+1);enrollmentPreservesHistory(before.row,accepted.row);
++ observations[kind]={rejectedNewEngines:count(rejected)-count(before),laterCorrect:'enrolled',restartBetweenRejectedAndCorrect:false};
++});
++test('binding-sha-mismatch-rejects-without-context-or-row-change',async h=>{
++ const r=base();await migrated(h,r);await h.call('mutate',{r,kind:'binding-sha-mismatch'});const before=await inspect(h,r);
++ assert.equal(await h.call('enroll',{i:makeIdentity(r)}),'conflict');const after=await inspect(h,r);assert.deepEqual(after.row,before.row);assert.equal(after.fenced,before.fenced);assert.equal(count(after),count(before));
++});
++test('full-row-change-across-await-rejects-before-context-selection',async h=>{
++ const r=base(),before=await migrated(h,r),i=makeIdentity(r);
++ const rejected=await h.call('enroll-row-change',{i});assert.deepEqual(rejected,{status:'conflict',trace:['snapshot-read','row-history-changed']});
++ const changed=await inspect(h,r);assert.deepEqual(changed.row,{...before.row,failures:before.row.failures+1});assert.equal(count(changed),count(before));assert.equal(changed.fenced,before.fenced);
++ assert.equal(await h.call('enroll',{i}),'enrolled');const accepted=await inspect(h,r);assert.equal(count(accepted),count(before)+1);enrollmentPreservesHistory(changed.row,accepted.row);
++ observations.changedAcrossAwait={...rejected,rejectedNewEngines:count(changed)-count(before),laterCorrect:'enrolled',restartBetweenRejectedAndCorrect:false};
++});
++test('retained-context-rejection-keeps-engine-and-all-row-bytes',async h=>{
++ const r=base();await h.command(r);await h.restart(true);const before=await inspect(h,r),i=makeIdentity(r);
++ assert.equal(await h.call('enroll',{i:{...i,immutableSha256:'b'.repeat(64)}}),'conflict');const rejected=await inspect(h,r);assert.deepEqual(rejected.row,before.row);assert.equal(count(rejected),count(before));assert.equal(rejected.fenced,before.fenced);
++ assert.equal(await h.call('enroll',{i}),'enrolled');const accepted=await inspect(h,r);assert.equal(count(accepted),count(before));assert.equal(accepted.row.pending_identity_json,before.row.pending_identity_json);assert.equal(accepted.row.registration_json,before.row.registration_json);assert.equal(accepted.row.quarantined,before.row.quarantined);
++});
++try{for(const {id,fn} of cases){const h=await harness();const started=performance.now();try{await fn(h);results.push({id,status:'passed',elapsedMs:performance.now()-started});console.log(JSON.stringify(results.at(-1)));}catch(e){results.push({id,status:'failed',error:e.stack,elapsedMs:performance.now()-started});throw e;}finally{await h.close();}}}catch(e){failure=e.stack;console.error(e);process.exitCode=1;}finally{
++ await writeFile(process.env.MIXER_ADMISSION_REPORT??resolve(import.meta.dirname,'../../admission-report.json'),JSON.stringify({status:failure?'failed':'passed',groupsRun:results.length,groupsPassed:results.filter(x=>x.status==='passed').length,results,observations,cleanup,failure,scope:'ordinary local functional regression only; finite test-only row mutation across hash await; actual local workerd SQLite; synthetic provider/clock; interrupted independent review not resumed'},null,2)+'\n');
++}
+--- verification/hosted-worker-pending-entry-integration/candidate/test/entry-worker.ts
++++ verification/hosted-worker-entry-context-admission/candidate/test/entry-worker.ts
+@@ -12,7 +12,7 @@
+ import {PendingIdentity,RegistrationReceipt,WakeTicket,RegistrationResult} from '../src/public-contract.js';
+ import {config,registryName,auditName,identity} from '../src/pending-types.js';
+ import {operationKey} from '../src/principal.js';
+-import {WireRequest} from '../src/wire.js';
++import {WireRequest,immutableBytes} from '../src/wire.js';
+ interface Env extends BaseEnv {FOREIGN_OPERATIONS:DurableObjectNamespace;REGISTRY_MODE:string;OUTER_MODE:string;BODY_DELAY:string}
+ const json=(v:unknown)=>new Response(JSON.stringify(v??{ok:true}),{headers:{'content-type':'application/json'}});
+ const delay=(ms:number)=>new Promise<void>(resolve=>setTimeout(resolve,ms));
+@@ -37,6 +37,13 @@
+  private get engine(){return this.state.engine;}
+  async fetch(request:Request){this.ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS entry_received(value TEXT NOT NULL)');const text=await request.clone().text();this.ctx.storage.sql.exec('INSERT INTO entry_received(value) VALUES(?)',JSON.stringify({text,headers:Object.fromEntries(request.headers)}));return this.state.fetch(request);}
+  async enrollExisting(i:PendingIdentity){return this.state.enrollExisting(i);}
++ async enrollAcrossRowChangeFixture(i:PendingIdentity){
++  // One finite local regression: change non-identity row history in the first
++  // hash await after enrollment snapshots it. Production has no hook for this.
++  const read=this.ledger.read.bind(this.ledger),trace:string[]=[];let armed=true;
++  this.ledger.read=()=>{const row=read();if(armed){armed=false;trace.push('snapshot-read');queueMicrotask(()=>{this.ctx.storage.sql.exec('UPDATE operation SET failures=failures+1');trace.push('row-history-changed');});}return row;};
++  try{return {status:await this.state.enrollExisting(i),trace};}finally{this.ledger.read=read;}
++ }
+  async alarm(){return this.state.alarm();}
+  private held:(()=>void)|null=null;
+  protected resourceKind(platform:'ios'|'android'):'cloudflare-linux'|'external-macos'{return platform==='ios'?'external-macos':'cloudflare-linux';}
+@@ -64,6 +71,7 @@
+   else if(kind==='max')this.ctx.storage.sql.exec("UPDATE operation SET state_version='9223372036854775807',registry_ack_version='9223372036854775807',track_outbox_json=NULL");
+   else if(kind==='migration'){this.ctx.storage.sql.exec('UPDATE operation SET pending_identity_json=NULL,registration_json=NULL,track_outbox_json=NULL,registry_ack_version=\'0\',effect_barrier_version=NULL,claim_barrier_version=NULL,quarantined=1');}
+   else if(kind==='delete-row')this.ctx.storage.sql.exec('DELETE FROM operation');
++  else if(kind==='binding-sha-mismatch'){const row=this.ledger.read()!,request=JSON.parse(row.request_json) as WireRequest;request.spec.source.reference='finite-admission-fixture';this.ctx.storage.sql.exec('UPDATE operation SET request_json=?,binding=?',JSON.stringify(request),immutableBytes(request));}
+   else throw new Error('fixture_mutation');await this.ledger.sync();
+  }
+  async alarmFixture(){await this.ctx.storage.deleteAlarm();await this.state.alarm();}
+@@ -92,6 +100,7 @@
+   if(arg.action==='mutate')return json(await op.mutateFixture(arg.kind));
+   if(arg.action==='recover')return json(await op.recoverKnown(arg.i,arg.p,arg.t));
+   if(arg.action==='enroll')return json(await op.enrollExisting(arg.i));
++  if(arg.action==='enroll-row-change')return json(await op.enrollAcrossRowChangeFixture(arg.i));
+   if(arg.action==='claim')return json(await op.claimFixture(arg.payload));
+   if(arg.action==='report')return json(await op.reportFixture(arg.payload));
+   if(arg.action==='drop-alarm')return json(await op.dropAlarmFixture());

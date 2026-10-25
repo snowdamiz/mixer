@@ -1,0 +1,33 @@
+--- accepted/main.swift
++++ candidate/main.swift
+@@ -45,6 +45,11 @@
+     required init?(coder: NSCoder) { fatalError() }
+     override func viewDidLoad() {
+         super.viewDidLoad()
++        DiagnosticTrace.shared.focusSystemObserver = { [weak self] site, sequence in
++            guard let self else { return }
++            FocusSystemObservation.shared.capture(site: site, contextSequence: sequence, stage: self.stage, controller: self,
++                                                  controls: [self.toggle, self.referenceButton, self.nextButton])
++        }
+         view.backgroundColor = UIColor(white: 0.95, alpha: 1)
+         titleLabel.text = "Authored UIKit toggle"; titleLabel.font = .systemFont(ofSize: 24, weight: .bold)
+         stateLabel.font = .monospacedSystemFont(ofSize: 13, weight: .regular); stateLabel.numberOfLines = 0
+@@ -119,7 +124,8 @@
+         DiagnosticTrace.shared.append("scrollPanCallback", ["gesture": DiagnosticTrace.shared.gesture(scroll.panGestureRecognizer), "contentOffset": DiagnosticTrace.shared.point(scroll.contentOffset), "dragging": scroll.isDragging, "tracking": scroll.isTracking])
+     }
+     func snapshot() -> [String:Any] {
+-        ["identity":String(describing: ObjectIdentifier(toggle)), "isOn":toggle.isOn, "retainedOn":toggle.retainedOn,
++        DiagnosticTrace.shared.focusSystemObserver?("snapshot", nil)
++        return ["identity":String(describing: ObjectIdentifier(toggle)), "isOn":toggle.isOn, "retainedOn":toggle.retainedOn,
+          "enabled":toggle.isEnabled, "allowed":allowed, "highlighted":toggle.isHighlighted, "authoredPressed":toggle.authoredPressed, "tracking":toggle.isTracking,
+          "touchInside":toggle.isTouchInside, "focused":toggle.isFocused, "firstResponder":toggle.isFirstResponder,
+          "panState":toggle.slidePan.state.rawValue, "panActive":toggle.panActive, "previewThumbX":toggle.previewThumbX.map { $0 as Any } ?? NSNull(),
+@@ -145,7 +151,7 @@
+     }
+     func persist() {
+         let trace = DiagnosticTrace.shared
+-        let result: [String:Any] = ["scope":"Isolated UIKit diagnostics; no production adapter, original candidate repair, native qualification, or physical VoiceOver qualification", "stage":stage, "state":snapshot(), "events":events, "checks":checks, "diagnosticSuiteState": diagnosticSuiteState, "diagnosticOperations": diagnosticOperations, "semanticOperations": semanticOperations, "nativeInterruptions": nativeInterruptions, "panCommitRecords": panCommitRecords, "diagnosticTrace": trace.entries, "diagnosticTraceDropped": trace.dropped, "focusContextSchema": "mixer.apple-toggle.focus-context.1", "focusContexts": trace.focusContextEntries, "focusContextDropped": trace.focusContextDropped, "focusContextRevision": trace.focusContextRevision, "reference": operationSnapshot(reference: true), "referencePan": trace.gesture(referencePanSurface.pan)]
++        let result: [String:Any] = ["scope":"Isolated UIKit diagnostics; no production adapter, original candidate repair, native qualification, or physical VoiceOver qualification", "stage":stage, "state":snapshot(), "events":events, "checks":checks, "diagnosticSuiteState": diagnosticSuiteState, "diagnosticOperations": diagnosticOperations, "semanticOperations": semanticOperations, "nativeInterruptions": nativeInterruptions, "panCommitRecords": panCommitRecords, "diagnosticTrace": trace.entries, "diagnosticTraceDropped": trace.dropped, "focusContextSchema": "mixer.apple-toggle.focus-context.1", "focusContexts": trace.focusContextEntries, "focusContextDropped": trace.focusContextDropped, "focusContextRevision": trace.focusContextRevision, "reference": operationSnapshot(reference: true), "referencePan": trace.gesture(referencePanSurface.pan), "focusSystemDiagnostic": FocusSystemObservation.shared.value]
+         let data = try! JSONSerialization.data(withJSONObject:result, options:[.prettyPrinted,.sortedKeys])
+         try! data.write(to:documents.appendingPathComponent("observations.json"), options:.atomic)
+         try! stage.write(to:documents.appendingPathComponent("stage.txt"), atomically:true, encoding:.utf8)

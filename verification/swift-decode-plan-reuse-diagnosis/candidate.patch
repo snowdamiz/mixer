@@ -1,0 +1,847 @@
+--- a/src/experimental_swift_reactor/cache.rs
++++ b/src/experimental_swift_reactor/cache.rs
+@@ -12,6 +12,35 @@
+ use std::sync::atomic::{AtomicU64, Ordering};
+ 
+ const PATCH_CAPACITY: usize = 512;
++// Finite private prototype: direct-map counts, never resident IR or a proof.
++const PLAN_CAPACITY: usize = 512;
++const PLAN_CELL_CREDITS: u64 = 8; // tag + four identity fields + three Counts fields
++#[derive(Clone, Copy)]
++struct ScanPlan {
++    function: u32,
++    body_offset: usize,
++    body_len: usize,
++    type_index: u32,
++    counts: decode::Counts,
++}
++// These disjoint model fields conservatively cover named added locals, borrows,
++// reborrows, caller/return copies, reserve::<Option<ScanPlan>> monomorphization,
++// and the Option owner used by infallible publication. Three complete copies
++// are admitted alongside existing generic scan/build/phase inventories.
++struct PlanInventory {
++    cell: Option<ScanPlan>,
++    plan: ScanPlan,
++    borrowed: &'static ScanPlan,
++    slots: &'static mut [Option<ScanPlan>],
++    vec: &'static mut Vec<Option<ScanPlan>>,
++    reserve_receiver: &'static mut Vec<Option<ScanPlan>>,
++    reserve_control: &'static mut CacheControl<'static>,
++    index: usize,
++    bytes: usize,
++    counts: decode::Counts,
++    output: Result<decode::Counts, SwiftRunFailure>,
++    init: std::ops::Range<usize>,
++}
+ const RESIDENT_BUCKETS: usize = 128;
+ const RESIDENT_LINKS: usize = 64;
+ const RESIDENT_INDEX_BYTES: usize = RESIDENT_BUCKETS + RESIDENT_LINKS;
+@@ -19,6 +48,7 @@
+ pub(crate) struct SwiftScratch<'a> {
+     patches: &'a mut [decode::Patch],
+     index: &'a mut [u8],
++    plans: &'a mut [Option<ScanPlan>],
+ }
+ // Original fixed hash. The key always remains the actual decoded slot value.
+ fn resident_bucket(function: u32) -> usize {
+@@ -244,6 +274,7 @@
+     pins: Vec<PinRecord>,
+     patches: Vec<decode::Patch>,
+     index: Vec<u8>,
++    plans: Vec<Option<ScanPlan>>,
+     buffers: [Option<ReservationTicket>; 3],
+     header: Option<ReservationTicket>,
+ }
+@@ -283,6 +314,7 @@
+     pins: Vec<PinRecord>,
+     patches: Vec<decode::Patch>,
+     index: Vec<u8>,
++    plans: Vec<Option<ScanPlan>>,
+     buffers: [Option<ReservationTicket>; 3],
+     header: Option<ReservationTicket>,
+ }
+@@ -294,6 +326,7 @@
+             pins: Vec::new(),
+             patches: Vec::new(),
+             index: Vec::new(),
++            plans: Vec::new(),
+             buffers: std::array::from_fn(|_| None),
+             header: None,
+         }
+@@ -311,6 +344,7 @@
+         // The header admitted the index payload before its allocation. Keep it
+         // charged while the entire Vec and every transfer are destroyed.
+         drop(take(&mut self.index));
++        drop(take(&mut self.plans));
+         if let Some(adopted) = self.adopted.take() {
+             let observation = control.observation();
+             let _ = control.control.drop_proof_with_wasi(adopted, observation);
+@@ -1063,6 +1097,7 @@
+         (4, size_of::<Vec<PinRecord>>()),
+         (4, size_of::<Vec<decode::Patch>>()),
+         (4, size_of::<Vec<u8>>()),
++        (4, size_of::<Vec<Option<ScanPlan>>>()),
+         (3, size_of::<SwiftScratch<'static>>()),
+         (6, size_of::<Option<ReservationTicket>>()),
+         (6, size_of::<ReservationTicket>()),
+@@ -1093,7 +1128,10 @@
+     let Some(header) = exclusive.checked_add(cleanup) else {
+         return None;
+     };
+-    header.checked_add(RESIDENT_INDEX_BYTES)
++    let Some(header) = header.checked_add(RESIDENT_INDEX_BYTES) else {
++        return None;
++    };
++    header.checked_add(PLAN_CAPACITY * size_of::<Option<ScanPlan>>())
+ }
+ const fn compute_cache_construction_bytes() -> Option<usize> {
+     sum_named!(&[
+@@ -1147,6 +1185,8 @@
+         (3, size_of::<Vec<PinRecord>>()),
+         (3, size_of::<Vec<decode::Patch>>()),
+         (3, size_of::<Vec<u8>>()),
++        (3, size_of::<Vec<Option<ScanPlan>>>()),
++        (3, size_of::<PlanInventory>()),
+         (4, size_of::<Option<ReservationTicket>>()),
+         (4, size_of::<ReservationTicket>()),
+     ])
+@@ -1168,6 +1208,7 @@
+         ),
+         (3, size_of::<OperationScalarInventory>()),
+         (3, size_of::<ResidentIndexInventory>()),
++        (3, size_of::<PlanInventory>()),
+         (3, size_of::<SwiftScratch<'static>>()),
+         (3, size_of::<ResidentMatch>()),
+         (3, size_of::<Option<ResidentMatch>>()),
+@@ -1554,6 +1595,7 @@
+                 scratch: SwiftScratch {
+                     patches: &mut self.patches,
+                     index: &mut self.index,
++                    plans: &mut self.plans,
+                 },
+             },
+             pin,
+@@ -1649,6 +1691,7 @@
+         }
+         // Destroy index payload before the header moves into its cleanup tail.
+         drop(take(&mut cache.index));
++        drop(take(&mut cache.plans));
+         let SwiftFunctionCache {
+             adopted, header, ..
+         } = cache;
+@@ -1749,6 +1792,7 @@
+                 pins: take(&mut partial.pins),
+                 patches: take(&mut partial.patches),
+                 index: take(&mut partial.index),
++                plans: take(&mut partial.plans),
+                 buffers: std::mem::replace(&mut partial.buffers, std::array::from_fn(|_| None)),
+                 header: partial.header.take(),
+             }),
+@@ -1824,6 +1868,12 @@
+             self.control.work(1)?;
+             partial.index.push(0);
+         }
++        // Header includes the complete payload before this allocation begins.
++        reserve(&mut partial.plans, PLAN_CAPACITY, &mut self.control)?;
++        for _ in 0..PLAN_CAPACITY {
++            self.control.work(PLAN_CELL_CREDITS)?;
++            partial.plans.push(None);
++        }
+         self.control.check()?;
+         let owner = next_owner().map_err(|_| {
+             self.control.error(
+@@ -1889,6 +1939,7 @@
+                 scratch: SwiftScratch {
+                     patches: &mut cache.patches,
+                     index: &mut cache.index,
++                    plans: &mut cache.plans,
+                 },
+             },
+             function,
+@@ -2149,12 +2200,36 @@
+         meter: &mut SwiftMeter<'_, '_>,
+     ) -> Result<decode::Counts, SwiftRunFailure> {
+         let policy = policy(snapshot, body, meter)?;
++        if scratch.plans.len() != PLAN_CAPACITY {
++            return Err(meter.error(CacheFailureKind::DecoderMismatch, "swift_plan_layout"));
++        }
++        meter.work(1)?; // requested identity hash, collision alone never authorizes
++        let index = body.absolute_index as usize & (PLAN_CAPACITY - 1);
++        meter.work(1)?; // actual Option tag probe
++        if let Some(plan) = &scratch.plans[index] {
++            meter.work(1)?; // actual function identity probe
++            if plan.function == body.absolute_index {
++                // Probe all three remaining immutable-identity cells, including
++                // malformed metadata. Do not short-circuit their accounting.
++                meter.work(3)?;
++                if plan.body_offset != body.body_offset
++                    || plan.body_len != body.body.len()
++                    || plan.type_index != body.type_index
++                {
++                    return Err(
++                        meter.error(CacheFailureKind::DecoderMismatch, "swift_plan_identity")
++                    );
++                }
++                meter.work(3)?; // actual three-field Counts copy; also checks stop
++                return Ok(plan.counts);
++            }
++        }
+         meter.step(CacheStep::ScanReset);
+         reset(scratch.patches, meter)?;
+         meter.step(CacheStep::Scan);
+         let mut depth = 0;
+         let mut counts = decode::Counts::default();
+-        decode::scan_borrowed(
++        let counts = decode::scan_borrowed(
+             body.body,
+             body.body_offset,
+             &policy,
+@@ -2165,7 +2240,18 @@
+                 counts: &mut counts,
+             },
+             None,
+-        )
++        )?;
++        // Successful complete scan is the only publishing source. All checks
++        // and charges precede the single infallible full-cell replacement.
++        meter.work(PLAN_CELL_CREDITS + 3)?;
++        scratch.plans[index] = Some(ScanPlan {
++            function: body.absolute_index,
++            body_offset: body.body_offset,
++            body_len: body.body.len(),
++            type_index: body.type_index,
++            counts,
++        });
++        Ok(counts)
+     }
+     fn build(
+         snapshot: &ValidatedSwiftReactor,
+@@ -2452,6 +2538,7 @@
+             &mut SwiftScratch {
+                 patches: &mut cache.patches,
+                 index: &mut cache.index,
++                plans: &mut cache.plans,
+             },
+             &mut meter,
+         )
+@@ -2463,6 +2550,7 @@
+             &mut SwiftScratch {
+                 patches: &mut cache.patches,
+                 index: &mut cache.index,
++                plans: &mut cache.plans,
+             },
+             &mut meter,
+         );
+@@ -4700,3 +4788,62 @@
+         );
+     }
+ }
++
++#[cfg(test)]
++pub(super) mod plan_inspection {
++    use super::*;
++    pub fn shape() -> (usize, usize, usize, usize, usize, usize) {
++        (
++            size_of::<Option<ScanPlan>>(),
++            PLAN_CAPACITY * size_of::<Option<ScanPlan>>(),
++            size_of::<PlanInventory>(),
++            cache_header_bytes().unwrap(),
++            cache_construction_bytes().unwrap(),
++            cache_operation_bytes().unwrap(),
++        )
++    }
++    pub fn tail_usage(tail: &CacheCleanupTail<'_>) -> SwiftRunUsage {
++        tail.control.usage(None)
++    }
++    pub fn summary(
++        cache: &SwiftFunctionCache,
++        f: u32,
++    ) -> Option<(u32, usize, usize, u32, decode::Counts)> {
++        cache.plans[f as usize & (PLAN_CAPACITY - 1)].map(|p| {
++            (
++                p.function,
++                p.body_offset,
++                p.body_len,
++                p.type_index,
++                p.counts,
++            )
++        })
++    }
++    pub fn count(cache: &SwiftFunctionCache) -> usize {
++        cache.plans.iter().filter(|x| x.is_some()).count()
++    }
++    pub fn key(cache: &SwiftFunctionCache, f: u32) -> Option<u32> {
++        cache.plans[f as usize & (PLAN_CAPACITY - 1)]
++            .as_ref()
++            .map(|p| p.function)
++    }
++    pub fn corrupt(cache: &mut SwiftFunctionCache, f: u32, field: usize) {
++        let p = cache.plans[f as usize & (PLAN_CAPACITY - 1)]
++            .as_mut()
++            .unwrap();
++        match field {
++            0 => p.body_offset += 1,
++            1 => p.body_len += 1,
++            2 => p.type_index += 1,
++            3 => p.counts = p.counts.test_changed_instructions(),
++            _ => panic!("field"),
++        }
++    }
++    pub fn states(cache: &SwiftFunctionCache) -> Vec<(u32, usize, u64)> {
++        cache
++            .slots
++            .iter()
++            .filter_map(|s| s.entry().map(|e| (e.function, s.pins, s.last_used)))
++            .collect()
++    }
++}
+--- a/src/experimental_swift_reactor/cache_tests.rs
++++ b/src/experimental_swift_reactor/cache_tests.rs
+@@ -2366,9 +2366,9 @@
+                 measure(|| construct(&mut c, adopted, None).err().unwrap());
+             assert_eq!(failure.kind, SwiftRunFailureKind::Invariant);
+             assert_eq!(failure.code, "swift_cache_owner_exhausted");
+-            assert_eq!(allocations.attempts, 4);
++            assert_eq!(allocations.attempts, 5);
+             assert_eq!(allocations.injected_failures, 0);
+-            assert_eq!(allocations.allocations, 4);
++            assert_eq!(allocations.allocations, 5);
+             assert_eq!(allocations.reallocations, 0);
+             assert_eq!(
+                 allocations.deallocations,
+@@ -2394,7 +2394,7 @@
+             let final_usage = c.finish_owned_cleanup(None);
+             assert_eq!(final_usage.reservations.combined.current, 0);
+             assert_eq!(final_usage.reservations.live_tickets, 0);
+-            println!("owner allocator exhaustion attempt={attempt} private_counter=MAX actual_constructor_allocations=4 partial_drained=true no_duplicate_authority=true");
++            println!("owner allocator exhaustion attempt={attempt} private_counter=MAX actual_constructor_allocations=5 partial_drained=true no_duplicate_authority=true");
+         }
+     });
+     assert!(!inspection::owner_override_active());
+@@ -3294,3 +3294,526 @@
+     println!("RESIDENT_COST {{\"constructorWork\":{constructor},\"cold64Work\":{cold},\"hit256Work\":{hits},\"fixedReserved\":{},\"residentBytes\":{},\"hitAllocatorRequests\":{},\"slots\":{:?}}}",cache.usage().fixed_reserved,cache.usage().resident_bytes,allocations.attempts,inspection::elision_slots(&cache));
+     finish(cache, c);
+ }
++
++#[test]
++fn plan_reuse_observation() {
++    use crate::experimental::cache::Operation as O;
++    for wide in [false, true] {
++        let helper = body(1, &[0x41, 7, 0x21, 0, 0x20, 0, 0x1a, 0x0b]);
++        let bytes = if wide {
++            plan_reuse_wide_fixture(&helper, 600)
++        } else {
++            fixture(0, &helper, 600)
++        };
++        let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
++        let fixed = cache.usage().fixed_reserved;
++        let start = c.usage(None).cache_work;
++        let mut credits = vec![];
++        for sweep in 0..3 {
++            let begin = c.usage(None).cache_work;
++            for f in 34..130 {
++                let p = pin(&mut cache, &mut c, f, None).unwrap();
++                let v = cache.view(&p, &mut c, None).unwrap();
++                if f == 34 {
++                    let operations: Vec<_> =
++                        v.instructions.iter().map(|x| x.operation.clone()).collect();
++                    assert_eq!(v.locals, &[Type::I32]);
++                    assert_eq!(
++                        operations,
++                        vec![
++                            O::Const(Value::I32(7)),
++                            O::LocalSet(0),
++                            O::LocalGet(0),
++                            O::Drop,
++                            O::End
++                        ]
++                    );
++                    assert!(v.branch_targets.is_empty());
++                    println!(
++                        "PLAN_IR wide={wide} sweep={sweep} operations={operations:?} offsets={:?}",
++                        v.instructions
++                            .iter()
++                            .map(|x| x.offset - v.body_offset)
++                            .collect::<Vec<_>>()
++                    );
++                }
++                cache
++                    .release(p, &mut c, None)
++                    .map_err(|e| e.failure)
++                    .unwrap();
++            }
++            credits.push(c.usage(None).cache_work - begin);
++        }
++        assert_eq!(cache.usage().decodes, 288);
++        assert_eq!(cache.usage().evictions, 224);
++        assert!(c.usage(None).reservations.peak_tickets <= 86);
++        println!("PLAN_COST wide={wide} fixed={fixed} constructor_work={start} sweeps={credits:?} usage={:?} tickets={}/{}",cache.usage(),c.usage(None).reservations.live_tickets,c.usage(None).reservations.peak_tickets);
++        println!(
++            "PLAN_LRU wide={wide} slots={:?}",
++            inspection::elision_slots(&cache)
++        );
++        finish(cache, c);
++    }
++}
++
++use super::cache::plan_inspection as pi;
++fn plan_reuse_release(cache: &mut SwiftFunctionCache, c: &mut RuntimeControl, f: u32) {
++    let p = pin(cache, c, f, None).unwrap();
++    cache.release(p, c, None).map_err(|e| e.failure).unwrap();
++}
++fn plan_reuse_seed(bytes: &[u8], budget: SwiftRunBudget) -> (RuntimeControl, SwiftFunctionCache) {
++    let (mut c, mut cache) = new(bytes, budget);
++    plan_reuse_release(&mut cache, &mut c, 34);
++    plan_reuse_release(&mut cache, &mut c, 35);
++    assert_eq!(pi::key(&cache, 34), Some(34));
++    (c, cache)
++}
++fn plan_reuse_primary(a: SwiftRunFailure, b: SwiftRunFailure) {
++    assert_eq!(
++        (
++            a.kind,
++            a.code,
++            a.function,
++            a.offset,
++            a.resource,
++            a.attempted,
++            a.limit
++        ),
++        (
++            b.kind,
++            b.code,
++            b.function,
++            b.offset,
++            b.resource,
++            b.attempted,
++            b.limit
++        )
++    );
++}
++#[test]
++fn plan_reuse_shapes_and_admission() {
++    let bytes = fixture(0, &[0, 0x0b], 100);
++    let (mut c, a) = adopt(&bytes, SwiftRunBudget::default());
++    let (result, stats) = measure(|| construct(&mut c, a, None));
++    let cache = result.unwrap();
++    assert_eq!(stats.attempts, 5);
++    assert_eq!(c.budget(), SwiftRunBudget::default());
++    assert_eq!(c.usage(None).reservations.live_tickets, 9);
++    println!(
++        "PLAN_SHAPE {:?} constructor_allocations={stats:?} fixed={} cleanup={:?}",
++        pi::shape(),
++        cache.usage().fixed_reserved,
++        cache_cleanup_temporary_bytes()
++    );
++    assert_eq!(pi::count(&cache), 0);
++    finish(cache, c);
++}
++#[test]
++fn plan_reuse_collisions_and_independent_identity() {
++    let bytes = fixture(0, &body(1, &[0x0b]), 600);
++    let budget = SwiftRunBudget {
++        cache_entries: 1,
++        ..SwiftRunBudget::default()
++    };
++    let (mut c, mut cache) = new(&bytes, budget);
++    plan_reuse_release(&mut cache, &mut c, 34);
++    assert_eq!(pi::key(&cache, 34), Some(34));
++    plan_reuse_release(&mut cache, &mut c, 546);
++    assert_eq!(pi::key(&cache, 34), Some(546));
++    plan_reuse_release(&mut cache, &mut c, 34);
++    assert_eq!(pi::key(&cache, 546), Some(34));
++    plan_reuse_release(&mut cache, &mut c, 35);
++    let ((r, scans), stats) = measure(|| {
++        hooks(Hooks::default());
++        let r = pin(&mut cache, &mut c, 34, None).unwrap();
++        (r, HOOKS.with(|h| h.get().steps[CacheStep::Scan as usize]))
++    });
++    assert_eq!(scans, 0);
++    assert_eq!(stats.attempts, 2);
++    cache
++        .release(r, &mut c, None)
++        .map_err(|e| e.failure)
++        .unwrap();
++    finish(cache, c);
++    let (c, cache) = new(&bytes, budget);
++    assert_eq!(pi::count(&cache), 0);
++    finish(cache, c);
++    for field in 0..4 {
++        let (mut c, mut cache) = plan_reuse_seed(&bytes, budget);
++        pi::corrupt(&mut cache, 34, field);
++        let f = pin(&mut cache, &mut c, 34, None).unwrap_err();
++        assert_eq!(f.kind, SwiftRunFailureKind::DecoderMismatch);
++        assert_eq!(
++            f.code,
++            if field < 3 {
++                "swift_plan_identity"
++            } else {
++                "decode_count_mismatch"
++            }
++        );
++        let work = c.usage(None).cache_work;
++        let second = pin(&mut cache, &mut c, 35, None).unwrap_err();
++        plan_reuse_primary(f, second);
++        assert_eq!(c.usage(None).cache_work, work);
++        assert_eq!(c.usage(None).live.active_pins.current, 0);
++        finish(cache, c);
++    }
++    let (c, mut cache) = plan_reuse_seed(&bytes, budget);
++    let (mut other, other_cache) = new(&bytes, budget);
++    let before = pi::count(&cache);
++    let (r, stats) = measure(|| pin(&mut cache, &mut other, 34, None));
++    assert!(r.is_err());
++    assert_eq!(stats.attempts, 0);
++    assert_eq!(pi::count(&cache), before);
++    finish(other_cache, other);
++    finish(cache, c);
++}
++#[test]
++fn plan_reuse_constructor_all_boundaries() {
++    let bytes = fixture(0, &[0, 0x0b], 29);
++    hooks(Hooks::default());
++    let (mut c, a) = adopt(&bytes, SwiftRunBudget::default());
++    hooks(Hooks::default());
++    let cache = construct(&mut c, a, None).unwrap();
++    let checks = HOOKS.with(|h| h.get().checks);
++    let credits = c.usage(None).cache_work;
++    hooks(Hooks::default());
++    finish(cache, c);
++    for ordinal in 0..5 {
++        let (mut c, a) = adopt(&bytes, SwiftRunBudget::default());
++        let (r, s) = measure_extended(Some(ordinal), || construct(&mut c, a, None));
++        assert!(r.is_err());
++        assert_eq!(s.injected_failures, 1);
++        assert_eq!(c.usage(None).reservations.cache.current, 0);
++        assert_eq!(
++            c.finish_owned_cleanup(None).reservations.combined.current,
++            0
++        );
++        let (mut c, a) = adopt(&bytes, SwiftRunBudget::default());
++        hooks(Hooks {
++            capacity: Some(ordinal),
++            ..Hooks::default()
++        });
++        let f = construct(&mut c, a, None).err().unwrap();
++        hooks(Hooks::default());
++        assert_eq!(f.resource, Some(SwiftRunResource::ExactCapacity));
++        assert_eq!(c.usage(None).reservations.cache.current, 0);
++        assert_eq!(
++            c.finish_owned_cleanup(None).reservations.combined.current,
++            0
++        );
++    }
++    for work in 0..credits {
++        let (mut c, a) = adopt(
++            &bytes,
++            SwiftRunBudget {
++                cache_work: work,
++                ..SwiftRunBudget::default()
++            },
++        );
++        let r = construct(&mut c, a, None);
++        assert!(r.is_err(), "work {work}");
++        assert_eq!(c.usage(None).reservations.cache.current, 0);
++        assert_eq!(
++            c.finish_owned_cleanup(None).reservations.combined.current,
++            0
++        );
++    }
++    for ordinal in 0..checks {
++        let (mut c, a) = adopt(&bytes, SwiftRunBudget::default());
++        hooks(Hooks {
++            cancel: Some(ordinal),
++            ..Hooks::default()
++        });
++        let r = construct(&mut c, a, None);
++        hooks(Hooks::default());
++        assert!(r.is_err(), "check {ordinal}");
++        assert_eq!(c.usage(None).reservations.cache.current, 0);
++        assert_eq!(
++            c.finish_owned_cleanup(None).reservations.combined.current,
++            0
++        );
++    }
++    println!("PLAN_CONSTRUCTOR allocation=5 capacity=5 shorter_work={credits} cancellation_checks={checks} cleanup_zero=true");
++}
++#[test]
++fn plan_reuse_cold_cached_all_boundaries() {
++    let bytes = fixture(0, &body(1, &[0, 0x0e, 1, 0, 0, 0x0b]), 100);
++    let base = SwiftRunBudget {
++        cache_entries: 1,
++        ..SwiftRunBudget::default()
++    };
++    for cached in [false, true] {
++        hooks(Hooks::default());
++        let (mut c, mut cache) = if cached {
++            plan_reuse_seed(&bytes, base)
++        } else {
++            new(&bytes, base)
++        };
++        let before = c.usage(None).cache_work;
++        hooks(Hooks::default());
++        let p = pin(&mut cache, &mut c, 34, None).unwrap();
++        let checks = HOOKS.with(|h| h.get().checks);
++        let work = c.usage(None).cache_work - before;
++        hooks(Hooks::default());
++        cache
++            .release(p, &mut c, None)
++            .map_err(|e| e.failure)
++            .unwrap();
++        finish(cache, c);
++        for shorter in 0..work {
++            hooks(Hooks::default());
++            let (mut c, mut cache) = if cached {
++                plan_reuse_seed(
++                    &bytes,
++                    SwiftRunBudget {
++                        cache_work: before + shorter,
++                        ..base
++                    },
++                )
++            } else {
++                new(
++                    &bytes,
++                    SwiftRunBudget {
++                        cache_work: before + shorter,
++                        ..base
++                    },
++                )
++            };
++            let f = pin(&mut cache, &mut c, 34, None).unwrap_err();
++            assert_eq!(f.resource, Some(SwiftRunResource::CacheWork));
++            let retained = pi::key(&cache, 34);
++            assert!(retained.is_none() || retained == Some(34));
++            let stopped = c.usage(None).cache_work;
++            plan_reuse_primary(f, pin(&mut cache, &mut c, 34, None).unwrap_err());
++            assert_eq!(c.usage(None).cache_work, stopped);
++            finish(cache, c);
++        }
++        for ordinal in 0..checks {
++            let (mut c, mut cache) = if cached {
++                plan_reuse_seed(&bytes, base)
++            } else {
++                new(&bytes, base)
++            };
++            hooks(Hooks {
++                cancel: Some(ordinal),
++                ..Hooks::default()
++            });
++            let f = pin(&mut cache, &mut c, 34, None).unwrap_err();
++            hooks(Hooks::default());
++            assert_eq!(f.kind, SwiftRunFailureKind::Cancelled);
++            assert_eq!(c.usage(None).live.active_pins.current, 0);
++            plan_reuse_primary(f, pin(&mut cache, &mut c, 34, None).unwrap_err());
++            finish(cache, c);
++        }
++        for ordinal in 0..3 {
++            let (mut c, mut cache) = if cached {
++                plan_reuse_seed(&bytes, base)
++            } else {
++                new(&bytes, base)
++            };
++            let (r, s) = measure_extended(Some(ordinal), || pin(&mut cache, &mut c, 34, None));
++            assert!(r.is_err());
++            assert_eq!(s.injected_failures, 1);
++            assert_eq!(pi::key(&cache, 34), Some(34));
++            assert_eq!(c.usage(None).live.active_pins.current, 0);
++            finish(cache, c);
++        }
++        println!("PLAN_OPERATION cached={cached} shorter_work={work} cancellation_checks={checks} allocations=3 cleanup_zero=true");
++    }
++}
++
++// Test-only section builder: every body is admitted by the real complete validator.
++fn plan_reuse_wide_fixture(helper: &[u8], definitions: usize) -> Vec<u8> {
++    let mut module = fixture(0, helper, definitions);
++    let mut cursor = 8;
++    loop {
++        let start = cursor;
++        let id = module[cursor];
++        cursor += 1;
++        let mut size = 0usize;
++        let mut shift = 0;
++        loop {
++            let b = module[cursor];
++            cursor += 1;
++            size |= ((b & 127) as usize) << shift;
++            if b & 128 == 0 {
++                break;
++            }
++            shift += 7;
++        }
++        if id == 10 {
++            module.truncate(start);
++            let mut code = vec![];
++            uint(definitions as u32, &mut code);
++            let mut rich = vec![0, 0x01];
++            rich.extend(std::iter::repeat_n(0x01, 511));
++            rich.push(0x0b);
++            for index in 0..definitions {
++                let b = if index == 28 {
++                    &[0, 0x41, 0, 0x0b][..]
++                } else if index == 0 {
++                    helper
++                } else {
++                    &rich
++                };
++                uint(b.len() as u32, &mut code);
++                code.extend_from_slice(b);
++            }
++            section(10, &code, &mut module);
++            return module;
++        }
++        cursor += size;
++    }
++}
++
++#[test]
++fn plan_reuse_header_lifetime_and_narrow_admission() {
++    let bytes = fixture(0, &[0, 0x0b], 100);
++    let (mut c, cache) = new(&bytes, SwiftRunBudget::default());
++    let mut owned = Some(cache);
++    let (tail, s) = measure(|| SwiftFunctionCache::cleanup(&mut owned, &mut c, None).unwrap());
++    assert!(owned.is_none());
++    assert!(s.freed_bytes >= pi::shape().1);
++    assert_eq!(
++        pi::tail_usage(&tail).reservations.cache.current,
++        cache_header_bytes().unwrap()
++    );
++    let mut result = None;
++    tail.complete(owned, &mut result);
++    assert_eq!(c.usage(None).reservations.cache.current, 0);
++    assert_eq!(
++        c.finish_owned_cleanup(None).reservations.combined.current,
++        0
++    );
++    // The additional table cannot silently outgrow a narrowed cache ceiling.
++    for limit in [0, pi::shape().1 - 1, cache_header_bytes().unwrap() - 1] {
++        let (mut c, a) = adopt(
++            &bytes,
++            SwiftRunBudget {
++                cache_bytes: limit,
++                ..SwiftRunBudget::default()
++            },
++        );
++        assert!(construct(&mut c, a, None).is_err());
++        assert_eq!(c.usage(None).reservations.cache.current, 0);
++        assert_eq!(
++            c.finish_owned_cleanup(None).reservations.combined.current,
++            0
++        );
++    }
++    println!("PLAN_HEADER payload_dropped_before_header=true narrowed_limits=3 cleanup_zero=true");
++}
++#[test]
++fn plan_reuse_collision_publish_boundaries() {
++    let bytes = fixture(0, &body(1, &[0x0b]), 600);
++    let base = SwiftRunBudget {
++        cache_entries: 1,
++        ..SwiftRunBudget::default()
++    };
++    let (mut c, mut cache) = new(&bytes, base);
++    plan_reuse_release(&mut cache, &mut c, 34);
++    let begin = c.usage(None).cache_work;
++    hooks(Hooks::default());
++    plan_reuse_release(&mut cache, &mut c, 546);
++    let checks = HOOKS.with(|h| h.get().checks);
++    let credits = c.usage(None).cache_work - begin;
++    let published = pi::summary(&cache, 546).unwrap();
++    hooks(Hooks::default());
++    finish(cache, c);
++    for (is_cancel, n) in [(false, credits as usize), (true, checks)] {
++        for ordinal in 0..n {
++            let (mut c, mut cache) = new(
++                &bytes,
++                if is_cancel {
++                    base
++                } else {
++                    SwiftRunBudget {
++                        cache_work: begin + ordinal as u64,
++                        ..base
++                    }
++                },
++            );
++            plan_reuse_release(&mut cache, &mut c, 34);
++            let old = pi::summary(&cache, 34).unwrap();
++            if is_cancel {
++                hooks(Hooks {
++                    cancel: Some(ordinal),
++                    ..Hooks::default()
++                });
++            }
++            let f = pin(&mut cache, &mut c, 546, None).unwrap_err();
++            hooks(Hooks::default());
++            let actual = pi::summary(&cache, 546).unwrap();
++            assert!(
++                actual == old || actual == published,
++                "atomic metadata publish ordinal {ordinal}"
++            );
++            plan_reuse_primary(f, pin(&mut cache, &mut c, 34, None).unwrap_err());
++            finish(cache, c);
++        }
++    }
++    println!("PLAN_COLLISION shorter_work={credits} cancellation_checks={checks} atomic=true cleanup_zero=true");
++}
++
++#[test]
++fn plan_reuse_cached_deadline_and_precedence() {
++    let bytes=fixture(0,&body(1,&[0,0x0e,1,0,0,0x0b]),100);
++    for step in [CacheStep::Lookup,CacheStep::BuildReset,CacheStep::Build,CacheStep::Publication] {
++        for cancel in [false,true] {
++            hooks(Hooks::default());
++            let (mut c,mut cache)=plan_reuse_seed(&bytes,SwiftRunBudget{cache_entries:1,deadline_ms:20,..SwiftRunBudget::default()});
++            hooks(Hooks{pause:Some(step),cancel_pause:cancel,..Hooks::default()});
++            let f=pin(&mut cache,&mut c,34,None).unwrap_err();hooks(Hooks::default());
++            assert_eq!(f.kind,if cancel {SwiftRunFailureKind::Cancelled} else {SwiftRunFailureKind::Deadline});
++            assert_eq!(c.usage(None).live.active_pins.current,0);
++            plan_reuse_primary(f,pin(&mut cache,&mut c,34,None).unwrap_err());
++            finish(cache,c);
++        }
++    }
++    println!("PLAN_CACHED_DEADLINE boundaries=4 precedence_pairs=4 cleanup_zero=true");
++}
++
++#[test]
++fn plan_reuse_profile_envelopes_without_guest_execution() {
++    use super::execution::{self,SwiftReactorInstance};
++    use super::execution::frame_operations::{FrameOperationStorage,FrameCompletion};
++    use crate::experimental_wasi::accounted::accounted_header_bytes;
++    let bytes=fixture(0,&[0,0x0b],100);
++    let max=SwiftRunBudget::default();
++    let mut pair=Some(adopt(&bytes,max));
++    let mut returned=Some(SwiftReactorInstance::construct(&mut pair,WasiGrants::default(),WasiBudget::default(),Instant::now(),cache_cursor()));
++    let mut owner=returned.take().unwrap().unwrap();assert!(pair.is_none());drop((pair,returned));
++    let constructed=owner.control.as_ref().unwrap().usage(owner.wasi.as_ref().map(AccountedWasi::usage));
++    assert_eq!(constructed.reservations.live_tickets,21);
++    for f in 34..98 {
++        let cache=owner.cache.as_mut().unwrap();let control=owner.control.as_mut().unwrap();let wasi=owner.wasi.as_ref();
++        let p=pin(cache,control,f,wasi).unwrap();cache.release(p,control,wasi).map_err(|e|e.failure).unwrap();
++    }
++    let resident=owner.control.as_ref().unwrap().usage(owner.wasi.as_ref().map(AccountedWasi::usage));
++    assert_eq!(resident.live.cache_entries.current,64);assert_eq!(resident.reservations.live_tickets,85);
++    let mut preparation=Some(owner.prepare_frames(cache_cursor()));
++    let mut phase=preparation.take().unwrap().unwrap();let report=phase.drain();
++    let bound=report.bound.unwrap();assert_eq!(report.usage.instructions,0);assert_eq!(report.usage.instruction_fuel,0);
++    let frame_bytes=bound.admitted-bound.previous;
++    assert!(matches!(phase.complete(FrameOperationStorage{preparation,entry:None,returned:None,drained:Some(report),controlled:None}),FrameCompletion::Completed));
++    let floor=foundation_construction_bytes().unwrap();
++    let construction=execution::construction_bytes().unwrap();
++    let execution_header=execution::execution_header_bytes().unwrap();
++    // A conservative simultaneous ceiling calculation, not a claim that every
++    // independent category ceiling is reachable in a valid module.
++    let categories=max.source_bytes+max.metadata_bytes+max.cache_bytes+max.state_bytes;
++    let wasi=accounted_header_bytes().unwrap()+4*65536;
++    let shared=constructed.reservations.shared.current;
++    let phase_peak=floor+construction.max(frame_bytes+cache_operation_bytes().unwrap());
++    let maximum_envelope=categories+wasi+shared+phase_peak;
++    println!("PLAN_PROFILE floor={floor} execution_header={execution_header} execution_construction={construction} frame_operation={frame_bytes} category_ceiling_sum={categories} wasi_max={wasi} shared={shared} conservative_combined={maximum_envelope} combined_limit={} constructed_current={} constructed_peak={} resident_current={} resident_peak={} frame_peak={} tickets={}/{}",max.combined_bytes,constructed.reservations.combined.current,constructed.reservations.combined.peak,resident.reservations.combined.current,resident.reservations.combined.peak,report.usage.reservations.combined.peak,report.usage.reservations.live_tickets,report.usage.reservations.peak_tickets);
++    assert!(maximum_envelope<=max.combined_bytes);
++    assert!(execution_header<=max.state_bytes);assert!(report.usage.reservations.peak_tickets<=86);
++    assert_eq!(owner.control.as_ref().unwrap().budget(),max);
++    let mut owned=Some(owner);let mut cleanup=Some(SwiftReactorInstance::cleanup_owned(&mut owned));
++    let tail=cleanup.take().unwrap().unwrap();let mut failure=None;let mut usage=None;
++    tail.complete((owned,cleanup),&mut failure,&mut usage);
++    let final_usage=usage.unwrap();assert_eq!(final_usage.reservations.combined.current,0);assert_eq!(final_usage.reservations.live_tickets,0);assert!(failure.is_none());
++    println!("PLAN_PROFILE cleanup_zero=true guest_instructions=0 initializes=0 invokes=0");
++}

@@ -1,0 +1,121 @@
+--- verification/hosted-worker-pending-entry-integration/candidate/dist/src/operation-state.js
++++ verification/hosted-worker-entry-context-admission/candidate/dist/src/operation-state.js
+@@ -51,7 +51,7 @@
+     async checkedTarget(value, b) { if (this.failed || !this.c)
+         throw new Error('entry_unavailable'); const i = await identity(value, this.c); b?.check(); if (!this.ctx.id.equals(this.env.OPERATIONS.idFromName(i.value.operationKey)))
+         throw new Error('entry_operation_namespace'); return i.value; }
+-    async initialize(value, b) {
++    async initialize(value, b, expectedRow) {
+         const i = await this.checkedTarget(value, b), bytes = identityBytes(i);
+         b?.check();
+         if (this.selected !== null && this.selected !== bytes)
+@@ -63,6 +63,10 @@
+                 throw new Error('entry_context_conflict');
+             return this.engine;
+         }
++        // Enrollment's snapshot must still be exact after all identity/hash awaits.
++        // Nothing may yield between this final row check and the one-time slot.
++        if (expectedRow !== undefined && JSON.stringify(this.ledger.read()) !== expectedRow)
++            throw new Error('entry_row_changed');
+         this.selected = bytes;
+         // Set the slot synchronously before any yield. It is never reset per request.
+         this.initialization = Promise.resolve().then(() => { if (this.failed || !this.c)
+@@ -142,16 +146,21 @@
+             return { status: 'conflict' };
+         }
+     }
+-    async enrollExisting(value) { try {
+-        const i = await this.checkedTarget(value);
+-        if (!this.ledger.read())
+-            return 'missing';
+-        const engine = await this.initialize(i);
+-        return await engine.enrollExisting(i);
++    async enrollExisting(value) {
++        try {
++            const i = await this.checkedTarget(value), row = this.ledger.read();
++            if (!row)
++                return 'missing';
++            const expectedRow = JSON.stringify(row);
++            if (!matchesRow(i, row) || await sha(row.binding) !== i.immutableSha256)
++                return 'conflict';
++            const engine = await this.initialize(i, undefined, expectedRow);
++            return await engine.enrollExisting(i);
++        }
++        catch {
++            return 'conflict';
++        }
+     }
+-    catch {
+-        return 'conflict';
+-    } }
+     async alarm() { if (this.failed)
+         return; if (this.initialization)
+         await this.initialization; if (this.engine)
+--- verification/hosted-worker-pending-entry-integration/candidate/dist/test/entry-worker.d.ts
++++ verification/hosted-worker-entry-context-admission/candidate/dist/test/entry-worker.d.ts
+@@ -22,6 +22,10 @@
+     private get engine();
+     fetch(request: Request): Promise<Response>;
+     enrollExisting(i: PendingIdentity): Promise<"unavailable" | "conflict" | "enrolled" | "missing">;
++    enrollAcrossRowChangeFixture(i: PendingIdentity): Promise<{
++        status: "unavailable" | "conflict" | "enrolled" | "missing";
++        trace: string[];
++    }>;
+     alarm(): Promise<void>;
+     private held;
+     protected resourceKind(platform: 'ios' | 'android'): 'cloudflare-linux' | 'external-macos';
+--- verification/hosted-worker-pending-entry-integration/candidate/dist/test/entry-worker.js
++++ verification/hosted-worker-entry-context-admission/candidate/dist/test/entry-worker.js
+@@ -8,6 +8,7 @@
+ import { Engine } from '../src/engine.js';
+ import { config, registryName, identity } from '../src/pending-types.js';
+ import { operationKey } from '../src/principal.js';
++import { immutableBytes } from '../src/wire.js';
+ const json = (v) => new Response(JSON.stringify(v ?? { ok: true }), { headers: { 'content-type': 'application/json' } });
+ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+ let events = [];
+@@ -42,6 +43,23 @@
+     get engine() { return this.state.engine; }
+     async fetch(request) { this.ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS entry_received(value TEXT NOT NULL)'); const text = await request.clone().text(); this.ctx.storage.sql.exec('INSERT INTO entry_received(value) VALUES(?)', JSON.stringify({ text, headers: Object.fromEntries(request.headers) })); return this.state.fetch(request); }
+     async enrollExisting(i) { return this.state.enrollExisting(i); }
++    async enrollAcrossRowChangeFixture(i) {
++        // One finite local regression: change non-identity row history in the first
++        // hash await after enrollment snapshots it. Production has no hook for this.
++        const read = this.ledger.read.bind(this.ledger), trace = [];
++        let armed = true;
++        this.ledger.read = () => { const row = read(); if (armed) {
++            armed = false;
++            trace.push('snapshot-read');
++            queueMicrotask(() => { this.ctx.storage.sql.exec('UPDATE operation SET failures=failures+1'); trace.push('row-history-changed'); });
++        } return row; };
++        try {
++            return { status: await this.state.enrollExisting(i), trace };
++        }
++        finally {
++            this.ledger.read = read;
++        }
++    }
+     async alarm() { return this.state.alarm(); }
+     held = null;
+     resourceKind(platform) { return platform === 'ios' ? 'external-macos' : 'cloudflare-linux'; }
+@@ -81,6 +99,11 @@
+         }
+         else if (kind === 'delete-row')
+             this.ctx.storage.sql.exec('DELETE FROM operation');
++        else if (kind === 'binding-sha-mismatch') {
++            const row = this.ledger.read(), request = JSON.parse(row.request_json);
++            request.spec.source.reference = 'finite-admission-fixture';
++            this.ctx.storage.sql.exec('UPDATE operation SET request_json=?,binding=?', JSON.stringify(request), immutableBytes(request));
++        }
+         else
+             throw new Error('fixture_mutation');
+         await this.ledger.sync();
+@@ -131,6 +154,8 @@
+             return json(await op.recoverKnown(arg.i, arg.p, arg.t));
+         if (arg.action === 'enroll')
+             return json(await op.enrollExisting(arg.i));
++        if (arg.action === 'enroll-row-change')
++            return json(await op.enrollAcrossRowChangeFixture(arg.i));
+         if (arg.action === 'claim')
+             return json(await op.claimFixture(arg.payload));
+         if (arg.action === 'report')
