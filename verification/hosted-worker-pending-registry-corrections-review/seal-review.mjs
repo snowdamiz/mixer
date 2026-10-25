@@ -1,0 +1,7 @@
+import {readFile,writeFile,readdir} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+import {resolve,join,relative} from 'node:path';
+const packet=import.meta.dirname,sha=b=>createHash('sha256').update(b).digest('hex'),selectedRun='runs/20261025T045244777Z',runtime=JSON.parse(await readFile(join(packet,selectedRun,'runtime-receipt.json'),'utf8')),manifest={};
+async function collect(dir){for(const f of await readdir(dir,{withFileTypes:true})){const p=join(dir,f.name);if(f.isDirectory())await collect(p);else if(!['artifact-manifest.json','receipt.json'].includes(relative(packet,p)))manifest[relative(packet,p)]=sha(await readFile(p));}}
+await collect(packet);const doc=resolve(packet,'../../docs/hosted-worker-pending-registry-corrections-review.md');manifest[relative(packet,doc)]=sha(await readFile(doc));await writeFile(join(packet,'artifact-manifest.json'),JSON.stringify(Object.fromEntries(Object.entries(manifest).sort(([a],[b])=>a.localeCompare(b))),null,2)+'\n');
+const receipt={...runtime,status:'reviewed-no-actionable-findings-corrections-only',selectedRun,runtimeReceiptSHA256:sha(await readFile(join(packet,selectedRun,'runtime-receipt.json'))),documentSHA256:sha(await readFile(doc)),artifactManifestSHA256:sha(await readFile(join(packet,'artifact-manifest.json'))),accountableGAReviewer:null,gaAccepted:false};await writeFile(join(packet,'receipt.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify({receiptSHA256:sha(await readFile(join(packet,'receipt.json'))),artifactBindings:Object.keys(manifest).length}));

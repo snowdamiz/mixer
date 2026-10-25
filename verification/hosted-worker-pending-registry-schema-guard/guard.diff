@@ -1,0 +1,10 @@
+--- a/src/pending-audit.ts
++++ b/src/pending-audit.ts
+@@ -12,6 +12,7 @@
+  private completionMemory:(Completion|null)[]=Array(16).fill(null);
+  constructor(ctx:DurableObjectState,env:PendingEnv){super(ctx,env);try{const c=config(env);this.c=c;if(!ctx.id.equals(env.PENDING_AUDIT.idFromName(auditName(c))))throw new Error('pending_namespace');
+   ctx.storage.transactionSync(()=>{const exists=ctx.storage.sql.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='pending_audit_meta'").toArray();if(exists.length){const rows=ctx.storage.sql.exec<{version:number;config:string}>('SELECT version,config FROM pending_audit_meta').toArray();if(rows.length!==1||rows[0]!.version!==1||rows[0]!.config!==JSON.stringify(c))throw new Error('pending_schema_config');}
++   if(!exists.length&&ctx.storage.sql.exec("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('pending_audit_summary','pending_audit_completion') LIMIT 1").toArray().length)throw new Error('pending_schema_missing');
+    ctx.storage.sql.exec(schema);ctx.storage.sql.exec("INSERT OR IGNORE INTO pending_audit_meta(singleton,version,config,run_sequence,next_shard,cursors) VALUES(1,1,?,'0',0,?)",JSON.stringify(c),JSON.stringify(Array(16).fill(0)));
+    for(let i=0;i<16;i++)ctx.storage.sql.exec('INSERT OR IGNORE INTO pending_audit_completion(shard,value) VALUES(?,NULL)',i);
+    const m=this.meta();decimal(m.run_sequence);integer(m.next_shard,0,15);this.cursors(m);for(const r of ctx.storage.sql.exec<{shard:number;value:string}>('SELECT shard,value FROM pending_audit_completion WHERE value IS NOT NULL LIMIT 16'))this.completion(r.value,r.shard);

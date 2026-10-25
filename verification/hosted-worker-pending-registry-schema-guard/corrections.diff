@@ -1,0 +1,22 @@
+--- a/src/pending-audit.ts
++++ b/src/pending-audit.ts
+@@ -12,6 +12,7 @@
+  private completionMemory:(Completion|null)[]=Array(16).fill(null);
+  constructor(ctx:DurableObjectState,env:PendingEnv){super(ctx,env);try{const c=config(env);this.c=c;if(!ctx.id.equals(env.PENDING_AUDIT.idFromName(auditName(c))))throw new Error('pending_namespace');
+   ctx.storage.transactionSync(()=>{const exists=ctx.storage.sql.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='pending_audit_meta'").toArray();if(exists.length){const rows=ctx.storage.sql.exec<{version:number;config:string}>('SELECT version,config FROM pending_audit_meta').toArray();if(rows.length!==1||rows[0]!.version!==1||rows[0]!.config!==JSON.stringify(c))throw new Error('pending_schema_config');}
++   if(!exists.length&&ctx.storage.sql.exec("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('pending_audit_summary','pending_audit_completion') LIMIT 1").toArray().length)throw new Error('pending_schema_missing');
+    ctx.storage.sql.exec(schema);ctx.storage.sql.exec("INSERT OR IGNORE INTO pending_audit_meta(singleton,version,config,run_sequence,next_shard,cursors) VALUES(1,1,?,'0',0,?)",JSON.stringify(c),JSON.stringify(Array(16).fill(0)));
+    for(let i=0;i<16;i++)ctx.storage.sql.exec('INSERT OR IGNORE INTO pending_audit_completion(shard,value) VALUES(?,NULL)',i);
+    const m=this.meta();decimal(m.run_sequence);integer(m.next_shard,0,15);this.cursors(m);for(const r of ctx.storage.sql.exec<{shard:number;value:string}>('SELECT shard,value FROM pending_audit_completion WHERE value IS NOT NULL LIMIT 16'))this.completion(r.value,r.shard);
+--- a/src/pending-registry.ts
++++ b/src/pending-registry.ts
+@@ -36,7 +36,8 @@
+   const result=this.ctx.storage.transactionSync<TrackAck>(()=>{const r=this.row(p.recordId);if(!r||!this.matches(r,p))return {status:'conflict'};
+    if(BigInt(version)<BigInt(r.state_version))return {status:'stale',stateVersion:r.state_version};
+    if(version===r.state_version)return body===r.projection_json?{status:'duplicate',stateVersion:version}:{status:'conflict'};
+-   if(!r.pending)return {status:'conflict'};
++   if(!r.pending){if(projection(a.projection).kind!=='terminal'||body!==r.projection_json)return {status:'conflict'};
++    this.ctx.storage.sql.exec('UPDATE pending_registry_record SET state_version=? WHERE record_id=?',version,p.recordId);this.bounded(this.row(p.recordId)!);return {status:'accepted',stateVersion:version};}
+    this.ctx.storage.sql.exec('UPDATE pending_registry_record SET state_version=?,projection_json=?,pending=?,ticket_json=NULL,disposition_json=NULL WHERE record_id=?',version,body,projection(a.projection).kind==='terminal'?0:1,p.recordId);this.bounded(this.row(p.recordId)!);return {status:'accepted',stateVersion:version};});
+   await this.ctx.storage.sync();return result;
+  }catch(error){return {status:error instanceof Error&&error.message==='pending_invalid'?'conflict':'unavailable'};}}

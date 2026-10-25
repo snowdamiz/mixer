@@ -1,0 +1,9 @@
+# Pending registry and audit component integration
+
+The independently reviewed registry/audit components are installed in hosted-worker-controller/src. The build copies their SQL schema alongside the existing operation schema. The operation Engine/Ledger and public/scheduled entry remain unchanged in this slice.
+
+The two reviewed corrections reject surviving audit safety tables when their metadata is missing and allow a newer tracked version only for the exact same permanent terminal projection. The original defect evidence is preserved. The derivative passes eight schema controls and four terminal controls in distinct source-bound runs; independent review passes five additional actual SQLite controls, with six verified SIGKILL boundaries and all five owned stores removed.
+
+Root verifies the complete independent packet and matches all nine compiled component outputs to the tested candidate. The fresh live controller suite passes all 71 existing groups plus 20 process-identity controls, across six successful commands with complete output and cleanup. All 153 temporary persistent fixtures are removed. The deployed-entry static closure still contains the original nine files because these new classes are not wired into it yet.
+
+[Root acceptance](../verification/hosted-worker-pending-registry-components-root-integration/acceptance.json) records exact source/compiled/review hashes and scope. The separate schema-3 Engine candidate passed its producer suite but independent review reproduced provider/platform mismatch and result acceptance across a permanent fence created during verifier await; it remains unintegrated while a narrow derivative repairs them. Registry pre-registration/outbox/barriers, class/cron wiring, provider/clock/restore deployment, signing, phones and GA qualification remain pending.

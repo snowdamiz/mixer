@@ -1,0 +1,757 @@
+--- a/hosted-worker-controller/src/engine.ts
++++ b/hosted-worker-controller/src/engine.ts
+@@ -2,6 +2,10 @@
+ import {Ledger,Row} from "./ledger.js";
+ import {Effect,ObjectVerifier,Provider,ProviderObservation,ResourceIdentity} from "./provider.js";
+ import {BuildResult,decimal,exact,hex,immutableBytes,invalid,Observation,result,sha,text,WireRequest} from "./wire.js";
++import type {PendingIdentity,RegistrationReceipt,WakeTicket,RecoveryDisposition,Projection,CoalescedTrackOutbox} from "./vendor/public-contract.js";
++import {decimal as registryDecimal,exact as registryExact,ticket as registryTicket,receipt as registryReceipt,wait} from "./vendor/pending-types.js";
++import {RegistryContext,checkedContext,identityBytes,matchesRequest,matchesRow,retained,same,unavailableRegistry} from "./registry-context.js";
++interface BarrierEffect extends Effect {barrierVersion:string|null}
+ export interface Hooks {point(name:string):Promise<void>}
+ const noHooks:Hooks={async point(){}};
+ const err=(code:"stale"|"unavailable"|"uncertain"):Observation=>({status:"error",code});
+@@ -10,7 +14,79 @@
+ export interface RunnerReport extends RunnerClaim {operationId:string;claimId:string;result:BuildResult;attestationSha256:string}
+ export class Engine {
+   private inFlight=false;
+-  constructor(readonly ledger:Ledger,readonly clock:Clock,readonly provider:Provider,readonly verifier:ObjectVerifier,private hooks:Hooks=noHooks){}
++  constructor(readonly ledger:Ledger,readonly clock:Clock,readonly provider:Provider,readonly verifier:ObjectVerifier,private hooks:Hooks=noHooks,private pending?:RegistryContext){}
++  private registry(){return this.pending?.registry??unavailableRegistry;}
++  private fence(bytes:string,version:string,reason:string):void{this.ledger.storage.transactionSync(()=>this.ledger.fence(bytes,version,reason));}
++  private async checked(identity:PendingIdentity,receipt:RegistrationReceipt){return checkedContext(this.pending,identity,receipt);}
++  // A single coalesced snapshot is attempted once. Out-of-order acknowledgement
++  // may advance exact delivery metadata, but cannot erase a newer projection.
++  async flushTrack():Promise<boolean>{
++    const snapshot=this.ledger.read();if(!snapshot)return false;
++    if(!snapshot.track_outbox_json)return !!snapshot.registration_json;
++    if(!retained(this.pending,snapshot)){
++      if(snapshot.registration_json&&this.pending){this.fence(identityBytes(this.pending.identity),snapshot.state_version,'retained_binding_conflict');await this.ledger.sync();}
++      return false;
++    }
++    const bytes=snapshot.track_outbox_json;
++    let checked:Awaited<ReturnType<typeof checkedContext>>;
++    try{checked=await this.checked(JSON.parse(snapshot.pending_identity_json!),JSON.parse(snapshot.registration_json!));}
++    catch{this.fence(identityBytes(this.pending!.identity),snapshot.state_version,'retained_receipt_invalid');await this.ledger.sync();return false;}
++    try{
++      const outbox=JSON.parse(bytes) as CoalescedTrackOutbox;
++      registryExact(outbox,['stateVersion','nextDueUs','terminal']);registryDecimal(outbox.stateVersion);
++      if(outbox.stateVersion!==snapshot.state_version)throw new Error('outbox_version');
++      let projection:Projection;
++      if(outbox.terminal){
++        registryExact(outbox.terminal,['phase','exactJson']);
++        if(outbox.terminal.exactJson!==snapshot.terminal_json||!['completed','stopped'].includes(outbox.terminal.phase)||outbox.nextDueUs!==null)throw new Error('terminal_outbox');
++        projection={kind:'terminal',nextDueUs:null,phase:outbox.terminal.phase,evidenceSha256:await sha(outbox.terminal.exactJson)};
++      }else{if(outbox.nextDueUs!==null)registryDecimal(outbox.nextDueUs);projection={kind:'pending',nextDueUs:outbox.nextDueUs};}
++      await this.hooks.point('before_track');
++      const current=this.ledger.read();
++      if(!current||current.state_version!==outbox.stateVersion||current.track_outbox_json!==bytes||current.registration_json!==snapshot.registration_json||current.terminal_json!==snapshot.terminal_json)return false;
++      const call=await wait(this.registry().track({receipt:checked.receipt,stateVersion:outbox.stateVersion,projection}),250);
++      if(!call.ok)return false;
++      const ack=call.value;
++      if(ack.status==='accepted'||ack.status==='duplicate'||ack.status==='stale'){
++        registryExact(ack,['status','stateVersion']);registryDecimal(ack.stateVersion);
++        const latest=this.ledger.read();if(!latest)return false;
++        if(latest.registration_json!==snapshot.registration_json||latest.pending_identity_json!==snapshot.pending_identity_json){this.fence(checked.bytes,latest.state_version,'ack_binding_changed');await this.ledger.sync();return false;}
++        if(BigInt(ack.stateVersion)>BigInt(latest.state_version)){this.fence(checked.bytes,ack.stateVersion,'registry_ahead');await this.ledger.sync();return false;}
++        if(ack.status==='stale')return false;
++        if(ack.stateVersion!==outbox.stateVersion)throw new Error('ack_version');
++        const clear=this.ledger.acknowledge(ack.stateVersion,bytes);await this.ledger.sync();
++        return clear&&this.ledger.read()?.track_outbox_json===null;
++      }
++      registryExact(ack,['status']);
++      if(ack.status==='conflict'){this.fence(checked.bytes,outbox.stateVersion,'track_conflict');await this.ledger.sync();}
++      return false;
++    }catch{return false;}
++  }
++  // This private API is called only after the authenticated top-level entry has
++  // preregistered the fixed canonical identity. It adds no public HTTP route.
++  async commandRegistered(request:WireRequest,resource:ResourceIdentity,identity:PendingIdentity,receipt:RegistrationReceipt):Promise<Observation>{
++    try{
++      const checked=await this.checked(identity,receipt);
++      if(!matchesRequest(checked.identity,request)||resource.key!==checked.identity.operationKey||resource.immutableSha256!==checked.identity.immutableSha256)return err('unavailable');
++      const prior=this.ledger.read();
++      if(prior){
++        if(!matchesRow(checked.identity,prior)||prior.pending_identity_json!==JSON.stringify(checked.identity)||prior.registration_json!==JSON.stringify(checked.receipt)){
++          this.fence(checked.bytes,prior.state_version,'registered_command_conflict');await this.ledger.sync();return err('unavailable');
++        }
++        return this.command(request,resource);
++      }
++      if(this.ledger.fenced())return err('unavailable');
++      const response=await wait(this.registry().register(checked.identity),250);
++      if(!response.ok||!['registered','duplicate'].includes(response.value.status))return err('unavailable');
++      const registered=response.value;
++      if(registered.status!=='registered'&&registered.status!=='duplicate')return err('unavailable');
++      registryExact(registered,['status','receipt']);
++      const proven=await this.checked(checked.identity,registered.receipt);
++      if(!same(proven.receipt,checked.receipt))return err('unavailable');
++      await this.hooks.point('after_registration_validated');
++      return this.commandAdmitted(request,resource,checked);
++    }catch{return err('unavailable');}
++  }
+   private sample(r:Row|null):Interval|null {
+     const i=this.clock.sample();if(!validInterval(i))return null;
+     if(r&&i.upperUs<BigInt(r.clock_floor)){
+@@ -53,8 +129,15 @@
+     return err("uncertain");
+   }
+   async command(request:WireRequest,identity:ResourceIdentity):Promise<Observation>{
++    if(!this.ledger.read())return err('unavailable');
++    return this.commandAdmitted(request,identity);
++  }
++  private async commandAdmitted(request:WireRequest,identity:ResourceIdentity,registration?:{identity:PendingIdentity;receipt:RegistrationReceipt;bytes:string}):Promise<Observation>{
+     let action=false;
+     const admitted=this.ledger.transaction(row=>{
++      if(this.ledger.fenced()&&row?.desired!=='stop')return err('unavailable');
++      if(!row&&!registration)return err('unavailable');
++      if(row&&!retained(this.pending,row))return err('unavailable');
+       if(row&&(row.operation_id!==request.operation_id||row.binding_hash!==request.immutable_sha256||row.binding!==immutableBytes(request)))invalid();
+       if(row){
+         const e=BigInt(request.guard.epoch),old=BigInt(row.epoch),v=BigInt(request.guard.revision),previous=BigInt(row.revision);
+@@ -65,6 +148,7 @@
+       if(interval.upperUs>=BigInt(request.guard.expires_at_us)||interval.upperUs>=BigInt(request.deadline_ms)*1000n)return err("stale");
+       if(request.command==="ensure_started"&&!this.provider.available&&!row?.terminal_json)return err("unavailable");
+       const r=row??this.ledger.initial(request,interval,identity);
++      if(!row){r.pending_identity_json=JSON.stringify(registration!.identity);r.registration_json=JSON.stringify(registration!.receipt);}
+       r.epoch=request.guard.epoch;r.revision=request.guard.revision;r.owner=request.guard.owner_id;r.expiry_us=request.guard.expires_at_us;
+       r.request_json=JSON.stringify(request);this.acceptTime(r,interval);
+       if(request.command==="stop")this.stop(r);
+@@ -72,9 +156,12 @@
+         r.desired="run";r.phase="launch_pending";r.effect_kind="launch";r.effect_id=uuid();r.effect_state="prepared";r.effect_request_json=JSON.stringify(request);
+       }
+       if(!r.terminal_json&&r.desired!=="none"){this.due(r,interval);action=true;}
++      if(r.effect_kind&&!r.terminal_json)r.effect_barrier_version=this.ledger.nextVersion(r);
++      if(r.claim_state==='consumed'&&!r.terminal_json)r.claim_barrier_version=this.ledger.nextVersion(r);
+       this.ledger.save(r,"request");return this.current(r);
+     });
+     await this.ledger.sync();
++    if(!action&&!(admitted.status==='error'&&admitted.code!=='uncertain')){await this.flushTrack();await this.arm();}
+     if(action){
+       try{await this.arm();await this.hooks.point("after_intent");await this.reconcile();}
+       catch{return err("uncertain");}
+@@ -84,9 +171,9 @@
+     if(admitted.status==="error"&&admitted.code!=="uncertain")return admitted;
+     return this.ledger.read()?this.current(this.ledger.read()!):admitted;
+   }
+-  private prepare():Effect|null {
++  private prepare():BarrierEffect|null {
+     return this.ledger.transaction(r=>{
+-      if(!r||r.terminal_json||(r.quarantined&&r.desired!=="stop")||!this.provider.available)return null;
++      if(!r||r.terminal_json||((r.quarantined||this.ledger.fenced()||!retained(this.pending,r))&&r.desired!=="stop")||!this.provider.available)return null;
+       const interval=this.sample(r);
+       const request=JSON.parse(r.request_json) as WireRequest;
+       if(interval&&interval.lowerUs>=BigInt(request.deadline_ms)*1000n)this.stop(r);
+@@ -108,17 +195,18 @@
+       r.effect_id=reuse?r.effect_id:uuid();
+       if(!reuse)r.effect_request_json=r.request_json;
+       r.effect_kind=kind;r.effect_state="dispatched";
+-      this.due(r,interval);this.ledger.save(r,"effect_dispatched");
+-      return {id:r.effect_id!,kind,identity:this.ledger.identity(r),request:JSON.parse(r.effect_request_json!) as WireRequest};
++      this.due(r,interval);r.effect_barrier_version=this.ledger.nextVersion(r);this.ledger.save(r,"effect_dispatched");
++      return {id:r.effect_id!,kind,barrierVersion:r.effect_barrier_version,identity:this.ledger.identity(r),request:JSON.parse(r.effect_request_json!) as WireRequest};
+     });
+   }
+   private sameGuard(r:Row,request:WireRequest):boolean {
+     const g=request.guard;return g.epoch===r.epoch&&g.revision===r.revision&&g.owner_id===r.owner&&g.expires_at_us===r.expiry_us;
+   }
+-  private finalCheck(effect:Effect):boolean {
++  private finalCheck(effect:BarrierEffect):boolean {
+     return this.ledger.transaction(r=>{
+       if(!r||(r.quarantined&&effect.kind!=="stop")||r.terminal_json||r.effect_id!==effect.id||r.effect_kind!==effect.kind)return false;
+       if(effect.kind==="stop")return r.desired==="stop";
++      if(this.ledger.fenced()||!retained(this.pending,r)||!effect.barrierVersion||r.effect_barrier_version!==effect.barrierVersion||BigInt(r.registry_ack_version)<BigInt(effect.barrierVersion))return false;
+       const interval=this.sample(r);
+       if(!interval||r.desired!=="run"||!this.sameGuard(r,effect.request)||!this.live(r,interval))return false;
+       this.acceptTime(r,interval);this.ledger.save(r,"effect_time_accepted");return true;
+@@ -135,7 +223,7 @@
+       return value as unknown as ProviderObservation;
+     }catch{return null;}
+   }
+-  private accept(effect:Effect,raw:unknown):void {
++  private accept(effect:BarrierEffect,raw:unknown):void {
+     const obs=this.observation(raw,effect.identity);
+     this.ledger.transaction(r=>{
+       if(!r||r.effect_id!==effect.id||r.effect_kind!==effect.kind||r.terminal_json)return;
+@@ -148,7 +236,11 @@
+       if(!obs){r.effect_state="uncertain";r.failures=Math.min(32,r.failures+1);this.due(r,interval);this.ledger.save(r,"provider_uncertain");return;}
+       r.effect_state="settled";r.failures=0;
+       if(r.desired==="stop") {
+-        if(obs.state==="absent"&&obs.definitive&&obs.descendantsGone&&obs.launchesSettled){
++        // Outage cleanup is permitted, but terminal/quiescent admission retains
++        // the normal delivery barrier and monotonic qualified clock. An expired
++        // run guard cannot prevent stopping; it is deliberately not renewed.
++        const terminalReady=!!interval&&!r.quarantined&&!this.ledger.fenced()&&retained(this.pending,r)&&!!effect.barrierVersion&&r.effect_barrier_version===effect.barrierVersion&&BigInt(r.registry_ack_version)>=BigInt(effect.barrierVersion);
++        if(terminalReady&&obs.state==="absent"&&obs.definitive&&obs.descendantsGone&&obs.launchesSettled){
+           const terminal:Observation=r.pending_result_json?{status:"completed",result:JSON.parse(r.pending_result_json) as BuildResult}:{status:"stopped",diagnostic_sha256:obs.diagnosticSha256};
+           r.terminal_json=JSON.stringify(terminal);r.phase=terminal.status==="completed"?"completed":"stopped";r.next_due_us=null;
+         }else r.phase="stop_pending";
+@@ -167,11 +259,16 @@
+   }
+   async reconcile():Promise<void>{
+     if(this.inFlight)return;this.inFlight=true;
+-    let effect:Effect|null=null;
++    let effect:BarrierEffect|null=null;
+     let workSettled=true;
+     let finished=false;
+     try{
+-      await this.arm();effect=this.prepare();await this.ledger.sync();await this.arm();if(!effect||!this.finalCheck(effect))return;
++      await this.arm();
++      const intentTracked=await this.flushTrack();
++      if(!intentTracked&&this.ledger.read()?.desired!=='stop')return;
++      effect=this.prepare();await this.ledger.sync();await this.arm();
++      const dispatchTracked=effect?await this.flushTrack():false;
++      if(!effect||(!dispatchTracked&&effect.kind!=='stop')||!this.finalCheck(effect))return;
+       const controller=new AbortController();let timer:ReturnType<typeof setTimeout>|undefined;
+       try{
+         workSettled=false;
+@@ -184,7 +281,7 @@
+         await this.hooks.point("after_dispatch");
+         const observation=await Promise.race([work,timeout]);
+         await this.hooks.point("after_provider_effect");
+-        this.accept(effect,observation);await this.ledger.sync();
++        this.accept(effect,observation);await this.ledger.sync();await this.flushTrack();
+       }finally{controller.abort();if(timer!==undefined)clearTimeout(timer);}
+     }catch{
+       const id=effect?.id;
+@@ -193,12 +290,16 @@
+     }finally{finished=true;if(workSettled)this.inFlight=false;await this.arm();}
+   }
+   async arm():Promise<void>{
+-    const r=this.ledger.read();if(!r?.next_due_us){if(await this.ledger.storage.getAlarm()!==null)await this.ledger.storage.deleteAlarm();return;}
+-    // Relative scheduling uses platform time only as a wake hint. Authorization
+-    // always samples the qualified Clock after acquiring the ledger transaction.
++    const existing=await this.ledger.storage.getAlarm(),r=this.ledger.read();
++    // Even a quiescent registry terminal may have a lost ACK. Its exact local
++    // outbox keeps a bounded operation alarm until delivery metadata is durable.
++    // Re-read after the await so an older arm cannot erase a newly queued outbox.
++    if(!r||(!r.next_due_us&&!r.track_outbox_json)){
++      if(existing!==null)await this.ledger.storage.deleteAlarm();return;
++    }
++    // Platform time remains a wake hint, never authorization.
+     const delay=Math.min(60000,1000*2**Math.min(r.failures,6));
+     const next=Date.now()+delay;
+-    const existing=await this.ledger.storage.getAlarm();
+     if(existing===null||existing>next)await this.ledger.storage.setAlarm(next);
+     await this.ledger.sync();
+   }
+@@ -207,7 +308,7 @@
+     // Constructor recovery never overwrites an earlier alarm or dispatches a
+     // possibly duplicated launch. An already-marked launch will be inspected.
+     this.ledger.transaction(r=>{if(r&&r.effect_state==="dispatched"&&!r.terminal_json){r.effect_state="uncertain";this.ledger.save(r,"restart_uncertain");}});
+-    await this.ledger.sync();await this.arm();
++    await this.ledger.sync();await this.flushTrack();await this.arm();
+   }
+   private validClaim(value:unknown,report=false):boolean {
+     try{
+@@ -223,23 +324,24 @@
+     if(!this.validClaim(claim))return {granted:false};
+     await this.hooks.point("before_claim_grant");
+     const prospective=this.ledger.transaction(r=>{
+-      if(!r||r.quarantined||r.desired!=="run"||r.terminal_json||r.claim_state!=="unissued"||r.phase!=="inert")return null;
++      if(!r||r.quarantined||this.ledger.fenced()||!retained(this.pending,r)||r.desired!=="run"||r.terminal_json||r.claim_state!=="unissued"||r.phase!=="inert")return null;
+       if(claim.immutableSha256!==r.binding_hash||claim.identity.provider!==r.provider_kind||claim.identity.key!==r.provider_key||claim.identity.immutableSha256!==r.binding_hash||claim.instanceId!==r.instance_id||claim.bootId!==r.boot_id)return null;
+       const i=this.sample(r);if(!i||!this.live(r,i))return null;
+       this.acceptTime(r,i);
+-      r.claim_state="consumed";r.claim_id=uuid();r.phase="claim_consumed";this.ledger.save(r,"claim_consumed");
+-      return {operation_id:r.operation_id,binding:r.binding,binding_hash:r.binding_hash,
++      r.claim_state="consumed";r.claim_id=uuid();r.phase="claim_consumed";r.claim_barrier_version=this.ledger.nextVersion(r);this.ledger.save(r,"claim_consumed");
++      return {claim_barrier_version:r.claim_barrier_version,operation_id:r.operation_id,binding:r.binding,binding_hash:r.binding_hash,
+         epoch:r.epoch,revision:r.revision,owner:r.owner,expiry_us:r.expiry_us,
+         provider_kind:r.provider_kind,provider_key:r.provider_key,instance_id:r.instance_id,boot_id:r.boot_id,claim_id:r.claim_id};
+     });
+     await this.ledger.sync();await this.hooks.point("after_claim_commit");
++    if(prospective)await this.flushTrack();
+     // Consumption is already durable. This is the grant's linearization point,
+     // after every await: compare the exact consumed authority and identity with
+     // the current row, then accept the exact final qualified sample atomically.
+     // No await follows this decision. The DO's default output gate confirms its
+     // final clock-history write before the response becomes externally visible.
+     return this.ledger.transaction(r=>{
+-      if(!prospective||!r||r.desired!=="run"||r.quarantined||r.terminal_json||r.claim_state!=="consumed"||r.phase!=="claim_consumed")return {granted:false};
++      if(!prospective||!r||this.ledger.fenced()||!retained(this.pending,r)||!prospective.claim_barrier_version||BigInt(r.registry_ack_version)<BigInt(prospective.claim_barrier_version)||r.desired!=="run"||r.quarantined||r.terminal_json||r.claim_state!=="consumed"||r.phase!=="claim_consumed")return {granted:false};
+       for(const key of Object.keys(prospective) as (keyof typeof prospective)[])if(r[key]!==prospective[key])return {granted:false};
+       const i=this.sample(r);if(!i||!this.live(r,i))return {granted:false};
+       this.acceptTime(r,i);this.ledger.save(r,"claim_grant_time_accepted");
+@@ -251,7 +353,7 @@
+     if(!this.validClaim(report,true))return "rejected";
+     let parsed:BuildResult;try{parsed=result(report.result);hex(report.attestationSha256);}catch{return "rejected";}
+     const hash=await sha(JSON.stringify(report));const r=this.ledger.read();
+-    if(!r||r.quarantined||r.claim_state!=="consumed"||report.claimId!==r.claim_id||report.operationId!==r.operation_id||report.immutableSha256!==r.binding_hash||report.identity.key!==r.provider_key||report.identity.provider!==r.provider_kind||report.identity.immutableSha256!==r.binding_hash||report.instanceId!==r.instance_id||report.bootId!==r.boot_id)return "rejected";
++    if(!r||r.quarantined||this.ledger.fenced()||!retained(this.pending,r)||r.claim_state!=="consumed"||report.claimId!==r.claim_id||report.operationId!==r.operation_id||report.immutableSha256!==r.binding_hash||report.identity.key!==r.provider_key||report.identity.provider!==r.provider_kind||report.identity.immutableSha256!==r.binding_hash||report.instanceId!==r.instance_id||report.bootId!==r.boot_id)return "rejected";
+     if(r.report_hash)return r.report_hash===hash?"duplicate":"rejected";
+     if(r.desired==="stop"||r.terminal_json)return "rejected";
+     const version=r.state_version,request=JSON.parse(r.request_json) as WireRequest;
+@@ -264,7 +366,67 @@
+     });
+     await this.ledger.sync();await this.arm();return accepted?"accepted":"rejected";
+   }
++  async recoverKnown(identity:PendingIdentity,receipt:RegistrationReceipt,value:WakeTicket):Promise<RecoveryDisposition>{
++    let checked:Awaited<ReturnType<typeof checkedContext>>;
++    try{
++      if(!this.pending)return {status:'unavailable'};
++      let t:WakeTicket;
++      try{t=registryTicket(value,{generation:this.pending.identity.namespaceGeneration,operationsNamespace:'fixed-operation-binding',registryNamespace:'fixed-registry-binding'});}catch{return {status:'conflict'};}
++      if(t.runId==='0'||t.attemptSequence==='0')return {status:'conflict'};
++      try{checked=await this.checked(identity,receipt);if(!same(t.receipt,checked.receipt))throw new Error('ticket_receipt_conflict');}
++      catch{this.fence(identityBytes(this.pending.identity),t.trackedVersion,'recovery_binding_conflict');await this.ledger.sync();return {status:'quarantined'};}
++      const r=this.ledger.read();
++      if(this.ledger.fenced())return {status:'quarantined'};
++      if(!r){
++        if(t.trackedVersion==='0')return {status:'empty_orphan'};
++        this.fence(checked.bytes,t.trackedVersion,'positive_missing');await this.ledger.sync();return {status:'quarantined'};
++      }
++      if(!matchesRow(checked.identity,r)||await sha(r.binding)!==checked.identity.immutableSha256||r.pending_identity_json!==JSON.stringify(checked.identity)||r.registration_json!==JSON.stringify(checked.receipt)||BigInt(r.state_version)<BigInt(t.trackedVersion)){
++        this.fence(checked.bytes,t.trackedVersion,'recovery_identity_or_regression');await this.ledger.sync();return {status:'quarantined'};
++      }
++      // Hashing/validation above may yield: recheck current durable state before
++      // any recovery. A concurrent newer local row always wins the old scan.
++      const current=this.ledger.read();
++      if(!current||!matchesRow(checked.identity,current)||current.binding!==r.binding||current.pending_identity_json!==JSON.stringify(checked.identity)||current.registration_json!==JSON.stringify(checked.receipt)||BigInt(current.state_version)<BigInt(t.trackedVersion)){
++        this.fence(checked.bytes,t.trackedVersion,'recovery_changed');await this.ledger.sync();return {status:'quarantined'};
++      }
++      if(current.quarantined&&current.desired!=='stop')return {status:'quarantined'};
++      if(this.inFlight)return {status:'busy'};
++      await this.reconcile();
++      const after=this.ledger.read();if(!after)return {status:'unavailable'};
++      if(after.terminal_json){
++        const json=after.terminal_json,version=after.state_version,phase=(JSON.parse(json) as {status:'completed'|'stopped'}).status;
++        const digest=await sha(json);
++        await this.hooks.point('before_recovery_terminal_return');
++        const last=this.ledger.read();
++        if(this.ledger.fenced()||last?.quarantined)return {status:'quarantined'};
++        if(!last||last.state_version!==version||last.terminal_json!==json||last.binding!==after.binding||!matchesRow(checked.identity,last)||last.pending_identity_json!==JSON.stringify(checked.identity)||last.registration_json!==JSON.stringify(checked.receipt))return {status:'unavailable'};
++        return {status:'terminal',stateVersion:version,projection:{kind:'terminal',nextDueUs:null,phase,evidenceSha256:digest}};
++      }
++      if(after.quarantined||this.ledger.fenced())return {status:'quarantined'};
++      return {status:'pending',stateVersion:after.state_version};
++    }catch{return {status:'conflict'};}
++  }
++  async enrollExisting(identity:PendingIdentity):Promise<'enrolled'|'missing'|'conflict'|'unavailable'>{
++    const prior=this.ledger.read();if(!prior)return 'missing';
++    try{
++      // The maintenance caller explicitly supplies one existing identity. No
++      // scan, namespace enumeration, restore authority or quarantine clearing.
++      if(!this.pending||identityBytes(identity)!==identityBytes(this.pending.identity)||!matchesRow(identity,prior)||await sha(prior.binding)!==identity.immutableSha256)return 'conflict';
++      const result=await wait(this.registry().register(identity),250);if(!result.ok)return 'unavailable';
++      const registered=result.value;if(registered.status!=='registered'&&registered.status!=='duplicate')return registered.status==='conflict'?'conflict':'unavailable';
++      const checked=await this.checked(identity,registered.receipt);
++      const enrolled=this.ledger.transaction(r=>{
++        if(!r||!matchesRow(checked.identity,r))return false;
++        if(r.registration_json&&r.registration_json!==JSON.stringify(checked.receipt))return false;
++        if(r.pending_identity_json&&r.pending_identity_json!==JSON.stringify(checked.identity))return false;
++        r.pending_identity_json=JSON.stringify(checked.identity);r.registration_json=JSON.stringify(checked.receipt);
++        this.ledger.save(r,'explicit_existing_enrollment');return true;
++      });
++      await this.ledger.sync();if(!enrolled)return 'conflict';await this.flushTrack();return 'enrolled';
++    }catch{return 'unavailable';}
++  }
+   async quarantine():Promise<void>{
+-    this.ledger.transaction(r=>{if(r){r.quarantined=1;r.phase="quarantined";this.ledger.save(r,"restore_quarantine");}});await this.ledger.sync();
++    this.ledger.transaction(r=>{if(r){r.quarantined=1;if(!r.terminal_json)r.phase="quarantined";this.ledger.save(r,"restore_quarantine");}});await this.ledger.sync();
+   }
+ }
+--- a/hosted-worker-controller/src/ledger.ts
++++ b/hosted-worker-controller/src/ledger.ts
+@@ -1,7 +1,7 @@
+ import schema from "./schema.sql";
+ import {Interval} from "./clock.js";
+ import {ResourceIdentity} from "./provider.js";
+-import {immutableBytes,MAX,WireRequest} from "./wire.js";
++import {encoder,immutableBytes,MAX,WireRequest} from "./wire.js";
+ export interface Row {
+   [key:string]:SqlStorageValue;
+   singleton:number;operation_id:string;binding:string;binding_hash:string;request_json:string;
+@@ -12,8 +12,10 @@
+   effect_id:string|null;effect_request_json:string|null;effect_kind:"launch"|"inspect"|"stop"|null;effect_state:"none"|"prepared"|"dispatched"|"uncertain"|"settled";
+   launch_dispatched:number;terminal_json:string|null;report_hash:string|null;pending_result_json:string|null;
+   next_due_us:string|null;failures:number;quarantined:number;
++  pending_identity_json:string|null;registration_json:string|null;registry_ack_version:string;
++  effect_barrier_version:string|null;claim_barrier_version:string|null;track_outbox_json:string|null;
+ }
+-const columns = ["singleton","operation_id","binding","binding_hash","request_json","epoch","revision","owner","expiry_us","clock_lower","clock_upper","clock_qualification","clock_floor","desired","phase","provider_key","provider_kind","state_version","claim_state","claim_id","instance_id","boot_id","effect_id","effect_request_json","effect_kind","effect_state","launch_dispatched","terminal_json","report_hash","pending_result_json","next_due_us","failures","quarantined"] as const;
++const columns = ["singleton","operation_id","binding","binding_hash","request_json","epoch","revision","owner","expiry_us","clock_lower","clock_upper","clock_qualification","clock_floor","desired","phase","provider_key","provider_kind","state_version","claim_state","claim_id","instance_id","boot_id","effect_id","effect_request_json","effect_kind","effect_state","launch_dispatched","terminal_json","report_hash","pending_result_json","next_due_us","failures","quarantined","pending_identity_json","registration_json","registry_ack_version","effect_barrier_version","claim_barrier_version","track_outbox_json"] as const;
+ // SQL templates derive only from this compile-time fixed identifier list.
+ const upsert=`INSERT INTO operation (${columns.join(",")}) VALUES (${columns.map(()=>"?").join(",")}) ON CONFLICT(singleton) DO UPDATE SET ${columns.filter(k=>k!=="singleton").map(k=>`${k}=excluded.${k}`).join(",")}`;
+ export class Ledger {
+@@ -22,27 +24,42 @@
+       const exists=storage.sql.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='controller_schema'").toArray();
+       if(exists.length){
+         const versions=storage.sql.exec<{version:number}>("SELECT version FROM controller_schema").toArray();
+-        if(versions.length!==1||(versions[0]!.version!==1&&versions[0]!.version!==2))throw new Error("schema_unavailable");
+-        if(versions[0]!.version===1){
+-          storage.sql.exec("ALTER TABLE operation ADD COLUMN clock_floor TEXT NOT NULL DEFAULT '0'");
+-          const prior=this.read();
+-          if(prior){prior.clock_floor=prior.clock_lower;prior.quarantined=1;this.save(prior,"schema2_quarantine");}
+-          // V1 lost accepted time samples. Preserve all safety identity and stop/
+-          // claim/terminal fields, but never infer restored execution authority.
++        if(versions.length!==1||![1,2,3].includes(versions[0]!.version))throw new Error("schema_unavailable");
++        for(const name of ["operation","audit",...(versions[0]!.version===3?["registry_quarantine"]:[])]){
++          if(!storage.sql.exec("SELECT name FROM sqlite_master WHERE type='table' AND name=?",name).toArray().length)throw new Error("schema_unavailable");
++        }
++        if(versions[0]!.version<3){
++          if(versions[0]!.version===1){
++            storage.sql.exec("ALTER TABLE operation ADD COLUMN clock_floor TEXT NOT NULL DEFAULT '0'");
++            storage.sql.exec("UPDATE operation SET clock_floor=clock_lower");
++          }
++          storage.sql.exec("ALTER TABLE operation ADD COLUMN pending_identity_json TEXT");
++          storage.sql.exec("ALTER TABLE operation ADD COLUMN registration_json TEXT");
++          storage.sql.exec("ALTER TABLE operation ADD COLUMN registry_ack_version TEXT NOT NULL DEFAULT '0'");
++          storage.sql.exec("ALTER TABLE operation ADD COLUMN effect_barrier_version TEXT");
++          storage.sql.exec("ALTER TABLE operation ADD COLUMN claim_barrier_version TEXT");
++          storage.sql.exec("ALTER TABLE operation ADD COLUMN track_outbox_json TEXT");
++          // Migration does not increment/rewrite prior versions, phase, dispatch,
++          // consumed claims, terminal bytes, authority or accepted clock history.
++          storage.sql.exec("UPDATE operation SET quarantined=1");
+           storage.sql.exec("DROP TABLE controller_schema");
+-          storage.sql.exec("CREATE TABLE controller_schema(version INTEGER NOT NULL CHECK(version=2))");
+-          storage.sql.exec("INSERT INTO controller_schema(version) VALUES(2)");
++          storage.sql.exec("CREATE TABLE controller_schema(version INTEGER NOT NULL CHECK(version=3))");
++          storage.sql.exec("INSERT INTO controller_schema(version) VALUES(3)");
+         }
+-      }
++      }else if(storage.sql.exec("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('operation','audit','registry_quarantine')").toArray().length)throw new Error("schema_unavailable");
+       storage.sql.exec(schema);
+       const versions=storage.sql.exec<{version:number}>("SELECT version FROM controller_schema").toArray();
+-      if(versions.length!==1||versions[0]!.version!==2)throw new Error("schema_unavailable");
++      if(versions.length!==1||versions[0]!.version!==3)throw new Error("schema_unavailable");
+     });
+   }
+   read():Row|null{return this.storage.sql.exec<Row>("SELECT * FROM operation WHERE singleton=1").toArray()[0]??null;}
+   transaction<T>(fn:(r:Row|null)=>T):T{return this.storage.transactionSync(()=>fn(this.read()));}
+   save(r:Row,kind:string):void {
+     const n=BigInt(r.state_version)+1n;if(n>MAX)throw new Error("ledger_exhausted");r.state_version=String(n);
++    if(r.terminal_json&&encoder.encode(r.terminal_json).length>32768)throw new Error("terminal_outbox_limit");
++    const terminal=r.terminal_json?{phase:(JSON.parse(r.terminal_json) as {status:string}).status,exactJson:r.terminal_json}:null;
++    if(terminal&&terminal.phase!=="completed"&&terminal.phase!=="stopped")throw new Error("terminal_phase");
++    r.track_outbox_json=JSON.stringify({stateVersion:r.state_version,nextDueUs:r.next_due_us,terminal});
+     this.storage.sql.exec(upsert,...columns.map(k=>r[k]));
+     this.storage.sql.exec("INSERT INTO audit(sequence,kind,state_version) VALUES(?,?,?) ON CONFLICT(sequence) DO UPDATE SET kind=excluded.kind,state_version=excluded.state_version",Number(n%32n),kind,r.state_version);
+   }
+@@ -52,7 +69,28 @@
+       clock_lower:String(clock.lowerUs),clock_upper:String(clock.upperUs),clock_qualification:clock.qualificationId,clock_floor:String(clock.lowerUs),
+       desired:"none",phase:"unlaunched",provider_key:identity.key,provider_kind:identity.provider,state_version:"0",
+       claim_state:"unissued",claim_id:null,instance_id:null,boot_id:null,effect_id:null,effect_request_json:null,effect_kind:null,effect_state:"none",launch_dispatched:0,
+-      terminal_json:null,report_hash:null,pending_result_json:null,next_due_us:null,failures:0,quarantined:0};
++      terminal_json:null,report_hash:null,pending_result_json:null,next_due_us:null,failures:0,quarantined:0,
++      pending_identity_json:null,registration_json:null,registry_ack_version:"0",effect_barrier_version:null,claim_barrier_version:null,track_outbox_json:null};
++  }
++  nextVersion(r:Row):string{const n=BigInt(r.state_version)+1n;if(n>MAX)throw new Error("ledger_exhausted");return String(n);}
++  fenced():boolean{return this.storage.sql.exec("SELECT singleton FROM registry_quarantine WHERE singleton=1").toArray().length!==0;}
++  fence(identityBytes:string,version:string,reason:string):void{
++    // Permanent bounded fence, including when no operation row exists. The first
++    // disagreement remains diagnostic; this cannot synthesize execution authority.
++    this.storage.sql.exec("INSERT OR IGNORE INTO registry_quarantine(singleton,identity_bytes,observed_version,reason) VALUES(1,?,?,?)",identityBytes,version,reason);
++    const r=this.read();if(r&&!r.quarantined){r.quarantined=1;this.save(r,"registry_quarantine");}
++  }
++  acknowledge(version:string,outbox:string):boolean{
++    return this.transaction(r=>{
++      if(!r)return false;
++      if(BigInt(version)>BigInt(r.state_version))throw new Error("registry_ahead");
++      // Delivery metadata has no state-version transition and cannot recursively
++      // enqueue its own acknowledgement. Only the exact sent bytes can clear.
++      const ack=BigInt(version)>BigInt(r.registry_ack_version)?version:r.registry_ack_version;
++      const clear=r.track_outbox_json===outbox;
++      this.storage.sql.exec("UPDATE operation SET registry_ack_version=?,track_outbox_json=? WHERE singleton=1",ack,clear?null:r.track_outbox_json);
++      return clear;
++    });
+   }
+   identity(r:Row):ResourceIdentity{return {provider:r.provider_kind,key:r.provider_key,immutableSha256:r.binding_hash};}
+   async sync():Promise<void>{await this.storage.sync();}
+--- a/hosted-worker-controller/src/schema.sql
++++ b/hosted-worker-controller/src/schema.sql
+@@ -1,5 +1,5 @@
+-CREATE TABLE IF NOT EXISTS controller_schema(version INTEGER NOT NULL CHECK(version=2));
+-INSERT INTO controller_schema(version) SELECT 2 WHERE NOT EXISTS(SELECT 1 FROM controller_schema);
++CREATE TABLE IF NOT EXISTS controller_schema(version INTEGER NOT NULL CHECK(version=3));
++INSERT INTO controller_schema(version) SELECT 3 WHERE NOT EXISTS(SELECT 1 FROM controller_schema);
+ CREATE TABLE IF NOT EXISTS operation (
+  singleton INTEGER PRIMARY KEY CHECK(singleton=1),
+  operation_id TEXT NOT NULL, binding TEXT NOT NULL, binding_hash TEXT NOT NULL,
+@@ -16,10 +16,19 @@
+  launch_dispatched INTEGER NOT NULL CHECK(launch_dispatched IN (0,1)),
+  terminal_json TEXT, report_hash TEXT, pending_result_json TEXT,
+  next_due_us TEXT, failures INTEGER NOT NULL CHECK(failures BETWEEN 0 AND 32),
+- quarantined INTEGER NOT NULL CHECK(quarantined IN (0,1))
++ quarantined INTEGER NOT NULL CHECK(quarantined IN (0,1)),
++ pending_identity_json TEXT, registration_json TEXT,
++ registry_ack_version TEXT NOT NULL DEFAULT '0',
++ effect_barrier_version TEXT, claim_barrier_version TEXT,
++ track_outbox_json TEXT
+ );
+ CREATE TABLE IF NOT EXISTS audit (
+  sequence INTEGER PRIMARY KEY CHECK(sequence BETWEEN 0 AND 31),
+  kind TEXT NOT NULL CHECK(length(kind)<=64),
+  state_version TEXT NOT NULL
+ );
++CREATE TABLE IF NOT EXISTS registry_quarantine (
++ singleton INTEGER PRIMARY KEY CHECK(singleton=1),
++ identity_bytes TEXT NOT NULL CHECK(length(identity_bytes)<=2048),
++ observed_version TEXT NOT NULL, reason TEXT NOT NULL CHECK(length(reason)<=64)
++);
+--- /dev/null
++++ b/hosted-worker-controller/src/registry-context.ts
+@@ -0,0 +1,21 @@
++import type {PendingIdentity,RegistrationReceipt,PendingRegistry} from './vendor/public-contract.js';
++import {exact,identity,identityBytes,receipt,same} from './vendor/pending-types.js';
++import type {Row} from './ledger.js';
++import {immutableBytes,WireRequest} from './wire.js';
++export interface RegistryContext {identity:PendingIdentity;registry:PendingRegistry}
++export const unavailableRegistry:PendingRegistry={async register(){return {status:'unavailable'};},async track(){return {status:'unavailable'};}};
++export async function checkedContext(context:RegistryContext|undefined,value:PendingIdentity,p:RegistrationReceipt):Promise<{identity:PendingIdentity;receipt:RegistrationReceipt;bytes:string}>{
++ if(!context)throw new Error('registry_unavailable');
++ const c={generation:context.identity.namespaceGeneration,operationsNamespace:'fixed-operation-binding',registryNamespace:'fixed-registry-binding'};
++ const fixed=await identity(context.identity,c),i=await identity(value,c),r=receipt(p,c);
++ if(fixed.bytes!==i.bytes||r.identityDigest!==i.digest||r.shard!==i.shard)throw new Error('registry_identity');
++ return {identity:i.value,receipt:r,bytes:i.bytes};
++}
++export function matchesRequest(i:PendingIdentity,r:WireRequest):boolean{return i.environmentId===r.environment_id&&i.poolId===r.pool_id&&i.controllerId===r.controller_id&&i.platform===r.ref.platform&&i.operationId===r.operation_id&&i.immutableSha256===r.immutable_sha256;}
++export function matchesRow(i:PendingIdentity,r:Row):boolean{
++ try{const request=JSON.parse(r.request_json) as WireRequest;return matchesRequest(i,request)&&i.operationId===r.operation_id&&i.immutableSha256===r.binding_hash&&i.operationKey===r.provider_key&&immutableBytes(request)===r.binding;}catch{return false;}
++}
++export function retained(context:RegistryContext|undefined,r:Row):boolean{
++ try{if(!context||!r.pending_identity_json||!r.registration_json)return false;const stored=JSON.parse(r.pending_identity_json);exact(stored,['namespaceGeneration','environmentId','poolId','controllerId','platform','operationKey','operationId','immutableSha256']);return identityBytes(stored as unknown as PendingIdentity)===identityBytes(context.identity)&&matchesRow(context.identity,r);}catch{return false;}
++}
++export {identityBytes,same};
+--- /dev/null
++++ b/hosted-worker-controller/src/vendor/assets.d.ts
+@@ -0,0 +1 @@
++declare module '*.sql' {const text:string;export default text;}
+--- /dev/null
++++ b/hosted-worker-controller/src/vendor/pending-registry.ts
+@@ -0,0 +1,72 @@
++import {DurableObject} from 'cloudflare:workers';
++import schema from './registry-schema.sql';
++import type {PendingIdentity,RegistrationReceipt,RegistrationResult,TrackInput,TrackAck,ScanCursor,PendingPage,ScannedPending,WakeReservation,WakeTicket,RecoveryDisposition,PendingRegistryShard} from './public-contract.js';
++import {PendingEnv,PendingConfig,config,registryName,identity,identityFromBytes,receipt,projection,decimal,integer,hex,exact,same,next,randomId,ticket,disposition,encoder,wait} from './pending-types.js';
++interface Row extends Record<string,SqlStorageValue>{allocation_index:number;operation_key:string;identity_bytes:string;identity_digest:string;record_id:string;state_version:string;projection_json:string;pending:number;failures:number;skip_visits:number;needs_attention:number;attempt_sequence:string;last_run_id:string|null;last_visit:string|null;ticket_json:string|null;disposition_json:string|null}
++const initial=JSON.stringify({kind:'pending',nextDueUs:null});
++export class MixerPendingRegistryShard extends DurableObject<PendingEnv> implements PendingRegistryShard {
++ private c:PendingConfig|null=null;private shard=-1;private available=false;
++ constructor(ctx:DurableObjectState,env:PendingEnv){super(ctx,env);try{
++  const c=config(env);this.c=c;
++  for(let i=0;i<16;i++)if(ctx.id.equals(env.PENDING_REGISTRY.idFromName(registryName(c,i))))this.shard=i;
++  if(this.shard<0)throw new Error('pending_namespace');
++  ctx.storage.transactionSync(()=>{
++   const exists=ctx.storage.sql.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='pending_registry_meta'").toArray();
++   if(exists.length){const m=ctx.storage.sql.exec<{version:number;config:string;shard:number}>('SELECT version,config,shard FROM pending_registry_meta').toArray();if(m.length!==1||m[0]!.version!==1||m[0]!.config!==JSON.stringify(c)||m[0]!.shard!==this.shard)throw new Error('pending_schema_config');}
++   if(!exists.length&&ctx.storage.sql.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='pending_registry_record'").toArray().length)throw new Error('pending_schema_missing');
++   ctx.storage.sql.exec(schema);ctx.storage.sql.exec('INSERT OR IGNORE INTO pending_registry_meta(singleton,version,config,shard,allocated) VALUES(1,1,?,?,0)',JSON.stringify(c),this.shard);
++  });this.available=true;
++ }catch{this.available=false;}}
++ private row(id:string):Row|null{return this.ctx.storage.sql.exec<Row>('SELECT * FROM pending_registry_record WHERE record_id=?',id).toArray()[0]??null;}
++ private receipt(r:Row):RegistrationReceipt{return {identityDigest:r.identity_digest,namespaceGeneration:this.c!.generation,recordId:r.record_id,shard:this.shard,allocationIndex:r.allocation_index};}
++ private matches(r:Row,p:RegistrationReceipt):boolean{return same(this.receipt(r),p);}
++ private bounded(r:Row):void{if(encoder.encode(JSON.stringify(r)).length>4096)throw new Error('pending_record_limit');}
++ async register(value:PendingIdentity):Promise<RegistrationResult>{if(!this.available)return {status:'unavailable'};try{
++  const i=await identity(value,this.c!);if(i.shard!==this.shard)return {status:'conflict'};const id=randomId();
++  const result=this.ctx.storage.transactionSync<RegistrationResult>(()=>{
++   const old=this.ctx.storage.sql.exec<Row>('SELECT * FROM pending_registry_record WHERE operation_key=? OR identity_digest=?',i.value.operationKey,i.digest).toArray();
++   if(old.length)return old.length===1&&old[0]!.identity_bytes===i.bytes&&old[0]!.identity_digest===i.digest?{status:'duplicate',receipt:this.receipt(old[0]!)}:{status:'conflict'};
++   const n=this.ctx.storage.sql.exec<{allocated:number}>('SELECT allocated FROM pending_registry_meta WHERE singleton=1').toArray()[0]!.allocated;if(n>=4096)return {status:'capacity'};
++   this.ctx.storage.sql.exec('INSERT INTO pending_registry_record(allocation_index,operation_key,identity_bytes,identity_digest,record_id,state_version,projection_json,pending,failures,skip_visits,needs_attention,attempt_sequence) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',n+1,i.value.operationKey,i.bytes,i.digest,id,'0',initial,1,0,0,0,'0');
++   this.bounded(this.row(id)!);this.ctx.storage.sql.exec('UPDATE pending_registry_meta SET allocated=? WHERE singleton=1',n+1);return {status:'registered',receipt:this.receipt(this.row(id)!)};
++  });await this.ctx.storage.sync();return result;
++ }catch(error){return {status:error instanceof Error&&error.message==='pending_invalid'?'conflict':'unavailable'};}}
++ async track(input:TrackInput):Promise<TrackAck>{if(!this.available)return {status:'unavailable'};try{
++  const a=exact(input,['receipt','stateVersion','projection']),p=receipt(a.receipt,this.c!),version=decimal(a.stateVersion),body=JSON.stringify(projection(a.projection));
++  const result=this.ctx.storage.transactionSync<TrackAck>(()=>{const r=this.row(p.recordId);if(!r||!this.matches(r,p))return {status:'conflict'};
++   if(BigInt(version)<BigInt(r.state_version))return {status:'stale',stateVersion:r.state_version};
++   if(version===r.state_version)return body===r.projection_json?{status:'duplicate',stateVersion:version}:{status:'conflict'};
++   if(!r.pending){if(projection(a.projection).kind!=='terminal'||body!==r.projection_json)return {status:'conflict'};
++    this.ctx.storage.sql.exec('UPDATE pending_registry_record SET state_version=? WHERE record_id=?',version,p.recordId);this.bounded(this.row(p.recordId)!);return {status:'accepted',stateVersion:version};}
++   this.ctx.storage.sql.exec('UPDATE pending_registry_record SET state_version=?,projection_json=?,pending=?,ticket_json=NULL,disposition_json=NULL WHERE record_id=?',version,body,projection(a.projection).kind==='terminal'?0:1,p.recordId);this.bounded(this.row(p.recordId)!);return {status:'accepted',stateVersion:version};});
++  await this.ctx.storage.sync();return result;
++ }catch(error){return {status:error instanceof Error&&error.message==='pending_invalid'?'conflict':'unavailable'};}}
++ async scan_due(cursor:ScanCursor,limit:number):Promise<PendingPage>{if(!this.available)throw new Error('pending_unavailable');exact(cursor,['afterAllocationIndex']);const after=integer(cursor.afterAllocationIndex,0,4096),count=integer(limit,1,32);const records:ScannedPending[]=[];let wrapped=false;
++  // Two bounded indexed iterators, never an all-record materialization or offset.
++  for(const tail of [true,false]){const rows=tail?this.ctx.storage.sql.exec<Row>('SELECT * FROM pending_registry_record WHERE pending=1 AND allocation_index>? ORDER BY allocation_index LIMIT ?',after,count):this.ctx.storage.sql.exec<Row>('SELECT * FROM pending_registry_record WHERE pending=1 AND allocation_index<=? ORDER BY allocation_index LIMIT ?',after,count-records.length);
++   for(const r of rows){const item:ScannedPending={identity:identityFromBytes(r.identity_bytes),receipt:this.receipt(r),stateVersion:r.state_version,needsAttention:r.needs_attention===1,skipVisits:r.skip_visits};const didWrap:boolean=wrapped||!tail;
++    if(encoder.encode(JSON.stringify({records:[...records,item],wrapped:didWrap})).length>65536)return {records,wrapped};records.push(item);wrapped=didWrap;if(records.length===count)return {records,wrapped};}
++  }return {records,wrapped};
++ }
++ async reserve_wake(recordId:string,expectedTrackVersion:string,runId:string):Promise<WakeReservation>{if(!this.available)return {status:'unavailable'};try{hex(recordId,128);decimal(expectedTrackVersion);decimal(runId);
++  const result=this.ctx.storage.transactionSync<WakeReservation>(()=>{const r=this.row(recordId);if(!r)return {status:'stale'};if(!r.pending)return {status:'terminal'};if(r.state_version!==expectedTrackVersion)return {status:'stale'};
++   if(r.last_run_id!==null&&BigInt(runId)<=BigInt(r.last_run_id))return {status:'duplicate'};
++   if(r.skip_visits>0){this.ctx.storage.sql.exec("UPDATE pending_registry_record SET skip_visits=skip_visits-1,last_run_id=?,last_visit='backoff' WHERE record_id=?",runId,recordId);return {status:'backoff'};}
++   const sequence=next(r.attempt_sequence),t:WakeTicket={runId,wakeId:randomId(),receipt:this.receipt(r),trackedVersion:r.state_version,attemptSequence:sequence};
++   this.ctx.storage.sql.exec("UPDATE pending_registry_record SET attempt_sequence=?,last_run_id=?,last_visit='reserved',ticket_json=?,disposition_json=NULL WHERE record_id=?",sequence,runId,JSON.stringify(t),recordId);this.bounded(this.row(recordId)!);return {status:'reserved',ticket:t};});await this.ctx.storage.sync();return result;
++ }catch(error){if(error instanceof Error&&error.message==='pending_exhausted'){try{this.ctx.storage.sql.exec('UPDATE pending_registry_record SET needs_attention=1 WHERE record_id=? AND state_version=? AND pending=1',recordId,expectedTrackVersion);await this.ctx.storage.sync();}catch{}}return {status:'unavailable'};}}
++ async finish_wake(value:WakeTicket,result:RecoveryDisposition):Promise<'accepted'|'stale'|'unavailable'>{if(!this.available)return 'unavailable';try{const t=ticket(value,this.c!),d=disposition(result);
++  const status=this.ctx.storage.transactionSync<'accepted'|'stale'>(()=>{const r=this.row(t.receipt.recordId);if(!r||!r.pending||!this.matches(r,t.receipt)||r.state_version!==t.trackedVersion||r.ticket_json!==JSON.stringify(t)||r.disposition_json!==null)return 'stale';
++   // Recovery dispositions update delivery only. Exact terminal tracking is the
++   // sole authority to make a registry record quiescent.
++   const success=(d.status==='pending'||d.status==='terminal')&&BigInt(d.stateVersion)>=BigInt(t.trackedVersion);
++   const failures=success?0:Math.min(32,r.failures+1),skip=success?0:Math.min(7,2**Math.min(failures,3)-1);
++   this.ctx.storage.sql.exec('UPDATE pending_registry_record SET failures=?,skip_visits=?,needs_attention=?,disposition_json=? WHERE record_id=?',failures,skip,failures>=8?1:0,JSON.stringify(d),t.receipt.recordId);this.bounded(this.row(t.receipt.recordId)!);return 'accepted';});await this.ctx.storage.sync();return status;
++ }catch{return 'unavailable';}}
++}
++// Caller-side routing is fixed and independently validates full identity bytes.
++export class RegistryPort {
++ constructor(private env:PendingEnv){}
++ async register(i:PendingIdentity):Promise<RegistrationResult>{try{const c=config(this.env),v=await identity(i,c),s=this.env.PENDING_REGISTRY.get(this.env.PENDING_REGISTRY.idFromName(registryName(c,v.shard))) as unknown as PendingRegistryShard;const r=await wait(s.register(v.value),250);if(!r.ok)return {status:'unavailable'};const result=r.value;if(result.status==='registered'||result.status==='duplicate'){exact(result,['status','receipt']);const p=receipt(result.receipt,c);if(p.identityDigest!==v.digest||p.shard!==v.shard)throw new Error('pending_receipt');return {status:result.status,receipt:p};}exact(result,['status']);if(!['unavailable','capacity','conflict'].includes(result.status))throw new Error('pending_registration');return result;}catch{return {status:'unavailable'};}}
++ async track(a:TrackInput):Promise<TrackAck>{try{const c=config(this.env);exact(a,['receipt','stateVersion','projection']);const p=receipt(a.receipt,c);decimal(a.stateVersion);projection(a.projection);const s=this.env.PENDING_REGISTRY.get(this.env.PENDING_REGISTRY.idFromName(registryName(c,p.shard))) as unknown as PendingRegistryShard;const r=await wait(s.track(a),250);if(!r.ok)return {status:'unavailable'};const result=r.value;if(result.status==='accepted'||result.status==='duplicate'||result.status==='stale'){exact(result,['status','stateVersion']);decimal(result.stateVersion);if(result.status!=='stale'&&result.stateVersion!==a.stateVersion)throw new Error('pending_ack');return result;}exact(result,['status']);if(!['unavailable','conflict'].includes(result.status))throw new Error('pending_ack');return result;}catch{return {status:'unavailable'};}}
++}
+--- /dev/null
++++ b/hosted-worker-controller/src/vendor/pending-types.ts
+@@ -0,0 +1,33 @@
++import type {PendingIdentity,RegistrationReceipt,Projection,RecoveryDisposition,WakeTicket} from './public-contract.js';
++export const MAX=9223372036854775807n;
++export const encoder=new TextEncoder();
++export interface PendingConfig {generation:string;operationsNamespace:string;registryNamespace:string}
++export interface PendingEnv {MIXER_PENDING_CONFIG?:string;PENDING_REGISTRY:DurableObjectNamespace;PENDING_AUDIT:DurableObjectNamespace;OPERATIONS:DurableObjectNamespace}
++export function invalid():never{throw new Error('pending_invalid');}
++export function exact(v:unknown,keys:readonly string[]):Record<string,unknown>{if(!v||typeof v!=='object'||Array.isArray(v)||Object.keys(v).length!==keys.length||keys.some(k=>!Object.hasOwn(v,k)))invalid();return v as Record<string,unknown>;}
++export function hex(v:unknown,bits=256):string{if(typeof v!=='string'||v.length!==bits/4||!/^[0-9a-f]+$/.test(v))invalid();return v;}
++export function decimal(v:unknown):string{if(typeof v!=='string'||!/^(0|[1-9][0-9]{0,18})$/.test(v)||BigInt(v)>MAX)invalid();return v;}
++export function integer(v:unknown,min:number,max:number):number{if(typeof v!=='number'||!Number.isInteger(v)||v<min||v>max)invalid();return v;}
++export function principal(v:unknown):string{if(typeof v!=='string'||v.length<1||v.length>128||!/^[\x20-\x7e]+$/.test(v))invalid();return v;}
++export function config(env:PendingEnv):PendingConfig{const c=exact(JSON.parse(env.MIXER_PENDING_CONFIG??'null'),['generation','operationsNamespace','registryNamespace']);return {generation:hex(c.generation),operationsNamespace:principal(c.operationsNamespace),registryNamespace:principal(c.registryNamespace)};}
++export function registryName(c:PendingConfig,index:number):string{return JSON.stringify(['mixer-worker-pending-registry-v1',c.generation,c.operationsNamespace,c.registryNamespace,integer(index,0,15)]);}
++export function auditName(c:PendingConfig):string{return JSON.stringify(['mixer-worker-pending-audit-v1',c.generation,c.operationsNamespace,c.registryNamespace]);}
++export const randomId=():string=>Array.from(crypto.getRandomValues(new Uint8Array(16)),n=>n.toString(16).padStart(2,'0')).join('');
++export const sha=async(s:string):Promise<string>=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',encoder.encode(s))),n=>n.toString(16).padStart(2,'0')).join('');
++export function identityBytes(i:PendingIdentity):string{return JSON.stringify(['mixer-worker-pending-identity-v1',i.namespaceGeneration,i.environmentId,i.poolId,i.controllerId,i.platform,i.operationKey,i.operationId,i.immutableSha256]);}
++export function identityFromBytes(s:string):PendingIdentity{const v=JSON.parse(s) as string[];return {namespaceGeneration:v[1]!,environmentId:v[2]!,poolId:v[3]!,controllerId:v[4]!,platform:v[5]! as 'ios'|'android',operationKey:v[6]!,operationId:v[7]!,immutableSha256:v[8]!};}
++export async function identity(v:unknown,c:PendingConfig):Promise<{value:PendingIdentity;bytes:string;digest:string;shard:number}>{
++ const p=exact(v,['namespaceGeneration','environmentId','poolId','controllerId','platform','operationKey','operationId','immutableSha256']);
++ const i:PendingIdentity={namespaceGeneration:hex(p.namespaceGeneration),environmentId:principal(p.environmentId),poolId:principal(p.poolId),controllerId:principal(p.controllerId),platform:p.platform as 'ios'|'android',operationKey:hex(p.operationKey),operationId:hex(p.operationId),immutableSha256:hex(p.immutableSha256)};
++ if(i.namespaceGeneration!==c.generation||!['ios','android'].includes(i.platform))invalid();
++ const bytes=identityBytes(i);if(encoder.encode(bytes).length>2048)invalid();
++ if(await sha(JSON.stringify(['mixer-worker-controller-do-v1',i.environmentId,i.poolId,i.controllerId,i.operationId]))!==i.operationKey)invalid();
++ return {value:i,bytes,digest:await sha(bytes),shard:parseInt(i.operationKey[0]!,16)};
++}
++export function receipt(v:unknown,c:PendingConfig):RegistrationReceipt{const r=exact(v,['identityDigest','namespaceGeneration','recordId','shard','allocationIndex']);if(r.namespaceGeneration!==c.generation)invalid();return {identityDigest:hex(r.identityDigest),namespaceGeneration:hex(r.namespaceGeneration),recordId:hex(r.recordId,128),shard:integer(r.shard,0,15),allocationIndex:integer(r.allocationIndex,1,4096)};}
++export function projection(v:unknown):Projection{if(!v||typeof v!=='object')invalid();const p=v as Record<string,unknown>;if(p.kind==='pending'){exact(p,['kind','nextDueUs']);return {kind:'pending',nextDueUs:p.nextDueUs===null?null:decimal(p.nextDueUs)};}exact(p,['kind','nextDueUs','phase','evidenceSha256']);if(p.kind!=='terminal'||p.nextDueUs!==null||!['completed','stopped'].includes(p.phase as string))invalid();return {kind:'terminal',nextDueUs:null,phase:p.phase as 'completed'|'stopped',evidenceSha256:hex(p.evidenceSha256)};}
++export function ticket(v:unknown,c:PendingConfig):WakeTicket{const t=exact(v,['runId','wakeId','receipt','trackedVersion','attemptSequence']);return {runId:decimal(t.runId),wakeId:hex(t.wakeId,128),receipt:receipt(t.receipt,c),trackedVersion:decimal(t.trackedVersion),attemptSequence:decimal(t.attemptSequence)};}
++export function disposition(v:unknown):RecoveryDisposition{if(!v||typeof v!=='object')invalid();const d=v as Record<string,unknown>;if(d.status==='pending'){exact(d,['status','stateVersion']);return {status:'pending',stateVersion:decimal(d.stateVersion)};}if(d.status==='terminal'){exact(d,['status','stateVersion','projection']);const p=projection(d.projection);if(p.kind!=='terminal')invalid();return {status:'terminal',stateVersion:decimal(d.stateVersion),projection:p};}exact(d,['status']);if(!['empty_orphan','quarantined','busy','unavailable','conflict'].includes(d.status as string))invalid();return {status:d.status} as RecoveryDisposition;}
++export function same(a:unknown,b:unknown):boolean{return JSON.stringify(a)===JSON.stringify(b);}
++export function next(v:string):string{const n=BigInt(decimal(v))+1n;if(n>MAX)throw new Error('pending_exhausted');return String(n);}
++export async function wait<T>(promise:Promise<T>,ms:number):Promise<{ok:true;value:T}|{ok:false}>{let timer:ReturnType<typeof setTimeout>|undefined;try{return await Promise.race([promise.then(value=>({ok:true as const,value}),()=>({ok:false as const})),new Promise<{ok:false}>(resolve=>{timer=setTimeout(()=>resolve({ok:false}),ms);})]);}finally{if(timer!==undefined)clearTimeout(timer);}}
+--- /dev/null
++++ b/hosted-worker-controller/src/vendor/public-contract.ts
+@@ -0,0 +1,112 @@
++// Type-only proposed interface. No production implementation or test override.
++export type Decimal = string; // canonical 0..9223372036854775807, validated at runtime
++export type Hex64 = string;
++export type Hex128 = string;
++export interface PendingIdentity {
++  namespaceGeneration: Hex64;
++  environmentId: string;
++  poolId: string;
++  controllerId: string;
++  platform: "ios" | "android";
++  operationKey: Hex64;
++  operationId: Hex64;
++  immutableSha256: Hex64;
++}
++export interface RegistrationReceipt {
++  identityDigest: Hex64;
++  namespaceGeneration: Hex64;
++  recordId: Hex128;
++  shard: number; // internally recomputed 0..15; never caller-selected routing
++  allocationIndex: number; // 1..4096, permanent; no reuse
++}
++export type RegistrationResult =
++  | { status: "registered" | "duplicate"; receipt: RegistrationReceipt }
++  | { status: "unavailable" | "capacity" | "conflict" };
++export interface PendingProjection {
++  kind: "pending";
++  nextDueUs: Decimal | null; // exact hint only
++}
++export interface TerminalProjection {
++  kind: "terminal";
++  nextDueUs: null;
++  phase: "completed" | "stopped";
++  evidenceSha256: Hex64; // hash of exact durable local terminal JSON, no result body
++}
++export type Projection = PendingProjection | TerminalProjection;
++export interface TrackInput {
++  receipt: RegistrationReceipt;
++  stateVersion: Decimal;
++  projection: Projection;
++}
++export type TrackAck =
++  | { status: "accepted" | "duplicate"; stateVersion: Decimal }
++  | { status: "stale"; stateVersion: Decimal }
++  | { status: "unavailable" | "conflict" };
++export interface ScanCursor {
++  afterAllocationIndex: number; // 0..4096, bounded internal index
++}
++export interface ScannedPending {
++  identity: PendingIdentity;
++  receipt: RegistrationReceipt;
++  stateVersion: Decimal;
++  needsAttention: boolean;
++  skipVisits: number; // 0..7, never hides the row from scans
++}
++export interface PendingPage {
++  records: readonly ScannedPending[]; // <=32 and encoded page <=65536 bytes
++  wrapped: boolean;
++}
++export interface WakeTicket {
++  runId: Decimal;
++  wakeId: Hex128;
++  receipt: RegistrationReceipt;
++  trackedVersion: Decimal;
++  attemptSequence: Decimal;
++}
++export type WakeReservation =
++  | { status: "reserved"; ticket: WakeTicket }
++  | { status: "duplicate" | "stale" | "backoff" | "terminal" | "unavailable" };
++export type RecoveryDisposition =
++  | { status: "pending"; stateVersion: Decimal }
++  | { status: "terminal"; stateVersion: Decimal; projection: TerminalProjection }
++  | { status: "empty_orphan" | "quarantined" | "busy" | "unavailable" | "conflict" };
++export interface PendingRegistry {
++  register(identity: PendingIdentity): Promise<RegistrationResult>;
++  track(input: TrackInput): Promise<TrackAck>;
++}
++export interface PendingRegistryShard extends PendingRegistry {
++  // Read-only: never decrements backoff, reserves delivery or advances cursor.
++  scan_due(cursor: ScanCursor, limit: number): Promise<PendingPage>;
++  // Sole skipVisits decrement; duplicate (runId,recordId) cannot decrement twice.
++  reserve_wake(recordId: Hex128, expectedTrackVersion: Decimal, runId: Decimal): Promise<WakeReservation>;
++  finish_wake(ticket: WakeTicket, disposition: RecoveryDisposition): Promise<"accepted" | "stale" | "unavailable">;
++}
++export interface KnownOperationRecovery {
++  recoverKnown(identity: PendingIdentity, receipt: RegistrationReceipt, ticket: WakeTicket): Promise<RecoveryDisposition>;
++  // Maintenance can enroll only an already existing exact matching row.
++  // It never clears migration/restore/clock quarantine or constructs authority.
++  enrollExisting(identity: PendingIdentity): Promise<"enrolled" | "missing" | "conflict" | "unavailable">;
++}
++export interface AuditSummary {
++  status: "finished" | "bounded" | "busy" | "unavailable";
++  runId: Decimal | null;
++  pages: number; // <=16
++  examined: number; // <=512
++  wakesStarted: number; // <=8, including timeouts/failures
++  needsAttention: boolean;
++}
++export interface PendingAuditCoordinator {
++  runScheduled(): Promise<AuditSummary>;
++}
++export interface PersistedRegistryBarrier {
++  registration: RegistrationReceipt;
++  acknowledgedVersion: Decimal;
++  effectBarrierVersion: Decimal | null;
++  claimBarrierVersion: Decimal | null;
++}
++export interface CoalescedTrackOutbox {
++  stateVersion: Decimal;
++  nextDueUs: Decimal | null;
++  // Local bytes only; hash outside SQL transaction, never send bytes to registry.
++  terminal: null | { phase: "completed" | "stopped"; exactJson: string };
++}
+--- /dev/null
++++ b/hosted-worker-controller/src/vendor/registry-schema.sql
+@@ -0,0 +1,10 @@
++CREATE TABLE IF NOT EXISTS pending_registry_meta(singleton INTEGER PRIMARY KEY CHECK(singleton=1),version INTEGER NOT NULL CHECK(version=1),config TEXT NOT NULL,shard INTEGER NOT NULL CHECK(shard BETWEEN 0 AND 15),allocated INTEGER NOT NULL CHECK(allocated BETWEEN 0 AND 4096));
++CREATE TABLE IF NOT EXISTS pending_registry_record(
++ allocation_index INTEGER PRIMARY KEY CHECK(allocation_index BETWEEN 1 AND 4096),
++ operation_key TEXT NOT NULL UNIQUE,identity_bytes TEXT NOT NULL,identity_digest TEXT NOT NULL UNIQUE,record_id TEXT NOT NULL UNIQUE,
++ state_version TEXT NOT NULL,projection_json TEXT NOT NULL,pending INTEGER NOT NULL CHECK(pending IN(0,1)),
++ failures INTEGER NOT NULL CHECK(failures BETWEEN 0 AND 32),skip_visits INTEGER NOT NULL CHECK(skip_visits BETWEEN 0 AND 7),needs_attention INTEGER NOT NULL CHECK(needs_attention IN(0,1)),
++ attempt_sequence TEXT NOT NULL,last_run_id TEXT,last_visit TEXT CHECK(last_visit IS NULL OR last_visit IN('reserved','backoff')),
++ ticket_json TEXT,disposition_json TEXT
++);
++CREATE INDEX IF NOT EXISTS pending_registry_due ON pending_registry_record(pending,allocation_index);

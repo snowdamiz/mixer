@@ -1,0 +1,7 @@
+# Permanent terminal replay at a newer version
+
+The selected registry contract rejects nonterminal reopening of a permanent terminal record. It must still accept a greater operation state version carrying the exact same terminal phase and SHA-256 evidence digest. A terminal operation can durably accept newer command/clock metadata while its result stays unchanged; every such transition still produces its newest atomic outbox.
+
+For a permanent terminal registry record, a greater version is accepted only when the incoming projection is terminal with null next-due, the same phase, and the same evidence digest. Update its exact tracked version/projection with the existing compare-and-swap semantics while retaining the permanent terminal disposition. An equal version still requires byte-identical projection, an older version remains stale, and a nonterminal or different terminal phase/digest remains conflict. No replay reopens scheduling, grants execution authority, resets delivery history, or replaces the original terminal evidence.
+
+This is a correction to the isolated component's overly broad higher-version rejection. The Engine must retain atomic outbox production on every state transition rather than suppress legitimate terminal transitions to accommodate it. Focused actual SQLite controls and cross-DO Engine replay controls are required before integration. This document records selected behavior, not an executed pass or deployed qualification.

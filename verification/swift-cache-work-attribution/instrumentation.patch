@@ -1,0 +1,459 @@
+--- vm/src/experimental/cache/borrowed.rs
++++ isolated/src/experimental/cache/borrowed.rs
+@@ -181,6 +181,12 @@
+     Publication,
+ }
+ pub(crate) trait DecodeMeter: sealed::Meter {
++    #[cfg(test)]
++    fn diagnostic_site(&mut self, _: u8) {}
++    #[cfg(test)]
++    fn diagnostic_lookup_done(&mut self, _: bool) {}
++    #[cfg(test)]
++    fn diagnostic_decode_completed(&mut self, _: u32) {}
+     fn step(&mut self, _: CacheStep) {}
+     type Failure;
+     fn error(&mut self, kind: CacheFailureKind, code: &'static str) -> Self::Failure;
+@@ -692,6 +698,8 @@
+         scratch,
+     };
+     let mut meter = M::meter(usage, operation, function);
++    #[cfg(test)]
++    meter.diagnostic_site(1);
+     meter.step(CacheStep::Lookup);
+     meter.work(1)?;
+     let defined = parts
+@@ -704,6 +712,8 @@
+         .checked_add(1)
+         .ok_or_else(|| meter.error(CacheFailureKind::NonceExhausted, "pin_nonce_exhausted"))?;
+     let mut pin_slot = None;
++    #[cfg(test)]
++    meter.diagnostic_site(2);
+     for (index, record) in parts.pins.iter().enumerate() {
+         meter.work(1)?;
+         if record.nonce == 0 {
+@@ -737,6 +747,8 @@
+ ) -> Result<M::Pin, M::Failure> {
+     let function = defined.absolute_index;
+     let mut hit = None;
++    #[cfg(test)]
++    meter.diagnostic_site(3);
+     for (index, slot) in parts.slots.iter().enumerate() {
+         meter.work(1)?;
+         if slot.entry().is_some_and(|e| e.function == function) {
+@@ -752,6 +764,8 @@
+             .checked_add(1)
+             .ok_or_else(|| meter.error(CacheFailureKind::WorkExhausted, "hits_overflow"))?;
+         meter.usage_mut().hit(hits);
++        #[cfg(test)]
++        meter.diagnostic_lookup_done(true);
+         index
+     } else {
+         let misses = meter
+@@ -760,6 +774,8 @@
+             .checked_add(1)
+             .ok_or_else(|| meter.error(CacheFailureKind::WorkExhausted, "misses_overflow"))?;
+         meter.usage_mut().miss(misses);
++        #[cfg(test)]
++        meter.diagnostic_lookup_done(false);
+         let next_decodes = meter
+             .usage()
+             .decodes()
+@@ -783,8 +799,12 @@
+         meter.step(CacheStep::Planning);
+         let mut plan = [false; MAX_ENTRIES];
+         let mut remaining = meter.usage().resident();
++        #[cfg(test)]
++        meter.diagnostic_site(6);
+         meter.work(parts.slots.len() as u64)?;
+         let mut empty = parts.slots.iter().position(|slot| slot.entry().is_none());
++        #[cfg(test)]
++        meter.diagnostic_site(7);
+         while empty.is_none() || base + remaining + bytes > capacity {
+             let mut oldest: Option<usize> = None;
+             for (index, slot) in parts.slots.iter().enumerate() {
+@@ -803,6 +823,8 @@
+             remaining -= parts.slots[victim].entry().expect("selected entry").bytes;
+             empty = Some(victim);
+         }
++        #[cfg(test)]
++        meter.diagnostic_site(8);
+         meter.work(MAX_ENTRIES as u64)?;
+         let mut evictions = 0u64;
+         for selected in &plan {
+@@ -833,6 +855,8 @@
+                 return Err(error);
+             }
+         };
++        #[cfg(test)]
++        meter.diagnostic_site(11);
+         meter.step(CacheStep::Publication);
+         if let Err(error) = meter.check() {
+             let _ = M::drop_entry(entry, meter);
+@@ -840,6 +864,8 @@
+             return Err(error);
+         }
+         meter.usage_mut().decoded(next_decodes, bytes);
++        #[cfg(test)]
++        meter.diagnostic_decode_completed(function);
+         parts.slots[index].set(entry);
+         index
+     };
+--- vm/src/experimental_swift_reactor/cache.rs
++++ isolated/src/experimental_swift_reactor/cache.rs
+@@ -1201,8 +1201,11 @@
+     }
+     fn work(&mut self, n: u64) -> Result<(), SwiftRunFailure> {
+         checkpoint(self.control, self.cursor);
+-        self.control
+-            .work_with_wasi(Work::Cache, n, self.cursor, self.observation())
++        let result = self.control
++            .work_with_wasi(Work::Cache, n, self.cursor, self.observation());
++        #[cfg(test)]
++        super::cache_tests::attribution_work(n, self.cursor, &result);
++        result
+     }
+     fn admit(&mut self, bytes: usize) -> Result<ReservationTicket, SwiftRunFailure> {
+         checkpoint(self.control, self.cursor);
+@@ -1296,6 +1299,8 @@
+         adopted: &AdoptedProof,
+         cursor: Cursor,
+     ) -> Result<CacheConstructionPhase<'a>, SwiftRunFailure> {
++        #[cfg(test)]
++        super::cache_tests::attribution_site(0);
+         test_step(CacheStep::Constructor);
+         let PreparedBounds {
+             previous: previous_bound,
+@@ -1769,6 +1774,12 @@
+ }
+ impl sealed::Meter for SwiftMeter<'_, '_> {}
+ impl DecodeMeter for SwiftMeter<'_, '_> {
++    #[cfg(test)]
++    fn diagnostic_site(&mut self, site: u8) { super::cache_tests::attribution_site(site); }
++    #[cfg(test)]
++    fn diagnostic_lookup_done(&mut self, hit: bool) { super::cache_tests::attribution_lookup_done(hit); }
++    #[cfg(test)]
++    fn diagnostic_decode_completed(&mut self, function: u32) { super::cache_tests::attribution_decode_completed(function); }
+     type Failure = SwiftRunFailure;
+     fn error(&mut self, kind: CacheFailureKind, code: &'static str) -> SwiftRunFailure {
+         self.operation.error(kind, code)
+@@ -1911,6 +1922,8 @@
+     where
+         'op: 'a,
+     {
++        #[cfg(test)]
++        super::cache_tests::attribution_begin(function);
+         operation.cursor = Cursor {
+             stage: SwiftRunStage::Cache,
+             function: Some(function),
+@@ -1924,12 +1937,16 @@
+         scratch: &mut &mut [decode::Patch],
+         meter: &mut SwiftMeter<'_, '_>,
+     ) -> Result<decode::Counts, SwiftRunFailure> {
++        #[cfg(test)]
++        meter.diagnostic_site(4);
+         let policy = policy(snapshot, body, meter)?;
+         meter.step(CacheStep::ScanReset);
+         reset(scratch, meter)?;
+         meter.step(CacheStep::Scan);
+         let mut depth = 0;
+         let mut counts = decode::Counts::default();
++        #[cfg(test)]
++        meter.diagnostic_site(5);
+         decode::scan_borrowed(
+             body.body,
+             body.body_offset,
+@@ -1994,12 +2011,16 @@
+         scratch: &mut &mut [decode::Patch],
+         meter: &mut SwiftMeter<'_, '_>,
+     ) -> Result<DecodedFunction, SwiftRunFailure> {
++        #[cfg(test)]
++        meter.diagnostic_site(9);
+         let policy = policy(snapshot, body, meter)?;
+         meter.step(CacheStep::BuildReset);
+         reset(scratch, meter)?;
+         meter.step(CacheStep::Build);
+         let mut depth = 0;
+         let mut actual = decode::Counts::default();
++        #[cfg(test)]
++        meter.diagnostic_site(10);
+         decode::build_borrowed(
+             body.body,
+             body.body_offset,
+--- vm/src/experimental_swift_reactor/cache_tests.rs
++++ isolated/src/experimental_swift_reactor/cache_tests.rs
+@@ -2962,3 +2962,266 @@
+         }
+     }
+ }
++
++// Copied cfg(test) diagnostic only. No allocation or output in event callbacks.
++const _: () = assert!(std::mem::size_of::<[u64; 1250]>() == 10_000);
++pub(super) const ATTRIBUTION_SITES: [&str; 12] = [
++    "constructor", "lookup_header", "free_pin_probe", "resident_probe",
++    "scan_policy", "scan", "empty_slot_search", "victim_probe",
++    "plan_count", "build_policy", "build", "publication",
++];
++#[derive(Clone, Copy)]
++struct AttributionRejected { site: u8, function: Option<u32>, offset: Option<usize>, n: u64, failure: SwiftRunFailure }
++#[derive(Clone)]
++struct Attribution {
++    enabled: bool, invalid: u32, site: u8, function: Option<u32>,
++    credits: [u64; 12], calls: [u64; 12], rejected: Option<AttributionRejected>,
++    free_histogram: [u64; 65], hit_histogram: [u64; 65],
++    free_length: u64, resident_length: u64,
++    hits: u64, misses: u64, distinct: u64, repeated: u64,
++    seen: [u64; 1250], samples: [u32; 16], sample_len: usize,
++    untracked_repeated_occurrences: u64,
++}
++impl Attribution {
++    const fn empty() -> Self { Self {
++        enabled: false, invalid: 0, site: 0, function: None,
++        credits: [0; 12], calls: [0; 12], rejected: None,
++        free_histogram: [0; 65], hit_histogram: [0; 65],
++        free_length: 0, resident_length: 0,
++        hits: 0, misses: 0, distinct: 0, repeated: 0,
++        seen: [0; 1250], samples: [0; 16], sample_len: 0,
++        untracked_repeated_occurrences: 0,
++    } }
++    fn add(invalid: &mut u32, slot: &mut u64, n: u64) {
++        if let Some(next) = slot.checked_add(n) { *slot = next; }
++        else { *invalid |= 1; *slot = u64::MAX; }
++    }
++    fn histogram(invalid: &mut u32, bins: &mut [u64; 65], length: u64) {
++        if let Some(bin) = bins.get_mut(length as usize).filter(|_| length <= 64) {
++            Self::add(invalid, bin, 1);
++        } else { *invalid |= 2; }
++    }
++}
++thread_local! {
++    static ATTRIBUTION: std::cell::RefCell<Attribution> = const { std::cell::RefCell::new(Attribution::empty()) };
++    static ATTRIBUTION_BORROW_INVALID: Cell<bool> = const { Cell::new(false) };
++}
++fn attribution_mut(f: impl FnOnce(&mut Attribution)) {
++    ATTRIBUTION.with(|state| {
++        if let Ok(mut state) = state.try_borrow_mut() {
++            if state.enabled { f(&mut state); }
++        } else { ATTRIBUTION_BORROW_INVALID.with(|flag| flag.set(true)); }
++    });
++}
++pub(super) fn attribution_reset() {
++    ATTRIBUTION_BORROW_INVALID.with(|flag| flag.set(false));
++    ATTRIBUTION.with(|state| {
++        if let Ok(mut state) = state.try_borrow_mut() {
++            *state = Attribution::empty(); state.enabled = true;
++        } else { ATTRIBUTION_BORROW_INVALID.with(|flag| flag.set(true)); }
++    });
++}
++pub(super) fn attribution_begin(function: u32) {
++    attribution_mut(|state| { state.function = Some(function); state.free_length = 0; state.resident_length = 0; });
++}
++pub(super) fn attribution_site(site: u8) {
++    attribution_mut(|state| {
++        if site as usize >= ATTRIBUTION_SITES.len() { state.invalid |= 4; return; }
++        if site == 3 && state.site == 2 {
++            Attribution::histogram(&mut state.invalid, &mut state.free_histogram, state.free_length);
++        }
++        state.site = site;
++        if site == 0 { state.function = None; }
++    });
++}
++pub(super) fn attribution_work(n: u64, cursor: Cursor, result: &Result<(), SwiftRunFailure>) {
++    attribution_mut(|state| {
++        let site = state.site as usize;
++        let Some(calls) = state.calls.get_mut(site) else { state.invalid |= 4; return; };
++        Attribution::add(&mut state.invalid, calls, 1);
++        match result {
++            Ok(()) => {
++                Attribution::add(&mut state.invalid, &mut state.credits[site], n);
++                if site == 2 { Attribution::add(&mut state.invalid, &mut state.free_length, n); }
++                if site == 3 { Attribution::add(&mut state.invalid, &mut state.resident_length, n); }
++            }
++            Err(failure) => if state.rejected.is_none() {
++                state.rejected = Some(AttributionRejected { site: state.site, function: cursor.function,
++                    offset: cursor.offset, n, failure: *failure });
++            },
++        }
++    });
++}
++pub(super) fn attribution_lookup_done(hit: bool) {
++    attribution_mut(|state| {
++        if hit {
++            Attribution::add(&mut state.invalid, &mut state.hits, 1);
++            Attribution::histogram(&mut state.invalid, &mut state.hit_histogram, state.resident_length);
++        } else { Attribution::add(&mut state.invalid, &mut state.misses, 1); }
++    });
++}
++pub(super) fn attribution_decode_completed(function: u32) {
++    attribution_mut(|state| {
++        let index = function as usize;
++        if index >= 80_000 { state.invalid |= 8; return; }
++        let word = index / 64;
++        let mask = 1u64 << (index % 64);
++        if state.seen[word] & mask == 0 {
++            state.seen[word] |= mask;
++            Attribution::add(&mut state.invalid, &mut state.distinct, 1);
++        } else {
++            Attribution::add(&mut state.invalid, &mut state.repeated, 1);
++            if !state.samples[..state.sample_len].contains(&function) {
++                if state.sample_len < 16 { state.samples[state.sample_len] = function; state.sample_len += 1; }
++                else { Attribution::add(&mut state.invalid, &mut state.untracked_repeated_occurrences, 1); }
++            }
++        }
++    });
++}
++fn attribution_state() -> Attribution {
++    ATTRIBUTION.with(|state| match state.try_borrow() {
++        Ok(state) => { let mut snapshot = state.clone(); if ATTRIBUTION_BORROW_INVALID.with(Cell::get) { snapshot.invalid |= 16; } snapshot }
++        Err(_) => { let mut snapshot = Attribution::empty(); snapshot.invalid = 16; snapshot }
++    })
++}
++pub(super) fn attribution_json(work: u64, cache: Option<&SwiftCacheUsage>) -> (String, bool) {
++    // Snapshot serialization is bounded, external test overhead. Never serialize seen words.
++    let s = attribution_state();
++    let successful = s.credits.iter().try_fold(0u64, |sum, n| sum.checked_add(*n));
++    let decodes = s.distinct.checked_add(s.repeated);
++    let population: u64 = s.seen.iter().map(|word| word.count_ones() as u64).sum();
++    let reconciled = s.invalid == 0 && s.enabled && successful == Some(work) && population == s.distinct
++        && cache.is_none_or(|c| s.hits == c.hits && s.misses == c.misses && decodes == Some(c.decodes)
++            && c.decodes <= c.misses && c.evictions <= c.decodes
++            && c.decodes - c.evictions <= 64);
++    let rejected = s.rejected.map(|r| format!("{{\"site\":\"{}\",\"site_index\":{},\"function\":{},\"offset\":{},\"requested\":{},\"code\":\"{}\",\"kind\":\"{:?}\",\"resource\":\"{:?}\",\"attempted\":{},\"limit\":{}}}",
++        ATTRIBUTION_SITES.get(r.site as usize).unwrap_or(&"invalid"), r.site,
++        r.function.map_or("null".into(), |n| n.to_string()), r.offset.map_or("null".into(), |n| n.to_string()),
++        r.n, r.failure.code, r.failure.kind, r.failure.resource, r.failure.attempted, r.failure.limit)).unwrap_or("null".into());
++    let authority = cache.map(|c| format!("{{\"hits\":{},\"misses\":{},\"decodes\":{},\"evictions\":{},\"resident_bytes\":{},\"eviction_scope\":\"authoritative total, no independent eviction event\"}}", c.hits,c.misses,c.decodes,c.evictions,c.resident_bytes)).unwrap_or("null".into());
++    let result = format!("{{\"enabled\":{},\"invalid_flags\":{},\"successful_credits\":{:?},\"work_calls\":{:?},\"authoritative_cache_work\":{},\"successful_sum\":{},\"free_pin_probe_length_histogram\":{:?},\"resident_hit_probe_length_histogram\":{:?},\"hits\":{},\"misses\":{},\"distinct_completed_decodes\":{},\"repeated_completed_decodes\":{},\"authoritative_cache_totals\":{},\"observer_state_bytes\":{},\"seen_bitmap_bytes\":10000,\"seen_population\":{},\"first_repeated_function_identities\":{:?},\"untracked_repeated_completion_occurrences\":{},\"first_rejected_work\":{},\"reconciled\":{},\"test_only_external_overhead\":true,\"cpu_profile\":false}}",
++        s.enabled, s.invalid, s.credits, s.calls, work, successful.map_or("null".into(), |n| n.to_string()), s.free_histogram, s.hit_histogram,
++        s.hits, s.misses, s.distinct, s.repeated, authority, std::mem::size_of::<Attribution>(), population, &s.samples[..s.sample_len], s.untracked_repeated_occurrences, rejected, reconciled);
++    if result.len() > 16_384 { return ("{\"serialization_invalid\":true,\"reconciled\":false}".into(), false); }
++    (result, reconciled)
++}
++
++// Finite independently authored controls on the actual copied Swift cache.
++fn attribution_emit(label: &str, control: &RuntimeControl, cache: &SwiftFunctionCache) {
++    let (json, valid) = attribution_json(control.usage(None).cache_work, Some(&cache.usage()));
++    println!("MIXER_ATTRIBUTION {{\"case\":\"{}\",\"observer\":{}}}", label, json);
++    assert!(valid, "credit, lookup, bitmap and completed-decode reconciliation: {json}");
++}
++#[test]
++fn attribution_actual_cache_controls() {
++    for count in [64, 65] {
++        hooks(Hooks::default()); attribution_reset();
++        let bytes = fixture(0, &[0, 0x0b], 100);
++        let (mut control, mut cache) = new(&bytes, SwiftRunBudget::default());
++        attribution_emit("constructed", &control, &cache);
++        assert_eq!(attribution_state().credits[0], 640);
++        for _ in 0..2 {
++            for function in 34..34 + count {
++                let p = pin(&mut cache, &mut control, function, None).unwrap();
++                cache.release(p, &mut control, None).map_err(|e| e.failure).unwrap();
++            }
++        }
++        let s = attribution_state();
++        if count == 64 {
++            assert_eq!((s.hits, s.distinct, s.repeated, cache.usage().evictions), (64, 64, 0, 0));
++            let before = s.credits;
++            let p = pin(&mut cache, &mut control, 97, None).unwrap();
++            cache.release(p, &mut control, None).map_err(|e| e.failure).unwrap();
++            let after = attribution_state();
++            assert_eq!(after.credits[1] - before[1], 1);
++            assert_eq!(after.credits[2] - before[2], 1);
++            assert_eq!(after.credits[3] - before[3], 64);
++            assert_eq!(after.hit_histogram[64], s.hit_histogram[64] + 1);
++            let mut held = Vec::new();
++            for _ in 0..63 { held.push(pin(&mut cache, &mut control, 34, None).unwrap()); }
++            let before = attribution_state();
++            let p = pin(&mut cache, &mut control, 97, None).unwrap();
++            cache.release(p, &mut control, None).map_err(|e| e.failure).unwrap();
++            let after = attribution_state();
++            assert_eq!(after.credits[2] - before.credits[2], 64);
++            assert_eq!(after.free_histogram[64], before.free_histogram[64] + 1);
++            for p in held { cache.release(p, &mut control, None).map_err(|e| e.failure).unwrap(); }
++        } else {
++            assert_eq!((s.hits, s.distinct, s.repeated, cache.usage().evictions), (0, 65, 65, 66));
++            assert_eq!(s.sample_len, 16);
++            assert_eq!(s.samples, std::array::from_fn(|i| 34 + i as u32));
++            assert_eq!(s.untracked_repeated_occurrences, 49);
++        }
++        attribution_emit(if count == 64 { "64_cycle_twice_and_hot_positions" } else { "65_cycle_twice" }, &control, &cache);
++        finish(cache, control);
++    }
++    // Exercise scan/build policy and nested decoder credits without equating this with target behavior.
++    hooks(Hooks::default()); attribution_reset();
++    let bytes = fixture(0, &body(0, &[2,0x40,3,0x40,1,0x0b,0x0b,0x41,0,4,0x40,1,5,1,0x0b,0x0b]), 100);
++    let (mut control, mut cache) = new(&bytes, SwiftRunBudget::default());
++    let p = pin(&mut cache, &mut control, 34, None).unwrap();
++    cache.release(p, &mut control, None).map_err(|e| e.failure).unwrap();
++    let s = attribution_state();
++    assert!(s.credits[4] > 0 && s.credits[5] > 0 && s.credits[6] > 0 && s.credits[8] > 0 && s.credits[9] > 0 && s.credits[10] > 0);
++    assert_eq!(s.credits[11], 0);
++    attribution_emit("nested_decode", &control, &cache);
++    finish(cache, control);
++}
++fn attribution_failure_signature(f: &SwiftRunFailure) -> String {
++    // Elapsed timings are observational; preserve and compare all typed authority/failure fields.
++    format!("{:?}|{:?}|{}|{:?}|{:?}|{:?}|{}|{}|{:?}|{:?}|{:?}|{:?}|{}|{}|{}",
++        f.stage, f.kind, f.code, f.function, f.offset, f.resource, f.attempted, f.limit,
++        f.observed_capacity, f.deadline_origin, f.wasi_failure, f.guest_exit,
++        f.at_failure.cache_work, f.at_failure.execution_work, f.at_failure.instructions)
++}
++#[test]
++fn attribution_finite_failure_prefixes_and_invalidity_are_observational() {
++    let bytes = fixture(0, &[0, 0x0b], 100);
++    // Exact constructor=640, flat cold pin=205; all finite cache-credit failure prefixes.
++    for cap in [640, 641, 642, 643, 706, 707, 708, 772, 836, 844] {
++        let mut signatures = Vec::new();
++        for mode in 0..3 {
++            hooks(Hooks::default()); attribution_reset();
++            if mode == 0 { ATTRIBUTION.with(|s| s.borrow_mut().enabled = false); }
++            let (mut control, mut cache) = new(&bytes, SwiftRunBudget { cache_work: cap, ..SwiftRunBudget::default() });
++            if mode == 2 { attribution_site(255); attribution_decode_completed(80_000); }
++            let failure = pin(&mut cache, &mut control, 34, None).err().expect("finite prefix rejects original work");
++            signatures.push(attribution_failure_signature(&failure));
++            assert_eq!(failure.kind, SwiftRunFailureKind::WorkExhausted);
++            assert_eq!(failure.resource, Some(SwiftRunResource::CacheWork));
++            if mode == 1 {
++                let rejected = attribution_state().rejected.expect("first original work rejection");
++                assert_eq!(attribution_failure_signature(&rejected.failure), attribution_failure_signature(&failure));
++                attribution_emit("finite_cache_work_failure", &control, &cache);
++            }
++            if mode == 2 { assert_ne!(attribution_state().invalid, 0); }
++            finish(cache, control);
++        }
++        assert_eq!(signatures[0], signatures[1]); assert_eq!(signatures[0], signatures[2]);
++    }
++    for ordinal in [0, 1, 2, 5, 20, 60] {
++        let mut signatures = Vec::new();
++        for enabled in [false, true] {
++            hooks(Hooks::default()); attribution_reset();
++            ATTRIBUTION.with(|s| s.borrow_mut().enabled = enabled);
++            let (mut control, mut cache) = new(&bytes, SwiftRunBudget::default());
++            hooks(Hooks { cancel: Some(ordinal), ..Hooks::default() });
++            let failure = pin(&mut cache, &mut control, 34, None).err().expect("finite checkpoint cancels");
++            assert_eq!(failure.kind, SwiftRunFailureKind::Cancelled);
++            signatures.push(attribution_failure_signature(&failure));
++            if enabled { attribution_emit("finite_cancellation_failure", &control, &cache); }
++            finish(cache, control);
++        }
++        assert_eq!(signatures[0], signatures[1]);
++    }
++    // Saturated counters and reentrant observer borrowing flag invalidity without panic or VM authority.
++    hooks(Hooks::default()); attribution_reset();
++    let (mut control, mut cache) = new(&bytes, SwiftRunBudget::default());
++    ATTRIBUTION.with(|s| { s.borrow_mut().credits[1] = u64::MAX; let _held = s.borrow(); attribution_site(1); });
++    let p = pin(&mut cache, &mut control, 34, None).unwrap();
++    cache.release(p, &mut control, None).map_err(|e| e.failure).unwrap();
++    assert_ne!(attribution_state().invalid, 0);
++    assert!(!attribution_json(control.usage(None).cache_work, Some(&cache.usage())).1);
++    finish(cache, control);
++    println!("MIXER_ATTRIBUTION {{\"cleanup\":\"all_finite_original_owners_drained\",\"observer_invalidity_did_not_change_vm_results\":true}}");
++}
+--- vm/src/experimental_swift_reactor/lifecycle_tests.rs
++++ isolated/src/experimental_swift_reactor/lifecycle_tests.rs
+@@ -2367,3 +2367,6 @@
+     assert!(matches!(o.lifecycle, Lifecycle::Terminal));
+     retire(o);
+ }
++
++// Isolated work attribution harness only.
++include!("/Users/andreyyurlov/Documents/dev/mixer/verification/swift-cache-work-attribution/harness.rs");
