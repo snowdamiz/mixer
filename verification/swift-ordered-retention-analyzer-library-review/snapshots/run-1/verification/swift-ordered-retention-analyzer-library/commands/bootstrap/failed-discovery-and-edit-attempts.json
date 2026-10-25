@@ -1,0 +1,26 @@
+[
+  {
+    "command": "cat verification/swift-ordered-retention-analyzer-design/input* verification/swift-ordered-retention-analyzer-design/*receipt*; git rev-parse HEAD; rustc --version --verbose",
+    "observed_stderr": "zsh:1: no matches found: verification/swift-ordered-retention-analyzer-design/*receipt*\nzsh:1: command not found: rustc\n",
+    "resolution": "Use the exact compiler path from the accepted design receipt; no PATH/toolchain mutation",
+    "scope": "read-only initial environment discovery"
+  },
+  {
+    "command": "rg -n rustc verification/swift-ordered-retention-analyzer-design/commands/run-3/executed-runner.py",
+    "observed_stderr": "rg: verification/swift-ordered-retention-analyzer-design/commands/run-3/executed-runner.py: No such file or directory (os error 2)\n",
+    "resolution": "Read the existing run-3 result.json; no missing file fabricated",
+    "scope": "read-only source discovery"
+  },
+  {
+    "command": "/opt/homebrew/opt/python@3.14/bin/python3.14 -B verification/swift-ordered-retention-analyzer-library/run_checks.py",
+    "observed_failure": "run-1 AssertionError at assert len(sidecars)==17: final directory contains13; remaining4 are candidate-completion-6",
+    "resolution": "Preserve run-1 runner/source/result; enumerate both immutable stream subdirectories in subsequent runs",
+    "scope": "first owned runner attempt"
+  },
+  {
+    "observed_failure": "apply_patch verification failed: Failed to find expected lines in logical-inventory.md: caller receiving/move places. Its21",
+    "resolution": "Read the actual lines and applied exact correction; failed patch changed no file",
+    "scope": "owned inventory prose patch",
+    "tool": "apply_patch"
+  }
+]

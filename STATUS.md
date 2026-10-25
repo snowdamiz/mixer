@@ -19,6 +19,7 @@ Begin-login checkpoint `273a1e48` passes every Phoenix CI step, including
 Callback-contract and recorded Swift-prototype review checkpoint `6d98de42`
 now passes all three Engine CI jobs.
 Selected finite Swift completion checkpoint `68468f8f` now passes all three Engine jobs.
+Corrected analyzer design checkpoint `13ce0c2e` passes all three Engine CI jobs.
 Native runtime and capture remain paused.
 All eighteen work packages remain in scope:
 sixteen are in progress and two are marked ready. No launch gate is verified;
@@ -135,8 +136,14 @@ Inherited serializer inventory and CODE-buffer count mismatch remain open. Compl
 diagnostic/analyzer/target acceptance remains pending. The corrected analyzer design now
 passes 25 producer and 23 independent methods, including 35,694 policy cases
 and 165 closed transitions. Root verifies 279 sealed members and accepts the
-design only. A bounded safe-File-borrow framing library is selected; semantic
+design only. The bounded safe-File-borrow framing foundation now passes 20
+producer and 24 independent host methods. Root verifies 894 sealed members
+and 845 unchanged upstream members, accepting this standalone fixture scope.
+Its reviewed logical inventory is 14,248 bytes within 41,984 reserved bytes;
+all limits remain unchanged. Framing observation grants no semantic prefix
+validity. The next acquisition/lifecycle contract is in preparation; semantic
 replay, real adapters, CLI/custody and target execution remain pending. See
+[the framing foundation review](docs/swift-ordered-retention-analyzer-library-review.md). See
 [the analyzer design review](docs/swift-ordered-retention-analyzer-review.md),
 [the completion review](docs/swift-ordered-retention-diagnostic-completion-review.md), [the prototype review](docs/swift-ordered-retention-diagnostic-rust-review.md),
 [the diagnostic design review](docs/swift-ordered-retention-diagnostic-design-review.md),
