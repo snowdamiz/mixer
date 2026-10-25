@@ -1,0 +1,69 @@
+{
+  "status": "passed",
+  "note": "git diff --no-index implies an exit code of 1 for the expected added-file differences; empty --check output confirms no whitespace errors",
+  "commands": [
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "hosted-worker-controller/test/acceptance-driver.mjs",
+        "hosted-worker-controller/test/check.mjs"
+      ],
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--no-index",
+        "--check",
+        "--",
+        "/dev/null",
+        "hosted-worker-controller/test/owned-workerd-identity.mjs"
+      ],
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "stdout": "",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--no-index",
+        "--check",
+        "--",
+        "/dev/null",
+        "hosted-worker-controller/test/owned-workerd-identity.test.mjs"
+      ],
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "stdout": "",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--no-index",
+        "--check",
+        "--",
+        "/dev/null",
+        "docs/hosted-worker-controller-linux-restart.md"
+      ],
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "stdout": "",
+      "stderr": "",
+      "passed": true
+    }
+  ]
+}

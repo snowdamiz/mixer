@@ -139,6 +139,7 @@ async function run(name, args, extraEnv = {}) {
 let failure = null;
 try {
   await run("build", ["build.mjs"]);
+  await run("owned-process-identity", ["test/owned-workerd-identity.test.mjs"]);
   await run("original", ["test/run.mjs"], {MIXER_CONTROLLER_TEST_REPORT: join(output, "original-report.json")});
   for (const [name, fixture] of [
     ["regressions", "verification/hosted-worker-controller-v2/inputs/verification/hosted-worker-controller-implementation-independent-review/regressions.mjs"],

@@ -1,0 +1,106 @@
+{
+  "status": "host-passed-awaiting-linux-ci",
+  "baselineRevision": "908b0d953c35389a6b12900f8875b0bf3f88d4a1",
+  "baselineLinuxRun": "https://github.com/snowdamiz/mixer/actions/runs/40158540132",
+  "hostEnvironment": {
+    "node": "v22.23.3",
+    "npm": "10.9.9",
+    "platform": "darwin",
+    "architecture": "arm64",
+    "os": "macOS 27.0.1",
+    "dependencies": {
+      "typescript": "5.9.3",
+      "miniflare": "4.20260730.0",
+      "workerd": "1.20260730.1",
+      "@cloudflare/workers-types": "5.20260730.1"
+    }
+  },
+  "testedSourceDigest": "1570f0bf9c0c8e30e9eca1a2356651da5b13f01fd619a26af5563362681b97b4",
+  "sourceUnchangedAfterRun": true,
+  "testManifestAutomaticallyBindsNewHelpers": {
+    "hosted-worker-controller/test/owned-workerd-identity.mjs": "23dc5a9f514a06277b569638cba7a3ee17ea9d8dc3745589fb7af979683d4e1d",
+    "hosted-worker-controller/test/owned-workerd-identity.test.mjs": "220865766835e3bf33683ce902a61ed48eb79b565e9ad51916dc00a8262aa343"
+  },
+  "runnerHash": "56d0f51c11bc816bc0df1e1fa71e34b3a04a49a4ec1852d89b0268e77e8b6c23",
+  "rootOwnedRunnerIntegration": "test/check.mjs runs owned-process-identity immediately after build",
+  "identityControls": {
+    "passed": 20,
+    "skipped": 0,
+    "report": "host-run/owned-process-identity/stdout",
+    "liveHostControl": "exact direct-child SIGKILL and reap"
+  },
+  "existingSuites": {
+    "original": {
+      "status": "passed",
+      "groups": 28,
+      "cleanupRecords": 114,
+      "actualSIGKILLRestarts": 4,
+      "persistencePaths": 110
+    },
+    "regressions": {
+      "status": "passed",
+      "groups": 7,
+      "cleanupRecords": 7,
+      "actualSIGKILLRestarts": 0,
+      "persistencePaths": 7
+    },
+    "focused": {
+      "status": "passed",
+      "groups": 36,
+      "cleanupRecords": 40,
+      "actualSIGKILLRestarts": 4,
+      "persistencePaths": 36
+    }
+  },
+  "existingGroupsPassed": 71,
+  "actualWorkerdSIGKILLRestarts": 8,
+  "sameSQLitePersistence": "unchanged acceptance-driver persistence closure and original/focused recovery assertions",
+  "cleanup": {
+    "commandGroupsEmpty": true,
+    "allPipeEOFObserved": true,
+    "allScratchRemoved": true,
+    "recordedPersistencePaths": 153,
+    "allPersistencePathsAbsent": true,
+    "unrelatedProcessesTargeted": false
+  },
+  "protectedInputs": {
+    "files": 14,
+    "allUnchangedFromHEAD": true,
+    "manifest": "protected-inputs.json"
+  },
+  "productionClosure": {
+    "status": "passed",
+    "files": 9,
+    "testBundleIncluded": false,
+    "report": "host-run/production-closure.json"
+  },
+  "diffCheck": "diff-check.json",
+  "exactDiff": "repair.diff",
+  "artifacts": {
+    "diagnosis.json": "9c1fdbc5ea44bbbd2836425cd0c60f235db4f2918cd0fce3b6afd8cb231f8df6",
+    "protected-inputs.json": "f0f65e82b0ed5ed64297985c62c5fe52f78d5a1df1998d63a2db6de4fc603910",
+    "repair.diff": "507076de660bedb608c51e9cc5d12a82d4f5a2fe4e904326089471fa010a9900",
+    "diff-check.json": "741dd8318da378b618c14e4af923ca3d5e6ea8b5030e4083e574bac97f93e3fa",
+    "run.command.json": "5d256e92f3eba877ed02853ebe5d9e75ae1ba3ef636ec05c93f25598fcd31847",
+    "run.stdout": "a9a6ef7bd56aa6125e29e36c2777036ba4bc6b92b51060367e27f73805029228",
+    "run.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "host-run/receipt.json": "bd938f668f9d1c15320dca1c222de2607dfd9484f91d293fa7c5bdd4bf623380",
+    "host-run/source-manifest.json": "95f5f9a2b813ba1c9b8bd9b3d105aacd3c649d32774d3d19fba8c9b3a5853e08",
+    "host-run/original-report.json": "e9e832e414245a910fc946dabe3316a93ddaa4c68de492ac8855618f8dade8aa",
+    "host-run/regressions-fixture/regression-report.json": "7ab5247ceef89c397c47c89d7d118fdabaee1062173704c46ebdb66ccd0e33e9",
+    "host-run/focused-fixture/focused-report.json": "334d0ee07860055eece242889da7dc28e2f84b7508d1592a475222bfc75acc75",
+    "host-run/production-closure.json": "da6439ec7867f72c0dd4f19d8940be84fbc602f9f8787eaab0c20d67f712f2ba"
+  },
+  "documentation": {
+    "path": "docs/hosted-worker-controller-linux-restart.md",
+    "sha256": "9e4c32dac8ede6150eab2d2d24758b46d01c0846c5b3363a3e63a87fdc236c3f"
+  },
+  "limitations": [
+    "actual repaired Linux runtime not yet run; Root owns next CI push/run",
+    "Darwin comm identity is preserved trusted harness argv[0] selection, not adversarial process identity",
+    "synchronous recheck is not an OS pidfd guarantee",
+    "local workerd and SQLite only; synthetic provider and clock",
+    "no cloud/provider/native-device/signing/store/dogfood-release/GA qualification"
+  ],
+  "ownership": "Only assigned driver/new helper files, docs and verification packet edited by this lane; Root separately integrated test/check.mjs. No dependency installation, credentials, Git mutation, UI, simulator, emulator or phone operation."
+}

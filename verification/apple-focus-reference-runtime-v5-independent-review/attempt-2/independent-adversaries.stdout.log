@@ -1,0 +1,52 @@
+{
+  "testsRun": 19,
+  "testsPassed": 19,
+  "controlsPassed": true,
+  "adapterAttempts": 23,
+  "actualSummaryCalls": 18,
+  "finiteCaseCounts": {
+    "exactCanonicalOffsetForms": 6,
+    "exactCanonicalCalendarForms": 4,
+    "invalidRootForms": 24,
+    "preParserRejections": 2,
+    "freshnessEndpoints": 6,
+    "exactRationalScalars": 142,
+    "trueSubNanosecondScalars": 124,
+    "zeroTrailingExponentForms": 4,
+    "ambientDecimalSuccessfulDocuments": 88,
+    "ambientDecimalRejectedDocuments": 132,
+    "schema5EarlyReturns": 8,
+    "oldSchemaNameEarlyRejections": 4,
+    "liveWorkspaceReadScanDenials": 3,
+    "unchangedSelectedFiles": 29,
+    "exactSupplementalJournalFiles": 276,
+    "closedFixtureMutationRejections": 3,
+    "actualConfigureRoutingPredicates": 4
+  },
+  "findings": [
+    {
+      "id": "V5-001",
+      "severity": "blocking-fresh-native-selection",
+      "summary": "Frozen V5 dispatch creates native-run-v4 and selected actual adapter rejects native-run-v5",
+      "dispatchOutputExpression": "BASE / ('native-run-v4-' + root['runID'])",
+      "actualConfigureAndSelectProbes": [
+        {
+          "outputPrefix": "native-run-v5-",
+          "actualConfigureRootAccepted": true,
+          "actualSelectAccepted": false,
+          "originalSelectorCalls": 0,
+          "error": "Root-selected fresh result workspace required"
+        },
+        {
+          "outputPrefix": "native-run-v4-",
+          "actualConfigureRootAccepted": true,
+          "actualSelectAccepted": true,
+          "originalSelectorCalls": 1,
+          "error": null
+        }
+      ],
+      "nativeExecuted": false,
+      "syntheticOnly": true
+    }
+  ]
+}

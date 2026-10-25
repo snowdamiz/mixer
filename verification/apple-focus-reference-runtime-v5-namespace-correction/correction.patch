@@ -1,0 +1,33 @@
+--- frozen-v5/prepare.py:dispatch
++++ correction/prepare.py:_dispatch
+@@ -7,7 +7,7 @@
+     selection_path=Path(selection_path)
+     require(row(selection_path)['sha256']==selected_sha,'Root out-of-band selection hash differs')
+     root=importer.validate_root(importer.parse(selection_path.read_bytes()),reviewed_packet,fresh=True)
+-    output=BASE/('native-run-v4-'+root['runID'])
++    output=BASE/('native-run-v5-'+root['runID'])
+     require(not output.exists() and not output.is_symlink(),'Fresh run output required; never replay a run')
+     output.mkdir(mode=0o755)
+     h=helpers(); product_manifest=json.loads((V1/'compile-attempt-1/product-manifest.json').read_bytes())
+--- frozen-v5/adapter.py
++++ correction/adapter.py
+@@ -19,7 +19,7 @@
+ 
+ def select_command(h, argv, session):
+     require(_ROOT is not None and list(map(str,argv)) == importer.command_argv(_ROOT,session), 'Command must come from root-selected context')
+-    require(session.resolve() == session and session.is_dir() and not session.is_symlink() and session.name == 'session' and session.parent.name == 'runtime' and session.parent.parent.name == 'native-run-v4-'+_ROOT['runID'], 'Root-selected fresh result workspace required')
++    require(session.resolve() == session and session.is_dir() and not session.is_symlink() and session.name == 'session' and session.parent.name == 'runtime' and session.parent.parent.name == 'native-run-v5-'+_ROOT['runID'], 'Root-selected fresh result workspace required')
+     require(not (session/'session.xcresult').exists() and not (session/'session.xcresult').is_symlink(), 'Result bundle exists before dispatch; replay refused')
+     _ORIGINAL_SELECT(h,argv,session)
+     _selected['sessionIdentity'] = path_identity(session,0o700)
+--- frozen-v5/selected/join_support.py
++++ correction/selected/join_support.py
+@@ -245,7 +245,7 @@
+ 
+ def select_command(h, argv, session):
+     require(_ROOT is not None and list(map(str,argv)) == importer.command_argv(_ROOT,session), 'Command must come from root-selected context')
+-    require(session.resolve() == session and session.is_dir() and not session.is_symlink() and session.name == 'session' and session.parent.name == 'runtime' and session.parent.parent.name == 'native-run-v4-'+_ROOT['runID'], 'Root-selected fresh result workspace required')
++    require(session.resolve() == session and session.is_dir() and not session.is_symlink() and session.name == 'session' and session.parent.name == 'runtime' and session.parent.parent.name == 'native-run-v5-'+_ROOT['runID'], 'Root-selected fresh result workspace required')
+     require(not (session/'session.xcresult').exists() and not (session/'session.xcresult').is_symlink(), 'Result bundle exists before dispatch; replay refused')
+     _ORIGINAL_SELECT(h,argv,session)
+     _selected['sessionIdentity'] = path_identity(session,0o700)

@@ -51,3 +51,9 @@ provider resource and isolation controls, source/result authorization, signing,
 distribution and operational qualification. The interrupted outbound-client
 review stays frozen and its installation stays rejected. Local controller
 checks do not qualify those items, physical phones, FieldLog dogfood or GA.
+
+The first Linux run stopped at the test harness's macOS-specific process lookup.
+The [portability repair](hosted-worker-controller-linux-restart.md) retains all
+71 runtime groups and adds 20 identity controls to the recurring runner. Root
+accepts the local repair; corrected Linux CI remains pending. Production
+controller bytes are unchanged by this test-harness correction.

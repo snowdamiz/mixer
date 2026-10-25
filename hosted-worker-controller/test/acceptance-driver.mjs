@@ -3,7 +3,7 @@ import {createHash} from "node:crypto";
 import {mkdtemp,rm} from "node:fs/promises";
 import {tmpdir} from "node:os";
 import {join,resolve} from "node:path";
-import {execFileSync} from "node:child_process";
+import {killOwnedWorkerd} from "./owned-workerd-identity.mjs";
 
 export const cleanupReceipts=[];
 const token=Buffer.alloc(32,0x31).toString("base64url");
@@ -47,11 +47,8 @@ export async function createHarness({fixture,nowUs,errorUs,clockQualified}){
       // Kill only a direct child of this harness Node process whose executable
       // is our exact installed workerd binary. Never target by broad name.
       const workerd=(await import("workerd")).default.default;
-      const output=execFileSync("/bin/ps",["-axo","pid=,ppid=,comm="],{encoding:"utf8"});
-      const children=output.split("\n").map(line=>line.trim().match(/^(\d+)\s+(\d+)\s+(.+)$/)).filter(m=>m&&Number(m[2])===process.pid&&m[3]===workerd);
-      if(children.length!==1)throw new Error("owned_workerd_identity_ambiguous");
-      const pid=Number(children[0][1]);process.kill(pid,"SIGKILL");
-      cleanupReceipts.push({ownedPid:pid,parentPid:process.pid,executable:workerd,signal:"SIGKILL"});
+      const identity=killOwnedWorkerd(workerd);
+      cleanupReceipts.push({ownedPid:identity.pid,...identity});
       try{await mf.dispose();}catch{}mf=new Miniflare(options(persist));await mf.ready;this._calls=await request("calls");
     }
   };

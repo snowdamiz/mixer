@@ -1,0 +1,27 @@
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v5-namespace-correction/run_controls.py", line 321, in main
+    for suite, importer, classifier, auxiliary in retained_suite():
+                                                  ~~~~~~~~~~~~~~^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v5-namespace-correction/run_controls.py", line 288, in retained_suite
+    with selected_namespace() as (_, importer, classifier, auxiliary):
+         ~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/contextlib.py", line 148, in __exit__
+    next(self.gen)
+    ~~~~^^^^^^^^^^
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v5-namespace-correction/run_controls.py", line 94, in selected_namespace
+    shutil.rmtree(temporary)
+    ~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/shutil.py", line 852, in rmtree
+    _rmtree_impl(path, dir_fd, onexc)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/shutil.py", line 721, in _rmtree_safe_fd
+    _rmtree_safe_fd_step(stack, onexc)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/shutil.py", line 802, in _rmtree_safe_fd_step
+    onexc(func, path, err)
+    ~~~~~^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/shutil.py", line 765, in _rmtree_safe_fd_step
+    topfd = os.open(name, os.O_RDONLY | os.O_NONBLOCK, dir_fd=dirfd)
+  File "/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v5-namespace-correction/run_controls.py", line 46, in audit
+    raise PermissionError('Correction closed-read boundary: ' + str(path))
+PermissionError: [Errno None] None: '/Users/andreyyurlov/Documents/dev/mixer/verification/apple-focus-reference-runtime-v5-namespace-correction/controls-owned-vjraryp8/module-zgcg5q_3/selected'

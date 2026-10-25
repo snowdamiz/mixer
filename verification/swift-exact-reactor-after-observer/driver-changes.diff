@@ -1,0 +1,328 @@
+--- verification/swift-exact-reactor-diagnostic/diagnostic.py
++++ verification/swift-exact-reactor-after-observer/diagnostic.py
+@@ -1,5 +1,5 @@
+ #!/usr/bin/env python3
+-"""Bounded copied-source real Swift reactor diagnostic. No live VM writes."""
++"""One bounded after-observer exact Swift reactor diagnostic; no live VM writes."""
+ import argparse
+ import datetime
+ import gzip
+@@ -22,10 +22,12 @@
+ TARGET = SCRATCH / "target"
+ BASELINE = HERE / "baseline"
+ QUALIFIED = ROOT / "compiler/experiments/fieldlog-reactor"
+-OLD_ACCEPTANCE = ROOT / "verification/swift-reactor-lifecycle-remaining-root-review/acceptance.json"
+-MANIFEST = ROOT / "verification/swift-lifecycle-linux-fixture-repair/candidate-manifest.json"
+-CLOSURE = "6d4b1deed091d6c0f0a2ae0c101c98afbd0e27fdc3c2b2992a999e08565a3fe8"
+-OLD_CLOSURE = "64a3d9c52ade75ec16de10191f14257fb75ff358c366666cf47809e2b9a7f0de"
++HISTORY = ROOT / "verification/swift-exact-reactor-diagnostic"
++ACCEPTED = ROOT / "verification/swift-release-observer-root-review"
++MANIFEST = ACCEPTED / "integrated-manifest.json"
++CLOSURE = "f2682c6a2fd6f6e74bd00a2394ff32b704aa1e2ed3d2373ef95cdee29fa7eb2c"
++HISTORICAL_CLOSURE = "6d4b1deed091d6c0f0a2ae0c101c98afbd0e27fdc3c2b2992a999e08565a3fe8"
++HARNESS_HASH = "d72da7bc7aaf4e31b7093fde497f357226d3a4dd954eb577909209102a0bfb00"
+ REACTOR = QUALIFIED / "local/2026-10-23-qualified/wasm/fieldlog-reactor.wasm"
+ REACTOR_HASH = "24d85729a659ff3e5fc6f0517709afbb68b371a41829e90785dabd48e0620994"
+ EXPECTED = {"codableRoundTrip": True, "committedEntries": 1, "completionBasisPoints": 5000,
+@@ -121,20 +123,52 @@
+ def prepare():
+     assert not (HERE / "binding.json").exists()
+     assert not SCRATCH.exists() and not BASELINE.exists()
+-    old = read(OLD_ACCEPTANCE)
+-    assert old["candidateClosure"] == OLD_CLOSURE and old["productionBytesChanged"] is False
++    assert sha(HERE / "harness.rs") == HARNESS_HASH == sha(HISTORY / "harness.rs")
+     baseline = read(MANIFEST)
+     assert len(baseline) == 132 and closure(baseline) == CLOSURE
+-    current = source_manifest(ROOT / "vm")
+-    assert current == baseline
+-    # Preserve the original pre-copy mismatch and root-selected accepted resolution.
+-    original = read(ROOT / "verification/swift-reactor-lifecycle-remaining-root-review/integrated-manifest.json")
+-    drift = {k: {"old": original[k], "current": current[k]} for k in original if original[k] != current[k]}
+-    assert set(drift) == {"src/experimental_swift_reactor/control.rs", "src/experimental_swift_reactor/lifecycle_tests.rs"}
+-    save("initial-preflight-drift.json", {"attemptedBaselineClosure": OLD_CLOSURE, "matched": False,
+-         "sourceCopiedOrBuiltBeforeResolution": False, "differences": drift,
+-         "resolution": "Root selected committed accepted Linux test-only deadline fixture repair; current closure rebound before copying.",
+-         "rootSelectedRevisionContext": "50f70a798fea43e1e77b1d95faa1bbda3fc029e0"})
++    assert source_manifest(ROOT / "vm") == baseline
++    accepted = read(ACCEPTED / "receipt.json")
++    assert accepted["testsPassed"] and accepted["productionBytesChanged"] is False
++    assert accepted["sourceClosure"] == CLOSURE
++    prior_manifest = read(HISTORY / "baseline-manifest.json")
++    assert closure(prior_manifest) == HISTORICAL_CLOSURE
++    changed = [name for name in baseline if baseline[name] != prior_manifest[name]]
++    assert changed == ["src/experimental_swift_reactor/frame_operations_tests.rs"]
++    historical_seal = read(HISTORY / "seal.json")
++    references = {}
++    def retain(path, expected=None):
++        path = Path(path)
++        info = identity(path)
++        if expected is not None:
++            assert info["sha256"] == expected, str(path)
++        references[str(path)] = info
++    # Sealed history is data only. Never import or execute its driver or compiler/oracle.
++    for name, expected in historical_seal["files"].items():
++        retain(HISTORY / name, expected)
++    for name, expected in historical_seal["externalFiles"].items():
++        retain(ROOT / name, expected)
++    for path in (HISTORY / "seal.json", HISTORY / "verify.py", MANIFEST,
++                 ACCEPTED / "source-review.json", ACCEPTED / "receipt.json", ROOT / "AGENTS.md"):
++        retain(path)
++    evidence = QUALIFIED / "evidence/2026-10-23-qualified"
++    prior = read(evidence / "receipt.json")
++    assert prior["fullSwiftSDK"] is True and prior["embeddedSwift"] is False
++    assert prior["expectedObservation"] == EXPECTED and prior["native"]["observation"] == EXPECTED
++    assert prior["candidateArtifactsBeforeOracle"]["reactor"]["sha256"] == REACTOR_HASH
++    for name, expected in prior["sourceManifest"].items():
++        retain(QUALIFIED / "local/2026-10-23-qualified/diagnostic-sources" / name, expected)
++    for info in prior["inputs"].values():
++        retain(info["path"], info["sha256"])
++    for info in prior["native"].values():
++        if isinstance(info, dict) and "path" in info:
++            retain(info["path"], info["sha256"])
++    for name in ("receipt.json", "native-command-run.stdout", "descriptors.json", "structure.json"):
++        retain(evidence / name)
++    native_output = (evidence / "native-command-run.stdout").read_text()
++    native = strict_json(native_output)
++    assert set(native) == set(EXPECTED) and len(native) == 11
++    assert all(type(native[k]) is type(EXPECTED[k]) and native[k] == EXPECTED[k] for k in EXPECTED)
++    assert REACTOR.stat().st_size == 53_777_114 and sha(REACTOR) == REACTOR_HASH
+     SCRATCH.mkdir(mode=0o700)
+     (SCRATCH / "tmp").mkdir(mode=0o700)
+     for name, expected in baseline.items():
+@@ -148,53 +182,13 @@
+     with test.open("ab") as stream:
+         stream.write(APPEND.encode())
+     save("baseline-manifest.json", baseline)
+-    evidence = QUALIFIED / "evidence/2026-10-23-qualified"
+-    prior = read(evidence / "receipt.json")
+-    assert prior["fullSwiftSDK"] is True and prior["embeddedSwift"] is False
+-    assert prior["expectedObservation"] == EXPECTED and prior["native"]["observation"] == EXPECTED
+-    assert prior["candidateArtifactsBeforeOracle"]["reactor"]["sha256"] == REACTOR_HASH
+-    bound = []
+-    def retain(path, expected=None):
+-        path = Path(path)
+-        if expected is not None:
+-            assert sha(path) == expected, str(path)
+-        relative = path.relative_to(ROOT)
+-        destination = HERE / "inputs" / relative
+-        destination.parent.mkdir(parents=True, exist_ok=True)
+-        shutil.copyfile(path, destination)
+-        info = identity(path)
+-        assert sha(destination) == info["sha256"]
+-        info["snapshot"] = str(destination.relative_to(HERE))
+-        bound.append(info)
+-    references = [ROOT / "AGENTS.md", ROOT / "mixer-product-plan.md", ROOT / "PLAN.md",
+-        ROOT / "docs/swift-reactor-lifecycle-remaining-checkpoint.md",
+-        ROOT / "docs/swift-reactor-lifecycle-v3-integration.md",
+-        ROOT / "docs/swift-guest-execution-next.md", ROOT / "docs/swift-reactor-lifecycle-contract.md",
+-        ROOT / "docs/swift-lifecycle-linux-fixture-repair.md", ROOT / "docs/swift-lifecycle-linux-fixture-independent-review.md",
+-        OLD_ACCEPTANCE, ROOT / "verification/swift-reactor-lifecycle-remaining-root-review/integrated-manifest.json",
+-        ROOT / "verification/swift-reactor-lifecycle-remaining-root-review/live-receipt.json", MANIFEST,
+-        ROOT / "verification/swift-lifecycle-linux-fixture-repair/receipt.json",
+-        ROOT / "verification/swift-lifecycle-linux-fixture-independent-review/receipt.json",
+-        ROOT / "verification/swift-exact-reactor-root-selection/baseline.json",
+-        ROOT / "verification/swift-exact-reactor-root-selection/bind_baseline.py",
+-        evidence / "receipt.json", evidence / "native-command-run.stdout", evidence / "descriptors.json",
+-        evidence / "structure.json"]
+-    for path in references:
+-        retain(path)
+-    for name, expected in prior["sourceManifest"].items():
+-        retain(QUALIFIED / "local/2026-10-23-qualified/diagnostic-sources" / name, expected)
+-    for key, info in prior["inputs"].items():
+-        retain(info["path"], info["sha256"])
+-    for info in prior["native"].values():
+-        if isinstance(info, dict) and "path" in info:
+-            assert sha(info["path"]) == info["sha256"]
+-            bound.append(identity(info["path"]))
+-    assert REACTOR.stat().st_size == 53_777_114 and sha(REACTOR) == REACTOR_HASH
+-    native_output = (evidence / "native-command-run.stdout").read_text()
+-    assert strict_json(native_output) == EXPECTED
+     save("binding.json", {"schema": 1, "observedUTC": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+-        "baselineClosure": CLOSURE, "priorAcceptedClosure": OLD_CLOSURE, "inputs": bound,
+-        "target": identity(REACTOR), "expectedObservation": EXPECTED,
++        "baselineClosure": CLOSURE, "historicalClosure": HISTORICAL_CLOSURE,
++        "sourceRevisionContext": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
++        "inputs": list(references.values()), "target": identity(REACTOR), "expectedObservation": EXPECTED,
++        "historicalFailurePacket": identity(HISTORY / "seal.json"),
++        "acceptedTestOnlyObserverRepair": identity(ACCEPTED / "receipt.json"),
++        "historicalInputDisposition": "hash references only; no old driver, native binary or Node execution",
+         "selectedPhases": ["complete validation", "adoption", "construct original owner", "Initialize35", "Corpus62", "Corpus62", "consuming cleanup"],
+         "targetExecutionSelectedByRoot": False, "productionBytesChanged": False,
+         "hostDiagnosticOnly": True, "productionCallerStackOrAccountingCredit": False,
+@@ -202,6 +196,46 @@
+         "compilerTools": tools()})
+     save("copied-build-manifest.json", assert_baseline())
+     print(json.dumps({"prepared": True, "files": 132, "closure": CLOSURE, "targetExecuted": False}))
++
++
++def observe_group(pgid, ps_deadline=None):
++    """EPERM is unknown unless a complete exact-PGID ps observation proves state."""
++    observation = {"processGroup": pgid, "state": "unknown", "method": "killpg-zero"}
++    try:
++        os.killpg(pgid, 0)
++        observation["state"] = "present"
++        return observation
++    except ProcessLookupError:
++        observation["state"] = "absent"
++        return observation
++    except OSError as error:
++        observation["killpgError"] = {"errno": error.errno, "type": type(error).__name__, "message": str(error)}
++    ps_timeout = 2 if ps_deadline is None else min(2, max(0, ps_deadline - time.monotonic()))
++    if ps_timeout <= 0:
++        observation["psError"] = {"type": "ObservationDeadlineExpired", "message": "fixed cleanup envelope exhausted; group remains unknown"}
++        return observation
++    try:
++        query = subprocess.run(["/bin/ps", "-axo", "pid=,ppid=,pgid=,stat=,comm="],
++                               capture_output=True, text=True, timeout=ps_timeout)
++        observation.update(method="killpg-zero+exact-pgid-ps", psExitCode=query.returncode,
++                           psStderr=query.stderr)
++        rows = []
++        valid = query.returncode == 0 and not query.stderr
++        for line in query.stdout.splitlines():
++            if not line.strip():
++                continue
++            fields = line.split(None, 4)
++            if len(fields) != 5 or not all(value.isdecimal() for value in fields[:3]):
++                valid = False
++                continue
++            if int(fields[2]) == pgid:
++                rows.append(line)
++        observation.update(exactGroupRows=rows, psCompleteParse=valid)
++        if valid:
++            observation["state"] = "present" if rows else "absent"
++    except (OSError, subprocess.TimeoutExpired) as error:
++        observation["psError"] = {"type": type(error).__name__, "message": str(error)}
++    return observation
+ 
+ 
+ def record_command(name, argv, timeout, env=None, cwd=None):
+@@ -218,7 +252,8 @@
+     binding = read(HERE / "binding.json")
+     assert before_tools == binding["compilerTools"], "tool drift"
+     env = environment() if env is None else env
+-    receipt = {"argv": argv, "cwd": str(cwd or SOURCE), "environment": env,
++    argv_files = [identity(arg) for arg in argv if Path(arg).is_absolute() and Path(arg).is_file()]
++    receipt = {"argv": argv, "argvFileIdentities": argv_files, "cwd": str(cwd or SOURCE), "environment": env,
+         "timeoutSeconds": timeout, "terminationGraceSeconds": 5, "killWaitSeconds": 5,
+         "UTC": datetime.datetime.now(datetime.timezone.utc).isoformat(), "sourceClosure": closure(bound),
+         "baselineClosure": CLOSURE, "harnessSHA256": sha(snapshot),
+@@ -231,33 +266,46 @@
+     with stdout.open("wb") as out, stderr.open("wb") as err:
+         child = subprocess.Popen(argv, cwd=cwd or SOURCE, env=env, stdout=out, stderr=err, start_new_session=True)
+         receipt.update(pid=child.pid, processGroup=child.pid, started=True)
++        save(directory / "started.json", receipt)
+         try:
+             child.wait(timeout=timeout)
+         except subprocess.TimeoutExpired:
+             receipt["timedOut"] = True
+-        def group_alive():
+-            try:
+-                os.killpg(child.pid, 0)
+-                return True
+-            except ProcessLookupError:
+-                return False
+-        # A compiler may leave an owned descendant after the direct child exits.
+-        # The same finite TERM/KILL grace retires that group before terminal evidence.
+-        receipt["ownedGroupSurvivedDirectChild"] = child.returncode is not None and group_alive()
+-        if group_alive():
+-            for sig in (signal.SIGTERM, signal.SIGKILL):
++        cleanup_started = time.monotonic()
++        cleanup_deadlines = [cleanup_started + 5, cleanup_started + 10]
++        observation = observe_group(child.pid, cleanup_deadlines[0])
++        receipt["cleanupEnvelopeSeconds"] = 10
++        receipt["groupBeforeCleanup"] = observation
++        receipt["ownedGroupSurvivedDirectChild"] = child.returncode is not None and observation["state"] == "present"
++        # Capture first failure and partial raw streams before any host cleanup signal.
++        if receipt["timedOut"] or child.returncode != 0 or observation["state"] != "absent":
++            save(directory / "before-process-cleanup.json", {
++                "exitCode": child.returncode, "timedOut": receipt["timedOut"],
++                "durationSeconds": time.monotonic() - started, "group": observation,
++                "stdout": identity(stdout), "stderr": identity(stderr),
++                "failureEvidencePrecedesHostCleanup": True})
++        receipt["cleanupObservations"] = []
++        if observation["state"] != "absent":
++            for sig, grace_ends in zip((signal.SIGTERM, signal.SIGKILL), cleanup_deadlines):
+                 try:
+                     os.killpg(child.pid, sig)
+                     receipt["signalSent"].append(sig.name)
+                 except ProcessLookupError:
++                    receipt["cleanupObservations"].append(observe_group(child.pid, grace_ends))
+                     break
+-                grace_ends = time.monotonic() + 5
+-                while group_alive() and time.monotonic() < grace_ends:
++                except OSError as error:
++                    receipt["cleanupObservations"].append({"signal": sig.name, "error": str(error), "errno": error.errno})
++                while time.monotonic() < grace_ends:
+                     child.poll()
++                    observation = observe_group(child.pid, grace_ends)
++                    if observation["state"] == "absent":
++                        break
+                     time.sleep(min(0.05, max(0, grace_ends - time.monotonic())))
+-                if not group_alive():
++                receipt["cleanupObservations"].append(observe_group(child.pid, grace_ends))
++                if receipt["cleanupObservations"][-1]["state"] == "absent":
+                     break
+             child.poll()
++
+     after_usage = resource.getrusage(resource.RUSAGE_CHILDREN)
+     receipt.update(exitCode=child.returncode, durationSeconds=time.monotonic() - started,
+         stdout=identity(stdout), stderr=identity(stderr),
+@@ -266,11 +314,13 @@
+         cumulativeChildrenMaxRSS=after_usage.ru_maxrss, maxRSSUnit="bytes on Darwin; cumulative child high water, not per-phase runtime reservations",
+         sourceUnchanged=assert_baseline() == bound, toolsUnchanged=tools() == before_tools)
+     assert_inputs()
++    receipt["argvFilesUnchanged"] = all(identity(info["path"]) == info for info in argv_files)
+     receipt["allBoundInputsUnchanged"] = True
+     receipt["harnessUnchanged"] = sha(HERE / "harness.rs") == sha(snapshot)
+     receipt["driverUnchanged"] = sha(HERE / "diagnostic.py") == sha(directory / "diagnostic.py")
+-    receipt["processGroupEmpty"] = not group_alive()
+-    receipt["passed"] = child.returncode == 0 and not receipt["timedOut"] and receipt["sourceUnchanged"] and receipt["toolsUnchanged"] and receipt["processGroupEmpty"] and receipt["harnessUnchanged"] and receipt["driverUnchanged"]
++    receipt["finalGroupObservation"] = observe_group(child.pid, cleanup_deadlines[-1])
++    receipt["processGroupEmpty"] = receipt["finalGroupObservation"]["state"] == "absent"
++    receipt["passed"] = child.returncode == 0 and not receipt["timedOut"] and receipt["sourceUnchanged"] and receipt["toolsUnchanged"] and receipt["processGroupEmpty"] and receipt["harnessUnchanged"] and receipt["driverUnchanged"] and receipt["argvFilesUnchanged"]
+     save(directory / "receipt.json", receipt)
+     return receipt, stdout, stderr
+ 
+@@ -333,15 +383,20 @@
+         assert selection["harnessSHA256"] == sha(HERE / "harness.rs")
+         assert selection["driverSHA256"] == sha(HERE / "diagnostic.py")
+         assert selection["binarySHA256"] == sha(BINARY)
++        assert selection["outerCommand"] == ["python3", "-B", str((HERE / "diagnostic.py").relative_to(ROOT)), "target"]
++        for name, digest in selection["boundEvidence"].items():
++            assert sha(HERE / name) == digest, name
+         assert not (HERE / "target-attempt-started.json").exists(), "one target attempt only"
+         assert REACTOR.stat().st_size == 53_777_114 and sha(REACTOR) == REACTOR_HASH
+         target_copy = SCRATCH / "fieldlog-reactor.wasm"
+         shutil.copyfile(REACTOR, target_copy)
+         assert sha(target_copy) == REACTOR_HASH
+         env["MIXER_EXACT_REACTOR_INPUT"] = str(target_copy)
+-        save("target-attempt-started.json", {"targetOriginal": identity(REACTOR), "boundInputCopy": identity(target_copy),
++        marker = {"targetOriginal": identity(REACTOR), "boundInputCopy": identity(target_copy),
+              "baselineClosure": CLOSURE, "binary": identity(BINARY), "rootSelection": identity(HERE / "root-selection.json"),
+-             "outerDeadlineSeconds": 170, "terminationGraceSeconds": 5, "killWaitSeconds": 5})
++             "outerDeadlineSeconds": 170, "terminationGraceSeconds": 5, "killWaitSeconds": 5}
++        with (HERE / "target-attempt-started.json").open("x") as stream:
++            stream.write(json.dumps(marker, indent=2, sort_keys=True) + "\n")
+     control_count = len(list((HERE / "commands").glob("control-*"))) + 1
+     name = "target-once" if target else f"control-{control_count:03}"
+     argv = [str(BINARY), PREFIX + ("exact_reactor_target_once" if target else "exact_reactor_harness_control"),
+@@ -351,7 +406,7 @@
+     receipt, stdout, _ = record_command(name, argv, 170 if target else 60, env=env)
+     observed = events(stdout)
+     save(name + "-events.json", observed)
+-    result = {"schema": 1, "scope": "exact real Swift reactor" if target else "small independent synthetic harness wiring only",
++    result = {"schema": 1, "scope": "exact real Swift reactor after accepted test-only observer repair" if target else "small independent synthetic harness wiring only",
+         "commandPassed": receipt["passed"], "targetAttempted": target,
+         "diagnosticCompleted": any(e["event"] == "diagnostic_execution_complete" and e["payload"] is True for e in observed),
+         "ownedCleanupEmpty": any(e["event"] == "cleanup_empty" and e["payload"] is True for e in observed),
+@@ -384,6 +439,10 @@
+ 
+ 
+ def cleanup():
++    for path in (HERE / "commands").glob("*/receipt.json"):
++        receipt = read(path)
++        assert receipt["processGroupEmpty"], "unknown or live owned group: " + str(path)
++        assert observe_group(receipt["processGroup"])["state"] == "absent", "owned PGID not proven absent"
+     assert SCRATCH.exists() and not SCRATCH.is_symlink()
+     info = SCRATCH.stat()
+     holders = subprocess.run(["/usr/sbin/lsof", "-nP", "+D", str(SCRATCH)], capture_output=True, timeout=30)

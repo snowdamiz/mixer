@@ -1,0 +1,46 @@
+{
+  "status": "linux-runtime-confirmation-pending",
+  "baselineRevision": "908b0d953c35389a6b12900f8875b0bf3f88d4a1",
+  "baselineRun": "https://github.com/snowdamiz/mixer/actions/runs/40158540132",
+  "failure": "owned_workerd_identity_ambiguous",
+  "failureBoundary": "original suite completed 24 groups; first actual SIGKILL restart could not select a candidate",
+  "baselineInputs": {
+    "verification/github-ci-908b0d95-controller/artifact/receipt.json": "200243b259154b4c8fe95891f522e2b68e08c0c54c4699dc387e499294c9ed1e",
+    "verification/github-ci-908b0d95-controller/artifact/original/command.json": "1ce37afe6c58d9a784d9dca1db12e9db5526e4b89ba6c4791e2beb6d8061db59",
+    "verification/github-ci-908b0d95-controller/artifact/original/stdout": "f97d3996db4bb23fe59c13fccd98d3421b8fc96f596164e80f6f0745c0c70f8b",
+    "verification/github-ci-908b0d95-controller/artifact/original/stderr": "b7103d8374a1562e070c393a7f5eed9ecbb82837e30bd7cf25c9c2a063a04a38",
+    "verification/github-ci-908b0d95-controller/run.stdout": "62fe4a22846568ad19541f842fcdae32477fc12323c507b4343f336893fbd433"
+  },
+  "diagnosis": {
+    "linuxPsComm": "procps comm is the executable name, not the exact installed full path",
+    "linuxIdentity": "read canonical /proc/PID/exe and require installed executable device/inode equality for a direct child; repeat parent/executable selection immediately before SIGKILL",
+    "darwinIdentity": "preserved existing direct-parent and exact full-path ps comm selection; Darwin ps comm derives argv[0], so only trusted local harness identity, not an adversarial security boundary",
+    "failClosed": [
+      "missing candidate",
+      "multiple exact candidates",
+      "duplicate PID",
+      "unreadable installed or candidate executable identity",
+      "changed recheck",
+      "unsupported platform"
+    ],
+    "actualRestart": "SIGKILL remains synchronous against the selected direct child before Miniflare disposal and replacement; existing harness reuses the exact same persistence directory"
+  },
+  "officialSources": [
+    {
+      "url": "https://gitlab.com/procps-ng/procps/-/blob/master/man/ps.1",
+      "supports": "comm describes executable name; exe describes path to executable",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "url": "https://www.kernel.org/doc/html/latest/filesystems/proc.html",
+      "supports": "proc PID exe is the link to process executable; PID can be reused after exit",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/apple-oss-distributions/adv_cmds/main/ps/print.c",
+      "supports": "Darwin ps getproclline skips saved exec_path and takes argv[0] for comm",
+      "retrieved": "2026-10-25"
+    }
+  ],
+  "scope": "test harness repair only; no production runtime, provider, cloud, phone, signing, store, dogfood release, or GA qualification"
+}

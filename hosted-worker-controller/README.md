@@ -36,3 +36,8 @@ provider, hostile-code isolation, a trusted clock, runner credentials or R2 obje
 The production import-closure audit verifies test modules are unreachable from
 the static deployment entry. Original and additional wire vectors live in the
 repository verification packets; tests do not load the hosted Elixir application.
+
+The recurring check also runs 20 process-identity controls before the 71 controller
+groups. Linux crash-recovery tests identify the exact installed workerd executable
+through `/proc/PID/exe` and recheck its direct parent before SIGKILL; ambiguous
+identity fails. See [the portability repair](../docs/hosted-worker-controller-linux-restart.md).
