@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "status": "producer_passed_independent_correction_review_pending",
+  "selected_run": "correction-run-1",
+  "methods_passed": 25,
+  "source_tree_sha256": "60a70bd97bdb61c892b290a573ca2b11e1a3c18281eb9c6177702b4268ac4d17",
+  "supersedes_runtime_role_guard_only": true,
+  "original_seal_sha256": "ef9ee785e16d5e52e8388ddccb9b0f0471d7d2a428aaf173e103c476fe3b7f79",
+  "finding": "AUTHZ-PG-REVIEW-001",
+  "correction": "Reject all literal pg_ predefined role memberships, including indirect and non-inherited SET ROLE paths; preserve existing guards and public seam",
+  "cleanup": {
+    "postgres_stopped": true,
+    "owned_scratch_removed": true
+  },
+  "scope": "Current durable PostgreSQL evidence lookup for existing pure authorization callback; no transaction-bound domain authority",
+  "limitations": [
+    "Caller-captured time semantics remain; trusted-clock recheck before persistence required",
+    "Pure Decision lacks separate family/binding/membership revision audit evidence",
+    "Protected domain/audit/idempotency/Oban/HTTP/console integration remains pending",
+    "Disposable PostgreSQL only; deployed role/Neon/TLS/provider/operations/GA qualification pending"
+  ]
+}

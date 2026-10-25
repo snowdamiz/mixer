@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "status": "root-frozen-isolated-finite-candidate-only",
+  "baselineClosureSHA256": "16176e0852fa61cba98acebeb373ee1a6be4c686d0e46ef8bbc144c0527c2cbd",
+  "startingSource": "132 ordinary live VM files, copied directly after matching the expected manifest digest; rejected SLRU source is never restored or used",
+  "ownership": ["docs/swift-cost-retention-candidate.md", "verification/swift-cost-retention-candidate/"],
+  "policy": "On existing miss victim work only, minimize estimated_build_work / max(1, snapshot_work - last_used) among occupied unpinned unselected slots.",
+  "cost": "max(1, body_len + 2*validated_Counts.locals + 2*validated_Counts.instructions + 2*validated_Counts.targets), checked u64 conversions, doubles and sums; ordinary Counts.bytes error is checked first, then cost is precomputed/precharged before existing entry admission/build",
+  "costScope": "A conservative repeat-build logical-credit estimate. It omits parameter/signature checks, local-group overhead and control patching. Counts and body length are immutable proof-backed scan/build inputs, never function popularity or source syntax authorization.",
+  "ranking": "One fixed work-clock snapshot per victim scan; checked u64 age subtraction, clamp zero age to one, checked u128 cross products. Ratio ties prefer older last_used, then lower slot index. Selected plan bits, pinned and empty slots cannot rank. Memory pressure reruns the same policy for each necessary victim.",
+  "failure": "Zero stored cost, future timestamp or arithmetic error fails closed before resident mutation. Original earlier function/pin/identity/scan/entry-size/capacity/no-victim precedence is retained. No new fallible operation follows successful decoded ownership before existing resident publication.",
+  "hits": "Existing hit branch, resident lookup, final pin publication and release bodies remain byte-identical. No hit-time scan, metadata read/write, counter, promotion, allocation or ticket.",
+  "work": {
+    "clock": ["1 credit before fixed current-work snapshot"],
+    "rank": ["original1credit per slot eligibility", "extra8credits before each eligible rank block: cost read and nonzero validation; recency read with checked age/clamp; candidate preparation; best Option probe; left checked product; right checked product; ratio/tie comparison; conditional local-rank publication"],
+    "creation": ["extra12credits before estimate/build admission: body plus3count reads/conversions;3checked doubles;3checked sums; clamp; eventual resident field write"],
+    "model": "Fixed authored logical operation groups, not a CPU instruction, elapsed-time or physical-stack measurement. Conservative full blocks remain charged on first-candidate or failing paths."
+  },
+  "memory": "Complete enlarged resident slots and existing permanent transfer inventories are admitted before existing allocations. Three additional disjoint complete CostRetentionInventory values cover every new named local, parameter, closure/reborrow, checked-result and caller/return object without reusing another owner or inventory's slack. Existing sizeof-based resident transfer rows grow automatically.",
+  "limits": {"residents":64,"pins":64,"tickets":86,"cacheBytes":16777216,"entryBytes":8388608,"cacheWork":64000000,"combinedBytes":268435456,"timeLimits":"original"},
+  "prohibited": ["live VM/tracker/Git mutation", "full target/reactor/historical-script execution", "native/UI/physical devices", "providers/network/new dependencies", "frozen hosted catalog-inspector/authority-driver", "rejected outbound-worker-v2", "own-work independent review claim", "retuning after measured regressions"],
+  "decisionBoundary": "Finite failures/regressions are retained. Only root can select any separately reviewed same-budget actual-target attempt. No such attempt or integration is implied."
+}

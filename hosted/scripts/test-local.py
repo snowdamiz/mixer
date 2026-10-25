@@ -12,6 +12,25 @@ import subprocess
 import tarfile
 import tempfile
 
+
+def provision_customer_authorization_fixture(pg_bin, port, run_command):
+    """Provision only synthetic roles/database in this collector's local cluster."""
+    psql = [str(pg_bin / "psql"), "-X", "-h", "127.0.0.1", "-p", str(port),
+            "-U", "mixer_fixture", "-d", "postgres", "-v", "ON_ERROR_STOP=1"]
+    run_command("authz-fixture-roles", psql + ["-c",
+        "CREATE ROLE authz_fixture_admin LOGIN SUPERUSER; "
+        "CREATE ROLE mixer_authz_owner NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS; "
+        "CREATE ROLE mixer_authz_runtime LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS;"])
+    run_command("authz-fixture-database", [str(pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port),
+        "-U", "mixer_fixture", "-O", "mixer_authz_owner", "mixer_authz_test"])
+    run_command("authz-fixture-grants", [str(pg_bin / "psql"), "-X", "-h", "127.0.0.1", "-p", str(port),
+        "-U", "mixer_fixture", "-d", "mixer_authz_test", "-v", "ON_ERROR_STOP=1", "-c",
+        "REVOKE ALL ON DATABASE mixer_authz_test FROM PUBLIC; "
+        "GRANT CONNECT ON DATABASE mixer_authz_test TO mixer_authz_runtime; "
+        "REVOKE CREATE ON SCHEMA public FROM PUBLIC;"])
+    return {"MIXER_AUTHZ_TEST_PORT": str(port)}
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--output", required=True, type=Path)
 parser.add_argument("--pg-bin", default="/opt/homebrew/opt/postgresql@17/bin", type=Path)
@@ -118,6 +137,7 @@ try:
     if (output / "postgres-timezone.log").read_text().strip() != "UTC":
         raise RuntimeError("fixture database time zone is not UTC")
     env["MIXER_TEST_DATABASE_PORT"] = str(port)
+    env.update(provision_customer_authorization_fixture(args.pg_bin, port, run))
     identity_evidence = output / "identity-metrics"
     identity_evidence.mkdir()
     env["MIXER_TEST_IDENTITY_EVIDENCE"] = str(identity_evidence)

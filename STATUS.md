@@ -67,6 +67,18 @@ are unchanged. The live VM is untouched and no rerun is selected. Independent
 result audit confirms this rejection. See [the rejected candidate result](docs/swift-retention-runtime.md)
 and [the audit](docs/swift-retention-runtime-review.md).
 
+The second isolated retention candidate weights eviction by estimated rebuild
+cost and age. It passes 49 finite cache methods but increases work in all six
+fixed comparison traces; the phase-change case uses 31.717 times the baseline
+work. Root rejects integration and does not select a full-target run. The pristine
+baseline has 39 cache methods; three common comparison methods bring it to 42.
+Both copies pass five generic unit and ten integration methods with matching
+output. Independent audit verifies the raw results, source archives, preserved
+intermediate failures and cleanup. Root verifies 94 retained bindings and the
+unchanged 132-file live VM closure. Owned scratch removal reclaims 218,566,668
+logical bytes. This is rejection evidence, not candidate correctness or full
+workload acceptance. See [the review](docs/swift-cost-retention-candidate-review.md).
+
 Independent iOS source review found two host-diagnostic completeness defects:
 substituted original AX/app data and reordered callback references could be
 labelled complete. The native verdict stays failed. A host-only correction now
@@ -112,15 +124,45 @@ The correction now passes 30 product tests and 23 independent probes, with
 warnings-as-errors compilation. Root accepts this finite prerequisite. It requires server membership evidence and the exact
 verified token scope for human artifact/audit actions.
 The unavailable repository default prevents this prerequisite from becoming a public
-authorization path; durable lookup, transaction/RLS/revocation ordering and console
-integration remain pending. See [the policy](docs/hosted-customer-authorization.md) and
+authorization path. At that checkpoint, durable lookup, transaction/RLS/revocation
+ordering and console integration remained pending. See [the policy](docs/hosted-customer-authorization.md) and
 [the correction](docs/hosted-customer-authorization-correction.md) and
 [the accepted review](docs/hosted-customer-authorization-correction-review.md).
 
+The subsequent PostgreSQL adapter supplies current stored identity, credential,
+membership and resource evidence to that pure policy. Twenty-five product tests
+and seventeen independent probes pass on PostgreSQL 17.11. They cover scoped
+FORCE RLS, six ordered revocation locks, tenant ancestry, bounded membership
+reads, rollback, timeouts and restricted runtime roles. Independent review found
+that predefined privileged roles were accepted; the correction rejects every
+reachable reserved `pg_` role, including indirect membership. The exact shared
+CI fixture helper and all five migrations pass focused apply, idempotence,
+latest-two rollback and reapply checks after repairing migration policy
+dependencies. The original failed attempts remain recorded and owned clusters
+and scratch are removed.
+
+This remains a read-only evidence prerequisite. It does not supply transaction-bound
+domain authority, a fresh trusted-clock check immediately before an effect,
+durable audit/idempotency or customer HTTP/console integration. The facade still
+defaults to unavailable. PostgreSQL 16 and the complete standard CI suite,
+including existing build-worker behavior, await the new checkpoint. See
+[the current scope](docs/hosted-customer-authorization-postgres-ci-integration.md)
+and [the independent review](docs/hosted-customer-authorization-postgres-review.md).
+Root acceptance verifies 656 retained bindings and 25 current inputs; see
+[the acceptance receipt](verification/hosted-customer-authorization-postgres-root-acceptance/acceptance.json).
+
 ## Delivery and pending qualification
 
+Latest checkpoint `cb56d4b9` is pushed to `origin/main` and remote main matches.
+Its 621 changed paths include the reviewed pure customer permission policy,
+callback-result correction and independently audited rejected retention experiment.
+The live VM is unchanged. Phoenix CI `40185739942` passes its job and all eight
+steps; Engine CI `40185739959` passes all three jobs and all 38 steps. Neither has
+skipped steps. See [the CI receipt](verification/github-ci-cb56d4b9/observation-1/receipt.json)
+and [the delivery receipt](verification/github-delivery-retention-authorization/delivery-receipt.json).
+
 The branded Builds checkpoint is pushed in `ba9ad437`, with Console and Engine CI
-passing. Latest pushed checkpoint `b375e55de` records the reviewed iOS compile
+passing. Prior checkpoint `b375e55de` records the reviewed iOS compile
 correction and runtime preparation, strict Swift telemetry correction and independently
 audited full diagnostic failure. All 389 changed paths are pushed and remote main
 matches; the active retention candidate is excluded. Engine CI `40182820548`

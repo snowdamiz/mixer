@@ -1,0 +1,202 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+
+MixerHosted.Authorization.PostgresRepositoryTest [/Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs]
+  * test real runtime role produces the existing complete callback envelope and role projection [L#298]  * test real runtime role produces the existing complete callback envelope and role projection (28.1ms) [L#298]
+
+  1) test real runtime role produces the existing complete callback envelope and role projection (MixerHosted.Authorization.PostgresRepositoryTest)
+     /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:298
+     match (=) failed
+     code:  assert {:ok, decision} = F.evaluate()
+     left:  {:ok, decision}
+     right: {:error, :unauthenticated}
+     stacktrace:
+       /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:299: (test)
+
+  * test all six human roles retain the exact three-action ceilings [L#323]  * test all six human roles retain the exact three-action ceilings (17.4ms) [L#323]
+
+  2) test all six human roles retain the exact three-action ceilings (MixerHosted.Authorization.PostgresRepositoryTest)
+     /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:323
+     match (=) failed
+     code:  assert {:ok, _} = result
+     left:  {:ok, _}
+     right: {:error, :unauthenticated}
+     stacktrace:
+       /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:340: anonymous fn/3 in MixerHosted.Authorization.PostgresRepositoryTest."test all six human roles retain the exact three-action ceilings"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:324: (test)
+
+  * test scope intersection, unsupported actions, classes and future iat keep existing semantics [L#345]  * test scope intersection, unsupported actions, classes and future iat keep existing semantics (16.2ms) [L#345]
+
+  3) test scope intersection, unsupported actions, classes and future iat keep existing semantics (MixerHosted.Authorization.PostgresRepositoryTest)
+     /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:345
+     match (=) failed
+     code:  assert {:error, :permission_denied} = F.evaluate(F.identity(%{scopes: []}))
+     left:  {:error, :permission_denied}
+     right: {:error, :unauthenticated}
+     stacktrace:
+       /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:346: (test)
+
+  * test exact identity linkage rejects foreign issuer subject client profile version and jti [L#361]  * test exact identity linkage rejects foreign issuer subject client profile version and jti (30.5ms) [L#361]
+  * test current profile binding principal family and credential state fail closed [L#374]  * test current profile binding principal family and credential state fail closed (27.4ms) [L#374]
+  * test family and credential validity windows intersect and enforce issued-at fences [L#388]  * test family and credential validity windows intersect and enforce issued-at fences (25.8ms) [L#388]
+  * test stored ancestry and every inactive parent reject mismatched targets [L#407]  * test stored ancestry and every inactive parent reject mismatched targets (16.2ms) [L#407]
+
+  4) test stored ancestry and every inactive parent reject mismatched targets (MixerHosted.Authorization.PostgresRepositoryTest)
+     /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:407
+     match (=) failed
+     code:  assert {:error, :not_found} = F.evaluate(F.identity(), "artifact.read", F.target(Map.new(changes)))
+     left:  {:error, :not_found}
+     right: {:error, :unauthenticated}
+     stacktrace:
+       /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:414: anonymous fn/2 in MixerHosted.Authorization.PostgresRepositoryTest."test stored ancestry and every inactive parent reject mismatched targets"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:408: (test)
+
+  * test organization_only is not visibility while all_projects is explicit and bounded [L#430]  * test organization_only is not visibility while all_projects is explicit and bounded (15.5ms) [L#430]
+
+  5) test organization_only is not visibility while all_projects is explicit and bounded (MixerHosted.Authorization.PostgresRepositoryTest)
+     /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:430
+     match (=) failed
+     code:  assert {:error, :not_found} = F.evaluate()
+     left:  {:error, :not_found}
+     right: {:error, :unauthenticated}
+     stacktrace:
+       /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:435: (test)
+
+  * test 64 exact matching lifecycle rows are accepted and 65 fail unavailable even if inactive [L#458]  * test 64 exact matching lifecycle rows are accepted and 65 fail unavailable even if inactive (14.4ms) [L#458]
+
+  6) test 64 exact matching lifecycle rows are accepted and 65 fail unavailable even if inactive (MixerHosted.Authorization.PostgresRepositoryTest)
+     /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:458
+     match (=) failed
+     code:  assert {:ok, %{membership_ids: ids}} = F.evaluate()
+     left:  {:ok, %{membership_ids: ids}}
+     right: {:error, :unauthenticated}
+     stacktrace:
+       /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:465: (test)
+
+  * test membership lookup excludes unrelated project and organization-only population [L#475]  * test membership lookup excludes unrelated project and organization-only population (16.3ms) [L#475]
+
+  7) test membership lookup excludes unrelated project and organization-only population (MixerHosted.Authorization.PostgresRepositoryTest)
+     /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:475
+     match (=) failed
+     code:  assert {:ok, %{membership_ids: ["member"]}} = F.evaluate()
+     left:  {:ok, %{membership_ids: ["member"]}}
+     right: {:error, :unauthenticated}
+     stacktrace:
+       /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:484: (test)
+
+  * test revoked invited and expired memberships never produce target visibility [L#487]  * test revoked invited and expired memberships never produce target visibility (13.8ms) [L#487]
+
+  8) test revoked invited and expired memberships never produce target visibility (MixerHosted.Authorization.PostgresRepositoryTest)
+     /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:487
+     match (=) failed
+     code:  assert {:error, :not_found} = F.evaluate()
+     left:  {:error, :not_found}
+     right: {:error, :unauthenticated}
+     stacktrace:
+       /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:492: anonymous fn/2 in MixerHosted.Authorization.PostgresRepositoryTest."test revoked invited and expired memberships never produce target visibility"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:490: (test)
+
+  * test FORCE RLS applies to nonlogin helper owner and runtime has no direct row-lock or mutation authority [L#500]  * test FORCE RLS applies to nonlogin helper owner and runtime has no direct row-lock or mutation authority (19.8ms) [L#500]
+
+  9) test FORCE RLS applies to nonlogin helper owner and runtime has no direct row-lock or mutation authority (MixerHosted.Authorization.PostgresRepositoryTest)
+     /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:500
+     match (=) failed
+     code:  assert {:ok, _} = F.evaluate()
+     left:  {:ok, _}
+     right: {:error, :unauthenticated}
+     stacktrace:
+       /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:534: (test)
+
+  * test missing context returns no identity policy membership or resource rows [L#537]  * test missing context returns no identity policy membership or resource rows (17.7ms) [L#537]
+  * test RLS ties derived principal to exact verified binding and tenant scope [L#546]  * test RLS ties derived principal to exact verified binding and tenant scope (16.2ms) [L#546]
+  * test runtime refuses owner elevated helper-owner and direct authorization DML grants [L#587]  * test runtime refuses owner elevated helper-owner and direct authorization DML grants (17.3ms) [L#587]
+
+ 10) test runtime refuses owner elevated helper-owner and direct authorization DML grants (MixerHosted.Authorization.PostgresRepositoryTest)
+     /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:587
+     match (=) failed
+     code:  assert {:ok, _} = F.evaluate()
+     left:  {:ok, _}
+     right: {:error, :unauthenticated}
+     stacktrace:
+       /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:607: (test)
+
+  * test nested transactions malformed lookups and missing repositories fail closed [L#610]  * test nested transactions malformed lookups and missing repositories fail closed (11.6ms) [L#610]
+  * test callback errors roll back context and no context leaks through connection reuse [L#634]  * test callback errors roll back context and no context leaks through connection reuse (11.5ms) [L#634]
+
+ 11) test callback errors roll back context and no context leaks through connection reuse (MixerHosted.Authorization.PostgresRepositoryTest)
+     /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:634
+     match (=) failed
+     code:  assert {:error, :authorization_unavailable} =
+              PostgresRepository.with_evidence(F.lookup(), callback, Runtime)
+     left:  {:error, :authorization_unavailable}
+     right: {:error, :unauthenticated}
+     stacktrace:
+       /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:640: anonymous fn/2 in MixerHosted.Authorization.PostgresRepositoryTest."test callback errors roll back context and no context leaks through connection reuse"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:635: (test)
+
+  * test all six canonical conflicting lock classes wait for an admitted lookup then revoke [L#652]  * test all six canonical conflicting lock classes wait for an admitted lookup then revoke (2021.1ms) [L#652]
+
+ 12) test all six canonical conflicting lock classes wait for an admitted lookup then revoke (MixerHosted.Authorization.PostgresRepositoryTest)
+     /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:652
+     Assertion failed, no matching message after 2000ms
+     Showing 2 of 2 messages in the mailbox
+     code: assert_receive {:authorization_held, _, _}
+     mailbox:
+       pattern: {:authorization_held, _, _}
+       value:   {#Reference<0.0.30467.3106707876.4105502721.150116>,
+                 {:error, :unauthenticated}}
+
+       pattern: {:authorization_held, _, _}
+       value:   {:DOWN, #Reference<0.0.30467.3106707876.4105502721.150116>,
+                 :process, #PID<0.240.0>, :normal}
+     stacktrace:
+       /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:657: anonymous fn/2 in MixerHosted.Authorization.PostgresRepositoryTest."test all six canonical conflicting lock classes wait for an admitted lookup then revoke"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:653: (test)
+
+  * test all six reverse lock orderings read freshly committed revocation after their wait [L#669]  * test all six reverse lock orderings read freshly committed revocation after their wait (1228.7ms) [L#669]
+
+ 13) test all six reverse lock orderings read freshly committed revocation after their wait (MixerHosted.Authorization.PostgresRepositoryTest)
+     /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:669
+     Expected truthy, got false
+     code: assert F.eventually(fn -> F.blocked?(backend) end)
+     arguments:
+
+         # 1
+         #Function<53.29142154/0 in MixerHosted.Authorization.PostgresRepositoryTest."test all six reverse lock orderings read freshly committed revocation after their wait"/1>
+
+     stacktrace:
+       /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:687: anonymous fn/2 in MixerHosted.Authorization.PostgresRepositoryTest."test all six reverse lock orderings read freshly committed revocation after their wait"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:670: (test)
+
+  * test project membership provisioning serializes under the existing project head [L#694]  * test project membership provisioning serializes under the existing project head (25.7ms) [L#694]
+
+ 14) test project membership provisioning serializes under the existing project head (MixerHosted.Authorization.PostgresRepositoryTest)
+     /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:694
+     Unexpectedly received message {#Reference<0.0.31491.3106707876.4105502721.151280>, {:error, :unauthenticated}} (which matched {^reference, _})
+     code: refute_receive {^reference, _}, 20
+     stacktrace:
+       /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:719: (test)
+
+  * test 500ms lock timeout returns unavailable and releases transaction context [L#725]  * test 500ms lock timeout returns unavailable and releases transaction context (16.8ms) [L#725]
+
+ 15) test 500ms lock timeout returns unavailable and releases transaction context (MixerHosted.Authorization.PostgresRepositoryTest)
+     /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:725
+     match (=) failed
+     code:  assert {:error, :authorization_unavailable} = F.evaluate()
+     left:  {:error, :authorization_unavailable}
+     right: {:error, :unauthenticated}
+     stacktrace:
+       /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:730: (test)
+
+  * test foreign-key role lifecycle and parent constraints reject malformed durable state [L#739]  * test foreign-key role lifecycle and parent constraints reject malformed durable state (13.7ms) [L#739]
+
+Finished in 3.9 seconds (0.2s on load, 0.00s async, 3.7s sync)
+
+Result: 7/22 passed
+Failed: 15 tests

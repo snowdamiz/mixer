@@ -1,0 +1,50 @@
+{
+  "status": "failed",
+  "command": [
+    "python3",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-authorization-postgres-review/audit_producer_seals.py"
+  ],
+  "records": [
+    {
+      "path": "verification/hosted-customer-authorization-postgres/seal.json",
+      "sha256": "ef9ee785e16d5e52e8388ddccb9b0f0471d7d2a428aaf173e103c476fe3b7f79",
+      "file_count": 208,
+      "mismatches": [
+        {
+          "path": "verification/hosted-customer-authorization-postgres/run.py",
+          "expected": "3825be853c52c4b776c7e8282e6943ac08074fcfc0f3e5e6b7d623eb8d7eca24",
+          "observed": "ac266547ed863f6580538e830e6c13a7e363ecf1011d9384c3759757fc19b57f"
+        }
+      ],
+      "manifest_sha256": "a370306b74d37f695b93486651622686a07424d690a0e48f43019f7fb12e9f45",
+      "manifest_matches": true,
+      "live_input_bindings": {},
+      "live_binding_note": "Historical seal bindings describe that source freeze; later coordinated integration edits are reviewed separately."
+    },
+    {
+      "path": "verification/hosted-customer-authorization-postgres/correction-seal.json",
+      "sha256": "007991642ca11ff6ff23169db82b886a8ea1624cb451f00c0b1f7a4b37764904",
+      "file_count": 30,
+      "mismatches": [],
+      "manifest_sha256": "804dc5b8f5ca321a30a3b1450db5c7481dbac339a32c5bb57cdb72457895e8a2",
+      "manifest_matches": true,
+      "live_input_bindings": {
+        "hosted/lib/mixer_hosted/identity/encoding.ex": "565338c3669fb9578e086510d6f7d06135958049c918a7df3f3558474e8e01f4",
+        "hosted/lib/mixer_hosted/identity/verified_identity.ex": "02ea302abedbf10555792ae5284f8eb41113edd11bc83c3e869bdbee7b68ae4d",
+        "hosted/lib/mixer_hosted/authorization/scope.ex": "b98c7c6f2f3592bf2fcfd0890d86bb503e3c9cdd6558fa1c7b0766ddb61c7b7a",
+        "hosted/lib/mixer_hosted/authorization/policy.ex": "0b50900c3b286addb6ac1224c16c8dc6f4cba6c8dcf6c5eed40b6aca2a053db9",
+        "hosted/lib/mixer_hosted/authorization/repository.ex": "76a24ec22292193f5d1ba26ad17711645662939db2b8fe988ea84b3614d1de00",
+        "hosted/lib/mixer_hosted/authorization/postgres_repository.ex": "78b77db112d0fb45e0bd645e91049daf016867f5086a4c07d373b7e88fab384b",
+        "hosted/lib/mixer_hosted/authorization/postgres/session.ex": "7a0c4eb013b7b456480a342525e093652cc8ba6270f3bd5abdbcaee816dc6b7a",
+        "hosted/lib/mixer_hosted/authorization/postgres/evidence.ex": "fe5e34d6e66b84aa6f4786c7922eeb75faf5d2b142de82d17f184b5b08fff1f7",
+        "hosted/priv/repo/migrations/20261025000003_add_customer_authorization.exs": "8bd713314a451505fae20af6208a2ff1fad130a0aefa86f3e3b0763ea7ae7e13",
+        "hosted/test/mixer_hosted/authorization/postgres_repository_test.exs": "d7cbb6aaee3a6e9dd402b674e3d364ca3e1ef96f15e3066735bc34e1ac4c8f99",
+        "verification/hosted-customer-authorization-postgres/run.py": "3825be853c52c4b776c7e8282e6943ac08074fcfc0f3e5e6b7d623eb8d7eca24",
+        "hosted/mix.exs": "ade39cb685e8f78d7d62ab1517db38e572094dcf9bc9ec21f91b9b6b3bd3cbe2",
+        "hosted/mix.lock": "59e6fe5d6bc76ae0057745fe7eb3fb292f225b6a37cd1c99c214f9447c60ff8a"
+      },
+      "live_binding_note": "Historical seal bindings describe that source freeze; later coordinated integration edits are reviewed separately."
+    }
+  ],
+  "scope": "Archived baseline and correction seal contents only; no source or database execution and no claim that historical source bindings equal later integration edits."
+}

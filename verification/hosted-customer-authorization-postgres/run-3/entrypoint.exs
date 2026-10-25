@@ -1,0 +1,5 @@
+Application.ensure_all_started(:ecto_sql)
+Application.ensure_all_started(:postgrex)
+Logger.configure(level: :warning)
+ExUnit.start(seed: 0, trace: true)
+Code.require_file("/Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs")

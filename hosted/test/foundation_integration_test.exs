@@ -46,7 +46,13 @@ defmodule MixerHosted.FoundationIntegrationTest do
     {:ok, repo} = Repo.start_link(local_repo())
     path = Application.app_dir(:mixer_hosted, "priv/repo/migrations")
 
-    assert [20_261_024_000_000, 20_261_025_000_000, 20_261_025_000_001, 20_261_025_000_002] =
+    assert [
+             20_261_024_000_000,
+             20_261_025_000_000,
+             20_261_025_000_001,
+             20_261_025_000_002,
+             20_261_025_000_003
+           ] =
              Ecto.Migrator.run(Repo, path, :up, all: true)
 
     assert [] = Ecto.Migrator.run(Repo, path, :up, all: true)

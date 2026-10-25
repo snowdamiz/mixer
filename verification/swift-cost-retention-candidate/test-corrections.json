@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "changes": [
+    {
+      "test": "plan_reuse_observation",
+      "old": "288 decodes,224 evictions for both fixture shapes",
+      "new": "thin fixture284 decodes/220evictions; wide remains288/224",
+      "reason": "new policy intentionally changes retention; all IR/proof/work/ticket checks retained"
+    },
+    {
+      "test": "cost_retention_all_pinned_and_hit_metadata_unchanged",
+      "old": "all_entries_pinned at all four capacities",
+      "new": "capacity64 asserts original earlier pin_slots_exhausted; capacities1,2,4 assert all_entries_pinned",
+      "reason": "test initially overlooked earlier original pin-table failure precedence"
+    }
+  ],
+  "productPolicyChanged": false
+}

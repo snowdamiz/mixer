@@ -1,0 +1,45 @@
+2026-10-25 07:11:29.395 EDT [38569] LOG:  starting PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit
+2026-10-25 07:11:29.399 EDT [38569] LOG:  listening on IPv4 address "127.0.0.1", port 61697
+2026-10-25 07:11:29.406 EDT [38572] LOG:  database system was shut down at 2026-10-25 07:11:29 EDT
+2026-10-25 07:11:29.410 EDT [38569] LOG:  database system is ready to accept connections
+2026-10-25 07:11:30.676 EDT [38625] ERROR:  permission denied for table mixer_authz_principals
+2026-10-25 07:11:30.676 EDT [38625] STATEMENT:  UPDATE public.mixer_authz_principals SET active=true
+2026-10-25 07:11:30.680 EDT [38626] ERROR:  permission denied for table mixer_authz_profiles
+2026-10-25 07:11:30.680 EDT [38626] STATEMENT:  SELECT * FROM public.mixer_authz_profiles FOR SHARE
+2026-10-25 07:11:30.680 EDT [38631] ERROR:  permission denied to set role "mixer_authz_owner"
+2026-10-25 07:11:30.680 EDT [38631] STATEMENT:  SET ROLE mixer_authz_owner
+2026-10-25 07:11:30.680 EDT [38629] ERROR:  permission denied for schema public at character 14
+2026-10-25 07:11:30.680 EDT [38629] STATEMENT:  CREATE TABLE public.runtime_escalation(id int)
+2026-10-25 07:11:32.751 EDT [38631] ERROR:  canceling statement due to lock timeout
+2026-10-25 07:11:32.751 EDT [38631] CONTEXT:  while locking tuple (0,1) in relation "mixer_authz_project_heads"
+	SQL statement "SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id = current_setting('mixer.authz.organization_id', true) AND project_id = current_setting('mixer.authz.project_id', true) FOR SHARE"
+	PL/pgSQL function public.mixer_authz_lock_project_heads() line 3 at PERFORM
+2026-10-25 07:11:32.751 EDT [38631] STATEMENT:  SELECT public.mixer_authz_lock_project_heads()
+2026-10-25 07:11:32.793 EDT [38630] ERROR:  new row for relation "mixer_authz_memberships" violates check constraint "mixer_authz_memberships_role_check"
+2026-10-25 07:11:32.793 EDT [38630] DETAIL:  Failing row contains (member, person, org-a, project-a, exact_project, publisher, t, 0, null, 1).
+2026-10-25 07:11:32.793 EDT [38630] STATEMENT:  UPDATE public.mixer_authz_memberships SET role='publisher' WHERE id='member'
+2026-10-25 07:11:32.793 EDT [38632] ERROR:  new row for relation "mixer_authz_memberships" violates check constraint "mixer_authz_memberships_check1"
+2026-10-25 07:11:32.793 EDT [38632] DETAIL:  Failing row contains (member, person, org-a, project-a, all_projects, developer, t, 0, null, 1).
+2026-10-25 07:11:32.793 EDT [38632] STATEMENT:  UPDATE public.mixer_authz_memberships SET project_binding='all_projects' WHERE id='member'
+2026-10-25 07:11:32.794 EDT [38634] ERROR:  insert or update on table "mixer_authz_memberships" violates foreign key constraint "mixer_authz_memberships_organization_id_project_id_fkey"
+2026-10-25 07:11:32.794 EDT [38634] DETAIL:  Key (organization_id, project_id)=(org-a, missing) is not present in table "mixer_authz_projects".
+2026-10-25 07:11:32.794 EDT [38634] STATEMENT:  UPDATE public.mixer_authz_memberships SET project_id='missing' WHERE id='member'
+2026-10-25 07:11:32.795 EDT [38633] ERROR:  insert or update on table "mixer_authz_environments" violates foreign key constraint "mixer_authz_environments_organization_id_project_id_applic_fkey"
+2026-10-25 07:11:32.795 EDT [38633] DETAIL:  Key (organization_id, project_id, application_id)=(org-a, project-a, app-b) is not present in table "mixer_authz_applications".
+2026-10-25 07:11:32.795 EDT [38633] STATEMENT:  UPDATE public.mixer_authz_environments SET application_id='app-b' WHERE organization_id='org-a' AND project_id='project-a'
+2026-10-25 07:11:32.795 EDT [38628] ERROR:  insert or update on table "mixer_authz_credentials" violates foreign key constraint "mixer_authz_credentials_family_id_profile_id_profile_versi_fkey"
+2026-10-25 07:11:32.795 EDT [38628] DETAIL:  Key (family_id, profile_id, profile_version, principal_id)=(other-family, profile, 1, person) is not present in table "mixer_authz_families".
+2026-10-25 07:11:32.795 EDT [38628] STATEMENT:  UPDATE public.mixer_authz_credentials SET family_id='other-family' WHERE profile_id='profile'
+2026-10-25 07:11:32.795 EDT [38627] ERROR:  insert or update on table "mixer_authz_bindings" violates foreign key constraint "mixer_authz_bindings_principal_id_identity_class_fkey"
+2026-10-25 07:11:32.795 EDT [38627] DETAIL:  Key (principal_id, identity_class)=(service, human) is not present in table "mixer_authz_principals".
+2026-10-25 07:11:32.795 EDT [38627] STATEMENT:  UPDATE public.mixer_authz_bindings SET principal_id='service' WHERE profile_id='profile'
+2026-10-25 07:11:32.796 EDT [38630] ERROR:  new row for relation "mixer_authz_families" violates check constraint "mixer_authz_families_check"
+2026-10-25 07:11:32.796 EDT [38630] DETAIL:  Failing row contains (family, profile, 1, person, t, 0, 0, 1).
+2026-10-25 07:11:32.796 EDT [38630] STATEMENT:  UPDATE public.mixer_authz_families SET expires_at=0 WHERE id='family'
+2026-10-25 07:11:32.833 EDT [38569] LOG:  received fast shutdown request
+2026-10-25 07:11:32.833 EDT [38569] LOG:  aborting any active transactions
+2026-10-25 07:11:32.834 EDT [38569] LOG:  background worker "logical replication launcher" (PID 38575) exited with exit code 1
+2026-10-25 07:11:32.834 EDT [38570] LOG:  shutting down
+2026-10-25 07:11:32.834 EDT [38570] LOG:  checkpoint starting: shutdown immediate
+2026-10-25 07:11:32.964 EDT [38570] LOG:  checkpoint complete: wrote 1059 buffers (6.5%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.036 s, sync=0.048 s, total=0.131 s; sync files=2296, longest=0.001 s, average=0.001 s; distance=6442 kB, estimate=6442 kB; lsn=0/1B65428, redo lsn=0/1B65428
+2026-10-25 07:11:32.966 EDT [38569] LOG:  database system is shut down

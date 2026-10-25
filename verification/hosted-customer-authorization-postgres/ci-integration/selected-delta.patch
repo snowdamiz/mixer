@@ -1,0 +1,156 @@
+--- hosted/scripts/test-local.py BEFORE
++++ hosted/scripts/test-local.py AFTER
+@@ -11,6 +11,25 @@
+ import subprocess
+ import tarfile
+ import tempfile
++
++
++def provision_customer_authorization_fixture(pg_bin, port, run_command):
++    """Provision only synthetic roles/database in this collector's local cluster."""
++    psql = [str(pg_bin / "psql"), "-X", "-h", "127.0.0.1", "-p", str(port),
++            "-U", "mixer_fixture", "-d", "postgres", "-v", "ON_ERROR_STOP=1"]
++    run_command("authz-fixture-roles", psql + ["-c",
++        "CREATE ROLE authz_fixture_admin LOGIN SUPERUSER; "
++        "CREATE ROLE mixer_authz_owner NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS; "
++        "CREATE ROLE mixer_authz_runtime LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS;"])
++    run_command("authz-fixture-database", [str(pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port),
++        "-U", "mixer_fixture", "-O", "mixer_authz_owner", "mixer_authz_test"])
++    run_command("authz-fixture-grants", [str(pg_bin / "psql"), "-X", "-h", "127.0.0.1", "-p", str(port),
++        "-U", "mixer_fixture", "-d", "mixer_authz_test", "-v", "ON_ERROR_STOP=1", "-c",
++        "REVOKE ALL ON DATABASE mixer_authz_test FROM PUBLIC; "
++        "GRANT CONNECT ON DATABASE mixer_authz_test TO mixer_authz_runtime; "
++        "REVOKE CREATE ON SCHEMA public FROM PUBLIC;"])
++    return {"MIXER_AUTHZ_TEST_PORT": str(port)}
++
+ 
+ parser = argparse.ArgumentParser()
+ parser.add_argument("--output", required=True, type=Path)
+@@ -118,6 +137,7 @@
+     if (output / "postgres-timezone.log").read_text().strip() != "UTC":
+         raise RuntimeError("fixture database time zone is not UTC")
+     env["MIXER_TEST_DATABASE_PORT"] = str(port)
++    env.update(provision_customer_authorization_fixture(args.pg_bin, port, run))
+     identity_evidence = output / "identity-metrics"
+     identity_evidence.mkdir()
+     env["MIXER_TEST_IDENTITY_EVIDENCE"] = str(identity_evidence)
+--- hosted/test/foundation_integration_test.exs BEFORE
++++ hosted/test/foundation_integration_test.exs AFTER
+@@ -46,7 +46,13 @@
+     {:ok, repo} = Repo.start_link(local_repo())
+     path = Application.app_dir(:mixer_hosted, "priv/repo/migrations")
+ 
+-    assert [20_261_024_000_000, 20_261_025_000_000, 20_261_025_000_001, 20_261_025_000_002] =
++    assert [
++             20_261_024_000_000,
++             20_261_025_000_000,
++             20_261_025_000_001,
++             20_261_025_000_002,
++             20_261_025_000_003
++           ] =
+              Ecto.Migrator.run(Repo, path, :up, all: true)
+ 
+     assert [] = Ecto.Migrator.run(Repo, path, :up, all: true)
+--- hosted/test/mixer_hosted/builds/storage_test.exs BEFORE
++++ hosted/test/mixer_hosted/builds/storage_test.exs AFTER
+@@ -22,7 +22,13 @@
+     assert is_pid(repo)
+     path = Application.app_dir(:mixer_hosted, "priv/repo/migrations")
+ 
+-    assert [20_261_024_000_000, 20_261_025_000_000, 20_261_025_000_001, 20_261_025_000_002] =
++    assert [
++             20_261_024_000_000,
++             20_261_025_000_000,
++             20_261_025_000_001,
++             20_261_025_000_002,
++             20_261_025_000_003
++           ] =
+              Ecto.Migrator.run(Repo, path, :up, all: true)
+ 
+     assert [] = Ecto.Migrator.run(Repo, path, :up, all: true)
+--- hosted/test/mixer_hosted/builds/admission_test.exs BEFORE
++++ hosted/test/mixer_hosted/builds/admission_test.exs AFTER
+@@ -19,7 +19,7 @@
+     )
+ 
+     path = Application.app_dir(:mixer_hosted, "priv/repo/migrations")
+-    assert length(Ecto.Migrator.run(Repo, path, :up, all: true)) == 4
++    assert length(Ecto.Migrator.run(Repo, path, :up, all: true)) == 5
+     assert [] == Ecto.Migrator.run(Repo, path, :up, all: true)
+     start_supervised!({Oban, repo: Repo, queues: false, plugins: false, testing: :manual})
+     :ok
+--- hosted/test/mixer_hosted/builds/aggregate_admission_test.exs BEFORE
++++ hosted/test/mixer_hosted/builds/aggregate_admission_test.exs AFTER
+@@ -30,7 +30,7 @@
+     )
+ 
+     path = Application.app_dir(:mixer_hosted, "priv/repo/migrations")
+-    assert length(Ecto.Migrator.run(Repo, path, :up, all: true)) == 4
++    assert length(Ecto.Migrator.run(Repo, path, :up, all: true)) == 5
+     assert [] == Ecto.Migrator.run(Repo, path, :up, all: true)
+     start_supervised!({Oban, repo: Repo, queues: false, plugins: false, testing: :manual})
+     :ok
+@@ -502,13 +502,17 @@
+     before = {Repo.one!(Reservation), Repo.one!(Lease), Repo.get!(Record, a.record.id)}
+     path = Application.app_dir(:mixer_hosted, "priv/repo/migrations")
+ 
+-    assert [@aggregate_migration] = Ecto.Migrator.run(Repo, path, :down, step: 1)
++    assert [20_261_025_000_003, @aggregate_migration] =
++             Ecto.Migrator.run(Repo, path, :down, step: 2)
+ 
+     assert %{rows: [[nil]]} =
+              Repo.query!("SELECT to_regclass('public.mixer_build_fleet_capacity')::text")
+ 
+     assert {Repo.one!(Reservation), Repo.one!(Lease), Repo.get!(Record, a.record.id)} == before
+-    assert [@aggregate_migration] = Ecto.Migrator.run(Repo, path, :up, all: true)
++
++    assert [@aggregate_migration, 20_261_025_000_003] =
++             Ecto.Migrator.run(Repo, path, :up, all: true)
++
+     assert {Repo.one!(Reservation), Repo.one!(Lease), Repo.get!(Record, a.record.id)} == before
+     assert %{configured: false, limit: 0, revision: 0} = Repo.one!(FleetCapacity)
+     assert %{configured: false, limit: 0, revision: 0} = Repo.one!(OrganizationCapacity)
+--- hosted/test/mixer_hosted/builds/coordinator_test.exs BEFORE
++++ hosted/test/mixer_hosted/builds/coordinator_test.exs AFTER
+@@ -20,7 +20,7 @@
+     )
+ 
+     path = Application.app_dir(:mixer_hosted, "priv/repo/migrations")
+-    assert length(Ecto.Migrator.run(Repo, path, :up, all: true)) == 4
++    assert length(Ecto.Migrator.run(Repo, path, :up, all: true)) == 5
+     start_supervised!({Oban, repo: Repo, queues: false, plugins: false, testing: :manual})
+     start_supervised!(Fixture)
+     :ok
+--- hosted/test/mixer_hosted/authorization/postgres_repository_test.exs BEFORE
++++ hosted/test/mixer_hosted/authorization/postgres_repository_test.exs AFTER
+@@ -261,6 +261,15 @@
+     )
+ 
+     start_supervised!({Runtime, settings ++ [username: "mixer_authz_runtime", pool_size: 4]})
++
++    unless Code.ensure_loaded?(MixerHosted.Repo.Migrations.AddCustomerAuthorization) do
++      Code.require_file(
++        Path.expand(
++          "../../../priv/repo/migrations/20261025000003_add_customer_authorization.exs",
++          __DIR__
++        )
++      )
++    end
+ 
+     assert :ok =
+              Ecto.Migrator.up(
+--- hosted/priv/repo/migrations/20261025000003_add_customer_authorization.exs BEFORE
++++ hosted/priv/repo/migrations/20261025000003_add_customer_authorization.exs AFTER
+@@ -218,6 +218,12 @@
+       execute("DROP FUNCTION public.mixer_authz_lock_#{table}()")
+     end
+ 
++    # Policies reference other authorization tables. Remove only these owned
++    # policies before dropping relations, without a broad DROP CASCADE.
++    for table <- @tables, policy <- ~w(scoped_read scoped_lock) do
++      execute("DROP POLICY #{policy} ON public.mixer_authz_#{table}")
++    end
++
+     for table <- Enum.reverse(@tables) do
+       execute("DROP TABLE public.mixer_authz_#{table}")
+     end

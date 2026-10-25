@@ -1,0 +1,349 @@
+--- live/src/experimental/cache/borrowed.rs
++++ candidate/src/experimental/cache/borrowed.rs
+@@ -471,6 +471,25 @@
+         _: &mut Self::Meter<'_, '_>,
+     ) -> Result<(), Self::Failure> {
+         Ok(())
++    }
++    // Literal baseline LRU loop and work trace for the frozen specialization.
++    fn resident_victim(
++        slots: &[Self::Slot],
++        plan: &[bool; MAX_ENTRIES],
++        meter: &mut Self::Meter<'_, '_>,
++    ) -> Result<usize, Self::Failure> {
++        let mut oldest: Option<usize> = None;
++        for (index, slot) in slots.iter().enumerate() {
++            meter.work(1)?;
++            if !plan[index]
++                && slot.pins() == 0
++                && slot.entry().is_some()
++                && oldest.is_none_or(|p| slot.last_used() < slots[p].last_used())
++            {
++                oldest = Some(index);
++            }
++        }
++        oldest.ok_or_else(|| meter.error(CacheFailureKind::AllPinned, "all_entries_pinned"))
+     }
+     fn scan(
+         snapshot: &Self::Snapshot,
+@@ -813,19 +832,7 @@
+         meter.work(parts.slots.len() as u64)?;
+         let mut empty = parts.slots.iter().position(|slot| slot.entry().is_none());
+         while empty.is_none() || base + remaining + bytes > capacity {
+-            let mut oldest: Option<usize> = None;
+-            for (index, slot) in parts.slots.iter().enumerate() {
+-                meter.work(1)?;
+-                if !plan[index]
+-                    && slot.pins() == 0
+-                    && slot.entry().is_some()
+-                    && oldest.is_none_or(|p| slot.last_used() < parts.slots[p].last_used())
+-                {
+-                    oldest = Some(index);
+-                }
+-            }
+-            let victim = oldest
+-                .ok_or_else(|| meter.error(CacheFailureKind::AllPinned, "all_entries_pinned"))?;
++            let victim = M::resident_victim(parts.slots, &plan, meter)?;
+             plan[victim] = true;
+             remaining -= parts.slots[victim].entry().expect("selected entry").bytes;
+             empty = Some(victim);
+--- live/src/experimental/cache/decode.rs
++++ candidate/src/experimental/cache/decode.rs
+@@ -109,6 +109,15 @@
+     targets: usize,
+ }
+ impl Counts {
++    // Conservative build-credit estimate from complete validated scan counts.
++    // Parameters, local-group overhead and control patching are omitted.
++    pub(crate) fn estimated_build_work(self, body_bytes: usize) -> Option<u64> {
++        u64::try_from(body_bytes).ok()?
++            .checked_add(u64::try_from(self.locals).ok()?.checked_mul(2)?)?
++            .checked_add(u64::try_from(self.instructions).ok()?.checked_mul(2)?)?
++            .checked_add(u64::try_from(self.targets).ok()?.checked_mul(2)?)
++            .map(|cost| cost.max(1))
++    }
+     pub fn bytes<F>(self, meter: &mut impl DecodeMeter<Failure = F>) -> Result<usize, F> {
+         self.locals
+             .checked_mul(std::mem::size_of::<Type>())
+@@ -540,3 +549,6 @@
+         offset_of!(Counts, targets),
+     ]
+ }
++
++#[cfg(test)]
++impl Counts {pub(crate) fn test_retention_parts(p:[usize;3])->Self {Self{locals:p[0],instructions:p[1],targets:p[2]}}}
+--- live/src/experimental_swift_reactor/cache.rs
++++ candidate/src/experimental_swift_reactor/cache.rs
+@@ -44,6 +44,83 @@
+ const RESIDENT_BUCKETS: usize = 128;
+ const RESIDENT_LINKS: usize = 64;
+ const RESIDENT_INDEX_BYTES: usize = RESIDENT_BUCKETS + RESIDENT_LINKS;
++
++// Miss-only metadata. Hits and releases never inspect or mutate these values.
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++struct RetentionRank {
++    slot: usize,
++    cost: u64,
++    age: u64,
++    last_used: u64,
++}
++// Three complete disjoint copies are added to the operation reservation. These
++// named fields cover the new method/helper parameters, locals, closure/reborrow
++// values, checked-arithmetic intermediates and caller/return ownership. They do
++// not reuse another inventory's unused bytes or claim physical stack placement.
++struct CostRetentionInventory {
++    victim_slots: &'static [SwiftSlot],
++    victim_plan: &'static [bool; 64],
++    victim_meter: &'static mut SwiftMeter<'static, 'static>,
++    now: u64,
++    best: Option<RetentionRank>,
++    iterator: std::iter::Enumerate<std::slice::Iter<'static, SwiftSlot>>,
++    loop_index: usize,
++    loop_slot: &'static SwiftSlot,
++    resident: &'static SwiftResident,
++    candidate: RetentionRank,
++    previous: RetentionRank,
++    before: bool,
++    helper_candidate: RetentionRank,
++    helper_previous: RetentionRank,
++    helper_meter: &'static mut SwiftMeter<'static, 'static>,
++    left: u128,
++    right: u128,
++    product_option: Option<u128>,
++    product_result: Result<u128, SwiftRunFailure>,
++    age_option: Option<u64>,
++    age_result: Result<u64, SwiftRunFailure>,
++    compare_return: Result<bool, SwiftRunFailure>,
++    victim_return: Result<usize, SwiftRunFailure>,
++    best_map_receiver: Option<RetentionRank>,
++    best_map_arg: RetentionRank,
++    best_map_result: Option<usize>,
++    failure_reborrow: &'static mut SwiftMeter<'static, 'static>,
++    cost_method_self: decode::Counts,
++    cost_method_body_bytes: usize,
++    cost_conversion: Result<u64, std::num::TryFromIntError>,
++    cost_intermediate: Option<u64>,
++    cost_map_arg: u64,
++    cost_return: Option<u64>,
++    build_cost: u64,
++    build_cost_result: Result<u64, SwiftRunFailure>,
++    build_cost_receiver: decode::Counts,
++    build_cost_body: usize,
++    build_meter_reborrow: &'static mut SwiftMeter<'static, 'static>,
++    default_slots: &'static [SwiftSlot],
++    default_plan: &'static [bool; 64],
++    default_meter: &'static mut SwiftMeter<'static, 'static>,
++    default_oldest: Option<usize>,
++    default_iterator: std::iter::Enumerate<std::slice::Iter<'static, SwiftSlot>>,
++    default_index: usize,
++    default_slot: &'static SwiftSlot,
++    default_closure_arg: usize,
++    default_result: Result<usize, SwiftRunFailure>,
++}
++fn retention_before(
++    candidate: RetentionRank,
++    previous: RetentionRank,
++    meter: &mut SwiftMeter<'_, '_>,
++) -> Result<bool, SwiftRunFailure> {
++    // Both products fit u128 for valid u64 operands, but remain checked.
++    let left = u128::from(candidate.cost)
++        .checked_mul(u128::from(previous.age))
++        .ok_or_else(|| meter.error(CacheFailureKind::DecoderMismatch, "swift_retention_product"))?;
++    let right = u128::from(previous.cost)
++        .checked_mul(u128::from(candidate.age))
++        .ok_or_else(|| meter.error(CacheFailureKind::DecoderMismatch, "swift_retention_product"))?;
++    Ok(left < right || (left == right && (candidate.last_used, candidate.slot)
++        < (previous.last_used, previous.slot)))
++}
+ 
+ pub(crate) struct SwiftScratch<'a> {
+     patches: &'a mut [decode::Patch],
+@@ -235,6 +312,7 @@
+ pub(crate) struct SwiftResident {
+     decoded: DecodedFunction,
+     ticket: ReservationTicket,
++    estimated_build_work: u64,
+ }
+ pub(crate) struct SwiftSlot {
+     resident: Option<SwiftResident>,
+@@ -1209,6 +1287,7 @@
+         (3, size_of::<OperationScalarInventory>()),
+         (3, size_of::<ResidentIndexInventory>()),
+         (3, size_of::<PlanInventory>()),
++        (3, size_of::<CostRetentionInventory>()),
+         (3, size_of::<SwiftScratch<'static>>()),
+         (3, size_of::<ResidentMatch>()),
+         (3, size_of::<Option<ResidentMatch>>()),
+@@ -2193,6 +2272,46 @@
+         scratch.index[bucket] = (slot + 1) as u8;
+         Ok(())
+     }
++    fn resident_victim(
++        slots: &[SwiftSlot],
++        plan: &[bool; 64],
++        meter: &mut SwiftMeter<'_, '_>,
++    ) -> Result<usize, SwiftRunFailure> {
++        meter.work(1)?; // one fixed work-clock snapshot per victim scan
++        let now = meter.work_used();
++        let mut best: Option<RetentionRank> = None;
++        for (index, slot) in slots.iter().enumerate() {
++            meter.work(1)?; // original per-slot eligibility credit
++            if plan[index] || slot.pins != 0 || slot.resident.is_none() {
++                continue;
++            }
++            // Eight logical units, precharged before any added reads/work:
++            // cost+nonzero; recency+checked-age/clamp; candidate preparation;
++            // best probe; left product; right product; ratio/tie comparison;
++            // conditional local-rank publication. Not a CPU instruction count.
++            meter.work(8)?;
++            let resident = slot.resident.as_ref().expect("eligible resident");
++            if resident.estimated_build_work == 0 {
++                return Err(meter.error(CacheFailureKind::DecoderMismatch, "swift_retention_cost"));
++            }
++            let candidate = RetentionRank {
++                slot: index,
++                cost: resident.estimated_build_work,
++                age: now.checked_sub(slot.last_used)
++                    .ok_or_else(|| meter.error(CacheFailureKind::DecoderMismatch, "swift_retention_age"))?
++                    .max(1),
++                last_used: slot.last_used,
++            };
++            let before = if let Some(previous) = best {
++                retention_before(candidate, previous, meter)?
++            } else {
++                true
++            };
++            if before { best = Some(candidate); }
++        }
++        best.map(|rank| rank.slot)
++            .ok_or_else(|| meter.error(CacheFailureKind::AllPinned, "all_entries_pinned"))
++    }
+     fn scan(
+         snapshot: &ValidatedSwiftReactor,
+         body: FunctionSpanView<'_>,
+@@ -2261,6 +2380,12 @@
+         meter: &mut SwiftMeter<'_, '_>,
+     ) -> Result<SwiftResident, SwiftRunFailure> {
+         let bytes = counts.bytes(meter)?;
++        // Twelve logical units: body+three count reads/conversions; three
++        // doubles; three checked sums; clamp; eventual resident field write.
++        // Cost checking/publication charge precedes entry admission and build.
++        meter.work(12)?;
++        let estimated_build_work = counts.estimated_build_work(body.body.len())
++            .ok_or_else(|| meter.error(CacheFailureKind::DecoderMismatch, "swift_retention_cost_overflow"))?;
+         checkpoint(meter.operation.control, meter.operation.cursor);
+         let ticket = meter.operation.control.admit_cache_entry_with_wasi(
+             bytes,
+@@ -2279,7 +2404,7 @@
+         }
+         let result = Self::build_payload(snapshot, body, counts, scratch, meter);
+         match result {
+-            Ok(decoded) => Ok(SwiftResident { decoded, ticket }),
++            Ok(decoded) => Ok(SwiftResident { decoded, ticket, estimated_build_work }),
+             Err(error) => {
+                 let _ = meter.operation.drop_reserved((), ticket);
+                 let _ = meter.operation.remove_live(Live::CacheEntries);
+@@ -4847,3 +4972,82 @@
+             .collect()
+     }
+ }
++
++// Test-only observation and direct finite policy entry points; never compiled
++// into the candidate production interface and never execute guest instructions.
++#[cfg(test)]
++pub(super) mod cost_inspection {
++    use super::*;
++    pub fn shape() -> (usize,usize,usize,usize) {
++        (size_of::<CostRetentionInventory>(),size_of::<SwiftResident>(),size_of::<SwiftSlot>(),cache_operation_bytes().unwrap())
++    }
++    pub fn records(cache: &SwiftFunctionCache) -> Vec<(usize,u32,usize,u64,u64,usize)> {
++        cache.slots.iter().enumerate().filter_map(|(i,s)|s.resident.as_ref().map(|r|(i,r.decoded.function,s.pins,s.last_used,r.estimated_build_work,r.decoded.instructions.as_ptr() as usize))).collect()
++    }
++    pub fn metadata(cache: &mut SwiftFunctionCache, f:u32, age:u64, cost:u64) {
++        let slot=cache.slots.iter_mut().find(|s|s.entry().is_some_and(|e|e.function==f)).unwrap();
++        slot.last_used=age; slot.resident.as_mut().unwrap().estimated_build_work=cost;
++    }
++    pub fn select(cache:&mut SwiftFunctionCache,c:&mut RuntimeControl,plan:&[bool;64]) -> Result<usize,SwiftRunFailure> {
++        let mut phase=cache.prepare_operation(c,None,cache_cursor())?;
++        let mut meter=SwiftMode::meter(&mut cache.usage,&mut phase.control,34);
++        let result=SwiftMode::resident_victim(&cache.slots,plan,&mut meter);
++        phase.complete(()).unwrap(); result
++    }
++    pub fn compare(cache:&mut SwiftFunctionCache,c:&mut RuntimeControl,a:[u64;4],b:[u64;4]) -> bool {
++        let mut phase=cache.prepare_operation(c,None,cache_cursor()).unwrap();
++        let mut meter=SwiftMode::meter(&mut cache.usage,&mut phase.control,34);
++        let result=retention_before(RetentionRank{slot:a[0] as usize,cost:a[1],age:a[2],last_used:a[3]},RetentionRank{slot:b[0] as usize,cost:b[1],age:b[2],last_used:b[3]},&mut meter).unwrap();
++        phase.complete(()).unwrap(); result
++    }
++    pub fn print_inventory() {
++        use std::mem::offset_of;
++        println!("COST_FIELD name=victim_slots offset={} bytes={}",offset_of!(CostRetentionInventory,victim_slots),size_of::<&'static [SwiftSlot]>());
++        println!("COST_FIELD name=victim_plan offset={} bytes={}",offset_of!(CostRetentionInventory,victim_plan),size_of::<&'static [bool; 64]>());
++        println!("COST_FIELD name=victim_meter offset={} bytes={}",offset_of!(CostRetentionInventory,victim_meter),size_of::<&'static mut SwiftMeter<'static, 'static>>());
++        println!("COST_FIELD name=now offset={} bytes={}",offset_of!(CostRetentionInventory,now),size_of::<u64>());
++        println!("COST_FIELD name=best offset={} bytes={}",offset_of!(CostRetentionInventory,best),size_of::<Option<RetentionRank>>());
++        println!("COST_FIELD name=iterator offset={} bytes={}",offset_of!(CostRetentionInventory,iterator),size_of::<std::iter::Enumerate<std::slice::Iter<'static, SwiftSlot>>>());
++        println!("COST_FIELD name=loop_index offset={} bytes={}",offset_of!(CostRetentionInventory,loop_index),size_of::<usize>());
++        println!("COST_FIELD name=loop_slot offset={} bytes={}",offset_of!(CostRetentionInventory,loop_slot),size_of::<&'static SwiftSlot>());
++        println!("COST_FIELD name=resident offset={} bytes={}",offset_of!(CostRetentionInventory,resident),size_of::<&'static SwiftResident>());
++        println!("COST_FIELD name=candidate offset={} bytes={}",offset_of!(CostRetentionInventory,candidate),size_of::<RetentionRank>());
++        println!("COST_FIELD name=previous offset={} bytes={}",offset_of!(CostRetentionInventory,previous),size_of::<RetentionRank>());
++        println!("COST_FIELD name=before offset={} bytes={}",offset_of!(CostRetentionInventory,before),size_of::<bool>());
++        println!("COST_FIELD name=helper_candidate offset={} bytes={}",offset_of!(CostRetentionInventory,helper_candidate),size_of::<RetentionRank>());
++        println!("COST_FIELD name=helper_previous offset={} bytes={}",offset_of!(CostRetentionInventory,helper_previous),size_of::<RetentionRank>());
++        println!("COST_FIELD name=helper_meter offset={} bytes={}",offset_of!(CostRetentionInventory,helper_meter),size_of::<&'static mut SwiftMeter<'static, 'static>>());
++        println!("COST_FIELD name=left offset={} bytes={}",offset_of!(CostRetentionInventory,left),size_of::<u128>());
++        println!("COST_FIELD name=right offset={} bytes={}",offset_of!(CostRetentionInventory,right),size_of::<u128>());
++        println!("COST_FIELD name=product_option offset={} bytes={}",offset_of!(CostRetentionInventory,product_option),size_of::<Option<u128>>());
++        println!("COST_FIELD name=product_result offset={} bytes={}",offset_of!(CostRetentionInventory,product_result),size_of::<Result<u128, SwiftRunFailure>>());
++        println!("COST_FIELD name=age_option offset={} bytes={}",offset_of!(CostRetentionInventory,age_option),size_of::<Option<u64>>());
++        println!("COST_FIELD name=age_result offset={} bytes={}",offset_of!(CostRetentionInventory,age_result),size_of::<Result<u64, SwiftRunFailure>>());
++        println!("COST_FIELD name=compare_return offset={} bytes={}",offset_of!(CostRetentionInventory,compare_return),size_of::<Result<bool, SwiftRunFailure>>());
++        println!("COST_FIELD name=victim_return offset={} bytes={}",offset_of!(CostRetentionInventory,victim_return),size_of::<Result<usize, SwiftRunFailure>>());
++        println!("COST_FIELD name=best_map_receiver offset={} bytes={}",offset_of!(CostRetentionInventory,best_map_receiver),size_of::<Option<RetentionRank>>());
++        println!("COST_FIELD name=best_map_arg offset={} bytes={}",offset_of!(CostRetentionInventory,best_map_arg),size_of::<RetentionRank>());
++        println!("COST_FIELD name=best_map_result offset={} bytes={}",offset_of!(CostRetentionInventory,best_map_result),size_of::<Option<usize>>());
++        println!("COST_FIELD name=failure_reborrow offset={} bytes={}",offset_of!(CostRetentionInventory,failure_reborrow),size_of::<&'static mut SwiftMeter<'static, 'static>>());
++        println!("COST_FIELD name=cost_method_self offset={} bytes={}",offset_of!(CostRetentionInventory,cost_method_self),size_of::<decode::Counts>());
++        println!("COST_FIELD name=cost_method_body_bytes offset={} bytes={}",offset_of!(CostRetentionInventory,cost_method_body_bytes),size_of::<usize>());
++        println!("COST_FIELD name=cost_conversion offset={} bytes={}",offset_of!(CostRetentionInventory,cost_conversion),size_of::<Result<u64, std::num::TryFromIntError>>());
++        println!("COST_FIELD name=cost_intermediate offset={} bytes={}",offset_of!(CostRetentionInventory,cost_intermediate),size_of::<Option<u64>>());
++        println!("COST_FIELD name=cost_map_arg offset={} bytes={}",offset_of!(CostRetentionInventory,cost_map_arg),size_of::<u64>());
++        println!("COST_FIELD name=cost_return offset={} bytes={}",offset_of!(CostRetentionInventory,cost_return),size_of::<Option<u64>>());
++        println!("COST_FIELD name=build_cost offset={} bytes={}",offset_of!(CostRetentionInventory,build_cost),size_of::<u64>());
++        println!("COST_FIELD name=build_cost_result offset={} bytes={}",offset_of!(CostRetentionInventory,build_cost_result),size_of::<Result<u64, SwiftRunFailure>>());
++        println!("COST_FIELD name=build_cost_receiver offset={} bytes={}",offset_of!(CostRetentionInventory,build_cost_receiver),size_of::<decode::Counts>());
++        println!("COST_FIELD name=build_cost_body offset={} bytes={}",offset_of!(CostRetentionInventory,build_cost_body),size_of::<usize>());
++        println!("COST_FIELD name=build_meter_reborrow offset={} bytes={}",offset_of!(CostRetentionInventory,build_meter_reborrow),size_of::<&'static mut SwiftMeter<'static, 'static>>());
++        println!("COST_FIELD name=default_slots offset={} bytes={}",offset_of!(CostRetentionInventory,default_slots),size_of::<&'static [SwiftSlot]>());
++        println!("COST_FIELD name=default_plan offset={} bytes={}",offset_of!(CostRetentionInventory,default_plan),size_of::<&'static [bool; 64]>());
++        println!("COST_FIELD name=default_meter offset={} bytes={}",offset_of!(CostRetentionInventory,default_meter),size_of::<&'static mut SwiftMeter<'static, 'static>>());
++        println!("COST_FIELD name=default_oldest offset={} bytes={}",offset_of!(CostRetentionInventory,default_oldest),size_of::<Option<usize>>());
++        println!("COST_FIELD name=default_iterator offset={} bytes={}",offset_of!(CostRetentionInventory,default_iterator),size_of::<std::iter::Enumerate<std::slice::Iter<'static, SwiftSlot>>>());
++        println!("COST_FIELD name=default_index offset={} bytes={}",offset_of!(CostRetentionInventory,default_index),size_of::<usize>());
++        println!("COST_FIELD name=default_slot offset={} bytes={}",offset_of!(CostRetentionInventory,default_slot),size_of::<&'static SwiftSlot>());
++        println!("COST_FIELD name=default_closure_arg offset={} bytes={}",offset_of!(CostRetentionInventory,default_closure_arg),size_of::<usize>());
++        println!("COST_FIELD name=default_result offset={} bytes={}",offset_of!(CostRetentionInventory,default_result),size_of::<Result<usize, SwiftRunFailure>>());
++    }
++}
+--- live/src/experimental_swift_reactor/cache_tests.rs
++++ candidate/src/experimental_swift_reactor/cache_tests.rs
+@@ -3345,8 +3345,8 @@
+             }
+             credits.push(c.usage(None).cache_work - begin);
+         }
+-        assert_eq!(cache.usage().decodes, 288);
+-        assert_eq!(cache.usage().evictions, 224);
++        assert_eq!(cache.usage().decodes, if wide { 288 } else { 284 });
++        assert_eq!(cache.usage().evictions, if wide { 224 } else { 220 });
+         assert!(c.usage(None).reservations.peak_tickets <= 86);
+         println!("PLAN_COST wide={wide} fixed={fixed} constructor_work={start} sweeps={credits:?} usage={:?} tickets={}/{}",cache.usage(),c.usage(None).reservations.live_tickets,c.usage(None).reservations.peak_tickets);
+         println!(
+@@ -3857,3 +3857,7 @@
+     assert_eq!(stats.reallocations, 0);
+     finish(cache, c);
+ }
++
++include!("cost_common_tests.rs");
++
++include!("cost_candidate_tests.rs");

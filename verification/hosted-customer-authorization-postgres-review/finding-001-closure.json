@@ -1,0 +1,20 @@
+{
+  "id": "AUTHZ-PG-REVIEW-001",
+  "status": "closed_by_independent_executable_review",
+  "original_finding": "finding-001.json",
+  "original_reproduction": "run-3/tests.log",
+  "correction_evidence": "correction-run-1/receipt.json",
+  "corrected_session_sha256": "7a0c4eb013b7b456480a342525e093652cc8ba6270f3bd5abdbcaee816dc6b7a",
+  "corrected_producer_test_sha256": "d7cbb6aaee3a6e9dd402b674e3d364ca3e1ef96f15e3066735bc34e1ac4c8f99",
+  "result": "42 of 42 methods pass: 25 producer and 17 independent",
+  "correction": "The existing recursive MEMBER check rejects each role whose literal three-character name prefix is pg_. All previous owner, role attribute, DML, function and FORCE RLS checks remain.",
+  "independent_regressions": [
+    "each grantable predefined role directly granted to runtime rejects",
+    "each grantable predefined role through a non-inherited intermediary rejects",
+    "indirect MEMBER=true, USAGE=false and SET=true confirmed by real PostgreSQL",
+    "unprivileged intermediary alone and restored runtime remain allowed"
+  ],
+  "not_directly_grantable": "pg_database_owner has implicit membership and cannot be GRANTed; the same literal prefix guard covers it, but the grant-only probes do not change database ownership or exercise that implicit-owner case",
+  "cleanup": {"postgres_stopped": true, "owned_scratch_removed": true},
+  "limitations": "Finite local durable lookup and runtime guard only. Standard test-harness integration is separately pending review. No host/file/program capability was invoked; no production route or deployment is accepted."
+}

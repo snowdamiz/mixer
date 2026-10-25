@@ -1,0 +1,34 @@
+    warning: redefining module MixerHosted.Repo.Migrations.AddCustomerAuthorization (current version defined in memory)
+    │
+  1 │ defmodule MixerHosted.Repo.Migrations.AddCustomerAuthorization do
+    │ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    │
+    └─ /Users/andreyyurlov/Documents/dev/mixer/hosted/priv/repo/migrations/20261025000003_add_customer_authorization.exs:1: MixerHosted.Repo.Migrations.AddCustomerAuthorization (module)
+
+    warning: redefining module MixerHosted.Repo.Migrations.AddBuildAggregateLimits (current version defined in memory)
+    │
+  1 │ defmodule MixerHosted.Repo.Migrations.AddBuildAggregateLimits do
+    │ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    │
+    └─ /Users/andreyyurlov/Documents/dev/mixer/hosted/priv/repo/migrations/20261025000002_add_build_aggregate_limits.exs:1: MixerHosted.Repo.Migrations.AddBuildAggregateLimits (module)
+
+** (Postgrex.Error) ERROR 2BP01 (dependent_objects_still_exist) cannot drop table mixer_authz_memberships because other objects depend on it
+
+    hint: Use DROP ... CASCADE to drop the dependent objects too.
+
+policy scoped_read on table mixer_authz_organizations depends on table mixer_authz_memberships
+policy scoped_lock on table mixer_authz_organizations depends on table mixer_authz_memberships
+policy scoped_read on table mixer_authz_projects depends on table mixer_authz_memberships
+policy scoped_lock on table mixer_authz_projects depends on table mixer_authz_memberships
+policy scoped_read on table mixer_authz_applications depends on table mixer_authz_memberships
+policy scoped_lock on table mixer_authz_applications depends on table mixer_authz_memberships
+policy scoped_read on table mixer_authz_environments depends on table mixer_authz_memberships
+policy scoped_lock on table mixer_authz_environments depends on table mixer_authz_memberships
+    (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1121: Ecto.Adapters.SQL.raise_sql_call_error/1
+    (elixir 1.20.4) lib/enum.ex:1725: Enum."-map/2-lists^map/1-1-"/2
+    (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1242: Ecto.Adapters.SQL.execute_ddl/4
+    (ecto_sql 3.14.0) lib/ecto/migration/runner.ex:350: Ecto.Migration.Runner.log_and_execute_ddl/3
+    (elixir 1.20.4) lib/enum.ex:1725: Enum."-map/2-lists^map/1-1-"/2
+    (elixir 1.20.4) lib/enum.ex:1725: Enum."-map/2-lists^map/1-1-"/2
+    (ecto_sql 3.14.0) lib/ecto/migration/runner.ex:313: Ecto.Migration.Runner.perform_operation/3
+    (stdlib 8.1) timer.erl:599: :timer.tc/2

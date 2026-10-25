@@ -1,0 +1,130 @@
+{
+  "status": "passed",
+  "command": [
+    "python3",
+    "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-customer-authorization-postgres-review/final_audit.py"
+  ],
+  "script_sha256": "b4a12cec5ff78482e7a88a2d8d6aecc7983d8a2feb60afc446406bc8050aa9c6",
+  "source_revision_context": "cb56d4b9d979ffc02554be991466a180e7882cd3 supplied by root",
+  "producer_seals": [
+    {
+      "path": "verification/hosted-customer-authorization-postgres/seal.json",
+      "sha256": "ef9ee785e16d5e52e8388ddccb9b0f0471d7d2a428aaf173e103c476fe3b7f79",
+      "file_count": 208,
+      "mismatches": []
+    },
+    {
+      "path": "verification/hosted-customer-authorization-postgres/correction-seal.json",
+      "sha256": "007991642ca11ff6ff23169db82b886a8ea1624cb451f00c0b1f7a4b37764904",
+      "file_count": 30,
+      "mismatches": []
+    },
+    {
+      "path": "verification/hosted-customer-authorization-postgres/ci-integration/seal.json",
+      "sha256": "c70428caa1be3d314f1b49fbc4f2b2646227e7fcda94ec9283dc563f842f6149",
+      "file_count": 194,
+      "mismatches": []
+    }
+  ],
+  "review_runs": [
+    {
+      "run": "run-1",
+      "status": "failed",
+      "source_tree_sha256": "d9bf1e706802ef02bd11a8d756736d160eff0bc64d3330a70af962b754f455fd",
+      "input_count": 14,
+      "archived_inputs_match": true,
+      "command_logs_match": true,
+      "current_live_inputs_match": false,
+      "cleanup": {
+        "postgres_stopped": true,
+        "owned_scratch_removed": true
+      }
+    },
+    {
+      "run": "run-2",
+      "status": "failed",
+      "source_tree_sha256": "6e7e035dec8d460fe61a8ce274a117c8086de1108f3edee32840aabe1d3c8194",
+      "input_count": 14,
+      "archived_inputs_match": true,
+      "command_logs_match": true,
+      "current_live_inputs_match": false,
+      "cleanup": {
+        "postgres_stopped": true,
+        "owned_scratch_removed": true
+      }
+    },
+    {
+      "run": "run-3",
+      "status": "failed",
+      "source_tree_sha256": "f7cc6b622833e1dc5a542dab7fa449a5dc443a4c54ea17c3493c836651a4fe38",
+      "input_count": 14,
+      "archived_inputs_match": true,
+      "command_logs_match": true,
+      "current_live_inputs_match": false,
+      "cleanup": {
+        "postgres_stopped": true,
+        "owned_scratch_removed": true
+      }
+    },
+    {
+      "run": "correction-run-1",
+      "status": "passed",
+      "source_tree_sha256": "fbf1536af4185a96f749717c22899c8b5ac2beb81a568d980e89a40c2cb7074e",
+      "input_count": 14,
+      "archived_inputs_match": true,
+      "command_logs_match": true,
+      "current_live_inputs_match": false,
+      "cleanup": {
+        "postgres_stopped": true,
+        "owned_scratch_removed": true
+      }
+    },
+    {
+      "run": "ci-integration-final-run-1",
+      "status": "passed",
+      "source_tree_sha256": "d04ddfb0488be193a2cfd9e42390e8ac4f2b92bda2d1bf816ac713cf4680da9a",
+      "input_count": 25,
+      "archived_inputs_match": true,
+      "command_logs_match": true,
+      "current_live_inputs_match": true,
+      "cleanup": {
+        "postgres_stopped": true,
+        "owned_scratch_removed": true
+      }
+    },
+    {
+      "run": "standalone-final-run-1",
+      "status": "passed",
+      "source_tree_sha256": "bb5e183d44275cf53565b28021b54eb2fefa59833634b01b26fd1cc8b3c65d89",
+      "input_count": 14,
+      "archived_inputs_match": true,
+      "command_logs_match": true,
+      "current_live_inputs_match": true,
+      "cleanup": {
+        "postgres_stopped": true,
+        "owned_scratch_removed": true
+      }
+    }
+  ],
+  "exact_shared_helper_sha256": "648bd53e0b94641cd5764486b28e7c99e2687447cccf59ecdba1005ec323ed3b",
+  "shared_harness_main_executed": false,
+  "test_side_migration_load_executed": true,
+  "independent_delta_matches_producer_patch": true,
+  "final_methods_per_mode": {
+    "producer": 25,
+    "independent": 17,
+    "total": 42
+  },
+  "all_ordinary_migrations": 5,
+  "rollback_reapply_latest_two": true,
+  "scope": "Finite selected ordinary PostgreSQL17 evidence adapter and bounded fixture/migration integration only",
+  "pending": [
+    "PostgreSQL16 and full standard CI",
+    "five ordinary changed suites runtime execution including held-worker assertions",
+    "trusted-clock before-effect check",
+    "complete immutable audit revisions and domain/idempotency/Oban atomicity",
+    "protected customer routes/console",
+    "audited provisioning/non-recycling/writers",
+    "provider/Neon/TLS/deployment/operations/FieldLog/GA"
+  ]
+}

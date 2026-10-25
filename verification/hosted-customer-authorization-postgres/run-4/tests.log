@@ -1,0 +1,57 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+
+MixerHosted.Authorization.PostgresRepositoryTest [/Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs]
+  * test real runtime role produces the existing complete callback envelope and role projection [L#298]  * test real runtime role produces the existing complete callback envelope and role projection (0.00ms) [L#298]
+  * test all six human roles retain the exact three-action ceilings [L#323]  * test all six human roles retain the exact three-action ceilings (0.00ms) [L#323]
+  * test scope intersection, unsupported actions, classes and future iat keep existing semantics [L#345]  * test scope intersection, unsupported actions, classes and future iat keep existing semantics (0.00ms) [L#345]
+  * test exact identity linkage rejects foreign issuer subject client profile version and jti [L#361]  * test exact identity linkage rejects foreign issuer subject client profile version and jti (0.00ms) [L#361]
+  * test current profile binding principal family and credential state fail closed [L#374]  * test current profile binding principal family and credential state fail closed (0.00ms) [L#374]
+  * test family and credential validity windows intersect and enforce issued-at fences [L#388]  * test family and credential validity windows intersect and enforce issued-at fences (0.00ms) [L#388]
+  * test stored ancestry and every inactive parent reject mismatched targets [L#407]  * test stored ancestry and every inactive parent reject mismatched targets (0.00ms) [L#407]
+  * test organization_only is not visibility while all_projects is explicit and bounded [L#430]  * test organization_only is not visibility while all_projects is explicit and bounded (0.00ms) [L#430]
+  * test 64 exact matching lifecycle rows are accepted and 65 fail unavailable even if inactive [L#458]  * test 64 exact matching lifecycle rows are accepted and 65 fail unavailable even if inactive (0.00ms) [L#458]
+  * test membership lookup excludes unrelated project and organization-only population [L#475]  * test membership lookup excludes unrelated project and organization-only population (0.00ms) [L#475]
+  * test revoked invited and expired memberships never produce target visibility [L#487]  * test revoked invited and expired memberships never produce target visibility (0.00ms) [L#487]
+  * test FORCE RLS applies to nonlogin helper owner and runtime has no direct row-lock or mutation authority [L#500]  * test FORCE RLS applies to nonlogin helper owner and runtime has no direct row-lock or mutation authority (0.00ms) [L#500]
+  * test missing context returns no identity policy membership or resource rows [L#537]  * test missing context returns no identity policy membership or resource rows (0.00ms) [L#537]
+  * test RLS ties derived principal to exact verified binding and tenant scope [L#546]  * test RLS ties derived principal to exact verified binding and tenant scope (0.00ms) [L#546]
+  * test runtime refuses owner elevated helper-owner and direct authorization DML grants [L#587]  * test runtime refuses owner elevated helper-owner and direct authorization DML grants (0.00ms) [L#587]
+  * test nested transactions malformed lookups and missing repositories fail closed [L#610]  * test nested transactions malformed lookups and missing repositories fail closed (0.00ms) [L#610]
+  * test callback errors roll back context and no context leaks through connection reuse [L#634]  * test callback errors roll back context and no context leaks through connection reuse (0.00ms) [L#634]
+  * test all six canonical conflicting lock classes wait for an admitted lookup then revoke [L#652]  * test all six canonical conflicting lock classes wait for an admitted lookup then revoke (0.00ms) [L#652]
+  * test all six reverse lock orderings read freshly committed revocation after their wait [L#669]  * test all six reverse lock orderings read freshly committed revocation after their wait (0.00ms) [L#669]
+  * test project membership provisioning serializes under the existing project head [L#694]  * test project membership provisioning serializes under the existing project head (0.00ms) [L#694]
+  * test 500ms lock timeout returns unavailable and releases transaction context [L#725]  * test 500ms lock timeout returns unavailable and releases transaction context (0.00ms) [L#725]
+  * test foreign-key role lifecycle and parent constraints reject malformed durable state [L#739]  * test foreign-key role lifecycle and parent constraints reject malformed durable state (0.00ms) [L#739]
+
+  0) MixerHosted.Authorization.PostgresRepositoryTest: failure on setup_all callback, all tests have been invalidated
+     ** (Ecto.MigrationError) Migrations failed to run because the connection pool size is less than 2.
+
+     Ecto requires a pool size of at least 2 to support concurrent migrators.
+     When migrations run, Ecto uses one connection to maintain a lock and
+     another to run migrations.
+
+     If you are running migrations with Mix, you can increase the number
+     of connections via the pool size option:
+
+         mix ecto.migrate --pool-size 2
+
+     If you are running the Ecto.Migrator programmatically, you can configure
+     the pool size via your application config:
+
+         config :my_app, Repo,
+           ...,
+           pool_size: 2 # at least
+
+     stacktrace:
+       (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1250: Ecto.Adapters.SQL.raise_migration_pool_size_error/0
+       (ecto_sql 3.14.0) lib/ecto/adapters/postgres.ex:311: Ecto.Adapters.Postgres.lock_for_migrations/3
+       (ecto_sql 3.14.0) lib/ecto/migrator.ex:584: Ecto.Migrator.lock_for_migrations/4
+       /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:266: MixerHosted.Authorization.PostgresRepositoryTest.__ex_unit_setup_all_0/1
+       /Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/authorization/postgres_repository_test.exs:236: MixerHosted.Authorization.PostgresRepositoryTest.__ex_unit__/2
+
+
+Finished in 0.3 seconds (0.2s on load, 0.00s async, 0.1s sync)
+
+Result: 0 tests, 22 invalid

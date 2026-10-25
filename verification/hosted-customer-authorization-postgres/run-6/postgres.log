@@ -1,0 +1,48 @@
+2026-10-25 06:54:13.926 EDT [32346] LOG:  starting PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit
+2026-10-25 06:54:13.927 EDT [32346] LOG:  listening on IPv4 address "127.0.0.1", port 59915
+2026-10-25 06:54:13.930 EDT [32349] LOG:  database system was shut down at 2026-10-25 06:54:13 EDT
+2026-10-25 06:54:13.932 EDT [32346] LOG:  database system is ready to accept connections
+2026-10-25 06:54:15.243 EDT [32408] ERROR:  permission denied for table mixer_authz_principals
+2026-10-25 06:54:15.243 EDT [32408] STATEMENT:  UPDATE public.mixer_authz_principals SET active=true
+2026-10-25 06:54:15.246 EDT [32406] ERROR:  permission denied for table mixer_authz_profiles
+2026-10-25 06:54:15.246 EDT [32406] STATEMENT:  SELECT * FROM public.mixer_authz_profiles FOR SHARE
+2026-10-25 06:54:15.246 EDT [32405] ERROR:  permission denied to set role "mixer_authz_owner"
+2026-10-25 06:54:15.246 EDT [32405] STATEMENT:  SET ROLE mixer_authz_owner
+2026-10-25 06:54:15.247 EDT [32411] ERROR:  permission denied for schema public at character 14
+2026-10-25 06:54:15.247 EDT [32411] STATEMENT:  CREATE TABLE public.runtime_escalation(id int)
+2026-10-25 06:54:15.524 EDT [32410] ERROR:  canceling statement due to user request
+2026-10-25 06:54:15.524 EDT [32410] CONTEXT:  while locking tuple (0,1) in relation "mixer_authz_principals"
+2026-10-25 06:54:15.524 EDT [32410] STATEMENT:  SELECT 1 FROM public.mixer_authz_principals WHERE id = 'person' FOR UPDATE
+2026-10-25 06:54:16.258 EDT [32435] ERROR:  canceling statement due to lock timeout
+2026-10-25 06:54:16.258 EDT [32435] CONTEXT:  while locking tuple (0,1) in relation "mixer_authz_project_heads"
+	SQL statement "SELECT 1 FROM public.mixer_authz_project_heads WHERE organization_id = current_setting('mixer.authz.organization_id', true) AND project_id = current_setting('mixer.authz.project_id', true) FOR SHARE"
+	PL/pgSQL function public.mixer_authz_lock_project_heads() line 3 at PERFORM
+2026-10-25 06:54:16.258 EDT [32435] STATEMENT:  SELECT public.mixer_authz_lock_project_heads()
+2026-10-25 06:54:16.295 EDT [32412] ERROR:  new row for relation "mixer_authz_memberships" violates check constraint "mixer_authz_memberships_role_check"
+2026-10-25 06:54:16.295 EDT [32412] DETAIL:  Failing row contains (member, person, org-a, project-a, exact_project, publisher, t, 0, null, 1).
+2026-10-25 06:54:16.295 EDT [32412] STATEMENT:  UPDATE public.mixer_authz_memberships SET role='publisher' WHERE id='member'
+2026-10-25 06:54:16.295 EDT [32413] ERROR:  new row for relation "mixer_authz_memberships" violates check constraint "mixer_authz_memberships_check1"
+2026-10-25 06:54:16.295 EDT [32413] DETAIL:  Failing row contains (member, person, org-a, project-a, all_projects, developer, t, 0, null, 1).
+2026-10-25 06:54:16.295 EDT [32413] STATEMENT:  UPDATE public.mixer_authz_memberships SET project_binding='all_projects' WHERE id='member'
+2026-10-25 06:54:16.296 EDT [32436] ERROR:  insert or update on table "mixer_authz_memberships" violates foreign key constraint "mixer_authz_memberships_organization_id_project_id_fkey"
+2026-10-25 06:54:16.296 EDT [32436] DETAIL:  Key (organization_id, project_id)=(org-a, missing) is not present in table "mixer_authz_projects".
+2026-10-25 06:54:16.296 EDT [32436] STATEMENT:  UPDATE public.mixer_authz_memberships SET project_id='missing' WHERE id='member'
+2026-10-25 06:54:16.296 EDT [32407] ERROR:  insert or update on table "mixer_authz_environments" violates foreign key constraint "mixer_authz_environments_organization_id_project_id_applic_fkey"
+2026-10-25 06:54:16.296 EDT [32407] DETAIL:  Key (organization_id, project_id, application_id)=(org-a, project-a, app-b) is not present in table "mixer_authz_applications".
+2026-10-25 06:54:16.296 EDT [32407] STATEMENT:  UPDATE public.mixer_authz_environments SET application_id='app-b' WHERE organization_id='org-a' AND project_id='project-a'
+2026-10-25 06:54:16.296 EDT [32404] ERROR:  insert or update on table "mixer_authz_credentials" violates foreign key constraint "mixer_authz_credentials_family_id_profile_id_profile_versi_fkey"
+2026-10-25 06:54:16.296 EDT [32404] DETAIL:  Key (family_id, profile_id, profile_version, principal_id)=(other-family, profile, 1, person) is not present in table "mixer_authz_families".
+2026-10-25 06:54:16.296 EDT [32404] STATEMENT:  UPDATE public.mixer_authz_credentials SET family_id='other-family' WHERE profile_id='profile'
+2026-10-25 06:54:16.297 EDT [32414] ERROR:  insert or update on table "mixer_authz_bindings" violates foreign key constraint "mixer_authz_bindings_principal_id_identity_class_fkey"
+2026-10-25 06:54:16.297 EDT [32414] DETAIL:  Key (principal_id, identity_class)=(service, human) is not present in table "mixer_authz_principals".
+2026-10-25 06:54:16.297 EDT [32414] STATEMENT:  UPDATE public.mixer_authz_bindings SET principal_id='service' WHERE profile_id='profile'
+2026-10-25 06:54:16.297 EDT [32412] ERROR:  new row for relation "mixer_authz_families" violates check constraint "mixer_authz_families_check"
+2026-10-25 06:54:16.297 EDT [32412] DETAIL:  Failing row contains (family, profile, 1, person, t, 0, 0, 1).
+2026-10-25 06:54:16.297 EDT [32412] STATEMENT:  UPDATE public.mixer_authz_families SET expires_at=0 WHERE id='family'
+2026-10-25 06:54:16.345 EDT [32346] LOG:  received fast shutdown request
+2026-10-25 06:54:16.345 EDT [32346] LOG:  aborting any active transactions
+2026-10-25 06:54:16.346 EDT [32346] LOG:  background worker "logical replication launcher" (PID 32352) exited with exit code 1
+2026-10-25 06:54:16.346 EDT [32347] LOG:  shutting down
+2026-10-25 06:54:16.346 EDT [32347] LOG:  checkpoint starting: shutdown immediate
+2026-10-25 06:54:16.451 EDT [32347] LOG:  checkpoint complete: wrote 1056 buffers (6.4%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.037 s, sync=0.037 s, total=0.105 s; sync files=1932, longest=0.001 s, average=0.001 s; distance=6136 kB, estimate=6136 kB; lsn=0/1B18C88, redo lsn=0/1B18C88
+2026-10-25 06:54:16.453 EDT [32346] LOG:  database system is shut down

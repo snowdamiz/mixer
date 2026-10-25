@@ -24,8 +24,12 @@ its older pending/selected statements do not override the current state.
    budget to rebuilding previously decoded functions. A reviewed isolated segmented-LRU
    candidate regresses in one same-budget full comparison to 8,746,437 instructions
    and is rejected for integration. Final consuming usage is zero and owned products
-   are removed. Choose the next retention design from this evidence with exact
-   work/memory accounting; no new retry is selected. See
+   are removed. A second isolated cost/age candidate also regresses on all six
+   finite work traces and is rejected before any full-target run. Its recorded
+   rejection passes independent audit and all owned scratch is removed. Choose
+   the next retention design from this evidence with exact work/memory accounting;
+   no new retry is selected. See
+   [the finite rejection](docs/swift-cost-retention-candidate-review.md),
    [the rejected result](docs/swift-retention-runtime.md) and
    [the integration](docs/swift-decode-plan-integration.md).
 2. **iOS shared UI:** the supplemental source and corrected frozen V7 host join
@@ -55,8 +59,15 @@ its older pending/selected statements do not override the current state.
    passes 47 targeted host tests and ten independent controls after review
    repairs. The pure human artifact/audit permission prerequisite now passes 30
    product tests and 23 independent probes after fixing incomplete callback-result
-   acceptance. Durable membership/transaction/RLS authorization and customer routes
-   remain pending. Preserve accurate unavailable
+   acceptance. The durable PostgreSQL lookup now passes 25 product methods and
+   17 independent probes, with scoped RLS, canonical revocation locks and strict
+   runtime-role checks. Focused CI fixture wiring and all-five-migration
+   apply/rollback/reapply checks pass after correcting rollback policy dependencies.
+   The result remains pure policy evidence: protected domain/audit/idempotency
+   transactions and customer routes remain pending. Full standard CI and its
+   PostgreSQL 16 environment still need the new delivery. See
+   [the current integration scope](docs/hosted-customer-authorization-postgres-ci-integration.md).
+   Preserve accurate unavailable
    states until data/auth is connected. Keep the website branding throughout.
 
 The frozen hosted catalog-inspector/authority-driver lanes and rejected outbound

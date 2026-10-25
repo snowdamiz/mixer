@@ -1,0 +1,21 @@
+{
+  "id": "AUTHZ-PG-REVIEW-001",
+  "priority": "P2",
+  "status": "changes_requested",
+  "title": "Reject predefined host file and server-program role authority at runtime admission",
+  "file": "hosted/lib/mixer_hosted/authorization/postgres/session.ex",
+  "line_start": 91,
+  "line_end": 94,
+  "frozen_source_sha256": "c5be3db1161d80962ba9e3b3b60629fff031f25aceab2cf252eb2d1c580d959c",
+  "reproduction": "run-3/tests.log",
+  "observed": {
+    "pg_read_server_files": "ordinary authorization returned ok Decision",
+    "pg_write_server_files": "ordinary authorization returned ok Decision",
+    "pg_execute_server_program": "ordinary authorization returned ok Decision"
+  },
+  "cause": "The role query checks role attributes but these predefined roles confer privileged capabilities without rolsuper, rolbypassrls or authz DML grants. Runtime can assume a granted role even with its own NOINHERIT setting.",
+  "required_fix": "Reject direct and indirect usable predefined elevated-role chains under the root-selected least-privilege runtime policy and add real-catalog regressions. Do not execute the privileged capabilities in the fixture.",
+  "scope": "Finite runtime safety/admission guard; no public route or production exploitation is asserted.",
+  "primary_reference": "https://www.postgresql.org/docs/17/predefined-roles.html",
+  "safety": "Only fixture GRANT, ordinary authorization evaluation and REVOKE ran. No server file or program action was invoked; owned cluster and scratch root were removed."
+}
