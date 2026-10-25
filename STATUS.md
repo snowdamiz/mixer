@@ -294,8 +294,13 @@ The corrected relation contract passes 12 producer and 16 independent source
 checks, with both incoming principal foreign keys included. Root verified 62
 input, four read-only context and 99 output bindings. All 48 relation runtime
 cases and forty owner runtime cases remain pending. PG16/17 representation
-qualification has started. The additive preparation SQL helper passes 39 producer
-PG17 methods and awaits independent review; no migration or caller is enabled. See [catalog review](docs/hosted-browser-catalog-surface-review.md),
+fixtures each pass 82 semantic checks and 23/24 actual mutation controls, with
+independent review underway. The additive preparation SQL helper passes 39 PG17
+and 38 independent PG16 methods. Review found unexpected PUBLIC grants could
+survive provisioning; initial and final exact new-object ACL checks now reject
+them, including third-party/default grants and grant options. Root accepts this
+component after auditing 22 source, 803 dependency and 62 output bindings. No
+migration, combined version-2 admission, caller or readiness is enabled. See [catalog review](docs/hosted-browser-catalog-surface-review.md),
 [contract review](docs/hosted-browser-lifecycle-runtime-contract-review.md) and
 [constructor acceptance](verification/hosted-browser-runtime-constructor-review/root-acceptance.json).
 
@@ -304,6 +309,13 @@ and [relation contract review](docs/hosted-browser-relation-admission-contract-r
 record the accepted component scope and remaining owner/runtime work.
 
 ## Delivery and pending qualification
+
+The decoder and corrected relation source contract are pushed as `0a6f110d`;
+all 317 committed paths and bytes were verified. Phoenix `40221267196` passes
+all workflow steps; Engine `40221267164` is still running. The preparation SQL
+component is accepted locally after its ACL correction. See
+[SQL review](docs/hosted-browser-activation-preparation-sql-review.md) and
+[root acceptance](verification/hosted-browser-activation-preparation-acl-correction/root-acceptance.json).
 
 The reviewed partial catalog prerequisite is pushed as `9d5c40ee`; 365 explicit
 paths and remote main were verified. Phoenix `40219535335` passes selected

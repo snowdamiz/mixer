@@ -161,9 +161,11 @@ The full plan remains incomplete; no GA gate is promoted.
    compare retained claims, current identity and configuration before use.
    The corrected relation contract passes 12 producer and 16 independent
    source checks, including both incoming principal foreign keys. Its 48 runtime
-   cases remain pending; separate PG16/17 representation qualification is underway.
-   The additive preparation SQL helper has 39 producer PG17 methods passing and
-   is in independent review; no migration or caller is enabled. Forty owner
+   cases remain pending. Both PG16/17 representation fixtures now pass 82
+   semantic checks, with 23/24 actual mutation controls; independent review
+   is underway. The additive preparation SQL helper passes 39 PG17 and 38
+   independent PG16 methods after rejecting unexpected new-object grants. Root
+   accepts this component; no migration or caller is enabled. Forty owner
    runtime adversity cases also remain pending. See
    [constructor review](docs/hosted-browser-runtime-constructor-review.md),
    [catalog review](docs/hosted-browser-catalog-surface-review.md) and

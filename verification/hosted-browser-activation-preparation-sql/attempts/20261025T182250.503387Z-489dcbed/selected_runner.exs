@@ -1,0 +1,5 @@
+ExUnit.start(autorun: false, seed: 0, max_cases: 1)
+Code.require_file("/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-activation-preparation-sql/attempts/20261025T182250.503387Z-489dcbed/inputs/verification/hosted-browser-activation-preparation-sql/sql_test.exs")
+r = ExUnit.run()
+File.write!("/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-activation-preparation-sql/attempts/20261025T182250.503387Z-489dcbed/tests.json", Jason.encode!(r))
+System.halt(if r.total >= 20 and r.failures == 0 and r.skipped == 0 and r.excluded == 0 and Map.get(r, :invalid, 0) == 0, do: 0, else: 1)

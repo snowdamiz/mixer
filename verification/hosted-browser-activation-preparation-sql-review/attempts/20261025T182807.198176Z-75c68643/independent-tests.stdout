@@ -1,0 +1,26 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+.................................
+
+  1) test dirty addition PUBLIC execution and usage must not survive upgrade (PreparationIndependentReview)
+     verification/hosted-browser-activation-preparation-sql-review/review.exs:388
+     match (=) failed
+     code:  assert {:error, %{postgres: %{code: :insufficient_privilege}}} = result
+     left:  {:error, %{postgres: %{code: :insufficient_privilege}}}
+     right: {:ok,
+             %Postgrex.Result{
+               command: :do,
+               columns: nil,
+               rows: nil,
+               num_rows: 0,
+               connection_id: 279,
+               messages: []
+             }}
+     stacktrace:
+       verification/hosted-browser-activation-preparation-sql-review/review.exs:402: (test)
+
+
+Finished in 2.0 seconds (0.00s async, 2.0s sync)
+
+Result: 33/34 passed
+Failed: 1 test

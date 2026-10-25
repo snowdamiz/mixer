@@ -1,0 +1,54 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+..............
+
+  1) test scope NULLs, empty words, ASCII grammar, duplicates, cardinality and aggregate bounds deny (MixerHosted.BrowserAuth.PreparationSQLTest)
+     verification/hosted-browser-activation-preparation-sql/attempts/20261025T181922.562073Z-347cf75f/inputs/verification/hosted-browser-activation-preparation-sql/sql_test.exs:279
+     match (=) failed
+     code:  assert {:ok, _} =
+              prepare(x, %{evidence() | scopes: ["mixer.workspace.read", String.duplicate("x", 1004)]})
+     left:  {:ok, _}
+     right: {:error,
+             %Postgrex.Error{
+               message: nil,
+               postgres: %{
+                 code: :raise_exception,
+                 line: "3911",
+                 message: "browser session unavailable",
+                 file: "pl_exec.c",
+                 routine: "exec_stmt_raise",
+                 unknown: "ERROR",
+                 where: "PL/pgSQL function public.mixer_browser_prepare_activation(bytea,bytea,bytea,bytea,bigint,public.mixer_browser_access_evidence) line 31 at RAISE",
+                 severity: "ERROR",
+                 pg_code: "P0001"
+               },
+               connection_id: 82416,
+               query: nil
+             }}
+     stacktrace:
+       verification/hosted-browser-activation-preparation-sql/attempts/20261025T181922.562073Z-347cf75f/inputs/verification/hosted-browser-activation-preparation-sql/sql_test.exs:310: (test)
+
+.....
+
+  2) test NULL stored security fields fail closed even in a deliberately weakened test-only schema (MixerHosted.BrowserAuth.PreparationSQLTest)
+     verification/hosted-browser-activation-preparation-sql/attempts/20261025T181922.562073Z-347cf75f/inputs/verification/hosted-browser-activation-preparation-sql/sql_test.exs:483
+     ** (Postgrex.Error) ERROR 23514 (check_violation) new row for relation "mixer_browser_oidc_attempts" violates check constraint "mixer_browser_oidc_attempts_check1"
+
+         table: mixer_browser_oidc_attempts
+         constraint: mixer_browser_oidc_attempts_check1
+
+     Failing row contains (\x48c48eeec7672f92383d44c57d170f50b256057f384165d1eaf0ef80b7de91..., \x57a6f5183d8f483f24d527585f633023, 2, 2, \xdf4dd59b89b21adc972ee18c6c4504f80c4fd31afa21b8d7e2de7233c5cec0..., SBzTTXip13LIHtLf9QPSdpvgNkz-Efbxo-iwARrZBSo, \xbf7171fa5393c6dca4db1ba280b6c53f955616dd712cfa7b919a2841526447..., humans, 1, https://issuer.fixture, console, https://console.fixture/auth/callback, workspace, \xe61f9a35539dd9d1d1cbce749fb3bced993a361f5da2d4c29490a636a3caf6..., 1792952364, 1792952514, claimed, \xcd017861145221ec28f2e572818119a7ee05cd4c96656b522521c1f5b65b6f..., 1792952364, null, null, 1, null, null, null, null).
+     code: for {table, key, params, column, error} <- [
+     stacktrace:
+       (postgrex 0.22.4) lib/postgrex.ex:381: Postgrex.query!/4
+       verification/hosted-browser-activation-preparation-sql/attempts/20261025T181922.562073Z-347cf75f/inputs/verification/hosted-browser-activation-preparation-sql/sql_test.exs:898: MixerHosted.BrowserAuth.PreparationSQLTest.drift/7
+       verification/hosted-browser-activation-preparation-sql/attempts/20261025T181922.562073Z-347cf75f/inputs/verification/hosted-browser-activation-preparation-sql/sql_test.exs:942: MixerHosted.BrowserAuth.PreparationSQLTest.null_drift/6
+       verification/hosted-browser-activation-preparation-sql/attempts/20261025T181922.562073Z-347cf75f/inputs/verification/hosted-browser-activation-preparation-sql/sql_test.exs:505: anonymous fn/3 in MixerHosted.BrowserAuth.PreparationSQLTest."test NULL stored security fields fail closed even in a deliberately weakened test-only schema"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       verification/hosted-browser-activation-preparation-sql/attempts/20261025T181922.562073Z-347cf75f/inputs/verification/hosted-browser-activation-preparation-sql/sql_test.exs:485: (test)
+
+........
+Finished in 1.9 seconds (0.00s async, 1.9s sync)
+
+Result: 27/29 passed
+Failed: 2 tests
