@@ -17,7 +17,8 @@ Preauth checkpoint `72340253` now passes every Phoenix CI step, including
 Begin-login checkpoint `273a1e48` passes every Phoenix CI step, including
 664 ordinary methods with two existing skips. Its Engine workflow passes all three jobs.
 Callback-contract and recorded Swift-prototype review checkpoint `6d98de42`
-is pushed; its selected Engine workflow is running.
+now passes all three Engine CI jobs.
+Selected finite Swift completion checkpoint `68468f8f` now passes all three Engine jobs.
 Native runtime and capture remain paused.
 All eighteen work packages remain in scope:
 sixteen are in progress and two are marked ready. No launch gate is verified;
@@ -131,7 +132,12 @@ controls. Root verifies 380 sealed members and accepts six selected fixture path
 with the independent 19-phase inventory: 16,186 of 16,384 logical bytes, leaving
 198 bytes. The separate 51,712-byte named-role union is not a simultaneous peak.
 Inherited serializer inventory and CODE-buffer count mismatch remain open. Complete
-diagnostic/analyzer/target acceptance remains pending. See
+diagnostic/analyzer/target acceptance remains pending. The corrected analyzer design now
+passes 25 producer and 23 independent methods, including 35,694 policy cases
+and 165 closed transitions. Root verifies 279 sealed members and accepts the
+design only. A bounded safe-File-borrow framing library is selected; semantic
+replay, real adapters, CLI/custody and target execution remain pending. See
+[the analyzer design review](docs/swift-ordered-retention-analyzer-review.md),
 [the completion review](docs/swift-ordered-retention-diagnostic-completion-review.md), [the prototype review](docs/swift-ordered-retention-diagnostic-rust-review.md),
 [the diagnostic design review](docs/swift-ordered-retention-diagnostic-design-review.md),
 [the rejected Rust result audit](docs/swift-count-plan-retention-candidate-review.md),

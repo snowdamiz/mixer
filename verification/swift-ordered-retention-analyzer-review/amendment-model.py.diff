@@ -1,0 +1,70 @@
+--- original/verification/swift-ordered-retention-analyzer-design/model.py
++++ amended/verification/swift-ordered-retention-analyzer-design/model.py
+@@ -145,3 +145,67 @@
+     assert stop >= begin
+     return {"completed": stop - begin if end is not None else 0,
+             "partial": stop - begin if failure is not None else 0}
++
++class OperationGate:
++    """Small source-seam state oracle; no full wire/identity validation."""
++    def __init__(self):
++        self.state = 'Idle'
++        self.pin_failed = self.terminal_failed = False
++        self.phase = 0
++
++    def event(self, kind, new_phase=None):
++        assert self.phase < 5  # phase5 has no further ordinary source event
++        if kind == 'Release':
++            assert self.state == 'Idle'
++            return
++        if kind == 'Phase':
++            assert self.state == 'Idle' and self.phase < new_phase <= 5
++            self.phase = new_phase
++            return
++        if kind == 'TerminalFailure':
++            assert self.state == 'Idle' and not self.terminal_failed
++            self.terminal_failed = True
++            return
++        if kind == 'PinFailure':
++            assert self.state != 'Idle' and not self.pin_failed and not self.terminal_failed
++            self.pin_failed = True; self.state = 'Idle'
++            return
++        assert not self.pin_failed and not self.terminal_failed
++        if kind == 'AcquireBegin':
++            assert self.state == 'Idle' and self.phase < 4
++            self.state = 'Acquire'
++            return
++        transitions = {'LookupHit': ('Acquire', 'Hit'),
++            'LookupMiss': ('Acquire', 'Miss'), 'PlanBegin': ('Miss', 'Scan'),
++            'PlanEnd': ('Scan', 'Plan'), 'MissReady': ('Plan', 'Ready'),
++            'EvictBegin': ('Ready', 'EvictBegin'), 'EvictTaken': ('EvictBegin', 'EvictTaken'),
++            'EvictCommit': ('EvictTaken', 'Ready'), 'BuildBegin': ('Ready', 'Build'),
++            'BuildReady': ('Build', 'Built')}
++        if kind == 'PinPublished':
++            assert self.state in ('Hit', 'Built')
++            self.state = 'Idle'
++            return
++        before, after = transitions[kind]
++        assert self.state == before
++        self.state = after
++
++def binding_admission(receipt_verified, registered_acceptance, exact_closure,
++                      binary_verified, context_verified):
++    """Boolean oracle only; real implementation must use a private verified
++    receipt constructor, never accept these booleans from a caller."""
++    return all((receipt_verified, registered_acceptance, exact_closure,
++                binary_verified, context_verified))
++
++def assembled_hash_units(parts, maximum=65536):
++    assert 0 < len(parts) <= 32 and all(n > 0 for n in parts)
++    total = sum(parts)
++    assert total <= maximum
++    return (total + 63) // 64
++
++def exact_context(parts, eof_results):
++    assert 0 < len(parts) <= 32 and all(n > 0 for n in parts)
++    assert sum(parts) == 8192
++    assert 0 < len(eof_results) <= 32
++    assert all(n == 'Interrupted' for n in eof_results[:-1])
++    assert eof_results[-1] == 0
++    return len(parts) + len(eof_results)

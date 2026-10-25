@@ -1,0 +1,273 @@
+{
+  "agent": {
+    "context": "fresh bounded delegation",
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "xhigh"
+  },
+  "at": "2026-10-25T22:02:15.398315+00:00",
+  "binary": {
+    "path": "verification/swift-ordered-retention-analyzer-review/commands/run-3/layout-probe",
+    "sha256": "e81e1523c193d2a9db21efc637905a6b645e53bb84215918d378163dc1a1b7d7"
+  },
+  "cleanup": {
+    "all_synchronous_children_reaped": true,
+    "capture_started": false,
+    "native_started": false,
+    "only_owned_evidence_binary_retained": true,
+    "process_discovery": false,
+    "product_target_started": false,
+    "scratch_created": false,
+    "unrelated_processes_touched": false
+  },
+  "commands": [
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "name": "python-version",
+      "returncode": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "f615dc9512de8b165e2b595e5cdc608a3ba7927ae92f959c5b42ec3d58e2ffa8",
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+        "--version",
+        "--verbose"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "name": "rust-version",
+      "returncode": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "352d6857968e80a6357a926ac685b9b07f77c479aaafde33e73a53945e802909",
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/git",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "name": "git-version",
+      "returncode": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "c9e40977101870d17ec3a0ac1e444ceb5e268d1c0a37d6edd8a5ed477734a53c",
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-ordered-retention-analyzer-review/inputs-amended/verification/swift-ordered-retention-analyzer-design",
+        "-p",
+        "test_model.py",
+        "-v"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "name": "producer-model",
+      "returncode": 0,
+      "stderr_sha256": "c95baed934cfd33b703d8e9e6058ae9f923ce06ecf787de536f91b478798c930",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-ordered-retention-analyzer-review",
+        "-p",
+        "test_independent.py",
+        "-v"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "name": "independent-model",
+      "returncode": 0,
+      "stderr_sha256": "9c2fa67607dd81e36a6292afe51e1c06102a21f5961212d402249ed4af2b6ae8",
+      "stdout_sha256": "94e4051d7b9fa91558dda8093833b704f6b8c461dc8bc3870509ad05dad28857",
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+        "--edition=2021",
+        "-O",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-ordered-retention-analyzer-review/inputs-amended/verification/swift-ordered-retention-analyzer-design/layout.rs",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-ordered-retention-analyzer-review/commands/run-3/layout-probe"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "name": "layout-compile",
+      "returncode": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "timeout_seconds": 60
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-ordered-retention-analyzer-review/commands/run-3/layout-probe"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "name": "layout-execute",
+      "returncode": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "8f34ac2855e74496104bb49478a114c4447ef69a578ad5f8be4690998d7a6da5",
+      "timeout_seconds": 60
+    }
+  ],
+  "design_seal": "c52828b9bbd2aea835871f1f6b68c6dd29281499ee080e5e52fefe525d1e92a8",
+  "environment": {
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "REVIEW_DESIGN_SNAPSHOT": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-ordered-retention-analyzer-review/inputs-amended"
+  },
+  "invocation": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "verification/swift-ordered-retention-analyzer-review/run_review.py",
+    "--snapshot",
+    "inputs-amended",
+    "--design-seal",
+    "c52828b9bbd2aea835871f1f6b68c6dd29281499ee080e5e52fefe525d1e92a8"
+  ],
+  "passed": true,
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "revision": "68468f8fb73f21d2e4b388c41ad15fd01bfd0d93",
+  "scope": "Independent finite design review only; no analyzer implementation acceptance",
+  "source_archive_after": {
+    "archive": "verification/swift-ordered-retention-diagnostic-completion/candidate-source.tar.gz",
+    "members": 132,
+    "original_wire_authority_copies": 3,
+    "restored_or_executed": false,
+    "selected_source_copies": 3,
+    "sha256": "8006754e71929b81b86b645f766cdcc539a0b8a131ba8d62309f6874446265dc",
+    "uncompressed_bytes": 19326876
+  },
+  "source_archive_before": {
+    "archive": "verification/swift-ordered-retention-diagnostic-completion/candidate-source.tar.gz",
+    "members": 132,
+    "original_wire_authority_copies": 3,
+    "restored_or_executed": false,
+    "selected_source_copies": 3,
+    "sha256": "8006754e71929b81b86b645f766cdcc539a0b8a131ba8d62309f6874446265dc",
+    "uncompressed_bytes": 19326876
+  },
+  "source_tree_sha256": "8b479413faaeb3626d78c074362e29dea0945a5c6a83bb4bed5f547b593eac13",
+  "sources": [
+    {
+      "bytes": 19097,
+      "path": "verification/swift-ordered-retention-analyzer-review/test_independent.py",
+      "sha256": "49dd4633c5c277a2947abc5b1961b48f7ccfc1e425266d38acde32eb50a89e2d"
+    },
+    {
+      "bytes": 9771,
+      "path": "verification/swift-ordered-retention-analyzer-review/run_review.py",
+      "sha256": "708e7fb6f803e3728f241b7d14fa25276b9f095ee38409023a3d10b3fd650bb5"
+    },
+    {
+      "bytes": 6396,
+      "path": "verification/swift-ordered-retention-analyzer-review/inputs-amended/verification/swift-ordered-retention-analyzer-design/interface_schema.py",
+      "sha256": "1511b40e81a352456c1242c71dcc404b3fe1a6bbe5c3196413522ea604985da3"
+    },
+    {
+      "bytes": 8224,
+      "path": "verification/swift-ordered-retention-analyzer-review/inputs-amended/verification/swift-ordered-retention-analyzer-design/model.py",
+      "sha256": "d1ae12b660e3f3b9ba0b192584eb22f69b5e8f003efc446dad77051d54d0de18"
+    },
+    {
+      "bytes": 9525,
+      "path": "verification/swift-ordered-retention-analyzer-review/inputs-amended/verification/swift-ordered-retention-analyzer-design/test_model.py",
+      "sha256": "59ce0c0f7175d135acbe5d543b5e09889d9c81a7296b1640e6bbe5c4032518f0"
+    },
+    {
+      "bytes": 2812,
+      "path": "verification/swift-ordered-retention-analyzer-review/inputs-amended/verification/swift-ordered-retention-analyzer-design/layout.rs",
+      "sha256": "2a27eefdb8a2ba78101ca5410c67505a490c4b96b272a1503d80cdb73459664f"
+    },
+    {
+      "bytes": 54853,
+      "path": "verification/swift-ordered-retention-analyzer-review/inputs-amended/docs/swift-ordered-retention-analyzer.md",
+      "sha256": "b25ceb197c5cb31a3f7ee7159470e321677d39faca9f77bbbc48a711df803390"
+    },
+    {
+      "bytes": 7442,
+      "path": "verification/swift-ordered-retention-analyzer-review/historical-sidecars.json",
+      "sha256": "7ac4a770b9f48397288babecb4d2e95b21d45cb320072429232e6f0a1b61dc04"
+    }
+  ],
+  "tools": {
+    "git": {
+      "path": "/opt/homebrew/bin/git",
+      "sha256": "92229f2456a49561ac5d614bbed775224e2fc32a8eca22ac41aeb3ce47d7899c"
+    },
+    "python": {
+      "path": "/opt/homebrew/opt/python@3.14/bin/python3.14",
+      "sha256": "e401ac7a95cda75dee34a0cfe1e4faf0a6df1a501cf67887f177fb78cd4eb60a",
+      "version": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]"
+    },
+    "rustc": {
+      "path": "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+      "sha256": "dd6f58440b3418aa9157ae3f05d71eecff741ca41bc4eec120e7e8f2d933b9a0"
+    }
+  },
+  "upstream_after": [
+    {
+      "bytes": 2398795,
+      "members": 67,
+      "seal": "verification/swift-ordered-retention-analyzer-design/seal.json",
+      "sha256": "c52828b9bbd2aea835871f1f6b68c6dd29281499ee080e5e52fefe525d1e92a8"
+    },
+    {
+      "bytes": 20248850,
+      "members": 186,
+      "seal": "verification/swift-ordered-retention-diagnostic-rust/seal.json",
+      "sha256": "c19bd3fb06e2db11a5e6ecb5aad8de2ca6ee19a35e50a5ba691ecb598bde40bf"
+    },
+    {
+      "bytes": 18780202,
+      "members": 222,
+      "seal": "verification/swift-ordered-retention-diagnostic-completion/seal.json",
+      "sha256": "2e427447a34357ab4ff70eb220f56754f685a930edf4a89ebc29096fff3b73ba"
+    },
+    {
+      "bytes": 10531020,
+      "members": 158,
+      "seal": "verification/swift-ordered-retention-diagnostic-completion-review/seal.json",
+      "sha256": "87a6fe21fd5c8f6590992aae8cc826e2502454686cf0d7a8c550acb7965827cc"
+    }
+  ],
+  "upstream_before": [
+    {
+      "bytes": 2398795,
+      "members": 67,
+      "seal": "verification/swift-ordered-retention-analyzer-design/seal.json",
+      "sha256": "c52828b9bbd2aea835871f1f6b68c6dd29281499ee080e5e52fefe525d1e92a8"
+    },
+    {
+      "bytes": 20248850,
+      "members": 186,
+      "seal": "verification/swift-ordered-retention-diagnostic-rust/seal.json",
+      "sha256": "c19bd3fb06e2db11a5e6ecb5aad8de2ca6ee19a35e50a5ba691ecb598bde40bf"
+    },
+    {
+      "bytes": 18780202,
+      "members": 222,
+      "seal": "verification/swift-ordered-retention-diagnostic-completion/seal.json",
+      "sha256": "2e427447a34357ab4ff70eb220f56754f685a930edf4a89ebc29096fff3b73ba"
+    },
+    {
+      "bytes": 10531020,
+      "members": 158,
+      "seal": "verification/swift-ordered-retention-diagnostic-completion-review/seal.json",
+      "sha256": "87a6fe21fd5c8f6590992aae8cc826e2502454686cf0d7a8c550acb7965827cc"
+    }
+  ]
+}

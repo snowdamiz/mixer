@@ -1,0 +1,298 @@
+--- original/docs/swift-ordered-retention-analyzer.md
++++ amended/docs/swift-ordered-retention-analyzer.md
+@@ -66,19 +66,65 @@
+ library entry point is conceptually:
+ 
+ ```rust
+-fn analyze(stream: &mut File, profile: &mut File,
+-           binding: &VerifiedBindingView, output: &mut File)
++fn analyze(stream: &mut File, profile: &mut File, context: &mut File,
++           output: &mut File)
+            -> Result<ReplayOutcome, AnalyzerError>;
+ ```
+ 
+-`VerifiedBindingView` is a checked borrow into an 8,192-byte fixed context region;
+-the name describes the required host adapter, not trust granted by a Rust type.
++The child reads the exact8,192-byte context file into the existing fixed arena
++context region, then constructs `VerifiedBindingView` as a checked borrow there.
++The name describes required host verification, not trust granted by a Rust type.
++It is not transported in argv, environment, an unstated inherited mapping or a
++caller-supplied boolean. Stream/profile/context are exactly three inherited
++input descriptors; output is the child's one exclusive report File.
+ `ReplayOutcome` is at most256 bytes: fixed integer enums/counters, accepted record
+ coordinate, stop/error coordinate, observed flags/masks, stream/header/context
+ digest echoes and the report length. It contains no String, Vec, error text or
+ function list. `AnalyzerError` is a fixed `{code:u32, stage:u32, offset:u64,
+ record:u64}` with reserved-zero padding to32 bytes. Error coordinates describe
+ observations; they never replace an original operation Result.
++
++Context admission is explicit: the host opens a regular no-follow context File,
++requires length exactly8192, records retained descriptor/path identity, hashes
++all8192 bytes and seeks0 before invocation. Rust reads exactly8192 using the
++shared65,536-byte arena I/O buffer, copies checked8-byte words into the context
++region, then requires EOF on a bounded one-byte probe. Each context block has
++at most32 read/Interrupted/short/error attempts and the EOF probe has at most32,
++so64 attempts are pre-reserved and charged inside the unchanged Rust268M cap.
++Every one of1024 context word copies/checks is charged inside the existing
++65,536 setup allowance. Short/long context, read/EOF error, unsupported schema,
++descriptor type/length mismatch or malformed view refuses replay. After the
++child, the host rehashes the same retained context descriptor and checks identical
++bytes/identity/length; Rust cannot declare that cryptographic verification done.
++All four child File owners, three raw FD integers, their complete OwnedFd/File/
++Result/argument/return moves, read/Metadata/error Results and view borrows belong
++to the proposed transient-role inventory; the extra context File is not free.
++
++For a standalone process, the proposed narrowly scoped adoption boundary is
++three private, exactly-once `unsafe { OwnedFd::from_raw_fd(fd) }` operations,
++followed by safe `File::from(OwnedFd)`. The reviewed host launcher passes only
++three distinct valid inherited descriptors, each in3..65535, as fixed bounded
++decimal argv fields, uses a closed pass_fds/close_fds contract, and passes no
++other task descriptor. The child validates argc, numeric ranges and uniqueness
++before adoption; it never reopens `/dev/fd`, clones/dups these descriptors or
++adopts one twice. Parent and child own separate process descriptors sharing an
++open-file description, so the host performs no read/seek while the child runs.
++Private adoption transfers each child FD exactly once to OwnedFd/File; no other
++Rust owner exists for it. Failure drops already adopted owners; any unadopted
++inherited descriptor is closed by process exit, with no continuation into replay.
++This ownership proof requires separate independent source review before CLI
++implementation acceptance. An arbitrary caller's fd integers cannot qualify;
++an unavailable/unproved adoption boundary yields unavailable replay. The library
++entry point itself accepts safe existing File borrows. The prohibition on
++unsafe arena access, casts, pointer arithmetic and uninitialized memory remains
++absolute; this proposal selects no other unsafe operation.
++
++The process entry is an internal worker of that selected trusted wrapper,
++explicitly **unsupported as an arbitrary user-supplied-FD CLI**. Numeric range
++and uniqueness are not proof of validity or ownership. No CLI acceptance is
++possible until independent source review proves valid distinct open inputs,
++exactly-one adoption, no premature parent closure or child-time offset activity,
++and cleanup of every owner. There is no implemented safe-construction claim.
+ 
+ Before implementation acceptance, a reviewed strict host adapter must provide:
+ 
+@@ -317,6 +363,23 @@
+ the selected mask and final phase5, not an inferred traversal. Cleanup phase
+ and a zero final consuming ledger never clear replay residents/pins/plans.
+ 
++The closed acquisition states are Idle0,Acquire1,Hit2,Miss3,Scan4,Plan5,Ready6,
++EvictBegin7,EvictTaken8,Build9,Built10, frozen in `interface_schema.py`.
++AcquireBegin requires Idle, phase<4 and no prior pin/terminal failure. Lookup
++requires Acquire and selects Hit or Miss; PlanBegin Miss->Scan; PlanEnd
++Scan->Plan; MissReady Plan->Ready; EvictBegin Ready->EvictBegin; Taken
++EvictBegin->EvictTaken; Commit EvictTaken->Ready; BuildBegin Ready->Build;
++BuildReady Build->Built; PinPublished Hit/Built->Idle. Each transition also
++requires every detailed identity, planned-mask and byte check below. No cache
++stage event is legal in Idle, after any pin/terminal failure, or at another
++stage. Failure cannot be followed by a resumed scan/build/publication/eviction.
++Pin Failure requires an open state, closes it to Idle and is unique. Terminal
++Failure requires Idle and is unique; a terminal failure during an open pin must
++first have the actual pin Failure emitted by the synchronous wrapper. Phase
++requires Idle and strict advance. Phase5 is the last ordinary source event;
++all later ordinary events are refused. An intact CAP prefix may end at any open
++state, without inventing the missing closure.
++
+ AcquireBegin establishes the only active operation, requested identity and
+ coordinates; counts actual attempted acquisition, computes last acquisition/
+ work/instruction gaps and distinct reuse from committed history. Failure may
+@@ -370,7 +433,15 @@
+ no analysis timestamp, instruction-count timestamp or age estimate. A complete
+ token row records the published nonce, never its successor.
+ 
+-Release has no dependence on last acquisition's op. Join exact pin_slot+nonce
++Release carries op0 and requires **Idle, phase<5**, including after a pin or
++terminal failure closed the acquisition. It is forbidden in all ten open
++acquisition states. The original synchronous pin call selects its first-free
++pin slot before Lookup and cannot interleave a release before PinPublished;
++otherwise a forged release could change the expected pin slot. Source
++`CacheControl::release_pin` removes a live pin without a new stop check, so a
++valid retained token can still release while idle after a failure; that precise
++exception cannot resume any acquisition stage. Release has no dependence on
++the last acquisition's op number. Join exact pin_slot+nonce
+ to the live token, entry slot, immutable function/offset/type and resident bytes;
+ require lenMAX and exact post-release pin count. Clear only that pin row,
+ decrement its resident pins; preserve last_used. Stale/wrong-owner releases
+@@ -453,11 +524,13 @@
+ After budget stop Rust may drain only bounded remaining file bytes needed for
+ its already bounded descriptor framing; it performs **no semantic tail replay**.
+ Every read attempt still debits the separate pre-reserved maximum I/O allowance
+-of262,208 stream attempts plus1,312 profile attempts (32 per maximum block plus
+-bounded EOF probes); subtract this allowance from the total at setup rather than
++of262,208 stream attempts plus1,312 profile attempts plus64 context attempts,
++total263,584 (32 per maximum block plus bounded EOF probes); subtract this allowance from the total at setup rather than
+ borrowing exhausted replay credits. No record-sized unbounded tail buffer is
+ allocated. If even setup reserves cannot fit, return unavailable. A shorter
+-analysis report can be emitted if its own bound would otherwise fail. Budget,
++semantic analysis prefix still uses the exact49,152-byte report with unused
++metric/window rows zero. A physically shorter/partial report is retained failed
++output and can never receive accepted classification. Budget,
+ capacity or analysis stop always yields `storedPrefixValidated=false` for the
+ whole stream and host `fullReplayAccepted=false`, never complete-records or an
+ invented successful tail. Prefix metrics have explicit scope N_accepted and
+@@ -468,7 +541,7 @@
+ A599,204/M61,628/E61,564 and R=4A+5M+3E+8=2,889,656. A deliberately conservative
+ Rust arithmetic estimate is22R +128A recency +64A resident lookup +64A first-free
+ pin +64(M+E) planner probes +1,048,576 arena init +640,000 profile +3,000,000
+-report +263,520 reserved I/O +65,536 setup = **229,870,576**, leaving38,564,880.
++report +263,584 reserved I/O +65,536 setup = **229,870,640**, leaving38,564,816.
+ It assumes that envelope and the stated stage schedule, not measured target
+ order or actual analyzer implementation cost. It excludes Python custody cost.
+ Failures/additional source checks may consume more; the full4,194,304 record cap
+@@ -542,9 +615,10 @@
+ values with zero. Passing an already-open FD must bind its original path and
+ custody, never accept a digest claim without reading those exact bytes.
+ 
+-Host opens stream/profile/raw-result descriptors, hashes each through that same
+-descriptor with `hashlib.sha256`, seeks to0 and invokes the exact compiled Rust
+-binary with only the selected inherited stream/profile descriptors. The host
++Host opens stream/profile/raw-result/context descriptors and the exact selected
++analyzer executable, hashes each through that same descriptor with
++`hashlib.sha256`, seeks input descriptors to0 and invokes the exact compiled Rust
++binary with only the selected inherited stream/profile/context descriptors. The host
+ retains its descriptors; it never reads/seeks them while the child runs because
+ inherited descriptors share offsets. After synchronous child exit/reap, seek0,
+ rehash those same retained descriptors and recheck descriptor/path metadata and
+@@ -556,12 +630,18 @@
+ Parent/component races and arbitrary concurrent mutation are not solved by
+ timestamps. This boundary needs explicit independent adversity review.
+ 
+-At most six live process descriptors during the child: three retained host
+-inputs, two inherited Rust inputs and one Rust report output; after the child,
++At most nine live data-descriptor owners during the child: five retained host
++Files (stream,profile,raw-result,context,analyzer-binary), three inherited Rust
++inputs and one Rust report output; after the child,
+ closed owners are out of lexical scope before host verification output opens.
+-The Rust named inventory charges its three live File owners and complete I/O/
+-Metadata Results; the host inventory charges its own three and complete closed
++The Rust named inventory charges its four live File owners and complete I/O/
++Metadata/OwnedFd/adoption Results; the host inventory charges its own five and complete closed
+ owners until their scope ends. Neither descriptor count is a memory byte bound.
++Selection-verification and writer/custody receipt descriptors are read/hashed
++in separate pre/post phases and closed before the child; their complete closed
++File/Result/byte owners end lexical scope before these nine coexist. They are
++not omitted retained locals. Both receipts are mandatory for accepted replay,
++each<=8192 bytes; missing/unreadable/unsupported receipts refuse admission.
+ Python hashing uses one65,536-byte buffer, no read-all or unbounded receipt read.
+ Each block has<=32 combined short-read/Interrupted attempts. Report writes have
+ <=32 attempts per block; zero/overlong/error/exhaustion retain failure and partial
+@@ -569,16 +649,71 @@
+ before allocation; report/hash parsing is fixed-size.
+ 
+ Host hashing has its **separate** <=131,072 named logical inventory and a
+-proposed18,000,000 authored debit limit: debit ceil(bytes/64) per hashlib update,
++proposed18,000,000 authored debit limit: debit ceil(bytes/64) per assembled hashlib block,
+ one per I/O attempt and explicitly bounded metadata/parse/report operation.
+-Two full source/profile/raw-result passes plus the independently hashed profile
+-row bodies charge16,937,520 byte-block units (two simultaneous hash owners only
+-during a profile pass);
+-<=32 attempts per65,536-byte block leave the remaining margin for bounded setup,
+-report hashing and receipt output. An implementation must enumerate/prove its
++The closed scope is two passes over stream<=536,871,936, profile=2,560,512,
++raw-result<=8192, context=8192, writer-receipt<=8192,
++accepted-selection-receipt<=8192 and analyzer-binary<=8,388,608, plus two
++profile-row-body hashes. This charges17,200,432 SHA64-byte units,535,808 maximum
++read/EOF attempts,896 report/receipt hash units and65,536 fixed setup/verdict/
++serialization/output attempts = **17,802,672**, leaving197,328. The support
++schema freezes these exact caps and formula. Hash **once after assembling each
++<=65,536-byte block**, not once per short read: up to32 attempts fill that one
++buffer, then each applicable hash owner receives one update. Partial-read
++rounding cannot manufacture additional hash-block debits. Profile hashing owns
++exactly two hash objects during its phase, one for all bytes and one skipping
++the512-byte header; both block boundaries are64-byte aligned. Bad EOF/error
++retains invalidity rather than hashes an invented full block. An implementation
++must enumerate/prove its
+ exact complete inventory and worst case before acceptance; opaque Python/hashlib
+ runtime and CPU rounds are unqualified. Host exhaustion cannot set acceptance.
+ These separate host costs never increase or borrow Rust's8MiB/64KiB/268M limits.
++
++Source, manifest, toolchain, original harness/parser and compile-source provenance
++are **not** silently verified by that18M stream consumer. They require a future,
++independently accepted `SelectionVerificationReceiptV1`, maximum8192 bytes,
++bound to an accountable root acceptance record for its exact frozen selection
++closure. This prerequisite is not presently implemented or accepted and is
++therefore unavailable. Hash syntax, a plain supplied digest, caller boolean or
++an unregistered receipt cannot unlock replay acceptance. The host's private
++verified-receipt constructor must verify the actual receipt bytes/seal against
++the independently registered acceptance and exact declared closure/limits;
++only it can produce the binding used by the final two-record classifier.
++
++The separate selection-verification phase has a proposed hard closure: exactly
++132 baseline plus132 candidate source files, each<=16MiB, each closure<=64MiB;
++two canonical manifests, each<=65,536 bytes; at most16 declared tool/compiler/
++adapter/analyzer executables, each<=256MiB and aggregate<=1GiB; at most64 named
++driver/harness/parser/support sources, each<=16MiB and aggregate<=64MiB; original
++target<=its unchanged selected source limit and never>256MiB. Every member is
++named before opening; no recursive filesystem discovery, undeclared dependency
++or extra source closure qualifies. Manifests use bounded canonical rows streamed
++one at a time rather than an expanding JSON tree. Verify both actual132-name
++sets/lengths/hashes and exact compile patch/source/tool/binary/input identities;
++include before/after same-descriptor hash/custody observations and the original
++build-to-executable receipt. The selected analyzer's immediate<=8MiB cap is a
++stricter subset of this tool bound, checked again inside18M before/after replay.
++
++This preparer has a **separate proposed64,000,000 authored-step ceiling**, one
++65,536-byte assembled-block buffer, <=32 read attempts/block and EOF, <=131,072
++complete named logical bytes, one streamed manifest plus one source/tool FD at
++a time, one bounded exclusive8192-byte result and one<=262,144-byte streamed
++custody transcript. No per-member metadata list is retained. Raw observations
++are encoded into that transcript one fixed row at a time and its actual hash
++is bound in the result;347 members times8 observations times64 bytes is177,664,
++leaving room for closed transcript framing. At most three preparer data FDs
++coexist (manifest,member,transcript); result serialization replaces them after
++they close and leave scope. Transcript encoding/hash/write attempts are charged
++inside64M, with<=32 writes per fixed block and bounded post-write rehash.
++Two passes over at most
++1472MiB of source/tool/target bytes plus two64KiB manifests cost<=48,238,592
++SHA64-byte units, leaving room for bounded I/O and explicitly enumerated
++264+16+64+2+1 member metadata/custody/row/serialization operations. Its precise
++complete inventory, debits, canonical manifests, compiler binding and source
++quiescence still require their own implementation/review; an unproven bound or
++missing accepted receipt leaves the prerequisite unavailable. No part is
++claimed executed by this design packet. This64M phase is neither a Rust replay
++budget increase nor permission to execute a target or hash an unbounded tree.
+ 
+ The host does **not** parse the49,152-byte report into JSON or Python collections.
+ It reads only the fixed512-byte header/verdict, validates its32 fixed u64 fields
+@@ -587,8 +722,16 @@
+ binary fields with closed versions, lengths, reserved bytes and enum ranges;
+ there is no JSON nesting/key/list expansion. The host acceptance receipt is a
+ fixed8,192-byte binary version1 record, magic `MIXACC01`: header512, before/after descriptor/path
+-custody16x64=1024, digest slots16x32=512, binding/result/view scalars2048,
+-closed failure/adapter/I/O/exit observations1024, reserved3072. Undefined entries
++custody60x64=3840, digest slots16x32=512, binding/result/view scalars2048,
++closed failure/adapter/I/O/exit observations1024, reserved256. Custody rows0..39
++are stream/profile/raw-result/context/analyzer-binary, eight rows each (fd/path
++before and after the pre-pass, then fd/path before and after the post-pass).
++Rows40..55 are selection/writer receipts, eight each in that same order of
++observations; their post-pass reopens the path no-follow and requires the same
++complete dev/inode/raw-mode/length/mtime/ctime tuple and hash as the pre-pass, rather than pretending their
++closed descriptors survived the child. Rows56..59 are report fd/path before
++and after its opaque hash. Raw stat/Metadata objects are immediately encoded
++into these fixed rows then dropped; no60-object collection is retained. Undefined entries
+ have a separate obtained bit and zero reserved payload, never invented metadata.
+ All string/error payloads are absent; raw original result bytes remain a
+ separately bounded immutable input.
+@@ -601,19 +744,20 @@
+ acceptance receipt serialization after buffer/hash-reader scope ends. No full
+ profile, original-result text decode, whole report, all-source list or JSON
+ object tree is retained. Input maxima are stream536,871,936 +profile2,560,512
+-+raw original8192 +canonical context8192 +optional writer/custody input8192;
+-simultaneous input bytes on disk<=539,457,024, excluding the already separate
+++raw original8192 +canonical context8192 +writer/custody input8192
+++accepted selection receipt8192 +analyzer binary8,388,608;
++simultaneous immediate-wrapper input bytes on disk<=547,853,824, excluding the already separate
+ original source stream and all historical packet members. New reports total
+ 57,344. The replay invocation's bounded paths, complete File/Metadata/stat/hash/
+ Result/exception/subprocess/decoded-int/header/verdict owners and helper roles
+ must be reconciled under the separate131,072 logical host inventory. A fixed
+ cap on file bytes is not a Python object-memory claim.
+ 
+-The six input/report data descriptor owners above are distinct from supervision
++The nine input/report data descriptor owners above are distinct from supervision
+ and stdio. Freeze a quiet runner: one host-owned no-follow `/dev/null` O_RDWR
+ descriptor becomes the child's three stdio descriptors (stdin/out/err); the
+ host retains its sink until child exit, then closes it. That adds four live
+-descriptor owners, giving **ten newly owned data/stdio descriptors** during the
++descriptor owners, giving **thirteen newly owned data/stdio descriptors** during the
+ child; the host's preexisting standard streams and opaque launch internals are
+ separately excluded, not hidden inside a two-copy-FD assertion. The approved
+  Rust binary is required by reviewed source to write no stdout/stderr or owned strings; fixed binary report/error

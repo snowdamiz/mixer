@@ -1,0 +1,19 @@
+{
+  "findings": [
+    {
+      "id": "R1",
+      "issue": "Release is not explicitly forbidden during an active synchronous acquisition, changing source-preselected pin slot",
+      "required": "Closed state/event rules: Release idle-only after successful or failed acquisition closure; no resumption after failure",
+      "source": "borrowed.rs selects first free pin slot before pin_acquired and Lookup; source operation is synchronous"
+    },
+    {
+      "id": "R2",
+      "issue": "Standalone Rust needs VerifiedBindingView but only stream/profile input descriptors are inherited; source/executable verification costs not scoped by 18M hashing estimate",
+      "required": "Define exact fixed context transport and count every descriptor owner; explicitly bound source/manifest/executable verification or require separately accepted verification receipt with reviewed limits"
+    }
+  ],
+  "input_seal": "4869a708a63be760519cf62c5d1bc42631a06049ea0d410408f3f5fb96637246",
+  "native_or_target_started": false,
+  "producer_acknowledged": true,
+  "status": "correction-required-before-design-acceptance"
+}

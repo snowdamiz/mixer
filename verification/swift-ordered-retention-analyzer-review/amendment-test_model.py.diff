@@ -1,0 +1,88 @@
+--- original/verification/swift-ordered-retention-analyzer-design/test_model.py
++++ amended/verification/swift-ordered-retention-analyzer-design/test_model.py
+@@ -1,6 +1,10 @@
+ import unittest
+-from model import Resident, Replay, Budget, Plans, MAX, plan, classify, reuse, interval
++from model import (Resident, Replay, Budget, Plans, MAX, plan, classify, reuse,
++                   interval, OperationGate, binding_admission, assembled_hash_units,
++                   exact_context)
+ from interface_schema import SCALARS, REPORT_HEADER, REPORT_REGIONS, HOST_REGIONS, offsets
++from interface_schema import (ACTIVE_STATES, RUST_IO_ATTEMPTS, WRAPPER_INPUT_CAPS,
++                              WRAPPER_STEP_LIMIT, wrapper_budget)
+ 
+ class FiniteContract(unittest.TestCase):
+     def test_fixed_interface_names_and_offsets(self):
+@@ -8,6 +12,10 @@
+         self.assertEqual(len(REPORT_HEADER), 32)
+         self.assertEqual(sum(length for _, length in REPORT_REGIONS), 49152)
+         self.assertEqual(sum(length for _, length in HOST_REGIONS), 8192)
++        self.assertEqual(offsets(HOST_REGIONS), [('header', 0, 512),
++            ('custody', 512, 3840), ('digests', 4352, 512),
++            ('bindings_and_result', 4864, 2048), ('observations', 6912, 1024),
++            ('reserved', 7936, 256)])
+         self.assertTrue(all(offset % 8 == 0 for _, offset, _ in offsets(REPORT_REGIONS)))
+ 
+     def test_ties_use_lowest_slot(self):
+@@ -108,4 +116,62 @@
+         with self.assertRaises(AssertionError): interval(10, end=9)
+         with self.assertRaises(AssertionError): interval(10, end=20, failure=21)
+ 
++    def test_release_forbidden_in_every_open_acquisition_state(self):
++        for state in ACTIVE_STATES:
++            if state == 'Idle': continue
++            g = OperationGate(); g.state = state
++            with self.subTest(state=state), self.assertRaises(AssertionError): g.event('Release')
++        g = OperationGate(); g.event('AcquireBegin'); g.event('LookupHit')
++        with self.assertRaises(AssertionError): g.event('Release')
++        g.event('PinPublished'); g.event('Release')
++
++    def test_failed_operation_cannot_resume_but_idle_release_is_legal(self):
++        for failure in ('PinFailure', 'TerminalFailure'):
++            g = OperationGate()
++            if failure == 'PinFailure': g.event('AcquireBegin')
++            g.event(failure); g.event('Release')
++            for kind in ('AcquireBegin', 'LookupHit', 'PlanBegin', 'PlanEnd',
++                         'MissReady', 'EvictBegin', 'EvictTaken', 'EvictCommit',
++                         'BuildBegin', 'BuildReady', 'PinPublished'):
++                with self.subTest(failure=failure, kind=kind), self.assertRaises(AssertionError):
++                    g.event(kind)
++
++    def test_terminal_and_phase_require_idle_and_phase5_ends_events(self):
++        g = OperationGate(); g.event('AcquireBegin')
++        with self.assertRaises(AssertionError): g.event('TerminalFailure')
++        with self.assertRaises(AssertionError): g.event('Phase', 4)
++        g.event('PinFailure'); g.event('TerminalFailure'); g.event('Phase', 4)
++        g.event('Release'); g.event('Phase', 5)
++        for kind in ('Release', 'AcquireBegin', 'TerminalFailure', 'Phase'):
++            with self.subTest(kind=kind), self.assertRaises(AssertionError): g.event(kind, 5)
++
++    def test_context_read_reserve_and_wrapper_closed_hash_budget(self):
++        self.assertEqual(RUST_IO_ATTEMPTS, 263584)
++        self.assertEqual(WRAPPER_INPUT_CAPS['context'], 8192)
++        self.assertEqual(wrapper_budget(), (17200432, 535808, 896, 65536))
++        self.assertEqual(sum(wrapper_budget()), 17802672)
++        self.assertLess(sum(wrapper_budget()), WRAPPER_STEP_LIMIT)
++        self.assertEqual((5 + 4) + (1 + 3), 13)  # data owners + null stdio owners
++        self.assertEqual(5 * 8 + 2 * 8 + 4, 60)  # raw custody rows, no object list
++
++    def test_source_prerequisite_cannot_be_replaced_by_hash_syntax(self):
++        self.assertFalse(binding_admission(True, False, False, True, True))
++        for i in range(5):
++            claims = [True] * 5; claims[i] = False
++            self.assertFalse(binding_admission(*claims))
++        self.assertTrue(binding_admission(True, True, True, True, True))
++
++    def test_context_exact_length_eof_and_combined_reserve(self):
++        self.assertEqual(exact_context([256] * 32, ['Interrupted'] * 31 + [0]), 64)
++        for parts, eof in (([8191], [0]), ([8193], [0]), ([8192], [1]),
++                           ([8192], ['Interrupted'] * 32), ([8192], ['IO'])):
++            with self.subTest(parts=parts, eof=eof), self.assertRaises(AssertionError):
++                exact_context(parts, eof)
++
++    def test_short_reads_are_hashed_once_as_one_assembled_block(self):
++        parts = [1] * 31 + [97]
++        self.assertEqual(assembled_hash_units(parts), 2)
++        self.assertEqual(sum((n + 63) // 64 for n in parts), 33)
++        with self.assertRaises(AssertionError): assembled_hash_units([1] * 33)
++
+ if __name__ == "__main__": unittest.main(verbosity=2)

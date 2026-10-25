@@ -1,0 +1,35 @@
+--- original/verification/swift-ordered-retention-analyzer-design/interface_schema.py
++++ amended/verification/swift-ordered-retention-analyzer-design/interface_schema.py
+@@ -70,13 +70,30 @@
+ REPORT_REGIONS = [('header', 512), ('counters', 1024), ('histograms', 4096),
+     ('windows', 16384), ('top', 4096), ('residents', 4096), ('pins', 3072),
+     ('reserved', 15872)]
+-HOST_REGIONS = [('header', 512), ('custody', 1024), ('digests', 512),
+-    ('bindings_and_result', 2048), ('observations', 1024), ('reserved', 3072)]
++HOST_REGIONS = [('header', 512), ('custody', 3840), ('digests', 512),
++    ('bindings_and_result', 2048), ('observations', 1024), ('reserved', 256)]
+ DECISIONS = {'CompleteRecords': 1, 'TruncatedPrefix': 2, 'Invalid': 3,
+              'AnalysisLimited': 4, 'Unavailable': 5}
+ STOP_REASONS = {'None': 0, 'Steps': 1, 'WindowCapacity': 2, 'ReportCapacity': 3,
+                 'Allocation': 4, 'Inventory': 5, 'Input': 6, 'Binding': 7,
+                 'Schema': 8, 'Replay': 9, 'Internal': 10, 'Output': 11}
++ACTIVE_STATES = {'Idle': 0, 'Acquire': 1, 'Hit': 2, 'Miss': 3, 'Scan': 4,
++                 'Plan': 5, 'Ready': 6, 'EvictBegin': 7, 'EvictTaken': 8,
++                 'Build': 9, 'Built': 10}
++RUST_IO_ATTEMPTS = 262208 + 1312 + 64  # stream + profile + context, each incl EOF
++WRAPPER_INPUT_CAPS = {'stream': 536871936, 'profile': 2560512, 'raw_result': 8192,
++    'context': 8192, 'writer_receipt': 8192, 'selection_receipt': 8192,
++    'analyzer_binary': 8388608}
++WRAPPER_STEP_LIMIT = 18000000
++SELECTION_PREREQUISITE_STEP_LIMIT = 64000000  # separate future review gate
++
++def wrapper_budget():
++    blocks = 2 * sum((n + 63) // 64 for n in WRAPPER_INPUT_CAPS.values())
++    blocks += 2 * ((WRAPPER_INPUT_CAPS['profile'] - 512) // 64)
++    io = 2 * sum(32 * ((n + 65535) // 65536) + 32
++                 for n in WRAPPER_INPUT_CAPS.values())
++    report = (49152 + 8192) // 64
++    return blocks, io, report, 65536
+ 
+ def offsets(regions):
+     cursor, result = 0, []
