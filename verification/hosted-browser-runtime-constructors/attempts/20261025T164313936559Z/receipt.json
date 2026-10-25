@@ -1,0 +1,187 @@
+{
+  "status": "passed",
+  "recorded_at_utc": "2026-10-25T16:43:15.784797+00:00",
+  "source_revision": "4492bbc74c47c77514951ae49b0fe418c7873db8",
+  "source_tree_sha256": "f2b6dce45353433485807fd807f0ee94e03c3b3f53820d59830581895dc298c8",
+  "source_inputs": "verification/hosted-browser-runtime-constructors/attempts/20261025T164313936559Z/source-inputs.json",
+  "source_inputs_after": "verification/hosted-browser-runtime-constructors/attempts/20261025T164313936559Z/source-inputs-after.json",
+  "source_and_dependency_hashes_unchanged": true,
+  "commands": [
+    {
+      "label": "revision",
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "stdout": "verification/hosted-browser-runtime-constructors/attempts/20261025T164313936559Z/revision.stdout",
+      "stderr": "verification/hosted-browser-runtime-constructors/attempts/20261025T164313936559Z/revision.stderr"
+    },
+    {
+      "label": "git-version",
+      "argv": [
+        "git",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "stdout": "verification/hosted-browser-runtime-constructors/attempts/20261025T164313936559Z/git-version.stdout",
+      "stderr": "verification/hosted-browser-runtime-constructors/attempts/20261025T164313936559Z/git-version.stderr"
+    },
+    {
+      "label": "python-version",
+      "argv": [
+        "python3",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "stdout": "verification/hosted-browser-runtime-constructors/attempts/20261025T164313936559Z/python-version.stdout",
+      "stderr": "verification/hosted-browser-runtime-constructors/attempts/20261025T164313936559Z/python-version.stderr"
+    },
+    {
+      "label": "elixir-version",
+      "argv": [
+        "elixir",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "stdout": "verification/hosted-browser-runtime-constructors/attempts/20261025T164313936559Z/elixir-version.stdout",
+      "stderr": "verification/hosted-browser-runtime-constructors/attempts/20261025T164313936559Z/elixir-version.stderr"
+    },
+    {
+      "label": "crypto-version",
+      "argv": [
+        "elixir",
+        "-e",
+        "Application.load(:crypto); IO.inspect(%{otp: :erlang.system_info(:otp_release), crypto: Application.spec(:crypto, :vsn), crypto_backend: :crypto.info_lib()})"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "stdout": "verification/hosted-browser-runtime-constructors/attempts/20261025T164313936559Z/crypto-version.stdout",
+      "stderr": "verification/hosted-browser-runtime-constructors/attempts/20261025T164313936559Z/crypto-version.stderr"
+    },
+    {
+      "label": "format",
+      "argv": [
+        "elixir",
+        "-e",
+        "Enum.each(System.argv(), fn p -> true = File.read!(p) == IO.iodata_to_binary(Code.format_string!(File.read!(p))) <> \"\\n\" end)",
+        "hosted/lib/mixer_hosted/browser_auth/custody.ex",
+        "hosted/lib/mixer_hosted/browser_auth/runtime_config.ex",
+        "hosted/test/mixer_hosted/browser_auth/custody_test.exs",
+        "hosted/test/mixer_hosted/browser_auth/runtime_config_test.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "stdout": "verification/hosted-browser-runtime-constructors/attempts/20261025T164313936559Z/format.stdout",
+      "stderr": "verification/hosted-browser-runtime-constructors/attempts/20261025T164313936559Z/format.stderr"
+    },
+    {
+      "label": "compile",
+      "argv": [
+        "elixirc",
+        "--warnings-as-errors",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/jason/ebin",
+        "-o",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-browser-runtime-constructors-440ii00k",
+        "hosted/lib/mixer_hosted/identity/encoding.ex",
+        "hosted/lib/mixer_hosted/identity/bounded_json.ex",
+        "hosted/lib/mixer_hosted/identity/manifest.ex",
+        "hosted/lib/mixer_hosted/identity/startup_config.ex",
+        "hosted/lib/mixer_hosted/runtime_config.ex",
+        "hosted/lib/mixer_hosted/browser_auth/config.ex",
+        "hosted/lib/mixer_hosted/browser_auth/configuration_digest.ex",
+        "hosted/lib/mixer_hosted/browser_auth/vault.ex",
+        "hosted/lib/mixer_hosted/browser_auth/custody.ex",
+        "hosted/lib/mixer_hosted/browser_auth/runtime_config.ex"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "stdout": "verification/hosted-browser-runtime-constructors/attempts/20261025T164313936559Z/compile.stdout",
+      "stderr": "verification/hosted-browser-runtime-constructors/attempts/20261025T164313936559Z/compile.stderr"
+    },
+    {
+      "label": "tests",
+      "argv": [
+        "elixir",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/jason/ebin",
+        "-pa",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-browser-runtime-constructors-440ii00k",
+        "-e",
+        "ExUnit.start(autorun: false, seed: 0); Enum.each(System.argv(), &Code.require_file/1); result = ExUnit.run(); IO.puts(\"selected_host_result_json:\" <> Jason.encode!(result)); System.halt(if result.failures == 0, do: 0, else: 1)",
+        "hosted/test/mixer_hosted/browser_auth/custody_test.exs",
+        "hosted/test/mixer_hosted/browser_auth/runtime_config_test.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "stdout": "verification/hosted-browser-runtime-constructors/attempts/20261025T164313936559Z/tests.stdout",
+      "stderr": "verification/hosted-browser-runtime-constructors/attempts/20261025T164313936559Z/tests.stderr"
+    },
+    {
+      "label": "owned-whitespace",
+      "argv": [
+        "python3",
+        "-c",
+        "import pathlib,sys; bad=[f\"{name}:{n}\" for name in sys.argv[1:] for n,line in enumerate(pathlib.Path(name).read_text().splitlines(),1) if line != line.rstrip(\" \\t\")]; print(\"owned source trailing whitespace:\", bad); sys.exit(bool(bad))",
+        "hosted/lib/mixer_hosted/browser_auth/custody.ex",
+        "hosted/lib/mixer_hosted/browser_auth/runtime_config.ex",
+        "hosted/test/mixer_hosted/browser_auth/custody_test.exs",
+        "hosted/test/mixer_hosted/browser_auth/runtime_config_test.exs",
+        "docs/hosted-browser-runtime-constructors.md",
+        "verification/hosted-browser-runtime-constructors/run.py"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "stdout": "verification/hosted-browser-runtime-constructors/attempts/20261025T164313936559Z/owned-whitespace.stdout",
+      "stderr": "verification/hosted-browser-runtime-constructors/attempts/20261025T164313936559Z/owned-whitespace.stderr"
+    },
+    {
+      "label": "diff-check",
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "hosted/lib/mixer_hosted/browser_auth/custody.ex",
+        "hosted/lib/mixer_hosted/browser_auth/runtime_config.ex",
+        "hosted/test/mixer_hosted/browser_auth/custody_test.exs",
+        "hosted/test/mixer_hosted/browser_auth/runtime_config_test.exs",
+        "docs/hosted-browser-runtime-constructors.md",
+        "verification/hosted-browser-runtime-constructors/run.py"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "stdout": "verification/hosted-browser-runtime-constructors/attempts/20261025T164313936559Z/diff-check.stdout",
+      "stderr": "verification/hosted-browser-runtime-constructors/attempts/20261025T164313936559Z/diff-check.stderr"
+    }
+  ],
+  "selected_host_tests": {
+    "total": 30,
+    "failures": 0,
+    "excluded": 0,
+    "skipped": 0
+  },
+  "scope": "Pure Custody.new/2 and RuntimeConfig.new/4; selected ordinary existing source closure and Jason BEAMs. Actual ordinary startup loader/Config/Manifest/Digest/Vault interactions; no shared hosted compile or application startup.",
+  "host_trust_store": "The actual existing ordinary startup loader reads OTP's host CA roots in tests. Constructors only validate/preserve supplied roots, never fetch roots, resolve names, connect, or read environment/application state.",
+  "cleanup": {
+    "owned_scratch_path": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-browser-runtime-constructors-440ii00k",
+    "owned_scratch_removed": true,
+    "started_browser_capture_native_or_phone_processes": false,
+    "started_provider_network_or_database": false,
+    "other_projects_processes_or_data_changed": false
+  },
+  "pending": [
+    "independent constructor review and root acceptance",
+    "Application/shared startup provenance and RuntimeSupervisor/RuntimeOwner wiring",
+    "dedicated LifecycleRepo, current catalog admission and operation-owned Store transactions",
+    "external secret source qualification, deployed Neon/TLS and pool behavior",
+    "provider/OIDC/default verifier/process-owner/HTTP/console session composition",
+    "native runtime checks paused; physical-device/customer/FieldLog/GA acceptance"
+  ]
+}

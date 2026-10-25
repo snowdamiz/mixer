@@ -18,7 +18,10 @@ configuration text admission and transaction-local JIT policy now pass independe
 development review. Nine-migration integration passes. Pushed `7e434330` passes
 615 Phoenix methods with two existing skips, but CI fails on unclassified
 selected-fixture discovery warnings. The narrow configuration repair passes eight
-actual isolated Mix checks; exact-push CI is next.
+actual isolated Mix checks. It is pushed as `4492bbc7`; Phoenix then stops in
+storage fixture setup at an ordinary directory query timeout. The fixture repair
+now passes 24 PostgreSQL 16 methods, including commit/error rollback setting
+restoration. The original lifecycle Engine CI passes; fresh repaired CI is pending.
 See [the integrated scope](docs/hosted-browser-session-integration.md).
 Computer use, capture and native runtime tests remain paused.
 The full plan remains incomplete; no GA gate is promoted.
@@ -139,8 +142,13 @@ The full plan remains incomplete; no GA gate is promoted.
    these component tests. See [integration](docs/hosted-browser-session-integration.md).
    The [runtime contract](docs/hosted-browser-lifecycle-runtime-contract.md) now
    passes independent bounded review after startup/policy/verifier corrections.
-   Pure custody/runtime configuration and independent catalog admission are the
-   next isolated source lanes. Forty runtime adversity cases remain pending.
+   Pure custody/runtime configuration now passes 30 producer and 25 independent
+   methods, with root source/output/cleanup acceptance. No startup or route wiring
+   is enabled. Function/type catalog checks remain under independent PostgreSQL
+   review; the separate complete relation/policy/grant matrix is being specified.
+   Forty runtime adversity cases remain pending. See
+   [constructor review](docs/hosted-browser-runtime-constructor-review.md) and
+   [fixture repair](docs/hosted-browser-storage-ci-fixture.md).
 
    The prior `1257cbf8` Phoenix CI fails the 121-project directory transaction
    deadline (608/609 methods pass, two skips). At pushed `7e434330`, the same

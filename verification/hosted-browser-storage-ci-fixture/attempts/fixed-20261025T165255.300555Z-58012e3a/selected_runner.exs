@@ -1,0 +1,5 @@
+ExUnit.start(autorun: false, seed: 0, max_cases: 1)
+Code.require_file("/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-storage-ci-fixture/attempts/fixed-20261025T165255.300555Z-58012e3a/inputs/hosted/test/mixer_hosted/browser_auth/storage_spec.exs")
+r=ExUnit.run()
+File.write!("/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-storage-ci-fixture/attempts/fixed-20261025T165255.300555Z-58012e3a/result.json",Jason.encode!(r))
+System.halt(if r.total==24 and r.failures==0 and r.skipped==0 and r.excluded==0 and Map.get(r,:invalid,0)==0, do: 0, else: 1)

@@ -1,0 +1,148 @@
+{
+  "schema": 1,
+  "time_utc": "2026-10-25T16:55:04.273157+00:00",
+  "head": "4492bbc74c47c77514951ae49b0fe418c7873db8",
+  "command": [
+    "python3",
+    "verification/hosted-browser-storage-ci-fixture/verify.py"
+  ],
+  "accepted_local_selected_result": {
+    "label": "fixed",
+    "receipt": "verification/hosted-browser-storage-ci-fixture/attempts/fixed-20261025T165255.300555Z-58012e3a/receipt.json",
+    "receipt_sha256": "fab210d995b339ce95ec10557b4af1ee0efb890b705b1ded85e9a48747e36879",
+    "tests": {
+      "total": 24,
+      "failures": 0,
+      "skipped": 0,
+      "excluded": 0
+    },
+    "source_tree_sha256": "4215f52c76fc3157bfc67f1ec8232607a8976593a4b06fdbe9bbe293d8e05f7c",
+    "source_unchanged_during_run": true,
+    "cleanup": {
+      "owned_postgres_stopped": true,
+      "owned_container_removed": true,
+      "owned_scratch_removed": true
+    }
+  },
+  "retained_results": [
+    {
+      "label": "baseline",
+      "receipt": "verification/hosted-browser-storage-ci-fixture/attempts/baseline-20261025T164833.502555Z-7750f0cc/receipt.json",
+      "receipt_sha256": "150bdd04826416deb872c1fc4765dc613a1478055dcf1b30dbf99b8e54c816c1",
+      "tests": {
+        "total": 23,
+        "failures": 0,
+        "skipped": 0,
+        "excluded": 0
+      },
+      "source_tree_sha256": "b2db34d319dcc2db6a4e610307ed168b7eb386381022c476f5248e958011a7bd",
+      "source_unchanged_during_run": true,
+      "cleanup": {
+        "owned_postgres_stopped": true,
+        "owned_container_removed": true,
+        "owned_scratch_removed": true
+      }
+    },
+    {
+      "label": "fixed",
+      "receipt": "verification/hosted-browser-storage-ci-fixture/attempts/fixed-20261025T165029.405149Z-dc474925/receipt.json",
+      "receipt_sha256": "e0a266ad545cd20664947ce60c8f6202f7a9c536bd3882bbfcd6fac00dcfcdbf",
+      "tests": {
+        "total": 24,
+        "failures": 0,
+        "skipped": 0,
+        "excluded": 0
+      },
+      "source_tree_sha256": "f2cd95210f563429e5a57178ee7d342f3fcedc3c9123560e64c49c949dd71c10",
+      "source_unchanged_during_run": true,
+      "cleanup": {
+        "owned_postgres_stopped": true,
+        "owned_container_removed": true,
+        "owned_scratch_removed": true
+      }
+    },
+    {
+      "label": "fixed",
+      "receipt": "verification/hosted-browser-storage-ci-fixture/attempts/fixed-20261025T165255.300555Z-58012e3a/receipt.json",
+      "receipt_sha256": "fab210d995b339ce95ec10557b4af1ee0efb890b705b1ded85e9a48747e36879",
+      "tests": {
+        "total": 24,
+        "failures": 0,
+        "skipped": 0,
+        "excluded": 0
+      },
+      "source_tree_sha256": "4215f52c76fc3157bfc67f1ec8232607a8976593a4b06fdbe9bbe293d8e05f7c",
+      "source_unchanged_during_run": true,
+      "cleanup": {
+        "owned_postgres_stopped": true,
+        "owned_container_removed": true,
+        "owned_scratch_removed": true
+      }
+    }
+  ],
+  "checks": [
+    {
+      "name": "source-whitespace",
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "hosted/test/mixer_hosted/browser_auth/storage_spec.exs"
+      ],
+      "exit_code": 0,
+      "timeout_seconds": 30,
+      "stdout": "source-whitespace.stdout",
+      "stderr": "source-whitespace.stderr"
+    },
+    {
+      "name": "source-format",
+      "argv": [
+        "elixir",
+        "-e",
+        "f=\"hosted/test/mixer_hosted/browser_auth/storage_spec.exs\"; text=File.read!(f); formatted=IO.iodata_to_binary(Code.format_string!(text)); if String.trim_trailing(text)!=formatted, do: System.halt(1)"
+      ],
+      "exit_code": 0,
+      "timeout_seconds": 30,
+      "stdout": "source-format.stdout",
+      "stderr": "source-format.stderr"
+    },
+    {
+      "name": "collector-and-verifier-python-syntax",
+      "method": "ast.parse",
+      "passed": true
+    },
+    {
+      "name": "delivery-trailing-whitespace",
+      "passed": true
+    },
+    {
+      "name": "original-spec-and-retained-failure-CI-integrity",
+      "passed": true
+    }
+  ],
+  "pending": [
+    "Independent root review",
+    "Exact-push Ubuntu Phoenix CI and broad hosted suite",
+    "Browser/native runtime/capture paused",
+    "Provider/customer/FieldLog/GA qualification"
+  ],
+  "limitations": [
+    "Failed Ubuntu CI 5s timeout not reproduced locally",
+    "Sequential one-row local plans establish JIT overhead and policy mismatch, not precise failed-CI phase attribution"
+  ],
+  "owned_paths": [
+    "hosted/test/mixer_hosted/browser_auth/storage_spec.exs",
+    "docs/hosted-browser-storage-ci-fixture.md",
+    "verification/hosted-browser-storage-ci-fixture/"
+  ],
+  "scope": "Selected explicit-source PostgreSQL16 host fixture development only; no product/session/schema/workflow/default-budget change; no broad app/frozen/native/provider/production action",
+  "current_delivery_sha256": {
+    "hosted/test/mixer_hosted/browser_auth/storage_spec.exs": "bbb6f93902f743299e6c4189806757f3366ff20bcfed8fa56b0f9162d38e041c",
+    "docs/hosted-browser-storage-ci-fixture.md": "689507f944a20fa30a520c4232b815869817ba6759ffa7abfacf86d428b5e897",
+    "verification/hosted-browser-storage-ci-fixture/run.py": "cfd90820bd7ed6823454245baf9d45c12ec87b4dd70ce767e4023dfa6b76d644",
+    "verification/hosted-browser-storage-ci-fixture/plan_probe.exs": "08204db27b7e435b509311f154fc7d71acef6eec2822f5e3159f7125b2078241",
+    "verification/hosted-browser-storage-ci-fixture/verify.py": "c4ad42a8c5999c0248c87f0302f04ad65198d52f7b21e80dc9a05defc18c76f7"
+  },
+  "ci_failure_binding_sha256": "93b43140110714e1e1fb39d53a458f5b7e4f6f8d75e03260c5e54c7af404f5ef"
+}

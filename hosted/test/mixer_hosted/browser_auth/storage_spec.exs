@@ -778,6 +778,35 @@ defmodule MixerHosted.BrowserAuth.StorageTest do
     GenServer.stop(conn)
   end
 
+  test "ordinary directory fixture restores inherited JIT and unchanged bounds on commit and SQL rollback" do
+    conn = F.connection!("browser_ordinary")
+    initial = directory_settings(conn)
+    [_, inherited_jit | _] = initial
+
+    try do
+      for jit <- ~w(on off) do
+        Postgrex.query!(conn, "SELECT pg_catalog.set_config('jit',$1,false)", [jit])
+        before = directory_settings(conn)
+        assert [_, ^jit, "5s", "500ms", "5s"] = before
+        assert [["org"]] == directory_rows(conn)
+        assert before == directory_settings(conn)
+
+        error =
+          assert_raise Postgrex.Error, fn ->
+            directory_rows(conn, %{"token_expires_at" => "invalid-integer"})
+          end
+
+        assert error.postgres.code == :invalid_text_representation
+        assert before == directory_settings(conn)
+        assert [["org"]] == directory_rows(conn)
+      end
+    after
+      Postgrex.query!(conn, "SELECT pg_catalog.set_config('jit',$1,false)", [inherited_jit])
+      assert initial == directory_settings(conn)
+      GenServer.stop(conn)
+    end
+  end
+
   test "independent review rechecks bootstrap expiry after a rolled-back unique insertion wait" do
     locker = F.connection!()
     on_exit(fn -> if Process.alive?(locker), do: GenServer.stop(locker) end)
@@ -1312,14 +1341,38 @@ defmodule MixerHosted.BrowserAuth.StorageTest do
   end
 
   defp directory_rows(conn, overrides \\ %{}) do
+    before = directory_settings(conn)
+    [backend, _jit, statement, lock, idle] = before
     Postgrex.query!(conn, "BEGIN", [])
-    configure(conn, overrides)
 
-    rows =
-      Postgrex.query!(conn, "SELECT id FROM public.mixer_authz_organizations ORDER BY id", []).rows
+    try do
+      # Match the ordinary runtime's bounded transaction preparation without
+      # changing this connection's inherited policy or any timeout.
+      Postgrex.query!(conn, "SET LOCAL jit = off", [])
+      assert [backend, "off", statement, lock, idle] == directory_settings(conn)
+      configure(conn, overrides)
 
-    Postgrex.query!(conn, "COMMIT", [])
-    rows
+      rows =
+        Postgrex.query!(conn, "SELECT id FROM public.mixer_authz_organizations ORDER BY id", []).rows
+
+      Postgrex.query!(conn, "COMMIT", [])
+      rows
+    rescue
+      error ->
+        Postgrex.query!(conn, "ROLLBACK", [])
+        reraise error, __STACKTRACE__
+    after
+      assert before == directory_settings(conn)
+    end
+  end
+
+  defp directory_settings(conn) do
+    Postgrex.query!(
+      conn,
+      "SELECT pg_catalog.pg_backend_pid(),pg_catalog.current_setting('jit'),pg_catalog.current_setting('statement_timeout'),pg_catalog.current_setting('lock_timeout'),pg_catalog.current_setting('idle_in_transaction_session_timeout')",
+      []
+    ).rows
+    |> hd()
   end
 
   defp configure(conn, overrides) do

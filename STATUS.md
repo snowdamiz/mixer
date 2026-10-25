@@ -4,9 +4,12 @@ Development resumed at the user's October 25 request to continue PLAN.md. The
 [saved handoff](docs/implementation-pause-2026-10-25.md) remains historical evidence.
 Browser SQL, nine-migration integration, transaction-local JIT and trusted
 configuration text validation now pass scoped independent development review;
-pushed Phoenix methods pass, but test-discovery warnings still fail the job.
-The narrow CI configuration repair passes eight isolated Mix checks. Native
-runtime and capture remain paused.
+the first pushed Phoenix run executes 615 passing methods but fails discovery
+warnings. The four-path classification repair passes eight isolated Mix checks;
+its next CI run stops earlier in storage setup. That fixture repair now passes
+24 PostgreSQL 16 methods. Pure runtime constructors pass 30 producer and 25
+independent methods with root acceptance. Fresh repaired CI remains pending.
+Native runtime and capture remain paused.
 All eighteen work packages remain in scope:
 sixteen are in progress and two are marked ready. No launch gate is verified;
 [gates/ga.json](gates/ga.json) records eight running and thirty planned gates.
@@ -269,11 +272,32 @@ The [browser runtime contract](docs/hosted-browser-lifecycle-runtime-contract.md
 passes eight producer and twelve independent structural checks after correcting
 startup binding, existing PUBLIC-policy expectations, same-process trust-change
 limits and first-slice preauth behavior. This accepts the implementation contract
-only. Pure custody/runtime configuration and independent catalog admission are
-underway; all forty runtime adversity cases remain pending. See
-[review](docs/hosted-browser-lifecycle-runtime-contract-review.md).
+only. Pure custody/runtime configuration now passes 30 producer and 25 independent
+methods, zero failures/skips/exclusions. Root audited 51 source/dependency and
+33 output bindings and cleanup. Exact constructor checks preserve supplied TLS,
+separate all four roles, derive the fixed two-connection pool and disclose no
+secrets. This proves neither live startup provenance nor secure external custody.
+The existing URI HTTPS registry read is narrowly documented; drift fails closed.
+Independent function/type catalog review and the full relation/policy/grant matrix
+remain underway; all forty runtime adversity cases remain pending. See
+[contract review](docs/hosted-browser-lifecycle-runtime-contract-review.md) and
+[constructor acceptance](verification/hosted-browser-runtime-constructor-review/root-acceptance.json).
 
 ## Delivery and pending qualification
+
+The discovery repair and reviewed runtime contract are pushed as `4492bbc7`;
+remote main matches. Phoenix `40212854925` failed in storage fixture setup: the
+raw ordinary directory query reached its unchanged five-second statement limit,
+so all 23 methods were invalid and migration/broader checks were not reached.
+A local replay of the original fixture passes all 23 methods, so the precise CI
+cause remains unproven. A paired plan exposes 455 JIT functions: 133.830 ms with
+JIT versus 0.279 ms with transaction-local JIT disabled. The narrow raw-directory
+fixture alignment now passes 24 PostgreSQL 16 methods with unchanged deadlines,
+commit/SQL-error rollback restoration and owned-container cleanup. Root accepts
+that fixture repair; fresh exact-push CI is pending. Engine `40212854904` is
+running. Constructor/catalog implementations were excluded from that push. See
+[fixture evidence](docs/hosted-browser-storage-ci-fixture.md) and
+[delivery](verification/github-delivery-browser-discovery/receipt.json).
 
 The resumed slice is committed and pushed as `7e434330` to `origin/main`; remote
 main matches. Phoenix `40211210237` fails after all 615 executed methods pass
@@ -281,8 +305,7 @@ main matches. Phoenix `40211210237` fails after all 615 executed methods pass
 under warnings-as-errors. The former 121-project deadline case passes in
 449.6 ms. New browser storage and migration CI checks also pass. The narrow
 four-path discovery repair passes eight actual Mix checks while retaining fatal
-unknown-file/compiler warnings. Engine `40211210222` has passed VM/services;
-Swift is still running. See
+unknown-file/compiler warnings. Engine `40211210222` passes all three jobs. See
 [delivery](verification/github-delivery-browser-lifecycle/delivery-receipt.json). Previous checkpoint `1257cbf8` Phoenix CI fails the
 same first 121-project workspace read at its unchanged transaction deadline:
 608/609 methods pass with two existing skips. Its exact output is preserved in
