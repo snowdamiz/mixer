@@ -1,0 +1,101 @@
+{
+  "schema": 1,
+  "scope": "Exact selected source excerpts read as data only; no compilation or execution",
+  "slices": [
+    {
+      "archive": "verification/apple-focus-system-native-build/attempt-1/sources.tar.gz",
+      "archiveSHA256": "3cfd2e83369b566a48cc50f263ff879bc7da2c7b49cb0a836980da7c5b39cdc1",
+      "lineEnd": 52,
+      "lineStart": 48,
+      "lines": [
+        "        DiagnosticTrace.shared.focusSystemObserver = { [weak self] site, sequence in",
+        "            guard let self else { return }",
+        "            FocusSystemObservation.shared.capture(site: site, contextSequence: sequence, stage: self.stage, controller: self,",
+        "                                                  controls: [self.toggle, self.referenceButton, self.nextButton])",
+        "        }"
+      ],
+      "member": "source/Prototype/main.swift",
+      "memberSHA256": "2f52e5158b5b4f806e294d6a8c6bae20208b707b25a945d6858c483be98712a4"
+    },
+    {
+      "archive": "verification/apple-focus-system-native-build/attempt-1/sources.tar.gz",
+      "archiveSHA256": "3cfd2e83369b566a48cc50f263ff879bc7da2c7b49cb0a836980da7c5b39cdc1",
+      "lineEnd": 296,
+      "lineStart": 285,
+      "lines": [
+        "    override func didUpdateFocus(in context: UIFocusUpdateContext, with coordinator: UIFocusAnimationCoordinator) {",
+        "        super.didUpdateFocus(in: context, with: coordinator)",
+        "        DiagnosticTrace.shared.focusContext(\"controller\", context)",
+        "    }",
+        "    override var preferredFocusEnvironments: [UIFocusEnvironment] { [referenceButton] }",
+        "}",
+        "",
+        "@MainActor final class PrototypeDelegate: UIResponder, UIApplicationDelegate {",
+        "    var window: UIWindow?",
+        "    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey:Any]?) -> Bool {",
+        "        let window = UIWindow(frame: UIScreen.main.bounds); window.rootViewController = PrototypeController()",
+        "        window.makeKeyAndVisible(); self.window = window; return true"
+      ],
+      "member": "source/Prototype/main.swift",
+      "memberSHA256": "2f52e5158b5b4f806e294d6a8c6bae20208b707b25a945d6858c483be98712a4"
+    },
+    {
+      "archive": "verification/apple-focus-system-native-build/attempt-1/sources.tar.gz",
+      "archiveSHA256": "3cfd2e83369b566a48cc50f263ff879bc7da2c7b49cb0a836980da7c5b39cdc1",
+      "lineEnd": 341,
+      "lineStart": 333,
+      "lines": [
+        "    private func launchCase(_ name: String, initial: Bool) throws -> XCUIApplication {",
+        "        guard Self.settingsReady else { throw XCTSkip(\"Public Settings setup did not pass; dependent application input remains unrun\") }",
+        "        caseName = name",
+        "        let target = XCUIApplication(bundleIdentifier: diagnostic); target.terminate()",
+        "        _ = try bridge(\"begin\", [\"candidate\": \"diagnostic\", \"case\": name])",
+        "        target.launch(); guard target.wait(for: .runningForeground, timeout: 5) else { throw Failure.timeout }",
+        "        app = target; _ = try bridge(\"ready\")",
+        "        for command in [\"resume\", \"reset\"] + (initial ? [\"set-on\"] : []) { _ = try bridge(\"command\", [\"command\": command]) }",
+        "        return target"
+      ],
+      "member": "harness/UITests/ToggleUITests.swift",
+      "memberSHA256": "0e43bd202946711ff6f1c89c8ebeb7d26f692f7ab4d5ec862e67e674f3765fb3"
+    },
+    {
+      "archive": "verification/apple-focus-system-native-build/attempt-1/sources.tar.gz",
+      "archiveSHA256": "3cfd2e83369b566a48cc50f263ff879bc7da2c7b49cb0a836980da7c5b39cdc1",
+      "lineEnd": 423,
+      "lineStart": 409,
+      "lines": [
+        "        try jsonAttachment(\"Before public key \" + phase, [\"case\": caseName, \"phase\": phase, \"key\": value, \"generation\": baseline[\"generation\"]!, \"actionIndex\": baseline[\"actionIndex\"]!, \"before\": before])",
+        "        let start = ProcessInfo.processInfo.systemUptime",
+        "        if value == \"shift-tab\" { app.typeKey(XCUIKeyboardKey.tab, modifierFlags: [.shift]) }",
+        "        else { app.typeKey(value == \"space\" ? XCUIKeyboardKey.space : XCUIKeyboardKey.tab, modifierFlags: []) }",
+        "        let finished = ProcessInfo.processInfo.systemUptime",
+        "        var after = try ax(\"after-primary\"); let end = ProcessInfo.processInfo.systemUptime + 1",
+        "        while ProcessInfo.processInfo.systemUptime < end {",
+        "            let matchesFocus = try expectedFocus == nil || focus(after) == expectedFocus",
+        "            let matchesSelection = expectedSelection == nil || toggle.isSelected == expectedSelection",
+        "            if matchesFocus && matchesSelection { break }",
+        "            RunLoop.current.run(until: Date(timeIntervalSinceNow: 0.05)); after = try ax(\"after-poll\")",
+        "        }",
+        "        let witness: [String: Any] = [\"case\": caseName, \"generation\": baseline[\"generation\"]!, \"actionIndex\": baseline[\"actionIndex\"]!,",
+        "            \"phase\": phase, \"key\": value, \"publicAPI\": \"XCUIElement.typeKey(_:modifierFlags:)\", \"returned\": true,",
+        "            \"before\": before, \"startedUptime\": start, \"finishedUptime\": finished, \"after\": after]"
+      ],
+      "member": "harness/UITests/ToggleUITests.swift",
+      "memberSHA256": "0e43bd202946711ff6f1c89c8ebeb7d26f692f7ab4d5ec862e67e674f3765fb3"
+    },
+    {
+      "archive": "verification/apple-focus-system-native-build/attempt-1/sources.tar.gz",
+      "archiveSHA256": "3cfd2e83369b566a48cc50f263ff879bc7da2c7b49cb0a836980da7c5b39cdc1",
+      "lineEnd": 474,
+      "lineStart": 471,
+      "lines": [
+        "    func test010ReferenceFirstTab() throws {",
+        "        _ = try launchCase(\"keyboard-enabled-off\", initial: false)",
+        "        try key(\"acquire\", \"tab\", requiredFocusBefore: \"plain-uibutton-reference\")",
+        "    }"
+      ],
+      "member": "harness/UITests/ToggleUITests.swift",
+      "memberSHA256": "0e43bd202946711ff6f1c89c8ebeb7d26f692f7ab4d5ec862e67e674f3765fb3"
+    }
+  ]
+}

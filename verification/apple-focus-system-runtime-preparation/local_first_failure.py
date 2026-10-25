@@ -1,0 +1,150 @@
+"""Supplemental local diagnostic only. Never grants native importer acceptance."""
+import hashlib
+import json
+import math
+import os
+from pathlib import Path
+import stat
+import uuid
+
+import importer
+
+PREFIX = b'MIXER_SETTINGS_FIRST_FAILURE '
+STREAM_LIMIT = 32 * 1024 * 1024
+KINDS = {'start', 'mark', 'observe', 'chunk'}
+STAGES = {'settings-launched', 'route-tap', 'switch-action', 'terminate-before',
+          'terminate-after', 'test-case-finished', 'suite-finished', 'bundle-finished',
+          'route-search', 'route-opened', 'before-switch', 'after-switch', 'poll', 'terminal'}
+BRANCHES = {'begin-deadline', 'begin-request-limit', 'begin-prior-failure', 'configuration',
+            'serialization', 'body-limit', 'semaphore-expiration', 'foundation-error',
+            'http-rejection', 'invalid-response'}
+FIELDS = {'schema', 'kind', 'start', 'generation', 'sequence', 'stage', 'slot', 'chunkIndex',
+          'chunkCount', 'requestOrdinal', 'taskIdentifier', 'beginUptime', 'endUptime',
+          'absoluteDeadlineUptime', 'actualAllowanceSeconds', 'overallDeadlineClipped',
+          'branch', 'status', 'errorCode'}
+
+
+def require(value):
+    if not value:
+        raise ValueError('Supplemental diagnostic evidence rejected')
+
+
+def nullable_integer(value, low, high):
+    return value is None or type(value) is int and low <= value <= high
+
+
+def safe_record(raw):
+    require(type(raw) is bytes and len(raw) <= 2048)
+    value = importer.parse(raw)
+    require(type(value) is dict and set(value) == FIELDS)
+    require(type(value['schema']) is int and value['schema'] == 1)
+    require(value['kind'] is None or type(value['kind']) is str and value['kind'] in KINDS)
+    require(type(value['start']) is bool and value['start'] == (value['kind'] == 'start'))
+    generation = value['generation']
+    require(generation is None or type(generation) is str and len(generation) == 36
+            and str(uuid.UUID(generation)).lower() == generation.lower())
+    require((value['sequence'] == 0 and type(value['sequence']) is int) if value['start']
+            else nullable_integer(value['sequence'], 1, 2500))
+    require(value['stage'] is None or type(value['stage']) is str and value['stage'] in STAGES)
+    slot = value['slot']
+    if slot is not None:
+        require(type(slot) is str)
+        parts = slot.split('-')
+        require(len(parts) == 3 and parts[0] == 'settings' and len(parts[1]) == 4
+                and all('0' <= c <= '9' for c in parts[1]) and 1 <= int(parts[1]) <= 2500
+                and parts[2] in {'ax', 'png'})
+    require(nullable_integer(value['chunkIndex'], 0, 651)
+            and nullable_integer(value['chunkCount'], 1, 652))
+    require(type(value['requestOrdinal']) is int and 1 <= value['requestOrdinal'] <= 2501)
+    require(nullable_integer(value['taskIdentifier'], 1, 2**63 - 1))
+    for key in ['beginUptime', 'endUptime', 'absoluteDeadlineUptime']:
+        item = value[key]
+        require(item is None or type(item) in (int, float) and math.isfinite(item) and item >= 0)
+    allowance = value['actualAllowanceSeconds']
+    require(allowance is None or type(allowance) in (int, float) and math.isfinite(allowance)
+            and 0 < allowance <= 2)
+    clipped = value['overallDeadlineClipped']
+    require(clipped is None if allowance is None else type(clipped) is bool and clipped == (allowance < 2))
+    require(type(value['branch']) is str and value['branch'] in BRANCHES)
+    require(nullable_integer(value['status'], -2**63, 2**63 - 1)
+            and nullable_integer(value['errorCode'], -2**63, 2**63 - 1))
+    return value
+
+
+def extract(streams):
+    """Never copy console prefixes, unparsed lines, URLs or unknown JSON members."""
+    require(set(streams) == {'stdout', 'stderr'})
+    matches = []
+    for name in ['stdout', 'stderr']:
+        raw = streams[name]
+        require(type(raw) is bytes and len(raw) <= STREAM_LIMIT)
+        # Iterate bounded byte lines. A console prefix may precede the exact
+        # marker, but no prefix byte is included in the returned diagnostic.
+        for line in raw.splitlines():
+            count = line.count(PREFIX)
+            if count:
+                require(count == 1 and len(matches) == 0)
+                record = safe_record(line.split(PREFIX, 1)[1])
+                matches.append({'stream': name, 'record': record})
+    return matches[0] if matches else None
+
+
+def regular_bytes(path, limit):
+    require(path.resolve() == path)
+    info = path.lstat()
+    require(stat.S_ISREG(info.st_mode) and info.st_nlink == 1 and info.st_size <= limit)
+    raw = path.read_bytes()
+    require(len(raw) == info.st_size)
+    return raw
+
+
+def collect(session, root):
+    root = importer.validate_root(root)
+    require(session.resolve() == session and session.is_dir() and not session.is_symlink()
+            and session.name == 'session' and session.parent.name == 'runtime'
+            and session.parent.parent.name == 'native-run-v8-' + root['runID'])
+    folder = session / 'command-observer'
+    require(folder.resolve() == folder and folder.is_dir() and not folder.is_symlink())
+    observer_raw = regular_bytes(folder / 'observer.json', 2_000_000)
+    observer = importer.parse(observer_raw)
+    streams = {name: regular_bytes(folder / (name + '.log'), STREAM_LIMIT)
+               for name in ['stdout', 'stderr']}
+    code = importer.observer_terminal(observer, root, session, streams)
+    found = extract(streams)
+    return {'schema': 'mixer.apple-settings-local-first-failure.1', 'supplementalOnly': True,
+            'runID': root['runID'], 'rootSelectionSHA256': hashlib.sha256(importer.stable(root)).hexdigest(),
+            'status': 'captured-safe-local-record' if found else 'marker-not-observed',
+            'observedXCTestExitCode': code, 'sourceObserverSHA256': hashlib.sha256(observer_raw).hexdigest(),
+            'diagnostic': found, 'nativeImporterAcceptanceGranted': False, 'runPassed': False,
+            'settingsPreconditionPassed': False, 'gaAccepted': False}
+
+
+def capture(session, root):
+    """Ancillary collection cannot replace a transport/importer/cleanup failure."""
+    try:
+        report = collect(session, root)
+    except (ValueError, KeyError, TypeError, OSError, OverflowError, RecursionError, UnicodeError):
+        # Never retain exception text or failed input in this separate report.
+        report = {'schema': 'mixer.apple-settings-local-first-failure.1', 'supplementalOnly': True,
+                  'status': 'unavailable-or-invalid', 'diagnostic': None,
+                  'nativeImporterAcceptanceGranted': False, 'runPassed': False,
+                  'settingsPreconditionPassed': False, 'gaAccepted': False}
+    try:
+        # O_EXCL retains the first collection attempt, including an invalid one.
+        target = session / 'local-settings-first-failure.json'
+        validated = importer.validate_root(root)
+        require(target.resolve() == target and session.resolve() == session
+                and not session.is_symlink() and session.is_dir() and session.name == 'session'
+                and session.parent.name == 'runtime'
+                and session.parent.parent.name == 'native-run-v8-' + validated['runID'])
+        descriptor = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+        with os.fdopen(descriptor, 'wb') as stream:
+            stream.write(importer.stable(report)); stream.flush(); os.fsync(stream.fileno())
+        directory = os.open(session, os.O_RDONLY)
+        try:
+            os.fsync(directory)
+        finally:
+            os.close(directory)
+    except (ValueError, KeyError, TypeError, OSError, OverflowError, RecursionError, AttributeError):
+        pass
+    return report

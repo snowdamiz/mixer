@@ -13,17 +13,21 @@ its older pending/selected statements do not override the current state.
 
 1. **Owned Swift interpreter:** decode-plan reuse is reviewed and integrated.
    Four complete isolated host contexts pass 2,314 named executions; the fresh
-   live private suite passes 340. Production limits remain fixed. Prepare and
-   review one separately selected full-reactor attempt from the new source
-   closure. The previous full attempt remains a CacheWork failure. See
+   live private suite passes 340. Production limits remain fixed. The newly selected
+   full attempt still reaches CacheWork exhaustion during Corpus 1 after
+   23,358,291 guest instructions. The sealed result audit confirms all final
+   reservations and live counts return to zero. A bounded remaining-work
+   diagnosis now passes finite checks. Implement the proposed fixed-memory
+   attribution observer before selecting another full run. See
    [the integration](docs/swift-decode-plan-integration.md).
 2. **iOS shared UI:** the supplemental source and corrected frozen V7 host join
    pass independent review. Fresh generic simulator builds of both app and runner
-   are accepted. A host-only V8 runtime packet is being prepared from those exact
-   products. Preserve the original failed Tab verdict. A frozen V7 replay anchor
-   does not authorize future runtime ingestion; a new native packet must bind its
-   own immutable originals. Runtime execution remains separately selected after
-   product binding and independent review.
+   are accepted. A sealed host-only V8 runtime packet passes sixteen controls and
+   passes nine independent review methods against those exact products. Root has
+   completed one fresh V8 simulator run: Settings passes; first Tab fails. All
+   five cleanup checks pass. The recorded-result audit is complete; investigate
+   the plain-reference window and public-key lifecycle before selecting a fix.
+   The frozen V7 replay anchor cannot authorize a new supplemental join.
 3. **Hosted builds:** preserve the isolated context-admission correction and its
    79 functional passes. The broader entry review stopped incomplete; the
    defensive source review does not replace it. Live Engine/entry integration,
