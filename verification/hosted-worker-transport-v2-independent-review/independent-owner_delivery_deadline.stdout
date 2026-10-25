@@ -1,0 +1,43 @@
+Running ExUnit with seed: 0, max_cases: 4
+
+
+
+  1) test owner cannot deliver an otherwise valid Flight result after its deadline (IndependentOwnerDeliveryDeadlineTest)
+     cases/owner_delivery_deadline_test.exs:4
+     Expected truthy, got false
+     code: assert Enum.any?(messages, &match?({:worker_transport_finished, ^flight, {:ok, :absent}}, &1))
+     arguments:
+
+         # 1
+         [
+           {:worker_transport_finished, #PID<0.256.0>,
+            {:ok,
+             %MixerHosted.Builds.Dispatch.Observation{
+               operation_id: "e0c2708c844f449355cf2311d05134d6428f40b309edd5b425765801c98c1f5d",
+               ref: %MixerHosted.Builds.Lifecycle.WorkerRef{
+                 organization_id: "org",
+                 project_id: "project",
+                 application_id: "app",
+                 build_id: "build",
+                 platform: :ios,
+                 attempt: 1,
+                 fence: 9223372036854775807
+               },
+               status: :absent
+             }}},
+           {:DOWN, #Reference<0.40318223.2416967681.245117>, :process,
+            #PID<0.256.0>, :normal}
+         ]
+
+         # 2
+         #Function<3.77393516/1 in IndependentOwnerDeliveryDeadlineTest."test owner cannot deliver an otherwise valid Flight result after its deadline"/1>
+
+     stacktrace:
+       cases/owner_delivery_deadline_test.exs:16: (test)
+
+
+Finished in 0.1 seconds (0.00s async, 0.1s sync)
+
+Result: 0/1 passed
+Failed: 1 test
+{"tests":1,"failures":1,"skipped":0,"excluded":0,"frozen_modules_loaded":[],"compiled_allowlist_verified":true,"compiled_modules":["Elixir.Inspect.MixerHosted.Builds.WorkerConfig","Elixir.MixerHosted.Builds.Dispatch","Elixir.MixerHosted.Builds.Dispatch.Observation","Elixir.MixerHosted.Builds.Dispatch.Request","Elixir.MixerHosted.Builds.Lifecycle","Elixir.MixerHosted.Builds.Lifecycle.ArtifactRef","Elixir.MixerHosted.Builds.Lifecycle.Build","Elixir.MixerHosted.Builds.Lifecycle.Policy","Elixir.MixerHosted.Builds.Lifecycle.Spec","Elixir.MixerHosted.Builds.Lifecycle.WorkerRef","Elixir.MixerHosted.Builds.WorkerConfig","Elixir.MixerHosted.Builds.WorkerHTTPAdapter","Elixir.MixerHosted.Builds.WorkerTransport","Elixir.MixerHosted.Builds.WorkerTransport.Flight","Elixir.MixerHosted.Builds.WorkerTransport.RoleGuard","Elixir.MixerHosted.Builds.WorkerWire","Elixir.MixerHosted.Identity.BoundedJSON","Elixir.MixerHosted.Identity.BoundedTCP","Elixir.MixerHosted.Identity.DNSResolver","Elixir.MixerHosted.Identity.GlobalAddress"]}

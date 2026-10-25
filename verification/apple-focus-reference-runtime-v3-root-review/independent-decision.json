@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "observedUTC": "2026-10-25T02:38:07.458684+00:00",
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "verification/apple-focus-reference-runtime-v3-root-review/verify_independent.py"
+  ],
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "verifierSHA256": "4c28f60c999571e85ccea7d18d4965b5f017cfb82ecf07d587ce3ba7fd7ad5f7",
+  "sourceRevision": "5906779f0604aba629e30738500333fc484f8e20",
+  "status": "reject-v3-native-dispatch-exact-timestamp-repair-required",
+  "handoffSHA256": "70f56f2e9495cf6ca18c0298fdf83300849b484298b62830a4facf744c6eebe1",
+  "verifiedMembers": 313,
+  "frozenInputCount": 307,
+  "producerControls": {
+    "passed": 111,
+    "run": 111
+  },
+  "repairControls": {
+    "passed": 25,
+    "run": 25
+  },
+  "historicalControls": {
+    "passed": 32,
+    "retainedInvalidDirectCommitFixtureFailures": 1,
+    "run": 33
+  },
+  "independentControls": {
+    "errors": 0,
+    "failed": 3,
+    "passed": 34,
+    "run": 37,
+    "skipped": 0
+  },
+  "findings": [
+    {
+      "actualAdapterReproductions": 3,
+      "failedIndependentControls": 3,
+      "id": "R1",
+      "line": 71,
+      "meaning": "Ambient Decimal multiplication rounds away fractional nanoseconds before integrality/order checks; a signature later than original raw premise can pass",
+      "nativeProvenanceExploitClaimed": false,
+      "scope": "production-importer-synthetic-consistency",
+      "severity": "dispatch-blocker",
+      "source": "verification/apple-focus-reference-runtime-v3/importer.py"
+    }
+  ],
+  "nativeSelected": false,
+  "gaAccepted": false,
+  "rootImportedOrExecutedReviewedCode": false,
+  "nextImplementation": "Separate V4 exact arithmetic repair, then independent host review before any fresh native selection."
+}

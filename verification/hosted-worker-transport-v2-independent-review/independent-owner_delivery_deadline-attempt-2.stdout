@@ -1,0 +1,32 @@
+Running ExUnit with seed: 0, max_cases: 4
+
+
+
+  1) test owner cannot deliver an otherwise valid Flight result after its deadline (IndependentOwnerDeliveryDeadlineTest)
+     cases/owner_delivery_deadline_test.exs:4
+     Assertion with == failed
+     code:  assert result == {:error, :uncertain}
+     left:  {:ok,
+             %MixerHosted.Builds.Dispatch.Observation{
+               operation_id: "e0c2708c844f449355cf2311d05134d6428f40b309edd5b425765801c98c1f5d",
+               ref: %MixerHosted.Builds.Lifecycle.WorkerRef{
+                 organization_id: "org",
+                 project_id: "project",
+                 application_id: "app",
+                 build_id: "build",
+                 platform: :ios,
+                 attempt: 1,
+                 fence: 9223372036854775807
+               },
+               status: :absent
+             }}
+     right: {:error, :uncertain}
+     stacktrace:
+       cases/owner_delivery_deadline_test.exs:25: (test)
+
+
+Finished in 5.1 seconds (0.00s async, 5.1s sync)
+
+Result: 0/1 passed
+Failed: 1 test
+{"tests":1,"failures":1,"skipped":0,"excluded":0,"frozen_modules_loaded":[],"compiled_allowlist_verified":true,"compiled_modules":["Elixir.Inspect.MixerHosted.Builds.WorkerConfig","Elixir.MixerHosted.Builds.Dispatch","Elixir.MixerHosted.Builds.Dispatch.Observation","Elixir.MixerHosted.Builds.Dispatch.Request","Elixir.MixerHosted.Builds.Lifecycle","Elixir.MixerHosted.Builds.Lifecycle.ArtifactRef","Elixir.MixerHosted.Builds.Lifecycle.Build","Elixir.MixerHosted.Builds.Lifecycle.Policy","Elixir.MixerHosted.Builds.Lifecycle.Spec","Elixir.MixerHosted.Builds.Lifecycle.WorkerRef","Elixir.MixerHosted.Builds.WorkerConfig","Elixir.MixerHosted.Builds.WorkerHTTPAdapter","Elixir.MixerHosted.Builds.WorkerTransport","Elixir.MixerHosted.Builds.WorkerTransport.Flight","Elixir.MixerHosted.Builds.WorkerTransport.RoleGuard","Elixir.MixerHosted.Builds.WorkerWire","Elixir.MixerHosted.Identity.BoundedJSON","Elixir.MixerHosted.Identity.BoundedTCP","Elixir.MixerHosted.Identity.DNSResolver","Elixir.MixerHosted.Identity.GlobalAddress"]}

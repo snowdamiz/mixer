@@ -1,0 +1,32 @@
+Running ExUnit with seed: 0, max_cases: 4
+
+
+
+  1) test cleanup acknowledgment after the absolute deadline cannot return a valid observation (WorkerV2DelayedRetirementAckTest)
+     verification/hosted-worker-transport-v2/candidate/test/fault_cases/delayed_retirement_ack_test.exs:4
+     Assertion with == failed
+     code:  assert result == {:error, :uncertain}
+     left:  {:ok,
+             %MixerHosted.Builds.Dispatch.Observation{
+               operation_id: "e0c2708c844f449355cf2311d05134d6428f40b309edd5b425765801c98c1f5d",
+               ref: %MixerHosted.Builds.Lifecycle.WorkerRef{
+                 organization_id: "org",
+                 project_id: "project",
+                 application_id: "app",
+                 build_id: "build",
+                 platform: :ios,
+                 attempt: 1,
+                 fence: 9223372036854775807
+               },
+               status: :absent
+             }}
+     right: {:error, :uncertain}
+     stacktrace:
+       verification/hosted-worker-transport-v2/candidate/test/fault_cases/delayed_retirement_ack_test.exs:32: (test)
+
+
+Finished in 5.1 seconds (0.00s async, 5.1s sync)
+
+Result: 0/1 passed
+Failed: 1 test
+{"scope":"isolated-client-candidate-real-synthetic-TLS-only","tests":1,"failures":1,"skipped":0,"excluded":0,"frozen_modules_loaded":[]}

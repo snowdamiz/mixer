@@ -1,0 +1,362 @@
+--- frozen-v2/prepare.py
++++ v3/prepare.py
+@@ -20,7 +20,7 @@
+ REVIEW = ROOT/'verification/apple-focus-reference-diagnostic-v2-independent-review'
+ PRODUCT = '0941185e39cc0171b0bf5d2aeb72738588e88b9c7b3d676f893b70c3bf644fa8'
+ SOURCE = '696bfdd8a31be7b4d9ba49f57783625c7edbb75c126bb4696e31acc5aa0f238a'
+-OWNED = ['prepare.py','importer.py','adapter.py','test_importer.py','verify_host.py','freeze.py']
++OWNED = ['prepare.py','importer.py','adapter.py','test_importer.py','verify_host.py','freeze.py','auxiliary_inventory.py','test_repair.py','replay_review.py']
+ METHODS = ['test000PublicSettingsFullKeyboardAccess','test010ReferenceFirstTab']
+ ORACLES = ['apple-toggle-keyboard-focus-v9-preparation/keyboard_oracle.py','apple-toggle-keyboard-focus/keyboard_oracle.py','apple-toggle-keyboard-focus/cases.json','apple-toggle-pan-commit-harness-v2/commit_oracle.py','apple-toggle-pan-commit-harness-v2/cases.json','apple-toggle-native-interruption/interruption_oracle.py','apple-toggle-native-interruption/cases.json','apple-toggle-pan-origin-correction/oracle.py','apple-toggle-semantic-activation/semantic_oracle.py']
+ 
+@@ -59,6 +59,13 @@
+ 
+ def inputs():
+     bindings = {}
++    for directory,expected in [(ROOT/'verification/apple-focus-reference-runtime-v2','78ada9ff4aa3392e07f4fdf71a0eb563c67c8fde920388609372b09a771f3668'),(ROOT/'verification/apple-focus-reference-runtime-v2-independent-review','cf24502cf1201e22848628bf1e5254bb708b529006eb707c632b051e46ebb2f1')]:
++        handoff=checked(directory/'handoff.json',expected)
++        require(sha(stable(handoff['members']))==handoff['memberTreeSHA256'],'Historical V2 member digest differs')
++        for name,item in handoff['members'].items():
++            require(row(ROOT/name)==item,'Historical V2/review file changed: '+name)
++            bindings[name]=item
++        bindings[str((directory/'handoff.json').relative_to(ROOT))]=row(directory/'handoff.json')
+     for directory, expected in [(V1,'9f066db167168e8ab0c78b2147f857ba3980d965a69b681e566e5e185f6a0d3c'),(V2,'07776c2af95bcc58e126b4ceb0f0dee39dec1138ea96bc9e33bc8a4a0393a3a0'),(REVIEW,'6ca2e2a7d7264664f50046a506b01465287dcc6d88872be528af239d8c0d5a55')]:
+         handoff = checked(directory/'handoff.json',expected)
+         require(sha(stable(handoff['members'])) == handoff['memberTreeSHA256'],'Handoff member digest differs')
+@@ -101,9 +108,10 @@
+     derived['join_support.py'] = once(runtime['join_support.py'].decode().split('\ndef official_methods(base):',1)[0],"'test010EnabledFromOff'","'test010ReferenceFirstTab'").encode() + b'\n' + (BASE/'adapter.py').read_bytes()
+     derived['importer.py'] = (BASE/'importer.py').read_bytes()
+     derived['reference_contract.py'] = (V2/'reference_contract.py').read_bytes()
++    derived['auxiliary_inventory.py']=(BASE/'auxiliary_inventory.py').read_bytes()
+     s = runtime['composition.py'].decode()
+-    s = once(s,'import command_observer\n','import command_observer\nimport importer\nimport reference_contract\njoin_support.configure_root(selection["trustedRootSelection"])\n')
+-    s = once(s,'join_support,command_observer]','join_support,command_observer,importer,reference_contract]')
++    s = once(s,'import command_observer\n','import command_observer\nimport importer\nimport reference_contract\nimport auxiliary_inventory\njoin_support.configure_root(selection["trustedRootSelection"])\n')
++    s = once(s,'join_support,command_observer]','join_support,command_observer,importer,reference_contract,auxiliary_inventory]')
+     s = once(s,"    h.BASE=OUT;h.ROOT=ROOT;", "    h.DEVELOPER=pathlib.Path(selection['trustedRootSelection']['developerDirectory'])\n    h.BASE=OUT;h.ROOT=ROOT;")
+     derived['composition.py'] = s.encode()
+     s = runtime['attachment_export.py'].decode()
+@@ -147,7 +155,7 @@
+     s=s[:start]+'            pass  # Official output already captured by the selected wrapper.\n'+s[end:]
+     derived['orchestration.py'] = s.encode()
+     selection.update(methods=METHODS,cases=['keyboard-enabled-off'],scope='One reference-first Tab diagnostic only; no acquisition loop or completion credit')
+-    selection['moduleAliases'].update(importer='importer.py',reference_contract='reference_contract.py')
++    selection['moduleAliases'].update(importer='importer.py',reference_contract='reference_contract.py',auxiliary_inventory='auxiliary_inventory.py')
+     selection.pop('productsRoot',None); selection.pop('outputBase',None)
+     for name in ['orchestration.py','composition.py','attachment_export.py','join_support.py']:
+         compile(derived[name],name,'exec')
+@@ -170,7 +178,7 @@
+     for name, value in [('input-lock.json',bindings),('runtime-source-manifest.json',archive),('selection-template.json',selection)]:
+         with (BASE/name).open('xb') as stream:stream.write(stable(value))
+     own={name:row(BASE/name) for name in OWNED}
+-    packet={'schema':'mixer.apple-focus-reference-runtime-packet.2','scope':'Host preparation only; independent review and root fresh selection required before dispatch','preparedUTC':datetime.datetime.now(datetime.timezone.utc).isoformat(),'command':[sys.executable,'-B',str(BASE/'prepare.py'),'prepare'],'python':sys.version,'pythonExecutable':str(Path(sys.executable).resolve()),'sourceRevisionLabel':'ba9ad4372f94463ba4d363cdfd76dd565c96413f','sourceRevisionMeaning':'Inherited frozen compile label; exact hashes define this tree; no Git query','sourceTreeSHA256':SOURCE,'productArchiveSHA256':PRODUCT,'productTreeSHA256':json.loads((V1/'compile-attempt-1/receipt.json').read_bytes())['productTreeSHA256'],'methods':METHODS,'cases':['keyboard-enabled-off'],'ownedSources':own,'ownedSourceTreeSHA256':sha(stable(own)),'files':{name:row(BASE/name) for name in ['input-lock.json','runtime-source-manifest.json','runtime-sources.tar.gz','selection-template.json']},'documentation':row(ROOT/'docs/apple-focus-reference-runtime-v2.md'),'cleanup':{'hostPreparationScratchAbsent':not scratch.exists(),'nativeInstancesCreatedOrQueried':0,'servicesStarted':0,'otherProjectsTouched':False},'nativeExecuted':False,'runtimeSelected':False,'compileRerun':False,'runPassed':False,'completeCaseSet':False,'cursorCompletionCredit':False,'fullSixCaseQualification':False,'nativeKeyboardQualification':False,'carrierAccepted':False,'gaAccepted':False,'physicalPhones':'disconnected-deferred'}
++    packet={'schema':'mixer.apple-focus-reference-runtime-packet.3','scope':'Host preparation only; independent review and root fresh selection required before dispatch','preparedUTC':datetime.datetime.now(datetime.timezone.utc).isoformat(),'command':[sys.executable,'-B',str(BASE/'prepare.py'),'prepare'],'python':sys.version,'pythonExecutable':str(Path(sys.executable).resolve()),'sourceRevisionLabel':'ba9ad4372f94463ba4d363cdfd76dd565c96413f','sourceRevisionMeaning':'Inherited frozen compile label; exact hashes define this tree; no Git query','sourceTreeSHA256':SOURCE,'productArchiveSHA256':PRODUCT,'productTreeSHA256':json.loads((V1/'compile-attempt-1/receipt.json').read_bytes())['productTreeSHA256'],'methods':METHODS,'cases':['keyboard-enabled-off'],'ownedSources':own,'ownedSourceTreeSHA256':sha(stable(own)),'files':{name:row(BASE/name) for name in ['input-lock.json','runtime-source-manifest.json','runtime-sources.tar.gz','selection-template.json']},'documentation':row(ROOT/'docs/apple-focus-reference-runtime-v3.md'),'cleanup':{'hostPreparationScratchAbsent':not scratch.exists(),'nativeInstancesCreatedOrQueried':0,'servicesStarted':0,'otherProjectsTouched':False},'nativeExecuted':False,'runtimeSelected':False,'compileRerun':False,'runPassed':False,'completeCaseSet':False,'cursorCompletionCredit':False,'fullSixCaseQualification':False,'nativeKeyboardQualification':False,'carrierAccepted':False,'gaAccepted':False,'physicalPhones':'disconnected-deferred'}
+     with (BASE/'packet.json').open('xb') as stream:stream.write(stable(packet))
+     print('PASS: host-only reference-first packet frozen for independent review; no native dispatch')
+ 
+@@ -182,7 +190,7 @@
+     require({name:row(BASE/name) for name in OWNED} == packet['ownedSources'],'Owned source changed')
+     require(sha(stable(packet['ownedSources'])) == packet['ownedSourceTreeSHA256'],'Owned tree digest differs')
+     for name,item in packet['files'].items():require(row(BASE/name)==item,'Packet member changed: '+name)
+-    require(row(ROOT/'docs/apple-focus-reference-runtime-v2.md') == packet['documentation'],'Packet document changed')
++    require(row(ROOT/'docs/apple-focus-reference-runtime-v3.md') == packet['documentation'],'Packet document changed')
+     manifest=json.loads((BASE/'runtime-source-manifest.json').read_bytes())
+     helpers().archive_payload(BASE/'runtime-sources.tar.gz',manifest['files'],manifest['archive']['sha256'],'selected/')
+     return {'packetSHA256':sha((BASE/'packet.json').read_bytes()),'nativeExecuted':False,'scope':'Byte/mode/archive/source verification only'}
+@@ -197,7 +205,7 @@
+     selection_path=Path(selection_path)
+     require(row(selection_path)['sha256']==selected_sha,'Root out-of-band selection hash differs')
+     root=importer.validate_root(importer.parse(selection_path.read_bytes()),reviewed_packet,fresh=True)
+-    output=BASE/('native-run-'+root['runID'])
++    output=BASE/('native-run-v3-'+root['runID'])
+     require(not output.exists() and not output.is_symlink(),'Fresh run output required; never replay a run')
+     output.mkdir(mode=0o755)
+     h=helpers(); product_manifest=json.loads((V1/'compile-attempt-1/product-manifest.json').read_bytes())
+--- frozen-v2/importer.py
++++ v3/importer.py
+@@ -5,6 +5,7 @@
+ """
+ import copy
+ import datetime
++from decimal import Decimal
+ import hashlib
+ import json
+ import math
+@@ -57,15 +58,45 @@
+ def number(value): return type(value) in (int, float) and math.isfinite(value) and value >= 0
+ 
+ 
++
++def datetime_ns(value):
++    stamp=datetime.datetime.fromisoformat(value)
++    require(stamp.tzinfo is not None,'Timezone-aware root wall time required')
++    delta=stamp.astimezone(datetime.timezone.utc)-datetime.datetime(1970,1,1,tzinfo=datetime.timezone.utc)
++    return ((delta.days*86400+delta.seconds)*1_000_000_000+delta.microseconds*1000)
++
++
++def decimal_timestamp_ns(value):
++    require(type(value) is Decimal and value.is_finite() and value>=0,'Original finite decimal wall-time token required')
++    scaled=value*Decimal(1_000_000_000)
++    require(scaled==scaled.to_integral_value(),'Official timestamp exceeds nanosecond representation; ordering is incomplete')
++    return int(scaled)
++
++
++def decimal_document(raw):
++    # parse() first validates duplicates, raw syntax, depth and finiteness. The
++    # second pass retains original decimal lexemes exclusively for wall ordering.
++    parse(raw)
++    return json.loads(raw.decode('utf-8'),parse_float=Decimal,parse_int=Decimal)
++
++
++def signature(value):
++    require(type(value) is list and len(value)==4,'Closed native file signature required')
++    inode,mtime,size,digest_value=value
++    require(type(inode) is int and inode>0 and type(mtime) is int and mtime>=0 and type(size) is int and 0<size<=16_000_000,'Exact native inode/nanosecond mtime/byte length required')
++    require(type(digest_value) is str and len(digest_value)==64 and all(c in '0123456789abcdef' for c in digest_value),'Original native file SHA256 shape required')
++    return value
++
++
+ def validate_root(value, packet_sha=None, fresh=False):
+     require(type(value) is dict and set(value) == {'schema','runID','packetSHA256','selectedAtUTC','ownedSimulatorIdentity','sourceTreeSHA256','productArchiveSHA256','developerDirectory','baselineDevices','baselineFrontends'}, 'Closed root selection required')
+-    require(value['schema'] == 'mixer.apple-focus-reference-root-selection.1', 'Root selection schema differs')
++    require(value['schema'] == 'mixer.apple-focus-reference-root-selection.3', 'Root selection schema differs')
+     require(str(uuid.UUID(value['runID'])) == value['runID'], 'Canonical fresh run UUID required')
+     require(type(value['packetSHA256']) is str and len(value['packetSHA256']) == 64 and (packet_sha is None or value['packetSHA256'] == packet_sha), 'Root selected packet differs')
+     require(value['sourceTreeSHA256'] == SOURCE and value['productArchiveSHA256'] == PRODUCT, 'Root source/product identity differs')
+     identity = value['ownedSimulatorIdentity']
+     require(type(identity) is dict and set(identity) == {'udid','name','runtime','build'}, 'Closed owned simulator identity required')
+-    require(str(uuid.UUID(identity['udid'])).upper() == identity['udid'] and type(identity['name']) is str and identity['name'].startswith('MixerFocusReferenceV2-'), 'Root-owned canonical simulator identity required')
++    require(str(uuid.UUID(identity['udid'])).upper() == identity['udid'] and type(identity['name']) is str and identity['name'].startswith('MixerFocusReferenceV3-'), 'Root-owned canonical simulator identity required')
+     require(identity['runtime'] == 'com.apple.CoreSimulator.SimRuntime.iOS-26-5' and identity['build'] == '23F77', 'Pinned runtime/build required')
+     require(value['developerDirectory'] == '/Applications/Xcode_26.6.app/Contents/Developer', 'Pinned compiler tools directory required')
+     require(type(value['baselineDevices']) is dict and type(value['baselineDevices'].get('devices')) is dict and type(value['baselineFrontends']) is list, 'Root pre-creation baseline required')
+@@ -101,7 +132,7 @@
+     return observer['exitCode']
+ 
+ 
+-def official_methods(summary, tests, root, code):
++def official_methods(summary, tests, root, code, exact_summary=None):
+     """Exact official execution/device identities are established before attachments."""
+     identity = root['ownedSimulatorIdentity']
+     def device(value):
+@@ -134,22 +165,27 @@
+         if key != 'totalTestCount': require(type(configs[0].get(key)) is int and configs[0][key] == expected, 'Official configuration count differs')
+     require(summary.get('result') == ('Passed' if passed == 2 else 'Failed') and code == (0 if passed == 2 else 65), 'Command outcome contradicts official tests')
+     require(number(summary.get('startTime')) and number(summary.get('finishTime')) and summary['startTime'] < summary['finishTime'], 'Official run time range missing')
+-    start = datetime.datetime.fromisoformat(root['selectedAtUTC']).timestamp()
+-    require(start <= summary['startTime'] <= summary['finishTime'] <= start + 660, 'Official run predates/exceeds fresh root selection')
++    start = datetime_ns(root['selectedAtUTC'])
++    # Native callers always pass the original decimal document. The fallback is
++    # used only by legacy synthetic fixture helpers before final exact import.
++    exact_summary=exact_summary if exact_summary is not None else {key:Decimal(str(summary[key])) for key in ['startTime','finishTime']}
++    summary_start=decimal_timestamp_ns(exact_summary['startTime'])
++    summary_finish=decimal_timestamp_ns(exact_summary['finishTime'])
++    require(start <= summary_start <= summary_finish <= start + 660_000_000_000, 'Official run predates/exceeds fresh root selection')
+     return rows
+ 
+ 
+-def attachments(manifest, payloads, summary, root):
++def attachments(manifest, payloads, summary, root, exact_manifest, exact_summary):
+     require(type(manifest) is list and len(manifest) == 2, 'Exact selected attachment groups required')
+     require(type(payloads) is dict, 'Captured file byte mapping required')
+     groups, names, digests, selected = set(), set(), set(), {}
+-    for group in manifest:
++    for group_index, group in enumerate(manifest):
+         require(type(group) is dict and set(group) == {'attachments','testIdentifier','testIdentifierURL'}, 'Closed official attachment group required')
+         method = next((m for m in METHODS if group['testIdentifier'] == 'ToggleUITests/' + m + '()' and group['testIdentifierURL'] == PREFIX + m), None)
+         require(method is not None and method not in groups, 'Foreign/duplicate official attachment owner')
+         groups.add(method)
+         require(type(group['attachments']) is list, 'Official attachment list required')
+-        for item in group['attachments']:
++        for item_index,item in enumerate(group['attachments']):
+             name = item['exportedFileName']
+             require(type(name) is str and Path(name).name == name and name not in names and name != 'manifest.json', 'Duplicate/unsafe official attachment file')
+             names.add(name)
+@@ -165,8 +201,10 @@
+                 require(role is not None, 'Unrelated JSON attachment rejected')
+                 require((role == 'settings') is (method == METHODS[0]), 'Attachment joins unrelated selected method')
+                 require(role not in selected and digest(raw) not in digests, 'Duplicate authoritative attachment role/payload')
+-                require(number(item.get('timestamp')) and summary['startTime'] <= item['timestamp'] <= summary['finishTime'], 'Stale/replayed authoritative attachment timestamp')
+-                digests.add(digest(raw)); selected[role] = {'value':data,'timestamp':item['timestamp'],'file':name,'sha256':digest(raw)}
++                token=exact_manifest[group_index]['attachments'][item_index].get('timestamp')
++                timestamp_ns=decimal_timestamp_ns(token)
++                require(decimal_timestamp_ns(exact_summary['startTime']) <= timestamp_ns <= decimal_timestamp_ns(exact_summary['finishTime']), 'Stale/replayed authoritative attachment timestamp')
++                digests.add(digest(raw)); selected[role] = {'value':data,'timestamp':item['timestamp'],'timestampNS':timestamp_ns,'file':name,'sha256':digest(raw)}
+     require(groups == set(METHODS) and names == set(payloads), 'Unmanifested/missing attachment files rejected')
+     settings = selected.get('settings', {}).get('value')
+     require(type(settings) is dict and settings.get('schema') == 'mixer.apple-toggle.keyboard-settings.1' and settings.get('step') == 'setup-enabled' and settings.get('passed') is True and settings.get('bundle') == 'com.apple.Preferences' and settings.get('route') == ['Accessibility','Keyboards & Typing','Full Keyboard Access'] and settings.get('fullKeyboardAccessValue') == '1', 'Unique official passing Settings attachment required')
+@@ -197,7 +235,7 @@
+ 
+ def import_selected(root, session, observer, streams, official, payloads, captures, cleanup, oracle, classifier):
+     """Called only with adapter-captured official outputs; never mint root context from evidence."""
+-    result = {'schema':'mixer.apple-focus-reference-runtime-import.2','diagnosticOnly':True,'diagnosticOutcome':'unknown','provenanceAccepted':False,'keyInjectionCount':None,'singleTabDiagnosticEvidencePassed':False,'runPassed':False,'completeCaseSet':False,'cursorCompletionCredit':False,'fullSixCaseQualification':False,'nativeKeyboardQualification':False,'carrierAccepted':False,'gaAccepted':False,'physicalPhones':'disconnected-deferred'}
++    result = {'schema':'mixer.apple-focus-reference-runtime-import.3','diagnosticOnly':True,'diagnosticOutcome':'unknown','provenanceAccepted':False,'keyInjectionCount':None,'singleTabDiagnosticEvidencePassed':False,'runPassed':False,'completeCaseSet':False,'cursorCompletionCredit':False,'fullSixCaseQualification':False,'nativeKeyboardQualification':False,'carrierAccepted':False,'gaAccepted':False,'physicalPhones':'disconnected-deferred'}
+     try:
+         root = validate_root(root)
+         code = observer_terminal(observer, root, session, streams)
+@@ -207,8 +245,9 @@
+         require(type(captures) is dict and all(type(value) is bytes for value in captures.values()) and tuple(sorted((name,digest(value)) for name,value in captures.items())) == official._captureSHA256, 'Application observation bytes differ from actual selected capture')
+         official = dict(official._raw)
+         summary, tests, manifest = (parse(official[key]) for key in ('summary','tests','manifest'))
+-        methods = official_methods(summary, tests, root, code)
+-        joined = attachments(manifest, payloads, summary, root)
++        exact_summary=decimal_document(official['summary']);exact_manifest=decimal_document(official['manifest'])
++        methods=official_methods(summary,tests,root,code,exact_summary)
++        joined = attachments(manifest,payloads,summary,root,exact_manifest,exact_summary)
+         result.update(provenanceAccepted=True,runID=root['runID'],packetSHA256=root['packetSHA256'],ownedSimulatorIdentity=root['ownedSimulatorIdentity'],sourceTreeSHA256=SOURCE,productArchiveSHA256=PRODUCT,officialMethodResults=methods,officialSHA256={k:digest(v) for k,v in official.items()},authoritativeAttachments={key:{k:v for k,v in row.items() if k!='value'} for key,row in joined.items()})
+         require(type(captures) is dict, 'Immutable runtime capture mapping required')
+         require(set(captures) <= {'begin','before','after','witness'}, 'Unrelated application captures rejected')
+@@ -217,12 +256,13 @@
+         require('begin' in captures and 'before' in captures, 'Application begin/baseline missing')
+         begin, before = parse(captures['begin']), parse(captures['before'])
+         require(begin.get('ownedSimulatorIdentity') == root['ownedSimulatorIdentity'] and begin.get('candidate') == 'diagnostic' and begin.get('case') == CASE and type(begin.get('generation')) is int and begin['generation'] == 1 and type(begin.get('actionIndex')) is int and begin['actionIndex'] == 0, 'Application begin belongs to another selected generation/device')
+-        start_ns = int(datetime.datetime.fromisoformat(root['selectedAtUTC']).timestamp() * 1_000_000_000)
+-        finish_ns = int(summary['finishTime'] * 1_000_000_000)
++        start_ns=datetime_ns(root['selectedAtUTC'])
++        finish_ns=decimal_timestamp_ns(exact_summary['finishTime'])
+         require(type(begin.get('begunWallNS')) is int and start_ns <= begin['begunWallNS'] <= finish_ns, 'Application generation predates selected run')
+-        require(type(before.get('signature')) is list and len(before['signature']) == 4 and type(before['signature'][1]) is int and begin['begunWallNS'] <= before['signature'][1] <= finish_ns, 'Before sample is stale/replayed')
++        signature(before.get('signature'))
++        require(begin['begunWallNS'] <= before['signature'][1] <= joined['premise']['timestampNS'], 'Before sample ordering beyond original decimal premise endpoint is incomplete/stale')
+         p = joined['premise']['value']
+-        require(type(before.get('generation')) is int and before['generation'] == begin['generation'] and before.get('action') == 'native-keyboard' and before.get('commandGeneration') == 2 and p.get('generation') == begin['generation'] and type(p.get('actionIndex')) is int and p['actionIndex'] == 1, 'Generation/action ordering differs')
++        require(type(before.get('generation')) is int and before['generation'] == begin['generation'] and before.get('action') == 'native-keyboard' and type(before.get('commandGeneration')) is int and before['commandGeneration'] == 2 and p.get('generation') == begin['generation'] and type(p.get('actionIndex')) is int and p['actionIndex'] == 1, 'Generation/action ordering differs')
+         require(type(before.get('observation')) is dict and type(before.get('signature')) is list and len(before['signature']) == 4, 'Immutable before observation/signature required')
+         before_app = before['observation']
+         # The authoritative native focus sample must agree with the app carrier sample.
+@@ -236,9 +276,10 @@
+                 return result
+             b, w, v = (joined[key]['value'] for key in ('before','witness','verdict'))
+             require(set(b) == {'case','phase','key','generation','actionIndex','before'} and b['case'] == CASE and b['phase'] == 'acquire' and b['key'] == 'tab' and type(b['generation']) is int and b['generation'] == 1 and type(b['actionIndex']) is int and b['actionIndex'] == 1 and classifier.strict_json_equal(b['before'], p['before']), 'Before-public-key sample differs from unique premise')
+-            require(joined['premise']['timestamp'] <= joined['before']['timestamp'] <= joined['witness']['timestamp'] <= joined['verdict']['timestamp'], 'Official attachment ordering contradicts key action')
++            require(joined['premise']['timestampNS'] <= joined['before']['timestampNS'] <= joined['witness']['timestampNS'] <= joined['verdict']['timestampNS'], 'Official attachment ordering contradicts key action')
+             after, retained = parse(captures['after']), parse(captures['witness'])
+-            require(type(after.get('signature')) is list and len(after['signature']) == 4 and type(after['signature'][1]) is int and before['signature'][1] <= after['signature'][1] <= finish_ns, 'After sample is stale/replayed')
++            signature(after.get('signature'))
++            require(before['signature'][1] <= after['signature'][1] <= joined['witness']['timestampNS'], 'Changed/unchanged after sample ordering beyond original decimal witness endpoint is incomplete/stale')
+             require(type(after.get('observation')) is dict and type(after.get('signature')) is list and len(after['signature']) == 4, 'Immutable after observation/signature required')
+             require(classifier.strict_json_equal(w, v.get('keyboardWitness')) and classifier.strict_json_equal(retained, {'binding':v.get('keyboardBinding'),'witness':w}) and classifier.strict_json_equal(after.get('verdict'),v), 'Returned/retained witness/verdict contradicts official attachment')
+             require(v.get('ownedSimulatorIdentity') == root['ownedSimulatorIdentity'] and type(v.get('generation')) is int and v['generation'] == 1 and type(v.get('actionIndex')) is int and v['actionIndex'] == 1, 'Original verdict runtime identity differs')
+--- frozen-v2/adapter.py
++++ v3/adapter.py
+@@ -4,6 +4,7 @@
+ """
+ import importer
+ import reference_contract
++import auxiliary_inventory
+ _ROOT = None
+ _OFFICIAL = None
+ _ORIGINAL_SELECT = select_command
+@@ -18,7 +19,7 @@
+ 
+ def select_command(h, argv, session):
+     require(_ROOT is not None and list(map(str,argv)) == importer.command_argv(_ROOT,session), 'Command must come from root-selected context')
+-    require(session.resolve() == session and session.is_dir() and not session.is_symlink() and session.name == 'session' and session.parent.name == 'runtime' and session.parent.parent.name == 'native-run-'+_ROOT['runID'], 'Root-selected fresh result workspace required')
++    require(session.resolve() == session and session.is_dir() and not session.is_symlink() and session.name == 'session' and session.parent.name == 'runtime' and session.parent.parent.name == 'native-run-v3-'+_ROOT['runID'], 'Root-selected fresh result workspace required')
+     require(not (session/'session.xcresult').exists() and not (session/'session.xcresult').is_symlink(), 'Result bundle exists before dispatch; replay refused')
+     _ORIGINAL_SELECT(h,argv,session)
+     _selected['sessionIdentity'] = path_identity(session,0o700)
+@@ -57,17 +58,8 @@
+ 
+ 
+ def application_captures(output):
+-    folder = output/'runtime/captures'
+-    require(folder.resolve() == folder and folder.is_dir() and not folder.is_symlink(), 'Selected application capture directory unavailable')
+-    allowed = {'0001-begin.json','0001-ready.json','0001-command-1.json','0001-command-2.json','0001-before-1.json','0001-after-1.json','0001-keyboard-witness-1.json','0001-focus-diagnostic-1.json'}
+-    require(all(path.name.startswith('0000-settings-') or path.name in allowed for path in folder.iterdir()), 'Unexpected generation/action capture rejected')
+-    result = {}
+-    for role,name in [('begin','0001-begin.json'),('before','0001-before-1.json'),('after','0001-after-1.json'),('witness','0001-keyboard-witness-1.json')]:
+-        path=folder/name
+-        if path.exists() or path.is_symlink():
+-            require(path.resolve() == path and path.is_file() and not path.is_symlink(), 'Application capture path substituted')
+-            result[role]=path.read_bytes()
+-    return result
++    captures, auxiliary = auxiliary_inventory.validate(output/'runtime/captures',_ROOT['ownedSimulatorIdentity'])
++    return captures
+ 
+ 
+ def capture_official(commands, base_run, h, output):
+@@ -100,7 +92,7 @@
+     official['manifest'] = manifest.read_bytes()
+     # Traverse actual official execution identities before attachment bytes are joined.
+     observer = importer.read(session/'command-observer/observer.json')
+-    importer.official_methods(importer.parse(official['summary']),importer.parse(official['tests']),_ROOT,observer['exitCode'])
++    importer.official_methods(importer.parse(official['summary']),importer.parse(official['tests']),_ROOT,observer['exitCode'],importer.decimal_document(official['summary']))
+     payloads = {}
+     for name, row in retained['files'].items():
+         require(Path(name).name == name, 'Nested attachment refused')
+@@ -120,7 +112,7 @@
+ 
+ 
+ def runtime_summary(base, h, oracle, setup_ready, scope, bridge, xctest_exit, failure, cleanup_results):
+-    report = {'schema':'mixer.apple-focus-reference-runtime.2','diagnosticOnly':True,'diagnosticOutcome':'unknown','runPassed':False,'strictNativeVerdictsPassed':False,'completeCaseSet':False,'cursorCompletionCredit':False,'fullSixCaseQualification':False,'nativeKeyboardQualification':False,'carrierAccepted':False,'gaAccepted':False,'physicalPhones':'disconnected-deferred','cleanupResults':cleanup_results,'sessionFailure':failure,'xcodebuildExitCode':xctest_exit,'selectedMethods':list(importer.METHODS),'selectedApplicationCases':[importer.CASE],'actualNativeInputActions':None}
++    report = {'schema':'mixer.apple-focus-reference-runtime.3','diagnosticOnly':True,'diagnosticOutcome':'unknown','runPassed':False,'strictNativeVerdictsPassed':False,'completeCaseSet':False,'cursorCompletionCredit':False,'fullSixCaseQualification':False,'nativeKeyboardQualification':False,'carrierAccepted':False,'gaAccepted':False,'physicalPhones':'disconnected-deferred','cleanupResults':cleanup_results,'sessionFailure':failure,'xcodebuildExitCode':xctest_exit,'selectedMethods':list(importer.METHODS),'selectedApplicationCases':[importer.CASE],'actualNativeInputActions':None}
+     if cleanup_results is None or _OFFICIAL is None: return report
+     try:
+         require(_OFFICIAL['runID'] == _ROOT['runID'] and _OFFICIAL['argv'] == _selected['argv'], 'Official capture belongs to another dispatch')
+--- frozen-v2/verify_host.py
++++ v3/verify_host.py
+@@ -3,10 +3,22 @@
+ import argparse
+ from contextlib import redirect_stderr, redirect_stdout
+ import datetime
+-import platform
++import os
++from pathlib import Path
+ import sys
+ import time
+ import unittest
++BASE=Path(__file__).resolve().parent
++HOST_SPAWNS=[]
++def host_boundary(event,args):
++    if event=='subprocess.Popen':
++        executable,argv=args[:2]
++        permitted=(str(Path(executable).resolve())==str(Path(sys.executable).resolve()) and len(argv)==5 and argv[1:3]==['-B','-c'] and all(marker in argv[3] for marker in ['subprocess.Popen=forbidden','socket.socket.bind=forbidden','socket.socket.connect=forbidden']) and Path(argv[4]).resolve().is_relative_to(BASE))
++        if not permitted:raise AssertionError('V3 host boundary rejected subprocess: '+repr(argv))
++        HOST_SPAWNS.append({'argv':argv,'scope':'Inspected native-disabled Python composition probe'})
++    if event in ('os.system','os.exec','os.posix_spawn','socket.bind','socket.connect','socket.connect_ex'):
++        raise AssertionError('V3 host boundary rejected '+event)
++sys.addaudithook(host_boundary)
+ import prepare
+ 
+ 
+@@ -20,12 +32,18 @@
+         suite=unittest.defaultTestLoader.loadTestsFromModule(test_importer)
+         expected=suite.countTestCases()
+         result=unittest.TextTestRunner(stream=err,verbosity=2).run(suite)
++    import replay_review
++    replay=replay_review.run(base)
++    with (base/'repair.stdout.log').open('w') as out,(base/'repair.stderr.log').open('w') as err,redirect_stdout(out),redirect_stderr(err):
++        import test_repair
++        repair_result=unittest.TextTestRunner(stream=err,verbosity=2).run(unittest.defaultTestLoader.loadTestsFromModule(test_repair))
++    (base/'actual-composition-outcomes.json').write_bytes(prepare.stable({'syntheticOnly':True,'nativeExecuted':False,'probeProgramSHA256':prepare.sha(test_repair.PRODUCTION_PROGRAM.encode()),'records':test_repair.FocusRepairControls.records}))
+     after=prepare.inputs()[3]
+-    scratch=[str(path) for path in prepare.BASE.iterdir() if path.is_dir() and path.name.startswith(('pure-oracle-','archive-control-','host-packet-','composition-control-','adapter-control-','orchestration-control-'))]
++    scratch=[str(path) for path in prepare.BASE.iterdir() if path.is_dir() and path.name.startswith(('pure-oracle-','archive-control-','host-packet-','composition-control-','adapter-control-','orchestration-control-','actual-composition-'))]
+     owned={name:prepare.row(prepare.BASE/name) for name in prepare.OWNED}
+-    receipt={'schema':'mixer.apple-focus-reference-runtime-host-receipt.2','observedUTC':datetime.datetime.now(datetime.timezone.utc).isoformat(),'command':[sys.executable,'-B',str(prepare.BASE/'verify_host.py'),'--attempt',str(attempt)],'cwd':str(prepare.ROOT),'python':sys.version,'pythonExecutable':str(prepare.Path(sys.executable).resolve()),'platform':platform.platform(),'elapsedSeconds':time.monotonic()-started,'sourceRevisionLabel':'ba9ad4372f94463ba4d363cdfd76dd565c96413f','sourceRevisionMeaning':'Inherited frozen label; exact source hashes define scope; no Git query','ownedSources':owned,'ownedSourceTreeSHA256':prepare.sha(prepare.stable(owned)),'inputBindings':after,'inputTreeSHA256':prepare.sha(prepare.stable(after)),'sourceTreeSHA256':prepare.SOURCE,'productArchiveSHA256':prepare.PRODUCT,'testsExpected':expected,'testsRun':result.testsRun,'failures':len(result.failures),'errors':len(result.errors),'skipped':len(result.skipped),'passed':result.wasSuccessful() and result.testsRun==expected and before==after and not scratch,'outputs':{name:prepare.row(base/name) for name in ['stdout.log','stderr.log']},'cleanup':{'ownedHostTemporaryDirectoriesAbsent':not scratch,'remainingOwnedScratch':scratch,'allFrozenInputsUnchanged':before==after,'nativeInstancesCreatedOrQueried':0,'servicesStarted':0,'otherProjectsTouched':False},'scope':'Synthetic-only host controls of selected-run importer and source composition; no native acceptance','syntheticOnly':True,'nativeExecuted':False,'runtimeSelected':False,'compileRerun':False,'gitMutationPerformed':False,'uiOrCapturePerformed':False,'runPassed':False,'completeCaseSet':False,'cursorCompletionCredit':False,'fullSixCaseQualification':False,'nativeKeyboardQualification':False,'carrierAccepted':False,'gaAccepted':False,'physicalPhones':'disconnected-deferred'}
++    receipt={'schema':'mixer.apple-focus-reference-runtime-host-receipt.3','observedUTC':datetime.datetime.now(datetime.timezone.utc).isoformat(),'command':[sys.executable,'-B',str(prepare.BASE/'verify_host.py'),'--attempt',str(attempt)],'cwd':str(prepare.ROOT),'python':sys.version,'pythonExecutable':str(prepare.Path(sys.executable).resolve()),'hostUname':dict(zip(('sysname','nodename','release','version','machine'),os.uname())),'elapsedSeconds':time.monotonic()-started,'sourceRevisionLabel':'ba9ad4372f94463ba4d363cdfd76dd565c96413f','sourceRevisionMeaning':'Inherited frozen label; exact source hashes define scope; no Git query','ownedSources':owned,'ownedSourceTreeSHA256':prepare.sha(prepare.stable(owned)),'inputBindings':after,'inputTreeSHA256':prepare.sha(prepare.stable(after)),'sourceTreeSHA256':prepare.SOURCE,'productArchiveSHA256':prepare.PRODUCT,'testsExpected':expected,'testsRun':result.testsRun,'failures':len(result.failures),'errors':len(result.errors),'skipped':len(result.skipped),'passed':result.wasSuccessful() and result.testsRun==111 and result.testsRun==expected and replay['expectedReplayOutcome'] and repair_result.wasSuccessful() and before==after and not scratch,'historicalReview':{'controls':replay['testsRun'],'passed':replay['controlsPassed'],'retainedHistoricalFixtureFailures':len(replay['failures']),'sourceSHA256':replay['originalReviewerSourceSHA256']},'repairControls':{'testsRun':repair_result.testsRun,'failures':len(repair_result.failures),'errors':len(repair_result.errors),'skipped':len(repair_result.skipped),'passed':repair_result.wasSuccessful()},'hostPythonSubprocesses':HOST_SPAWNS,'outputs':{path.name:prepare.row(path) for path in base.iterdir() if path.is_file()},'cleanup':{'ownedHostTemporaryDirectoriesAbsent':not scratch,'remainingOwnedScratch':scratch,'allFrozenInputsUnchanged':before==after,'nativeInstancesCreatedOrQueried':0,'servicesStarted':0,'otherProjectsTouched':False},'scope':'Synthetic-only host controls of selected-run importer and source composition; no native acceptance','syntheticOnly':True,'nativeExecuted':False,'runtimeSelected':False,'compileRerun':False,'gitMutationPerformed':False,'uiOrCapturePerformed':False,'runPassed':False,'completeCaseSet':False,'cursorCompletionCredit':False,'fullSixCaseQualification':False,'nativeKeyboardQualification':False,'carrierAccepted':False,'gaAccepted':False,'physicalPhones':'disconnected-deferred'}
+     (base/'receipt.json').write_bytes(prepare.stable(receipt))
+-    print(f"{'PASS' if receipt['passed'] else 'FAIL'}: {result.testsRun} host controls; {len(result.failures)} failures; {len(result.errors)} errors; no native execution")
++    print(f"{'PASS' if receipt['passed'] else 'FAIL'}: {result.testsRun}/111 retained producer; {replay['controlsPassed']}/33 exact historical reviewer controls with {len(replay['failures'])} retained invalid-fixture failure; {repair_result.testsRun} focused controls; no native execution")
+     if not receipt['passed']:raise SystemExit(1)
+ 
+ 
+--- frozen-v2/freeze.py
++++ v3/freeze.py
+@@ -11,12 +11,12 @@
+     path=prepare.BASE/'handoff.json';prepare.require(not path.exists(),'Preserve frozen handoff')
+     verified=prepare.verify()
+     receipt_path=prepare.BASE/f'host-attempt-{attempt}/receipt.json'
+-    receipt=json.loads(receipt_path.read_bytes());prepare.require(receipt['passed'] is True,'Passing host attempt required')
++    receipt=json.loads(receipt_path.read_bytes());prepare.require(receipt['passed'] is True and receipt['testsRun']==111 and receipt['historicalReview']=={'controls':33,'passed':32,'retainedHistoricalFixtureFailures':1,'sourceSHA256':'84f7d1c5dbe0cbe17d60c34675de1c3d17107c17964062ea74ebdf5982a195db'} and receipt['repairControls']['passed'] is True and receipt['repairControls']['testsRun']==25,'Exact passing V3 host acceptance and historical mismatch scope required')
+     prepare.require(receipt['ownedSources']=={name:prepare.row(prepare.BASE/name) for name in prepare.OWNED},'Host-tested source differs')
+-    paths=[prepare.ROOT/'docs/apple-focus-reference-runtime-v2.md']+[p for p in prepare.BASE.rglob('*') if p.is_file()]
++    paths=[prepare.ROOT/'docs/apple-focus-reference-runtime-v3.md']+[p for p in prepare.BASE.rglob('*') if p.is_file()]
+     prepare.require(not any(p.is_symlink() for p in paths),'Symlink in handoff')
+     members={str(p.relative_to(prepare.ROOT)):prepare.row(p) for p in sorted(paths)}
+-    value={'schema':'mixer.apple-focus-reference-runtime-frozen-handoff.2','observedUTC':datetime.datetime.now(datetime.timezone.utc).isoformat(),'command':[sys.executable,'-B',str(prepare.BASE/'freeze.py'),'freeze','--attempt',str(attempt)],'python':sys.version,'packetSHA256':verified['packetSHA256'],'members':members,'memberTreeSHA256':prepare.sha(prepare.stable(members)),'testsRun':receipt['testsRun'],'hostAttempt':attempt,'sourceRevisionLabel':receipt['sourceRevisionLabel'],'sourceTreeSHA256':prepare.SOURCE,'productArchiveSHA256':prepare.PRODUCT,'historicalV1FailuresPreserved':True,'observerV2Unchanged':True,'scope':'Host-reviewed preparation/importer; independent review and root dispatch are still required','nativeExecuted':False,'runtimeSelected':False,'runnableSourcePacketPrepared':True,'compileRerun':False,'runPassed':False,'completeCaseSet':False,'cursorCompletionCredit':False,'fullSixCaseQualification':False,'nativeKeyboardQualification':False,'carrierAccepted':False,'gaAccepted':False,'physicalPhones':'disconnected-deferred','cleanup':receipt['cleanup']}
++    value={'schema':'mixer.apple-focus-reference-runtime-frozen-handoff.3','observedUTC':datetime.datetime.now(datetime.timezone.utc).isoformat(),'command':[sys.executable,'-B',str(prepare.BASE/'freeze.py'),'freeze','--attempt',str(attempt)],'python':sys.version,'packetSHA256':verified['packetSHA256'],'members':members,'memberTreeSHA256':prepare.sha(prepare.stable(members)),'testsRun':receipt['testsRun'],'retainedProducerControls':111,'retainedProducerControlsPassed':111,'historicalIndependentControls':33,'historicalIndependentControlsPassed':32,'retainedHistoricalInvalidFixtureFailures':1,'focusedRepairControls':25,'focusedRepairControlsPassed':25,'historicalIndependentReplaySourceSHA256':receipt['historicalReview']['sourceSHA256'],'historicalV2ReviewAccepted':False,'historicalV2ReviewFailedControls':10,'independentV3ReviewPending':True,'hostAttempt':attempt,'sourceRevisionLabel':receipt['sourceRevisionLabel'],'sourceTreeSHA256':prepare.SOURCE,'productArchiveSHA256':prepare.PRODUCT,'historicalV1FailuresPreserved':True,'observerV2Unchanged':True,'scope':'Host-only V3 repair; exact historical 33-control replay retains one intentionally invalid Session-fixture rejection; separate independent V3 review and fresh root selection required','nativeExecuted':False,'runtimeSelected':False,'runnableSourcePacketPrepared':True,'compileRerun':False,'runPassed':False,'completeCaseSet':False,'cursorCompletionCredit':False,'fullSixCaseQualification':False,'nativeKeyboardQualification':False,'carrierAccepted':False,'gaAccepted':False,'physicalPhones':'disconnected-deferred','cleanup':receipt['cleanup']}
+     with path.open('xb') as stream:stream.write(prepare.stable(value))
+     print(json.dumps({'handoffSHA256':prepare.row(path)['sha256'],'packetSHA256':verified['packetSHA256'],'testsRun':receipt['testsRun'],'nativeExecuted':False},sort_keys=True))
+ 
