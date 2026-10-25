@@ -1,0 +1,37 @@
+Running ExUnit with seed: 0, max_cases: 4
+
+.........
+
+  1) test every public operation contains malformed values and hides private error contents (MixerBrowserVaultDigestIndependentReview)
+     verification/browser-vault-digest-review/review.exs:165
+     Assertion with == failed
+     code:  assert Vault.associated_data(bad, context("active")) == @error
+     left:  {:ok,
+             <<109, 105, 120, 101, 114, 46, 98, 114, 111, 119, 115,
+               101, 114, 46, 118, 97, 117, 108, 116, 46, 118, 49, 0,
+               0, 0, 0, 1, 1, 0, 0, 0, 16, 112, 114, 105, 118, 97,
+               116, 101, 45, 115, 101, 110, 116, 105, 110, 101, 108,
+               0, 0, 0, 1, 2, 0, 0, 0, 16, 0, 1, 2, 3, 4, 5, 6, 7,
+               8, 9, 10, 11, 12, 13, 14, 15, 0, 0, 0, 32, 121, 121,
+               121, 121, 121, 121, 121, 121, 121, 121, 121, 121,
+               121, 121, 121, 121, 121, 121, 121, 121, 121, 121,
+               121, 121, 121, 121, 121, 121, 121, 121, 121, 121, 0,
+               0, 0, 32, 15, 0, 115, 133, 182, 249, 212, 183, 238,
+               178, 116, 134, 5, 175, 225, 169, 132, 160, 163, 191,
+               163, 240, 20, 208, 158, 42, 120, 76, 233, 229, 205,
+               26, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 11, 0, 0, 0, 8,
+               0, 0, 0, 0, 0, 0, 0, 19, 0, 0, 0, 43, 72, 120, 52,
+               100, 72, 66, 115, 97, 71, 82, 103, 88, 70, 104, 85,
+               85, 69, 120, 73, 82, 69, 65, 56, 79, 68, ...>>}
+     right: {:error, :vault_unavailable}
+     stacktrace:
+       verification/browser-vault-digest-review/review.exs:169: anonymous fn/2 in MixerBrowserVaultDigestIndependentReview."test every public operation contains malformed values and hides private error contents"/1
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       verification/browser-vault-digest-review/review.exs:166: (test)
+
+..
+Finished in 0.01 seconds (0.00s async, 0.01s sync)
+
+Result: 11/12 passed
+Failed: 1 test
+independent_review_result:{"total":12,"failures":1,"excluded":0,"skipped":0}

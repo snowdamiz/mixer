@@ -1,0 +1,77 @@
+********************************************************************************
+WARNING: POSTGRES_HOST_AUTH_METHOD has been set to "trust". This will allow
+         anyone with access to the Postgres port to access your database without
+         a password, even if POSTGRES_PASSWORD is set. See PostgreSQL
+         documentation about "trust":
+         https://www.postgresql.org/docs/current/auth-trust.html
+         In Docker's default configuration, this is effectively any other
+         container on the same system.
+
+         It is not recommended to use POSTGRES_HOST_AUTH_METHOD=trust. Replace
+         it with "-e POSTGRES_PASSWORD=password" instead to set a password in
+         "docker run".
+********************************************************************************
+The files belonging to this database system will be owned by user "postgres".
+This user must also own the server process.
+
+The database cluster will be initialized with locale "C".
+The default text search configuration will be set to "english".
+
+Data page checksums are disabled.
+
+fixing permissions on existing directory /var/lib/postgresql/data ... ok
+creating subdirectories ... ok
+selecting dynamic shared memory implementation ... posix
+selecting default max_connections ... 100
+selecting default shared_buffers ... 128MB
+selecting default time zone ... Etc/UTC
+creating configuration files ... ok
+running bootstrap script ... ok
+performing post-bootstrap initialization ... ok
+syncing data to disk ... ok
+
+
+Success. You can now start the database server using:
+
+    pg_ctl -D /var/lib/postgresql/data -l logfile start
+
+initdb: warning: enabling "trust" authentication for local connections
+initdb: hint: You can change this by editing pg_hba.conf or using the option -A, or --auth-local and --auth-host, the next time you run initdb.
+waiting for server to start....2026-10-25 15:41:24.672 UTC [50] LOG:  starting PostgreSQL 16.15 (Debian 16.15-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+2026-10-25 15:41:24.673 UTC [50] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2026-10-25 15:41:24.674 UTC [53] LOG:  database system was shut down at 2026-10-25 15:41:24 UTC
+2026-10-25 15:41:24.676 UTC [50] LOG:  database system is ready to accept connections
+ done
+server started
+
+/usr/local/bin/docker-entrypoint.sh: ignoring /docker-entrypoint-initdb.d/*
+
+waiting for server to shut down....2026-10-25 15:41:24.794 UTC [50] LOG:  received fast shutdown request
+2026-10-25 15:41:24.795 UTC [50] LOG:  aborting any active transactions
+2026-10-25 15:41:24.796 UTC [50] LOG:  background worker "logical replication launcher" (PID 56) exited with exit code 1
+2026-10-25 15:41:24.796 UTC [51] LOG:  shutting down
+2026-10-25 15:41:24.796 UTC [51] LOG:  checkpoint starting: shutdown immediate
+2026-10-25 15:41:24.799 UTC [51] LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.001 s, sync=0.001 s, total=0.004 s; sync files=2, longest=0.001 s, average=0.001 s; distance=0 kB, estimate=0 kB; lsn=0/14F2A00, redo lsn=0/14F2A00
+2026-10-25 15:41:24.801 UTC [50] LOG:  database system is shut down
+ done
+server stopped
+
+PostgreSQL init process complete; ready for start up.
+
+2026-10-25 15:41:24.912 UTC [1] LOG:  starting PostgreSQL 16.15 (Debian 16.15-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+2026-10-25 15:41:24.912 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+2026-10-25 15:41:24.912 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+2026-10-25 15:41:24.914 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2026-10-25 15:41:24.915 UTC [64] LOG:  database system was shut down at 2026-10-25 15:41:24 UTC
+2026-10-25 15:41:24.917 UTC [1] LOG:  database system is ready to accept connections
+2026-10-25 15:41:24.953 UTC [68] FATAL:  database "workspace_fixture_admin" does not exist
+2026-10-25 15:41:37.446 UTC [93] ERROR:  new row for relation "mixer_authz_organizations" violates check constraint "mixer_authz_organizations_display_name_check"
+2026-10-25 15:41:37.446 UTC [93] DETAIL:  Failing row contains (org-a, t, ).
+2026-10-25 15:41:37.446 UTC [93] STATEMENT:  UPDATE public.mixer_authz_organizations SET display_name = '' WHERE id = 'org-a'
+2026-10-25 15:41:37.456 UTC [88] ERROR:  new row for relation "mixer_authz_organizations" violates check constraint "mixer_authz_organizations_display_name_check"
+2026-10-25 15:41:37.456 UTC [88] DETAIL:  Failing row contains (org-a, t, éééééééééééééééééééééééééééééééé...).
+2026-10-25 15:41:37.456 UTC [88] STATEMENT:  UPDATE public.mixer_authz_organizations SET display_name = $1 WHERE id = 'org-a'
+2026-10-25 15:41:41.470 UTC [85] ERROR:  permission denied for table mixer_authz_organizations
+2026-10-25 15:41:41.470 UTC [85] STATEMENT:  UPDATE public.mixer_authz_organizations SET active = false
+2026-10-25 15:41:43.369 UTC [85] ERROR:  duplicate key value violates unique constraint "workspace_commit_probe_id_key"
+2026-10-25 15:41:43.369 UTC [85] STATEMENT:  COMMIT

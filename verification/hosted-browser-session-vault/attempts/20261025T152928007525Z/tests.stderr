@@ -1,0 +1,45 @@
+     warning: variable "value" is unused (there is a variable with the same name in the context, use the pin operator (^) to match on it or prefix this variable with underscore if it is not meant to be used)
+     │
+ 246 │             value when field == :generation ->
+     │             ~
+     │
+     └─ hosted/test/mixer_hosted/browser_auth/vault_test.exs:246:13: MixerHosted.BrowserAuth.VaultTest."test every current session field including authz linkage is authenticated"/1
+
+     warning: variable "value" is unused (there is a variable with the same name in the context, use the pin operator (^) to match on it or prefix this variable with underscore if it is not meant to be used)
+     │
+ 272 │           value when field == :generation ->
+     │           ~
+     │
+     └─ hosted/test/mixer_hosted/browser_auth/vault_test.exs:272:11: MixerHosted.BrowserAuth.VaultTest."test every current attempt field is authenticated"/1
+
+     warning: incompatible types given on function call within Map.update!/3:
+
+         Map.update!(sealed, field, &flip/1)
+
+     given types:
+
+         -integer()-
+
+     but function has type:
+
+         (binary() -> dynamic(binary()))
+
+     where "field" was given the type:
+
+         # type: dynamic()
+         # from: hosted/test/mixer_hosted/browser_auth/vault_test.exs:300:15
+         field <- [:iv, :tag, :ciphertext]
+
+     where "sealed" was given the type:
+
+         # type: dynamic(%MixerHosted.BrowserAuth.Vault.Sealed{version: integer()})
+         # from: hosted/test/mixer_hosted/browser_auth/vault_test.exs:298:19
+         {:ok, sealed} = MixerHosted.BrowserAuth.Vault.seal(key(), session(), plaintext(:preauth))
+
+     type warning found at:
+     │
+ 301 │       assert Vault.open(key(), session(), Map.update!(sealed, field, &flip/1)) == @error
+     │                                               ~
+     │
+     └─ hosted/test/mixer_hosted/browser_auth/vault_test.exs:301:47: MixerHosted.BrowserAuth.VaultTest."test ciphertext IV and full16-byte tag are authenticated"/1
+

@@ -1,0 +1,147 @@
+{
+  "status": "passed",
+  "recorded_at_utc": "2026-10-25T15:30:01.117810+00:00",
+  "source_revision": "684bd5246978767e290552d25773334103ffcf40",
+  "source_tree_sha256": "ee5209329fe1069a6bf49d59986f71fa201cc07b68daf4526780cf31277b958d",
+  "source_inputs": "verification/hosted-browser-configuration-digest/attempts/20261025T152959450620Z/source-inputs.json",
+  "commands": [
+    {
+      "label": "tool-versions",
+      "argv": [
+        "elixir",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "stdout": "verification/hosted-browser-configuration-digest/attempts/20261025T152959450620Z/tool-versions.stdout",
+      "stderr": "verification/hosted-browser-configuration-digest/attempts/20261025T152959450620Z/tool-versions.stderr"
+    },
+    {
+      "label": "crypto-version",
+      "argv": [
+        "elixir",
+        "-e",
+        "Application.load(:crypto); IO.inspect(%{otp: :erlang.system_info(:otp_release), crypto: Application.spec(:crypto, :vsn), crypto_backend: :crypto.info_lib(), hash_equals: function_exported?(:crypto, :hash_equals, 2)})"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "stdout": "verification/hosted-browser-configuration-digest/attempts/20261025T152959450620Z/crypto-version.stdout",
+      "stderr": "verification/hosted-browser-configuration-digest/attempts/20261025T152959450620Z/crypto-version.stderr"
+    },
+    {
+      "label": "format",
+      "argv": [
+        "elixir",
+        "-e",
+        "Enum.each(System.argv(), fn p -> true = File.read!(p) == IO.iodata_to_binary(Code.format_string!(File.read!(p))) <> \"\\n\" end)",
+        "hosted/lib/mixer_hosted/browser_auth/config.ex",
+        "hosted/lib/mixer_hosted/browser_auth/configuration_digest.ex",
+        "hosted/test/mixer_hosted/browser_auth/config_test.exs",
+        "hosted/test/mixer_hosted/browser_auth/configuration_digest_test.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "stdout": "verification/hosted-browser-configuration-digest/attempts/20261025T152959450620Z/format.stdout",
+      "stderr": "verification/hosted-browser-configuration-digest/attempts/20261025T152959450620Z/format.stderr"
+    },
+    {
+      "label": "compile",
+      "argv": [
+        "elixirc",
+        "--warnings-as-errors",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/jason/ebin",
+        "-o",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-browser-config-digest-sw9iuhat",
+        "hosted/lib/mixer_hosted/identity/encoding.ex",
+        "hosted/lib/mixer_hosted/identity/bounded_json.ex",
+        "hosted/lib/mixer_hosted/identity/manifest.ex",
+        "hosted/lib/mixer_hosted/identity/startup_config.ex",
+        "hosted/lib/mixer_hosted/browser_auth/config.ex",
+        "hosted/lib/mixer_hosted/browser_auth/configuration_digest.ex"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "stdout": "verification/hosted-browser-configuration-digest/attempts/20261025T152959450620Z/compile.stdout",
+      "stderr": "verification/hosted-browser-configuration-digest/attempts/20261025T152959450620Z/compile.stderr"
+    },
+    {
+      "label": "tests",
+      "argv": [
+        "elixir",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/jason/ebin",
+        "-pa",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-browser-config-digest-sw9iuhat",
+        "-e",
+        "ExUnit.start(autorun: false, seed: 0); Enum.each(System.argv(), &Code.require_file/1); result = ExUnit.run(); IO.puts(\"selected_host_result_json:\" <> Jason.encode!(result)); System.halt(if result.failures == 0, do: 0, else: 1)",
+        "hosted/test/mixer_hosted/browser_auth/config_test.exs",
+        "hosted/test/mixer_hosted/browser_auth/configuration_digest_test.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "stdout": "verification/hosted-browser-configuration-digest/attempts/20261025T152959450620Z/tests.stdout",
+      "stderr": "verification/hosted-browser-configuration-digest/attempts/20261025T152959450620Z/tests.stderr"
+    },
+    {
+      "label": "owned-source-whitespace",
+      "argv": [
+        "python3",
+        "-c",
+        "import pathlib,sys; bad=[f\"{name}:{n}\" for name in sys.argv[1:] for n,line in enumerate(pathlib.Path(name).read_text().splitlines(),1) if line != line.rstrip(\" \\t\")]; print(\"owned source trailing whitespace:\", bad); sys.exit(bool(bad))",
+        "hosted/lib/mixer_hosted/browser_auth/config.ex",
+        "hosted/lib/mixer_hosted/browser_auth/configuration_digest.ex",
+        "hosted/test/mixer_hosted/browser_auth/config_test.exs",
+        "hosted/test/mixer_hosted/browser_auth/configuration_digest_test.exs",
+        "docs/hosted-browser-configuration-digest.md",
+        "verification/hosted-browser-configuration-digest/run.py"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "stdout": "verification/hosted-browser-configuration-digest/attempts/20261025T152959450620Z/owned-source-whitespace.stdout",
+      "stderr": "verification/hosted-browser-configuration-digest/attempts/20261025T152959450620Z/owned-source-whitespace.stderr"
+    },
+    {
+      "label": "source-whitespace",
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "hosted/lib/mixer_hosted/browser_auth/config.ex",
+        "hosted/lib/mixer_hosted/browser_auth/configuration_digest.ex",
+        "hosted/test/mixer_hosted/browser_auth/config_test.exs",
+        "hosted/test/mixer_hosted/browser_auth/configuration_digest_test.exs",
+        "docs/hosted-browser-configuration-digest.md",
+        "verification/hosted-browser-configuration-digest/run.py"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "stdout": "verification/hosted-browser-configuration-digest/attempts/20261025T152959450620Z/source-whitespace.stdout",
+      "stderr": "verification/hosted-browser-configuration-digest/attempts/20261025T152959450620Z/source-whitespace.stderr"
+    }
+  ],
+  "scope": "Selected BrowserAuth.Config/ConfigurationDigest host tests with existing Encoding, BoundedJSON, Manifest and StartupConfig; pinned Jason BEAMs. No shared hosted compilation or application startup.",
+  "cleanup": {
+    "owned_scratch_removed": true,
+    "owned_scratch_path": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-browser-config-digest-sw9iuhat",
+    "started_browser_capture_native_or_phone_processes": false,
+    "started_provider_network_or_database": false
+  },
+  "pending": [
+    "application/runtime configuration/startup wiring",
+    "provider I/O/TLS/transport qualification",
+    "ID-token cryptographic validation and OIDC/API subject binding",
+    "durable state claim and browser epoch lifecycle",
+    "controlled identity/family/credential lifecycle writer and encrypted session vault",
+    "HTTP endpoint/ingress/Host allowlist/cookie/cache integration",
+    "provider/deployment/browser/security qualification",
+    "native/physical-device and GA acceptance"
+  ],
+  "selected_host_tests": {
+    "total": 20,
+    "failures": 0,
+    "excluded": 0,
+    "skipped": 0
+  }
+}

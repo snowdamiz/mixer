@@ -1,0 +1,220 @@
+{
+  "status": "passed",
+  "recorded_at_utc": "2026-10-25T15:39:12.540643+00:00",
+  "source_revision": "684bd5246978767e290552d25773334103ffcf40",
+  "source_tree_sha256": "420a9e513f69793b01dc885be80e468732cd2504d7ab192e0ca8882a28f102dd",
+  "source_inputs": "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/source-inputs.json",
+  "python_version": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "commands": [
+    {
+      "label": "elixir-version",
+      "argv": [
+        "elixir",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "timeout_seconds": 90,
+      "stdout": "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/elixir-version.stdout",
+      "stderr": "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/elixir-version.stderr",
+      "stdout_sha256": "e92ef5035bb63ab8ed3164b41f674be99e2aeb2a9e59f47837de334cf41a13a7",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "node-version",
+      "argv": [
+        "node",
+        "-p",
+        "JSON.stringify(process.versions)"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "timeout_seconds": 90,
+      "stdout": "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/node-version.stdout",
+      "stderr": "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/node-version.stderr",
+      "stdout_sha256": "932a62395cbb8e90d96934d74af6637d52414e4f3e7fcfca5f8ca2285c8ac0ee",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "crypto-version",
+      "argv": [
+        "elixir",
+        "-e",
+        "Application.load(:crypto); IO.inspect(%{otp: :erlang.system_info(:otp_release), crypto: Application.spec(:crypto, :vsn), crypto_backend: :crypto.info_lib()})"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "timeout_seconds": 90,
+      "stdout": "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/crypto-version.stdout",
+      "stderr": "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/crypto-version.stderr",
+      "stdout_sha256": "d7ff569f95a85c355d08b3afd235142ab39a046f79ca593ff10faade5d42c97b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "format-review",
+      "argv": [
+        "elixir",
+        "-e",
+        "p = hd(System.argv()); true = File.read!(p) == IO.iodata_to_binary(Code.format_string!(File.read!(p))) <> \"\\n\"",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/browser-vault-digest-review/review.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "timeout_seconds": 90,
+      "stdout": "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/format-review.stdout",
+      "stderr": "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/format-review.stderr",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "compile",
+      "argv": [
+        "elixirc",
+        "--warnings-as-errors",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/jason/ebin",
+        "-o",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-browser-vault-digest-review-9svcdhpj",
+        "hosted/lib/mixer_hosted/identity/encoding.ex",
+        "hosted/lib/mixer_hosted/identity/bounded_json.ex",
+        "hosted/lib/mixer_hosted/identity/manifest.ex",
+        "hosted/lib/mixer_hosted/identity/startup_config.ex",
+        "hosted/lib/mixer_hosted/browser_auth/config.ex",
+        "hosted/lib/mixer_hosted/browser_auth/configuration_digest.ex",
+        "hosted/lib/mixer_hosted/browser_auth/vault.ex"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "timeout_seconds": 90,
+      "stdout": "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/compile.stdout",
+      "stderr": "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/compile.stderr",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "node-independent-generation",
+      "argv": [
+        "node",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/browser-vault-digest-review/independent.mjs",
+        "generate",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/browser-vault-digest-review/attempts/20261025T153910924884Z/fixture-input.json",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/browser-vault-digest-review/attempts/20261025T153910924884Z/independent-fixture.json"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "timeout_seconds": 90,
+      "stdout": "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/node-independent-generation.stdout",
+      "stderr": "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/node-independent-generation.stderr",
+      "stdout_sha256": "4b013b65ff61dfd5e311a901894fa0a3e88f051631295e0817ad2e742b801ff3",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "independent-tests",
+      "argv": [
+        "elixir",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/jason/ebin",
+        "-pa",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-browser-vault-digest-review-9svcdhpj",
+        "-e",
+        "ExUnit.start(autorun: false, seed: 0); Code.require_file(hd(System.argv())); result = ExUnit.run(); IO.puts(\"independent_review_result:\" <> Jason.encode!(result)); System.halt(if result.failures == 0, do: 0, else: 1)",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/browser-vault-digest-review/review.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "timeout_seconds": 90,
+      "stdout": "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/independent-tests.stdout",
+      "stderr": "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/independent-tests.stderr",
+      "stdout_sha256": "6b1a490c99844df6342f5990f9170528687c18a639caae7644adbdf9c01bad95",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "node-independent-verification",
+      "argv": [
+        "node",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/browser-vault-digest-review/independent.mjs",
+        "verify",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/browser-vault-digest-review/attempts/20261025T153910924884Z/independent-fixture.json",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/browser-vault-digest-review/attempts/20261025T153910924884Z/product-vectors.json"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "timeout_seconds": 90,
+      "stdout": "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/node-independent-verification.stdout",
+      "stderr": "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/node-independent-verification.stderr",
+      "stdout_sha256": "925ed34e4a2f473d9f03fbc7ee68ecb58832ff9f5ff3bfac696e610d52b22633",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "owned-whitespace",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-c",
+        "import pathlib,sys; bad=[f\"{name}:{n}\" for name in sys.argv[1:] for n,line in enumerate(pathlib.Path(name).read_text().splitlines(),1) if line != line.rstrip(\" \\t\")]; print(bad);sys.exit(bool(bad))",
+        "verification/browser-vault-digest-review/run.py",
+        "verification/browser-vault-digest-review/independent.mjs",
+        "verification/browser-vault-digest-review/review.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "timeout_seconds": 90,
+      "stdout": "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/owned-whitespace.stdout",
+      "stderr": "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/owned-whitespace.stderr",
+      "stdout_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "counts": {
+    "configuration_byte_vectors": 7,
+    "independent_aad_envelope_vectors": 3,
+    "authenticated_malformed_vectors": 40,
+    "independent_exunit": {
+      "total": 16,
+      "failures": 0,
+      "excluded": 0,
+      "skipped": 0
+    },
+    "product_to_node_open_and_exact_reseal": 3,
+    "aes256gcm_known_answer": 1
+  },
+  "cleanup": {
+    "owned_scratch_removed": true,
+    "owned_scratch_path": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-browser-vault-digest-review-9svcdhpj",
+    "started_browser_capture_native_ui_emulator_or_phone_processes": false,
+    "started_shared_application_provider_network_or_database": false,
+    "preserved_other_projects_processes_and_data": true
+  },
+  "scope": "Independent local-only Node/OpenSSL byte/hash/AES256GCM review plus selected ExUnit. Seven explicitly named ordinary modules; preexisting Jason BEAM dependency only. No producer runner is executed. Frozen catalog-inspector, authority-driver and outbound Worker transportV2 are never read/imported/compiled/executed.",
+  "pending": [
+    "trusted Config constructor provenance and current immutable owner context",
+    "durable session owner and SQL storage join/fencing",
+    "external reviewed runtime key custody/rotation/recovery/per-key usage limits",
+    "provider exchange and current independent OIDC/API verification",
+    "shared application startup and HTTP/console/ingress/deployment integration",
+    "browser/native runtime/physical device/security/customer/GA acceptance"
+  ],
+  "outputs": {
+    "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/compile.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/compile.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/crypto-version.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/crypto-version.stdout": "d7ff569f95a85c355d08b3afd235142ab39a046f79ca593ff10faade5d42c97b",
+    "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/elixir-version.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/elixir-version.stdout": "e92ef5035bb63ab8ed3164b41f674be99e2aeb2a9e59f47837de334cf41a13a7",
+    "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/fixture-input.json": "76fb6ed178c37b003c3ea5cb1f3e803942711ab3838713d1c20dc16cd6d3c3a9",
+    "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/format-review.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/format-review.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/independent-fixture.json": "71a7650eec839824a7d2fa783b283be244e4e1449beef00e1c07ec2b0a8fdd9e",
+    "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/independent-tests.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/independent-tests.stdout": "6b1a490c99844df6342f5990f9170528687c18a639caae7644adbdf9c01bad95",
+    "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/node-independent-generation.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/node-independent-generation.stdout": "4b013b65ff61dfd5e311a901894fa0a3e88f051631295e0817ad2e742b801ff3",
+    "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/node-independent-verification.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/node-independent-verification.stdout": "925ed34e4a2f473d9f03fbc7ee68ecb58832ff9f5ff3bfac696e610d52b22633",
+    "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/node-version.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/node-version.stdout": "932a62395cbb8e90d96934d74af6637d52414e4f3e7fcfca5f8ca2285c8ac0ee",
+    "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/owned-whitespace.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/owned-whitespace.stdout": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/product-vectors.json": "1c82eebf4d9f8260e9811d07fc5abda021067af5cf000b8df99662d95861f80a",
+    "verification/browser-vault-digest-review/attempts/20261025T153910924884Z/source-inputs.json": "345b91f4ea91f07e1ead179d1d871af2c19a9073e06382d6daacbe5ece186e28"
+  }
+}

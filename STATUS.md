@@ -1,6 +1,7 @@
 # Implementation status
 
-Development is in progress. All eighteen work packages remain in scope:
+Development is paused at the user's request on October 25. See
+[the saved handoff](docs/implementation-pause-2026-10-25.md). All eighteen work packages remain in scope:
 sixteen are in progress and two are marked ready. No launch gate is verified;
 [gates/ga.json](gates/ga.json) records eight running and thirty planned gates.
 These gate counts are not an estimate of implementation percentage.
@@ -236,10 +237,15 @@ remain separate. Selected protocol CI is wired. The mobile navigation adjustment
 places the three route links below the website logo; visual verification is paused.
 
 These are local components. The production entry still has no authenticated
-session adapter and renders unavailable. Durable session/lifecycle SQL, encrypted
-vault, provider exchange/ID-token validation, routes, ingress and actual login
-remain unimplemented or unqualified. The new storage contract has 18 pending
-implementation cases. No launch gate is promoted. See
+session adapter and renders unavailable. The typed encrypted vault, configuration digest and closed stored-record decoder
+now pass scoped host tests and independent review. Their producer suites pass
+25, 20 (including 14 existing Config methods), and 11 methods respectively;
+independent review passes 16 vault/digest plus 11 decoder groups. The SQL
+lifecycle candidate passes 18 PostgreSQL methods but remains unreviewed and
+uninstalled, with its source and evidence backed up in the pause checkpoint.
+Provider exchange/ID-token validation, runtime owner, routes, ingress and actual
+login remain unimplemented or unqualified. The original storage contract defines 18 required cases;
+its case count is not interchangeable with the new candidate test count. No launch gate is promoted. See
 [cookie transport](docs/console-cookie-workspace-transport.md),
 [protocol](docs/hosted-browser-auth-protocol.md),
 [independent review](docs/browser-auth-prerequisite-review.md),
@@ -248,13 +254,23 @@ implementation cases. No launch gate is promoted. See
 
 ## Delivery and pending qualification
 
+Checkpoint `684bd524` is pushed to `origin/main`; remote main matches. It adds
+reviewed cookie/protocol prerequisites, the mobile navigation adjustment and
+retained CI timeout diagnostics. Console `40206420996` and Engine `40206420988` pass. Phoenix
+`40206421015` fails the first workspace read's total transaction deadline
+(566/567 methods passed, two existing skips); the separate protocol step passes. See
+[delivery](verification/github-delivery-browser-auth-prerequisites/delivery-receipt.json)
+and [current CI](verification/github-ci-684bd524/observation-4/receipt.json).
+Root accepts the component slice with 112 console, 39 protocol and 30 independent
+host methods; counts overlap. Live login and the prior Phoenix timeout remain
+open, and no GA gate advances.
+
 Checkpoint `f2aba240` is pushed to `origin/main`; remote main matches. It adds the
 reviewed branded workspace route/session fencing and the CI fixture repairs.
 Console CI `40204405241` passes. Phoenix CI `40204405232` fails one
 121-project directory deadline test; the earlier migration and expiry repairs
-pass. Query-plan diagnosis is in progress. Engine CI `40204405509` has passed
-VM/services jobs while Swift remains running. See [delivery](verification/github-delivery-workspace-composition/delivery-receipt.json)
-and [exact-push observation](verification/github-ci-f2aba240/observation-4/receipt.json).
+pass. Query-plan diagnosis is in progress. Engine CI `40204405509` now passes all three jobs with no skips. See [delivery](verification/github-delivery-workspace-composition/delivery-receipt.json)
+and [exact-push observation](verification/github-ci-f2aba240/observation-5/receipt.json).
 Live login/session adapter and the broader qualification gates remain pending.
 
 Workspace checkpoint `9a2bf16b` is pushed to `origin/main`; remote main matches.

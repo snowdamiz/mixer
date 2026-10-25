@@ -1,0 +1,11 @@
+{
+  "jit_off_control_accepted": false,
+  "ordinary_workspace_methods_passed": 24,
+  "reason": "SET LOCAL was injected from BEGIN telemetry before the Repo transaction flag was established. The nested query did not apply to the owning read: the actual organization plan retained 631 JIT functions. The preserved success receipt covers ordinary methods/migrations, not a valid JIT-off intervention.",
+  "next_correction": "Inject after the completed idle-in-transaction-timeout statement inside a confirmed owning transaction. Require SHOW jit=off on that same transaction and absence of the organization JIT plan node before diagnostic acceptance.",
+  "cleanup": {
+    "owned_container_removed": true,
+    "postgres_stopped": true,
+    "scratch_removed": true
+  }
+}

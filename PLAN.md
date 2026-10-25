@@ -9,6 +9,13 @@ This index does not narrow or replace that specification. Use
 is preserved byte for byte in [the prior index](PLAN.history-2026-10-25.md);
 its older pending/selected statements do not override the current state.
 
+## Paused checkpoint
+
+Implementation is paused at the user's October 25 request after the reviewed
+browser-session security slice. See [the pause handoff](docs/implementation-pause-2026-10-25.md)
+for exact delivered scope, the backed-up unreviewed SQL candidate, cleanup and
+resume order. The full plan remains incomplete; no GA gate is promoted.
+
 ## Current execution
 
 1. **Owned Swift interpreter:** decode-plan reuse is reviewed and integrated.
@@ -114,7 +121,9 @@ its older pending/selected statements do not override the current state.
    This is component acceptance: no live session is installed, no auth routes or
    provider exchange are enabled, and the entry remains unavailable. Implement the
    reviewed durable browser session/lifecycle contract next, followed by the
-   separately verified provider and ordinary protected-route join. Do not treat
+   separately verified provider and ordinary protected-route join. The later
+   pause checkpoint accepts the vault/configuration-digest/decoder components;
+   the tested SQL candidate remains unreviewed and uninstalled. Do not treat
    the proposed storage contract's 18 pending cases as tests already run.
 
    Console CI for f2aba240 passes; Phoenix confirms the prior migration/expiry

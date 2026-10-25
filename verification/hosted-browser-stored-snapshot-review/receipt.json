@@ -1,0 +1,153 @@
+{
+  "status": "passed",
+  "recorded_at_utc": "2026-10-25T15:48:21.359879+00:00",
+  "source_revision": "684bd5246978767e290552d25773334103ffcf40",
+  "source_tree_sha256": "c9cf63d37fc9615f6c51a6cb7ac30b96986643955273b40b8a8f9ec0df3a0a59",
+  "source_inputs": "verification/hosted-browser-stored-snapshot-review/attempts/20261025T154820147497Z/source-inputs.json",
+  "coordinated_frozen_inputs": {
+    "hosted/lib/mixer_hosted/browser_auth/vault.ex": "e376cdd7305a520c61e716e3f4fcd3f5493e280ff5424ba822516f9a6f4281b2",
+    "hosted/lib/mixer_hosted/browser_auth/stored_snapshot.ex": "ce92f99c3990bf9ddd0fbf5d8c7d329ea63bb5dc31ec3df4922907b19986cd3e",
+    "hosted/test/mixer_hosted/browser_auth/stored_snapshot_test.exs": "bf814937391e70305f853ed5710920b3d7f54587a2497646cb025e03d8c68f2e"
+  },
+  "python_version": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "commands": [
+    {
+      "label": "elixir-version",
+      "argv": [
+        "elixir",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "timeout_seconds": 90,
+      "stdout": "verification/hosted-browser-stored-snapshot-review/attempts/20261025T154820147497Z/elixir-version.stdout",
+      "stderr": "verification/hosted-browser-stored-snapshot-review/attempts/20261025T154820147497Z/elixir-version.stderr",
+      "stdout_sha256": "e92ef5035bb63ab8ed3164b41f674be99e2aeb2a9e59f47837de334cf41a13a7",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "crypto-version",
+      "argv": [
+        "elixir",
+        "-e",
+        "Application.load(:crypto); IO.inspect(%{otp: :erlang.system_info(:otp_release), crypto: Application.spec(:crypto, :vsn), backend: :crypto.info_lib()})"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "timeout_seconds": 90,
+      "stdout": "verification/hosted-browser-stored-snapshot-review/attempts/20261025T154820147497Z/crypto-version.stdout",
+      "stderr": "verification/hosted-browser-stored-snapshot-review/attempts/20261025T154820147497Z/crypto-version.stderr",
+      "stdout_sha256": "32235e2c881c6dd5b5fc47ca2d232a1922fcf4a9a723d6b111398be8401e8bea",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "compile",
+      "argv": [
+        "elixirc",
+        "--warnings-as-errors",
+        "-o",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stored-snapshot-review-fd918f09",
+        "hosted/lib/mixer_hosted/browser_auth/vault.ex",
+        "hosted/lib/mixer_hosted/browser_auth/stored_snapshot.ex"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "timeout_seconds": 90,
+      "stdout": "verification/hosted-browser-stored-snapshot-review/attempts/20261025T154820147497Z/compile.stdout",
+      "stderr": "verification/hosted-browser-stored-snapshot-review/attempts/20261025T154820147497Z/compile.stderr",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "independent-tests",
+      "argv": [
+        "elixir",
+        "-pa",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stored-snapshot-review-fd918f09",
+        "-e",
+        "ExUnit.start(autorun: false, seed: 0); Code.require_file(hd(System.argv())); r = ExUnit.run(); IO.puts(\"independent_result:\" <> Enum.map_join([:total, :failures, :skipped, :excluded], \",\", &Integer.to_string(Map.fetch!(r, &1)))); System.halt(if r.failures == 0, do: 0, else: 1)",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-stored-snapshot-review/review.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "timeout_seconds": 90,
+      "stdout": "verification/hosted-browser-stored-snapshot-review/attempts/20261025T154820147497Z/independent-tests.stdout",
+      "stderr": "verification/hosted-browser-stored-snapshot-review/attempts/20261025T154820147497Z/independent-tests.stderr",
+      "stdout_sha256": "788acffc262a14cd8894f0ea3fbf7fb5f95aea2563015c6902918b90d877d261",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "owned-whitespace",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-c",
+        "import pathlib,sys; bad=[f\"{p}:{n}\" for p in sys.argv[1:] for n,line in enumerate(pathlib.Path(p).read_text().splitlines(),1) if line != line.rstrip(\" \\t\")]; print(bad);sys.exit(bool(bad))",
+        "verification/hosted-browser-stored-snapshot-review/run.py",
+        "verification/hosted-browser-stored-snapshot-review/review.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "timeout_seconds": 90,
+      "stdout": "verification/hosted-browser-stored-snapshot-review/attempts/20261025T154820147497Z/owned-whitespace.stdout",
+      "stderr": "verification/hosted-browser-stored-snapshot-review/attempts/20261025T154820147497Z/owned-whitespace.stderr",
+      "stdout_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "independent_exunit": {
+    "total": 11,
+    "failures": 0,
+    "skipped": 0,
+    "excluded": 0
+  },
+  "public_column_counts": {
+    "browser": 22,
+    "vault": 10,
+    "attempt": 26
+  },
+  "sql_source_sha256_at_finish": "3812f26ff51be10441a6d4d3b4679ca23b7ac9a2247e0b851a0013f5dce06204",
+  "cleanup": {
+    "owned_scratch_removed": true,
+    "owned_scratch_path": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-stored-snapshot-review-fd918f09",
+    "started_shared_app_network_database_browser_capture_native_or_phone": false,
+    "preserved_other_projects_processes_and_data": true
+  },
+  "scope": "Data-only independent public SQL row-column comparison and selected Vault+StoredSnapshot host probes. SQL text is read only; no SQL module, statements or database are executed. No whole app, frozen lanes, provider, native runtime or capture.",
+  "pending": [
+    "actual SQL JSONB composition and canonical bytea_output connection setting",
+    "database body/role/RLS/topology review and durable owner integration",
+    "current request/config/time/verifier admission and atomic claim",
+    "external runtime key custody and provider exchange",
+    "HTTP/console/browser/deployment/security/native/customer/GA acceptance"
+  ],
+  "review_report": "docs/hosted-browser-stored-snapshot-review.md",
+  "review_report_sha256": "47ad01e93d81a66fb450ce6dfe7d3ea0d12c9b9397319d56c54ba0e02b5884c0",
+  "outputs": {
+    "verification/hosted-browser-stored-snapshot-review/attempts/20261025T154820147497Z/compile.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/hosted-browser-stored-snapshot-review/attempts/20261025T154820147497Z/compile.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/hosted-browser-stored-snapshot-review/attempts/20261025T154820147497Z/crypto-version.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/hosted-browser-stored-snapshot-review/attempts/20261025T154820147497Z/crypto-version.stdout": "32235e2c881c6dd5b5fc47ca2d232a1922fcf4a9a723d6b111398be8401e8bea",
+    "verification/hosted-browser-stored-snapshot-review/attempts/20261025T154820147497Z/elixir-version.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/hosted-browser-stored-snapshot-review/attempts/20261025T154820147497Z/elixir-version.stdout": "e92ef5035bb63ab8ed3164b41f674be99e2aeb2a9e59f47837de334cf41a13a7",
+    "verification/hosted-browser-stored-snapshot-review/attempts/20261025T154820147497Z/independent-tests.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/hosted-browser-stored-snapshot-review/attempts/20261025T154820147497Z/independent-tests.stdout": "788acffc262a14cd8894f0ea3fbf7fb5f95aea2563015c6902918b90d877d261",
+    "verification/hosted-browser-stored-snapshot-review/attempts/20261025T154820147497Z/owned-whitespace.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/hosted-browser-stored-snapshot-review/attempts/20261025T154820147497Z/owned-whitespace.stdout": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "verification/hosted-browser-stored-snapshot-review/attempts/20261025T154820147497Z/source-inputs.json": "b23a049a024391244b754ed5aeea9a7b8c31f7d2c8a1569eee3eb822dc3a701e",
+    "verification/hosted-browser-stored-snapshot-review/attempts/20261025T154820147497Z/sql-columns.tsv": "821ef6102748022f4d1200d8f16ead0574abd9b0b7ecf4ef3f5793917a42ca98",
+    "verification/hosted-browser-stored-snapshot-review/attempts/20261025T154820147497Z/sql-shape.json": "b4378bca6ca7793510821f84bd08060b99ed3f027ed93c3a2e53e707987656a2"
+  },
+  "post_run_amendments": [
+    {
+      "recorded_at_utc": "2026-10-25T15:49:31.644175+00:00",
+      "kind": "documentation_only",
+      "reason": "Correct report: SQL source pins SET bytea_output=hex and records it in catalog manifest; independent SQL/runtime qualification remains unperformed.",
+      "previous_report_sha256": "42f6d46ba5860b8fa2bf5875dcf807205545a8ba7c8bc830bb4d6402e4e877c9",
+      "updated_report_sha256": "47ad01e93d81a66fb450ce6dfe7d3ea0d12c9b9397319d56c54ba0e02b5884c0",
+      "tests_rerun": false,
+      "producer_files_edited": false,
+      "original_command_results_and_source_bindings_unchanged": true,
+      "sql_source_sha256_observed": "3812f26ff51be10441a6d4d3b4679ca23b7ac9a2247e0b851a0013f5dce06204"
+    }
+  ]
+}

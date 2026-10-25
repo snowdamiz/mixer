@@ -1,0 +1,169 @@
+{
+  "schema": 1,
+  "time_utc": "2026-10-25T15:44:59.828469+00:00",
+  "head": "684bd5246978767e290552d25773334103ffcf40",
+  "source_sha256": {
+    "hosted/lib/mixer_hosted/browser_auth/storage_schema.ex": "3812f26ff51be10441a6d4d3b4679ca23b7ac9a2247e0b851a0013f5dce06204",
+    "hosted/lib/mixer_hosted/browser_auth/vault.ex": "e376cdd7305a520c61e716e3f4fcd3f5493e280ff5424ba822516f9a6f4281b2",
+    "hosted/lib/mixer_hosted/browser_auth/stored_snapshot.ex": "ce92f99c3990bf9ddd0fbf5d8c7d329ea63bb5dc31ec3df4922907b19986cd3e",
+    "docs/hosted-browser-session-storage.md": "ed2cee263ffb149c973d3f28f9594c54764b1032988c48376d7b497781479bf9",
+    "hosted/priv/repo/migrations/20261025000007_add_browser_sessions.exs": "577b38e600c55e9844bc393ccfe4dfdfb7241db7eaed449956e6a3335442710f",
+    "hosted/test/mixer_hosted/browser_auth/run_storage_fixture.py": "c606b2cf7b04d91fa52c62d51a812b4c8cb27291eb7b2118711bbd2ab05f1e97",
+    "hosted/test/mixer_hosted/browser_auth/storage_fixture.exs": "9417342d3d5708d21b216383da8cb4bef381e3572036853e6f099ccf08235a06",
+    "hosted/test/mixer_hosted/browser_auth/storage_spec.exs": "d5998b6fb875f445b7024c67ce3bb1247269fcc0b838dde0503c9cf8cbe0348f"
+  },
+  "commands": [
+    {
+      "name": "postgres-version",
+      "command": [
+        "/opt/homebrew/opt/postgresql@17/bin/postgres",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "postgres-version.log"
+    },
+    {
+      "name": "elixir-version",
+      "command": [
+        "elixir",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "elixir-version.log"
+    },
+    {
+      "name": "initdb",
+      "command": [
+        "/opt/homebrew/opt/postgresql@17/bin/initdb",
+        "-D",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-browser-storage-qypkdy2a/data",
+        "-U",
+        "browser_admin",
+        "-A",
+        "trust",
+        "--no-locale",
+        "-E",
+        "UTF8"
+      ],
+      "exit_code": 0,
+      "output": "initdb.log"
+    },
+    {
+      "name": "postgres-start",
+      "command": [
+        "/opt/homebrew/opt/postgresql@17/bin/pg_ctl",
+        "-D",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-browser-storage-qypkdy2a/data",
+        "-l",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-session-storage/postgres.log",
+        "-o",
+        "-h 127.0.0.1 -p 53755 -k '' -c timezone=UTC",
+        "-w",
+        "start"
+      ],
+      "exit_code": 0,
+      "output": "postgres-start.log"
+    },
+    {
+      "name": "fixture-roles",
+      "command": [
+        "/opt/homebrew/opt/postgresql@17/bin/psql",
+        "-X",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "53755",
+        "-U",
+        "browser_admin",
+        "-d",
+        "postgres",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-c",
+        "CREATE ROLE browser_schema_owner NOLOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT; CREATE ROLE browser_writer NOLOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT; CREATE ROLE browser_lifecycle LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT; CREATE ROLE browser_ordinary LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT; CREATE ROLE browser_operator LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT;"
+      ],
+      "exit_code": 0,
+      "output": "fixture-roles.log"
+    },
+    {
+      "name": "fixture-database",
+      "command": [
+        "/opt/homebrew/opt/postgresql@17/bin/createdb",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "53755",
+        "-U",
+        "browser_admin",
+        "-O",
+        "browser_schema_owner",
+        "browser_storage"
+      ],
+      "exit_code": 0,
+      "output": "fixture-database.log"
+    },
+    {
+      "name": "operator-fixture-database",
+      "command": [
+        "/opt/homebrew/opt/postgresql@17/bin/createdb",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "53755",
+        "-U",
+        "browser_admin",
+        "-O",
+        "browser_operator",
+        "browser_operator_storage"
+      ],
+      "exit_code": 0,
+      "output": "operator-fixture-database.log"
+    },
+    {
+      "name": "focused-exunit",
+      "command": [
+        "elixir",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/*/ebin",
+        "-r",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/lib/mixer_hosted/browser_auth/storage_schema.ex",
+        "-r",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/lib/mixer_hosted/browser_auth/vault.ex",
+        "-r",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/lib/mixer_hosted/browser_auth/stored_snapshot.ex",
+        "-e",
+        "ExUnit.start(seed: 0); Code.require_file(\"hosted/test/mixer_hosted/browser_auth/storage_spec.exs\")"
+      ],
+      "exit_code": 2,
+      "output": "focused-exunit.log"
+    },
+    {
+      "name": "postgres-stop",
+      "command": [
+        "/opt/homebrew/opt/postgresql@17/bin/pg_ctl",
+        "-D",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-browser-storage-qypkdy2a/data",
+        "-m",
+        "immediate",
+        "-w",
+        "stop"
+      ],
+      "exit_code": 0,
+      "output": "postgres-stop.log"
+    }
+  ],
+  "focused_tests_passed": false,
+  "cleanup": {
+    "owned_postgres_stopped": true,
+    "owned_scratch_removed": true
+  },
+  "scope": "Synthetic local loopback PostgreSQL lifecycle role tests; selected StorageSchema/Vault/StoredSnapshot and ordinary 3/4/6/7 migrations only. No whole-app compilation. No frozen lane imports. No browser/native/provider/production operations.",
+  "pending": [
+    "Current-verifier/OIDC/provider owner join",
+    "Production runtime pool and catalog admission",
+    "Neon roles/TLS/key custody",
+    "Nine-migration controls integrated by root",
+    "Browser/native/physical checks paused",
+    "Customer and GA review"
+  ]
+}

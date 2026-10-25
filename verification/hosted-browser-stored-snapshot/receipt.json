@@ -1,0 +1,152 @@
+{
+  "status": "passed",
+  "recorded_at_utc": "2026-10-25T15:42:56.999371+00:00",
+  "source_revision": "684bd5246978767e290552d25773334103ffcf40",
+  "source_tree_sha256": "6f48b1185eac7a92fb7dee8b722ec0746188aeaa811444e83643f505f36db0b6",
+  "source_inputs": "verification/hosted-browser-stored-snapshot/attempts/20261025T154255516266Z/source-inputs.json",
+  "python_version": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "commands": [
+    {
+      "label": "tool-versions",
+      "argv": [
+        "elixir",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "timeout_seconds": 90,
+      "stdout": "verification/hosted-browser-stored-snapshot/attempts/20261025T154255516266Z/tool-versions.stdout",
+      "stdout_sha256": "e92ef5035bb63ab8ed3164b41f674be99e2aeb2a9e59f47837de334cf41a13a7",
+      "stderr": "verification/hosted-browser-stored-snapshot/attempts/20261025T154255516266Z/tool-versions.stderr",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "crypto-version",
+      "argv": [
+        "elixir",
+        "-e",
+        "Application.load(:crypto); IO.inspect(%{otp: :erlang.system_info(:otp_release), crypto: Application.spec(:crypto, :vsn), crypto_backend: :crypto.info_lib()})"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "timeout_seconds": 90,
+      "stdout": "verification/hosted-browser-stored-snapshot/attempts/20261025T154255516266Z/crypto-version.stdout",
+      "stdout_sha256": "d7ff569f95a85c355d08b3afd235142ab39a046f79ca593ff10faade5d42c97b",
+      "stderr": "verification/hosted-browser-stored-snapshot/attempts/20261025T154255516266Z/crypto-version.stderr",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "format",
+      "argv": [
+        "elixir",
+        "-e",
+        "Enum.each(System.argv(), fn p -> true = File.read!(p) == IO.iodata_to_binary(Code.format_string!(File.read!(p))) <> \"\\n\" end)",
+        "hosted/lib/mixer_hosted/browser_auth/stored_snapshot.ex",
+        "hosted/test/mixer_hosted/browser_auth/stored_snapshot_test.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "timeout_seconds": 90,
+      "stdout": "verification/hosted-browser-stored-snapshot/attempts/20261025T154255516266Z/format.stdout",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": "verification/hosted-browser-stored-snapshot/attempts/20261025T154255516266Z/format.stderr",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "compile",
+      "argv": [
+        "elixirc",
+        "--warnings-as-errors",
+        "-o",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-browser-snapshot-rfqwq713",
+        "hosted/lib/mixer_hosted/browser_auth/vault.ex",
+        "hosted/lib/mixer_hosted/browser_auth/stored_snapshot.ex"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "timeout_seconds": 90,
+      "stdout": "verification/hosted-browser-stored-snapshot/attempts/20261025T154255516266Z/compile.stdout",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": "verification/hosted-browser-stored-snapshot/attempts/20261025T154255516266Z/compile.stderr",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "tests",
+      "argv": [
+        "elixir",
+        "-pa",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-browser-snapshot-rfqwq713",
+        "-e",
+        "ExUnit.start(autorun: false, seed: 0); Code.require_file(hd(System.argv())); result = ExUnit.run(); IO.puts(\"selected_host_result:\" <> Enum.map_join([:total, :failures, :skipped, :excluded], \",\", &Integer.to_string(Map.fetch!(result, &1)))); System.halt(if result.failures == 0, do: 0, else: 1)",
+        "hosted/test/mixer_hosted/browser_auth/stored_snapshot_test.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "timeout_seconds": 90,
+      "stdout": "verification/hosted-browser-stored-snapshot/attempts/20261025T154255516266Z/tests.stdout",
+      "stdout_sha256": "207b37432e8c23a63e5bceccd98a1adfb416c7506dca3c56ec068d36a8029283",
+      "stderr": "verification/hosted-browser-stored-snapshot/attempts/20261025T154255516266Z/tests.stderr",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "owned-source-whitespace",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-c",
+        "import pathlib,sys; bad=[f\"{name}:{n}\" for name in sys.argv[1:] for n,line in enumerate(pathlib.Path(name).read_text().splitlines(),1) if line != line.rstrip(\" \\t\")]; print(\"owned trailing whitespace:\",bad);sys.exit(bool(bad))",
+        "hosted/lib/mixer_hosted/browser_auth/stored_snapshot.ex",
+        "hosted/test/mixer_hosted/browser_auth/stored_snapshot_test.exs",
+        "docs/hosted-browser-stored-snapshot.md",
+        "verification/hosted-browser-stored-snapshot/run.py"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "timeout_seconds": 90,
+      "stdout": "verification/hosted-browser-stored-snapshot/attempts/20261025T154255516266Z/owned-source-whitespace.stdout",
+      "stdout_sha256": "bb1a7e4786c4657456023472b4e489d1c3375b851ed6fb60941d3942ce1896d9",
+      "stderr": "verification/hosted-browser-stored-snapshot/attempts/20261025T154255516266Z/owned-source-whitespace.stderr",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "source-diff-check",
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "hosted/lib/mixer_hosted/browser_auth/stored_snapshot.ex",
+        "hosted/test/mixer_hosted/browser_auth/stored_snapshot_test.exs",
+        "docs/hosted-browser-stored-snapshot.md",
+        "verification/hosted-browser-stored-snapshot/run.py"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "timeout_seconds": 90,
+      "stdout": "verification/hosted-browser-stored-snapshot/attempts/20261025T154255516266Z/source-diff-check.stdout",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": "verification/hosted-browser-stored-snapshot/attempts/20261025T154255516266Z/source-diff-check.stderr",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "scope": "Selected Vault/StoredSnapshot compilation and synthetic row decoding with real OTP authenticated encryption. No shared hosted app compilation/startup, dependency builds or frozen lane access.",
+  "cleanup": {
+    "owned_scratch_removed": true,
+    "owned_scratch_path": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-browser-snapshot-rfqwq713",
+    "started_browser_capture_native_or_phone_processes": false,
+    "started_provider_network_or_database": false
+  },
+  "pending": [
+    "actual SQL result composition",
+    "runtime provenance and trusted lifecycle owner",
+    "key custody and provider integration",
+    "current verifier and OIDC/API subject binding",
+    "HTTP/console/browser/deployment integration",
+    "native/physical and GA acceptance"
+  ],
+  "selected_host_tests": {
+    "total": 11,
+    "failures": 0,
+    "skipped": 0,
+    "excluded": 0
+  }
+}

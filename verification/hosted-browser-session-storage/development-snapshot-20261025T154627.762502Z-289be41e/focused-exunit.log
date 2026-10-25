@@ -1,0 +1,25 @@
+Running ExUnit with seed: 0, max_cases: 30
+
+............
+11:44:59.431 [error] Postgrex.Protocol (#PID<0.238.0> ({Postgrex.Protocol, "browser_storage"})) disconnected: ** (Postgrex.Error) ERROR 23514 (check_violation) browser audit transition missing
+
+11:44:59.433 [error] Postgrex.Protocol (#PID<0.239.0> ({Postgrex.Protocol, "browser_storage"})) disconnected: ** (Postgrex.Error) ERROR 23514 (check_violation) browser vault transition invalid
+
+11:44:59.437 [error] Postgrex.Protocol (#PID<0.240.0> ({Postgrex.Protocol, "browser_storage"})) disconnected: ** (Postgrex.Error) ERROR 23514 (check_violation) browser attempt event missing
+....
+
+  1) test non-superuser operator ownership failure rolls back temporary grants and remains inert (MixerHosted.BrowserAuth.StorageTest)
+     hosted/test/mixer_hosted/browser_auth/storage_spec.exs:992
+     ** (Postgrex.Error) ERROR 25P02 (in_failed_sql_transaction) current transaction is aborted, commands ignored until end of transaction block
+
+         query: SELECT pg_catalog.has_schema_privilege('browser_writer','public','CREATE'),pg_catalog.has_schema_privilege('browser_writer','public','USAGE')
+     code: Postgrex.query!(
+     stacktrace:
+       (postgrex 0.22.4) lib/postgrex.ex:381: Postgrex.query!/4
+       hosted/test/mixer_hosted/browser_auth/storage_spec.exs:1018: (test)
+
+.
+Finished in 4.7 seconds (0.5s on load, 0.00s async, 4.2s sync)
+
+Result: 17/18 passed
+Failed: 1 test

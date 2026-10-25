@@ -1,0 +1,202 @@
+{
+  "status": "passed",
+  "recorded_at_utc": "2026-10-25T15:31:45.940686+00:00",
+  "source_revision": "684bd5246978767e290552d25773334103ffcf40",
+  "source_tree_sha256": "8f89ae7ffc8464cec6523542defbfc4744d78c7d25a465e1f2a78ba2070fd481",
+  "source_inputs": "verification/hosted-browser-session-vault/attempts/20261025T153141814050Z/source-inputs.json",
+  "python_version": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "commands": [
+    {
+      "label": "tool-versions",
+      "argv": [
+        "elixir",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "timeout_seconds": 90,
+      "stdout": "verification/hosted-browser-session-vault/attempts/20261025T153141814050Z/tool-versions.stdout",
+      "stderr": "verification/hosted-browser-session-vault/attempts/20261025T153141814050Z/tool-versions.stderr"
+    },
+    {
+      "label": "swift-version",
+      "argv": [
+        "swiftc",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "timeout_seconds": 90,
+      "stdout": "verification/hosted-browser-session-vault/attempts/20261025T153141814050Z/swift-version.stdout",
+      "stderr": "verification/hosted-browser-session-vault/attempts/20261025T153141814050Z/swift-version.stderr"
+    },
+    {
+      "label": "crypto-version",
+      "argv": [
+        "elixir",
+        "-e",
+        "Application.load(:crypto); IO.inspect(%{otp: :erlang.system_info(:otp_release), crypto: Application.spec(:crypto, :vsn), crypto_backend: :crypto.info_lib()})"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "timeout_seconds": 90,
+      "stdout": "verification/hosted-browser-session-vault/attempts/20261025T153141814050Z/crypto-version.stdout",
+      "stderr": "verification/hosted-browser-session-vault/attempts/20261025T153141814050Z/crypto-version.stderr"
+    },
+    {
+      "label": "format",
+      "argv": [
+        "elixir",
+        "-e",
+        "Enum.each(System.argv(), fn p -> true = File.read!(p) == IO.iodata_to_binary(Code.format_string!(File.read!(p))) <> \"\\n\" end)",
+        "hosted/lib/mixer_hosted/browser_auth/vault.ex",
+        "hosted/test/mixer_hosted/browser_auth/vault_test.exs",
+        "verification/hosted-browser-session-vault/interoperability.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "timeout_seconds": 90,
+      "stdout": "verification/hosted-browser-session-vault/attempts/20261025T153141814050Z/format.stdout",
+      "stderr": "verification/hosted-browser-session-vault/attempts/20261025T153141814050Z/format.stderr"
+    },
+    {
+      "label": "compile",
+      "argv": [
+        "elixirc",
+        "--warnings-as-errors",
+        "-o",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-browser-session-vault-du182bdp",
+        "hosted/lib/mixer_hosted/browser_auth/vault.ex"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "timeout_seconds": 90,
+      "stdout": "verification/hosted-browser-session-vault/attempts/20261025T153141814050Z/compile.stdout",
+      "stderr": "verification/hosted-browser-session-vault/attempts/20261025T153141814050Z/compile.stderr"
+    },
+    {
+      "label": "tests",
+      "argv": [
+        "elixir",
+        "-pa",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-browser-session-vault-du182bdp",
+        "-e",
+        "ExUnit.start(autorun: false, seed: 0); Code.require_file(hd(System.argv())); result = ExUnit.run(); IO.puts(\"selected_host_result:\" <> Enum.map_join([:total, :failures, :skipped, :excluded], \",\", &Integer.to_string(Map.fetch!(result, &1)))); System.halt(if result.failures == 0, do: 0, else: 1)",
+        "hosted/test/mixer_hosted/browser_auth/vault_test.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "timeout_seconds": 90,
+      "stdout": "verification/hosted-browser-session-vault/attempts/20261025T153141814050Z/tests.stdout",
+      "stderr": "verification/hosted-browser-session-vault/attempts/20261025T153141814050Z/tests.stderr"
+    },
+    {
+      "label": "synthetic-interop",
+      "argv": [
+        "elixir",
+        "-pa",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-browser-session-vault-du182bdp",
+        "verification/hosted-browser-session-vault/interoperability.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "timeout_seconds": 90,
+      "stdout": "verification/hosted-browser-session-vault/attempts/20261025T153141814050Z/synthetic-interop.stdout",
+      "stderr": "verification/hosted-browser-session-vault/attempts/20261025T153141814050Z/synthetic-interop.stderr"
+    },
+    {
+      "label": "compile-independent-interop",
+      "argv": [
+        "swiftc",
+        "-warnings-as-errors",
+        "-module-cache-path",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-browser-session-vault-du182bdp/swift-cache",
+        "-o",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-browser-session-vault-du182bdp/interop",
+        "verification/hosted-browser-session-vault/interoperability.swift"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "timeout_seconds": 90,
+      "stdout": "verification/hosted-browser-session-vault/attempts/20261025T153141814050Z/compile-independent-interop.stdout",
+      "stderr": "verification/hosted-browser-session-vault/attempts/20261025T153141814050Z/compile-independent-interop.stderr"
+    },
+    {
+      "label": "independent-interop",
+      "argv": [
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-browser-session-vault-du182bdp/interop",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-session-vault/attempts/20261025T153141814050Z/synthetic-interop.stdout"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "timeout_seconds": 90,
+      "stdout": "verification/hosted-browser-session-vault/attempts/20261025T153141814050Z/independent-interop.stdout",
+      "stderr": "verification/hosted-browser-session-vault/attempts/20261025T153141814050Z/independent-interop.stderr"
+    },
+    {
+      "label": "owned-source-whitespace",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-c",
+        "import pathlib,sys; bad=[f\"{name}:{n}\" for name in sys.argv[1:] for n,line in enumerate(pathlib.Path(name).read_text().splitlines(),1) if line != line.rstrip(\" \\t\")]; print(\"owned trailing whitespace:\",bad);sys.exit(bool(bad))",
+        "hosted/lib/mixer_hosted/browser_auth/vault.ex",
+        "hosted/test/mixer_hosted/browser_auth/vault_test.exs",
+        "docs/hosted-browser-session-vault.md",
+        "verification/hosted-browser-session-vault/run.py",
+        "verification/hosted-browser-session-vault/interoperability.exs",
+        "verification/hosted-browser-session-vault/interoperability.swift",
+        "verification/hosted-browser-session-vault/nist-gcm-vector.json"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "timeout_seconds": 90,
+      "stdout": "verification/hosted-browser-session-vault/attempts/20261025T153141814050Z/owned-source-whitespace.stdout",
+      "stderr": "verification/hosted-browser-session-vault/attempts/20261025T153141814050Z/owned-source-whitespace.stderr"
+    },
+    {
+      "label": "source-diff-check",
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "hosted/lib/mixer_hosted/browser_auth/vault.ex",
+        "hosted/test/mixer_hosted/browser_auth/vault_test.exs",
+        "docs/hosted-browser-session-vault.md",
+        "verification/hosted-browser-session-vault/run.py",
+        "verification/hosted-browser-session-vault/interoperability.exs",
+        "verification/hosted-browser-session-vault/interoperability.swift",
+        "verification/hosted-browser-session-vault/nist-gcm-vector.json"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit_code": 0,
+      "timeout_seconds": 90,
+      "stdout": "verification/hosted-browser-session-vault/attempts/20261025T153141814050Z/source-diff-check.stdout",
+      "stderr": "verification/hosted-browser-session-vault/attempts/20261025T153141814050Z/source-diff-check.stderr"
+    }
+  ],
+  "scope": "Vault-only selected ExUnit on bounded BEAM schedulers, synthetic independently derived AAD and AES-GCM interoperability via host CryptoKit CLI. No shared hosted application compilation/startup, dependency compilation, database/provider/network operation or frozen lane read/import/compile/execute.",
+  "cleanup": {
+    "owned_scratch_removed": true,
+    "owned_scratch_path": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-browser-session-vault-du182bdp",
+    "started_browser_capture_native_ui_or_phone_processes": false,
+    "started_provider_network_or_database": false,
+    "preserved_other_projects_processes_and_data": true
+  },
+  "pending": [
+    "trusted lifecycle owner and database adapter integration",
+    "production reviewed key custody, rotation, recovery and per-key usage limits",
+    "current verifier and qualified OIDC/API subject binding",
+    "provider exchange and transport",
+    "Phoenix/console/ingress composition",
+    "deployment/browser/security qualification",
+    "native/physical-device and GA acceptance"
+  ],
+  "selected_host_tests": {
+    "total": 25,
+    "failures": 0,
+    "skipped": 0,
+    "excluded": 0
+  },
+  "independent_interoperability_passed": true
+}
