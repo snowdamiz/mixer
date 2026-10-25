@@ -1,0 +1,103 @@
+{
+  "schema": 1,
+  "observedAt": "2026-10-25T12:55:15.857352+00:00",
+  "reviewer": "/root/console_brand_final_audit",
+  "result": "passed-scoped-independent-review",
+  "baseRevision": "6fff5ab981f88d7a92c006d20c36f5e963335a9d",
+  "observedHEAD": "6fff5ab981f88d7a92c006d20c36f5e963335a9d",
+  "examinedFileHashes": {
+    "console/src/styles.css": "932902826c6e59940868cbb66744c5ce292f74fe1abc907c06659da7cb507f33",
+    "console/src/brand.css": "46db875694691dfbcfa35306c66c01ed1439f14a0b542da4e37e9950b849db75",
+    "website/src/styles.css": "c6c9d7bc09bb8549a94ebd7d2959444bfcde3eb7e27c8b9aa61f493f1fe9bf94",
+    "verification/console-brand-contrast/receipt.json": "2c9fb5829e1a71072e4f257021f754c376bc2faa0d88e71950023b83b04c66d3"
+  },
+  "baselineStylesSHA256": "bd2a2506c6ec666d4fc9282e5e81ae74fd8fcf46f5d8a64c56c070bf1b9c25b0",
+  "currentDiffSHA256": "6e77534da3153fea373af417483f76bf8840029cb9c2091fe4b8e1686ce6bd80",
+  "exactDelta": {
+    "onlyTwoColorReplacements": true,
+    "changedLines": [
+      {
+        "line": 30,
+        "before": ".rail-caption { margin: 22px 12px 0; border-top: 1px solid var(--line); padding-top: 22px; font-size: 11px; line-height: 1.7; color: #787c73; }",
+        "after": ".rail-caption { margin: 22px 12px 0; border-top: 1px solid var(--line); padding-top: 22px; font-size: 11px; line-height: 1.7; color: var(--muted); }"
+      },
+      {
+        "line": 86,
+        "before": ".app-footer { display: flex; justify-content: space-between; gap: 20px; margin: 0 40px; padding: 20px 0; border-top: 1px solid var(--line); font-size: 10px; color: #878b80; }",
+        "after": ".app-footer { display: flex; justify-content: space-between; gap: 20px; margin: 0 40px; padding: 20px 0; border-top: 1px solid var(--line); font-size: 10px; color: var(--muted); }"
+      }
+    ]
+  },
+  "brandRootBlocksIdentical": true,
+  "contrastMethod": "WCAG relative luminance: normalize 8-bit sRGB; linearize c <= 0.04045 as c/12.92, otherwise ((c+0.055)/1.055)^2.4; Y=0.2126R+0.7152G+0.0722B; ratio=(lighterY+0.05)/(darkerY+0.05). Colors resolved from current CSS and ordered website-identical brand tokens.",
+  "contrast": [
+    {
+      "selector": ".rail-caption",
+      "foreground": "#626b63",
+      "background": "#faf9f6",
+      "previousRatio": 4.046435900335775,
+      "currentRatio": 5.245339229060643,
+      "normalTextMinimum": 4.5,
+      "passed": true
+    },
+    {
+      "selector": ".app-footer",
+      "foreground": "#626b63",
+      "background": "#fdfcf9",
+      "previousRatio": 3.3916886143925575,
+      "currentRatio": 5.3828157470453855,
+      "normalTextMinimum": 4.5,
+      "passed": true
+    }
+  ],
+  "producerManifestRecheck": {
+    "filesChecked": 32,
+    "mismatches": []
+  },
+  "tools": {
+    "python": "3.14.8",
+    "git": "git version 2.56.0"
+  },
+  "commands": [
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--",
+        "console/src/styles.css"
+      ],
+      "exitCode": 0
+    },
+    {
+      "argv": [
+        "git",
+        "show",
+        "6fff5ab981f88d7a92c006d20c36f5e963335a9d:console/src/styles.css"
+      ],
+      "exitCode": 0
+    },
+    {
+      "argv": [
+        "python3",
+        "-"
+      ],
+      "purpose": "Inline independent source/diff/hash and sRGB contrast calculation",
+      "exitCode": 0
+    }
+  ],
+  "scope": "Independent static review of the exact two text-color replacements, effective website brand tokens, containing backgrounds, contrast math, and producer receipt source bindings.",
+  "limitations": [
+    "No browser/UI/screenshot/runtime verification performed.",
+    "Producer test/typecheck/build results were not rerun by this reviewer.",
+    "Not a complete accessibility audit or hosted customer workflow/deployment acceptance."
+  ],
+  "writes": [
+    "verification/console-brand-contrast/independent-review.json"
+  ],
+  "cleanup": {
+    "browserStarted": false,
+    "nativeStarted": false,
+    "serverStarted": false,
+    "temporaryFilesCreated": false
+  }
+}

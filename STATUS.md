@@ -20,7 +20,7 @@ hosted, store, customer or operational product.
 | iOS shared UI | Private pan input has simulator evidence. V7 Settings passes; first Tab fails actual focus traversal. All five run-cleanup checks pass and the owned simulator is deleted. | The corrected frozen V7 diagnostic join and fresh app/runner builds are accepted. The V8 runtime packet passes 16 producer and nine independent host methods. The fresh V8 simulator run passes Settings but fails first Tab, with zero skips and all five cleanup checks passed. The result audit and source lifecycle diagnosis are accepted; a passive lifecycle observer passes 116 producer and 371 independent Foundation checks. The first generic build failed Swift 6 actor isolation; the minimal correction now passes a fresh app/runner build and independent review. Corrected V9 runtime preparation passes 16 producer and nine independent host methods; root accepts preparation, with no new native execution. Shared UI/public routing remains incomplete. |
 | Android shared UI | Private style/coordinator/input slices have scoped API37 emulator evidence. The latest integrated component fixture passes all 45 cases and 239 assertions; the separate pointer matrix passes 429 assertions. | Complete shared visual/interaction parity, public routing, resources/OS support, TalkBack and final physical comparison. |
 | Hosted builds | Durable storage/coordinator components and registry/audit slices have host evidence. The isolated entry composition passes 922 groups; the defensive context-admission correction passes 79. | The broader entry review remains incomplete. Live Engine/entry composition, real worker/clock/provider operations, authentication, quotas and deployed schedule qualification remain pending. |
-| Console | SolidJS Builds/releases use the website logo, cream/orange palette and typography. Builds passes 32 repository tests, seven independent controls, 117 backend text comparisons and 14 browser states. | Connect ordinary Phoenix customer authorization and live data/workflows; complete onboarding, permissions, billing and other G22–G24 requirements. |
+| Console | SolidJS Builds/releases use the website logo, cream/orange palette and typography. Builds passes 32 repository tests, seven independent controls, 117 backend text comparisons and 14 browser states. A final brand audit improves sidebar/footer contrast using the website muted token; 32 tests and production build pass again. | Connect ordinary Phoenix customer authorization and live data/workflows; complete onboarding, permissions, billing and other G22–G24 requirements. |
 | Hosted release/billing | Phoenix identity/artifact, build persistence and private webhook components have separately scoped host receipts. Protected artifact upload, staged private read, v2 audit and principal-bound retries now pass 97 combined host methods after independent review repairs; all seven migrations apply/rollback/reapply. | Connect customer HTTP/console, complete tenant trust/lifecycle writers, durable inbox/Oban reconciliation, Neon/Cloudflare/Stripe and operational qualification. Frozen authority/inspector and rejected transport lanes remain unaccepted. |
 
 The new single full Swift reactor attempt passes validation and Initialize, then
@@ -190,8 +190,8 @@ audit results. Counts overlap and must not be added as distinct coverage.
 The current-source combined CI fixture passes all 97 selected methods, and all
 seven ordinary migrations pass apply, idempotence, latest-four rollback and
 reapply. Root verifies 428 retained bindings and 45 current source bindings;
-owned PostgreSQL instances and scratch are removed. The 132-file VM closure and
-40 console bindings remain unchanged. Earlier findings and failed attempts are
+owned PostgreSQL instances and scratch are removed. At artifact checkpoint
+`6fff5ab9`, the 132-file VM closure and 40 console bindings were unchanged. Earlier findings and failed attempts are
 preserved, including the codec callback guard, SQL type and artifact/event
 binding repairs, reserved-role matching and migration policy-drop ordering.
 This does not enable HTTP routes, deployment or live console data. The facade
@@ -202,7 +202,23 @@ and provider operations remain pending. See
 
 ## Delivery and pending qualification
 
-Latest checkpoint `9662eda1` is pushed to `origin/main` and remote main matches.
+Artifact checkpoint `6fff5ab9` is pushed to `origin/main` and remote main was
+verified. Its 2,198 changed paths contain the reviewed local customer artifact
+composition, CI fixtures, seven-migration integration and retained producer/review
+evidence. Phoenix CI `40195108526` and Engine CI `40195108524` are running; this
+is not yet a standard CI pass. See
+[the delivery receipt](verification/github-delivery-customer-artifacts/delivery-receipt.json)
+and [CI observation](verification/github-ci-6fff5ab9/observation-1/receipt.json).
+
+The final console brand audit found two faint secondary text colors. Both now
+use the website's existing muted token, increasing measured caption/footer
+contrast from 4.05/3.39 to 5.25/5.38. All 32 existing tests, TypeScript and the
+production build pass; logo bytes, palette, typography and layout remain intact.
+This is a source/host verification supplement. Saved desktop/mobile images
+predate the two color changes; no new browser or screen capture was performed.
+See [the contrast receipt](verification/console-brand-contrast/receipt.json).
+
+Prior checkpoint `9662eda1` is pushed to `origin/main`.
 Its 506 changed paths include the reviewed transaction facade and rollback
 correction, ordinary CI fixture/migration wiring, proposed artifact contract,
 unselected adaptive retention model and current evidence indices. Phoenix CI

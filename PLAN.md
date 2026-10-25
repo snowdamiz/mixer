@@ -83,11 +83,15 @@ its older pending/selected statements do not override the current state.
    and lifecycle writers, and provider qualification remain pending. See
    [the integration scope](docs/hosted-customer-artifact-integration.md) and
    [the artifact contract](docs/hosted-customer-artifact-transaction-contract.md).
-   Checkpoint `9662eda1` is pushed to `origin/main`; Phoenix and Engine CI both
-   passed for that exact source with no skipped steps. A local prerequisite pass is not full hosted
-   or customer workflow acceptance.
+   Artifact checkpoint `6fff5ab9` is pushed to `origin/main`; its Phoenix and
+   Engine CI are running. Both workflows passed for prior checkpoint `9662eda1`
+   with no skipped steps. A local prerequisite pass is not full hosted or
+   customer workflow acceptance.
    Preserve accurate unavailable
    states until data/auth is connected. Keep the website branding throughout.
+   The final brand audit corrected sidebar/footer text contrast with the existing
+   muted token; all 32 console tests and the production build pass. Saved layout
+   evidence remains historical, with no new browser/capture run during the pause.
 
 The frozen hosted catalog-inspector/authority-driver lanes and rejected outbound
 Worker transport V2 lane remain isolated and unaccepted. Do not read, import,
