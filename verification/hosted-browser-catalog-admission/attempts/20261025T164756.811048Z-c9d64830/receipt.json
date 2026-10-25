@@ -1,0 +1,227 @@
+{
+  "schema": 1,
+  "time_utc": "2026-10-25T16:47:59.416190+00:00",
+  "head": "4492bbc74c47c77514951ae49b0fe418c7873db8",
+  "source_manifest": "source-manifest.json",
+  "source_manifest_sha256": "22cdaac3a7d58cbdd5540a7e91c405d7a79d7c318c6153d897b18dfe5567c617",
+  "source_unchanged": true,
+  "commands": [
+    {
+      "name": "git-head",
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "timeout_seconds": 30,
+      "timed_out": false,
+      "exit_code": 0,
+      "output": "git-head.log"
+    },
+    {
+      "name": "postgres-version",
+      "command": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+        "--version"
+      ],
+      "timeout_seconds": 30,
+      "timed_out": false,
+      "exit_code": 0,
+      "output": "postgres-version.log"
+    },
+    {
+      "name": "elixir-version",
+      "command": [
+        "elixir",
+        "--version"
+      ],
+      "timeout_seconds": 30,
+      "timed_out": false,
+      "exit_code": 0,
+      "output": "elixir-version.log"
+    },
+    {
+      "name": "python-version",
+      "command": [
+        "python3",
+        "--version"
+      ],
+      "timeout_seconds": 30,
+      "timed_out": false,
+      "exit_code": 0,
+      "output": "python-version.log"
+    },
+    {
+      "name": "initdb",
+      "command": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/initdb",
+        "-D",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-browser-function-surface-dvy8on5g/data",
+        "-U",
+        "browser_admin",
+        "-A",
+        "trust",
+        "--no-locale",
+        "-E",
+        "UTF8"
+      ],
+      "timeout_seconds": 30,
+      "timed_out": false,
+      "exit_code": 0,
+      "output": "initdb.log"
+    },
+    {
+      "name": "postgres-start",
+      "command": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/pg_ctl",
+        "-D",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-browser-function-surface-dvy8on5g/data",
+        "-l",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-catalog-admission/attempts/20261025T164756.811048Z-c9d64830/postgres.log",
+        "-o",
+        "-h 127.0.0.1 -p 60979 -k '' -c timezone=UTC",
+        "-w",
+        "start"
+      ],
+      "timeout_seconds": 15,
+      "timed_out": false,
+      "exit_code": 0,
+      "output": "postgres-start.log"
+    },
+    {
+      "name": "roles",
+      "command": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+        "-X",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "60979",
+        "-U",
+        "browser_admin",
+        "-d",
+        "postgres",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-c",
+        "CREATE ROLE browser_schema_owner NOLOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT; CREATE ROLE browser_writer NOLOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT; CREATE ROLE browser_lifecycle LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT; CREATE ROLE browser_ordinary LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT; CREATE ROLE surface_neighbor NOLOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT;"
+      ],
+      "timeout_seconds": 30,
+      "timed_out": false,
+      "exit_code": 0,
+      "output": "roles.log"
+    },
+    {
+      "name": "database",
+      "command": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/createdb",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "60979",
+        "-U",
+        "browser_admin",
+        "-O",
+        "browser_schema_owner",
+        "browser_storage"
+      ],
+      "timeout_seconds": 30,
+      "timed_out": false,
+      "exit_code": 0,
+      "output": "database.log"
+    },
+    {
+      "name": "selected-exunit",
+      "command": [
+        "elixir",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/bandit/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/db_connection/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/decimal/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/ecto/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/ecto_sql/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/hpax/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/jason/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/jose/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/mime/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/mint/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/oban/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/phoenix/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/phoenix_pubsub/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/phoenix_template/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/plug/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/plug_crypto/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/postgrex/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/telemetry/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/thousand_island/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/websock/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/websock_adapter/ebin",
+        "-r",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/lib/mixer_hosted/browser_auth/storage_schema.ex",
+        "-r",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/lib/mixer_hosted/browser_auth/catalog_manifest.ex",
+        "-r",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+        "-e",
+        "ExUnit.start(seed: 0); Code.require_file(\"verification/hosted-browser-catalog-admission/function_surface_spec.exs\")"
+      ],
+      "timeout_seconds": 60,
+      "timed_out": false,
+      "exit_code": 2,
+      "output": "selected-exunit.log"
+    },
+    {
+      "name": "postgres-stop",
+      "command": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/pg_ctl",
+        "-D",
+        "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-browser-function-surface-dvy8on5g/data",
+        "-m",
+        "immediate",
+        "-w",
+        "stop"
+      ],
+      "timeout_seconds": 15,
+      "timed_out": false,
+      "exit_code": 0,
+      "output": "postgres-stop.log"
+    }
+  ],
+  "function_surface_tests_passed": false,
+  "cleanup": {
+    "owned_postgres_stopped": true,
+    "owned_scratch_removed": true
+  },
+  "scope": "Named function/type capability prerequisite only. One synthetic loopback PostgreSQL; explicit ordinary source and locked dependency beams. No full-app harness or frozen implementation read/import/execution. No native/capture/UI/phone/provider/production action.",
+  "pending": [
+    "Complete nine-relation columns/constraints/indexes/triggers/policy and writer grant matrix",
+    "Exact baseline PUBLIC scoped/directory policies preserved and compared",
+    "Trusted owner transaction binding and Store ownership",
+    "Original owner budget integration, lifecycle pool and startup/re-admission",
+    "Preparation helper and combined manifest v2",
+    "Runtime readiness/HTTP facade/provider join",
+    "Neon/operator/TLS/custody qualification",
+    "Browser/native/physical checks paused",
+    "Customer/GA qualification"
+  ]
+}

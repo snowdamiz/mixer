@@ -1,0 +1,433 @@
+{
+  "schema": 1,
+  "started_utc": "2026-10-25T16:58:59.858882+00:00",
+  "commands": [
+    {
+      "name": "git-head",
+      "argv": [
+        "git",
+        "-C",
+        "/Users/andreyyurlov/Documents/dev/mixer",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-catalog-surface-review/attempts/20261025T165859.858438Z-6e4c258a/inputs",
+      "timeout_seconds": 30,
+      "timed_out": false,
+      "exit_code": 0,
+      "stdout": "git-head.stdout",
+      "stderr": "git-head.stderr"
+    },
+    {
+      "name": "python-version",
+      "argv": [
+        "python3",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-catalog-surface-review/attempts/20261025T165859.858438Z-6e4c258a/inputs",
+      "timeout_seconds": 30,
+      "timed_out": false,
+      "exit_code": 0,
+      "stdout": "python-version.stdout",
+      "stderr": "python-version.stderr"
+    },
+    {
+      "name": "elixir-version",
+      "argv": [
+        "elixir",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-catalog-surface-review/attempts/20261025T165859.858438Z-6e4c258a/inputs",
+      "timeout_seconds": 30,
+      "timed_out": false,
+      "exit_code": 0,
+      "stdout": "elixir-version.stdout",
+      "stderr": "elixir-version.stderr"
+    },
+    {
+      "name": "docker-version",
+      "argv": [
+        "docker",
+        "version",
+        "--format",
+        "{{json .Server}}"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-catalog-surface-review/attempts/20261025T165859.858438Z-6e4c258a/inputs",
+      "timeout_seconds": 30,
+      "timed_out": false,
+      "exit_code": 0,
+      "stdout": "docker-version.stdout",
+      "stderr": "docker-version.stderr"
+    },
+    {
+      "name": "postgres-image",
+      "argv": [
+        "docker",
+        "image",
+        "inspect",
+        "postgres@sha256:9e2cf6287f25c3151f4c9421ccce2b17f3e60061c111a29165e0d2cdd9ff0a97"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-catalog-surface-review/attempts/20261025T165859.858438Z-6e4c258a/inputs",
+      "timeout_seconds": 30,
+      "timed_out": false,
+      "exit_code": 0,
+      "stdout": "postgres-image.stdout",
+      "stderr": "postgres-image.stderr"
+    },
+    {
+      "name": "postgres-start",
+      "argv": [
+        "docker",
+        "run",
+        "--detach",
+        "--rm",
+        "--name",
+        "mixer-catalog-surface-review-a1f8c4176d3d",
+        "--label",
+        "mixer.fixture=catalog-surface-review",
+        "--publish",
+        "127.0.0.1:62306:5432",
+        "--env",
+        "POSTGRES_USER=browser_admin",
+        "--env",
+        "POSTGRES_HOST_AUTH_METHOD=trust",
+        "--env",
+        "POSTGRES_INITDB_ARGS=--no-locale -E UTF8",
+        "postgres@sha256:9e2cf6287f25c3151f4c9421ccce2b17f3e60061c111a29165e0d2cdd9ff0a97",
+        "-c",
+        "timezone=UTC"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-catalog-surface-review/attempts/20261025T165859.858438Z-6e4c258a/inputs",
+      "timeout_seconds": 30,
+      "timed_out": false,
+      "exit_code": 0,
+      "stdout": "postgres-start.stdout",
+      "stderr": "postgres-start.stderr"
+    },
+    {
+      "name": "ready-0",
+      "argv": [
+        "docker",
+        "exec",
+        "mixer-catalog-surface-review-a1f8c4176d3d",
+        "pg_isready",
+        "-h",
+        "127.0.0.1",
+        "-U",
+        "browser_admin"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-catalog-surface-review/attempts/20261025T165859.858438Z-6e4c258a/inputs",
+      "timeout_seconds": 30,
+      "timed_out": false,
+      "exit_code": 2,
+      "stdout": "ready-0.stdout",
+      "stderr": "ready-0.stderr"
+    },
+    {
+      "name": "ready-1",
+      "argv": [
+        "docker",
+        "exec",
+        "mixer-catalog-surface-review-a1f8c4176d3d",
+        "pg_isready",
+        "-h",
+        "127.0.0.1",
+        "-U",
+        "browser_admin"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-catalog-surface-review/attempts/20261025T165859.858438Z-6e4c258a/inputs",
+      "timeout_seconds": 30,
+      "timed_out": false,
+      "exit_code": 2,
+      "stdout": "ready-1.stdout",
+      "stderr": "ready-1.stderr"
+    },
+    {
+      "name": "ready-2",
+      "argv": [
+        "docker",
+        "exec",
+        "mixer-catalog-surface-review-a1f8c4176d3d",
+        "pg_isready",
+        "-h",
+        "127.0.0.1",
+        "-U",
+        "browser_admin"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-catalog-surface-review/attempts/20261025T165859.858438Z-6e4c258a/inputs",
+      "timeout_seconds": 30,
+      "timed_out": false,
+      "exit_code": 2,
+      "stdout": "ready-2.stdout",
+      "stderr": "ready-2.stderr"
+    },
+    {
+      "name": "ready-3",
+      "argv": [
+        "docker",
+        "exec",
+        "mixer-catalog-surface-review-a1f8c4176d3d",
+        "pg_isready",
+        "-h",
+        "127.0.0.1",
+        "-U",
+        "browser_admin"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-catalog-surface-review/attempts/20261025T165859.858438Z-6e4c258a/inputs",
+      "timeout_seconds": 30,
+      "timed_out": false,
+      "exit_code": 2,
+      "stdout": "ready-3.stdout",
+      "stderr": "ready-3.stderr"
+    },
+    {
+      "name": "ready-4",
+      "argv": [
+        "docker",
+        "exec",
+        "mixer-catalog-surface-review-a1f8c4176d3d",
+        "pg_isready",
+        "-h",
+        "127.0.0.1",
+        "-U",
+        "browser_admin"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-catalog-surface-review/attempts/20261025T165859.858438Z-6e4c258a/inputs",
+      "timeout_seconds": 30,
+      "timed_out": false,
+      "exit_code": 0,
+      "stdout": "ready-4.stdout",
+      "stderr": "ready-4.stderr"
+    },
+    {
+      "name": "postgres-version",
+      "argv": [
+        "docker",
+        "exec",
+        "mixer-catalog-surface-review-a1f8c4176d3d",
+        "postgres",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-catalog-surface-review/attempts/20261025T165859.858438Z-6e4c258a/inputs",
+      "timeout_seconds": 30,
+      "timed_out": false,
+      "exit_code": 0,
+      "stdout": "postgres-version.stdout",
+      "stderr": "postgres-version.stderr"
+    },
+    {
+      "name": "roles",
+      "argv": [
+        "docker",
+        "exec",
+        "mixer-catalog-surface-review-a1f8c4176d3d",
+        "psql",
+        "-X",
+        "-h",
+        "127.0.0.1",
+        "-U",
+        "browser_admin",
+        "-d",
+        "postgres",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-c",
+        "CREATE ROLE browser_schema_owner NOLOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT;CREATE ROLE browser_writer NOLOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT;CREATE ROLE browser_lifecycle LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT;CREATE ROLE browser_ordinary LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT;CREATE ROLE review_mid NOLOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT;CREATE ROLE review_leaf NOLOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-catalog-surface-review/attempts/20261025T165859.858438Z-6e4c258a/inputs",
+      "timeout_seconds": 30,
+      "timed_out": false,
+      "exit_code": 0,
+      "stdout": "roles.stdout",
+      "stderr": "roles.stderr"
+    },
+    {
+      "name": "database",
+      "argv": [
+        "docker",
+        "exec",
+        "mixer-catalog-surface-review-a1f8c4176d3d",
+        "createdb",
+        "-h",
+        "127.0.0.1",
+        "-U",
+        "browser_admin",
+        "-O",
+        "browser_schema_owner",
+        "browser_storage"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-catalog-surface-review/attempts/20261025T165859.858438Z-6e4c258a/inputs",
+      "timeout_seconds": 30,
+      "timed_out": false,
+      "exit_code": 0,
+      "stdout": "database.stdout",
+      "stderr": "database.stderr"
+    },
+    {
+      "name": "independent-tests",
+      "argv": [
+        "elixir",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/telemetry/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/decimal/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/db_connection/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/ecto/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/ecto_sql/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/postgrex/ebin",
+        "-pa",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/_build/test/lib/jason/ebin",
+        "-r",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-catalog-surface-review/attempts/20261025T165859.858438Z-6e4c258a/inputs/hosted/lib/mixer_hosted/browser_auth/storage_schema.ex",
+        "-r",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-catalog-surface-review/attempts/20261025T165859.858438Z-6e4c258a/inputs/hosted/lib/mixer_hosted/browser_auth/catalog_manifest.ex",
+        "-r",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-catalog-surface-review/attempts/20261025T165859.858438Z-6e4c258a/inputs/hosted/lib/mixer_hosted/browser_auth/catalog.ex",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-catalog-surface-review/attempts/20261025T165859.858438Z-6e4c258a/selected_runner.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-catalog-surface-review/attempts/20261025T165859.858438Z-6e4c258a/inputs",
+      "timeout_seconds": 60,
+      "timed_out": false,
+      "exit_code": 1,
+      "stdout": "independent-tests.stdout",
+      "stderr": "independent-tests.stderr"
+    },
+    {
+      "name": "postgres-logs",
+      "argv": [
+        "docker",
+        "logs",
+        "mixer-catalog-surface-review-a1f8c4176d3d"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-catalog-surface-review/attempts/20261025T165859.858438Z-6e4c258a/inputs",
+      "timeout_seconds": 30,
+      "timed_out": false,
+      "exit_code": 0,
+      "stdout": "postgres-logs.stdout",
+      "stderr": "postgres-logs.stderr"
+    },
+    {
+      "name": "postgres-stop",
+      "argv": [
+        "docker",
+        "stop",
+        "--timeout",
+        "5",
+        "mixer-catalog-surface-review-a1f8c4176d3d"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-catalog-surface-review/attempts/20261025T165859.858438Z-6e4c258a/inputs",
+      "timeout_seconds": 30,
+      "timed_out": false,
+      "exit_code": 0,
+      "stdout": "postgres-stop.stdout",
+      "stderr": "postgres-stop.stderr"
+    },
+    {
+      "name": "postgres-removed",
+      "argv": [
+        "docker",
+        "container",
+        "inspect",
+        "mixer-catalog-surface-review-a1f8c4176d3d"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-catalog-surface-review/attempts/20261025T165859.858438Z-6e4c258a/inputs",
+      "timeout_seconds": 30,
+      "timed_out": false,
+      "exit_code": 1,
+      "stdout": "postgres-removed.stdout",
+      "stderr": "postgres-removed.stderr"
+    }
+  ],
+  "cleanup": {
+    "owned_postgres_stopped": true,
+    "owned_container_removed": true
+  },
+  "independent_test_oracle": true,
+  "reused_fixture": "Existing storage_fixture.exs installation/provisioning only, not independent fixture reimplementation.",
+  "scope": "Partial check_function_surface!/3 + CatalogManifest only; explicit ordinary sources/dependency beams; one synthetic loopback PostgreSQL16. No full-app compile/discovery, frozen catalog inspector/authority driver/WorkerV2, readiness/Store/provider/production/native/UI/capture/phone execution.",
+  "pending": [
+    "Full relation, constraint, index, trigger, policy and exact writer grants admission",
+    "Store transaction owner and original budget provenance",
+    "Lifecycle pool/readiness and activation preparation v2",
+    "Neon/operator/custody/provider/customer and GA qualification",
+    "Native runtime/physical/UI/capture checks paused"
+  ],
+  "sources_sha256": {
+    "hosted/lib/mixer_hosted/browser_auth/storage_schema.ex": "676bb977bbe4c322caf63c1a5f40d86e7861847636029948b55cb01f6dedb6dd",
+    "hosted/lib/mixer_hosted/browser_auth/catalog_manifest.ex": "4f336e460292e57a108fc1a5d9d7830cfedd9899ad72ea3ab0c3dc5c186dd918",
+    "hosted/lib/mixer_hosted/browser_auth/catalog.ex": "9ddb2adbf8820ca8ab13823eecb05f26ee0bc671f49da6728e63e36eb3cdd642",
+    "hosted/test/mixer_hosted/browser_auth/storage_fixture.exs": "9417342d3d5708d21b216383da8cb4bef381e3572036853e6f099ccf08235a06",
+    "hosted/priv/repo/migrations/20261025000003_add_customer_authorization.exs": "110997b341449a04135296b000c6434f84526305c2f70c16b1e51f38dffc3f6c",
+    "hosted/priv/repo/migrations/20261025000004_add_authorization_state_revisions.exs": "5248990524d1c2504847fdff2f107a952d850acf8ff5fcdb8e7b0ef77e38bcd7",
+    "hosted/priv/repo/migrations/20261025000006_add_customer_workspace_discovery.exs": "43140162ceaf87b58bcdcdf820a9b95b7ae465a873193ac61c7a725a18bde875",
+    "hosted/priv/repo/migrations/20261025000007_add_browser_sessions.exs": "577b38e600c55e9844bc393ccfe4dfdfb7241db7eaed449956e6a3335442710f",
+    "hosted/mix.lock": "59e6fe5d6bc76ae0057745fe7eb3fb292f225b6a37cd1c99c214f9447c60ff8a",
+    "verification/hosted-browser-catalog-surface-review/run.py": "70a609a90bdd1e0428c91a185af95dac82a31e31107041a27ac7488a212439f3",
+    "verification/hosted-browser-catalog-surface-review/surface_review.exs": "eaa06b0d5c5ff7375b32127b9f379c18008345088e667fd64c7d2e0add631212"
+  },
+  "source_tree_sha256": "4d4bce83858070fe172f2a0a16878c4bd7fa6e982771e42802637863dc614f4d",
+  "dependency_manifest_sha256": "c544378354d431a88740973b97517211c514bcad9a51616cb6188cf6ee502645",
+  "head": "4492bbc74c47c77514951ae49b0fe418c7873db8",
+  "owned_server": {
+    "container": "mixer-catalog-surface-review-a1f8c4176d3d",
+    "image": "postgres@sha256:9e2cf6287f25c3151f4c9421ccce2b17f3e60061c111a29165e0d2cdd9ff0a97",
+    "host": "127.0.0.1",
+    "port": 62306
+  },
+  "tests_passed": false,
+  "tests": {
+    "total": 18,
+    "failures": 1,
+    "skipped": 0,
+    "excluded": 0
+  },
+  "source_changes_during_run": [],
+  "dependency_changes_during_run": [],
+  "outputs_sha256": {
+    "selected_runner.exs": "e1fc5aa0c0ce2fb6f386378c0f1be0e45dd3489023eaaf179a31ae8718789ff1",
+    "postgres-image.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "ready-2.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "postgres-removed.stdout": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "roles.stdout": "3167d6658b0804849152d5d47b5ec4954e9910114ddced58244ea60e27fa2486",
+    "dependency-beams.json": "c544378354d431a88740973b97517211c514bcad9a51616cb6188cf6ee502645",
+    "ready-0.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "database.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "result.json": "b8fea3d102ecf214f3cb55ec4d36286a58826213f76c3c94652f541f7ac47702",
+    "independent-tests.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docker-version.stdout": "c298955d7653e76cd8295a8444c7db8495f71d646c4c78454dd51eaad483784e",
+    "ready-4.stdout": "f65a06d12c78be4ce11dc662c4ebf525a1da13786331065f0fe973c6df5ddd29",
+    "postgres-start.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docker-version.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "ready-4.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "postgres-start.stdout": "cca5a08fdea445ad392b1f0e973a96a598effded966012615e2de12cb61dbf89",
+    "independent-tests.stdout": "67212f11151c86bf7e15adcd698670d1fc2823d498d8f9b756643f8d8328463b",
+    "ready-0.stdout": "16ee3d174b642b39bda2af4b9be5ba53306922e073f3f9750a7f4b458cdfde1a",
+    "database.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "ready-2.stdout": "16ee3d174b642b39bda2af4b9be5ba53306922e073f3f9750a7f4b458cdfde1a",
+    "roles.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "postgres-removed.stderr": "9b740e5910cdf40dff2d397ecb631d5391f27f13ccb0be1fbead58ce275ef6ec",
+    "postgres-image.stdout": "f52f8bf8d8c74ffef811de7d67773d7f4b1e13a1b99f0c8887838eff2a9ab7ab",
+    "postgres-logs.stderr": "2da8b1408e2734d0a15598de7c47077cbb2cca909dcf7924968927a5a7520e55",
+    "ready-3.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "postgres-version.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "postgres-stop.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "git-head.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "python-version.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "elixir-version.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "ready-1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "python-version.stdout": "f615dc9512de8b165e2b595e5cdc608a3ba7927ae92f959c5b42ec3d58e2ffa8",
+    "elixir-version.stdout": "e4842abcc5a4123360869209376098ff19e6fe8e0dc1b9c27a96ef8c2d07d878",
+    "ready-1.stdout": "16ee3d174b642b39bda2af4b9be5ba53306922e073f3f9750a7f4b458cdfde1a",
+    "postgres-version.stdout": "598920ba89827ec820d817542fcc8d9036126909f0635bafea7badbc75075379",
+    "git-head.stdout": "7509f34a8af8967abf385ac96227592059f0e30f9309d1bbe2d6c4fe6cc7955c",
+    "postgres-stop.stdout": "1d11c58b4835b18a0dbdf27a0473155f505eb73343087d77f6791f04ade6844a",
+    "ready-3.stdout": "16ee3d174b642b39bda2af4b9be5ba53306922e073f3f9750a7f4b458cdfde1a",
+    "postgres-logs.stdout": "21253c87fbc19d1a8ef0d479bc13d02e940d998b11d957f24f43fd5c230c88a3"
+  },
+  "success": false,
+  "finished_utc": "2026-10-25T16:59:03.787716+00:00"
+}

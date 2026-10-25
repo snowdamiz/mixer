@@ -1,0 +1,28 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+.
+
+  1) test all eighteen raw source byte changes are detected independently (MixerHosted.BrowserAuth.SurfaceReview)
+     verification/hosted-browser-catalog-surface-review/surface_review.exs:47
+     ** (ArgumentError) you tried to use a binary for an oid type (public.mixer_browser_activate(bytea,bytea,bytea,bytea,bigint,public.mixer_browser_verified,bytea,bytea,text,text,bigint,public.mixer_browser_cipher,text)) when an integer was expected. See https://github.com/elixir-ecto/postgrex#oid-type-encoding
+     code: for {name, expected} <- CatalogManifest.functions() do
+     stacktrace:
+       (postgrex 0.22.4) lib/postgrex/type_module.ex:1045: Postgrex.DefaultTypes.encode_params/3
+       (postgrex 0.22.4) lib/postgrex/query.ex:73: DBConnection.Query.Postgrex.Query.encode/3
+       (db_connection 2.10.2) lib/db_connection.ex:1459: DBConnection.encode/5
+       (db_connection 2.10.2) lib/db_connection.ex:1549: DBConnection.run_prepare_execute/5
+       (db_connection 2.10.2) lib/db_connection.ex:1606: DBConnection.run_with_retries/5
+       (db_connection 2.10.2) lib/db_connection.ex:810: DBConnection.parsed_prepare_execute/5
+       (db_connection 2.10.2) lib/db_connection.ex:802: DBConnection.prepare_execute/4
+       (postgrex 0.22.4) lib/postgrex.ex:353: Postgrex.query_prepare_execute/4
+       (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:628: Ecto.Adapters.SQL.query!/4
+       (elixir 1.20.4) lib/enum.ex:2622: Enum."-reduce/3-lists^foldl/2-0-"/3
+       verification/hosted-browser-catalog-surface-review/surface_review.exs:50: anonymous fn/2 in MixerHosted.BrowserAuth.SurfaceReview."test all eighteen raw source byte changes are detected independently"/1
+       (stdlib 8.1) maps.erl:894: :maps.fold_1/4
+       verification/hosted-browser-catalog-surface-review/surface_review.exs:48: (test)
+
+................
+Finished in 1.7 seconds (0.00s async, 1.7s sync)
+
+Result: 17/18 passed
+Failed: 1 test

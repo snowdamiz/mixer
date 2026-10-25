@@ -1,0 +1,87 @@
+{
+  "schema": 1,
+  "time_utc": "2026-10-25T17:04:42.744101+00:00",
+  "run_head": "4492bbc74c47c77514951ae49b0fe418c7873db8",
+  "current_head": "4b458d6b5175e823fb222d18f8165902478461c2",
+  "accepted_scope": "Catalog.check_function_surface!/3 and CatalogManifest only; :function_surface_verified never storage_ready or full admission",
+  "final_receipt": "verification/hosted-browser-catalog-surface-review/attempts/20261025T170142.998593Z-ec7ce7c3/receipt.json",
+  "final_receipt_sha256": "153a47157435af8058862170fd6746488fdc6bf976e2b579bdf814fcf90a3e73",
+  "final_test_sources_match_current_bytes": true,
+  "final_outputs_match_receipt": true,
+  "dependency_bytes_match_final_pass": true,
+  "producer_freeze_sha256": {
+    "hosted/lib/mixer_hosted/browser_auth/catalog.ex": "9ddb2adbf8820ca8ab13823eecb05f26ee0bc671f49da6728e63e36eb3cdd642",
+    "hosted/lib/mixer_hosted/browser_auth/catalog_manifest.ex": "4f336e460292e57a108fc1a5d9d7830cfedd9899ad72ea3ab0c3dc5c186dd918",
+    "hosted/lib/mixer_hosted/browser_auth/storage_schema.ex": "676bb977bbe4c322caf63c1a5f40d86e7861847636029948b55cb01f6dedb6dd"
+  },
+  "review_doc_sha256": "3a8bbd4ea95f39a3a0fd6dace9c84bf8ce1985a09a70e61a7d75fbfa898e8e48",
+  "review_source_sha256": {
+    "verification/hosted-browser-catalog-surface-review/run.py": "f5086552549fa7990efee3a3b1a5a8ae7eeec9c3c80658698156e35cd660f43b",
+    "verification/hosted-browser-catalog-surface-review/surface_review.exs": "7fdef274f1da9874ea23268ccb4732cdf2f1f7af9e537bc10e932df41c7eea32"
+  },
+  "whitespace_checks": [
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        "/Users/andreyyurlov/Documents/dev/mixer/docs/hosted-browser-catalog-surface-review.md"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-catalog-surface-review/surface_review.exs"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "--no-index",
+        "/dev/null",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-catalog-surface-review/run.py"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "cleanup_recheck": {
+    "command": [
+      "docker",
+      "container",
+      "inspect",
+      "mixer-catalog-surface-review-6bb64b519ad4"
+    ],
+    "exit_code": 1,
+    "stderr": "Error response from daemon: No such container: mixer-catalog-surface-review-6bb64b519ad4\n",
+    "owned_container_absent": true
+  },
+  "implementation_findings": [],
+  "review_fixture_corrections": [
+    "Bound signature parameter changed to text::regprocedure for Postgrex encoding",
+    "Raw composite expected projection ordered by type and declared ordinal instead of field name"
+  ],
+  "metadata_audit_correction": "First metadata collector expected git diff --check --no-index exit 0; the normal untracked-file diff returns 1 with no diagnostics. Final checks accept 0 or 1 only with empty stdout/stderr. This did not change any tested source.",
+  "pending": [
+    "Full relation, constraint, index, trigger, policy and exact writer grants admission",
+    "Store transaction owner and original budget provenance",
+    "Lifecycle pool/readiness and activation preparation v2",
+    "Neon/operator/custody/provider/customer and GA qualification",
+    "Native runtime/physical/UI/capture checks paused"
+  ]
+}

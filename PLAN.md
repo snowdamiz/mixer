@@ -21,7 +21,10 @@ selected-fixture discovery warnings. The narrow configuration repair passes eigh
 actual isolated Mix checks. It is pushed as `4492bbc7`; Phoenix then stops in
 storage fixture setup at an ordinary directory query timeout. The fixture repair
 now passes 24 PostgreSQL 16 methods, including commit/error rollback setting
-restoration. The original lifecycle Engine CI passes; fresh repaired CI is pending.
+restoration. Pushed `4b458d6b` now passes every Phoenix CI step, including
+storage/migration and broader hosted checks (645 passed, two existing skips).
+Both previous lifecycle/discovery
+Engine runs pass all three jobs; the new Engine run is still running.
 See [the integrated scope](docs/hosted-browser-session-integration.md).
 Computer use, capture and native runtime tests remain paused.
 The full plan remains incomplete; no GA gate is promoted.
@@ -144,10 +147,14 @@ The full plan remains incomplete; no GA gate is promoted.
    passes independent bounded review after startup/policy/verifier corrections.
    Pure custody/runtime configuration now passes 30 producer and 25 independent
    methods, with root source/output/cleanup acceptance. No startup or route wiring
-   is enabled. Function/type catalog checks remain under independent PostgreSQL
-   review; the separate complete relation/policy/grant matrix is being specified.
+   is enabled. Function/type catalog checks now pass 26 producer PostgreSQL 17 and 20
+   independent PostgreSQL 16 methods, with root source/output/cleanup acceptance.
+   Their named partial result has no consumer and cannot authorize readiness.
+   The separate complete relation/policy/grant matrix is being specified; a pure
+   activation-preparation decoder is the next isolated source lane.
    Forty runtime adversity cases remain pending. See
-   [constructor review](docs/hosted-browser-runtime-constructor-review.md) and
+   [constructor review](docs/hosted-browser-runtime-constructor-review.md),
+   [catalog review](docs/hosted-browser-catalog-surface-review.md) and
    [fixture repair](docs/hosted-browser-storage-ci-fixture.md).
 
    The prior `1257cbf8` Phoenix CI fails the 121-project directory transaction

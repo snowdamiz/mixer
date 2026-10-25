@@ -1,0 +1,89 @@
+Running ExUnit with seed: 0, max_cases: 1
+
+..
+
+  1) test independent raw composite projection matches authored field order types owners and expanded usage (MixerHosted.BrowserAuth.SurfaceReview)
+     verification/hosted-browser-catalog-surface-review/surface_review.exs:91
+     Assertion with == failed
+     code:  assert actual == expected |> Enum.flat_map(&elem(&1, 1)) |> Enum.sort()
+     left:  [
+              ["mixer_browser_attempt", "state_digest", "bytea", 1],
+              ["mixer_browser_attempt", "nonce_digest", "bytea", 2],
+              ["mixer_browser_attempt", "profile_id", "text", 3],
+              ["mixer_browser_attempt", "profile_version",
+               "integer", 4],
+              ["mixer_browser_attempt", "issuer", "text", 5],
+              ["mixer_browser_attempt", "client_id", "text", 6],
+              ["mixer_browser_attempt", "redirect_uri", "text", 7],
+              ["mixer_browser_attempt", "expires_at", "bigint", 8],
+              ["mixer_browser_attempt", "cipher",
+               "public.mixer_browser_cipher", 9],
+              ["mixer_browser_cipher", "key_id", "text", 1],
+              ["mixer_browser_cipher", "iv", "bytea", 2],
+              ["mixer_browser_cipher", "tag", "bytea", 3],
+              ["mixer_browser_cipher", "ciphertext", "bytea", 4],
+              ["mixer_browser_verified", "profile_id", "text", 1],
+              ["mixer_browser_verified", "profile_version",
+               "integer", 2],
+              ["mixer_browser_verified", "issuer", "text", 3],
+              ["mixer_browser_verified", "subject", "text", 4],
+              ["mixer_browser_verified", "client_id", "text", 5],
+              ["mixer_browser_verified", "credential_ref", "text",
+               6],
+              ["mixer_browser_verified", "issued_at", "bigint", 7],
+              ["mixer_browser_verified", "expires_at", "bigint", 8],
+              ["mixer_browser_verified", "scopes", "text[]", 9],
+              ["mixer_browser_verified", "profile_revision",
+               "bigint", 10],
+              ["mixer_browser_verified", "binding_revision",
+               "bigint", 11],
+              ["mixer_browser_verified", "principal_revision",
+               "bigint", 12]
+            ]
+     right: [
+              ["mixer_browser_attempt", "cipher",
+               "public.mixer_browser_cipher", 9],
+              ["mixer_browser_attempt", "client_id", "text", 6],
+              ["mixer_browser_attempt", "expires_at", "bigint", 8],
+              ["mixer_browser_attempt", "issuer", "text", 5],
+              ["mixer_browser_attempt", "nonce_digest", "bytea", 2],
+              ["mixer_browser_attempt", "profile_id", "text", 3],
+              ["mixer_browser_attempt", "profile_version",
+               "integer", 4],
+              ["mixer_browser_attempt", "redirect_uri", "text", 7],
+              ["mixer_browser_attempt", "state_digest", "bytea", 1],
+              ["mixer_browser_cipher", "ciphertext", "bytea", 4],
+              ["mixer_browser_cipher", "iv", "bytea", 2],
+              ["mixer_browser_cipher", "key_id", "text", 1],
+              ["mixer_browser_cipher", "tag", "bytea", 3],
+              ["mixer_browser_verified", "binding_revision",
+               "bigint", 11],
+              ["mixer_browser_verified", "client_id", "text", 5],
+              ["mixer_browser_verified", "credential_ref", "text",
+               6],
+              ["mixer_browser_verified", "expires_at", "bigint", 8],
+              ["mixer_browser_verified", "issued_at", "bigint", 7],
+              ["mixer_browser_verified", "issuer", "text", 3],
+              ["mixer_browser_verified", "principal_revision",
+               "bigint", 12],
+              ["mixer_browser_verified", "profile_id", "text", 1],
+              ["mixer_browser_verified", "profile_revision",
+               "bigint", 10],
+              ["mixer_browser_verified", "profile_version",
+               "integer", 2],
+              ["mixer_browser_verified", "scopes", "text[]", 9],
+              ["mixer_browser_verified", "subject", "text", 4]
+            ]
+     stacktrace:
+       verification/hosted-browser-catalog-surface-review/surface_review.exs:110: anonymous fn/1 in MixerHosted.BrowserAuth.SurfaceReview."test independent raw composite projection matches authored field order types owners and expanded usage"/1
+       hosted/test/mixer_hosted/browser_auth/storage_fixture.exs:2: anonymous fn/1 in MixerHosted.BrowserAuth.StorageFixture.Admin.transaction/2
+       (ecto 3.14.2) lib/ecto/repo/transaction.ex:11: anonymous fn/3 in Ecto.Repo.Transaction.transact/4
+       (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1481: anonymous fn/3 in Ecto.Adapters.SQL.checkout_or_transaction/4
+       (db_connection 2.10.2) lib/db_connection.ex:1760: DBConnection.run_transaction/5
+       verification/hosted-browser-catalog-surface-review/surface_review.exs:102: (test)
+
+.................
+Finished in 2.1 seconds (0.00s async, 2.1s sync)
+
+Result: 19/20 passed
+Failed: 1 test

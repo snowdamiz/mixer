@@ -8,7 +8,9 @@ the first pushed Phoenix run executes 615 passing methods but fails discovery
 warnings. The four-path classification repair passes eight isolated Mix checks;
 its next CI run stops earlier in storage setup. That fixture repair now passes
 24 PostgreSQL 16 methods. Pure runtime constructors pass 30 producer and 25
-independent methods with root acceptance. Fresh repaired CI remains pending.
+independent methods with root acceptance. Pushed `4b458d6b` passes all Phoenix
+CI steps, including storage/migrations and the broader hosted suite (645 passed,
+two existing skips).
 Native runtime and capture remain paused.
 All eighteen work packages remain in scope:
 sixteen are in progress and two are marked ready. No launch gate is verified;
@@ -278,12 +280,26 @@ methods, zero failures/skips/exclusions. Root audited 51 source/dependency and
 separate all four roles, derive the fixed two-connection pool and disclose no
 secrets. This proves neither live startup provenance nor secure external custody.
 The existing URI HTTPS registry read is narrowly documented; drift fails closed.
-Independent function/type catalog review and the full relation/policy/grant matrix
-remain underway; all forty runtime adversity cases remain pending. See
+Function/type catalog checks now pass 26 producer methods on PostgreSQL 17.11
+and 20 independent methods on PostgreSQL 16.15. Root audited 14 source, 803
+dependency and 49 output bindings and cleanup; selected warnings-as-errors
+compilation passes. This is only `:function_surface_verified`: tests explicitly
+show that missing relation/policy/grant admission remains a separate requirement.
+No consumer, pool, Store or readiness wiring exists. The full relation matrix and
+a pure activation-preparation decoder are underway; all forty runtime adversity
+cases remain pending. See [catalog review](docs/hosted-browser-catalog-surface-review.md),
 [contract review](docs/hosted-browser-lifecycle-runtime-contract-review.md) and
 [constructor acceptance](verification/hosted-browser-runtime-constructor-review/root-acceptance.json).
 
 ## Delivery and pending qualification
+
+The reviewed constructor slice and storage-fixture repair are pushed as
+`4b458d6b`; all 490 explicit staged paths and remote main were verified. Phoenix
+`40214597512` passes all workflow steps, including browser storage/migration
+checks and the broader hosted suite: 645 methods pass and two existing methods
+remain skipped. Engine `40214597602` is running. The separate catalog source and
+current decoder/relation lanes were excluded. See
+[delivery](verification/github-delivery-browser-runtime-constructors/receipt.json).
 
 The discovery repair and reviewed runtime contract are pushed as `4492bbc7`;
 remote main matches. Phoenix `40212854925` failed in storage fixture setup: the
@@ -294,8 +310,8 @@ cause remains unproven. A paired plan exposes 455 JIT functions: 133.830 ms with
 JIT versus 0.279 ms with transaction-local JIT disabled. The narrow raw-directory
 fixture alignment now passes 24 PostgreSQL 16 methods with unchanged deadlines,
 commit/SQL-error rollback restoration and owned-container cleanup. Root accepts
-that fixture repair; fresh exact-push CI is pending. Engine `40212854904` is
-running. Constructor/catalog implementations were excluded from that push. See
+that fixture repair. Engine `40212854904` passes all three jobs. Constructor/catalog
+implementations were excluded from that push. See
 [fixture evidence](docs/hosted-browser-storage-ci-fixture.md) and
 [delivery](verification/github-delivery-browser-discovery/receipt.json).
 
